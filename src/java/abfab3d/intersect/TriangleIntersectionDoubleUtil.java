@@ -1,16 +1,15 @@
 /*****************************************************************************
- *                        Copyright Shapeways BV (c) 2005 - 2007
+ *                        Shapeways, Inc Copyright (c) 2011
  *                               Java Source
  *
- * All rights reserved.
+ * This source is licensed under the GNU LGPL v2.1
+ * Please read http://www.gnu.org/copyleft/lgpl.html for more information
  *
- *
- * Copied from udesign archive.  Pretty certain Eric copied this code
- * from other published papers.  Alan added specific axis optimizations.
- *
- *
+ * This software comes with the standard NO WARRANTY disclaimer for any
+ * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
+
 package abfab3d.intersect;
 
 // external imports
@@ -21,30 +20,29 @@ import javax.vecmath.Point3d;
 // none
 
 /**
-* TriangleIntersectionUtil has a number of methods for determining
-* if a triangle intersects other objects.  It is distinguished from
-* other intersection classes because it avoids the use of javax.vecmath.
-*
-* This class is a double version of TriangleIntersectionUtil.  Update
-* both classes when bugs are fixed.
-*
-* One method uses the separating axis theorem to determine
-* if a triangle defined in three-dimensional space intersects with a box.
-*
-* Another method determines triangle-cube intersections.
-*
-* Another method determines ray-triangle intersections.
-*
-* Method zAxisRayTriangleVoxel needs one final extension: code should be added
-* to make sure that the intersection point of a triangle is properly contained
-* by the given voxel.  Note, however, that this code should not be added until
-* the 'do not check triangles more than once' code is added to class
-* WallThickness.java.  The change should not be difficult; class OctreeNode
-* already has a "containsPoint()" method.
-*
-* @author Eric Fickenscher
-* @version $Revision: 1.4 $ 4/10/2008
-*/
+ * TriangleIntersectionUtil has a number of methods for determining
+ * if a triangle intersects other objects.
+ *
+ * This class is a double version of TriangleIntersectionUtil.  Update
+ * both classes when bugs are fixed.
+ *
+ * One method uses the separating axis theorem to determine
+ * if a triangle defined in three-dimensional space intersects with a box.
+ *
+ * Another method determines triangle-cube intersections.
+ *
+ * Another method determines ray-triangle intersections.
+ *
+ * Method zAxisRayTriangleVoxel needs one final extension: code should be added
+ * to make sure that the intersection point of a triangle is properly contained
+ * by the given voxel.  Note, however, that this code should not be added until
+ * the 'do not check triangles more than once' code is added to class
+ * WallThickness.java.  The change should not be difficult; class OctreeNode
+ * already has a "containsPoint()" method.
+ *
+ * @author Alan Hudson
+ */
+
 public class TriangleIntersectionDoubleUtil{
 
     /** Resolution, smallest voxel size */

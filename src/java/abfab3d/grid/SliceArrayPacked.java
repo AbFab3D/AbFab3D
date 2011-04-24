@@ -22,7 +22,7 @@ import java.io.*;
  *   0 = empty
  *   1 = exterior
  *   2 = interior
- *   3 = unused
+ *   3 = visited
  *
  * Colored States are:
  *   0 = empty

@@ -5,7 +5,7 @@
   
     <description></description>
 
-    <property name="version" value="1.0.0" />    
+    <property name="version" value="0.5.0" />    
     <property name="src.dir" value="${basedir}/src"/>
     <property name="apps.dir" value="${basedir}/apps"/>
     <property name="release.dir" value="${basedir}/release"/>
@@ -74,13 +74,13 @@
     </target>
   
     <target name="jar" depends="compile">
-        <createjar name="abfab3d" 
-            manifest="abfab3d.mf" 
+        <createjar name="abfab3d_core" 
             version="${version}"
-            includes="emerson/closetmaid/rules/definitions/*
-                emerson/closetmaid/rules/engines/*
-                emerson/closetmaid/rules/interpreters/*
-                emerson/closetmaid/*"
+            manifest="abfab3d_core.mf"
+            includes="abfab3d/geom/*
+                abfab3d/grid/*
+                abfab3d/intersect/*
+                "
         />
     </target>
     
