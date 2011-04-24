@@ -17,8 +17,6 @@ import java.util.*;
 import java.io.*;
 import org.web3d.vrml.sav.ContentHandler;
 import org.j3d.geom.*;
-import toxi.geom.Vec3D;
-import toxi.math.MathUtils;
 import org.web3d.util.spatial.Triangle;
 import javax.vecmath.*;
 
@@ -105,11 +103,9 @@ public class TriangleModelCreator extends GeometryCreator {
         minCoords = new int[3];
         maxCoords = new int[3];
 
-/*
         if (geom.geometryType != GeometryData.TRIANGLES) {
-            throw IllegalArgumentException("Unsupported geometryType: " + geom.geometryType);
+            throw new IllegalArgumentException("Unsupported geometryType: " + geom.geometryType);
         }
-*/
     }
 
     /**
@@ -283,9 +279,9 @@ System.out.flush();
 
                     grid.getWorldCoords(i,j,k,vcoords);
 
-                    Vec3D v0 = new Vec3D(tri.coords[0], tri.coords[1], tri.coords[2]);
-                    Vec3D v1 = new Vec3D(tri.coords[3], tri.coords[4], tri.coords[5]);
-                    Vec3D v2 = new Vec3D(tri.coords[6], tri.coords[7], tri.coords[8]);
+                    Vector3d v0 = new Vector3d(tri.coords[0], tri.coords[1], tri.coords[2]);
+                    Vector3d v1 = new Vector3d(tri.coords[3], tri.coords[4], tri.coords[5]);
+                    Vector3d v2 = new Vector3d(tri.coords[6], tri.coords[7], tri.coords[8]);
 
                     if (intersectsTriangle(v0,v1,v2, vcoords)) {
                         grid.setData(i,j,k,Grid.EXTERIOR,material);
@@ -309,7 +305,7 @@ System.out.flush();
      * @param tri The triangle
      * @param pos The voxel center position
      */
-    public boolean intersectsTriangle(Vec3D a, Vec3D b, Vec3D c, double[] pos) {
+    public boolean intersectsTriangle(Vector3d a, Vector3d b, Vector3d c, double[] pos) {
         // use separating axis theorem to test overlap between triangle and box
         // need to test for overlap in these directions:
         //
@@ -319,62 +315,69 @@ System.out.flush();
         // 2) normal of the triangle
         // 3) crossproduct(edge from tri, {x,y,z}-directin)
         // this gives 3x3=9 more tests
-        Vec3D v0, v1, v2;
-        Vec3D normal, e0, e1, e2, f;
+        Vector3d v0 = new Vector3d();
+        Vector3d v1 = new Vector3d();
+        Vector3d v2 = new Vector3d();
+        Vector3d normal = new Vector3d();
+        Vector3d e0 = new Vector3d();
+        Vector3d e1 = new Vector3d();
+        Vector3d e2 = new Vector3d();
+        Vector3d f = new Vector3d();
 
         // move everything so that the boxcenter is in (0,0,0)
-        v0 = a.sub((float)pos[0],(float)pos[1],(float)pos[2]);
-        v1 = b.sub((float)pos[0],(float)pos[1],(float)pos[2]);
-        v2 = c.sub((float)pos[0],(float)pos[1],(float)pos[2]);
+        Vector3d vpos = new Vector3d(pos[0],pos[1],pos[2]);
+        v0.sub(a,vpos);
+        v1.sub(b,vpos);
+        v2.sub(c,vpos);
 
         // compute triangle edges
-        e0 = v1.sub(v0);
+        e0.sub(v1,v0);
 
 // TODO: Need to change y values to hHeight
 
         // test the 9 tests first (this was faster)
-        f = e0.getAbs();
-        if (testAxis(e0.z, -e0.y, f.z, f.y, v0.y, v0.z, v2.y, v2.z, (float) halfVoxel,
-                (float) halfVoxel)) {
+        f.absolute(e0);
+        if (testAxis(e0.z, -e0.y, f.z, f.y, v0.y, v0.z, v2.y, v2.z, halfVoxel,
+                 halfVoxel)) {
             return false;
         }
-        if (testAxis(-e0.z, e0.x, f.z, f.x, v0.x, v0.z, v2.x, v2.z, (float) halfVoxel,
-                (float) halfVoxel)) {
+        if (testAxis(-e0.z, e0.x, f.z, f.x, v0.x, v0.z, v2.x, v2.z,  halfVoxel,
+                 halfVoxel)) {
             return false;
         }
-        if (testAxis(e0.y, -e0.x, f.y, f.x, v1.x, v1.y, v2.x, v2.y, (float) halfVoxel,
-                (float) halfVoxel)) {
-            return false;
-        }
-
-        e1 = v2.sub(v1);
-        f = e1.getAbs();
-        if (testAxis(e1.z, -e1.y, f.z, f.y, v0.y, v0.z, v2.y, v2.z, (float) halfVoxel,
-                (float) halfVoxel)) {
-            return false;
-        }
-        if (testAxis(-e1.z, e1.x, f.z, f.x, v0.x, v0.z, v2.x, v2.z, (float) halfVoxel,
-                (float) halfVoxel)) {
-            return false;
-        }
-        if (testAxis(e1.y, -e1.x, f.y, f.x, v0.x, v0.y, v1.x, v1.y, (float) halfVoxel,
-                (float) halfVoxel)) {
+        if (testAxis(e0.y, -e0.x, f.y, f.x, v1.x, v1.y, v2.x, v2.y,  halfVoxel,
+                 halfVoxel)) {
             return false;
         }
 
-        e2 = v0.sub(v2);
-        f = e2.getAbs();
+        e1.sub(v2,v1);
+        f.absolute(e1);
+        if (testAxis(e1.z, -e1.y, f.z, f.y, v0.y, v0.z, v2.y, v2.z,  halfVoxel,
+                 halfVoxel)) {
+            return false;
+        }
+        if (testAxis(-e1.z, e1.x, f.z, f.x, v0.x, v0.z, v2.x, v2.z,  halfVoxel,
+                 halfVoxel)) {
+            return false;
+        }
+        if (testAxis(e1.y, -e1.x, f.y, f.x, v0.x, v0.y, v1.x, v1.y,  halfVoxel,
+                 halfVoxel)) {
+            return false;
+        }
 
-        if (testAxis(e2.z, -e2.y, f.z, f.y, v0.y, v0.z, v1.y, v1.z, (float) halfVoxel,
-                (float) halfVoxel)) {
+        e2.sub(v0,v2);
+        f.absolute(e2);
+
+        if (testAxis(e2.z, -e2.y, f.z, f.y, v0.y, v0.z, v1.y, v1.z,  halfVoxel,
+                 halfVoxel)) {
             return false;
         }
-        if (testAxis(-e2.z, e2.x, f.z, f.x, v0.x, v0.z, v1.x, v1.z, (float) halfVoxel,
-                (float) halfVoxel)) {
+        if (testAxis(-e2.z, e2.x, f.z, f.x, v0.x, v0.z, v1.x, v1.z,  halfVoxel,
+                 halfVoxel)) {
             return false;
         }
-        if (testAxis(e2.y, -e2.x, f.y, f.x, v1.x, v1.y, v2.x, v2.y, (float) halfVoxel,
-                (float) halfVoxel)) {
+        if (testAxis(e2.y, -e2.x, f.y, f.x, v1.x, v1.y, v2.x, v2.y,  halfVoxel,
+                 halfVoxel)) {
             return false;
         }
 
@@ -384,28 +387,28 @@ System.out.flush();
         // the triangle against the AABB
 
         // test in X-direction
-        if (MathUtils.min(v0.x, v1.x, v2.x) > halfVoxel
-                || MathUtils.max(v0.x, v1.x, v2.x) < -halfVoxel) {
+        if (min(v0.x, v1.x, v2.x) > halfVoxel
+                || max(v0.x, v1.x, v2.x) < -halfVoxel) {
             return false;
         }
 
         // test in Y-direction
-        if (MathUtils.min(v0.y, v1.y, v2.y) > halfVoxel
-                || MathUtils.max(v0.y, v1.y, v2.y) < -halfVoxel) {
+        if (min(v0.y, v1.y, v2.y) > halfVoxel
+                || max(v0.y, v1.y, v2.y) < -halfVoxel) {
             return false;
         }
 
         // test in Z-direction
-        if (MathUtils.min(v0.z, v1.z, v2.z) > halfVoxel
-                || MathUtils.max(v0.z, v1.z, v2.z) < -halfVoxel) {
+        if (min(v0.z, v1.z, v2.z) > halfVoxel
+                || max(v0.z, v1.z, v2.z) < -halfVoxel) {
             return false;
         }
 
         // test if the box intersects the plane of the triangle
         // compute plane equation of triangle: normal*x+d=0
-        normal = e0.cross(e1);
-        float d = -normal.dot(v0);
-        if (!planeBoxOverlap(normal, d, (float) halfVoxel)) {
+        normal.cross(e0,e1);
+        double d = -normal.dot(v0);
+        if (!planeBoxOverlap(normal, d,  halfVoxel)) {
             return false;
         }
 
@@ -419,11 +422,11 @@ System.out.flush();
      * @param d Distance
      * @param hv Half voxel size
      */
-    private boolean planeBoxOverlap(Vec3D normal, float d, float hv) {
+    private boolean planeBoxOverlap(Vector3d normal, double d, double hv) {
 
 // TODO: Need to change to include sheight
-        Vec3D vmin = new Vec3D();
-        Vec3D vmax = new Vec3D();
+        Vector3d vmin = new Vector3d();
+        Vector3d vmax = new Vector3d();
 
         if (normal.x > 0.0f) {
             vmin.x = -hv;
@@ -460,11 +463,12 @@ System.out.flush();
     /**
      * Test and axis intersection.
      */
-    private boolean testAxis(float a, float b, float fa, float fb, float va,
-            float vb, float wa, float wb, float ea, float eb) {
-        float p0 = a * va + b * vb;
-        float p2 = a * wa + b * wb;
-        float min, max;
+    private boolean testAxis(double a, double b, double fa, double fb, double va,
+            double vb, double wa, double wb, double ea, double eb) {
+
+        double p0 = a * va + b * vb;
+        double p2 = a * wa + b * wb;
+        double min, max;
         if (p0 < p2) {
             min = p0;
             max = p2;
@@ -472,9 +476,34 @@ System.out.flush();
             min = p2;
             max = p0;
         }
-        float rad = fa * ea + fb * eb;
+        double rad = fa * ea + fb * eb;
+
         return (min > rad || max < -rad);
     }
 
+    /**
+     * Calculate the minimum of 3 values.
+     *
+     * @param a Value 1
+     * @param b Value 2
+     * @param c Value 3
+     *
+     * @return The min value
+     */
+    private double min(double a, double b, double c) {
+        return (a < b) ? ((a < c) ? a : c) : ((b < c) ? b : c);
+    }
 
+    /**
+     * Calculate the maximum of 3 values.
+     *
+     * @param a Value 1
+     * @param b Value 2
+     * @param c Value 3
+     *
+     * @return The min value
+     */
+    public double max(double a, double b, double c) {
+        return (a > b) ? ((a > c) ? a : c) : ((b > c) ? b : c);
+    }
 }
