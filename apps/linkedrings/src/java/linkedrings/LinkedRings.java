@@ -39,11 +39,11 @@ import abfab3d.grid.*;
  */
 public class LinkedRings {
     /** Horiztonal resolution of the printer in meters.  */
-    public static final double HORIZ_RESOLUTION = 0.0002;
+    public static final double HORIZ_RESOLUTION = 0.00005;
 //    public static final double HORIZ_RESOLUTION = 142e-6;   // 42 microns
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.0002;
+    public static final double VERT_RESOLUTION = 0.00005;
 //    public static final double VERT_RESOLUTION = 116e-6;   // 16 microns
 
     public void generate(String filename) {
@@ -51,10 +51,11 @@ public class LinkedRings {
             FileOutputStream fos = new FileOutputStream(filename);
             ErrorReporter console = new PlainTextErrorReporter();
 
+//            int method = X3DBinarySerializer.METHOD_SMALLEST_NONLOSSY;
+            int method = X3DBinarySerializer.METHOD_FASTEST_PARSING;
+
             X3DBinaryRetainedDirectExporter writer = new X3DBinaryRetainedDirectExporter(fos,
-                                                         3, 0, console,
-                                                         X3DBinarySerializer.METHOD_SMALLEST_NONLOSSY,
-                                                         0.001f);
+                                                         3, 0, console,method, 0.001f);
 
             long stime = System.currentTimeMillis();
             float ir = 0.001f;
@@ -123,8 +124,15 @@ public class LinkedRings {
             writer.fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
             writer.endNode(); // Viewpoint
 
+            System.out.println("Writing x3d");
+            stime = System.currentTimeMillis();
+
             grid.toX3D(writer, null);
+            System.out.println("GenX3D time: " + (System.currentTimeMillis() - stime));
+            System.out.println("End doc");
+            stime = System.currentTimeMillis();
             writer.endDocument();
+            System.out.println("EndDoc time: " + (System.currentTimeMillis() - stime));
 
             fos.close();
         } catch(IOException ioe) {

@@ -86,13 +86,20 @@ public class Subtract implements Operation, ClassTraverser {
         byte astate = gridA.getState(x,y,z);
 
         if (bstate == Grid.EXTERIOR) {
+//System.out.println("found EXT: " + x + " " + y + " a: " + astate);
             if (astate == Grid.INTERIOR) {
                 gridA.setData(x,y,z,Grid.EXTERIOR, material);
+            } else if (astate == Grid.EXTERIOR) {
+                // TODO: not so sure about this
+                gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
             }
         } else {
             // must be interior
+//System.out.println("found INT: " + x + " " + y);
 
             if (astate == Grid.INTERIOR) {
+                gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
+            } else if (astate == Grid.EXTERIOR) {
                 gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
             }
         }

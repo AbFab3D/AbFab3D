@@ -38,7 +38,7 @@ import org.web3d.vrml.sav.BinaryContentHandler;
  */
 public class SliceGrid implements Grid {
     /** The maximum coords to put in a shape */
-    private static final int MAX_COORDS_SHAPE = 100000;
+    private static final int MAX_TRIANGLES_SHAPE = 300000;
 
     protected int width;
     protected int height;
@@ -564,7 +564,8 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
             lastSlice = thisSlice;
             thisSlice = new ArrayList<Coordinate>();
 
-            if (totalCoords.size() >= MAX_COORDS_SHAPE) {
+            if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
+System.out.println("Coords: " + totalCoords.size() + " indices: " + indices.size());
                 ejectShape(stream, totalCoords, indices, color, transparency);
                 coords.clear();
                 indices.clear();
@@ -801,7 +802,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
             lastSlice = thisSlice;
             thisSlice = new ArrayList<Coordinate>();
 
-            if (totalCoords.size() >= MAX_COORDS_SHAPE) {
+            if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
                 ejectShape(stream, totalCoords, indices, color, transparency);
                 coords.clear();
                 indices.clear();
