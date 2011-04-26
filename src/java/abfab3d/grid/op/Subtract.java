@@ -14,6 +14,9 @@ package abfab3d.grid.op;
 
 // External Imports
 
+// Internal Imports
+import abfab3d.grid.*;
+
 /**
  * Subtraction operation.
  *
@@ -39,6 +42,9 @@ public class Subtract implements Operation, ClassTraverser {
     /** The material for new exterior voxels */
     private byte material;
 
+    /** The grid used for A */
+    private Grid gridA;
+
     public Subtract(Grid b, double x, double y, double z, byte material) {
         gridB = b;
         this.x = x;
@@ -58,11 +64,11 @@ public class Subtract implements Operation, ClassTraverser {
         int width = grid.getWidth();
         int depth = grid.getDepth();
         int height = grid.getHeight();
-
+        gridA = grid;
 
         // TODO: Make sure the grids are the same size
 
-        gridB.find(grid.VoxelClass.MARKED);
+        gridB.find(Grid.VoxelClasses.MARKED, this);
 
         return grid;
     }
@@ -77,17 +83,17 @@ public class Subtract implements Operation, ClassTraverser {
      */
     public void found(int x, int y, int z, VoxelData vd) {
         byte bstate = vd.getState();
-        byte astate = grid.getState(x,y,z);
+        byte astate = gridA.getState(x,y,z);
 
         if (bstate == Grid.EXTERIOR) {
             if (astate == Grid.INTERIOR) {
-                grid.setData(Grid.EXTERIOR, material);
+                gridA.setData(x,y,z,Grid.EXTERIOR, material);
             }
         } else {
             // must be interior
 
             if (astate == Grid.INTERIOR) {
-                grid.setData(Grid.OUTSIDE, 0);
+                gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
             }
         }
     }

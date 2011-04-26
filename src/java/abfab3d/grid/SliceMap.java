@@ -24,6 +24,9 @@ import java.io.*;
  * @author Alan Hudson
  */
 public class SliceMap implements Slice {
+    /** Should we range check grid coord values */
+    private static final boolean VERIFY_RANGE = true;
+
     /** The number of pixels in the x/width direction */
     protected int width;
 
@@ -48,6 +51,8 @@ public class SliceMap implements Slice {
      * @return The data value
      */
     public VoxelData getData(int x, int z) {
+        verifyRange(x,z);
+
         byte state = Grid.OUTSIDE;
         byte mat = Grid.OUTSIDE;
 
@@ -71,6 +76,8 @@ public class SliceMap implements Slice {
      * @param z The z value
      */
     public byte getState(int x, int z) {
+        verifyRange(x,z);
+
         byte ret_val = Grid.OUTSIDE;
 
         SliceCoordinate coord = new SliceCoordinate(x,z);
@@ -89,6 +96,8 @@ public class SliceMap implements Slice {
      * @param z The z value
      */
     public byte getMaterial(int x, int z) {
+        verifyRange(x,z);
+
         byte ret_val = Grid.OUTSIDE;
 
         SliceCoordinate coord = new SliceCoordinate(x,z);
@@ -107,15 +116,34 @@ public class SliceMap implements Slice {
      * @param z The z value
      */
     public void setData(int x, int z, byte state, byte material) {
+        verifyRange(x,z);
+
+        SliceCoordinate sc = new SliceCoordinate(x,z);
+
+        if (state == Grid.OUTSIDE) {
+            // Optimize for sparse arrays
+            // TODO: Should this be configurable?
+
+            data.remove(sc);
+            return;
+        }
+
         data.put(new SliceCoordinate(x,z), new Byte((byte) (0xFF & (state << 6 | material))));
     }
 
     public String toStringSlice() {
         StringBuilder sb = new StringBuilder();
+        Byte val;
 
         for(int i=0; i < depth; i++) {
             for(int j=0; j < width; j++) {
-                sb.append(data.get(new SliceCoordinate(i,j)));
+                val = data.get(new SliceCoordinate(i,j));
+
+                if (val == null) {
+                    sb.append("0");
+                } else {
+                    sb.append(val);
+                }
                 sb.append(" ");
             }
 
@@ -131,6 +159,26 @@ public class SliceMap implements Slice {
 
     public int getDepth() {
         return depth;
+    }
+
+    /**
+     * Range check grid coord values.  If outside range then throw
+     * an IllegalArgumentException.
+     *
+     * @param x The x value
+     * @param z The z value
+     */
+    private void verifyRange(int x, int z) {
+        if (!VERIFY_RANGE)
+            return;
+
+        if (x < 0 || x > width - 1) {
+            throw new IllegalArgumentException("x value invalid: " + x);
+        }
+
+        if (z < 0 || z > depth - 1) {
+            throw new IllegalArgumentException("z value invalid: " + z);
+        }
     }
 }
 

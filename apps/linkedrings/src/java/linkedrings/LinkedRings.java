@@ -39,11 +39,11 @@ import abfab3d.grid.*;
  */
 public class LinkedRings {
     /** Horiztonal resolution of the printer in meters.  */
-    public static final double HORIZ_RESOLUTION = 0.0001;
+    public static final double HORIZ_RESOLUTION = 0.0002;
 //    public static final double HORIZ_RESOLUTION = 142e-6;   // 42 microns
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.0001;
+    public static final double VERT_RESOLUTION = 0.0002;
 //    public static final double VERT_RESOLUTION = 116e-6;   // 16 microns
 
     public void generate(String filename) {

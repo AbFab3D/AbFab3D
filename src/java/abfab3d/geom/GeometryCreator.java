@@ -44,4 +44,7 @@ public abstract class GeometryCreator {
      * @param handler The stream to issue commands
      */
     public abstract void generate(Grid grid);
+
+    // TODO: Might want a generate that tests for overlaping voxels to
+    // help in debugging.
 }

@@ -14,6 +14,10 @@ package abfab3d.grid.op;
 
 // External Imports
 
+
+// Internal Imports
+import abfab3d.grid.*;
+
 /**
  * A cutting plane tool for grids.  All voxels above the plane will be
  * set to EMPTY.

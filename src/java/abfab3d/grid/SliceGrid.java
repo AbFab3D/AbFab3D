@@ -195,6 +195,61 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */
+    public int findCount(VoxelClasses vc) {
+        int ret_val = 0;
+
+        for(int y=0; y < height; y++) {
+            Slice slice = data[y];
+
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = slice.getData(x,z);
+
+                    byte state;
+
+                    switch(vc) {
+                        case ALL:
+                            ret_val++;
+                            break;
+                        case MARKED:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                ret_val++;
+                            }
+                            break;
+                        case EXTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR) {
+                                ret_val++;
+                            }
+                            break;
+                        case INTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.INTERIOR) {
+                                ret_val++;
+                            }
+                            break;
+                        case OUTSIDE:
+                            state = vd.getState();
+                            if (state == Grid.OUTSIDE) {
+                                ret_val++;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        return ret_val;
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
     public void find(VoxelClasses vc, ClassTraverser t) {
         for(int y=0; y < height; y++) {
             Slice slice = data[y];
@@ -223,7 +278,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
                             break;
                         case INTERIOR:
                             state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
+                            if (state == Grid.INTERIOR) {
                                 t.found(x,y,z,vd);
                             }
                             break;
@@ -299,7 +354,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
      */
     public void getWorldCoords(int x, int y, int z, double[] coords) {
         coords[0] = x * pixelSize + hpixelSize;
-        coords[1] = y * sheight + sheight;
+        coords[1] = y * sheight + hsheight;
         coords[2] = z * pixelSize + hpixelSize;
     }
 
@@ -338,6 +393,8 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
 
         double x,y,z;
         int idx = 0;
+        float[] color = new float[] {1,1,1};
+        float transparency = 1;
 
         for(int i=0; i < height; i++) {
             y = i * sheight;
@@ -357,6 +414,8 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
 
                     if (state == Grid.OUTSIDE)
                         continue;
+
+
 
 // TODO: Need to map material
 
@@ -506,7 +565,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
             thisSlice = new ArrayList<Coordinate>();
 
             if (totalCoords.size() >= MAX_COORDS_SHAPE) {
-                ejectShape(stream, totalCoords, indices);
+                ejectShape(stream, totalCoords, indices, color, transparency);
                 coords.clear();
                 indices.clear();
                 lastSlice.clear();
@@ -515,7 +574,244 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
             }
         }
 
-        ejectShape(stream, totalCoords, indices);
+        ejectShape(stream, totalCoords, indices, color, transparency);
+    }
+
+    /**
+     * Create an X3D file from the grid.  This should be an exact
+     * repsentation of the grid values.
+     *
+     * @param stream The stream to write too
+     * @param colors Maps materialID's to colors
+     */
+    public void toX3DDebug(BinaryContentHandler stream, Map<Byte, float[]> colors, Map<Byte, Float> transparency) {
+        float[] color = colors.get(Grid.OUTSIDE);
+        Float transF = transparency.get(Grid.OUTSIDE);
+        float trans = 1;
+
+        if (color != null) {
+            if (transF != null) {
+                trans = transF;
+            }
+            outputState(stream, Grid.OUTSIDE, color, trans);
+        }
+
+        color = colors.get(Grid.EXTERIOR);
+        transF = transparency.get(Grid.EXTERIOR);
+        trans = 1;
+
+        if (color != null) {
+            if (transF != null) {
+                trans = transF;
+            }
+            outputState(stream, Grid.EXTERIOR, color, trans);
+        }
+
+        color = colors.get(Grid.INTERIOR);
+        transF = transparency.get(Grid.INTERIOR);
+        trans = 1;
+
+        if (color != null) {
+            if (transF != null) {
+                trans = transF;
+            }
+            outputState(stream, Grid.INTERIOR, color, trans);
+        }
+
+    }
+
+    private void outputState(BinaryContentHandler stream, byte display, float[] color, float transparency) {
+        HashMap<Coordinate,Integer> coords = new HashMap<Coordinate,Integer>();
+        ArrayList<Integer> indices = new ArrayList<Integer>();
+        ArrayList<Coordinate> lastSlice = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> thisSlice = new ArrayList<Coordinate>();
+        ArrayList<Coordinate> totalCoords = new ArrayList<Coordinate>();
+
+        // TODO: We might want to use a form of run length encoding to
+        // reduce the number of boxes
+
+        double x,y,z;
+        int idx = 0;
+
+        for(int i=0; i < height; i++) {
+            y = i * sheight;
+
+            Slice s = data[i];
+
+            int width = s.getWidth();
+            int depth = s.getDepth();
+
+            for(int j=0; j < width; j++) {
+                x = j * pixelSize;
+
+                for(int k=0; k < depth; k++) {
+                    z = k * pixelSize;
+
+                    byte state = s.getState(j,k);
+
+                    if (state != display)
+                        continue;
+
+
+
+// TODO: Need to map material
+
+//System.out.println("Live one: coord: " + j + " " + i + " " + k);
+//System.out.println("   coord(wc): " + x + " " + y + " " + z);
+                    Coordinate ubl_coord = new Coordinate((float)(x - hpixelSize),
+                        (float)(y + hsheight),(float)(z - hpixelSize));
+                    Integer ubl_pos = coords.get(ubl_coord);
+                    if (ubl_pos == null) {
+//System.out.println("ubl added: " + idx);
+                        ubl_pos = new Integer(idx++);
+                        coords.put(ubl_coord, ubl_pos);
+                        thisSlice.add(ubl_coord);
+                    }
+
+                    Coordinate ubr_coord = new Coordinate((float)(x + hpixelSize),
+                        (float)(y + hsheight),(float)(z - hpixelSize));
+                    Integer ubr_pos = coords.get(ubr_coord);
+                    if (ubr_pos == null) {
+//System.out.println("ubr added: " + idx);
+                        ubr_pos = new Integer(idx++);
+                        coords.put(ubr_coord, ubr_pos);
+                        thisSlice.add(ubr_coord);
+                    }
+
+
+                    Coordinate lbl_coord = new Coordinate((float)(x - hpixelSize),
+                        (float)(y - hsheight),(float)(z - hpixelSize));
+                    Integer lbl_pos = coords.get(lbl_coord);
+                    if (lbl_pos == null) {
+//System.out.println("lbl added: " + idx);
+                        lbl_pos = new Integer(idx++);
+                        coords.put(lbl_coord, lbl_pos);
+                        thisSlice.add(lbl_coord);
+                    }
+
+                    Coordinate lbr_coord = new Coordinate((float)(x + hpixelSize),
+                        (float)(y - hsheight),(float)(z - hpixelSize));
+                    Integer lbr_pos = coords.get(lbr_coord);
+                    if (lbr_pos == null) {
+//System.out.println("lbr added: " + idx);
+                        lbr_pos = new Integer(idx++);
+                        coords.put(lbr_coord, lbr_pos);
+                        thisSlice.add(lbr_coord);
+                    }
+
+                    Coordinate ufl_coord = new Coordinate((float)(x - hpixelSize),
+                        (float)(y + hsheight),(float)(z + hpixelSize));
+                    Integer ufl_pos = coords.get(ufl_coord);
+                    if (ufl_pos == null) {
+//System.out.println("ufl added: " + idx);
+                        ufl_pos = new Integer(idx++);
+                        coords.put(ufl_coord, ufl_pos);
+                        thisSlice.add(ufl_coord);
+                    }
+
+                    Coordinate ufr_coord = new Coordinate((float)(x + hpixelSize),
+                        (float)(y + hsheight),(float)(z + hpixelSize));
+                    Integer ufr_pos = coords.get(ufr_coord);
+                    if (ufr_pos == null) {
+//System.out.println("ufr added: " + idx);
+                        ufr_pos = new Integer(idx++);
+                        coords.put(ufr_coord, ufr_pos);
+                        thisSlice.add(ufr_coord);
+                    }
+
+                    Coordinate lfr_coord = new Coordinate((float)(x + hpixelSize),
+                        (float)(y - hsheight),(float)(z + hpixelSize));
+                    Integer lfr_pos = coords.get(lfr_coord);
+                    if (lfr_pos == null) {
+//System.out.println("lfr added: " + idx);
+                        lfr_pos = new Integer(idx++);
+                        coords.put(lfr_coord, lfr_pos);
+                        thisSlice.add(lfr_coord);
+                    }
+
+                    Coordinate lfl_coord = new Coordinate((float)(x - hpixelSize),
+                        (float)(y - hsheight),(float)(z + hpixelSize));
+                    Integer lfl_pos = coords.get(lfl_coord);
+                    if (lfl_pos == null) {
+//System.out.println("lfl added: " + idx);
+                        lfl_pos = new Integer(idx++);
+                        coords.put(lfl_coord, lfl_pos);
+                        thisSlice.add(lfl_coord);
+                    }
+
+
+                    // Create Box
+                    // Front Face
+                    indices.add(new Integer(lfr_pos));
+                    indices.add(new Integer(ufr_pos));
+                    indices.add(new Integer(ufl_pos));
+                    indices.add(new Integer(lfr_pos));
+                    indices.add(new Integer(ufl_pos));
+                    indices.add(new Integer(lfl_pos));
+
+                    // Back Face
+                    indices.add(new Integer(lbr_pos));
+                    indices.add(new Integer(ubl_pos));
+                    indices.add(new Integer(ubr_pos));
+                    indices.add(new Integer(lbr_pos));
+                    indices.add(new Integer(lbl_pos));
+                    indices.add(new Integer(ubl_pos));
+
+                    // Right Face
+                    indices.add(new Integer(lbr_pos));
+                    indices.add(new Integer(ubr_pos));
+                    indices.add(new Integer(ufr_pos));
+                    indices.add(new Integer(lbr_pos));
+                    indices.add(new Integer(ufr_pos));
+                    indices.add(new Integer(lfr_pos));
+
+                    // Left Face
+                    indices.add(new Integer(lbl_pos));
+                    indices.add(new Integer(ufl_pos));
+                    indices.add(new Integer(ubl_pos));
+                    indices.add(new Integer(lbl_pos));
+                    indices.add(new Integer(lfl_pos));
+                    indices.add(new Integer(ufl_pos));
+
+                    // Top Face
+                    indices.add(new Integer(ufr_pos));
+                    indices.add(new Integer(ubr_pos));
+                    indices.add(new Integer(ubl_pos));
+                    indices.add(new Integer(ufr_pos));
+                    indices.add(new Integer(ubl_pos));
+                    indices.add(new Integer(ufl_pos));
+
+                    // Bottom Face
+                    indices.add(new Integer(lfr_pos));
+                    indices.add(new Integer(lbl_pos));
+                    indices.add(new Integer(lbr_pos));
+                    indices.add(new Integer(lfr_pos));
+                    indices.add(new Integer(lfl_pos));
+                    indices.add(new Integer(lbl_pos));
+                }
+            }
+
+            // Remove n - 2 coordinates
+            Iterator<Coordinate> itr = lastSlice.iterator();
+            while(itr.hasNext()) {
+                coords.remove(itr.next());
+            }
+
+            totalCoords.addAll(thisSlice);
+            lastSlice = thisSlice;
+            thisSlice = new ArrayList<Coordinate>();
+
+            if (totalCoords.size() >= MAX_COORDS_SHAPE) {
+                ejectShape(stream, totalCoords, indices, color, transparency);
+                coords.clear();
+                indices.clear();
+                lastSlice.clear();
+                totalCoords.clear();
+                idx = 0;
+            }
+        }
+
+        ejectShape(stream, totalCoords, indices, color, transparency);
     }
 
     /**
@@ -526,9 +822,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
      * @param indices The indices to use
      */
     private void ejectShape(BinaryContentHandler stream, ArrayList<Coordinate> totalCoords,
-        ArrayList<Integer> indices) {
-
-System.out.println("Eject shape");
+        ArrayList<Integer> indices, float[] color, float transparency) {
 
         int idx = 0;
         float[] allCoords = new float[totalCoords.size() * 3];
@@ -554,6 +848,10 @@ System.out.println("Eject shape");
         stream.startNode("Appearance", null);
         stream.startField("material");
         stream.startNode("Material",null);
+        stream.startField("emissiveColor");
+        stream.fieldValue(color,3);
+        stream.startField("transparency");
+        stream.fieldValue(transparency);
         stream.endNode();  //  Material
         stream.endNode();  //  Appearance
         stream.startField("geometry");

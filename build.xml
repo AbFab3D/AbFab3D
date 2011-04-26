@@ -41,6 +41,9 @@
         <compilejava package="abfab3d/grid"
             jars=""
         />
+        <compilejava package="abfab3d/grid/op"
+            jars=""
+        />
         <compilejava package="abfab3d/geom"
             jars=""
         />

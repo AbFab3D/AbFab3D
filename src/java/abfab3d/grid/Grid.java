@@ -156,6 +156,15 @@ public interface Grid {
     public void find(VoxelClasses vc, ClassTraverser t);
 
     /**
+     * Count a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @return The number
+     */
+    public int findCount(VoxelClasses vc);
+
+    /**
      * Create an X3D file from the grid.  This should be an exact
      * repsentation of the grid values.
      *
@@ -163,6 +172,15 @@ public interface Grid {
      * @param colors Maps materialID's to colors
      */
     public void toX3D(BinaryContentHandler stream, Map<Byte, float[]> colors);
+
+    /**
+     * Create an X3D file from the grid.  This should be an exact
+     * repsentation of the grid states.
+     *
+     * @param stream The stream to write too
+     * @param colors Maps materialID's to colors
+     */
+    public void toX3DDebug(BinaryContentHandler stream, Map<Byte, float[]> colors, Map<Byte, Float> transparency);
 
     /**
      * Get the number of height cells.
