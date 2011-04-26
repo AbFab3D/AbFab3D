@@ -39,10 +39,10 @@ import abfab3d.grid.op.Subtract;
  * @author Alan Hudson
  */
 public class BooleanOps {
-    public static final double HORIZ_RESOLUTION = 0.007;
+    public static final double HORIZ_RESOLUTION = 0.001;
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.007;
+    public static final double VERT_RESOLUTION = 0.001;
 
     public void generate(String filename) {
         try {
@@ -137,7 +137,9 @@ try { Thread.sleep(50); } catch(Exception e) {}
             writer.fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
             writer.endNode(); // Viewpoint
 
-//            grid.toX3D(writer, null);
+/*
+            grid.toX3D(writer, null);
+*/
             HashMap<Byte, float[]> colors = new HashMap<Byte, float[]>();
             colors.put(Grid.INTERIOR, new float[] {0,1,0});
             colors.put(Grid.EXTERIOR, new float[] {1,0,0});
@@ -150,6 +152,7 @@ try { Thread.sleep(50); } catch(Exception e) {}
 
 
             grid.toX3DDebug(writer, colors, transparency);
+
             writer.endDocument();
 
             fos.close();

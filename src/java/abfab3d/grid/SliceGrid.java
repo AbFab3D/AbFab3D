@@ -393,8 +393,8 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
 
         double x,y,z;
         int idx = 0;
-        float[] color = new float[] {1,1,1};
-        float transparency = 1;
+        float[] color = new float[] {0.8f,0.8f,0.8f};
+        float transparency = 0;
 
         for(int i=0; i < height; i++) {
             y = i * sheight;
@@ -848,7 +848,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
         stream.startNode("Appearance", null);
         stream.startField("material");
         stream.startNode("Material",null);
-        stream.startField("emissiveColor");
+        stream.startField("diffuseColor");
         stream.fieldValue(color,3);
         stream.startField("transparency");
         stream.fieldValue(transparency);
