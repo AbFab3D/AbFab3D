@@ -26,6 +26,7 @@ import abfab3d.geom.*;
 import abfab3d.geom.CubeCreator.Style;
 import abfab3d.grid.*;
 import abfab3d.grid.op.Subtract;
+import abfab3d.grid.op.Downsample;
 
 
 /**
@@ -40,10 +41,10 @@ import abfab3d.grid.op.Subtract;
  * @author Alan Hudson
  */
 public class BooleanOps {
-    public static final double HORIZ_RESOLUTION = 0.0005;
+    public static final double HORIZ_RESOLUTION = 0.0003;
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.0005;
+    public static final double VERT_RESOLUTION = 0.0003;
 
     public void generate(String filename) {
         try {
@@ -65,7 +66,7 @@ public class BooleanOps {
             }
 
 
-            float bsize = 0.07f;
+            float bsize = 0.0254f;
             float overlap = 0.02f;
 
             BoxGenerator tg = new BoxGenerator(bsize,bsize,bsize);
@@ -78,7 +79,7 @@ public class BooleanOps {
 
 
             findGridParams(geom, HORIZ_RESOLUTION, VERT_RESOLUTION, trans, maxsize);
-            maxsize[1] += 2 * overlap;  // account for overlap of cylinder
+//            maxsize[1] += 2 * overlap;  // account for overlap of cylinder
 
             double x = trans[0];
             double y = trans[1];
@@ -99,8 +100,9 @@ public class BooleanOps {
 
             tmc.generate(grid);
 
+
             double height = bsize;
-            double radius = 0.03;
+            double radius = bsize / 2.5f;
             int facets = 64;
 
             CylinderGenerator cg = new CylinderGenerator((float)height, (float)radius, facets);
@@ -137,6 +139,51 @@ public class BooleanOps {
             Subtract op = new Subtract(grid2, 0, 0, 0, (byte) 1);
             op.execute(grid);
 
+
+            rx = 1;
+            ry = 0;
+            rz = 0;
+            rangle = 1.57075;
+
+            grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
+                HORIZ_RESOLUTION, VERT_RESOLUTION, false);
+
+            tmc = new TriangleModelCreator(geom,x,y,z,
+                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+
+            tmc.generate(grid2);
+
+            op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+            op.execute(grid);
+
+            rx = 0;
+            ry = 0;
+            rz = 1;
+            rangle = 1.57075;
+
+            grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
+                HORIZ_RESOLUTION, VERT_RESOLUTION, false);
+
+            tmc = new TriangleModelCreator(geom,x,y,z,
+                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+
+            tmc.generate(grid2);
+
+            op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+            op.execute(grid);
+
+
+
+/*
+            int width = grid.getWidth();
+            while(width > 128) {
+                Downsample ds = new Downsample();
+                grid = ds.execute(grid);
+
+                width = grid.getWidth();
+            }
+*/
+
             writer.startDocument("","", "utf8", "#X3D", "V3.0", "");
             writer.profileDecl("Immersive");
             writer.startNode("NavigationInfo", null);
@@ -151,8 +198,8 @@ public class BooleanOps {
             writer.endNode(); // Viewpoint
 
 
-            grid.toX3D((BinaryContentHandler)writer, null);
-/*
+//            grid.toX3D((BinaryContentHandler)writer, null);
+
             HashMap<Byte, float[]> colors = new HashMap<Byte, float[]>();
             colors.put(Grid.INTERIOR, new float[] {0,1,0});
             colors.put(Grid.EXTERIOR, new float[] {1,0,0});
@@ -163,8 +210,8 @@ public class BooleanOps {
             transparency.put(Grid.EXTERIOR, new Float(0.5));
             transparency.put(Grid.OUTSIDE, new Float(0.98));
 
-            grid.toX3DDebug(writer, colors, transparency);
-*/
+            grid.toX3DDebug((BinaryContentHandler)writer, colors, transparency);
+
             writer.endDocument();
 
             fos.close();

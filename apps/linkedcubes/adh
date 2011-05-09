@@ -1,0 +1,233 @@
+Buildfile: C:\cygwin\home\giles\projs\abfab3d\code\AbFab3D\apps\linkedcubes\build.xml
+
+init:
+
+compile:
+     [echo] Compiling linkedcubes
+
+run:
+     [echo] jvmargs: -Xmx768m
+     [java] width: 80 h: 80 d: 80
+     [java] front style: TOP_ROW
+     [java] Front
+     [java] ul: 0.0060 0.014 0.009000000000000001
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.0060 0.0060 0.009000000000000001
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] Top Row: 8
+     [java] ul: 0.0060 0.014 0.009000000000000001
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.0060 0.0060 0.009000000000000001
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] Bottom Row
+     [java] Bottom Row: 8
+     [java] ul: 0.0060 0.014 0.009000000000000001
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.0060 0.0060 0.009000000000000001
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] Left Row: 0
+     [java] ul: 0.0060 0.014 0.009000000000000001
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.0060 0.0060 0.009000000000000001
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] Back
+     [java] Top Row: 8
+     [java] Bottom Row: 8
+     [java] Left Row: 0
+     [java] Right Row: 0
+     [java] Left
+     [java] Right
+     [java] ul: 0.014 0.014 0.0010
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.014 0.0060 0.0010
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] ul: 0.014 0.014 0.0010
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.014 0.0060 0.0010
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] ul: 0.014 0.014 0.0010
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.014 0.0060 0.0010
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] ul: 0.014 0.014 0.0010
+     [java] ur: 0.014 0.014 0.009000000000000001
+     [java] ll: 0.014 0.0060 0.0010
+     [java] lr: 0.014 0.0060 0.009000000000000001
+     [java] Top
+     [java] Bottom
+     [java] slice: 0
+     [java] slice: 1
+     [java] slice: 2
+     [java] slice: 3
+     [java] slice: 4
+     [java] slice: 5
+     [java] slice: 6
+     [java] Not showing: 6 6 1 state: 1
+     [java] Top showing: 6 6 2 state: 1
+     [java] Top showing: 6 6 3 state: 1
+     [java] Top showing: 6 6 4 state: 1
+     [java] Top showing: 6 6 5 state: 1
+     [java] Top showing: 6 6 6 state: 1
+     [java] Top showing: 6 6 7 state: 1
+     [java] Top showing: 6 6 8 state: 1
+     [java] Not showing: 6 6 9 state: 1
+     [java] Top showing: 7 6 1 state: 1
+     [java] Top showing: 7 6 9 state: 1
+     [java] Top showing: 8 6 1 state: 1
+     [java] Top showing: 8 6 9 state: 1
+     [java] Top showing: 9 6 1 state: 1
+     [java] Top showing: 9 6 9 state: 1
+     [java] Top showing: 10 6 1 state: 1
+     [java] Top showing: 10 6 9 state: 1
+     [java] Top showing: 11 6 1 state: 1
+     [java] Top showing: 11 6 9 state: 1
+     [java] Top showing: 12 6 1 state: 1
+     [java] Top showing: 12 6 9 state: 1
+     [java] Top showing: 13 6 1 state: 1
+     [java] Top showing: 13 6 9 state: 1
+     [java] Not showing: 14 6 1 state: 1
+     [java] Top showing: 14 6 2 state: 1
+     [java] Top showing: 14 6 3 state: 1
+     [java] Top showing: 14 6 4 state: 1
+     [java] Top showing: 14 6 5 state: 1
+     [java] Top showing: 14 6 6 state: 1
+     [java] Top showing: 14 6 7 state: 1
+     [java] Top showing: 14 6 8 state: 1
+     [java] Not showing: 14 6 9 state: 1
+     [java] slice: 7
+     [java] Not showing: 6 7 1 state: 1
+     [java] Not showing: 6 7 9 state: 1
+     [java] Not showing: 14 7 1 state: 1
+     [java] Not showing: 14 7 9 state: 1
+     [java] slice: 8
+     [java] Not showing: 6 8 1 state: 1
+     [java] Not showing: 6 8 9 state: 1
+     [java] Not showing: 14 8 1 state: 1
+     [java] Not showing: 14 8 9 state: 1
+     [java] slice: 9
+     [java] Not showing: 6 9 1 state: 1
+     [java] Not showing: 6 9 9 state: 1
+     [java] Not showing: 14 9 1 state: 1
+     [java] Not showing: 14 9 9 state: 1
+     [java] slice: 10
+     [java] Not showing: 6 10 1 state: 1
+     [java] Not showing: 6 10 9 state: 1
+     [java] Not showing: 14 10 1 state: 1
+     [java] Not showing: 14 10 9 state: 1
+     [java] slice: 11
+     [java] Not showing: 6 11 1 state: 1
+     [java] Not showing: 6 11 9 state: 1
+     [java] Not showing: 14 11 1 state: 1
+     [java] Not showing: 14 11 9 state: 1
+     [java] slice: 12
+     [java] Not showing: 6 12 1 state: 1
+     [java] Not showing: 6 12 9 state: 1
+     [java] Not showing: 14 12 1 state: 1
+     [java] Not showing: 14 12 9 state: 1
+     [java] slice: 13
+     [java] Not showing: 6 13 1 state: 1
+     [java] Not showing: 6 13 9 state: 1
+     [java] Not showing: 14 13 1 state: 1
+     [java] Not showing: 14 13 9 state: 1
+     [java] slice: 14
+     [java] Top showing: 6 14 1 state: 1
+     [java] Top showing: 6 14 2 state: 1
+     [java] Top showing: 6 14 3 state: 1
+     [java] Top showing: 6 14 4 state: 1
+     [java] Top showing: 6 14 5 state: 1
+     [java] Top showing: 6 14 6 state: 1
+     [java] Top showing: 6 14 7 state: 1
+     [java] Top showing: 6 14 8 state: 1
+     [java] Top showing: 6 14 9 state: 1
+     [java] Top showing: 7 14 1 state: 1
+     [java] Top showing: 7 14 9 state: 1
+     [java] Top showing: 8 14 1 state: 1
+     [java] Top showing: 8 14 9 state: 1
+     [java] Top showing: 9 14 1 state: 1
+     [java] Top showing: 9 14 9 state: 1
+     [java] Top showing: 10 14 1 state: 1
+     [java] Top showing: 10 14 9 state: 1
+     [java] Top showing: 11 14 1 state: 1
+     [java] Top showing: 11 14 9 state: 1
+     [java] Top showing: 12 14 1 state: 1
+     [java] Top showing: 12 14 9 state: 1
+     [java] Top showing: 13 14 1 state: 1
+     [java] Top showing: 13 14 9 state: 1
+     [java] Top showing: 14 14 1 state: 1
+     [java] Top showing: 14 14 2 state: 1
+     [java] Top showing: 14 14 3 state: 1
+     [java] Top showing: 14 14 4 state: 1
+     [java] Top showing: 14 14 5 state: 1
+     [java] Top showing: 14 14 6 state: 1
+     [java] Top showing: 14 14 7 state: 1
+     [java] Top showing: 14 14 8 state: 1
+     [java] Top showing: 14 14 9 state: 1
+     [java] slice: 15
+     [java] slice: 16
+     [java] slice: 17
+     [java] slice: 18
+     [java] slice: 19
+     [java] slice: 20
+     [java] slice: 21
+     [java] slice: 22
+     [java] slice: 23
+     [java] slice: 24
+     [java] slice: 25
+     [java] slice: 26
+     [java] slice: 27
+     [java] slice: 28
+     [java] slice: 29
+     [java] slice: 30
+     [java] slice: 31
+     [java] slice: 32
+     [java] slice: 33
+     [java] slice: 34
+     [java] slice: 35
+     [java] slice: 36
+     [java] slice: 37
+     [java] slice: 38
+     [java] slice: 39
+     [java] slice: 40
+     [java] slice: 41
+     [java] slice: 42
+     [java] slice: 43
+     [java] slice: 44
+     [java] slice: 45
+     [java] slice: 46
+     [java] slice: 47
+     [java] slice: 48
+     [java] slice: 49
+     [java] slice: 50
+     [java] slice: 51
+     [java] slice: 52
+     [java] slice: 53
+     [java] slice: 54
+     [java] slice: 55
+     [java] slice: 56
+     [java] slice: 57
+     [java] slice: 58
+     [java] slice: 59
+     [java] slice: 60
+     [java] slice: 61
+     [java] slice: 62
+     [java] slice: 63
+     [java] slice: 64
+     [java] slice: 65
+     [java] slice: 66
+     [java] slice: 67
+     [java] slice: 68
+     [java] slice: 69
+     [java] slice: 70
+     [java] slice: 71
+     [java] slice: 72
+     [java] slice: 73
+     [java] slice: 74
+     [java] slice: 75
+     [java] slice: 76
+     [java] slice: 77
+     [java] slice: 78
+     [java] slice: 79
+     [java] Saved: 64
+
+BUILD SUCCESSFUL
+Total time: 1 second

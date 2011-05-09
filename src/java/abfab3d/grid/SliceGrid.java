@@ -395,6 +395,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
         int idx = 0;
         float[] color = new float[] {0.8f,0.8f,0.8f};
         float transparency = 0;
+        int saved = 0;
 
         for(int i=0; i < height; i++) {
             y = i * sheight;
@@ -403,6 +404,9 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
 
             int width = s.getWidth();
             int depth = s.getDepth();
+
+            byte cstate;
+            Slice cslice;
 
             for(int j=0; j < width; j++) {
                 x = j * pixelSize;
@@ -504,53 +508,137 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
 
 
                     // Create Box
-                    // Front Face
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(ufl_pos));
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(ufl_pos));
-                    indices.add(new Integer(lfl_pos));
 
-                    // Back Face
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(ubr_pos));
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(ubl_pos));
+                    boolean displayFront = true;
 
-                    // Right Face
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(ubr_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(lfr_pos));
+                    if (k < depth - 1) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j,k+1);
 
-                    // Left Face
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(ufl_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(lfl_pos));
-                    indices.add(new Integer(ufl_pos));
+                        if (cstate == state) {
+                            displayFront = false;
+                            saved++;
+                        }
+                    }
 
-                    // Top Face
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(ubr_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(ufl_pos));
+                    if (displayFront) {
+                        // Front Face
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(ufl_pos));
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(ufl_pos));
+                        indices.add(new Integer(lfl_pos));
+                    }
 
-                    // Bottom Face
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(lfl_pos));
-                    indices.add(new Integer(lbl_pos));
+                    boolean displayBack = true;
+                    if (k > 0) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j,k-1);
+
+                        if (cstate == state) {
+                            displayBack = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayBack) {
+                        // Back Face
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(ubr_pos));
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(ubl_pos));
+                    }
+
+                    boolean displayRight = true;
+
+                    if (j < width - 1) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j+1,k);
+
+                        if (cstate == state) {
+                            displayRight = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayRight) {
+                        // Right Face
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(ubr_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(lfr_pos));
+                    }
+
+                    boolean displayLeft = true;
+
+                    if (j > 0) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j-1,k);
+
+                        if (cstate == state) {
+                            displayLeft = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayLeft) {
+                        // Left Face
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(ufl_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(lfl_pos));
+                        indices.add(new Integer(ufl_pos));
+                    }
+
+                    boolean displayTop = true;
+
+                    if (i < height - 1) {
+                        cslice = data[i+1];
+                        cstate = cslice.getState(j,k);
+
+                        if (cstate == state) {
+                            displayTop = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayTop) {
+                        // Top Face
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(ubr_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(ufl_pos));
+                    }
+
+                    boolean displayBottom = true;
+
+                    if (i > 0) {
+                        cslice = data[i-1];
+                        cstate = cslice.getState(j,k);
+
+                        if (cstate == state) {
+                            displayBottom = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayBottom) {
+                        // Bottom Face
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(lfl_pos));
+                        indices.add(new Integer(lbl_pos));
+                    }
                 }
             }
 
@@ -575,6 +663,7 @@ System.out.println("Coords: " + totalCoords.size() + " indices: " + indices.size
             }
         }
 
+System.out.println("Saved: " + saved);
         ejectShape(stream, totalCoords, indices, color, transparency);
     }
 
@@ -633,11 +722,14 @@ System.out.println("Coords: " + totalCoords.size() + " indices: " + indices.size
 
         double x,y,z;
         int idx = 0;
+        int saved = 0;
 
         for(int i=0; i < height; i++) {
             y = i * sheight;
 
             Slice s = data[i];
+            byte cstate;
+            Slice cslice;
 
             int width = s.getWidth();
             int depth = s.getDepth();
@@ -742,53 +834,136 @@ System.out.println("Coords: " + totalCoords.size() + " indices: " + indices.size
 
 
                     // Create Box
-                    // Front Face
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(ufl_pos));
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(ufl_pos));
-                    indices.add(new Integer(lfl_pos));
+                    boolean displayFront = true;
 
-                    // Back Face
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(ubr_pos));
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(ubl_pos));
+                    if (k < depth - 1) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j,k+1);
 
-                    // Right Face
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(ubr_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(lfr_pos));
+                        if (cstate == state) {
+                            displayFront = false;
+                            saved++;
+                        }
+                    }
 
-                    // Left Face
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(ufl_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(lfl_pos));
-                    indices.add(new Integer(ufl_pos));
+                    if (displayFront) {
+                        // Front Face
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(ufl_pos));
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(ufl_pos));
+                        indices.add(new Integer(lfl_pos));
+                    }
 
-                    // Top Face
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(ubr_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(ufr_pos));
-                    indices.add(new Integer(ubl_pos));
-                    indices.add(new Integer(ufl_pos));
+                    boolean displayBack = true;
+                    if (k > 0) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j,k-1);
 
-                    // Bottom Face
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(lbl_pos));
-                    indices.add(new Integer(lbr_pos));
-                    indices.add(new Integer(lfr_pos));
-                    indices.add(new Integer(lfl_pos));
-                    indices.add(new Integer(lbl_pos));
+                        if (cstate == state) {
+                            displayBack = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayBack) {
+                        // Back Face
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(ubr_pos));
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(ubl_pos));
+                    }
+
+                    boolean displayRight = true;
+
+                    if (j < width - 1) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j+1,k);
+
+                        if (cstate == state) {
+                            displayRight = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayRight) {
+                        // Right Face
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(ubr_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(lfr_pos));
+                    }
+
+                    boolean displayLeft = true;
+
+                    if (j > 0) {
+                        cslice = data[i];
+                        cstate = cslice.getState(j-1,k);
+
+                        if (cstate == state) {
+                            displayLeft = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayLeft) {
+                        // Left Face
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(ufl_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(lfl_pos));
+                        indices.add(new Integer(ufl_pos));
+                    }
+
+                    boolean displayTop = true;
+
+                    if (i < height - 1) {
+                        cslice = data[i+1];
+                        cstate = cslice.getState(j,k);
+
+                        if (cstate == state) {
+                            displayTop = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayTop) {
+                        // Top Face
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(ubr_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(ufr_pos));
+                        indices.add(new Integer(ubl_pos));
+                        indices.add(new Integer(ufl_pos));
+                    }
+
+                    boolean displayBottom = true;
+
+                    if (i > 0) {
+                        cslice = data[i-1];
+                        cstate = cslice.getState(j,k);
+
+                        if (cstate == state) {
+                            displayBottom = false;
+                            saved++;
+                        }
+                    }
+
+                    if (displayBottom) {
+                        // Bottom Face
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(lbl_pos));
+                        indices.add(new Integer(lbr_pos));
+                        indices.add(new Integer(lfr_pos));
+                        indices.add(new Integer(lfl_pos));
+                        indices.add(new Integer(lbl_pos));
+                    }
                 }
             }
 

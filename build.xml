@@ -38,6 +38,9 @@
     </target>
   
     <target name="compile" depends="init" description="Compile all Java source files">
+        <compilejava package="abfab3d/util"
+            jars=""
+        />
         <compilejava package="abfab3d/grid"
             jars=""
         />
@@ -45,6 +48,12 @@
             jars=""
         />
         <compilejava package="abfab3d/geom"
+            jars=""
+        />
+        <compilejava package="abfab3d/io/input"
+            jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
+        />
+        <compilejava package="abfab3d/validate"
             jars=""
         />
     </target>

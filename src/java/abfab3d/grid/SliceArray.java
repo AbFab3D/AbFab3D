@@ -24,6 +24,9 @@ import java.io.*;
  * @author Alan Hudson
  */
 public class SliceArray implements Slice {
+    /** Should we range check grid coord values */
+    private static final boolean VERIFY_RANGE = true;
+
     /** The number of pixels in the x/width direction */
     protected int width;
 
@@ -59,6 +62,8 @@ public class SliceArray implements Slice {
      * @return The data value
      */
     public VoxelData getData(int x, int z) {
+        verifyRange(x,z);
+
         // TODO: Should we use an object cache for these?
         byte state = (byte) ((data[z * width + x] & 0xFF) >> 6);
         byte mat = (byte) (0x3F & data[z * width + x]);
@@ -82,6 +87,8 @@ public class SliceArray implements Slice {
      * @param z The z value
      */
     public byte getState(int x, int z) {
+        verifyRange(x,z);
+
         return (byte) ((data[z * width + x] & 0xFF) >> 6);
     }
 
@@ -92,6 +99,8 @@ public class SliceArray implements Slice {
      * @param z The z value
      */
     public byte getMaterial(int x, int z) {
+        verifyRange(x,z);
+
         return (byte) (0x3F & data[z * width + x]);
     }
 
@@ -104,7 +113,29 @@ public class SliceArray implements Slice {
      * @param material The materialID
      */
     public void setData(int x, int z, byte state, byte material) {
+        verifyRange(x,z);
+
         data[z * width + x] = (byte) (0xFF & (state << 6 | material));
+    }
+
+    /**
+     * Range check grid coord values.  If outside range then throw
+     * an IllegalArgumentException.
+     *
+     * @param x The x value
+     * @param z The z value
+     */
+    private void verifyRange(int x, int z) {
+        if (!VERIFY_RANGE)
+            return;
+
+        if (x < 0 || x > width - 1) {
+            throw new IllegalArgumentException("x value invalid: " + x);
+        }
+
+        if (z < 0 || z > depth - 1) {
+            throw new IllegalArgumentException("z value invalid: " + z);
+        }
     }
 
     public String toStringSlice() {

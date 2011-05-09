@@ -1,0 +1,25 @@
+Buildfile: C:\cygwin\home\giles\projs\abfab3d\code\AbFab3D\apps\linkedrings\build.xml
+
+init:
+
+compile:
+     [echo] Compiling linkedrings
+
+run:
+     [echo] jvmargs: -Xmx4600m
+     [java] bounds: 7.50000006519258E-4 size: 0.0016500000143423678
+     [java] width: 4 h: 4 d: 4
+     [java] width: 4 h: 4 d: 4
+     [java] Interior: 1 1 1
+     [java] Interior: 1 1 2
+     [java] Interior: 2 1 1
+     [java] Interior: 2 1 2
+     [java] Interior: 1 2 1
+     [java] Interior: 1 2 2
+     [java] Interior: 2 2 1
+     [java] Interior: 2 2 2
+     [java] Gen time: 97
+     [java] Eject shape
+
+BUILD SUCCESSFUL
+Total time: 1 second
