@@ -22,6 +22,8 @@ public interface Operation {
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
+     * TODO: add region specification to allow subsets operation.
+     *
      * @param grid The grid to use
      * @return The new grid
      */
