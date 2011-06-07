@@ -65,8 +65,9 @@ public class SliceArray implements Slice {
         verifyRange(x,z);
 
         // TODO: Should we use an object cache for these?
-        byte state = (byte) ((data[z * width + x] & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & data[z * width + x]);
+        int idx = z * width + x;
+        byte state = (byte) ((data[idx] & 0xFF) >> 6);
+        byte mat = (byte) (0x3F & data[idx]);
 
         return new VoxelData(state,mat);
     }

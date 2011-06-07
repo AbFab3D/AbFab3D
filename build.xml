@@ -11,12 +11,13 @@
     <property name="release.dir" value="${basedir}/release"/>
     <property name="test.dir" value="${basedir}/test/junit"/>
     <property name="classes.dir" value="${basedir}/classes" />
+    <property name="test.classes.dir" value="${classes.dir}/test" />      
     <property name="jar.dir" value="${basedir}/jars" />
     <property name="lib.dir" value="${basedir}/lib"/>
     <property name="manifest.dir" value="${basedir}/manifest"/>
     <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
-    <property name="xj3d.dir" value="..\..\xj3d\software\Xj3D2\Xj3D\trunk" />
-    <property name="av3d.dir" value="..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
+    <property name="xj3d.dir" value="..\..\..\xj3d\software\Xj3D2\Xj3D\trunk" />
+    <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
 
     <property name="entrypoint" value="abfab3d.Creator" />
 
@@ -35,6 +36,7 @@
     <target name="init" description="Create destination directories">
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${javadocs.dir}"/>
+	<mkdir dir="${test.classes.dir}" />        
     </target>
   
     <target name="compile" depends="init" description="Compile all Java source files">
@@ -95,6 +97,52 @@
                 "
         />
     </target>
+
+  <target name="test" depends="compileTest">
+    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+      <jvmarg line="${jvmrunargs}"/>
+    
+      <formatter type="plain" usefile="false"/>
+      <batchtest fork="yes" >
+        <fileset dir="${test.dir}">
+<!--          <include name="**/*Test.java"/> -->
+          <include name="**/Test*.java"/>
+          <exclude name="**/TestBashSuite.java" />
+        </fileset>
+     </batchtest>
+      
+      <classpath>
+         <pathelement path="${classes.dir}" />
+         <pathelement path="${test.classes.dir}" />
+         <fileset dir="${lib.dir}" includes="**/*.jar" />
+      </classpath>
+    </junit>
+  </target>
+
+  <target name="compileTest" depends="init" description="Compile all Test source files">
+     <mkdir dir="${test.classes.dir}" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="support/junit-4.8.1.jar" />
+  </target>
+
+  <target name="testSpecific" depends="compile,compileTest">
+    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+      <jvmarg line="${jvmrunargs}"/>
+    
+      <formatter type="plain" usefile="false"/>
+      <batchtest fork="yes" >
+        <fileset dir="${test.dir}">
+          <include name="**/${test}.java"/>
+        </fileset>
+     </batchtest>
+      
+      <classpath>
+         <pathelement path="${classes.dir}" />
+         <pathelement path="${test.classes.dir}" />
+         <fileset dir="${lib.dir}" includes="**/*.jar" />   
+      </classpath>
+    </junit>
+  </target>
     
     <target name="clean" description="Deletes all the generated artifacts.">
         <delete dir="${javadocs.dir}" />

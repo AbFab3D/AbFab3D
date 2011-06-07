@@ -543,8 +543,13 @@ System.out.flush();
         // I suspect this method will be fairly buggy.  But it should
         // be fast
 
+/*
         Grid result = new SliceGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight(), false);
+*/
+
+        Grid result = new SliceGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
+            grid.getVoxelSize(), grid.getSliceHeight(), true);
 
 //System.out.println("Filling model");
         byte state;

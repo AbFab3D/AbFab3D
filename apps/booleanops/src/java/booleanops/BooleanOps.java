@@ -30,21 +30,16 @@ import abfab3d.grid.op.Downsample;
 
 
 /**
- * Linked Cubes.
- *
- * Would be nice to support this style as well:
- *   http://www.shapeways.com/model/130911/cubichain_22cm_6mm.html?mode=3d
- *
- *   I suspect its done via solid modeling.  Not sure about the inner edges
- *   not being straight though
+ * Example of boolean operations.  Voxels may not be the best way to
+ * evaluate this but it's nice its so easy to code.
  *
  * @author Alan Hudson
  */
 public class BooleanOps {
-    public static final double HORIZ_RESOLUTION = 0.0003;
+    public static final double HORIZ_RESOLUTION = 0.0001;
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.0003;
+    public static final double VERT_RESOLUTION = 0.0001;
 
     public void generate(String filename) {
         try {
@@ -56,7 +51,7 @@ public class BooleanOps {
             if (filename.endsWith(".x3db")) {
                 writer = new X3DBinaryRetainedDirectExporter(fos,
                                      3, 0, console,
-                                     X3DBinarySerializer.METHOD_SMALLEST_NONLOSSY,
+                                     X3DBinarySerializer.METHOD_FASTEST_PARSING,
                                      0.001f);
             } else if (filename.endsWith(".x3dv")) {
                 writer = new X3DClassicRetainedExporter(fos,3,0,console);
@@ -68,6 +63,9 @@ public class BooleanOps {
 
             float bsize = 0.0254f;
             float overlap = 0.02f;
+            boolean useArrays = true;
+
+            // TODO: arrays are using much less ram then hashmap?
 
             BoxGenerator tg = new BoxGenerator(bsize,bsize,bsize);
             GeometryData geom = new GeometryData();
@@ -86,7 +84,7 @@ public class BooleanOps {
             double z = trans[2];
 
             Grid grid = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, false);
+                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 
             TriangleModelCreator tmc = null;
 
@@ -127,7 +125,7 @@ public class BooleanOps {
             }
 
             Grid grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, false);
+                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 
 
             tmc = new TriangleModelCreator(geom,x,y,z,
@@ -146,7 +144,7 @@ public class BooleanOps {
             rangle = 1.57075;
 
             grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, false);
+                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 
             tmc = new TriangleModelCreator(geom,x,y,z,
                 rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
@@ -162,7 +160,7 @@ public class BooleanOps {
             rangle = 1.57075;
 
             grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, false);
+                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 
             tmc = new TriangleModelCreator(geom,x,y,z,
                 rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
@@ -173,6 +171,7 @@ public class BooleanOps {
             op.execute(grid);
 
 
+            grid2 = null;  // Free this to save memory
 
 /*
             int width = grid.getWidth();

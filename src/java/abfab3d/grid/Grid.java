@@ -18,7 +18,8 @@ import java.io.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
 /**
- * A grid composed of slices.
+ * A voxel grid.  Grids can either be uniform or
+ * have the same XZ with a different Y size.
  *
  * Uses the X3D coordinate system.  Y-up.  Grid is located
  * on positive right side octant.

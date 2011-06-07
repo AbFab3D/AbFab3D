@@ -49,8 +49,13 @@ public class Downsample implements Operation {
         depth = grid.getDepth();
         height = grid.getHeight();
 
+/*
         Grid ret_val = new SliceGrid(width / 2,depth / 2,height / 2,
             grid.getVoxelSize() * 2.0, grid.getSliceHeight() * 2.0, false);
+*/
+
+        Grid ret_val = new SliceGrid(width / 2,depth / 2,height / 2,
+            grid.getVoxelSize() * 2.0, grid.getSliceHeight() * 2.0, true);
 
 
         int len_x = width / 2;
