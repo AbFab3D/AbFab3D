@@ -23,6 +23,7 @@ import org.web3d.util.ErrorReporter;
 import abfab3d.geom.*;
 import abfab3d.geom.CubeCreator.Style;
 import abfab3d.grid.*;
+import abfab3d.io.output.BoxesX3DExporter;
 
 
 /**

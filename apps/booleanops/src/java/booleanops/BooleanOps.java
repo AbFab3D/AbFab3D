@@ -27,6 +27,7 @@ import abfab3d.geom.CubeCreator.Style;
 import abfab3d.grid.*;
 import abfab3d.grid.op.Subtract;
 import abfab3d.grid.op.Downsample;
+import abfab3d.io.output.BoxesX3DExporter;
 
 
 /**

@@ -10,15 +10,18 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid;
+package abfab3d.io.output;
 
 // External Imports
 import java.util.*;
 import java.io.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
+// Internal Imports
+import abfab3d.grid.*;
+
 /**
- * Uses a box structure to represent a grid.  Exports to an X3D format.
+ * Uses a box structure to represent a grid.  Exports to an X3D stream.
  *
  * @author Alan Hudson
  */
