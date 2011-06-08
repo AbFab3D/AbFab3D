@@ -15,8 +15,7 @@ import junit.framework.TestSuite;
 import junit.framework.Test;
 
 // Internal Imports
-import abfab3d.grid.TestSliceGrid;
-import abfab3d.grid.TestArrayGrid;
+import abfab3d.grid.*;
 
 /**
  * Grid Tests
@@ -30,6 +29,8 @@ public class TestGridSuite extends TestSuite {
 
         suite.addTest(TestSliceGrid.suite());
         suite.addTest(TestArrayGrid.suite());
+
+        suite.addTest(TestOccupiedWrapper.suite());
 
         return suite;
     }

@@ -15,11 +15,11 @@ package abfab3d.grid;
 /**
  * Detects whether a set operation is changing a voxel that
  * is already occupied.  This will throw an IllegalArgumentException if
- * a voxels state changes value.
+ * a voxel is already !OUTSIDE when set is called.
  *
  * @author Alan Hudson
  */
-public class StateChangeWrapper implements GridWrapper {
+public class OccupiedWrapper implements GridWrapper {
     /** The wrapper grid */
     private Grid grid;
 
@@ -28,7 +28,7 @@ public class StateChangeWrapper implements GridWrapper {
      *
      * @param grid The grid to wrap
      */
-    public StateChangeWrapper(Grid grid) {
+    public OccupiedWrapper(Grid grid) {
         this.grid = grid;
     }
 
@@ -129,7 +129,7 @@ public class StateChangeWrapper implements GridWrapper {
     public void setData(double x, double y, double z, byte state, byte material) {
         byte old_state = grid.getState(x,y,z);
 
-        if (state != old_state) {
+        if (old_state != Grid.OUTSIDE && state != Grid.OUTSIDE) {
             throw new IllegalArgumentException("Invalid state change");
         }
 
@@ -147,7 +147,7 @@ public class StateChangeWrapper implements GridWrapper {
     public void setData(int x, int y, int z, byte state, byte material) {
         byte old_state = grid.getState(x,y,z);
 
-        if (state != old_state) {
+        if (old_state != Grid.OUTSIDE && state != Grid.OUTSIDE) {
             throw new IllegalArgumentException("Invalid state change");
         }
 

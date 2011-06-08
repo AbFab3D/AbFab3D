@@ -109,8 +109,7 @@
       <batchtest fork="yes" >
         <fileset dir="${test.dir}">
 <!--          <include name="**/*Test.java"/> -->
-          <include name="**/Test*.java"/>
-          <exclude name="**/TestBashSuite.java" />
+          <include name="**/Test*Suite.java"/>
         </fileset>
      </batchtest>
       
