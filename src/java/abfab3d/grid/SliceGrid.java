@@ -36,17 +36,7 @@ import org.web3d.vrml.sav.BinaryContentHandler;
  *
  * @author Alan Hudson
  */
-public class SliceGrid implements Grid {
-    /** The maximum coords to put in a shape */
-    private static final int MAX_TRIANGLES_SHAPE = 300000;
-
-    protected int width;
-    protected int height;
-    protected int depth;
-    protected double pixelSize;
-    protected double hpixelSize;
-    protected double sheight;
-    protected double hsheight;
+public class SliceGrid extends BaseGrid {
     protected Slice[] data;
 
     /**
@@ -62,8 +52,8 @@ public class SliceGrid implements Grid {
     public SliceGrid(double w, double h, double d, double pixel, double sheight,
         boolean useArray) {
 
-        this((int) Math.ceil(w / pixel), (int) Math.ceil(h / sheight),
-           (int) Math.ceil(d / pixel), pixel, sheight, useArray);
+        this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
+           (int) (d / pixel) + 1, pixel, sheight, useArray);
     }
 
     /**
@@ -78,13 +68,8 @@ public class SliceGrid implements Grid {
      */
     public SliceGrid(int w, int h, int d, double pixel, double sheight,
         boolean useArray) {
-        width = w;
-        height = h;
-        depth = d;
-        this.pixelSize = pixel;
-        this.hpixelSize = pixelSize / 2.0;
-        this.sheight = sheight;
-        this.hsheight = sheight / 2.0;
+
+        super(w,h,d,pixel,sheight);
 
         data = new Slice[height];
 
@@ -188,112 +173,6 @@ public class SliceGrid implements Grid {
 
 
     /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public int findCount(VoxelClasses vc) {
-        int ret_val = 0;
-
-        for(int y=0; y < height; y++) {
-            Slice slice = data[y];
-
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = slice.getData(x,z);
-
-                    byte state;
-
-                    switch(vc) {
-                        case ALL:
-                            ret_val++;
-                            break;
-                        case MARKED:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                ret_val++;
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                ret_val++;
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
-                                ret_val++;
-                            }
-                            break;
-                        case OUTSIDE:
-                            state = vd.getState();
-                            if (state == Grid.OUTSIDE) {
-                                ret_val++;
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-
-        return ret_val;
-    }
-
-    /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(VoxelClasses vc, ClassTraverser t) {
-        for(int y=0; y < height; y++) {
-            Slice slice = data[y];
-
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = slice.getData(x,z);
-
-                    byte state;
-
-                    switch(vc) {
-                        case ALL:
-                            t.found(x,y,z,vd);
-                            break;
-                        case MARKED:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case OUTSIDE:
-                            state = vd.getState();
-                            if (state == Grid.OUTSIDE) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
      * Set the value of a voxel.
      *
      * @param x The x world coordinate
@@ -329,150 +208,4 @@ public class SliceGrid implements Grid {
         data[y].setData(x,z,state,material);
     }
 
-    /**
-     * Get the grid coordinates for a world coordinate.
-     *
-     * @param x The x value in world coords
-     * @param y The y value in world coords
-     * @param z The z value in world coords
-     * @param coords The ans is placed into this preallocated array(3).
-     */
-    public void getGridCoords(double x, double y, double z, int[] coords) {
-        coords[0] = (int) (x / pixelSize);
-        coords[1] = (int) (y / sheight);
-        coords[2] = (int) (z / pixelSize);
-    }
-
-    /**
-     * Get the world coordinates for a grid coordinate.
-     *
-     * @param x The x value in grid coords
-     * @param y The y value in grid coords
-     * @param z The z value in grid coords
-     * @param coords The ans is placed into this preallocated array(3).
-     */
-    public void getWorldCoords(int x, int y, int z, double[] coords) {
-        coords[0] = x * pixelSize + hpixelSize;
-        coords[1] = y * sheight + hsheight;
-        coords[2] = z * pixelSize + hpixelSize;
-    }
-
-    /**
-     * Get the grid bounds in world coordinates.
-     *
-     * @param min The min coordinate
-     * @param max The max coordinate
-     */
-    public void getGridBounds(double[] min, double[] max) {
-        min[0] = 0;
-        min[1] = 0;
-        min[2] = 0;
-
-        max[0] = width * pixelSize;
-        max[1] = height * sheight;
-        max[2] = depth * pixelSize;
-    }
-
-    /**
-     * Get the number of height cells.
-     *
-     * @return the val
-     */
-    public int getHeight() {
-        return height;
-    }
-
-    /**
-     * Get the number of width cells.
-     *
-     * @return the val
-     */
-    public int getWidth() {
-        return width;
-    }
-
-    /**
-     * Get the number of depth cells.
-     *
-     * @return the val
-     */
-    public int getDepth() {
-        return depth;
-    }
-
-    /**
-     * Get the slice height.
-     *
-     * @return The value
-     */
-    public double getSliceHeight() {
-        return sheight;
-    }
-
-    /**
-     * Get the number of dots per meter.
-     *
-     * @return The value
-     */
-    public double getVoxelSize() {
-        return pixelSize;
-    }
-
-    /**
-     * Print out a slice of data.
-     */
-    public String toStringSlice(int s) {
-        return data[s].toStringSlice();
-    }
-
-    public String toStringAll() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("Grid:  height: ");
-        sb.append(height);
-        sb.append("\n");
-
-        for(int i=0; i < height; i++) {
-            sb.append(i);
-            sb.append(":\n");
-            sb.append(data[i].toStringSlice());
-        }
-
-        return sb.toString();
-    }
-}
-
-class Coordinate {
-    public float x,y,z;
-
-    public Coordinate(float x, float y, float z) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-    }
-
-    public int hashCode() {
-        float val = x * 64 + y * 32 + z;
-
-        return Float.floatToIntBits(val);
-    }
-
-    public boolean equals(Object o) {
-        if (!(o instanceof Coordinate))
-            return false;
-
-        Coordinate coord = (Coordinate) o;
-        if (x == coord.x &&
-            y == coord.y &&
-            z == coord.z) {
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public String toString() {
-        return "Coordinate(" + hashCode() + ")" + x + " " + y + " " + z;
-    }
 }

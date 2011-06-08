@@ -38,21 +38,24 @@ public class RemoveMaterial implements Operation {
      * @return The new grid
      */
     public Grid execute(Grid grid) {
-        int width = grid.getWidth();
-        int depth = grid.getDepth();
-        int height = grid.getHeight();
+        if (grid instanceof MaterialIndexedWrapper) {
+        } else {
+            int width = grid.getWidth();
+            int depth = grid.getDepth();
+            int height = grid.getHeight();
 
-        int state;
+            int state;
 
-        VoxelData vd;
+            VoxelData vd;
 
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
-                for(int z=0; z < depth; z++) {
-                    vd = grid.getData(x,y,z);
+            for(int x=0; x < width; x++) {
+                for(int y=0; y < height; y++) {
+                    for(int z=0; z < depth; z++) {
+                        vd = grid.getData(x,y,z);
 
-                    if (vd.getMaterial() == material) {
-                        grid.setData(x,y,z,Grid.OUTSIDE, (byte) 0);
+                        if (vd.getMaterial() == material) {
+                            grid.setData(x,y,z,Grid.OUTSIDE, (byte) 0);
+                        }
                     }
                 }
             }

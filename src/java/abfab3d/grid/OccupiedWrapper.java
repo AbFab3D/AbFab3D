@@ -211,6 +211,28 @@ public class OccupiedWrapper implements GridWrapper {
     }
 
     /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(byte mat, ClassTraverser t) {
+        grid.find(mat, t);
+    }
+
+    /**
+     * Count a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The class of material to traverse
+     * @return The number
+     */
+    public int findCount(byte mat) {
+        return grid.findCount(mat);
+    }
+
+    /**
      * Get the number of height cells.
      *
      * @return the val

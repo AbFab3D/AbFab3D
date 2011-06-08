@@ -35,10 +35,10 @@ public class WorldCoordinate {
     }
 
     public boolean equals(Object o) {
-        if (!(o instanceof Coordinate))
+        if (!(o instanceof WorldCoordinate))
             return false;
 
-        Coordinate coord = (Coordinate) o;
+        WorldCoordinate coord = (WorldCoordinate) o;
         if (x == coord.x &&
             y == coord.y &&
             z == coord.z) {
@@ -50,6 +50,6 @@ public class WorldCoordinate {
     }
 
     public String toString() {
-        return "Coordinate(" + hashCode() + ")" + x + " " + y + " " + z;
+        return "WorldCoordinate(" + hashCode() + ")" + x + " " + y + " " + z;
     }
 }

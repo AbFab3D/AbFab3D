@@ -25,7 +25,7 @@ import abfab3d.grid.op.*;
  */
 public class TestOpSuite extends TestSuite {
     public static Test suite() {
-        TestSuite suite = new TestSuite("Grid Operatios Test Suite");
+        TestSuite suite = new TestSuite("Grid Operations Test Suite");
 
         suite.addTest(TestRemoveMaterial.suite());
 
