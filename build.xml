@@ -126,7 +126,7 @@
   </target>
 
   <target name="testSpecific" depends="compile,compileTest">
-    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="false">
       <jvmarg line="${jvmrunargs}"/>
     
       <formatter type="plain" usefile="false"/>

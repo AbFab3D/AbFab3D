@@ -73,7 +73,6 @@ public class ArrayGrid implements Grid {
         this.sheight = sheight;
         this.hsheight = sheight / 2.0;
 
-System.out.println("width: " + width + " h: " + height + " d: " + depth);
         data = new byte[height * width * depth];
 
         sliceSize = w * d;
@@ -88,7 +87,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
      * @param The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
-        int idx = y * sliceSize + x * width + z;
+        int idx = y * sliceSize + x * depth + z;
 
         byte state = (byte) ((data[idx] & 0xFF) >> 6);
         byte mat = (byte) (0x3F & data[idx]);
@@ -111,7 +110,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * width + s_z;
+        int idx = slice * sliceSize + s_x * depth + s_z;
 
         byte state = (byte) ((data[idx] & 0xFF) >> 6);
         byte mat = (byte) (0x3F & data[idx]);
@@ -132,7 +131,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * width + s_z;
+        int idx = slice * sliceSize + s_x * depth + s_z;
 
         byte state = (byte) ((data[idx] & 0xFF) >> 6);
 
@@ -148,7 +147,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
      * @param The voxel state
      */
     public byte getState(int x, int y, int z) {
-        int idx = y * sliceSize + x * width + z;
+        int idx = y * sliceSize + x * depth + z;
 
         byte state = (byte) ((data[idx] & 0xFF) >> 6);
 
@@ -168,7 +167,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * width + s_z;
+        int idx = slice * sliceSize + s_x * depth + s_z;
 
         byte mat = (byte) (0x3F & data[idx]);
 
@@ -184,7 +183,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
      * @param The voxel material
      */
     public byte getMaterial(int x, int y, int z) {
-        int idx = y * sliceSize + x * width + z;
+        int idx = y * sliceSize + x * depth + z;
 
         byte mat = (byte) (0x3F & data[idx]);
 
@@ -308,7 +307,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * width + s_z;
+        int idx = slice * sliceSize + s_x * depth + s_z;
 
         data[idx] = (byte) (0xFF & (state << 6 | material));
     }
@@ -323,7 +322,7 @@ System.out.println("width: " + width + " h: " + height + " d: " + depth);
      * @param material The material
      */
     public void setData(int x, int y, int z, byte state, byte material) {
-        int idx = y * sliceSize + x * width + z;
+        int idx = y * sliceSize + x * depth + z;
 
         data[idx] = (byte) (0xFF & (state << 6 | material));
     }
