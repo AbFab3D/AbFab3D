@@ -25,7 +25,7 @@ import java.io.*;
  */
 public class SliceMap implements Slice {
     /** Should we range check grid coord values */
-    private static final boolean VERIFY_RANGE = true;
+    private static final boolean VERIFY_RANGE = false;
 
     /** The number of pixels in the x/width direction */
     protected int width;

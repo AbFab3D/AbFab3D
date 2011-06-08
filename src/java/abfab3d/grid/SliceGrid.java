@@ -86,7 +86,6 @@ public class SliceGrid implements Grid {
         this.sheight = sheight;
         this.hsheight = sheight / 2.0;
 
-System.out.println("width: " + width + " h: " + height + " d: " + depth);
         data = new Slice[height];
 
         // use Array form when memory is not an issue

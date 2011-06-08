@@ -87,6 +87,7 @@ public class TestPerformanceGrid extends BaseTestGrid {
     public void testWriteAccessXSmall() {
         System.out.println("WriteAccess Small");
         for(int i=0; i < WARMUP2; i++) {
+System.out.println("Warmup: " + i);
             writeAccessX(SMALL_SIZE,SMALL_TIMES,false);
         }
         writeAccessX(SMALL_SIZE,SMALL_TIMES,true);
