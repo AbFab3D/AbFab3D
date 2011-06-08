@@ -47,7 +47,6 @@ public class LinkedCubes {
 
             X3DClassicRetainedExporter writer = new X3DClassicRetainedExporter(fos,3,0,console);
 
-    //        Grid grid = new SliceGrid(1,1,1,1.0 / PRINTER_RESOLUTION, PRINTER_RESOLUTION);
             Style[][] styles = new Style[6][];
 
             styles[0] = new Style[4];
@@ -81,7 +80,7 @@ public class LinkedCubes {
             styles[3][2] = Style.LEFT_ROW;
             styles[3][3] = Style.RIGHT_ROW;
 
-            Grid grid = new SliceGrid(80,80,80,0.001, 0.001, true);
+            Grid grid = new SliceGrid(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION, true);
 
             double x,y,z;
             CubeCreator cg = null;
