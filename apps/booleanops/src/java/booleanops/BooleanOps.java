@@ -36,10 +36,10 @@ import abfab3d.grid.op.Downsample;
  * @author Alan Hudson
  */
 public class BooleanOps {
-    public static final double HORIZ_RESOLUTION = 0.0001;
+    public static final double HORIZ_RESOLUTION = 0.0002;
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.0001;
+    public static final double VERT_RESOLUTION = 0.0002;
 
     public void generate(String filename) {
         try {
@@ -83,8 +83,12 @@ public class BooleanOps {
             double y = trans[1];
             double z = trans[2];
 
+/*
             Grid grid = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
                 HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+*/
+            Grid grid = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+                HORIZ_RESOLUTION, VERT_RESOLUTION);
 
             TriangleModelCreator tmc = null;
 
@@ -124,8 +128,13 @@ public class BooleanOps {
                 System.out.println("   Cyl: " + java.util.Arrays.toString(nmaxsize));
             }
 
+/*
             Grid grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
                 HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+*/
+
+            Grid grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+                HORIZ_RESOLUTION, VERT_RESOLUTION);
 
 
             tmc = new TriangleModelCreator(geom,x,y,z,
@@ -143,8 +152,12 @@ public class BooleanOps {
             rz = 0;
             rangle = 1.57075;
 
+/*
             grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
                 HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+*/
+            grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+                HORIZ_RESOLUTION, VERT_RESOLUTION);
 
             tmc = new TriangleModelCreator(geom,x,y,z,
                 rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
@@ -159,8 +172,13 @@ public class BooleanOps {
             rz = 1;
             rangle = 1.57075;
 
+/*
             grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
                 HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+*/
+
+            grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+                HORIZ_RESOLUTION, VERT_RESOLUTION);
 
             tmc = new TriangleModelCreator(geom,x,y,z,
                 rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
