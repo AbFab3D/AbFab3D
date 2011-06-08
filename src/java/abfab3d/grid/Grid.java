@@ -205,6 +205,9 @@ public interface Grid {
      */
     public String toStringSlice(int s);
 
+    /**
+     * Print out all slices.
+     */
     public String toStringAll();
 }
 
