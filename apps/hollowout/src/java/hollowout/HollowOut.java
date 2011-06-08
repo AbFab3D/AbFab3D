@@ -133,7 +133,8 @@ public class HollowOut {
             transparency.put(Grid.EXTERIOR, new Float(0.5));
             transparency.put(Grid.OUTSIDE, new Float(0.98));
 
-            grid.toX3DDebug((BinaryContentHandler)writer, colors, transparency);
+            BoxesX3DExporter exporter = new BoxesX3DExporter();
+            exporter.toX3DDebug(grid, (BinaryContentHandler)writer, colors, transparency);
 
             writer.endDocument();
 

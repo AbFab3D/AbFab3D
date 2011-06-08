@@ -55,6 +55,9 @@
         <compilejava package="abfab3d/io/input"
             jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
         />
+        <compilejava package="abfab3d/io/output"
+            jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
+        />
         <compilejava package="abfab3d/validate"
             jars=""
         />

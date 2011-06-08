@@ -166,24 +166,6 @@ public interface Grid {
     public int findCount(VoxelClasses vc);
 
     /**
-     * Create an X3D file from the grid.  This should be an exact
-     * repsentation of the grid values.
-     *
-     * @param stream The stream to write too
-     * @param colors Maps materialID's to colors
-     */
-    public void toX3D(BinaryContentHandler stream, Map<Byte, float[]> colors);
-
-    /**
-     * Create an X3D file from the grid.  This should be an exact
-     * repsentation of the grid states.
-     *
-     * @param stream The stream to write too
-     * @param colors Maps materialID's to colors
-     */
-    public void toX3DDebug(BinaryContentHandler stream, Map<Byte, float[]> colors, Map<Byte, Float> transparency);
-
-    /**
      * Get the number of height cells.
      *
      * @return the val

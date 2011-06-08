@@ -127,7 +127,9 @@ public class LinkedRings {
             System.out.println("Writing x3d");
             stime = System.currentTimeMillis();
 
-            grid.toX3D(writer, null);
+            BoxesX3DExporter exporter = new BoxesX3DExporter();
+            exporter.toX3D(grid, writer, null);
+
             System.out.println("GenX3D time: " + (System.currentTimeMillis() - stime));
             System.out.println("End doc");
             stime = System.currentTimeMillis();

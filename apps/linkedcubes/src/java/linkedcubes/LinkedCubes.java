@@ -169,7 +169,9 @@ public class LinkedCubes {
             writer.fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
             writer.endNode(); // Viewpoint
 
-            grid.toX3D(writer, null);
+            BoxesX3DExporter exporter = new BoxesX3DExporter();
+            exporter.toX3D(grid, writer, null);
+
             writer.endDocument();
 
             fos.close();
