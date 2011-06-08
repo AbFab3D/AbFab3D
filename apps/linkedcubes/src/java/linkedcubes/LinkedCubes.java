@@ -80,11 +80,12 @@ public class LinkedCubes {
             styles[3][2] = Style.LEFT_ROW;
             styles[3][3] = Style.RIGHT_ROW;
 
-            Grid grid = new SliceGrid(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION, true);
+//            Grid grid = new SliceGrid(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION, true);
+            Grid grid = new ArrayGrid(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION);
 
             double x,y,z;
             CubeCreator cg = null;
-            int size = 1;
+            int size = 3;
             double boxSize = 0.008;
 
             double exoffset = 0;

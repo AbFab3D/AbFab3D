@@ -1007,7 +1007,7 @@ System.out.println("Saved: " + saved);
         stream.startField("geometry");
         stream.startNode("IndexedFaceSet", null);
         stream.startField("coord");
-        stream.startNode("WorldCoordinate", null);
+        stream.startNode("Coordinate", null);
         stream.startField("point");
         stream.fieldValue(allCoords, allCoords.length);
         stream.endNode();  // WorldCoordinate
