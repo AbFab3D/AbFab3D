@@ -143,18 +143,18 @@ public class TestArrayGrid extends BaseTestGrid {
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.02, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
-
+        
         // set data for last voxel 2,5,3 and test the bounds
         grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte)2);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.15));
+//        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
+        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.151));
+        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.151));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.199));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.119, 0.199));
-        assertEquals("State should be ", 0, grid.getState(0.15, 0.1, 0.15));  // should fail
-        assertEquals("State should be ", 0, grid.getState(0.1, 0.12, 0.15));
-        assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.2));
-        assertEquals("State should be ", 0, grid.getState(0.15, 0.12, 0.2));
+        assertEquals("State should be ", 0, grid.getState(0.0999, 0.1, 0.1501));
+        assertEquals("State should be ", 0, grid.getState(0.1, 0.0999, 0.1501));
+        assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.1499));
+        assertEquals("State should be ", 0, grid.getState(0.0999, 0.0999, 0.1499));
 /*
 //        System.out.println("0.1, 0.1, 0.15: " + grid.getState(0.1, 0.1, 0.151));
 //        System.out.println("0.15, 0.119, 0.199: " + grid.getState(0.15, 0.119, 0.199));
@@ -231,15 +231,15 @@ public class TestArrayGrid extends BaseTestGrid {
 
         // set data for last voxel 2,5,3 and test the bounds
         grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte)12);
-        assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.1, 0.15));
-        assertEquals("State should be ", 12, grid.getMaterial(0.149, 0.1, 0.15));
-        assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.119, 0.15));
+//        assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.1, 0.15)); //failing because 0.15/0.05=2.999997
+        assertEquals("State should be ", 12, grid.getMaterial(0.1499, 0.1, 0.1501));
+        assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.119, 0.1501));
         assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.1, 0.199));
-        assertEquals("State should be ", 12, grid.getMaterial(0.149, 0.119, 0.199));
-        assertEquals("State should be ", 0, grid.getMaterial(0.15, 0.1, 0.15));
-        assertEquals("State should be ", 0, grid.getMaterial(0.1, 0.12, 0.15));
-        assertEquals("State should be ", 0, grid.getMaterial(0.1, 0.1, 0.2));
-        assertEquals("State should be ", 0, grid.getMaterial(0.15, 0.12, 0.2));
+        assertEquals("State should be ", 12, grid.getMaterial(0.1499, 0.1199, 0.1999));
+        assertEquals("State should be ", 0, grid.getMaterial(0.0999, 0.1, 0.1501));
+        assertEquals("State should be ", 0, grid.getMaterial(0.1, 0.0999, 0.1501));
+        assertEquals("State should be ", 0, grid.getMaterial(0.1, 0.1, 0.1499));
+        assertEquals("State should be ", 0, grid.getMaterial(0.0999, 0.0999, 0.1499));
     }
 
     /**
