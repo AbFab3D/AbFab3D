@@ -201,6 +201,25 @@ System.out.println("Removal Speed");
 
             assertEquals("Insert count wrong", matSize,matCount);
         }
+
+
+        for(int i=0; i < numMaterials; i++) {
+            currMaterial = i;
+            matCount = 0;
+
+            wrapper.find((byte) i, this);
+
+            // Alternate
+            Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) i);
+
+            while(itr.hasNext()) {
+                matCount++;
+            }
+
+
+            assertEquals("Insert count wrong", matSize,matCount);
+        }
+
     }
 
     /**

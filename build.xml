@@ -43,6 +43,9 @@
         <compilejava package="abfab3d/util"
             jars=""
         />
+        <compilejava package="abfab3d/path"
+            jars=""
+        />
         <compilejava package="abfab3d/grid"
             jars=""
         />
@@ -123,6 +126,7 @@
 
   <target name="compileTest" depends="init" description="Compile all Test source files">
      <mkdir dir="${test.classes.dir}" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="support/junit-4.8.1.jar" />
