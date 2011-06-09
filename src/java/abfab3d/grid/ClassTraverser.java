@@ -22,6 +22,8 @@ package abfab3d.grid;
 public interface ClassTraverser {
     /**
      * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
      *
      * @param x The x grid coordinate
      * @param y The y grid coordinate

@@ -285,7 +285,24 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void find(byte mat, ClassTraverser t) {
-        grid.find(mat, t);
+        Byte b = new Byte(mat);
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+        if (coords == null) {
+            return;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int x,y,z;
+
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+            x = vc.getX();
+            y = vc.getY();
+            z = vc.getZ();
+
+            t.found(x,y,z,grid.getData(x,y,z));
+        }
     }
 
     /**
@@ -296,7 +313,30 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @return The number
      */
     public int findCount(byte mat) {
-        return grid.findCount(mat);
+        int ret_val = 0;
+
+        Byte b = new Byte(mat);
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+        if (coords == null) {
+            return 0;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int x,y,z;
+
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+            x = vc.getX();
+            y = vc.getY();
+            z = vc.getZ();
+
+            if (grid.getMaterial(x,y,z) == mat) {
+                ret_val++;
+            }
+        }
+
+        return ret_val;
     }
 
     /**

@@ -33,4 +33,17 @@ public class VoxelData {
     public byte getMaterial() {
         return material;
     }
+
+    public void setState(byte state) {
+        this.state = state;
+    }
+
+    public void setMaterial(byte mat) {
+        this.material = mat;
+    }
+
+    public void setData(byte state, byte mat) {
+        this.state = state;
+        this.material = mat;
+    }
 }

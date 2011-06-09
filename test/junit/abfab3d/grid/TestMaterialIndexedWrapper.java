@@ -26,7 +26,9 @@ import abfab3d.grid.op.RemoveMaterial;
  * @author Alan Hudson
  * @version
  */
-public class TestMaterialIndexedWrapper extends BaseTestGrid {
+public class TestMaterialIndexedWrapper extends BaseTestGrid implements ClassTraverser {
+    private int matCount;
+    private int currMaterial;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -88,7 +90,7 @@ public class TestMaterialIndexedWrapper extends BaseTestGrid {
         long time1;
         long time2;
 
-
+System.out.println("Removal Speed");
         Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
         int matSize = grid.getWidth() * matWidth;
@@ -170,13 +172,283 @@ public class TestMaterialIndexedWrapper extends BaseTestGrid {
 
         assertTrue("Wrapper method too slow", time1 * 10 < time2);
         System.out.println("Wrapper: " + time1);
-        System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X");
+        System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
     }
 
     /**
-     * Test that promised operations are faster.
+     * Test that traversal methods work
      */
-    public void testSpeed() {
+    public void testMaterialTraversal() {
+        int size = 250;
+        int numMaterials = 10;
+        int matWidth = 15;
+
+        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
+
+        for(int i=0; i < numMaterials; i++) {
+            for(int j=0; j < matWidth; j++) {
+                setX(wrapper, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
+            }
+        }
+
+        int matSize = grid.getWidth() * matWidth;
+
+        for(int i=0; i < numMaterials; i++) {
+            currMaterial = i;
+            matCount = 0;
+            wrapper.find((byte) i, this);
+
+            assertEquals("Insert count wrong", matSize,matCount);
+        }
+    }
+
+    /**
+     * Test that traversal methods work
+     */
+    public void testMaterialTraversalSpeed() {
+        int size = 250;
+        int numMaterials = 10;
+        int matWidth = 15;
+        int warmup = 20;
+        int times = 10;
+        long startTime;
+        long time1;
+        long time2;
+
+System.out.println("Material Traversal Speed");
+        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
+
+        for(int i=0; i < numMaterials; i++) {
+            for(int j=0; j < matWidth; j++) {
+                setX(wrapper, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
+            }
+        }
+
+        int matSize = grid.getWidth() * matWidth;
+
+        // warmup method 1
+
+        for(int n=0; n < warmup; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                wrapper.find((byte) i, this);
+            }
+        }
+
+
+        matCount = 0;
+        startTime = System.nanoTime();
+
+        for(int n=0; n < times; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                currMaterial = i;
+                matCount = 0;
+                wrapper.find((byte) i, this);
+            }
+        }
+
+        time1 = System.nanoTime() - startTime;
+
+        Grid grid2 = new ArrayGrid(size,size,size,0.001, 0.001);
+
+        for(int i=0; i < numMaterials; i++) {
+            for(int j=0; j < matWidth; j++) {
+                setX(grid2, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
+            }
+        }
+
+        // warmup method 2
+
+        for(int n=0; n < warmup; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                currMaterial = i;
+                matCount = 0;
+                grid2.find((byte) i, this);
+            }
+        }
+
+        matCount = 0;
+        startTime = System.nanoTime();
+
+        for(int n=0; n < times; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                currMaterial = i;
+                matCount = 0;
+                grid2.find((byte) i, this);
+            }
+        }
+
+        time2 = System.nanoTime() - startTime;
+
+        assertTrue("Wrapper method too slow", time1 * 100 < time2);
+        System.out.println("Wrapper: " + time1);
+        System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
+
+    }
+
+    /**
+     * Test that traversal methods work
+     */
+    public void testMaterialTraversalSpeedNotFound() {
+        int size = 250;
+        int numMaterials = 10;
+        int matWidth = 15;
+        int warmup = 20;
+        int times = 10;
+        long startTime;
+        long time1;
+        long time2;
+
+System.out.println("Material Traversal Speed Not Found");
+        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
+
+        for(int i=0; i < numMaterials; i++) {
+            for(int j=0; j < matWidth; j++) {
+                setX(wrapper, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
+            }
+        }
+
+        int matSize = grid.getWidth() * matWidth;
+
+        // warmup method 1
+
+        for(int n=0; n < warmup; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                wrapper.find((byte) (numMaterials+1), this);
+            }
+        }
+
+
+        matCount = 0;
+        startTime = System.nanoTime();
+
+        for(int n=0; n < times; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                currMaterial = i;
+                matCount = 0;
+                wrapper.find((byte) (numMaterials+1), this);
+            }
+        }
+
+        time1 = System.nanoTime() - startTime;
+
+        assertEquals("Wrapper count wrong", matCount, 0);
+
+        Grid grid2 = new ArrayGrid(size,size,size,0.001, 0.001);
+
+        for(int i=0; i < numMaterials; i++) {
+            for(int j=0; j < matWidth; j++) {
+                setX(grid2, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
+            }
+        }
+
+        // warmup method 2
+
+        for(int n=0; n < warmup; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                currMaterial = i;
+                matCount = 0;
+                grid2.find((byte) (numMaterials+1), this);
+            }
+        }
+
+        matCount = 0;
+        startTime = System.nanoTime();
+
+        for(int n=0; n < times; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                currMaterial = i;
+                matCount = 0;
+                grid2.find((byte) (numMaterials+1), this);
+            }
+        }
+
+        time2 = System.nanoTime() - startTime;
+
+        assertEquals("Direct count wrong", matCount, 0);
+
+        assertTrue("Wrapper method too slow", time1 * 100 < time2);
+        System.out.println("Wrapper: " + time1);
+        System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
+
+    }
+
+    /**
+     * Test that material count speed is better then regular grids.
+     */
+    public void testMaterialCountSpeed() {
+        int size = 250;
+        int numMaterials = 5;
+        int matWidth = 15;
+        int warmup = 10;
+        int times = 10;
+        long startTime;
+        long time1;
+        long time2;
+
+System.out.println("Material Count Speed");
+        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
+
+        for(int i=0; i < numMaterials; i++) {
+            for(int j=0; j < matWidth; j++) {
+                setX(wrapper, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
+            }
+        }
+
+        int matSize = grid.getWidth() * matWidth;
+
+        // warmup method 1
+
+        for(int n=0; n < warmup; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                wrapper.findCount((byte) i);
+            }
+        }
+
+
+        startTime = System.nanoTime();
+
+        for(int n=0; n < times; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                matCount = wrapper.findCount((byte) i);
+            }
+        }
+
+        time1 = System.nanoTime() - startTime;
+
+        Grid grid2 = new ArrayGrid(size,size,size,0.001, 0.001);
+
+        for(int i=0; i < numMaterials; i++) {
+            for(int j=0; j < matWidth; j++) {
+                setX(grid2, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
+            }
+        }
+
+        // warmup method 2
+
+        for(int n=0; n < warmup; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                matCount = grid2.findCount((byte) i);
+            }
+        }
+
+        startTime = System.nanoTime();
+
+        for(int n=0; n < times; n++) {
+            for(int i=0; i < numMaterials; i++) {
+                matCount = grid2.findCount((byte) i);
+            }
+        }
+
+        time2 = System.nanoTime() - startTime;
+
+        assertTrue("Wrapper method too slow", time1 * 100 < time2);
+        System.out.println("Wrapper: " + time1);
+        System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
+
     }
 
     /**
@@ -193,5 +465,18 @@ public class TestMaterialIndexedWrapper extends BaseTestGrid {
         for(int x=0; x < width; x++) {
             grid.setData(x,y,z, state, mat);
         }
+    }
+
+    /**
+     * A voxel of the class requested has been found.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public void found(int x, int y, int z, VoxelData vd) {
+        if (vd.getMaterial() == currMaterial)
+            matCount++;
     }
 }
