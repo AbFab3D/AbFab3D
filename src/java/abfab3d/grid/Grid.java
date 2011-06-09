@@ -148,13 +148,38 @@ public interface Grid {
     public void getGridBounds(double[] min, double[] max);
 
     /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.
+     * Get an iterator for voxel state.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
      *
-     * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
+     * @param vc The voxel state
+     * @return The voxels matching the state specified
      */
-    public void find(VoxelClasses vc, ClassTraverser t);
+    public Iterator<Voxel> getStateIterator(VoxelClasses vc);
+
+    /**
+     * Get an iterator for materialID.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
+     *
+     * @param mat The materialID
+     * @return The voxels matching the materialID
+     */
+    public Iterator<Voxel> getMaterialIterator(byte mat);
+
+    /**
+     * Get an iterator for state and materialID.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
+     *
+     * @param vc The voxel class
+     * @param mat The materialID
+     * @return The voxels that are the same state and materialID
+     */
+    public Iterator<Voxel> getIterator(VoxelClasses vc, byte mat);
 
     /**
      * Count a class of voxels types.  May be much faster then
@@ -164,15 +189,6 @@ public interface Grid {
      * @return The number
      */
     public int findCount(VoxelClasses vc);
-
-    /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(byte mat, ClassTraverser t);
 
     /**
      * Count a class of material types.  May be much faster then

@@ -73,6 +73,46 @@ public abstract class BaseGrid implements Grid {
     }
 
     /**
+     * Get an iterator for voxel state.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
+     *
+     * @param vc The voxel state
+     * @return The voxels matching the state specified
+     */
+    public Iterator<Voxel> getStateIterator(VoxelClasses vc) {
+        return new StateIterator(vc);
+    }
+
+    /**
+     * Get an iterator for materialID.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
+     *
+     * @param mat The materialID
+     * @return The voxels matching the materialID
+     */
+    public Iterator<Voxel> getMaterialIterator(byte mat) {
+        return null;
+    }
+
+    /**
+     * Get an iterator for state and materialID.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
+     *
+     * @param vc The voxel class
+     * @param mat The materialID
+     * @return The voxels that are the same state and materialID
+     */
+    public Iterator<Voxel> getIterator(VoxelClasses vc, byte mat) {
+        return null;
+    }
+
+    /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -343,6 +383,103 @@ public abstract class BaseGrid implements Grid {
         }
 
         return sb.toString();
+    }
+
+    private class StateIterator implements Iterator<Voxel> {
+        /**
+         * Index of element to be returned by subsequent call to next.
+         */
+        int cursorX = 0;
+        int cursorY = 0;
+        int cursorZ = 0;
+
+        VoxelClasses vc;
+        Voxel voxel;
+
+        public StateIterator(VoxelClasses vc) {
+            this.vc = vc;
+        }
+
+        public boolean hasNext() {
+            byte state;
+
+            for(int y=cursorY; y < height; y++) {
+                for(int x=cursorX; x < width; x++) {
+                    for(int z=cursorZ; z < depth; z++) {
+                        VoxelData vd = getData(x,y,z);
+
+                        switch(vc) {
+                            case ALL:
+                                cursorX = x;
+                                cursorY = y;
+                                cursorZ = z;
+
+                                voxel = new Voxel(x,y,z,vd.getState(), vd.getMaterial());
+                                return true;
+                            case MARKED:
+                                state = vd.getState();
+                                if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                    cursorX = x;
+                                    cursorY = y;
+                                    cursorZ = z;
+
+                                    voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                    return true;
+                                }
+                                break;
+                            case EXTERIOR:
+                                state = vd.getState();
+                                if (state == Grid.EXTERIOR) {
+                                    cursorX = x;
+                                    cursorY = y;
+                                    cursorZ = z;
+
+                                    voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                    return true;
+                                }
+                                break;
+                            case INTERIOR:
+                                state = vd.getState();
+                                if (state == Grid.INTERIOR) {
+                                    cursorX = x;
+                                    cursorY = y;
+                                    cursorZ = z;
+
+                                    voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                    return true;
+                                }
+                                break;
+                            case OUTSIDE:
+                                state = vd.getState();
+                                if (state == Grid.OUTSIDE) {
+                                    cursorX = x;
+                                    cursorY = y;
+                                    cursorZ = z;
+
+                                    voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                    return true;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+            voxel = null;
+            return false;
+        }
+
+        public Voxel next() {
+            if (voxel == null) {
+                throw new NoSuchElementException();
+            }
+
+            return voxel;
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
     }
 }
 
