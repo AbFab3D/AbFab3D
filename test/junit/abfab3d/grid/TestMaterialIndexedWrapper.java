@@ -27,10 +27,7 @@ import abfab3d.grid.op.RemoveMaterial;
  * @author Alan Hudson
  * @version
  */
-public class TestMaterialIndexedWrapper extends BaseTestGrid implements ClassTraverser {
-    private int matCount;
-    private int currMaterial;
-
+public class TestMaterialIndexedWrapper extends BaseTestGrid {
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
@@ -193,28 +190,26 @@ System.out.println("Removal Speed");
             }
         }
 
+        int matCount = 0;
         int matSize = grid.getWidth() * matWidth;
 
         for(int i=0; i < numMaterials; i++) {
-            currMaterial = i;
-            matCount = 0;
-            wrapper.find((byte) i, this);
-
-            assertEquals("Insert count wrong", matSize,matCount);
-        }
-
-
-        for(int i=0; i < numMaterials; i++) {
-            currMaterial = i;
-            matCount = 0;
-
-            // Alternate
             Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) i);
 
             while(itr.hasNext()) {
                 matCount++;
             }
 
+            assertEquals("Insert count wrong", matSize,matCount);
+        }
+
+
+        for(int i=0; i < numMaterials; i++) {
+            Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) i);
+
+            while(itr.hasNext()) {
+                matCount++;
+            }
 
             assertEquals("Insert count wrong", matSize,matCount);
         }
@@ -245,12 +240,18 @@ System.out.println("Material Traversal Speed");
         }
 
         int matSize = grid.getWidth() * matWidth;
+        int matCount = 0;
 
         // warmup method 1
 
         for(int n=0; n < warmup; n++) {
             for(int i=0; i < numMaterials; i++) {
-                wrapper.find((byte) i, this);
+
+                Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) i);
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
             }
         }
 
@@ -260,9 +261,11 @@ System.out.println("Material Traversal Speed");
 
         for(int n=0; n < times; n++) {
             for(int i=0; i < numMaterials; i++) {
-                currMaterial = i;
-                matCount = 0;
-                wrapper.find((byte) i, this);
+                Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) i);
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
             }
         }
 
@@ -280,9 +283,11 @@ System.out.println("Material Traversal Speed");
 
         for(int n=0; n < warmup; n++) {
             for(int i=0; i < numMaterials; i++) {
-                currMaterial = i;
-                matCount = 0;
-                grid2.find((byte) i, this);
+                Iterator<Voxel> itr = grid2.getMaterialIterator((byte) i);
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
             }
         }
 
@@ -291,9 +296,11 @@ System.out.println("Material Traversal Speed");
 
         for(int n=0; n < times; n++) {
             for(int i=0; i < numMaterials; i++) {
-                currMaterial = i;
-                matCount = 0;
-                grid2.find((byte) i, this);
+                Iterator<Voxel> itr = grid2.getMaterialIterator((byte) i);
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
             }
         }
 
@@ -302,7 +309,6 @@ System.out.println("Material Traversal Speed");
         assertTrue("Wrapper method too slow", time1 * 100 < time2);
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
-
     }
 
     /**
@@ -329,12 +335,17 @@ System.out.println("Material Traversal Speed Not Found");
         }
 
         int matSize = grid.getWidth() * matWidth;
+        int matCount = 0;
 
         // warmup method 1
 
         for(int n=0; n < warmup; n++) {
             for(int i=0; i < numMaterials; i++) {
-                wrapper.find((byte) (numMaterials+1), this);
+                Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) (numMaterials+1));
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
             }
         }
 
@@ -344,9 +355,11 @@ System.out.println("Material Traversal Speed Not Found");
 
         for(int n=0; n < times; n++) {
             for(int i=0; i < numMaterials; i++) {
-                currMaterial = i;
-                matCount = 0;
-                wrapper.find((byte) (numMaterials+1), this);
+                Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) (numMaterials+1));
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
             }
         }
 
@@ -366,9 +379,11 @@ System.out.println("Material Traversal Speed Not Found");
 
         for(int n=0; n < warmup; n++) {
             for(int i=0; i < numMaterials; i++) {
-                currMaterial = i;
-                matCount = 0;
-                grid2.find((byte) (numMaterials+1), this);
+                Iterator<Voxel> itr = grid2.getMaterialIterator((byte) (numMaterials+1));
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
             }
         }
 
@@ -377,9 +392,12 @@ System.out.println("Material Traversal Speed Not Found");
 
         for(int n=0; n < times; n++) {
             for(int i=0; i < numMaterials; i++) {
-                currMaterial = i;
-                matCount = 0;
-                grid2.find((byte) (numMaterials+1), this);
+                Iterator<Voxel> itr = grid2.getMaterialIterator((byte) (numMaterials+1));
+
+                while(itr.hasNext()) {
+                    matCount++;
+                }
+
             }
         }
 
@@ -417,6 +435,7 @@ System.out.println("Material Count Speed");
         }
 
         int matSize = grid.getWidth() * matWidth;
+        int matCount = 0;
 
         // warmup method 1
 
@@ -483,18 +502,5 @@ System.out.println("Material Count Speed");
         for(int x=0; x < width; x++) {
             grid.setData(x,y,z, state, mat);
         }
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        if (vd.getMaterial() == currMaterial)
-            matCount++;
     }
 }

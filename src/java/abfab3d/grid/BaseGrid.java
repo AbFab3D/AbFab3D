@@ -333,16 +333,18 @@ public abstract class BaseGrid implements Grid {
         public boolean hasNext() {
             byte state;
 
+//System.out.println("hasNext: " + cursorX + " " + cursorY + " " + cursorZ);
             for(int y=cursorY; y < height; y++) {
                 for(int x=cursorX; x < width; x++) {
                     for(int z=cursorZ; z < depth; z++) {
                         VoxelData vd = getData(x,y,z);
 
+//System.out.println("x: " + x + " y: " + y + " z: " + z);
                         switch(vc) {
                             case ALL:
                                 cursorX = x;
                                 cursorY = y;
-                                cursorZ = z;
+                                cursorZ = z + 1;
 
                                 voxel = new Voxel(x,y,z,vd.getState(), vd.getMaterial());
                                 return true;
@@ -351,7 +353,7 @@ public abstract class BaseGrid implements Grid {
                                 if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
                                     cursorX = x;
                                     cursorY = y;
-                                    cursorZ = z;
+                                    cursorZ = z + 1;
 
                                     voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                     return true;
@@ -362,7 +364,7 @@ public abstract class BaseGrid implements Grid {
                                 if (state == Grid.EXTERIOR) {
                                     cursorX = x;
                                     cursorY = y;
-                                    cursorZ = z;
+                                    cursorZ = z + 1;
 
                                     voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                     return true;
@@ -373,7 +375,7 @@ public abstract class BaseGrid implements Grid {
                                 if (state == Grid.INTERIOR) {
                                     cursorX = x;
                                     cursorY = y;
-                                    cursorZ = z;
+                                    cursorZ = z + 1;
 
                                     voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                     return true;
@@ -384,7 +386,7 @@ public abstract class BaseGrid implements Grid {
                                 if (state == Grid.OUTSIDE) {
                                     cursorX = x;
                                     cursorY = y;
-                                    cursorZ = z;
+                                    cursorZ = z + 1;
 
                                     voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                     return true;
@@ -436,7 +438,7 @@ public abstract class BaseGrid implements Grid {
                         if (vd.getMaterial() == mat) {
                             cursorX = x;
                             cursorY = y;
-                            cursorZ = z;
+                            cursorZ = z + 1;
 
                             voxel = new Voxel(x,y,z,vd.getState(), vd.getMaterial());
                             return true;
@@ -492,7 +494,7 @@ public abstract class BaseGrid implements Grid {
                                 if (vd.getMaterial() == mat) {
                                     cursorX = x;
                                     cursorY = y;
-                                    cursorZ = z;
+                                    cursorZ = z + 1;
 
                                     voxel = new Voxel(x,y,z,vd.getState(), vd.getMaterial());
                                     return true;
@@ -504,7 +506,7 @@ public abstract class BaseGrid implements Grid {
                                     if (vd.getMaterial() == mat) {
                                         cursorX = x;
                                         cursorY = y;
-                                        cursorZ = z;
+                                        cursorZ = z + 1;
 
                                         voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                         return true;
@@ -517,7 +519,7 @@ public abstract class BaseGrid implements Grid {
                                     if (vd.getMaterial() == mat) {
                                         cursorX = x;
                                         cursorY = y;
-                                        cursorZ = z;
+                                        cursorZ = z + 1;
 
                                         voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                         return true;
@@ -530,7 +532,7 @@ public abstract class BaseGrid implements Grid {
                                     if (vd.getMaterial() == mat) {
                                         cursorX = x;
                                         cursorY = y;
-                                        cursorZ = z;
+                                        cursorZ = z + 1;
 
                                         voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                         return true;
@@ -543,7 +545,7 @@ public abstract class BaseGrid implements Grid {
                                     if (vd.getMaterial() == mat) {
                                         cursorX = x;
                                         cursorY = y;
-                                        cursorZ = z;
+                                        cursorZ = z + 1;
 
                                         voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                         return true;

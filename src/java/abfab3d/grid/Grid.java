@@ -36,6 +36,7 @@ public interface Grid {
     // The voxel is an interior voxel
     public static final byte INTERIOR = 2;
 
+    // Marked is EXTERIOR | INTERIOR
     public enum VoxelClasses {ALL, MARKED, EXTERIOR, INTERIOR, OUTSIDE};
 
     /**

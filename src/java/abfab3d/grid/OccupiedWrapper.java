@@ -12,6 +12,11 @@
 
 package abfab3d.grid;
 
+// External Imports
+import java.util.*;
+
+// Internal Imports
+
 /**
  * Detects whether a set operation is changing a voxel that
  * is already occupied.  This will throw an IllegalArgumentException if
@@ -189,14 +194,43 @@ public class OccupiedWrapper implements GridWrapper {
     }
 
     /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.
+     * Get an iterator for voxel state.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
      *
-     * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
+     * @param vc The voxel state
+     * @return The voxels matching the state specified
      */
-    public void find(VoxelClasses vc, ClassTraverser t) {
-        grid.find(vc, t);
+    public Iterator<Voxel> getStateIterator(VoxelClasses vc) {
+        return grid.getStateIterator(vc);
+    }
+
+    /**
+     * Get an iterator for materialID.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
+     *
+     * @param mat The materialID
+     * @return The voxels matching the materialID
+     */
+    public Iterator<Voxel> getMaterialIterator(byte mat) {
+        return grid.getMaterialIterator(mat);
+    }
+
+    /**
+     * Get an iterator for state and materialID.  The returned object
+     * Voxel may be reused so clone if you to keep it.  For speed
+     * this iterator does not check for comodification, don't do
+     * that.
+     *
+     * @param vc The voxel class
+     * @param mat The materialID
+     * @return The voxels that are the same state and materialID
+     */
+    public Iterator<Voxel> getIterator(VoxelClasses vc, byte mat) {
+        return grid.getIterator(vc,mat);
     }
 
     /**
@@ -208,17 +242,6 @@ public class OccupiedWrapper implements GridWrapper {
      */
     public int findCount(VoxelClasses vc) {
         return grid.findCount(vc);
-    }
-
-    /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(byte mat, ClassTraverser t) {
-        grid.find(mat, t);
     }
 
     /**
