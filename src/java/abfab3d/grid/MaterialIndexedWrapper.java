@@ -187,6 +187,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
             index.put(b, coords);
         }
 
+        // TODO: this makes this method not thread safe.
+        // Make synchronized?  Use thread local.  Just allocate each time?
+
         grid.getGridCoords(x,y,z,gcoords);
 
         VoxelCoordinate vc = new VoxelCoordinate(gcoords[0], gcoords[1], gcoords[2]);

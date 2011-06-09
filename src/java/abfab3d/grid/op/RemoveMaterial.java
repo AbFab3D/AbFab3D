@@ -39,6 +39,7 @@ public class RemoveMaterial implements Operation {
      */
     public Grid execute(Grid grid) {
         if (grid instanceof MaterialIndexedWrapper) {
+            ((MaterialIndexedWrapper)grid).removeMaterial(material);
         } else {
             int width = grid.getWidth();
             int depth = grid.getDepth();

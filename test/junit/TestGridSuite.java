@@ -31,6 +31,7 @@ public class TestGridSuite extends TestSuite {
         suite.addTest(TestArrayGrid.suite());
 
         suite.addTest(TestOccupiedWrapper.suite());
+        suite.addTest(TestMaterialIndexedWrapper.suite());
 
         return suite;
     }
