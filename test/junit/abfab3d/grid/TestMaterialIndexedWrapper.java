@@ -16,6 +16,7 @@ package abfab3d.grid;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import java.util.Iterator;
 
 // Internal Imports
 import abfab3d.grid.op.RemoveMaterial;
@@ -206,8 +207,6 @@ System.out.println("Removal Speed");
         for(int i=0; i < numMaterials; i++) {
             currMaterial = i;
             matCount = 0;
-
-            wrapper.find((byte) i, this);
 
             // Alternate
             Iterator<Voxel> itr = wrapper.getMaterialIterator((byte) i);

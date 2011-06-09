@@ -95,7 +95,7 @@ public abstract class BaseGrid implements Grid {
      * @return The voxels matching the materialID
      */
     public Iterator<Voxel> getMaterialIterator(byte mat) {
-        return null;
+        return new MaterialIterator(mat);
     }
 
     /**
@@ -109,7 +109,7 @@ public abstract class BaseGrid implements Grid {
      * @return The voxels that are the same state and materialID
      */
     public Iterator<Voxel> getIterator(VoxelClasses vc, byte mat) {
-        return null;
+        return new StateMaterialIterator(vc,mat);
     }
 
     /**
@@ -163,76 +163,6 @@ public abstract class BaseGrid implements Grid {
         }
 
         return ret_val;
-    }
-
-    /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(VoxelClasses vc, ClassTraverser t) {
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    byte state;
-
-                    switch(vc) {
-                        case ALL:
-                            t.found(x,y,z,vd);
-                            break;
-                        case MARKED:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case OUTSIDE:
-                            state = vd.getState();
-                            if (state == Grid.OUTSIDE) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(byte mat, ClassTraverser t) {
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
-                        t.found(x,y,z,vd);
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -458,6 +388,166 @@ public abstract class BaseGrid implements Grid {
 
                                     voxel = new Voxel(x,y,z,state, vd.getMaterial());
                                     return true;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+            voxel = null;
+            return false;
+        }
+
+        public Voxel next() {
+            if (voxel == null) {
+                throw new NoSuchElementException();
+            }
+
+            return voxel;
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private class MaterialIterator implements Iterator<Voxel> {
+        /**
+         * Index of element to be returned by subsequent call to next.
+         */
+        int cursorX = 0;
+        int cursorY = 0;
+        int cursorZ = 0;
+
+        byte mat;
+        Voxel voxel;
+
+        public MaterialIterator(byte mat) {
+            this.mat = mat;
+        }
+
+        public boolean hasNext() {
+            for(int y=cursorY; y < height; y++) {
+                for(int x=cursorX; x < width; x++) {
+                    for(int z=cursorZ; z < depth; z++) {
+                        VoxelData vd = getData(x,y,z);
+
+                        if (vd.getMaterial() == mat) {
+                            cursorX = x;
+                            cursorY = y;
+                            cursorZ = z;
+
+                            voxel = new Voxel(x,y,z,vd.getState(), vd.getMaterial());
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            voxel = null;
+            return false;
+        }
+
+        public Voxel next() {
+            if (voxel == null) {
+                throw new NoSuchElementException();
+            }
+
+            return voxel;
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private class StateMaterialIterator implements Iterator<Voxel> {
+        /**
+         * Index of element to be returned by subsequent call to next.
+         */
+        int cursorX = 0;
+        int cursorY = 0;
+        int cursorZ = 0;
+
+        VoxelClasses vc;
+        byte mat;
+        Voxel voxel;
+
+        public StateMaterialIterator(VoxelClasses vc, byte mat) {
+            this.vc = vc;
+            this.mat = mat;
+        }
+
+        public boolean hasNext() {
+            byte state;
+
+            for(int y=cursorY; y < height; y++) {
+                for(int x=cursorX; x < width; x++) {
+                    for(int z=cursorZ; z < depth; z++) {
+                        VoxelData vd = getData(x,y,z);
+
+                        switch(vc) {
+                            case ALL:
+                                if (vd.getMaterial() == mat) {
+                                    cursorX = x;
+                                    cursorY = y;
+                                    cursorZ = z;
+
+                                    voxel = new Voxel(x,y,z,vd.getState(), vd.getMaterial());
+                                    return true;
+                                }
+                                break;
+                            case MARKED:
+                                state = vd.getState();
+                                if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                    if (vd.getMaterial() == mat) {
+                                        cursorX = x;
+                                        cursorY = y;
+                                        cursorZ = z;
+
+                                        voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                        return true;
+                                    }
+                                }
+                                break;
+                            case EXTERIOR:
+                                state = vd.getState();
+                                if (state == Grid.EXTERIOR) {
+                                    if (vd.getMaterial() == mat) {
+                                        cursorX = x;
+                                        cursorY = y;
+                                        cursorZ = z;
+
+                                        voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                        return true;
+                                    }
+                                }
+                                break;
+                            case INTERIOR:
+                                state = vd.getState();
+                                if (state == Grid.INTERIOR) {
+                                    if (vd.getMaterial() == mat) {
+                                        cursorX = x;
+                                        cursorY = y;
+                                        cursorZ = z;
+
+                                        voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                        return true;
+                                    }
+                                }
+                                break;
+                            case OUTSIDE:
+                                state = vd.getState();
+                                if (state == Grid.OUTSIDE) {
+                                    if (vd.getMaterial() == mat) {
+                                        cursorX = x;
+                                        cursorY = y;
+                                        cursorZ = z;
+
+                                        voxel = new Voxel(x,y,z,state, vd.getMaterial());
+                                        return true;
+                                    }
                                 }
                                 break;
                         }
