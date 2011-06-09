@@ -48,7 +48,47 @@ public class BaseTestGrid extends TestCase {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
                     VoxelData vd = grid.getData(x,y,z);
+//System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
+                    assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                    assertTrue("Material wrong", vd.getMaterial() == 1);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Set and get all values of a grid using world coords
+     *
+     * @param grid The grid to test
+     */
+    public void setGetAllVoxelByWorldCoords(Grid grid) {
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+        double voxelSize = grid.getVoxelSize();
+        double sliceHeight = grid.getSliceHeight();
 
+        double xcoord, ycoord, zcoord;
+        
+        for(int x=0; x < width; x++) {
+        	xcoord = (double)(x)*voxelSize + voxelSize/2.0;
+            for(int y=0; y < height; y++) {
+            	ycoord = (double)(y)*sliceHeight + sliceHeight/2.0;
+                for(int z=0; z < depth; z++) {
+                	zcoord = (double)(z)*voxelSize + voxelSize/2.0;
+                    grid.setData(xcoord, ycoord, zcoord, Grid.EXTERIOR, (byte)1);
+                }
+            }
+        }
+
+        for(int x=0; x < width; x++) {
+        	xcoord = (double)(x)*voxelSize + voxelSize/2.0;
+            for(int y=0; y < height; y++) {
+            	ycoord = (double)(y)*sliceHeight + sliceHeight/2.0;
+                for(int z=0; z < depth; z++) {
+                	zcoord = (double)(z)*voxelSize + voxelSize/2.0;
+                    VoxelData vd = grid.getData(xcoord, ycoord, zcoord);
+//System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
                     assertTrue("Material wrong", vd.getMaterial() == 1);
                 }
