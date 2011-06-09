@@ -47,9 +47,11 @@ public class CanMoveMaterial {
      * @return true if it can move to an exit.
      */
     public boolean execute(Grid grid) {
+/*
         grid.findMaterial(material, this);
 
-        return grid;
+*/
+        return false;
     }
 
     /**
