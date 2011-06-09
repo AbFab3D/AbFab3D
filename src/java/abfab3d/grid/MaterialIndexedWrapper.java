@@ -33,8 +33,17 @@ import org.j3d.geom.GeometryData;
  * @author Alan Hudson
  */
 public class MaterialIndexedWrapper implements GridWrapper {
+    /** Starting size of Sets per material */
+    private static final int INDEX_SIZE = 1024;
+
     /** The wrapper grid */
     private Grid grid;
+
+    /** The index */
+    private HashMap<Byte, HashSet<VoxelCoordinate>> index;
+
+    /** Scratch var */
+    private int[] gcoords;
 
     /**
      * Constructor.
@@ -43,6 +52,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
      */
     public MaterialIndexedWrapper(Grid grid) {
         this.grid = grid;
+
+        index = new HashMap<Byte, HashSet<VoxelCoordinate>>();
+        gcoords = new int[3];
     }
 
     /**
@@ -51,15 +63,21 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param mat The materialID
      */
     public void removeMaterial(byte mat) {
-    }
+        Byte b = new Byte(mat);
 
-    /**
-     * Add a geometry associated with a materialID.
-     *
-     * @param geom The geometry
-     * @param mat The materialID
-     */
-    public void addGeometry(GeometryData geom, byte mat) {
+        HashSet<VoxelCoordinate> coords = index.get(b);
+        if (coords == null) {
+            // Nothing to do
+            return;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.OUTSIDE, (byte) 0);
+        }
+
+        index.remove(b);
     }
 
     //----------------------------------------------------------
@@ -161,13 +179,20 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param material The materialID
      */
     public void setData(double x, double y, double z, byte state, byte material) {
-        byte old_state = grid.getState(x,y,z);
+        Byte b = new Byte(material);
 
-        if (old_state != Grid.OUTSIDE && state != Grid.OUTSIDE) {
-            throw new IllegalArgumentException("Invalid state change");
+        HashSet<VoxelCoordinate> coords = index.get(b);
+        if (coords == null) {
+            coords = new HashSet<VoxelCoordinate>(INDEX_SIZE);
+            index.put(b, coords);
         }
 
-        grid.setData(x,y,z,state,material);
+        grid.getGridCoords(x,y,z,gcoords);
+
+        VoxelCoordinate vc = new VoxelCoordinate(gcoords[0], gcoords[1], gcoords[2]);
+        coords.add(vc);
+
+        grid.setData(gcoords[0],gcoords[1],gcoords[2],state,material);
     }
 
     /**
@@ -179,11 +204,16 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param val The value.  0 = nothing. > 0 materialID
      */
     public void setData(int x, int y, int z, byte state, byte material) {
-        byte old_state = grid.getState(x,y,z);
+        Byte b = new Byte(material);
 
-        if (old_state != Grid.OUTSIDE && state != Grid.OUTSIDE) {
-            throw new IllegalArgumentException("Invalid state change");
+        HashSet<VoxelCoordinate> coords = index.get(b);
+        if (coords == null) {
+            coords = new HashSet<VoxelCoordinate>(INDEX_SIZE);
+            index.put(b, coords);
         }
+
+        VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
+        coords.add(vc);
 
         grid.setData(x,y,z,state,material);
     }

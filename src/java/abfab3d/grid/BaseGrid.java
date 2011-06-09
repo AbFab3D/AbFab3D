@@ -187,7 +187,7 @@ public abstract class BaseGrid implements Grid {
                 for(int z=0; z < depth; z++) {
                     VoxelData vd = getData(x,y,z);
 
-                    if (vd.getState() == mat) {
+                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                         t.found(x,y,z,vd);
                     }
                 }
@@ -212,7 +212,7 @@ public abstract class BaseGrid implements Grid {
 
                     byte state;
 
-                    if (vd.getMaterial() == mat) {
+                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                         ret_val++;
                     }
                 }
