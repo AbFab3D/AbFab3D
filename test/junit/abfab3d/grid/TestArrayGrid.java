@@ -26,8 +26,15 @@ import junit.framework.TestSuite;
  * @author Alan Hudson
  * @version
  */
-public class TestArrayGrid extends BaseTestGrid {
+public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
 
+    /** The material count */
+    private int allCount;
+    private int mrkCount;
+    private int extCount;
+    private int intCount;
+    private int outCount;
+	
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
@@ -329,6 +336,51 @@ public class TestArrayGrid extends BaseTestGrid {
 
     }
 
+    public void testFindVoxelClass() {
+        int width = 3;
+        int height = 4;
+        int depth = 10;
+        int[] stateDepth = {10, 6, 1};
+        byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
+
+        Grid grid = new ArrayGrid(width, height, depth, 0.05, 0.02);
+
+        // set some data
+        for (int x=0; x<states.length; x++){
+            for (int y=0; y<height; y++) {
+                for (int z=0; z<stateDepth[x]; z++) {
+                    grid.setData(x, y, z, states[x], (byte) 2);
+                }
+            }
+        }
+        
+        int expectedAllCount = width * height * depth;
+        int expectedExtCount = stateDepth[0] * height;
+        int expectedIntCount = stateDepth[1] * height;
+        int expectedMrkCount = expectedExtCount + expectedIntCount;
+        int expectedOutCount = expectedAllCount - expectedMrkCount;
+        
+        resetCounts();
+        grid.find(VoxelClasses.ALL, this);
+        assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
+        
+        resetCounts();
+        grid.find(VoxelClasses.MARKED, this);
+        assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
+        
+        resetCounts();
+        grid.find(VoxelClasses.EXTERIOR, this);
+        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
+        
+        resetCounts();
+        grid.find(VoxelClasses.INTERIOR, this);
+        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
+        
+        resetCounts();
+        grid.find(VoxelClasses.OUTSIDE, this);
+        assertEquals("Outside voxel count is not " + expectedOutCount, expectedOutCount, outCount);
+    }
+    
     /**
      * Test getGridCoords.
      */
@@ -522,5 +574,49 @@ public class TestArrayGrid extends BaseTestGrid {
         // world coordinates
         grid = new ArrayGrid(0.12, 0.11, 0.12, voxelSize, 0.01);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
+    }
+    
+    /**
+     * A voxel of the class requested has been found.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public void found(int x, int y, int z, VoxelData vd) {
+    	allCount++;
+    	
+    	if (vd.getState() == Grid.EXTERIOR) {
+    		mrkCount++;
+    		extCount++;
+    	} else if (vd.getState() == Grid.INTERIOR) {
+    		mrkCount++;
+    		intCount++;
+    	} else {
+    		System.out.println("yada");
+    		outCount++;
+    	}
+        
+    }
+    
+    /**
+     * Set all the X values of a grid.
+     *
+     * @param state The new state
+     * @param mat The new material
+     */
+    protected static void setX(Grid grid, int y, int z, byte state, byte mat, int startIndex, int endIndex) {
+        for(int x=startIndex; x <= endIndex; x++) {
+            grid.setData(x,y,z, state, mat);
+        }
+    }
+    
+    private void resetCounts() {
+        allCount = 0;
+        mrkCount = 0;
+        extCount = 0;
+        intCount = 0;
+        outCount = 0;
     }
 }
