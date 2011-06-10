@@ -25,7 +25,7 @@ public interface Path {
      * @param pos The initial pos
      * @param numVoxels The number of voxels in grid.
      */
-    public void init(int[] pos, int numVoxels);
+    public void init(int[] pos, int width, int height, int depth);
 
     /**
      * Find the next position along the path

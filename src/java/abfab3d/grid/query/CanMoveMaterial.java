@@ -30,14 +30,18 @@ import abfab3d.path.Path;
  *
  * @author Alan Hudson
  */
-public class CanMoveMaterial {
+public class CanMoveMaterial implements ClassTraverser {
     /** The material to remove */
     private byte material;
 
     /** The path to use */
     private Path path;
 
+    /** Did all the voxels escape */
+    private boolean allEscaped;
+
     /** The grid we are using */
+    private Grid grid;
 
     public CanMoveMaterial(byte material,Path path) {
         this.material = material;
@@ -53,11 +57,14 @@ public class CanMoveMaterial {
      * @return true if it can move to an exit.
      */
     public boolean execute(Grid grid) {
-/*
-        grid.findMaterial(material, this);
+        allEscaped = true;
+        this.grid = grid;
 
-*/
-        return false;
+        grid.find(material, this);
+
+System.out.println("Final answer: " + allEscaped);
+
+        return allEscaped;
     }
 
     /**
@@ -70,9 +77,38 @@ public class CanMoveMaterial {
      * @param z The z grid coordinate
      * @param vd The voxel data
      */
-    public void found(int x, int y, int z, VoxelData vd) {
+    public void found(int x, int y, int z, VoxelData start) {
         // All should be exterior voxels.
 
+//System.out.println("Move voxel: " + x + " " + y + " " + z);
+        if (!allEscaped) {
+            // TODO: need some way to allow user termination of find?
+            return;
+        }
+
+        int[] pos = new int[] {x,y,z};
+
         // Move along path till edge or
+        path.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
+
+        boolean escaped = true;
+
+        while(path.next(pos)) {
+//System.out.println("Pos: " + java.util.Arrays.toString(pos));
+            VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+
+//System.out.println("VoxelData: " + vd.getState() + " " + vd.getMaterial());
+            if (vd.getState() != Grid.OUTSIDE &&
+                vd.getMaterial() != material) {
+
+//System.out.println("Collide");
+                // found another materials voxel
+                escaped = false;
+                break;
+            }
+        }
+
+        if (!escaped)
+            allEscaped = false;
     }
 }

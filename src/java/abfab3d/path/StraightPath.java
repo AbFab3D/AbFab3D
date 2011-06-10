@@ -21,8 +21,14 @@ public class StraightPath implements Path {
     /** The direction */
     private int[] dir;
 
-    /** The number of voxels in the grid */
-    private int numVoxels;
+    /** The grid width */
+    private int width;
+
+    /** The grid height */
+    private int height;
+
+    /** The grid depth */
+    private int depth;
 
     /** The current position */
     private int[] currPos;
@@ -38,9 +44,11 @@ public class StraightPath implements Path {
      * @param pos The initial pos
      * @param numVoxels The number of voxels in grid.
      */
-    public void init(int[] pos, int numVoxels) {
+    public void init(int[] pos, int width, int height, int depth) {
         this.currPos = pos.clone();
-        this.numVoxels = numVoxels;
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
     }
 
     /**
@@ -54,11 +62,17 @@ public class StraightPath implements Path {
         pos[1] = currPos[1] + dir[1];
         pos[2] = currPos[2] + dir[2];
 
-        if (pos[0] >= numVoxels || pos[1] >= numVoxels ||
-            pos[2] >= numVoxels) {
+        // if path on its edges of travel
+        if ((dir[0] != 0 && pos[0] >= width) ||
+            (dir[1] != 0 && pos[1] >= height) ||
+            (dir[2] != 0 && pos[2] >= depth)) {
 
             return false;
         }
+
+        currPos[0] = pos[0];
+        currPos[1] = pos[1];
+        currPos[2] = pos[2];
 
         return true;
     }
