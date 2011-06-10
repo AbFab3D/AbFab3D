@@ -34,4 +34,11 @@ public interface Path {
      * @return True if there are more positions
      */
     public boolean next(int[] pos);
+
+    /**
+     * Create an inverted path.
+     *
+     * @return The inverted path
+     */
+    public Path invertPath();
 }

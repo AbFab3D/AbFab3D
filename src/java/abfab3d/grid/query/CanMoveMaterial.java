@@ -81,7 +81,7 @@ System.out.println("Final answer: " + allEscaped);
         // All should be exterior voxels.
 
 //System.out.println("Move voxel: " + x + " " + y + " " + z);
-        if (!allEscaped) {
+        if (!allEscaped && canIgnore(x,y,z)) {
             // TODO: need some way to allow user termination of find?
             return;
         }
@@ -110,5 +110,18 @@ System.out.println("Final answer: " + allEscaped);
 
         if (!escaped)
             allEscaped = false;
+/*
+        // walk along negative path, stop at first outside
+        ignoreSet.add(new VoxelCoordinate(x,y,z);
+*/
+    }
+
+    boolean canIgnore(int x,int y, int z) {
+/*
+    // ignoreSet would be HashSet
+        if (ignoreSet.contains(new VoxelCoordinate(x,y,z)))
+            return true;
+*/
+        return false;
     }
 }

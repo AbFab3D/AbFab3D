@@ -76,4 +76,13 @@ public class StraightPath implements Path {
 
         return true;
     }
+
+    /**
+     * Create an inverted path.
+     *
+     * @return The inverted path
+     */
+    public Path invertPath() {
+        return new StraightPath(new int[] {-dir[0],-dir[1],-dir[2]});
+    }
 }
