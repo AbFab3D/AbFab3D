@@ -21,6 +21,12 @@ import abfab3d.path.Path;
 /**
  * Determines whether an object specified by a materialID can move
  *
+ * Might be able to optimize by moving the axis most version of
+ * of something and then not having to calculate the rest in that
+ * axis.  Might only work for axis aligned?  cast ray along negative
+ * axis and say all those are ok if connected.
+
+ *
  *
  * @author Alan Hudson
  */

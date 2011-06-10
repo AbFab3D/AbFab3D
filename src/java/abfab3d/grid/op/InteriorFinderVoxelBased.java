@@ -31,9 +31,13 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class InteriorFinderVoxelBased implements Operation {
+public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
     /** The material to use for new voxels */
     protected byte innerMaterial;
+
+    /** The grid we are operating on */
+    private Grid gridOp;
+
 
     public InteriorFinderVoxelBased(byte material) {
         this.innerMaterial = material;
@@ -47,6 +51,7 @@ public class InteriorFinderVoxelBased implements Operation {
      * @return The new grid
      */
     public Grid execute(Grid grid) {
+        gridOp = grid;
 /*
         Grid result = new SliceGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight(), false);
@@ -241,13 +246,21 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 
 System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTERIOR));
 
-        Iterator<Voxel> itr = result.getStateIterator(Grid.VoxelClasses.INTERIOR);
-        while(itr.hasNext()) {
-            Voxel v = itr.next();
-            grid.setData(v.getX(), v.getY(), v.getZ(),
-                Grid.INTERIOR, innerMaterial);
-        }
+        result.find(Grid.VoxelClasses.INTERIOR, this);
+        gridOp = null;
 
         return grid;
+    }
+
+    /**
+     * A voxel of the class requested has been found.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public void found(int x, int y, int z, VoxelData vd) {
+        gridOp.setData(x,y,z,Grid.INTERIOR, innerMaterial);
     }
 }

@@ -267,46 +267,6 @@ public class MaterialIndexedWrapper implements GridWrapper {
     }
 
     /**
-     * Get an iterator for voxel state.  The returned object
-     * Voxel may be reused so clone if you to keep it.  For speed
-     * this iterator does not check for comodification, don't do
-     * that.
-     *
-     * @param vc The voxel state
-     * @return The voxels matching the state specified
-     */
-    public Iterator<Voxel> getStateIterator(VoxelClasses vc) {
-        return grid.getStateIterator(vc);
-    }
-
-    /**
-     * Get an iterator for materialID.  The returned object
-     * Voxel may be reused so clone if you to keep it.  For speed
-     * this iterator does not check for comodification, don't do
-     * that.
-     *
-     * @param mat The materialID
-     * @return The voxels matching the materialID
-     */
-    public Iterator<Voxel> getMaterialIterator(byte mat) {
-        return grid.getMaterialIterator(mat);
-    }
-
-    /**
-     * Get an iterator for state and materialID.  The returned object
-     * Voxel may be reused so clone if you to keep it.  For speed
-     * this iterator does not check for comodification, don't do
-     * that.
-     *
-     * @param vc The voxel class
-     * @param mat The materialID
-     * @return The voxels that are the same state and materialID
-     */
-    public Iterator<Voxel> getIterator(VoxelClasses vc, byte mat) {
-        return grid.getIterator(vc,mat);
-    }
-
-    /**
      * Count a class of material types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -332,12 +292,58 @@ public class MaterialIndexedWrapper implements GridWrapper {
             y = vc.getY();
             z = vc.getZ();
 
-            if (grid.getMaterial(x,y,z) == mat) {
+            VoxelData vd = grid.getData(x,y,z);
+
+            if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                 ret_val++;
             }
         }
 
         return ret_val;
+    }
+
+    /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(byte mat, ClassTraverser t) {
+        Byte b = new Byte(mat);
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+
+        if (coords == null) {
+            return;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int x,y,z;
+
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+            x = vc.getX();
+            y = vc.getY();
+            z = vc.getZ();
+
+            VoxelData vd = grid.getData(x,y,z);
+
+            if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
+                t.found(x,y,z,vd);
+            }
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(VoxelClasses vc, ClassTraverser t) {
+        grid.find(vc, t);
     }
 
     /**
