@@ -15,7 +15,10 @@ package abfab3d.grid.query;
 // External Imports
 
 // Internal Imports
+import java.util.HashSet;
+
 import abfab3d.grid.*;
+import abfab3d.grid.Grid.VoxelClasses;
 import abfab3d.path.Path;
 
 /**
@@ -42,6 +45,9 @@ public class CanMoveMaterial implements ClassTraverser {
 
     /** The grid we are using */
     private Grid grid;
+    
+    /** Coordinates that can be ignored */
+    HashSet<VoxelCoordinate> ignoreSet;
 
     public CanMoveMaterial(byte material,Path path) {
         this.material = material;
@@ -59,9 +65,13 @@ public class CanMoveMaterial implements ClassTraverser {
     public boolean execute(Grid grid) {
         allEscaped = true;
         this.grid = grid;
-
-        grid.find(material, this);
-
+        
+        /** THIS CAUSE OUT OF MEMORY ERROR ON LARGE GRID SIZES **/
+        this.ignoreSet = new HashSet<VoxelCoordinate>();
+        
+//        grid.find(material, this);
+        grid.find(VoxelClasses.EXTERIOR, material, this);
+        
 System.out.println("Final answer: " + allEscaped);
 
         return allEscaped;
@@ -81,7 +91,7 @@ System.out.println("Final answer: " + allEscaped);
         // All should be exterior voxels.
 
 //System.out.println("Move voxel: " + x + " " + y + " " + z);
-        if (!allEscaped && canIgnore(x,y,z)) {
+        if (!allEscaped || canIgnore(x,y,z)) {
             // TODO: need some way to allow user termination of find?
             return;
         }
@@ -96,7 +106,7 @@ System.out.println("Final answer: " + allEscaped);
         while(path.next(pos)) {
 //System.out.println("Pos: " + java.util.Arrays.toString(pos));
             VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
-
+//System.out.println("moving: [" + x + " " + y + " " + z + "] to " + java.util.Arrays.toString(pos));
 //System.out.println("VoxelData: " + vd.getState() + " " + vd.getMaterial());
             if (vd.getState() != Grid.OUTSIDE &&
                 vd.getMaterial() != material) {
@@ -114,14 +124,33 @@ System.out.println("Final answer: " + allEscaped);
         // walk along negative path, stop at first outside
         ignoreSet.add(new VoxelCoordinate(x,y,z);
 */
+        addIgnoredVoxels(x, y, z);
     }
 
-    boolean canIgnore(int x,int y, int z) {
-/*
-    // ignoreSet would be HashSet
-        if (ignoreSet.contains(new VoxelCoordinate(x,y,z)))
+    private void addIgnoredVoxels(int x, int y, int z) {
+    	int[] pos = new int[] {x, y, z};
+    	
+    	Path invertedPath = path.invertPath();
+    	invertedPath.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
+    	
+    	while(invertedPath.next(pos)) {
+    		VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+
+    		// can optimize by ignoring interior voxels and only checking for exterior voxels
+    		if (vd.getState() == Grid.OUTSIDE)
+    			break;
+    		
+//System.out.println("placing in ignore list: " + pos[0] + " " + pos[1] + " " + pos[2]);
+    		ignoreSet.add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
+    	}
+    }
+    
+    boolean canIgnore(int x, int y, int z) {
+        if (ignoreSet.contains(new VoxelCoordinate(x, y, z))) {
+//System.out.println("can ignore: " + x + " " + y + " " + z);
             return true;
-*/
+        }
+
         return false;
     }
 }
