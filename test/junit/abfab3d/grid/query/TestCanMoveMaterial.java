@@ -219,13 +219,62 @@ public class TestCanMoveMaterial extends BaseTestGrid {
         CanMoveMaterial query = new CanMoveMaterial((byte) 1, path);
         
         long stime = System.nanoTime();
-        boolean escaped = query.execute(grid);
+        query.execute(grid);
         long totalTime1 = System.nanoTime() - stime;
         
         System.out.println("With ignored voxels on        : " + totalTime1);
 
     }
     
+    public void testPerformance() {
+        int size = 300;
+        int startIndex = 50;
+        int endIndex = 250;
+
+        Grid grid = new SliceGrid(size,size,size,0.001, 0.001, true);
+
+        setX(grid, 0, 0, Grid.INTERIOR, (byte) 1, startIndex+1, endIndex-1);
+        setX(grid, 0, 0, Grid.OUTSIDE, (byte) 1, 101, 109);
+        
+        grid.setData(startIndex,0,0, Grid.EXTERIOR, (byte) 1);
+        grid.setData(endIndex,0,0, Grid.EXTERIOR, (byte) 1);
+        grid.setData(100,0,0, Grid.EXTERIOR, (byte) 1);
+        grid.setData(110,0,0, Grid.EXTERIOR, (byte) 1);
+
+        // Set the paths
+        int[][] directions = new int[][] {{-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}};
+        StraightPath[] paths = new StraightPath[directions.length];
+        
+        for (int i=0; i<directions.length; i++) {
+        	paths[i] = new StraightPath(directions[i]);
+        }
+        
+        //------------------------------------------------------------
+        // Can move material one path at a time for all voxels
+        //------------------------------------------------------------
+        CanMoveMaterial queryOnePath;
+
+        long stime = System.nanoTime();
+
+        for (int j=0; j<paths.length; j++) {
+            queryOnePath = new CanMoveMaterial((byte) 1, paths[j]);
+            queryOnePath.execute(grid);
+        }
+
+        long totalTime1 = System.nanoTime() - stime;
+        System.out.println("CanMoveMaterial        : " + totalTime1);
+        
+        //------------------------------------------------------------
+        // Can move material all paths at a time for each voxels
+        //------------------------------------------------------------
+        stime = System.nanoTime();
+        
+        CanMoveMaterialAllPaths queryAllPaths = new CanMoveMaterialAllPaths((byte) 1, paths);
+        queryAllPaths.execute(grid);
+        
+        totalTime1 = System.nanoTime() - stime;
+        System.out.println("CanMoveMaterialAllPaths: " + totalTime1);
+    }
     
     private boolean canMove(Grid grid, int[] dir, byte mat) {
         StraightPath path = new StraightPath(dir);
