@@ -141,6 +141,51 @@ public abstract class BaseGrid implements Grid {
             }
         }
     }
+    
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(VoxelClasses vc, byte mat, ClassTraverser t) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = getData(x,y,z);
+
+                    if (vd.getMaterial() != mat) {
+                    	continue;
+                    }
+                    
+                    byte state;
+
+                    switch(vc) {
+                        case MARKED:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                t.found(x,y,z,vd);
+                            }
+                            break;
+                        case EXTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR) {
+                                t.found(x,y,z,vd);
+                            }
+                            break;
+                        case INTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.INTERIOR) {
+                                t.found(x,y,z,vd);
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+    }
 
     /**
      * Traverse a class of voxels types.  May be much faster then

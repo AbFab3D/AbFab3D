@@ -16,6 +16,8 @@ package abfab3d.grid;
 import java.util.*;
 import org.j3d.geom.GeometryData;
 
+import abfab3d.grid.Grid.VoxelClasses;
+
 // Internal Imports
 
 /**
@@ -301,6 +303,18 @@ public class MaterialIndexedWrapper implements GridWrapper {
 
         return ret_val;
     }
+    
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(VoxelClasses vc, byte mat, ClassTraverser t) {
+    	grid.find(vc, mat, t);
+    }
 
     /**
      * Traverse a class of material types.  May be much faster then
@@ -404,4 +418,5 @@ public class MaterialIndexedWrapper implements GridWrapper {
     public String toStringAll() {
         return grid.toStringAll();
     }
+    
 }

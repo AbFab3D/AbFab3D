@@ -185,6 +185,16 @@ public interface Grid {
     public void find(byte mat, ClassTraverser t);
 
     /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(VoxelClasses vc, byte mat, ClassTraverser t);
+    
+    /**
      * Get the number of height cells.
      *
      * @return the val
