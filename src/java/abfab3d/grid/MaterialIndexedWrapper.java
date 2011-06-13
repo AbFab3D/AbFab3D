@@ -303,7 +303,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
 
         return ret_val;
     }
-    
+
     /**
      * Traverse a class of voxel and material types.  May be much faster then
      * full grid traversal for some implementations.
@@ -313,7 +313,51 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void find(VoxelClasses vc, byte mat, ClassTraverser t) {
-    	grid.find(vc, mat, t);
+        Byte b = new Byte(mat);
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+
+        if (coords == null) {
+            return;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int x,y,z;
+
+        while(itr.hasNext()) {
+            VoxelCoordinate coord = itr.next();
+            x = coord.getX();
+            y = coord.getY();
+            z = coord.getZ();
+
+            VoxelData vd = grid.getData(x,y,z);
+
+            if (vd.getMaterial() != mat)
+                continue;
+
+            byte state;
+
+            switch(vc) {
+                case MARKED:
+                    state = vd.getState();
+                    if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                        t.found(x,y,z,vd);
+                    }
+                    break;
+                case EXTERIOR:
+                    state = vd.getState();
+                    if (state == Grid.EXTERIOR) {
+                        t.found(x,y,z,vd);
+                    }
+                    break;
+                case INTERIOR:
+                    state = vd.getState();
+                    if (state == Grid.INTERIOR) {
+                        t.found(x,y,z,vd);
+                    }
+                    break;
+            }
+        }
     }
 
     /**
@@ -358,6 +402,111 @@ public class MaterialIndexedWrapper implements GridWrapper {
      */
     public void find(VoxelClasses vc, ClassTraverser t) {
         grid.find(vc, t);
+    }
+
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t) {
+        Byte b = new Byte(mat);
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+
+        if (coords == null) {
+            return;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int x,y,z;
+
+        loop:
+        while(itr.hasNext()) {
+            VoxelCoordinate coord = itr.next();
+            x = coord.getX();
+            y = coord.getY();
+            z = coord.getZ();
+
+            VoxelData vd = grid.getData(x,y,z);
+
+            if (vd.getMaterial() != mat)
+                continue;
+
+            byte state;
+
+            switch(vc) {
+                case MARKED:
+                    state = vd.getState();
+                    if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                        if (!t.foundInterruptible(x,y,z,vd))
+                            break loop;
+                    }
+                    break;
+                case EXTERIOR:
+                    state = vd.getState();
+                    if (state == Grid.EXTERIOR) {
+                        if (!t.foundInterruptible(x,y,z,vd))
+                            break loop;
+                    }
+                    break;
+                case INTERIOR:
+                    state = vd.getState();
+                    if (state == Grid.INTERIOR) {
+                        if (!t.foundInterruptible(x,y,z,vd))
+                            break loop;
+                    }
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(byte mat, ClassTraverser t) {
+        Byte b = new Byte(mat);
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+
+        if (coords == null) {
+            return;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int x,y,z;
+
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+            x = vc.getX();
+            y = vc.getY();
+            z = vc.getZ();
+
+            VoxelData vd = grid.getData(x,y,z);
+
+            if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
+                if (!t.foundInterruptible(x,y,z,vd))
+                    break;
+            }
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
+        grid.findInterruptible(vc, t);
     }
 
     /**
@@ -418,5 +567,5 @@ public class MaterialIndexedWrapper implements GridWrapper {
     public String toStringAll() {
         return grid.toStringAll();
     }
-    
+
 }

@@ -141,7 +141,7 @@ public abstract class BaseGrid implements Grid {
             }
         }
     }
-    
+
     /**
      * Traverse a class of voxel and material types.  May be much faster then
      * full grid traversal for some implementations.
@@ -157,9 +157,9 @@ public abstract class BaseGrid implements Grid {
                     VoxelData vd = getData(x,y,z);
 
                     if (vd.getMaterial() != mat) {
-                    	continue;
+                        continue;
                     }
-                    
+
                     byte state;
 
                     switch(vc) {
@@ -179,6 +179,133 @@ public abstract class BaseGrid implements Grid {
                             state = vd.getState();
                             if (state == Grid.INTERIOR) {
                                 t.found(x,y,z,vd);
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
+        loop:
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = getData(x,y,z);
+
+                    byte state;
+
+                    switch(vc) {
+                        case ALL:
+                            if (!t.foundInterruptible(x,y,z,vd))
+                                break loop;
+                            break;
+                        case MARKED:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,vd))
+                                    break loop;
+                            }
+                            break;
+                        case EXTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,vd))
+                                    break loop;
+                            }
+                            break;
+                        case INTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.INTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,vd))
+                                    break loop;
+                            }
+                            break;
+                        case OUTSIDE:
+                            state = vd.getState();
+                            if (state == Grid.OUTSIDE) {
+                                if (!t.foundInterruptible(x,y,z,vd))
+                                    break loop;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(byte mat, ClassTraverser t) {
+        loop:
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = getData(x,y,z);
+
+                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
+                        if (!t.foundInterruptible(x,y,z,vd))
+                            break loop;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t) {
+        loop:
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = getData(x,y,z);
+
+                    if (vd.getMaterial() != mat) {
+                        continue;
+                    }
+
+                    byte state;
+
+                    switch(vc) {
+                        case MARKED:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,vd))
+                                    break loop;
+                            }
+                            break;
+                        case EXTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.EXTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,vd))
+                                    break loop;
+                            }
+                            break;
+                        case INTERIOR:
+                            state = vd.getState();
+                            if (state == Grid.INTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,vd))
+                                    break loop;
                             }
                             break;
                     }

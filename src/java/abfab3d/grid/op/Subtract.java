@@ -105,4 +105,17 @@ public class Subtract implements Operation, ClassTraverser {
             }
         }
      }
+
+    /**
+     * A voxel of the class requested has been found.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+        // ignore
+        return true;
+    }
 }
