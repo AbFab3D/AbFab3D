@@ -15,6 +15,8 @@ package abfab3d.grid;
 // External Imports
 import java.util.*;
 
+import abfab3d.grid.Grid.VoxelClasses;
+
 // Internal Imports
 
 /**
@@ -224,6 +226,52 @@ public class OccupiedWrapper implements GridWrapper {
      */
     public void find(VoxelClasses vc, ClassTraverser t) {
         grid.find(vc, t);
+    }
+
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(VoxelClasses vc, byte mat, ClassTraverser t) {
+        grid.find(vc, mat, t);
+    }
+
+    /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(byte mat, ClassTraverser t) {
+        grid.findInterruptible(mat,t);
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
+        grid.findInterruptible(vc, t);
+    }
+
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t) {
+        grid.findInterruptible(vc, mat, t);
     }
 
     /**

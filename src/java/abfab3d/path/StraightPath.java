@@ -63,9 +63,9 @@ public class StraightPath implements Path {
         pos[2] = currPos[2] + dir[2];
 
         // if path on its edges of travel
-        if ((dir[0] != 0 && pos[0] >= width) ||
-            (dir[1] != 0 && pos[1] >= height) ||
-            (dir[2] != 0 && pos[2] >= depth)) {
+        if ( (dir[0] != 0 && (pos[0] >= width || pos[0] < 0)) ||
+             (dir[1] != 0 && (pos[1] >= height || pos[1] < 0)) ||
+             (dir[2] != 0 && (pos[2] >= depth || pos[2] < 0)) ) {
 
             return false;
         }
