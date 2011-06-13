@@ -31,4 +31,18 @@ public interface ClassTraverser {
      * @param vd The voxel data
      */
     public void found(int x, int y, int z, VoxelData vd);
+
+    /**
+     * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     *
+     * @return True to continue, false stops the traversal.
+     */
+    public boolean foundInterruptible(int x, int y, int z, VoxelData vd);
 }
