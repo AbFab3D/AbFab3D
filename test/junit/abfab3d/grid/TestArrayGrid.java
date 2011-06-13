@@ -601,7 +601,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
     }
     
     /**
-     * Set all the X values of a grid.
+     * Set the X values of a grid.
      *
      * @param state The new state
      * @param mat The new material

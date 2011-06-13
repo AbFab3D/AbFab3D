@@ -95,4 +95,46 @@ public class BaseTestGrid extends TestCase {
             }
         }
     }
+    
+    /**
+     * Set the X values of a grid with a given Y and Z to the given state and material.
+     *
+     * @param state The new state
+     * @param mat The new material
+     * @param startIndex The starting X index
+     * @param endIndex The ending X Index
+     */
+    protected static void setX(Grid grid, int y, int z, byte state, byte mat, int startIndex, int endIndex) {
+        for(int x=startIndex; x <= endIndex; x++) {
+            grid.setData(x,y,z, state, mat);
+        }
+    }
+    
+    /**
+     * Set the Y values of a grid with a given X and Z to the given state and material.
+     *
+     * @param state The new state
+     * @param mat The new material
+     * @param startIndex The starting Y index
+     * @param endIndex The ending Y Index
+     */
+    protected static void setY(Grid grid, int x, int z, byte state, byte mat, int startIndex, int endIndex) {
+        for(int y=startIndex; y <= endIndex; y++) {
+            grid.setData(x,y,z, state, mat);
+        }
+    }
+    
+    /**
+     * Set the Z values of a grid with a given X and Y to the given state and material.
+     *
+     * @param state The new state
+     * @param mat The new material
+     * @param startIndex The starting Z index
+     * @param endIndex The ending Z Index
+     */
+    protected static void setZ(Grid grid, int x, int y, byte state, byte mat, int startIndex, int endIndex) {
+        for(int z=startIndex; z <= endIndex; z++) {
+            grid.setData(x,y,z, state, mat);
+        }
+    }
 }
