@@ -235,8 +235,6 @@ public class TriangleModelCreator extends GeometryCreator {
                 tri = new Triangle(coords, i);
                 insert(tri, grid, (byte) OUTER_CELL);
             }
-
-            System.out.println("idx: " + idx + " len: " + geom.indexes.length);
         }
 
         if (!fill)
