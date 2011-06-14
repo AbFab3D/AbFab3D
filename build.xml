@@ -102,7 +102,12 @@
             manifest="abfab3d_core.mf"
             includes="abfab3d/geom/*
                 abfab3d/grid/*
+                abfab3d/grid/op/*
+                abfab3d/grid/query/*
                 abfab3d/intersect/*
+                abfab3d/io/input/*
+                abfab3d/io/output/*
+                abfab3d/path/*
                 "
         />
     </target>
@@ -167,6 +172,5 @@
          </fileset>
       </copy>          
     </target>
-    
 </project>
 

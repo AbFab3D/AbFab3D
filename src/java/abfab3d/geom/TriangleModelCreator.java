@@ -162,36 +162,71 @@ public class TriangleModelCreator extends GeometryCreator {
         int idx = 0;
         Triangle tri;
         float[] coords = new float[9];
-        int len = geom.vertexCount / 3;
 
-        for(int i=0; i < len; i++ ) {
-//System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
-//System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
-//System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
-            Point3d v = new Point3d(geom.coordinates[idx++],
-                geom.coordinates[idx++],geom.coordinates[idx++]);
+        if (geom.geometryType == GeometryData.TRIANGLES) {
+            int len = geom.vertexCount / 3;
 
-            mat.transform(v);
-            coords[0] = (float) v.x;
-            coords[1] = (float) v.y;
-            coords[2] = (float) v.z;
+            for(int i=0; i < len; i++ ) {
+    //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
+    //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
+    //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
+                Point3d v = new Point3d(geom.coordinates[idx++],
+                    geom.coordinates[idx++],geom.coordinates[idx++]);
 
-            v = new Point3d(geom.coordinates[idx++],
-                geom.coordinates[idx++],geom.coordinates[idx++]);
-            mat.transform(v);
-            coords[3] = (float) v.x;
-            coords[4] = (float) v.y;
-            coords[5] = (float) v.z;
+                mat.transform(v);
+                coords[0] = (float) v.x;
+                coords[1] = (float) v.y;
+                coords[2] = (float) v.z;
 
-            v = new Point3d(geom.coordinates[idx++],
-                geom.coordinates[idx++],geom.coordinates[idx++]);
-            mat.transform(v);
-            coords[6] = (float) v.x;
-            coords[7] = (float) v.y;
-            coords[8] = (float) v.z;
+                v = new Point3d(geom.coordinates[idx++],
+                    geom.coordinates[idx++],geom.coordinates[idx++]);
+                mat.transform(v);
+                coords[3] = (float) v.x;
+                coords[4] = (float) v.y;
+                coords[5] = (float) v.z;
 
-            tri = new Triangle(coords, i);
-            insert(tri, grid, (byte) OUTER_CELL);
+                v = new Point3d(geom.coordinates[idx++],
+                    geom.coordinates[idx++],geom.coordinates[idx++]);
+                mat.transform(v);
+                coords[6] = (float) v.x;
+                coords[7] = (float) v.y;
+                coords[8] = (float) v.z;
+
+                tri = new Triangle(coords, i);
+                insert(tri, grid, (byte) OUTER_CELL);
+            }
+        } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
+            int len = geom.indexesCount / 3;
+
+            for(int i=0; i < len; i++ ) {
+    //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
+    //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
+    //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
+                Point3d v = new Point3d(geom.coordinates[idx++],
+                    geom.coordinates[idx++],geom.coordinates[idx++]);
+
+                mat.transform(v);
+                coords[0] = (float) v.x;
+                coords[1] = (float) v.y;
+                coords[2] = (float) v.z;
+
+                v = new Point3d(geom.coordinates[idx++],
+                    geom.coordinates[idx++],geom.coordinates[idx++]);
+                mat.transform(v);
+                coords[3] = (float) v.x;
+                coords[4] = (float) v.y;
+                coords[5] = (float) v.z;
+
+                v = new Point3d(geom.coordinates[idx++],
+                    geom.coordinates[idx++],geom.coordinates[idx++]);
+                mat.transform(v);
+                coords[6] = (float) v.x;
+                coords[7] = (float) v.y;
+                coords[8] = (float) v.z;
+
+                tri = new Triangle(coords, i);
+                insert(tri, grid, (byte) OUTER_CELL);
+            }
         }
 
         if (!fill)
