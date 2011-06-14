@@ -86,7 +86,7 @@ System.out.println("Final answer: " + allEscaped);
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
+     * @param start The voxel data
      */
     public void found(int x, int y, int z, VoxelData start) {
         // All should be exterior voxels.
@@ -105,10 +105,9 @@ System.out.println("Final answer: " + allEscaped);
         boolean escaped = true;
 
         while(path.next(pos)) {
-//System.out.println("Pos: " + java.util.Arrays.toString(pos));
             VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
-//System.out.println("moving: [" + x + " " + y + " " + z + "] to " + java.util.Arrays.toString(pos));
-//System.out.println("VoxelData: " + vd.getState() + " " + vd.getMaterial());
+
+//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
             if (vd.getState() != Grid.OUTSIDE &&
                 vd.getMaterial() != material) {
 
@@ -121,10 +120,8 @@ System.out.println("Final answer: " + allEscaped);
 
         if (!escaped)
             allEscaped = false;
-/*
+
         // walk along negative path, stop at first outside
-        ignoreSet.add(new VoxelCoordinate(x,y,z);
-*/
         addIgnoredVoxels(x, y, z);
     }
 
@@ -136,7 +133,7 @@ System.out.println("Final answer: " + allEscaped);
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
+     * @param start The voxel data
      */
     public boolean foundInterruptible(int x, int y, int z, VoxelData start) {
         // All should be exterior voxels.
@@ -154,10 +151,9 @@ System.out.println("Final answer: " + allEscaped);
         boolean escaped = true;
 
         while(path.next(pos)) {
-//System.out.println("Pos: " + java.util.Arrays.toString(pos));
             VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
-//System.out.println("moving: [" + x + " " + y + " " + z + "] to " + java.util.Arrays.toString(pos));
-//System.out.println("VoxelData: " + vd.getState() + " " + vd.getMaterial());
+
+//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
             if (vd.getState() != Grid.OUTSIDE &&
                 vd.getMaterial() != material) {
 
@@ -172,15 +168,21 @@ System.out.println("Final answer: " + allEscaped);
             allEscaped = false;
             return false;
         }
-/*
+
         // walk along negative path, stop at first outside
-        ignoreSet.add(new VoxelCoordinate(x,y,z);
-*/
         addIgnoredVoxels(x, y, z);
 
         return true;
     }
 
+    /**
+     * Add voxels to be ignored for a given path as specified by ignoreSetIndex.
+     * 
+     * @param ignoreSetIndex The index of the path array to add voxels to ignore
+     * @param x The X coordinate for the starting position
+     * @param y The Y coordinate for the starting position
+     * @param z The Z coordinate for the starting position
+     */
     private void addIgnoredVoxels(int x, int y, int z) {
         int[] pos = new int[] {x, y, z};
 
@@ -194,12 +196,22 @@ System.out.println("Final answer: " + allEscaped);
             if (vd.getState() == Grid.OUTSIDE)
                 break;
 
+            if (vd.getState() == Grid.EXTERIOR) {
 //System.out.println("placing in ignore list: " + pos[0] + " " + pos[1] + " " + pos[2]);
-            ignoreSet.add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
+                ignoreSet.add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
+            }
         }
     }
 
-    boolean canIgnore(int x, int y, int z) {
+    /**
+     * Checks if a voxel can be ignored.
+     * 
+     * @param x The X coordinate of the voxel to check
+     * @param y The Y coordinate of the voxel to check
+     * @param z The Z coordinate of the voxel to check
+     * @return True if the voxel can be ignored.
+     */
+    private boolean canIgnore(int x, int y, int z) {
         if (ignoreSet.contains(new VoxelCoordinate(x, y, z))) {
 //System.out.println("can ignore: " + x + " " + y + " " + z);
             return true;
