@@ -66,14 +66,12 @@ public class CanMoveMaterial implements ClassTraverser {
         allEscaped = true;
         this.grid = grid;
 
-        /** THIS CAUSE OUT OF MEMORY ERROR ON LARGE GRID SIZES **/
         this.ignoreSet = new HashSet<VoxelCoordinate>();
 
 //        grid.find(material, this);
 //        grid.find(VoxelClasses.EXTERIOR, material, this);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, material, this);
 
-System.out.println("Final answer: " + allEscaped);
+        grid.findInterruptible(VoxelClasses.EXTERIOR, material, this);
 
         return allEscaped;
     }
@@ -177,7 +175,7 @@ System.out.println("Final answer: " + allEscaped);
 
     /**
      * Add voxels to be ignored for a given path as specified by ignoreSetIndex.
-     * 
+     *
      * @param ignoreSetIndex The index of the path array to add voxels to ignore
      * @param x The X coordinate for the starting position
      * @param y The Y coordinate for the starting position
@@ -205,13 +203,15 @@ System.out.println("Final answer: " + allEscaped);
 
     /**
      * Checks if a voxel can be ignored.
-     * 
+     *
      * @param x The X coordinate of the voxel to check
      * @param y The Y coordinate of the voxel to check
      * @param z The Z coordinate of the voxel to check
      * @return True if the voxel can be ignored.
      */
     private boolean canIgnore(int x, int y, int z) {
+//if (1==1) return false;
+
         if (ignoreSet.contains(new VoxelCoordinate(x, y, z))) {
 //System.out.println("can ignore: " + x + " " + y + " " + z);
             return true;

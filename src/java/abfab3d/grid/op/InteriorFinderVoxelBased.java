@@ -59,8 +59,8 @@ public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
 */
 
 System.out.println("Creating grid for Interior Finding");
-        Grid result = new SliceGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight(), true);
+        Grid result = new ArrayGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
+            grid.getVoxelSize(), grid.getSliceHeight());
 
 //System.out.println("Filling model");
         byte state;

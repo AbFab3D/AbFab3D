@@ -34,6 +34,10 @@ public class StraightPath implements Path {
     private int[] currPos;
 
     public StraightPath(int[] dir) {
+        if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
+            throw new IllegalArgumentException("zero direction");
+        }
+
         this.dir = dir.clone();
 
     }

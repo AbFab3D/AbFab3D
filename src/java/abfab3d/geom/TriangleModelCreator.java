@@ -252,6 +252,7 @@ System.out.println("Indexed Triangles to insert: " + len);
         if (!fill)
             return;
 
+        // TODO: This won't work when triangulating multiple models into the same grid
         Operation findInterior = new InteriorFinderVoxelBased(innerMaterialID);
         findInterior.execute(grid);
     }
