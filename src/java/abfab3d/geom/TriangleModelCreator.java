@@ -30,7 +30,7 @@ import abfab3d.grid.op.*;
  * Backed from a 3D Triangle model.  Shows different sourcing of
  * models to get into voxels.
  *
- * Only supports TRIANGLES currently.
+ * Only supports TRIANGLES and INDEXED_TRIANGLES currently.
  *
  * Take a look at "A Low Cost Antialiased Space Filled Voxelization
  *    of Polygonal Objects" for a method that might work well.
@@ -94,8 +94,17 @@ public class TriangleModelCreator extends GeometryCreator {
     /**
      * Constructor.
      *
-     * @param styles The styles for each face.  Front,Back,Left,Right,Top,Bottom
-     * @param fill Should we fill in interior voxels or just leave a shell.
+     * @param geom The geometry to voxelize
+     * @param x The x translation applied before voxelization
+     * @param y The y translation applied before voxelization
+     * @param z The z translation applied before voxelization
+     * @param rx The x rotation applied before voxelization
+     * @param ry The y rotation applied before voxelization
+     * @param rz The z rotation applied before voxelization
+     * @param rangle The angle rotation applied before voxelization
+     * @param outerMaterial The outer materialID to use
+     * @param outerMaterial The inner materialID to use
+     * @param fill Should the interior be filled or just a shell
      */
     public TriangleModelCreator(GeometryData geom,
         double x, double y, double z, double rx, double ry, double rz, double rangle,
