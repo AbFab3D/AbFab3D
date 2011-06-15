@@ -15,9 +15,8 @@ package linkedrings;
 // External Imports
 import java.util.*;
 import java.io.*;
-import org.web3d.vrml.sav.ContentHandler;
-import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
+import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
@@ -49,14 +48,7 @@ public class LinkedRings {
 
     public void generate(String filename) {
         try {
-            FileOutputStream fos = new FileOutputStream(filename);
             ErrorReporter console = new PlainTextErrorReporter();
-
-//            int method = X3DBinarySerializer.METHOD_SMALLEST_NONLOSSY;
-            int method = X3DBinarySerializer.METHOD_FASTEST_PARSING;
-
-            X3DBinaryRetainedDirectExporter writer = new X3DBinaryRetainedDirectExporter(fos,
-                                                         3, 0, console,method, 0.001f);
 
             long stime = System.currentTimeMillis();
             float ir = 0.001f;
@@ -111,31 +103,19 @@ public class LinkedRings {
 
             tmc.generate(grid);
 
+            FileOutputStream fos = new FileOutputStream(filename);
+            String encoding = filename.substring(filename.lastIndexOf(".")+1);
+            BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
+
             System.out.println("Gen time: " + (System.currentTimeMillis() - stime));
-            writer.startDocument("","", "utf8", "#X3D", "V3.0", "");
-            writer.profileDecl("Immersive");
-            writer.startNode("NavigationInfo", null);
-            writer.startField("avatarSize");
-            writer.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
-            writer.endNode(); // NavigationInfo
-            writer.startNode("Viewpoint", null);
-            writer.startField("position");
-            writer.fieldValue(new float[] {0.028791402f,0.005181627f,0.11549001f},3);
-            writer.startField("orientation");
-            writer.fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
-            writer.endNode(); // Viewpoint
 
             System.out.println("Writing x3d");
             stime = System.currentTimeMillis();
 
-            BoxesX3DExporter exporter = new BoxesX3DExporter();
-            exporter.toX3D(grid, writer, null);
+            exporter.write(grid, null);
+            exporter.close();
 
             System.out.println("GenX3D time: " + (System.currentTimeMillis() - stime));
-            System.out.println("End doc");
-            stime = System.currentTimeMillis();
-            writer.endDocument();
-            System.out.println("EndDoc time: " + (System.currentTimeMillis() - stime));
 
             fos.close();
         } catch(IOException ioe) {

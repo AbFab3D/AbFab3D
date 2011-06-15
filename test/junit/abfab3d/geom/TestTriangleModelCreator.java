@@ -44,7 +44,7 @@ public class TestTriangleModelCreator extends TestCase {
 
     /** Vertical resolution of the printer in meters.  */
     public static final double VERT_RESOLUTION = 0.001;
-    
+
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
@@ -56,28 +56,31 @@ public class TestTriangleModelCreator extends TestCase {
      * Test the voxelization of a simple cube.
      */
     public void testCube() {
-    	
-    	// Use 0.0999 instead of 0.01 voxelization is unpredictable when model
-    	// lines up exactly with a grid
+
+        // Use 0.0999 instead of 0.01 voxelization is unpredictable when model
+        // lines up exactly with a grid
         float width = 0.0999f;
         float height = 0.0999f;
         float depth = 0.0999f;
-        
+
         BoxGenerator bg = new BoxGenerator(width, height, depth);
         GeometryData geom = new GeometryData();
         geom.geometryType = GeometryData.TRIANGLES;
         bg.generate(geom);
 
+System.out.println("coord count: " + geom.coordinates.length);
+System.out.println("coords: " + java.util.Arrays.toString(geom.coordinates));
+
         double bounds = findMaxBounds(geom);
 System.out.println("geometry bounds: " + bounds);
-        
+
         // twice the bounds (since centered at origin) plus a slight over allocate
         int gWidth = (int) (width / HORIZ_RESOLUTION) + 10;
         int gHeight = (int) (height / VERT_RESOLUTION) + 10;
         int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
-        
+
         Grid grid = new ArrayGrid(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
-        
+
         double x = bounds;
         double y = x;
         double z = x;
@@ -91,20 +94,75 @@ System.out.println("geometry bounds: " + bounds);
             rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
         tmc.generate(grid);
-        
+
 System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
 
 
-		int xVoxels = (int) Math.round(width / HORIZ_RESOLUTION);
-		int yVoxels = (int) Math.round(height / VERT_RESOLUTION);
-		int zVoxels = (int) Math.round(depth / HORIZ_RESOLUTION);
-		int expectedMatCount = xVoxels * yVoxels * zVoxels;
-		
-		assertEquals("Material count is not " + expectedMatCount, expectedMatCount, grid.findCount(outerMaterial));
+        int xVoxels = (int) Math.round(width / HORIZ_RESOLUTION);
+        int yVoxels = (int) Math.round(height / VERT_RESOLUTION);
+        int zVoxels = (int) Math.round(depth / HORIZ_RESOLUTION);
+        int expectedMatCount = xVoxels * yVoxels * zVoxels;
 
-        
+        assertEquals("Material count is not " + expectedMatCount, expectedMatCount, grid.findCount(outerMaterial));
+
+
     }
 
+    /**
+     * Test the voxelization of a simple cube.
+     */
+    public void testIndexedCube() {
+
+        // Use 0.0999 instead of 0.01 voxelization is unpredictable when model
+        // lines up exactly with a grid
+        float width = 0.0999f;
+        float height = 0.0999f;
+        float depth = 0.0999f;
+
+        BoxGenerator bg = new BoxGenerator(width, height, depth);
+        GeometryData geom = new GeometryData();
+        geom.geometryType = GeometryData.INDEXED_TRIANGLES;
+        bg.generate(geom);
+
+System.out.println("indexes: " + java.util.Arrays.toString(geom.indexes));
+System.out.println("coord count: " + geom.coordinates.length);
+System.out.println("coords: " + java.util.Arrays.toString(geom.coordinates));
+
+        double bounds = findMaxBounds(geom);
+
+        // twice the bounds (since centered at origin) plus a slight over allocate
+        int gWidth = (int) (width / HORIZ_RESOLUTION) + 10;
+        int gHeight = (int) (height / VERT_RESOLUTION) + 10;
+        int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
+
+        Grid grid = new ArrayGrid(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+
+        double x = bounds;
+        double y = x;
+        double z = x;
+
+        double rx = 0,ry = 1,rz = 0,rangle = 0;
+        byte outerMaterial = 1;
+        byte innerMaterial = 1;
+
+        TriangleModelCreator tmc = null;
+        tmc = new TriangleModelCreator(geom,x,y,z,
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+
+        tmc.generate(grid);
+
+System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
+
+
+        int xVoxels = (int) Math.round(width / HORIZ_RESOLUTION);
+        int yVoxels = (int) Math.round(height / VERT_RESOLUTION);
+        int zVoxels = (int) Math.round(depth / HORIZ_RESOLUTION);
+        int expectedMatCount = xVoxels * yVoxels * zVoxels;
+
+        assertEquals("Material count is not " + expectedMatCount, expectedMatCount, grid.findCount(outerMaterial));
+
+
+    }
 
     /**
      * Find the absolute maximum bounds of a geometry.
@@ -124,11 +182,11 @@ System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight(
 
         return Math.abs(max);
     }
-    
-    
-    
+
+
+
     /**
-     * Generate an X3D file 
+     * Generate an X3D file
      * @param filename
      */
     public static void generate(String filename) {
@@ -143,12 +201,12 @@ System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight(
                                                          3, 0, console,method, 0.001f);
 
             long stime = System.currentTimeMillis();
-        	// Use 0.0999 instead of 0.01 voxelization is unpredictable when model
-        	// lines up exactly with a grid
+            // Use 0.0999 instead of 0.01 voxelization is unpredictable when model
+            // lines up exactly with a grid
             float width = 0.0999f;
             float height = 0.0999f;
             float depth = 0.0999f;
-            
+
             BoxGenerator bg = new BoxGenerator(width, height, depth);
             GeometryData geom = new GeometryData();
             geom.geometryType = GeometryData.TRIANGLES;
@@ -156,14 +214,14 @@ System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight(
 
             double bounds = findMaxBounds(geom);
     System.out.println("geometry bounds: " + bounds);
-            
+
             // twice the bounds (since centered at origin) plus a slight over allocate
             int gWidth = (int) (width / HORIZ_RESOLUTION) + 10;
             int gHeight = (int) (height / VERT_RESOLUTION) + 10;
             int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
-            
+
             Grid grid = new ArrayGrid(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
-            
+
             double x = bounds;
             double y = x;
             double z = x;
@@ -177,7 +235,7 @@ System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight(
                 rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
             tmc.generate(grid);
-            
+
     System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
     System.out.println("mat count: " + grid.findCount((byte) 1));
 
@@ -212,7 +270,7 @@ System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight(
             ioe.printStackTrace();
         }
     }
-    
+
     public static void main(String[] args) {
         generate("out.x3db");
     }

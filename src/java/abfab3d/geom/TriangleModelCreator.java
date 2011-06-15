@@ -167,6 +167,8 @@ public class TriangleModelCreator extends GeometryCreator {
         if (geom.geometryType == GeometryData.TRIANGLES) {
             int len = geom.vertexCount / 3;
 
+System.out.println("Triangles to insert: " + len);
+
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
@@ -201,6 +203,7 @@ public class TriangleModelCreator extends GeometryCreator {
         } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
             int len = geom.indexesCount / 3;
 
+System.out.println("Indexed Triangles to insert: " + len);
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);

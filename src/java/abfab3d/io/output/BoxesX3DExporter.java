@@ -16,6 +16,12 @@ package abfab3d.io.output;
 import java.util.*;
 import java.io.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
+import org.web3d.vrml.sav.ContentHandler;
+import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
+import org.web3d.vrml.export.X3DClassicRetainedExporter;
+import org.web3d.vrml.export.X3DXMLRetainedExporter;
+import org.web3d.vrml.export.X3DBinarySerializer;
+import org.web3d.util.ErrorReporter;
 
 // Internal Imports
 import abfab3d.grid.*;
@@ -25,18 +31,48 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class BoxesX3DExporter {
+public class BoxesX3DExporter implements Exporter {
     /** The maximum coords to put in a shape */
     private static final int MAX_TRIANGLES_SHAPE = 300000;
 
+    /** X3D Writer */
+    private org.web3d.vrml.export.Exporter writer;
+
+    /** The binary content handler */
+    private BinaryContentHandler bstream;
+
+    /** Error Console */
+    private ErrorReporter console;
+
+    public BoxesX3DExporter(String encoding, OutputStream os, ErrorReporter console) {
+        this.console = console;
+
+        if (encoding.equals("x3db")) {
+            writer = new X3DBinaryRetainedDirectExporter(os,
+                                 3, 0, console,
+                                 X3DBinarySerializer.METHOD_FASTEST_PARSING,
+                                 0.001f);
+        } else if (encoding.equals("x3dv")) {
+            writer = new X3DClassicRetainedExporter(os,3,0,console);
+        } else if (encoding.equals("x3d")) {
+            writer = new X3DXMLRetainedExporter(os,3,0,console);
+        } else {
+            throw new IllegalArgumentException("Unhandled X3D encoding: " + encoding);
+        }
+
+        bstream = (BinaryContentHandler) writer;
+
+        ejectHeader();
+    }
+
     /**
-     * Create an X3D file from the grid.  This should be an exact
-     * repsentation of the grid values.
+     * Write a grid to the stream.
      *
-     * @param stream The stream to write too
-     * @param colors Maps materialID's to colors
+     * @param grid The grid to write
+     * @param matColors Maps materials to colors
      */
-    public void toX3D(Grid grid, BinaryContentHandler stream, Map<Byte, float[]> colors) {
+    public void write(Grid grid, Map<Integer, float[]> matColors) {
+
         HashMap<WorldCoordinate,Integer> coords = new HashMap<WorldCoordinate,Integer>();
         ArrayList<Integer> indices = new ArrayList<Integer>();
         ArrayList<WorldCoordinate> lastSlice = new ArrayList<WorldCoordinate>();
@@ -303,8 +339,7 @@ public class BoxesX3DExporter {
             thisSlice = new ArrayList<WorldCoordinate>();
 
             if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
-System.out.println("Coords: " + totalCoords.size() + " indices: " + indices.size());
-                ejectShape(stream, totalCoords, indices, color, transparency);
+                ejectShape(bstream, totalCoords, indices, color, transparency);
                 coords.clear();
                 indices.clear();
                 lastSlice.clear();
@@ -313,51 +348,59 @@ System.out.println("Coords: " + totalCoords.size() + " indices: " + indices.size
             }
         }
 
-System.out.println("Saved: " + saved);
-        ejectShape(stream, totalCoords, indices, color, transparency);
+        ejectShape(bstream, totalCoords, indices, color, transparency);
     }
 
     /**
-     * Create an X3D file from the grid.  This should be an exact
-     * repsentation of the grid values.
+     * Write a grid to the stream using the grid state
      *
-     * @param stream The stream to write too
-     * @param colors Maps materialID's to colors
+     * @param grid The grid to write
+     * @param stateColors Maps states to colors
+     * @param stateTransparency Maps states to transparency values.  1 is totally transparent.
      */
-    public void toX3DDebug(Grid grid, BinaryContentHandler stream, Map<Byte, float[]> colors, Map<Byte, Float> transparency) {
-        float[] color = colors.get(Grid.OUTSIDE);
-        Float transF = transparency.get(Grid.OUTSIDE);
+    public void writeDebug(Grid grid, Map<Integer, float[]> stateColors,
+        Map<Integer, Float> stateTransparency) {
+
+        float[] color = stateColors.get(new Integer(Grid.OUTSIDE));
+        Float transF = stateTransparency.get(new Integer(Grid.OUTSIDE));
         float trans = 1;
 
         if (color != null) {
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, stream, Grid.OUTSIDE, color, trans);
+            outputState(grid, bstream, Grid.OUTSIDE, color, trans);
         }
 
-        color = colors.get(Grid.EXTERIOR);
-        transF = transparency.get(Grid.EXTERIOR);
+        color = stateColors.get(new Integer(Grid.EXTERIOR));
+        transF = stateTransparency.get(new Integer(Grid.EXTERIOR));
         trans = 1;
 
         if (color != null) {
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, stream, Grid.EXTERIOR, color, trans);
+            outputState(grid, bstream, Grid.EXTERIOR, color, trans);
         }
 
-        color = colors.get(Grid.INTERIOR);
-        transF = transparency.get(Grid.INTERIOR);
+        color = stateColors.get(new Integer(Grid.INTERIOR));
+        transF = stateTransparency.get(new Integer(Grid.INTERIOR));
         trans = 1;
 
         if (color != null) {
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, stream, Grid.INTERIOR, color, trans);
+            outputState(grid, bstream, Grid.INTERIOR, color, trans);
         }
 
+    }
+
+    /**
+     * Close the exporter.  Must be called when done.
+     */
+    public void close() {
+        ejectFooter();
     }
 
     private void outputState(Grid grid, BinaryContentHandler stream, byte display, float[] color, float transparency) {
@@ -689,6 +732,42 @@ System.out.println("Saved: " + saved);
         stream.fieldValue(allIndices, allIndices.length);
         stream.endNode();  // IndexedFaceSet
         stream.endNode();  // Shape\
+    }
+
+    /**
+     * Eject a header appropriate for the file.  This is all stuff that's not
+     * specific to a grid.  In X3D terms this is PROFILE/COMPONENT and ant
+     * NavigationInfo/Viewpoints desired.
+     *
+     */
+    private void ejectHeader() {
+        writer.startDocument("","", "utf8", "#X3D", "V3.0", "");
+        writer.profileDecl("Immersive");
+        writer.startNode("NavigationInfo", null);
+        writer.startField("avatarSize");
+        bstream.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
+        writer.endNode(); // NavigationInfo
+
+        // TODO: This should really be a lookat to bounds calc of the grid
+        // In theory this would need all grids to calculate.  Not all
+        // formats allow viewpoints to be intermixed with geometry
+
+        writer.startNode("Viewpoint", null);
+        writer.startField("position");
+        bstream.fieldValue(new float[] {0.028791402f,0.005181627f,0.11549001f},3);
+        writer.startField("orientation");
+        bstream.fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
+        writer.endNode(); // Viewpoint
+    }
+
+    /**
+     * Eject a footer for the file.
+     *
+     * @param stream The stream to write too
+     * @param grid The first grid written
+     */
+    private void ejectFooter() {
+        writer.endDocument();
     }
 }
 

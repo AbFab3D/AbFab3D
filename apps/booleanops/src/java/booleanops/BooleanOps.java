@@ -15,8 +15,6 @@ package booleanops;
 // External Imports
 import java.util.*;
 import java.io.*;
-import org.web3d.vrml.sav.ContentHandler;
-import org.web3d.vrml.sav.BinaryContentHandler;
 import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
 import org.j3d.geom.*;
@@ -43,195 +41,166 @@ public class BooleanOps {
     public static final double VERT_RESOLUTION = 0.0002;
 
     public void generate(String filename) {
-        try {
-            FileOutputStream fos = new FileOutputStream(filename);
-            ErrorReporter console = new PlainTextErrorReporter();
+        ErrorReporter console = new PlainTextErrorReporter();
 
-            Exporter writer = null;
+        float bsize = 0.0254f;
+        float overlap = 0.02f;
+        boolean useArrays = true;
 
-            if (filename.endsWith(".x3db")) {
-                writer = new X3DBinaryRetainedDirectExporter(fos,
-                                     3, 0, console,
-                                     X3DBinarySerializer.METHOD_FASTEST_PARSING,
-                                     0.001f);
-            } else if (filename.endsWith(".x3dv")) {
-                writer = new X3DClassicRetainedExporter(fos,3,0,console);
-            } else {
-                System.out.println("Unhandled X3D format");
-                return;
-            }
+        // TODO: arrays are using much less ram then hashmap?
+
+        BoxGenerator tg = new BoxGenerator(bsize,bsize,bsize);
+        GeometryData geom = new GeometryData();
+        geom.geometryType = GeometryData.TRIANGLES;
+        tg.generate(geom);
+
+        double[] trans =  new double[3];
+        double[] maxsize = new double[3];
 
 
-            float bsize = 0.0254f;
-            float overlap = 0.02f;
-            boolean useArrays = true;
-
-            // TODO: arrays are using much less ram then hashmap?
-
-            BoxGenerator tg = new BoxGenerator(bsize,bsize,bsize);
-            GeometryData geom = new GeometryData();
-            geom.geometryType = GeometryData.TRIANGLES;
-            tg.generate(geom);
-
-            double[] trans =  new double[3];
-            double[] maxsize = new double[3];
-
-
-            findGridParams(geom, HORIZ_RESOLUTION, VERT_RESOLUTION, trans, maxsize);
+        findGridParams(geom, HORIZ_RESOLUTION, VERT_RESOLUTION, trans, maxsize);
 //            maxsize[1] += 2 * overlap;  // account for overlap of cylinder
 
-            double x = trans[0];
-            double y = trans[1];
-            double z = trans[2];
+        double x = trans[0];
+        double y = trans[1];
+        double z = trans[2];
 
 /*
-            Grid grid = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+        Grid grid = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 */
-            Grid grid = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION);
+        Grid grid = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION);
 
-            TriangleModelCreator tmc = null;
+        TriangleModelCreator tmc = null;
 
-            double rx = 0,ry = 1,rz = 0,rangle = 0;
-            byte outerMaterial = 1;
-            byte innerMaterial = 1;
-
-
-            tmc = new TriangleModelCreator(geom,x,y,z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
-
-            tmc.generate(grid);
+        double rx = 0,ry = 1,rz = 0,rangle = 0;
+        byte outerMaterial = 1;
+        byte innerMaterial = 1;
 
 
-            double height = bsize;
-            double radius = bsize / 2.5f;
-            int facets = 64;
+        tmc = new TriangleModelCreator(geom,x,y,z,
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
-            CylinderGenerator cg = new CylinderGenerator((float)height, (float)radius, facets);
-            geom = new GeometryData();
-            geom.geometryType = GeometryData.TRIANGLES;
-            cg.generate(geom);
+        tmc.generate(grid);
 
-            // reuse size and center of box, make sure cylinder is smaller
 
-            double[] ntrans =  new double[3];
-            double[] nmaxsize = new double[3];
+        double height = bsize;
+        double radius = bsize / 2.5f;
+        int facets = 64;
 
-            findGridParams(geom, HORIZ_RESOLUTION, VERT_RESOLUTION, ntrans, nmaxsize);
+        CylinderGenerator cg = new CylinderGenerator((float)height, (float)radius, facets);
+        geom = new GeometryData();
+        geom.geometryType = GeometryData.TRIANGLES;
+        cg.generate(geom);
 
-            if (nmaxsize[0] > maxsize[0] ||
-                nmaxsize[1] > maxsize[1] ||
-                nmaxsize[2] > maxsize[2]) {
+        // reuse size and center of box, make sure cylinder is smaller
 
-                System.out.println("Cylinder larger then box:");
-                System.out.println("   Box: " + java.util.Arrays.toString(maxsize));
-                System.out.println("   Cyl: " + java.util.Arrays.toString(nmaxsize));
-            }
+        double[] ntrans =  new double[3];
+        double[] nmaxsize = new double[3];
+
+        findGridParams(geom, HORIZ_RESOLUTION, VERT_RESOLUTION, ntrans, nmaxsize);
+
+        if (nmaxsize[0] > maxsize[0] ||
+            nmaxsize[1] > maxsize[1] ||
+            nmaxsize[2] > maxsize[2]) {
+
+            System.out.println("Cylinder larger then box:");
+            System.out.println("   Box: " + java.util.Arrays.toString(maxsize));
+            System.out.println("   Cyl: " + java.util.Arrays.toString(nmaxsize));
+        }
 
 /*
-            Grid grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+        Grid grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 */
 
-            Grid grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION);
+        Grid grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION);
 
 
-            tmc = new TriangleModelCreator(geom,x,y,z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+        tmc = new TriangleModelCreator(geom,x,y,z,
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
-            tmc.generate(grid2);
-
-
-            Subtract op = new Subtract(grid2, 0, 0, 0, (byte) 1);
-            op.execute(grid);
+        tmc.generate(grid2);
 
 
-            rx = 1;
-            ry = 0;
-            rz = 0;
-            rangle = 1.57075;
+        Subtract op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+        op.execute(grid);
+
+
+        rx = 1;
+        ry = 0;
+        rz = 0;
+        rangle = 1.57075;
 
 /*
-            grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+        grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 */
-            grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION);
+        grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION);
 
-            tmc = new TriangleModelCreator(geom,x,y,z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+        tmc = new TriangleModelCreator(geom,x,y,z,
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
-            tmc.generate(grid2);
+        tmc.generate(grid2);
 
-            op = new Subtract(grid2, 0, 0, 0, (byte) 1);
-            op.execute(grid);
+        op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+        op.execute(grid);
 
-            rx = 0;
-            ry = 0;
-            rz = 1;
-            rangle = 1.57075;
+        rx = 0;
+        ry = 0;
+        rz = 1;
+        rangle = 1.57075;
 
 /*
-            grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+        grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
 */
 
-            grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
-                HORIZ_RESOLUTION, VERT_RESOLUTION);
+        grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION);
 
-            tmc = new TriangleModelCreator(geom,x,y,z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+        tmc = new TriangleModelCreator(geom,x,y,z,
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
-            tmc.generate(grid2);
+        tmc.generate(grid2);
 
-            op = new Subtract(grid2, 0, 0, 0, (byte) 1);
-            op.execute(grid);
+        op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+        op.execute(grid);
 
 
-            grid2 = null;  // Free this to save memory
+        grid2 = null;  // Free this to save memory
 
 /*
-            int width = grid.getWidth();
-            while(width > 128) {
-                Downsample ds = new Downsample();
-                grid = ds.execute(grid);
+        int width = grid.getWidth();
+        while(width > 128) {
+            Downsample ds = new Downsample();
+            grid = ds.execute(grid);
 
-                width = grid.getWidth();
-            }
+            width = grid.getWidth();
+        }
 */
 
-            writer.startDocument("","", "utf8", "#X3D", "V3.0", "");
-            writer.profileDecl("Immersive");
-            writer.startNode("NavigationInfo", null);
-            writer.startField("avatarSize");
-            ((BinaryContentHandler)writer).fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
-            writer.endNode(); // NavigationInfo
-            writer.startNode("Viewpoint", null);
-            writer.startField("position");
-            ((BinaryContentHandler)writer).fieldValue(new float[] {0.028791402f,0.005181627f,0.11549001f},3);
-            writer.startField("orientation");
-            ((BinaryContentHandler)writer).fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
-            writer.endNode(); // Viewpoint
+        try {
+            FileOutputStream fos = new FileOutputStream(filename);
+            String encoding = filename.substring(filename.lastIndexOf(".")+1);
+            BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
+            HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
+            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
+            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
-//            grid.toX3D((BinaryContentHandler)writer, null);
+            HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
+            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
+            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 
-            HashMap<Byte, float[]> colors = new HashMap<Byte, float[]>();
-            colors.put(Grid.INTERIOR, new float[] {0,1,0});
-            colors.put(Grid.EXTERIOR, new float[] {1,0,0});
-            colors.put(Grid.OUTSIDE, new float[] {0,0,1});
-
-            HashMap<Byte, Float> transparency = new HashMap<Byte, Float>();
-            transparency.put(Grid.INTERIOR, new Float(0));
-            transparency.put(Grid.EXTERIOR, new Float(0.5));
-            transparency.put(Grid.OUTSIDE, new Float(0.98));
-
-            BoxesX3DExporter exporter = new BoxesX3DExporter();
-            exporter.toX3DDebug(grid, (BinaryContentHandler)writer, colors, transparency);
-
-            writer.endDocument();
+//            exporter.write(grid, null);
+            exporter.writeDebug(grid, colors, transparency);
+            exporter.close();
 
             fos.close();
         } catch(IOException ioe) {

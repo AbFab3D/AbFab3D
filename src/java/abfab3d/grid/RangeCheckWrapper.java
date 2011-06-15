@@ -420,15 +420,15 @@ public class RangeCheckWrapper implements GridWrapper {
         grid.getGridCoords(x,y,z,pos);
 
         if (pos[0] < 0 || pos[0] > width - 1) {
-            throw new IllegalArgumentException("pos[0] value invalid: " + pos[0]);
+            throw new IllegalArgumentException("x value invalid: " + pos[0]);
         }
 
         if (pos[1] < 0 || pos[1] > height - 1) {
-            throw new IllegalArgumentException("pos[0] value invalid: " + pos[1]);
+            throw new IllegalArgumentException("y value invalid: " + pos[1]);
         }
 
         if (pos[2] < 0 || pos[2] > depth - 1) {
-            throw new IllegalArgumentException("pos[2] value invalid: " + pos[2]);
+            throw new IllegalArgumentException("z value invalid: " + pos[2]);
         }
     }
 }

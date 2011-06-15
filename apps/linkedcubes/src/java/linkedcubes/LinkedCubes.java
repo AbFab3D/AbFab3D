@@ -15,7 +15,6 @@ package linkedcubes;
 // External Imports
 import java.util.*;
 import java.io.*;
-import org.web3d.vrml.sav.ContentHandler;
 import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
 
@@ -43,10 +42,7 @@ public class LinkedCubes {
 
     public void generate(String filename) {
         try {
-            FileOutputStream fos = new FileOutputStream(filename);
             ErrorReporter console = new PlainTextErrorReporter();
-
-            X3DClassicRetainedExporter writer = new X3DClassicRetainedExporter(fos,3,0,console);
 
             Style[][] styles = new Style[6][];
 
@@ -157,23 +153,12 @@ public class LinkedCubes {
                 }
             }
 
-            writer.startDocument("","", "utf8", "#X3D", "V3.0", "");
-            writer.profileDecl("Immersive");
-            writer.startNode("NavigationInfo", null);
-            writer.startField("avatarSize");
-            writer.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
-            writer.endNode(); // NavigationInfo
-            writer.startNode("Viewpoint", null);
-            writer.startField("position");
-            writer.fieldValue(new float[] {0.028791402f,0.005181627f,0.11549001f},3);
-            writer.startField("orientation");
-            writer.fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
-            writer.endNode(); // Viewpoint
+            FileOutputStream fos = new FileOutputStream(filename);
+            String encoding = filename.substring(filename.lastIndexOf(".")+1);
+            BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
-            BoxesX3DExporter exporter = new BoxesX3DExporter();
-            exporter.toX3D(grid, writer, null);
-
-            writer.endDocument();
+            exporter.write(grid, null);
+            exporter.close();
 
             fos.close();
         } catch(IOException ioe) {
