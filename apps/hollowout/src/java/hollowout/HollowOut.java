@@ -91,6 +91,7 @@ public class HollowOut {
             op.execute(grid);
         }
 
+        try {
             FileOutputStream fos = new FileOutputStream(filename);
             String encoding = filename.substring(filename.lastIndexOf(".")+1);
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
