@@ -207,7 +207,7 @@ System.out.println("Triangles to insert: " + len);
 //System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
 
                 tri = new Triangle(coords, i);
-                insert(tri, grid, (byte) OUTER_CELL);
+                insert(tri, grid, (byte) OUTER_CELL, outerMaterialID);
             }
         } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
             int len = geom.indexesCount / 3;
@@ -245,7 +245,7 @@ System.out.println("Indexed Triangles to insert: " + len);
                 idx++;
 //System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
                 tri = new Triangle(coords, i);
-                insert(tri, grid, (byte) OUTER_CELL);
+                insert(tri, grid, (byte) OUTER_CELL, outerMaterialID);
             }
         }
 
@@ -262,7 +262,7 @@ System.out.println("Indexed Triangles to insert: " + len);
      * @param tri The triangle
      * @param grid The grid to use
      */
-    public void insert(Triangle tri, Grid grid, byte type) {
+    public void insert(Triangle tri, Grid grid, byte type, byte material) {
 
         tri.calcBounds(minBounds, maxBounds);
 
@@ -342,7 +342,7 @@ System.out.println("minCoords: " + java.util.Arrays.toString(minCoords));
 System.out.println("maxCoords: " + java.util.Arrays.toString(maxCoords));
 System.out.flush();
 */
-        fillCellsExact(minCoords, maxCoords, tri, grid, type);
+        fillCellsExact(minCoords, maxCoords, tri, grid, material);
     }
 
     /**
