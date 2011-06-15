@@ -21,8 +21,9 @@ import abfab3d.grid.Grid.VoxelClasses;
 
 /**
  * Detects whether a set operation is changing a voxel that
- * is already occupied.  This will throw an IllegalArgumentException if
- * a voxel is already !OUTSIDE when set is called.
+ * is already occupied with a different material.
+ * This will throw an IllegalArgumentException if a voxel is already
+ * !OUTSIDE when set is called.
  *
  * @author Alan Hudson
  */
@@ -134,10 +135,11 @@ public class OccupiedWrapper implements GridWrapper {
      * @param material The materialID
      */
     public void setData(double x, double y, double z, byte state, byte material) {
-        byte old_state = grid.getState(x,y,z);
+        VoxelData vd = grid.getData(x,y,z);
 
-        if (old_state != Grid.OUTSIDE && state != Grid.OUTSIDE) {
-            throw new IllegalArgumentException("Invalid state change");
+        if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
+            && vd.getMaterial() != material ) {
+            throw new IllegalArgumentException("Invalid state change at pos: " + x + " " + y + " " + z);
         }
 
         grid.setData(x,y,z,state,material);
@@ -152,10 +154,11 @@ public class OccupiedWrapper implements GridWrapper {
      * @param val The value.  0 = nothing. > 0 materialID
      */
     public void setData(int x, int y, int z, byte state, byte material) {
-        byte old_state = grid.getState(x,y,z);
+        VoxelData vd = grid.getData(x,y,z);
 
-        if (old_state != Grid.OUTSIDE && state != Grid.OUTSIDE) {
-            throw new IllegalArgumentException("Invalid state change");
+        if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
+            && vd.getMaterial() != material ) {
+            throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
         }
 
         grid.setData(x,y,z,state,material);
