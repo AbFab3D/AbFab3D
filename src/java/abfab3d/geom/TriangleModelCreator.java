@@ -169,6 +169,7 @@ public class TriangleModelCreator extends GeometryCreator {
         if (rangle != 0)
             mat.setRotation(new AxisAngle4d(rx,ry,rz,rangle));
 
+System.out.println("Triangulate with material: " + outerMaterialID);
         int idx = 0;
         Triangle tri;
         float[] coords = new float[9];
@@ -253,7 +254,7 @@ System.out.println("Indexed Triangles to insert: " + len);
             return;
 
         // TODO: This won't work when triangulating multiple models into the same grid
-        Operation findInterior = new InteriorFinderVoxelBased(innerMaterialID);
+        Operation findInterior = new InteriorFinderVoxelBased(outerMaterialID,innerMaterialID);
         findInterior.execute(grid);
     }
 

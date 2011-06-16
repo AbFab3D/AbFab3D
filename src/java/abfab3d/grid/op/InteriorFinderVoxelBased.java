@@ -32,6 +32,9 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
+    /** The material to process */
+    protected byte material;
+
     /** The material to use for new voxels */
     protected byte innerMaterial;
 
@@ -39,8 +42,15 @@ public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
     private Grid gridOp;
 
 
-    public InteriorFinderVoxelBased(byte material) {
-        this.innerMaterial = material;
+    /**
+     * Constructor.
+     *
+     * @param material The materialID of exterior voxels
+     * @param newMaterial The materialID to assign new interior voxels
+     */
+    public InteriorFinderVoxelBased(byte material, byte newMaterial) {
+        this.material = material;
+        this.innerMaterial = newMaterial;
     }
 
     /**
@@ -71,15 +81,24 @@ System.out.println("Creating grid for Interior Finding");
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
+System.out.println("Outer material: " + material);
+
         // Find interior voxels using in/out tests
         // March across XAXIS
         for(int y=0; y < height; y++) {
             for(int z=0; z < depth; z++) {
                 status = 0;
                 for(int x=0; x < width; x++) {
-                    state = grid.getState(x,y,z);
+                    VoxelData vd = grid.getData(x,y,z);
+                    state = vd.getState();
 
-//System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
+                    if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
+                        // ignore other materials completely
+                        continue;
+                    }
+
+
+//System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status + " mat: " + vd.getMaterial());
                     if (status == 0) {
                         if (state == Grid.EXTERIOR) {
 //System.out.println("Found exterior at: " + x + " " + y + " " + z);
@@ -131,7 +150,14 @@ System.out.println("XAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             for(int z=0; z < depth; z++) {
                 status = 0;
                 for(int y=0; y < height; y++) {
-                    state = grid.getState(x,y,z);
+                    VoxelData vd = grid.getData(x,y,z);
+                    state = vd.getState();
+
+                    if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
+                        // ignore other materials completely
+                        continue;
+                    }
+
 
 //System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
 
@@ -190,7 +216,14 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             for(int y=0; y < height; y++) {
                 status = 0;
                 for(int z=0; z < depth; z++) {
-                    state = grid.getState(x,y,z);
+                    VoxelData vd = grid.getData(x,y,z);
+                    state = vd.getState();
+
+                    if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
+                        // ignore other materials completely
+                        continue;
+                    }
+
 
 //System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
 
