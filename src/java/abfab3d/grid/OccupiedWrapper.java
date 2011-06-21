@@ -46,8 +46,28 @@ public class OccupiedWrapper implements GridWrapper {
      * @param wrap The wrapper to copy
      */
     public OccupiedWrapper(OccupiedWrapper wrap) {
+        if (wrap == null) {
+            setGrid(wrap);
+
+            return;
+        }
+
         if (wrap.grid != null)
             this.grid = (Grid) wrap.grid.clone();
+    }
+
+    /**
+     * Create an empty grid of the specified size.  Reuses
+     * the grid type and material type(byte, short, int).
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param d The number of voxels in depth
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
+        return grid.createEmpty(w,h,d,pixel,sheight);
     }
 
     /**
@@ -119,7 +139,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param z The z world coordinate
      * @param The voxel material
      */
-    public byte getMaterial(double x, double y, double z) {
+    public int getMaterial(double x, double y, double z) {
         return grid.getMaterial(x,y,z);
     }
 
@@ -131,7 +151,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param z The z grid coordinate
      * @param The voxel material
      */
-    public byte getMaterial(int x, int y, int z) {
+    public int getMaterial(int x, int y, int z) {
         return grid.getMaterial(x,y,z);
     }
 
@@ -144,7 +164,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, byte material) {
+    public void setData(double x, double y, double z, byte state, int material) {
         VoxelData vd = grid.getData(x,y,z);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
@@ -163,7 +183,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param z The z world coordinate
      * @param val The value.  0 = nothing. > 0 materialID
      */
-    public void setData(int x, int y, int z, byte state, byte material) {
+    public void setData(int x, int y, int z, byte state, int material) {
         VoxelData vd = grid.getData(x,y,z);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
@@ -226,7 +246,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(byte mat, ClassTraverser t) {
+    public void find(int mat, ClassTraverser t) {
         grid.find(mat,t);
     }
 
@@ -249,7 +269,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, byte mat, ClassTraverser t) {
+    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
         grid.find(vc, mat, t);
     }
 
@@ -260,7 +280,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(byte mat, ClassTraverser t) {
+    public void findInterruptible(int mat, ClassTraverser t) {
         grid.findInterruptible(mat,t);
     }
 
@@ -283,7 +303,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t) {
+    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
         grid.findInterruptible(vc, mat, t);
     }
 
@@ -294,7 +314,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(byte mat) {
+    public int findCount(int mat) {
         return grid.findCount(mat);
     }
 

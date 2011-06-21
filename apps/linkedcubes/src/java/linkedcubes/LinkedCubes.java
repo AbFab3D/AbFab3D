@@ -77,8 +77,7 @@ public class LinkedCubes {
             styles[3][2] = Style.LEFT_ROW;
             styles[3][3] = Style.RIGHT_ROW;
 
-//            Grid grid = new SliceGrid(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION, true);
-            Grid grid = new ArrayGrid(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION);
+            Grid grid = new ArrayGridByte(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION);
 
             double x,y,z;
             CubeCreator cg = null;
@@ -146,7 +145,7 @@ public class LinkedCubes {
                         }
 
                         cg = new CubeCreator(styles, boxSize, boxSize, boxSize,
-                            x,y,z,(byte)1);
+                            x,y,z,1);
 
                         cg.generate(grid);
                     }

@@ -40,10 +40,6 @@ import abfab3d.grid.op.*;
 public class TriangleModelCreator extends GeometryCreator {
     public static final boolean COLLECT_STATS = true;
 
-    // Marker values for cell type
-    public static final byte OUTER_CELL = 1;
-    public static final byte INNER_CELL = 2;
-
     /** The triangle data */
     protected GeometryData geom;
 
@@ -62,8 +58,8 @@ public class TriangleModelCreator extends GeometryCreator {
     protected double rz;
     protected double rangle;
 
-    protected byte outerMaterialID;
-    protected byte innerMaterialID;
+    protected int outerMaterialID;
+    protected int innerMaterialID;
 
     /** Scratch variables */
     protected double[] minBounds;
@@ -108,7 +104,7 @@ public class TriangleModelCreator extends GeometryCreator {
      */
     public TriangleModelCreator(GeometryData geom,
         double x, double y, double z, double rx, double ry, double rz, double rangle,
-        byte outerMaterial, byte innerMaterial, boolean fill) {
+        int outerMaterial, int innerMaterial, boolean fill) {
 
         this.geom = geom;
         this.x = x;
@@ -208,7 +204,7 @@ System.out.println("Triangles to insert: " + len);
 //System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
 
                 tri = new Triangle(coords, i);
-                insert(tri, grid, (byte) OUTER_CELL, outerMaterialID);
+                insert(tri, grid, outerMaterialID);
             }
         } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
             int len = geom.indexesCount / 3;
@@ -246,7 +242,7 @@ System.out.println("Indexed Triangles to insert: " + len);
                 idx++;
 //System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
                 tri = new Triangle(coords, i);
-                insert(tri, grid, (byte) OUTER_CELL, outerMaterialID);
+                insert(tri, grid, outerMaterialID);
             }
         }
 
@@ -264,7 +260,7 @@ System.out.println("Indexed Triangles to insert: " + len);
      * @param tri The triangle
      * @param grid The grid to use
      */
-    public void insert(Triangle tri, Grid grid, byte type, byte material) {
+    public void insert(Triangle tri, Grid grid, int material) {
 
         tri.calcBounds(minBounds, maxBounds);
 
@@ -354,7 +350,7 @@ System.out.flush();
      * @param max The max bounds in cell coords
      * @param id The ID to fill in
      */
-    protected void fillCellsExact(int[] min, int[] max, Triangle tri, Grid grid, byte material) {
+    protected void fillCellsExact(int[] min, int[] max, Triangle tri, Grid grid, int material) {
         final int len_x = max[0] - min[0] + 1;
         final int len_y = max[1] - min[1] + 1;
         final int len_z = max[2] - min[2] + 1;
@@ -600,13 +596,7 @@ System.out.flush();
         // I suspect this method will be fairly buggy.  But it should
         // be fast
 
-/*
-        Grid result = new SliceGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight(), false);
-*/
-
-        Grid result = new SliceGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight(), true);
+        Grid result = (Grid) grid.clone();
 
 //System.out.println("Filling model");
         byte state;
@@ -722,7 +712,7 @@ System.out.println("XAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                         }
                     }
 
-                    result.setData(x,y,z,Grid.OUTSIDE,(byte)0);
+                    result.setData(x,y,z,Grid.OUTSIDE,0);
                 }
             }
         }
@@ -790,7 +780,7 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                         }
                     }
 
-                    result.setData(x,y,z,Grid.OUTSIDE,(byte)0);
+                    result.setData(x,y,z,Grid.OUTSIDE,0);
                 }
             }
         }

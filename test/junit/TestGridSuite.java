@@ -27,10 +27,10 @@ public class TestGridSuite extends TestSuite {
     public static Test suite() {
         TestSuite suite = new TestSuite("Grid Test Suite");
 
-        suite.addTest(TestSliceGrid.suite());
         suite.addTest(TestArrayGrid.suite());
 
         suite.addTest(TestOccupiedWrapper.suite());
+        suite.addTest(TestRangeCheckWrapper.suite());
         suite.addTest(TestMaterialIndexedWrapper.suite());
 
         return suite;

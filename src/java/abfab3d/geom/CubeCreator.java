@@ -50,7 +50,7 @@ public class CubeCreator extends GeometryCreator {
     protected double y;
     protected double z;
 
-    protected byte materialID;
+    protected int materialID;
 
     /**
      * Constructor.
@@ -60,7 +60,7 @@ public class CubeCreator extends GeometryCreator {
     public CubeCreator(Style[][] styles,
         double w, double h, double d,
         double x, double y, double z,
-        byte material) {
+        int material) {
         this.styles = new Style[6][styles.length];
 
         for(int i=0; i < 6; i++) {

@@ -42,7 +42,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
     public void testBasic() {
         int size = 12;
 
-        Grid grid = new SliceGrid(size,size,size,0.001, 0.001, true);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
         int mat1_count = 5;
@@ -83,7 +83,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
      */
     public void testComplexTrue() {
         byte matToMove = (byte) 2;
-        Grid grid = new SliceGrid(100,100,100,0.001, 0.001, true);
+        Grid grid = new ArrayGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
         setX(grid, 50, 40, Grid.EXTERIOR, (byte) 1, 40, 60);
@@ -130,7 +130,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
      */
     public void testComplexFalse() {
         byte matToMove = (byte) 2;
-        Grid grid = new SliceGrid(100,100,100,0.001, 0.001, true);
+        Grid grid = new ArrayGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
         setX(grid, 50, 40, Grid.EXTERIOR, (byte) 1, 40, 60);
@@ -176,7 +176,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
     public void testIgnoredVoxels() {
         int size = 12;
 
-        Grid grid = new SliceGrid(size,size,size,0.001, 0.001, true);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
         int mat1_count = 5;
@@ -201,7 +201,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
         int startIndex = 50;
         int endIndex = 295;
 
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
 //        for (int i=startIndex; i<=endIndex; i++){
 //          grid.setData(i,0,0, Grid.INTERIOR, (byte) 1);
@@ -227,10 +227,10 @@ public class TestCanMoveMaterial extends BaseTestGrid {
     }
 
     public void testPerformanceOneDirVsAllDir() {
-    	
+
 //        Grid grid = setSmallGrid();
         Grid grid = setLargeGrid();
-        
+
         // Set the paths
         int[][] directions = new int[][] {{-1,0,0}, {1,0,0}, {0,-1,0}, {0,1,0}};
         StraightPath[] paths = new StraightPath[directions.length];
@@ -272,14 +272,14 @@ public class TestCanMoveMaterial extends BaseTestGrid {
 
         return query.execute(grid);
     }
-    
+
     private Grid setSmallGrid() {
         int size = 20;
         int startIndex = 7;
         int endIndex = 15;
         int yIndex = 10;
 
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         setX(grid, yIndex, 0, Grid.INTERIOR, (byte) 1, startIndex+1, endIndex-1);
         setX(grid, yIndex, 0, Grid.OUTSIDE, (byte) 0, 11, 12);
@@ -288,23 +288,23 @@ public class TestCanMoveMaterial extends BaseTestGrid {
         grid.setData(endIndex,yIndex,0, Grid.EXTERIOR, (byte) 1);
         grid.setData(10,yIndex,0, Grid.EXTERIOR, (byte) 1);
         grid.setData(13,yIndex,0, Grid.EXTERIOR, (byte) 1);
-        
+
         // Set different material
 //        grid.setData(5,yIndex,0, Grid.EXTERIOR, (byte) 2);
         grid.setData(18,yIndex,0, Grid.EXTERIOR, (byte) 2);
         grid.setData(7,5,0, Grid.EXTERIOR, (byte) 2);
         grid.setData(10,15,0, Grid.EXTERIOR, (byte) 2);
-        
+
         return grid;
     }
-    
+
     private Grid setLargeGrid() {
         int size = 500;
         int startIndex = 100;
         int endIndex = 300;
         int yIndex = 10;
 
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         setX(grid, yIndex, 0, Grid.INTERIOR, (byte) 1, startIndex+1, endIndex-1);
         setX(grid, yIndex, 0, Grid.OUTSIDE, (byte) 0, 201, 249);
@@ -313,13 +313,13 @@ public class TestCanMoveMaterial extends BaseTestGrid {
         grid.setData(endIndex,yIndex,0, Grid.EXTERIOR, (byte) 1);
         grid.setData(200,yIndex,0, Grid.EXTERIOR, (byte) 1);
         grid.setData(250,yIndex,0, Grid.EXTERIOR, (byte) 1);
-        
+
         // Set different material
 //        grid.setData(50,yIndex,0, Grid.EXTERIOR, (byte) 2);
         grid.setData(400,yIndex,0, Grid.EXTERIOR, (byte) 2);
         grid.setData(100,5,0, Grid.EXTERIOR, (byte) 2);
         grid.setData(200,15,0, Grid.EXTERIOR, (byte) 2);
-        
+
         return grid;
     }
 }

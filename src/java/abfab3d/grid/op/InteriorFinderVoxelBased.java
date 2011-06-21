@@ -33,10 +33,10 @@ import abfab3d.grid.*;
  */
 public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
     /** The material to process */
-    protected byte material;
+    protected int material;
 
     /** The material to use for new voxels */
-    protected byte innerMaterial;
+    protected int innerMaterial;
 
     /** The grid we are operating on */
     private Grid gridOp;
@@ -48,7 +48,7 @@ public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
      * @param material The materialID of exterior voxels
      * @param newMaterial The materialID to assign new interior voxels
      */
-    public InteriorFinderVoxelBased(byte material, byte newMaterial) {
+    public InteriorFinderVoxelBased(int material, int newMaterial) {
         this.material = material;
         this.innerMaterial = newMaterial;
     }
@@ -62,14 +62,9 @@ public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
      */
     public Grid execute(Grid grid) {
         gridOp = grid;
-/*
-        Grid result = new SliceGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight(), false);
-
-*/
 
 System.out.println("Creating grid for Interior Finding");
-        Grid result = new ArrayGrid(grid.getWidth(),grid.getHeight(),grid.getDepth(),
+        Grid result = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
 
 //System.out.println("Filling model");

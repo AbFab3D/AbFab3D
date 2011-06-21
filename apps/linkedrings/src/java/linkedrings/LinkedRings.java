@@ -63,8 +63,8 @@ public class LinkedRings {
             double bounds = findMaxBounds(geom);
             double size = rings * 2.1 * bounds;  // Slightly over allocate
 
-            Grid grid = new SliceGrid(size,size,size,
-                HORIZ_RESOLUTION, VERT_RESOLUTION, false);
+            Grid grid = new ArrayGridByte(size,size,size,
+                HORIZ_RESOLUTION, VERT_RESOLUTION);
 
             TriangleModelCreator tmc = null;
             double x = bounds;
@@ -72,8 +72,8 @@ public class LinkedRings {
             double z = x;
 
             double rx = 0,ry = 1,rz = 0,rangle = 0;
-            byte outerMaterial = 1;
-            byte innerMaterial = 1;
+            int outerMaterial = 1;
+            int innerMaterial = 1;
 
 
             tmc = new TriangleModelCreator(geom,x,y,z,

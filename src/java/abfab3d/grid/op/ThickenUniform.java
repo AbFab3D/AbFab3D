@@ -32,9 +32,9 @@ import abfab3d.grid.*;
  */
 public class ThickenUniform implements Operation {
     /** The material to use for new voxels */
-    private byte material;
+    private int material;
 
-    public ThickenUniform(byte material) {
+    public ThickenUniform(int material) {
         this.material = material;
     }
 
@@ -50,8 +50,8 @@ public class ThickenUniform implements Operation {
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
-        Grid ret_val = new SliceGrid(width + 1,depth + 1,height + 1,
-            grid.getVoxelSize(), grid.getSliceHeight(), true);
+        Grid ret_val = grid.createEmpty(width + 1,depth + 1,height + 1,
+            grid.getVoxelSize(), grid.getSliceHeight());
 
         //Copy
         // Guess that 1% of all voxels will be exterior

@@ -41,9 +41,9 @@ public class CuttingPlane implements Operation {
     private int dir;
 
     /** The material for new exterior voxels */
-    private byte material;
+    private int material;
 
-    public CuttingPlane(Axis axis, double loc, int dir, byte material) {
+    public CuttingPlane(Axis axis, double loc, int dir, int material) {
         this.axis = axis;
         this.loc = loc;
         this.dir = dir;
@@ -74,7 +74,7 @@ public class CuttingPlane implements Operation {
                 for(int k=coords[2]+1; k < depth; k++) {
                     for(int i=0; i < width; i++) {
                         for(int j=0; j < height; j++) {
-                            grid.setData(i,j,k,Grid.OUTSIDE,(byte)0);
+                            grid.setData(i,j,k,Grid.OUTSIDE,0);
                         }
                     }
                 }

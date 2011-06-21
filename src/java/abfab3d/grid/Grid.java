@@ -87,7 +87,7 @@ public interface Grid extends Cloneable {
      * @param z The z world coordinate
      * @param The voxel material
      */
-    public byte getMaterial(double x, double y, double z);
+    public int getMaterial(double x, double y, double z);
 
     /**
      * Get the material of the voxel.
@@ -97,7 +97,7 @@ public interface Grid extends Cloneable {
      * @param z The z grid coordinate
      * @param The voxel material
      */
-    public byte getMaterial(int x, int y, int z);
+    public int getMaterial(int x, int y, int z);
 
     /**
      * Set the value of a voxel.
@@ -108,7 +108,7 @@ public interface Grid extends Cloneable {
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, byte material);
+    public void setData(double x, double y, double z, byte state, int material);
 
     /**
      * Set the value of a voxel.
@@ -118,7 +118,7 @@ public interface Grid extends Cloneable {
      * @param z The z world coordinate
      * @param val The value.  0 = nothing. > 0 materialID
      */
-    public void setData(int x, int y, int z, byte state, byte material);
+    public void setData(int x, int y, int z, byte state, int material);
 
     /**
      * Get the grid coordinates for a world coordinate.
@@ -164,7 +164,7 @@ public interface Grid extends Cloneable {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(byte mat);
+    public int findCount(int mat);
 
     /**
      * Count a class of voxels types.  May be much faster then
@@ -182,7 +182,7 @@ public interface Grid extends Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(byte mat, ClassTraverser t);
+    public void find(int mat, ClassTraverser t);
 
     /*
      * Traverse a class of voxel and material types.  May be much faster then
@@ -192,7 +192,7 @@ public interface Grid extends Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, byte mat, ClassTraverser t);
+    public void find(VoxelClasses vc, int mat, ClassTraverser t);
 
     /**
      * Traverse a class of voxels types.  May be much faster then
@@ -211,7 +211,7 @@ public interface Grid extends Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(byte mat, ClassTraverser t);
+    public void findInterruptible(int mat, ClassTraverser t);
 
     /*
      * Traverse a class of voxel and material types.  May be much faster then
@@ -222,7 +222,7 @@ public interface Grid extends Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t);
+    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t);
 
     /**
      * Get the number of height cells.
@@ -269,6 +269,21 @@ public interface Grid extends Cloneable {
      */
     public String toStringAll();
 
+    /**
+     * Clone the grid.
+     */
     public Object clone();
+
+    /**
+     * Create an empty grid of the specified size.  Reuses
+     * the grid type and material type(byte, short, int).
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param d The number of voxels in depth
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public Grid createEmpty(int w, int h, int d, double pixel, double sheight);
 }
 

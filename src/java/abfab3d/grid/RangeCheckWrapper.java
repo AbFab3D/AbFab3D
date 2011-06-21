@@ -53,11 +53,31 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param wrap The wrapper to copy
      */
     public RangeCheckWrapper(RangeCheckWrapper wrap) {
+        if (wrap == null) {
+            setGrid(wrap);
+
+            return;
+        }
+
         if (wrap.grid != null)
             this.grid = (Grid) wrap.grid.clone();
         this.width = wrap.width;
         this.height = wrap.height;
         this.depth = wrap.depth;
+    }
+
+    /**
+     * Create an empty grid of the specified size.  Reuses
+     * the grid type and material type(byte, short, int).
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param d The number of voxels in depth
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
+        return grid.createEmpty(w,h,d,pixel,sheight);
     }
 
     /**
@@ -147,7 +167,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z world coordinate
      * @param The voxel material
      */
-    public byte getMaterial(double x, double y, double z) {
+    public int getMaterial(double x, double y, double z) {
         verifyRange(x,y,z);
 
         return grid.getMaterial(x,y,z);
@@ -161,7 +181,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z grid coordinate
      * @param The voxel material
      */
-    public byte getMaterial(int x, int y, int z) {
+    public int getMaterial(int x, int y, int z) {
         verifyRange(x,y,z);
 
         return grid.getMaterial(x,y,z);
@@ -176,7 +196,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, byte material) {
+    public void setData(double x, double y, double z, byte state, int material) {
         verifyRange(x,y,z);
 
         VoxelData vd = grid.getData(x,y,z);
@@ -197,7 +217,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z world coordinate
      * @param val The value.  0 = nothing. > 0 materialID
      */
-    public void setData(int x, int y, int z, byte state, byte material) {
+    public void setData(int x, int y, int z, byte state, int material) {
         verifyRange(x,y,z);
 
         VoxelData vd = grid.getData(x,y,z);
@@ -245,8 +265,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param max The max coordinate
      */
     public void getGridBounds(double[] min, double[] max) {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         grid.getGridBounds(min,max);
     }
 
@@ -258,8 +278,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return The number
      */
     public int findCount(VoxelClasses vc) {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         return grid.findCount(vc);
     }
 
@@ -270,9 +290,9 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(byte mat, ClassTraverser t) {
-    	verifyGrid();
-    	
+    public void find(int mat, ClassTraverser t) {
+        verifyGrid();
+
         grid.find(mat,t);
     }
 
@@ -284,8 +304,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void find(VoxelClasses vc, ClassTraverser t) {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         grid.find(vc, t);
     }
 
@@ -297,9 +317,9 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, byte mat, ClassTraverser t) {
-    	verifyGrid();
-    	
+    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
+        verifyGrid();
+
         grid.find(vc, mat, t);
     }
 
@@ -310,9 +330,9 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(byte mat, ClassTraverser t) {
-    	verifyGrid();
-    	
+    public void findInterruptible(int mat, ClassTraverser t) {
+        verifyGrid();
+
         grid.findInterruptible(mat,t);
     }
 
@@ -324,8 +344,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param t The traverer to call for each voxel
      */
     public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         grid.findInterruptible(vc, t);
     }
 
@@ -337,9 +357,9 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t) {
-    	verifyGrid();
-    	
+    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
+        verifyGrid();
+
         grid.findInterruptible(vc, mat, t);
     }
 
@@ -350,9 +370,9 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(byte mat) {
-    	verifyGrid();
-    	
+    public int findCount(int mat) {
+        verifyGrid();
+
         return grid.findCount(mat);
     }
 
@@ -362,8 +382,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return the val
      */
     public int getHeight() {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         return grid.getHeight();
     }
 
@@ -373,7 +393,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return the val
      */
     public int getWidth() {
-    	verifyGrid();
+        verifyGrid();
 
         return grid.getWidth();
     }
@@ -384,7 +404,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return the val
      */
     public int getDepth() {
-    	verifyGrid();
+        verifyGrid();
 
         return grid.getDepth();
     }
@@ -395,7 +415,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return The value
      */
     public double getVoxelSize() {
-    	verifyGrid();
+        verifyGrid();
 
         return grid.getVoxelSize();
     }
@@ -406,7 +426,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return The value
      */
     public double getSliceHeight() {
-    	verifyGrid();
+        verifyGrid();
 
         return grid.getSliceHeight();
     }
@@ -415,8 +435,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * Print out a slice of data.
      */
     public String toStringSlice(int s) {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         return grid.toStringSlice(s);
     }
 
@@ -424,8 +444,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * Print out all slices.
      */
     public String toStringAll() {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         return grid.toStringAll();
     }
 
@@ -447,8 +467,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z value
      */
     private void verifyRange(int x, int y, int z) {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         if (x < 0 || x > width - 1) {
             throw new IllegalArgumentException("x value invalid: " + x);
         }
@@ -471,8 +491,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z value
      */
     private void verifyRange(double x, double y, double z) {
-    	verifyGrid();
-    	
+        verifyGrid();
+
         int[] pos = new int[3];
 
         grid.getGridCoords(x,y,z,pos);
@@ -489,13 +509,13 @@ public class RangeCheckWrapper implements GridWrapper {
             throw new IllegalArgumentException("z value invalid: " + pos[2]);
         }
     }
-    
+
     /**
      * Check whether the grid is null and throws an IllegalArgumentException is so
      */
     private void verifyGrid() {
-    	if (grid == null) {
-    		throw new NullPointerException("Grid has not been set");
-    	}
+        if (grid == null) {
+            throw new NullPointerException("Grid has not been set");
+        }
     }
 }

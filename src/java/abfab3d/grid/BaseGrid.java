@@ -128,7 +128,7 @@ public abstract class BaseGrid implements Grid, Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(byte mat, ClassTraverser t) {
+    public void find(int mat, ClassTraverser t) {
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
@@ -150,7 +150,7 @@ public abstract class BaseGrid implements Grid, Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, byte mat, ClassTraverser t) {
+    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
@@ -249,7 +249,7 @@ public abstract class BaseGrid implements Grid, Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(byte mat, ClassTraverser t) {
+    public void findInterruptible(int mat, ClassTraverser t) {
         loop:
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
@@ -273,7 +273,7 @@ public abstract class BaseGrid implements Grid, Cloneable {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t) {
+    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
         loop:
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
@@ -374,7 +374,7 @@ public abstract class BaseGrid implements Grid, Cloneable {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(byte mat) {
+    public int findCount(int mat) {
         int ret_val = 0;
 
         for(int y=0; y < height; y++) {

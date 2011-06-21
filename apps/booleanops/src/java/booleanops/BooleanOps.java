@@ -65,18 +65,14 @@ public class BooleanOps {
         double y = trans[1];
         double z = trans[2];
 
-/*
-        Grid grid = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
-*/
-        Grid grid = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+        Grid grid = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         TriangleModelCreator tmc = null;
 
         double rx = 0,ry = 1,rz = 0,rangle = 0;
-        byte outerMaterial = 1;
-        byte innerMaterial = 1;
+        int outerMaterial = 1;
+        int innerMaterial = 1;
 
 
         tmc = new TriangleModelCreator(geom,x,y,z,
@@ -110,12 +106,7 @@ public class BooleanOps {
             System.out.println("   Cyl: " + java.util.Arrays.toString(nmaxsize));
         }
 
-/*
-        Grid grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
-*/
-
-        Grid grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+        Grid grid2 = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
 
@@ -125,7 +116,7 @@ public class BooleanOps {
         tmc.generate(grid2);
 
 
-        Subtract op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+        Subtract op = new Subtract(grid2, 0, 0, 0, 1);
         op.execute(grid);
 
 
@@ -134,11 +125,7 @@ public class BooleanOps {
         rz = 0;
         rangle = 1.57075;
 
-/*
-        grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
-*/
-        grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+        grid2 = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         tmc = new TriangleModelCreator(geom,x,y,z,
@@ -146,7 +133,7 @@ public class BooleanOps {
 
         tmc.generate(grid2);
 
-        op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+        op = new Subtract(grid2, 0, 0, 0, 1);
         op.execute(grid);
 
         rx = 0;
@@ -154,12 +141,7 @@ public class BooleanOps {
         rz = 1;
         rangle = 1.57075;
 
-/*
-        grid2 = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
-*/
-
-        grid2 = new ArrayGrid(maxsize[0],maxsize[1],maxsize[2],
+        grid2 = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         tmc = new TriangleModelCreator(geom,x,y,z,
@@ -167,7 +149,7 @@ public class BooleanOps {
 
         tmc.generate(grid2);
 
-        op = new Subtract(grid2, 0, 0, 0, (byte) 1);
+        op = new Subtract(grid2, 0, 0, 0, 1);
         op.execute(grid);
 
 

@@ -49,7 +49,7 @@ public class TestMaterialIndexedWrapper extends BaseTestGrid implements ClassTra
         int numMaterials = 10;
         int matWidth = 15;
 
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
 
         int idx;
@@ -96,7 +96,7 @@ public class TestMaterialIndexedWrapper extends BaseTestGrid implements ClassTra
         long time2;
 
 System.out.println("Removal Speed");
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
         int matSize = grid.getWidth() * matWidth;
 
@@ -115,7 +115,7 @@ System.out.println("Removal Speed");
             }
         }
 
-        Grid grid2 = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // Warmup method2
         for(int n=0; n < warmup; n++) {
@@ -188,7 +188,7 @@ System.out.println("Removal Speed");
         int numMaterials = 10;
         int matWidth = 15;
 
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
 
         for(int i=0; i < numMaterials; i++) {
@@ -232,7 +232,7 @@ System.out.println("Removal Speed");
         long time2;
 
 System.out.println("Material Traversal Speed");
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
 
         for(int i=0; i < numMaterials; i++) {
@@ -266,7 +266,7 @@ System.out.println("Material Traversal Speed");
 
         time1 = System.nanoTime() - startTime;
 
-        Grid grid2 = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for(int i=0; i < numMaterials; i++) {
             for(int j=0; j < matWidth; j++) {
@@ -315,7 +315,7 @@ System.out.println("Material Traversal Speed");
         long time2;
 
 System.out.println("Material Traversal Speed Not Found");
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
 
         for(int i=0; i < numMaterials; i++) {
@@ -351,7 +351,7 @@ System.out.println("Material Traversal Speed Not Found");
 
         assertEquals("Wrapper count wrong", matCount, 0);
 
-        Grid grid2 = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for(int i=0; i < numMaterials; i++) {
             for(int j=0; j < matWidth; j++) {
@@ -404,7 +404,7 @@ System.out.println("Material Traversal Speed Not Found");
         long time2;
 
 System.out.println("Material Count Speed");
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
 
         for(int i=0; i < numMaterials; i++) {
@@ -434,7 +434,7 @@ System.out.println("Material Count Speed");
 
         time1 = System.nanoTime() - startTime;
 
-        Grid grid2 = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for(int i=0; i < numMaterials; i++) {
             for(int j=0; j < matWidth; j++) {

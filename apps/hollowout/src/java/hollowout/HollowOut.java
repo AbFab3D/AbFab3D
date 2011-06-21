@@ -70,14 +70,14 @@ public class HollowOut {
         maxsize[1] += thickenPasses * VERT_RESOLUTION;
         maxsize[2] += thickenPasses * HORIZ_RESOLUTION;
 
-        Grid grid = new SliceGrid(maxsize[0],maxsize[1],maxsize[2],
-            HORIZ_RESOLUTION, VERT_RESOLUTION, useArrays);
+        Grid grid = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
+            HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         TriangleModelCreator tmc = null;
 
         double rx = 0,ry = 1,rz = 0,rangle = 0;
-        byte outerMaterial = 1;
-        byte innerMaterial = 1;
+        int outerMaterial = 1;
+        int innerMaterial = 1;
 
 
         tmc = new TriangleModelCreator(geom,x,y,z,

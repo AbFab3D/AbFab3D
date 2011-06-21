@@ -17,53 +17,34 @@ package abfab3d.grid;
  *
  * @author Alan Hudson
  */
-public class VoxelData {
-    /** The voxel state */
-    private byte state;
-
-    /** The material */
-    private byte material;
-
-    public VoxelData(byte state, byte material) {
-        this.state = state;
-        this.material = material;
-    }
-
+public interface VoxelData {
     /**
      * Get the state.
      *
      * @return The state
      */
-    public byte getState() {
-        return state;
-    }
+    public byte getState();
 
     /**
      * Get the material.
      *
      * @return The material
      */
-    public byte getMaterial() {
-        return material;
-    }
+    public int getMaterial();
 
     /**
      * Set the state.
      *
      * @param state The new state
      */
-    public void setState(byte state) {
-        this.state = state;
-    }
+    public void setState(byte state);
 
     /**
      * Set the material.
      *
      * @param mat The material
      */
-    public void setMaterial(byte mat) {
-        this.material = mat;
-    }
+    public void setMaterial(int mat);
 
     /**
      * Set the state and material
@@ -71,8 +52,5 @@ public class VoxelData {
      * @param state The state
      * @param mat The material
      */
-    public void setData(byte state, byte mat) {
-        this.state = state;
-        this.material = mat;
-    }
+    public void setData(byte state, int mat);
 }

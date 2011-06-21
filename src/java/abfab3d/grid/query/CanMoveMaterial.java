@@ -35,7 +35,7 @@ import abfab3d.path.Path;
  */
 public class CanMoveMaterial implements ClassTraverser {
     /** The material to remove */
-    private byte material;
+    private int material;
 
     /** The path to use */
     private Path path;
@@ -49,7 +49,7 @@ public class CanMoveMaterial implements ClassTraverser {
     /** Coordinates that can be ignored */
     HashSet<VoxelCoordinate> ignoreSet;
 
-    public CanMoveMaterial(byte material,Path path) {
+    public CanMoveMaterial(int material,Path path) {
         this.material = material;
         this.path = path;
     }

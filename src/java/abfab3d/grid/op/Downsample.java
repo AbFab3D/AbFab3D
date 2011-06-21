@@ -49,13 +49,8 @@ public class Downsample implements Operation {
         depth = grid.getDepth();
         height = grid.getHeight();
 
-/*
-        Grid ret_val = new SliceGrid(width / 2,depth / 2,height / 2,
-            grid.getVoxelSize() * 2.0, grid.getSliceHeight() * 2.0, false);
-*/
-
-        Grid ret_val = new SliceGrid(width / 2,depth / 2,height / 2,
-            grid.getVoxelSize() * 2.0, grid.getSliceHeight() * 2.0, true);
+        Grid ret_val = grid.createEmpty(width / 2,depth / 2,height / 2,
+            grid.getVoxelSize() * 2.0, grid.getSliceHeight() * 2.0);
 
 
         int len_x = width / 2;
@@ -156,8 +151,9 @@ public class Downsample implements Operation {
         return ret_val;
     }
 
-    private byte avgMaterial(Grid grid, int x, int y, int z) {
-        byte ret_val = 0;
+    private int avgMaterial(Grid grid, int x, int y, int z) {
+// TODO: need to implement
+        int ret_val = 0;
 
         return ret_val;
     }

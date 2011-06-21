@@ -35,7 +35,7 @@ import abfab3d.path.Path;
  */
 public class CanMoveMaterialAllPaths implements ClassTraverser {
     /** The material to remove */
-    private byte material;
+    private int material;
 
     /** The path to use */
     private Path[] paths;
@@ -49,7 +49,7 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
     /** The number bad paths **/
     int badPathCount;
 
-    public CanMoveMaterialAllPaths(byte material, Path[] paths) {
+    public CanMoveMaterialAllPaths(int material, Path[] paths) {
         this.material = material;
         this.paths = paths.clone();
         this.ignoreSet = new HashSet[paths.length];

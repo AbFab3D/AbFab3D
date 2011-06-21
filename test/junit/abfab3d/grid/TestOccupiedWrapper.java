@@ -41,59 +41,59 @@ public class TestOccupiedWrapper extends BaseTestGrid {
         int size1 = 11;
         int size2 = 18;
 
-        Grid grid1 = new ArrayGrid(size1, size1, size1, 0.001, 0.001);
-        Grid grid2 = new ArrayGrid(size2, size2, size2, 0.001, 0.001);
-        
+        Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.001, 0.001);
+
         OccupiedWrapper wrapper = new OccupiedWrapper(grid1);
         assertEquals("Grid width is not " + size1, size1, wrapper.getWidth());
-        
+
         wrapper.setGrid(grid2);
         assertEquals("Grid width is not " + size2, size2, wrapper.getWidth());
     }
-    
+
     /**
      * Test setting of an already-occupied voxel.
      */
     public void testDoubleSetByVoxelCoords() {
         int size = 11;
 
-        Grid grid = new ArrayGrid(size, size, size, 0.001, 0.001);
+        Grid grid = new ArrayGridByte(size, size, size, 0.001, 0.001);
         OccupiedWrapper wrapper = new OccupiedWrapper(grid);
 
         wrapper.setData(0,0,0, Grid.EXTERIOR, (byte) 1);
 
         try {
-        	wrapper.setData(0,0,0, Grid.INTERIOR, (byte) 2);
+            wrapper.setData(0,0,0, Grid.INTERIOR, (byte) 2);
             fail("Double setting a voxel did not throw exception");
         } catch(IllegalArgumentException iae) {
-        	assertEquals("Double setting should not change data", Grid.EXTERIOR, wrapper.getState(0, 0, 0));
+            assertEquals("Double setting should not change data", Grid.EXTERIOR, wrapper.getState(0, 0, 0));
         }
     }
-    
+
     /**
      * Test setting of an already-occupied voxel.
      */
     public void testDoubleSetByWorldCoords() {
-    	byte mat1 = (byte) 1;
-    	byte mat2 = (byte) 2;
-    	
-        Grid grid = new ArrayGrid(0.52, 0.41, 0.52, 0.005, 0.002);
+        byte mat1 = (byte) 1;
+        byte mat2 = (byte) 2;
+
+        Grid grid = new ArrayGridByte(0.52, 0.41, 0.52, 0.005, 0.002);
         OccupiedWrapper wrapper = new OccupiedWrapper(grid);
 
         wrapper.setData(0.022, 0.031, 0.01, Grid.EXTERIOR, mat1);
 
         try {
-        	wrapper.setData(0.02, 0.030, 0.01, Grid.EXTERIOR, mat2);
+            wrapper.setData(0.02, 0.030, 0.01, Grid.EXTERIOR, mat2);
             fail("Double setting a voxel did not throw exception");
         } catch(IllegalArgumentException iae) {
-        	assertEquals("Double setting should not change data", mat1, wrapper.getMaterial(0.02, 0.031, 0.01));
+            assertEquals("Double setting should not change data", mat1, wrapper.getMaterial(0.02, 0.031, 0.01));
         }
-        
+
         try {
-        	wrapper.setData(0.0249, 0.0319, 0.0149, Grid.EXTERIOR, mat2);
+            wrapper.setData(0.0249, 0.0319, 0.0149, Grid.EXTERIOR, mat2);
             fail("Double setting a voxel did not throw exception");
         } catch(IllegalArgumentException iae) {
-        	assertEquals("Double setting should not change data", mat1, wrapper.getMaterial(0.0249, 0.0319, 0.0149));
+            assertEquals("Double setting should not change data", mat1, wrapper.getMaterial(0.0249, 0.0319, 0.0149));
         }
     }
 }

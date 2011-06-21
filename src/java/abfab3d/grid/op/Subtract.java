@@ -41,12 +41,12 @@ public class Subtract implements Operation, ClassTraverser {
     private double z;
 
     /** The material for new exterior voxels */
-    private byte material;
+    private int material;
 
     /** The grid used for A */
     private Grid gridA;
 
-    public Subtract(Grid b, double x, double y, double z, byte material) {
+    public Subtract(Grid b, double x, double y, double z, int material) {
         gridB = b;
         this.x = x;
         this.y = y;

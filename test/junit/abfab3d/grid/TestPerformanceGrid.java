@@ -115,7 +115,7 @@ System.out.println("Warmup: " + i);
         if (display) System.out.println("WriteX Times:");
 
         // Test Method 1
-        Grid grid = new ArrayGrid(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -133,7 +133,7 @@ System.out.println("Warmup: " + i);
         if (display) System.out.println("ArrayGrid        : " + totalTime1);
 
         // Test Method 2
-        grid = new SliceGrid(size,size,size,0.001, 0.001, true);
+        grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -152,7 +152,7 @@ System.out.println("Warmup: " + i);
             formater.format((float)totalTime2 / totalTime1) + "X");
 
         // Test Method 2
-        grid = new SliceGrid(size,size,size,0.001, 0.001, false);
+        grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -180,7 +180,7 @@ System.out.println("Warmup: " + i);
         System.out.println("WriteY Times:");
 
         // Test Method 1
-        Grid grid = new ArrayGrid(SIZE,SIZE,SIZE,0.001, 0.001);
+        Grid grid = new ArrayGridByte(SIZE,SIZE,SIZE,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -198,7 +198,7 @@ System.out.println("Warmup: " + i);
         System.out.println("ArrayGrid        : " + totalTime1);
 
         // Test Method 2
-        grid = new SliceGrid(SIZE,SIZE,SIZE,0.001, 0.001, true);
+        grid = new ArrayGridByte(SIZE,SIZE,SIZE,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -216,7 +216,7 @@ System.out.println("Warmup: " + i);
         System.out.println("SliceGrid(Array) : " + totalTime2 + " " + formater.format((float)totalTime2 / totalTime1) + "X");
 
         // Test Method 2
-        grid = new SliceGrid(SIZE,SIZE,SIZE,0.001, 0.001, false);
+        grid = new ArrayGridByte(SIZE,SIZE,SIZE,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -243,7 +243,7 @@ System.out.println("Warmup: " + i);
         System.out.println("WriteZ Times:");
 
         // Test Method 1
-        Grid grid = new ArrayGrid(SIZE,SIZE,SIZE,0.001, 0.001);
+        Grid grid = new ArrayGridByte(SIZE,SIZE,SIZE,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -261,7 +261,7 @@ System.out.println("Warmup: " + i);
         System.out.println("ArrayGrid        : " + totalTime1);
 
         // Test Method 2
-        grid = new SliceGrid(SIZE,SIZE,SIZE,0.001, 0.001, true);
+        grid = new ArrayGridByte(SIZE,SIZE,SIZE,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
@@ -280,7 +280,7 @@ System.out.println("Warmup: " + i);
             " " + formater.format((float)totalTime2 / totalTime1) + "X");
 
         // Test Method 2
-        grid = new SliceGrid(SIZE,SIZE,SIZE,0.001, 0.001, false);
+        grid = new ArrayGridByte(SIZE,SIZE,SIZE,0.001, 0.001);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
