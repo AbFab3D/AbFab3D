@@ -27,7 +27,7 @@ import java.io.*;
  *
  * @author Alan Hudson
  */
-public abstract class BaseGrid implements Grid {
+public abstract class BaseGrid implements Grid, Cloneable {
     protected int width;
     protected int height;
     protected int depth;
@@ -516,5 +516,7 @@ public abstract class BaseGrid implements Grid {
 
         return sb.toString();
     }
+
+    public abstract Object clone();
 }
 

@@ -88,6 +88,17 @@ public class SliceGrid extends BaseGrid {
     }
 
     /**
+     * Copy Constructor.
+     *
+     * @param grid The grid
+     */
+    public SliceGrid(SliceGrid grid) {
+        super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+            grid.getVoxelSize(), grid.getSliceHeight());
+        this.data = grid.data.clone();
+    }
+
+    /**
      * Get the data of the voxel
      *
      * @param x The x grid coordinate
@@ -208,4 +219,12 @@ public class SliceGrid extends BaseGrid {
         data[y].setData(x,z,state,material);
     }
 
+    /**
+     * Clone the object.
+     */
+    public Object clone() {
+        SliceGrid ret_val = new SliceGrid(this);
+
+        return ret_val;
+    }
 }

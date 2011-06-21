@@ -26,7 +26,7 @@ import org.web3d.vrml.sav.BinaryContentHandler;
  *
  * @author Alan Hudson
  */
-public interface Grid {
+public interface Grid extends Cloneable {
     // The voxel is outside any object
     public static final byte OUTSIDE = 0;
 
@@ -268,5 +268,7 @@ public interface Grid {
      * Print out all slices.
      */
     public String toStringAll();
+
+    public Object clone();
 }
 

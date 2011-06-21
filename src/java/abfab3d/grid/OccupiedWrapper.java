@@ -41,6 +41,16 @@ public class OccupiedWrapper implements GridWrapper {
     }
 
     /**
+     * Copy Constructor.
+     *
+     * @param wrap The wrapper to copy
+     */
+    public OccupiedWrapper(OccupiedWrapper wrap) {
+        if (wrap.grid != null)
+            this.grid = (Grid) wrap.grid.clone();
+    }
+
+    /**
      * Sets the underlying grid to use.
      *
      * @param grid The grid or null to clear.
@@ -345,5 +355,14 @@ public class OccupiedWrapper implements GridWrapper {
      */
     public String toStringAll() {
         return grid.toStringAll();
+    }
+
+    /**
+     * Clone this object.
+     */
+    public Object clone() {
+        OccupiedWrapper new_wrapper = new OccupiedWrapper(this);
+
+        return new_wrapper;
     }
 }

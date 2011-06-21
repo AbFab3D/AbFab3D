@@ -137,6 +137,7 @@ public class CanMoveMaterial implements ClassTraverser {
         // All should be exterior voxels.
 
 //System.out.println("Move voxel: " + x + " " + y + " " + z);
+
         if (canIgnore(x,y,z)) {
             return true;
         }
@@ -188,13 +189,13 @@ public class CanMoveMaterial implements ClassTraverser {
         invertedPath.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
 
         while(invertedPath.next(pos)) {
-            VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+            byte state = grid.getState(pos[0], pos[1], pos[2]);
 
             // can optimize by ignoring interior voxels and only checking for exterior voxels
-            if (vd.getState() == Grid.OUTSIDE)
+            if (state == Grid.OUTSIDE)
                 break;
 
-            if (vd.getState() == Grid.EXTERIOR) {
+            if (state == Grid.EXTERIOR) {
 //System.out.println("placing in ignore list: " + pos[0] + " " + pos[1] + " " + pos[2]);
                 ignoreSet.add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
             }

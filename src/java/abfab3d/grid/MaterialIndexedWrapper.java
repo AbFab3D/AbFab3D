@@ -32,6 +32,9 @@ import abfab3d.grid.Grid.VoxelClasses;
  * Insert operations will be slower(~100%).  Removal and traversal operations
  * will be much faster(2E verses N^3).
  *
+ * This class can told to optimize for read usage.  This means
+ * that find operations will be much faster at the expense of change ops.
+ *
  * @author Alan Hudson
  */
 public class MaterialIndexedWrapper implements GridWrapper {
@@ -44,8 +47,14 @@ public class MaterialIndexedWrapper implements GridWrapper {
     /** The index */
     private HashMap<Byte, HashSet<VoxelCoordinate>> index;
 
+    /** The optimized index */
+    private HashMap<Byte, Voxel[]> optIndex;
+
     /** Scratch var */
     private int[] gcoords;
+
+    /** Optimize for read usage */
+    private boolean optRead;
 
     /**
      * Constructor.
@@ -54,6 +63,37 @@ public class MaterialIndexedWrapper implements GridWrapper {
      */
     public MaterialIndexedWrapper(Grid grid) {
         this.grid = grid;
+
+        index = new HashMap<Byte, HashSet<VoxelCoordinate>>();
+        gcoords = new int[3];
+        optRead = false;
+    }
+
+    /**
+     * Copy Constructor.
+     *
+     * @param wrap The wrapper to copy
+     */
+    public MaterialIndexedWrapper(MaterialIndexedWrapper wrap) {
+        if (wrap.grid != null)
+            this.grid = (Grid) wrap.grid.clone();
+        if (wrap.index != null)
+            this.index = (HashMap<Byte, HashSet<VoxelCoordinate>>) wrap.index.clone();
+        if (wrap.optIndex != null)
+            this.optIndex = (HashMap<Byte, Voxel[]>) wrap.optIndex.clone();
+        gcoords = new int[3];
+        this.optRead = wrap.optRead;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param grid The grid to wrap
+     * @param optRead Optimize for read usage
+     */
+    public MaterialIndexedWrapper(Grid grid, boolean optRead) {
+        this.grid = grid;
+        this.optRead = optRead;
 
         index = new HashMap<Byte, HashSet<VoxelCoordinate>>();
         gcoords = new int[3];
@@ -80,6 +120,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
         }
 
         index.remove(b);
+
+        if (optIndex != null)
+            optIndex.remove(b);
     }
 
     //----------------------------------------------------------
@@ -92,6 +135,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param grid The grid or null to clear.
      */
     public void setGrid(Grid grid) {
+        // TODO: This needs to recreate indexes
         this.grid = grid;
     }
 
@@ -198,6 +242,8 @@ public class MaterialIndexedWrapper implements GridWrapper {
         coords.add(vc);
 
         grid.setData(gcoords[0],gcoords[1],gcoords[2],state,material);
+
+        optIndex = null;
     }
 
     /**
@@ -221,6 +267,8 @@ public class MaterialIndexedWrapper implements GridWrapper {
         coords.add(vc);
 
         grid.setData(x,y,z,state,material);
+
+        optIndex = null;
     }
 
     /**
@@ -415,6 +463,64 @@ public class MaterialIndexedWrapper implements GridWrapper {
     public void findInterruptible(VoxelClasses vc, byte mat, ClassTraverser t) {
         Byte b = new Byte(mat);
 
+        if (optRead) {
+            if (optIndex == null) {
+                // TODO: in theory we could rebuild during the traversal and then
+                // keep last processed position to pickup the rebuild.
+                optimizeIndex(b);
+            }
+
+            Voxel[] voxels = optIndex.get(b);
+
+            if (voxels == null) {
+                optimizeIndex(b);
+                voxels = optIndex.get(b);
+            }
+
+            int len = voxels.length;
+
+            rloop: for(int i=0; i < len; i++) {
+                Voxel voxel = voxels[i];
+                VoxelCoordinate coord = voxel.getCoordinate();
+                VoxelData vd = voxel.getData();
+
+                int x = coord.getX();
+                int y = coord.getY();
+                int z = coord.getZ();
+
+                if (vd.getMaterial() != mat)
+                    continue;
+
+                byte state;
+
+                switch(vc) {
+                    case MARKED:
+                        state = vd.getState();
+                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                            if (!t.foundInterruptible(x,y,z,vd))
+                                break rloop;
+                        }
+                        break;
+                    case EXTERIOR:
+                        state = vd.getState();
+                        if (state == Grid.EXTERIOR) {
+                            if (!t.foundInterruptible(x,y,z,vd))
+                                break rloop;
+                        }
+                        break;
+                    case INTERIOR:
+                        state = vd.getState();
+                        if (state == Grid.INTERIOR) {
+                            if (!t.foundInterruptible(x,y,z,vd))
+                                break rloop;
+                        }
+                        break;
+                }
+            }
+
+            return;
+        }
+
         HashSet<VoxelCoordinate> coords = index.get(b);
 
         if (coords == null) {
@@ -473,6 +579,8 @@ public class MaterialIndexedWrapper implements GridWrapper {
      */
     public void findInterruptible(byte mat, ClassTraverser t) {
         Byte b = new Byte(mat);
+
+// TODO: add optRead enhancements
 
         HashSet<VoxelCoordinate> coords = index.get(b);
 
@@ -568,4 +676,119 @@ public class MaterialIndexedWrapper implements GridWrapper {
         return grid.toStringAll();
     }
 
+    /**
+     * Return the optimized form to the insert friendly form.
+     *
+     * @param mat The material
+     */
+    private void deoptimizeIndex(byte mat) {
+        throw new UnsupportedOperationException("deoptimizeIndex not implemented");
+
+        // TODO:  to save memory we should be able to go back and forth from
+        // forms instead of creating two.
+
+        // TODO:  or maybe we should just create a MaterialIndexedGrid directly.
+    }
+
+    /**
+     * Optimize the indexes for traversal.
+     *
+     * @mat The material to optimize
+     */
+    private void optimizeIndex(byte mat) {
+        long startTime = System.currentTimeMillis();
+
+        if (optIndex == null) {
+            optIndex = new HashMap<Byte,Voxel[]>();
+        }
+
+        Byte b = new Byte(mat);
+
+        if (optIndex.get(b) != null) {
+            // Index is in place so reuse,
+            return;
+        }
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+
+        if (coords == null) {
+            optIndex.put(b, new Voxel[0]);
+            return;
+        }
+
+        Voxel[] voxels = new Voxel[coords.size()];
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int idx = 0;
+
+        while(itr.hasNext()) {
+            VoxelCoordinate coord = itr.next();
+            VoxelData vd = grid.getData(coord.getX(), coord.getY(), coord.getZ());
+
+            voxels[idx++] = new Voxel(coord, vd);
+        }
+
+        optIndex.put(b, voxels);
+
+/*
+System.out.println("Speed Optimize Index: " + mat + " time: " + (System.currentTimeMillis() - startTime));
+        int TIMES = 26;
+        startTime = System.currentTimeMillis();
+
+        optRead = false;
+        EmptyFound ef = new EmptyFound();
+        for(int i=0; i < TIMES; i++) {
+            findInterruptible(VoxelClasses.EXTERIOR, mat, ef);
+        }
+System.out.println("Speed unopt: " + (System.currentTimeMillis() - startTime));
+
+        startTime = System.currentTimeMillis();
+
+        optRead = true;
+        for(int i=0; i < TIMES; i++) {
+            findInterruptible(VoxelClasses.EXTERIOR, mat,ef);
+        }
+System.out.println("Speed opt: " + (System.currentTimeMillis() - startTime));
+*/
+    }
+
+    /**
+     * Clone this object.
+     */
+    public Object clone() {
+        MaterialIndexedWrapper new_wrapper = new MaterialIndexedWrapper(this);
+
+        return new_wrapper;
+    }
+}
+
+class EmptyFound implements ClassTraverser {
+    /**
+     * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public void found(int x, int y, int z, VoxelData vd) {
+    }
+
+    /**
+     * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     *
+     * @return True to continue, false stops the traversal.
+     */
+    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+        return true;
+    }
 }

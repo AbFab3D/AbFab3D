@@ -19,69 +19,33 @@ package abfab3d.grid;
  */
 
 public class Voxel {
-    protected int x;
-    protected int y;
-    protected int z;
+    /** The voxel coordinate */
+    protected VoxelCoordinate vc;
 
-    /** The voxel state */
-    private byte state;
+    /** The voxel data */
+    protected VoxelData vd;
 
-    /** The material */
-    private byte material;
-
-    public Voxel(int x, int y, int z, byte state, byte material) {
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.state = state;
-        this.material = material;
+    public Voxel(VoxelCoordinate vc, VoxelData vd) {
+        this.vc = vc;
+        this.vd = vd;
     }
 
     /**
-     * Get the state.
+     * Get the voxel coordinate
      *
-     * @return The state
+     * @return The value
      */
-    public byte getState() {
-        return state;
+    public VoxelCoordinate getCoordinate() {
+        return vc;
     }
 
     /**
-     * Get the material.
+     * Get the data.
      *
-     * @return The material
+     * @return The value
      */
-    public byte getMaterial() {
-        return material;
-    }
-
-    /**
-     * Set the state.
-     *
-     * @param state The new state
-     */
-    public void setState(byte state) {
-        this.state = state;
-    }
-
-    /**
-     * Set the material.
-     *
-     * @param mat The material
-     */
-    public void setMaterial(byte mat) {
-        this.material = mat;
-    }
-
-    /**
-     * Set the state and material
-     *
-     * @param state The state
-     * @param mat The material
-     */
-    public void setData(byte state, byte mat) {
-        this.state = state;
-        this.material = mat;
+    public VoxelData getData() {
+        return vd;
     }
 
     /**
@@ -91,10 +55,10 @@ public class Voxel {
      * @return True if these represent the same values
      */
     public boolean equals(Object o) {
-        if(!(o instanceof VoxelCoordinate))
+        if(!(o instanceof Voxel))
             return false;
         else
-            return equals((VoxelCoordinate)o);
+            return equals((Voxel)o);
     }
 
     /**
@@ -103,8 +67,8 @@ public class Voxel {
      * @param ta The geometry instance to be compared
      * @return true if the objects represent identical values
      */
-    public boolean equals(VoxelCoordinate ta) {
-        return (ta.x == this.x && ta.y == this.y && this.z == ta.z);
+    public boolean equals(Voxel ta) {
+        return (ta.vc.equals(this.vc));
     }
 
     /**
@@ -112,21 +76,8 @@ public class Voxel {
      * so multiplying by 31 will not overflow.
      */
     public int hashCode() {
-        int ret_val = 31 * 31 * x + 31 * y + z;
+        int ret_val = vc.hashCode();
 
         return ret_val;
     }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public int getZ() {
-        return z;
-    }
-
 }

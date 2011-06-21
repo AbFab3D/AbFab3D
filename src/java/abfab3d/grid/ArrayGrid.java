@@ -58,6 +58,12 @@ public class ArrayGrid extends BaseGrid {
         data = new byte[height * width * depth];
     }
 
+    public ArrayGrid(ArrayGrid grid) {
+        super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+            grid.getVoxelSize(), grid.getSliceHeight());
+        this.data = grid.data.clone();
+    }
+
     /**
      * Get the data of the voxel
      *
@@ -202,6 +208,12 @@ public class ArrayGrid extends BaseGrid {
         int idx = y * sliceSize + x * depth + z;
 
         data[idx] = (byte) (0xFF & (state << 6 | material));
+    }
+
+    public Object clone() {
+        ArrayGrid ret_val = new ArrayGrid(this);
+
+        return ret_val;
     }
 }
 

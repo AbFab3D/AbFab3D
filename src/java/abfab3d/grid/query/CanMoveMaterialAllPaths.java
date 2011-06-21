@@ -45,7 +45,7 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
 
     /** Coordinates that can be ignored */
     HashSet<VoxelCoordinate>[] ignoreSet;
-    
+
     /** The number bad paths **/
     int badPathCount;
 
@@ -74,7 +74,6 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
 //        grid.find(VoxelClasses.EXTERIOR, material, this);
         grid.findInterruptible(VoxelClasses.EXTERIOR, material, this);
 
-System.out.println("Final answer: " + canEscape());
         return canEscape();
     }
 
@@ -95,14 +94,14 @@ System.out.println("Final answer: " + canEscape());
 
         boolean[] badPaths = new boolean[paths.length];
         badPathCount = 0;
-        
+
         // Iterate through each path
         for (int i=0; i<paths.length; i++) {
             if (canIgnore(i, x,y,z)) {
-            	continue;
+                continue;
             }
-            
-        	int[] pos = new int[] {x,y,z};
+
+            int[] pos = new int[] {x,y,z};
 
             paths[i].init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
 
@@ -121,9 +120,9 @@ System.out.println("Final answer: " + canEscape());
                 }
 
             }
-            
+
 //System.out.println("badPaths " + i + ": " + badPaths[i]);
-            
+
             // walk along opposite path, stop at first outside
             addIgnoredVoxels(i, x, y, z);
         }
@@ -142,13 +141,13 @@ System.out.println("Final answer: " + canEscape());
      * @param start The voxel data
      */
     public boolean foundInterruptible(int x, int y, int z, VoxelData start) {
-    	// All should be exterior voxels.
-    	
-    	if (!canEscape())
-    		return false;
-    	
+        // All should be exterior voxels.
+
+        if (!canEscape())
+            return false;
+
 //System.out.println("Move voxel: " + x + " " + y + " " + z);
-    	
+
         boolean[] badPaths = new boolean[paths.length];
         badPathCount = 0;
 
@@ -157,7 +156,7 @@ System.out.println("Final answer: " + canEscape());
                 continue;
             }
 
-        	int[] pos = new int[] {x,y,z};
+            int[] pos = new int[] {x,y,z};
 
             paths[i].init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
 
@@ -181,13 +180,13 @@ System.out.println("Final answer: " + canEscape());
         }
 
         processBadPaths(badPaths);
-        
+
         return canEscape();
     }
 
     /**
      * Add voxels to be ignored for a given path as specified by ignoreSetIndex.
-     * 
+     *
      * @param ignoreSetIndex The index of the path array to add voxels to ignore
      * @param x The X coordinate for the starting position
      * @param y The Y coordinate for the starting position
@@ -208,7 +207,7 @@ System.out.println("Final answer: " + canEscape());
 
             if (vd.getState() == Grid.EXTERIOR) {
 //System.out.println("placing in ignore list: " + pos[0] + " " + pos[1] + " " + pos[2]);
-            	ignoreSet[ignoreSetIndex].add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
+                ignoreSet[ignoreSetIndex].add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
             }
         }
     }
@@ -222,42 +221,42 @@ System.out.println("Final answer: " + canEscape());
 
         return false;
     }
-    
+
     /**
      * Checks if all voxels can escape.
-     * 
+     *
      * @return True if all voxels can escape
      */
     private boolean canEscape() {
         return (paths.length > 0);
     }
-    
+
     /**
      * Removes bad paths from the array of paths. A path is bad if any voxel
      * cannot move out of the grid bounds in that path.
-     * 
+     *
      * @param badPaths An array of booleans where its value indicates whether
      *   the corresponding path by index is good or bad
      */
     private void processBadPaths(boolean[] badPaths) {
-    	if (badPathCount == 0)
-    		return;
-    	
-    	Path[] tempPaths = new Path[paths.length - badPathCount];
-    	HashSet<VoxelCoordinate>[] tempIgnoreSet = new HashSet[paths.length - badPathCount];
-    	
-    	int j = 0;
+        if (badPathCount == 0)
+            return;
 
-    	for (int i=0; i<badPaths.length; i++) {
-    		if (!badPaths[i]) {
+        Path[] tempPaths = new Path[paths.length - badPathCount];
+        HashSet<VoxelCoordinate>[] tempIgnoreSet = new HashSet[paths.length - badPathCount];
+
+        int j = 0;
+
+        for (int i=0; i<badPaths.length; i++) {
+            if (!badPaths[i]) {
 //System.out.println("path " + i + " is good");
-    			tempPaths[j] = paths[i];
-    			tempIgnoreSet[j] = ignoreSet[i];
-    			j++;
-    		}
-    	}
+                tempPaths[j] = paths[i];
+                tempIgnoreSet[j] = ignoreSet[i];
+                j++;
+            }
+        }
 
-    	paths = tempPaths;
-    	ignoreSet = tempIgnoreSet;
+        paths = tempPaths;
+        ignoreSet = tempIgnoreSet;
     }
 }

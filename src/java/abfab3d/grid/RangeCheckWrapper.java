@@ -48,6 +48,19 @@ public class RangeCheckWrapper implements GridWrapper {
     }
 
     /**
+     * Copy Constructor.
+     *
+     * @param wrap The wrapper to copy
+     */
+    public RangeCheckWrapper(RangeCheckWrapper wrap) {
+        if (wrap.grid != null)
+            this.grid = (Grid) wrap.grid.clone();
+        this.width = wrap.width;
+        this.height = wrap.height;
+        this.depth = wrap.depth;
+    }
+
+    /**
      * Sets the underlying grid to use.
      *
      * @param grid The grid or null to clear.
@@ -382,6 +395,15 @@ public class RangeCheckWrapper implements GridWrapper {
      */
     public String toStringAll() {
         return grid.toStringAll();
+    }
+
+    /**
+     * Clone this object.
+     */
+    public Object clone() {
+        RangeCheckWrapper new_wrapper = new RangeCheckWrapper(this);
+
+        return new_wrapper;
     }
 
     /**

@@ -82,7 +82,7 @@ public class LinkedCubes {
 
             double x,y,z;
             CubeCreator cg = null;
-            int size = 3;
+            int size = 2;
             double boxSize = 0.008;
 
             double exoffset = 0;
