@@ -210,6 +210,9 @@ public class ArrayGrid extends BaseGrid {
         data[idx] = (byte) (0xFF & (state << 6 | material));
     }
 
+    /**
+     * Clone the object.
+     */
     public Object clone() {
         ArrayGrid ret_val = new ArrayGrid(this);
 
