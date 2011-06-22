@@ -191,7 +191,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         assertEquals("State should be ", 2, grid.getMaterial(9, 8, 7));
         assertEquals("State should be ", 1, grid.getMaterial(5, 0, 7));
 
-        // Index that are not set should defalut to 0
+        // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getMaterial(2, 2, 2));
     }
 
@@ -249,6 +249,69 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         assertEquals("State should be ", 0, grid.getMaterial(0.0999, 0.0999, 0.1499));
     }
 
+
+    /**
+     * Test set/get byte material range.
+     */
+    public void testByteMaterialRange() {
+    	int width = 100;
+    	int maxMaterial = 64;
+    	int mat, expectedMat;
+    	
+        Grid grid = new ArrayGridByte(width, 1, 1, 0.001, 0.001);
+        
+        for (int x=0; x<width; x++) {
+        	grid.setData(x, 0, 0, Grid.EXTERIOR, x);
+        }
+        
+        for (int x=0; x<width; x++) {
+        	mat = grid.getMaterial(x, 0, 0);
+        	expectedMat = x % maxMaterial;
+//System.out.println("Material [" + x + ",0,0]: " + mat);
+        	assertEquals("Material [" + x + ",0,0] is not " + expectedMat, expectedMat, mat);
+        }
+    }
+    
+    /**
+     * Test set/get short material range.
+     */
+    public void testShortMaterialRange() {
+    	int width = 100;
+        int maxMaterial = (int) Math.pow(2.0, 14.0);
+        
+        Grid grid = new ArrayGridShort(width, 1, 1, 0.001, 0.001);
+        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
+        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial-1);
+        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial+1);
+        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
+        
+        assertEquals("Material [0,0,0] is not 0", 0, grid.getMaterial(0, 0, 0));
+        assertEquals("Material [1,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(1, 0, 0));
+        assertEquals("Material [2,0,0] is not 1", 1, grid.getMaterial(2, 0, 0));
+        assertEquals("Material [3,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(3, 0, 0));
+
+    }
+    
+    /**
+     * Test set/get int material range.
+     */
+    public void testIntMaterialRange() {
+    	int width = 100;
+        int maxMaterial = (int) Math.pow(2.0, 30.0);
+        
+        Grid grid = new ArrayGridInt(width, 1, 1, 0.001, 0.001);
+        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
+        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial-1);
+        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial+1);
+        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
+        
+        assertEquals("Material [0,0,0] is not 0", 0, grid.getMaterial(0, 0, 0));
+        assertEquals("Material [1,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(1, 0, 0));
+        assertEquals("Material [2,0,0] is not 1", 1, grid.getMaterial(2, 0, 0));
+        assertEquals("Material [3,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(3, 0, 0));
+
+    }
+    
     /**
      * Test findCount by voxel class.
      */
@@ -594,7 +657,6 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
             mrkCount++;
             intCount++;
         } else {
-            System.out.println("yada");
             outCount++;
         }
 
