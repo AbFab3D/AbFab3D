@@ -137,4 +137,62 @@ public class BaseTestGrid extends TestCase {
             grid.setData(x,y,z, state, mat);
         }
     }
+    
+    
+    /**
+     * Set the data for an X plane.
+     *
+     * @param grid The grid to set
+     * @param x The X plane to set
+     * @param state The new state
+     * @param mat The new material
+     */
+    protected static void setPlaneX(Grid grid, int x, byte state, int material) {
+    	int height = grid.getHeight();
+    	int depth = grid.getDepth();
+    	
+    	for (int y=0; y<height; y++) {
+    		for (int z=0; z<depth; z++) {
+    			grid.setData(x, y, z, state, material);
+    		}
+    	}
+    }
+    
+    /**
+     * Set the data for a Y plane.
+     *
+     * @param grid The grid to set
+     * @param y The Y plane to set
+     * @param state The new state
+     * @param mat The new material
+     */
+    protected static void setPlaneY(Grid grid, int y, byte state, int material) {
+    	int width = grid.getWidth();
+    	int depth = grid.getDepth();
+    	
+    	for (int x=0; x<width; x++) {
+    		for (int z=0; z<depth; z++) {
+    			grid.setData(x, y, z, state, material);
+    		}
+    	}
+    }
+    
+    /**
+     * Set the data for a Z plane.
+     *
+     * @param grid The grid to set
+     * @param z The Z plane to set
+     * @param state The new state
+     * @param mat The new material
+     */
+    protected static void setPlaneZ(Grid grid, int z, byte state, int material) {
+    	int width = grid.getWidth();
+    	int height = grid.getHeight();
+    	
+    	for (int x=0; x<width; x++) {
+    		for (int y=0; y<height; y++) {
+    			grid.setData(x, y, z, state, material);
+    		}
+    	}
+    }
 }
