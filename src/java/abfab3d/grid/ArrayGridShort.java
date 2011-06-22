@@ -229,7 +229,6 @@ public class ArrayGridShort extends BaseGrid {
         int idx = y * sliceSize + x * depth + z;
 
         data[idx] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
-System.out.println("data[idx]: " + data[idx]);
     }
 
     /**
