@@ -82,7 +82,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
      * Test a complex move where movement is only allowed in one direction
      */
     public void testComplexTrue() {
-        byte matToMove = (byte) 2;
+        int matToMove = 2;
         Grid grid = new ArrayGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
@@ -129,7 +129,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
      * Test a complex move where movement is not allowed
      */
     public void testComplexFalse() {
-        byte matToMove = (byte) 2;
+        int matToMove = 2;
         Grid grid = new ArrayGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square

@@ -165,7 +165,7 @@ public class TriangleModelCreator extends GeometryCreator {
         if (rangle != 0)
             mat.setRotation(new AxisAngle4d(rx,ry,rz,rangle));
 
-System.out.println("Triangulate with material: " + outerMaterialID);
+//System.out.println("Triangulate with material: " + outerMaterialID);
         int idx = 0;
         Triangle tri;
         float[] coords = new float[9];
@@ -173,7 +173,7 @@ System.out.println("Triangulate with material: " + outerMaterialID);
         if (geom.geometryType == GeometryData.TRIANGLES) {
             int len = geom.vertexCount / 3;
 
-System.out.println("Triangles to insert: " + len);
+//System.out.println("Triangles to insert: " + len);
 
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
@@ -209,7 +209,7 @@ System.out.println("Triangles to insert: " + len);
         } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
             int len = geom.indexesCount / 3;
 
-System.out.println("Indexed Triangles to insert: " + len);
+//System.out.println("Indexed Triangles to insert: " + len);
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
