@@ -397,6 +397,22 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
             assertEquals("Material count for " + material[j] + " is not " + expectedCount[j], expectedCount[j], grid.findCount(material[j]));
         }
 
+        // test material 0
+        int mat = 0;
+        grid = new ArrayGridByte(width, height, depth, 0.05, 0.02);
+        for (int x=0; x<width; x++) {
+        	grid.setData(x,0,0, Grid.EXTERIOR, mat);
+        }
+        
+        assertEquals("Material count is not " + width, width, grid.findCount(mat));
+        
+        grid = new ArrayGridByte(width, height, depth, 0.05, 0.02);
+        for (int y=0; y<height; y++) {
+        	grid.setData(0, y, 0, Grid.INTERIOR, mat);
+        }
+        
+        assertEquals("Material count is not " + height, height, grid.findCount(mat));
+
     }
 
     public void testFindVoxelClass() {
