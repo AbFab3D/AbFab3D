@@ -192,7 +192,7 @@ public class ArrayGridShort extends BaseGrid {
     public int getMaterial(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
-        byte mat = (byte) (0x3FFF & data[idx]);
+        short mat = (short) (0x3FFF & data[idx]);
 
         return mat;
     }
@@ -228,7 +228,8 @@ public class ArrayGridShort extends BaseGrid {
     public void setData(int x, int y, int z, byte state, int material) {
         int idx = y * sliceSize + x * depth + z;
 
-        data[idx] = (short) (0xFFFF & (((short)state) << 14 | material));
+        data[idx] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
+System.out.println("data[idx]: " + data[idx]);
     }
 
     /**
