@@ -173,6 +173,99 @@ public class TestCanMoveMaterial extends BaseTestGrid {
         assertEquals("Positive Z axis move is not false", false, escaped);
     }
 
+    /**
+     * Test movement in all 26 paths
+     * 
+     * 1) Set the center voxel to a material. This is the material to move.
+     * 2) Set the all the grid edge voxels to a different material. This 
+     *    should block the center material from escaping.
+     * 3) For each path, reset the corresponding grid edge voxel back to
+     *    outside and material 0, and then test movement in that path.
+     */
+    public void testCanMoveAllPaths() {
+        int material1 = 1;
+        int material2 = 2;
+        int size = 9;
+        int center = size / 2;
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // set the material to move at the center of the grid
+        grid.setData(center, center, center, Grid.EXTERIOR, material2);
+        
+        // set the edge voxels of the grid to a different material
+        setPlaneX(grid, 0, Grid.EXTERIOR, material1);
+        setPlaneX(grid, size-1, Grid.EXTERIOR, material1);
+        setPlaneY(grid, 0, Grid.EXTERIOR, material1);
+        setPlaneY(grid, size-1, Grid.EXTERIOR, material1);
+        setPlaneZ(grid, 0, Grid.EXTERIOR, material1);
+        setPlaneZ(grid, size-1, Grid.EXTERIOR, material1);
+
+        //------------------------------------------------------
+        // test movement in all directions
+        //------------------------------------------------------
+        int endIndex = size - 1;
+
+        // set the 26 paths
+        int[][] paths = {
+        		{1,0,0},    {-1,0,0}, 
+        		{0,1,0},    {0,-1,0},
+        		{0,0,1},    {0,0,-1},
+        		{1,1,1},    {1,1,0},
+        		{1,1,-1},   {0,1,-1},
+        		{-1,1,-1},  {-1,1,0},
+        		{-1,1,1},   {0,1,1},
+        		{1,0,1},    {1,0,-1},
+        		{-1,0,-1},  {-1,0,1},
+        		{1,-1,1},   {1,-1,0},
+        		{1,-1,-1},  {0,-1,-1},
+        		{-1,-1,-1}, {-1,-1,0},
+        		{-1,-1,1},  {0,-1,1}
+        };
+        
+        // the corresponding voxels that need to be reset to outside and
+        // material 0 in order to allow the middle material to escape
+        int[][] voxelsRemovedToAllowEscape = new int[paths.length][3];
+        
+        for (int i=0; i<paths.length; i++) {
+        	for (int j=0; j<3; j++) {
+        		if (paths[i][j] > 0) {
+        			voxelsRemovedToAllowEscape[i][j] = endIndex;
+        		} else if (paths[i][j] < 0) {
+        			voxelsRemovedToAllowEscape[i][j] = 0;
+        		} else {
+        			voxelsRemovedToAllowEscape[i][j] = center;
+        		}
+        	}
+//System.out.println("voxel: " + java.util.Arrays.toString(voxelsRemovedToAllowEscape[i]));
+        }
+        
+        boolean escaped;
+        
+        // assert that movement is initially false in all paths
+        for (int j=0; j<paths.length; j++) {
+            escaped = canMove(grid, paths[j], material2);
+            assertEquals(
+            		java.util.Arrays.toString(paths[j]) + " move is not false",
+            		false, 
+            		escaped);
+        }
+
+        
+        // set the voxels to outside and material 0 in order to
+        // allow escape in the corresponding path
+        for (int j=0; j<paths.length; j++) {
+        	grid.setData(voxelsRemovedToAllowEscape[j][0], voxelsRemovedToAllowEscape[j][1], voxelsRemovedToAllowEscape[j][2], Grid.OUTSIDE, 0);
+
+            escaped = canMove(grid, paths[j], material2);
+            
+            assertEquals(
+            		java.util.Arrays.toString(paths[j]) + " move is not true",
+            		true, 
+            		escaped);
+        }
+
+    }
+    
     public void testIgnoredVoxels() {
         int size = 12;
 
@@ -266,7 +359,7 @@ public class TestCanMoveMaterial extends BaseTestGrid {
         System.out.println("CanMoveMaterialAllPaths: " + totalTime1);
     }
 
-    private boolean canMove(Grid grid, int[] dir, byte mat) {
+    private boolean canMove(Grid grid, int[] dir, int mat) {
         StraightPath path = new StraightPath(dir);
         CanMoveMaterial query = new CanMoveMaterial(mat, path);
 
@@ -322,4 +415,5 @@ public class TestCanMoveMaterial extends BaseTestGrid {
 
         return grid;
     }
+
 }
