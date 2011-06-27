@@ -24,9 +24,9 @@ public class VoxelDataShort implements VoxelData {
     /** The material */
     private short material;
 
-    public VoxelDataShort(byte state, short material) {
+    public VoxelDataShort(byte state, int material) {
         this.state = state;
-        this.material = material;
+        this.material = (short) material;
     }
 
     /**

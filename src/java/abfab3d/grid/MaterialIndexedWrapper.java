@@ -498,6 +498,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
 
             int len = voxels.length;
 
+//System.out.println("find: " + b + " ext voxels: " + len);
+
+
             rloop: for(int i=0; i < len; i++) {
                 Voxel voxel = voxels[i];
                 VoxelCoordinate coord = voxel.getCoordinate();
@@ -618,7 +621,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
 
             VoxelData vd = grid.getData(x,y,z);
 
-            if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
+            if (vd.getState() != Grid.OUTSIDE) {
                 if (!t.foundInterruptible(x,y,z,vd))
                     break;
             }
@@ -749,8 +752,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
 
         optIndex.put(b, voxels);
 
+
+//System.out.println("Speed Optimize Index: " + mat + " time: " + (System.currentTimeMillis() - startTime));
 /*
-System.out.println("Speed Optimize Index: " + mat + " time: " + (System.currentTimeMillis() - startTime));
         int TIMES = 26;
         startTime = System.currentTimeMillis();
 

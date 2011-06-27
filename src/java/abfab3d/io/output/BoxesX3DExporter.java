@@ -702,12 +702,13 @@ public class BoxesX3DExporter implements Exporter {
         }
 
         idx = 0;
-        int[] allIndices = new int[(int) (indices.size() * 4 / 3)];
+//        int[] allIndices = new int[(int) (indices.size() * 4 / 3)];
+        int[] allIndices = new int[(int) (indices.size())];
         for(int i=0; i < indices.size(); ) {
             allIndices[idx++] = indices.get(i++);
             allIndices[idx++] = indices.get(i++);
             allIndices[idx++] = indices.get(i++);
-            allIndices[idx++] = -1;
+            //allIndices[idx++] = -1;
         }
 
         stream.startNode("Shape", null);
@@ -722,16 +723,18 @@ public class BoxesX3DExporter implements Exporter {
         stream.endNode();  //  Material
         stream.endNode();  //  Appearance
         stream.startField("geometry");
-        stream.startNode("IndexedFaceSet", null);
+//        stream.startNode("IndexedFaceSet", null);
+        stream.startNode("IndexedTriangleSet", null);
         stream.startField("coord");
         stream.startNode("Coordinate", null);
         stream.startField("point");
         stream.fieldValue(allCoords, allCoords.length);
-        stream.endNode();  // WorldCoordinate
-        stream.startField("coordIndex");
+        stream.endNode();  // Coordinate
+//        stream.startField("coordIndex");
+        stream.startField("index");
         stream.fieldValue(allIndices, allIndices.length);
         stream.endNode();  // IndexedFaceSet
-        stream.endNode();  // Shape\
+        stream.endNode();  // Shape
     }
 
     /**

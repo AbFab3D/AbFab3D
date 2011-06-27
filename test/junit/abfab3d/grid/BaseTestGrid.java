@@ -36,13 +36,16 @@ public class BaseTestGrid extends TestCase {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
+System.out.println("Set: ");
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
-                    grid.setData(x,y,z,Grid.EXTERIOR, (byte)1);
+                    grid.setData(x,y,z,Grid.EXTERIOR, 1);
                 }
             }
         }
+
+System.out.println("Get: ");
 
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {

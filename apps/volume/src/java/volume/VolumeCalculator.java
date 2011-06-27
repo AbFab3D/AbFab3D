@@ -43,7 +43,6 @@ public class VolumeCalculator {
     /** The usage message printed for this code */
     private final static String USAGE_MSG =
         "usage: VolumeChecker [-debug 2] [-scale 1.0][-maxRunTime n] filename\n" +
-        " -debug int        0-4 to indicate log level, 0 = print all, 4 = print fatal\n" +
         " -scale float      Default output is in metres, and cubic metres. This will \n" +
         "                   scale change the units used (eg scale of 100 generates\n" +
         "                   output numbers in centimetres.\n";
@@ -69,15 +68,13 @@ public class VolumeCalculator {
 
     /**
      * Simple constructor.
-     *
-     * @param errorHandler a SysErrorReporter.
      */
-    public VolumeCalculator(ErrorHandler errorReporter) {
+    public VolumeCalculator() {
         numberFormatter = NumberFormat.getNumberInstance();
         numberFormatter.setMaximumFractionDigits(MAX_FRACTION_DIGITS);
         numberFormatter.setGroupingUsed(false);
 
-        calc = new VolumeChecker(errorReporter);
+        calc = new VolumeChecker();
     }
 
     //-----------------------------------------------------------------------
@@ -89,12 +86,7 @@ public class VolumeCalculator {
      * Execute the command
      */
     public static void main(String args[]) {
-        int debug = SysErrorReporter.PRINT_ERRORS;
-        ErrorHandler console = new SysErrorReporter(debug);
-
-        VolumeCalculator checker = new VolumeCalculator(console);
-
-        console.messageReport("Begining volume check...");
+        VolumeCalculator checker = new VolumeCalculator();
 
         //
         // check to make sure we have some appropriate input args
@@ -116,10 +108,7 @@ public class VolumeCalculator {
 
             if (argument.startsWith("-")) {
 
-                if (argument.equals( "-debug" )) {
-                    debug = Integer.parseInt(args[++argIndex]);
-                    ((SysErrorReporter)console).setLogLevel(debug);
-                } else if (argument.equals( "-scale" )) {
+                if (argument.equals( "-scale" )) {
                     scale = Float.parseFloat(args[++argIndex]);
                 } else {
                     // ignore this argument; it is not recognized
@@ -135,7 +124,6 @@ public class VolumeCalculator {
             //
             // Begin the main parsing work.
 
-            console.messageReport("using scale: " + scale);
             checker.processFile(input);
         } else {
             printUsage();

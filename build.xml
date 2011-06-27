@@ -64,6 +64,19 @@
         <compilejava package="abfab3d/io/output"
             jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
         />
+        <compilejava package="abfab3d/io/soap"
+            jars=""
+        />
+	<compilejava package="abfab3d/io/soap/transport"
+	    jars="" />
+        <compilejava package="abfab3d/io/soap/encoders"
+            jars="" />
+        <compilejava package="abfab3d/io/soap/envelope"
+            jars="" />
+        
+        <compilejava package="abfab3d/io/shapeways"
+            jars="vecmath.jar xj3d-core_2.0.0.jar j3d-org-all_1.0.0.jar"
+        />
         <compilejava package="abfab3d/validate"
             jars=""
         />
@@ -107,7 +120,17 @@
                 abfab3d/intersect/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
+                abfab3d/io/soap/*
+                abfab3d/io/shapeways/*
                 abfab3d/path/*
+                "
+        />
+        <createjar name="abfab3d_upload" 
+            version="${version}"
+            manifest="abfab3d_upload.mf"
+            includes="
+                abfab3d/io/soap/*
+                abfab3d/io/shapeways/*
                 "
         />
     </target>

@@ -87,9 +87,6 @@ public class IndexedTriangleSetLoader
      * {@link #bounds} value, in terms of absolute value? */
     protected float maxAbsoluteBounds;
 
-    /** Reference to the registered error handler if we have one */
-    protected static ErrorHandler console;
-
     /** Are we processing a document */
     private boolean processingDocument;
 
@@ -116,11 +113,8 @@ public class IndexedTriangleSetLoader
 
     /**
      * Constructor
-     * @param errorHandler Reference to the registered error handler.
      */
-    public IndexedTriangleSetLoader(ErrorHandler errorHandler){
-        console = errorHandler;
-
+    public IndexedTriangleSetLoader(){
         //
         // initialize variables needed for document parsing
         //
@@ -219,8 +213,6 @@ public class IndexedTriangleSetLoader
             minorVersion = Integer.parseInt(minor_num);
 
         }
-
-        //console.messageReport("Using version: " + majorVersion + "." + minorVersion);
 
         DefaultFieldParserFactory fieldParserFactory =
             new DefaultFieldParserFactory();
@@ -432,7 +424,7 @@ public class IndexedTriangleSetLoader
             }
 
             if (coordinates == null || vertices == null) {
-                console.messageReport("IndexedTriangle* geomtery not well defined.");
+                System.out.println("IndexedTriangle* geomtery not well defined.");
                 System.exit(ExitCodes.INVALID_INPUT_FILE);
             }
 
@@ -879,7 +871,7 @@ public class IndexedTriangleSetLoader
         //
         // process the file
         //
-        console.messageReport("Processing file " + inputFile.toString() + "...");
+        System.out.println("Processing file " + inputFile.toString() + "...");
         foundITS = false;
 
         InputSource source = new InputSource(inputFile);
@@ -888,15 +880,17 @@ public class IndexedTriangleSetLoader
             new DefaultVRMLParserFactory();
         VRMLReader vrmlReader = parserFactory.newVRMLReader();
         vrmlReader.setContentHandler(this);
-        vrmlReader.setErrorHandler(console);
+        //vrmlReader.setErrorHandler(console);
 
         try {
             vrmlReader.parse(source);
         } catch (IOException e) {
-            console.errorReport("File IO error", e);
+            System.out.println("File IO error");
+            e.printStackTrace();
             System.exit(ExitCodes.FILE_NOT_FOUND);
         } catch (VRMLException v) {
-            console.errorReport("File parsing failed.", v);
+            System.out.println("File parsing failed.");
+            v.printStackTrace();
             System.exit(ExitCodes.INVALID_INPUT_FILE);
         }
 
@@ -905,7 +899,7 @@ public class IndexedTriangleSetLoader
         // is no usable geometry
         //
         if( !foundITS){
-            console.errorReport(NO_ITS_ERROR_MESSAGE, new Exception());
+            System.out.println(NO_ITS_ERROR_MESSAGE);
             System.exit(ExitCodes.NO_GEOMETRY);
         }
     }

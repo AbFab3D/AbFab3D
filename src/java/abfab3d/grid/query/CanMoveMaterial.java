@@ -68,10 +68,9 @@ public class CanMoveMaterial implements ClassTraverser {
 
         this.ignoreSet = new HashSet<VoxelCoordinate>();
 
-//        grid.find(material, this);
-//        grid.find(VoxelClasses.EXTERIOR, material, this);
-
-        grid.findInterruptible(VoxelClasses.EXTERIOR, material, this);
+        // TODO: just use material and say class only moves external?
+//        grid.findInterruptible(VoxelClasses.EXTERIOR, material, this);
+        grid.findInterruptible(material, this);
 
         return allEscaped;
     }
@@ -87,40 +86,7 @@ public class CanMoveMaterial implements ClassTraverser {
      * @param start The voxel data
      */
     public void found(int x, int y, int z, VoxelData start) {
-        // All should be exterior voxels.
-
-//System.out.println("Move voxel: " + x + " " + y + " " + z);
-        if (!allEscaped || canIgnore(x,y,z)) {
-            // TODO: need some way to allow user termination of find?
-            return;
-        }
-
-        int[] pos = new int[] {x,y,z};
-
-        // Move along path till edge or
-        path.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
-
-        boolean escaped = true;
-
-        while(path.next(pos)) {
-            VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
-
-//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
-            if (vd.getState() != Grid.OUTSIDE &&
-                vd.getMaterial() != material) {
-
-//System.out.println("Collide");
-                // found another materials voxel
-                escaped = false;
-                break;
-            }
-        }
-
-        if (!escaped)
-            allEscaped = false;
-
-        // walk along negative path, stop at first outside
-        addIgnoredVoxels(x, y, z);
+        // ignore
     }
 
     /**

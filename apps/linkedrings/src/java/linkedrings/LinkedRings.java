@@ -60,7 +60,7 @@ public class LinkedRings {
             tg.generate(geom);
 
             int rings = 3;
-            double bounds = findMaxBounds(geom);
+            double bounds = TriangleModelCreator.findMaxBounds(geom);
             double size = rings * 2.1 * bounds;  // Slightly over allocate
 
             Grid grid = new ArrayGridByte(size,size,size,
@@ -121,25 +121,6 @@ public class LinkedRings {
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
-    }
-
-    /**
-     * Find the absolute maximum bounds of a geometry.
-     *
-     * @return The max
-     */
-    private double findMaxBounds(GeometryData geom) {
-        double max = Double.NEGATIVE_INFINITY;
-
-        int len = geom.coordinates.length;
-
-        for(int i=0; i < len; i++) {
-            if (geom.coordinates[i] > max) {
-                max = geom.coordinates[i];
-            }
-        }
-
-        return Math.abs(max);
     }
 
     public static void main(String[] args) {

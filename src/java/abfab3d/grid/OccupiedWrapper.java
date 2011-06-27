@@ -319,6 +319,15 @@ public class OccupiedWrapper implements GridWrapper {
     }
 
     /**
+     * Remove all voxels associated with the Material.
+     *
+     * @param mat The aterialID
+     */
+    public void removeMaterial(int mat) {
+        grid.removeMaterial(mat);
+    }
+
+    /**
      * Get the number of height cells.
      *
      * @return the val

@@ -16,9 +16,7 @@ package abfab3d.util;
 // None
 
 // Local imports
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.sav.ErrorHandler;
-import org.web3d.vrml.sav.Locator;
+import org.j3d.util.ErrorReporter;
 
 /**
  * An implementation of the ErrorReporter interface that just writes everything
@@ -28,7 +26,7 @@ import org.web3d.vrml.sav.Locator;
  * @author Russell Dodds
  * @version $Revision: 1.4 $
  */
-public class SysErrorReporter implements ErrorHandler {
+public class SysErrorReporter implements ErrorReporter {
 
     /** The log level needed to get all messages printed out. */
     public static final int PRINT_ALL = 0;
@@ -66,20 +64,6 @@ public class SysErrorReporter implements ErrorHandler {
      */
     public SysErrorReporter(int level) {
         logLevel = level;
-    }
-
-    //-----------------------------------------------------------------------
-    // Methods defined by ErrorHandler
-    //-----------------------------------------------------------------------
-
-    /**
-     * Set the document locator that can be used by the implementing code to
-     * find out information about the current line information.
-     *
-     * @param loc The locator instance to use
-     */
-    public void setDocumentLocator(Locator loc) {
-        // Do nothing for now.
     }
 
     //-----------------------------------------------------------------------

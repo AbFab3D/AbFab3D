@@ -285,5 +285,12 @@ public interface Grid extends Cloneable {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight);
+
+    /**
+     * Remove all voxels associated with the Material.
+     *
+     * @param mat The aterialID
+     */
+    public void removeMaterial(int mat);
 }
 

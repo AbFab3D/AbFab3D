@@ -28,6 +28,9 @@ import java.io.*;
  * @author Alan Hudson
  */
 public abstract class BaseGrid implements Grid, Cloneable {
+    // Empty voxel data value
+    protected static final VoxelData EMPTY_VOXEL;
+
     protected int width;
     protected int height;
     protected int depth;
@@ -36,6 +39,10 @@ public abstract class BaseGrid implements Grid, Cloneable {
     protected double sheight;
     protected double hsheight;
     protected int sliceSize;
+
+    static {
+        EMPTY_VOXEL = new VoxelDataByte(Grid.OUTSIDE, 0);
+    }
 
     /**
      * Constructor.
@@ -392,6 +399,27 @@ public abstract class BaseGrid implements Grid, Cloneable {
         }
 
         return ret_val;
+    }
+
+    /**
+     * Remove all voxels associated with the Material.
+     *
+     * @param mat The aterialID
+     */
+    public void removeMaterial(int mat) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = getData(x,y,z);
+
+                    byte state;
+
+                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
+                        setData(x,y,z, Grid.OUTSIDE, 0);
+                    }
+                }
+            }
+        }
     }
 
     /**

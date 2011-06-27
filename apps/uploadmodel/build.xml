@@ -1,0 +1,103 @@
+<?xml version="1.0" standalone="yes"?>
+
+<project basedir="." default="compile" name="Upload Example">
+    <import file="build_common.xml" />
+  
+    <description></description>
+
+    <property name="version" value="1.0.0" />    
+    <property name="src.dir" value="${basedir}/src"/>
+    <property name="apps.dir" value="${basedir}/apps"/>
+    <property name="release.dir" value="${basedir}/release"/>
+    <property name="test.dir" value="${basedir}/test/junit"/>
+    <property name="abfab3d.classes.dir" value="../../classes" />
+    <property name="classes.dir" value="${basedir}/classes" />
+    <property name="jar.dir" value="${basedir}/jars" />
+    <property name="lib.dir" value="${basedir}/lib"/>
+    <property name="abfab3d.lib.dir" value="../../lib" />    
+    <property name="manifest.dir" value="${basedir}/manifest"/>
+    <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
+    <property name="xj3d.dir" value="..\..\xj3d\software\Xj3D2\Xj3D\trunk" />
+    <property name="av3d.dir" value="..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
+
+    <property name="entrypoint" value="upload.Shapeways" />
+
+    <property name="runarg0" value="-Xmx768m"/>
+<!--    
+    <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
+    <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
+-->
+    <property name="jvmrunargs" value="${runarg0}"/>
+
+    <target name="build" 
+        description="Complete clean, setup, compilation, run" 
+        depends="clean,init,compile" />
+
+    <!-- Create destination directories -->
+    <target name="init" description="Create destination directories">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${javadocs.dir}"/>
+    </target>
+  
+    <target name="compile" depends="init" description="Compile all Java source files">
+        <compilejava package="upload"
+            jars=""
+        >
+           <classpath-elements>
+              <pathelement path="${abfab3d.classes.dir}" />
+              <fileset dir="${abfab3d.lib.dir}" />              
+           </classpath-elements>
+	</compilejava>        
+    </target>
+
+
+    <target name="run" depends="compile" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}" />
+        <java classname="${entrypoint}" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />   
+                <pathelement path="${abfab3d.classes.dir}" />
+                <fileset dir="${abfab3d.lib.dir}" />              
+<!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>  
+    </target>
+
+    <target name="javadoc" description="Generates javadoc" depends="compile">
+        <echo message="Generating javadoc..." />
+        <javadoc sourcepath="${src.dir}/java" 
+            destdir="${javadocs.dir}" 
+            packagenames="*"
+            version="true"
+            author="yes">        
+        </javadoc>
+    </target>
+  
+    <target name="jar" depends="compile">
+        <createjar name="abfab3d" 
+            manifest="abfab3d.mf" 
+            version="${version}"
+            includes="emerson/closetmaid/rules/definitions/*
+                emerson/closetmaid/rules/engines/*
+                emerson/closetmaid/rules/interpreters/*
+                emerson/closetmaid/*"
+        />
+    </target>
+    
+    <target name="clean" description="Deletes all the generated artifacts.">
+        <delete dir="${javadocs.dir}" />
+        <delete dir="${classes.dir}" />
+    </target>
+    
+    <target name="updateXj3D">
+      <copy todir="${lib.dir}" includeEmptyDirs="false">
+         <fileset dir="${xj3d.dir}/jars" excludes="org.* xj3d-all*.jar xj3d-imm*.jar xj3d-int*.jar">
+            <depth max="0" />
+         </fileset>
+      </copy>          
+    </target>
+    
+</project>
+

@@ -102,9 +102,9 @@ public class CubeCreator extends GeometryCreator {
         int len;
         // Front.  XY plane
 
-System.out.println("front style: " + side_styles[0]);
+//System.out.println("front style: " + side_styles[0]);
         if (side_styles != null) {
-System.out.println("Front");
+//System.out.println("Front");
             for(int i=0; i < side_styles.length; i++) {
 
                 if (side_styles[i] == null)
@@ -131,10 +131,10 @@ System.out.println("Front");
                 lry = y - height / 2.0;
                 lrz = z + depth / 2.0;
 
-System.out.println("ul: " + ulx + " " + uly + " " + ulz);
-System.out.println("ur: " + urx + " " + ury + " " + urz);
-System.out.println("ll: " + llx + " " + lly + " " + llz);
-System.out.println("lr: " + lrx + " " + lry + " " + lrz);
+//System.out.println("ul: " + ulx + " " + uly + " " + ulz);
+//System.out.println("ur: " + urx + " " + ury + " " + urz);
+//System.out.println("ll: " + llx + " " + lly + " " + llz);
+//System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                 if (side_styles[i] == Style.FILLED) {
                     z_pos = ulz;
@@ -159,13 +159,13 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                     len = coords2[0] - coords1[0];
 
-System.out.println("Top Row: " + len);
+//System.out.println("Top Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
-System.out.println("Bottom Row");
+//System.out.println("Bottom Row");
                     y_pos = lly;
                     z_pos = llz;
 
@@ -174,7 +174,7 @@ System.out.println("Bottom Row");
 
                     len = coords2[0] - coords1[0];
 
-System.out.println("Bottom Row: " + len);
+//System.out.println("Bottom Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
@@ -187,7 +187,7 @@ System.out.println("Bottom Row: " + len);
                     grid.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
-System.out.println("Left Row: " + len);
+//System.out.println("Left Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
                         grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
@@ -213,7 +213,7 @@ System.out.println("Left Row: " + len);
         // Back.  XY plane
 
         if (side_styles != null) {
-System.out.println("Back");
+//System.out.println("Back");
             for(int i=0; i < side_styles.length; i++) {
                 if (side_styles[i] == null)
                     continue;
@@ -267,7 +267,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     grid.getGridCoords(urx,y_pos,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
-System.out.println("Top Row: " + len);
+//System.out.println("Top Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
@@ -280,7 +280,7 @@ System.out.println("Top Row: " + len);
                     grid.getGridCoords(urx,y_pos,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
-System.out.println("Bottom Row: " + len);
+//System.out.println("Bottom Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
@@ -293,7 +293,7 @@ System.out.println("Bottom Row: " + len);
                     grid.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
-System.out.println("Left Row: " + len);
+//System.out.println("Left Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
                         grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
@@ -306,7 +306,7 @@ System.out.println("Left Row: " + len);
                     grid.getGridCoords(x_pos,ury,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
-System.out.println("Right Row: " + len);
+//System.out.println("Right Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
                         grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
@@ -320,7 +320,7 @@ System.out.println("Right Row: " + len);
         // Left.  XZ plane
 
         if (side_styles != null) {
-System.out.println("Left");
+//System.out.println("Left");
 
             for(int i=0; i < side_styles.length; i++) {
                 if (side_styles[i] == null)
@@ -426,7 +426,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
         // Right.  XZ plane
 
         if (side_styles != null) {
-System.out.println("Right");
+//System.out.println("Right");
             for(int i=0; i < side_styles.length; i++) {
                 if (side_styles[i] == null)
                     continue;
@@ -453,10 +453,10 @@ System.out.println("Right");
                 lrz = z + depth / 2.0;
 
 
-System.out.println("ul: " + ulx + " " + uly + " " + ulz);
-System.out.println("ur: " + urx + " " + ury + " " + urz);
-System.out.println("ll: " + llx + " " + lly + " " + llz);
-System.out.println("lr: " + lrx + " " + lry + " " + lrz);
+//System.out.println("ul: " + ulx + " " + uly + " " + ulz);
+//System.out.println("ur: " + urx + " " + ury + " " + urz);
+//System.out.println("ll: " + llx + " " + lly + " " + llz);
+//System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                 if (side_styles[i] == Style.FILLED) {
                     x_pos = ulx;
@@ -531,7 +531,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
         // Top.
 
         if (side_styles != null) {
-System.out.println("Top");
+//System.out.println("Top");
             for(int i=0; i < side_styles.length; i++) {
                 if (side_styles[i] == null)
                     continue;
@@ -558,10 +558,10 @@ System.out.println("Top");
                 lrz = z + depth / 2.0;
 
 
-System.out.println("ul: " + ulx + " " + uly + " " + ulz);
-System.out.println("ur: " + urx + " " + ury + " " + urz);
-System.out.println("ll: " + llx + " " + lly + " " + llz);
-System.out.println("lr: " + lrx + " " + lry + " " + lrz);
+//System.out.println("ul: " + ulx + " " + uly + " " + ulz);
+//System.out.println("ur: " + urx + " " + ury + " " + urz);
+//System.out.println("ll: " + llx + " " + lly + " " + llz);
+//System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                 if (side_styles[i] == Style.FILLED) {
                     x_pos = ulx;
@@ -587,7 +587,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
         // Bottom
 
         if (side_styles != null) {
-System.out.println("Bottom");
+//System.out.println("Bottom");
             for(int i=0; i < side_styles.length; i++) {
                 if (side_styles[i] == null)
                     continue;
@@ -614,13 +614,13 @@ System.out.println("Bottom");
                 lrz = z + depth / 2.0;
 
 
-System.out.println("ul: " + ulx + " " + uly + " " + ulz);
-System.out.println("ur: " + urx + " " + ury + " " + urz);
-System.out.println("ll: " + llx + " " + lly + " " + llz);
-System.out.println("lr: " + lrx + " " + lry + " " + lrz);
+//System.out.println("ul: " + ulx + " " + uly + " " + ulz);
+//System.out.println("ur: " + urx + " " + ury + " " + urz);
+//System.out.println("ll: " + llx + " " + lly + " " + llz);
+//System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                 if (side_styles[i] == Style.FILLED) {
-System.out.println("filled");
+//System.out.println("filled");
                     x_pos = ulx;
                     y_pos = uly;
 

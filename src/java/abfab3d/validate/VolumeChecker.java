@@ -41,10 +41,9 @@ public class VolumeChecker extends IndexedTriangleSetLoader {
     /**
      * Constructor
      *
-     * @param errorHandler The place to report errors
      */
-    public VolumeChecker(ErrorHandler errorHandler){
-        super(errorHandler);
+    public VolumeChecker(){
+        super();
     }
 
     //-----------------------------------------------------------------------
