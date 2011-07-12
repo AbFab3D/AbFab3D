@@ -120,17 +120,19 @@
                 abfab3d/intersect/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
-                abfab3d/io/soap/*
-                abfab3d/io/shapeways/*
                 abfab3d/path/*
+                abfab3d/util/*
                 "
         />
         <createjar name="abfab3d_upload" 
             version="${version}"
             manifest="abfab3d_upload.mf"
-            includes="
-                abfab3d/io/soap/*
+            includes="abfab3d/io/soap/*
+                abfab3d/io/soap/transport/*
+                abfab3d/io/soap/encoders/*
+                abfab3d/io/soap/envelope/*
                 abfab3d/io/shapeways/*
+                abfab3d/util/*
                 "
         />
     </target>
@@ -166,7 +168,7 @@
   </target>
 
   <target name="testSpecific" depends="compile,compileTest">
-    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="false">
       <jvmarg line="${jvmrunargs}"/>
     
       <formatter type="plain" usefile="false"/>

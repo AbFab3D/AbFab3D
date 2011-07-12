@@ -17,7 +17,7 @@ package abfab3d.grid;
  *
  * @author Alan Hudson
  */
-public interface VoxelData {
+public interface VoxelData extends Cloneable {
     /**
      * Get the state.
      *
@@ -53,4 +53,11 @@ public interface VoxelData {
      * @param mat The material
      */
     public void setData(byte state, int mat);
+
+    /**
+     * Clone this object.
+     *
+     * @return The cloned object
+     */
+    public Object clone();
 }

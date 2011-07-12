@@ -92,6 +92,7 @@ public class HTTPTransport implements Transport {
     public byte[] call(byte[] request)
         throws SOAPFault, SOAPException, IOException {
 
+System.out.println("*** Call started");
         // vars which need be accessible from try, catch, finally blocks
         HttpURLConnection httpConn = null;
         OutputStream httpOutputStream = null;
@@ -169,6 +170,10 @@ public class HTTPTransport implements Transport {
 
             byte[] response = readBytes(httpInputStream);
 
+
+System.out.println("***Call Completed: " + shutdown);
+
+
             if (!shutdown) {
                 return response;
             } else {
@@ -219,6 +224,7 @@ public class HTTPTransport implements Transport {
             }
 
         }
+
     }
 
     //----------------------------------------------------------

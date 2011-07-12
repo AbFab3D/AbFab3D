@@ -75,4 +75,13 @@ public class VoxelDataShort implements VoxelData {
         this.state = state;
         this.material = (short) mat;
     }
+
+    /**
+     * Clone this object.
+     *
+     * @return The cloned object
+     */
+    public Object clone() {
+        return new VoxelDataByte(state, material);
+    }
 }

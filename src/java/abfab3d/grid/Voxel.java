@@ -18,7 +18,7 @@ package abfab3d.grid;
  * @author Alan Hudson
  */
 
-public class Voxel {
+public class Voxel implements Cloneable {
     /** The voxel coordinate */
     protected VoxelCoordinate vc;
 
@@ -77,6 +77,12 @@ public class Voxel {
      */
     public int hashCode() {
         int ret_val = vc.hashCode();
+
+        return ret_val;
+    }
+
+    public Object clone() {
+        Object ret_val = new Voxel((VoxelCoordinate)vc.clone(), (VoxelData)vd.clone());
 
         return ret_val;
     }

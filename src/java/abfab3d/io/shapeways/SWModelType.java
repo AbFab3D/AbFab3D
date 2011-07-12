@@ -224,8 +224,53 @@ public class SWModelType extends DefaultObject {
         setProperty("markup", val);
     }
 
+    /**
+     * Sets the HasColor for this SWModelType.
+     *
+     * @param val
+     */
+    public void setHasColor(Boolean val) {
+        setProperty("has_color", val);
+    }
+
+    /**
+     * Gets the has color value for this SWModelType.
+     *
+     * @return hasColor
+     */
+    public boolean getHasColor() {
+        return (Boolean)getProperty("has_color");
+    }
+
+    /**
+     * Sets the scale value for this SWModelType.
+     *
+     * @param volume
+     */
+    public void setScale(Float scale) {
+        setProperty("scale", scale);
+    }
+
+    /**
+     * Gets the scale value for this SWModelType.
+     *
+     * @return volume
+     */
+    public float getScale() {
+        return (Float)getProperty("scale");
+    }
+
     // TODO: The following properites come back from getModel.
     // Perhaps they should be separated
+
+    /**
+     * Gets the volume value for this SWModelType.
+     *
+     * @return volume
+     */
+    public float getVolume() {
+        return (Float)getProperty("volume");
+    }
 
     /**
      * Sets the volume value for this SWModelType.

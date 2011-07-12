@@ -46,12 +46,17 @@ public class Shapeways {
     /**
      * Upload the file to Shapeways.
      */
-    public void upload(String filename) {
+    public void upload(String filename, String name, String modelType, float scale) {
         try {
-            String soap_server = "http://www.shapeways.com";
+//            String soap_server = "http://www.shapeways.com";
+            String soap_server = "http://test5.shapeways.com";
             String soap_path = "/modules/shapeways_api/webservice/v1/soap.php";
+            //String soap_path = "/modules/udesign/webservice/soap.php";
+
+//            String wsdl_server = "http://api.shapeways.com";
             String wsdl_server = "http://api.shapeways.com";
             String wsdl_path = "/v1/wsdl.php";
+            //String wsdl_path = "/modules/udesign/webservice/wsdl.php";
             String urn = "urn:SW.wsdl";
 
             ApplicationParams.put("SOAP_SERVER", soap_server);
@@ -61,29 +66,35 @@ public class Shapeways {
             ApplicationParams.put("SERVICE_URN", urn);
 
             IOManager site = IOManager.getIOManager();
-            //site.setDebug(true);
+            site.setDebug(true);
 
             site.login("swapitest", "testme!");
+//            site.login("tonytest", "yumetech");
 
             byte[] file = site.readFile(new File(filename));
             SWModelType model = new SWModelType();
             model.setSoapElementName("model");
             model.setSoapElementType("SWModel");
-            model.setModelType("x3dv");
-            model.setDesc("Sphere");
+            model.setModelType(modelType);
+            model.setDesc("Spring7");
             model.setFile(file);
-            model.setFilename("Sphere.x3dv");
-            model.setTitle("Sphere");
+            model.setScale(scale);
+            model.setHasColor(false);
+            model.setFilename(name);
+            model.setTitle(name);
             model.setAvailability(0);
 
             site.saveNewModel(model);
 
-            float volume = calcVolume(new File(filename));
 
-            displayPrice(volume, 1);
+            //float volume = calcVolume(new File(filename));
+            float volume = 1;
+
+            //displayPrice(volume, 1);
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
+
     }
 
     /**
@@ -181,6 +192,14 @@ public class Shapeways {
 
     public static void main(String[] args) {
         Shapeways c = new Shapeways();
-        c.upload("../../test/models/sphere_10cm_rough.x3dv");
+        //c.upload("../../test/models/sphere_10cm_rough.x3dv","sphere_10cm_rough.x3dv", "x3dv",1);
+        //c.upload("../../test/models/sphere_10cm_smooth.x3dv","sphere_10cm_smooth.x3dv", "x3dv",1);
+
+        //c.upload("../../test/models/cube-1cm3.stl", "cube-1cm3.stl", "STL", 1);
+//        c.upload("../../test/models/toxic.stl",0.001f);
+//        c.upload("../../test/models/toxic.x3dv",0.001f);
+//        c.upload("../../test/models/Spring.stl","STL", 10f);
+          c.upload("../../test/models/ball-r5.stl", "ball-r5.stl", "STL", 1f);
+
     }
 }

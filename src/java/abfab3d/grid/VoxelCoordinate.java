@@ -21,7 +21,7 @@ package abfab3d.grid;
  * @author Alan Hudson
  */
 
-public class VoxelCoordinate {
+public class VoxelCoordinate implements Cloneable {
     protected int x;
     protected int y;
     protected int z;
@@ -77,4 +77,9 @@ public class VoxelCoordinate {
         return z;
     }
 
+    public Object clone() {
+        Object ret_val = new VoxelCoordinate(x,y,z);
+
+        return ret_val;
+    }
 }

@@ -65,6 +65,16 @@ public class BoxesX3DExporter implements Exporter {
         ejectHeader();
     }
 
+    public BoxesX3DExporter(org.web3d.vrml.export.Exporter exporter, ErrorReporter console) {
+        this.console = console;
+
+        writer = exporter;
+
+        bstream = (BinaryContentHandler) writer;
+
+        ejectHeader();
+    }
+
     /**
      * Write a grid to the stream.
      *
@@ -94,6 +104,17 @@ public class BoxesX3DExporter implements Exporter {
         double hpixelSize = grid.getVoxelSize() / 2.0;
         double sheight = grid.getSliceHeight();
         double hsheight = grid.getSliceHeight() / 2.0;
+
+        writer.startNode("Transform", null);
+        writer.startField("translation");
+        double tx,ty,tz;
+        tx = grid.getWidth() / 2.0 * grid.getVoxelSize();
+        ty = grid.getHeight() / 2.0 * grid.getSliceHeight();
+        tz = grid.getDepth() / 2.0 * grid.getVoxelSize();
+
+        bstream.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
+
+        writer.startField("children");
 
         for(int i=0; i < height; i++) {
             y = i * sheight;
@@ -349,6 +370,10 @@ public class BoxesX3DExporter implements Exporter {
         }
 
         ejectShape(bstream, totalCoords, indices, color, transparency);
+
+        // End Centering Transform
+        writer.endField();
+        writer.endNode();
     }
 
     /**
@@ -364,6 +389,17 @@ public class BoxesX3DExporter implements Exporter {
         float[] color = stateColors.get(new Integer(Grid.OUTSIDE));
         Float transF = stateTransparency.get(new Integer(Grid.OUTSIDE));
         float trans = 1;
+
+        writer.startNode("Transform", null);
+        writer.startField("translation");
+        double tx,ty,tz;
+        tx = grid.getWidth() / 2.0 * grid.getVoxelSize();
+        ty = grid.getHeight() / 2.0 * grid.getSliceHeight();
+        tz = grid.getDepth() / 2.0 * grid.getVoxelSize();
+
+        bstream.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
+
+        writer.startField("children");
 
         if (color != null) {
             if (transF != null) {
@@ -394,6 +430,9 @@ public class BoxesX3DExporter implements Exporter {
             outputState(grid, bstream, Grid.INTERIOR, color, trans);
         }
 
+        // End Centering Transform
+        writer.endField();
+        writer.endNode();
     }
 
     /**
@@ -679,6 +718,7 @@ public class BoxesX3DExporter implements Exporter {
         }
 
         ejectShape(stream, totalCoords, indices, color, transparency);
+
     }
 
     /**
@@ -717,6 +757,7 @@ public class BoxesX3DExporter implements Exporter {
         stream.startField("material");
         stream.startNode("Material",null);
         stream.startField("diffuseColor");
+//        stream.startField("emissiveColor");
         stream.fieldValue(color,3);
         stream.startField("transparency");
         stream.fieldValue(transparency);

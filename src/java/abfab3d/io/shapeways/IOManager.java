@@ -557,8 +557,13 @@ public class IOManager {
                 theCall.setTargetObjectURI(urnService);
                 theCall.addParameter("session_id", sessionId);
                 theCall.addParameter("model", model);
+/*
                 if (templateId != null)
                     theCall.addParameter("templateId", templateId);
+*/
+
+System.out.println("Hardcode templateId");
+                    theCall.addParameter("templateId", new Integer(854));
 
                 int uploadTime = (int)(downloadSize / UPLOAD_SPEED);
                 int uploadMinutes = (int)Math.floor(uploadTime / 60);
@@ -655,6 +660,8 @@ public class IOManager {
          */
         @Override
         public void updatePercentage(int percentage) {
+if (percentage % 10 == 0)
+    System.out.println("***updatePercentage: " + percentage);
             this.manager.fireUpdateRequest(
                     this.requestType, this.message, percentage);
         }
