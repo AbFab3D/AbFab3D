@@ -14,8 +14,10 @@ package abfab3d.grid;
 
 // External Imports
 import java.util.HashSet;
+import java.util.Iterator;
 
 import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.op.RemoveMaterial;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -317,7 +319,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
     /**
      * Test findCount by voxel class.
      */
-    public void testFindCount() {
+    public void testFindCountByVoxelClass() {
         int width = 6;
         int height = 3;
         int depth = 10;
@@ -1141,6 +1143,73 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
     }
 
     /**
+     * Test that remove material removes all specified material
+     */
+    public void testRemoveMaterialIterator() {
+        int width = 20;
+        int height = 10;
+        int depth = 10;
+        int mat1 = 1;
+        int mat2 = 2;
+        
+        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
+        
+        for (int x=0; x<width; x++) {
+        	grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
+        	vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
+        	
+        	grid.setData(x, 4, 4, Grid.INTERIOR, mat1);
+        	vcSetMat1.add(new VoxelCoordinate(x, 4, 4));
+        	
+        	grid.setData(x, 5, 6, Grid.INTERIOR, mat2);
+        	vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
+        }
+        
+        // make sure that all coordinates in list have been set to mat1 in grid
+        FindIterateTester ft = new FindIterateTester(vcSetMat1);
+        grid.find(mat1, ft);
+        
+        assertTrue("Found iterator did not find all voxels with material " + mat1,
+        		ft.foundAllVoxels());
+        
+        // remove all mat1
+        Operation op = new RemoveMaterial(mat1);
+        op.execute(grid);
+        
+        // check that find mat1 returns false and iterate count returns zero
+        ft = new FindIterateTester(vcSetMat1);
+        grid.find(mat1, ft);
+        
+        assertFalse("Found iterator did not return false after removing material " + mat1,
+        		ft.foundAllVoxels());
+
+        assertEquals("Found iterate count is not 0 after removing material", 0, ft.getIterateCount());
+        
+        // make sure that all coordinates in list are no longer mat1 in grid
+        // note: probably redundant since the above assertions have passed
+        Iterator iter = vcSetMat1.iterator();
+
+        while (iter.hasNext()) {
+        	VoxelCoordinate vc = (VoxelCoordinate) iter.next();
+//        	System.out.println(vc.getX() + ", " + vc.getY() + ", " + vc.getZ());
+        	assertEquals("Material is not 0 after removal for coordinate: " + 
+        				vc.getX() + ", " + vc.getY() + ", " + vc.getZ(),
+        			0, 
+        			grid.getMaterial(vc.getX(), vc.getY(), vc.getZ()));
+        }
+        
+        // make sure other material has not been removed
+        ft = new FindIterateTester(vcSetMat2);
+        grid.find(mat2, ft);
+        
+        assertTrue("Found iterator did not find all voxels with material " + mat2,
+        		ft.foundAllVoxels());
+
+    }
+    
+    /**
      * A voxel of the class requested has been found.
      *
      * @param x The x grid coordinate
@@ -1293,7 +1362,8 @@ class FindIterateTester implements ClassTraverser {
     }
     
     /**
-     * Check if the VoxelCoordinate is in the known list.
+     * Check if the VoxelCoordinate is in the known list, and removes
+     * it from the list if found.
      * 
      * @param c The voxel coordinate
      * @return True if the voxel coordinate is in the know list
