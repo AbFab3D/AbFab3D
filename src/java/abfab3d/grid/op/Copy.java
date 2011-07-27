@@ -29,10 +29,10 @@ public class Copy implements Operation {
     /** The x location */
     private int x;
 
-    /** The x location */
+    /** The y location */
     private int y;
 
-    /** The x location */
+    /** The z location */
     private int z;
 
     /** The dest grid */
@@ -59,21 +59,25 @@ public class Copy implements Operation {
 
         int state;
 
-        int origin_x = x - width / 2;
-        int origin_y = y - width / 2;
-        int origin_z = z - width / 2;
+        int origin_x = x;
+        int origin_y = y;
+        int origin_z = z;
         VoxelData vd;
 
-        // TODO: this could optimize for some grid types.  Ie an array
-        // could use a arraycopy command.
+        // TODO: Optimize using copy constructors for same types
+        // TODO: Optimize using iterator for MARKED only copies
+        // TODO: Add a param for wether to copy outside.  Really just a union then
 
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
                     vd = grid.getData(x,y,z);
 
-                    dest.setData(origin_x + x, origin_y + y, origin_z + z,
-                        vd.getState(), vd.getMaterial());
+                    if (vd.getState() != Grid.OUTSIDE) {
+                        // TODO: really only works on empty
+                        dest.setData(origin_x + x, origin_y + y, origin_z + z,
+                            vd.getState(), vd.getMaterial());
+                    }
                 }
             }
         }

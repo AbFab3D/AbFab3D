@@ -808,4 +808,44 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 
         return Math.abs(max);
     }
+
+    /**
+     * Find the absolute maximum bounds of a geometry.
+     *
+     * @return The max bounds of each axis
+     */
+    public static double[] findBounds(GeometryData geom) {
+        double[] ret_val = new double[3];
+
+        ret_val[0] = Double.NEGATIVE_INFINITY;
+        ret_val[1] = Double.NEGATIVE_INFINITY;
+        ret_val[2] = Double.NEGATIVE_INFINITY;
+
+        int len = geom.coordinates.length;
+
+        int idx;
+
+        for(int i=0; i < len / 3; i++) {
+            idx = i * 3 + 1;
+            if (geom.coordinates[idx] > ret_val[0]) {
+                ret_val[0] = geom.coordinates[idx];
+            }
+
+            idx++;
+            if (geom.coordinates[idx] > ret_val[1]) {
+                ret_val[1] = geom.coordinates[idx];
+            }
+
+            idx++;
+            if (geom.coordinates[idx] > ret_val[2]) {
+                ret_val[2] = geom.coordinates[idx];
+            }
+        }
+
+        ret_val[0] = Math.abs(ret_val[0]);
+        ret_val[1] = Math.abs(ret_val[1]);
+        ret_val[2] = Math.abs(ret_val[2]);
+
+        return ret_val;
+    }
 }

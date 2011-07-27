@@ -61,14 +61,17 @@ public class CubeCreator extends GeometryCreator {
         double w, double h, double d,
         double x, double y, double z,
         int material) {
-        this.styles = new Style[6][styles.length];
 
-        for(int i=0; i < 6; i++) {
-            if (styles[i] == null)
-                continue;
+        if (styles != null) {
+            this.styles = new Style[6][styles.length];
 
-            for(int j=0; j < styles[i].length; j++) {
-                this.styles[i][j] = styles[i][j];
+            for(int i=0; i < 6; i++) {
+                if (styles[i] == null)
+                    continue;
+
+                for(int j=0; j < styles[i].length; j++) {
+                    this.styles[i][j] = styles[i][j];
+                }
             }
         }
 
@@ -87,6 +90,11 @@ public class CubeCreator extends GeometryCreator {
      * @param handler The stream to issue commands
      */
     public void generate(Grid grid) {
+        if (styles == null) {
+            createSolidCube(grid);
+            return;
+        }
+
         Style[] side_styles = styles[0];
 
         double x_pos,y_pos,z_pos;
@@ -97,6 +105,7 @@ public class CubeCreator extends GeometryCreator {
         int[] coords1 = new int[3];
         int[] coords2 = new int[3];
         int start,end;
+
 
 //System.out.println("hvsize: " + hvsize + " hsheight: " + hsheight);
         int len;
@@ -640,5 +649,50 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
 //        System.out.println("Final Grid:");
 //        System.out.println(grid.toStringAll());
+    }
+
+    private void createSolidCube(Grid grid) {
+
+        int[] coords1 = new int[3];
+        int[] coords2 = new int[3];
+        int start,end;
+
+        double ulx,uly,ulz;     // upper left corner
+        double llx,lly,llz;     // lower left corner
+        double lrx,lry,lrz;     // lower right corner
+        double urx,ury,urz;     // upper right corner
+
+        ulx = x - width / 2.0;
+        uly = y + height / 2.0;
+        ulz = z - depth / 2.0;
+
+        urx = x + width / 2.0;
+        ury = y + height / 2.0;
+        urz = z + depth / 2.0;
+
+        llx = x - width / 2.0;
+        lly = y - height / 2.0;
+        llz = z - depth / 2.0;
+
+        lrx = x + width / 2.0;
+        lry = y - height / 2.0;
+        lrz = z + depth / 2.0;
+
+//System.out.println("ll: " + llx + " " + lly + " " + llz);
+//System.out.println("ur: " + urx + " " + ury + " " + urz);
+        grid.getGridCoords(llx,lly,llz,coords1);
+        grid.getGridCoords(urx,ury,urz,coords2);
+
+//System.out.println("center: " + x + " " + y + " " + z);
+//System.out.println("dims: " + width + " " + height + " " + depth);
+//System.out.println("llx: " + java.util.Arrays.toString(coords1));
+//System.out.println("urx: " + java.util.Arrays.toString(coords2));
+        for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
+            for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
+                for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
+                    grid.setData(x_idx, y_idx, z_idx,Grid.EXTERIOR,materialID);
+                }
+            }
+        }
     }
 }

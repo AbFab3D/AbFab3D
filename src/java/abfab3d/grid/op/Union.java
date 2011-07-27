@@ -19,15 +19,15 @@ import java.util.Iterator;
 import abfab3d.grid.*;
 
 /**
- * Subtraction operation.
+ * Union operation.
  *
- * Subtracts one grid from another.  Grid A is the base grid.  B is
- * the subtracted grid.  EXTERIOR voxels of grid B will become
- * new EXTERIOR points on grid A.
+ * Adds one grid to another.  Grid A is the base grid.  B is
+ * the union grid.  EXTERIOR voxels of grid B will become
+ * be added on grid A.
  *
  * @author Alan Hudson
  */
-public class Subtract implements Operation, ClassTraverser {
+public class Union implements Operation, ClassTraverser {
     /** The grid to subtract */
     private Grid gridB;
 
@@ -46,7 +46,7 @@ public class Subtract implements Operation, ClassTraverser {
     /** The grid used for A */
     private Grid gridA;
 
-    public Subtract(Grid b, double x, double y, double z, int material) {
+    public Union(Grid b, double x, double y, double z, int material) {
         gridB = b;
         this.x = x;
         this.y = y;
@@ -85,29 +85,11 @@ public class Subtract implements Operation, ClassTraverser {
     public void found(int x, int y, int z, VoxelData vd) {
         byte bstate = vd.getState();
         byte astate = gridA.getState(x,y,z);
+        int mat = vd.getMaterial();
 
-        gridA.setData(x,y,z, Grid.OUTSIDE, 0);
-
-/*
-        if (bstate == Grid.EXTERIOR) {
-//System.out.println("found EXT: " + x + " " + y + " a: " + astate);
-            if (astate == Grid.INTERIOR) {
-                gridA.setData(x,y,z,Grid.EXTERIOR, material);
-            } else if (astate == Grid.EXTERIOR) {
-                // TODO: not so sure about this
-                gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
-            }
-        } else {
-            // must be interior
-//System.out.println("found INT: " + x + " " + y);
-
-            if (astate == Grid.INTERIOR) {
-                gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
-            } else if (astate == Grid.EXTERIOR) {
-                gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
-            }
+        if (bstate == Grid.EXTERIOR || bstate == Grid.INTERIOR) {
+            gridA.setData(x,y,z,bstate, mat);
         }
-*/
      }
 
     /**

@@ -79,7 +79,7 @@ public class LinkedCubes {
             styles[3][2] = Style.LEFT_ROW;
             styles[3][3] = Style.RIGHT_ROW;
 
-            Grid grid = new ArrayGridByte(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION);
+            Grid grid = new OctreeGridByte(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION);
 
             double x,y,z;
             CubeCreator cg = null;

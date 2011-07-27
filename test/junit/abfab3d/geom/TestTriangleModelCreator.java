@@ -370,7 +370,6 @@ System.out.println("exteriorPerSlice: " + exteriorPerSlice);
     }
 
 
-
     /**
      * Generate an X3D file
      * @param filename

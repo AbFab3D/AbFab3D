@@ -68,7 +68,7 @@ public class OctreeGridShort extends BaseGrid {
         if (size % 2 != 0)
             size++;
 
-        int max_level = 1;
+        int max_level = 0;
         int n = size;
         while(n > 1) {
             max_level++;

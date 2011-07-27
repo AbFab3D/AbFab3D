@@ -57,6 +57,82 @@ public class BaseTestGrid extends TestCase {
     }
 
     /**
+     * Set and get all values of a grid using voxel coords using stripped
+     * exterior/interior pattern.
+     *
+     * @param grid The grid to test
+     */
+    public void setGetAllVoxelCoordsStripped(Grid grid) {
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+
+        for(int x=0; x < width; x++) {
+            for(int y=0; y < height; y++) {
+                for(int z=0; z < depth; z++) {
+                    if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
+                        grid.setData(x,y,z,Grid.EXTERIOR, 1);
+                    } else {
+                        grid.setData(x,y,z,Grid.INTERIOR, 2);
+                    }
+
+                }
+            }
+        }
+
+        for(int x=0; x < width; x++) {
+            for(int y=0; y < height; y++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = grid.getData(x,y,z);
+//System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
+                    if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
+                        assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                        assertTrue("Material wrong", vd.getMaterial() == 1);
+                    } else {
+                        assertTrue("State wrong", vd.getState() == Grid.INTERIOR);
+                        assertTrue("Material wrong", vd.getMaterial() == 2);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Set and get all values of a grid using voxel coords using stripped
+     * exterior/interior pattern.
+     *
+     * @param grid The grid to test
+     */
+    public void setGetAllVoxelCoordsDiagonal(Grid grid) {
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+
+        for(int x=0; x < width; x++) {
+            for(int y=0; y < height; y++) {
+                for(int z=0; z < depth; z++) {
+                    if (x == y && y == z) {
+                        grid.setData(x,y,z,Grid.EXTERIOR, 1);
+                    }
+                }
+            }
+        }
+
+        for(int x=0; x < width; x++) {
+            for(int y=0; y < height; y++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = grid.getData(x,y,z);
+//System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
+                    if (x == y && y == z) {
+                        assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                        assertTrue("Material wrong", vd.getMaterial() == 1);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Set and get all values of a grid using world coords
      *
      * @param grid The grid to test

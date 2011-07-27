@@ -105,6 +105,50 @@ public class ArrayGridByte extends BaseGrid {
     }
 
     /**
+     * Get the state of the voxels specified in the area.
+     *
+     * @param x1 The starting x grid coordinate
+     * @param x2 The ending x grid coordinate
+     * @param y1 The starting y grid coordinate
+     * @param y2 The ending y grid coordinate
+     * @param z1 The starting z grid coordinate
+     * @param z2 The ending z grid coordinate
+     *
+     * @param Returns the data at each position.  3 dim array represented as flat, must be preallocated
+     */
+    public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret) {
+
+        int idx;
+        byte state;
+        byte mat;
+
+        int ridx = 0;
+
+// TODO: check whether array order matters for cache coherence
+//System.out.println("x1: " + x1 + " x2: " + x2);
+//System.out.println("y1: " + y1 + " y2: " + y2);
+//System.out.println("z1: " + z1 + " z2: " + z2);
+
+        int x_len = x2 - x1 + 1;
+        int y_len = y2 - y1 + 1;
+        int z_len = z2 - z1 + 1;
+
+        for(int i=0; i < x_len; i++) {
+            for(int j=0; j < y_len; j++) {
+                for(int k=0; k < z_len; k++) {
+//System.out.println("i: " + i + " j: " + j + " k: " + k);
+                    idx = (j + y1) * sliceSize + (i + x1) * depth + (k + z1);
+                    state = (byte) ((data[idx] & 0xFF) >> 6);
+                    mat = (byte) (0x3F & data[idx]);
+
+//System.out.println("Setting ridx: " + ridx);
+                    ret[ridx++] = new VoxelDataByte(state, mat);
+                }
+            }
+        }
+    }
+
+    /**
      * Get the data of the voxel
      *
      * @param x The x world coordinate

@@ -72,7 +72,7 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
         }
 
 //        grid.find(VoxelClasses.EXTERIOR, material, this);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, material, this);
+        grid.findInterruptible(material, this);
 
         return canEscape();
     }

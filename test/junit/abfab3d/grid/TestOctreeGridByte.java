@@ -13,7 +13,6 @@
 package abfab3d.grid;
 
 // External Imports
-import abfab3d.grid.Grid.VoxelClasses;
 import java.util.*;
 
 import junit.framework.Test;
@@ -21,6 +20,8 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
+import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.grid.query.Equals;
 
 /**
  * Tests the functionality of an OctreeGridByte.
@@ -42,81 +43,6 @@ public class TestOctreeGridByte extends BaseTestGrid implements ClassTraverser {
      */
     public static Test suite() {
         return new TestSuite(TestOctreeGridByte.class);
-    }
-
-    /**
-     * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
-     */
-    public void testFindVoxelClassIterator() {
-        int width = 8;
-        int height = width;
-        int depth = width;
-        int mat = 1;
-
-        Grid grid = new OctreeGridByte(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
-        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
-
-        for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
-
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat);
-            vcSetInt.add(new VoxelCoordinate(x, 5, 6));
-        }
-
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
-
-        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
-                ft.foundAllVoxels());
-
-        ft = new FindIterateTester(vcSetInt);
-        grid.find(VoxelClasses.INTERIOR, ft);
-
-        assertTrue("Found state iterator did not find all voxels with INTERIOR state",
-                ft.foundAllVoxels());
-
-        // make sure that finding a voxel not in the list returns false
-        grid.setData(7, 6, 2, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
-
-        assertFalse("Found state iterator should return false",
-                ft.foundAllVoxels());
-
-        // make sure that not finding a voxel in the list returns false
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetInt);
-        grid.find(VoxelClasses.INTERIOR, ft);
-
-        assertFalse("Found state iterator should return false",
-                ft.foundAllVoxels());
-
-        //-------------------------------------------------------
-        // test on some random coordinates
-        int[][] coords = {
-                {0,0,0},
-                {width/2, height/2, depth/2},
-                {0, height-1, depth-1},
-                {width-1, 0, 0},
-                {width-1, height-1, depth-1}
-        };
-
-        grid = new OctreeGridByte(width, height, depth, 0.001, 0.001);
-        vcSetExt = new HashSet<VoxelCoordinate>();
-
-        for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
-        }
-
-        ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
-
-        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
-                ft.foundAllVoxels());
-
     }
 
     public void testBatchedCounting() {
@@ -174,6 +100,157 @@ public class TestOctreeGridByte extends BaseTestGrid implements ClassTraverser {
         assertEquals("Outside voxel count is not " + expectedOutCount, expectedOutCount, outCount);
 
 //assertEquals("stop", 1, 0);
+    }
+
+
+    /**
+     * Test set/get all data points.
+     */
+    public void testGridEquality() {
+        int size = 4;
+
+        OctreeGridByte grid = new OctreeGridByte(size, size, size, 0.001, 0.001);
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+
+        int x = width / 2;
+        int y = height / 2;
+        int z = depth / 2;
+
+        x = 2;
+        y = 2;
+        z = 2;
+
+        grid.setData(x,y,z, Grid.EXTERIOR,1);
+
+/*
+        VoxelData vd = grid.getData(hwidth+1,hheight+1,hdepth+1);
+
+        assertEquals("state", vd.getState() == Grid.EXTERIOR);
+        assertEquals("material", vd.getMaterial() == 1);
+*/
+
+        Grid grid2 = new ArrayGridByte(size, size, size, 0.001, 0.001);
+
+        grid2.setData(x,y,z, Grid.EXTERIOR,1);
+
+System.out.println("***Get unset data");
+        VoxelData vd = grid.getData(2,2,z+1);
+
+        if (vd.getState() != Grid.OUTSIDE)
+            grid.printTree();
+        assertEquals("unset", vd.getState(), Grid.OUTSIDE);
+
+System.out.println("Checking equals");
+        Equals op = new Equals(grid);
+        boolean result = op.execute(grid2);
+
+        if (result == false) {
+            System.out.println("OctreeGrid: \n" + grid.toStringAll());
+            System.out.println("ArrayGrid: \n" + grid2.toStringAll());
+
+            grid.printTree();
+        }
+
+        if (!result)
+            System.out.println("Reason: " + op.getReason());
+        assertTrue("equals", result);
+
+//assertEquals("stop",1,0);
+    }
+
+
+    /**
+     * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
+     */
+    public void testFindVoxelClassIterator() {
+        int width = 64;
+        int height = width;
+        int depth = width;
+        int mat = 1;
+
+        Grid grid = new OctreeGridByte(width, height, depth, 0.001, 0.001);
+        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
+
+        for (int x=0; x<width; x++) {
+            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
+            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
+
+            grid.setData(x, 5, 6, Grid.INTERIOR, mat);
+            vcSetInt.add(new VoxelCoordinate(x, 5, 6));
+        }
+
+        for (int y=0; y<height; y++) {
+            grid.setData(2, y, 2, Grid.EXTERIOR, mat);
+            vcSetExt.add(new VoxelCoordinate(2, y, 2));
+
+            grid.setData(17, y, 6, Grid.INTERIOR, mat);
+            vcSetInt.add(new VoxelCoordinate(17, y, 6));
+        }
+
+
+        for (int z=depth/2; z<depth; z++) {
+            grid.setData(2, 2, z, Grid.EXTERIOR, mat);
+            vcSetExt.add(new VoxelCoordinate(2, 2, z));
+
+            grid.setData(17, 6, z, Grid.INTERIOR, mat);
+            vcSetInt.add(new VoxelCoordinate(17, 6, z));
+        }
+
+        FindIterateTester ft = new FindIterateTester(vcSetExt);
+        grid.find(VoxelClasses.EXTERIOR, ft);
+
+        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
+                ft.foundAllVoxels());
+
+        ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INTERIOR, ft);
+
+        assertTrue("Found state iterator did not find all voxels with INTERIOR state",
+                ft.foundAllVoxels());
+
+        // make sure that finding a voxel not in the list returns false
+        grid.setData(7, 6, 2, Grid.EXTERIOR, mat);
+        ft = new FindIterateTester(vcSetExt);
+        grid.find(VoxelClasses.EXTERIOR, ft);
+
+        assertFalse("Found state iterator should return false",
+                ft.foundAllVoxels());
+
+        // make sure that not finding a voxel in the list returns false
+        grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
+        ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INTERIOR, ft);
+
+        assertFalse("Found state iterator should return false",
+                ft.foundAllVoxels());
+
+        //-------------------------------------------------------
+        // test on some random coordinates
+        int[][] coords = {
+                {0,0,0},
+                {width/2, height/2, depth/2},
+                {0, height-1, depth-1},
+                {width-1, 0, 0},
+                {width-1, height-1, depth-1}
+        };
+
+        grid = new OctreeGridByte(width, height, depth, 0.001, 0.001);
+        vcSetExt = new HashSet<VoxelCoordinate>();
+
+        for (int i=0; i<coords.length; i++) {
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat);
+            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+        }
+
+        ft = new FindIterateTester(vcSetExt);
+        grid.find(VoxelClasses.EXTERIOR, ft);
+
+        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
+                ft.foundAllVoxels());
+
     }
 
     public void testFindVoxelClass() {
@@ -350,6 +427,42 @@ grid.printTree();
         // Too slow for smoke tests
         grid = new OctreeGridByte(100, 100, 100, 0.001, 0.001);
         setGetAllVoxelCoords(grid);
+    }
+
+    /**
+     * Test set/get all data points.
+     */
+    public void testSetGetByVoxelCoordsStripped() {
+        Grid grid = new OctreeGridByte(1, 1, 1, 0.001, 0.001);
+        setGetAllVoxelCoordsStripped(grid);
+
+        grid = new OctreeGridByte(3,3,3,0.001, 0.001);
+        setGetAllVoxelCoordsStripped(grid);
+
+        grid = new OctreeGridByte(11, 11, 11, 0.001, 0.001);
+        setGetAllVoxelCoordsStripped(grid);
+
+        // Too slow for smoke tests
+        grid = new OctreeGridByte(100, 100, 100, 0.001, 0.001);
+        setGetAllVoxelCoordsStripped(grid);
+    }
+
+    /**
+     * Test set/get all data points.
+     */
+    public void testSetGetByVoxelCoordsDiagonal() {
+        Grid grid = new OctreeGridByte(1, 1, 1, 0.001, 0.001);
+        setGetAllVoxelCoordsDiagonal(grid);
+
+        grid = new OctreeGridByte(3,3,3,0.001, 0.001);
+        setGetAllVoxelCoordsDiagonal(grid);
+
+        grid = new OctreeGridByte(11, 11, 11, 0.001, 0.001);
+        setGetAllVoxelCoordsDiagonal(grid);
+
+        // Too slow for smoke tests
+        grid = new OctreeGridByte(100, 100, 100, 0.001, 0.001);
+        setGetAllVoxelCoordsDiagonal(grid);
     }
 
     /**

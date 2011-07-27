@@ -15,6 +15,9 @@ package abfab3d.grid;
 // External Imports
 import java.util.*;
 import java.io.*;
+import org.web3d.vrml.sav.BinaryContentHandler;
+import org.web3d.vrml.sav.ContentHandler;
+
 
 /**
  * A grid backed by an Octree
@@ -28,7 +31,17 @@ import java.io.*;
  * @author Alan Hudson
  */
 public class OctreeGridByte extends BaseGrid {
+    private static final boolean STATS = true;
+
+    /** The maximum coords to put in a shape */
+    private static final int MAX_TRIANGLES_SHAPE = 1300000;
+
     protected OctreeCellInternalByte root;
+
+    protected HashMap<WorldCoordinate,Integer> coords;
+    protected ArrayList<WorldCoordinate> thisSlice;
+    protected ArrayList<Integer> indices;
+    protected int coordIdx;
 
     /**
      * Constructor.
@@ -68,13 +81,15 @@ public class OctreeGridByte extends BaseGrid {
         if (size % 2 != 0)
             size++;
 
-        int max_level = 1;
+//System.out.println("input size: " + size);
+        int max_level = 0;
         int n = size;
         while(n > 1) {
             max_level++;
             n = n / 2;
         }
 
+//System.out.println("max_level: " + max_level);
         if (Math.pow(2, max_level) < size) {
             max_level++;
         }
@@ -86,6 +101,7 @@ public class OctreeGridByte extends BaseGrid {
 
         max_level++;  // Account for terminal leafs
 
+//System.out.println("final size: " + size + " max_level: " + max_level);
         root = new OctreeCellInternalByte(1, max_level, 0,0,0,size, Grid.OUTSIDE, 0);
     }
 
@@ -127,6 +143,22 @@ public class OctreeGridByte extends BaseGrid {
      */
     public VoxelData getData(int x, int y, int z) {
         return root.getData(x,y,z);
+    }
+
+    /**
+     * Get the state of the voxels specified in the area.
+     *
+     * @param x1 The starting x grid coordinate
+     * @param x2 The ending x grid coordinate
+     * @param y1 The starting y grid coordinate
+     * @param y2 The ending y grid coordinate
+     * @param z1 The starting z grid coordinate
+     * @param z2 The ending z grid coordinate
+     *
+     * @param Returns the data at each position.  3 dim array represented as flat, must be preallocated
+     */
+    public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret) {
+        // not impl
     }
 
     /**
@@ -274,8 +306,8 @@ public class OctreeGridByte extends BaseGrid {
      * @param t The traverer to call for each voxel
      */
     public void findInterruptible(int mat, ClassTraverser t) {
-        ArrayList<OctreeCellInternalByte> list = new ArrayList();
-        ArrayList<OctreeCellInternalByte> add_list = new ArrayList();
+        ArrayList<OctreeCellInternalByte> list = new ArrayList(128);
+        ArrayList<OctreeCellInternalByte> add_list = new ArrayList(128);
 
         list.add(root);
 
@@ -467,7 +499,7 @@ public class OctreeGridByte extends BaseGrid {
             } else {
 //System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                 // TODO: Not sure why this works might be dodgy
-                if (cell.level > 2) {
+                if (cell.level > 1) {
                     switch(vc) {
                         case ALL:
                             for(int i=0; i < cell.size; i++) {
@@ -699,7 +731,7 @@ public class OctreeGridByte extends BaseGrid {
             } else {
 //System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                 // TODO: Not sure why this works might be dodgy
-                if (cell.level > 2) {
+                if (cell.level > 1) {
                     switch(vc) {
                         case ALL:
                             for(int i=0; i < cell.size; i++) {
@@ -838,7 +870,7 @@ public class OctreeGridByte extends BaseGrid {
             } else {
 //System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                 // TODO: Not sure why this works might be dodgy
-                if (cell.level > 2) {
+                if (cell.level > 1) {
                     if (cell.allState.getMaterial() == mat) {
                         for(int i=0; i < cell.size; i++) {
                             for(int j=0; j < cell.size; j++) {
@@ -877,7 +909,7 @@ public class OctreeGridByte extends BaseGrid {
             } else {
 //System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                 // TODO: Not sure why this works might be dodgy
-                if (cell.level > 2) {
+                if (cell.level > 1) {
                     if (cell.allState.getMaterial() == mat) {
                         for(int i=0; i < cell.size; i++) {
                             for(int j=0; j < cell.size; j++) {
@@ -958,7 +990,7 @@ public class OctreeGridByte extends BaseGrid {
 
 //System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                 // TODO: Not sure why this works might be dodgy
-                if (cell.level > 2) {
+                if (cell.level > 1) {
                     switch(vc) {
                         case ALL:
                             for(int i=0; i < cell.size; i++) {
@@ -1094,7 +1126,7 @@ public class OctreeGridByte extends BaseGrid {
 
 //System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                 // TODO: Not sure why this works might be dodgy
-                if (cell.level > 2) {
+                if (cell.level > 1) {
                     switch(vc) {
                         case ALL:
                             for(int i=0; i < cell.size; i++) {
@@ -1301,7 +1333,7 @@ public class OctreeGridByte extends BaseGrid {
                     } else {
         //System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                         // TODO: Not sure why this works might be dodgy
-                        if (cell.level > 2) {
+                        if (cell.level > 1) {
                             switch(vc) {
                                 case ALL:
                                     ret_val += cell.size * cell.size * cell.size;
@@ -1389,7 +1421,7 @@ public class OctreeGridByte extends BaseGrid {
                 } else {
 //    System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                     // TODO: Not sure why this works might be dodgy
-                    if (cell.level > 2) {
+                    if (cell.level > 1) {
                         byte state = cell.allState.getState();
 
                         if (cell.allState.getMaterial() == mat &&
@@ -1425,5 +1457,998 @@ public class OctreeGridByte extends BaseGrid {
         return ret_val;
     }
 
+    /**
+     * Write a grid to the stream.
+     *
+     * Do not call this directly.  Made public so output package can
+     * access.  I don't like this design but can't think of a better one
+     * currently.  It needs internal knowledge to mafe effecient output.
+     *
+     * @param grid The grid to write
+     * @param matColors Maps materials to colors
+     */
+    public void write(org.web3d.vrml.export.Exporter writer, OctreeGridByte grid, Map<Integer, float[]> matColors) {
+        double pixelSize = grid.getVoxelSize();
+        double sheight = grid.getSliceHeight();
+        float[] color = new float[] {0.8f,0.8f,0.8f};
+        float transparency = 0;
+        int idx = 0;
+        long saved = 0;
+
+
+System.out.println("Cell count: " + grid.getCellCount());
+
+
+        coords = new HashMap<WorldCoordinate,Integer>();
+        thisSlice = new ArrayList<WorldCoordinate>();
+        indices = new ArrayList<Integer>();
+
+        BinaryContentHandler bstream = (BinaryContentHandler) writer;
+
+        writer.startNode("Transform", null);
+        writer.startField("translation");
+        double tx,ty,tz;
+        tx = grid.getWidth() / 2.0 * grid.getVoxelSize();
+        ty = grid.getHeight() / 2.0 * grid.getSliceHeight();
+        tz = grid.getDepth() / 2.0 * grid.getVoxelSize();
+        bstream.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
+
+        writer.startField("children");
+
+        double[] wcoords = new double[3];
+
+        ArrayList<OctreeCellInternalByte> list = new ArrayList();
+        ArrayList<OctreeCellInternalByte> add_list = new ArrayList();
+
+        list.add(root);
+
+        long termCount = 0;
+        byte cstate, state;
+
+        while(list.size() > 0) {
+            Iterator<OctreeCellInternalByte> itr = list.iterator();
+
+            while(itr.hasNext()) {
+                OctreeCellInternalByte cell = itr.next();
+
+                state = cell.allState.getState();
+
+                if (state != cell.MIXED) {
+                    if (cell.level == cell.maxLevel) {
+//System.out.println("cell: " + cell.vcx + " " + cell.vcy + " " + cell.vcz);
+                        grid.getWorldCoords(cell.vcx, cell.vcy, cell.vcz, wcoords);
+
+                        termCount++;
+
+                        WorldCoordinate ubl_coord = new WorldCoordinate((float)(wcoords[0]),
+                            (float)(wcoords[1] + sheight),(float)(wcoords[2]));
+                        Integer ubl_pos = coords.get(ubl_coord);
+
+//System.out.println("ubl: " + ubl_coord + " pos: " + ubl_pos);
+                        if (ubl_pos == null) {
+//    System.out.println("ubl added: " + coordIdx);
+                            ubl_pos = new Integer(coordIdx++);
+                            coords.put(ubl_coord, ubl_pos);
+                            thisSlice.add(ubl_coord);
+                        }
+
+                        WorldCoordinate ubr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+                            (float)(wcoords[1] + sheight),(float)(wcoords[2]));
+                        Integer ubr_pos = coords.get(ubr_coord);
+//System.out.println("ubr: " + ubr_coord + " pos: " + ubr_pos);
+                        if (ubr_pos == null) {
+//    System.out.println("ubr added: " + coordIdx);
+                            ubr_pos = new Integer(coordIdx++);
+                            coords.put(ubr_coord, ubr_pos);
+                            thisSlice.add(ubr_coord);
+                        }
+
+                        // Origin of the cell
+                        WorldCoordinate lbl_coord = new WorldCoordinate((float)(wcoords[0]),
+                            (float)(wcoords[1]),(float)(wcoords[2]));
+                        Integer lbl_pos = coords.get(lbl_coord);
+//System.out.println("lbl: " + lbl_coord + " pos: " + lbl_pos);
+                        if (lbl_pos == null) {
+//    System.out.println("lbl added: " + coordIdx);
+                            lbl_pos = new Integer(coordIdx++);
+                            coords.put(lbl_coord, lbl_pos);
+                            thisSlice.add(lbl_coord);
+                        }
+
+                        WorldCoordinate lbr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+                            (float)(wcoords[1]),(float)(wcoords[2]));
+                        Integer lbr_pos = coords.get(lbr_coord);
+//System.out.println("lbr: " + lbr_coord + " pos: " + lbr_pos);
+                        if (lbr_pos == null) {
+//    System.out.println("lbr added: " + coordIdx);
+                            lbr_pos = new Integer(coordIdx++);
+                            coords.put(lbr_coord, lbr_pos);
+                            thisSlice.add(lbr_coord);
+                        }
+
+                        WorldCoordinate ufl_coord = new WorldCoordinate((float)(wcoords[0]),
+                            (float)(wcoords[1] + sheight),(float)(wcoords[2] + pixelSize));
+                        Integer ufl_pos = coords.get(ufl_coord);
+//System.out.println("ufl: " + ufl_coord + " pos: " + ufl_pos);
+                        if (ufl_pos == null) {
+//    System.out.println("ufl added: " + coordIdx);
+                            ufl_pos = new Integer(coordIdx++);
+                            coords.put(ufl_coord, ufl_pos);
+                            thisSlice.add(ufl_coord);
+                        }
+
+                        WorldCoordinate ufr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+                            (float)(wcoords[1] + sheight),(float)(wcoords[2] + pixelSize));
+                        Integer ufr_pos = coords.get(ufr_coord);
+//System.out.println("ufr: " + ufr_coord + " pos: " + ufr_pos);
+                        if (ufr_pos == null) {
+//    System.out.println("ufr added: " + coordIdx);
+                            ufr_pos = new Integer(coordIdx++);
+                            coords.put(ufr_coord, ufr_pos);
+                            thisSlice.add(ufr_coord);
+                        }
+
+
+                        WorldCoordinate lfl_coord = new WorldCoordinate((float)(wcoords[0]),
+                            (float)(wcoords[1]),(float)(wcoords[2] + pixelSize));
+                        Integer lfl_pos = coords.get(lfl_coord);
+//System.out.println("lfl: " + lfl_coord + " pos: " + lfl_pos);
+
+                        if (lfl_pos == null) {
+//    System.out.println("lfl added: " + coordIdx);
+                            lfl_pos = new Integer(coordIdx++);
+                            coords.put(lfl_coord, lfl_pos);
+                            thisSlice.add(lfl_coord);
+                        }
+
+                        WorldCoordinate lfr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+                            (float)(wcoords[1]),(float)(wcoords[2] + pixelSize));
+                        Integer lfr_pos = coords.get(lfr_coord);
+//System.out.println("lfr: " + lfr_coord + " pos: " + lfr_pos);
+
+                        if (lfr_pos == null) {
+//    System.out.println("lfr added: " + coordIdx);
+                            lfr_pos = new Integer(coordIdx++);
+                            coords.put(lfr_coord, lfr_pos);
+                            thisSlice.add(lfr_coord);
+                        }
+
+                        // Create Box
+
+                        boolean displayFront = true;
+
+                        if (cell.vcz < depth - 1) {
+                            cstate = grid.getState(cell.vcx,cell.vcy,cell.vcz+1);
+
+                            if (cstate == state) {
+//System.out.println("no front");
+                                displayFront = false;
+                                if (STATS) saved++;
+                            }
+                        }
+
+                        if (displayFront) {
+                            // Front Face
+                            indices.add(new Integer(lfr_pos));
+                            indices.add(new Integer(ufr_pos));
+                            indices.add(new Integer(ufl_pos));
+                            indices.add(new Integer(lfr_pos));
+                            indices.add(new Integer(ufl_pos));
+                            indices.add(new Integer(lfl_pos));
+                        }
+
+                        boolean displayBack = true;
+
+                        if (cell.vcz > 0) {
+                            cstate = grid.getState(cell.vcx,cell.vcy,cell.vcz-1);
+
+                            if (cstate == state) {
+//System.out.println("no back");
+
+                                displayBack = false;
+                                if (STATS) saved++;
+                            }
+                        }
+
+                        if (displayBack) {
+                            // Back Face
+                            indices.add(new Integer(lbr_pos));
+                            indices.add(new Integer(ubl_pos));
+                            indices.add(new Integer(ubr_pos));
+                            indices.add(new Integer(lbr_pos));
+                            indices.add(new Integer(lbl_pos));
+                            indices.add(new Integer(ubl_pos));
+                        }
+
+                        boolean displayRight = true;
+
+                        if (cell.vcx < width - 1) {
+                            cstate = grid.getState(cell.vcx+1,cell.vcy,cell.vcz);
+                            if (cstate == state) {
+//System.out.println("no right");
+                                displayRight = false;
+                                if (STATS) saved++;
+                            } else {
+//System.out.println("yes right: " + cstate + " pos: " + (cell.vcx+1) + " " + cell.vcy + " " + cell.vcz);
+                            }
+                        }
+
+                        if (displayRight) {
+                            // Right Face
+                            indices.add(new Integer(lbr_pos));
+                            indices.add(new Integer(ubr_pos));
+                            indices.add(new Integer(ufr_pos));
+                            indices.add(new Integer(lbr_pos));
+                            indices.add(new Integer(ufr_pos));
+                            indices.add(new Integer(lfr_pos));
+                        }
+
+                        boolean displayLeft = true;
+
+
+                        if (cell.vcx > 0) {
+                            cstate = grid.getState(cell.vcx-1,cell.vcy,cell.vcz);
+//System.out.println("no left");
+
+                            if (cstate == state) {
+                                displayLeft = false;
+                                if (STATS) saved++;
+                            }
+                        }
+
+                        if (displayLeft) {
+                            // Left Face
+                            indices.add(new Integer(lbl_pos));
+                            indices.add(new Integer(ufl_pos));
+                            indices.add(new Integer(ubl_pos));
+                            indices.add(new Integer(lbl_pos));
+                            indices.add(new Integer(lfl_pos));
+                            indices.add(new Integer(ufl_pos));
+                        }
+
+                        boolean displayTop = true;
+
+                        if (cell.vcy < height - 1) {
+                            cstate = grid.getState(cell.vcx,cell.vcy+1,cell.vcz);
+
+                            if (cstate == state) {
+//System.out.println("no top");
+
+                                displayTop = false;
+                                if (STATS) saved++;
+                            }
+                        }
+
+                        if (displayTop) {
+                            // Top Face
+                            indices.add(new Integer(ufr_pos));
+                            indices.add(new Integer(ubr_pos));
+                            indices.add(new Integer(ubl_pos));
+                            indices.add(new Integer(ufr_pos));
+                            indices.add(new Integer(ubl_pos));
+                            indices.add(new Integer(ufl_pos));
+                        }
+
+                        boolean displayBottom = true;
+
+                        if (cell.vcy > 0) {
+                            cstate = grid.getState(cell.vcx,cell.vcy-1,cell.vcz);
+                            if (cstate == state) {
+//System.out.println("no bottom");
+
+                                displayBottom = false;
+                                if (STATS) saved++;
+                            }
+                        }
+
+                        if (displayBottom) {
+                            // Bottom Face
+                            indices.add(new Integer(lfr_pos));
+                            indices.add(new Integer(lbl_pos));
+                            indices.add(new Integer(lbr_pos));
+                            indices.add(new Integer(lfr_pos));
+                            indices.add(new Integer(lfl_pos));
+                            indices.add(new Integer(lbl_pos));
+                        }
+
+                        if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
+                            ejectShape(bstream, thisSlice, indices, color, transparency);
+                        }
+                    } else {
+                        if (cell.level > 1) {
+                            // How big should we go, really impacts speed
+                            // 1 = 46 seconds
+                            if (cell.size > 1) {
+                                ejectBoxCollapse(bstream, grid, cell, color, transparency);
+                            } else {
+                                ejectBox(bstream, grid, cell, color, transparency);
+                            }
+                        }
+                    }
+                }
+
+
+                // Traverse Children
+                OctreeCellInternalByte[] children = cell.children;
+
+                if (children != null) {
+                    int len = children.length;
+
+                    for(int i=0; i < len; i++) {
+                        if (children[i] != null)
+                            add_list.add(children[i]);
+                    }
+                }
+            }
+
+            list.clear();
+
+            itr = add_list.iterator();
+            while(itr.hasNext()) {
+                list.add(itr.next());
+            }
+
+            add_list.clear();
+        }
+
+        ejectShape(bstream, thisSlice, indices, color, transparency);
+
+System.out.println("Terminal nodes: " + termCount);
+if (STATS) System.out.println("saved sides: " + saved);
+        // End Centering Transform
+        writer.endField();
+        writer.endNode();
+    }
+
+    /**
+     * Eject a shape into the stream.
+     *
+     * @param stream The stream to use
+     * @param totalCoords The coords to use
+     * @param indices The indices to use
+     */
+    private void ejectShape(BinaryContentHandler stream, List<WorldCoordinate> totalCoords,
+        ArrayList<Integer> indices, float[] color, float transparency) {
+
+System.out.println("eject:   coords: " + totalCoords.size() + " indices: " + indices.size());
+        int idx = 0;
+        float[] allCoords = new float[totalCoords.size() * 3];
+        Iterator<WorldCoordinate> itr = totalCoords.iterator();
+        while(itr.hasNext()) {
+            WorldCoordinate c = itr.next();
+            allCoords[idx++] = c.x;
+            allCoords[idx++] = c.y;
+            allCoords[idx++] = c.z;
+        }
+
+        idx = 0;
+//        int[] allIndices = new int[(int) (indices.size() * 4 / 3)];
+        int[] allIndices = new int[(int) (indices.size())];
+        for(int i=0; i < indices.size(); ) {
+            allIndices[idx++] = indices.get(i++);
+            allIndices[idx++] = indices.get(i++);
+            allIndices[idx++] = indices.get(i++);
+            //allIndices[idx++] = -1;
+        }
+
+        stream.startNode("Shape", null);
+        stream.startField("appearance");
+        stream.startNode("Appearance", null);
+        stream.startField("material");
+        stream.startNode("Material",null);
+        stream.startField("diffuseColor");
+//        stream.startField("emissiveColor");
+        stream.fieldValue(color,3);
+        stream.startField("transparency");
+        stream.fieldValue(transparency);
+        stream.endNode();  //  Material
+        stream.endNode();  //  Appearance
+        stream.startField("geometry");
+//        stream.startNode("IndexedFaceSet", null);
+        stream.startNode("IndexedTriangleSet", null);
+        stream.startField("coord");
+        stream.startNode("Coordinate", null);
+        stream.startField("point");
+        stream.fieldValue(allCoords, allCoords.length);
+        stream.endNode();  // Coordinate
+//        stream.startField("coordIndex");
+        stream.startField("index");
+        stream.fieldValue(allIndices, allIndices.length);
+        stream.endNode();  // IndexedFaceSet
+        stream.endNode();  // Shape
+
+        coords.clear();
+        indices.clear();
+        thisSlice.clear();
+        coordIdx = 0;
+    }
+
+    /**
+     * Eject a shape into the stream.
+     *
+     * @param stream The stream to use
+     * @param totalCoords The coords to use
+     * @param indices The indices to use
+     */
+    private void ejectBox(BinaryContentHandler stream, Grid grid, OctreeCellInternalByte cell,
+        float[] color, float transparency) {
+
+//System.out.println("ejectBox: " + cell.vcx + " " + cell.vcy + " " + cell.vcz + " size: " + cell.size);
+        double pixelSize = cell.size * grid.getVoxelSize();
+        double sheight = cell.size * grid.getSliceHeight();
+        double hpixelSize = cell.size * grid.getVoxelSize() / 2.0;
+        double hsheight = cell.size * grid.getSliceHeight() / 2.0;
+
+        long saved = 0;
+
+        HashMap<WorldCoordinate,Integer> coords = new HashMap<WorldCoordinate,Integer>();
+        ArrayList<WorldCoordinate> thisSlice = new ArrayList<WorldCoordinate>();
+
+        double[] wcoords = new double[3];
+
+        grid.getWorldCoords(cell.vcx, cell.vcy, cell.vcz, wcoords);
+
+        WorldCoordinate ubl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2]));
+        Integer ubl_pos = coords.get(ubl_coord);
+
+//System.out.println("ubl: " + ubl_coord + " pos: " + ubl_pos);
+        if (ubl_pos == null) {
+//    System.out.println("ubl added: " + coordIdx);
+            ubl_pos = new Integer(coordIdx++);
+            coords.put(ubl_coord, ubl_pos);
+            thisSlice.add(ubl_coord);
+        }
+
+        WorldCoordinate ubr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2]));
+        Integer ubr_pos = coords.get(ubr_coord);
+//System.out.println("ubr: " + ubr_coord + " pos: " + ubr_pos);
+        if (ubr_pos == null) {
+//    System.out.println("ubr added: " + coordIdx);
+            ubr_pos = new Integer(coordIdx++);
+            coords.put(ubr_coord, ubr_pos);
+            thisSlice.add(ubr_coord);
+        }
+
+        // Origin of the cell
+        WorldCoordinate lbl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1]),(float)(wcoords[2]));
+        Integer lbl_pos = coords.get(lbl_coord);
+//System.out.println("lbl: " + lbl_coord + " pos: " + lbl_pos);
+        if (lbl_pos == null) {
+//    System.out.println("lbl added: " + coordIdx);
+            lbl_pos = new Integer(coordIdx++);
+            coords.put(lbl_coord, lbl_pos);
+            thisSlice.add(lbl_coord);
+        }
+
+        WorldCoordinate lbr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+            (float)(wcoords[1]),(float)(wcoords[2]));
+        Integer lbr_pos = coords.get(lbr_coord);
+//System.out.println("lbr: " + lbr_coord + " pos: " + lbr_pos);
+        if (lbr_pos == null) {
+//    System.out.println("lbr added: " + coordIdx);
+            lbr_pos = new Integer(coordIdx++);
+            coords.put(lbr_coord, lbr_pos);
+            thisSlice.add(lbr_coord);
+        }
+
+        WorldCoordinate ufl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2] + pixelSize));
+        Integer ufl_pos = coords.get(ufl_coord);
+//System.out.println("ufl: " + ufl_coord + " pos: " + ufl_pos);
+        if (ufl_pos == null) {
+//    System.out.println("ufl added: " + coordIdx);
+            ufl_pos = new Integer(coordIdx++);
+            coords.put(ufl_coord, ufl_pos);
+            thisSlice.add(ufl_coord);
+        }
+
+        WorldCoordinate ufr_coord = new WorldCoordinate((float)(wcoords[0]  + pixelSize),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2] + pixelSize));
+        Integer ufr_pos = coords.get(ufr_coord);
+//System.out.println("ufr: " + ufr_coord + " pos: " + ufr_pos);
+        if (ufr_pos == null) {
+//    System.out.println("ufr added: " + coordIdx);
+            ufr_pos = new Integer(coordIdx++);
+            coords.put(ufr_coord, ufr_pos);
+            thisSlice.add(ufr_coord);
+        }
+
+
+        WorldCoordinate lfl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1]),(float)(wcoords[2] + pixelSize));
+        Integer lfl_pos = coords.get(lfl_coord);
+//System.out.println("lfl: " + lfl_coord + " pos: " + lfl_pos);
+
+        if (lfl_pos == null) {
+//    System.out.println("lfl added: " + coordIdx);
+            lfl_pos = new Integer(coordIdx++);
+            coords.put(lfl_coord, lfl_pos);
+            thisSlice.add(lfl_coord);
+        }
+
+        WorldCoordinate lfr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+            (float)(wcoords[1]),(float)(wcoords[2] + pixelSize));
+        Integer lfr_pos = coords.get(lfr_coord);
+//System.out.println("lfr: " + lfr_coord + " pos: " + lfr_pos);
+
+        if (lfr_pos == null) {
+//    System.out.println("lfr added: " + coordIdx);
+            lfr_pos = new Integer(coordIdx++);
+            coords.put(lfr_coord, lfr_pos);
+            thisSlice.add(lfr_coord);
+        }
+
+        // Create Box
+
+        boolean displayFront = true;
+
+/*
+        if (cell.vcz < depth - 1) {
+            cstate = grid.getState(cell.vcx,cell.vcy,cell.vcz+1);
+
+            if (cstate == state) {
+                displayFront = false;
+                if (STATS) saved++;
+            }
+        }
+*/
+        if (displayFront) {
+            // Front Face
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(ufl_pos));
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(ufl_pos));
+            indices.add(new Integer(lfl_pos));
+        }
+
+        boolean displayBack = true;
+
+/*
+        if (cell.vcz > 0) {
+            cstate = grid.getState(cell.vcx,cell.vcy,cell.vcz-1);
+
+            if (cstate == state) {
+                displayBack = false;
+                if (STATS) saved++;
+            }
+        }
+*/
+
+        if (displayBack) {
+            // Back Face
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(ubr_pos));
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(ubl_pos));
+        }
+
+        boolean displayRight = true;
+
+/*
+        if (cell.vcx < width - 1) {
+            cstate = grid.getState(cell.vcx+1,cell.vcy,cell.vcz);
+System.out.println("check right  curr: " + state + " right: " + cstate);
+            if (cstate == state) {
+                displayRight = false;
+                if (STATS) saved++;
+            }
+        }
+*/
+        if (displayRight) {
+            // Right Face
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(ubr_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(lfr_pos));
+        }
+
+        boolean displayLeft = true;
+
+/*
+        if (cell.vcx > 0) {
+            cstate = grid.getState(cell.vcx-1,cell.vcy,cell.vcz);
+
+            if (cstate == state) {
+                displayLeft = false;
+                if (STATS) saved++;
+            }
+        }
+*/
+
+        if (displayLeft) {
+            // Left Face
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(ufl_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(lfl_pos));
+            indices.add(new Integer(ufl_pos));
+        }
+
+        boolean displayTop = true;
+
+/*
+        if (cell.vcy < height - 1) {
+            cstate = grid.getState(cell.vcx,cell.vcy+1,cell.vcz);
+
+            if (cstate == state) {
+                displayTop = false;
+                if (STATS) saved++;
+            }
+        }
+*/
+
+        if (displayTop) {
+            // Top Face
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(ubr_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(ufl_pos));
+        }
+
+        boolean displayBottom = true;
+
+/*
+        if (cell.vcy > 0) {
+            cstate = grid.getState(cell.vcx,cell.vcy-1,cell.vcz);
+
+            if (cstate == state) {
+                displayBottom = false;
+                if (STATS) saved++;
+            }
+        }
+*/
+
+        if (displayBottom) {
+            // Bottom Face
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(lfl_pos));
+            indices.add(new Integer(lbl_pos));
+        }
+
+        if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
+            ejectShape(stream, thisSlice, indices, color, transparency);
+        }
+    }
+
+    /**
+     * Eject a shape into the stream.
+     *
+     * @param stream The stream to use
+     * @param totalCoords The coords to use
+     * @param indices The indices to use
+     */
+    private void ejectBoxCollapse(BinaryContentHandler stream, Grid grid, OctreeCellInternalByte cell,
+        float[] color, float transparency) {
+
+//System.out.println("ejectBoxCollapse: " + cell.vcx + " " + cell.vcy + " " + cell.vcz + " size: " + cell.size);
+        double pixelSize = cell.size * grid.getVoxelSize();
+        double sheight = cell.size * grid.getSliceHeight();
+        double hpixelSize = cell.size * grid.getVoxelSize() / 2.0;
+        double hsheight = cell.size * grid.getSliceHeight() / 2.0;
+
+        long saved = 0;
+        byte cstate, state;
+
+        double[] wcoords = new double[3];
+
+        state = cell.allState.getState();
+
+        if (state == Grid.OUTSIDE) {
+System.out.println("Interior OUTSIDE!  size: " + cell.size);
+        }
+
+        grid.getWorldCoords(cell.vcx, cell.vcy, cell.vcz, wcoords);
+
+        WorldCoordinate ubl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2]));
+        Integer ubl_pos = coords.get(ubl_coord);
+
+//System.out.println("ubl: " + ubl_coord + " pos: " + ubl_pos);
+        if (ubl_pos == null) {
+//    System.out.println("ubl added: " + coordIdx);
+            ubl_pos = new Integer(coordIdx++);
+            coords.put(ubl_coord, ubl_pos);
+            thisSlice.add(ubl_coord);
+        }
+
+        WorldCoordinate ubr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2]));
+        Integer ubr_pos = coords.get(ubr_coord);
+//System.out.println("ubr: " + ubr_coord + " pos: " + ubr_pos);
+        if (ubr_pos == null) {
+//    System.out.println("ubr added: " + coordIdx);
+            ubr_pos = new Integer(coordIdx++);
+            coords.put(ubr_coord, ubr_pos);
+            thisSlice.add(ubr_coord);
+        }
+
+        // Origin of the cell
+        WorldCoordinate lbl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1]),(float)(wcoords[2]));
+        Integer lbl_pos = coords.get(lbl_coord);
+//System.out.println("lbl: " + lbl_coord + " pos: " + lbl_pos);
+        if (lbl_pos == null) {
+//    System.out.println("lbl added: " + coordIdx);
+            lbl_pos = new Integer(coordIdx++);
+            coords.put(lbl_coord, lbl_pos);
+            thisSlice.add(lbl_coord);
+        }
+
+        WorldCoordinate lbr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+            (float)(wcoords[1]),(float)(wcoords[2]));
+        Integer lbr_pos = coords.get(lbr_coord);
+//System.out.println("lbr: " + lbr_coord + " pos: " + lbr_pos);
+        if (lbr_pos == null) {
+//    System.out.println("lbr added: " + coordIdx);
+            lbr_pos = new Integer(coordIdx++);
+            coords.put(lbr_coord, lbr_pos);
+            thisSlice.add(lbr_coord);
+        }
+
+        WorldCoordinate ufl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2] + pixelSize));
+        Integer ufl_pos = coords.get(ufl_coord);
+//System.out.println("ufl: " + ufl_coord + " pos: " + ufl_pos);
+        if (ufl_pos == null) {
+//    System.out.println("ufl added: " + coordIdx);
+            ufl_pos = new Integer(coordIdx++);
+            coords.put(ufl_coord, ufl_pos);
+            thisSlice.add(ufl_coord);
+        }
+
+        WorldCoordinate ufr_coord = new WorldCoordinate((float)(wcoords[0]  + pixelSize),
+            (float)(wcoords[1] + sheight),(float)(wcoords[2] + pixelSize));
+        Integer ufr_pos = coords.get(ufr_coord);
+//System.out.println("ufr: " + ufr_coord + " pos: " + ufr_pos);
+        if (ufr_pos == null) {
+//    System.out.println("ufr added: " + coordIdx);
+            ufr_pos = new Integer(coordIdx++);
+            coords.put(ufr_coord, ufr_pos);
+            thisSlice.add(ufr_coord);
+        }
+
+
+        WorldCoordinate lfl_coord = new WorldCoordinate((float)(wcoords[0]),
+            (float)(wcoords[1]),(float)(wcoords[2] + pixelSize));
+        Integer lfl_pos = coords.get(lfl_coord);
+//System.out.println("lfl: " + lfl_coord + " pos: " + lfl_pos);
+
+        if (lfl_pos == null) {
+//    System.out.println("lfl added: " + coordIdx);
+            lfl_pos = new Integer(coordIdx++);
+            coords.put(lfl_coord, lfl_pos);
+            thisSlice.add(lfl_coord);
+        }
+
+        WorldCoordinate lfr_coord = new WorldCoordinate((float)(wcoords[0] + pixelSize),
+            (float)(wcoords[1]),(float)(wcoords[2] + pixelSize));
+        Integer lfr_pos = coords.get(lfr_coord);
+//System.out.println("lfr: " + lfr_coord + " pos: " + lfr_pos);
+
+        if (lfr_pos == null) {
+//    System.out.println("lfr added: " + coordIdx);
+            lfr_pos = new Integer(coordIdx++);
+            coords.put(lfr_coord, lfr_pos);
+            thisSlice.add(lfr_coord);
+        }
+
+        // Create Box
+
+        boolean displayFront = true;
+        boolean allSame = true;
+
+        if (cell.vcz < depth - cell.size) {
+            for(int i=0; i < cell.size; i++) {
+                for(int j=0; j < cell.size; j++) {
+                    for(int k=0; k < cell.size; k++) {
+                        cstate = grid.getState(cell.vcx+i,cell.vcy+j,cell.vcz+k+1);
+
+                        if (cstate != state) {
+                            allSame = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (allSame) {
+                displayFront = false;
+                if (STATS) saved += cell.size * cell.size * cell.size;
+            }
+        }
+
+        if (displayFront) {
+            // Front Face
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(ufl_pos));
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(ufl_pos));
+            indices.add(new Integer(lfl_pos));
+        }
+
+        boolean displayBack = true;
+        allSame = true;
+
+        if (cell.vcz > cell.size - 1) {
+            for(int i=0; i < cell.size; i++) {
+                for(int j=0; j < cell.size; j++) {
+                    for(int k=0; k < cell.size; k++) {
+                        cstate = grid.getState(cell.vcx+i,cell.vcy+j,cell.vcz+k-2);
+
+                        if (cstate != state) {
+                            allSame = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (allSame) {
+                displayBack = false;
+                if (STATS) saved += cell.size * cell.size * cell.size;
+            }
+        }
+
+        if (displayBack) {
+            // Back Face
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(ubr_pos));
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(ubl_pos));
+        }
+
+        boolean displayRight = true;
+        allSame = true;
+
+        if (cell.vcx < width - cell.size) {
+            for(int i=0; i < cell.size; i++) {
+                for(int j=0; j < cell.size; j++) {
+                    for(int k=0; k < cell.size; k++) {
+                        cstate = grid.getState(cell.vcx+i+1,cell.vcy+j,cell.vcz+k);
+
+                        if (cstate != state) {
+                            allSame = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (allSame) {
+                displayRight = false;
+                if (STATS) saved += cell.size * cell.size * cell.size;
+            }
+        }
+
+        if (displayRight) {
+            // Right Face
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(ubr_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(lfr_pos));
+        }
+
+        boolean displayLeft = true;
+        allSame = true;
+
+        if (cell.vcx > cell.size - 1) {
+            for(int i=0; i < cell.size; i++) {
+                for(int j=0; j < cell.size; j++) {
+                    for(int k=0; k < cell.size; k++) {
+                        cstate = grid.getState(cell.vcx+i-2,cell.vcy+j,cell.vcz+k);
+
+                        if (cstate != state) {
+                            allSame = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (allSame) {
+                displayLeft = false;
+                if (STATS) saved += cell.size * cell.size * cell.size;
+            }
+        }
+
+        if (displayLeft) {
+            // Left Face
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(ufl_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(lfl_pos));
+            indices.add(new Integer(ufl_pos));
+        }
+
+        boolean displayTop = true;
+        allSame = true;
+
+        if (cell.vcy < height - cell.size) {
+            for(int i=0; i < cell.size; i++) {
+                for(int j=0; j < cell.size; j++) {
+                    for(int k=0; k < cell.size; k++) {
+                        cstate = grid.getState(cell.vcx+i,cell.vcy+j+1,cell.vcz+k);
+
+                        if (cstate != state) {
+                            allSame = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (allSame) {
+                displayTop = false;
+                if (STATS) saved += cell.size * cell.size * cell.size;
+            }
+        }
+
+        if (displayTop) {
+            // Top Face
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(ubr_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(ufr_pos));
+            indices.add(new Integer(ubl_pos));
+            indices.add(new Integer(ufl_pos));
+        }
+
+        boolean displayBottom = true;
+        allSame = true;
+
+        if (cell.vcy > cell.size - 1) {
+            for(int i=0; i < cell.size; i++) {
+                for(int j=0; j < cell.size; j++) {
+                    for(int k=0; k < cell.size; k++) {
+                        cstate = grid.getState(cell.vcx+i,cell.vcy+j-2,cell.vcz+k);
+
+                        if (cstate != state) {
+                            allSame = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (allSame) {
+                displayBottom = false;
+                if (STATS) saved += cell.size * cell.size * cell.size;
+            }
+        }
+
+        if (displayBottom) {
+            // Bottom Face
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(lbl_pos));
+            indices.add(new Integer(lbr_pos));
+            indices.add(new Integer(lfr_pos));
+            indices.add(new Integer(lfl_pos));
+            indices.add(new Integer(lbl_pos));
+        }
+
+        if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
+            ejectShape(stream, thisSlice, indices, color, transparency);
+        }
+    }
 }
 

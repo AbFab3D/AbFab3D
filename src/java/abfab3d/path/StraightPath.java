@@ -33,6 +33,9 @@ public class StraightPath implements Path {
     /** The current position */
     private int[] currPos;
 
+    /** Is this path axis aligned */
+    private boolean axisAligned;
+
     public StraightPath(int[] dir) {
         if (dir[0] == 0 && dir[1] == 0 && dir[2] == 0) {
             throw new IllegalArgumentException("zero direction");
@@ -40,6 +43,19 @@ public class StraightPath implements Path {
 
         this.dir = dir.clone();
 
+        int dir_count = 0;
+
+        if (dir[0] != 0)
+            dir_count++;
+
+        if (dir[1] != 0)
+            dir_count++;
+
+        if (dir[2] != 0)
+            dir_count++;
+
+        if (dir_count == 1)
+            axisAligned = true;
     }
 
     /**
@@ -50,6 +66,19 @@ public class StraightPath implements Path {
      */
     public void init(int[] pos, int width, int height, int depth) {
         this.currPos = pos.clone();
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
+    }
+
+    /**
+     * Initial the path to the beginning.
+     *
+     * @param pos The initial pos
+     * @param numVoxels The number of voxels in grid.
+     */
+    public void init(int x, int y, int z, int width, int height, int depth) {
+        this.currPos = new int[] {x,y,z};
         this.width = width;
         this.height = height;
         this.depth = depth;
@@ -88,5 +117,32 @@ public class StraightPath implements Path {
      */
     public Path invertPath() {
         return new StraightPath(new int[] {-dir[0],-dir[1],-dir[2]});
+    }
+
+    /**
+     * Get the extents of this path.
+     *
+     * @param ret The extent, x1,x2,y1,y2,z1,z2.  Preallocate
+     */
+    public void getExtents(int[] ret) {
+        ret[0] = currPos[0];
+        ret[1] = ((dir[0] == 0) ? currPos[0] : width - 1);
+        ret[2] = currPos[1];
+        ret[3] = ((dir[1] == 0) ? currPos[1] : height - 1);
+        ret[4] = currPos[2];
+        ret[5] = ((dir[2] == 0) ? currPos[2] : depth - 1);
+    }
+
+    /**
+     * Is this path aligned on an axis?
+     *
+     * @return true if aligned
+     */
+    public boolean isAxisAligned() {
+        return axisAligned;
+    }
+
+    public String toString() {
+        return "StraightPath@" + hashCode() + " dir: " + java.util.Arrays.toString(dir);
     }
 }

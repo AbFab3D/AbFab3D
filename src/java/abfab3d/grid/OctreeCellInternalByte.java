@@ -86,7 +86,7 @@ public class OctreeCellInternalByte implements OctreeCell, Cloneable {
      * @return The voxel data
      */
     public VoxelData getData(int x, int y, int z) {
-//System.out.println("getData: " + x + " " + y + " " + z + " size: " + size);
+//System.out.println("getData: cell: " + hashCode() + " pos: " + x + " " + y + " " + z + " size: " + size);
         if (allState.getState() == MIXED) {
             int oc = findOctant(x,y,z);
 //System.out.println("  mixed, oct: " + oc);
@@ -95,9 +95,9 @@ public class OctreeCellInternalByte implements OctreeCell, Cloneable {
             if (child == null)
                 return BaseGrid.EMPTY_VOXEL;
 
-            return children[oc].getData(x,y,z);
+            return child.getData(x,y,z);
         } else {
-//System.out.println("  homo, hc: " + hashCode() + " state: " + vd.getState());
+//System.out.println("  homo, hc: " + hashCode() + " state: " + allState.getState());
             return allState;
         }
     }
@@ -131,7 +131,7 @@ if (DEBUG) System.out.println("Setting dataInternal: " + x + " " + y + " " + z +
         int amaterial = allState.getMaterial();
 
         if (level >= maxLevel) {
-if (DEBUG) System.out.println("Setting TERM: " + x + " " + y + " " + z + " new_state: " + state + " new_mat: " + material);
+if (DEBUG) System.out.println("Setting TERM: cell: " + hashCode() + " " + x + " " + y + " " + z + " new_state: " + state + " new_mat: " + material);
 if (DEBUG) System.out.println("   orig: " + vcx + " " + vcy + " " + vcz + " new_state: " + state + " new_mat: " + material);
 /*
             vcx = x - vcx;
@@ -222,6 +222,8 @@ if (DEBUG) System.out.println("   mixed, oc: " + oc);
         int new_size = size / 2;
         int new_level = level + 1;
 
+//System.out.println("Created Child, used pos: " + vcx + " " + vcy + " " + vcz + " new_size: " + new_size + " new_level: " + new_level);
+
         switch(pos) {
             case 0:
                 children[0] = new OctreeCellInternalByte(new_level,maxLevel,vcx,vcy,vcz,
@@ -297,13 +299,52 @@ if (DEBUG) System.out.println("   mixed, oc: " + oc);
         // local calced values
         int new_size = size / 2;
         int new_level = level + 1;
-        byte state;
-        byte material;
 
+//System.out.println("Split, would have used pos: " + vcx + " " + vcy + " " + vcz + " new_size: " + new_size + " new_level: " + new_level);
         if (oldState == Grid.OUTSIDE) {
+
+            switch(pos) {
+                case 0:
+                    children[0] = new OctreeCellInternalByte(new_level,maxLevel,vcx,vcy,vcz,
+                        new_size, oldState, oldMaterial);
+                    break;
+                case 1:
+                    children[1] = new OctreeCellInternalByte(new_level,maxLevel,vcx,vcy + new_size,vcz,
+                        new_size, oldState, oldMaterial);
+                    break;
+                case 2:
+                    children[2] = new OctreeCellInternalByte(new_level,maxLevel,vcx + new_size,vcy + new_size,vcz,
+                        new_size, oldState, oldMaterial);
+                    break;
+                case 3:
+                    children[3] = new OctreeCellInternalByte(new_level,maxLevel,vcx + new_size,vcy,vcz,
+                        new_size, oldState, oldMaterial);
+                    break;
+                case 4:
+                    children[4] = new OctreeCellInternalByte(new_level,maxLevel,vcx,vcy,vcz + new_size,
+                        new_size, oldState, oldMaterial);
+                    break;
+                case 5:
+                    children[5] = new OctreeCellInternalByte(new_level,maxLevel,vcx,vcy + new_size,vcz + new_size,
+                        new_size, oldState, oldMaterial);
+                    break;
+                case 6:
+                    children[6] = new OctreeCellInternalByte(new_level,maxLevel,vcx + new_size,vcy + new_size,vcz + new_size,
+                        new_size, oldState, oldMaterial);
+                    break;
+                case 7:
+                    children[7] = new OctreeCellInternalByte(new_level,maxLevel,vcx + new_size,vcy,vcz + new_size,
+                        new_size, oldState, oldMaterial);
+                    break;
+
+                }
+
+//System.out.println("pos: " + pos + " cell: " + children[pos].hashCode() + " orig: " + children[pos].vcx + " " + children[pos].vcy + " " + children[pos].vcz);
+/*
             // let null denote OUTSIDE
             children[pos] = new OctreeCellInternalByte(new_level,maxLevel,vcx,vcy,vcz,
                 new_size, oldState, oldMaterial);
+*/
         } else {
             children[0] = new OctreeCellInternalByte(new_level,maxLevel,vcx,vcy,vcz,
                 new_size, oldState, oldMaterial);
@@ -372,7 +413,6 @@ System.out.println("Going to parent: " + parent);
 */
     }
 
-
     /**
      * Find the octant of a voxel.  Numbered clockwise with 0 in lower left corner.
      *
@@ -383,15 +423,81 @@ System.out.println("Going to parent: " + parent);
      * @return The octant or -1 if not found
      */
     protected int findOctant(int x, int y, int z) {
+
+
+        int hsize = size / 2;
+
+        int dx = (x - vcx) / hsize;
+        int dy = (y - vcy) / hsize;
+        int dz = (z - vcz) / hsize;
+
+//System.out.println("Find Octant: size: " + size + " hsize: " + hsize + " x: " + x + " " + y + " " + z);
+//System.out.println("  orig: " + vcx + " " + vcy + " " + vcz);
+//System.out.println("   dx: " + dx + " dy: " + dy + " dz: " + dz);
+
+        int ret_val = -1;
+
+        if (dx == 0) {
+            if (dy == 0) {
+                if (dz == 0) {
+                    ret_val = 0;
+                } else {
+                    ret_val = 4;
+                }
+            } else {
+                if (dz == 0) {
+                    ret_val = 1;
+                } else {
+                    ret_val = 5;
+                }
+            }
+        } else {
+            if (dy == 0) {
+                if (dz == 0) {
+                    ret_val = 3;
+                } else {
+                    ret_val = 7;
+                }
+            } else {
+                if (dz == 0) {
+                    ret_val = 2;
+                } else {
+                    ret_val = 6;
+                }
+            }
+        }
+
+//System.out.println("   ret oct: " + ret_val);
+        return ret_val;
+    }
+
+
+    /**
+     * Find the octant of a voxel.  Numbered clockwise with 0 in lower left corner.
+     *
+     * @param x The x voxel coordinate
+     * @param y The y voxel coordinate
+     * @param z The z voxel coordinate
+     *
+     * @return The octant or -1 if not found
+     */
+    protected int findOctantOld(int x, int y, int z) {
         int dx = x - vcx;
         int dy = y - vcy;
         int dz = z - vcz;
         int hsize = size / 2;
 
-//System.out.println("Find Octant: hsize: " + hsize + " x: " + x + " " + y + " " + z);
-//System.out.println("   dx: " + dx + " dy: " + dy + " dz: " + dz);
+System.out.println("Find Octant: size: " + size + " hsize: " + hsize + " x: " + x + " " + y + " " + z);
+System.out.println("  orig: " + vcx + " " + vcy + " " + vcz);
+System.out.println("   dx: " + dx + " dy: " + dy + " dz: " + dz);
 
         int ret_val = -1;
+
+// TODO: Check not really necessary?
+        if (dx > hsize || dy > hsize || dz > hsize) {
+System.out.println("***Outside octant");
+            return -1;
+        }
 
         if (dx < hsize) {
             if (dy < hsize) {
@@ -423,7 +529,7 @@ System.out.println("Going to parent: " + parent);
             }
         }
 
-//System.out.println("   ret quad: " + ret_val);
+System.out.println("   ret oct: " + ret_val);
         return ret_val;
     }
 

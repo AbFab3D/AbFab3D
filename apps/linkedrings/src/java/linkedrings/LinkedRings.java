@@ -23,7 +23,6 @@ import org.j3d.geom.TorusGenerator;
 
 // Internal Imports
 import abfab3d.geom.*;
-import abfab3d.geom.CubeCreator.Style;
 import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
 
@@ -39,11 +38,11 @@ import abfab3d.io.output.BoxesX3DExporter;
  */
 public class LinkedRings {
     /** Horiztonal resolution of the printer in meters.  */
-    public static final double HORIZ_RESOLUTION = 0.00005;
+    public static final double HORIZ_RESOLUTION = 0.00003;
 //    public static final double HORIZ_RESOLUTION = 142e-6;   // 42 microns
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.00005;
+    public static final double VERT_RESOLUTION = 0.00003;
 //    public static final double VERT_RESOLUTION = 116e-6;   // 16 microns
 
     public void generate(String filename) {
@@ -63,7 +62,10 @@ public class LinkedRings {
             double bounds = TriangleModelCreator.findMaxBounds(geom);
             double size = rings * 2.1 * bounds;  // Slightly over allocate
 
-            Grid grid = new ArrayGridByte(size,size,size,
+System.out.println("voxels: " + (size / VERT_RESOLUTION));
+
+//            Grid grid = new ArrayGridByteIndexLong(size,size,size,
+            Grid grid = new OctreeGridByte(size,size,size,
                 HORIZ_RESOLUTION, VERT_RESOLUTION);
 
             TriangleModelCreator tmc = null;
@@ -81,17 +83,35 @@ public class LinkedRings {
 
             tmc.generate(grid);
 
-            x = 1 * bounds * 2.15;
-            rx = 1;
-            ry = 0;
-            rz = 0;
-            rangle = 1.57075;
+             x = 1 * bounds * 2.15;
+             rx = 1;
+             ry = 0;
+             rz = 0;
+             rangle = 1.57075;
 
-            tmc = new TriangleModelCreator(geom,x,y,z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,false);
+             tmc = new TriangleModelCreator(geom,x,y,z,
+                 rx,ry,rz,rangle,outerMaterial,innerMaterial,false);
 
-            tmc.generate(grid);
+             tmc.generate(grid);
+/*
+// Start test code
 
+            Grid grid2 = new ArrayGridByte(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+                HORIZ_RESOLUTION, VERT_RESOLUTION);
+
+
+
+            tmc.generate(grid2);
+
+            abfab3d.grid.query.Equals op = new abfab3d.grid.query.Equals(grid2);
+            if (!op.execute(grid)) {
+                System.out.println("Grids not equal!");
+            } else {
+                System.out.println("Grids equal.");
+            }
+
+// End Test Code
+*/
             x = bounds * 3.2;
             rx = 1;
             ry = 0;

@@ -63,6 +63,22 @@ public interface Grid extends Cloneable {
     public VoxelData getData(int x, int y, int z);
 
     /**
+     * Get the state of the voxels specified in the area.
+     *
+     * @param x1 The starting x grid coordinate
+     * @param x2 The ending x grid coordinate
+     * @param y1 The starting y grid coordinate
+     * @param y2 The ending y grid coordinate
+     * @param z1 The starting z grid coordinate
+     * @param z2 The ending z grid coordinate
+     *
+     * @param ret Returns the data at each position.  3 dim array represented as flat, must be preallocated
+     */
+     // Proposed addition but not implemented yet
+/*
+    public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret);
+*/
+    /**
      * Get the state of the voxel
      *
      * @param x The x world coordinate

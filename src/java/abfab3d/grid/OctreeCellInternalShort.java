@@ -383,39 +383,43 @@ System.out.println("Going to parent: " + parent);
      * @return The octant or -1 if not found
      */
     protected int findOctant(int x, int y, int z) {
-        int dx = x - vcx;
-        int dy = y - vcy;
-        int dz = z - vcz;
+
+
         int hsize = size / 2;
 
-//System.out.println("Find Octant: hsize: " + hsize + " x: " + x + " " + y + " " + z);
+        int dx = (x - vcx) / hsize;
+        int dy = (y - vcy) / hsize;
+        int dz = (z - vcz) / hsize;
+
+//System.out.println("Find Octant: size: " + size + " hsize: " + hsize + " x: " + x + " " + y + " " + z);
+//System.out.println("  orig: " + vcx + " " + vcy + " " + vcz);
 //System.out.println("   dx: " + dx + " dy: " + dy + " dz: " + dz);
 
         int ret_val = -1;
 
-        if (dx < hsize) {
-            if (dy < hsize) {
-                if (dz < hsize) {
+        if (dx == 0) {
+            if (dy == 0) {
+                if (dz == 0) {
                     ret_val = 0;
                 } else {
                     ret_val = 4;
                 }
             } else {
-                if (dz < hsize) {
+                if (dz == 0) {
                     ret_val = 1;
                 } else {
                     ret_val = 5;
                 }
             }
         } else {
-            if (dy < hsize) {
-                if (dz < hsize) {
+            if (dy == 0) {
+                if (dz == 0) {
                     ret_val = 3;
                 } else {
                     ret_val = 7;
                 }
             } else {
-                if (dz < hsize) {
+                if (dz == 0) {
                     ret_val = 2;
                 } else {
                     ret_val = 6;
@@ -423,7 +427,7 @@ System.out.println("Going to parent: " + parent);
             }
         }
 
-//System.out.println("   ret quad: " + ret_val);
+//System.out.println("   ret oct: " + ret_val);
         return ret_val;
     }
 

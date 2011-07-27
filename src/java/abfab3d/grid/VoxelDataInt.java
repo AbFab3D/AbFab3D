@@ -84,4 +84,27 @@ public class VoxelDataInt implements VoxelData {
     public Object clone() {
         return new VoxelDataByte(state, material);
     }
+
+    /**
+     * Compare this object for equality to the given object.
+     *
+     * @param o The object to be compared
+     * @return True if these represent the same values
+     */
+    public boolean equals(Object o) {
+        if(!(o instanceof VoxelData))
+            return false;
+        else
+            return equals((VoxelData)o);
+    }
+
+    /**
+     * Compares this object with the specified object to check for equivalence.
+     *
+     * @param ta The geometry instance to be compared
+     * @return true if the objects represent identical values
+     */
+    public boolean equals(VoxelData vd) {
+        return (vd.getState() == this.state && vd.getMaterial() == this.material);
+    }
 }

@@ -1,11 +1,13 @@
 <?xml version="1.0" standalone="yes"?>
 
-<project basedir="." default="compile" name="AbFab">
+<project basedir="." default="compile" name="AbFab3D">
     <import file="build_common.xml" />
   
     <description></description>
 
-    <property name="version" value="0.5.0" />    
+    <property name="version" value="0.8" />    
+    <property name="version.point" value="1" />
+
     <property name="src.dir" value="${basedir}/src"/>
     <property name="apps.dir" value="${basedir}/apps"/>
     <property name="release.dir" value="${basedir}/release"/>
@@ -30,7 +32,7 @@
 
     <target name="build" 
         description="Complete clean, setup, compilation, run" 
-        depends="clean,init,compile" />
+        depends="clean,init,compile,jar" />
 
     <!-- Create destination directories -->
     <target name="init" description="Create destination directories">
@@ -162,13 +164,13 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="support/junit-4.8.1.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="support/junit-4.8.1.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="support/junit-4.8.1.jar j3d-org-all_1.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_1.0.0.jar support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="support/junit-4.8.1.jar" />
   </target>
 
   <target name="testSpecific" depends="compile,compileTest">
-    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="false">
+    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="yes">
       <jvmarg line="${jvmrunargs}"/>
     
       <formatter type="plain" usefile="false"/>
@@ -198,5 +200,48 @@
          </fileset>
       </copy>          
     </target>
+    
+  <target name="stageSource" >
+    <tstamp>
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+    </tstamp>
+    
+      <tar destfile="release/abfab3d_source_${version}.${version.point}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/**"/>      
+  </target>
+
+  <target name="stageApps" >
+    <tstamp>
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+    </tstamp>
+    
+      <tar destfile="release/abfab3d_source_${version}.${version.point}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/**"/>      
+  </target>
+    
+  <target name="stageLib">
+    <tstamp>
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+    </tstamp>
+    
+    <mkdir dir="${release.dir}/bin"/>  
+    
+    <copy todir="${release.dir}/bin">
+        <fileset dir="${jar.dir}" includes="**.jar" />
+        <fileset dir="${lib.dir}" includes="**.jar" />       
+    </copy>  
+    <tar destfile="release/abfab3d_lib_${version}.${version.point}_${DATE}.tar.gz"  compression="gzip" basedir="${release.dir}/bin" includes="**" />    
+  </target>
+    
+  <target name="release" depends="build">
+    <tstamp>
+        <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
+    </tstamp>
+  
+    <delete dir="${release.dir}" failonerror="false" />
+    <mkdir dir="${release.dir}"/>  
+
+    <ant target="stageLib" />    
+    <ant target="stageSource" />
+  </target>
+    
 </project>
 

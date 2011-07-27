@@ -28,6 +28,7 @@ public class TestQuerySuite extends TestSuite {
         TestSuite suite = new TestSuite("Grid Query Test Suite");
 
         suite.addTest(TestCanMoveMaterial.suite());
+        suite.addTest(TestCanMoveMaterialOctree.suite());
 
         return suite;
     }

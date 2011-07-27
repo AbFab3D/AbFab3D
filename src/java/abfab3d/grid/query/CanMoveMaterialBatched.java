@@ -19,26 +19,22 @@ import java.util.HashSet;
 
 import abfab3d.grid.*;
 import abfab3d.grid.Grid.VoxelClasses;
-import abfab3d.path.Path;
+import abfab3d.path.*;
 
 /**
  * Determines whether an object specified by a materialID can move
  *
- * Might be able to optimize by moving the axis most version of
- * of something and then not having to calculate the rest in that
- * axis.  Might only work for axis aligned?  cast ray along negative
- * axis and say all those are ok if connected.
-
- *
+ * This version uses the getData region version to reduce call
+ * overhead.
  *
  * @author Alan Hudson
  */
-public class CanMoveMaterial implements ClassTraverser {
+public class CanMoveMaterialBatched implements ClassTraverser {
     /** The material to remove */
     private int material;
 
     /** The path to use */
-    private Path path;
+    private StraightPath path;
 
     /** Did all the voxels escape */
     private boolean allEscaped;
@@ -47,9 +43,9 @@ public class CanMoveMaterial implements ClassTraverser {
     private Grid grid;
 
     /** Coordinates that can be ignored */
-    HashSet<VoxelCoordinate> ignoreSet;
+    private HashSet<VoxelCoordinate> ignoreSet;
 
-    public CanMoveMaterial(int material,Path path) {
+    public CanMoveMaterialBatched(int material,StraightPath path) {
         this.material = material;
         this.path = path;
     }
@@ -69,7 +65,6 @@ public class CanMoveMaterial implements ClassTraverser {
         this.ignoreSet = new HashSet<VoxelCoordinate>();
 
         // TODO: just use material and say class only moves external?
-//        grid.findInterruptible(VoxelClasses.EXTERIOR, material, this);
         grid.findInterruptible(material, this);
 
         return allEscaped;
@@ -108,24 +103,60 @@ public class CanMoveMaterial implements ClassTraverser {
             return true;
         }
 
-        int[] pos = new int[] {x,y,z};
+        int[] pos = new int[3];
 
         // Move along path till edge or
-        path.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
+//System.out.println("pos: " + java.util.Arrays.toString(pos) + " w: " + grid.getWidth());
+        path.init(x,y,z, grid.getWidth(), grid.getHeight(), grid.getDepth());
 
         boolean escaped = true;
 
-        while(path.next(pos)) {
-            VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+        int aligned_count = 0;
+//System.out.println("extents: " + java.util.Arrays.toString(extents));
+        if (!path.isAxisAligned()) {
 
-//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
-            if (vd.getState() != Grid.OUTSIDE &&
-                vd.getMaterial() != material) {
+if (1==1) {
+System.out.println("Not aligned: " + path);
+}
+            // Diagonal path, process unbatched
+            while(path.next(pos)) {
+                VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
 
-//System.out.println("Collide");
-                // found another materials voxel
-                escaped = false;
-                break;
+    //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
+                if (vd.getState() != Grid.OUTSIDE &&
+                    vd.getMaterial() != material) {
+
+    //System.out.println("Collide");
+                    // found another materials voxel
+                    escaped = false;
+                    break;
+                }
+            }
+        } else {
+            int[] extents = new int[6];
+            path.getExtents(extents);
+            int len = (extents[1] - extents[0] + 1) * (extents[3] - extents[2] + 1) * (extents[5] - extents[4] + 1);
+
+            VoxelData[] voxels = new VoxelData[len];
+
+System.out.println("getData method not implemented");
+//            grid.getData(extents[0], extents[1], extents[2], extents[3], extents[4], extents[5], voxels);
+
+//System.out.println("len: " + len);
+//System.out.println(java.util.Arrays.toString(voxels));
+            for(int i=0; i < len; i++) {
+                VoxelData vd = voxels[i];
+
+    //System.out.println("i: " + i + " vd: " + vd);
+    //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
+                if (vd.getState() != Grid.OUTSIDE &&
+                    vd.getMaterial() != material) {
+
+    //System.out.println("Collide");
+                    // found another materials voxel
+                    escaped = false;
+                    break;
+                }
             }
         }
 

@@ -32,6 +32,8 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class BoxesX3DExporter implements Exporter {
+    private static final boolean STATS = true;
+
     /** The maximum coords to put in a shape */
     private static final int MAX_TRIANGLES_SHAPE = 300000;
 
@@ -46,6 +48,7 @@ public class BoxesX3DExporter implements Exporter {
 
     public BoxesX3DExporter(String encoding, OutputStream os, ErrorReporter console) {
         this.console = console;
+
 
         if (encoding.equals("x3db")) {
             writer = new X3DBinaryRetainedDirectExporter(os,
@@ -83,6 +86,11 @@ public class BoxesX3DExporter implements Exporter {
      */
     public void write(Grid grid, Map<Integer, float[]> matColors) {
 
+        if (grid instanceof OctreeGridByte) {
+            ((OctreeGridByte)grid).write(writer, (OctreeGridByte)grid, matColors);
+            return;
+        }
+
         HashMap<WorldCoordinate,Integer> coords = new HashMap<WorldCoordinate,Integer>();
         ArrayList<Integer> indices = new ArrayList<Integer>();
         ArrayList<WorldCoordinate> lastSlice = new ArrayList<WorldCoordinate>();
@@ -94,9 +102,12 @@ public class BoxesX3DExporter implements Exporter {
 
         double x,y,z;
         int idx = 0;
-        float[] color = new float[] {0.8f,0.8f,0.8f};
-        float transparency = 0;
+//        float[] color = new float[] {0.8f,0.8f,0.8f};
+System.out.println("color is blue");
+        float[] color = new float[] {34/255.0f,139/255.0f,34/255.0f};
+        float transparency = 0.5f;
         int saved = 0;
+        int voxels = 0;
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
@@ -133,6 +144,7 @@ public class BoxesX3DExporter implements Exporter {
                         continue;
 
 
+                    if (STATS) voxels++;
 
 // TODO: Need to map material
 
@@ -229,7 +241,7 @@ public class BoxesX3DExporter implements Exporter {
 
                         if (cstate == state) {
                             displayFront = false;
-                            saved++;
+                            if (STATS) saved++;
                         }
                     }
 
@@ -249,7 +261,7 @@ public class BoxesX3DExporter implements Exporter {
 
                         if (cstate == state) {
                             displayBack = false;
-                            saved++;
+                            if (STATS) saved++;
                         }
                     }
 
@@ -270,7 +282,7 @@ public class BoxesX3DExporter implements Exporter {
 
                         if (cstate == state) {
                             displayRight = false;
-                            saved++;
+                            if (STATS) saved++;
                         }
                     }
 
@@ -291,7 +303,7 @@ public class BoxesX3DExporter implements Exporter {
 
                         if (cstate == state) {
                             displayLeft = false;
-                            saved++;
+                            if (STATS) saved++;
                         }
                     }
 
@@ -312,7 +324,7 @@ public class BoxesX3DExporter implements Exporter {
 
                         if (cstate == state) {
                             displayTop = false;
-                            saved++;
+                            if (STATS) saved++;
                         }
                     }
 
@@ -333,7 +345,7 @@ public class BoxesX3DExporter implements Exporter {
 
                         if (cstate == state) {
                             displayBottom = false;
-                            saved++;
+                            if (STATS) saved++;
                         }
                     }
 
@@ -374,6 +386,9 @@ public class BoxesX3DExporter implements Exporter {
         // End Centering Transform
         writer.endField();
         writer.endNode();
+
+        if (STATS) System.out.println("voxel: " + voxels + " sides: " + (voxels * 6) + " saved: " + saved + " %: " + ((float)saved / voxels * 6));
+
     }
 
     /**
@@ -442,7 +457,9 @@ public class BoxesX3DExporter implements Exporter {
         ejectFooter();
     }
 
-    private void outputState(Grid grid, BinaryContentHandler stream, byte display, float[] color, float transparency) {
+    private void outputState(Grid grid, BinaryContentHandler stream, byte display,
+        float[] color, float transparency) {
+
         HashMap<WorldCoordinate,Integer> coords = new HashMap<WorldCoordinate,Integer>();
         ArrayList<Integer> indices = new ArrayList<Integer>();
         ArrayList<WorldCoordinate> lastSlice = new ArrayList<WorldCoordinate>();
@@ -455,6 +472,7 @@ public class BoxesX3DExporter implements Exporter {
         double x,y,z;
         int idx = 0;
         int saved = 0;
+        int voxels = 0;
 
         int width = grid.getWidth();
         int height = grid.getHeight();
@@ -463,6 +481,10 @@ public class BoxesX3DExporter implements Exporter {
         double hpixelSize = grid.getVoxelSize() / 2.0;
         double sheight = grid.getSliceHeight();
         double hsheight = grid.getSliceHeight() / 2.0;
+
+        if (STATS)
+            System.out.println("Output State: " + display);
+        // TODO: change to iterator for faster speed
 
         for(int i=0; i < height; i++) {
             y = i * sheight;
@@ -482,6 +504,7 @@ public class BoxesX3DExporter implements Exporter {
                         continue;
 
 
+                    if (STATS) voxels++;
 
 // TODO: Need to map material
 
@@ -719,6 +742,7 @@ public class BoxesX3DExporter implements Exporter {
 
         ejectShape(stream, totalCoords, indices, color, transparency);
 
+        if (STATS) System.out.println("voxel: " + voxels + " sides: " + (voxels * 6) + " saved: " + saved + " %: " + ((float)saved / voxels * 6));
     }
 
     /**
@@ -798,9 +822,9 @@ public class BoxesX3DExporter implements Exporter {
 
         writer.startNode("Viewpoint", null);
         writer.startField("position");
-        bstream.fieldValue(new float[] {0.028791402f,0.005181627f,0.11549001f},3);
+        bstream.fieldValue(new float[] {-0.005963757f,-5.863309E-4f,0.06739192f},3);
         writer.startField("orientation");
-        bstream.fieldValue(new float[] {-0.06263941f,0.78336f,0.61840385f,0.31619227f},4);
+        bstream.fieldValue(new float[] {-0.9757987f,0.21643901f,0.031161053f,0.2929703f},4);
         writer.endNode(); // Viewpoint
     }
 
