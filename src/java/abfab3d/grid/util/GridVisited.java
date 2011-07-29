@@ -193,8 +193,6 @@ import abfab3d.grid.VoxelCoordinate;
         if (visitedSet == null)
             return;
 
-        System.out.println("Changing representation to array");
-
         visitedArray = new boolean[width][height][depth];
 
         Iterator<VoxelCoordinate> itr = visitedSet.iterator();
