@@ -22,8 +22,13 @@ package abfab3d.grid;
  */
 
 public class VoxelCoordinate implements Cloneable {
+    /** The x coordinate */
     protected int x;
+
+    /** The y coordinate */
     protected int y;
+
+    /** The z coordinate */
     protected int z;
 
     public VoxelCoordinate(int x, int y, int z) {

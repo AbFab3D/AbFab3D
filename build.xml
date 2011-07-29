@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="yes"?>
 
-<project basedir="." default="compile" name="AbFab3D">
+<project basedir="." default="build" name="AbFab3D">
     <import file="build_common.xml" />
   
     <description></description>
@@ -49,6 +49,9 @@
             jars=""
         />
         <compilejava package="abfab3d/grid"
+            jars=""
+        />
+        <compilejava package="abfab3d/grid/util"
             jars=""
         />
         <compilejava package="abfab3d/grid/op"
@@ -163,6 +166,7 @@
      <mkdir dir="${test.classes.dir}" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/util" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="support/junit-4.8.1.jar j3d-org-all_1.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_1.0.0.jar support/junit-4.8.1.jar" />

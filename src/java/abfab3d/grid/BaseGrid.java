@@ -31,13 +31,28 @@ public abstract class BaseGrid implements Grid, Cloneable {
     // Empty voxel data value
     protected static final VoxelData EMPTY_VOXEL;
 
+    /** The width of the grid */
     protected int width;
+
+    /** The height of the grid */
     protected int height;
+
+    /** The depth of the grid */
     protected int depth;
+
+    /** The horizontal voxel size */
     protected double pixelSize;
+
+    /** Half the horizontal size */
     protected double hpixelSize;
+
+    /** The slice height */
     protected double sheight;
+
+    /** Half the slice height */
     protected double hsheight;
+
+    /** The number of voxels in a slice */
     protected int sliceSize;
 
     static {
