@@ -482,6 +482,25 @@ public abstract class BaseGrid implements Grid, Cloneable {
     }
 
     /**
+     * Determine if a voxel coordinate is inside the grid space.
+     *
+     * @param x The x coordinate
+     * @param y The y coordinate
+     * @param z The z coordinate
+     * @return True if the coordinate is inside the grid space
+     */
+    public boolean insideGrid(int x, int y, int z) {
+        if (x >= 0 && x < width &&
+            y >= 0 && y < height &&
+            z >= 0 && z < depth) {
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Get the number of height cells.
      *
      * @return the val

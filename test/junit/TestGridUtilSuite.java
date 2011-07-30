@@ -15,21 +15,20 @@ import junit.framework.TestSuite;
 import junit.framework.Test;
 
 // Internal Imports
-import abfab3d.grid.query.*;
+import abfab3d.grid.util.*;
 
 /**
- * Grid Query Tests
+ * Grid Util Operation Tests
  *
  * @author Alan Hudson
  * @version
  */
-public class TestQuerySuite extends TestSuite {
+public class TestGridUtilSuite extends TestSuite {
     public static Test suite() {
-        TestSuite suite = new TestSuite("Grid Query Test Suite");
+        TestSuite suite = new TestSuite("Grid Util Test Suite");
 
-        suite.addTest(TestCanMoveMaterial.suite());
-        suite.addTest(TestCanMoveMaterialOctree.suite());
-        suite.addTest(TestRegionFinder.suite());
+        suite.addTest(TestGridVisited.suite());
+
         return suite;
     }
 }

@@ -311,5 +311,15 @@ public interface Grid extends Cloneable {
      * @param mat The materialID
      */
     public void removeMaterial(int mat);
+
+    /**
+     * Determine if a voxel coordinate is inside the grid space.
+     *
+     * @param x The x coordinate
+     * @param y The y coordinate
+     * @param z The z coordinate
+     * @return True if the coordinate is inside the grid space
+     */
+    public boolean insideGrid(int x,int y, int z);
 }
 

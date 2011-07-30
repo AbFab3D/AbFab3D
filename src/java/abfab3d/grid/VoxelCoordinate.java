@@ -17,6 +17,7 @@ package abfab3d.grid;
  * Typically stored in a Java collection object.
  *
  * This structure will be optimized for memory savings in the future.
+ * Pass in max w,h,d in new constructor, use bit operations for lower storage costs
  *
  * @author Alan Hudson
  */
@@ -86,5 +87,9 @@ public class VoxelCoordinate implements Cloneable {
         Object ret_val = new VoxelCoordinate(x,y,z);
 
         return ret_val;
+    }
+
+    public String toString() {
+        return "VoxelCoordinate hc: " + hashCode() + " x: " + x + " y: " + y + " z: " + z;
     }
 }

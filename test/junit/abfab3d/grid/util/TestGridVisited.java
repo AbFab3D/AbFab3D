@@ -19,7 +19,7 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.util.GridVisited;
-import abfab3d.grid.VoxelCoordinate;
+import abfab3d.grid.*;
 
 /**
  * Tests the functionality of the GridVisited class
@@ -117,6 +117,89 @@ public class TestGridVisited extends TestCase {
 
         assertEquals("Get Visited", gv.getVisited(new VoxelCoordinate(0,0,0)),true);
         assertEquals("Get Not Visited", gv.getVisited(new VoxelCoordinate(1,0,0)),false);
+    }
+
+    public void testFindUnvisited() {
+        int w = 2;
+        int h = 2;
+        int d = 2;
+
+        Grid grid = new ArrayGridByte(w,h,d,0.1,0.1);
+        grid.setData(0,0,0,Grid.EXTERIOR,1);
+        grid.setData(0,0,1,Grid.EXTERIOR,1);
+
+        GridVisited gv = new GridVisited(w,h,d,1);
+
+        gv.setVisited(new VoxelCoordinate(0,0,0), true);
+
+        VoxelCoordinate unvisited = new VoxelCoordinate(0,0,1);
+
+        VoxelCoordinate vc = gv.findUnvisited(grid);
+
+        assertEquals(vc, unvisited);
+
+        gv.setVisited(unvisited, true);
+
+        vc = gv.findUnvisited(grid);
+
+        assertNull(vc);
+    }
+
+    public void testFindUnvisitedArray() {
+        int w = 2;
+        int h = 2;
+        int d = 2;
+
+        Grid grid = new ArrayGridByte(w,h,d,0.1,0.1);
+        grid.setData(0,0,0,Grid.EXTERIOR,1);
+        grid.setData(0,0,1,Grid.EXTERIOR,1);
+
+        // Force to array
+        GridVisited gv = new GridVisited(w,h,d,0);
+
+        gv.setVisited(new VoxelCoordinate(0,0,0), true);
+
+        VoxelCoordinate unvisited = new VoxelCoordinate(0,0,1);
+
+        VoxelCoordinate vc = gv.findUnvisited(grid);
+
+        assertEquals(vc, unvisited);
+
+        gv.setVisited(unvisited, true);
+
+        vc = gv.findUnvisited(grid);
+
+        assertNull(vc);
+    }
+
+    public void testFindUnvisitedCount() {
+        int w = 10;
+        int h = 10;
+        int d = 10;
+
+        Grid grid = new ArrayGridByte(w,h,d,0.1,0.1);
+        grid.setData(0,0,0,Grid.EXTERIOR,1);
+        grid.setData(0,0,1,Grid.EXTERIOR,1);
+        grid.setData(0,1,0,Grid.EXTERIOR,1);
+        grid.setData(0,1,1,Grid.EXTERIOR,1);
+        grid.setData(0,2,0,Grid.EXTERIOR,1);
+        grid.setData(0,2,1,Grid.EXTERIOR,1);
+
+        GridVisited gv = new GridVisited(w,h,d,1);
+
+        int cnt = 0;
+
+
+        VoxelCoordinate vc = gv.findUnvisited(grid);
+
+        while(vc != null) {
+            gv.setVisited(vc, true);
+            cnt++;
+
+            vc = gv.findUnvisited(grid);
+        }
+
+        assertEquals("Visisted count", 6, cnt);
     }
 
 }

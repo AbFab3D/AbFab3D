@@ -527,4 +527,23 @@ public class RangeCheckWrapper implements GridWrapper {
             throw new NullPointerException("Grid has not been set");
         }
     }
+
+    /**
+     * Determine if a voxel coordinate is inside the grid space.
+     *
+     * @param x The x coordinate
+     * @param y The y coordinate
+     * @param z The z coordinate
+     * @return True if the coordinate is inside the grid space
+     */
+    public boolean insideGrid(int x, int y, int z) {
+        if (x >= 0 && x < grid.getWidth() &&
+            y >= 0 && y < grid.getHeight() &&
+            z >= 0 && z < grid.getDepth()) {
+
+            return true;
+        }
+
+        return false;
+    }
 }

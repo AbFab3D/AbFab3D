@@ -16,8 +16,7 @@
 import java.util.*;
 
 // Internal Imports
-import abfab3d.grid.Grid;
-import abfab3d.grid.VoxelCoordinate;
+import abfab3d.grid.*;
 
  /**
   * Tracks whether a voxel has been visited.
@@ -31,7 +30,7 @@ import abfab3d.grid.VoxelCoordinate;
   *
   * @author Alan Hudson
   */
- public class GridVisited {
+ public class GridVisited implements ClassTraverser {
     /** Memory usage for VoxelCoordinate.  Guess Java memory usage */
     private static final int VC_MEMORY = 4 + 8 + 3 * 4;
 
@@ -53,6 +52,12 @@ import abfab3d.grid.VoxelCoordinate;
 
     /** The maximum entries before swapping representations */
     protected int maxEntries;
+
+    /** Grid for findUnvisited calc. */
+    protected Grid grid;
+
+    /** The unvisited coordinate found */
+    protected VoxelCoordinate unvisited;
 
     /**
      * Constructor.  maxEntriesMultiplier is set to 1X
@@ -178,6 +183,22 @@ import abfab3d.grid.VoxelCoordinate;
     }
 
     /**
+     * Find an unvisited voxel from the specified grid.
+     *
+     * @param grid The grid
+     */
+    public VoxelCoordinate findUnvisited(Grid grid) {
+        this.grid = grid;
+        unvisited = null;
+
+        grid.findInterruptible(Grid.VoxelClasses.MARKED, this);
+
+        grid = null;
+
+        return unvisited;
+    }
+
+    /**
      * Clear the visited status.
      */
     public void clear() {
@@ -204,4 +225,52 @@ import abfab3d.grid.VoxelCoordinate;
 
         visitedSet = null;
     }
+
+    /**
+     * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public void found(int x, int y, int z, VoxelData vd) {
+        // ignore
+    }
+
+    /**
+     * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     *
+     * @return True to continue, false stops the traversal.
+     */
+    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+        if (visitedSet != null) {
+            VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
+            if (visitedSet.contains(vc)) {
+                return true;
+            }
+
+            unvisited = vc;
+
+            return false;
+        } else {
+            if (visitedArray[x][y][z] == true) {
+                // continue search
+                return true;
+            } else {
+                unvisited = new VoxelCoordinate(x,y,z);
+                return false;
+            }
+        }
+    }
+
  }
