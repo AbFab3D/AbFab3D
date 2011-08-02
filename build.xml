@@ -85,6 +85,12 @@
         <compilejava package="abfab3d/validate"
             jars=""
         />
+        <compilejava package="abfab3d/creator"
+            jars=""
+        />
+        <compilejava package="abfab3d/creator/shapeways"
+            jars=""
+        />
     </target>
 
     <target name="compileApps" depends="init" description="Compile all applications">

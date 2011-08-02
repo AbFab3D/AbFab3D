@@ -67,6 +67,10 @@ public class TestRegionFinder extends TestCase {
      * Test basic operation
      */
     public void testMultiple() {
+        int w = 20;
+        int h = 20;
+        int d = 20;
+
         Grid grid = new ArrayGridByte(20,20,20,0.1,0.1);
 
         // Create a simple region
@@ -133,6 +137,19 @@ public class TestRegionFinder extends TestCase {
 
         assertEquals("ListRegion2 count", region2.size(), count);
 
+        // Test outside support
+/*
+        rf = new RegionFinder(new VoxelCoordinate(0,0,0), 10);
+        regions = rf.execute(grid);
+
+        assertNotNull("Regions", regions);
+        assertEquals("Regions size", 2, regions.size());
+
+        region = (ListRegion) regions.get(0);
+        count = region.getNumCoords();
+
+        assertEquals("Outside Region count", w*h*d - region1.size() - region2.size(), count);
+*/
     }
 
 }

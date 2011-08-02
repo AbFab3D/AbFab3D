@@ -23,6 +23,8 @@ import abfab3d.grid.util.GridVisited;
  * Find all the regions in a grid.  It starts from the main region and
  * continues to all other regions.
  *
+ * TODO: no correct for finding OUTSIDE region
+ *
  * @author Alan Hudson
  */
 public class RegionFinder {
@@ -97,6 +99,7 @@ public class RegionFinder {
      * Grow a region from a starting seed.
      */
     private void growRegion(VoxelCoordinate start, ListRegion region) {
+        int start_state = grid.getState(start.getX(), start.getY(), start.getZ());
 
         ArrayList<VoxelCoordinate> new_list = new ArrayList<VoxelCoordinate>();
         new_list.add(start);
@@ -123,6 +126,12 @@ public class RegionFinder {
 
                 int state = grid.getState(i,j,k);
 
+                if (start_state == Grid.OUTSIDE && state != Grid.OUTSIDE)
+                    continue;
+
+                if (start_state != Grid.OUTSIDE && state == Grid.OUTSIDE)
+                    continue;
+
                 if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
                     region.add(vc);
 
@@ -140,9 +149,14 @@ public class RegionFinder {
 
                                 if (grid.insideGrid(ni,nj,nk) && !visited.getVisited(ni,nj,nk)) {
                                     state = grid.getState(ni,nj,nk);
-                                    if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                        add_list.add(new VoxelCoordinate(ni,nj,nk));
-                                    }
+
+                                    if (start_state == Grid.OUTSIDE && state != Grid.OUTSIDE)
+                                        continue;
+
+                                    if (start_state != Grid.OUTSIDE && state == Grid.OUTSIDE)
+                                        continue;
+
+                                    add_list.add(new VoxelCoordinate(ni,nj,nk));
                                 }
                             }
                         }
