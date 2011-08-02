@@ -1175,8 +1175,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         		ft.foundAllVoxels());
         
         // remove all mat1
-        Operation op = new RemoveMaterial(mat1);
-        op.execute(grid);
+        grid.removeMaterial(mat1);
         
         // check that find mat1 returns false and iterate count returns zero
         ft = new FindIterateTester(vcSetMat1);
@@ -1279,7 +1278,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
 class FindIterateTester implements ClassTraverser {
 	private boolean foundCorrect;
 	private HashSet<VoxelCoordinate> vcSet;
-	private int interateCount;
+	private int iterateCount;
 	private int vcSetCount;
 	
 	/**
@@ -1290,7 +1289,7 @@ class FindIterateTester implements ClassTraverser {
 	public FindIterateTester(HashSet<VoxelCoordinate> vc) {
 		this.vcSet = (HashSet<VoxelCoordinate>)vc.clone();
 		foundCorrect = true;
-		interateCount = 0;
+		iterateCount = 0;
 		vcSetCount = vcSet.size();
 	}
 	
@@ -1312,7 +1311,7 @@ class FindIterateTester implements ClassTraverser {
         	foundCorrect = false;
         }
         
-        interateCount++;
+        iterateCount++;
     }
     
     /**
@@ -1336,7 +1335,7 @@ class FindIterateTester implements ClassTraverser {
         	return false;
         }
 
-        interateCount++;
+        iterateCount++;
         return true;
     }
     
@@ -1347,9 +1346,9 @@ class FindIterateTester implements ClassTraverser {
      * @return True if voxels were found correctly
      */
     public boolean foundAllVoxels() {
-//System.out.println("interatorCount: " + interatorCount);
+//System.out.println("iterateCount: " + iterateCount);
 //System.out.println("vcSetCount: " + vcSetCount);
-    	return (foundCorrect && (interateCount == vcSetCount));
+    	return (foundCorrect && (iterateCount == vcSetCount));
     }
     
     /**
@@ -1358,7 +1357,7 @@ class FindIterateTester implements ClassTraverser {
      * @return count of the times voxels of the correct state was found\
      */
     public int getIterateCount() {
-    	return interateCount;
+    	return iterateCount;
     }
     
     /**
