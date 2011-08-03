@@ -38,11 +38,11 @@ import abfab3d.io.output.BoxesX3DExporter;
  */
 public class LinkedRings {
     /** Horiztonal resolution of the printer in meters.  */
-    public static final double HORIZ_RESOLUTION = 0.00003;
+    public static final double HORIZ_RESOLUTION = 0.00009;
 //    public static final double HORIZ_RESOLUTION = 142e-6;   // 42 microns
 
     /** Verticle resolution of the printer in meters.  */
-    public static final double VERT_RESOLUTION = 0.00003;
+    public static final double VERT_RESOLUTION = 0.00009;
 //    public static final double VERT_RESOLUTION = 116e-6;   // 16 microns
 
     public void generate(String filename) {
@@ -79,7 +79,7 @@ System.out.println("voxels: " + (size / VERT_RESOLUTION));
 
 
             tmc = new TriangleModelCreator(geom,x,y,z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,false);
+                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
             tmc.generate(grid);
 
@@ -90,7 +90,7 @@ System.out.println("voxels: " + (size / VERT_RESOLUTION));
              rangle = 1.57075;
 
              tmc = new TriangleModelCreator(geom,x,y,z,
-                 rx,ry,rz,rangle,outerMaterial,innerMaterial,false);
+                 rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
              tmc.generate(grid);
 /*
@@ -119,7 +119,7 @@ System.out.println("voxels: " + (size / VERT_RESOLUTION));
             rangle = 0;
 
             tmc = new TriangleModelCreator(geom,x,y,z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,false);
+                rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
             tmc.generate(grid);
 
@@ -133,6 +133,19 @@ System.out.println("voxels: " + (size / VERT_RESOLUTION));
             stime = System.currentTimeMillis();
 
             exporter.write(grid, null);
+/*
+            HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
+            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
+            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
+
+            HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
+            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
+            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
+
+            exporter.writeDebug(grid, colors, transparency);
+*/
             exporter.close();
 
             System.out.println("GenX3D time: " + (System.currentTimeMillis() - stime));

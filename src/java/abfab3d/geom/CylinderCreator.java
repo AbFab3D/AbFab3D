@@ -65,7 +65,7 @@ public class CylinderCreator extends GeometryCreator {
         this.rangle = ra;
         this.materialID = material;
 
-        if (rx == 1 && (rangle - 1.57075 < 0.00001)) {
+        if (rx == 1 && (Math.abs(rangle - 1.57075) < 0.00001)) {
             System.out.println("x rotate set2");
             swapYZ = true;
             double t = y;
@@ -99,9 +99,7 @@ public class CylinderCreator extends GeometryCreator {
 
     System.out.println("Generate grid from: " + start + " end: " + end);
             for(int y=start; y < end; y++) {
-    System.out.println("y: " + y);
-//                rasterCircleSwapYZ(grid, xc, y, zc, r, materialID);
-                rasterCircleSwapYZ(grid, xc, zc, y, r, materialID);
+                rasterCircleSwapYZ(grid, xc, y, zc, r, materialID);
             }
         } else {
             grid.getGridCoords(x,y - h,z,coords1);
@@ -113,9 +111,8 @@ public class CylinderCreator extends GeometryCreator {
             int xc = coords1[0];
             int zc = coords1[2];
 
-    System.out.println("Generate grid from: " + start + " end: " + end);
+    System.out.println("Generate grid from: " + start + " end: " + end + " at: " + xc + " " + zc + " r: " + r);
             for(int y=start; y < end; y++) {
-    System.out.println("y: " + y);
                 rasterCircle(grid, xc, y, zc, r, materialID);
             }
         }
@@ -193,7 +190,7 @@ public class CylinderCreator extends GeometryCreator {
         int x = 0;
         int z = radius;
 
-System.out.println("rcswap: " + x0 + " " + " " + y0 + " " + z0 + " " + radius);
+//System.out.println("rcswap: " + x0 + " " + " " + y0 + " " + z0 + " " + radius);
         grid.setData(x0, z0 + radius, y0, Grid.EXTERIOR, mat);
         //setPixel(x0, z0 + radius);
 

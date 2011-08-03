@@ -23,6 +23,7 @@ import javax.vecmath.*;
 // Internal Imports
 import abfab3d.grid.*;
 import abfab3d.grid.op.*;
+import abfab3d.util.MatrixUtil;
 
 /**
  * Creates a model from a 3D Triangle model.
@@ -158,12 +159,10 @@ public class TriangleModelCreator extends GeometryCreator {
 
         // Find exterior voxels using triangle/voxel overlaps.  Color Voxels.
 
-        Matrix4d mat = new Matrix4d();
-        mat.setIdentity();
-        mat.setTranslation(new Vector3d(x,y,z));
-
-        if (rangle != 0)
-            mat.setRotation(new AxisAngle4d(rx,ry,rz,rangle));
+        Matrix4d mat = MatrixUtil.createMatrix(
+        new double[] {0,0,0},
+                new double[] {1,1,1}, new double[] {rx,ry,rz,rangle}, new double[] {x,y,z},
+                new double[] {0,0,1,0});
 
 //System.out.println("Triangulate with material: " + outerMaterialID);
         int idx = 0;

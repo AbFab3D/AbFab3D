@@ -30,7 +30,7 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class ApplyImage implements Operation {
-    /** The y origin */
+    /** The x origin */
     private int x0;
 
     /** The y origin */
@@ -103,6 +103,7 @@ public class ApplyImage implements Operation {
 System.out.println("src: " + src_w_pixels + " " + src_h_pixels);
 System.out.println("scale: " + w_scale + " h: " + h_scale);
 System.out.println("target: " + w + " " + h);
+System.out.println("depth: " + pixelDepth);
         BufferedImage cell_img =
             new BufferedImage(w, h,
                               BufferedImage.TYPE_BYTE_GRAY);
