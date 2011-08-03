@@ -32,6 +32,11 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
+    private static final int OUTSIDE = 0;
+    private static final int ENTERING = 1;
+    private static final int EXITING = 2;
+    private static final int INSIDE = 3;
+
     /** The material to process */
     protected int material;
 
@@ -94,41 +99,45 @@ System.out.println("Outer material: " + material);
 
 
 //System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status + " mat: " + vd.getMaterial());
-                    if (status == 0) {
+                    if (status == OUTSIDE) {
                         if (state == Grid.EXTERIOR) {
 //System.out.println("Found exterior at: " + x + " " + y + " " + z);
-                            status = 1;
+                            status = ENTERING;
                         } else if (state == Grid.INTERIOR) {
                             // No exterior voxel found?
-                            status = 3;
+                            status = INSIDE;
                         }
-                    } else if (status == 1) {
+                    } else if (status == ENTERING) {
                         if (state == Grid.OUTSIDE) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
-                            status = 3;
+//                            status = 3;
+                            status = OUTSIDE;
                             continue;
                         } else if (state == Grid.INTERIOR) {
 //System.out.println("Found inside at2: " + x + " " + y + " " + z);
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
-                            status = 3;
+                            status = INSIDE;
                         }
-                    } else if (status == 2) {
+                    } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
-                            status = 0;
+                            status = OUTSIDE;
                         } else if (state == Grid.INTERIOR) {
-                            status = 3;
+                            status = INSIDE;
                         }
-                    } else if (status == 3) {
+                    } else if (status == INSIDE) {
                         if (state == Grid.OUTSIDE) {
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
+
+                            // TODO: Added
+                            status = OUTSIDE;
                             continue;
                         } else if (state == Grid.INTERIOR) {
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
                             continue;
                         } else if (state == Grid.EXTERIOR) {
 //System.out.println("Exiting at1: " + x + " " + y + " " + z);
-                            status = 2;
+                            status = EXITING;
                         }
                     }
                 }
@@ -156,43 +165,45 @@ System.out.println("XAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 
 //System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
 
-                    if (status == 0) {
+                    if (status == OUTSIDE) {
                         if (state == Grid.EXTERIOR) {
 //System.out.println("Found exterior at: " + x + " " + y + " " + z);
-                            status = 1;
+                            status = ENTERING;
                         } else if (state == Grid.INTERIOR) {
                             // No exterior voxel found?
-                            status = 3;
+                            status = INSIDE;
                             continue;
                         }
-                    } else if (status == 1) {
+                    } else if (status == ENTERING) {
                         if (state == Grid.OUTSIDE) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
-                            status = 3;
+//                            status = 3;
+                            status = OUTSIDE;
                             continue;
                         } else if (state == Grid.INTERIOR) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
-                            status = 3;
+                            status = INSIDE;
                         }
-                    } else if (status == 2) {
+                    } else if (status == ENTERING) {
                         if (state == Grid.OUTSIDE) {
-                            status = 0;
+                            status = OUTSIDE;
                         } else if (state == Grid.INTERIOR) {
-                            status = 3;
+                            status = INSIDE;
                             continue;
                         }
-                    } else if (status == 3) {
+                    } else if (status == INSIDE) {
                         if (state == Grid.OUTSIDE) {
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
+                            status = OUTSIDE;
                             continue;
                         } else if (state == Grid.INTERIOR) {
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
                             continue;
                         } else if (state == Grid.EXTERIOR) {
 //System.out.println("Exiting at1: " + x + " " + y + " " + z);
-                            status = 2;
+                            status = EXITING;
                         }
                     }
 
@@ -222,35 +233,35 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 
 //System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
 
-                    if (status == 0) {
+                    if (status == OUTSIDE) {
                         if (state == Grid.EXTERIOR) {
 //System.out.println("Found exterior at: " + x + " " + y + " " + z);
-                            status = 1;
+                            status = ENTERING;
                         } else if (state == Grid.INTERIOR) {
                             // No exterior voxel found?
-                            status = 3;
+                            status = INSIDE;
                         }
-                    } else if (status == 1) {
+                    } else if (status == ENTERING) {
                         if (state == Grid.OUTSIDE) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
                             if (result.getState(x,y,z) == Grid.INTERIOR) {
-                                status = 3;
+                                status = OUTSIDE;
                                 continue;
                             }
                         } else if (state == Grid.INTERIOR) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
                             if (result.getState(x,y,z) == Grid.INTERIOR) {
-                                status = 3;
+                                status = INSIDE;
                             }
                         }
-                    } else if (status == 2) {
+                    } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
-                            status = 0;
+                            status = OUTSIDE;
                         } else if (state == Grid.INTERIOR) {
-                            status = 3;
+                            status = INSIDE;
                             continue;
                         }
-                    } else if (status == 3) {
+                    } else if (status == INSIDE) {
                         if (state == Grid.OUTSIDE) {
                             if (result.getState(x,y,z) == Grid.INTERIOR) {
                                 result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
@@ -263,7 +274,7 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                             }
                         } else if (state == Grid.EXTERIOR) {
 //System.out.println("Exiting at1: " + x + " " + y + " " + z);
-                            status = 2;
+                            status = ENTERING;
                         }
                     }
 
