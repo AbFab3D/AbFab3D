@@ -65,6 +65,40 @@
         </java>  
     </target>
 
+    <target name="runStandalone" depends="createUI" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}" />
+        <java classname="imageeditor.ui.Editor" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />   
+                <pathelement path="${abfab3d.classes.dir}" />
+                <fileset dir="${abfab3d.lib.dir}" />              
+<!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>  
+    </target>
+
+    <target name="createUI" depends="compile" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}" />
+        <java classname="imageeditor.UICreator" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />   
+                <pathelement path="${abfab3d.classes.dir}" />
+                <fileset dir="${abfab3d.lib.dir}" />              
+<!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>  
+        
+        <compilejava package="imageeditor/ui" jars="">
+           <classpath-elements>
+                <pathelement path="${abfab3d.classes.dir}" />
+           </classpath-elements>
+        </compilejava>
+    </target>
+
     <target name="javadoc" description="Generates javadoc" depends="compile">
         <echo message="Generating javadoc..." />
         <javadoc sourcepath="${src.dir}/java" 
