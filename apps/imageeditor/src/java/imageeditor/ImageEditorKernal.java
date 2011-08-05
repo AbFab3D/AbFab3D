@@ -26,7 +26,7 @@ import abfab3d.geom.*;
 import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.grid.op.*;
-import abfab3d.creator.GeometryKernal;
+import abfab3d.creator.*;
 import abfab3d.creator.shapeways.*;
 
 import javax.vecmath.*;
@@ -91,23 +91,86 @@ public class ImageEditorKernal implements GeometryKernal {
     /**
      * Get the parameters for this editor.
      *
-     * @return The parameter names.
+     * @return The parameters.
      */
-    public List<String> getParams() {
-        ArrayList<String> list = new ArrayList<String>();
-        list.add("resolution");
-        list.add("bodyWidth");
-        list.add("bodyHeight");
-        list.add("bodyDepth");
-        list.add("bodyGeometry");
-        list.add("bodyImage");
-        list.add("bodyImageInvert");
-        list.add("bodyImageType");
-        list.add("bailStyle");
-        list.add("bailInnerRadius");
-        list.add("bailOuterRadius");
+    public Map<String,Parameter> getParams() {
+        HashMap<String,Parameter> params = new HashMap<String,Parameter>();
 
-        return list;
+        int seq = 0;
+        int step = 0;
+
+        params.put("bodyImage", new Parameter("bodyImage", "The image to use for the front body", "images/cat.png", 1,
+            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+            step, seq++, false, 0, 0.1, null, null)
+        );
+
+        params.put("bodyImageInvert", new Parameter("bodyImageInvert", "Should we use black for cutting", "true", 1,
+            Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0, 0.1, null, null)
+        );
+
+        params.put("bodyImageType", new Parameter("bodyImageType", "The type of image", "SQUARE", 1,
+            Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0, 0.1, null, new String[] {"SQUARE","CIRCULAR"})
+        );
+
+        params.put("bodyImageDepth", new Parameter("bodyImageDepth", "The depth the image should cut", "0.0042", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, false, -1, 1, null, null)
+        );
+
+        step++;
+        seq = 0;
+
+        params.put("resolution", new Parameter("resolution", "How accurate to model the object", "0.00018", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("minWallThickness", new Parameter("minWallThickness", "The minimum wallthickness", "0.003", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, true, 0, 1, null, null)
+        );
+
+        params.put("bodyWidth", new Parameter("bodyWidth", "The width of the main body", "0.025", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0.03, 1, null, null)
+        );
+
+        params.put("bodyHeight", new Parameter("bodyHeight", "The height of the main body", "0.04", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0.03, 1, null, null)
+        );
+
+        params.put("bodyDepth", new Parameter("bodyDepth", "The depth of the main body", "0.0032", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0, 0.1, null, null)
+        );
+
+        params.put("bodyGeometry", new Parameter("bodyGeometry", "The geometry to use for the body", "CUBE", 1,
+            Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0, 0.1, null, new String[] {"CUBE","CYLINDER","NONE"})
+        );
+
+        step++;
+        seq = 0;
+
+        params.put("bailStyle", new Parameter("bailStyle", "The connector(bail) to use", "TORUS", 1,
+            Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0, 0.1, null, new String[] {"TORUS","NONE"})
+        );
+
+        params.put("bailInnerRadius", new Parameter("bailInnerRadius", "The inner radius of the bail", "0.001", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0, 0.01, null, null)
+        );
+
+        params.put("bailOuterRadius", new Parameter("bailOuterRadius", "The outer radius of the bail", "0.004", 1,
+            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+            step, seq++, false, 0, 0.01, null, null)
+        );
+
+        return params;
     }
 
     /**
@@ -116,10 +179,10 @@ public class ImageEditorKernal implements GeometryKernal {
      * @param params The parameters
      * @param os The stream to write out the file.
      */
-    public void generate(Map<String,String> params, OutputStream os)
+    public void generate(Map<String,Object> params, OutputStream os)
         throws IOException {
 
-        parseParams(params);
+        pullParams(params);
 
         // Calculate maximum bounds
 
@@ -251,7 +314,15 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
                 picTyPixels = (int) ((body_cy - ((radius - minWallThickness))) / resolution);
                 picTzPixels = 0;
             }
+        } else if (geometry.equalsIgnoreCase("NONE")) {
+            bodyImageWidthPixels = bodyWidthPixels;
+            bodyImageHeightPixels = bodyHeightPixels;
+
+            picTxPixels = ((int) Math.ceil((body_cx - bodyWidth / 2.0) / resolution));
+            picTyPixels = ((int) Math.ceil((body_cy - bodyHeight / 2.0) / resolution));
+            picTzPixels = 0;   // Start outside
         }
+
 
         int threshold = 75;
         int bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
@@ -416,14 +487,67 @@ if (1==0) {
 //        int x = w - metrics.stringWidth(text)/2;
         //int x = metrics.stringWidth(text)/2;
         int x = 0;
-System.out.println("width: " + metrics.stringWidth(text) + " x: " + x);
+
         int y = h - 80;
 
-System.out.println("putting text at: " + x + " " + y);
         g.drawString(text, x, y);
 
         return cell_img;
 
+    }
+
+    /**
+     * Pull the params into local variables
+     *
+     * @param params The parameters
+     */
+    private void pullParams(Map<String,Object> params) {
+        String pname = null;
+
+        try {
+            pname = "resolution";
+            resolution = ((Double) params.get(pname)).doubleValue();
+
+            pname = "minWallThickness";
+            minWallThickness = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyWidth";
+            bodyWidth = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyHeight";
+            bodyHeight = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyDepth";
+            bodyDepth = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyImage";
+            filename = (String) params.get(pname);
+
+            pname = "bodyGeometry";
+            geometry = (String) params.get(pname);
+
+            pname = "bodyImageInvert";
+            invert = ((Boolean) params.get(pname)).booleanValue();
+
+            pname = "bodyImageType";
+            bodyImageType = (String) params.get(pname);
+
+            pname ="bailStyle";
+            bailStyle = (String) params.get(pname);
+
+            pname ="bailInnerRadius";
+            bailInnerRadius = ((Double) params.get(pname)).doubleValue();
+
+            pname ="bailOuterRadius";
+            bailOuterRadius = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyImageDepth";
+            bodyImageDepth = ((Double) params.get(pname)).doubleValue();
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
+        }
     }
 
     /**
@@ -566,8 +690,11 @@ System.out.println("putting text at: " + x + " " + y);
     private void write(Grid grid, String type, OutputStream os, ErrorReporter console) {
         // Output File
         BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
+        float[] mat_color = new float[] {0.8f,0.8f,0.8f,0};
+        HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
+        colors.put(new Integer(1), mat_color);
 
-        exporter.write(grid, null);
+        exporter.write(grid, colors);
         exporter.close();
     }
 
