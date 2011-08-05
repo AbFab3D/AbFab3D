@@ -45,7 +45,6 @@ public class JavaStandaloneUICreator {
      * @param remove The parameters to remove
      */
     public void createInterface(String dir, Map<String,String> genParams, GeometryKernal kernal, Set<String> remove) {
-System.out.println("Creating Java Interface");
         this.kernal = kernal;
 
         try {
@@ -132,12 +131,19 @@ System.out.println("Creating Java Interface");
     private void addParameterUI(PrintStream ps, Parameter p) {
 System.out.println("Adding param: " + p.getName());
         ps.println(indent(8) + "JLabel " + p.getName() + "Label = new JLabel(\"" + p.getName() + "\");");
+        ps.println(indent(8) + p.getName() + "Label.setToolTipText(\"" + p.getDesc() + "\");");
         ps.println(indent(8) + "getContentPane().add(" + p.getName() + "Label);");
 
         switch(getEditor(p)) {
             case COMBOBOX:
                 ps.println(indent(8) + "String[] " + p.getName() + "Enums = new String[] {");
-                String[] vals = p.getEnumValues();
+                String[] vals = null;
+
+                if (p.getDataType() == Parameter.DataType.BOOLEAN) {
+                    vals = new String[] {"true", "false"};
+                } else {
+                    vals = p.getEnumValues();
+                }
 
                 ps.print(indent(12));
                 for(int i=0; i < vals.length; i++) {
@@ -214,6 +220,8 @@ System.out.println("Adding param: " + p.getName());
                 case COMBOBOX:
                     ps.println(indent(12) + p.getName() + " = (String) ((JComboBox)" + p.getName() + "Editor).getSelectedItem();");
                     break;
+                default:
+                    System.out.println("Unhandled action for editor: " + getEditor(p));
             }
 
         }
@@ -341,6 +349,10 @@ System.out.println("Adding param: " + p.getName());
         }
 
         if (p.getDataType() == Parameter.DataType.ENUM) {
+            return Editors.COMBOBOX;
+        }
+
+        if (p.getDataType() == Parameter.DataType.BOOLEAN) {
             return Editors.COMBOBOX;
         }
 
