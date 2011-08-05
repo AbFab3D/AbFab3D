@@ -74,6 +74,9 @@ public class ImageEditorKernal implements GeometryKernal {
     /** The depth of body image */
     private double bodyImageDepth;
 
+    /** The body image style:  EMBOSSED, ENGRAVED */
+    private String bodyImageStyle;
+
     /** The body image type:  SQUARE, CIRCULAR */
     private String bodyImageType;
 
@@ -99,55 +102,60 @@ public class ImageEditorKernal implements GeometryKernal {
         int seq = 0;
         int step = 0;
 
-        params.put("bodyImage", new Parameter("bodyImage", "The image to use for the front body", "images/cat.png", 1,
+        params.put("bodyImage", new Parameter("bodyImage", "Body Image", "The image to use for the front body", "images/cat.png", 1,
             Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
 
-        params.put("bodyImageInvert", new Parameter("bodyImageInvert", "Should we use black for cutting", "true", 1,
+        params.put("bodyImageInvert", new Parameter("bodyImageInvert", "Invert Image", "Should we use black for cutting", "true", 1,
             Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0, 0.1, null, null)
         );
 
-        params.put("bodyImageType", new Parameter("bodyImageType", "The type of image", "SQUARE", 1,
+        params.put("bodyImageType", new Parameter("bodyImageType", "Image Mapping Technique", "The type of image", "SQUARE", 1,
             Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0, 0.1, null, new String[] {"SQUARE","CIRCULAR"})
+            step, seq++, true, 0, 0.1, null, new String[] {"SQUARE","CIRCULAR"})
         );
 
-        params.put("bodyImageDepth", new Parameter("bodyImageDepth", "The depth the image should cut", "0.0042", 1,
+        params.put("bodyImageStyle", new Parameter("bodyImageStyle", "Depth Technique", "The image operation", "ENGRAVED", 1,
+            Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+            step, seq++, false, -1, 1, null, new String[] {"ENGRAVED","EMBOSSED"})
+        );
+
+        params.put("bodyImageDepth", new Parameter("bodyImageDepth", "Depth Amount", "The depth of the image", "0.0042", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, -1, 1, null, null)
+            step, seq++, false, 0, 1, null, null)
         );
 
         step++;
         seq = 0;
 
-        params.put("resolution", new Parameter("resolution", "How accurate to model the object", "0.00018", 1,
+        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00018", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, true, 0, 0.1, null, null)
         );
 
-        params.put("minWallThickness", new Parameter("minWallThickness", "The minimum wallthickness", "0.003", 1,
+        params.put("minWallThickness", new Parameter("minWallThickness", "Minimum WallThickness", "The minimum wallthickness", "0.003", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, true, 0, 1, null, null)
         );
 
-        params.put("bodyWidth", new Parameter("bodyWidth", "The width of the main body", "0.025", 1,
+        params.put("bodyWidth", new Parameter("bodyWidth", "Body Width", "The width of the main body", "0.025", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0.03, 1, null, null)
         );
 
-        params.put("bodyHeight", new Parameter("bodyHeight", "The height of the main body", "0.04", 1,
+        params.put("bodyHeight", new Parameter("bodyHeight", "Body Height", "The height of the main body", "0.04", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0.03, 1, null, null)
         );
 
-        params.put("bodyDepth", new Parameter("bodyDepth", "The depth of the main body", "0.0032", 1,
+        params.put("bodyDepth", new Parameter("bodyDepth", "Body Depth", "The depth of the main body", "0.0032", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0, 0.1, null, null)
         );
 
-        params.put("bodyGeometry", new Parameter("bodyGeometry", "The geometry to use for the body", "CUBE", 1,
+        params.put("bodyGeometry", new Parameter("bodyGeometry", "Body Shape", "The geometry to use for the body", "CUBE", 1,
             Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0, 0.1, null, new String[] {"CUBE","CYLINDER","NONE"})
         );
@@ -155,17 +163,17 @@ public class ImageEditorKernal implements GeometryKernal {
         step++;
         seq = 0;
 
-        params.put("bailStyle", new Parameter("bailStyle", "The connector(bail) to use", "TORUS", 1,
+        params.put("bailStyle", new Parameter("bailStyle", "Connector Style", "The connector(bail) to use", "TORUS", 1,
             Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0, 0.1, null, new String[] {"TORUS","NONE"})
         );
 
-        params.put("bailInnerRadius", new Parameter("bailInnerRadius", "The inner radius of the bail", "0.001", 1,
+        params.put("bailInnerRadius", new Parameter("bailInnerRadius", "Connector Inner Radius", "The inner radius of the bail", "0.001", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0, 0.01, null, null)
         );
 
-        params.put("bailOuterRadius", new Parameter("bailOuterRadius", "The outer radius of the bail", "0.004", 1,
+        params.put("bailOuterRadius", new Parameter("bailOuterRadius", "Connector Outer Radius", "The outer radius of the bail", "0.004", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0, 0.01, null, null)
         );
@@ -184,6 +192,15 @@ public class ImageEditorKernal implements GeometryKernal {
 
         pullParams(params);
 
+        if (geometry.equalsIgnoreCase("CYLINDER")) {
+
+            if (bodyWidth > bodyHeight) {
+                bodyWidth = bodyHeight;
+            } else {
+                bodyHeight = bodyWidth;
+            }
+        }
+
         // Calculate maximum bounds
 
         // TODO: We should be able to accurately calculate this
@@ -191,10 +208,14 @@ public class ImageEditorKernal implements GeometryKernal {
         double max_height = (bodyHeight + bailOuterRadius) * 1.2;
         double max_depth = 0;
 
-        if (Math.abs(bodyImageDepth) > bodyDepth) {
-            max_depth = Math.abs(bodyImageDepth) * 1.2;
+        if (bodyImageStyle.equalsIgnoreCase("EMBOSSED")) {
+            max_depth = 2 * bodyImageDepth + bodyDepth;
         } else {
-            max_depth = bodyDepth * 1.2;
+            if (Math.abs(bodyImageDepth) > bodyDepth) {
+                max_depth = Math.abs(bodyImageDepth) * 1.2;
+            } else {
+                max_depth = bodyDepth * 1.2;
+            }
         }
 
         if (geometry.equalsIgnoreCase("CYLINDER")) {
@@ -286,6 +307,7 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
         int picTxPixels = 0;
         int picTyPixels = 0;
         int picTzPixels = 0;
+        int bodyImageDepthPixels = 0;
 
         if (geometry.equalsIgnoreCase("CUBE")) {
             bodyImageWidthPixels = bodyWidthPixels - 2 * bodyImageMarginWidthPixels;
@@ -293,9 +315,18 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
 
             picTxPixels = ((int) Math.ceil((body_cx - bodyWidth / 2.0) / resolution)) + bodyImageMarginWidthPixels;
             picTyPixels = ((int) Math.ceil((body_cy - bodyHeight / 2.0) / resolution)) + bodyImageMarginHeightPixels;
-            picTzPixels = 0;   // Start outside
+
+            if (bodyImageStyle.equalsIgnoreCase("EMBOSSED")) {
+                picTzPixels = (int) ((body_cz + bodyDepth / 2.0) / resolution);
+                bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
+            } else {
+                picTzPixels = 0;   // Start outside
+                bodyImageDepthPixels = (int) Math.ceil(max_depth / resolution);
+            }
+    System.out.println("cube image tx: " + picTxPixels + " " + picTyPixels + " " + picTzPixels);
+
         } else if (geometry.equalsIgnoreCase("CYLINDER")) {
-            double radius = bodyWidth / 2.0f;
+            double radius = bodyWidth / 2.0;
 
             if (bodyImageType.equalsIgnoreCase("SQUARE")) {
                 // This calc is for whole image
@@ -304,15 +335,33 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
 
                 picTxPixels = (int) ((body_cx - ((radius - minWallThickness) * Math.sin(0.785398163))) / resolution);
                 picTyPixels = (int) ((body_cy - ((radius - minWallThickness) * Math.sin(0.785398163))) / resolution);
-                picTzPixels = 0;      // Ideally this would be just outside bodyDepth
 
+                if (bodyImageStyle.equalsIgnoreCase("EMBOSSED")) {
+                    picTzPixels = (int) ((body_cz + bodyDepth / 2.0) / resolution);
+                    bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
+                } else {
+                    picTzPixels = 0;   // Start outside
+                    bodyImageDepthPixels = (int) Math.ceil(max_depth / resolution);
+                }
             } else if (bodyImageType.equalsIgnoreCase("CIRCULAR")) {
                 bodyImageWidthPixels = (int) (2 * Math.floor((((radius - minWallThickness))/resolution)));
                 bodyImageHeightPixels = bodyImageWidthPixels;
 
                 picTxPixels = (int) ((body_cx - ((radius - minWallThickness))) / resolution);
                 picTyPixels = (int) ((body_cy - ((radius - minWallThickness))) / resolution);
-                picTzPixels = 0;
+
+                if (bodyImageStyle.equalsIgnoreCase("EMBOSSED")) {
+                    picTzPixels = (int) ((body_cz + bodyDepth / 2.0) / resolution);
+                    bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
+                } else {
+                    picTzPixels = 0;   // Start outside
+
+                    // Desired code
+                    bodyImageDepthPixels = (int) Math.ceil(max_depth / resolution);
+
+                    // Old Code
+                    //bodyImageDepthPixels = (int) Math.ceil(bodyDepth / resolution);
+                }
             }
         } else if (geometry.equalsIgnoreCase("NONE")) {
             bodyImageWidthPixels = bodyWidthPixels;
@@ -321,11 +370,12 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
             picTxPixels = ((int) Math.ceil((body_cx - bodyWidth / 2.0) / resolution));
             picTyPixels = ((int) Math.ceil((body_cy - bodyHeight / 2.0) / resolution));
             picTzPixels = 0;   // Start outside
+            bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
         }
 
 
         int threshold = 75;
-        int bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
+
         boolean removeStray = true;
 
         Grid grid2 = null;
@@ -348,13 +398,13 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
     //picTy = picTy*2;
 
             op = new ApplyImage(image,picTxPixels,picTyPixels,picTzPixels,bodyImageWidthPixels, bodyImageHeightPixels,
-                threshold, invert, (int) Math.abs(bodyImageDepthPixels), removeStray, mat);
+                threshold, invert, bodyImageDepthPixels, removeStray, mat);
 
             op.execute(grid2);
 
-            if (bodyImageDepth > 0)
+            if (bodyImageStyle.equalsIgnoreCase("ENGRAVED")) {
                 op = new Subtract(grid2, 0, 0, 0, 1);
-            else
+            } else
                 op = new Union(grid2, 0, 0, 0, 1);
 
             op.execute(grid);
@@ -532,6 +582,9 @@ if (1==0) {
             pname = "bodyImageType";
             bodyImageType = (String) params.get(pname);
 
+            pname = "bodyImageStyle";
+            bodyImageStyle = (String) params.get(pname);
+
             pname ="bailStyle";
             bailStyle = (String) params.get(pname);
 
@@ -547,143 +600,6 @@ if (1==0) {
         } catch(Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
-        }
-    }
-
-    /**
-     * Parse and validate the parameters.  Issues an IllegalArgumentException on errors.
-     *
-     * @param params The parameters
-     */
-    private void parseParams(Map<String,String> params) {
-        String pname = "resolution";
-        String param = params.get(pname);
-
-        try {
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-            resolution = Double.parseDouble(param);
-
-            pname = "bodyWidth";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-            bodyWidth = Double.parseDouble(param);
-
-            pname = "bodyHeight";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-            bodyHeight = Double.parseDouble(param);
-
-            pname = "bodyDepth";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-            bodyDepth = Double.parseDouble(param);
-
-            pname = "minWallThickness";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-            minWallThickness = Double.parseDouble(param);
-
-
-            pname = "bodyImage";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-            filename = param;
-
-            if (!filename.equals("NONE") && !new File(filename).exists()) {
-                throw new IllegalArgumentException(pname + " not found: " + filename);
-            }
-
-            pname = "bodyGeometry";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-
-            geometry = param;
-            if (!geometry.equalsIgnoreCase("CUBE") &&
-                !geometry.equalsIgnoreCase("CYLINDER") &&
-                !geometry.equalsIgnoreCase("NONE")) {
-
-                throw new IllegalArgumentException("Unsupported: " + pname + " value: " + param);
-            }
-
-            pname = "bodyImageInvert";
-            param = params.get(pname);
-
-            if (param != null) {
-                invert = Boolean.parseBoolean(param);
-            }
-
-            pname = "bodyImageType";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-
-            // TODO: We could autodetect this from the image
-            bodyImageType = param;
-            if (!bodyImageType.equalsIgnoreCase("SQUARE") &&
-                !bodyImageType.equalsIgnoreCase("CIRCULAR")) {
-
-                throw new IllegalArgumentException("Unsupported: " + pname + " value: " + param);
-            }
-
-            pname ="bailStyle";
-            param = params.get(pname);
-            bailStyle = param;
-            if (!bailStyle.equalsIgnoreCase("TORUS") &&
-                !bailStyle.equalsIgnoreCase("NONE")) {
-                throw new IllegalArgumentException("Unsupported: " + pname + " value: " + param);
-            }
-
-            pname ="bailInnerRadius";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-
-            bailInnerRadius = Double.parseDouble(param);
-
-            pname ="bailOuterRadius";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-
-            bailOuterRadius = Double.parseDouble(param);
-
-            pname = "bodyImageDepth";
-            param = params.get(pname);
-
-            if (param == null) {
-                throw new IllegalArgumentException("Required param: " + pname + " not found");
-            }
-            bodyImageDepth = Double.parseDouble(param);
-
-        } catch(Exception e) {
-            e.printStackTrace();
-            throw new IllegalArgumentException("Error parsing: " + pname + " value: " + param);
         }
     }
 
