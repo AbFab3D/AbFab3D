@@ -109,7 +109,8 @@ System.out.println("Outer material: " + material);
                             status = INSIDE;
                         }
                     } else if (status == ENTERING) {
-                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'X')) {
+//                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'X')) {
+                          if (state == Grid.OUTSIDE && isInterior(grid, x, y, z)) {
 //System.out.println("entering, found outside, set to inside at: " + x + " " + y + " " + z);
                             result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
                             status = INSIDE;
@@ -122,7 +123,11 @@ System.out.println("Outer material: " + material);
                     } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
 //System.out.println("exiting, found outside, set to outside at: " + x + " " + y + " " + z);
-                            status = OUTSIDE;
+                        	if (isInterior(grid, x, y, z)) {
+                        		status = INSIDE;
+                        	} else {
+                        		status = OUTSIDE;
+                        	}
                         } else if (state == Grid.INTERIOR) {
 //System.out.println("exiting, found interior, set to inside at: " + x + " " + y + " " + z);
                             status = INSIDE;
@@ -180,7 +185,8 @@ System.out.println("outside to inside at: " + x + " " + y + " " + z);
                             continue;
                         }
                     } else if (status == ENTERING) {
-                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'Y')) {
+//                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'Y')) {
+                      	if (state == Grid.OUTSIDE && isInterior(grid, x, y, z)) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
 //                            result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
 //                            status = INSIDE;
@@ -200,7 +206,11 @@ System.out.println("outside to inside at: " + x + " " + y + " " + z);
                         }
                     } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
-                            status = OUTSIDE;
+                        	if (isInterior(grid, x, y, z)) {
+                        		status = INSIDE;
+                        	} else {
+                        		status = OUTSIDE;
+                        	}
                         } else if (state == Grid.INTERIOR) {
                             status = INSIDE;
                             continue;
@@ -258,7 +268,8 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                             continue;
                         }
                     } else if (status == ENTERING) {
-                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'Z')) {
+//                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'Z')) {
+                      	if (state == Grid.OUTSIDE && isInterior(grid, x, y, z)) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
                             if (result.getState(x,y,z) == Grid.INTERIOR) {
                                 status = INSIDE;
@@ -273,7 +284,11 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                         }
                     } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
-                            status = OUTSIDE;
+                        	if (isInterior(grid, x, y, z)) {
+                        		status = INSIDE;
+                        	} else {
+                        		status = OUTSIDE;
+                        	}
                         } else if (state == Grid.INTERIOR) {
                             status = INSIDE;
                             continue;
@@ -337,6 +352,56 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
     public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
         // ignore
         return true;
+    }
+
+    private boolean isInterior(Grid grid, int xPos, int yPos, int zPos) {
+    	int width = grid.getWidth();
+    	int height = grid.getHeight();
+    	int depth = grid.getDepth();
+    	byte state;
+    	boolean xInterior = false;
+    	boolean yInterior = false;
+    	boolean zInterior = false;
+
+		for (int x=xPos+1; x<width; x++) {
+            VoxelData vd = grid.getData(x, yPos, zPos);
+            state = vd.getState();
+
+            if (state == Grid.EXTERIOR) {
+            	xInterior = true;
+            	break;
+            }
+		}
+
+		if (!xInterior) {
+			return false;
+		}
+
+		for (int y=yPos+1; y<height; y++) {
+            VoxelData vd = grid.getData(xPos, y, zPos);
+            state = vd.getState();
+
+            if (state == Grid.EXTERIOR) {
+            	yInterior = true;
+            	break;
+            }
+		}
+
+		if (!yInterior) {
+			return false;
+		}
+
+		for (int z=zPos+1; z<depth; z++) {
+            VoxelData vd = grid.getData(xPos, yPos, z);
+            state = vd.getState();
+
+            if (state == Grid.EXTERIOR) {
+            	zInterior = true;
+            	break;
+            }
+		}
+
+    	return zInterior;
     }
 
     private boolean hasMatchingExterior(Grid grid, int xPos, int yPos, int zPos, char dir) {
