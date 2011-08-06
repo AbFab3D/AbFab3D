@@ -88,7 +88,13 @@
         <compilejava package="abfab3d/creator"
             jars=""
         />
+        <compilejava package="abfab3d/creator/util"
+            jars=""
+        />
         <compilejava package="abfab3d/creator/shapeways"
+            jars=""
+        />
+        <compilejava package="abfab3d/creator/ui"
             jars=""
         />
     </target>

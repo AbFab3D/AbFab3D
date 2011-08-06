@@ -34,16 +34,19 @@ public class TransformPosition implements Operation, ClassTraverser {
     /** The material for new exterior voxels */
     private int material;
 
+    /** The grid */
+    private Grid grid;
+
     /** Scratch point */
     private Point3d p;
 
-    /** The grid */
-    private Grid grid;
+    /** Scratch coords */
+    private double[] wcoords;
 
     public TransformPosition(Matrix4d matrix) {
         this.matrix = matrix;
         p = new Point3d();
-
+        wcoords = new double[3];
     }
 
     /**
@@ -58,8 +61,12 @@ public class TransformPosition implements Operation, ClassTraverser {
 
         grid.find(Grid.VoxelClasses.MARKED, this);
 
+System.out.println("marked: " + cnt + " overwritten: " + overwriteCnt);
         return grid;
     }
+
+int cnt = 0;
+int overwriteCnt = 0;
 
     /**
      * A voxel of the class requested has been found.
@@ -70,8 +77,7 @@ public class TransformPosition implements Operation, ClassTraverser {
      * @param vd The voxel data
      */
     public void found(int x, int y, int z, VoxelData vd) {
-        double[] wcoords = new double[3];
-
+cnt++;
         grid.getWorldCoords(x,y,z,wcoords);
 
         p.set(wcoords);
@@ -83,6 +89,21 @@ public class TransformPosition implements Operation, ClassTraverser {
         int mat = vd.getMaterial();
 
         grid.setData(x,y,z,Grid.OUTSIDE, 0);
+
+        if (grid.getState(p.x, p.y, p.z) != Grid.OUTSIDE) {
+            int[] gcoords = new int[3];
+
+            grid.getGridCoords(p.x, p.y, p.z, gcoords);
+System.out.println("overwrite: " + p + " orig: " + java.util.Arrays.toString(wcoords));
+System.out.println("   Moved from: " + x + " " + y + " " + z + " to: " + java.util.Arrays.toString(gcoords));
+            overwriteCnt++;
+        } else {
+            int[] gcoords = new int[3];
+            grid.getGridCoords(p.x, p.y, p.z, gcoords);
+System.out.println("place: " + p + " orig: " + java.util.Arrays.toString(wcoords));
+System.out.println("   Moved from: " + x + " " + y + " " + z + " to: " + java.util.Arrays.toString(gcoords));
+        }
+
         grid.setData(p.x, p.y, p.z, state, mat);
      }
 

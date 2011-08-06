@@ -36,7 +36,7 @@ public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
     private static final int ENTERING = 1;
     private static final int EXITING = 2;
     private static final int INSIDE = 3;
-    
+
     /** The material to process */
     protected int material;
 
@@ -88,7 +88,7 @@ System.out.println("Outer material: " + material);
         for(int y=0; y < height; y++) {
             for(int z=0; z < depth; z++) {
                 status = OUTSIDE;
-                
+
                 for(int x=0; x < width; x++) {
                     VoxelData vd = grid.getData(x,y,z);
                     state = vd.getState();
@@ -205,8 +205,8 @@ System.out.println("outside to inside at: " + x + " " + y + " " + z);
                             status = INSIDE;
                             continue;
                         } else if (state == Grid.EXTERIOR) {
-                        	status = ENTERING;
-                        	continue;
+                            status = ENTERING;
+                            continue;
                         }
                     } else if (status == INSIDE) {
                         if (state == Grid.OUTSIDE) {
@@ -278,8 +278,8 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                             status = INSIDE;
                             continue;
                         } else if (state == Grid.EXTERIOR) {
-                        	status = ENTERING;
-                        	continue;
+                            status = ENTERING;
+                            continue;
                         }
                     } else if (status == INSIDE) {
                         if (state == Grid.OUTSIDE) {
@@ -321,6 +321,9 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
      */
     public void found(int x, int y, int z, VoxelData vd) {
         gridOp.setData(x,y,z,Grid.INTERIOR, innerMaterial);
+
+// TODO: change back
+        //gridOp.setData(x,y,z,Grid.EXTERIOR, innerMaterial);
     }
 
     /**
@@ -335,77 +338,77 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
         // ignore
         return true;
     }
-    
+
     private boolean hasMatchingExterior(Grid grid, int xPos, int yPos, int zPos, char dir) {
-    	int width = grid.getWidth();
-    	int height = grid.getHeight();
-    	int depth = grid.getDepth();
-    	byte state;
-    	
-    	if (dir == 'Y') {
-    		for (int y=yPos+1; y<height; y++) {
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+        byte state;
+
+        if (dir == 'Y') {
+            for (int y=yPos+1; y<height; y++) {
                 VoxelData vd = grid.getData(xPos, y, zPos);
                 state = vd.getState();
-                
+
                 if (state == Grid.EXTERIOR)
-                	return true;
-    		}
-    	} else if (dir == 'Z') {
-    		for (int z=zPos+1; z<depth; z++) {
+                    return true;
+            }
+        } else if (dir == 'Z') {
+            for (int z=zPos+1; z<depth; z++) {
                 VoxelData vd = grid.getData(xPos, yPos, z);
                 state = vd.getState();
-                
+
                 if (state == Grid.EXTERIOR)
-                	return true;
-    		}
-    	} else {
-    		for (int x=xPos+1; x<width; x++) {
+                    return true;
+            }
+        } else {
+            for (int x=xPos+1; x<width; x++) {
                 VoxelData vd = grid.getData(x, yPos, zPos);
                 state = vd.getState();
-                
+
                 if (state == Grid.EXTERIOR)
-                	return true;
-    		}
-    	}
+                    return true;
+            }
+        }
 
-    	return false;
+        return false;
     }
-    
+
     private void printGridStates(Grid grid) {
-    	int gridWidth = grid.getWidth();
-    	int gridHeight = grid.getHeight();
-    	int gridDepth = grid.getDepth();
-    	byte state;
+        int gridWidth = grid.getWidth();
+        int gridHeight = grid.getHeight();
+        int gridDepth = grid.getDepth();
+        byte state;
 
-    	for (int y=0; y<gridHeight; y++) {
+        for (int y=0; y<gridHeight; y++) {
 
-        	for (int z=0; z<gridDepth; z++) {
-				boolean rowHasState = false;
-				String temp = "";
-				
-//				int y = 16;
-//				int z = 15;
-		        for (int x=0; x<gridWidth; x++) {
-        			
-        			state = grid.getState(x, y, z);
+            for (int z=0; z<gridDepth; z++) {
+                boolean rowHasState = false;
+                String temp = "";
+
+//              int y = 16;
+//              int z = 15;
+                for (int x=0; x<gridWidth; x++) {
+
+                    state = grid.getState(x, y, z);
 //System.out.println(x + ", " + y + ", " + z + ": " + state);
 
-				    if (state == Grid.OUTSIDE) {
-				    	temp = temp + x + " " + y + " " + z + ": OUTSIDE\n";
-				    } else if (state == Grid.EXTERIOR) {
-				    	temp = temp + x + " " + y + " " + z + ": =>EXTERIOR\n";
-				    	rowHasState = true;
-				    } else if (state == Grid.INTERIOR) {
-				    	temp = temp + x + " " + y + " " + z + ": ==>INTERIOR\n";
-				    	rowHasState = true;
-				    }
-        		}
+                    if (state == Grid.OUTSIDE) {
+                        temp = temp + x + " " + y + " " + z + ": OUTSIDE\n";
+                    } else if (state == Grid.EXTERIOR) {
+                        temp = temp + x + " " + y + " " + z + ": =>EXTERIOR\n";
+                        rowHasState = true;
+                    } else if (state == Grid.INTERIOR) {
+                        temp = temp + x + " " + y + " " + z + ": ==>INTERIOR\n";
+                        rowHasState = true;
+                    }
+                }
 
-				if (rowHasState) {
-					System.out.println(temp);
-				}
+                if (rowHasState) {
+                    System.out.println(temp);
+                }
 
-        	}
+            }
         }
     }
 }

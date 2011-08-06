@@ -88,7 +88,8 @@ public class CylinderCreator extends GeometryCreator {
         double h = height / 2.0;
 
         if (swapYZ) {
-            grid.getGridCoords(x,z, y - h,coords1);
+//            grid.getGridCoords(x,z, y - h,coords1);
+            grid.getGridCoords(x,z - h, y,coords1);
             grid.getGridCoords(radius,0,0,coords2);
 
             start = coords1[1];

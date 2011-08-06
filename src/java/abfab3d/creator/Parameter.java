@@ -12,12 +12,14 @@
 
 package abfab3d.creator;
 
+// External Imports
+
 /**
  * A parameter to an editor.
  *
  * @author Alan Hudson
  */
-public class Parameter {
+public class Parameter implements Comparable {
     /** The data type */
     public enum DataType {STRING, ENUM, DOUBLE, BOOLEAN, INTEGER, FORMULA, POINT_2D};
 
@@ -31,6 +33,9 @@ public class Parameter {
 
     /** The name of the parameter.  Must be unique for the editor */
     private String name;
+
+    /** The user friendly name string */
+    private String nameDesc;
 
     /** The description */
     private String desc;
@@ -68,12 +73,13 @@ public class Parameter {
     /** The default value */
     private String defaultValue;
 
-    public Parameter(String name, String desc, String defaultValue, double meterConversion,
+    public Parameter(String name, String nameDesc, String desc, String defaultValue, double meterConversion,
         DataType dataType, EditorType editorType,
         int step, int seq, boolean advanced, double minRange, double maxRange,
         double[] fixedValues, String[] enumValues) {
 
         this.name = name;
+        this.nameDesc = nameDesc;
         this.desc = desc;
         this.defaultValue = defaultValue;
         this.meterConversion = meterConversion;
@@ -93,6 +99,7 @@ public class Parameter {
             this.enumValues = enumValues.clone();
         }
     }
+
     /**
      * @return the name
      */
@@ -105,6 +112,20 @@ public class Parameter {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * @return the name
+     */
+    public String getNameDesc() {
+        return nameDesc;
+    }
+
+    /**
+     * @param name the name to set
+     */
+    public void setNameDesc(String name) {
+        this.nameDesc = name;
     }
 
     /**
@@ -289,5 +310,27 @@ public class Parameter {
      */
     public EditorType getEditorType() {
         return editorType;
+    }
+
+    public int compareTo(Object o2) {
+        if (o2 instanceof Parameter) {
+            Parameter p1 = this;
+            Parameter p2 = (Parameter) o2;
+
+            if (p1.getStep() == p2.getStep()) {
+                return (p1.getSeq() < p2.getSeq() ? -1 : (p1.getSeq()==p2.getSeq() ? 0 : 1));
+            } else {
+                return (p1.getStep() < p2.getStep() ? -1 : (p1.getStep()==p2.getStep() ? 0 : 1));
+            }
+        }
+
+        return 1;
+    }
+
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+
+        return false;
     }
 }

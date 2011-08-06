@@ -82,7 +82,7 @@ public class BoxesX3DExporter implements Exporter {
      * Write a grid to the stream.
      *
      * @param grid The grid to write
-     * @param matColors Maps materials to colors
+     * @param matColors Maps materials to colors.  4 component color
      */
     public void write(Grid grid, Map<Integer, float[]> matColors) {
 
@@ -103,9 +103,21 @@ public class BoxesX3DExporter implements Exporter {
         double x,y,z;
         int idx = 0;
 //        float[] color = new float[] {0.8f,0.8f,0.8f};
-System.out.println("color is blue");
         float[] color = new float[] {34/255.0f,139/255.0f,34/255.0f};
         float transparency = 0.5f;
+
+        if (matColors != null) {
+            // support color for material1
+            float[] mat_color = matColors.get(new Integer(1));
+            if (mat_color != null) {
+                color[0] = mat_color[0];
+                color[1] = mat_color[1];
+                color[2] = mat_color[2];
+
+                transparency = mat_color[3];
+            }
+        }
+
         int saved = 0;
         int voxels = 0;
         int width = grid.getWidth();

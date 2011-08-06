@@ -80,6 +80,10 @@ public class ApplyImage implements Operation {
         this.material = material;
 
         this.removeStray = removeStray;
+
+        if (w <= 0 || h <= 0) {
+            throw new IllegalArgumentException("Width or Height cannot <= zero.  Width: " + w + " Height: " + h);
+        }
     }
 
     /**
