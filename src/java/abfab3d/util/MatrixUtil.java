@@ -17,7 +17,6 @@ import java.util.Iterator;
 import javax.vecmath.*;
 
 // Internal Imports
-import abfab3d.grid.*;
 
 /**
  * Matrix utilities.
