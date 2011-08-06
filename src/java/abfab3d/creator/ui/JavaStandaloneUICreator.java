@@ -32,6 +32,9 @@ public class JavaStandaloneUICreator {
 
     private GeometryKernal kernal;
 
+    /** The number of steps */
+    private List<Step> steps;
+
     public JavaStandaloneUICreator() {
         indentCache = new HashMap<Integer,String>();
     }
@@ -44,8 +47,10 @@ public class JavaStandaloneUICreator {
      * @param kernal The kernal
      * @param remove The parameters to remove
      */
-    public void createInterface(String dir, Map<String,String> genParams, GeometryKernal kernal, Set<String> remove) {
+    public void createInterface(String title, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernal kernal, Set<String> remove) {
         this.kernal = kernal;
+        this.steps = new ArrayList<Step>();
+        this.steps.addAll(steps);
 
         try {
             File f = new File(dir);
@@ -67,6 +72,7 @@ public class JavaStandaloneUICreator {
             ps.println("import java.util.*;");
             ps.println("import javax.swing.*;");
             ps.println("import java.awt.GridLayout;");
+            ps.println("import java.awt.Font;");
             ps.println("import java.awt.event.*;");
             ps.println("import java.io.*;");
             ps.println("import abfab3d.creator.util.ParameterUtil;");
@@ -75,8 +81,9 @@ public class JavaStandaloneUICreator {
 
             addGlobalVars(ps, params, remove);
 
+            ps.println("    public Editor(String name) { super(name); }");
             ps.println("    public static void main(String[] args) {");
-            ps.println("        Editor editor = new Editor();");
+            ps.println("        Editor editor = new Editor(\"" + title + "\");");
             ps.println("        editor.launch();");
             ps.println("    }");
             ps.println();
@@ -89,16 +96,42 @@ public class JavaStandaloneUICreator {
             ps.println("    public void setupUI() {");
 
 
-            ps.println(indent(8) + "GridLayout layout = new GridLayout(" + (params.size() - remove.size() + 1) + ",3);");
+            ArrayList sorted_params = new ArrayList();
+            sorted_params.addAll(params.values());
+
+            java.util.Collections.sort(sorted_params);
+
+            Iterator<Parameter> itr = sorted_params.iterator();
+
+            ps.println(indent(8) + "GridLayout layout = new GridLayout(" + (params.size() - remove.size() + 1 + steps.size() + (steps.size() - 1)) + ",3);");
             ps.println(indent(8) + "setLayout(layout);");
             ps.println();
 
-            Iterator<Parameter> itr = params.values().iterator();
+            itr = sorted_params.iterator();
+            int curr_step = -1;
 
             while(itr.hasNext()) {
                 Parameter p = itr.next();
                 if (remove.contains(p.getName())) {
                     continue;
+                }
+
+                if (curr_step != p.getStep()) {
+                    // Add step line
+                    curr_step = p.getStep();
+                    Step step = steps.get(curr_step);
+
+                    if (curr_step != 0) {
+                        // Add spacer
+                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+                    }
+
+                    ps.println(indent(8) + "JLabel step" + (curr_step+1) + " = new JLabel(\"Step: " + (curr_step+1) + "\");");
+                    ps.println(indent(8) + "getContentPane().add(step" + (curr_step+1) + ");");
+                    ps.println(indent(8) + "getContentPane().add(new JLabel(\"" + step.getDesc() + "\"));");
+                    ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
                 }
 
                 addParameterUI(ps, p);
@@ -130,8 +163,11 @@ public class JavaStandaloneUICreator {
      */
     private void addParameterUI(PrintStream ps, Parameter p) {
 System.out.println("Adding param: " + p.getName());
-        ps.println(indent(8) + "JLabel " + p.getName() + "Label = new JLabel(\"" + p.getName() + "\");");
+        ps.println(indent(8) + "JLabel " + p.getName() + "Label = new JLabel(\"" + p.getNameDesc() + "\");");
         ps.println(indent(8) + p.getName() + "Label.setToolTipText(\"" + p.getDesc() + "\");");
+        ps.println(indent(8) + "Font " + (p.getName()) + "Font = " + p.getName() + "Label.getFont();");
+        ps.println(indent(8) + p.getName()  + "Label.setFont(" + p.getName() + "Font.deriveFont(" + p.getName() + "Font.getStyle() ^ Font.BOLD));");
+
         ps.println(indent(8) + "getContentPane().add(" + p.getName() + "Label);");
 
         switch(getEditor(p)) {
@@ -156,7 +192,12 @@ System.out.println("Adding param: " + p.getName());
                 ps.println(indent(8) + p.getName() + "Editor = new JComboBox(" + p.getName() + "Enums);");
                 break;
             case FILE_DIALOG:
-                ps.println(indent(8) + p.getName() + "Dialog = new JFileChooser(new File(\".\"));");
+                if (p.getDefaultValue() == null) {
+                    ps.println(indent(8) + "String dir = \".\";");
+                } else {
+                    ps.println(indent(8) + "String dir = \"" + p.getDefaultValue() + "\";");
+                }
+                ps.println(indent(8) + p.getName() + "Dialog = new JFileChooser(new File(dir));");
                 ps.println(indent(8) + p.getName() + "Button = new JButton(\"Browse\");");
                 ps.println(indent(8) + p.getName() + "Button.addActionListener(this);");
             default:
