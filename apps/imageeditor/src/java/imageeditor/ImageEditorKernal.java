@@ -195,9 +195,9 @@ public class ImageEditorKernal implements GeometryKernal {
         if (geometry.equalsIgnoreCase("CYLINDER")) {
 
             if (bodyWidth > bodyHeight) {
-                bodyWidth = bodyHeight;
-            } else {
                 bodyHeight = bodyWidth;
+            } else {
+                bodyWidth = bodyHeight;
             }
         }
 
@@ -358,9 +358,6 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
 
                     // Desired code
                     bodyImageDepthPixels = (int) Math.ceil(max_depth / resolution);
-
-                    // Old Code
-                    //bodyImageDepthPixels = (int) Math.ceil(bodyDepth / resolution);
                 }
             }
         } else if (geometry.equalsIgnoreCase("NONE")) {
@@ -371,6 +368,8 @@ System.out.println("marginWidth: " + bodyImageMarginWidthPixels);
             picTyPixels = ((int) Math.ceil((body_cy - bodyHeight / 2.0) / resolution));
             picTzPixels = 0;   // Start outside
             bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
+
+            bodyImageStyle = "EMBOSSED";
         }
 
 
