@@ -24,6 +24,7 @@ import junit.framework.TestSuite;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.BoxGenerator;
 import org.j3d.geom.CylinderGenerator;
+import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
@@ -385,7 +386,6 @@ public class TestTriangleModelCreator extends TestCase {
      * Test the voxelization of a simple triangle cylinder.
      */
     public void testCylinder() {
-    	
     	// Use 0.0999 instead of 0.1 voxelization is unpredictable when model
     	// lines up exactly with a grid
         float radius = 0.0499f;
@@ -413,6 +413,70 @@ public class TestTriangleModelCreator extends TestCase {
 
 		checkCylinder(grid, height, radius, outerMaterial, innerMaterial);
 
+    }
+    
+    /**
+     * Test the voxelization of a simple triangle cylinder.
+     */
+/*    public void testTorus() {
+    	
+        float ir = 0.04f;
+        float or = 0.16f;
+        int facets = 64;
+        byte outerMaterial = 1;
+        byte innerMaterial = 2;
+
+		Grid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial, 
+				GeometryData.TRIANGLES, true);
+
+		printGridStates(grid);
+		checkVoxelStatePattern(grid);
+
+    }
+*/    
+    /**
+     * Creates a torus in a grid and returns the grid.
+     * 
+     * @param ir The inside radius of the torus
+     * @param or The outside radius of the grid
+     * @param facets The tessellation accuracy
+     * @param outerMaterial The outer material
+     * @param innerMaterial The inner material
+     * @param geomType The geometry type to use
+     * @param fillShould the interior be filled or just a shell
+     * @return The grid containing the cube
+     */
+    private static Grid createTorusInGrid(float ir, float or, int facets,
+    		byte outerMaterial, byte innerMaterial, int geomType, boolean fill) {
+    	
+    	TorusGenerator tg = new TorusGenerator(ir, or, facets, facets);
+        GeometryData geom = new GeometryData();
+        geom.geometryType = geomType;
+        tg.generate(geom);
+        
+        double bounds = TriangleModelCreator.findMaxBounds(geom);
+//System.out.println("geometry bounds: " + bounds);
+        
+		int bufferVoxel = 4;
+        int size = (int) (2.0 * bounds / HORIZ_RESOLUTION) + bufferVoxel;
+//System.out.println("grid voxels per side: " + size);
+
+        Grid grid = new ArrayGridByte(size, size, size, HORIZ_RESOLUTION, VERT_RESOLUTION);
+        
+        double x = bounds + bufferVoxel/2 * HORIZ_RESOLUTION;
+        double y = x;
+        double z = x;
+
+        double rx = 0,ry = 1,rz = 0,rangle = 0;
+//        double rx = 1,ry = 0,rz = 0,rangle = 1.57079633;
+
+        TriangleModelCreator tmc = null;
+        tmc = new TriangleModelCreator(geom, x, y, z,
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,fill);
+
+        tmc.generate(grid);
+        
+        return grid;
     }
     
     /**
@@ -680,7 +744,7 @@ public class TestTriangleModelCreator extends TestCase {
 					if (inside) {
 						inside = false;
 					} else {
-						if (z < gridDepth - 1 && grid.getState(x, midHeight, z+1) == Grid.INTERIOR) {
+						if (z < (gridDepth - 1) && grid.getState(x, midHeight, z+1) == Grid.INTERIOR) {
 							inside = true;
 						}
 					}
@@ -725,6 +789,51 @@ public class TestTriangleModelCreator extends TestCase {
 		
 		assertEquals("Outer material count is not " + expectedInMatCount, 
 				expectedInMatCount, grid.findCount(innerMaterial));
+    }
+    
+    private void checkVoxelStatePattern(Grid grid) {
+
+    	int gridWidth = grid.getWidth();
+    	int gridHeight = grid.getHeight();
+    	int gridDepth = grid.getDepth();
+    	byte state;
+    	boolean inside;
+
+    	for (int y=0; y<gridHeight; y++) {
+
+        	for (int z=0; z<gridDepth; z++) {
+        		inside = false;
+				
+		        for (int x=0; x<gridWidth; x++) {
+        			
+        			state = grid.getState(x, y, z);
+//System.out.println(x + ", " + y + ", " + z + ": " + state);
+
+    				if (state == Grid.EXTERIOR) {
+    					if (inside) {
+    						inside = false;
+    					} else {
+    						if (x < (gridWidth - 1) && grid.getState(x+1, y, z) == Grid.INTERIOR) {
+    							inside = true;
+    						}
+    					}
+    					
+    					continue;
+    				}
+
+    				if (inside) {
+    					assertEquals("State is not INTERIOR for: " + x + ", " + y + ", " + z,
+    							Grid.INTERIOR, state);
+    				} else {
+    					assertFalse("State is INTERIOR for: " + x + ", " + y + ", " + z,
+    							state == Grid.INTERIOR);
+    				}
+        		}
+            	
+            	// if a row ends at inside, something is wrong
+            	assertFalse("Grid state should not be inside at end of row", inside);
+        	}
+        }
     }
 
     /**
@@ -792,82 +901,66 @@ public class TestTriangleModelCreator extends TestCase {
     }
     
     /**
+     * Print the voxels states of a grid.  Only rows that have non-outside states
+     * are printed.
+     * 
+     * @param grid The grid
+     */
+    private void printGridStates(Grid grid) {
+    	int gridWidth = grid.getWidth();
+    	int gridHeight = grid.getHeight();
+    	int gridDepth = grid.getDepth();
+    	byte state;
+
+//    	for (int y=0; y<gridHeight; y++) {
+
+//        	for (int z=0; z<gridDepth; z++) {
+				boolean rowHasState = false;
+				String temp = "";
+				int y = 12;
+				int z = 14;
+		        for (int x=0; x<gridWidth; x++) {
+        			
+        			state = grid.getState(x, y, z);
+//System.out.println(x + ", " + y + ", " + z + ": " + state);
+
+				    if (state == Grid.OUTSIDE) {
+				    	temp = temp + x + " " + y + " " + z + ": OUTSIDE\n";
+				    } else if (state == Grid.EXTERIOR) {
+				    	temp = temp + x + " " + y + " " + z + ": =>EXTERIOR\n";
+				    	rowHasState = true;
+				    } else if (state == Grid.INTERIOR) {
+				    	temp = temp + x + " " + y + " " + z + ": ==>INTERIOR\n";
+				    	rowHasState = true;
+				    }
+        		}
+
+				if (rowHasState) {
+					System.out.println(temp);
+				}
+
+//        	}
+//        }
+    }
+    
+    /**
      * Generate an X3D file 
      * @param filename
      */
-/*    public static void generate(String filename) {
+    public static void generate(String filename) {
         try {
         	ErrorReporter console = new PlainTextErrorReporter();
 
             long stime = System.currentTimeMillis();
-/*            
-        	// Use 0.0999 instead of 0.01 voxelization is unpredictable when model
-        	// lines up exactly with a grid
-            float width = 0.0999f;
-            float height = 0.0999f;
-            float depth = 0.0999f;
+            
+            float ir = 0.02f;
+            float or = 0.03f;
+            int facets = 64;
             byte outerMaterial = 1;
-            byte innerMaterial = 1;
-            
-            // twice the bounds (since centered at origin) plus a slight over allocate
-            int gWidth = (int) (width / HORIZ_RESOLUTION) * 2 + 10;
-            int gHeight = (int) (height / VERT_RESOLUTION) * 2 + 10;
-            int gDepth = (int) (depth / HORIZ_RESOLUTION) * 2 + 10;
-            
-            Grid grid = new ArrayGrid(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
-            
-            int translateXVoxels = 0;
-            int translateYVoxels = 0;
-            int translateZVoxels = 0;
-            
-            createCubeInGrid(grid, width, height, depth, 
-            		translateXVoxels, translateYVoxels, translateZVoxels,
-            		outerMaterial, innerMaterial, 
-            		GeometryData.TRIANGLES);
+            byte innerMaterial = 2;
 
-            float width = 0.0399f;
-            float height = 0.0399f;
-            float depth = 0.0399f;
-            byte outerMaterial1 = 1;
-            byte innerMaterial1 = 1;
-            byte outerMaterial2 = 2;
-            byte innerMaterial2 = 2;
-            
-            // set the grid size for two cubes with a slight over allocation
-            int gWidth = (int) (width / HORIZ_RESOLUTION) * 2 + 10;
-            int gHeight = (int) (height / VERT_RESOLUTION) + 20;
-            int gDepth = (int) (depth / HORIZ_RESOLUTION) + 20;
-            
-            Grid grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
-System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
-
-			OccupiedWrapper wrapper = new OccupiedWrapper(grid);
-
-    		double translateX = (width / 2.0f) + 2.0f * HORIZ_RESOLUTION;
-            double translateY = (height / 2.0f) + 2.0f * VERT_RESOLUTION;
-            double translateZ = (depth / 2.0f) + 2.0f * HORIZ_RESOLUTION;
-
-System.out.println("=============> CUBE 1");
-            createCubeInGrid(wrapper, width, height, depth, 
-            		translateX, translateY, translateZ,
-            		outerMaterial1, innerMaterial1, 
-            		GeometryData.TRIANGLES, true);
-
-            int material1Count = wrapper.findCount(innerMaterial1);
-
-System.out.println("mat 1 count: " + material1Count);
-
-            translateX = 0.08;//3 * translateX + (10.0f * HORIZ_RESOLUTION);
-            System.out.println("translateX: " + translateX);
-
-System.out.println("=============> CUBE 2");
-            createCubeInGrid(wrapper, width, height, depth, 
-            		translateX, translateY, translateZ,
-            		outerMaterial2, innerMaterial2, 
-            		GeometryData.TRIANGLES, true);
-
-System.out.println("mat 1 count: " + wrapper.findCount(outerMaterial1));
-System.out.println("mat 2 count: " + wrapper.findCount(outerMaterial2));
+    		Grid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial, 
+    				GeometryData.TRIANGLES, true);
 
 		    FileOutputStream fos = new FileOutputStream(filename);
 		    String encoding = filename.substring(filename.lastIndexOf(".")+1);
@@ -881,7 +974,7 @@ System.out.println("mat 2 count: " + wrapper.findCount(outerMaterial2));
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
             transparency.put(new Integer(Grid.INTERIOR), new Float(0));
             transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
-            transparency.put(new Integer(Grid.OUTSIDE), new Float(0.85));
+            transparency.put(new Integer(Grid.OUTSIDE), new Float(1));
 
 //            exporter.write(grid, null);
             exporter.writeDebug(grid, colors, transparency);
@@ -901,7 +994,7 @@ System.out.println("mat 2 count: " + wrapper.findCount(outerMaterial2));
             ioe.printStackTrace();
         }
     }
-    
+/*    
     public static void main(String[] args) {
         generate("out.x3db");
     }
