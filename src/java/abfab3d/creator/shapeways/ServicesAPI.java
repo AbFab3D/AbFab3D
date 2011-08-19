@@ -14,6 +14,7 @@ package abfab3d.creator.shapeways;
 
 // External Imports
 import java.io.InputStream;
+import java.awt.Image;
 
 // Internal Imports
 
@@ -34,14 +35,27 @@ public interface ServicesAPI {
        NON_MANIFOLD           // The model is not manifold
     };
 
+    // TODO: Design Questions
+    // Require x3db?  support all backend filetypes?
+
     /**
      * Checks whether a file is printable.  Implements some parts of the model
      * checking pipeline.  Attemps to give a fast check on whether a model is
      * good to print.
      *
-     * @param is The stream to check
+     * @param is The stream to check.  Must be an X3DB stream.
      * @param materialID The materials to check for
      * @return The status
      */
     public PrintableStatus[] isPrintable(InputStream is, int[] materialID);
+
+    /**
+     * Create an image for this file.
+     *
+     * @param width The width in pixels
+     * @param height The height in pixels
+     * @param viewpoint How to calculate a viewpoint.  OVER_SHOULDER, FRONT_FACING, ...
+     * @param quality The quality of the image.  FASTEST,HIGHEST,NORMAL.
+     */
+    public Image createImage(InputStream is, int width, int height, String viewpoint, String quality);
 }

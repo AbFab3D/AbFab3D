@@ -14,6 +14,7 @@ package abfab3d.creator.shapeways;
 
 // External Imports
 import java.io.InputStream;
+import java.awt.Image;
 
 // Internal Imports
 
@@ -48,6 +49,20 @@ public class LocalServicesAPI implements ServicesAPI {
         }
 
         return ret_val;
+    }
+
+    /**
+     * Create an image for this file.
+     *
+     * @param width The width in pixels
+     * @param height The height in pixels
+     * @param viewpoint How to calculate a viewpoint.  OVER_SHOULDER, FRONT_FACING, ...
+     * @param quality The quality of the image.  FASTEST,HIGHEST,NORMAL.
+     */
+    public Image createImage(InputStream is, int width, int height, String viewpoint, String quality) {
+
+        // TODO: return a default AbFab3D image of the size requested.
+        return null;
     }
 
     public static ServicesAPI getInstance() {
