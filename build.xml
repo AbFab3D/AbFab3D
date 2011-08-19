@@ -30,6 +30,47 @@
 -->
     <property name="jvmrunargs" value="${runarg0}"/>
 
+<!-- Emma code coverage properties -->
+    <property name="emma.dir" value="${basedir}/lib/support/emma" />  
+    <property name="emma.out.dir" value="${basedir}/emma" /> 
+    <property name="emma.coverage.dir" location="${emma.out.dir}/coverage" />  
+    <property name="emma.instr.dir" location="${emma.out.dir}/instrumented" /> 
+
+    <path id="run.classpath" >
+      <pathelement location="${classes.dir}" />
+    </path>
+    
+    <!-- path element used by EMMA taskdef below: -->
+    <path id="emma.lib" >
+        <pathelement location="${emma.dir}/emma.jar" />
+        <pathelement location="${emma.dir}/emma_ant.jar" />
+    </path>
+  
+    <!-- this loads <emma> and <emmajava> custom tasks: -->
+    <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+<!-- End Emma code coverage properties -->
+
+<!-- Cobertura code coverage properties -->
+    <property name="cobertura.dir" value="${basedir}/lib/support/cobertura" />  
+    <property name="cobertura.out.dir" value="${basedir}/cobertura" /> 
+    <property name="cobertura.reports.dir" value="${cobertura.out.dir}/reports" />
+    <property name="cobertura.reports.xml.dir" value="${cobertura.reports.dir}/junit-xml" />
+    <property name="cobertura.reports.html.dir" value="${cobertura.reports.dir}/junit-html" />
+    <property name="cobertura.instrumented.dir" value="${cobertura.out.dir}/instrumented" />  
+    <property name="cobertura.coverage.xml.dir" value="${cobertura.out.dir}/coverage/xml" />
+    <property name="cobertura.coverage.summaryxml.dir" value="${cobertura.out.dir}/coverage/summaryxml" />
+    <property name="cobertura.coverage.html.dir" value="${cobertura.out.dir}/coverage/html" />
+    
+    <path id="cobertura.classpath">
+	<fileset dir="${cobertura.dir}">
+		<include name="cobertura.jar" />
+		<include name="lib/**/*.jar" />
+	</fileset>
+    </path>
+    
+    <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
+<!-- End Cobertura code coverage properties -->
+  
     <target name="build" 
         description="Complete clean, setup, compilation, run" 
         depends="clean,init,compile,jar" />
@@ -154,6 +195,7 @@
         />
     </target>
 
+<!-- Normal test without any code coverage -->
   <target name="test" depends="compileTest">
     <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
@@ -173,6 +215,218 @@
       </classpath>
     </junit>
   </target>
+
+<!-- Begin Emma code coverage tasks -->
+<!-- Call:  ant emma runEmma -->
+  <target name="emma">  
+    <property name="emma.enabled" value="true"/>  
+    <mkdir dir="${emma.coverage.dir}" />  
+    <!-- EMMA instr class output directory (it is important to create
+         this property only when EMMA is enabled:
+    -->
+    <property name="out.emma.instr.dir" value="${emma.instr.dir}" />  
+    <mkdir dir="${out.emma.instr.dir}" />
+    
+    <!-- this property, if overriden via -Demma.filter=<list of filter specs>
+	 on ANT's command line, will set the coverage filter; by default,
+         all classes found in 'run.classpath' pathref will be instrumented:
+    -->
+    <property name="emma.filter" value="" />
+  </target>
+
+  <target name="runEmma" depends="compileTest">  
+    <emma enabled="${emma.enabled}" >
+      <instr instrpathref="run.classpath"
+             destdir="${out.emma.instr.dir}"	       
+             metadatafile="${emma.coverage.dir}/metadata.emma"
+             merge="true"
+      >
+        <!-- always exclude every class with a "Test" in the name -->
+        <filter excludes="*Test*" />
+        
+        <!-- note that coverage filters can be set through nested <filter>
+             elements as well: many of EMMA setting are 'mergeable' in the
+             sense that they can be specified multiple times and the result
+             is a union of all such values. Here we are not merging several
+             filters together but merely demonstrating that it is possible:
+        --> 
+        <filter value="${emma.filter}" />
+      </instr>
+    </emma>
+    
+    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+      <jvmarg line="${jvmrunargs}"/>
+      
+      <formatter type="plain" usefile="false"/>
+      
+      <batchtest fork="yes" >
+        <fileset dir="${test.dir}">
+<!--          <include name="**/*Test.java"/> -->
+          <include name="**/Test*Suite.java"/>
+        </fileset>
+     </batchtest>
+      
+      <classpath>
+         <!-- instrumented classes must be first in the classpath: -->
+         <pathelement location="${out.emma.instr.dir}" />
+
+         <pathelement path="${classes.dir}" />
+         <pathelement path="${test.classes.dir}" />
+         <fileset dir="${lib.dir}" includes="**/*.jar" />
+
+         <!-- the forked JVM must have jact.jar in the classpath: -->
+         <path refid="emma.lib" />         
+      </classpath>
+      
+      <!-- to be certain, tell EMMA runtime where to dump the runtime
+           coverage data (otherwise the filename is relative to the JVM's
+           current directory and it is easy to get confused about what
+           that is):
+      -->
+      <jvmarg value="-Demma.coverage.out.file=${emma.coverage.dir}/coverage.emma" />
+      <jvmarg value="-Demma.coverage.out.merge=true" />
+    </junit>    
+
+    <!-- if enabled, generate coverage report(s): -->
+    <emma enabled="${emma.enabled}" >
+      <report sourcepath="${src.dir}/java"
+              sort="+block,+name,+method,+class"
+              metrics="method:70,block:80,line:80,class:100"
+      >
+        <!-- collect all EMMA data dumps (metadata and runtime)
+             [this can be done via nested <fileset> fileset elements
+             or <file> elements pointing to a single file]:
+        -->
+        <fileset dir="${emma.coverage.dir}" >
+          <include name="*.emma" />
+        </fileset>
+
+        <!-- for every type of report desired, configure a nested
+             element; various report parameters
+             can be inherited from the parent <report>
+             and individually overridden for each report type:
+        -->
+        <txt outfile="${emma.coverage.dir}/coverage.txt"
+             depth="package"
+             columns="class,method,block,line,name"
+        />
+        <xml outfile="${emma.coverage.dir}/coverage.xml"
+             depth="package"
+        />
+        <html outfile="${emma.coverage.dir}/coverage.html"
+             depth="method"
+             columns="name,class,method,block,line"
+        />
+      </report>
+    </emma>
+  </target>
+
+<!-- Begin Cobertura code coverage tasks -->
+<!-- Call:  ant runCobertura -->
+  <target name="-cobertura">  
+    <mkdir dir="${cobertura.instrumented.dir}" />
+    <mkdir dir="${cobertura.reports.xml.dir}" />
+    <mkdir dir="${cobertura.reports.html.dir}" />
+    <mkdir dir="${cobertura.coverage.xml.dir}" />
+    <mkdir dir="${cobertura.coverage.summaryxml.dir}" />
+    <mkdir dir="${cobertura.coverage.html.dir}" />
+  </target>
+    
+  <target name="-coberturaInstr">
+    <!-- Remove the coverage data file and any old instrumentation. -->
+    <delete file="cobertura.ser"/>
+    <delete dir="${cobertura.instrumented.dir}" />
+
+    <!--
+	 Instrument the application classes, writing the
+	 instrumented classes into ${build.cobertura.instrumented.dir}.
+    -->
+    <cobertura-instrument todir="${cobertura.instrumented.dir}">
+      <!--
+	   The following line causes instrument to ignore any
+	   source line containing a reference to log4j, for the
+	   purposes of coverage reporting.
+      -->
+      <ignore regex="org.apache.log4j.*" />
+
+      <fileset dir="${classes.dir}">
+        <!--
+             Instrument all the application classes, but
+	     don't instrument the test classes.
+        -->
+        <include name="**/*.class" />
+        <exclude name="**/*Test.class" />
+        <exclude name="**/Test*.class" />
+      </fileset>
+    </cobertura-instrument>
+  </target>
+	
+  <target name="runCobertura" depends="compileTest">
+    <antcall target="-cobertura" />
+    <antcall target="-coberturaInstr" />
+  
+    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+      <jvmarg line="${jvmrunargs}"/>
+    
+      <formatter type="plain" usefile="false"/>
+      <batchtest fork="yes" todir="${cobertura.reports.xml.dir}" >
+        <fileset dir="${test.dir}">
+<!--          <include name="**/*Test.java"/> -->
+          <include name="**/Test*Suite.java"/>
+        </fileset>
+     </batchtest>
+      
+      <classpath>
+         <pathelement path="${cobertura.instrumented.dir}" />
+         <pathelement path="${classes.dir}" />
+         <pathelement path="${test.classes.dir}" />
+         <fileset dir="${lib.dir}" includes="**/*.jar" />
+      </classpath>
+      <classpath refid="cobertura.classpath" />
+    </junit>
+    
+    <junitreport todir="${cobertura.reports.xml.dir}">
+	<fileset dir="${cobertura.reports.xml.dir}">
+		<include name="TEST-*.xml" />
+	</fileset>
+	<report format="frames" todir="${cobertura.reports.html.dir}" />
+    </junitreport>
+    
+    <antcall target="-coverage" />
+  </target>
+
+  <target name="coverage-check">
+	<cobertura-check branchrate="34" totallinerate="100" />
+  </target>
+
+  <target name="-coverage">
+	<!--
+		Generate a series of HTML files containing the coverage
+		data in a user-readable form using nested source filesets.
+	-->
+	<cobertura-report destdir="${cobertura.coverage.html.dir}">
+		<fileset dir="${src.dir}/java">
+			<include name="**/*.java"/>
+		</fileset>
+	</cobertura-report>
+  </target>
+  
+  <target name="-xmlCoverage">
+	<!--
+		Generate an XML file containing the coverage data using
+		the "srcdir" attribute.
+	-->
+	<cobertura-report srcdir="${src.dir}" destdir="${cobertura.coverage.xml.dir}" format="xml" />
+  </target>
+
+  <target name="-xmlSummaryCoverage">
+	<!--
+		Generate an summary XML file containing the coverage data using
+		the "srcdir" attribute.
+	-->
+	<cobertura-report srcdir="${src.dir}" destdir="${cobertura.coverage.summaryxml.dir}" format="summaryXml" />
+  </target>
+<!-- End code coverage tasks -->
 
   <target name="compileTest" depends="init" description="Compile all Test source files">
      <mkdir dir="${test.classes.dir}" />
@@ -207,6 +461,8 @@
     <target name="clean" description="Deletes all the generated artifacts.">
         <delete dir="${javadocs.dir}" />
         <delete dir="${classes.dir}" />
+	<delete dir="${emma.out.dir}"/>  
+    	<delete dir="${cobertura.out.dir}"/>  
     </target>
     
     <target name="updateXj3D">
