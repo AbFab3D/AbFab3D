@@ -5,7 +5,7 @@
   
     <description></description>
 
-    <property name="version" value="0.8" />    
+    <property name="version" value="0.8.0" />    
     <property name="version.point" value="1" />
 
     <property name="src.dir" value="${basedir}/src"/>
