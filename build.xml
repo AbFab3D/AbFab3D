@@ -5,7 +5,7 @@
   
     <description></description>
 
-    <property name="version" value="0.8.0" />    
+    <property name="version" value="0.8.1" />    
     <property name="version.point" value="1" />
 
     <property name="src.dir" value="${basedir}/src"/>
@@ -150,6 +150,15 @@
                 abfab3d/io/soap/envelope/*
                 abfab3d/io/shapeways/*
                 abfab3d/util/*
+                "
+        />
+        <createjar name="abfab3d_creator" 
+            version="${version}"
+            manifest="abfab3d_creator.mf"
+            includes="abfab3d/creator/*
+                abfab3d/creator/ui/*
+                abfab3d/creator/util/*
+                abfab3d/creator/shapeways/*
                 "
         />
     </target>
