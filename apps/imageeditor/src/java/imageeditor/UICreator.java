@@ -31,6 +31,6 @@ System.out.println("Creating User Interface for imageeditor");
         steps.add(new Step(1, "Body", "Select your Main shape"));
         steps.add(new Step(2, "Bail", "Add a Bail/Connector"));
 
-        uic.createInterface("AbFab3D Image Creator","src/java/imageeditor/ui", steps, new HashMap<String,String>(), kernal, new HashSet<String>());
+        uic.createInterface("imageeditor.ui", "Editor", "AbFab3D Image Creator","src/java/imageeditor/ui", steps, new HashMap<String,String>(), kernal, new HashSet<String>());
     }
 }

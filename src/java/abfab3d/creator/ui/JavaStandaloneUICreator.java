@@ -47,7 +47,7 @@ public class JavaStandaloneUICreator {
      * @param kernal The kernal
      * @param remove The parameters to remove
      */
-    public void createInterface(String title, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernal kernal, Set<String> remove) {
+    public void createInterface(String packageName, String className, String title, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernal kernal, Set<String> remove) {
         this.kernal = kernal;
         this.steps = new ArrayList<Step>();
         this.steps.addAll(steps);
@@ -61,13 +61,13 @@ public class JavaStandaloneUICreator {
             }
 
             // TODO: Create path if needed
-            FileOutputStream fos = new FileOutputStream(f.toString() + "/" + "Editor.java");
+            FileOutputStream fos = new FileOutputStream(f.toString() + "/" + className + ".java");
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             PrintStream ps = new PrintStream(bos);
 
             Map<String,Parameter> params = kernal.getParams();
 
-            ps.println("package imageeditor.ui;");  // TODO: Need to add package name
+            ps.println("package " + packageName + ";");  // TODO: Need to add package name
             ps.println("");
             ps.println("import java.util.*;");
             ps.println("import javax.swing.*;");
@@ -77,13 +77,13 @@ public class JavaStandaloneUICreator {
             ps.println("import java.io.*;");
             ps.println("import abfab3d.creator.util.ParameterUtil;");
             ps.println("");
-            ps.println("public class Editor extends JFrame implements ActionListener {");
+            ps.println("public class " + className + " extends JFrame implements ActionListener {");
 
             addGlobalVars(ps, params, remove);
 
-            ps.println("    public Editor(String name) { super(name); }");
+            ps.println("    public " + className + "(String name) { super(name); }");
             ps.println("    public static void main(String[] args) {");
-            ps.println("        Editor editor = new Editor(\"" + title + "\");");
+            ps.println("        " + className + " editor = new " + className + "(\"" + title + "\");");
             ps.println("        editor.launch();");
             ps.println("    }");
             ps.println();
