@@ -53,7 +53,7 @@
 
     <target name="run" depends="compile" description="Run the application">
         <echo message="jvmargs: ${jvmrunargs}" />
-        <java classname="${entrypoint}" fork="true">
+        <java classname="imageeditor.ui.Editor" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}" />
