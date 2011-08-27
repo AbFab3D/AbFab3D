@@ -1,0 +1,22 @@
+AbFab3D is a library to help develop 3D printing editors and tools.
+
+Buidling AbFab3D:
+
+We use Apache Ant as the build system.  You can download ant here: http://ant.apache.org/bindownload.cgi
+
+From the main directory type:  ant build
+
+This will build the library.  All external dependecies besides Ant are 
+checked into the project.
+
+Running Examples:
+
+AbFab3D contains several example programs that show how to use the codebase.
+These examples are loocated in the apps/* directory.  To run an example
+go into the directory and type: ant run
+
+Most of the examples generate an binary X3D file to a file "out.x3db".  Typically I use the standlone brower from the Xj3D project(www.xj3d.org) to view
+these files.
+
+
+
