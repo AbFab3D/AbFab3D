@@ -7,7 +7,9 @@ We use Apache Ant as the build system.  You can download ant here: http://ant.ap
 From the main directory type:  ant build
 
 This will build the library.  All external dependecies besides Ant are 
-checked into the project.
+checked into the project.  Voxels programs can use a lot of ram so I'd recommend
+a 64 bit Java JVM.  If your running with a 32 bit JVM you will likely need to
+lower the ram specifications for programs
 
 Running Examples:
 
@@ -18,6 +20,5 @@ go into the directory and type: ant run
 Most of the examples generate an binary X3D file to "out.x3db".  Typically I use the standlone brower from the Xj3D project(www.xj3d.org) to view
 these files.  To use X3D browsers that don't support the binary format change
 the file ending to ".x3dv" 
-
 
 
