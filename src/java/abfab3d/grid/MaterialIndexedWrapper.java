@@ -119,6 +119,38 @@ public class MaterialIndexedWrapper implements GridWrapper {
     }
 
     /**
+     * Reassign a group of materials to a new materialID
+     *
+     * @param materials The new list of materials
+     * @param mat The new materialID
+     */
+    public void reassignMaterial(int[] materials, int matID) {
+
+        int len = materials.length;
+
+        for(int i=0; i < len; i++) {
+            Integer b = new Integer(materials[i]);
+
+            HashSet<VoxelCoordinate> coords = index.get(b);
+            if (coords == null) {
+                // Nothing to do
+                continue;
+            }
+
+            Iterator<VoxelCoordinate> itr = coords.iterator();
+            while(itr.hasNext()) {
+                VoxelCoordinate vc = itr.next();
+                grid.setMaterial(vc.getX(), vc.getY(), vc.getZ(), matID);
+            }
+
+            index.remove(b);
+
+            if (optIndex != null)
+                optIndex.remove(b);
+        }
+    }
+
+    /**
      * Remove all voxels associated with the Material.
      *
      * @param mat The materialID
@@ -288,6 +320,44 @@ public class MaterialIndexedWrapper implements GridWrapper {
         grid.setData(x,y,z,state,material);
 
         optIndex = null;
+    }
+
+    /**
+     * Set the material value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param material The materialID
+     */
+    public void setMaterial(int x, int y, int z, int material) {
+        Integer b = new Integer(material);
+
+        HashSet<VoxelCoordinate> coords = index.get(b);
+        if (coords == null) {
+            coords = new HashSet<VoxelCoordinate>(INDEX_SIZE);
+            index.put(b, coords);
+        }
+
+        VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
+        coords.add(vc);
+
+        grid.setMaterial(x,y,z,material);
+
+        optIndex = null;
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     * @param material The materialID
+     */
+    public void setState(int x, int y, int z, byte state) {
+        grid.setState(x,y,z,state);
     }
 
     /**

@@ -227,9 +227,36 @@ public class ArrayGridByteIndexLong extends BaseGrid {
      * @param material The material
      */
     public void setData(int x, int y, int z, byte state, int material) {
-        int idx = y * sliceSize + x * depth + z;
+        data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)material)));
+    }
+
+    /**
+     * Set the material value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param material The materialID
+     */
+    public void setMaterial(int x, int y, int z, int material) {
+        byte state = (byte) ((data[y][x][z] & 0xFF) >> 6);
 
         data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)material)));
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     * @param material The materialID
+     */
+    public void setState(int x, int y, int z, byte state) {
+        byte mat = (byte) (0x3F & data[y][x][z]);
+
+        data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)mat)));
     }
 
     /**

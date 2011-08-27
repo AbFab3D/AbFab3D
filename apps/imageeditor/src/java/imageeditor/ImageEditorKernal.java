@@ -244,10 +244,16 @@ public class ImageEditorKernal implements GeometryKernal {
 System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
         Grid grid = null;
 
+        boolean useBlockBased = false;
+
         if (bigIndex) {
             grid = new ArrayGridByteIndexLong(voxelsX, voxelsY, voxelsZ, resolution, resolution);
         } else {
-            grid = new ArrayGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+            if (useBlockBased) {
+                grid = new BlockBasedGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+            } else {
+                grid = new ArrayGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+            }
         }
 
         if (DEBUG_LEVEL > 0) grid = new RangeCheckWrapper(grid);

@@ -417,6 +417,40 @@ public abstract class BaseGrid implements Grid, Cloneable {
     }
 
     /**
+     * Reassign a group of materials to a new materialID
+     *
+     * @param materials The new list of materials
+     * @param mat The new materialID
+     */
+    public void reassignMaterial(int[] materials, int matID) {
+        // assume unindexed if we got here.  Best to traverse
+        // whole structure
+
+        int len = materials.length;
+
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = getData(x,y,z);
+
+                    int mat;
+                    byte state = vd.getState();
+
+                    if (state != Grid.OUTSIDE) {
+                        mat = vd.getMaterial();
+
+                        for(int i=0; i < len; i++) {
+                            if (mat == materials[i]) {
+                                setData(x,y,z, state, matID);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Remove all voxels associated with the Material.
      *
      * @param mat The aterialID

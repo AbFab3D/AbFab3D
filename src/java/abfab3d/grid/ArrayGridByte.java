@@ -276,6 +276,39 @@ public class ArrayGridByte extends BaseGrid {
     }
 
     /**
+     * Set the material value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param material The materialID
+     */
+    public void setMaterial(int x, int y, int z, int material) {
+        int idx = y * sliceSize + x * depth + z;
+
+        byte state = (byte) ((data[idx] & 0xFF) >> 6);
+
+        data[idx] = (byte) (0xFF & (state << 6 | ((byte)material)));
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     * @param material The materialID
+     */
+    public void setState(int x, int y, int z, byte state) {
+        int idx = y * sliceSize + x * depth + z;
+
+        byte mat = (byte) (0x3F & data[idx]);
+
+        data[idx] = (byte) (0xFF & (state << 6 | ((byte)mat)));
+    }
+
+    /**
      * Clone the object.
      */
     public Object clone() {

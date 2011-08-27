@@ -36,19 +36,18 @@ public class BaseTestGrid extends TestCase {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     grid.setData(x,y,z,Grid.EXTERIOR, 1);
                 }
             }
         }
 
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     VoxelData vd = grid.getData(x,y,z);
-//System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
                     assertTrue("Material wrong", vd.getMaterial() == 1);
                 }
@@ -67,8 +66,8 @@ public class BaseTestGrid extends TestCase {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
                         grid.setData(x,y,z,Grid.EXTERIOR, 1);
@@ -80,8 +79,8 @@ public class BaseTestGrid extends TestCase {
             }
         }
 
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     VoxelData vd = grid.getData(x,y,z);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
@@ -108,8 +107,8 @@ public class BaseTestGrid extends TestCase {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     if (x == y && y == z) {
                         grid.setData(x,y,z,Grid.EXTERIOR, 1);
@@ -118,8 +117,8 @@ public class BaseTestGrid extends TestCase {
             }
         }
 
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     VoxelData vd = grid.getData(x,y,z);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());

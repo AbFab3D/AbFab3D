@@ -257,6 +257,33 @@ public class OctreeGridByte extends BaseGrid {
     }
 
     /**
+     * Set the material value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param material The materialID
+     */
+    public void setMaterial(int x, int y, int z, int material) {
+        // TODO: not implemented yet
+        throw new IllegalArgumentException("Not Implemented");
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     * @param material The materialID
+     */
+    public void setState(int x, int y, int z, byte state) {
+        // TODO: not implemented yet
+        throw new IllegalArgumentException("Not Implemented");
+    }
+
+    /**
      * Set the value of a voxel.
      *
      * @param x The x grid coordinate

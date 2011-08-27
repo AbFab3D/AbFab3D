@@ -229,6 +229,35 @@ public class ArrayGridShortIndexLong extends BaseGrid {
     }
 
     /**
+     * Set the material value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param material The materialID
+     */
+    public void setMaterial(int x, int y, int z, int material) {
+        byte state = (byte) ((data[y][x][z] & 0xFFFF) >> 14);
+
+        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     * @param material The materialID
+     */
+    public void setState(int x, int y, int z, byte state) {
+        short mat = (short) (0x3FFF & data[y][x][z]);
+
+        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)mat));
+    }
+
+    /**
      * Clone the object.
      */
     public Object clone() {

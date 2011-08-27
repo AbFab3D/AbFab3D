@@ -52,10 +52,6 @@ public class TestPerformanceGrid extends BaseTestGrid {
 
         System.out.println("Starting Warmup");
 
-        for(int i=0; i < WARMUP2; i++) {
-            writeAccessX(SMALL_SIZE,SMALL_TIMES,false);
-        }
-
 /*
         for(int i=0; i < WARMUP2; i++) {
             writeAccessY(false);
@@ -71,6 +67,34 @@ public class TestPerformanceGrid extends BaseTestGrid {
         }
 
         System.out.println("Finished Warmup");
+    }
+
+    /**
+     * Test the write speed of slice aligned traversal.
+     */
+    public void testStyleSmall() {
+        System.out.println("ReadStyle Large");
+        for(int i=0; i < WARMUP2; i++) {
+            readStyles(SMALL_SIZE,SMALL_TIMES,false);
+        }
+        readStyles(SMALL_SIZE,SMALL_TIMES,true);
+        //readAccessState(SMALL_SIZE,SMALL_TIMES,true);
+        //readAccessState(SMALL_SIZE,SMALL_TIMES,true);
+    }
+
+    /**
+     * Test the write speed of slice aligned traversal.
+     */
+    public void testStyleLarge() {
+        System.out.println("ReadStyle Large");
+        for(int i=0; i < WARMUP2; i++) {
+            readStyles(LARGE_SIZE,LARGE_TIMES,false);
+        }
+        readStyles(LARGE_SIZE,LARGE_TIMES,true);
+        //readAccessState(LARGE_SIZE,LARGE_TIMES,true);
+        //readAccessState(LARGE_SIZE,LARGE_TIMES,true);
+
+        fail("stop");
     }
 
     /**
@@ -99,6 +123,8 @@ System.out.println("Finding exterior voxels");
 
         return new TestSuite(TestPerformanceGrid.class);
     }
+
+
 
     /**
      * Test the write speed of slice aligned traversal.
@@ -153,6 +179,125 @@ System.out.println("Warmup: " + i);
         readAccessState(LARGE_SIZE,LARGE_TIMES,true);
         //readAccessState(LARGE_SIZE,LARGE_TIMES,true);
         //readAccessState(LARGE_SIZE,LARGE_TIMES,true);
+    }
+
+    /**
+     * Test read access styles.
+     */
+    public static void readStyles(int size, int times, boolean display) {
+        if (display) System.out.println("ReadAccessStyle Times:");
+
+        // Test Method 2
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // warmup
+        for(int i=0; i < WARMUP; i++) {
+            readStyle3(grid);
+        }
+
+        long stime = System.nanoTime();
+
+        for(int i=0; i < times; i++) {
+            readStyle3(grid);
+        }
+
+        long totalTime1 = System.nanoTime() - stime;
+
+        if (display) System.out.println("Style3        : " + totalTime1);
+
+        // Test Method 1
+        grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // warmup
+        for(int i=0; i < WARMUP; i++) {
+            readStyle1(grid);
+        }
+
+        stime = System.nanoTime();
+
+        for(int i=0; i < times; i++) {
+            readStyle1(grid);
+        }
+
+        long totalTime3 = System.nanoTime() - stime;
+
+        if (display) System.out.println("Style1 : " + totalTime3 + " " +
+            formater.format((float)totalTime3 / totalTime1) + "X");
+
+        // Test Method 2
+        grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // warmup
+        for(int i=0; i < WARMUP; i++) {
+            readStyle2(grid);
+        }
+
+        stime = System.nanoTime();
+
+        for(int i=0; i < times; i++) {
+            readStyle2(grid);
+        }
+
+        long totalTime2 = System.nanoTime() - stime;
+
+        if (display) System.out.println("Style2 : " + totalTime2 + " " +
+            formater.format((float)totalTime2 / totalTime1) + "X");
+
+        grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // warmup
+        for(int i=0; i < WARMUP; i++) {
+            readStyle4(grid);
+        }
+
+        stime = System.nanoTime();
+
+        for(int i=0; i < times; i++) {
+            readStyle4(grid);
+        }
+
+        long totalTime4 = System.nanoTime() - stime;
+
+        if (display) System.out.println("Style4 : " + totalTime4 + " " +
+            formater.format((float)totalTime4 / totalTime1) + "X");
+
+        grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // warmup
+        for(int i=0; i < WARMUP; i++) {
+            readStyle5(grid);
+        }
+
+        stime = System.nanoTime();
+
+        for(int i=0; i < times; i++) {
+            readStyle5(grid);
+        }
+
+        long totalTime5 = System.nanoTime() - stime;
+
+        if (display) System.out.println("Style5 : " + totalTime5 + " " +
+            formater.format((float)totalTime5 / totalTime1) + "X");
+
+        grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // warmup
+        for(int i=0; i < WARMUP; i++) {
+            readStyle6(grid);
+        }
+
+        stime = System.nanoTime();
+
+        for(int i=0; i < times; i++) {
+            readStyle6(grid);
+        }
+
+        long totalTime6 = System.nanoTime() - stime;
+
+        if (display) System.out.println("Style6 : " + totalTime6 + " " +
+            formater.format((float)totalTime6 / totalTime1) + "X");
+
+        if (display) System.out.println();
     }
 
     /**
@@ -501,6 +646,90 @@ System.out.println("Warmup: " + i);
 
         for(int z=0; z < depth; z++) {
             grid.setData(0,0,z, state, mat);
+        }
+    }
+
+    protected static void readStyle1(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        for(int x=0; x < width; x++) {
+            for(int y=0; y < height; y++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = grid.getData(x,y,z);
+                }
+            }
+        }
+    }
+
+    protected static void readStyle2(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        for(int x=0; x < width; x++) {
+            for(int z=0; z < depth; z++) {
+                for(int y=0; y < height; y++) {
+                    VoxelData vd = grid.getData(x,y,z);
+                }
+            }
+        }
+    }
+
+    protected static void readStyle3(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    VoxelData vd = grid.getData(x,y,z);
+                }
+            }
+        }
+    }
+
+    protected static void readStyle4(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        for(int y=0; y < height; y++) {
+            for(int z=0; z < depth; z++) {
+                for(int x=0; x < width; x++) {
+                    VoxelData vd = grid.getData(x,y,z);
+                }
+            }
+        }
+    }
+
+    protected static void readStyle5(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        for(int z=0; z < depth; z++) {
+            for(int x=0; x < width; x++) {
+                for(int y=0; y < height; y++) {
+                    VoxelData vd = grid.getData(x,y,z);
+                }
+            }
+        }
+    }
+
+    protected static void readStyle6(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        for(int z=0; z < depth; z++) {
+            for(int y=0; y < height; y++) {
+                for(int x=0; x < width; x++) {
+                    VoxelData vd = grid.getData(x,y,z);
+                }
+            }
         }
     }
 
