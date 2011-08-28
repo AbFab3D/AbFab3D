@@ -677,7 +677,6 @@ public class BlockBasedGridByte extends BaseGrid {
     public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
 //        super.find(vc, t);
 
-
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z

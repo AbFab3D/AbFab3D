@@ -525,32 +525,6 @@ public class TestBlockBasedGridByte extends BaseTestGrid implements ClassTravers
     /**
      * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
      */
-    public void testFindVoxelClassIteratorSparse() {
-        int width = 32;
-        int height = 32;
-        int depth = 32;
-        int mat = 1;
-
-        Grid grid = new BlockBasedGridByte(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
-        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
-
-        for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
-        }
-
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
-
-        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
-                ft.foundAllVoxels());
-
-    }
-
-    /**
-     * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
-     */
     public void testFindVoxelClassIterator() {
         int width = 20;
         int height = 10;
