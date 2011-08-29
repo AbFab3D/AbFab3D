@@ -231,6 +231,35 @@ public class RangeCheckWrapper implements GridWrapper {
     }
 
     /**
+     * Set the material value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param material The materialID
+     */
+    public void setMaterial(int x, int y, int z, int material) {
+        verifyRange(x,y,z);
+
+        grid.setMaterial(x,y,z,material);
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     * @param material The materialID
+     */
+    public void setState(int x, int y, int z, byte state) {
+        verifyRange(x,y,z);
+
+        grid.setState(x,y,z,state);
+    }
+
+    /**
      * Get the grid coordinates for a world coordinate.
      *
      * @param x The x value in world coords
@@ -383,6 +412,16 @@ public class RangeCheckWrapper implements GridWrapper {
      */
     public void removeMaterial(int mat) {
         grid.removeMaterial(mat);
+    }
+
+    /**
+     * Reassign a group of materials to a new materialID
+     *
+     * @param materials The new list of materials
+     * @param mat The new materialID
+     */
+    public void reassignMaterial(int[] materials, int matID) {
+        grid.reassignMaterial(materials, matID);
     }
 
     /**

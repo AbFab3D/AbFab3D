@@ -546,11 +546,9 @@ grid.printTree();
      */
     public void testGetMaterialByVoxel() {
         Grid grid = new OctreeGridByte(10, 10, 10, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.OUTSIDE, 3);
         grid.setData(9, 8, 7, Grid.EXTERIOR, 2);
         grid.setData(5, 0, 7, Grid.INTERIOR, 1);
 
-        assertEquals("State should be ", 3, grid.getMaterial(0, 0, 0));
         assertEquals("State should be ", 2, grid.getMaterial(9, 8, 7));
         assertEquals("State should be ", 1, grid.getMaterial(5, 0, 7));
 

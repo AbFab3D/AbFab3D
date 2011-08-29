@@ -28,6 +28,7 @@ public class TestGridSuite extends TestSuite {
         TestSuite suite = new TestSuite("Grid Test Suite");
 
         suite.addTest(TestBlockBasedGridByte.suite());
+        suite.addTest(TestBlockBasedGridShort.suite());
         suite.addTest(TestArrayGrid.suite());
         suite.addTest(TestOctreeGridByte.suite());
         suite.addTest(TestOctreeGridShort.suite());

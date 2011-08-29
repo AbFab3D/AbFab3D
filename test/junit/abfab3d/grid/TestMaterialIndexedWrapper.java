@@ -85,10 +85,10 @@ public class TestMaterialIndexedWrapper extends BaseTestGrid implements ClassTra
      * Test removal operation
      */
     public void testRemovalSpeed() {
-        int size = 250;
+        int size = 160;
         int numMaterials = 10;
         int matWidth = 15;
-        int warmup = 20;
+        int warmup = 10;
         int times = 10;
 
         long startTime;
@@ -222,10 +222,10 @@ System.out.println("Removal Speed");
      * Test that traversal methods work
      */
     public void testMaterialTraversalSpeed() {
-        int size = 250;
+        int size = 160;
         int numMaterials = 10;
         int matWidth = 15;
-        int warmup = 20;
+        int warmup = 10;
         int times = 10;
         long startTime;
         long time1;
@@ -296,19 +296,19 @@ System.out.println("Material Traversal Speed");
 
         time2 = System.nanoTime() - startTime;
 
-        assertTrue("Wrapper method too slow", time1 * 100 < time2);
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
+        assertTrue("Wrapper method too slow", time1 * 50 < time2);
     }
 
     /**
      * Test that traversal methods work
      */
     public void testMaterialTraversalSpeedNotFound() {
-        int size = 250;
+        int size = 160;
         int numMaterials = 10;
         int matWidth = 15;
-        int warmup = 20;
+        int warmup = 10;
         int times = 10;
         long startTime;
         long time1;
@@ -384,9 +384,9 @@ System.out.println("Material Traversal Speed Not Found");
 
         assertEquals("Direct count wrong", matCount, 0);
 
-        assertTrue("Wrapper method too slow", time1 * 100 < time2);
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
+        assertTrue("Wrapper method too slow", time1 * 50 < time2);
 
     }
 
@@ -394,7 +394,7 @@ System.out.println("Material Traversal Speed Not Found");
      * Test that material count speed is better then regular grids.
      */
     public void testMaterialCountSpeed() {
-        int size = 250;
+        int size = 160;
         int numMaterials = 5;
         int matWidth = 15;
         int warmup = 10;
@@ -460,7 +460,7 @@ System.out.println("Material Count Speed");
 
         time2 = System.nanoTime() - startTime;
 
-        assertTrue("Wrapper method too slow", time1 * 100 < time2);
+        assertTrue("Wrapper method too slow", time1 * 50 < time2);
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
 

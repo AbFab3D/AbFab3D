@@ -136,16 +136,9 @@ public class TestBlockBasedGridByte extends BaseTestGrid implements ClassTravers
      * Test set/get all data points.
      */
     public void testSetGetByVoxelCoords() {
-/*
-        // Should be the same as ArrayGrid
-        Grid grid = new BlockBasedGridByte(8, 8, 8, 0.001, 0.001, 0);
-        setGetAllVoxelCoords(grid);
-*/
-
         Grid grid = new BlockBasedGridByte(8, 8, 8, 0.001, 0.001, 1);
         setGetAllVoxelCoords(grid);
 
-/*
         grid = new BlockBasedGridByte(8, 8, 8, 0.001, 0.001, 2);
         setGetAllVoxelCoords(grid);
 
@@ -160,7 +153,6 @@ public class TestBlockBasedGridByte extends BaseTestGrid implements ClassTravers
 
         grid = new BlockBasedGridByte(100, 91, 85, 0.001, 0.001, 2);
         setGetAllVoxelCoords(grid);
-*/
     }
 
     /**
@@ -270,16 +262,17 @@ public class TestBlockBasedGridByte extends BaseTestGrid implements ClassTravers
      */
     public void testGetMaterialByVoxel() {
         Grid grid = new BlockBasedGridByte(10, 9, 8, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)3);
+
+        // Removed outside as it doesn't have to carry state
+        //grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)3);
         grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)2);
         grid.setData(5, 0, 7, Grid.INTERIOR, (byte)1);
 
-        assertEquals("State should be ", 3, grid.getMaterial(0, 0, 0));
-        assertEquals("State should be ", 2, grid.getMaterial(9, 8, 7));
-        assertEquals("State should be ", 1, grid.getMaterial(5, 0, 7));
+        assertEquals("Material should be ", 2, grid.getMaterial(9, 8, 7));
+        assertEquals("Material should be ", 1, grid.getMaterial(5, 0, 7));
 
         // Index that are not set should default to 0
-        assertEquals("State should be ", 0, grid.getMaterial(8, 8, 8));
+        assertEquals("Material should be ", 0, grid.getMaterial(8, 8, 8));
     }
 
     /**
@@ -1267,114 +1260,5 @@ public class TestBlockBasedGridByte extends BaseTestGrid implements ClassTravers
         extCount = 0;
         intCount = 0;
         outCount = 0;
-    }
-}
-
-
-/**
- * Class to test that the find methods actually found the voxel states in the correct coordinate.
- *
- * @author Tony
- *
- */
-class FindIterateTester implements ClassTraverser {
-    private boolean foundCorrect;
-    private HashSet<VoxelCoordinate> vcSet;
-    private int iterateCount;
-    private int vcSetCount;
-
-    /**
-     * Constructor that takes in a HashSet of VoxelCoordinates known to be
-     * in the VoxelClass to find
-     * @param vc
-     */
-    public FindIterateTester(HashSet<VoxelCoordinate> vc) {
-        this.vcSet = (HashSet<VoxelCoordinate>)vc.clone();
-        foundCorrect = true;
-        iterateCount = 0;
-        vcSetCount = vcSet.size();
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     * VoxelData classes may be reused so clone the object
-     * if you keep a copy.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        VoxelCoordinate c = new VoxelCoordinate(x, y, z);
-//System.out.println(x + ", " + y + ", " + z);
-        if (!inCoordList(c)) {
-//System.out.println("not in cood list: " + x + ", " + y + ", " + z);
-            foundCorrect = false;
-        }
-
-        iterateCount++;
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     * VoxelData classes may be reused so clone the object
-     * if you keep a copy.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     *
-     * @return True to continue, false stops the traversal.
-     */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        VoxelCoordinate c = new VoxelCoordinate(x, y, z);
-//System.out.println(x + ", " + y + ", " + z);
-        if (!inCoordList(c)) {
-//System.out.println("not in cood list: " + x + ", " + y + ", " + z);
-            foundCorrect = false;
-            return false;
-        }
-
-        iterateCount++;
-        return true;
-    }
-
-    /**
-     * Returns whether all voxels have been found, and that the number of
-     * times iterated through the grid is equal to the expected value.
-     *
-     * @return True if voxels were found correctly
-     */
-    public boolean foundAllVoxels() {
-//System.out.println("iterateCount: " + iterateCount);
-//System.out.println("vcSetCount: " + vcSetCount);
-        return (foundCorrect && (iterateCount == vcSetCount));
-    }
-
-    /**
-     * Returns the number of times voxels of the correct state was found.
-     *
-     * @return count of the times voxels of the correct state was found\
-     */
-    public int getIterateCount() {
-        return iterateCount;
-    }
-
-    /**
-     * Check if the VoxelCoordinate is in the known list, and removes
-     * it from the list if found.
-     *
-     * @param c The voxel coordinate
-     * @return True if the voxel coordinate is in the know list
-     */
-    private boolean inCoordList(VoxelCoordinate c) {
-        if (vcSet.contains(c)) {
-            vcSet.remove(c);
-            return true;
-        }
-
-        return false;
     }
 }

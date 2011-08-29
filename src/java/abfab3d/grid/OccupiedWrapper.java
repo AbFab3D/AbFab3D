@@ -369,6 +369,7 @@ public class OccupiedWrapper implements GridWrapper {
     public void reassignMaterial(int[] materials, int matID) {
         grid.reassignMaterial(materials, matID);
     }
+
     /**
      * Get the number of height cells.
      *

@@ -191,11 +191,9 @@ System.out.println("test3");
      */
     public void testGetMaterialByVoxel() {
         Grid grid = new MaterialIndexedGridByte(10, 9, 8, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)3);
         grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)2);
         grid.setData(5, 0, 7, Grid.INTERIOR, (byte)1);
 
-        assertEquals("State should be ", 3, grid.getMaterial(0, 0, 0));
         assertEquals("State should be ", 2, grid.getMaterial(9, 8, 7));
         assertEquals("State should be ", 1, grid.getMaterial(5, 0, 7));
 

@@ -25,12 +25,12 @@ import junit.framework.TestSuite;
 // Internal Imports
 
 /**
- * Tests the functionality of a ArrayGrid.
+ * Tests the functionality of a BlockBasedGridShort.
  *
  * @author Alan Hudson
  * @version
  */
-public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
+public class TestBlockBasedGridShort extends BaseTestGrid implements ClassTraverser {
 
     /** The material count */
     private int allCount;
@@ -43,40 +43,115 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestArrayGrid.class);
+        return new TestSuite(TestBlockBasedGridShort.class);
     }
 
     /**
-     * Test the constructors and the grid size.
+     * Test the reverse mapping functions
      */
-    public void testArrayGrid() {
-        Grid grid = new ArrayGridByte(1, 1, 1, 0.001, 0.001);
-        assertEquals("Array size is not 1", 1, grid.getWidth()*grid.getHeight()*grid.getDepth());
+    public void testReverseMappingFunctionsEqual() {
+        int w = 8;
+        int h = 8;
+        int d = 8;
+        int blockOrder = 2;
 
-        grid = new ArrayGridByte(100, 101, 102, 0.001, 0.001);
-        assertEquals("Array size is not 1030200", 1030200, grid.getWidth()*grid.getHeight()*grid.getDepth());
+        BlockBasedGridShort grid = new BlockBasedGridShort(w, h, d, 0.001, 0.001,blockOrder);
 
-        grid = new ArrayGridByte(1.0, 1.0, 1.0, 0.2, 0.1);
-        assertEquals("Array size is not 396", 396, grid.getWidth()*grid.getHeight()*grid.getDepth());
+        int[] bcoord = new int[3];
+        int[] vcoord = new int[3];
 
-        grid = new ArrayGridByte(1.1, 1.1, 1.1, 0.2, 0.1);
-        assertEquals("Array size is not 432", 432, grid.getWidth()*grid.getHeight()*grid.getDepth());
+        for(int y=0; y < h; y++) {
+            for(int x=0; x < w; x++) {
+                for(int z=0; z < d; z++) {
+
+                    // Find block coord
+                    grid.getBlockCoord(x, y, z, bcoord);
+
+                    // Inline getBlockID call, confirm faster?
+                    int bid = grid.getBlockID(bcoord);
+
+                    grid.getVoxelInBlock(x, y, z, vcoord);
+
+                    int vid = grid.getID(vcoord);
+
+                    //System.out.println("voxel: " + x + " " + y + " " + z + " bid: " + bid + " vid: " + vid + " calced: " + java.util.Arrays.toString(vcoord));
+
+                    grid.getVoxelCoord(bid, vid, vcoord);
+
+                    //System.out.println("calced : " + java.util.Arrays.toString(vcoord));
+                    //System.out.println("correct: " + x + " " + y + " " + z);
+                    //System.out.println();
+                    assertEquals("x coord incorrect", x, vcoord[0]);
+                    assertEquals("y coord incorrect", y, vcoord[1]);
+                    assertEquals("z coord incorrect", z, vcoord[2]);
+                }
+            }
+        }
+    }
+
+    /**
+     * Test the reverse mapping functions
+     */
+    public void testReverseMappingFunctionsNonEqual() {
+        int w = 16;
+        int h = 8;
+        int d = 8;
+        int blockOrder = 2;
+
+        BlockBasedGridShort grid = new BlockBasedGridShort(w, h, d, 0.001, 0.001,blockOrder);
+
+        int[] bcoord = new int[3];
+        int[] vcoord = new int[3];
+
+        for(int y=0; y < h; y++) {
+            for(int x=0; x < w; x++) {
+                for(int z=0; z < d; z++) {
+
+                    // Find block coord
+                    grid.getBlockCoord(x, y, z, bcoord);
+
+                    // Inline getBlockID call, confirm faster?
+                    int bid = grid.getBlockID(bcoord);
+
+                    grid.getVoxelInBlock(x, y, z, vcoord);
+
+                    int vid = grid.getID(vcoord);
+
+                    //System.out.println("voxel: " + x + " " + y + " " + z + " bid: " + bid + " vid: " + vid + " calced: " + java.util.Arrays.toString(vcoord));
+
+                    grid.getVoxelCoord(bid, vid, vcoord);
+
+                    //System.out.println("calced : " + java.util.Arrays.toString(vcoord));
+                    //System.out.println("correct: " + x + " " + y + " " + z);
+                    //System.out.println();
+                    assertEquals("x coord incorrect", x, vcoord[0]);
+                    assertEquals("y coord incorrect", y, vcoord[1]);
+                    assertEquals("z coord incorrect", z, vcoord[2]);
+                }
+            }
+        }
     }
 
     /**
      * Test set/get all data points.
      */
     public void testSetGetByVoxelCoords() {
-        Grid grid = new ArrayGridByte(1, 1, 1, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(8, 8, 8, 0.001, 0.001, 1);
         setGetAllVoxelCoords(grid);
 
-        grid = new ArrayGridByte(3,2,2,0.001, 0.001);
+        grid = new BlockBasedGridShort(8, 8, 8, 0.001, 0.001, 2);
         setGetAllVoxelCoords(grid);
 
-        grid = new ArrayGridByte(11, 11, 11, 0.001, 0.001);
+        grid = new BlockBasedGridShort(8, 8, 8, 0.001, 0.001, 3);
         setGetAllVoxelCoords(grid);
 
-        grid = new ArrayGridByte(100, 91, 85, 0.001, 0.001);
+        grid = new BlockBasedGridShort(16,8,8,0.001, 0.001, 2);
+        setGetAllVoxelCoords(grid);
+
+        grid = new BlockBasedGridShort(16, 16, 16, 0.001, 0.001, 2);
+        setGetAllVoxelCoords(grid);
+
+        grid = new BlockBasedGridShort(100, 91, 85, 0.001, 0.001, 2);
         setGetAllVoxelCoords(grid);
     }
 
@@ -84,16 +159,16 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test set/get all data points.
      */
     public void testSetGetByWorldCoords() {
-        Grid grid = new ArrayGridByte(1, 1, 1, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(8, 8, 8, 0.001, 0.001);
         setGetAllVoxelByWorldCoords(grid);
 
-        grid = new ArrayGridByte(3,2,2,0.001, 0.001);
+        grid = new BlockBasedGridShort(3,2,2,0.001, 0.001);
         setGetAllVoxelByWorldCoords(grid);
 
-        grid = new ArrayGridByte(11, 11, 11, 0.001, 0.001);
+        grid = new BlockBasedGridShort(11, 11, 11, 0.001, 0.001);
         setGetAllVoxelByWorldCoords(grid);
 
-        grid = new ArrayGridByte(100, 91, 85, 0.001, 0.001);
+        grid = new BlockBasedGridShort(100, 91, 85, 0.001, 0.001);
         setGetAllVoxelByWorldCoords(grid);
     }
 
@@ -101,37 +176,37 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test getState by voxels.
      */
     public void testGetStateByVoxel() {
-        Grid grid = new ArrayGridByte(10, 9, 8, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)2);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)1);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (byte)0);
+        Grid grid = new BlockBasedGridShort(10, 9, 8, 0.001, 0.001);
+        grid.setData(0, 0, 0, Grid.OUTSIDE, (short)2);
+        grid.setData(9, 8, 7, Grid.EXTERIOR, (short)1);
+        grid.setData(5, 0, 7, Grid.INTERIOR, (short)0);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
         assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
 
         // Index that are not set should default to 0
-        assertEquals("State should be ", 0, grid.getState(2, 2, 2));
+        assertEquals("State should be ", 0, grid.getState(8, 8, 8));
     }
 
     /**
      * Test getState by world coordinates.
      */
     public void testGetStateByCoord() {
-        Grid grid = new ArrayGridByte(1.0, 0.4, 0.5, 0.05, 0.01);
+        Grid grid = new BlockBasedGridShort(1.0, 0.4, 0.5, 0.05, 0.01);
 
         // set and test get on some random world coordinates
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)2);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte)1);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (byte)0);
+        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (short)2);
+        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (short)1);
+        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (short)0);
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
         assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0.95, 0.39, 0.45));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.6, 0.1, 0.4));
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new ArrayGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (byte)2);
+        grid = new BlockBasedGridShort(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (short)2);
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.05));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.06, 0.05));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.0799, 0.05));
@@ -145,7 +220,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (byte)2);
+        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (short)2);
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0, 0.0));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0199, 0.0));
@@ -156,7 +231,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte)2);
+        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (short)2);
 //        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.151));
         assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.151));
@@ -186,83 +261,81 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test getMaterial by voxels.
      */
     public void testGetMaterialByVoxel() {
-        Grid grid = new ArrayGridByte(10, 9, 8, 0.001, 0.001);
-        // Removed outside as it doesn't have to carry state
-        //grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)3);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (byte)1);
+        Grid grid = new BlockBasedGridShort(10, 9, 8, 0.001, 0.001);
+        grid.setData(9, 8, 7, Grid.EXTERIOR, (short)67);
+        grid.setData(5, 0, 7, Grid.INTERIOR, (short)1);
 
-        assertEquals("State should be ", 2, grid.getMaterial(9, 8, 7));
-        assertEquals("State should be ", 1, grid.getMaterial(5, 0, 7));
+        assertEquals("Material should be ", 67, grid.getMaterial(9, 8, 7));
+        assertEquals("Material should be ", 1, grid.getMaterial(5, 0, 7));
 
         // Index that are not set should default to 0
-        assertEquals("State should be ", 0, grid.getMaterial(2, 2, 2));
+        assertEquals("Material should be ", 0, grid.getMaterial(8, 8, 8));
     }
 
     /**
      * Test getMaterial by world coordinates.
      */
     public void testGetMaterialByCoord() {
-        Grid grid = new ArrayGridByte(1.0, 0.4, 0.5, 0.05, 0.01);
+        Grid grid = new BlockBasedGridShort(1.0, 0.4, 0.5, 0.05, 0.01);
 
         // set and test get on some random world coordinates
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)3);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte)2);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (byte)1);
-        assertEquals("State should be ", 3, grid.getMaterial(0.0, 0.0, 0.0));
-        assertEquals("State should be ", 2, grid.getMaterial(0.95, 0.39, 0.45));
-        assertEquals("State should be ", 1, grid.getMaterial(0.6, 0.1, 0.4));
+        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (short)67);
+        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (short)2);
+        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (short)1);
+        assertEquals("Material should be ", 67, grid.getMaterial(0.0, 0.0, 0.0));
+        assertEquals("Material should be ", 2, grid.getMaterial(0.95, 0.39, 0.45));
+        assertEquals("Material should be ", 1, grid.getMaterial(0.6, 0.1, 0.4));
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new ArrayGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (byte)2);
-        assertEquals("State should be ", 2, grid.getMaterial(0.05, 0.06, 0.05));
-        assertEquals("State should be ", 2, grid.getMaterial(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", 2, grid.getMaterial(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", 2, grid.getMaterial(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", 2, grid.getMaterial(0.0999, 0.0799, 0.0999));
-        assertEquals("State should be ", 0, grid.getMaterial(0.0499, 0.06, 0.05));
-        assertEquals("State should be ", 0, grid.getMaterial(0.05, 0.0599, 0.05));
-        assertEquals("State should be ", 0, grid.getMaterial(0.05, 0.06, 0.0499));
-        assertEquals("State should be ", 0, grid.getMaterial(0.1, 0.06, 0.05));
-        assertEquals("State should be ", 0, grid.getMaterial(0.05, 0.08, 0.05));
-        assertEquals("State should be ", 0, grid.getMaterial(0.05, 0.06, 0.1));
+        grid = new BlockBasedGridShort(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (short)2);
+        assertEquals("Material should be ", 2, grid.getMaterial(0.05, 0.06, 0.05));
+        assertEquals("Material should be ", 2, grid.getMaterial(0.0999, 0.06, 0.05));
+        assertEquals("Material should be ", 2, grid.getMaterial(0.05, 0.0799, 0.05));
+        assertEquals("Material should be ", 2, grid.getMaterial(0.05, 0.06, 0.0999));
+        assertEquals("Material should be ", 2, grid.getMaterial(0.0999, 0.0799, 0.0999));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.0499, 0.06, 0.05));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.05, 0.0599, 0.05));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.05, 0.06, 0.0499));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.1, 0.06, 0.05));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.05, 0.08, 0.05));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (byte)5);
-        assertEquals("State should be ", 5, grid.getMaterial(0.0, 0.0, 0.0));
-        assertEquals("State should be ", 5, grid.getMaterial(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", 5, grid.getMaterial(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", 5, grid.getMaterial(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", 5, grid.getMaterial(0.0499, 0.0199, 0.0499));
-        assertEquals("State should be ", 0, grid.getMaterial(0.05, 0.0, 0.0));
-        assertEquals("State should be ", 0, grid.getMaterial(0.0, 0.02, 0.0));
-        assertEquals("State should be ", 0, grid.getMaterial(0.0, 0.0, 0.05));
+        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (short)69);
+        assertEquals("Material should be ", 69, grid.getMaterial(0.0, 0.0, 0.0));
+        assertEquals("Material should be ", 69, grid.getMaterial(0.0499, 0.0, 0.0));
+        assertEquals("Material should be ", 69, grid.getMaterial(0.0, 0.0199, 0.0));
+        assertEquals("Material should be ", 69, grid.getMaterial(0.0, 0.0, 0.0499));
+        assertEquals("Material should be ", 69, grid.getMaterial(0.0499, 0.0199, 0.0499));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.069, 0.0, 0.0));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.0, 0.02, 0.0));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.0, 0.0, 0.069));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte)12);
-//        assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.1, 0.15)); //failing because 0.15/0.05=2.999997
-        assertEquals("State should be ", 12, grid.getMaterial(0.1499, 0.1, 0.1501));
-        assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.119, 0.1501));
-        assertEquals("State should be ", 12, grid.getMaterial(0.1, 0.1, 0.199));
-        assertEquals("State should be ", 12, grid.getMaterial(0.1499, 0.1199, 0.1999));
-        assertEquals("State should be ", 0, grid.getMaterial(0.0999, 0.1, 0.1501));
-        assertEquals("State should be ", 0, grid.getMaterial(0.1, 0.0999, 0.1501));
-        assertEquals("State should be ", 0, grid.getMaterial(0.1, 0.1, 0.1499));
-        assertEquals("State should be ", 0, grid.getMaterial(0.0999, 0.0999, 0.1499));
+        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (short)12);
+//        assertEquals("Material should be ", 12, grid.getMaterial(0.1, 0.1, 0.15)); //failing because 0.15/0.05=2.999997
+        assertEquals("Material should be ", 12, grid.getMaterial(0.1499, 0.1, 0.1501));
+        assertEquals("Material should be ", 12, grid.getMaterial(0.1, 0.119, 0.1501));
+        assertEquals("Material should be ", 12, grid.getMaterial(0.1, 0.1, 0.199));
+        assertEquals("Material should be ", 12, grid.getMaterial(0.1499, 0.1199, 0.1999));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.0999, 0.1, 0.1501));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.1, 0.0999, 0.1501));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.1, 0.1, 0.1499));
+        assertEquals("Material should be ", 0, grid.getMaterial(0.0999, 0.0999, 0.1499));
     }
 
 
     /**
      * Test set/get byte material range.
      */
-    public void testByteMaterialRange() {
-        int width = 100;
-        int maxMaterial = 64;
+    public void testShortMaterialRange() {
+        int maxMaterial = 16384;
+        int width = maxMaterial;
         int mat, expectedMat;
 
-        Grid grid = new ArrayGridByte(width, 1, 1, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, 1, 1, 0.001, 0.001);
 
         for (int x=0; x<width; x++) {
             grid.setData(x, 0, 0, Grid.EXTERIOR, x);
@@ -277,46 +350,6 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
     }
 
     /**
-     * Test set/get short material range.
-     */
-    public void testShortMaterialRange() {
-        int width = 100;
-        int maxMaterial = (int) Math.pow(2.0, 14.0);
-
-        Grid grid = new ArrayGridShort(width, 1, 1, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
-        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial-1);
-        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial+1);
-        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
-
-        assertEquals("Material [0,0,0] is not 0", 0, grid.getMaterial(0, 0, 0));
-        assertEquals("Material [1,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(1, 0, 0));
-        assertEquals("Material [2,0,0] is not 1", 1, grid.getMaterial(2, 0, 0));
-        assertEquals("Material [3,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(3, 0, 0));
-
-    }
-
-    /**
-     * Test set/get int material range.
-     */
-    public void testIntMaterialRange() {
-        int width = 100;
-        int maxMaterial = (int) Math.pow(2.0, 30.0);
-
-        Grid grid = new ArrayGridInt(width, 1, 1, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
-        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial-1);
-        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial+1);
-        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
-
-        assertEquals("Material [0,0,0] is not 0", 0, grid.getMaterial(0, 0, 0));
-        assertEquals("Material [1,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(1, 0, 0));
-        assertEquals("Material [2,0,0] is not 1", 1, grid.getMaterial(2, 0, 0));
-        assertEquals("Material [3,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getMaterial(3, 0, 0));
-
-    }
-
-    /**
      * Test findCount by voxel class.
      */
     public void testFindCountByVoxelClass() {
@@ -326,7 +359,11 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int[] row = {0, 3, 5};
         byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.05, 0.02);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.05, 0.02);
+
+        width = grid.getWidth();
+        height = grid.getHeight();
+        depth = grid.getDepth();
 
         // set some rows to interior and exterior
         for (int y=0; y<height; y++) {
@@ -377,11 +414,15 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int depth = 10;
         int material0 = 2;
         int material1 = 5;
-        int material2 = 12;
+        int material2 = 69;
         int[] materialDepth = {10, 6, 1};
         int[] material = {material0, material1, material2};
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.05, 0.02);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.05, 0.02);
+
+        width = grid.getWidth();
+        height = grid.getHeight();
+        depth = grid.getDepth();
 
         // set some material data
         for (int x=0; x<material.length; x++){
@@ -403,14 +444,14 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
 
         // test material 0
         int mat = 0;
-        grid = new ArrayGridByte(width, height, depth, 0.05, 0.02);
+        grid = new BlockBasedGridShort(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.EXTERIOR, mat);
         }
 
         assertEquals("Material count is not " + width, width, grid.findCount(mat));
 
-        grid = new ArrayGridByte(width, height, depth, 0.05, 0.02);
+        grid = new BlockBasedGridShort(width, height, depth, 0.05, 0.02);
         for (int y=0; y<height; y++) {
             grid.setData(0, y, 0, Grid.INTERIOR, mat);
         }
@@ -429,7 +470,11 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int[] stateDepth = {10, 6, 1};
         byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.05, 0.02);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.05, 0.02);
+
+        width = grid.getWidth();
+        height = grid.getHeight();
+        depth = grid.getDepth();
 
         // set some data
         for (int x=0; x<states.length; x++){
@@ -476,7 +521,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int depth = 10;
         int mat = 1;
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
@@ -526,7 +571,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
                 {width-1, height-1, depth-1}
         };
 
-        grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         vcSetExt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
@@ -551,7 +596,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int depth = 10;
         int mat = 1;
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
@@ -607,7 +652,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
                 {width-1, height-1, depth-1}
         };
 
-        grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         vcSetExt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
@@ -631,9 +676,9 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int height = 10;
         int depth = 10;
         int mat1 = 1;
-        int mat2 = 2;
+        int mat2 = 69;
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
@@ -683,7 +728,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
                 {width-1, height-1, depth-1}
         };
 
-        grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         vcSetMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
@@ -707,9 +752,9 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int height = 10;
         int depth = 10;
         int mat1 = 1;
-        int mat2 = 2;
+        int mat2 = 69;
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
@@ -765,7 +810,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
                 {width-1, height-1, depth-1}
         };
 
-        grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         vcSetMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
@@ -789,9 +834,9 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int height = 10;
         int depth = 10;
         int mat1 = 1;
-        int mat2 = 2;
+        int mat2 = 69;
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat2 = new HashSet<VoxelCoordinate>();
 
@@ -841,7 +886,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
                 {width-1, height-1, depth-1}
         };
 
-        grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         vcSetExtMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
@@ -865,9 +910,9 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int height = 10;
         int depth = 10;
         int mat1 = 1;
-        int mat2 = 2;
+        int mat2 = 69;
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetExtMat2 = new HashSet<VoxelCoordinate>();
@@ -931,7 +976,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
                 {width-1, height-1, depth-1}
         };
 
-        grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         vcSetExtMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
@@ -957,7 +1002,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         double voxelWidth = 0.02;
         double sliceHeight = 0.01;
 
-        Grid grid = new ArrayGridByte(xWorldCoord, yWorldCoord, zWorldCoord, voxelWidth, sliceHeight);
+        Grid grid = new BlockBasedGridShort(xWorldCoord, yWorldCoord, zWorldCoord, voxelWidth, sliceHeight);
 
         double xcoord = 0.55;
         double ycoord = 0.0202;
@@ -1002,7 +1047,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         double voxelWidth = 0.02;
         double sliceHeight = 0.01;
 
-        Grid grid = new ArrayGridByte(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight);
+        Grid grid = new BlockBasedGridShort(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight);
 
         int xcoord = 27;
         int ycoord = 2;
@@ -1032,7 +1077,11 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         double voxelWidth = 0.02;
         double sliceHeight = 0.01;
 
-        Grid grid = new ArrayGridByte(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight);
+        Grid grid = new BlockBasedGridShort(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight);
+
+        xVoxels = grid.getWidth();
+        yVoxels = grid.getHeight();
+        zVoxels = grid.getDepth();
 
         double[] minBounds = new double[3];
         double[] maxBounds = new double[3];
@@ -1048,68 +1097,11 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
                 minBounds[1] == 0.0 &&
                 minBounds[2] == 0.0);
 
-        assertTrue("Minimum bounds is not (" + expectedMaxX + ", " + expectedMaxY + ", " + expectedMaxZ + ")",
+        assertTrue("Maximum bounds is not (" + expectedMaxX + ", " + expectedMaxY + ", " + expectedMaxZ + ")",
                 maxBounds[0] == expectedMaxX &&
                 maxBounds[1] == expectedMaxY &&
                 maxBounds[2] == expectedMaxZ);
 
-    }
-
-    /**
-     * Test getWidth with both constructor methods.
-     */
-    public void testGetWidth() {
-        int width = 70;
-
-        // voxel coordinates
-        Grid grid = new ArrayGridByte(width, 50, 25, 0.05, 0.01);
-        assertEquals("Width is not " + width, width, grid.getWidth());
-
-        // world coordinates
-        double xcoord = 0.12;
-        double voxelSize = 0.05;
-        width = (int)(xcoord/voxelSize) + 1;
-
-        grid = new ArrayGridByte(xcoord, 0.11, 0.16, voxelSize, 0.02);
-        assertEquals("Width is not " + width, width, grid.getWidth());
-    }
-
-    /**
-     * Test getHeight with both constructor methods.
-     */
-    public void testGetHeight() {
-        int height = 70;
-
-        // voxel coordinates
-        Grid grid = new ArrayGridByte(50, height, 25, 0.05, 0.02);
-        assertEquals("Height is not " + height, height, grid.getHeight());
-
-        // world coordinates
-        double ycoord = 0.11;
-        double sliceHeight = 0.02;
-        height = (int)(ycoord/sliceHeight) + 1;
-
-        grid = new ArrayGridByte(0.12, ycoord, 0.16, 0.05, sliceHeight);
-        assertEquals("Height is not " + height, height, grid.getHeight());
-    }
-
-    /**
-     * Test getDepth with both constructor methods.
-     */
-    public void testGetDepth() {
-        int depth = 70;
-
-        // voxel coordinates
-        Grid grid = new ArrayGridByte(50, 25, depth, 0.05, 0.01);
-        assertEquals("Depth is not " + depth, depth, grid.getDepth());
-
-        // world coordinates
-        double zcoord = 0.12;
-        double voxelSize = 0.05;
-        depth = (int)(zcoord/voxelSize) + 1;
-
-        grid = new ArrayGridByte(0.12, 0.11, zcoord, voxelSize, 0.02);
-        assertEquals("Depth is not " + depth, depth, grid.getDepth());
     }
 
     /**
@@ -1119,11 +1111,11 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         double sliceHeight = 0.0015;
 
         // voxel coordinates
-        Grid grid = new ArrayGridByte(50, 25, 70, 0.05, sliceHeight);
+        Grid grid = new BlockBasedGridShort(50, 25, 70, 0.05, sliceHeight);
         assertEquals("Slice height is not " + sliceHeight, sliceHeight, grid.getSliceHeight());
 
         // world coordinates
-        grid = new ArrayGridByte(0.12, 0.11, 0.12, 0.05, sliceHeight);
+        grid = new BlockBasedGridShort(0.12, 0.11, 0.12, 0.05, sliceHeight);
         assertEquals("Slice height is not" + sliceHeight, sliceHeight, grid.getSliceHeight());
     }
 
@@ -1134,11 +1126,11 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         double voxelSize = 0.025;
 
         // voxel coordinates
-        Grid grid = new ArrayGridByte(50, 25, 70, voxelSize, 0.01);
+        Grid grid = new BlockBasedGridShort(50, 25, 70, voxelSize, 0.01);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
 
         // world coordinates
-        grid = new ArrayGridByte(0.12, 0.11, 0.12, voxelSize, 0.01);
+        grid = new BlockBasedGridShort(0.12, 0.11, 0.12, voxelSize, 0.01);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
     }
 
@@ -1150,9 +1142,9 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         int height = 10;
         int depth = 10;
         int mat1 = 1;
-        int mat2 = 2;
+        int mat2 = 69;
 
-        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        Grid grid = new BlockBasedGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
@@ -1265,114 +1257,5 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         extCount = 0;
         intCount = 0;
         outCount = 0;
-    }
-}
-
-
-/**
- * Class to test that the find methods actually found the voxel states in the correct coordinate.
- *
- * @author Tony
- *
- */
-class FindIterateTester implements ClassTraverser {
-    private boolean foundCorrect;
-    private HashSet<VoxelCoordinate> vcSet;
-    private int iterateCount;
-    private int vcSetCount;
-
-    /**
-     * Constructor that takes in a HashSet of VoxelCoordinates known to be
-     * in the VoxelClass to find
-     * @param vc
-     */
-    public FindIterateTester(HashSet<VoxelCoordinate> vc) {
-        this.vcSet = (HashSet<VoxelCoordinate>)vc.clone();
-        foundCorrect = true;
-        iterateCount = 0;
-        vcSetCount = vcSet.size();
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     * VoxelData classes may be reused so clone the object
-     * if you keep a copy.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        VoxelCoordinate c = new VoxelCoordinate(x, y, z);
-//System.out.println(x + ", " + y + ", " + z);
-        if (!inCoordList(c)) {
-//System.out.println("not in cood list: " + x + ", " + y + ", " + z);
-            foundCorrect = false;
-        }
-
-        iterateCount++;
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     * VoxelData classes may be reused so clone the object
-     * if you keep a copy.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     *
-     * @return True to continue, false stops the traversal.
-     */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        VoxelCoordinate c = new VoxelCoordinate(x, y, z);
-//System.out.println(x + ", " + y + ", " + z);
-        if (!inCoordList(c)) {
-//System.out.println("not in cood list: " + x + ", " + y + ", " + z);
-            foundCorrect = false;
-            return false;
-        }
-
-        iterateCount++;
-        return true;
-    }
-
-    /**
-     * Returns whether all voxels have been found, and that the number of
-     * times iterated through the grid is equal to the expected value.
-     *
-     * @return True if voxels were found correctly
-     */
-    public boolean foundAllVoxels() {
-//System.out.println("iterateCount: " + iterateCount);
-//System.out.println("vcSetCount: " + vcSetCount);
-        return (foundCorrect && (iterateCount == vcSetCount));
-    }
-
-    /**
-     * Returns the number of times voxels of the correct state was found.
-     *
-     * @return count of the times voxels of the correct state was found\
-     */
-    public int getIterateCount() {
-        return iterateCount;
-    }
-
-    /**
-     * Check if the VoxelCoordinate is in the known list, and removes
-     * it from the list if found.
-     *
-     * @param c The voxel coordinate
-     * @return True if the voxel coordinate is in the know list
-     */
-    private boolean inCoordList(VoxelCoordinate c) {
-        if (vcSet.contains(c)) {
-            vcSet.remove(c);
-            return true;
-        }
-
-        return false;
     }
 }
