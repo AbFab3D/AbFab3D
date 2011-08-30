@@ -129,24 +129,32 @@ public class MaterialIndexedWrapper implements GridWrapper {
         int len = materials.length;
 
         for(int i=0; i < len; i++) {
-            Integer b = new Integer(materials[i]);
+            Integer orig = new Integer(materials[i]);
 
-            HashSet<VoxelCoordinate> coords = index.get(b);
+            HashSet<VoxelCoordinate> coords = index.get(orig);
             if (coords == null) {
                 // Nothing to do
                 continue;
+            }
+
+            HashSet<VoxelCoordinate> target = index.get(matID);
+
+            if (target == null) {
+                target = new HashSet<VoxelCoordinate>(INDEX_SIZE);
+                index.put(matID, target);
             }
 
             Iterator<VoxelCoordinate> itr = coords.iterator();
             while(itr.hasNext()) {
                 VoxelCoordinate vc = itr.next();
                 grid.setMaterial(vc.getX(), vc.getY(), vc.getZ(), matID);
+                target.add(vc);
             }
 
-            index.remove(b);
+            index.remove(orig);
 
             if (optIndex != null)
-                optIndex.remove(b);
+                optIndex.remove(orig);
         }
     }
 
