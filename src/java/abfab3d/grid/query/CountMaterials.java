@@ -15,7 +15,7 @@ package abfab3d.grid.query;
 // External Imports
 
 // Internal Imports
-import java.util.HashSet;
+import java.util.*;
 
 import abfab3d.grid.*;
 import abfab3d.grid.Grid.VoxelClasses;
@@ -34,22 +34,23 @@ public class CountMaterials implements ClassTraverser {
     private int count;
 
     /** The materials seen */
-    private HashSet<Integer> seen;
+    private HashMap<Integer,Integer> seen;
 
     public CountMaterials() {
-        seen = new HashSet<Integer>();
     }
 
     /**
      * Counts the number of materials present
      *
      * @param grid The grid to use for grid src
-     * @return The number of materials
+     * @return Material counts
      */
-    public int execute(Grid grid) {
+    public Map<Integer,Integer> execute(Grid grid) {
+        seen = new HashMap<Integer,Integer>();
+
         grid.find(VoxelClasses.MARKED,this);
 
-        return count;
+        return seen;
     }
 
     /**
@@ -65,10 +66,13 @@ public class CountMaterials implements ClassTraverser {
     public void found(int x, int y, int z, VoxelData start) {
         Integer i = new Integer(start.getMaterial());
 
-        if (seen.contains(i)) {
+        Integer cnt = seen.get(i);
+
+        if (cnt == null) {
+            seen.put(i, new Integer(1));
         } else {
-            count++;
-            seen.add(i);
+            cnt = new Integer(cnt.intValue() + 1);
+            seen.put(i, cnt);
         }
     }
 
