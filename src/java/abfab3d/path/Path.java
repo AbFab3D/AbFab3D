@@ -41,4 +41,11 @@ public interface Path {
      * @return The inverted path
      */
     public Path invertPath();
+    
+    /**
+     * Return the direction of the path.
+     * 
+     * @return The direction of the path
+     */
+    public int[] getDir();
 }

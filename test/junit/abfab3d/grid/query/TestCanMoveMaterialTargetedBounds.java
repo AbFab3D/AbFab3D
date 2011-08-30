@@ -27,56 +27,55 @@ import abfab3d.path.StraightPath;
  * @author Alan Hudson
  * @version
  */
-public class TestCanMoveMaterialTargeted extends BaseTestGrid {
+public class TestCanMoveMaterialTargetedBounds extends BaseTestGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestCanMoveMaterialTargeted.class);
+        return new TestSuite(TestCanMoveMaterialTargetedBounds.class);
     }
 
     /**
      * Test basic operation
      */
     public void testBasic() {
-        int size = 12;
+        int size = 20;
 
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
-        // Add Object 1
-        int mat1_count = 5;
+        // Fill voxels such that it looks like:
+        //      22222222222
+        //      2         2
+        //      2  11111  2
+        //      2         2
+        //      2         2
+        setX(grid, 10, 10, Grid.EXTERIOR, 1, 8, 12);
+        
+//        setX(grid, 8, 10, Grid.EXTERIOR, 2, 5, 15);
+        setX(grid, 12, 10, Grid.EXTERIOR, 2, 5, 15);
+        setY(grid, 5, 10, Grid.EXTERIOR, 2, 8, 11);
+        setY(grid, 15, 10, Grid.EXTERIOR, 2, 8, 11);
+        
+        int[] minBounds = {5, 8, 10};
+        int[] maxBounds = {15, 12, 10};
 
-        grid.setData(0,0,0, Grid.EXTERIOR, 1);
-        grid.setData(0,0,1, Grid.EXTERIOR, 1);
-        grid.setData(0,0,2, Grid.EXTERIOR, 1);
-        grid.setData(0,0,3, Grid.EXTERIOR, 1);
-        grid.setData(0,0,4, Grid.EXTERIOR, 1);
+        // Move mat 1 in positive x direction
+        boolean escaped = canMoveBounds(grid, new int[] {1,0,0}, 1, 2, minBounds, maxBounds);
+        assertTrue("Positive X Axis move is not false", escaped == false);
 
-        // Add Object 2
-        int mat2_count = 6;
+        // Move mat 1 in positive y direction
+        escaped = canMoveBounds(grid, new int[] {0,1,0}, 1, 2, minBounds, maxBounds);
+        assertTrue("Positive Y Axis move is not false", escaped == false);
+        
+        // Move mat 1 in negative y direction 
+        escaped = canMoveBounds(grid, new int[] {0,-1,0}, 1, 2, minBounds, maxBounds);
+        assertTrue("Negative Y Axis move is not true", escaped == true);
+        
+        // Move mat 1 in positive z  direction 
+        escaped = canMoveBounds(grid, new int[] {0,0,1}, 1, 2, minBounds, maxBounds);
 
-        grid.setData(0,2,0, Grid.EXTERIOR, 2);
-        grid.setData(0,2,1, Grid.EXTERIOR, 2);
-        grid.setData(0,2,2, Grid.EXTERIOR, 2);
-        grid.setData(0,2,3, Grid.EXTERIOR, 2);
-        grid.setData(0,2,4, Grid.EXTERIOR, 2);
-        grid.setData(0,2,5, Grid.EXTERIOR, 2);
-
-        // X axis move where mat 1 can move without hitting mat 2
-        StraightPath path = new StraightPath(new int[] {1,0,0});
-        CanMoveMaterialTargeted query = new CanMoveMaterialTargeted(1, 2, path);
-        boolean escaped = query.execute(grid);
-
-        assertTrue("X Axis move", escaped == true);
-        System.out.println("Escaped: " + escaped);
-
-        // Y axis move where mat 1 cannot move without hitting mat 2
-        path = new StraightPath(new int[] {0,1,0});
-        query = new CanMoveMaterialTargeted(1, 2, path);
-        escaped = query.execute(grid);
-
-        assertTrue("Y Axis move", escaped == false);
+        assertTrue("Positive Z Axis move is not true", escaped == true);
 
     }
 
@@ -84,49 +83,31 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
      * Test ignore of intersections with non targeted material
      */
     public void testIgnoreOther() {
-        int size = 12;
+        int size = 20;
 
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
-        int mat1_count = 5;
-
-        grid.setData(0,0,0, Grid.EXTERIOR, 1);
-        grid.setData(0,0,1, Grid.EXTERIOR, 1);
-        grid.setData(0,0,2, Grid.EXTERIOR, 1);
-        grid.setData(0,0,3, Grid.EXTERIOR, 1);
-        grid.setData(0,0,4, Grid.EXTERIOR, 1);
+        setZ(grid, 10, 8, Grid.EXTERIOR, 1, 5, 15);
 
         // Add Object 2
-        int mat2_count = 6;
-
-        grid.setData(0,2,0, Grid.EXTERIOR, 2);
-        grid.setData(0,2,1, Grid.EXTERIOR, 2);
-        grid.setData(0,2,2, Grid.EXTERIOR, 2);
-        grid.setData(0,2,3, Grid.EXTERIOR, 2);
-        grid.setData(0,2,4, Grid.EXTERIOR, 2);
-        grid.setData(0,2,5, Grid.EXTERIOR, 2);
+        setZ(grid, 10, 12, Grid.EXTERIOR, 2, 5, 15);
 
         // Add Object 3
-        int mat3_count = 5;
+        setZ(grid, 12, 8, Grid.EXTERIOR, 3, 5, 15);
 
-        grid.setData(2,0,0, Grid.EXTERIOR, 3);
-        grid.setData(2,0,1, Grid.EXTERIOR, 3);
-        grid.setData(2,0,2, Grid.EXTERIOR, 3);
-        grid.setData(2,0,3, Grid.EXTERIOR, 3);
-        grid.setData(2,0,4, Grid.EXTERIOR, 3);
-
-
-        StraightPath path = new StraightPath(new int[] {1,0,0});
-        CanMoveMaterialTargeted query = new CanMoveMaterialTargeted(1, 2, path);
-        boolean escaped = query.execute(grid);
+        // Move mat 1 in positive x direction to collide with mat 3, but mat 2 is targeted
+        int[] minBounds = {10, 12, 5};
+        int[] maxBounds = {10, 12, 15};
+        boolean escaped = canMoveBounds(grid, new int[] {1,0,0}, 1, 2, minBounds, maxBounds);
 
         assertTrue("X Axis move", escaped == true);
         System.out.println("Escaped: " + escaped);
 
-        path = new StraightPath(new int[] {0,1,0});
-        query = new CanMoveMaterialTargeted(1, 2, path);
-        escaped = query.execute(grid);
+        // Move mat 1 to collide with mat 2, with mat 2 is targeted
+        minBounds = new int[] {10, 12, 5};
+        maxBounds = new int[] {10, 12, 15};
+        escaped = canMoveBounds(grid, new int[] {0,1,0}, 1, 2, minBounds, maxBounds);
 
         assertTrue("Y Axis move", escaped == false);
 
@@ -140,45 +121,51 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         int target = 1;
 
         Grid grid = new ArrayGridByte(100,100,100,0.001, 0.001);
+        MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
 
         // set the voxels of a square
-        setX(grid, 50, 40, Grid.EXTERIOR, 1, 40, 60);
-        setX(grid, 50, 60, Grid.EXTERIOR, 1, 40, 60);
-        setZ(grid, 40, 50, Grid.EXTERIOR, 1, 40, 60);
-        setZ(grid, 60, 50, Grid.EXTERIOR, 1, 40, 60);
+        setX(wrapper, 50, 40, Grid.EXTERIOR, 1, 40, 60);
+        setX(wrapper, 50, 60, Grid.EXTERIOR, 1, 40, 60);
+        setZ(wrapper, 40, 50, Grid.EXTERIOR, 1, 40, 60);
+        setZ(wrapper, 60, 50, Grid.EXTERIOR, 1, 40, 60);
 
         // set the voxels of a T shape with the bottom of the T intersecting the opening of the square
-        setX(grid, 60, 50, Grid.EXTERIOR, matToMove, 30, 70);
-        setY(grid, 50, 50, Grid.EXTERIOR, matToMove, 40, 60);
+        setX(wrapper, 60, 50, Grid.EXTERIOR, matToMove, 30, 70);
+        setY(wrapper, 50, 50, Grid.EXTERIOR, matToMove, 40, 60);
 
+        int[] minBounds = {40, 50, 40};
+        int[] maxBounds = {60, 50, 60};
+        
         //------------------------------------------------------
         // test movement in all directions
         // should only be able to move in {0,1,0} direction
         //------------------------------------------------------
 
-        // negative X axis direction
-        boolean escaped = canMove(grid, new int[] {-1,0,0}, matToMove, target);
-        assertEquals("Negative X axis move is not false", false, escaped);
+        // set the paths
+        int[][] paths = {
+                {-1,0,0}, {1,0,0},
+                {0,0,-1}, {0,0,1},
+                {0,-1,0}, {0,1,0}
+        };
+        
+        boolean[] result = {
+                false, false,
+                false, false,
+                false, true
+        };
+        
+        boolean escaped;
+        
+        // assert that movement is initially false in all paths
+        for (int j=0; j<paths.length; j++) {
+//System.out.println("\n=====> Path: " + java.util.Arrays.toString(paths[j]));
+            escaped = canMoveBounds(wrapper, paths[j], matToMove, target, minBounds, maxBounds);
+            assertEquals(
+                    java.util.Arrays.toString(paths[j]) + " move is not " + result[j],
+                    result[j],
+                    escaped);
+        }
 
-        // positive X axis direction
-        escaped = canMove(grid, new int[] {1,0,0}, matToMove, target);
-        assertEquals("Positive X axis move is not false", false, escaped);
-
-        // negative Y axis direction
-        escaped = canMove(grid, new int[] {0,-1,0}, matToMove, target);
-        assertEquals("Negative Y axis move is not false", false, escaped);
-
-        // negative Z axis direction
-        escaped = canMove(grid, new int[] {0,0,-1}, matToMove, target);
-        assertEquals("Negative Z axis move is not false", false, escaped);
-
-        // positive Z axis direction
-        escaped = canMove(grid, new int[] {0,0,1}, matToMove, target);
-        assertEquals("Positive Z axis move is not false", false, escaped);
-
-        // positive Y axis direction
-        escaped = canMove(grid, new int[] {0,1,0}, matToMove, target);
-        assertEquals("Positive Y axis move is not true", true, escaped);
     }
 
     /**
@@ -200,34 +187,32 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         setX(grid, 40, 50, Grid.EXTERIOR, matToMove, 30, 70);
         setY(grid, 50, 50, Grid.EXTERIOR, matToMove, 40, 60);
 
+        int[] minBounds = {40, 50, 40};
+        int[] maxBounds = {60, 50, 60};
+        
         //------------------------------------------------------
         // test movement in all directions
         // movement should fail in all drections
         //------------------------------------------------------
 
-        // negative X axis direction
-        boolean escaped = canMove(grid, new int[] {-1,0,0}, matToMove, target);
-        assertEquals("Negative X axis move is not false", false, escaped);
-
-        // positive X axis direction
-        escaped = canMove(grid, new int[] {1,0,0}, matToMove, target);
-        assertEquals("Positive X axis move is not false", false, escaped);
-
-        // negative Y axis direction
-        escaped = canMove(grid, new int[] {0,-1,0}, matToMove, target);
-        assertEquals("Negative Y axis move is not false", false, escaped);
-
-        // positive Y axis direction
-        escaped = canMove(grid, new int[] {0,1,0}, matToMove, target);
-        assertEquals("Positive Y axis move is not false", false, escaped);
-
-        // negative Z axis direction
-        escaped = canMove(grid, new int[] {0,0,-1}, matToMove, target);
-        assertEquals("Negative Z axis move is not false", false, escaped);
-
-        // positive Z axis direction
-        escaped = canMove(grid, new int[] {0,0,1}, matToMove, target);
-        assertEquals("Positive Z axis move is not false", false, escaped);
+        // set the paths
+        int[][] paths = {
+                {-1,0,0}, {1,0,0},
+                {0,0,-1}, {0,0,1},
+                {0,-1,0}, {0,1,0}
+        };
+        
+        boolean escaped;
+        
+        // assert that movement is initially false in all paths
+        for (int j=0; j<paths.length; j++) {
+//System.out.println("\n=====> Path: " + java.util.Arrays.toString(paths[j]));
+            escaped = canMoveBounds(grid, paths[j], matToMove, target, minBounds, maxBounds);
+            assertEquals(
+                    java.util.Arrays.toString(paths[j]) + " move is not false",
+                    false,
+                    escaped);
+        }
     }
 
     /**
@@ -242,25 +227,30 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
     public void testCanMoveAllPaths() {
         int material1 = 1;
         int material2 = 2;
-        int size = 9;
+        int size = 20;
         int center = size / 2;
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         // set the material to move at the center of the grid
         grid.setData(center, center, center, Grid.EXTERIOR, material2);
 
+        int startIndex = 5;
+        int endIndex = 15;
+        
         // set the edge voxels of the grid to a different material
-        setPlaneX(grid, 0, Grid.EXTERIOR, material1);
-        setPlaneX(grid, size-1, Grid.EXTERIOR, material1);
-        setPlaneY(grid, 0, Grid.EXTERIOR, material1);
-        setPlaneY(grid, size-1, Grid.EXTERIOR, material1);
-        setPlaneZ(grid, 0, Grid.EXTERIOR, material1);
-        setPlaneZ(grid, size-1, Grid.EXTERIOR, material1);
+        setPlaneX(grid, startIndex, Grid.EXTERIOR, material1);
+        setPlaneX(grid, endIndex, Grid.EXTERIOR, material1);
+        setPlaneY(grid, startIndex, Grid.EXTERIOR, material1);
+        setPlaneY(grid, endIndex, Grid.EXTERIOR, material1);
+        setPlaneZ(grid, startIndex, Grid.EXTERIOR, material1);
+        setPlaneZ(grid, endIndex, Grid.EXTERIOR, material1);
+        
+        int[] minBounds = {5, 5, 5};
+        int[] maxBounds = {15, 15, 15};
 
         //------------------------------------------------------
         // test movement in all directions
         //------------------------------------------------------
-        int endIndex = size - 1;
 
         // set the 26 paths
         int[][] paths = {
@@ -288,7 +278,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
                 if (paths[i][j] > 0) {
                     voxelsRemovedToAllowEscape[i][j] = endIndex;
                 } else if (paths[i][j] < 0) {
-                    voxelsRemovedToAllowEscape[i][j] = 0;
+                    voxelsRemovedToAllowEscape[i][j] = startIndex;
                 } else {
                     voxelsRemovedToAllowEscape[i][j] = center;
                 }
@@ -300,7 +290,8 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
 
         // assert that movement is initially false in all paths
         for (int j=0; j<paths.length; j++) {
-            escaped = canMove(grid, paths[j], material2,material1);
+//System.out.println("\n=====> Path: " + java.util.Arrays.toString(paths[j]));
+            escaped = canMoveBounds(grid, paths[j], material2, material1, minBounds, maxBounds);
             assertEquals(
                     java.util.Arrays.toString(paths[j]) + " move is not false",
                     false,
@@ -311,9 +302,10 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         // set the voxels to outside and material 0 in order to
         // allow escape in the corresponding path
         for (int j=0; j<paths.length; j++) {
+//System.out.println("\n=====> Path: " + java.util.Arrays.toString(paths[j]));
             grid.setData(voxelsRemovedToAllowEscape[j][0], voxelsRemovedToAllowEscape[j][1], voxelsRemovedToAllowEscape[j][2], Grid.OUTSIDE, 0);
 
-            escaped = canMove(grid, paths[j], material2,material1);
+            escaped = canMoveBounds(grid, paths[j], material2, material1, minBounds, maxBounds);
 
             assertEquals(
                     java.util.Arrays.toString(paths[j]) + " move is not true",
@@ -323,6 +315,9 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
 
     }
 
+    /**
+     * Test ignored voxels.
+     */
     public void testIgnoredVoxels() {
         int size = 12;
 
@@ -345,7 +340,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
 //        System.out.println("Escaped: " + escaped);
 
     }
-
+    
     /**
      * Test basic operation
      */
@@ -376,21 +371,121 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
 
         // Move mat 1 in negative x direction
         StraightPath path = new StraightPath(new int[] {-1,0,0});
-        CanMoveMaterialTargeted query = 
-        	new CanMoveMaterialTargeted(1, 2, path);
+        CanMoveMaterialTargetedBounds query = 
+        	new CanMoveMaterialTargetedBounds(1, 2, minBounds, maxBounds, path);
         boolean escaped = query.execute(grid);
         
         assertTrue("Negative X Axis move of material 1 is not true", escaped == true);
         assertEquals("Ignored voxel count is not 4", 4, query.getIgnoredCount());
 
         // Move mat 3 in negative x direction
-        query =  new CanMoveMaterialTargeted(3, 2, path);
+        query =  new CanMoveMaterialTargetedBounds(3, 2, minBounds, maxBounds, path);
         escaped = query.execute(grid);
 
         assertTrue("Negative X Axis move of material 3 is not true", escaped == true);
         assertEquals("Ignored voxel count is not 6", 6, query.getIgnoredCount());
     }
     
+    /**
+     * Test performance between can move with and without using target bounds.
+     */
+    public void testPerformance() {
+    	
+    	int size = 500;
+        int matToMove = 2;
+        int target = 1;
+
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
+
+        // set the voxels of a square
+        setX(wrapper, 50, 40, Grid.EXTERIOR, 1, 40, 60);
+        setX(wrapper, 50, 60, Grid.EXTERIOR, 1, 40, 60);
+        setZ(wrapper, 40, 50, Grid.EXTERIOR, 1, 40, 60);
+        setZ(wrapper, 60, 50, Grid.EXTERIOR, 1, 40, 60);
+
+        // set the voxels of a T shape with the bottom of the T intersecting the opening of the square
+        setX(wrapper, 60, 50, Grid.EXTERIOR, matToMove, 30, 70);
+        setY(wrapper, 50, 50, Grid.EXTERIOR, matToMove, 40, 60);
+
+        int[] minBounds = {40, 50, 40};
+        int[] maxBounds = {60, 50, 60};
+        
+        //------------------------------------------------------
+        // test movement in all directions
+        // should only be able to move in {0,1,0} direction
+        //------------------------------------------------------
+
+        // set the paths
+        int[][] paths = {
+                {-1,0,0}, {1,0,0},
+                {0,0,-1}, {0,0,1},
+                {0,-1,0}, {0,1,0}
+        };
+        
+        boolean[] result = {
+                false, false,
+                false, false,
+                false, true
+        };
+        
+        boolean escaped;
+        
+        // execute a dummy run to load the classes
+        dummyRun();
+        
+        long stime = System.nanoTime();
+        
+        // assert that movement is initially false in all paths
+        for (int j=0; j<paths.length; j++) {
+            escaped = canMoveBounds(grid, paths[j], matToMove, target, minBounds, maxBounds);
+            assertEquals(
+                    java.util.Arrays.toString(paths[j]) + " move is not " + result[j],
+                    result[j],
+                    escaped);
+        }
+        
+        long totalTime = System.nanoTime() - stime;
+        System.out.println("CanMoveMaterialTargetedBounds  : " + totalTime);
+        
+        stime = System.nanoTime();
+        
+        // assert that movement is initially false in all paths
+        for (int j=0; j<paths.length; j++) {
+            escaped = canMoveNoBounds(grid, paths[j], matToMove, target);
+            assertEquals(
+                    java.util.Arrays.toString(paths[j]) + " move is not " + result[j],
+                    result[j],
+                    escaped);
+        }
+        
+        totalTime = System.nanoTime() - stime;
+        System.out.println("CanMoveMaterialTargeted        : " + totalTime);
+    	
+    }
+
+    /**
+     * Execute can move of a material against a target material.  Can move is 
+     * tested within the minimum and maximum bounds fo the target material.
+     * 
+     * @param grid The grid
+     * @param dir The direction to check movement
+     * @param mat The material to move
+     * @param target The target material to check against
+     * @param minBounds The minimum bounds of the target
+     * @param maxBounds The maximum bounds of the target
+     * @return True if the material can move away from the target material
+     */
+    private boolean canMoveBounds(Grid grid, int[] dir, int mat, int target,
+    		int[] minBounds, int[] maxBounds) {
+    	
+        StraightPath path = new StraightPath(dir);
+        CanMoveMaterialTargetedBounds query = 
+        	new CanMoveMaterialTargetedBounds(mat, target, minBounds, maxBounds, path);
+
+        return query.execute(grid);
+    }
+
     /**
      * Execute can move of a material against a target material.
      * 
@@ -400,13 +495,15 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
      * @param target The target material to check against
      * @return True if the material can move away from the target material
      */
-    private boolean canMove(Grid grid, int[] dir, int mat, int target) {
+    private boolean canMoveNoBounds(Grid grid, int[] dir, int mat, int target) {
+    	
         StraightPath path = new StraightPath(dir);
-        CanMoveMaterialTargeted query = new CanMoveMaterialTargeted(mat, target, path);
+        CanMoveMaterialTargeted query = 
+        	new CanMoveMaterialTargeted(mat, target, path);
 
         return query.execute(grid);
     }
-
+    
     private Grid setSmallGrid() {
         int size = 20;
         int startIndex = 7;
@@ -455,6 +552,28 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         grid.setData(200,15,0, Grid.EXTERIOR, 2);
 
         return grid;
+    }
+    
+    /**
+     * Execute a dummy run to initialize the can move classes.
+     */
+    private void dummyRun() {
+        int size = 10;
+
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        grid.setData(2, 2, 2, Grid.EXTERIOR, 1);
+        grid.setData(5, 5, 5, Grid.EXTERIOR, 2);
+        
+        int[] minBounds = {5, 5, 5};
+        int[] maxBounds = {5, 5, 5};
+
+        // Move mat 1 in positive x direction
+        boolean escaped = canMoveBounds(grid, new int[] {1,0,0}, 1, 2, minBounds, maxBounds);
+        assertTrue("Positive X Axis move is not false", escaped == true);
+        
+        escaped = canMoveNoBounds(grid, new int[] {1,0,0}, 1, 2);
+        assertTrue("Positive X Axis move is not false", escaped == true);
     }
 
 }

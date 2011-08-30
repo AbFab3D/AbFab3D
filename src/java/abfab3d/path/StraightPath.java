@@ -142,6 +142,13 @@ public class StraightPath implements Path {
         return axisAligned;
     }
 
+    /**
+     * Return the direction of the path.
+     */
+    public int[] getDir() {
+    	return dir;
+    }
+    
     public String toString() {
         return "StraightPath@" + hashCode() + " dir: " + java.util.Arrays.toString(dir);
     }
