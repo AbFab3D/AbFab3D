@@ -253,6 +253,128 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
         assertEquals("State should be ", 0, grid.getMaterial(0.0999, 0.0999, 0.1499));
     }
 
+    /**
+     * Test setMaterial.
+     */
+    public void testSetMaterial() {
+    	int size = 10;
+    	
+        Grid grid = new ArrayGridByte(size, size, size, 0.001, 0.001);
+        grid.setData(0, 0, 0, Grid.INTERIOR, 1);
+        grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
+        grid.setData(5, 0, 7, Grid.INTERIOR, 3);
+        
+        grid.setMaterial(0, 0, 0, 10);
+        grid.setMaterial(9, 9, 9, 11);
+        grid.setMaterial(5, 0, 7, 12);
+
+        // check that the material changed, but the state did not
+        assertEquals("Material should be ", 10, grid.getMaterial(0, 0, 0));
+        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0, 0, 0));
+        
+        assertEquals("Material should be ", 11, grid.getMaterial(9, 9, 9));
+        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 9, 9));
+        
+        assertEquals("Material should be ", 12, grid.getMaterial(5, 0, 7));
+        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+    }
+    
+    /**
+     * Test setState.
+     */
+    public void testSetState() {
+    	int size = 10;
+    	
+        Grid grid = new ArrayGridByte(size, size, size, 0.001, 0.001);
+        grid.setData(0, 0, 0, Grid.INTERIOR, 1);
+        grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
+        grid.setData(5, 0, 7, Grid.INTERIOR, 3);
+        
+        grid.setState(0, 0, 0, Grid.EXTERIOR);
+        grid.setState(9, 9, 9, Grid.INTERIOR);
+        grid.setState(5, 0, 7, Grid.EXTERIOR);
+
+        // check that the state changed, but the material did not
+        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0, 0, 0));
+        assertEquals("Material should be ", 1, grid.getMaterial(0, 0, 0));
+
+        assertEquals("State should be ", Grid.INTERIOR, grid.getState(9, 9, 9));
+        assertEquals("Material should be ", 2, grid.getMaterial(9, 9, 9));
+
+        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, 0, 7));
+        assertEquals("Material should be ", 3, grid.getMaterial(5, 0, 7));
+    }
+    
+    /**
+     * Test setState.
+     */
+    public void testReassignMaterial() {
+        int size = 20;
+
+        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // Fill voxels such that it looks like:
+        //
+        //      2  11111 
+        //      2 
+        //      2  33 33
+        //
+        setX(grid, 10, 10, Grid.EXTERIOR, 1, 8, 12);
+        setX(grid, 8, 10, Grid.INTERIOR, 3, 8, 12);
+        grid.setState(10, 8, 10, Grid.OUTSIDE);
+        setY(grid, 5, 10, Grid.EXTERIOR, 2, 8, 10);
+
+        int newMaterial = 10;
+        
+        // reassign a non-existing material
+        grid.reassignMaterial(new int[] {50}, newMaterial);
+        assertEquals(0, grid.findCount(50));
+        assertEquals(5, grid.findCount(1));
+        assertEquals(3, grid.findCount(2));
+        assertEquals(4, grid.findCount(3));
+
+        // reassign a single existing material
+        // check that the original material count is 0
+        // check that the material has changed for the set positions
+        grid.reassignMaterial(new int[] {1}, newMaterial);
+        
+        assertEquals(0, grid.findCount(1));
+        
+        for (int i=8; i<=12; i++) {
+            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(i, 10, 10));
+            assertEquals("Material should be ", newMaterial, grid.getMaterial(i, 10, 10));
+        }
+        
+        // reassign several material
+        // check that the original material count is 0
+        // check that the material has changed for the set positions
+        newMaterial = 20;
+        grid.reassignMaterial(new int[] {2, 3, 10}, newMaterial);
+        
+        assertEquals(0, grid.findCount(2));
+        assertEquals(0, grid.findCount(3));
+        assertEquals(0, grid.findCount(10));
+        
+        for (int i=8; i<=12; i++) {
+            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(i, 10, 10));
+            assertEquals("Material should be ", newMaterial, grid.getMaterial(i, 10, 10));
+        }
+
+        for (int i=8; i<=9; i++) {
+            assertEquals("State should be ", Grid.INTERIOR, grid.getState(i, 8, 10));
+            assertEquals("Material should be ", newMaterial, grid.getMaterial(i, 8, 10));
+        }
+        
+        for (int i=11; i<=12; i++) {
+            assertEquals("State should be ", Grid.INTERIOR, grid.getState(i, 8, 10));
+            assertEquals("Material should be ", newMaterial, grid.getMaterial(i, 8, 10));
+        }
+        
+        for (int i=8; i<=10; i++) {
+            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, i, 10));
+            assertEquals("Material should be ", newMaterial, grid.getMaterial(5, i, 10));
+        }
+    }
 
     /**
      * Test set/get byte material range.
