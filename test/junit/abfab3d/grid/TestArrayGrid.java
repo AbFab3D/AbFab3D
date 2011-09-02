@@ -64,6 +64,27 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
     }
 
     /**
+     * Test creating an empty grid.
+     */
+    public void testCreateEmpty() {
+        Grid grid = new ArrayGridByte(100, 101, 102, 0.001, 0.001);
+        
+        grid.setData(5, 5, 5, Grid.EXTERIOR, 10);
+        
+        Grid grid2 = grid.createEmpty(10, 11, 12, 0.002, 0.003);
+        int gridSize = 10 * 11 * 12;
+        
+        assertTrue("Grid type is not ArrayGridByte", grid2 instanceof ArrayGridByte);
+        assertEquals("Grid size is not " + gridSize, gridSize, grid2.getWidth()*grid2.getHeight()*grid2.getDepth());
+        assertEquals("Grid voxel size is not 0.002", 0.002, grid2.getVoxelSize());
+        assertEquals("Grid slice height is not 0.003", 0.003, grid2.getSliceHeight());
+        
+        // all voxels in empty grid should be OUTSIDE state and 0 material
+        assertEquals("State is not OUTSIDE for (5, 5, 5)", Grid.OUTSIDE, grid2.getState(5, 5, 5));
+        assertEquals("Material is not 0 for (5, 5, 5)", 0, grid2.getMaterial(5, 5, 5));
+    }
+    
+    /**
      * Test set/get all data points.
      */
     public void testSetGetByVoxelCoords() {
@@ -306,7 +327,7 @@ public class TestArrayGrid extends BaseTestGrid implements ClassTraverser {
     }
     
     /**
-     * Test setState.
+     * Test reassignMaterial.
      */
     public void testReassignMaterial() {
         int size = 20;
