@@ -23,14 +23,28 @@ import java.io.*;
  * @author Alan Hudson
  */
 public interface OctreeCell {
+    public static final byte MIXED = Grid.USER_DEFINED;
+
     /**
-     * Get the data located at the specified cell in voxel coordinates.
+     * Get the children of this cell.
      *
-     * @param x The x voxel coordinate
-     * @param y The y voxel coordinate
-     * @param z The z voxel coordinate
-     *
-     * @return The voxel data
+     * @return The children
      */
-    public VoxelData getData(int x, int y, int z);
+    public OctreeCell[] getChildren();
+
+    /**
+     * Get the state of the voxel.  If its not MIXED then all cells below
+     * this are also this value.
+     *
+     * @return The voxel state
+     */
+    public byte getState();
+
+    /**
+     * Get the origin and size of this cell in voxel coordinates.
+     *
+     * @param origin The origin, preallocated to 3
+     * @param size The size, preallocated to 3
+     */
+    public void getRegion(int[] origin, int[] size);
 }

@@ -25,6 +25,7 @@ import org.web3d.vrml.export.PlainTextErrorReporter;
 import abfab3d.geom.*;
 import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
+import abfab3d.io.output.RegionsX3DExporter;
 import abfab3d.grid.op.*;
 import abfab3d.creator.*;
 import abfab3d.creator.shapeways.*;
@@ -471,7 +472,7 @@ System.out.println("New Creating bail: " + bail_tx + " " + bail_ty + " " + bail_
 
 if (1==0) {
     // Sadly NetFabb doesn't like my Octree Output
-    System.out.println("Putting into Octree");
+    System.out.println("***Putting into Octree");
     grid2 = new OctreeGridByte(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
     Operation op2 = new Copy(grid2, 0,0,0);
@@ -609,8 +610,11 @@ if (1==0) {
     }
 
     private void write(Grid grid, String type, OutputStream os, ErrorReporter console) {
+
         // Output File
-        BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
+        //BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
+System.out.println("Creating Regions Exporter");
+        RegionsX3DExporter exporter = new RegionsX3DExporter(type, os, console);
         float[] mat_color = new float[] {0.8f,0.8f,0.8f,0};
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
         colors.put(new Integer(1), mat_color);

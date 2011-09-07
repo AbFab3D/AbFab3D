@@ -34,6 +34,9 @@ import abfab3d.grid.*;
 public class BoxesX3DExporter implements Exporter {
     private static final boolean STATS = true;
 
+    /** Should we use per-vertex color to show materials */
+    private static final boolean MAT_COLOR = true;
+
     /** The maximum coords to put in a shape */
     private static final int MAX_TRIANGLES_SHAPE = 300000;
 
@@ -54,7 +57,7 @@ public class BoxesX3DExporter implements Exporter {
             writer = new X3DBinaryRetainedDirectExporter(os,
                                  3, 0, console,
                                  X3DBinarySerializer.METHOD_FASTEST_PARSING,
-                                 0.001f);
+                                 0.001f, true);
         } else if (encoding.equals("x3dv")) {
             writer = new X3DClassicRetainedExporter(os,3,0,console);
         } else if (encoding.equals("x3d")) {
@@ -86,6 +89,7 @@ public class BoxesX3DExporter implements Exporter {
      */
     public void write(Grid grid, Map<Integer, float[]> matColors) {
 
+System.out.println("matColors: " + matColors.size());
         if (grid instanceof OctreeGridByte) {
             ((OctreeGridByte)grid).write(writer, (OctreeGridByte)grid, matColors);
             return;
@@ -96,6 +100,7 @@ public class BoxesX3DExporter implements Exporter {
         ArrayList<WorldCoordinate> lastSlice = new ArrayList<WorldCoordinate>();
         ArrayList<WorldCoordinate> thisSlice = new ArrayList<WorldCoordinate>();
         ArrayList<WorldCoordinate> totalCoords = new ArrayList<WorldCoordinate>();
+        ArrayList<float[]> totalColors = new ArrayList<float[]>();
 
         // TODO: We might want to use a form of run length encoding to
         // reduce the number of boxes
@@ -103,8 +108,10 @@ public class BoxesX3DExporter implements Exporter {
         double x,y,z;
         int idx = 0;
 //        float[] color = new float[] {0.8f,0.8f,0.8f};
-        float[] color = new float[] {34/255.0f,139/255.0f,34/255.0f};
-        float transparency = 0.5f;
+        float[] def_color = new float[] {34/255.0f,139/255.0f,34/255.0f};
+        float def_transparency = 0.5f;
+        float[] color = def_color;
+        float transparency = def_transparency;
 
         if (matColors != null) {
             // support color for material1
@@ -150,10 +157,26 @@ public class BoxesX3DExporter implements Exporter {
                 for(int k=0; k < depth; k++) {
                     z = k * pixelSize;
 
-                    byte state = grid.getState(j,i,k);
+                    VoxelData vd = grid.getData(j,i,k);
+
+                    byte state = vd.getState();
+                    int mat = vd.getMaterial();
 
                     if (state == Grid.OUTSIDE)
                         continue;
+
+                    if (matColors != null) {
+                        float[] mat_color = matColors.get(mat);
+
+                        if (mat_color != null) {
+                            color = mat_color;
+//System.out.println("color: " + java.util.Arrays.toString(color) + " for: " + mat);
+                        } else {
+System.out.println("no color for: " + mat);
+                            color = def_color;
+                        }
+                    }
+
 
 
                     if (STATS) voxels++;
@@ -169,6 +192,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("ubl added: " + idx);
                         ubl_pos = new Integer(idx++);
                         coords.put(ubl_coord, ubl_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(ubl_coord);
                     }
 
@@ -179,6 +205,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("ubr added: " + idx);
                         ubr_pos = new Integer(idx++);
                         coords.put(ubr_coord, ubr_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(ubr_coord);
                     }
 
@@ -190,6 +219,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("lbl added: " + idx);
                         lbl_pos = new Integer(idx++);
                         coords.put(lbl_coord, lbl_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(lbl_coord);
                     }
 
@@ -200,6 +232,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("lbr added: " + idx);
                         lbr_pos = new Integer(idx++);
                         coords.put(lbr_coord, lbr_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(lbr_coord);
                     }
 
@@ -210,6 +245,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("ufl added: " + idx);
                         ufl_pos = new Integer(idx++);
                         coords.put(ufl_coord, ufl_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(ufl_coord);
                     }
 
@@ -220,6 +258,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("ufr added: " + idx);
                         ufr_pos = new Integer(idx++);
                         coords.put(ufr_coord, ufr_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(ufr_coord);
                     }
 
@@ -230,6 +271,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("lfr added: " + idx);
                         lfr_pos = new Integer(idx++);
                         coords.put(lfr_coord, lfr_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(lfr_coord);
                     }
 
@@ -240,6 +284,9 @@ public class BoxesX3DExporter implements Exporter {
 //System.out.println("lfl added: " + idx);
                         lfl_pos = new Integer(idx++);
                         coords.put(lfl_coord, lfl_pos);
+                        if (MAT_COLOR) {
+                            totalColors.add(color);
+                        }
                         thisSlice.add(lfl_coord);
                     }
 
@@ -384,8 +431,10 @@ public class BoxesX3DExporter implements Exporter {
             thisSlice = new ArrayList<WorldCoordinate>();
 
             if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
-                ejectShape(bstream, totalCoords, indices, color, transparency);
+                ejectShape(bstream, totalCoords, indices, totalColors, transparency);
+//                ejectShape(bstream, totalCoords, indices, color, transparency);
                 coords.clear();
+                totalColors.clear();
                 indices.clear();
                 lastSlice.clear();
                 totalCoords.clear();
@@ -393,7 +442,8 @@ public class BoxesX3DExporter implements Exporter {
             }
         }
 
-        ejectShape(bstream, totalCoords, indices, color, transparency);
+//        ejectShape(bstream, totalCoords, indices, color, transparency);
+        ejectShape(bstream, totalCoords, indices, totalColors, transparency);
 
         // End Centering Transform
         writer.endField();
@@ -806,6 +856,79 @@ public class BoxesX3DExporter implements Exporter {
         stream.startNode("Coordinate", null);
         stream.startField("point");
         stream.fieldValue(allCoords, allCoords.length);
+        stream.endNode();  // Coordinate
+//        stream.startField("coordIndex");
+        stream.startField("index");
+        stream.fieldValue(allIndices, allIndices.length);
+        stream.endNode();  // IndexedFaceSet
+        stream.endNode();  // Shape
+    }
+
+    /**
+     * Eject a shape into the stream.
+     *
+     * @param stream The stream to use
+     * @param totalCoords The coords to use
+     * @param indices The indices to use
+     */
+    private void ejectShape(BinaryContentHandler stream, ArrayList<WorldCoordinate> totalCoords,
+        ArrayList<Integer> indices, ArrayList<float[]> totalColors, float transparency) {
+
+        int idx = 0;
+        float[] allCoords = new float[totalCoords.size() * 3];
+        Iterator<WorldCoordinate> itr = totalCoords.iterator();
+        while(itr.hasNext()) {
+            WorldCoordinate c = itr.next();
+            allCoords[idx++] = c.x;
+            allCoords[idx++] = c.y;
+            allCoords[idx++] = c.z;
+        }
+
+        idx = 0;
+        float[] allColors = new float[totalColors.size() * 3];
+        Iterator<float[]> itr2 = totalColors.iterator();
+        while(itr2.hasNext()) {
+            float[] c = itr2.next();
+            allColors[idx++] = c[0];
+            allColors[idx++] = c[1];
+            allColors[idx++] = c[2];
+        }
+
+        if (allCoords.length != allColors.length) {
+            throw new IllegalArgumentException("Colors != Coords length");
+        }
+
+        idx = 0;
+//        int[] allIndices = new int[(int) (indices.size() * 4 / 3)];
+        int[] allIndices = new int[(int) (indices.size())];
+        for(int i=0; i < indices.size(); ) {
+            allIndices[idx++] = indices.get(i++);
+            allIndices[idx++] = indices.get(i++);
+            allIndices[idx++] = indices.get(i++);
+            //allIndices[idx++] = -1;
+        }
+
+        stream.startNode("Shape", null);
+        stream.startField("appearance");
+        stream.startNode("Appearance", null);
+        stream.startField("material");
+        stream.startNode("Material",null);
+        stream.startField("transparency");
+        stream.fieldValue(transparency);
+        stream.endNode();  //  Material
+        stream.endNode();  //  Appearance
+        stream.startField("geometry");
+//        stream.startNode("IndexedFaceSet", null);
+        stream.startNode("IndexedTriangleSet", null);
+        stream.startField("coord");
+        stream.startNode("Coordinate", null);
+        stream.startField("point");
+        stream.fieldValue(allCoords, allCoords.length);
+        stream.endNode();  // Coordinate
+        stream.startField("color");
+        stream.startNode("Color", null);
+        stream.startField("color");
+        stream.fieldValue(allColors, allColors.length);
         stream.endNode();  // Coordinate
 //        stream.startField("coordIndex");
         stream.startField("index");

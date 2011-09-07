@@ -52,6 +52,9 @@ public interface ServicesAPI {
     /**
      * Create an image for this file.
      *
+     * TODO:  If this was changed to editor params instead then we could cache
+     * the renders for faster latency.
+     *
      * @param width The width in pixels
      * @param height The height in pixels
      * @param viewpoint How to calculate a viewpoint.  OVER_SHOULDER, FRONT_FACING, ...

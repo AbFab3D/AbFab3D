@@ -41,10 +41,10 @@ public class CanMoveMaterialTargetedBounds implements ClassTraverser {
 
     /** The target material */
     private int target;
-    
+
     /** Minimum bounds of the target */
     private int[] targetMinBounds;
-    
+
     /** Maximum bounds of the taget */
     private int[] targetMaxBounds;
 
@@ -60,12 +60,12 @@ public class CanMoveMaterialTargetedBounds implements ClassTraverser {
     /** Coordinates that can be ignored */
     HashSet<VoxelCoordinate> ignoreSet;
 
-    public CanMoveMaterialTargetedBounds(int material, int target, 
-    		int[] targetMinBounds, int[] targetMaxBounds, Path path) {
+    public CanMoveMaterialTargetedBounds(int material, int target,
+            int[] targetMinBounds, int[] targetMaxBounds, Path path) {
         this.material = material;
         this.target = target;
-        this.targetMinBounds = targetMinBounds;
-        this.targetMaxBounds = targetMaxBounds;
+        this.targetMinBounds = targetMinBounds.clone();
+        this.targetMaxBounds = targetMaxBounds.clone();
         this.path = path;
     }
 
@@ -127,17 +127,17 @@ public class CanMoveMaterialTargetedBounds implements ClassTraverser {
 
         // Move along path till edge or
         path.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
-        
+
         boolean escaped = true;
 
         while(path.next(pos)) {
 //System.out.println("checking: " + java.util.Arrays.toString(pos));
-        	// If position is pass target bounds, material can escape
+            // If position is pass target bounds, material can escape
             if (isPassTargetBounds(pos)) {
 //System.out.println("Pass target bounds at: " + java.util.Arrays.toString(pos));
-            	break;
+                break;
             }
-            
+
             VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
 
 //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
@@ -162,159 +162,159 @@ public class CanMoveMaterialTargetedBounds implements ClassTraverser {
 
     /**
      * Checks whether a position is pass the bounds of the target bounds.
-     * 
+     *
      * @param pos The position to check
      * @return True if the position is pass the bounds of the target bounds
      */
     private boolean isPassTargetBounds(int[] pos) {
-		
-		if (pos[0] > targetMaxBounds[0] && path.getDir()[0] >= 0) {
-//System.out.println("pos[0] > targetMaxBounds[0] && path.getDir()[0] >= 0");
-			return true;
-		}
-		
-		if (pos[0] < targetMinBounds[0] && path.getDir()[0] <= 0) {
-//System.out.println("pos[0] < targetMinBounds[0] && path.getDir()[0] <= 0");
-			return true;
-		}
-		
-		if (pos[1] > targetMaxBounds[1] && path.getDir()[1] >= 0) {
-//System.out.println("pos[1] > targetMaxBounds[1] && path.getDir()[1] >= 0");
-			return true;
-		}
-		
-		if (pos[1] < targetMinBounds[1] && path.getDir()[1] <= 0) {
-//System.out.println("pos[1] > targetMinBounds[1] && path.getDir()[1] <= 0");
-			return true;
-		}
-		
-		if (pos[2] > targetMaxBounds[2] && path.getDir()[2] >= 0) {
-//System.out.println("pos[2] > targetMaxBounds[2] && path.getDir()[2] >= 0");
-			return true;
-		}
-		
-		if (pos[2] < targetMinBounds[2] && path.getDir()[2] <= 0) {
-//System.out.println("pos[2] > targetMinBounds[2] && path.getDir()[2] <= 0");
-			return true;
-		}
 
-    	return false;
+        if (pos[0] > targetMaxBounds[0] && path.getDir()[0] >= 0) {
+//System.out.println("pos[0] > targetMaxBounds[0] && path.getDir()[0] >= 0");
+            return true;
+        }
+
+        if (pos[0] < targetMinBounds[0] && path.getDir()[0] <= 0) {
+//System.out.println("pos[0] < targetMinBounds[0] && path.getDir()[0] <= 0");
+            return true;
+        }
+
+        if (pos[1] > targetMaxBounds[1] && path.getDir()[1] >= 0) {
+//System.out.println("pos[1] > targetMaxBounds[1] && path.getDir()[1] >= 0");
+            return true;
+        }
+
+        if (pos[1] < targetMinBounds[1] && path.getDir()[1] <= 0) {
+//System.out.println("pos[1] > targetMinBounds[1] && path.getDir()[1] <= 0");
+            return true;
+        }
+
+        if (pos[2] > targetMaxBounds[2] && path.getDir()[2] >= 0) {
+//System.out.println("pos[2] > targetMaxBounds[2] && path.getDir()[2] >= 0");
+            return true;
+        }
+
+        if (pos[2] < targetMinBounds[2] && path.getDir()[2] <= 0) {
+//System.out.println("pos[2] > targetMinBounds[2] && path.getDir()[2] <= 0");
+            return true;
+        }
+
+        return false;
     }
-    
+
     /**
      * Checks whether a position is pass the bounds of the target bounds.
      * TODO: This method does not work for all cases!!!
-     * 
+     *
      * @param pos The position to check
      * @return True if the position is pass the bounds of the target bounds
      */
 /*    private boolean isPassTargetBounds2(int[] pos) {
-    	// When the direction of the path is positive or negative x
-    	if (path.getDir()[0] == 1) {
-        	if (pos[0] > targetMaxBounds[0] ||
-        		isOutsideTargetHeightBounds(pos) ||
-        		isOutsideTargetDepthBounds(pos)) {
-        		
-        		return true;
-        	}
-    	} else if (path.getDir()[0] == -1) {
-        	if (pos[0] < targetMinBounds[0] ||
-            	isOutsideTargetHeightBounds(pos) ||
-            	isOutsideTargetDepthBounds(pos)) {
-            		
-            	return true;
-            }
-    	}
-    	
-    	// When the direction of the path is positive or negative y
-    	if (path.getDir()[1] == 1) {
-        	if (pos[1] > targetMaxBounds[1] ||
-        		isOutsideTargetWidthBounds(pos) ||
-        		isOutsideTargetDepthBounds(pos)) {
-        		
-        		return true;
-        	}
-    	} else if (path.getDir()[1] == -1) {
-        	if (pos[1] < targetMinBounds[1] ||
-            	isOutsideTargetWidthBounds(pos) ||
-            	isOutsideTargetDepthBounds(pos)) {
-            		
-            	return true;
-            }
-    	}
+        // When the direction of the path is positive or negative x
+        if (path.getDir()[0] == 1) {
+            if (pos[0] > targetMaxBounds[0] ||
+                isOutsideTargetHeightBounds(pos) ||
+                isOutsideTargetDepthBounds(pos)) {
 
-    	// When the direction of the path is positive or negative z
-    	if (path.getDir()[2] == 1) {
-        	if (pos[2] > targetMaxBounds[2] ||
-        		isOutsideTargetWidthBounds(pos) ||
-        		isOutsideTargetHeightBounds(pos)) {
-        		
-        		return true;
-        	}
-    	} else if (path.getDir()[2] == -1) {
-        	if (pos[2] < targetMinBounds[2] ||
-            	isOutsideTargetWidthBounds(pos) ||
-            	isOutsideTargetHeightBounds(pos)) {
-            		
-            	return true;
+                return true;
             }
-    	}
-    	
-    	return false;
+        } else if (path.getDir()[0] == -1) {
+            if (pos[0] < targetMinBounds[0] ||
+                isOutsideTargetHeightBounds(pos) ||
+                isOutsideTargetDepthBounds(pos)) {
+
+                return true;
+            }
+        }
+
+        // When the direction of the path is positive or negative y
+        if (path.getDir()[1] == 1) {
+            if (pos[1] > targetMaxBounds[1] ||
+                isOutsideTargetWidthBounds(pos) ||
+                isOutsideTargetDepthBounds(pos)) {
+
+                return true;
+            }
+        } else if (path.getDir()[1] == -1) {
+            if (pos[1] < targetMinBounds[1] ||
+                isOutsideTargetWidthBounds(pos) ||
+                isOutsideTargetDepthBounds(pos)) {
+
+                return true;
+            }
+        }
+
+        // When the direction of the path is positive or negative z
+        if (path.getDir()[2] == 1) {
+            if (pos[2] > targetMaxBounds[2] ||
+                isOutsideTargetWidthBounds(pos) ||
+                isOutsideTargetHeightBounds(pos)) {
+
+                return true;
+            }
+        } else if (path.getDir()[2] == -1) {
+            if (pos[2] < targetMinBounds[2] ||
+                isOutsideTargetWidthBounds(pos) ||
+                isOutsideTargetHeightBounds(pos)) {
+
+                return true;
+            }
+        }
+
+        return false;
     }
 */
     /**
      * Checks whether a position is outside the targets width bounds.
-     * 
+     *
      * @param pos The position to check
      * @return True if the position is outside the targets width bounds
      */
 /*    private boolean isOutsideTargetWidthBounds(int[] pos) {
-    	if (pos[0] > targetMaxBounds[0] || pos[0] < targetMinBounds[0]) {
-    		return true;
-    	}
-    	
-    	return false;
+        if (pos[0] > targetMaxBounds[0] || pos[0] < targetMinBounds[0]) {
+            return true;
+        }
+
+        return false;
     }
-*/    
+*/
     /**
      * Checks whether a position is outside the targets height bounds.
-     * 
+     *
      * @param pos The position to check
      * @return True if the position is outside the targets height bounds
      */
 /*    private boolean isOutsideTargetHeightBounds(int[] pos) {
-    	if (pos[1] > targetMaxBounds[1] || pos[1] < targetMinBounds[1]) {
-    		return true;
-    	}
-    	
-    	return false;
+        if (pos[1] > targetMaxBounds[1] || pos[1] < targetMinBounds[1]) {
+            return true;
+        }
+
+        return false;
     }
-*/    
+*/
     /**
      * Checks whether a position is outside the targets depth bounds.
-     * 
+     *
      * @param pos The position to check
      * @return True if the position is outside the targets depth bounds
      */
 /*    private boolean isOutsideTargetDepthBounds(int[] pos) {
-    	if (pos[2] > targetMaxBounds[2] || pos[2] < targetMinBounds[2]) {
-    		return true;
-    	}
-    	
-    	return false;
+        if (pos[2] > targetMaxBounds[2] || pos[2] < targetMinBounds[2]) {
+            return true;
+        }
+
+        return false;
     }
-*/    
-    
+*/
+
     /**
      * Get the count of the ignored voxels.
-     * 
+     *
      * @return Count of the ignored voxels.
      */
     public int getIgnoredCount() {
         return ignoreSet.size();
     }
-    
+
     /**
      * Add voxels to be ignored for a given path as specified by ignoreSetIndex.
      *

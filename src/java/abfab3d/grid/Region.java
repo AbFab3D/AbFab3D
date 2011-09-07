@@ -38,4 +38,19 @@ public interface Region {
      * @param t The traverer to call for each voxel
      */
     public void traverseInterruptible(RegionTraverser t);
+
+    /**
+     * Can this region be merged with another.  The region type must remain
+     * the same.
+     *
+     * @param r The region to merge
+     */
+    public boolean canMerge(Region r);
+
+    /**
+     * Merge this region with another.
+     *
+     * @return true if successful.  If false no changes will be made
+     */
+    public boolean merge(Region r);
 }

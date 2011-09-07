@@ -30,7 +30,7 @@ import org.web3d.vrml.sav.ContentHandler;
  *
  * @author Alan Hudson
  */
-public class OctreeGridByte extends BaseGrid {
+public class OctreeGridByte extends BaseGrid implements OctreeCell {
     private static final boolean STATS = true;
 
     /** The maximum coords to put in a shape */
@@ -131,6 +131,25 @@ public class OctreeGridByte extends BaseGrid {
             grid.getVoxelSize(), grid.getSliceHeight());
 
         this.root = (OctreeCellInternalByte) grid.root.clone();
+    }
+
+    /**
+     * Get the children of this cell.
+     *
+     * @return The children
+     */
+    public OctreeCell[] getChildren() {
+        return new OctreeCell[] { root };
+    }
+
+    /**
+     * Get the state of the voxel.  If its not MIXED then all cells below
+     * this are also this value.
+     *
+     * @return The voxel state
+     */
+    public byte getState() {
+        return root.getState();
     }
 
     /**
@@ -1908,9 +1927,11 @@ System.out.println("eject:   coords: " + totalCoords.size() + " indices: " + ind
 
         long saved = 0;
 
+/*
+TODO: Why would you do this?
         HashMap<WorldCoordinate,Integer> coords = new HashMap<WorldCoordinate,Integer>();
         ArrayList<WorldCoordinate> thisSlice = new ArrayList<WorldCoordinate>();
-
+*/
         double[] wcoords = new double[3];
 
         grid.getWorldCoords(cell.vcx, cell.vcy, cell.vcz, wcoords);

@@ -107,4 +107,24 @@ public class ListRegion implements Region {
                 break;
         }
     }
+
+    /**
+     * Can this region be merged with another.  The region type must remain
+     * the same.
+     *
+     * @param r The region to merge
+     */
+    public boolean canMerge(Region r) {
+        return false;
+    }
+
+    /**
+     * Merge this region with another.
+     *
+     * @return true if successful.  If false no changes will be made
+     */
+    public boolean merge(Region r) {
+        return false;
+    }
+
 }
