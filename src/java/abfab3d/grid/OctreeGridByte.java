@@ -153,6 +153,16 @@ public class OctreeGridByte extends BaseGrid implements OctreeCell {
     }
 
     /**
+     * Get the origin and size of this cell in voxel coordinates.
+     *
+     * @param origin The origin, preallocated to 3
+     * @param size The size, preallocated to 3
+     */
+    public void getRegion(int[] origin, int[] size) {
+        root.getRegion(origin, size);
+    }
+
+    /**
      * Get the data of the voxel
      *
      * @param x The x grid coordinate

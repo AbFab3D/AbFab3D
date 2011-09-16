@@ -77,6 +77,43 @@ public class OctreeCellInternalShort implements OctreeCell, Cloneable {
     }
 
     /**
+     * Get the children of this cell.
+     *
+     * @return The children
+     */
+    public OctreeCell[] getChildren() {
+        return children;
+    }
+
+    /**
+     * Get the state of the voxel.  If its not MIXED then all cells below
+     * this are also this value.
+     *
+     * @return The voxel state
+     */
+    public byte getState() {
+        return allState.getState();
+    }
+
+    /**
+     * Get the origin and size of this cell in voxel coordinates.
+     *
+     * @param origin The origin, preallocated to 3
+     * @param size The size, preallocated to 3
+     */
+    public void getRegion(int[] origin, int[] size) {
+        int hsize = this.size >> 2;
+
+        origin[0] = vcx;
+        origin[1] = vcy;
+        origin[2] = vcz;
+
+        size[0] = this.size;
+        size[1] = this.size;
+        size[2] = this.size;
+    }
+
+    /**
      * Get the data located at the specified cell in voxel coordinates.
      *
      * @param x The x voxel coordinate
