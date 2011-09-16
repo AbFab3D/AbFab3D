@@ -181,6 +181,16 @@ public class BlockBasedGridByte extends BaseGrid {
         // TODO: what to do about block order?
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
+        
+        this.blockOrder = grid.blockOrder;
+        this.blockResX = grid.blockResX;
+        this.blockResY = grid.blockResY;
+        this.blockResZ = grid.blockResZ;
+        this.blockXZSize = grid.blockXZSize;
+        this.blockMax = grid.blockMax;
+        this.outside = (VoxelDataByte) grid.outside.clone();
+        this.bcoord = grid.bcoord.clone();
+        this.vcoord = grid.vcoord.clone();
         this.data = grid.data.clone();
     }
 
@@ -301,7 +311,6 @@ public class BlockBasedGridByte extends BaseGrid {
         getBlockCoord(x, y, z, bcoord);
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
-
         BlockByte block = data[id];
 
         if (block != null) {
