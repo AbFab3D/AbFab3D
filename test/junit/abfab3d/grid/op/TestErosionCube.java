@@ -27,7 +27,6 @@ import org.web3d.vrml.export.PlainTextErrorReporter;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import linkedrings.LinkedRings;
 
 // Internal Imports
 import abfab3d.geom.TorusCreator;
@@ -61,63 +60,63 @@ public class TestErosionCube extends BaseTestGrid {
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for (int y=2; y<8; y++) {
-        	for (int z=2; z<8; z++) {
+            for (int z=2; z<8; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 2, 7);
-        	}
+            }
         }
 
         int erosionDistance = 1;
-        
+
         ErosionCube ec = new ErosionCube(erosionDistance);
         Grid erodedGrid = ec.execute(grid);
-        
+
         int width = erodedGrid.getWidth();
         int height = erodedGrid.getHeight();
         int depth = erodedGrid.getDepth();
         for (int y=0; y<height; y++) {
-        	for (int z=0; z<depth; z++) {
-        		for (int x=0; x<width; x++) {
-        			System.out.println(x + ", " + y + ", " + z + ": " + erodedGrid.getState(x, y, z));
-        		}
-        	}
+            for (int z=0; z<depth; z++) {
+                for (int x=0; x<width; x++) {
+                    System.out.println(x + ", " + y + ", " + z + ": " + erodedGrid.getState(x, y, z));
+                }
+            }
         }
 
         erosionDistance = 2;
-        
+
         ec = new ErosionCube(erosionDistance);
         erodedGrid = ec.execute(grid);
-        
+
         width = erodedGrid.getWidth();
         height = erodedGrid.getHeight();
         depth = erodedGrid.getDepth();
         for (int y=0; y<height; y++) {
-        	for (int z=0; z<depth; z++) {
-        		for (int x=0; x<width; x++) {
-        			System.out.println(x + ", " + y + ", " + z + ": " + erodedGrid.getState(x, y, z));
-        		}
-        	}
+            for (int z=0; z<depth; z++) {
+                for (int x=0; x<width; x++) {
+                    System.out.println(x + ", " + y + ", " + z + ": " + erodedGrid.getState(x, y, z));
+                }
+            }
         }
-        
+
     }
-    
+
     //---------------------------------------------------
     // Functions for writing out an eroded object
     //---------------------------------------------------
-    
+
     private Grid generateCube() {
         int size = 10;
 
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for (int y=0; y<size; y++) {
-        	for (int z=0; z<size; z++) {
+            for (int z=0; z<size; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 0, size-1);
-        	}
+            }
         }
-        
+
         return grid;
     }
-    
+
     private Grid generateTorus() {
         double ir = 0.002f;
         double or = 0.006f;
@@ -148,10 +147,10 @@ public class TestErosionCube extends BaseTestGrid {
 
         return grid;
     }
-    
+
     /**
      * Generate a dumbbell using two cubes and a connecting length of filled voxels.
-     * 
+     *
      * @return Grid containing the dumbbell-filled voxels
      */
     private Grid generateDumbBell() {
@@ -161,82 +160,82 @@ public class TestErosionCube extends BaseTestGrid {
 
         // left cube
         for (int y=0; y<size; y++) {
-        	for (int z=0; z<size; z++) {
+            for (int z=0; z<size; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 0, 4);
-        	}
+            }
         }
-        
+
         // right cube
         for (int y=0; y<size; y++) {
-        	for (int z=0; z<size; z++) {
+            for (int z=0; z<size; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 15, size-1);
-        	}
+            }
         }
-        
+
         // the bridge
         int bridgeThickness = 3;
         int bridgeHeight = size / 2;
         int bridgeDepth = size / 2;
-        
+
         for (int y=bridgeHeight; y<bridgeHeight+bridgeThickness; y++) {
-        	for (int z=bridgeDepth; z<bridgeDepth+bridgeThickness; z++) {
+            for (int z=bridgeDepth; z<bridgeDepth+bridgeThickness; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 4, 15);
-        	}
+            }
         }
-        
+
         return grid;
     }
-    
+
     private Grid erode(Grid grid, int distance) {
         ErosionCube ec = new ErosionCube(distance);
         Grid erodedGrid = ec.execute(grid);
-        
+
         return erodedGrid;
     }
-    
+
     private void erodeCube() {
         Grid originalGrid = generateCube();
-        
+
         generate(originalGrid, "preCubeErosionOfCube.x3db");
-        
+
         int distance = 1;
         Grid erodedGrid = erode(originalGrid, distance);
         generate(erodedGrid, "postCubeErosionOfCube_distance" + distance + ".x3db");
-        
+
         distance = 2;
         erodedGrid = erode(originalGrid, distance);;
         generate(erodedGrid, "postCubeErosionOfCube_distance" + distance + ".x3db");
     }
-    
+
     private void erodeTorus() {
         Grid originalGrid = generateTorus();
-        
+
         generate(originalGrid, "preCubeErosionOfTorus.x3db");
-        
+
         int distance = 1;
         Grid erodedGrid = erode(originalGrid, distance);
         generate(erodedGrid, "postCubeErosionOfTorus_distance" + distance + ".x3db");
-        
+
         distance = 2;
         erodedGrid = erode(originalGrid, distance);;
         generate(erodedGrid, "postCubeErosionOfTorus_distance" + distance + ".x3db");
     }
-    
+
     private void erodeDumbBell() {
         Grid originalGrid = generateDumbBell();
-        
+
         generate(originalGrid, "preCubeErosionOfDumbBell.x3db");
-        
+
         int distance = 1;
         Grid erodedGrid = erode(originalGrid, distance);
         generate(erodedGrid, "postCubeErosionOfDumbBell_distance" + distance + ".x3db");
-        
+
         distance = 2;
         erodedGrid = erode(originalGrid, distance);;
         generate(erodedGrid, "postCubeErosionOfDumbBell_distance" + distance + ".x3db");
 
     }
-    
+
     private void generate(Grid grid, String filename) {
         try {
             ErrorReporter console = new PlainTextErrorReporter();

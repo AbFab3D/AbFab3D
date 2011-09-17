@@ -27,7 +27,6 @@ import org.web3d.vrml.export.PlainTextErrorReporter;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import linkedrings.LinkedRings;
 
 // Internal Imports
 import abfab3d.geom.TorusCreator;
@@ -61,63 +60,63 @@ public class TestDilationCube extends BaseTestGrid {
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for (int y=2; y<8; y++) {
-        	for (int z=2; z<8; z++) {
+            for (int z=2; z<8; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 2, 7);
-        	}
+            }
         }
 
         int distance = 1;
-        
+
         DilationCube ec = new DilationCube(distance);
         Grid dilatedGrid = ec.execute(grid);
-        
+
         int width = dilatedGrid.getWidth();
         int height = dilatedGrid.getHeight();
         int depth = dilatedGrid.getDepth();
         for (int y=0; y<height; y++) {
-        	for (int z=0; z<depth; z++) {
-        		for (int x=0; x<width; x++) {
-        			System.out.println(x + ", " + y + ", " + z + ": " + dilatedGrid.getState(x, y, z));
-        		}
-        	}
+            for (int z=0; z<depth; z++) {
+                for (int x=0; x<width; x++) {
+                    System.out.println(x + ", " + y + ", " + z + ": " + dilatedGrid.getState(x, y, z));
+                }
+            }
         }
 
         distance = 2;
-        
+
         ec = new DilationCube(distance);
         dilatedGrid = ec.execute(grid);
-        
+
         width = dilatedGrid.getWidth();
         height = dilatedGrid.getHeight();
         depth = dilatedGrid.getDepth();
         for (int y=0; y<height; y++) {
-        	for (int z=0; z<depth; z++) {
-        		for (int x=0; x<width; x++) {
-        			System.out.println(x + ", " + y + ", " + z + ": " + dilatedGrid.getState(x, y, z));
-        		}
-        	}
+            for (int z=0; z<depth; z++) {
+                for (int x=0; x<width; x++) {
+                    System.out.println(x + ", " + y + ", " + z + ": " + dilatedGrid.getState(x, y, z));
+                }
+            }
         }
-        
+
     }
-    
+
     //---------------------------------------------------
     // Functions for writing out an dilated object
     //---------------------------------------------------
-    
+
     private Grid generateCube() {
         int size = 10;
 
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for (int y=5; y<6; y++) {
-        	for (int z=5; z<6; z++) {
+            for (int z=5; z<6; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 0, size-1);
-        	}
+            }
         }
-        
+
         return grid;
     }
-    
+
     private Grid generateTorus() {
         double ir = 0.002f;
         double or = 0.006f;
@@ -148,10 +147,10 @@ public class TestDilationCube extends BaseTestGrid {
 
         return grid;
     }
-    
+
     /**
      * Generate a dumbbell using two cubes and a connecting length of filled voxels.
-     * 
+     *
      * @return Grid containing the dumbbell-filled voxels
      */
     private Grid generateDumbBell() {
@@ -161,84 +160,84 @@ public class TestDilationCube extends BaseTestGrid {
 
         // left cube
         for (int y=0; y<size; y++) {
-        	for (int z=0; z<size; z++) {
+            for (int z=0; z<size; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 0, 4);
-        	}
+            }
         }
-        
+
         // right cube
         for (int y=0; y<size; y++) {
-        	for (int z=0; z<size; z++) {
+            for (int z=0; z<size; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 15, size-1);
-        	}
+            }
         }
-        
+
         // the bridge
         int bridgeThickness = 3;
         int bridgeHeight = size / 2;
         int bridgeDepth = size / 2;
-        
+
         for (int y=bridgeHeight; y<bridgeHeight+bridgeThickness; y++) {
-        	for (int z=bridgeDepth; z<bridgeDepth+bridgeThickness; z++) {
+            for (int z=bridgeDepth; z<bridgeDepth+bridgeThickness; z++) {
                 setX(grid, y, z, Grid.INTERIOR, 1, 4, 15);
-        	}
+            }
         }
-        
+
         return grid;
     }
-    
+
     private Grid dilate(Grid grid, int distance) {
-    	DilationCube ec = new DilationCube(distance);
+        DilationCube ec = new DilationCube(distance);
         Grid dilatedGrid = ec.execute(grid);
-        
+
         return dilatedGrid;
     }
-    
+
     private void dilateCube() {
         Grid originalGrid = generateCube();
-        
+
         generate(originalGrid, "preCubeDilationOfCube.x3db");
-        
+
         int distance = 1;
         Grid dilatedGrid = dilate(originalGrid, distance);
         generate(dilatedGrid, "postCubeDilationOfCube_distance" + distance + ".x3db");
-        
+
         distance = 2;
         dilatedGrid = dilate(originalGrid, distance);;
         generate(dilatedGrid, "postCubeDilationOfCube_distance" + distance + ".x3db");
 
     }
-    
+
     private void dilateTorus() {
         Grid originalGrid = generateTorus();
-        
+
         generate(originalGrid, "preCubeDilationOfTorus.x3db");
-        
+
         int distance = 1;
         Grid dilatedGrid = dilate(originalGrid, distance);
         generate(dilatedGrid, "postCubeDilationOfTorus_distance" + distance + ".x3db");
-        
+
         distance = 2;
         dilatedGrid = dilate(originalGrid, distance);;
         generate(dilatedGrid, "postCubeDilationOfTorus_distance" + distance + ".x3db");
     }
-    
+
     private void dilateDumbBell() {
-    	TestDilationCube ec = new TestDilationCube();
+        TestDilationCube ec = new TestDilationCube();
         Grid originalGrid = ec.generateDumbBell();
-        
+
         ec.generate(originalGrid, "preCubeDilationOfDumbBell.x3db");
-        
+
         int distance = 1;
         Grid dilatedGrid = ec.dilate(originalGrid, distance);
         ec.generate(dilatedGrid, "postCubeDilationOfDumbBell_distance" + distance + ".x3db");
-        
+
         distance = 2;
         dilatedGrid = ec.dilate(originalGrid, distance);;
         ec.generate(dilatedGrid, "postCubeDilationOfDumbBell_distance" + distance + ".x3db");
 
     }
-    
+
     private void generate(Grid grid, String filename) {
         try {
             ErrorReporter console = new PlainTextErrorReporter();
@@ -269,7 +268,7 @@ public class TestDilationCube extends BaseTestGrid {
 
 
     public static void main(String[] args) {
-    	TestDilationCube ec = new TestDilationCube();
+        TestDilationCube ec = new TestDilationCube();
 //        ec.dilateCube();
 //        ec.dilateTorus();
         ec.dilateDumbBell();
