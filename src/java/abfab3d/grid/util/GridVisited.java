@@ -28,6 +28,14 @@ import abfab3d.grid.*;
   * Memory usage of VoxelCoordinate is a guess.  I assume its this:
   *    hashMapPtr, Java Object Overhead, 3 ints
   *
+  *
+  * TODO:  Consider either storing this state directly onto VoxelData or
+  *        having a block based rep instead of this map/array
+  *        1)  Are visitor patterns usually on sparse data?
+  *        2)  Do we ever need multiple visited state per voxel?
+  *        3)  visited, materialID etc are attributes to a voxel.
+  *        4)     maybe have an addAttribute(int id, int numBits), getAttribute(int id)
+  *
   * @author Alan Hudson
   */
  public class GridVisited implements ClassTraverser {
@@ -192,6 +200,22 @@ import abfab3d.grid.*;
         unvisited = null;
 
         grid.findInterruptible(Grid.VoxelClasses.MARKED, this);
+
+        grid = null;
+
+        return unvisited;
+    }
+
+    /**
+     * Find an unvisited voxel from the specified grid.
+     *
+     * @param grid The grid
+     */
+    public VoxelCoordinate findUnvisited(Grid grid, int mat) {
+        this.grid = grid;
+        unvisited = null;
+
+        grid.findInterruptible(Grid.VoxelClasses.MARKED, mat, this);
 
         grid = null;
 

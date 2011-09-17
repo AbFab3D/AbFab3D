@@ -64,7 +64,7 @@ public class TestRegionFinder extends TestCase {
     }
 
     /**
-     * Test basic operation
+     * Test multiple regions
      */
     public void testMultiple() {
         int w = 20;
@@ -152,4 +152,118 @@ public class TestRegionFinder extends TestCase {
 */
     }
 
+    /**
+     * Test multiple regions
+     */
+    public void testMultipleMaterial() {
+        int w = 20;
+        int h = 20;
+        int d = 20;
+
+        Grid grid = new ArrayGridByte(20,20,20,0.1,0.1);
+
+        // Create a simple region
+        HashSet<VoxelCoordinate> region1 = new HashSet<VoxelCoordinate>();
+        region1.add(new VoxelCoordinate(5,5,5));
+        region1.add(new VoxelCoordinate(5,5,6));
+        region1.add(new VoxelCoordinate(5,5,7));
+        region1.add(new VoxelCoordinate(5,6,5));
+        region1.add(new VoxelCoordinate(5,6,6));
+        region1.add(new VoxelCoordinate(5,6,7));
+
+        Iterator<VoxelCoordinate> itr = region1.iterator();
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.EXTERIOR,1);
+        }
+
+        HashSet<VoxelCoordinate> region2 = new HashSet<VoxelCoordinate>();
+        region2.add(new VoxelCoordinate(1,5,5));
+        region2.add(new VoxelCoordinate(1,5,6));
+        region2.add(new VoxelCoordinate(1,5,7));
+        region2.add(new VoxelCoordinate(1,6,5));
+        region2.add(new VoxelCoordinate(1,6,6));
+        region2.add(new VoxelCoordinate(1,6,7));
+        region2.add(new VoxelCoordinate(1,6,8));
+        region2.add(new VoxelCoordinate(1,6,9));
+
+        itr = region2.iterator();
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INTERIOR,2);
+        }
+
+
+        RegionFinder rf = new RegionFinder(new VoxelCoordinate(5,5,5), 10);
+        List<Region> regions = rf.execute(grid);
+
+        assertNotNull("Regions", regions);
+        assertEquals("Regions size", 2, regions.size());
+
+        ListRegion region = (ListRegion) regions.get(0);
+        int count = region.getNumCoords();
+
+        assertEquals("ListRegion1 count", region1.size(), count);
+
+        Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+        while(itr2.hasNext()) {
+            VoxelCoordinate vc = itr2.next();
+            if (!region1.contains(vc)) {
+                fail("Invalid coordinate in region: " + vc);
+            }
+        }
+
+        region = (ListRegion) regions.get(1);
+        count = region.getNumCoords();
+
+        itr2 = region.getList().iterator();
+        while(itr2.hasNext()) {
+            VoxelCoordinate vc = itr2.next();
+            if (!region2.contains(vc)) {
+                fail("Invalid coordinate in region: " + vc);
+            }
+        }
+
+        assertEquals("ListRegion2 count", region2.size(), count);
+
+        rf = new RegionFinder(new VoxelCoordinate(5,5,5), 10,1);
+        regions = rf.execute(grid);
+
+        assertNotNull("Regions", regions);
+        assertEquals("Regions size", 1, regions.size());
+
+        region = (ListRegion) regions.get(0);
+        count = region.getNumCoords();
+
+        assertEquals("ListRegion1 count", region1.size(), count);
+
+        itr2 = region.getList().iterator();
+        while(itr2.hasNext()) {
+            VoxelCoordinate vc = itr2.next();
+            if (!region1.contains(vc)) {
+                fail("Invalid coordinate in region: " + vc);
+            }
+        }
+
+
+        rf = new RegionFinder(new VoxelCoordinate(1,5,5), 10,2);
+        regions = rf.execute(grid);
+
+        assertNotNull("Regions", regions);
+        assertEquals("Regions size", 1, regions.size());
+
+        region = (ListRegion) regions.get(0);
+        count = region.getNumCoords();
+
+        itr2 = region.getList().iterator();
+        while(itr2.hasNext()) {
+            VoxelCoordinate vc = itr2.next();
+            if (!region2.contains(vc)) {
+                fail("Invalid coordinate in region: " + vc);
+            }
+        }
+
+        assertEquals("ListRegion2 count", region2.size(), count);
+
+    }
 }
