@@ -129,6 +129,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
         int len = materials.length;
 
         for(int i=0; i < len; i++) {
+        	if (materials[i] == matID)
+        		continue;
+        	
             Integer orig = new Integer(materials[i]);
 
             HashSet<VoxelCoordinate> coords = index.get(orig);
