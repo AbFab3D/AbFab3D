@@ -51,7 +51,7 @@ public class TestRegionFinder extends TestCase {
         grid.setData(5,6,6,Grid.EXTERIOR,1);
         grid.setData(5,6,7,Grid.EXTERIOR,1);
 
-        RegionFinder rf = new RegionFinder(new VoxelCoordinate(5,5,5), 10);
+        RegionFinder rf = new RegionFinder(10);
         List<Region> regions = rf.execute(grid);
 
         assertNotNull("Regions", regions);
@@ -105,37 +105,41 @@ public class TestRegionFinder extends TestCase {
         }
 
 
-        RegionFinder rf = new RegionFinder(new VoxelCoordinate(5,5,5), 10);
+        RegionFinder rf = new RegionFinder(10);
         List<Region> regions = rf.execute(grid);
 
         assertNotNull("Regions", regions);
         assertEquals("Regions size", 2, regions.size());
 
-        ListRegion region = (ListRegion) regions.get(0);
-        int count = region.getNumCoords();
+        // Determine which region it is.
 
-        assertEquals("ListRegion1 count", region1.size(), count);
+        Iterator<Region> itr3 = regions.iterator();
 
-        Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
-        while(itr2.hasNext()) {
-            VoxelCoordinate vc = itr2.next();
-            if (!region1.contains(vc)) {
-                fail("Invalid coordinate in region: " + vc);
+        while(itr3.hasNext()) {
+            ListRegion region = (ListRegion) itr3.next();
+            int count = region.getNumCoords();
+
+            if (count == region1.size()) {
+
+                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                while(itr2.hasNext()) {
+                    VoxelCoordinate vc = itr2.next();
+                    if (!region1.contains(vc)) {
+                        fail("Invalid coordinate in region: " + vc);
+                    }
+                }
+            } else if (count == region2.size()) {
+                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                while(itr2.hasNext()) {
+                    VoxelCoordinate vc = itr2.next();
+                    if (!region2.contains(vc)) {
+                        fail("Invalid coordinate in region: " + vc);
+                    }
+                }
+            } else {
+                fail("Invalid region count");
             }
         }
-
-        region = (ListRegion) regions.get(1);
-        count = region.getNumCoords();
-
-        itr2 = region.getList().iterator();
-        while(itr2.hasNext()) {
-            VoxelCoordinate vc = itr2.next();
-            if (!region2.contains(vc)) {
-                fail("Invalid coordinate in region: " + vc);
-            }
-        }
-
-        assertEquals("ListRegion2 count", region2.size(), count);
 
         // Test outside support
 /*
@@ -194,11 +198,47 @@ public class TestRegionFinder extends TestCase {
         }
 
 
-        RegionFinder rf = new RegionFinder(new VoxelCoordinate(5,5,5), 10);
+        RegionFinder rf = new RegionFinder(10);
         List<Region> regions = rf.execute(grid);
 
         assertNotNull("Regions", regions);
         assertEquals("Regions size", 2, regions.size());
+
+        // Determine which region it is.
+
+        Iterator<Region> itr3 = regions.iterator();
+
+        while(itr3.hasNext()) {
+            ListRegion region = (ListRegion) itr3.next();
+            int count = region.getNumCoords();
+
+            if (count == region1.size()) {
+
+                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                while(itr2.hasNext()) {
+                    VoxelCoordinate vc = itr2.next();
+                    if (!region1.contains(vc)) {
+                        fail("Invalid coordinate in region: " + vc);
+                    }
+                }
+            } else if (count == region2.size()) {
+                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                while(itr2.hasNext()) {
+                    VoxelCoordinate vc = itr2.next();
+                    if (!region2.contains(vc)) {
+                        fail("Invalid coordinate in region: " + vc);
+                    }
+                }
+            } else {
+                fail("Invalid region count");
+            }
+        }
+
+        rf = new RegionFinder(10,1);
+        regions = rf.execute(grid);
+
+        assertNotNull("Regions", regions);
+        assertEquals("Regions size", 1, regions.size());
 
         ListRegion region = (ListRegion) regions.get(0);
         int count = region.getNumCoords();
@@ -213,40 +253,8 @@ public class TestRegionFinder extends TestCase {
             }
         }
 
-        region = (ListRegion) regions.get(1);
-        count = region.getNumCoords();
 
-        itr2 = region.getList().iterator();
-        while(itr2.hasNext()) {
-            VoxelCoordinate vc = itr2.next();
-            if (!region2.contains(vc)) {
-                fail("Invalid coordinate in region: " + vc);
-            }
-        }
-
-        assertEquals("ListRegion2 count", region2.size(), count);
-
-        rf = new RegionFinder(new VoxelCoordinate(5,5,5), 10,1);
-        regions = rf.execute(grid);
-
-        assertNotNull("Regions", regions);
-        assertEquals("Regions size", 1, regions.size());
-
-        region = (ListRegion) regions.get(0);
-        count = region.getNumCoords();
-
-        assertEquals("ListRegion1 count", region1.size(), count);
-
-        itr2 = region.getList().iterator();
-        while(itr2.hasNext()) {
-            VoxelCoordinate vc = itr2.next();
-            if (!region1.contains(vc)) {
-                fail("Invalid coordinate in region: " + vc);
-            }
-        }
-
-
-        rf = new RegionFinder(new VoxelCoordinate(1,5,5), 10,2);
+        rf = new RegionFinder(10,2);
         regions = rf.execute(grid);
 
         assertNotNull("Regions", regions);

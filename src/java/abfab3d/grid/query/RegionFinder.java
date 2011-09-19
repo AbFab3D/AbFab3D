@@ -20,8 +20,7 @@ import abfab3d.grid.*;
 import abfab3d.grid.util.GridVisited;
 
 /**
- * Find all the regions in a grid.  It starts from the main region and
- * continues to all other regions.
+ * Find all the regions in a grid.
  *
  * TODO: no correct for finding OUTSIDE region
  *
@@ -30,9 +29,6 @@ import abfab3d.grid.util.GridVisited;
  * @author Alan Hudson
  */
 public class RegionFinder {
-    /** The main region */
-    private VoxelCoordinate main;
-
     /** The max number of regions to find */
     private int maxRegions;
 
@@ -54,22 +50,19 @@ public class RegionFinder {
     /**
      * Constructor.
      *
-     * @param main The main region to start with
      * @param max The max number of regions to create.
      */
-    public RegionFinder(VoxelCoordinate main, int max) {
-        this(main,max,-1);
+    public RegionFinder(int max) {
+        this(max,-1);
     }
 
     /**
      * Constructor.
      *
-     * @param main The main region to start with
      * @param max The max number of regions to create.
      * @param mat The material to restrict finding to or -1 for no restriction
      */
-    public RegionFinder(VoxelCoordinate main, int max, int mat) {
-        this.main = main;
+    public RegionFinder(int max, int mat) {
         this.maxRegions = max;
         this.mat = mat;
     }
@@ -100,16 +93,10 @@ public class RegionFinder {
 
         visited = new GridVisited(grid.getWidth(), grid.getHeight(), grid.getDepth());
 
-        // TODO:  No idea how to guess region size
-        region = new ListRegion(1000);
-
-        growRegion(main, region);
-
-        regions.add(region);
-
         VoxelCoordinate vc;
 
         vc = visited.findUnvisited(grid);
+System.out.println("Starting at vc: " + vc);
 
         while(vc != null) {
             region = new ListRegion(1000);
@@ -137,13 +124,6 @@ public class RegionFinder {
         regions = new ArrayList<Region>();
 
         visited = new GridVisited(grid.getWidth(), grid.getHeight(), grid.getDepth());
-
-        // TODO:  No idea how to guess region size
-        region = new ListRegion(1000);
-
-        growRegionMaterial(main, region);
-
-        regions.add(region);
 
         VoxelCoordinate vc;
 
