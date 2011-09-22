@@ -162,22 +162,22 @@ public class ListRegion implements Region {
      * @param min The preallocated min
      * @param max The preallocated max
      */
-    public void getExtents(double[] min, double[] max) {
-        double min_x;
-        double max_x;
-        double min_y;
-        double max_y;
-        double min_z;
-        double max_z;
+    public void getExtents(int[] min, int[] max) {
+        int min_x;
+        int max_x;
+        int min_y;
+        int max_y;
+        int min_z;
+        int max_z;
 
-        min_x = Double.POSITIVE_INFINITY;
-        min_y = Double.POSITIVE_INFINITY;
-        min_z = Double.POSITIVE_INFINITY;
-        max_x = Double.NEGATIVE_INFINITY;
-        max_y = Double.NEGATIVE_INFINITY;
-        max_z = Double.NEGATIVE_INFINITY;
+        min_x = Integer.MAX_VALUE;
+        min_y = Integer.MAX_VALUE;
+        min_z = Integer.MAX_VALUE;
+        max_x = Integer.MIN_VALUE;
+        max_y = Integer.MIN_VALUE;
+        max_z = Integer.MIN_VALUE;
 
-        double cx,cy,cz;
+        int cx,cy,cz;
 
         Iterator<VoxelCoordinate> itr = coords.iterator();
         while(itr.hasNext()) {
@@ -214,6 +214,5 @@ public class ListRegion implements Region {
         max[0] = max_x;
         max[1] = max_y;
         max[2] = max_z;
-
     }
 }
