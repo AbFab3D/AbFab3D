@@ -17,7 +17,7 @@ import java.util.*;
 
 // Internal Imports
 import abfab3d.grid.*;
-import abfab3d.grid.util.GridVisited;
+import abfab3d.grid.util.GridVisitedIndexed;
 
 /**
  * Find all the regions in a grid.
@@ -33,19 +33,27 @@ public class RegionFinder {
     private int maxRegions;
 
     /** The region we are using */
-    private ListRegion region;
+    private SetRegion region;
 
     /** All the regions found */
     private List<Region> regions;
 
     /** Visted voxels */
-    private GridVisited visited;
+    private GridVisitedIndexed visited;
 
     /** The grid we are working on */
     private Grid grid;
 
     /** The material to restrict regions to or -1 for no restriction */
     private int mat;
+
+    /**
+     * Constructor.
+     *
+     */
+    public RegionFinder() {
+        this(Integer.MAX_VALUE,-1);
+    }
 
     /**
      * Constructor.
@@ -91,15 +99,14 @@ public class RegionFinder {
         this.grid = grid;
         regions = new ArrayList<Region>();
 
-        visited = new GridVisited(grid.getWidth(), grid.getHeight(), grid.getDepth());
+        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.MARKED);
 
         VoxelCoordinate vc;
 
-        vc = visited.findUnvisited(grid);
-System.out.println("Starting at vc: " + vc);
+        vc = visited.findUnvisited();
 
         while(vc != null) {
-            region = new ListRegion(1000);
+            region = new SetRegion(1000);
             growRegion(vc, region);
             regions.add(region);
 
@@ -107,7 +114,7 @@ System.out.println("Starting at vc: " + vc);
                 return regions;
             }
 
-            vc = visited.findUnvisited(grid);
+            vc = visited.findUnvisited();
         }
 
         return regions;
@@ -123,14 +130,14 @@ System.out.println("Starting at vc: " + vc);
         this.grid = grid;
         regions = new ArrayList<Region>();
 
-        visited = new GridVisited(grid.getWidth(), grid.getHeight(), grid.getDepth());
+        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.MARKED, mat);
 
         VoxelCoordinate vc;
 
-        vc = visited.findUnvisited(grid,mat);
+        vc = visited.findUnvisited();
 
         while(vc != null) {
-            region = new ListRegion(1000);
+            region = new SetRegion(1000);
             growRegionMaterial(vc, region);
             regions.add(region);
 
@@ -138,7 +145,7 @@ System.out.println("Starting at vc: " + vc);
                 return regions;
             }
 
-            vc = visited.findUnvisited(grid,mat);
+            vc = visited.findUnvisited();
         }
 
         return regions;
@@ -147,13 +154,72 @@ System.out.println("Starting at vc: " + vc);
     /**
      * Grow a region from a starting seed.
      */
-    private void growRegion(VoxelCoordinate start, ListRegion region) {
+    private void growRegion(VoxelCoordinate start, SetRegion region) {
         int start_state = grid.getState(start.getX(), start.getY(), start.getZ());
 
-        ArrayList<VoxelCoordinate> new_list = new ArrayList<VoxelCoordinate>();
+        LinkedList<VoxelCoordinate> que = new LinkedList<VoxelCoordinate>();
+
+        que.add(start);
+        visited.setVisited(start);
+
+        while(!que.isEmpty()) {
+            VoxelCoordinate vc = que.remove();
+
+            int i = vc.getX();
+            int j = vc.getY();
+            int k = vc.getZ();
+
+            int state = grid.getState(i,j,k);
+
+            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                region.add(vc);
+
+                // test adjacent voxels
+
+                for(int n1=-1; n1 < 2; n1++) {
+                    for(int n2=-1; n2 < 2; n2++) {
+                        for(int n3=-1; n3 < 2; n3++) {
+                            if (n1 == 0 && n2 == 0 && n3 == 0)
+                                continue;
+
+                            int ni = i+n1;
+                            int nj = j+n2;
+                            int nk = k+n3;
+
+                            if (grid.insideGrid(ni,nj,nk) && !visited.getVisited(ni,nj,nk)) {
+                                state = grid.getState(ni,nj,nk);
+
+                                if (start_state == Grid.OUTSIDE && state != Grid.OUTSIDE)
+                                    continue;
+
+                                if (start_state != Grid.OUTSIDE && state == Grid.OUTSIDE)
+                                    continue;
+
+
+                                que.offer(new VoxelCoordinate(ni,nj,nk));
+                                visited.setVisited(ni,nj,nk);
+                                //System.out.println("que size: " + que.size());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Grow a region from a starting seed.
+     */
+    private void growRegionOld(VoxelCoordinate start, SetRegion region) {
+        int start_state = grid.getState(start.getX(), start.getY(), start.getZ());
+
+        HashSet<VoxelCoordinate> new_list = new HashSet<VoxelCoordinate>();
         new_list.add(start);
 
         ArrayList<VoxelCoordinate> add_list = new ArrayList<VoxelCoordinate>();
+
+        int max_size1 = 0;
+        int max_size2 = 0;
 
         while(new_list.size() > 0) {
             Iterator<VoxelCoordinate> itr2 = new_list.iterator();
@@ -161,13 +227,7 @@ System.out.println("Starting at vc: " + vc);
             while(itr2.hasNext()) {
                 VoxelCoordinate vc = itr2.next();
 
-                if (visited.getVisited(vc)) {
-                    // Avoid circular adds when add_list happens before new_list processing
-                    // of a coordinate.  There might be a better way to handle this.
-                    continue;
-                }
-
-                visited.setVisited(vc,true);
+                visited.setVisited(vc);
 
                 int i = vc.getX();
                 int j = vc.getY();
@@ -175,15 +235,16 @@ System.out.println("Starting at vc: " + vc);
 
                 int state = grid.getState(i,j,k);
 
+/*
                 if (start_state == Grid.OUTSIDE && state != Grid.OUTSIDE)
                     continue;
 
                 if (start_state != Grid.OUTSIDE && state == Grid.OUTSIDE)
                     continue;
+*/
 
                 if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
                     region.add(vc);
-
                     // test adjacent voxels
 
                     for(int n1=-1; n1 < 2; n1++) {
@@ -216,25 +277,40 @@ System.out.println("Starting at vc: " + vc);
 
             new_list.clear();
 
+System.out.println("Add list: " + add_list.size());
+            if (add_list.size() > max_size1) {
+                max_size1 = add_list.size();
+            }
+
             Iterator<VoxelCoordinate> itr = add_list.iterator();
             while(itr.hasNext()) {
+
                 VoxelCoordinate vc = itr.next();
-                new_list.add(vc);
+                if (!visited.getVisited(vc)) {
+                    new_list.add(vc);
+                }
             }
+
+            if (new_list.size() > max_size2) {
+                max_size2 = new_list.size();
+            }
+
             add_list.clear();
         }
+
+        System.out.println("add list max: " + max_size1 + " new_list max: " + max_size2);
     }
 
     /**
      * Grow a region from a starting seed.
      */
-    private void growRegionMaterial(VoxelCoordinate start, ListRegion region) {
+    private void growRegionMaterial(VoxelCoordinate start, SetRegion region) {
         int start_state = grid.getState(start.getX(), start.getY(), start.getZ());
 
-        ArrayList<VoxelCoordinate> new_list = new ArrayList<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> new_list = new HashSet<VoxelCoordinate>();
         new_list.add(start);
 
-        ArrayList<VoxelCoordinate> add_list = new ArrayList<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> add_list = new HashSet<VoxelCoordinate>();
 
         while(new_list.size() > 0) {
             Iterator<VoxelCoordinate> itr2 = new_list.iterator();
@@ -242,13 +318,7 @@ System.out.println("Starting at vc: " + vc);
             while(itr2.hasNext()) {
                 VoxelCoordinate vc = itr2.next();
 
-                if (visited.getVisited(vc)) {
-                    // Avoid circular adds when add_list happens before new_list processing
-                    // of a coordinate.  There might be a better way to handle this.
-                    continue;
-                }
-
-                visited.setVisited(vc,true);
+                visited.setVisited(vc);
 
                 int i = vc.getX();
                 int j = vc.getY();
@@ -311,7 +381,9 @@ System.out.println("Starting at vc: " + vc);
             Iterator<VoxelCoordinate> itr = add_list.iterator();
             while(itr.hasNext()) {
                 VoxelCoordinate vc = itr.next();
-                new_list.add(vc);
+                if (!visited.getVisited(vc)) {
+                    new_list.add(vc);
+                }
             }
             add_list.clear();
         }

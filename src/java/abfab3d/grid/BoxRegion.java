@@ -71,6 +71,15 @@ public class BoxRegion implements Region {
     }
 
     /**
+     * Get the volume covered by this region.
+     *
+     * @return The volume
+     */
+    public long getVolume() {
+        return size[0] * size[1] * size[2];
+    }
+
+    /**
      * Can this region be merged with another.  The region type must remain
      * the same.
      *
@@ -336,4 +345,20 @@ public class BoxRegion implements Region {
     public String toString() {
         return "BoxRegion@" + hashCode() + " origin: " + java.util.Arrays.toString(origin) + " size: " + java.util.Arrays.toString(size);
     }
+
+    /**
+     * Get the extents of the region
+     *
+     * @param min The preallocated min
+     * @param max The preallocated max
+     */
+    public void getExtents(double[] min, double[] max) {
+        min[0] = origin[0] - size[0] / 2.0;
+        min[1] = origin[1] - size[1] / 2.0;
+        min[2] = origin[2] - size[2] / 2.0;
+        max[0] = origin[0] + size[0] / 2.0;
+        max[1] = origin[1] + size[1] / 2.0;
+        max[2] = origin[2] + size[2] / 2.0;
+    }
+
 }

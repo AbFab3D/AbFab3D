@@ -19,6 +19,7 @@ import junit.framework.TestSuite;
 import java.util.*;
 
 // Internal Imports
+import abfab3d.BaseTestCase;
 import abfab3d.grid.query.RegionFinder;
 import abfab3d.grid.*;
 
@@ -28,7 +29,7 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  * @version
  */
-public class TestRegionFinder extends TestCase {
+public class TestRegionFinder extends BaseTestCase {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -57,10 +58,10 @@ public class TestRegionFinder extends TestCase {
         assertNotNull("Regions", regions);
         assertEquals("Regions size", 1, regions.size());
 
-        ListRegion region = (ListRegion) regions.get(0);
+        SetRegion region = (SetRegion) regions.get(0);
         int count = region.getNumCoords();
 
-        assertEquals("ListRegion count", 6, count);
+        assertEquals("SetRegion count", 6, count);
     }
 
     /**
@@ -116,12 +117,12 @@ public class TestRegionFinder extends TestCase {
         Iterator<Region> itr3 = regions.iterator();
 
         while(itr3.hasNext()) {
-            ListRegion region = (ListRegion) itr3.next();
+            SetRegion region = (SetRegion) itr3.next();
             int count = region.getNumCoords();
 
             if (count == region1.size()) {
 
-                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                Iterator<VoxelCoordinate> itr2 = region.getValues().iterator();
                 while(itr2.hasNext()) {
                     VoxelCoordinate vc = itr2.next();
                     if (!region1.contains(vc)) {
@@ -129,7 +130,7 @@ public class TestRegionFinder extends TestCase {
                     }
                 }
             } else if (count == region2.size()) {
-                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                Iterator<VoxelCoordinate> itr2 = region.getValues().iterator();
                 while(itr2.hasNext()) {
                     VoxelCoordinate vc = itr2.next();
                     if (!region2.contains(vc)) {
@@ -149,7 +150,7 @@ public class TestRegionFinder extends TestCase {
         assertNotNull("Regions", regions);
         assertEquals("Regions size", 2, regions.size());
 
-        region = (ListRegion) regions.get(0);
+        region = (SetRegion) regions.get(0);
         count = region.getNumCoords();
 
         assertEquals("Outside Region count", w*h*d - region1.size() - region2.size(), count);
@@ -209,12 +210,12 @@ public class TestRegionFinder extends TestCase {
         Iterator<Region> itr3 = regions.iterator();
 
         while(itr3.hasNext()) {
-            ListRegion region = (ListRegion) itr3.next();
+            SetRegion region = (SetRegion) itr3.next();
             int count = region.getNumCoords();
 
             if (count == region1.size()) {
 
-                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                Iterator<VoxelCoordinate> itr2 = region.getValues().iterator();
                 while(itr2.hasNext()) {
                     VoxelCoordinate vc = itr2.next();
                     if (!region1.contains(vc)) {
@@ -222,7 +223,7 @@ public class TestRegionFinder extends TestCase {
                     }
                 }
             } else if (count == region2.size()) {
-                Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+                Iterator<VoxelCoordinate> itr2 = region.getValues().iterator();
                 while(itr2.hasNext()) {
                     VoxelCoordinate vc = itr2.next();
                     if (!region2.contains(vc)) {
@@ -240,12 +241,12 @@ public class TestRegionFinder extends TestCase {
         assertNotNull("Regions", regions);
         assertEquals("Regions size", 1, regions.size());
 
-        ListRegion region = (ListRegion) regions.get(0);
+        SetRegion region = (SetRegion) regions.get(0);
         int count = region.getNumCoords();
 
-        assertEquals("ListRegion1 count", region1.size(), count);
+        assertEquals("SetRegion1 count", region1.size(), count);
 
-        Iterator<VoxelCoordinate> itr2 = region.getList().iterator();
+        Iterator<VoxelCoordinate> itr2 = region.getValues().iterator();
         while(itr2.hasNext()) {
             VoxelCoordinate vc = itr2.next();
             if (!region1.contains(vc)) {
@@ -260,10 +261,10 @@ public class TestRegionFinder extends TestCase {
         assertNotNull("Regions", regions);
         assertEquals("Regions size", 1, regions.size());
 
-        region = (ListRegion) regions.get(0);
+        region = (SetRegion) regions.get(0);
         count = region.getNumCoords();
 
-        itr2 = region.getList().iterator();
+        itr2 = region.getValues().iterator();
         while(itr2.hasNext()) {
             VoxelCoordinate vc = itr2.next();
             if (!region2.contains(vc)) {
@@ -271,7 +272,91 @@ public class TestRegionFinder extends TestCase {
             }
         }
 
-        assertEquals("ListRegion2 count", region2.size(), count);
+        assertEquals("SetRegion2 count", region2.size(), count);
 
+    }
+
+    /**
+     * Test lots of regions.  Creates a regular grid of regions to find.
+     */
+    public void testLotsOfRegions() {
+        int region_size = 35;
+        int region_buffer = 1;
+        int regions_axis = 5;
+        int size = (region_size + region_buffer) * regions_axis;
+
+        Grid grid = null;
+
+        int num_regions = regions_axis * regions_axis * regions_axis;
+
+        HashMap<Integer, Integer> regions = new HashMap<Integer, Integer>(num_regions);
+
+        if (num_regions < 63) {
+            grid = new ArrayGridByte(size,size,size,0.1,0.1);
+        } else {
+            grid = new ArrayGridShort(size,size,size,0.1,0.1);
+        }
+
+System.out.println("Num Regions: " + num_regions + " voxels: " + size);
+        int[] ll_coord = new int[3];
+        int[] vcoord = new int[3];
+        int matID = 0;
+        for(int i=0; i < regions_axis; i++) {
+            for(int j=0; j < regions_axis; j++) {
+                for(int k=0; k < regions_axis; k++) {
+//System.out.println("Adding region: " + matID + " i: " + i + " j: " + j + " k: " + k);
+                    // find lower left corner
+                    ll_coord[0] = i * (region_size + region_buffer);
+                    ll_coord[1] = j * (region_size + region_buffer);
+                    ll_coord[2] = k * (region_size + region_buffer);
+
+                    HashSet<VoxelCoordinate> region = new HashSet<VoxelCoordinate>();
+
+                    for(int ii=0; ii < region_size; ii++) {
+                        for(int jj=0; jj < region_size; jj++) {
+                            for(int kk=0; kk < region_size; kk++) {
+                                vcoord[0] = ll_coord[0] + ii;
+                                vcoord[1] = ll_coord[1] + jj;
+                                vcoord[2] = ll_coord[2] + kk;
+//System.out.println("Setting Data: " + java.util.Arrays.toString(vcoord) + " matID: " + matID);
+                                grid.setData(vcoord[0], vcoord[1], vcoord[2], Grid.EXTERIOR, matID);
+                                region.add(new VoxelCoordinate(vcoord));
+                            }
+                        }
+                    }
+
+                    regions.put(new Integer(matID), region_size * region_size * region_size);
+
+                    matID++;
+                }
+            }
+        }
+
+        //exportGrid(grid, "out.x3db");
+
+        RegionFinder rf = new RegionFinder();
+        List<Region> found_regions = rf.execute(grid);
+
+        assertNotNull("Regions", found_regions);
+        assertEquals("Regions size", regions.size(), found_regions.size());
+
+        // Determine which region it is.
+
+        Iterator<Region> itr3 = found_regions.iterator();
+
+        while(itr3.hasNext()) {
+            SetRegion region = (SetRegion) itr3.next();
+            int count = region.getNumCoords();
+
+            if (count != region_size * region_size * region_size) {
+                fail("Invalid size region: " + count);
+            }
+        }
+    }
+
+
+    public static void main(String[] args) {
+        TestRegionFinder finder = new TestRegionFinder();
+        finder.testLotsOfRegions();
     }
 }

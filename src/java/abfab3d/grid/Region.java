@@ -53,4 +53,19 @@ public interface Region {
      * @return true if successful.  If false no changes will be made
      */
     public boolean merge(Region r);
+
+    /**
+     * Get the volume covered by this region.
+     *
+     * @return The volume
+     */
+    public long getVolume();
+
+    /**
+     * Get the extents of the region
+     *
+     * @param min The preallocated min
+     * @param max The preallocated max
+     */
+    public void getExtents(int[] min, int[] max);
 }
