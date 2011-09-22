@@ -88,6 +88,8 @@ public class TriangleModelCreator extends GeometryCreator {
     private Vector3d f;
     private Vector3d vpos;
 
+    private Operation interiorFinder;
+
     /**
      * Constructor.
      *
@@ -107,6 +109,62 @@ public class TriangleModelCreator extends GeometryCreator {
         double x, double y, double z, double rx, double ry, double rz, double rangle,
         int outerMaterial, int innerMaterial, boolean fill) {
 
+        this.interiorFinder = interiorFinder;
+        this.geom = geom;
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.outerMaterialID = outerMaterial;
+        this.innerMaterialID = innerMaterial;
+        this.rx = rx;
+        this.ry = ry;
+        this.rz = rz;
+        this.rangle = rangle;
+        this.fill = fill;
+
+        minBounds = new double[3];
+        maxBounds = new double[3];
+        minCoords = new int[3];
+        maxCoords = new int[3];
+
+        v0 = new Vector3d();
+        v1 = new Vector3d();
+        v2 = new Vector3d();
+        normal = new Vector3d();
+        e0 = new Vector3d();
+        e1 = new Vector3d();
+        e2 = new Vector3d();
+        f = new Vector3d();
+        vpos = new Vector3d();
+
+        if (geom.geometryType != GeometryData.TRIANGLES &&
+         geom.geometryType != GeometryData.INDEXED_TRIANGLES) {
+            throw new IllegalArgumentException("Unsupported geometryType: " + geom.geometryType);
+        }
+
+        interiorFinder = new InteriorFinderVoxelBased(outerMaterialID,innerMaterialID);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param geom The geometry to voxelize
+     * @param x The x translation applied before voxelization
+     * @param y The y translation applied before voxelization
+     * @param z The z translation applied before voxelization
+     * @param rx The x rotation applied before voxelization
+     * @param ry The y rotation applied before voxelization
+     * @param rz The z rotation applied before voxelization
+     * @param rangle The angle rotation applied before voxelization
+     * @param outerMaterial The outer materialID to use
+     * @param outerMaterial The inner materialID to use
+     * @param fill Should the interior be filled or just a shell
+     */
+    public TriangleModelCreator(GeometryData geom,
+        double x, double y, double z, double rx, double ry, double rz, double rangle,
+        int outerMaterial, int innerMaterial, boolean fill, Operation interiorFinder) {
+
+        this.interiorFinder = interiorFinder;
         this.geom = geom;
         this.x = x;
         this.y = y;
@@ -248,9 +306,7 @@ public class TriangleModelCreator extends GeometryCreator {
         if (!fill)
             return;
 
-        // TODO: This won't work when triangulating multiple models into the same grid
-        Operation findInterior = new InteriorFinderVoxelBased(outerMaterialID,innerMaterialID);
-        findInterior.execute(grid);
+        interiorFinder.execute(grid);
     }
 
     /**
