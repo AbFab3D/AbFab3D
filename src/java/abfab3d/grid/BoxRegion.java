@@ -352,13 +352,13 @@ public class BoxRegion implements Region {
      * @param min The preallocated min
      * @param max The preallocated max
      */
-    public void getExtents(double[] min, double[] max) {
-        min[0] = origin[0] - size[0] / 2.0;
-        min[1] = origin[1] - size[1] / 2.0;
-        min[2] = origin[2] - size[2] / 2.0;
-        max[0] = origin[0] + size[0] / 2.0;
-        max[1] = origin[1] + size[1] / 2.0;
-        max[2] = origin[2] + size[2] / 2.0;
+    public void getExtents(int[] min, int[] max) {
+        min[0] = origin[0];
+        min[1] = origin[1];
+        min[2] = origin[2];
+        max[0] = origin[0] + size[0];
+        max[1] = origin[1] + size[1];
+        max[2] = origin[2] + size[2];
     }
 
 }
