@@ -65,16 +65,7 @@ public class TestDilationCube extends BaseTestGrid {
                 setX(grid, y, z, Grid.INTERIOR, material, 2, 7);
             }
         }
-
-        for (int y=0; y<size; y++) {
-            for (int z=0; z<size; z++) {
-                for (int x=0; x<size; x++) {
-                	byte state = grid.getState(x, y, z);
-                    System.out.println(x + ", " + y + ", " + z + ": " + state);
-                }
-            }
-        }
-        
+  
         int distance = 1;
 
         DilationCube ec = new DilationCube(distance);
@@ -87,7 +78,7 @@ public class TestDilationCube extends BaseTestGrid {
             for (int z=0; z<depth; z++) {
                 for (int x=0; x<width; x++) {
                 	byte state = dilatedGrid.getState(x, y, z);
-                    System.out.println(x + ", " + y + ", " + z + ": " + state);
+//                    System.out.println(x + ", " + y + ", " + z + ": " + state);
 
                     if (y >= 2 && y < 10) {
                       	if (z >=2 && z < 10) {
