@@ -59,7 +59,9 @@ public class TriangleIntersectionDoubleUtil{
     /** The last intersection point found by this utils class.  May be null! */
     Point3d lastIntersectionPoint;
 
-
+	/** Small tolerance value to handle case of ray intersecting a triangle edge **/
+	private final double tolerance = -0.000000001;
+	
     /**
      * The constructor
      * @param rez Resolution ... this is old code,
@@ -559,11 +561,18 @@ public class TriangleIntersectionDoubleUtil{
     * This method is based off of Justin Couch's method,
     * private boolean rayTriangle(Point3d origin,Vector3f direction, double[] coords, Point3d point)
     * found in VolumeChecker.java by Russell Dodds.
+    * 
+    * Original reference:
+    * http://www.siggraph.org/education/materials/HyperGraph/raytrace/raypolygon_intersection.htm
     *
     * This code exists to test ray-triangle intersections for users
     * who don't want to import javax.vecmath.*; - it does all the work
     * with double arrays instead of Point3d and Vector3f classes.
     *
+    * CAUTION: For the case of a ray intersecting exactly on a triangle edge, this algorithm
+    * arbitrarily determines the intersection point as inside or outside of the triangle. Thus,
+    * a small tolerance is used to compare against the distance instead of zero.
+    * 
     * @param origin a double array of length 3: the x, y, and z coordinates for the origin of the ray
     * @param dir a double array of length 3 -> a direction vector for the ray
     * @param tri a double array of length 9: the x, y, and z coordinates for vertex A, B, and C of the triangle.
@@ -586,7 +595,7 @@ public class TriangleIntersectionDoubleUtil{
         t = (d - n(dot)P) / n(dot)d)
         Note that if n(dot)d = 0, then d is parallel to the plane and does not intersect.
         */
-
+    	
         v0x = tri[3] - tri[0];
         v0y = tri[4] - tri[1];
         v0z = tri[5] - tri[2];
@@ -599,22 +608,41 @@ public class TriangleIntersectionDoubleUtil{
         double triNormalX = v0y*v1z - v0z*v1y;
         double triNormalY = v0z*v1x - v0x*v1z;
         double triNormalZ = v0x*v1y - v0y*v1x;
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("\nray: " + origin[0] + " " + origin[1] + " " + origin[2]);
+System.out.println("triangle: " + tri[0] + " " + tri[1] + " " + tri[2] + ", " + 
+		                          tri[3] + " " + tri[4] + " " + tri[5] + ", " +
+		                          tri[6] + " " + tri[7] + " " + tri[8]);
+System.out.println("v0: " + v0x + " " + v0y + " " + v0z);
+System.out.println("v1: " + v1x + " " + v1y + " " + v1z);
+System.out.println("triNormal: " + triNormalX + " " + triNormalY + " " + triNormalZ);
+}
+*/
         // if normal.lengthSquared() == 0 return false
         if(triNormalX*triNormalX + triNormalY*triNormalY + triNormalZ*triNormalZ == 0) return false;
 
         double n_dot_dir = //-triNormalZ;
         // note: we don't need to do
         dotProduct(triNormalX, triNormalY, triNormalZ, dir[0], dir[1], dir[2]);
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("n_dot_dir: " + n_dot_dir);
+}
+*/
          // ray and plane parallel?
         if(n_dot_dir == 0)  return false;
 
         double d = dotProduct(triNormalX, triNormalY, triNormalZ, tri[0], tri[1], tri[2]);
         double n_dot_o = dotProduct(triNormalX, triNormalY, triNormalZ, origin[0], origin[1], origin[2]);
         double t = (d - n_dot_o)/n_dot_dir;
-
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("d: " + d);
+System.out.println("n_dot_o: " + n_dot_o);
+System.out.println("t: " + t);
+}
+*/
         //if(t < 0) System.out.println("T less than 0");
 
         // so we have an intersection with the plane of the polygon and the
@@ -626,7 +654,11 @@ public class TriangleIntersectionDoubleUtil{
         lastIntersectionPoint.set(origin[0] + dir[0]*t,
                                   origin[1] + dir[1]*t,
                                   origin[2] + dir[2]*t);
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("lastIntersectionPoint.set: " + (origin[0] + dir[0]*t) + " " + (origin[1] + dir[1]*t) + " " + (origin[2] + dir[2]*t));
+}
+*/        
         // bounds check
 
         // find the dominant axis to resolve to a 2 axis system
@@ -651,7 +683,12 @@ public class TriangleIntersectionDoubleUtil{
         {
             dom_axis = 2;
         }
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("dom_axis: " + dom_axis);
+System.out.println("");
+}
+*/
         // Map all the coordinates to the 2D plane. The u and v coordinates
         // are interleaved as u == even indicies and v = odd indicies
 
@@ -703,7 +740,12 @@ public class TriangleIntersectionDoubleUtil{
             sh = -1;
         else
             sh = 1;
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("working2dCoords: " + java.util.Arrays.toString(working2dCoords));
+System.out.println("sh: " + sh);
+}
+*/
         for(i = 0; i < 3; i++)
         {
             // Step 5.
@@ -725,7 +767,17 @@ public class TriangleIntersectionDoubleUtil{
                 nsh = -1;
             else
                 nsh = 1;
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("j: " + j);
+System.out.println("i_u: " + i_u);
+System.out.println("j_u: " + j_u);
+System.out.println("i_v: " + i_v);
+System.out.println("j_v: " + j_v);
+System.out.println("nsh: " + nsh);
+System.out.println("");
+}
+*/
             // If Sh <> NSH then if = then edge doesn't cross +U axis so no
             // ray intersection and ignore
 
@@ -734,29 +786,54 @@ public class TriangleIntersectionDoubleUtil{
                 // if Ua' > 0 and Ub' > 0 then edge crosses + U' so Nc = Nc + 1
                 if((working2dCoords[i_u] > 0.0) && (working2dCoords[j_u] > 0.0))
                 {
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("working2dCoords[i_u] > 0.0) && (working2dCoords[j_u] > 0.0: " + working2dCoords[i_u] + " " + working2dCoords[j_u]);
+}
                     crossings++;
                 }
                 else if ((working2dCoords[i_u] > 0.0) ||
                          (working2dCoords[j_u] > 0.0))
                 {
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("working2dCoords[i_u] > 0.0) || (working2dCoords[j_u] > 0.0: " + working2dCoords[i_u] + " " + working2dCoords[j_u]);
+}
+*/
                     // if either Ua' or U b' > 0 then line might cross +U, so
                     // compute intersection of edge with U' axis
                     dist = working2dCoords[i_u] -
                            (working2dCoords[i_v] *
-                            (working2dCoords[j_u] - working2dCoords[i_u])) /
+                           (working2dCoords[j_u] - working2dCoords[i_u])) /
                            (working2dCoords[j_v] - working2dCoords[i_v]);
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("dist: " + dist);
+}
+*/
                     // if intersection point is > 0 then must cross,
                     // so Nc = Nc + 1
-                    if(dist > 0)
+					//
+					// Update 9/27/2011:
+					// Checking for dist > 0 does not work reliably when a ray intersects 
+					// exactly on a triangle edge. Using a small tolerance value instead.
+                    if(dist > tolerance)
                         crossings++;
                 }
 
                 // Set SH = Nsh and process the next edge
                 sh = nsh;
             }
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("crossings: " + crossings);
+}
+*/
         }
-
+/*
+if (origin[0] == 0.015 && origin[2] == 0.015) {
+System.out.println("crossings % 2: " + (crossings % 2));
+}
+*/
         // Step 6. If Nc odd, point inside else point outside.
         // Note that we have already stored the intersection point way back up
         // the start.
@@ -786,6 +863,10 @@ public class TriangleIntersectionDoubleUtil{
      * No need, therefore, for a direction vector; in all cases dir[] = {0, 0, -1}.
      * See rayTriangleIntersection() for comparison.
      *
+     * CAUTION: For the case of a ray intersecting exactly on a triangle edge, this algorithm
+     * arbitrarily determines the intersection point as inside or outside of the triangle. Thus,
+     * a small tolerance is used to compare against the distance instead of zero.
+     * 
      * @param origin a double array of length 3: the x, y, and z coordinates for the origin of the ray
      * @param tri a double array of length 9: the x, y, and z
      * coordinates for vertex A, B, and C of the triangle.
@@ -958,7 +1039,11 @@ public class TriangleIntersectionDoubleUtil{
 
                     // if intersection point is > 0 then must cross,
                     // so Nc = Nc + 1
-                    if(dist > 0)
+					//
+					// Update 9/27/2011:
+					// Checking for dist > 0 does not work reliably when a ray intersects 
+					// exactly on a triangle edge. Using a small tolerance value instead.
+                    if(dist > tolerance)
                         crossings++;
                 }
 
@@ -979,6 +1064,10 @@ public class TriangleIntersectionDoubleUtil{
      * No need, therefore, for a direction vector; in all cases dir[] = {0, -1, 0}.
      * See rayTriangleIntersection() for comparison.
      *
+     * CAUTION: For the case of a ray intersecting exactly on a triangle edge, this algorithm
+     * arbitrarily determines the intersection point as inside or outside of the triangle. Thus,
+     * a small tolerance is used to compare against the distance instead of zero.
+     * 
      * @param origin a double array of length 3: the x, y, and z coordinates for the origin of the ray
      * @param tri a double array of length 9: the x, y, and z
      * coordinates for vertex A, B, and C of the triangle.
@@ -1150,7 +1239,11 @@ public class TriangleIntersectionDoubleUtil{
 
                     // if intersection point is > 0 then must cross,
                     // so Nc = Nc + 1
-                    if(dist > 0)
+					//
+					// Update 9/27/2011:
+					// Checking for dist > 0 does not work reliably when a ray intersects 
+					// exactly on a triangle edge. Using a small tolerance value instead.
+                    if(dist > tolerance)
                         crossings++;
                 }
 
@@ -1171,6 +1264,10 @@ public class TriangleIntersectionDoubleUtil{
      * No need, therefore, for a direction vector; in all cases dir[] = {-1, 0, 0}.
      * See rayTriangleIntersection() for comparison.
      *
+     * CAUTION: For the case of a ray intersecting exactly on a triangle edge, this algorithm
+     * arbitrarily determines the intersection point as inside or outside of the triangle. Thus,
+     * a small tolerance is used to compare against the distance instead of zero.
+     * 
      * @param origin a double array of length 3: the x, y, and z coordinates for the origin of the ray
      * @param tri a double array of length 9: the x, y, and z
      * coordinates for vertex A, B, and C of the triangle.
@@ -1342,7 +1439,11 @@ public class TriangleIntersectionDoubleUtil{
 
                     // if intersection point is > 0 then must cross,
                     // so Nc = Nc + 1
-                    if(dist > 0)
+					//
+					// Update 9/27/2011:
+					// Checking for dist > 0 does not work reliably when a ray intersects 
+					// exactly on a triangle edge. Using a small tolerance value instead.
+                    if(dist > tolerance)
                         crossings++;
                 }
 
@@ -1368,6 +1469,10 @@ public class TriangleIntersectionDoubleUtil{
      * No need, therefore, for a direction vector; in all cases dir[] = {0, 0, -1}.
      * See rayTriangleIntersection() for comparison.
      *
+     * CAUTION: For the case of a ray intersecting exactly on a triangle edge, this algorithm
+     * arbitrarily determines the intersection point as inside or outside of the triangle. Thus,
+     * a small tolerance is used to compare against the distance instead of zero.
+     * 
      * @return TRUE if the triangle intersects the ray AND
      * the intersection point is within the bounds of the voxel.
      * TODO: Add final test to end of method to determine if intersection point is within
@@ -1551,7 +1656,11 @@ public class TriangleIntersectionDoubleUtil{
 
                     // if intersection point is > 0 then must cross,
                     // so Nc = Nc + 1
-                    if(dist > 0)
+					//
+					// Update 9/27/2011:
+					// Checking for dist > 0 does not work reliably when a ray intersects 
+					// exactly on a triangle edge. Using a small tolerance value instead.
+                    if(dist > tolerance)
                         crossings++;
                 }
 

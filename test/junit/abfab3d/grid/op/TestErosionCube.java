@@ -76,11 +76,31 @@ public class TestErosionCube extends BaseTestGrid {
         for (int y=0; y<height; y++) {
             for (int z=0; z<depth; z++) {
                 for (int x=0; x<width; x++) {
-                    System.out.println(x + ", " + y + ", " + z + ": " + erodedGrid.getState(x, y, z));
+                	byte state = erodedGrid.getState(x, y, z);
+//                    System.out.println(x + ", " + y + ", " + z + ": " + state);
+
+                    if (y >= 2 && y < 6) {
+                      	if (z >=2 && z < 6) {
+                      		if (x >= 2 && x < 6) {
+                      			assertEquals("State of (" + x + " " + y + " " + z + " is not interior",
+                      					Grid.INTERIOR, state);
+                      		} else {
+                      			assertEquals("State of (" + x + " " + y + " " + z + " is not outside", 
+                      					Grid.OUTSIDE, state);
+                      		}
+                      	} else {
+                  			assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
+                  					Grid.OUTSIDE, state);
+                  		}
+                      } else {
+              			assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
+              					Grid.OUTSIDE, state);
+              		}
+
                 }
             }
         }
-
+/*
         erosionDistance = 2;
 
         ec = new ErosionCube(erosionDistance);
@@ -96,7 +116,7 @@ public class TestErosionCube extends BaseTestGrid {
                 }
             }
         }
-
+*/
     }
 
     //---------------------------------------------------

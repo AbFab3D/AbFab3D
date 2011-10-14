@@ -56,15 +56,25 @@ public class TestDilationCube extends BaseTestGrid {
      */
     public void testBasic() {
         int size = 10;
+        int material = 1;
 
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
 
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
-                setX(grid, y, z, Grid.INTERIOR, 1, 2, 7);
+                setX(grid, y, z, Grid.INTERIOR, material, 2, 7);
             }
         }
 
+        for (int y=0; y<size; y++) {
+            for (int z=0; z<size; z++) {
+                for (int x=0; x<size; x++) {
+                	byte state = grid.getState(x, y, z);
+                    System.out.println(x + ", " + y + ", " + z + ": " + state);
+                }
+            }
+        }
+        
         int distance = 1;
 
         DilationCube ec = new DilationCube(distance);
@@ -76,11 +86,31 @@ public class TestDilationCube extends BaseTestGrid {
         for (int y=0; y<height; y++) {
             for (int z=0; z<depth; z++) {
                 for (int x=0; x<width; x++) {
-                    System.out.println(x + ", " + y + ", " + z + ": " + dilatedGrid.getState(x, y, z));
+                	byte state = dilatedGrid.getState(x, y, z);
+                    System.out.println(x + ", " + y + ", " + z + ": " + state);
+
+                    if (y >= 2 && y < 10) {
+                      	if (z >=2 && z < 10) {
+                      		if (x >= 2 && x < 10) {
+                      			assertEquals("State of (" + x + " " + y + " " + z + " is not interior",
+                      					Grid.INTERIOR, state);
+                      		} else {
+                      			assertEquals("State of (" + x + " " + y + " " + z + " is not outside", 
+                      					Grid.OUTSIDE, state);
+                      		}
+                      	} else {
+                  			assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
+                  					Grid.OUTSIDE, state);
+                  		}
+                      } else {
+              			assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
+              					Grid.OUTSIDE, state);
+              		}
+
                 }
             }
         }
-
+/*
         distance = 2;
 
         ec = new DilationCube(distance);
@@ -92,11 +122,26 @@ public class TestDilationCube extends BaseTestGrid {
         for (int y=0; y<height; y++) {
             for (int z=0; z<depth; z++) {
                 for (int x=0; x<width; x++) {
-                    System.out.println(x + ", " + y + ", " + z + ": " + dilatedGrid.getState(x, y, z));
+                	byte state = dilatedGrid.getState(x, y, z);
+//                    System.out.println(x + ", " + y + ", " + z + ": " + state);
+                    
+                    if (y >= 2 && y < 8) {
+                    	if (z >=2 && y < 8) {
+                    		if (x >= 2 && x < 8) {
+                    			assertEquals(Grid.INTERIOR, state);
+                    		} else {
+                    			assertEquals(Grid.OUTSIDE, state);
+                    		}
+                    	} else {
+                			assertEquals(Grid.OUTSIDE, state);
+                		}
+                    } else {
+            			assertEquals(Grid.INTERIOR, state);
+            		}
                 }
             }
         }
-
+*/
     }
 
     //---------------------------------------------------

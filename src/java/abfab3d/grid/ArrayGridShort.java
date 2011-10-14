@@ -39,8 +39,11 @@ public class ArrayGridShort extends BaseGrid {
      * @param sheight The slice height in meters
      */
     public ArrayGridShort(double w, double h, double d, double pixel, double sheight) {
-        this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
-           (int) (d / pixel) + 1, pixel, sheight);
+        this((int) (Math.ceil(w / pixel)) + 1,
+        	 (int) (Math.ceil(h / sheight)) + 1,
+             (int) (Math.ceil(d / pixel)) + 1, 
+             pixel,
+             sheight);
     }
 
     /**

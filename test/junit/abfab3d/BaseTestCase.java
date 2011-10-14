@@ -44,4 +44,41 @@ public class BaseTestCase extends TestCase {
             assertEquals(msg + " idx: " + i, expected[i], actual[i]);
         }
     }
+    
+    public void assertArrayEquals(String msg, float[] expected, float[] actual) {
+        if (expected.length != actual.length)
+            fail(msg + " -> AssertEquals array lengths not equal");
+
+        for(int i=0; i < expected.length; i++) {
+            assertEquals(msg + " idx: " + i, expected[i], actual[i]);
+        }
+    }
+    
+    public boolean inArray(int[] list, int val) {
+    	if (list == null)
+    		return false;
+    	
+    	for (int i=0; i<list.length; i++) {
+    		if (list[i] == val)
+    			return true;
+    	}
+    	
+    	return false;
+    }
+    
+    public boolean arrayInArray(int[][] list, int[] val) {
+    	if (list == null)
+    		return false;
+    	
+		for (int i=0; i<list.length; i++) {
+			if (list[i][0] == val[0] && 
+				list[i][1] == val[1] &&
+				list[i][2] == val[2]) {
+				
+				return true;
+			}
+		}
+		
+    	return false;
+    }
 }
