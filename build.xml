@@ -175,6 +175,7 @@
                 abfab3d/grid/*
                 abfab3d/grid/op/*
                 abfab3d/grid/query/*
+                abfab3d/grid/util/*
                 abfab3d/intersect/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
@@ -439,6 +440,7 @@
 
   <target name="compileTest" depends="init" description="Compile all Test source files">
      <mkdir dir="${test.classes.dir}" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d" jars="support/junit-4.8.1.jar xj3d-sav_2.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/util" jars="support/junit-4.8.1.jar" />
