@@ -38,6 +38,12 @@ public class VoxelCoordinate implements Cloneable {
         this.z = z;
     }
 
+    public VoxelCoordinate(int[] vcoord) {
+        this.x = vcoord[0];
+        this.y = vcoord[1];
+        this.z = vcoord[2];
+    }
+
     /**
      * Compare this object for equality to the given object.
      *
