@@ -61,11 +61,11 @@ public class TestMaterialIndexedWrapper extends BaseTestGrid implements ClassTra
 
         grid = new ArrayGridByte(1.1, 1.1, 1.1, 0.2, 0.1);
         wrapper = new MaterialIndexedWrapper(grid);
-        assertEquals("Array size is not 432", 432, wrapper.getWidth()*wrapper.getHeight()*wrapper.getDepth());
+        assertEquals("Array size is not 588", 588, wrapper.getWidth()*wrapper.getHeight()*wrapper.getDepth());
         
         // pass a MaterialIndexedWrapper into a new MaterialIndexedWrapper
         MaterialIndexedWrapper wrapper2 = new MaterialIndexedWrapper(wrapper);
-        assertEquals("Array size is not 432", 432, wrapper2.getWidth()*wrapper2.getHeight()*wrapper2.getDepth());
+        assertEquals("Array size is not 588", 588, wrapper2.getWidth()*wrapper2.getHeight()*wrapper2.getDepth());
     }
     
     /**
@@ -320,7 +320,7 @@ System.out.println("Material Traversal Speed");
 
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
-        assertTrue("Wrapper method too slow", time1 * 50 < time2);
+        assertTrue("Wrapper method too slow", time1 * 10 < time2);
     }
 
     /**
@@ -336,7 +336,7 @@ System.out.println("Material Traversal Speed");
         long time1;
         long time2;
 
-System.out.println("Material Traversal Speed Not Found");
+//System.out.println("Material Traversal Speed Not Found");
         Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
 

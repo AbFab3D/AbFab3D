@@ -28,10 +28,12 @@ public class TestOpSuite extends TestSuite {
         TestSuite suite = new TestSuite("Grid Operations Test Suite");
 
         suite.addTest(TestRemoveMaterial.suite());
+        suite.addTest(TestUnion.suite());
+        suite.addTest(TestSubtract.suite());
         suite.addTest(TestSetDifference.suite());
         suite.addTest(TestDilationCube.suite());
         suite.addTest(TestErosionCube.suite());
-        
+
         return suite;
     }
 }

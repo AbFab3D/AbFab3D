@@ -109,6 +109,67 @@ public class TestSetDifference extends BaseTestGrid {
 
     }
 
+    /**
+     * Test basic operation with a new material
+     */
+    public void testBasicNewMaterial() {
+        int size = 10;
+        int newMaterial = 5;
+
+        Grid grid1 = new ArrayGridByte(size,size,size,0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size,size,size,0.001, 0.001);
+
+        // set left rump of dumbbell for both grid
+        for (int y=2; y<8; y++) {
+            for (int z=2; z<8; z++) {
+                grid1.setData(2, y, z, Grid.INTERIOR, 1);
+                grid2.setData(2, y, z, Grid.INTERIOR, 1);
+            }
+        }
+
+        // set right rump of dumbbell for both grid
+        for (int y=2; y<8; y++) {
+            for (int z=2; z<8; z++) {
+                grid1.setData(7, y, z, Grid.INTERIOR, 1);
+                grid2.setData(7, y, z, Grid.INTERIOR, 1);
+            }
+        }
+
+        // set connecting bar for grid1 only
+        for (int x=3; x<7; x++) {
+            grid1.setData(x, 5, 5, Grid.INTERIOR, 1);
+        }
+
+        // get the set difference of grid1 and grid2
+        SetDifference sd = new SetDifference(grid1, grid2, newMaterial);
+        Grid diffGrid = sd.execute();
+
+        // set difference grid should be outside at left rump coordinates
+        for (int y=2; y<8; y++) {
+            for (int z=2; z<8; z++) {
+                assertEquals("(2, " + y + ", " + z + ") state is not " + Grid.OUTSIDE,
+                        Grid.OUTSIDE, diffGrid.getState(2, y, z));
+            }
+        }
+
+        // set difference grid should be outside at right rump coordinates
+        for (int y=2; y<8; y++) {
+            for (int z=2; z<8; z++) {
+                assertEquals("(2, " + y + ", " + z + ") state is not " + Grid.OUTSIDE,
+                        Grid.OUTSIDE, diffGrid.getState(7, y, z));
+            }
+        }
+
+        // set difference grid should have the connecting bar
+        for (int x=3; x<7; x++) {
+            assertEquals("(" + x + ", 5, 5) state is not " + Grid.INTERIOR,
+                    Grid.INTERIOR, diffGrid.getState(x, 5, 5));
+            assertEquals("(" + x + ", 5, 5) material is not " + newMaterial,
+            		newMaterial, diffGrid.getMaterial(x, 5, 5));
+        }
+
+    }
+    
     //---------------------------------------------------
     // Functions for writing out an dilated object
     //---------------------------------------------------

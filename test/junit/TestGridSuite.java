@@ -38,6 +38,11 @@ public class TestGridSuite extends TestSuite {
         suite.addTest(TestRangeCheckWrapper.suite());
         suite.addTest(TestMaterialIndexedWrapper.suite());
 
+        suite.addTest(TestVoxelDataByte.suite());
+        suite.addTest(TestVoxelDataShort.suite());
+        suite.addTest(TestVoxelDataInt.suite());
+        suite.addTest(TestWorldCoordinate.suite());
+
         return suite;
     }
 }

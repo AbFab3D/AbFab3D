@@ -211,8 +211,8 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            wrapper.setData(width+hres,0,0, Grid.EXTERIOR, mat);
-            fail("World coord greater than width+hres should throw exception");
+            wrapper.setData(width+2*hres,0,0, Grid.EXTERIOR, mat);
+            fail("World coord greater than width+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
@@ -225,8 +225,8 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            wrapper.setData(0,height+vres,0, Grid.EXTERIOR, mat);
-            fail("Voxel world greater than height+vres should throw exception");
+            wrapper.setData(0,height+2*vres,0, Grid.EXTERIOR, mat);
+            fail("Voxel world greater than height+2*vres should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
@@ -239,8 +239,8 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            wrapper.setData(0,0,depth+hres, Grid.EXTERIOR, mat);
-            fail("World coord greater than depth+hres should throw exception");
+            wrapper.setData(0,0,depth+2*hres, Grid.EXTERIOR, mat);
+            fail("World coord greater than depth+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
@@ -258,8 +258,8 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            vd = wrapper.getData(width+hres,0,0);
-            fail("Voxel coord greater than width+hres should throw exception");
+            vd = wrapper.getData(width+2*hres,0,0);
+            fail("Voxel coord greater than width+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
@@ -272,8 +272,8 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            vd = wrapper.getData(0,height+vres,0);
-            fail("World coord greater than height+vres should throw exception");
+            vd = wrapper.getData(0,height+2*vres,0);
+            fail("World coord greater than height+2*vres should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
@@ -286,8 +286,8 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            vd = wrapper.getData(0,0,depth+hres);
-            fail("World coord greater than depth+hres should throw exception");
+            vd = wrapper.getData(0,0,depth+2*hres);
+            fail("World coord greater than depth+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
@@ -434,7 +434,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            state = wrapper.getState(width+hres,0,0);
+            state = wrapper.getState(width+2*hres,0,0);
             fail("World coord greater than width should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", state);
@@ -448,7 +448,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            state = wrapper.getState(0,height+vres,0);
+            state = wrapper.getState(0,height+2*vres,0);
             fail("World coord greater than height should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", state);
@@ -462,7 +462,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            state = wrapper.getState(0,0,depth+hres);
+            state = wrapper.getState(0,0,depth+2*hres);
             fail("World coord greater than depth should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", state);
@@ -615,7 +615,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            material = wrapper.getMaterial(width+hres,0,0);
+            material = wrapper.getMaterial(width+2*hres,0,0);
             fail("World coord greater than width should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", material);
@@ -629,7 +629,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            material = wrapper.getMaterial(0,height+vres,0);
+            material = wrapper.getMaterial(0,height+2*vres,0);
             fail("World coord greater than height should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", material);
@@ -643,7 +643,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            material = wrapper.getMaterial(0,0,depth+hres);
+            material = wrapper.getMaterial(0,0,depth+2*hres);
             fail("World coord greater than depth should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", material);
@@ -890,7 +890,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         }
 
         try {
-            wrapper.getGridCoords(0.0, 0.0, depth+hres, coords);
+            wrapper.getGridCoords(0.0, 0.0, depth+2*hres, coords);
             fail("Negative grid coord should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("getGridCoords should fail on world coords greater than depth", -999, coords[0]);
@@ -1081,7 +1081,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         // world coordinates
         double xcoord = 0.12;
         double voxelSize = 0.05;
-        width = (int)(xcoord/voxelSize) + 1;
+        width = (int)Math.ceil(xcoord/voxelSize) + 1;
 
         grid = new ArrayGridByte(xcoord, 0.11, 0.16, voxelSize, 0.02);
         wrapper = new RangeCheckWrapper(grid);
@@ -1113,7 +1113,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         // world coordinates
         double ycoord = 0.11;
         double sliceHeight = 0.02;
-        height = (int)(ycoord/sliceHeight) + 1;
+        height = (int)Math.ceil(ycoord/sliceHeight) + 1;
 
         grid = new ArrayGridByte(0.12, ycoord, 0.16, 0.05, sliceHeight);
         wrapper = new RangeCheckWrapper(grid);
@@ -1145,7 +1145,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         // world coordinates
         double zcoord = 0.12;
         double voxelSize = 0.05;
-        depth = (int)(zcoord/voxelSize) + 1;
+        depth = (int)Math.ceil(zcoord/voxelSize) + 1;
 
         grid = new ArrayGridByte(0.12, 0.11, zcoord, voxelSize, 0.02);
         wrapper = new RangeCheckWrapper(grid);

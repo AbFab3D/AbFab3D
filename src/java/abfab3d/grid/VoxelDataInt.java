@@ -82,7 +82,7 @@ public class VoxelDataInt implements VoxelData {
      * @return The cloned object
      */
     public Object clone() {
-        return new VoxelDataByte(state, material);
+        return new VoxelDataInt(state, material);
     }
 
     /**
