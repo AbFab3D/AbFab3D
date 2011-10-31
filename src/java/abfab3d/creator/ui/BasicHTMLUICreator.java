@@ -20,13 +20,14 @@ import java.io.*;
 import abfab3d.creator.*;
 
 /**
- * Create a user interface for an editor using a standalone Java Application.
+ * Create a user interface for an editor using with an HTML 2.0 interface
+ * Expects to talk with a server-side hosted editor.
  *
  * @author Alan Hudson
  */
-public class JavaStandaloneUICreator {
+public class BasicHTMLUICreator {
     /** The type of editors */
-    private enum Editors {TEXTFIELD, COMBOBOX, FILE_DIALOG};
+    private enum Editors {TEXTFIELD, TEXTAREA,COMBOBOX, FILE_DIALOG};
 
     private HashMap<Integer,String> indentCache;
 
@@ -35,7 +36,7 @@ public class JavaStandaloneUICreator {
     /** The number of steps */
     private List<Step> steps;
 
-    public JavaStandaloneUICreator() {
+    public BasicHTMLUICreator() {
         indentCache = new HashMap<Integer,String>();
     }
 
@@ -61,40 +62,17 @@ public class JavaStandaloneUICreator {
             }
 
             // TODO: Create path if needed
-            FileOutputStream fos = new FileOutputStream(f.toString() + "/" + className + ".java");
+            FileOutputStream fos = new FileOutputStream(f.toString() + "/" + className + ".html");
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             PrintStream ps = new PrintStream(bos);
 
             Map<String,Parameter> params = kernel.getParams();
 
-            ps.println("package " + packageName + ";");  // TODO: Need to add package name
-            ps.println("");
-            ps.println("import java.util.*;");
-            ps.println("import javax.swing.*;");
-            ps.println("import java.awt.GridLayout;");
-            ps.println("import java.awt.Font;");
-            ps.println("import java.awt.event.*;");
-            ps.println("import java.io.*;");
-            ps.println("import abfab3d.creator.util.ParameterUtil;");
-            ps.println("");
-            ps.println("public class " + className + " extends JFrame implements ActionListener {");
+            ps.print("<HTML><BODY><FORM name=");
+            ps.print(className);
+            ps.println("\" method=\"GET\" action=\"http://localhost:8080/hosted_creator/CreatorHost\" target = \"Right frame\">");
 
-            addGlobalVars(ps, params, remove);
-
-            ps.println("    public " + className + "(String name) { super(name); }");
-            ps.println("    public static void main(String[] args) {");
-            ps.println("        " + className + " editor = new " + className + "(\"" + title + "\");");
-            ps.println("        editor.launch();");
-            ps.println("    }");
-            ps.println();
-            ps.println("    public void launch() {");
-            ps.println("        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);");
-            ps.println("        setupUI();");
-            ps.println("        pack();");
-            ps.println("        setVisible(true);");
-            ps.println("    }");
-            ps.println("    public void setupUI() {");
-
+            ps.println("<input type=\"hidden\" name=\"creatorID\" value=\"ImageEditor\">");
 
             ArrayList sorted_params = new ArrayList();
             sorted_params.addAll(params.values());
@@ -103,13 +81,10 @@ public class JavaStandaloneUICreator {
 
             Iterator<Parameter> itr = sorted_params.iterator();
 
-            ps.println(indent(8) + "GridLayout layout = new GridLayout(" + (params.size() - remove.size() + 1 + steps.size() + (steps.size() - 1)) + ",3);");
-            ps.println(indent(8) + "setLayout(layout);");
-            ps.println();
-
             itr = sorted_params.iterator();
             int curr_step = -1;
 
+            ps.println("<TABLE>");
             while(itr.hasNext()) {
                 Parameter p = itr.next();
                 if (remove.contains(p.getName())) {
@@ -122,29 +97,17 @@ public class JavaStandaloneUICreator {
                     Step step = steps.get(curr_step);
 
                     if (curr_step != 0) {
-                        // Add spacer
-                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
-                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
-                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+                        //ps.println("<HR />");
                     }
-
-                    ps.println(indent(8) + "JLabel step" + (curr_step+1) + " = new JLabel(\"Step: " + (curr_step+1) + "\");");
-                    ps.println(indent(8) + "getContentPane().add(step" + (curr_step+1) + ");");
-                    ps.println(indent(8) + "getContentPane().add(new JLabel(\"" + step.getDesc() + "\"));");
-                    ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
                 }
 
                 addParameterUI(ps, p);
             }
-
-            addGlobalButtons(ps);
-
-            ps.println("    }");
-
-            ps.println();
-            addActions(ps,params,remove);
-
-            ps.println("}");
+            ps.println("</TABLE>");
+            ps.println("<INPUT TYPE=SUBMIT VALUE=\"Submit\">");
+            ps.println("</FORM>");
+            ps.println("</BODY>");
+            ps.println("</HEAD>");
 
             ps.flush();
             fos.close();
@@ -163,16 +126,18 @@ public class JavaStandaloneUICreator {
      */
     private void addParameterUI(PrintStream ps, Parameter p) {
 System.out.println("Adding param: " + p.getName());
-        ps.println(indent(8) + "JLabel " + p.getName() + "Label = new JLabel(\"" + p.getNameDesc() + "\");");
-        ps.println(indent(8) + p.getName() + "Label.setToolTipText(\"" + p.getDesc() + "\");");
-        ps.println(indent(8) + "Font " + (p.getName()) + "Font = " + p.getName() + "Label.getFont();");
-        ps.println(indent(8) + p.getName()  + "Label.setFont(" + p.getName() + "Font.deriveFont(" + p.getName() + "Font.getStyle() ^ Font.BOLD));");
-
-        ps.println(indent(8) + "getContentPane().add(" + p.getName() + "Label);");
 
         switch(getEditor(p)) {
             case COMBOBOX:
-                ps.println(indent(8) + "String[] " + p.getName() + "Enums = new String[] {");
+                ps.print("<TR><TD>");
+                ps.print(p.getNameDesc());
+                ps.print("</TD><TD>");
+                ps.print("<SELECT name=\"");
+                ps.print(p.getName());
+                ps.print("\" selected=\"");
+                ps.print(p.getDefaultValue());
+                ps.print("\" \">");
+
                 String[] vals = null;
 
                 if (p.getDataType() == Parameter.DataType.BOOLEAN) {
@@ -181,17 +146,18 @@ System.out.println("Adding param: " + p.getName());
                     vals = p.getEnumValues();
                 }
 
-                ps.print(indent(12));
                 for(int i=0; i < vals.length; i++) {
-                    ps.print("\"" + vals[i] + "\"");
-                    if (i < vals.length - 1) {
-                        ps.print(",");
-                    }
+                    ps.print("<OPTION value=\"");
+                    ps.print(vals[i]);
+                    ps.print("\">");
+                    ps.print(vals[i]);
+                    ps.println("</OPTION>");
                 }
-                ps.println("};");
-                ps.println(indent(8) + p.getName() + "Editor = new JComboBox(" + p.getName() + "Enums);");
+
+                ps.println("</SELECT><TD/></TR>");
                 break;
             case FILE_DIALOG:
+/*
                 if (p.getDefaultValue() == null) {
                     ps.println(indent(8) + "String dir = \".\";");
                 } else {
@@ -200,9 +166,32 @@ System.out.println("Adding param: " + p.getName());
                 ps.println(indent(8) + p.getName() + "Dialog = new JFileChooser(new File(dir));");
                 ps.println(indent(8) + p.getName() + "Button = new JButton(\"Browse\");");
                 ps.println(indent(8) + p.getName() + "Button.addActionListener(this);");
+*/
+                break;
+            case TEXTAREA:
+                ps.print("<TR><TD>");
+                ps.print(p.getNameDesc());
+                ps.print("</TD><TD>");
+                ps.print("<TEXTAREA cols=\"20\" rows=\"2\" name=\"");
+                ps.print(p.getName());
+                ps.print("\">");
+                ps.print(p.getDefaultValue());
+                ps.println("</TEXTAREA>");
+                ps.println("<TD/></TR>");
+                break;
             default:
-                ps.println(indent(8) + p.getName() + "Editor = new JTextField(\"" + p.getDefaultValue() + "\");");
+                ps.print("<TR><TD>");
+                ps.print(p.getNameDesc());
+                ps.print("</TD><TD>");
+                ps.print("<INPUT type=\"text\" name=\"");
+                ps.print(p.getName());
+                ps.print("\" value=\"");
+                ps.print(p.getDefaultValue());
+                ps.println("\" />");
+                ps.println("<TD/></TR>");
         }
+
+/*
         ps.println(indent(8) + "getContentPane().add(" + p.getName() + "Editor);");
 
         // Determine third column content
@@ -215,7 +204,7 @@ System.out.println("Adding param: " + p.getName());
         }
 
         ps.println();
-
+*/
     }
 
     /**
@@ -395,6 +384,10 @@ System.out.println("Adding param: " + p.getName());
 
         if (p.getDataType() == Parameter.DataType.BOOLEAN) {
             return Editors.COMBOBOX;
+        }
+
+        if (p.getEditorType() == Parameter.EditorType.TEXT_AREA) {
+            return Editors.TEXTAREA;
         }
 
         return Editors.TEXTFIELD;

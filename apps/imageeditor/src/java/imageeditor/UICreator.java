@@ -21,9 +21,9 @@ import abfab3d.creator.*;
 
 public class UICreator {
     public static final void main(String[] args) {
-        ImageEditorKernal kernal = new ImageEditorKernal();
+        ImageEditorKernel Kernel = new ImageEditorKernel();
 
-System.out.println("Creating User Interface for imageeditor");
+System.out.println("Creating Java User Interface for imageeditor");
         JavaStandaloneUICreator uic = new JavaStandaloneUICreator();
 
         ArrayList<Step> steps = new ArrayList<Step>();
@@ -31,6 +31,12 @@ System.out.println("Creating User Interface for imageeditor");
         steps.add(new Step(1, "Body", "Select your Main shape"));
         steps.add(new Step(2, "Bail", "Add a Bail/Connector"));
 
-        uic.createInterface("imageeditor.ui", "Editor", "AbFab3D Image Creator","src/java/imageeditor/ui", steps, new HashMap<String,String>(), kernal, new HashSet<String>());
+        uic.createInterface("imageeditor.ui", "Editor", "AbFab3D Image Creator","src/java/imageeditor/ui", steps, new HashMap<String,String>(), Kernel, new HashSet<String>());
+
+System.out.println("Creating HTML User Interface for imageeditor");
+        BasicHTMLUICreator uic2 = new BasicHTMLUICreator();
+
+        uic2.createInterface("imageeditor.ui", "Editor", "AbFab3D Image Creator","src/html/imageeditor", steps, new HashMap<String,String>(), Kernel, new HashSet<String>());
+
     }
 }

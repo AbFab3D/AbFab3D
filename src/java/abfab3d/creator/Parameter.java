@@ -17,6 +17,9 @@ package abfab3d.creator;
 /**
  * A parameter to an editor.
  *
+ * TODO: Add an ability to chain kernels together ie a Parameter could be the
+ * output of another GeometryKernel or a model reference.
+ *
  * @author Alan Hudson
  */
 public class Parameter implements Comparable {
@@ -28,7 +31,8 @@ public class Parameter implements Comparable {
        DEFAULT,     // Let the libary choose based on DataType
        CONSTANT,    // Constant value, no editing
        FILE_DIALOG, // File Dialog Box
-       IMAGE_MAP    // 2D location from an image map
+       IMAGE_MAP,    // 2D location from an image map
+       TEXT_AREA    // Large amount of text
     };
 
     /** The name of the parameter.  Must be unique for the editor */

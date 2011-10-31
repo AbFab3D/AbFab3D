@@ -24,12 +24,12 @@ import java.util.*;
  */
 public interface UserInterfaceCreator {
     /**
-     * Create a user interface for a kernal.
+     * Create a user interface for a kernel.
      *
      * @param dir The directory to place the files
      * @param genParams Parameters for generation
-     * @param kernal The kernal
+     * @param kernel The kernel
      * @param remove The parameters to remove
      */
-    public void createInterface(String dir, Map<String,String> genParams, GeometryKernal kernal, Set<String> remove);
+    public void createInterface(String dir, Map<String,String> genParams, GeometryKernal kernel, Set<String> remove);
 }
