@@ -21,6 +21,7 @@ import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
+import org.web3d.vrml.sav.BinaryContentHandler;
 
 import abfab3d.geom.*;
 import abfab3d.grid.*;
@@ -40,14 +41,14 @@ import java.awt.font.*;
 import java.awt.geom.*;
 
 /**
- * Geometry Kernal for the ImageEditor.
+ * Geometry Kernel for the ImageEditor.
  *
  * Some images don't seem to work right, saving them with paint "fixes" this.  Not sure why.
  *    And example of this is the cat.png image.
  *
  * @author Alan Hudson
  */
-public class ImageEditorKernal implements GeometryKernal {
+public class ImageEditorKernel implements GeometryKernel {
     /** Debugging level.  0-5.  0 is none */
     private static final int DEBUG_LEVEL = 5;
 
@@ -183,13 +184,11 @@ public class ImageEditorKernal implements GeometryKernal {
     }
 
     /**
-     * Generate X3D binary geometry from the specificed parameters.
-     *
      * @param params The parameters
-     * @param os The stream to write out the file.
+     * @param accuracy The accuracy to generate the model
+     * @param handler The X3D content handler to use
      */
-    public void generate(Map<String,Object> params, OutputStream os)
-        throws IOException {
+    public KernelResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
 
         pullParams(params);
 
@@ -484,10 +483,19 @@ if (1==0) {
         try {
             ErrorReporter console = new PlainTextErrorReporter();
             //writeDebug(grid, "x3db", fos, console);
-            write(grid,"x3db", os, console);
+            write(grid, handler, console);
         } catch(Exception e) {
             e.printStackTrace();
+
+            return new KernelResults(false, KernelResults.INTERNAL_ERROR, "Failed Writing Grid");
         }
+
+        double[] min_bounds = new double[3];
+        double[] max_bounds = new double[3];
+        grid.getWorldCoords(0,0,0, min_bounds);
+        grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
+
+        return new KernelResults(true, min_bounds, max_bounds);
     }
 
     /**
@@ -609,12 +617,12 @@ if (1==0) {
         }
     }
 
-    private void write(Grid grid, String type, OutputStream os, ErrorReporter console) {
+    private void write(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
 
         // Output File
         //BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
 System.out.println("Creating Regions Exporter");
-        RegionsX3DExporter exporter = new RegionsX3DExporter(type, os, console);
+        RegionsX3DExporter exporter = new RegionsX3DExporter(handler, console, true);
         float[] mat_color = new float[] {0.8f,0.8f,0.8f,0};
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
         colors.put(new Integer(1), mat_color);
@@ -623,10 +631,10 @@ System.out.println("Creating Regions Exporter");
         exporter.close();
     }
 
-    private void writeDebug(Grid grid, String type, OutputStream os, ErrorReporter console) {
+    private void writeDebug(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
         // Output File
 
-        BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
+        BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
         colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});

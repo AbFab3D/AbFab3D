@@ -1523,7 +1523,7 @@ public class OctreeGridByte extends BaseGrid implements OctreeCell {
      * @param grid The grid to write
      * @param matColors Maps materials to colors
      */
-    public void write(org.web3d.vrml.export.Exporter writer, OctreeGridByte grid, Map<Integer, float[]> matColors) {
+    public void write(BinaryContentHandler writer, OctreeGridByte grid, Map<Integer, float[]> matColors) {
         double pixelSize = grid.getVoxelSize();
         double sheight = grid.getSliceHeight();
         float[] color = new float[] {0.8f,0.8f,0.8f};
@@ -1539,15 +1539,13 @@ System.out.println("Cell count: " + grid.getCellCount());
         thisSlice = new ArrayList<WorldCoordinate>();
         indices = new ArrayList<Integer>();
 
-        BinaryContentHandler bstream = (BinaryContentHandler) writer;
-
         writer.startNode("Transform", null);
         writer.startField("translation");
         double tx,ty,tz;
         tx = grid.getWidth() / 2.0 * grid.getVoxelSize();
         ty = grid.getHeight() / 2.0 * grid.getSliceHeight();
         tz = grid.getDepth() / 2.0 * grid.getVoxelSize();
-        bstream.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
+        writer.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
 
         writer.startField("children");
 
@@ -1808,16 +1806,16 @@ System.out.println("Cell count: " + grid.getCellCount());
                         }
 
                         if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
-                            ejectShape(bstream, thisSlice, indices, color, transparency);
+                            ejectShape(writer, thisSlice, indices, color, transparency);
                         }
                     } else {
                         if (cell.level > 1) {
                             // How big should we go, really impacts speed
                             // 1 = 46 seconds
                             if (cell.size > 1) {
-                                ejectBoxCollapse(bstream, grid, cell, color, transparency);
+                                ejectBoxCollapse(writer, grid, cell, color, transparency);
                             } else {
-                                ejectBox(bstream, grid, cell, color, transparency);
+                                ejectBox(writer, grid, cell, color, transparency);
                             }
                         }
                     }
@@ -1847,7 +1845,7 @@ System.out.println("Cell count: " + grid.getCellCount());
             add_list.clear();
         }
 
-        ejectShape(bstream, thisSlice, indices, color, transparency);
+        ejectShape(writer, thisSlice, indices, color, transparency);
 
 System.out.println("Terminal nodes: " + termCount);
 if (STATS) System.out.println("saved sides: " + saved);

@@ -41,17 +41,18 @@ public class BoxesX3DExporter implements Exporter {
     private static final int MAX_TRIANGLES_SHAPE = 300000;
 
     /** X3D Writer */
-    private org.web3d.vrml.export.Exporter writer;
-
-    /** The binary content handler */
-    private BinaryContentHandler bstream;
+    private BinaryContentHandler writer;
 
     /** Error Console */
     private ErrorReporter console;
 
+    /** Is this a complete file export */
+    private boolean complete;
+
     public BoxesX3DExporter(String encoding, OutputStream os, ErrorReporter console) {
         this.console = console;
 
+        complete = true;
 
         if (encoding.equals("x3db")) {
             writer = new X3DBinaryRetainedDirectExporter(os,
@@ -66,19 +67,24 @@ public class BoxesX3DExporter implements Exporter {
             throw new IllegalArgumentException("Unhandled X3D encoding: " + encoding);
         }
 
-        bstream = (BinaryContentHandler) writer;
-
         ejectHeader();
     }
 
-    public BoxesX3DExporter(org.web3d.vrml.export.Exporter exporter, ErrorReporter console) {
+    /**
+     * Constructor.
+     *
+     * @param exporter The X3D handler to write too.
+     * @param console The console
+     * @param complete Should we add headers and footers
+     */
+    public BoxesX3DExporter(BinaryContentHandler exporter, ErrorReporter console, boolean complete) {
         this.console = console;
 
+        this.complete = complete;
         writer = exporter;
 
-        bstream = (BinaryContentHandler) writer;
-
-        ejectHeader();
+        if (complete)
+            ejectHeader();
     }
 
     /**
@@ -142,7 +148,7 @@ System.out.println("matColors: " + matColors.size());
         ty = grid.getHeight() / 2.0 * grid.getSliceHeight();
         tz = grid.getDepth() / 2.0 * grid.getVoxelSize();
 
-        bstream.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
+        writer.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
 
         writer.startField("children");
 
@@ -431,8 +437,8 @@ System.out.println("no color for: " + mat);
             thisSlice = new ArrayList<WorldCoordinate>();
 
             if (indices.size() / 3 >= MAX_TRIANGLES_SHAPE) {
-                ejectShape(bstream, totalCoords, indices, totalColors, transparency);
-//                ejectShape(bstream, totalCoords, indices, color, transparency);
+                ejectShape(writer, totalCoords, indices, totalColors, transparency);
+//                ejectShape(writer, totalCoords, indices, color, transparency);
                 coords.clear();
                 totalColors.clear();
                 indices.clear();
@@ -442,8 +448,8 @@ System.out.println("no color for: " + mat);
             }
         }
 
-//        ejectShape(bstream, totalCoords, indices, color, transparency);
-        ejectShape(bstream, totalCoords, indices, totalColors, transparency);
+//        ejectShape(writer, totalCoords, indices, color, transparency);
+        ejectShape(writer, totalCoords, indices, totalColors, transparency);
 
         // End Centering Transform
         writer.endField();
@@ -474,7 +480,7 @@ System.out.println("no color for: " + mat);
         ty = grid.getHeight() / 2.0 * grid.getSliceHeight();
         tz = grid.getDepth() / 2.0 * grid.getVoxelSize();
 
-        bstream.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
+        writer.fieldValue(new float[] {(float)-tx,(float)-ty,(float)-tz}, 3);
 
         writer.startField("children");
 
@@ -482,7 +488,7 @@ System.out.println("no color for: " + mat);
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, bstream, Grid.OUTSIDE, color, trans);
+            outputState(grid, writer, Grid.OUTSIDE, color, trans);
         }
 
         color = stateColors.get(new Integer(Grid.EXTERIOR));
@@ -493,7 +499,7 @@ System.out.println("no color for: " + mat);
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, bstream, Grid.EXTERIOR, color, trans);
+            outputState(grid, writer, Grid.EXTERIOR, color, trans);
         }
 
         color = stateColors.get(new Integer(Grid.INTERIOR));
@@ -504,7 +510,7 @@ System.out.println("no color for: " + mat);
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, bstream, Grid.INTERIOR, color, trans);
+            outputState(grid, writer, Grid.INTERIOR, color, trans);
         }
 
         // End Centering Transform
@@ -516,7 +522,8 @@ System.out.println("no color for: " + mat);
      * Close the exporter.  Must be called when done.
      */
     public void close() {
-        ejectFooter();
+        if (complete)
+            ejectFooter();
     }
 
     private void outputState(Grid grid, BinaryContentHandler stream, byte display,
@@ -948,7 +955,7 @@ System.out.println("no color for: " + mat);
         writer.profileDecl("Immersive");
         writer.startNode("NavigationInfo", null);
         writer.startField("avatarSize");
-        bstream.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
+        writer.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
         writer.endNode(); // NavigationInfo
 
         // TODO: This should really be a lookat to bounds calc of the grid
@@ -957,9 +964,9 @@ System.out.println("no color for: " + mat);
 
         writer.startNode("Viewpoint", null);
         writer.startField("position");
-        bstream.fieldValue(new float[] {-0.005963757f,-5.863309E-4f,0.06739192f},3);
+        writer.fieldValue(new float[] {-0.005963757f,-5.863309E-4f,0.06739192f},3);
         writer.startField("orientation");
-        bstream.fieldValue(new float[] {-0.9757987f,0.21643901f,0.031161053f,0.2929703f},4);
+        writer.fieldValue(new float[] {-0.9757987f,0.21643901f,0.031161053f,0.2929703f},4);
         writer.endNode(); // Viewpoint
     }
 

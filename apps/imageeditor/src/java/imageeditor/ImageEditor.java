@@ -26,29 +26,20 @@ import abfab3d.creator.shapeways.*;
  *
  * @author Alan Hudson
  */
-public class ImageEditor extends HostedCreator {
-    private GeometryKernal kernal;
+public class ImageEditor extends HostedKernel {
+    private GeometryKernel kernel;
 
     public ImageEditor() {
     }
 
-    public GeometryKernal getKernal() {
-        if (kernal == null) {
-            kernal = new ImageEditorKernal();
+    public GeometryKernel getKernel() {
+        if (kernel == null) {
+            kernel = new ImageEditorKernel();
         }
 
-        return kernal;
+        return kernel;
     }
 
-    public static void main(String[] args) {
-        ImageEditor editor = new ImageEditor();
-        GeometryKernal kernal = editor.getKernal();
-
-        HashMap<String,String> params = new HashMap<String,String>();
-
-        try {
-            FileOutputStream fos = new FileOutputStream("out.x3db");
-            BufferedOutputStream bos = new BufferedOutputStream(fos);
 /*
             // Cube pendant Subtract
 
@@ -74,7 +65,7 @@ public class ImageEditor extends HostedCreator {
             params.put("bailStyle","TORUS");
             params.put("bailInnerRadius",".001");
             params.put("bailOuterRadius",".004");
-*/
+
 
             // Cube pendant Add
 
@@ -100,7 +91,7 @@ public class ImageEditor extends HostedCreator {
             params.put("bailInnerRadius",".001");
             params.put("bailOuterRadius",".004");
 
-/*
+
             // Cylinder Pendant Subtract
 
 //            params.put("resolution", "0.0001");
@@ -124,79 +115,4 @@ public class ImageEditor extends HostedCreator {
             params.put("bailOuterRadius",".004");
 */
 
-            Map<String, Object> parsed_params = parseParams(kernal.getParams(),params);
-            kernal.generate(parsed_params,bos);
-
-            bos.close();
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
-        }
-    }
-
-    public static Map<String, Object> parseParams(Map<String,Parameter> defs,
-        Map<String,String> vals) {
-
-        Iterator<Parameter> itr = defs.values().iterator();
-
-        HashMap<String, Object>  ret_val = new HashMap<String, Object>();
-
-        while(itr.hasNext()) {
-            Parameter p = itr.next();
-
-            String raw_val = vals.get(p.getName());
-
-            if (raw_val == null) {
-                raw_val = p.getDefaultValue();
-            }
-
-            Object val = null;
-
-System.out.println("Parsing param: " + p.getName() + " val: " + raw_val);
-            try {
-                switch(p.getDataType()) {
-                    case STRING:
-                        val = raw_val;
-                        break;
-                    case DOUBLE:
-                        val = Double.parseDouble(raw_val);
-                        break;
-                    case BOOLEAN:
-                        val = Boolean.parseBoolean(raw_val);
-                        break;
-                    case ENUM:
-                        val = raw_val;
-                        String[] valid_values = p.getEnumValues();
-
-                        if (valid_values == null) {
-                            if (!raw_val.equals("")) {
-                                throw new IllegalArgumentException("Error Validating " + p.getName() + " invalid enum value: " + raw_val);
-                            }
-                            break;
-                        }
-                        boolean valid = false;
-
-                        for(int i=0; i < valid_values.length; i++) {
-                            if (raw_val.equals(valid_values[i])) {
-                                valid = true;
-                                break;
-                            }
-                        }
-
-                        if (!valid) {
-                            throw new IllegalArgumentException("Error Validating " + p.getName() + " invalid enum value: " + raw_val);
-                        }
-                        break;
-                    default:
-                        throw new IllegalArgumentException("Unhandled datatype: " + p.getDataType());
-                }
-            } catch(Exception e) {
-                throw new IllegalArgumentException("Error parsing: " + p.getName() + " value: " + raw_val);
-            }
-
-            ret_val.put(p.getName(), val);
-        }
-
-System.out.println("ret: " + ret_val);
-        return ret_val;
-    }
 }

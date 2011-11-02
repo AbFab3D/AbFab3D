@@ -30,7 +30,7 @@ public class JavaStandaloneUICreator {
 
     private HashMap<Integer,String> indentCache;
 
-    private GeometryKernal kernel;
+    private GeometryKernel kernel;
 
     /** The number of steps */
     private List<Step> steps;
@@ -47,7 +47,7 @@ public class JavaStandaloneUICreator {
      * @param kernel The kernel
      * @param remove The parameters to remove
      */
-    public void createInterface(String packageName, String className, String title, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernal kernel, Set<String> remove) {
+    public void createInterface(String packageName, String className, String title, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernel kernel, Set<String> remove) {
         this.kernel = kernel;
         this.steps = new ArrayList<Step>();
         this.steps.addAll(steps);
@@ -56,11 +56,9 @@ public class JavaStandaloneUICreator {
             File f = new File(dir);
 
             if (!f.exists()) {
-                System.out.println("Directory does not exist");
-                return;
+                f.mkdirs();
             }
 
-            // TODO: Create path if needed
             FileOutputStream fos = new FileOutputStream(f.toString() + "/" + className + ".java");
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             PrintStream ps = new PrintStream(bos);
@@ -75,7 +73,12 @@ public class JavaStandaloneUICreator {
             ps.println("import java.awt.Font;");
             ps.println("import java.awt.event.*;");
             ps.println("import java.io.*;");
+            ps.println("import abfab3d.creator.GeometryKernel;");
             ps.println("import abfab3d.creator.util.ParameterUtil;");
+            ps.println("import org.web3d.vrml.export.PlainTextErrorReporter;");
+            ps.println("import org.web3d.vrml.sav.BinaryContentHandler;");
+            ps.println("import org.web3d.vrml.export.*;");
+
             ps.println("");
             ps.println("public class " + className + " extends JFrame implements ActionListener {");
 
@@ -293,7 +296,9 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(12) + "try {");
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(\"out.x3db\");");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
-        ps.println(indent(16) + "kernel.generate(parsed_params, bos);");
+        ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
+        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+        ps.println(indent(16) + "kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
         ps.println(indent(16) + "fos.close();");
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Model Done\");");

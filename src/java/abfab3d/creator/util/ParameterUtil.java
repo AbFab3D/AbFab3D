@@ -42,7 +42,6 @@ public class ParameterUtil {
 
             Object val = null;
 
-System.out.println("Parsing param: " + p.getName() + " val: " + raw_val);
             try {
                 switch(p.getDataType()) {
                     case STRING:
@@ -87,7 +86,6 @@ System.out.println("Parsing param: " + p.getName() + " val: " + raw_val);
             ret_val.put(p.getName(), val);
         }
 
-System.out.println("ret: " + ret_val);
         return ret_val;
     }
 }

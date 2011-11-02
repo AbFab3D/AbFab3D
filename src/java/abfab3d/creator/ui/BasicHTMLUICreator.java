@@ -31,7 +31,7 @@ public class BasicHTMLUICreator {
 
     private HashMap<Integer,String> indentCache;
 
-    private GeometryKernal kernel;
+    private GeometryKernel kernel;
 
     /** The number of steps */
     private List<Step> steps;
@@ -48,7 +48,7 @@ public class BasicHTMLUICreator {
      * @param kernel The kernel
      * @param remove The parameters to remove
      */
-    public void createInterface(String packageName, String className, String title, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernal kernel, Set<String> remove) {
+    public void createInterface(String packageName, String className, String title, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernel kernel, Set<String> remove) {
         this.kernel = kernel;
         this.steps = new ArrayList<Step>();
         this.steps.addAll(steps);
@@ -57,7 +57,7 @@ public class BasicHTMLUICreator {
             File f = new File(dir);
 
             if (!f.exists()) {
-                System.out.println("Directory does not exist");
+                f.mkdirs();
                 return;
             }
 

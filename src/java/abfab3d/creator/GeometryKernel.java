@@ -39,15 +39,18 @@ public interface GeometryKernel {
     /**
      * Generate X3D stream from the specified parameters.  Do not include any
      * X3D Bindables such as Viewpoints, NavigationInfo, Fog, or Background nodes.
-     * No lights either.  Just geometry.
+     * No lights either.  Just geometry and appearance information.
      *
      * @param params The parameters
      * @param accuracy The accuracy to generate the model
      * @param handler The X3D content handler to use
      */
-    public KernalResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException;
+    public KernelResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException;
 
-    /**
+    // TODO: add revenue model scheme
+    //public RevenueScheme getRevenueScheme();
+
+   /**
      * Validates the specified parameters.  Will throw a IllegalArgumentException if its
      * invalid.  A user interface may use this method to insure the parameters are
      * valid.  This should be more then just range checking, it should make sure the

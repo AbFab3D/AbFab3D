@@ -39,7 +39,14 @@
         <mkdir dir="${javadocs.dir}"/>
     </target>
   
-    <target name="compile" depends="init" description="Compile all Java source files">
+    <target name="compile" depends="init,createUI" description="Compile all Java source files">
+        <compilejava package="imageeditor/ui" jars="">
+           <classpath-elements>
+              <pathelement path="${abfab3d.classes.dir}" />
+              <fileset dir="${abfab3d.lib.dir}" />              
+           </classpath-elements>
+	</compilejava>        
+    
         <compilejava package="imageeditor"
             jars=""
         >
@@ -79,7 +86,7 @@
         </java>  
     </target>
 
-    <target name="createUI" depends="compile" description="Run the application">
+    <target name="createUI" depends="" description="Run the application">
         <echo message="jvmargs: ${jvmrunargs}" />
         <java classname="imageeditor.UICreator" fork="true">
             <jvmarg line="${jvmrunargs}"/>
@@ -91,12 +98,6 @@
 <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
             </classpath>
         </java>  
-        
-        <compilejava package="imageeditor/ui" jars="">
-           <classpath-elements>
-                <pathelement path="${abfab3d.classes.dir}" />
-           </classpath-elements>
-        </compilejava>
     </target>
 
     <target name="javadoc" description="Generates javadoc" depends="compile">

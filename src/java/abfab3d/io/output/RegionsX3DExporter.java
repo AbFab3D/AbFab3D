@@ -40,16 +40,18 @@ public class RegionsX3DExporter implements Exporter {
     private static final int MAX_TRIANGLES_SHAPE = 300000;
 
     /** X3D Writer */
-    private org.web3d.vrml.export.Exporter writer;
-
-    /** The binary content handler */
-    private BinaryContentHandler bstream;
+    private BinaryContentHandler writer;
 
     /** Error Console */
     private ErrorReporter console;
 
+    /** Is this a complete file export */
+    private boolean complete;
+
     public RegionsX3DExporter(String encoding, OutputStream os, ErrorReporter console) {
         this.console = console;
+
+        complete = true;
 
         if (encoding.equals("x3db")) {
             writer = new X3DBinaryRetainedDirectExporter(os,
@@ -64,19 +66,26 @@ public class RegionsX3DExporter implements Exporter {
             throw new IllegalArgumentException("Unhandled X3D encoding: " + encoding);
         }
 
-        bstream = (BinaryContentHandler) writer;
+        writer = (BinaryContentHandler) writer;
 
         ejectHeader();
     }
 
-    public RegionsX3DExporter(org.web3d.vrml.export.Exporter exporter, ErrorReporter console) {
+    /**
+     * Constructor.
+     *
+     * @param exporter The X3D handler to write too.
+     * @param console The console
+     * @param complete Should we add headers and footers
+     */
+    public RegionsX3DExporter(BinaryContentHandler exporter, ErrorReporter console, boolean complete) {
         this.console = console;
+        this.complete = complete;
 
         writer = exporter;
 
-        bstream = (BinaryContentHandler) writer;
-
-        ejectHeader();
+        if (complete)
+            ejectHeader();
     }
 
     /**
@@ -113,7 +122,8 @@ public class RegionsX3DExporter implements Exporter {
      * Close the exporter.  Must be called when done.
      */
     public void close() {
-        ejectFooter();
+        if (complete)
+            ejectFooter();
     }
 
     /**
@@ -311,7 +321,7 @@ public class RegionsX3DExporter implements Exporter {
         }
 
         float transparency = 0f;
-        ejectShape(bstream, totalCoords,indices, new float[] {0.8f,0.8f,0.8f}, transparency);
+        ejectShape(writer, totalCoords,indices, new float[] {0.8f,0.8f,0.8f}, transparency);
     }
 
     /**
@@ -502,7 +512,7 @@ public class RegionsX3DExporter implements Exporter {
         }
 
         float transparency = 0f;
-        ejectShape(bstream, totalCoords,indices, new float[] {0.8f,0.8f,0.8f}, transparency);
+        ejectShape(writer, totalCoords,indices, new float[] {0.8f,0.8f,0.8f}, transparency);
     }
 
     /**
@@ -565,37 +575,37 @@ public class RegionsX3DExporter implements Exporter {
 
 //System.out.println("   wcf origin: " + java.util.Arrays.toString(wcf_origin) + " size: " + java.util.Arrays.toString(wcf_size));
 
-            bstream.startNode("Transform",null);
-            bstream.startField("translation");
-            bstream.fieldValue(wcf_origin,3);
-            bstream.startField("children");
-            bstream.startNode("Shape",null);
-            bstream.startField("appearance");
-            bstream.startNode("Appearance",null);
-            bstream.startField("material");
-            bstream.startNode("Material",null);
+            writer.startNode("Transform",null);
+            writer.startField("translation");
+            writer.fieldValue(wcf_origin,3);
+            writer.startField("children");
+            writer.startNode("Shape",null);
+            writer.startField("appearance");
+            writer.startNode("Appearance",null);
+            writer.startField("material");
+            writer.startNode("Material",null);
 /*
             if (vol - 1 < colors.length) {
-                bstream.startField("diffuseColor");
-                bstream.fieldValue(colors[vol - 1],3);
+                writer.startField("diffuseColor");
+                writer.fieldValue(colors[vol - 1],3);
             } else {
 System.out.println("No color for: " + vol);
             }
 */
 
-            bstream.startField("transparency");
-            bstream.fieldValue(0.5f);
-            bstream.endNode();
-            bstream.endNode();
-            bstream.startField("geometry");
-            bstream.startNode("Box",null);
-            bstream.startField("size");
+            writer.startField("transparency");
+            writer.fieldValue(0.5f);
+            writer.endNode();
+            writer.endNode();
+            writer.startField("geometry");
+            writer.startNode("Box",null);
+            writer.startField("size");
 //System.out.println("final_size: " + java.util.Arrays.toString(wcf_size));
-            bstream.fieldValue(wcf_size,3);
-            bstream.endNode();  // Box
-            bstream.endNode();  // Shape
-            bstream.endField();  // children
-            bstream.endNode(); // Transform
+            writer.fieldValue(wcf_size,3);
+            writer.endNode();  // Box
+            writer.endNode();  // Shape
+            writer.endField();  // children
+            writer.endNode(); // Transform
         }
     }
 
@@ -740,7 +750,7 @@ System.out.println("No color for: " + vol);
         writer.profileDecl("Immersive");
         writer.startNode("NavigationInfo", null);
         writer.startField("avatarSize");
-        bstream.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
+        writer.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
         writer.endNode(); // NavigationInfo
 
         // TODO: This should really be a lookat to bounds calc of the grid
@@ -749,9 +759,9 @@ System.out.println("No color for: " + vol);
 
         writer.startNode("Viewpoint", null);
         writer.startField("position");
-        bstream.fieldValue(new float[] {-0.005963757f,-5.863309E-4f,0.06739192f},3);
+        writer.fieldValue(new float[] {-0.005963757f,-5.863309E-4f,0.06739192f},3);
         writer.startField("orientation");
-        bstream.fieldValue(new float[] {-0.9757987f,0.21643901f,0.031161053f,0.2929703f},4);
+        writer.fieldValue(new float[] {-0.9757987f,0.21643901f,0.031161053f,0.2929703f},4);
         writer.endNode(); // Viewpoint
     }
 
