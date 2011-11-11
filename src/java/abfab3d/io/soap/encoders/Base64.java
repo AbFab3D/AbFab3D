@@ -45,6 +45,34 @@ public class Base64 {
     }
 
     /**
+     * Double Encodes the byte array and returns an encoded string.
+     * Don't ask why, sigh.
+     *
+     * @param raw The byte array
+     * @return The encode string
+     */
+    public static String doubleEncode(byte[] raw) {
+
+        StringBuffer encoded = new StringBuffer();
+
+        for (int i = 0; i < raw.length; i += 3) {
+            encoded.append(encodeBlock(raw, i));
+        }
+
+        byte[] bytes = encoded.toString().getBytes();
+
+        encoded = new StringBuffer();
+
+
+        for (int i = 0; i < bytes.length; i += 3) {
+            encoded.append(encodeBlock(bytes, i));
+        }
+
+        return encoded.toString();
+
+    }
+
+    /**
      * Encodes a block of bytes
      *
      * @param raw

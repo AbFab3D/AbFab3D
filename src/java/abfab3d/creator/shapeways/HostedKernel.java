@@ -58,4 +58,18 @@ public abstract class HostedKernel {
      */
     public void destroy() {
     }
+
+    /**
+     * Get the kernel's context.
+     */
+    public KernelContext getKernelContext() {
+        return new LocalKernelContext();
+    }
+
+    /**
+     * Get the host name we are housed in.
+     */
+    public String getServerInfo() {
+        return "localhost";
+    }
 }

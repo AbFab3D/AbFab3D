@@ -207,6 +207,25 @@ public class SWModelType extends DefaultObject {
     }
 
     /**
+     * Gets the materials value for this SWModel.  Whitespace
+     * delimeted string,
+     *
+     * @return materials
+     */
+    public String getMaterials() {
+        return (String)getProperty("materials");
+    }
+
+    /**
+     * Sets the materials value for this SWModel.
+     *
+     * @param materials
+     */
+    public void setMaterials(String materials) {
+        setProperty("materials", materials);
+    }
+
+    /**
      * Gets the markup value for this SWModel.
      *
      * @return The value

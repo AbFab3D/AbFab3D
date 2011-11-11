@@ -48,8 +48,8 @@ public class Shapeways {
      */
     public void upload(String filename, String name, String modelType, float scale) {
         try {
-//            String soap_server = "http://www.shapeways.com";
-            String soap_server = "http://test5.shapeways.com";
+            String soap_server = "http://www.shapeways.com";
+//            String soap_server = "http://test5.shapeways.com";
             String soap_path = "/modules/shapeways_api/webservice/v1/soap.php";
             //String soap_path = "/modules/udesign/webservice/soap.php";
 
@@ -69,8 +69,9 @@ public class Shapeways {
             site.setDebug(true);
 
             site.login("swapitest", "testme!");
-//            site.login("tonytest", "yumetech");
 
+System.out.println("session: " + site.getSessionID());
+if (1==1) return;
             byte[] file = site.readFile(new File(filename));
             SWModelType model = new SWModelType();
             model.setSoapElementName("model");

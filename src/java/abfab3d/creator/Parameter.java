@@ -24,7 +24,8 @@ package abfab3d.creator;
  */
 public class Parameter implements Comparable {
     /** The data type */
-    public enum DataType {STRING, ENUM, DOUBLE, BOOLEAN, INTEGER, FORMULA, POINT_2D};
+    public enum DataType {STRING, ENUM, DOUBLE, BOOLEAN, INTEGER, FORMULA,
+                          STRING_LIST, ENUM_LIST, DOUBLE_LIST, BOOLEAN_LIST, INTEGER_LIST};
 
     /** The editor to use */
     public enum EditorType {

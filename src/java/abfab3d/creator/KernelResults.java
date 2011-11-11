@@ -22,6 +22,7 @@ public class KernelResults {
     public static final int INVALID_PARAMS = 1;
     public static final int STRUCTURALLY_UNSOUND = 2;
     public static final int INTERNAL_ERROR = 3;
+    public static final int INVALID_SESSION = 4;
 
     /** The failure code if it failed, 0 otherwise */
     public int failureCode;
@@ -35,7 +36,7 @@ public class KernelResults {
     /** The min bounds of the created object */
     private double[] boundsMin;
 
-    /** The min bounds of the created object */
+    /** The max bounds of the created object */
     private double[] boundsMax;
 
     public KernelResults(boolean success, int failureCode, String reason,
@@ -70,6 +71,15 @@ public class KernelResults {
      */
     public boolean getSuccess() {
         return success;
+    }
+
+    /**
+     * Set was the operation successful.
+     *
+     * @param val True when successfull
+     */
+    public void setSuccess(boolean val) {
+        success = val;
     }
 
     public double[] getMinBounds() {

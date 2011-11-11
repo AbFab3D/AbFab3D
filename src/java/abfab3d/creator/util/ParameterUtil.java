@@ -50,6 +50,38 @@ public class ParameterUtil {
                     case DOUBLE:
                         val = Double.parseDouble(raw_val);
                         break;
+                    case INTEGER:
+                        val = Integer.parseInt(raw_val);
+                        break;
+                    case DOUBLE_LIST:
+                        String[] dvals = raw_val.split("_");
+                        val = new double[dvals.length];
+                        for(int i=0; i < dvals.length; i++) {
+                            ((double[]) val)[i] = Double.parseDouble(dvals[i]);
+                        }
+                        break;
+                    case INTEGER_LIST:
+                        String[] ivals = raw_val.split("_");
+                        val = new int[ivals.length];
+                        for(int i=0; i < ivals.length; i++) {
+                            ((int[]) val)[i] = Integer.parseInt(ivals[i]);
+                        }
+                        break;
+                    case STRING_LIST:
+                        // TODO: Need to handle escaping
+                        String[] svals = raw_val.split("_");
+                        val = new String[svals.length];
+                        for(int i=0; i < svals.length; i++) {
+                            ((String[]) val)[i] = svals[i];
+                        }
+                        break;
+                    case BOOLEAN_LIST:
+                        String[] bvals = raw_val.split("_");
+                        val = new boolean[bvals.length];
+                        for(int i=0; i < bvals.length; i++) {
+                            ((boolean[]) val)[i] = Boolean.parseBoolean(bvals[i]);
+                        }
+                        break;
                     case BOOLEAN:
                         val = Boolean.parseBoolean(raw_val);
                         break;

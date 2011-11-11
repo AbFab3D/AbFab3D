@@ -57,6 +57,24 @@ public class SubmitModelResponse extends DefaultObject {
         setProperty("state", val);
     }
 
+    /**
+     * Gets the state value
+     *
+     * @return state
+     */
+    public String getResponse() {
+        return (String)getProperty("response");
+    }
+
+    /**
+     * Sets the state value.
+     *
+     * @param val
+     */
+    public void setResponse(String val) {
+        setProperty("response", val);
+    }
+
     // TODO: No longer have modelID returned?
     /**
      * Gets the desc value for this UdesignModel.

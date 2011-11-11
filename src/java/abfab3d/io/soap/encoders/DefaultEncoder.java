@@ -227,9 +227,9 @@ public class DefaultEncoder extends BaseEncoder implements Encoder  {
             } else if (value instanceof byte[]) {
 
                 attributes.addAttribute(getSchemaInstance(), "", "xsi:type", "base64Binary", "xsd:base64Binary");
-System.out.println("***Encoding value as base64");
-                value = Base64.encode((byte[])value);
-
+System.out.println("***Double Encoding value as base64");
+//                value = Base64.encode((byte[])value);
+                value = Base64.doubleEncode((byte[])value);
             } else if (value != null) {
 
                 String className = value.getClass().getName();

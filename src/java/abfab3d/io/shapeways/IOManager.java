@@ -239,6 +239,15 @@ public class IOManager {
     }
 
     /**
+     * Get the current sessionID
+     *
+     * @return sessionID
+     */
+    public String getSessionID() {
+        return sessionId;
+    }
+
+    /**
      * Sets the map of materials available.
      *
      * @param mats The new list of materials to set
@@ -534,6 +543,7 @@ public class IOManager {
         // get the templateId
 
         Integer templateId = (Integer) ApplicationParams.get("TEMPLATE_ID");
+        String applicationId = (String) ApplicationParams.get("APPLICATION_ID");
 
         fireStartRequest(IORequestType.REQUEST_SAVE_MODEL, MSG_SAVING_MODEL);
 
@@ -555,15 +565,16 @@ public class IOManager {
 
                 theCall.setMethodName("udesign:submitModel");
                 theCall.setTargetObjectURI(urnService);
+
                 theCall.addParameter("session_id", sessionId);
+
                 theCall.addParameter("model", model);
-/*
+
                 if (templateId != null)
                     theCall.addParameter("templateId", templateId);
-*/
 
-System.out.println("Hardcode templateId");
-                    theCall.addParameter("templateId", new Integer(854));
+                if (applicationId != null)
+                    theCall.addParameter("application_id", applicationId);
 
                 int uploadTime = (int)(downloadSize / UPLOAD_SPEED);
                 int uploadMinutes = (int)Math.floor(uploadTime / 60);
@@ -601,8 +612,10 @@ System.out.println("Hardcode templateId");
                 // clear monitor since iomanager stores transport
                 tpt.setProgressMonitor(null);
 
-                if (!shutdown)
-                    state = modelReturn.getState();
+                if (!shutdown) {
+//                    state = modelReturn.getState();
+                    state = modelReturn.getResponse();
+                }
 
                 status = true;
                 saved = true;
@@ -614,6 +627,7 @@ System.out.println("Hardcode templateId");
                 webServiceListener.requestFailed(se.getMessage());
                 shutdown = true;
             } catch (Exception e) {
+e.printStackTrace();
                 // unknown error occured
                 webServiceListener.requestFailed(e.getMessage());
                 shutdown = true;
@@ -660,8 +674,6 @@ System.out.println("Hardcode templateId");
          */
         @Override
         public void updatePercentage(int percentage) {
-if (percentage % 10 == 0)
-    System.out.println("***updatePercentage: " + percentage);
             this.manager.fireUpdateRequest(
                     this.requestType, this.message, percentage);
         }
@@ -838,7 +850,7 @@ if (percentage % 10 == 0)
             shutdown = true;
 
         } catch (Exception e) {
-
+e.printStackTrace();
             // unknown error occured
             webServiceListener.requestFailed(e.getMessage());
             shutdown = true;

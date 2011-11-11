@@ -92,7 +92,6 @@ public class HTTPTransport implements Transport {
     public byte[] call(byte[] request)
         throws SOAPFault, SOAPException, IOException {
 
-System.out.println("*** Call started");
         // vars which need be accessible from try, catch, finally blocks
         HttpURLConnection httpConn = null;
         OutputStream httpOutputStream = null;
@@ -138,10 +137,10 @@ System.out.println("*** Call started");
             httpConn.setDoOutput(true);
             httpConn.setDoInput(true);
             httpConn.setRequestMethod("POST");
-            httpConn.setConnectTimeout(10000);
+            httpConn.setConnectTimeout(15000);
 
             // define the standard headers to be sent
-            httpConn.setRequestProperty("User-Agent", "Yumetech uDesign Editor");
+            httpConn.setRequestProperty("User-Agent", "Hosted Creators");
             httpConn.setRequestProperty("Content-Language", "en-US");
             httpConn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
             httpConn.setRequestProperty("Accept", "text/xml");
@@ -169,9 +168,6 @@ System.out.println("*** Call started");
             }
 
             byte[] response = readBytes(httpInputStream);
-
-
-System.out.println("***Call Completed: " + shutdown);
 
 
             if (!shutdown) {
