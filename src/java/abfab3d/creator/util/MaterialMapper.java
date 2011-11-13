@@ -18,6 +18,8 @@ import org.web3d.vrml.sav.BinaryContentHandler;
 
 // Internal Imports
 
+// none
+
 /**
  * Maps material specifications to X3D appearance nodes.  Used to
  * commonize the implementation of material and finish technologies.  The
