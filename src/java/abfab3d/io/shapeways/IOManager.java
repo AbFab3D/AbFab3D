@@ -674,6 +674,7 @@ e.printStackTrace();
          */
         @Override
         public void updatePercentage(int percentage) {
+//System.out.println("upd percent: " + percentage);
             this.manager.fireUpdateRequest(
                     this.requestType, this.message, percentage);
         }
