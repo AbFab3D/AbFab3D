@@ -17,6 +17,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.*;
 import java.net.*;
+import java.util.zip.*;
 
 import abfab3d.io.soap.*;
 
@@ -97,6 +98,8 @@ public class HTTPTransport implements Transport {
         OutputStream httpOutputStream = null;
         InputStream httpInputStream = null;
 
+        boolean use_gzip = true;
+
         try {
 
             // Set the proxy info if necessary
@@ -137,13 +140,18 @@ public class HTTPTransport implements Transport {
             httpConn.setDoOutput(true);
             httpConn.setDoInput(true);
             httpConn.setRequestMethod("POST");
-            httpConn.setConnectTimeout(15000);
+//            httpConn.setConnectTimeout(15000);
+            httpConn.setConnectTimeout(60000);
 
             // define the standard headers to be sent
             httpConn.setRequestProperty("User-Agent", "Hosted Creators");
             httpConn.setRequestProperty("Content-Language", "en-US");
             httpConn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
             httpConn.setRequestProperty("Accept", "text/xml");
+
+            // TODO: Seems we can't accept gzip encoded data
+            if (use_gzip) httpConn.setRequestProperty("Accept-Encoding", "gzip");
+
             httpConn.setRequestProperty("Content-Length",
                     Integer.toString(request.length) );
             httpConn.setRequestProperty("SOAPAction", soapAction);
@@ -151,11 +159,21 @@ public class HTTPTransport implements Transport {
             // spool the input stream into the http connection output
             httpOutputStream = httpConn.getOutputStream();
 
+            OutputStream os = null;
+
             // copy the bytes onto the http stream, notify if set up
             copy(new ByteArrayInputStream(request), httpOutputStream,
                     null != this.monitor);
 
             httpInputStream = httpConn.getInputStream();
+
+            String encoding = httpConn.getContentEncoding();
+
+            if (encoding != null && encoding.equalsIgnoreCase("gzip")) {
+                httpInputStream = new GZIPInputStream(httpInputStream);
+            } else if (encoding != null && encoding.equalsIgnoreCase("deflate")) {
+                httpInputStream = new InflaterInputStream(httpInputStream, new Inflater(true));
+            }
 
             // sanity check before moving on
             if (!(httpConn.getContentType().startsWith("text/xml"))) {
@@ -168,7 +186,6 @@ public class HTTPTransport implements Transport {
             }
 
             byte[] response = readBytes(httpInputStream);
-
 
             if (!shutdown) {
                 return response;
