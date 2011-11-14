@@ -284,7 +284,7 @@ public class MaterialMapper {
         handler.startField("specularColor");
         handler.fieldValue(new float[] {0.95f, 0.95f, 0.95f},3);
         handler.startField("shininess");
-        handler.fieldValue(0.9f);
+        handler.fieldValue(0.2f);
         handler.endNode();  // Material
         handler.endNode();  // Appearance
     }
