@@ -52,11 +52,12 @@
    <attribute name="name" />
    <attribute name="version" />
    <attribute name="includes" />
+   <attribute name="excludes" default="" />
    <attribute name="manifest" default="" />
    <sequential>  
    
     <jar destfile="${jar.dir}/@{name}_@{version}.jar"  manifest="${manifest.dir}/@{manifest}" >
-       <fileset dir="${classes.dir}" includes="@{includes}" />
+       <fileset dir="${classes.dir}" includes="@{includes}" excludes="@{excludes}" />
     </jar>
          
    </sequential>  
