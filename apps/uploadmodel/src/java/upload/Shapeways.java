@@ -68,10 +68,9 @@ public class Shapeways {
             IOManager site = IOManager.getIOManager();
             site.setDebug(true);
 
-            site.login("swapitest", "testme!");
+if (1==2)            site.login("swapitest", "testme!");
 
-System.out.println("session: " + site.getSessionID());
-if (1==1) return;
+
             byte[] file = site.readFile(new File(filename));
             SWModelType model = new SWModelType();
             model.setSoapElementName("model");
@@ -200,7 +199,9 @@ if (1==1) return;
 //        c.upload("../../test/models/toxic.stl",0.001f);
 //        c.upload("../../test/models/toxic.x3dv",0.001f);
 //        c.upload("../../test/models/Spring.stl","STL", 10f);
-          c.upload("../../test/models/ball-r5.stl", "ball-r5.stl", "STL", 1f);
+          //c.upload("../../test/models/ball-r5.stl", "ball-r5.stl", "STL", 1f);
+//          c.upload("../../test/models/lightpoem.x3d", "lightpoem.x3d", "x3d", 1f);
+          c.upload("../../test/models/lightpoem_default.x3db", "lightpoem_default.x3db", "x3db", 1f);
 
     }
 }

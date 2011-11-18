@@ -147,6 +147,49 @@ public class IOManager {
     /** The connection protocall */
     private final ThreadLocal<HTTPTransport> transport;
 
+    /** The templateID */
+    Integer templateId = null;
+
+    /** The applicationID */
+    String applicationId = null;
+
+    /**
+     * Public constructor for non static usage
+     */
+    public IOManager(String soapServer, String soapPath, String wsdlServer, String wsdlPath,
+        String urn, String applicationId, Integer templateId) {
+
+        this.applicationId = applicationId;
+        this.templateId = templateId;
+
+        ioListeners = new ArrayList<IOManagerListener>();
+
+        errorReporter = new SysErrorReporter();
+
+        soapService = soapServer + soapPath;
+
+        wsdlService = wsdlServer + wsdlPath;
+
+        urnService = urn;
+
+        currentAuthAttempts = 0;
+        shutdown = false;
+        saved = false;
+
+        transport = new SOAPDataThreaded();
+
+        megabyteFormatter = NumberFormat.getNumberInstance();
+        megabyteFormatter.setMinimumIntegerDigits(1);
+        megabyteFormatter.setMinimumFractionDigits(0);
+        megabyteFormatter.setMaximumFractionDigits(2);
+
+        secondsFormatter = NumberFormat.getNumberInstance();
+        secondsFormatter.setMinimumIntegerDigits(1);
+        secondsFormatter.setMinimumFractionDigits(0);
+        secondsFormatter.setMaximumIntegerDigits(2);
+        secondsFormatter.setMaximumFractionDigits(0);
+    }
+
     /**
      * Private constructor to prevent direct instantiation.
      */
@@ -166,6 +209,8 @@ public class IOManager {
 
         urnService = (String) ApplicationParams.get("SERVICE_URN");
 
+        templateId = (Integer) ApplicationParams.get("TEMPLATE_ID");
+        applicationId = (String) ApplicationParams.get("APPLICATION_ID");
         currentAuthAttempts = 0;
         shutdown = false;
         saved = false;
@@ -287,7 +332,6 @@ public class IOManager {
         shutdown = false;
 
         // get the templateId
-        Integer templateId = (Integer)ApplicationParams.get("TEMPLATE_ID");
 
         while (!fetched && !shutdown) {
 
@@ -542,9 +586,6 @@ public class IOManager {
 
         // get the templateId
 
-        Integer templateId = (Integer) ApplicationParams.get("TEMPLATE_ID");
-        String applicationId = (String) ApplicationParams.get("APPLICATION_ID");
-
         fireStartRequest(IORequestType.REQUEST_SAVE_MODEL, MSG_SAVING_MODEL);
 
         while (!status && !shutdown) {
@@ -624,12 +665,16 @@ public class IOManager {
             } catch (SOAPException se) {
 
                 // unknown error occured
-                webServiceListener.requestFailed(se.getMessage());
+                if (webServiceListener != null) {
+                    webServiceListener.requestFailed(se.getMessage());
+                }
                 shutdown = true;
             } catch (Exception e) {
-e.printStackTrace();
+//e.printStackTrace();
                 // unknown error occured
-                webServiceListener.requestFailed(e.getMessage());
+                if (webServiceListener != null) {
+                    webServiceListener.requestFailed(e.getMessage());
+                }
                 shutdown = true;
 
             }
@@ -674,7 +719,8 @@ e.printStackTrace();
          */
         @Override
         public void updatePercentage(int percentage) {
-//System.out.println("upd percent: " + percentage);
+// TODO; Required to work
+System.out.println("upd percent: " + percentage);
             this.manager.fireUpdateRequest(
                     this.requestType, this.message, percentage);
         }
@@ -757,9 +803,6 @@ e.printStackTrace();
         currentAuthAttempts = 0;
         shutdown = false;
         SWModelPriceType priceResponse = new SWModelPriceType();
-
-        // get the templateId
-        Integer templateId = (Integer)ApplicationParams.get("TEMPLATE_ID");
 
         while (!status && !shutdown) {
 

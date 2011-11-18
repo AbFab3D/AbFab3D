@@ -28,14 +28,7 @@ import abfab3d.creator.GeometryKernel;
  *
  * @author Alan Hudson
  */
-public abstract class HostedKernel {
-    /**
-     * Get the geometry kernel.  Must be defined for all creators.
-     *
-     * @return The kernel
-     */
-    public abstract GeometryKernel getKernel();
-
+public abstract class HostedKernel implements GeometryKernel {
     /**
      * Get the services available to hosted creators.
      *

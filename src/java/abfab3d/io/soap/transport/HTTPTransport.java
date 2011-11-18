@@ -98,7 +98,7 @@ public class HTTPTransport implements Transport {
         OutputStream httpOutputStream = null;
         InputStream httpInputStream = null;
 
-        boolean use_gzip = true;
+        boolean use_gzip = false;
 
         try {
 
@@ -131,6 +131,13 @@ public class HTTPTransport implements Transport {
             // Create the connection where we're going to send the file.
             URL url = new URL(soapURL);
 
+            if (use_gzip) {
+                int in = request.length;
+                request = gzipFile(request);
+                int out = request.length;
+System.out.println("Gzipped file: in: " + in + " out: " + out + " percent: " + ((float)out/in));
+            }
+
             httpConn = (HttpURLConnection) url.openConnection();
 
             httpConn.setFixedLengthStreamingMode(request.length);
@@ -141,7 +148,7 @@ public class HTTPTransport implements Transport {
             httpConn.setDoInput(true);
             httpConn.setRequestMethod("POST");
 //            httpConn.setConnectTimeout(15000);
-            httpConn.setConnectTimeout(60000);
+            httpConn.setConnectTimeout(90000);
 
             // define the standard headers to be sent
             httpConn.setRequestProperty("User-Agent", "Hosted Creators");
@@ -161,9 +168,11 @@ public class HTTPTransport implements Transport {
 
             OutputStream os = null;
 
+
             // copy the bytes onto the http stream, notify if set up
             copy(new ByteArrayInputStream(request), httpOutputStream,
                     null != this.monitor);
+
 
             httpInputStream = httpConn.getInputStream();
 
@@ -204,6 +213,15 @@ public class HTTPTransport implements Transport {
             if (httpConn.getResponseCode() == 500) {
 
                 httpInputStream = httpConn.getErrorStream();
+
+                String encoding = httpConn.getContentEncoding();
+
+System.out.println("encoding: " + encoding);
+                if (encoding != null && encoding.equalsIgnoreCase("gzip")) {
+                    httpInputStream = new GZIPInputStream(httpInputStream);
+                } else if (encoding != null && encoding.equalsIgnoreCase("deflate")) {
+                    httpInputStream = new InflaterInputStream(httpInputStream, new Inflater(true));
+                }
 
                 // sanity check before moving on, just pass on other HTTP errors
                 if (!(httpConn.getContentType().startsWith("text/xml"))) {
@@ -257,7 +275,27 @@ public class HTTPTransport implements Transport {
      * Stop whatever request is currently being processed
      */
     public void stopRequest() {
+System.out.println("**** Stop requested");
+new Exception().printStackTrace();
+
         shutdown = true;
+    }
+
+    public byte[] gzipFile(byte[] bytes) throws IOException {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            GZIPOutputStream out = new GZIPOutputStream(baos);
+
+            out.write(bytes, 0, bytes.length);
+
+            // Complete the GZIP file
+            out.finish();
+            out.close();
+
+            return baos.toByteArray();
+        } catch (IOException e) {
+            throw e;
+        }
     }
 
     /**
