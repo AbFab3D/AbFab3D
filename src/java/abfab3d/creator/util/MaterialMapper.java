@@ -50,7 +50,8 @@ public class MaterialMapper {
     public void createAppearance(String material, String[] finish, Shading shading,
         int quality, BinaryContentHandler handler) {
 
-        if (material.equalsIgnoreCase("WSF")) {
+System.out.println("material: " + material);
+        if (material == null || material.equalsIgnoreCase("WSF")) {
             applyWSFNonPolished(handler,quality);
         } else if (material.equals("StainlessSteel")) {
             boolean glossy = false;     // glossy or matte finish

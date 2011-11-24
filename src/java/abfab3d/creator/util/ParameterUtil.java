@@ -47,6 +47,9 @@ public class ParameterUtil {
                     case STRING:
                         val = raw_val;
                         break;
+                    case URI:
+                        val = raw_val;
+                        break;
                     case DOUBLE:
                         val = Double.parseDouble(raw_val);
                         break;
@@ -112,6 +115,7 @@ public class ParameterUtil {
                         throw new IllegalArgumentException("Unhandled datatype: " + p.getDataType());
                 }
             } catch(Exception e) {
+                e.printStackTrace();
                 throw new IllegalArgumentException("Error parsing: " + p.getName() + " value: " + raw_val);
             }
 
