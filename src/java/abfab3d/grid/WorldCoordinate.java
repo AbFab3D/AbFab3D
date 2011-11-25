@@ -29,9 +29,11 @@ public class WorldCoordinate {
     }
 
     public int hashCode() {
-        float val = x * 64 + y * 32 + z;
+        int result = 31 + Float.floatToIntBits(x);
+        result = 31 * result + Float.floatToIntBits(y);
+        result = 31 * result + Float.floatToIntBits(z);
 
-        return Float.floatToIntBits(val);
+        return result;
     }
 
     public boolean equals(Object o) {
