@@ -51,9 +51,9 @@ public class MaterialMapper {
         int quality, BinaryContentHandler handler) {
 
 System.out.println("material: " + material);
-        if (material == null || material.equalsIgnoreCase("WSF")) {
+        if (material == null || material.equalsIgnoreCase("White Strong & Flexible")) {
             applyWSFNonPolished(handler,quality);
-        } else if (material.equals("StainlessSteel")) {
+        } else if (material.equals("Stainless Steel")) {
             boolean glossy = false;     // glossy or matte finish
             int color = 0;  // 0 = steel, 1 = AntiqueBronze, 2 = gold
 
@@ -61,7 +61,7 @@ System.out.println("material: " + material);
                 for(int i=0; i < finish.length; i++) {
                     if (finish[i].equalsIgnoreCase("Glossy")) {
                         glossy = true;
-                    } else if (finish[i].equalsIgnoreCase("AntiqueBronze")) {
+                    } else if (finish[i].equalsIgnoreCase("Antique Bronze")) {
                         color = 1;
                     } else if (finish[i].equalsIgnoreCase("Gold")) {
                         color = 2;
@@ -81,7 +81,7 @@ System.out.println("material: " + material);
                         applyStainlessSteelGoldGlossy(handler,quality);
                         break;
                     default:
-                        System.out.println("Unknown StainlessSteel color: " + color);
+                        System.out.println("Unknown Stainless Steel color: " + color);
                         applyStainlessSteelGlossy(handler,quality);
                 }
             } else {
@@ -96,7 +96,7 @@ System.out.println("material: " + material);
                         applyStainlessSteelGoldMatte(handler,quality);
                         break;
                     default:
-                        System.out.println("Unknown StainlessSteel color: " + color);
+                        System.out.println("Unknown Stainless Steel color: " + color);
                         applyStainlessSteelMatte(handler,quality);
                 }
             }
