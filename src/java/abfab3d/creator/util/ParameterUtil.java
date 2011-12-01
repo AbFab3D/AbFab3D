@@ -51,24 +51,16 @@ public class ParameterUtil {
                         val = raw_val;
                         break;
                     case DOUBLE:
-                        val = Double.parseDouble(raw_val);
+                        val = parseDouble(p, raw_val);
                         break;
                     case INTEGER:
-                        val = Integer.parseInt(raw_val);
+                        val = parseInteger(p, raw_val);
                         break;
                     case DOUBLE_LIST:
-                        String[] dvals = raw_val.split("_");
-                        val = new double[dvals.length];
-                        for(int i=0; i < dvals.length; i++) {
-                            ((double[]) val)[i] = Double.parseDouble(dvals[i]);
-                        }
+                    	val = parseDoubleList(p, raw_val);
                         break;
                     case INTEGER_LIST:
-                        String[] ivals = raw_val.split("_");
-                        val = new int[ivals.length];
-                        for(int i=0; i < ivals.length; i++) {
-                            ((int[]) val)[i] = Integer.parseInt(ivals[i]);
-                        }
+                    	val = parseIntegerList(p, raw_val);
                         break;
                     case STRING_LIST:
                         // TODO: Need to handle escaping
@@ -123,5 +115,89 @@ public class ParameterUtil {
         }
 
         return ret_val;
+    }
+    
+    /**
+     * Parses a string as a double. Throws and IllegalArgumentException
+     * if the double is not between the parameter's min and max rage.
+     * 
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return A double representation of the input string
+     */
+    private static double parseDouble(Parameter param, String raw_val) {
+    	double val = Double.parseDouble(raw_val);
+
+    	if (val < param.getMinRange() || val > param.getMaxRange()) {
+    		throw new IllegalArgumentException();
+    	}
+    	
+    	return val;
+    }
+    
+    /**
+     * Parses a string as an int. Throws and IllegalArgumentException
+     * if the integer is not between the parameter's min and max rage.
+     * 
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return An int representation of the input string
+     */
+    private static int parseInteger(Parameter param, String raw_val) {
+    	int val = Integer.parseInt(raw_val);
+
+    	if (val < (int) param.getMinRange() || val > (int) param.getMaxRange()) {
+    		throw new IllegalArgumentException();
+    	}
+    	
+    	return val;
+    }
+    
+    /**
+     * Parses a string as a double array. Throws and IllegalArgumentException
+     * if the array values are not between the parameter's min and max rage.
+     * 
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return A double array representation of the input string
+     */
+    private static double[] parseDoubleList(Parameter param, String raw_val) {
+        String[] dvals = raw_val.split("_");
+        
+        double[] val = new double[dvals.length];
+        
+        for(int i=0; i < dvals.length; i++) {
+            val[i] = Double.parseDouble(dvals[i]);
+            
+        	if (val[i] < param.getMinRange() || val[i] > param.getMaxRange()) {
+        		throw new IllegalArgumentException();
+        	}
+        }
+
+    	return val;
+    }
+    
+    /**
+     * Parses a string as a int array. Throws and IllegalArgumentException
+     * if the array values are not between the parameter's min and max rage.
+     * 
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return An int array representation of the input string
+     */
+    private static int[] parseIntegerList(Parameter param, String raw_val) {
+        String[] dvals = raw_val.split("_");
+        
+        int[] val = new int[dvals.length];
+        
+        for(int i=0; i < dvals.length; i++) {
+            val[i] = Integer.parseInt(dvals[i]);
+            
+        	if (val[i] < (int) param.getMinRange() || val[i] > (int) param.getMaxRange()) {
+        		throw new IllegalArgumentException();
+        	}
+        }
+
+    	return val;
     }
 }
