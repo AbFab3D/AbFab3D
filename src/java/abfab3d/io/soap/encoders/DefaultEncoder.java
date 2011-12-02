@@ -220,37 +220,56 @@ public class DefaultEncoder extends BaseEncoder implements Encoder  {
             String name = mapEntry.getKey();
             Object value = mapEntry.getValue();
 
-            if (value instanceof Integer) {
+            if (value instanceof String[]) {
+                String[] sval = (String[]) value;
 
-                attributes.addAttribute(getSchemaInstance(), "", "xsi:type", "int", "xsd:int");
+                attributes.addAttribute(getSchemaInstance(), "", "SOAP-ENC:arrayType", "xsd:string[" + sval.length + "]",
+                    "xsd:string[" + sval.length + "]");
+                attributes.addAttribute(getSchemaInstance(), "", "xsi:type", "array", "xsd:array");
 
-            } else if (value instanceof byte[]) {
+                xmlWriter.startElement("", name, "", attributes);
 
-                attributes.addAttribute(getSchemaInstance(), "", "xsi:type", "base64Binary", "xsd:base64Binary");
-System.out.println("***Double Encoding value as base64");
-//                value = Base64.encode((byte[])value);
-                value = Base64.doubleEncode((byte[])value);
-            } else if (value != null) {
+                for(int i=0; i < sval.length; i++) {
+                    AttributesImpl atts = new AttributesImpl();
+                    atts.addAttribute(getSchemaInstance(), "", "xsi:type", "string", "xsd:string");
 
-                String className = value.getClass().getName();
-                int i = className.lastIndexOf('.');
+                    xmlWriter.startElement("", "item", "", atts);
+                    xmlWriter.bodyElement(sval[i]);
+                    xmlWriter.endElement("", "item", "");
+                }
+                xmlWriter.endElement("", name, "");
+            } else {
+                if (value instanceof Integer) {
 
-                attributes.addAttribute(getSchemaInstance(), "", "xsi:type",
-                        className.substring(i + 1).toLowerCase(),
-                        "xsd:" + className.substring(i + 1).toLowerCase());
+                    attributes.addAttribute(getSchemaInstance(), "", "xsi:type", "int", "xsd:int");
 
-            } else if (value == null) {
+                } else if (value instanceof byte[]) {
 
-                attributes.addAttribute(getSchemaInstance(), "", "xsi:nil", "true", "true");
+                    attributes.addAttribute(getSchemaInstance(), "", "xsi:type", "base64Binary", "xsd:base64Binary");
+                    // TODO: Double Encoding base64 because shapeways API requires it
+    //                value = Base64.encode((byte[])value);
+                    value = Base64.doubleEncode((byte[])value);
+                } else if (value != null) {
 
+                    String className = value.getClass().getName();
+                    int i = className.lastIndexOf('.');
+
+                    attributes.addAttribute(getSchemaInstance(), "", "xsi:type",
+                            className.substring(i + 1).toLowerCase(),
+                            "xsd:" + className.substring(i + 1).toLowerCase());
+
+                } else if (value == null) {
+
+                    attributes.addAttribute(getSchemaInstance(), "", "xsi:nil", "true", "true");
+
+                }
+
+                xmlWriter.startElement("", name, "", attributes);
+                if (value != null) {
+                    xmlWriter.bodyElement(value.toString());
+                }
+                xmlWriter.endElement("", name, "");
             }
-
-            xmlWriter.startElement("", name, "", attributes);
-            if (value != null) {
-                xmlWriter.bodyElement(value.toString());
-            }
-            xmlWriter.endElement("", name, "");
-
         }
 
         xmlWriter.endElement("Shapeways", elementName, "Shapeways:" + elementName);

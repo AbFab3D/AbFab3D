@@ -212,8 +212,8 @@ public class SWModelType extends DefaultObject {
      *
      * @return materials
      */
-    public String getMaterials() {
-        return (String)getProperty("materials");
+    public String[] getMaterials() {
+        return (String[])getProperty("materials");
     }
 
     /**
@@ -221,7 +221,7 @@ public class SWModelType extends DefaultObject {
      *
      * @param materials
      */
-    public void setMaterials(String materials) {
+    public void setMaterials(String[] materials) {
         setProperty("materials", materials);
     }
 
