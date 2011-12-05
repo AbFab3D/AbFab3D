@@ -18,8 +18,10 @@ import java.util.logging.Logger;
 import java.io.*;
 import java.net.*;
 import java.util.zip.*;
+import sun.misc.BASE64Encoder;
 
 import abfab3d.io.soap.*;
+import abfab3d.util.ApplicationParams;
 
 /**
  * Class used to make SOAP calls over HTTP
@@ -155,6 +157,17 @@ System.out.println("Gzipped file: in: " + in + " out: " + out + " percent: " + (
             httpConn.setRequestProperty("Content-Language", "en-US");
             httpConn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
             httpConn.setRequestProperty("Accept", "text/xml");
+            
+            // set the authorization properties
+            String user = (String) ApplicationParams.get("AUTHORIZED_USER");
+            String password = (String) ApplicationParams.get("AUTHORIZED_PASSWORD");
+
+            if (user != null && password != null) {
+                byte[] encodedPassword = ( user + ":" + password ).getBytes();
+                BASE64Encoder encoder = new BASE64Encoder();
+                httpConn.setRequestProperty( "Authorization",
+                		"Basic " + encoder.encode( encodedPassword ) );
+            }
 
             // TODO: Seems we can't accept gzip encoded data
             if (use_gzip) httpConn.setRequestProperty("Accept-Encoding", "gzip");
