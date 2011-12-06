@@ -216,7 +216,6 @@ System.out.println("Gzipped file: in: " + in + " out: " + out + " percent: " + (
 
                 String encoding = httpConn.getContentEncoding();
 
-System.out.println("encoding: " + encoding);
                 if (encoding != null && encoding.equalsIgnoreCase("gzip")) {
                     httpInputStream = new GZIPInputStream(httpInputStream);
                 } else if (encoding != null && encoding.equalsIgnoreCase("deflate")) {
