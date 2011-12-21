@@ -71,14 +71,10 @@ public class ParameterUtil {
                         }
                         break;
                     case BOOLEAN_LIST:
-                        String[] bvals = raw_val.split("_");
-                        val = new boolean[bvals.length];
-                        for(int i=0; i < bvals.length; i++) {
-                            ((boolean[]) val)[i] = Boolean.parseBoolean(bvals[i]);
-                        }
+                    	val = parseBooleanList(p, raw_val);
                         break;
                     case BOOLEAN:
-                        val = Boolean.parseBoolean(raw_val);
+                    	val = parseBoolean(p, raw_val);
                         break;
                     case ENUM:
                         val = raw_val;
@@ -194,6 +190,57 @@ public class ParameterUtil {
             val[i] = Integer.parseInt(dvals[i]);
             
         	if (val[i] < (int) param.getMinRange() || val[i] > (int) param.getMaxRange()) {
+        		throw new IllegalArgumentException();
+        	}
+        }
+
+    	return val;
+    }
+    
+    /**
+     * Parses a string as a boolean. Throws and IllegalArgumentException
+     * if the string is unparseable as true or false
+     * 
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return An int representation of the input string
+     */
+    private static boolean parseBoolean(Parameter param, String raw_val) {
+    	String rval = raw_val.toLowerCase();
+    	boolean val = true;
+    	
+    	if (rval.equals("true")) {
+    		val = true;
+    	} else if (rval.equals("false")) {
+    		val = false;
+    	} else {
+    		throw new IllegalArgumentException();
+    	}
+
+    	return val;
+    }
+    
+    /**
+     * Parses a string as a boolean array. Throws and IllegalArgumentException
+     * if the string is unparseable as true or false
+     * 
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return An boolean array representation of the input string
+     */
+    private static boolean[] parseBooleanList(Parameter param, String raw_val) {
+        String[] dvals = raw_val.split("_");
+        boolean[] val = new boolean[dvals.length];
+        String rval = null;
+        
+        for(int i=0; i < dvals.length; i++) {
+            rval = dvals[i].toLowerCase();
+            
+        	if (rval.equals("true")) {
+        		val[i] = true;
+        	} else if (rval.equals("false")) {
+        		val[i] = false;
+        	} else {
         		throw new IllegalArgumentException();
         	}
         }
