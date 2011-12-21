@@ -87,4 +87,15 @@ public class LocalKernelContext implements KernelContext {
         // TODO:  Needs implementation
         return null;
     }
+
+    /**
+     * Get a locally hosted kernel of the uri specified.
+     *
+     * @param uri The kernal uri
+     * @return The kernel or null if not available locally
+     */
+    public HostedKernel getLocalKernel(String uri) {
+        // TODO:  Needs implementation
+        return null;
+    }
 }
