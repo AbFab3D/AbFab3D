@@ -48,7 +48,9 @@ public class TemplateHTMLUICreator {
      * @param kernel The kernel
      * @param remove The parameters to remove
      */
-    public void createInterface(String template, String kernelPath, String kernelName, String templateID, String dir, List<Step> steps, Map<String,String> genParams, GeometryKernel kernel, Set<String> remove) {
+    public void createInterface(String template, String kernelPath, String kernelName, String templateID,
+        String dir, List<Step> steps, GeometryKernel kernel, Set<String> remove) {
+
         this.kernel = kernel;
         this.steps = new ArrayList<Step>();
         this.steps.addAll(steps);
@@ -70,6 +72,10 @@ public class TemplateHTMLUICreator {
 
             // Fill in the following params
             // kernel, kernelName, dataEntry, getParameters, submit, templateID
+
+            if (templateID == null) {
+                templateID = "";
+            }
 
             HashMap<String,String> template_params = new HashMap<String,String>();
             template_params.put("kernel", kernelPath);
@@ -176,6 +182,48 @@ public class TemplateHTMLUICreator {
 
             template_params.put("submit", sw.toString());
 
+            sw = new StringWriter();
+            pw = new PrintWriter(sw);
+
+            itr = sorted_params.iterator();
+            curr_step = -1;
+
+            addProcessX3D(pw,kernelPath,itr);
+
+            pw.flush();
+
+            template_params.put("3dGenerate", sw.toString());
+
+            sw = new StringWriter();
+            pw = new PrintWriter(sw);
+
+            itr = sorted_params.iterator();
+            curr_step = -1;
+
+            while(itr.hasNext()) {
+                Parameter p = itr.next();
+                if (remove.contains(p.getName())) {
+                    continue;
+                }
+
+                if (curr_step != p.getStep()) {
+                    // Add step line
+                    curr_step = p.getStep();
+                    Step step = steps.get(curr_step);
+
+                    if (curr_step != 0) {
+                        //ps.println("<HR />");
+                    }
+                }
+
+                addGlobalVar(pw, p);
+            }
+
+            pw.flush();
+
+            template_params.put("globalVars", sw.toString());
+
+
             FileInputStream fis = new FileInputStream(template);
             String out = fillTemplate(fis, template_params);
 
@@ -198,12 +246,29 @@ public class TemplateHTMLUICreator {
      * @param ps The stream to print too
      * @param p The parameter
      */
+    private void addGlobalVar(PrintWriter pw, Parameter p) {
+        pw.print("var p_");
+        pw.print(p.getName());
+        pw.print(" = \"");
+        pw.print(p.getDefaultValue());
+        pw.println("\";");
+    }
+
+    /**
+     * Pull the paramter from the form to local vars.  Perform any transformation
+     * on the variables necessary.
+     *
+     * @param ps The stream to print too
+     * @param p The parameter
+     */
     private void addParameterPull(PrintWriter pw, Parameter p) {
+        pw.print("p_");
         pw.print(p.getName());
         pw.print(" = ");
         pw.print("document.getElementById(\"");
+        pw.print("p_");
         pw.print(p.getName());
-        pw.println("\").value");
+        pw.println("\").value;");
     }
 
     /**
@@ -216,7 +281,39 @@ public class TemplateHTMLUICreator {
         pw.print("p_");
         pw.print(p.getName());
         pw.print(" : ");
-        pw.println(p.getName());
+        pw.print("p_");
+        pw.print(p.getName());
+        pw.println(",");
+    }
+
+    private void addProcessX3D(PrintWriter pw, String kernelPath, Iterator<Parameter> params) {
+    //var url = "/creator-kernels/${kernel}/3d/generate?p_fontStyle="+font+"&p_text="+encodeURIComponent(text)+"&p_material='White Strong & Flexible'";
+        pw.print("var url = \"/creator-kernels/");
+        pw.print(kernelPath);
+        pw.print("/3d/generate?");
+
+        boolean first = true;
+
+        while(params.hasNext()) {
+            Parameter param = params.next();
+
+            if (first) {
+                pw.print("p_");
+                pw.print(param.getName());
+                pw.print("=\"");
+                first = false;
+            } else {
+                pw.print("+\"&p_");
+                pw.print(param.getName());
+                pw.print("=\"");
+            }
+
+            pw.print("+");
+            pw.print("encodeURIComponent(");
+            pw.print("p_");
+            pw.print(param.getName());
+            pw.print(")");
+        }
     }
 
     /**
@@ -234,10 +331,13 @@ System.out.println("Adding param: " + p.getName());
                 pw.print(p.getNameDesc());
                 pw.print("</TD><TD>");
                 pw.print("<SELECT name=\"");
+                pw.print("p_");
+                pw.print(p.getName());
+                pw.print("\" id=\"p_");
                 pw.print(p.getName());
                 pw.print("\" selected=\"");
                 pw.print(p.getDefaultValue());
-                pw.print("\" \">");
+                pw.print("\">");
 
                 String[] vals = null;
 
@@ -274,6 +374,9 @@ System.out.println("Adding param: " + p.getName());
                 pw.print(p.getNameDesc());
                 pw.print("</TD><TD>");
                 pw.print("<TEXTAREA cols=\"20\" rows=\"2\" name=\"");
+                pw.print("p_");
+                pw.print(p.getName());
+                pw.print("\" id=\"p_");
                 pw.print(p.getName());
                 pw.print("\">");
                 pw.print(p.getDefaultValue());
@@ -285,6 +388,9 @@ System.out.println("Adding param: " + p.getName());
                 pw.print(p.getNameDesc());
                 pw.print("</TD><TD>");
                 pw.print("<INPUT type=\"text\" name=\"");
+                pw.print("p_");
+                pw.print(p.getName());
+                pw.print("\" id=\"p_");
                 pw.print(p.getName());
                 pw.print("\" value=\"");
                 pw.print(p.getDefaultValue());
@@ -367,6 +473,7 @@ System.out.println("Adding param: " + p.getName());
 
         while((st = br.readLine()) != null) {
             bldr.append(st);
+            bldr.append("\n");
         }
 
         String template = bldr.toString();

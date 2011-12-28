@@ -59,12 +59,4 @@ public interface KernelContext {
      */
     public java.net.URL getResource(java.lang.String path)
                          throws java.net.MalformedURLException;
-
-    /**
-     * Get a locally hosted kernel of the uri specified.
-     *
-     * @param uri The kernal uri
-     * @return The kernel or null if not available locally
-     */
-    public HostedKernel getLocalKernel(String uri);
 }

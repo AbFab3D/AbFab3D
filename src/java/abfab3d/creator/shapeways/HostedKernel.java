@@ -29,6 +29,13 @@ import abfab3d.creator.GeometryKernel;
  * @author Alan Hudson
  */
 public abstract class HostedKernel implements GeometryKernel {
+    /** Result Ref URN */
+    public static final String RESULT_URN = "hcn:shapeways:resultref:";
+
+    /** User uploaded parameter ref URN */
+    private static final String PARAM_URN = "hcn:shapeways:paramref:";
+
+
     /**
      * Get the services available to hosted creators.
      *
