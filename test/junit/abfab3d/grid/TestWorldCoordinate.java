@@ -42,17 +42,16 @@ public class TestWorldCoordinate extends BaseTestGrid {
     	float y = 10.1f;
     	float z = 55f;
     	
-        WorldCoordinate wc = new WorldCoordinate(x, y, z);
+        WorldCoordinate wc1 = new WorldCoordinate(x, y, z);
         
-        int hc = wc.hashCode();
-        int expectedVal = (int)(x * 64 + y * 32 + z);
+        int hc1 = wc1.hashCode();
+
+        x = x * 2;
+
+        WorldCoordinate wc2 = new WorldCoordinate(x, y, z);
+        int hc2 = wc2.hashCode();
         
-        assertEquals(expectedVal, (int)Float.intBitsToFloat(hc));
-        assertEquals(x, wc.x);
-        assertEquals(y, wc.y);
-        assertEquals(z, wc.z);
-        
-        System.out.println(wc.toString());
+        assertFalse("HashCode should not be equal", hc1 == hc2);
     }
     
     public void testEquals() {
