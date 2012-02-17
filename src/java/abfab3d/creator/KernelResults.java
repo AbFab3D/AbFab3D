@@ -13,7 +13,7 @@
 package abfab3d.creator;
 
 /**
- * Results from a Geometry Kernal generate command.
+ * Results from a Geometry Kernel generate command.
  *
  * @author Alan Hudson
  */

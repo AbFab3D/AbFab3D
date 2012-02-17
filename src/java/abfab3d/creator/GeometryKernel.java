@@ -23,7 +23,7 @@ import org.web3d.vrml.sav.BinaryContentHandler;
  * Generates 3D geometry from parameters.  A kernel should require
  * no user-input.
  *
- * All Kernals should have a no parameter constructor.  All
+ * All Kernels should have a no parameter constructor.  All
  * instance params should come through the generate method.
  *
  * Hosted editors will insure that only a single thread will call
@@ -42,13 +42,13 @@ public interface GeometryKernel {
      * No lights either.  Just geometry and appearance information.
      *
      * @param params The parameters
-     * @param accuracy The accuracy to generate the model
+     * @param acc The accuracy to generate the model
      * @param handler The X3D content handler to use
      */
-    public KernelResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException;
+    public KernelResults generate(Map<String,Object> params, GeometryKernel.Accuracy acc, BinaryContentHandler handler) throws IOException;
 
     // TODO: add revenue model scheme
-    //public RevenueScheme getRevenueScheme();
+    //public CostScheme getCostScheme();
 
    /**
      * Validates the specified parameters.  Will throw a IllegalArgumentException if its
