@@ -79,6 +79,9 @@ public class IndexedTriangleSetLoader
      */
     protected int[] vertices;
 
+    /** Should the vertices be pre multiplied */
+    protected boolean premult_vertices;
+
     /** The bounds [minX, maxX, minY, maxY, minZ, maxZ] of
      * the {@link #coordinates}. */
     protected float[] bounds;
@@ -115,13 +118,20 @@ public class IndexedTriangleSetLoader
      * Constructor
      */
     public IndexedTriangleSetLoader(){
+        this(true);
+    }
+
+    /**
+     * Constructor
+     */
+    public IndexedTriangleSetLoader(boolean premult){
         //
         // initialize variables needed for document parsing
         //
         insideITS = false;
         processingDocument = false;
         foundITS = false;
-
+        premult_vertices = premult;
         nodeStack = new SimpleStack();
         fieldStack = new SimpleStack();
         fieldValuesStack = new SimpleStack();
@@ -432,7 +442,8 @@ public class IndexedTriangleSetLoader
             // vertex and coordinate information has been set.
             // time for the rest of our preprocessing
             //
-            updateVertices();
+            if (premult_vertices)
+                    updateVertices();
 
         } // else (! validNodes.contains(nodeName))
     }
@@ -979,6 +990,14 @@ public class IndexedTriangleSetLoader
     }
 
 
+    /**
+     * Get the model bounds.  Must call computeModelBounds first.
+     *
+     * @return The aabb bounds
+     */
+    public float[] getBounds() {
+        return bounds;
+    }
     /**
      * Get the coordinates.  Only call if {@link #processFile(File)}
      * has been called.

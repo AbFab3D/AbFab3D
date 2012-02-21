@@ -15,6 +15,8 @@ package abfab3d.geom;
 // External Imports
 import java.util.*;
 import java.io.*;
+
+import abfab3d.util.BoundingBoxUtilsFloat;
 import org.web3d.vrml.sav.ContentHandler;
 import org.j3d.geom.*;
 import org.web3d.util.spatial.Triangle;
@@ -109,7 +111,6 @@ public class TriangleModelCreator extends GeometryCreator {
         double x, double y, double z, double rx, double ry, double rz, double rangle,
         int outerMaterial, int innerMaterial, boolean fill) {
 
-        this.interiorFinder = interiorFinder;
         this.geom = geom;
         this.x = x;
         this.y = y;
@@ -142,7 +143,17 @@ public class TriangleModelCreator extends GeometryCreator {
             throw new IllegalArgumentException("Unsupported geometryType: " + geom.geometryType);
         }
 
-        interiorFinder = new InteriorFinderVoxelBased(outerMaterialID,innerMaterialID);
+        BoundingBoxUtilsFloat bc = new BoundingBoxUtilsFloat();
+        
+        float[] bounds = new float[6];
+        if (geom.geometryType == GeometryData.TRIANGLES) {
+            bc.computeMinMax(geom.coordinates,geom.vertexCount, bounds);
+        } else {
+            bc.computeMinMax(geom.coordinates,geom.indexes, bounds);
+        }
+        
+        interiorFinder = new InteriorFinderTriangleBased(geom,bounds, x,y,z,rx,ry,rz,rangle,outerMaterialID, innerMaterialID);
+        //interiorFinder = new InteriorFinderVoxelBased(outerMaterialID,innerMaterialID);
     }
 
     /**
@@ -201,7 +212,7 @@ public class TriangleModelCreator extends GeometryCreator {
     /**
      * Generate the geometry and issue commands to the provided handler.
      *
-     * @param handler The stream to issue commands
+     * @param grid The grid to generate into
      */
     public void generate(Grid grid) {
         voxelSize = grid.getVoxelSize();
@@ -214,6 +225,7 @@ public class TriangleModelCreator extends GeometryCreator {
 
         // TODO: We should move both of these to grid ops for better reuse
 
+        // TODO: optimize away matrix multiple if no transformation provided.
 
         // Find exterior voxels using triangle/voxel overlaps.  Color Voxels.
 
@@ -232,27 +244,34 @@ public class TriangleModelCreator extends GeometryCreator {
 
 //System.out.println("Triangles to insert: " + len);
 
+            Point3d v = new Point3d();
+            
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
     //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
-                Point3d v = new Point3d(geom.coordinates[idx++],
-                    geom.coordinates[idx++],geom.coordinates[idx++]);
+                v.x = geom.coordinates[idx++];
+                v.y = geom.coordinates[idx++];
+                v.z = geom.coordinates[idx++];
 
                 mat.transform(v);
                 coords[0] = (float) v.x;
                 coords[1] = (float) v.y;
                 coords[2] = (float) v.z;
 
-                v = new Point3d(geom.coordinates[idx++],
-                    geom.coordinates[idx++],geom.coordinates[idx++]);
+                v.x = geom.coordinates[idx++];
+                v.y = geom.coordinates[idx++];
+                v.z = geom.coordinates[idx++];
+                
                 mat.transform(v);
                 coords[3] = (float) v.x;
                 coords[4] = (float) v.y;
                 coords[5] = (float) v.z;
 
-                v = new Point3d(geom.coordinates[idx++],
-                    geom.coordinates[idx++],geom.coordinates[idx++]);
+                v.x = geom.coordinates[idx++];
+                v.y = geom.coordinates[idx++];
+                v.z = geom.coordinates[idx++];
+                
                 mat.transform(v);
                 coords[6] = (float) v.x;
                 coords[7] = (float) v.y;
@@ -266,13 +285,16 @@ public class TriangleModelCreator extends GeometryCreator {
         } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
             int len = geom.indexesCount / 3;
 
-//System.out.println("Indexed Triangles to insert: " + len);
+            Point3d v = new Point3d();
+            
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
     //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
-                Point3d v = new Point3d(geom.coordinates[geom.indexes[idx] * 3],
-                    geom.coordinates[geom.indexes[idx] * 3 + 1],geom.coordinates[geom.indexes[idx] * 3 + 2]);
+                
+                v.x = geom.coordinates[geom.indexes[idx] * 3];
+                v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
+                v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
 
                 idx++;
                 mat.transform(v);
@@ -280,8 +302,9 @@ public class TriangleModelCreator extends GeometryCreator {
                 coords[1] = (float) v.y;
                 coords[2] = (float) v.z;
 
-                v = new Point3d(geom.coordinates[geom.indexes[idx] * 3],
-                    geom.coordinates[geom.indexes[idx] * 3 + 1],geom.coordinates[geom.indexes[idx] * 3 + 2]);
+                v.x = geom.coordinates[geom.indexes[idx] * 3];
+                v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
+                v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
 
                 idx++;
                 mat.transform(v);
@@ -289,8 +312,9 @@ public class TriangleModelCreator extends GeometryCreator {
                 coords[4] = (float) v.y;
                 coords[5] = (float) v.z;
 
-                v = new Point3d(geom.coordinates[geom.indexes[idx] * 3],
-                    geom.coordinates[geom.indexes[idx] * 3 + 1],geom.coordinates[geom.indexes[idx] * 3 + 2]);
+                v.x = geom.coordinates[geom.indexes[idx] * 3];
+                v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
+                v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
                 mat.transform(v);
                 coords[6] = (float) v.x;
                 coords[7] = (float) v.y;
@@ -403,7 +427,7 @@ System.out.flush();
      *
      * @param min The min bounds in cell coords
      * @param max The max bounds in cell coords
-     * @param id The ID to fill in
+     * @param material The ID to fill in
      */
     protected void fillCellsExact(int[] min, int[] max, Triangle tri, Grid grid, int material) {
         final int len_x = max[0] - min[0] + 1;
@@ -446,7 +470,9 @@ System.out.flush();
      * From paper: Fast 3D Triangle-Box Overlap Testing
      * TODO: this paper mentions having errors with long thin polygons
      *
-     * @param tri The triangle
+     * @param a The first vertex
+     * @param b The first vertex
+     * @param c The first vertex
      * @param pos The voxel center position
      */
     public boolean intersectsTriangle(Vector3d a, Vector3d b, Vector3d c, double[] pos) {
@@ -864,43 +890,4 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
         return Math.abs(max);
     }
 
-    /**
-     * Find the absolute maximum bounds of a geometry.
-     *
-     * @return The max bounds of each axis
-     */
-    public static double[] findBounds(GeometryData geom) {
-        double[] ret_val = new double[3];
-
-        ret_val[0] = Double.NEGATIVE_INFINITY;
-        ret_val[1] = Double.NEGATIVE_INFINITY;
-        ret_val[2] = Double.NEGATIVE_INFINITY;
-
-        int len = geom.coordinates.length;
-
-        int idx;
-
-        for(int i=0; i < len / 3; i++) {
-            idx = i * 3 + 1;
-            if (geom.coordinates[idx] > ret_val[0]) {
-                ret_val[0] = geom.coordinates[idx];
-            }
-
-            idx++;
-            if (geom.coordinates[idx] > ret_val[1]) {
-                ret_val[1] = geom.coordinates[idx];
-            }
-
-            idx++;
-            if (geom.coordinates[idx] > ret_val[2]) {
-                ret_val[2] = geom.coordinates[idx];
-            }
-        }
-
-        ret_val[0] = Math.abs(ret_val[0]);
-        ret_val[1] = Math.abs(ret_val[1]);
-        ret_val[2] = Math.abs(ret_val[2]);
-
-        return ret_val;
-    }
 }

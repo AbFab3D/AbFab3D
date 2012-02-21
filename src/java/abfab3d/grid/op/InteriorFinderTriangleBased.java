@@ -73,6 +73,14 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
     /** The temporary result grid */
     private Grid result;
 
+    /** The origin to convert result grid back to real grid */
+    private int[] origin;
+
+    /** The number of voxels per side in the spatial structure */
+    private int numVoxels;
+
+    private int int_count;
+    
     /**
      * Constructor.
      *
@@ -86,6 +94,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         this.bounds = bounds.clone();
 
         needTransform = false;
+        origin = new int[3];
     }
 
     /**
@@ -114,6 +123,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         this.rangle = rangle;
 
         needTransform = true;   // TODO: should check that transform is non identity
+        origin = new int[3];
     }
 
     /**
@@ -129,6 +139,9 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         // TODO: Assume we have enough material entries to count num interiors
         result = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
                 grid.getVoxelSize(), grid.getSliceHeight());
+
+        // TODO: Debug, remove me
+        result = new RangeCheckWrapper(result);
 
         if (needTransform) {
             float[] coords = new float[geom.coordinates.length];
@@ -155,6 +168,14 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                     coords[idx++] = (float) v.z;
                 }
 
+                // Be safe and copy over structures
+                GeometryData new_geom = new GeometryData();
+                new_geom.geometryType = GeometryData.TRIANGLES;
+                new_geom.coordinates = coords;
+                new_geom.vertexCount = geom.vertexCount;
+
+                geom = new_geom;
+
             } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
                 int len = geom.indexesCount;
 
@@ -163,32 +184,32 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                 
                 for(int i=0; i < len; i++) {
                 
-                    loc = geom.indexes[idx] * 3;
+                    loc = geom.indexes[idx++] * 3;
                     v.x = geom.coordinates[loc];
                     v.y = geom.coordinates[loc + 1];
                     v.z = geom.coordinates[loc + 2];
     
                     mat.transform(v);
 
-                    geom.coordinates[loc] = (float) v.x;
-                    geom.coordinates[loc + 1] = (float) v.y;
-                    geom.coordinates[loc + 2] = (float) v.z;
+                    coords[loc] = (float) v.x;
+                    coords[loc + 1] = (float) v.y;
+                    coords[loc + 2] = (float) v.z;
                 }
+                // Be safe and copy over structures
+                GeometryData new_geom = new GeometryData();
+                new_geom.geometryType = GeometryData.INDEXED_TRIANGLES;
+                new_geom.coordinates = coords;
+                new_geom.vertexCount = geom.vertexCount;
+                new_geom.indexes = geom.indexes.clone();
+                new_geom.indexesCount = geom.indexesCount;
+
+                geom = new_geom;
+
             }
 
-            // Be safe and copy over structures
-            GeometryData new_geom = new GeometryData();
-            new_geom.geometryType = GeometryData.TRIANGLES;
-            new_geom.coordinates = coords;
-            new_geom.vertexCount = geom.vertexCount;
-            new_geom.indexes = geom.indexes.clone();
-            new_geom.indexesCount = geom.indexesCount;
-
-            geom = new_geom;
 
             // Transform bounds
             Point3d min = new Point3d(bounds[0], bounds[2], bounds[4]);
-            mat.transform(min);
             Point3d max = new Point3d(bounds[1], bounds[3], bounds[5]);
             
             mat.transform(min);
@@ -200,8 +221,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             bounds[1] = (float) max.x;
             bounds[3] = (float) max.y;
             bounds[5] = (float) max.z;
-            
-            System.out.println("Transformed bounds: " + min + " Max: " + max);
         }
         
         int[] min = new int[3];
@@ -209,29 +228,59 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         
         grid.getGridCoords(bounds[0], bounds[2], bounds[4], min);
         grid.getGridCoords(bounds[1], bounds[3], bounds[5], max);
-        
 
-        System.out.println("min: " + java.util.Arrays.toString(min));
-        System.out.println("max: " + java.util.Arrays.toString(max));
+        spatial = initSpatial(grid,geom,grid.getVoxelSize());
 
-        if (SPATIAL_ACCEL) {
-            spatial = initSpatial(grid,geom,grid.getVoxelSize());
-        }
+        int[] spat_min = new int[3];
+        int[] spat_max = new int[3];
+        spatial.findGridCoordsFromWorldCoords(new float[] {bounds[0], bounds[2], bounds[4]}, spat_min);
+        spatial.findGridCoordsFromWorldCoords(new float[] {bounds[1], bounds[3], bounds[5]}, spat_max);
 
         double[] pos = new double[3];
         int[] tris = null;
 
-        System.out.println("Casting z dir: ");
+        // TODO: force whole range.  Should be able to use model bounds but not working
+
+        min[0] = 0;
+        min[1] = 0;
+        min[2] = 0;
+        max[0] = grid.getWidth();
+        max[1] = grid.getHeight();
+        max[2] = grid.getDepth();
+/*
+        if (min[0] > 0)
+            min[0]--;
+        if (min[1] > 0)
+            min[1]--;
+        if (min[2] > 0)
+            min[2]--;
+        if (max[0] < grid.getWidth())
+            max[0]++;
+        if (max[1] < grid.getHeight())
+            max[1]++;
+        if (max[2] < grid.getDepth())
+            max[2]++;
+  */
+
+        int sloca = spatial.findGridCoordsFromWorldCoords(0);
+        int slocb = spatial.findGridCoordsFromWorldCoords(0);
+
         // Cast rays from z direction
         for(int y=min[1]; y < max[1]; y++) {
             for(int x=min[0]; x < max[0]; x++) {
 
                 grid.getWorldCoords(x,y,0,pos);
+                pos[0] -= grid.getVoxelSize() / 2.0;
+                pos[1] -= grid.getSliceHeight() / 2.0;
+                pos[2] = grid.getDepth() + grid.getVoxelSize();
+
+//                System.out.println("ray posz: " + java.util.Arrays.toString(pos));
 
                 if (SPATIAL_ACCEL) {
                     int sloc1 = spatial.findGridCoordsFromWorldCoords((float)pos[0]);
                     int sloc2 = spatial.findGridCoordsFromWorldCoords((float)pos[1]);
 
+//System.out.println("sloc1: " + sloc1 + " sloc2: " + sloc2);
                     TunnelRegion region = new TunnelRegion(TunnelRegion.Axis.Z, sloc1, sloc2, 0);
                     tris = spatial.getObjects(region);
                 } else {
@@ -242,7 +291,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                     continue;
                 }
 
-                pos[2] -= grid.getVoxelSize();
+                //System.out.println("tris: " + tris.length);
 
                 findInterior(TunnelRegion.Axis.Z, pos[0], pos[1], pos[2], tris, grid);
             }
@@ -253,10 +302,14 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             for(int z=min[2]; z < max[2]; z++) {
 
                 grid.getWorldCoords(x,0,z,pos);
+                pos[0] -= grid.getVoxelSize() / 2.0;
+                pos[2] -= grid.getVoxelSize() / 2.0;
+                pos[1] = grid.getHeight() + grid.getSliceHeight();
 
+//System.out.println("ray posy: " + java.util.Arrays.toString(pos));
                 if (SPATIAL_ACCEL) {
                     int sloc1 = spatial.findGridCoordsFromWorldCoords((float)pos[0]);
-                    int sloc2 = spatial.findGridCoordsFromWorldCoords((float)pos[1]);
+                    int sloc2 = spatial.findGridCoordsFromWorldCoords((float)pos[2]);
 
                     TunnelRegion region = new TunnelRegion(TunnelRegion.Axis.Y, sloc1, sloc2, 0);
                     tris = spatial.getObjects(region);
@@ -268,8 +321,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                     continue;
                 }
 
-                pos[1] -= grid.getSliceHeight();
-                
+
                 findInterior(TunnelRegion.Axis.Y, pos[0], pos[1], pos[2], tris, grid);
             }
         }
@@ -279,10 +331,15 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             for(int z=min[2]; z < max[2]; z++) {
 
                 grid.getWorldCoords(0,y,z,pos);
+                pos[1] -= grid.getSliceHeight() / 2.0;
+                pos[2] -= grid.getVoxelSize() / 2.0;
+                pos[0] = grid.getWidth() + grid.getVoxelSize();
+
+                //System.out.println("ray posx: " + java.util.Arrays.toString(pos));
 
                 if (SPATIAL_ACCEL) {
-                    int sloc1 = spatial.findGridCoordsFromWorldCoords((float)pos[0]);
-                    int sloc2 = spatial.findGridCoordsFromWorldCoords((float)pos[1]);
+                    int sloc1 = spatial.findGridCoordsFromWorldCoords((float)pos[1]);
+                    int sloc2 = spatial.findGridCoordsFromWorldCoords((float)pos[2]);
 
                     TunnelRegion region = new TunnelRegion(TunnelRegion.Axis.X, sloc1, sloc2, 0);
                     tris = spatial.getObjects(region);
@@ -294,7 +351,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                     continue;
                 }
 
-                pos[0] -= grid.getVoxelSize();
 
                 findInterior(TunnelRegion.Axis.X, pos[0], pos[1], pos[2], tris, grid);
             }
@@ -303,7 +359,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         // Any voxel with material = 3 should be an interior voxel.
         result.find(3, this);
 
-
         gridOp = null;
         result = null;
         
@@ -311,7 +366,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
     }
 
     /**
-     * Cast a ray along the specified axis and find interrior voxels.
+     * Cast a ray along the specified axis and find interior voxels.
      *
      * @param axis The axis to cast along
      * @param rayX The ray x origin
@@ -321,17 +376,9 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
     private void findInterior(TunnelRegion.Axis axis, double rayX, double rayY, double rayZ,
                             int[] tris, Grid grid) {
 
-        int voxels = 0;
-        
-        if (axis == TunnelRegion.Axis.X) {
-            voxels = grid.getWidth();
-        } else if (axis == TunnelRegion.Axis.Y) {
-            voxels = grid.getHeight();
-        } else if (axis == TunnelRegion.Axis.Z) {
-            voxels = grid.getDepth();
-        }
+//System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " + rayZ);
 
-        boolean[] t_result = new boolean[voxels];
+        boolean[] t_result = new boolean[numVoxels];
 
         float[] pos = new float[3];
         float[] workingTri;
@@ -360,6 +407,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                     }
                     break;
                 case Z:
+//System.out.println("cast ray: " + rx + " " + ry + " " + rz + " tri: " + java.util.Arrays.toString(workingTri));
                     if(intersectTester.zAxisRayTriangle(rx, ry, rz, workingTri)) {
                         hits.add(new HitRecord(axis,
                                 intersectTester.getLastIntersectionPoint(),rx,ry,rz,workingTri));
@@ -371,7 +419,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         // TODO: Should we use TimSort?
         Collections.sort(hits);
 
-//    System.out.println("hits: " + hits);
+    //if (hits.size() > 0) System.out.println("hits: " + hits.size());
         int hlen = hits.size() - 1;
         HitRecord a;
         HitRecord b;
@@ -407,50 +455,110 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             pos[2] = (float) a.getZ();
 
             spatial.findGridCoordsFromWorldCoords(pos, minCoords);
-System.out.println("min pos: " + java.util.Arrays.toString(pos));
+//System.out.println("min pos: " + java.util.Arrays.toString(pos));
             pos[0] = (float) b.getX();
             pos[1] = (float) b.getY();
             pos[2] = (float) b.getZ();
-            System.out.println("max pos: " + java.util.Arrays.toString(pos));
+            //System.out.println("max pos: " + java.util.Arrays.toString(pos));
 
             spatial.findGridCoordsFromWorldCoords(pos, maxCoords);
-            System.out.println("minCoords: " + java.util.Arrays.toString(minCoords) + " maxCoords: " + java.util.Arrays.toString(maxCoords));
+            //System.out.println("minCoords: " + java.util.Arrays.toString(minCoords) + " maxCoords: " + java.util.Arrays.toString(maxCoords));
 
+            // Shorten by one to keep inside voxels inside
+            switch(axis) {
+                case X:
+                    minCoords[0] += 1;
+                    maxCoords[0] -= 1;
+                    break;
+                case Y:
+                    minCoords[1] += 1;
+                    maxCoords[1] -= 1;
+                    break;
+                case Z:
+                    minCoords[2] += 1;
+                    maxCoords[2] -= 1;
+                    break;
+            }
 //if (show_details)System.out.println("mark safe: " + java.util.Arrays.toString(minCoords) + " " + java.util.Arrays.toString(maxCoords));
-            fillCells(true, t_result, axis, minCoords, maxCoords);
+            fillCells(true, t_result, origin, axis, minCoords, maxCoords);
 
 //                System.out.println("vals: " + java.util.Arrays.toString(result));
         }
 
         hits.clear();
 
+
+        // Copy interiors.  upper right quadrant is only valid area
+
         int[] coords = new int[3];
         pos[0] = (float) rayX;
         pos[1] = (float) rayY;
         pos[2] = (float) rayZ;
 
+
         spatial.findGridCoordsFromWorldCoords(pos, coords);
 
-        // Copy interiors 
+/*
+        coords[0] = origin[0] - coords[0];
+        coords[1] = origin[1] - coords[1];
+        coords[2] = origin[2] - coords[2];
+ */
+
+//System.out.println("origin: " + java.util.Arrays.toString(origin));
         if (axis == TunnelRegion.Axis.X) {
-            for(int i=0; i < voxels; i++) {
+            int len = t_result.length;
+            int start = 0;
+
+/*
+            System.out.println("x results: ");
+            for(int i=start; i < len; i++) {
+                System.out.print(t_result[i] + " ");
+            }
+  */
+            for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setData(i,coords[1],coords[2], Grid.INTERIOR, 
-                            result.getMaterial(i,coords[1],coords[2]) + 1);
+                    //System.out.println("setx: " + i + " " + coords[1] + " " + coords[2]);
+
+                    result.setData(i - origin[0],coords[1] - origin[1],coords[2] - origin[2], Grid.INTERIOR,
+                            result.getMaterial(i-origin[0],coords[1] - origin[1],coords[2] - origin[2]) + 1);
                 }
             }
         } else if (axis == TunnelRegion.Axis.Y) {
-            for(int i=0; i < voxels; i++) {
+            int len = t_result.length;
+            int start = 0;
+
+/*
+            System.out.println("y results: ");
+            for(int i=start; i < len; i++) {
+                System.out.print(t_result[i] + " ");
+            }
+            System.out.println();
+ */
+            for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setData(coords[0],i,coords[2], Grid.INTERIOR,
-                            result.getMaterial(coords[0],i,coords[2]) + 1);
+                    //System.out.println("sety: " + coords[0] + " " + i + " " + coords[2]);
+
+                    result.setData(coords[0] - origin[0],i - origin[1],coords[2] - origin[2], Grid.INTERIOR,
+                            result.getMaterial(coords[0] - origin[0],i - origin[1],coords[2] - origin[2]) + 1);
                 }
             }
         } else if (axis == TunnelRegion.Axis.Z) {
-            for(int i=0; i < voxels; i++) {
+            //System.out.println("Copying z result");
+            int len = t_result.length;
+            int start = 0;
+
+/*
+            System.out.println("z results: ");
+            for(int i=start; i < len; i++) {
+                System.out.print(t_result[i] + " ");
+            }
+            System.out.println();
+*/
+            for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setData(coords[0],coords[1],i, Grid.INTERIOR, 
-                            result.getMaterial(coords[0],coords[1],i) + 1);
+//System.out.println("setz: " + (coords[0] - origin[0]) + " " + (coords[1] - origin[1]) + " " + (i - origin[2]));
+                    result.setData(coords[0] - origin[0],coords[1] - origin[1],i - origin[2], Grid.INTERIOR,
+                            result.getMaterial(coords[0] - origin[0],coords[1] - origin[1],i - origin[2]) + 1);
                 }
             }
         }
@@ -463,10 +571,10 @@ System.out.println("min pos: " + java.util.Arrays.toString(pos));
      * @param result The cube to fill
      * @param axis
      */
-    private void fillCells(boolean val, boolean[] result, TunnelRegion.Axis axis, int[] min, int[] max) {
+    private void fillCells(boolean val, boolean[] result, int[] origin, TunnelRegion.Axis axis, int[] min, int[] max) {
         int start = 0;
         int len = 0;
-
+        
         switch(axis) {
             case X:
                 len = max[0] - min[0] + 1;
@@ -482,8 +590,10 @@ System.out.println("min pos: " + java.util.Arrays.toString(pos));
                 break;
         }
 
-        System.out.println("fill cells: len: " + result.length + " start: " + start + " len: " + len);
+        //System.out.println("fill cells: size: " + result.length + " start: " + start + " len: " + len);
         for(int i=0; i < len; i++) {
+// TODO: I dont think origin is needed here
+//            result[start + i - orig] = val;
             result[start + i] = val;
         }
     }
@@ -503,32 +613,66 @@ System.out.println("min pos: " + java.util.Arrays.toString(pos));
         int w = 2 * grid.getWidth();
         int h = 2 * grid.getHeight();
         int d = 2* grid.getDepth();
-        int voxels = (int) Math.max(Math.max(w,h),d);
-        int num_tris = geom.indexes.length / 3;
 
-        System.out.println("Init spatial: voxels: " + voxels + " tris: " + num_tris);
+        numVoxels = (int) Math.max(Math.max(w,h),d);
+        int num_tris = 0;
 
-        GridTrianglePartition ret_val = new GridTrianglePartition(voxelSize, voxels, num_tris);
+        origin[0] = numVoxels / 2;
+        origin[1] = numVoxels / 2;
+        origin[2] = numVoxels / 2;
+
+        System.out.println("real grid size: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
+        if (geom.geometryType == GeometryData.TRIANGLES) {
+            num_tris = geom.coordinates.length / 3;
+        } else {
+            num_tris = geom.indexes.length / 3;
+        }
+
+        System.out.println("Init spatial: voxels: " + numVoxels + " tris: " + num_tris);
+
+        GridTrianglePartition ret_val = new GridTrianglePartition(voxelSize, numVoxels, num_tris);
 
         float[] tri = new float[9];
 
         int t = 0;
 
-        for(int i=0; i < num_tris; i++) {
-            tri[0] = geom.coordinates[geom.indexes[t  ] * 3  ];
-            tri[1] = geom.coordinates[geom.indexes[t  ] * 3+1];
-            tri[2] = geom.coordinates[geom.indexes[t++] * 3+2];
-            tri[3] = geom.coordinates[geom.indexes[t  ] * 3  ];
-            tri[4] = geom.coordinates[geom.indexes[t  ] * 3+1];
-            tri[5] = geom.coordinates[geom.indexes[t++] * 3+2];
-            tri[6] = geom.coordinates[geom.indexes[t  ] * 3  ];
-            tri[7] = geom.coordinates[geom.indexes[t  ] * 3+1];
-            tri[8] = geom.coordinates[geom.indexes[t++] * 3+2];
-            
-            Triangle poly = new Triangle(tri, i);
-            ret_val.insert(poly, false);
+        if (geom.geometryType == GeometryData.TRIANGLES) {
+            for(int i=0; i < num_tris / 3; i++) {
+                tri[0] = geom.coordinates[t * 3  ];
+                tri[1] = geom.coordinates[t * 3+1];
+                tri[2] = geom.coordinates[t * 3+2];
+                t++;
+                tri[3] = geom.coordinates[t * 3  ];
+                tri[4] = geom.coordinates[t * 3+1];
+                tri[5] = geom.coordinates[t * 3+2];
+                t++;
+                tri[6] = geom.coordinates[t * 3  ];
+                tri[7] = geom.coordinates[t * 3+1];
+                tri[8] = geom.coordinates[t * 3+2];
+                t++;
+
+                Triangle poly = new Triangle(tri, i);
+                ret_val.insert(poly, false);
+            }
+
+        } else {
+            for(int i=0; i < num_tris; i++) {
+                tri[0] = geom.coordinates[geom.indexes[t  ] * 3  ];
+                tri[1] = geom.coordinates[geom.indexes[t  ] * 3+1];
+                tri[2] = geom.coordinates[geom.indexes[t++] * 3+2];
+                tri[3] = geom.coordinates[geom.indexes[t  ] * 3  ];
+                tri[4] = geom.coordinates[geom.indexes[t  ] * 3+1];
+                tri[5] = geom.coordinates[geom.indexes[t++] * 3+2];
+                tri[6] = geom.coordinates[geom.indexes[t  ] * 3  ];
+                tri[7] = geom.coordinates[geom.indexes[t  ] * 3+1];
+                tri[8] = geom.coordinates[geom.indexes[t++] * 3+2];
+
+                Triangle poly = new Triangle(tri, i);
+
+                ret_val.insert(poly, false);
+            }
         }
-        
+
         System.gc();    // gc as this can generate a huge amount
 
         return ret_val;
@@ -543,6 +687,9 @@ System.out.println("min pos: " + java.util.Arrays.toString(pos));
      * @param vd The voxel data
      */
     public void found(int x, int y, int z, VoxelData vd) {
+        // TODO: can remove
+        int_count++;
+        
         gridOp.setData(x,y,z,Grid.INTERIOR, innerMaterial);
 
     }
