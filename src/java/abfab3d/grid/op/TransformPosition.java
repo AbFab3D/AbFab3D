@@ -23,19 +23,21 @@ import abfab3d.grid.*;
  * Transform the position of MARKED elements.
  *
  * Applies a 4x4 matrix to each MARKED element.  Scales are supported
- * but this can lead to voxels outside the frid.
+ * but this can lead to voxels outside the grid.
  *
  * @author Alan Hudson
  */
 public class TransformPosition implements Operation, ClassTraverser {
+    private static final boolean DEBUG = true;
+
     /** The matrix to use */
     private Matrix4d matrix;
 
-    /** The material for new exterior voxels */
-    private int material;
-
-    /** The grid */
-    private Grid grid;
+    /** The source grid */
+    private Grid src;
+    
+    /** The dest grid */
+    private Grid dest;
 
     /** Scratch point */
     private Point3d p;
@@ -43,7 +45,8 @@ public class TransformPosition implements Operation, ClassTraverser {
     /** Scratch coords */
     private double[] wcoords;
 
-    public TransformPosition(Matrix4d matrix) {
+    public TransformPosition(Matrix4d matrix, Grid dest) {
+        this.dest = dest;
         this.matrix = matrix;
         p = new Point3d();
         wcoords = new double[3];
@@ -57,16 +60,12 @@ public class TransformPosition implements Operation, ClassTraverser {
      * @return The new grid
      */
     public Grid execute(Grid grid) {
-        this.grid = grid;
+        this.src = grid;
 
         grid.find(Grid.VoxelClasses.MARKED, this);
 
-System.out.println("marked: " + cnt + " overwritten: " + overwriteCnt);
         return grid;
     }
-
-int cnt = 0;
-int overwriteCnt = 0;
 
     /**
      * A voxel of the class requested has been found.
@@ -77,34 +76,27 @@ int overwriteCnt = 0;
      * @param vd The voxel data
      */
     public void found(int x, int y, int z, VoxelData vd) {
-cnt++;
-        grid.getWorldCoords(x,y,z,wcoords);
+        src.getWorldCoords(x,y,z,wcoords);
 
         p.set(wcoords);
-//System.out.println("coords: " + x + " " + y + " " + z);
 
         matrix.transform(p);
-//System.out.println("wc: " + java.util.Arrays.toString(wcoords) + " to: " + p);
+
         byte state = vd.getState();
         int mat = vd.getMaterial();
 
-        grid.setData(x,y,z,Grid.OUTSIDE, 0);
+        dest.setData(x,y,z,Grid.OUTSIDE, 0);
 
-        if (grid.getState(p.x, p.y, p.z) != Grid.OUTSIDE) {
-            int[] gcoords = new int[3];
-
-            grid.getGridCoords(p.x, p.y, p.z, gcoords);
-System.out.println("overwrite: " + p + " orig: " + java.util.Arrays.toString(wcoords));
-System.out.println("   Moved from: " + x + " " + y + " " + z + " to: " + java.util.Arrays.toString(gcoords));
-            overwriteCnt++;
-        } else {
-            int[] gcoords = new int[3];
-            grid.getGridCoords(p.x, p.y, p.z, gcoords);
-System.out.println("place: " + p + " orig: " + java.util.Arrays.toString(wcoords));
-System.out.println("   Moved from: " + x + " " + y + " " + z + " to: " + java.util.Arrays.toString(gcoords));
+        if (DEBUG && !dest.insideGrid(p.x,p.y,p.z)) {
+            System.out.println("Point outside grid: " + x + " " + y + " " + z);
+            System.out.println("   dest: " + p);
+            int[] pos = new int[3];
+            dest.getGridCoords(p.x,p.y,p.z, pos);
+            System.out.println("   dest: " + java.util.Arrays.toString(pos));
+            return;
         }
 
-        grid.setData(p.x, p.y, p.z, state, mat);
+        dest.setData(p.x, p.y, p.z, state, mat);
      }
 
     /**
