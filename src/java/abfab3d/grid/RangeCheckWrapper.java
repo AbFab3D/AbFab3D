@@ -109,7 +109,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel data
+     * @return The voxel data
      */
     public VoxelData getData(double x, double y, double z) {
         verifyRange(x,y,z);
@@ -123,7 +123,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
         verifyRange(x,y,z);
@@ -137,7 +137,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(double x, double y, double z) {
         verifyRange(x,y,z);
@@ -151,7 +151,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(int x, int y, int z) {
         verifyRange(x,y,z);
@@ -165,7 +165,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(double x, double y, double z) {
         verifyRange(x,y,z);
@@ -179,7 +179,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(int x, int y, int z) {
         verifyRange(x,y,z);
@@ -201,11 +201,14 @@ public class RangeCheckWrapper implements GridWrapper {
 
         VoxelData vd = grid.getData(x,y,z);
 
+/*
+        // Not sure why this was here, doesn't seem to make sense.
+
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getMaterial() != material ) {
             throw new IllegalArgumentException("Invalid state change at pos: " + x + " " + y + " " + z);
         }
-
+  */
         grid.setData(x,y,z,state,material);
     }
 
@@ -215,18 +218,24 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param val The value.  0 = nothing. > 0 materialID
+     * @param state The new state
+     * @param material The new material value.  0 = nothing. > 0 materialID
      */
     public void setData(int x, int y, int z, byte state, int material) {
         verifyRange(x,y,z);
 
         VoxelData vd = grid.getData(x,y,z);
 
+/*
+        // Not sure why this was here, doesn't seem to make sense.
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getMaterial() != material ) {
+            
+            System.out.println("curr state: " + vd.getState() + " new state: " + state);
+            System.out.println("old material: " + vd.getMaterial() + " new mat: " + material);
             throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
         }
-
+  */
         grid.setData(x,y,z,state,material);
     }
 
@@ -251,7 +260,6 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
         verifyRange(x,y,z);
@@ -418,7 +426,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * Reassign a group of materials to a new materialID
      *
      * @param materials The new list of materials
-     * @param mat The new materialID
+     * @param matID The new materialID
      */
     public void reassignMaterial(int[] materials, int matID) {
         grid.reassignMaterial(materials, matID);
