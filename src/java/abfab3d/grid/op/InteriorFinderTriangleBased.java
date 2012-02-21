@@ -73,9 +73,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
     /** The temporary result grid */
     private Grid result;
 
-    /** The origin to convert result grid back to real grid */
-    private int[] origin;
-
     /** The number of voxels per side in the spatial structure */
     private int numVoxels;
 
@@ -94,7 +91,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         this.bounds = bounds.clone();
 
         needTransform = false;
-        origin = new int[3];
     }
 
     /**
@@ -123,7 +119,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         this.rangle = rangle;
 
         needTransform = true;   // TODO: should check that transform is non identity
-        origin = new int[3];
     }
 
     /**
@@ -139,9 +134,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         // TODO: Assume we have enough material entries to count num interiors
         result = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
                 grid.getVoxelSize(), grid.getSliceHeight());
-
-        // TODO: Debug, remove me
-        result = new RangeCheckWrapper(result);
 
         if (needTransform) {
             float[] coords = new float[geom.coordinates.length];
@@ -231,47 +223,14 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
 
         spatial = initSpatial(grid,geom,grid.getVoxelSize());
 
-        int[] spat_min = new int[3];
-        int[] spat_max = new int[3];
-        spatial.findGridCoordsFromWorldCoords(new float[] {bounds[0], bounds[2], bounds[4]}, spat_min);
-        spatial.findGridCoordsFromWorldCoords(new float[] {bounds[1], bounds[3], bounds[5]}, spat_max);
-
         double[] pos = new double[3];
         int[] tris = null;
-
-        // TODO: force whole range.  Should be able to use model bounds but not working
-
-        min[0] = 0;
-        min[1] = 0;
-        min[2] = 0;
-        max[0] = grid.getWidth();
-        max[1] = grid.getHeight();
-        max[2] = grid.getDepth();
-/*
-        if (min[0] > 0)
-            min[0]--;
-        if (min[1] > 0)
-            min[1]--;
-        if (min[2] > 0)
-            min[2]--;
-        if (max[0] < grid.getWidth())
-            max[0]++;
-        if (max[1] < grid.getHeight())
-            max[1]++;
-        if (max[2] < grid.getDepth())
-            max[2]++;
-  */
-
-        int sloca = spatial.findGridCoordsFromWorldCoords(0);
-        int slocb = spatial.findGridCoordsFromWorldCoords(0);
 
         // Cast rays from z direction
         for(int y=min[1]; y < max[1]; y++) {
             for(int x=min[0]; x < max[0]; x++) {
-
                 grid.getWorldCoords(x,y,0,pos);
-                pos[0] -= grid.getVoxelSize() / 2.0;
-                pos[1] -= grid.getSliceHeight() / 2.0;
+//                System.out.println("cast: x: " + x + " y: " + y + " wc: " + pos[0] + " " + pos[1]);
                 pos[2] = grid.getDepth() + grid.getVoxelSize();
 
 //                System.out.println("ray posz: " + java.util.Arrays.toString(pos));
@@ -287,11 +246,12 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                     tris = spatial.getObjects(new AllRegion());
                 }
 
+                //System.out.println("tris: " + ((tris == null) ? 0 : tris.length));
+
                 if (tris == null)  {
                     continue;
                 }
 
-                //System.out.println("tris: " + tris.length);
 
                 findInterior(TunnelRegion.Axis.Z, pos[0], pos[1], pos[2], tris, grid);
             }
@@ -302,8 +262,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             for(int z=min[2]; z < max[2]; z++) {
 
                 grid.getWorldCoords(x,0,z,pos);
-                pos[0] -= grid.getVoxelSize() / 2.0;
-                pos[2] -= grid.getVoxelSize() / 2.0;
                 pos[1] = grid.getHeight() + grid.getSliceHeight();
 
 //System.out.println("ray posy: " + java.util.Arrays.toString(pos));
@@ -331,8 +289,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             for(int z=min[2]; z < max[2]; z++) {
 
                 grid.getWorldCoords(0,y,z,pos);
-                pos[1] -= grid.getSliceHeight() / 2.0;
-                pos[2] -= grid.getVoxelSize() / 2.0;
                 pos[0] = grid.getWidth() + grid.getVoxelSize();
 
                 //System.out.println("ray posx: " + java.util.Arrays.toString(pos));
@@ -453,15 +409,15 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             pos[0] = (float) a.getX();
             pos[1] = (float) a.getY();
             pos[2] = (float) a.getZ();
+            //System.out.println("min pos: " + java.util.Arrays.toString(pos));
 
-            spatial.findGridCoordsFromWorldCoords(pos, minCoords);
-//System.out.println("min pos: " + java.util.Arrays.toString(pos));
+            grid.getGridCoords(pos[0], pos[1], pos[2], minCoords);
             pos[0] = (float) b.getX();
             pos[1] = (float) b.getY();
             pos[2] = (float) b.getZ();
             //System.out.println("max pos: " + java.util.Arrays.toString(pos));
 
-            spatial.findGridCoordsFromWorldCoords(pos, maxCoords);
+            grid.getGridCoords(pos[0],pos[1],pos[2], maxCoords);
             //System.out.println("minCoords: " + java.util.Arrays.toString(minCoords) + " maxCoords: " + java.util.Arrays.toString(maxCoords));
 
             // Shorten by one to keep inside voxels inside
@@ -479,8 +435,8 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
                     maxCoords[2] -= 1;
                     break;
             }
-//if (show_details)System.out.println("mark safe: " + java.util.Arrays.toString(minCoords) + " " + java.util.Arrays.toString(maxCoords));
-            fillCells(true, t_result, origin, axis, minCoords, maxCoords);
+//System.out.println("fill cells: " + java.util.Arrays.toString(minCoords) + " " + java.util.Arrays.toString(maxCoords));
+            fillCells(true, t_result, axis, minCoords, maxCoords);
 
 //                System.out.println("vals: " + java.util.Arrays.toString(result));
         }
@@ -496,50 +452,28 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         pos[2] = (float) rayZ;
 
 
-        spatial.findGridCoordsFromWorldCoords(pos, coords);
-
-/*
-        coords[0] = origin[0] - coords[0];
-        coords[1] = origin[1] - coords[1];
-        coords[2] = origin[2] - coords[2];
- */
-
-//System.out.println("origin: " + java.util.Arrays.toString(origin));
         if (axis == TunnelRegion.Axis.X) {
             int len = t_result.length;
             int start = 0;
 
-/*
-            System.out.println("x results: ");
-            for(int i=start; i < len; i++) {
-                System.out.print(t_result[i] + " ");
-            }
-  */
+            grid.getGridCoords(0, pos[1], pos[2], coords);
+
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    //System.out.println("setx: " + i + " " + coords[1] + " " + coords[2]);
-
-                    result.setData(i - origin[0],coords[1] - origin[1],coords[2] - origin[2], Grid.INTERIOR,
-                            result.getMaterial(i-origin[0],coords[1] - origin[1],coords[2] - origin[2]) + 1);
+                    result.setData(i,coords[1],coords[2], Grid.INTERIOR,
+                            result.getMaterial(i,coords[1],coords[2]) + 1);
                 }
             }
         } else if (axis == TunnelRegion.Axis.Y) {
             int len = t_result.length;
             int start = 0;
 
-/*
-            System.out.println("y results: ");
-            for(int i=start; i < len; i++) {
-                System.out.print(t_result[i] + " ");
-            }
-            System.out.println();
- */
+            grid.getGridCoords(pos[0], 0, pos[2], coords);
+
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    //System.out.println("sety: " + coords[0] + " " + i + " " + coords[2]);
-
-                    result.setData(coords[0] - origin[0],i - origin[1],coords[2] - origin[2], Grid.INTERIOR,
-                            result.getMaterial(coords[0] - origin[0],i - origin[1],coords[2] - origin[2]) + 1);
+                    result.setData(coords[0],i,coords[2], Grid.INTERIOR,
+                            result.getMaterial(coords[0],i,coords[2]) + 1);
                 }
             }
         } else if (axis == TunnelRegion.Axis.Z) {
@@ -547,18 +481,12 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
             int len = t_result.length;
             int start = 0;
 
-/*
-            System.out.println("z results: ");
-            for(int i=start; i < len; i++) {
-                System.out.print(t_result[i] + " ");
-            }
-            System.out.println();
-*/
+            grid.getGridCoords(pos[0], pos[1], 0, coords);
+
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-//System.out.println("setz: " + (coords[0] - origin[0]) + " " + (coords[1] - origin[1]) + " " + (i - origin[2]));
-                    result.setData(coords[0] - origin[0],coords[1] - origin[1],i - origin[2], Grid.INTERIOR,
-                            result.getMaterial(coords[0] - origin[0],coords[1] - origin[1],i - origin[2]) + 1);
+                    result.setData(coords[0],coords[1],i, Grid.INTERIOR,
+                            result.getMaterial(coords[0],coords[1],i) + 1);
                 }
             }
         }
@@ -571,7 +499,7 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
      * @param result The cube to fill
      * @param axis
      */
-    private void fillCells(boolean val, boolean[] result, int[] origin, TunnelRegion.Axis axis, int[] min, int[] max) {
+    private void fillCells(boolean val, boolean[] result, TunnelRegion.Axis axis, int[] min, int[] max) {
         int start = 0;
         int len = 0;
         
@@ -592,8 +520,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
 
         //System.out.println("fill cells: size: " + result.length + " start: " + start + " len: " + len);
         for(int i=0; i < len; i++) {
-// TODO: I dont think origin is needed here
-//            result[start + i - orig] = val;
             result[start + i] = val;
         }
     }
@@ -616,10 +542,6 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
 
         numVoxels = (int) Math.max(Math.max(w,h),d);
         int num_tris = 0;
-
-        origin[0] = numVoxels / 2;
-        origin[1] = numVoxels / 2;
-        origin[2] = numVoxels / 2;
 
         System.out.println("real grid size: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
         if (geom.geometryType == GeometryData.TRIANGLES) {
