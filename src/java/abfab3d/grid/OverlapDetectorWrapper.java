@@ -468,13 +468,19 @@ public class OverlapDetectorWrapper implements GridWrapper {
      * @return True if the coordinate is inside the grid space
      */
     public boolean insideGrid(int x, int y, int z) {
-        if (x >= 0 && x < grid.getWidth() &&
-            y >= 0 && y < grid.getHeight() &&
-            z >= 0 && z < grid.getDepth()) {
-
-            return true;
-        }
-
-        return false;
+        return grid.insideGrid(x,y,z);
     }
+
+    /**
+     * Determine if a voxel coordinate is inside the grid space.
+     *
+     * @param wx The x world coordinate
+     * @param wy The y world coordinate
+     * @param wz The z world coordinate
+     * @return True if the coordinate is inside the grid space
+     */
+    public boolean insideGrid(double wx, double wy, double wz) {
+        return grid.insideGrid(wx,wy,wz);
+    }
+
 }

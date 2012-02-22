@@ -89,7 +89,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel data
+     * @return The voxel data
      */
     public VoxelData getData(double x, double y, double z) {
         return grid.getData(x,y,z);
@@ -101,7 +101,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
         return grid.getData(x,y,z);
@@ -113,7 +113,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(double x, double y, double z) {
         return grid.getState(x,y,z);
@@ -125,7 +125,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(int x, int y, int z) {
         return grid.getState(x,y,z);
@@ -137,7 +137,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(double x, double y, double z) {
         return grid.getMaterial(x,y,z);
@@ -149,7 +149,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(int x, int y, int z) {
         return grid.getMaterial(x,y,z);
@@ -181,7 +181,7 @@ public class OccupiedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param val The value.  0 = nothing. > 0 materialID
+     * @param material The value.  0 = nothing. > 0 materialID
      */
     public void setData(int x, int y, int z, byte state, int material) {
         VoxelData vd = grid.getData(x,y,z);
@@ -217,7 +217,6 @@ public class OccupiedWrapper implements GridWrapper {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
         if (grid.getState(x,y,z) != Grid.OUTSIDE && state != Grid.OUTSIDE) {
@@ -364,7 +363,7 @@ public class OccupiedWrapper implements GridWrapper {
      * Reassign a group of materials to a new materialID
      *
      * @param materials The new list of materials
-     * @param mat The new materialID
+     * @param matID The new materialID
      */
     public void reassignMaterial(int[] materials, int matID) {
         grid.reassignMaterial(materials, matID);
@@ -447,13 +446,18 @@ public class OccupiedWrapper implements GridWrapper {
      * @return True if the coordinate is inside the grid space
      */
     public boolean insideGrid(int x, int y, int z) {
-        if (x >= 0 && x < grid.getWidth() &&
-            y >= 0 && y < grid.getHeight() &&
-            z >= 0 && z < grid.getDepth()) {
+        return grid.insideGrid(x,y,z);
+    }
 
-            return true;
-        }
-
-        return false;
+    /**
+     * Determine if a voxel coordinate is inside the grid space.
+     *
+     * @param wx The x world coordinate
+     * @param wy The y world coordinate
+     * @param wz The z world coordinate
+     * @return True if the coordinate is inside the grid space
+     */
+    public boolean insideGrid(double wx, double wy, double wz) {
+        return grid.insideGrid(wx,wy,wz);
     }
 }

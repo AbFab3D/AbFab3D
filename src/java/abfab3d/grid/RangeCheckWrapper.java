@@ -38,6 +38,9 @@ public class RangeCheckWrapper implements GridWrapper {
     /** The wrapper grid */
     private Grid grid;
 
+    /** Should we check conversion like getGridCoords */
+    private boolean checkConversion;
+    
     /**
      * Constructor.
      *
@@ -45,8 +48,22 @@ public class RangeCheckWrapper implements GridWrapper {
      */
     public RangeCheckWrapper(Grid grid) {
         setGrid(grid);
+
+        checkConversion = true;
     }
 
+    /**
+     * Constructor.
+     *
+     * @param grid The grid to wrap
+     * @param checkConversions Should we check read accesses.
+     */
+    public RangeCheckWrapper(Grid grid, boolean checkConversions) {
+        setGrid(grid);
+        
+        checkConversion = checkConversions;
+    }
+    
     /**
      * Copy Constructor.
      *
@@ -276,7 +293,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param coords The ans is placed into this preallocated array(3).
      */
     public void getGridCoords(double x, double y, double z, int[] coords) {
-        verifyRange(x,y,z);
+        if (checkConversion) verifyRange(x,y,z);
 
         grid.getGridCoords(x,y,z,coords);
     }
@@ -290,7 +307,7 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param coords The ans is placed into this preallocated array(3).
      */
     public void getWorldCoords(int x, int y, int z, double[] coords) {
-        verifyRange(x,y,z);
+        if (checkConversion) verifyRange(x,y,z);
 
         grid.getWorldCoords(x,y,z,coords);
     }
@@ -584,13 +601,23 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return True if the coordinate is inside the grid space
      */
     public boolean insideGrid(int x, int y, int z) {
-        if (x >= 0 && x < grid.getWidth() &&
-            y >= 0 && y < grid.getHeight() &&
-            z >= 0 && z < grid.getDepth()) {
+        if (checkConversion) verifyRange(x,y,z);
 
-            return true;
-        }
-
-        return false;
+        return grid.insideGrid(x,y,z);
     }
+
+    /**
+     * Determine if a voxel coordinate is inside the grid space.
+     *
+     * @param wx The x world coordinate
+     * @param wy The y world coordinate
+     * @param wz The z world coordinate
+     * @return True if the coordinate is inside the grid space
+     */
+    public boolean insideGrid(double wx, double wy, double wz) {
+        if (checkConversion) verifyRange(wx,wy,wz);
+
+        return grid.insideGrid(wx,wy,wz);
+    }
+
 }
