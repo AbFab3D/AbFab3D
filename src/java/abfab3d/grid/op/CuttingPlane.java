@@ -29,8 +29,6 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class CuttingPlane implements Operation {
-    public enum Axis {XAXIS, YAXIS, ZAXIS};
-
     /** The axis of the cutting plane */
     private Axis axis;
 
@@ -62,7 +60,7 @@ public class CuttingPlane implements Operation {
         int depth = grid.getDepth();
         int height = grid.getHeight();
 
-        if (axis == Axis.XAXIS) {
+        if (axis == Axis.X) {
             if (dir == 1) {
                 // RIGHT = +X direction, loc is Z coordinate
 

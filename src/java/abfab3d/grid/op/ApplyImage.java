@@ -63,15 +63,35 @@ public class ApplyImage implements Operation {
     /** Remove stray pixels.  Any exterior pixel with no neighbors */
     private boolean removeStray;
 
+    /** The axis x pixels should be applied against in the grid */
+    private HalfAxis xAxis;
+
+    /** The axis y pixels should be applied against in the grid */
+    private HalfAxis yAxis;
+
+    /** The axis z pixels should be applied against in the grid */
+    private HalfAxis zAxis;
+    
     public ApplyImage(BufferedImage image, int x, int y, int z,
         int w, int h,
         int threshold,
         boolean blackExterior, int pixelDepth, boolean removeStray, int material) {
+        
+        this(image,x,y,z,HalfAxis.X_POSITIVE, HalfAxis.Y_POSITIVE, HalfAxis.Z_POSITIVE,w,h,threshold,blackExterior,pixelDepth,removeStray,material);
+    }
+
+    public ApplyImage(BufferedImage image, int x, int y, int z, HalfAxis xaxis, HalfAxis yaxis, HalfAxis zaxis, 
+                      int w, int h,
+                      int threshold,
+                      boolean blackExterior, int pixelDepth, boolean removeStray, int material) {
 
         this.image = image;
         this.x0 = x;
         this.y0 = y;
         this.z0 = z;
+        this.xAxis = xaxis;
+        this.yAxis = yaxis;
+        this.zAxis = zaxis;
         this.w = w;
         this.h = h;
         this.threshold = threshold;
@@ -85,7 +105,7 @@ public class ApplyImage implements Operation {
             throw new IllegalArgumentException("Width or Height cannot <= zero.  Width: " + w + " Height: " + h);
         }
     }
-
+    
     /**
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
@@ -171,12 +191,13 @@ System.out.println("z0: " + z0 + " depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z < pixelDepth; z++) {
-                                grid.setData(x0 + x, y0 + y, z0 + z, Grid.EXTERIOR, material);
+                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
                             }
                         }
                     }
                 }
             } else {
+System.out.println("***here");                
                 for (int y = 0; y < h; y++) {
                     for (int x = 0; x < w; x++) {
                         int rgb = cell_img.getRGB(x, h - y - 1) & 0xFF;
@@ -220,7 +241,7 @@ System.out.println("z0: " + z0 + " depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z < pixelDepth; z++) {
-                                grid.setData(x0 + x, y0 + y, z0 + z, Grid.EXTERIOR, material);
+                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
                             }
                         }
                     }
@@ -272,7 +293,7 @@ System.out.println("z0: " + z0 + " depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z > pixelDepth; z--) {
-                                grid.setData(x0 + x, y0 + y, z0 + z, Grid.EXTERIOR, material);
+                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
                             }
                         }
                     }
@@ -321,7 +342,7 @@ System.out.println("z0: " + z0 + " depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z > pixelDepth; z--) {
-                                grid.setData(x0 + x, y0 + y, z0 + z, Grid.EXTERIOR, material);
+                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
                             }
                         }
                     }
@@ -332,4 +353,75 @@ System.out.println("z0: " + z0 + " depth: " + pixelDepth);
         System.out.println("Pixels Applied: " + applied);
         return grid;
     }
+
+    private void setData(Grid grid, int x, int y, int z, HalfAxis xAxis, HalfAxis yAxis, HalfAxis zAxis,
+                         byte state, int material) {
+        int xval = 0;
+        int yval = 0;
+        int zval = 0;
+
+        switch(xAxis) {
+            case X_POSITIVE:
+                xval = x0 + x;
+                break;
+            case Y_POSITIVE:
+                xval = y0 + y;
+                break;
+            case Z_POSITIVE:
+                xval = z0 + z;
+                break;
+            case X_NEGATIVE:
+                xval = x0 - x;
+                break;
+            case Y_NEGATIVE:
+                xval = y0 - y;
+                break;
+            case Z_NEGATIVE:
+                xval = z0 - z;
+                break;
+        }
+        switch(yAxis) {
+            case X_POSITIVE:
+                yval = x0 + x;
+                break;
+            case Y_POSITIVE:
+                yval = y0 + y;
+                break;
+            case Z_POSITIVE:
+                yval = z0 + z;
+                break;
+            case X_NEGATIVE:
+                yval = x0 - x;
+                break;
+            case Y_NEGATIVE:
+                yval = y0 - y;
+                break;
+            case Z_NEGATIVE:
+                yval = z0 - z;
+                break;
+        }
+        switch(zAxis) {
+            case X_POSITIVE:
+                zval = x0 + x;
+                break;
+            case Y_POSITIVE:
+                zval = y0 + y;
+                break;
+            case Z_POSITIVE:
+                zval = z0 + z;
+                break;
+            case X_NEGATIVE:
+                zval = x0 - x;
+                break;
+            case Y_NEGATIVE:
+                zval = y0 - y;
+                break;
+            case Z_NEGATIVE:
+                zval = z0 - z;
+                break;
+        }
+
+        grid.setData(xval, yval, zval, state, material);
+    }
+
 }
