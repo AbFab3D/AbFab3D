@@ -27,10 +27,11 @@ public interface ImageKernel {
      * No lights either.  Just geometry and appearance information.
      *
      * @param params The parameters
+     * @param enc The image type encoding.  Currently jpg and png supported.
      * @param acc The accuracy to generate the model
      * @param os The stream to place the output
      */
-    public KernelResults generateImage(Map<String,Object> params, ImageKernel.Accuracy acc, OutputStream os) throws IOException;
+    public KernelResults generateImage(Map<String,Object> params, String enc, ImageKernel.Accuracy acc, OutputStream os) throws IOException;
 
     /**
      * Get the parameters for this editor.
