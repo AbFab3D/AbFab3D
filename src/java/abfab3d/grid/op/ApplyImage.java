@@ -13,7 +13,6 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.util.Iterator;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -191,7 +190,7 @@ System.out.println("z0: " + z0 + " depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z < pixelDepth; z++) {
-                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
+                                setData(grid, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
                             }
                         }
                     }
@@ -293,7 +292,7 @@ System.out.println("***here");
                             applied++;
 
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
+                                setData(grid, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
                             }
                         }
                     }
@@ -342,7 +341,7 @@ System.out.println("***here");
 
                             applied++;
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
+                                setData(grid, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
                             }
                         }
                     }

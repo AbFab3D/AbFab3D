@@ -44,7 +44,6 @@ public class TemplateHTMLUICreator {
      * Create a user interface for a kernel.
      *
      * @param dir The directory to place the files
-     * @param genParams Parameters for generation
      * @param kernel The kernel
      * @param remove The parameters to remove
      */
@@ -243,7 +242,7 @@ public class TemplateHTMLUICreator {
      * Pull the paramter from the form to local vars.  Perform any transformation
      * on the variables necessary.
      *
-     * @param ps The stream to print too
+     * @param pw The stream to print too
      * @param p The parameter
      */
     private void addGlobalVar(PrintWriter pw, Parameter p) {
@@ -258,7 +257,7 @@ public class TemplateHTMLUICreator {
      * Pull the paramter from the form to local vars.  Perform any transformation
      * on the variables necessary.
      *
-     * @param ps The stream to print too
+     * @param pw The stream to print too
      * @param p The parameter
      */
     private void addParameterPull(PrintWriter pw, Parameter p) {
@@ -274,7 +273,7 @@ public class TemplateHTMLUICreator {
     /**
      * Add submit items
      *
-     * @param ps The stream to print too
+     * @param pw The stream to print too
      * @param p The parameter
      */
     private void addSubmit(PrintWriter pw, Parameter p) {
@@ -290,8 +289,9 @@ public class TemplateHTMLUICreator {
     //var url = "/creator-kernels/${kernel}/3d/generate?p_fontStyle="+font+"&p_text="+encodeURIComponent(text)+"&p_material='White Strong & Flexible'";
         pw.print("var url = \"/creator-kernels/");
         pw.print(kernelPath);
-        pw.print("/3d/generate?");
+        pw.print("/3d/generate\";\n");
 
+        pw.print("var data = \"");
         boolean first = true;
 
         while(params.hasNext()) {
@@ -319,7 +319,7 @@ public class TemplateHTMLUICreator {
     /**
      * Add a user interface element for an item.
      *
-     * @param ps The stream to print too
+     * @param pw The stream to print too
      * @param p The parameter
      */
     private void addParameterUI(PrintWriter pw, Parameter p) {

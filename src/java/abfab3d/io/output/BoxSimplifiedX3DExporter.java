@@ -34,6 +34,7 @@ import toxi.geom.mesh.WETriangleMesh;
  * @author Alan Hudson
  */
 public class BoxSimplifiedX3DExporter implements Exporter {
+    private static final boolean SIMPLIFY = false;
     private static final boolean STATS = true;
 
     /** Should we use per-vertex color to show materials */
@@ -148,7 +149,7 @@ public class BoxSimplifiedX3DExporter implements Exporter {
 
         mesh = new WETriangleMesh();
 
-        for(int i=0; i < height; i++) {
+        loop: for(int i=0; i < height; i++) {
             y = i * sheight;
 
             byte cstate;
@@ -323,10 +324,12 @@ System.out.println("no color for: " + mat);
         HashMap<String,Object> params = new HashMap<String, Object>();
         params.put(SAVExporter.EXPORT_NORMALS, false);
 
-        System.out.println("Simplifieing4");
+        if (SIMPLIFY) {
+            System.out.println("Simplifieing6");
 
-        MeshSimplifier ms = new MeshSimplifier();
-        ms.execute(mesh);
+            MeshSimplifier ms = new MeshSimplifier();
+            ms.execute(mesh);
+        }
 
         SAVExporter exporter = new SAVExporter();
         exporter.outputX3D(mesh, params, writer);
@@ -335,7 +338,10 @@ System.out.println("no color for: " + mat);
         writer.endField();
         writer.endNode();
 
-        if (STATS) System.out.println("voxel: " + voxels + " sides: " + (voxels * 6) + " saved: " + saved + " %: " + ((float)saved / voxels * 6));
+        if (STATS) {
+            System.out.println("voxel: " + voxels + " sides: " + (voxels * 6) + " saved: " + saved + " %: " + ((float)saved / voxels * 6));
+            System.out.println("faces: " + mesh.getNumFaces() + " verts: " + mesh.getNumVertices());
+        }
 
     }
 
@@ -858,4 +864,3 @@ System.out.println("no color for: " + mat);
         writer.endDocument();
     }
 }
-

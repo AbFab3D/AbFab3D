@@ -32,6 +32,65 @@ public class MatrixUtil {
     /**
      * Helper method for creating Transforms from components.
      */
+    public static Matrix4d createMatrix(double[] vfRotation, double[] vfTranslation) {
+        Vector3d tempVec = new Vector3d();
+        AxisAngle4d tempAxis = new AxisAngle4d();
+        Matrix4d tempMtx1 = new Matrix4d();
+        Matrix4d tempMtx2 = new Matrix4d();
+        Matrix4d tmatrix = new Matrix4d();
+
+        if (DEBUG) {
+            System.out.println("Create Matrix: ");
+            System.out.println("translation: " + java.util.Arrays.toString(vfTranslation));
+            System.out.println("rotation: " + java.util.Arrays.toString(vfRotation));
+        }
+
+
+        double magSq = vfRotation[0] * vfRotation[0] +
+                vfRotation[1] * vfRotation[1] +
+                vfRotation[2] * vfRotation[2];
+
+        if(magSq < ZEROEPS) {
+            tempAxis.x = 0;
+            tempAxis.y = 0;
+            tempAxis.z = 1;
+            tempAxis.angle = 0;
+        } else {
+            if ((magSq > 1.01) || (magSq < 0.99)) {
+
+                double mag = (double)(1 / Math.sqrt(magSq));
+                tempAxis.x = vfRotation[0] * mag;
+                tempAxis.y = vfRotation[1] * mag;
+                tempAxis.z = vfRotation[2] * mag;
+            } else {
+                tempAxis.x = vfRotation[0];
+                tempAxis.y = vfRotation[1];
+                tempAxis.z = vfRotation[2];
+            }
+
+            tempAxis.angle = vfRotation[3];
+        }
+
+        tempMtx1.set(tempAxis);
+        if (DEBUG) System.out.println("R\n" + tempMtx1);
+
+        tempVec.x = vfTranslation[0];
+        tempVec.y = vfTranslation[1];
+        tempVec.z = vfTranslation[2];
+
+        tempMtx2.setIdentity();
+        tempMtx2.setTranslation(tempVec);
+
+        tmatrix.mul(tempMtx2, tempMtx1);
+
+        if (DEBUG) System.out.println(tmatrix);
+        return tmatrix;
+
+    }
+
+    /**
+     * Helper method for creating Transforms from components.
+     */
     public static Matrix4d createMatrix(double[] vfCenter, double[] vfScale,
         double[] vfRotation, double[] vfTranslation, double[] vfScaleOrientation) {
         Vector3d tempVec = new Vector3d();

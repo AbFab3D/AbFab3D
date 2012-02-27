@@ -76,6 +76,9 @@ public class ParameterUtil {
                     case BOOLEAN:
                     	val = parseBoolean(p, raw_val);
                         break;
+                    case ENUM_LIST:
+                        val = parseEnumList(p, raw_val);
+                        break;
                     case ENUM:
                         val = raw_val;
                         String[] valid_values = p.getEnumValues();
@@ -158,6 +161,10 @@ public class ParameterUtil {
      * @return A double array representation of the input string
      */
     private static double[] parseDoubleList(Parameter param, String raw_val) {
+        if (raw_val.length() == 0) {
+            return new double[0];
+        }
+
         String[] dvals = raw_val.split("_");
         
         double[] val = new double[dvals.length];
@@ -172,6 +179,51 @@ public class ParameterUtil {
 
     	return val;
     }
+
+    /**
+     * Parses a string as an enum array. Throws and IllegalArgumentException
+     * if the array values are not valid.
+     *
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return A double array representation of the input string
+     */
+    private static String[] parseEnumList(Parameter param, String raw_val) {
+        String[] valid_values = param.getEnumValues();
+
+        if (valid_values == null) {
+            if (!raw_val.equals("")) {
+                throw new IllegalArgumentException("Error Validating " + param.getName() + " invalid enum value: " + raw_val);
+            }
+            return new String[0];
+        }
+        
+        if (raw_val.length() == 0) {
+            return new String[0];
+        }
+
+        String[] dvals = raw_val.split("_");
+        String[] ret_val = new String[dvals.length];
+
+        for(int i=0; i < dvals.length; i++) {
+            ret_val[i] = dvals[i];
+
+            boolean valid = false;
+
+            for(int j=0; j < valid_values.length; j++) {
+                if (dvals[i].equals(valid_values[i])) {
+                    valid = true;
+                    break;
+                }
+            }
+
+            if (!valid) {
+                throw new IllegalArgumentException("Error Validating " + param.getName() + " invalid enum value: " + dvals[i]);
+            }
+        }
+        
+        return ret_val;
+    }
     
     /**
      * Parses a string as a int array. Throws and IllegalArgumentException
@@ -182,6 +234,10 @@ public class ParameterUtil {
      * @return An int array representation of the input string
      */
     private static int[] parseIntegerList(Parameter param, String raw_val) {
+        if (raw_val.length() == 0) {
+            return new int[0];
+        }
+
         String[] dvals = raw_val.split("_");
         
         int[] val = new int[dvals.length];
@@ -229,6 +285,10 @@ public class ParameterUtil {
      * @return An boolean array representation of the input string
      */
     private static boolean[] parseBooleanList(Parameter param, String raw_val) {
+        if (raw_val.length() == 0) {
+            return new boolean[0];
+        }
+
         String[] dvals = raw_val.split("_");
         boolean[] val = new boolean[dvals.length];
         String rval = null;

@@ -21,7 +21,7 @@ import org.web3d.vrml.sav.ContentHandler;
 import abfab3d.grid.Grid;
 
 /**
- * Creates a Clyinder
+ * Creates a Cylinder
  *
  * @author Alan Hudson
  */
@@ -77,7 +77,7 @@ public class CylinderCreator extends GeometryCreator {
     /**
      * Generate the geometry and issue commands to the provided handler.
      *
-     * @param handler The stream to issue commands
+     * @param grid The grid to update
      */
     public void generate(Grid grid) {
         int[] coords1 = new int[3];

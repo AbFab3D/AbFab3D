@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
+package abfab3d.grid;
 
 /**
  * Half axis description of a plane.

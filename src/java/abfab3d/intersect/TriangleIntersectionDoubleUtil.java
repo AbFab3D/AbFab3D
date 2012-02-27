@@ -33,13 +33,6 @@ import javax.vecmath.Point3d;
  *
  * Another method determines ray-triangle intersections.
  *
- * Method zAxisRayTriangleVoxel needs one final extension: code should be added
- * to make sure that the intersection point of a triangle is properly contained
- * by the given voxel.  Note, however, that this code should not be added until
- * the 'do not check triangles more than once' code is added to class
- * WallThickness.java.  The change should not be difficult; class OctreeNode
- * already has a "containsPoint()" method.
- *
  * @author Alan Hudson
  */
 

@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
+package abfab3d.grid;
 
 /**
  * Axis plane description
