@@ -48,7 +48,7 @@ import java.awt.geom.*;
  *
  * @author Alan Hudson
  */
-public class ImageEditorKernel implements GeometryKernel {
+public class ImageEditorKernel extends HostedKernel {
     /** Debugging level.  0-5.  0 is none */
     private static final int DEBUG_LEVEL = 5;
 
@@ -144,12 +144,12 @@ public class ImageEditorKernel implements GeometryKernel {
 
         params.put("bodyWidth", new Parameter("bodyWidth", "Body Width", "The width of the main body", "0.025", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0.03, 1, null, null)
+            step, seq++, false, 0.01, 1, null, null)
         );
 
         params.put("bodyHeight", new Parameter("bodyHeight", "Body Height", "The height of the main body", "0.04", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0.03, 1, null, null)
+            step, seq++, false, 0.01, 1, null, null)
         );
 
         params.put("bodyDepth", new Parameter("bodyDepth", "Body Depth", "The depth of the main body", "0.0032", 1,
@@ -185,7 +185,7 @@ public class ImageEditorKernel implements GeometryKernel {
 
     /**
      * @param params The parameters
-     * @param accuracy The accuracy to generate the model
+     * @param acc The accuracy to generate the model
      * @param handler The X3D content handler to use
      */
     public KernelResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
@@ -487,7 +487,7 @@ if (1==0) {
         } catch(Exception e) {
             e.printStackTrace();
 
-            return new KernelResults(false, KernelResults.INTERNAL_ERROR, "Failed Writing Grid");
+            return new KernelResults(false, KernelResults.INTERNAL_ERROR, "Failed Writing Grid", null, null);
         }
 
         double[] min_bounds = new double[3];
