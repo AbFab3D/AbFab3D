@@ -86,6 +86,9 @@
         <compilejava package="abfab3d/util"
             jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar"
         />
+        <compilejava package="abfab3d/intersect"
+                     jars=""
+                />
         <compilejava package="abfab3d/path"
             jars=""
         />
@@ -108,7 +111,7 @@
             jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
         />
         <compilejava package="abfab3d/io/output"
-            jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
+            jars="toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar toxiclibscore.jar"
         />
         <compilejava package="abfab3d/io/soap"
             jars=""
