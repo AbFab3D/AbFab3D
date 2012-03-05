@@ -376,6 +376,7 @@ System.out.println("Add face: " + va + " " + vb + " " + vc);
 
         HashMap<String,Object> params = new HashMap<String, Object>();
         params.put(SAVExporter.EXPORT_NORMALS, false);
+        params.put(SAVExporter.COMPACT_VERTICES, true);
 
 
 

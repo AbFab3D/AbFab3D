@@ -13,6 +13,7 @@ import toxi.math.MathUtils;
 
 import javax.vecmath.Vector3d;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -36,6 +37,66 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
     }
 
 
+    public void executeRandom(WETriangleMesh mesh, Grid grid) {
+        ArrayList<WingedEdge> collapse_list = new ArrayList<WingedEdge>() ;
+
+        int size = 1;
+        int pass = 0;
+//        int max_pass = 1000;
+        int max_pass = 1500;
+        int max_edges = Integer.MAX_VALUE;
+
+        long edges_removed = 0;
+
+        loop:
+        for(int i=0; i < max_pass; i++) {
+            while(true) {
+                WingedEdge[] edges = new WingedEdge[mesh.edges.size()];
+                edges = (WingedEdge[]) mesh.edges.values().toArray(edges);
+
+                WingedEdge edge = getBestEdge(edges, mesh);
+
+                if (edge == null) {
+                    break;
+                }
+
+//                collapseEdge3(edge, (WEVertex) edge.a, mesh);
+                collapseEdge2(edge, (WEVertex) edge.a, mesh);
+
+                edges_removed++;
+
+                if (edges_removed >= max_edges)  {
+                    break loop;
+                }
+                if (edges_removed % 1000 == 0) {
+                    System.out.println("   edge count: " + edges_removed);
+                }
+            }
+            System.out.println("Pass number: " + i);
+        }
+    }
+    
+    private WingedEdge getBestEdge(WingedEdge[] edges, WETriangleMesh mesh) {
+        int sample = 100;
+        
+        for(int i=0; i < sample; i++) {
+
+            int num = (int) (Math.random() * edges.length);
+
+            WingedEdge edge = edges[num];
+            
+            Vec3D mid_p = getMidPoint(edge.a, edge.b);
+            WEVertex mid = new WEVertex(mid_p,999999999);
+
+            if (canCollapseRelatedMinDot(edge,0.8f) && canCollapseDistance(edge, maxDistance) &&
+                    canCollapseNoNonManifoldEdges(edge, mid, mesh)) {
+                return edge;               
+            }                        
+        }
+        
+        return null;
+    }
+    
     /**
      * Execute the simplification algorithm
      *
@@ -81,11 +142,16 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             for(WingedEdge edge : mesh.edges.values()) {
                     // TODO: This is the best so far, Coplanar might be ok as well
 //                if (canCollapseRelatedCoplanar(edge) && canCollapseDistance(edge,maxDistance)) {
+//                if (canCollapseRelatedMinDot(edge,0.8f) && canCollapseDistance(edge, maxDistance)) {
+
                 
                 
-                
-//.6 was last
-                if (canCollapseRelatedMinDot(edge,0.8f) && canCollapseDistance(edge, maxDistance)) {
+//                WEVertex mid = (WEVertex) edge.a;
+                Vec3D mid_p = getMidPoint(edge.a, edge.b);
+                WEVertex mid = new WEVertex(mid_p,999999999);
+
+                if (canCollapseRelatedMinDot(edge,0.8f) && canCollapseDistance(edge, maxDistance) && 
+                        canCollapseNoNonManifoldEdges(edge, mid, mesh)) {
 
 //                if (canCollapseRelatedCoplanar(edge) && canCollapseDistance(edge,maxDistance)) {
 //                if (canCollapseRelatedCoplanar(edge) && canCollapseEdgesInsideGrid(edge, 1, grid)) {
@@ -98,7 +164,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                     
                     if (display_edges) {
                         ejectSegment(stream, new float[] {edge.a.x, edge.a.y, edge.a.z,}, 
-                                new float[] {edge.b.x, edge.b.y, edge.b.z});
+                                new float[] {edge.b.x, edge.b.y, edge.b.z},null);
                     }
                 }                                
             }
@@ -134,16 +200,27 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                 }
                 if (DEBUG) System.out.println("Collapse edge: " + edge);
 
-                collapseEdge2(edge, mesh);
-                
-/*                
+                Vec3D mid_p = getMidPoint(edge.a, edge.b);
+                WEVertex mid = new WEVertex(mid_p,999999999);
+
+                // Reverify edge
+                if (canCollapseRelatedMinDot(edge,0.8f) && canCollapseDistance(edge, maxDistance) &&
+                        canCollapseNoNonManifoldEdges(edge, mid, mesh)) {
+
+
+                collapseEdge2(edge, (WEVertex) mid, mesh);
+//                collapseEdge3(edge, (WEVertex) mid, mesh);
+                }
+
+/*
                 boolean valid = validateMesh(mesh, null);
 
                 if (!valid) {
-                    System.out.println("Mesh now invalid");
+                    System.out.println("****Mesh now invalid.  Collapsed edge: " + edge);
+                    throw new IllegalArgumentException("stop");
                 }
+
  */
-                
                 edges_removed++;
 
                 if (edges_removed >= max_edges)  {
@@ -429,14 +506,26 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
     }
 
     /**
-     * Edge collapsed based on remove and readd.
+     * Edge collapsed based on remove and re-add.
      * @param edge
      * @param mesh
      */
-    protected void collapseEdge2(WingedEdge edge, WETriangleMesh mesh) {
+    protected void collapseEdge2(WingedEdge edge, WEVertex mid, WETriangleMesh mesh) {
+        int orig_verts = mesh.vertices.size();
+        
         // Choose center point of edge for new vertex location
-        WEVertex mid = mesh.checkVertex(getMidPoint(edge.a, edge.b));
+//        WEVertex mid = mesh.checkVertex(getMidPoint(edge.a, edge.b));
 
+        // TODO: meshlab suggests using a point on the surface is better then the mid.
+
+        List<WEFace> orig_faces_list = edge.getFaces();
+
+/*
+        System.out.println("Removing faces:");
+        for(WEFace face : orig_faces_list) {
+            System.out.println(face);
+        }
+ */
         if (DEBUG) System.out.println("Removing edge: " + edge);
         mesh.removeEdge(edge);
 
@@ -446,13 +535,15 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
         List<WEFace> listb = vb.getRelatedFaces();
 
 
-        List<WEFace> face_list = new ArrayList<WEFace>();
-
         int idx = 0;
 
         float[] anormals = new float[lista.size() * 3];
         float[] bnormals = new float[listb.size() * 3];
-        
+        boolean use_normals = true; //  TODO: sometimes this helps, other times it doesnt
+
+
+        int orig_faces = mesh.faces.size();
+        int faces = lista.size() + listb.size();
         if (DEBUG) System.out.println("Removing faces  a: " + lista.size() + " b: " + listb.size());
         for(WEFace face : lista) {
             anormals[idx++] = face.normal.x;
@@ -472,8 +563,9 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             mesh.removeFace(face);
         }
 
-
-        boolean use_normals = true; //  TODO: sometimes this helps, other times it doesnt
+        if (orig_faces - mesh.faces.size() != faces) {
+            System.out.println("ERROR: wrong face count.  orig: " + orig_faces + " to_remove: " + faces + " curr: " + mesh.faces.size());
+        }
 
         idx = 0;
         for(WEFace face : lista) {
@@ -530,7 +622,347 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                 System.out.println("ERROR: why here?");
             }
         }
+ 
+        if (orig_faces != mesh.faces.size()) {
+            System.out.println("ERROR: not all faces restored.  orig: " + orig_faces + " now: " + mesh.faces.size());
+        }
+        int new_verts = mesh.vertices.size();
 
+
+        if (orig_verts - new_verts != 1) {
+            System.out.println("ERROR: vert count off: orig_verts: " + orig_verts + " new_verts: " + new_verts);
+        }
+
+        // TODO: We should remove va and vb.  But WETriangleMesh doesn't support this
+    }
+
+    /**
+     * Edge collapsed based on remove and re-add.
+     * @param edge
+     * @param mesh
+     */
+    protected void collapseEdge3(WingedEdge edge, WEVertex mid, WETriangleMesh mesh) {
+        int orig_verts = mesh.vertices.size();
+
+        // Choose center point of edge for new vertex location
+//        WEVertex mid = mesh.checkVertex(getMidPoint(edge.a, edge.b));
+
+        // TODO: meshlab suggests using a point on the surface is better then the mid.
+
+        List<WEFace> orig_faces_list = new ArrayList<WEFace>();
+        
+        orig_faces_list.addAll(edge.getFaces());
+
+        if (edge.getFaces().size() != 2) {
+            System.out.println("Collapsing non-manifold edge!");
+            throw new IllegalArgumentException("faces wrong: " + edge.getFaces().size());
+        }
+/*
+        System.out.println("Removing faces:");
+        for(WEFace face : orig_faces_list) {
+            System.out.println(face);
+        }
+*/
+        if (DEBUG) System.out.println("Removing edge: " + edge);
+        mesh.removeEdge(edge);
+
+        WEVertex va = (WEVertex) edge.a;
+        WEVertex vb = (WEVertex) edge.b;
+        List<WEFace> lista = va.getRelatedFaces();
+        List<WEFace> listb = vb.getRelatedFaces();
+
+
+        int idx = 0;
+
+        float[] anormals = new float[lista.size() * 3];
+        float[] bnormals = new float[listb.size() * 3];
+        boolean use_normals = true; //  TODO: sometimes this helps, other times it doesnt
+
+
+        int orig_faces = mesh.faces.size();
+        int faces = lista.size() + listb.size();
+        if (DEBUG) System.out.println("Removing faces  a: " + lista.size() + " b: " + listb.size());
+        for(WEFace face : lista) {
+            anormals[idx++] = face.normal.x;
+            anormals[idx++] = face.normal.y;
+            anormals[idx++] = face.normal.z;
+
+            orig_faces_list.add(face);
+            if (DEBUG) System.out.println("   " + face);
+            mesh.removeFace(face);
+        }
+
+        idx = 0;
+        for(WEFace face : listb) {
+            bnormals[idx++] = face.normal.x;
+            bnormals[idx++] = face.normal.y;
+            bnormals[idx++] = face.normal.z;
+            if (DEBUG) System.out.println("   " + face);
+            orig_faces_list.add(face);
+            mesh.removeFace(face);
+        }
+
+        if (orig_faces - mesh.faces.size() != faces) {
+            System.out.println("ERROR: wrong face count.  orig: " + orig_faces + " to_remove: " + faces + " curr: " + mesh.faces.size());
+        }
+
+        boolean failed = false;
+        WEFace failure = null;
+        
+        ArrayList<WEFace> added_faces = new ArrayList<WEFace>(lista.size() + listb.size());
+        
+        add: {
+            idx = 0;
+            for(WEFace face : lista) {
+                if (face.a.equals(va)) {
+                    if (use_normals) {
+                        WEFace f = mesh.addFaceManifold(mid, face.b, face.c, new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+                        
+                        if (f != null) {
+                            added_faces.add(f);
+                        } else {
+                            failed = true;  
+                            failure = new WEFace((WEVertex) mid, (WEVertex) face.b, (WEVertex) face.c);
+                            break add;
+                        }
+                    }
+                } else if (face.b.equals(va)) {
+                    if (use_normals) {
+                        WEFace f = mesh.addFaceManifold(face.a, mid, face.c,new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+
+                        if (f != null) {
+                            added_faces.add(f);
+                        } else {
+                            failed = true;
+                            failure = new WEFace((WEVertex) face.a, (WEVertex) mid, (WEVertex) face.c);
+                            break add;
+                        }                        
+                    }
+                } else if (face.c.equals(va)){
+                    if (use_normals) {
+                        WEFace f = mesh.addFaceManifold(face.a, face.b, mid,new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+
+                        if (f != null) {
+                            added_faces.add(f);
+                        } else {
+                            failed = true;
+                            failure = new WEFace((WEVertex) face.a, (WEVertex) face.b, (WEVertex) mid);
+                            break add;
+                        }
+                    }
+                } else {
+                    System.out.println("ERROR: why here?");
+                }
+            }
+    
+            idx = 0;
+            for(WEFace faceb : listb) {
+                if (faceb.a.equals(vb)) {
+                    if (use_normals) {
+                        WEFace f = mesh.addFaceManifold(mid, faceb.b, faceb.c, new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+                        if (f != null) {
+                            added_faces.add(f);
+                        } else {
+                            failed = true;
+                            failure = new WEFace((WEVertex) mid, (WEVertex) faceb.b, (WEVertex) faceb.c);
+                            break add;
+                        }
+                    }
+                } else if (faceb.b.equals(vb)) {
+                    if (use_normals) {
+                        WEFace f = mesh.addFaceManifold(faceb.a, mid, faceb.c,new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+                        if (f != null) {
+                            added_faces.add(f);
+                        } else {
+                            failed = true;
+                            failure = new WEFace((WEVertex) faceb.a, (WEVertex) mid, (WEVertex) faceb.c);
+                            break add;
+                        }
+                    }
+                } else if (faceb.c.equals(vb)){
+                    if (use_normals) {
+                        WEFace f = mesh.addFaceManifold(faceb.a, faceb.b, mid,new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+                        if (f != null) {
+                            added_faces.add(f);
+                        } else {
+                            failed = true;
+                            failure = new WEFace((WEVertex) faceb.a, (WEVertex) faceb.b, (WEVertex) mid);
+                            break add;
+                        }
+                    }
+                } else {
+                    System.out.println("ERROR: why here?");
+                }
+            }
+
+        }        
+        
+        if (failed) {
+            
+/*            
+            System.out.println("****Operation failed manifold.  Rollback");
+            for(WEFace f : added_faces) {
+                mesh.removeFace(f);
+            }
+            
+            System.out.println("Readding faces");
+            for(WEFace f : orig_faces_list) {
+                mesh.addFace(f.a,f.b,f.c);
+            }
+            
+            System.out.println("Rollback done");
+*/
+
+            BinaryContentHandler stream = null;
+            FileOutputStream fos = null;
+
+            try {
+                PlainTextErrorReporter console = new PlainTextErrorReporter();
+
+                fos = new FileOutputStream("c:/tmp/viz.x3db");
+                stream = new X3DBinaryRetainedDirectExporter(fos,
+                        3, 0, console,
+                        X3DBinarySerializer.METHOD_FASTEST_PARSING,
+                        0.001f, true);
+
+                stream.startDocument("","", "utf8", "#X3D", "V3.0", "");
+                stream.profileDecl("Immersive");
+
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+
+            float[] red = new float[] {1,0,0};
+            float[] blue = new float[] {0,0,1};
+            float[] origin = new float[3];
+            float[] dest = new float[3];
+
+            stream.startNode("Viewpoint",null);
+            stream.startField("centerOfRotation");
+            stream.fieldValue(new float[] {edge.a.x,edge.a.y,edge.a.z}, 3);
+            stream.endNode();
+
+            float scale = 0.9999f;
+            origin[0] = failure.a.x() * scale;
+            origin[1] = failure.a.y() * scale;
+            origin[2] = failure.a.z() * scale;
+            dest[0] = failure.b.x() * scale;
+            dest[1] = failure.b.y() * scale;
+            dest[2] = failure.b.z() * scale;
+
+            ejectSegment(stream, origin, dest, red);
+
+            origin[0] = failure.b.x() * scale;
+            origin[1] = failure.b.y() * scale;
+            origin[2] = failure.b.z() * scale;
+            dest[0] = failure.c.x() * scale;
+            dest[1] = failure.c.y() * scale;
+            dest[2] = failure.c.z() * scale;
+
+            ejectSegment(stream, origin, dest, red);
+
+            origin[0] = failure.c.x() * scale;
+            origin[1] = failure.c.y() * scale;
+            origin[2] = failure.c.z() * scale;
+            dest[0] = failure.a.x() * scale;
+            dest[1] = failure.a.y() * scale;
+            dest[2] = failure.a.z() * scale;
+
+            ejectSegment(stream, origin, dest, red);
+
+            System.out.println("degenerate? " + isFaceDegenerate(failure));
+            for(WEFace face : added_faces) {
+                origin[0] = face.a.x();
+                origin[1] = face.a.y();
+                origin[2] = face.a.z();
+                dest[0] = face.b.x();
+                dest[1] = face.b.y();
+                dest[2] = face.b.z();
+                
+                ejectSegment(stream, origin, dest, blue);
+                
+                origin[0] = face.b.x();
+                origin[1] = face.b.y();
+                origin[2] = face.b.z();
+                dest[0] = face.c.x();
+                dest[1] = face.c.y();
+                dest[2] = face.c.z();
+
+                ejectSegment(stream, origin, dest, blue);
+
+                origin[0] = face.c.x();
+                origin[1] = face.c.y();
+                origin[2] = face.c.z();
+                dest[0] = face.a.x();
+                dest[1] = face.a.y();
+                dest[2] = face.a.z();
+
+                ejectSegment(stream, origin, dest, blue);
+                
+            }
+
+
+            float[] white = new float[] {1,1,1};
+            float[] green = new float[] {0,1,0};
+            
+            float trans = 2;
+            idx = 0;
+            float[] color;
+            
+            for(WEFace face : orig_faces_list) {
+                if (idx < 2) {
+                    color = green;
+                }  else {
+                    color = white;
+                }
+                origin[0] = face.a.x() + trans;
+                origin[1] = face.a.y();
+                origin[2] = face.a.z();
+                dest[0] = face.b.x() + trans;
+                dest[1] = face.b.y();
+                dest[2] = face.b.z();
+
+                ejectSegment(stream, origin, dest, color);
+
+                origin[0] = face.b.x() + trans;
+                origin[1] = face.b.y();
+                origin[2] = face.b.z();
+                dest[0] = face.c.x() + trans;
+                dest[1] = face.c.y();
+                dest[2] = face.c.z();
+
+                ejectSegment(stream, origin, dest, color);
+
+                origin[0] = face.c.x() + trans;
+                origin[1] = face.c.y();
+                origin[2] = face.c.z();
+                dest[0] = face.a.x() + trans;
+                dest[1] = face.a.y();
+                dest[2] = face.a.z();
+
+                ejectSegment(stream, origin, dest, color);
+                
+                idx++;
+
+            }
+
+            stream.endDocument();
+            try { fos.close(); } catch(IOException ioe) {}
+
+            throw new IllegalArgumentException("failed");
+            
+        } else {
+
+            if (orig_faces != mesh.faces.size()) {
+                System.out.println("ERROR: not all faces restored.  orig: " + orig_faces + " now: " + mesh.faces.size());
+            }
+            int new_verts = mesh.vertices.size();
+
+
+            if (orig_verts - new_verts != 1) {
+                System.out.println("ERROR: vert count off: orig_verts: " + orig_verts + " new_verts: " + new_verts);
+            }
+        }
         // TODO: We should remove va and vb.  But WETriangleMesh doesn't support this
     }
     
@@ -549,6 +981,11 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                 && MathUtils.abs(vec.z) < eps;
     }
 
+    // Insure that any new vertex positions are not on top each other
+    private boolean canCollapseVertexMashing(WingedEdge edge, WEVertex mid) {
+        return false;
+    }
+
     /**
      *  Insure calculated mid point would not be on the outside of the object.
      *  
@@ -557,9 +994,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
      * @param grid
      * @return
      */
-    private boolean canCollapseMidPoint(WingedEdge edge, Grid grid) {
-        Vec3D mid = getMidPoint(edge.a, edge.b);
-
+    private boolean canCollapseMidPoint(WingedEdge edge, WEVertex mid, Grid grid) {
         if (!grid.insideGrid(mid.x,mid.y,mid.z)) {
             return false;
         }
@@ -582,7 +1017,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
      * @param grid
      * @return
      */
-    private boolean canCollapseEdgesInsideGrid(WingedEdge edge, int dist, Grid grid) {
+    private boolean canCollapseEdgesInsideGrid(WingedEdge edge, int dist, WEVertex mid, Grid grid) {
         WEVertex va = (WEVertex) edge.a;
         WEVertex vb = (WEVertex) edge.b;
         List<WEFace> lista = va.getRelatedFaces();
@@ -591,7 +1026,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
         int[] counts = new int[2];
         int[] gcoords = new int[3];
         WingedEdge tmp = new WingedEdge((WEVertex)edge.a,(WEVertex)edge.b, (WEFace)edge.faces.get(0),  edge.id);
-        Vec3D mid = getMidPoint(edge.a, edge.b);
+
         Vec3D emid = null;
         int ratio = 2;  // out_cnt > ratio * in_cnt fails
 
@@ -796,8 +1231,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
      * @param grid
      * @return
      */
-    private boolean canCollapseMidPoint(WingedEdge edge, int dist, Grid grid) {
-        Vec3D mid = getMidPoint(edge.a, edge.b);
+    private boolean canCollapseMidPoint(WingedEdge edge, int dist, Vec3D mid, Grid grid) {
         int[] coords = new int[3];
 
         if (!grid.insideGrid(mid.x,mid.y,mid.z)) {
@@ -849,6 +1283,195 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
         counts[0] = in_cnt;
         counts[1] = out_cnt;
 
+    }
+    
+    private boolean canCollapseNoNonManifoldEdges(WingedEdge edge, WEVertex mid, WETriangleMesh mesh) {
+        HashMap<WingedEdge, Integer> edges = new HashMap<WingedEdge, Integer>();
+        
+        WEVertex va = (WEVertex) edge.a;
+        WEVertex vb = (WEVertex) edge.b;
+        List<WEFace> lista = va.getRelatedFaces();
+        List<WEFace> listb = vb.getRelatedFaces();
+
+
+        if (mesh.vertices.containsKey(mid)) {
+            System.out.println("Mid point already on something, ignore");
+            return false;
+        }
+        
+        int idx = 0;
+        Integer cnt = null;
+
+        List<WEFace>[] lists = new ArrayList[2];
+        Vertex[] verts = new Vertex[2];
+        lists[0] = lista;
+        lists[1] = listb;
+        verts[0] = va;
+        verts[1] = vb;
+        
+        lista.removeAll(edge.getFaces());
+        listb.removeAll(edge.getFaces());
+        WingedEdge real_edge = null;
+
+        for(int i=0; i < lists.length; i++) {
+//System.out.println("faces: " + lists[i]);
+            for(WEFace face : lists[i]) {
+//System.out.println("vert: " + verts[i]);
+                if (face.a.equals(verts[i])) {
+                    if (DEBUG) printFace(mid, face.b, face.c, new float[] {0,1,0});
+                    
+                    WEFace f = new WEFace((WEVertex) mid, (WEVertex) face.b, (WEVertex) face.c);
+                    if (isFaceDegenerate(f)) {
+                        return false;
+                    }
+                    WingedEdge e = new WingedEdge(mid, (WEVertex) face.b, face, 0);
+                                        
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+                    
+                    // Check current edges and make sure its not already there
+
+                    if (mesh.edges.containsKey(e)) {
+                        System.out.println("Edge already exists");
+                        return false;
+                    }
+
+                    e = new WingedEdge((WEVertex) face.b, (WEVertex) face.c, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+
+                    e = new WingedEdge((WEVertex) face.c, (WEVertex) mid, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+
+
+                    // Check current edges and make sure its not already there
+                    if (mesh.edges.containsKey(e)) {
+                        System.out.println("Edge already exists");
+                        return false;
+                    }
+                } else if (face.b.equals(verts[i])) {
+                    if (DEBUG) printFace(face.a, mid, face.c, new float[] {0,1,0});
+                    WEFace f = new WEFace((WEVertex) face.a, (WEVertex) mid, (WEVertex) face.c);
+                    if (isFaceDegenerate(f)) {
+                        return false;
+                    }
+
+                    WingedEdge e = new WingedEdge((WEVertex) face.a, (WEVertex) mid, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+
+                    // Check current edges and make sure its not already there
+                    if (mesh.edges.containsKey(e)) {
+                        System.out.println("Edge already exists");
+                        return false;
+                    }
+
+                    e = new WingedEdge((WEVertex) mid, (WEVertex) face.c, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+
+
+                    // Check current edges and make sure its not already there
+                    if (mesh.edges.containsKey(e)) {
+                        System.out.println("Edge already exists");
+                        return false;
+                    }
+
+                    e = new WingedEdge((WEVertex) face.c, (WEVertex) face.a, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+                } else if (face.c.equals(verts[i])){
+                    if (DEBUG) printFace(face.a, face.b, mid, new float[] {0,1,0});
+                    WEFace f = new WEFace((WEVertex) face.a, (WEVertex) face.b, (WEVertex) mid);
+                    if (isFaceDegenerate(f)) {
+                        return false;
+                    }
+
+                    WingedEdge e = new WingedEdge((WEVertex) face.a, (WEVertex) face.b, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+
+                    e = new WingedEdge((WEVertex) face.b, (WEVertex) mid, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+
+                    // Check current edges and make sure its not already there
+                    if (mesh.edges.containsKey(e)) {
+                        System.out.println("Edge already exists");
+                        return false;
+                    }
+
+                    e = new WingedEdge((WEVertex) mid, (WEVertex) face.a, face, 0);
+                    cnt = edges.get(e);
+                    if (cnt == null) {
+                        edges.put(e, new Integer(1));
+                    } else if (cnt >= 2) {
+                        return false;
+                    } else {
+                        edges.put(e, new Integer(2));
+                    }
+
+                    // Check current edges and make sure its not already there
+                    if (mesh.edges.containsKey(e)) {
+                        System.out.println("Edge already exists");
+                        return false;
+                    }
+                } else {
+                    System.out.println("ERROR: why here?");
+                }
+            }
+        }
+
+        return true;
     }
     
     // Check that all vertices related to the edge have exactly them same normals
@@ -1054,6 +1677,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
             }
         }
 
+
         for(WingedEdge edge : mesh.edges.values()) {
             if (edge.faces.size() != 2) {
                 if (border != null && border.contains(edge)) {
@@ -1065,17 +1689,64 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
             }
         }
 
-        // insure all faces have three edges
+
+        // insure all faces have three edges and all vertices exist
         for(Face face : mesh.faces.values()) {
             WEFace f = (WEFace) face;
 
             if (f.edges.size() != 3) {
-                System.out.println("Invalid face: " + face);
+                System.out.println("Invalid face: " + face +  " edges: " + f.edges.size());
                 valid = false;
             }
 
+
             WEVertex v = (WEVertex) f.a;
             List<WingedEdge> edges = v.edges;
+
+            // check the vertex is in the mesh
+            Vec3D vtx = mesh.vertices.get(v);
+
+            if (vtx == null || !v.equals(vtx)) {
+                System.out.println("Invalid vertex a: key: " + v + " value: " + vtx);
+
+                valid = false;
+            }
+
+
+            for(WingedEdge edge : edges) {
+                if (mesh.edges.get(edge) == null) {
+                    System.out.println("Face contains invalid edge: " + edge + " face: " + face);
+                    valid = false;
+                }
+            }
+
+            v = (WEVertex) f.b;
+            vtx = mesh.vertices.get(v);
+            edges = v.edges;
+
+
+            if (vtx == null || !v.equals(vtx)) {
+                System.out.println("Invalid vertex b: key: " + v + " value: " + vtx);
+                valid = false;
+            }
+
+            // check that the edge is in mesh
+
+            for(WingedEdge edge : edges) {
+                if (mesh.edges.get(edge) == null) {
+                    System.out.println("Face contains invalid edge: " + edge + " face: " + face);
+                    valid = false;
+                }
+            }
+
+            v = (WEVertex) f.c;
+            vtx = mesh.vertices.get(v);
+            edges = v.edges;
+
+            if (vtx == null || !v.equals(vtx)) {
+                System.out.println("Invalid vertex c: key: " + v + " value: " + vtx);
+                valid = false;
+            }
 
             // check that the edge is in mesh
 
@@ -1106,7 +1777,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
      * @param origin The origin of the segment
      * @param dest The dest of the segment
      */
-    public static void ejectSegment(BinaryContentHandler stream, float[] origin, float[] dest) {
+    public static void ejectSegment(BinaryContentHandler stream, float[] origin, float[] dest, float[] color) {
 
         if (stream == null) {
             return;
@@ -1121,6 +1792,15 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
         int[] all_index = new int[] {0,1};
 
         stream.startNode("Shape", null);
+        if (color != null) {
+            stream.startNode("Appearance", null);
+            stream.startField("material");
+            stream.startNode("Material", null);
+            stream.startField("emissiveColor");
+            stream.fieldValue(color,3);
+            stream.endNode();  // Material
+            stream.endNode();  // Appearance            
+        }
         stream.startField("geometry");
         stream.startNode("IndexedLineSet", null);
         stream.startField("coord");
@@ -1135,6 +1815,23 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
     }
 
 
+    /**
+     * Compute cross product of two edges, if its near zero its bad
+     * @param f
+     * @return
+     */
+    private boolean isFaceDegenerate(Face f) {
+        double area = f.b.sub(f.a).cross(f.c.sub(f.a)).magSquared();
+
+        double EPS = 1e-17f;
+
+        if (area < EPS) {
+            //System.out.println("Degenerate tri: " + f + " area: " + area);
+            return true;
+        }
+
+        return false;
+    }
 }
 
 class EdgeSorter implements Comparator {

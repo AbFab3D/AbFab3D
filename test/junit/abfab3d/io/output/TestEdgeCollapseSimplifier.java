@@ -95,7 +95,7 @@ public class TestEdgeCollapseSimplifier extends TestCase {
         WingedEdge edge = getEdge(18,mesh);
 
         System.out.println("removing edge: " + edge);
-        reducer.collapseEdge2(edge, mesh);
+        reducer.collapseEdge2(edge, (WEVertex) edge.a, mesh);
         assertTrue("Valid mesh",validateMesh(mesh,border));
 
         write(mesh);
@@ -140,7 +140,7 @@ public class TestEdgeCollapseSimplifier extends TestCase {
             }
             //printEdgeDetails(edge);
             System.out.println("removing edge: " + edge);
-            reducer.collapseEdge2(edge, mesh);
+            reducer.collapseEdge2(edge, (WEVertex) edge.a, mesh);
             assertTrue("Valid mesh",validateMesh(mesh,border));
             cnt++;
         }
@@ -183,7 +183,7 @@ public class TestEdgeCollapseSimplifier extends TestCase {
 
         //printEdgeDetails(edge);
         System.out.println("removing edge: " + edge);
-        reducer.collapseEdge2(edge, mesh);
+        reducer.collapseEdge2(edge, (WEVertex) edge.a, mesh);
         write(mesh);
 
         assertTrue("Valid mesh",validateMesh(mesh,border));
