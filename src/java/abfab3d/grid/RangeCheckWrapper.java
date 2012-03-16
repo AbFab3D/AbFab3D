@@ -601,8 +601,6 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return True if the coordinate is inside the grid space
      */
     public boolean insideGrid(int x, int y, int z) {
-        if (checkConversion) verifyRange(x,y,z);
-
         return grid.insideGrid(x,y,z);
     }
 
@@ -615,8 +613,6 @@ public class RangeCheckWrapper implements GridWrapper {
      * @return True if the coordinate is inside the grid space
      */
     public boolean insideGrid(double wx, double wy, double wz) {
-        if (checkConversion) verifyRange(wx,wy,wz);
-
         return grid.insideGrid(wx,wy,wz);
     }
 

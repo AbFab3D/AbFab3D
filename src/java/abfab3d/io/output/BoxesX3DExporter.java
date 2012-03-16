@@ -95,7 +95,6 @@ public class BoxesX3DExporter implements Exporter {
      */
     public void write(Grid grid, Map<Integer, float[]> matColors) {
 
-System.out.println("matColors: " + matColors.size());
         if (grid instanceof OctreeGridByte) {
             ((OctreeGridByte)grid).write(writer, (OctreeGridByte)grid, matColors);
             return;
@@ -973,8 +972,6 @@ System.out.println("no color for: " + mat);
     /**
      * Eject a footer for the file.
      *
-     * @param stream The stream to write too
-     * @param grid The first grid written
      */
     private void ejectFooter() {
         writer.endDocument();

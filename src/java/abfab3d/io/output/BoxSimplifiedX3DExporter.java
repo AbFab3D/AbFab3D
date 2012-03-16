@@ -16,7 +16,6 @@ package abfab3d.io.output;
 import java.util.*;
 import java.io.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
-import org.web3d.vrml.sav.ContentHandler;
 import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
 import org.web3d.vrml.export.X3DClassicRetainedExporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -30,6 +29,11 @@ import toxi.geom.mesh.WETriangleMesh;
 
 /**
  * Uses a box structure to represent a grid.  Exports to an X3D stream.
+ *
+ * TODO: This code likely suffers from this: The faces are subsequently stitched together to form a quad mesh.
+ * However, sometimes four faces meet at an edge and in this case we must decide which pair to stitch together.
+ * This is done using the asymptotic decider by Nielson and Hamann. It was invented to decide ambiguous configurations
+ * in marching cubes but it is precisely the same problem.
  *
  * @author Alan Hudson
  */
@@ -105,7 +109,49 @@ public class BoxSimplifiedX3DExporter implements Exporter {
             ((OctreeGridByte)grid).write(writer, (OctreeGridByte)grid, matColors);
             return;
         }
+/*
+        // TODO: Not sure its nice to change the real grid, make a copy?
+        System.out.println("Fixing grid");
+        long cnt = 1;
+        int passes = 0;
+        int max_passes = 100;
 
+        Grid dest = grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getVoxelSize(), grid.getSliceHeight());
+        dest = null;
+        ConnectDiagonal cd = new ConnectDiagonal(dest);
+        while(cnt > 0) {
+            System.out.println("ConnectDiagonal Pass: " + passes);
+            cd.execute(grid);
+            cnt = cd.getCount();
+            passes++;
+
+            if (passes >= max_passes) {
+                break;
+            }
+        }
+
+        if (dest != null) {
+            HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
+            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
+            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            //colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
+
+            HashMap<Integer, Float> transp = new HashMap<Integer, Float>();
+            transp.put(new Integer(Grid.INTERIOR), new Float(0));
+            transp.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+    //        transp.put(new Integer(Grid.OUTSIDE), new Float(0.95));
+
+            try {
+                FileOutputStream fos = new FileOutputStream("diags.x3db");
+                BoxesX3DExporter be = new BoxesX3DExporter("x3db", fos, console);
+                be.writeDebug(dest, colors, transp);
+                be.close();
+                fos.close();
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
+  */
         double x,y,z;
         int idx = 0;
 //        float[] color = new float[] {0.8f,0.8f,0.8f};
@@ -327,8 +373,8 @@ System.out.println("no color for: " + mat);
         if (SIMPLIFY) {
             System.out.println("Simplifieing6");
 
-            MeshSimplifier ms = new MeshSimplifier();
-            ms.execute(mesh);
+            EdgeCollapseSimplifier ms = new EdgeCollapseSimplifier();
+            ms.execute(mesh,grid);
         }
 
         SAVExporter exporter = new SAVExporter();

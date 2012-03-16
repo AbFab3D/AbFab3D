@@ -279,6 +279,8 @@ public class TestTriangleModelCreator extends TestCase {
         int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
 
         Grid grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+        grid = new RangeCheckWrapper(grid);
+
 //System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
 
         //-------------------------------------------------------
@@ -510,7 +512,7 @@ public class TestTriangleModelCreator extends TestCase {
      * @param outerMaterial The outer material
      * @param innerMaterial The inner material
      * @param geomType The geometry type to use
-     * @param fillShould the interior be filled or just a shell
+     * @param fill Should the interior be filled or just a shell
      * @return The grid containing the cube
      */
     private static Grid createTorusInGrid(float ir, float or, int facets,

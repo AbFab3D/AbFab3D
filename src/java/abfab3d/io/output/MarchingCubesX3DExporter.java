@@ -129,6 +129,7 @@ public class MarchingCubesX3DExporter {
      */
     public void write(Grid grid, Map<Integer, float[]> matColors) {
 
+System.out.println("writing grid: " + grid);
         int idx = 0;
 //        float[] color = new float[] {0.8f,0.8f,0.8f};
         float[] def_color = new float[] {34/255.0f,139/255.0f,34/255.0f};
@@ -181,6 +182,7 @@ public class MarchingCubesX3DExporter {
         sheight = grid.getSliceHeight();
         hsheight = grid.getSliceHeight() / 2.0;
 
+System.out.println("Creating mesh");
         mesh = new WETriangleMesh();
 
 /*        
@@ -203,6 +205,7 @@ public class MarchingCubesX3DExporter {
         // TODO: new method fails on iphone case.
         boolean oldway = true;
 
+System.out.println("Creating vol space array");        
         VolumetricSpaceArray vol = null;
 
         if (oldway) {
@@ -382,27 +385,40 @@ System.out.println("Add face: " + va + " " + vb + " " + vc);
 
         if (oldway) {
             //vol.closeSides();
-    //        IsoSurface surface = new HashIsoSurface(vol);
+//            IsoSurface surface = new HashIsoSurface(vol);
+
+System.out.println("Running debugiso");            
+            // TODO: this is working, has center movement backed in.
             IsoSurface surface = new DebugIsoSurface(vol);
+System.out.println("Running computeSurface");
             surface.computeSurfaceMesh(mesh, 0.4f);
         }
 
         vol = null;
         System.gc();
 
+        boolean checkManifold = false;
+
+        System.out.println("Running flipverts");
+        
         // TODO: Fix this
         mesh.flipVertexOrder();
 
         int orig_faces = mesh.getNumFaces();
         
         System.out.println("Initial Mesh: faces: " + mesh.getNumFaces() + " verts: " + mesh.getNumVertices());
+        boolean manifold = true;
 
-        System.out.println("Checking manifold output from initial stage: " );
-        boolean manifold = isManifold(mesh);
-        
-        
-        System.out.println("manifold: " + manifold);
-        
+        if (checkManifold) {
+            System.out.println("Checking manifold output from initial stage: " );
+            manifold = isManifold(mesh);
+            System.out.println("manifold: " + manifold);
+
+        } else {
+            manifold = true;
+        }
+
+
 
         if (simplifier != null) {
             System.out.println("Simplifying mesh");
@@ -412,7 +428,10 @@ System.out.println("Add face: " + va + " " + vb + " " + vc);
             }
             simplifier.execute(mesh, grid);
             System.out.println("Checking manifold output from simplification stage: " );
-            System.out.println("manifold: " + isManifold(mesh));
+
+            if (checkManifold) {
+                System.out.println("manifold: " + isManifold(mesh));
+            }
         }
 
 

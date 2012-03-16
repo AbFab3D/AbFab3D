@@ -26,6 +26,9 @@ import javax.vecmath.*;
 import abfab3d.grid.*;
 import abfab3d.grid.op.*;
 import abfab3d.util.MatrixUtil;
+import toxi.geom.mesh.Face;
+import toxi.geom.mesh.TriangleMesh;
+import toxi.geom.mesh.Vertex;
 
 /**
  * Creates a model from a 3D Triangle model.

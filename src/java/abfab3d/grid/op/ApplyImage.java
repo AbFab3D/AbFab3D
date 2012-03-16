@@ -122,11 +122,12 @@ public class ApplyImage implements Operation {
 
         float w_scale = (float) w / src_w_pixels;
         float h_scale = (float) h / src_h_pixels;
-
+/*
 System.out.println("src: " + src_w_pixels + " " + src_h_pixels);
 System.out.println("scale: " + w_scale + " h: " + h_scale);
 System.out.println("target: " + w + " " + h);
 System.out.println("depth: " + pixelDepth);
+*/
         BufferedImage cell_img =
             new BufferedImage(w, h,
                               BufferedImage.TYPE_BYTE_GRAY);
@@ -143,7 +144,6 @@ System.out.println("depth: " + pixelDepth);
         g.drawImage(image, tx_op, 0, 0);
         long applied = 0;
 
-System.out.println("z0: " + z0 + " depth: " + pixelDepth);
         if (pixelDepth > 0) {
             if (blackExterior) {
                 for (int y = 0; y < h; y++) {
@@ -196,7 +196,6 @@ System.out.println("z0: " + z0 + " depth: " + pixelDepth);
                     }
                 }
             } else {
-System.out.println("***here");                
                 for (int y = 0; y < h; y++) {
                     for (int x = 0; x < w; x++) {
                         int rgb = cell_img.getRGB(x, h - y - 1) & 0xFF;

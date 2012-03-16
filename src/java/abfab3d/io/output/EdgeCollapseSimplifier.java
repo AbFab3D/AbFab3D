@@ -27,13 +27,15 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
     private static final boolean DEBUG = false;
 
     private double maxDistance = 0.25;
+    private double maxAngle = 0.75;
 
     public EdgeCollapseSimplifier() {
-        this(0.25);
+        this(0.25, 0.75);
     }
 
-    public EdgeCollapseSimplifier(double maxDistance) {
+    public EdgeCollapseSimplifier(double maxDistance, double maxAngle) {
         this.maxDistance = maxDistance;
+        this.maxAngle = maxAngle;
     }
 
 
@@ -132,7 +134,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
         }
 
         loop: while(size > 0) {
-            System.out.println("Starting pass: " + pass + " edges: " + mesh.getNumEdges());
+            if (DEBUG) System.out.println("Starting pass: " + pass + " edges: " + mesh.getNumEdges());
             collapse_list.clear();
             if (pass >= max_pass) {
                 break;
@@ -150,16 +152,8 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                 Vec3D mid_p = getMidPoint(edge.a, edge.b);
                 WEVertex mid = new WEVertex(mid_p,999999999);
 
-                if (canCollapseRelatedMinDot(edge,0.8f) && canCollapseDistance(edge, maxDistance) && 
-                        canCollapseNoNonManifoldEdges(edge, mid, mesh)) {
+                if (canCollapse(edge, mid, mesh)) {
 
-//                if (canCollapseRelatedCoplanar(edge) && canCollapseDistance(edge,maxDistance)) {
-//                if (canCollapseRelatedCoplanar(edge) && canCollapseEdgesInsideGrid(edge, 1, grid)) {
-//                if (canCollapseRelatedCoplanar(edge) && canCollapseMidPoint(edge, 1, grid)) {
-//                if (canCollapseRelatedCoplanar(edge)) {
-//                if (canCollapseRelatedAxis(edge) && canCollapseMidPoint(edge, 1, grid)) {
-//                if (canCollapseRelatedCoplanar(edge)) {
-//                if (canCollapseCoplanar(edge)) {
                     collapse_list.add(edge);
                     
                     if (display_edges) {
@@ -168,29 +162,13 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                     }
                 }                                
             }
-            System.out.println("CoPlanar: " + collapse_list.size());
 
-/*
-            collapse_list.clear();
-
-            for(WingedEdge edge : mesh.edges.values()) {
-                if (canCollapseRelatedCoplanar(edge) && canCollapseEdgesInsideGrid(edge, 1, grid)) {
-//                if (canCollapseRelatedCoplanar(edge) && canCollapseMidPoint(edge, 1, grid)) {
-//                if (canCollapseRelatedCoplanar(edge)) {
-//                if (canCollapseRelatedAxis(edge) && canCollapseMidPoint(edge, 1, grid)) {
-//                if (canCollapseRelatedCoplanar(edge)) {
-//                if (canCollapseCoplanar(edge)) {
-                    collapse_list.add(edge);
-                }
-            }
-            System.out.println("CoPlanarRelated: " + collapse_list.size());
-  */
             // TODO: Sort edge list by id for determinism.  Can remove later
             Collections.sort(collapse_list, new EdgeSorter());
             size = collapse_list.size();
             ArrayList<WEFace> face_list = new ArrayList<WEFace>();
 
-            System.out.println("Collapsable Edges: " + collapse_list.size() + " total: " + mesh.getNumEdges());
+            if (DEBUG) System.out.println("Collapsable Edges: " + collapse_list.size() + " total: " + mesh.getNumEdges());
             int edges_removed = 0;
             
             for(WingedEdge edge : collapse_list) {
@@ -204,13 +182,14 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                 WEVertex mid = new WEVertex(mid_p,999999999);
 
                 // Reverify edge
-                if (canCollapseRelatedMinDot(edge,0.8f) && canCollapseDistance(edge, maxDistance) &&
-                        canCollapseNoNonManifoldEdges(edge, mid, mesh)) {
+                if (!canCollapse(edge, mid, mesh)) {
+                    continue;
+                }
 
 
                 collapseEdge2(edge, (WEVertex) mid, mesh);
 //                collapseEdge3(edge, (WEVertex) mid, mesh);
-                }
+
 
 /*
                 boolean valid = validateMesh(mesh, null);
@@ -227,11 +206,11 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
                     break loop;
                 }
                 if (edges_removed % 10000 == 0) {
-                    System.out.println("   edge count: " + edges_removed);
+                    if (DEBUG) System.out.println("   edge count: " + edges_removed);
                 }
             }
-            
-            System.out.println("Pass done: edges removed: " + edges_removed + " edges left: " + mesh.getNumEdges());
+
+            if (DEBUG) System.out.println("Pass done: edges removed: " + edges_removed + " edges left: " + mesh.getNumEdges());
             
             if (edges_removed == 0) {
                 System.out.println("Terminate.");
@@ -246,6 +225,22 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
         }
     }
 
+    private boolean canCollapse(WingedEdge edge, WEVertex mid, WETriangleMesh mesh) {
+        return (canCollapseRelatedMinDot(edge,maxAngle) &&
+                canCollapseDistance(edge, maxDistance) &&
+                canCollapseNoNonManifoldEdges(edge, mid, mesh));
+
+//                if (canCollapseRelatedCoplanar(edge) && canCollapseDistance(edge,maxDistance)) {
+//                if (canCollapseRelatedCoplanar(edge) && canCollapseEdgesInsideGrid(edge, 1, grid)) {
+//                if (canCollapseRelatedCoplanar(edge) && canCollapseMidPoint(edge, 1, grid)) {
+//                if (canCollapseRelatedCoplanar(edge)) {
+//                if (canCollapseRelatedAxis(edge) && canCollapseMidPoint(edge, 1, grid)) {
+//                if (canCollapseRelatedCoplanar(edge)) {
+//                if (canCollapseCoplanar(edge)) {
+
+        
+    }
+    
     protected void collapseEdge(WingedEdge edge, WETriangleMesh mesh) {
         ArrayList<WEFace> face_list = new ArrayList<WEFace>(2);
 
@@ -539,16 +534,18 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
 
         float[] anormals = new float[lista.size() * 3];
         float[] bnormals = new float[listb.size() * 3];
-        boolean use_normals = true; //  TODO: sometimes this helps, other times it doesnt
+        boolean use_normals = false; //  TODO: this should be required but it breaks things
 
 
         int orig_faces = mesh.faces.size();
         int faces = lista.size() + listb.size();
         if (DEBUG) System.out.println("Removing faces  a: " + lista.size() + " b: " + listb.size());
         for(WEFace face : lista) {
-            anormals[idx++] = face.normal.x;
-            anormals[idx++] = face.normal.y;
-            anormals[idx++] = face.normal.z;
+            if (use_normals) {
+                anormals[idx++] = face.normal.x;
+                anormals[idx++] = face.normal.y;
+                anormals[idx++] = face.normal.z;
+            }
             
             if (DEBUG) System.out.println("   " + face);
             mesh.removeFace(face);
@@ -556,9 +553,12 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
 
         idx = 0;
         for(WEFace face : listb) {
-            bnormals[idx++] = face.normal.x;
-            bnormals[idx++] = face.normal.y;
-            bnormals[idx++] = face.normal.z;
+            if (use_normals) {
+                bnormals[idx++] = face.normal.x;
+                bnormals[idx++] = face.normal.y;
+                bnormals[idx++] = face.normal.z;
+            }
+
             if (DEBUG) System.out.println("   " + face);
             mesh.removeFace(face);
         }
@@ -572,21 +572,24 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             if (face.a.equals(va)) {
                 if (DEBUG) printFace(mid, face.b, face.c, new float[] {0,1,0});
                 if (use_normals) {
-                    mesh.addFace(mid, face.b, face.c, new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+//                    mesh.addFace(mid, face.b, face.c, new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+                    mesh.addFace(mid, face.b, face.c, face.normal);
                 } else {
                     mesh.addFace(mid, face.b, face.c);
                 }
             } else if (face.b.equals(va)) {
                 if (DEBUG) printFace(face.a, mid, face.c, new float[] {0,1,0});
                 if (use_normals) {
-                    mesh.addFace(face.a, mid, face.c,new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+//                    mesh.addFace(face.a, mid, face.c,new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+                    mesh.addFace(face.a, mid, face.c,face.normal);
                 } else {
                     mesh.addFace(face.a, mid, face.c);
                 }
             } else if (face.c.equals(va)){
                 if (DEBUG) printFace(face.a, face.b, mid, new float[] {0,1,0});
                 if (use_normals) {
-                    mesh.addFace(face.a, face.b, mid,new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+//                    mesh.addFace(face.a, face.b, mid,new Vec3D(anormals[idx++],anormals[idx++],anormals[idx++]));
+                    mesh.addFace(face.a, face.b, mid,face.normal);
                 } else {
                     mesh.addFace(face.a, face.b, mid);
                 }
@@ -600,21 +603,24 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             if (face.a.equals(vb)) {
                 if (DEBUG) printFace(mid, face.b, face.c, new float[] {0,1,0});
                 if (use_normals) {
-                    mesh.addFace(mid, face.b, face.c, new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+//                    mesh.addFace(mid, face.b, face.c, new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+                    mesh.addFace(mid, face.b, face.c, face.normal);
                 } else {
                     mesh.addFace(mid, face.b, face.c);
                 }
             } else if (face.b.equals(vb)) {
                 if (DEBUG) printFace(face.a, mid, face.c, new float[] {0,1,0});
                 if (use_normals) {
-                    mesh.addFace(face.a, mid, face.c, new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+//                    mesh.addFace(face.a, mid, face.c, new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+                    mesh.addFace(face.a, mid, face.c, face.normal);
                 } else {
                     mesh.addFace(face.a, mid, face.c);
                 }
             } else if (face.c.equals(vb)){
                 if (DEBUG) printFace(face.a, face.b, mid, new float[] {0,1,0});
                 if (use_normals) {
-                    mesh.addFace(face.a, face.b, mid, new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+//                    mesh.addFace(face.a, face.b, mid, new Vec3D(bnormals[idx++],bnormals[idx++],bnormals[idx++]));
+                    mesh.addFace(face.a, face.b, mid, face.normal);
                 } else {
                     mesh.addFace(face.a, face.b, mid);
                 }
@@ -1516,7 +1522,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
     }
 
     // Check that all vertices related to the edge are coplanar
-    private boolean canCollapseRelatedMinDot(WingedEdge edge, float angle) {
+    private boolean canCollapseRelatedMinDot(WingedEdge edge, double angle) {
 
         WEVertex va = (WEVertex) edge.a;
         WEVertex vb = (WEVertex) edge.b;

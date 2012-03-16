@@ -94,7 +94,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
@@ -117,7 +117,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param z1 The starting z grid coordinate
      * @param z2 The ending z grid coordinate
      *
-     * @param Returns the data at each position.  3 dim array represented as flat, must be preallocated
+     * @return Returns the data at each position.  3 dim array represented as flat, must be preallocated
      */
     public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret) {
 
@@ -157,7 +157,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -178,7 +178,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -198,7 +198,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
@@ -214,7 +214,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -234,7 +234,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
@@ -301,7 +301,6 @@ public class ArrayGridByte extends BaseGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
         int idx = y * sliceSize + x * depth + z;
