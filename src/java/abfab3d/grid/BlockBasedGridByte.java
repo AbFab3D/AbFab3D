@@ -200,7 +200,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
         // Find block coord
@@ -234,7 +234,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -270,7 +270,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -304,7 +304,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(int x, int y, int z) {
         // Find block coord
@@ -333,7 +333,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -366,7 +366,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
     public int getMaterial(int x, int y, int z) {
         // Find block coord
@@ -495,7 +495,6 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
         // Find block coord
