@@ -174,7 +174,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
      * Test getState by voxels.
      */
     public void testGetStateByVoxel() {
-        AttributeGrid grid =new BlockBasedAttributeGridShort(10, 9, 8, 0.001, 0.001);
+        AttributeGrid grid =new BlockBasedAttributeGridShort(10, 9, 9, 0.001, 0.001);
         grid.setData(0, 0, 0, Grid.OUTSIDE, (short)2);
         grid.setData(9, 8, 7, Grid.EXTERIOR, (short)1);
         grid.setData(5, 0, 7, Grid.INTERIOR, (short)0);
