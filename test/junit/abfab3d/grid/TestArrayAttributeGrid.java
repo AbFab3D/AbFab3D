@@ -630,13 +630,13 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttribute(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttribute(VoxelClasses.INTERIOR, ft);
 
         assertTrue("Found state iterator did not find all voxels with INTERIOR state",
@@ -644,7 +644,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
 
         // make sure that finding a voxel not in the list returns false
         grid.setData(10, 6, 2, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttribute(VoxelClasses.EXTERIOR, ft);
 
         assertFalse("Found state iterator should return false",
@@ -652,7 +652,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
 
         // make sure that not finding a voxel in the list returns false
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttribute(VoxelClasses.INTERIOR, ft);
 
         assertFalse("Found state iterator should return false",
@@ -676,7 +676,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttribute(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
@@ -707,13 +707,13 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttributeInterruptible(VoxelClasses.INTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with INTERIOR state",
@@ -723,7 +723,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         // do this by adding a new exterior voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, mat);
         grid.setData(1, 3, 3, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
 
         assertFalse("Found state interruptible iterator should return false",
@@ -734,7 +734,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to exterior state
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttributeInterruptible(VoxelClasses.INTERIOR, ft);
 
         assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
@@ -757,7 +757,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
@@ -787,13 +787,13 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat2, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat2,
@@ -801,7 +801,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
 
         // make sure that finding a voxel not in the list returns false
         grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertFalse("Found material iterator should return false",
@@ -809,7 +809,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
 
         // make sure that not finding a voxel in the list returns false
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat1, ft);
 
         assertFalse("Found material iterator should return false",
@@ -833,7 +833,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
@@ -865,13 +865,13 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttributeInterruptible(mat2, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat2,
@@ -881,7 +881,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
         grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
         assertFalse("Found material interruptible iterator should return false",
@@ -892,7 +892,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to EXTERIOR state
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttributeInterruptible(mat2, ft);
 
         assertFalse("Found material interruptible iterator should return false", ft.foundAllVoxels());
@@ -915,7 +915,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
@@ -945,13 +945,13 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetIntMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExtMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetIntMat2);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
         grid.findAttribute(VoxelClasses.INTERIOR, mat2, ft);
 
         assertTrue("Found state iterator did not find all voxels with INTERIOR state and material " + mat2,
@@ -959,7 +959,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
 
         // make sure that finding a voxel not in the list returns false
         grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertFalse("Found state and material iterator should return false",
@@ -967,7 +967,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
 
         // make sure that not finding a voxel in the list returns false
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetIntMat2);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
         grid.findAttribute(VoxelClasses.INTERIOR, ft);
 
         assertFalse("Found state and material iterator should return false",
@@ -991,7 +991,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
@@ -1028,17 +1028,17 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetExtMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExtMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetIntMat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
         grid.findAttributeInterruptible(VoxelClasses.INTERIOR, mat1, ft);
         assertTrue("Found iterator did not find all voxels with INTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetExtMat2);
+        ft = new FindAttributeIterateTester(vcSetExtMat2);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat2, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat2,
                 ft.foundAllVoxels());
@@ -1047,7 +1047,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
         grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertFalse("Found state and material interruptible iterator should return false",
@@ -1058,7 +1058,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior and mat2 voxels
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetExtMat2);
+        ft = new FindAttributeIterateTester(vcSetExtMat2);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat2, ft);
 
         assertFalse("Found state and material iterator should return false", ft.foundAllVoxels());
@@ -1081,7 +1081,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
             vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
@@ -1310,7 +1310,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         }
 
         // make sure that all coordinates in list have been set to mat1 in grid
-        FindIterateTester ft = new FindIterateTester(vcSetMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
@@ -1320,7 +1320,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         grid.removeAttribute(mat1);
 
         // check that find mat1 returns false and iterate count returns zero
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertFalse("Found iterator did not return false after removing material " + mat1,
@@ -1342,7 +1342,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
         }
 
         // make sure other material has not been removed
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat2, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat2,
@@ -1417,7 +1417,7 @@ public class TestArrayAttributeGrid extends BaseTestAttributeGrid implements Cla
  * @author Tony
  *
  */
-class FindIterateTester implements ClassAttributeTraverser {
+class FindAttributeIterateTester implements ClassAttributeTraverser {
     private boolean foundCorrect;
     private HashSet<VoxelCoordinate> vcSet;
     private int iterateCount;
@@ -1428,7 +1428,7 @@ class FindIterateTester implements ClassAttributeTraverser {
      * in the VoxelClass to find
      * @param vc
      */
-    public FindIterateTester(HashSet<VoxelCoordinate> vc) {
+    public FindAttributeIterateTester(HashSet<VoxelCoordinate> vc) {
         this.vcSet = (HashSet<VoxelCoordinate>)vc.clone();
         foundCorrect = true;
         iterateCount = 0;
@@ -1469,6 +1469,114 @@ class FindIterateTester implements ClassAttributeTraverser {
      * @return True to continue, false stops the traversal.
      */
     public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+        VoxelCoordinate c = new VoxelCoordinate(x, y, z);
+//System.out.println(x + ", " + y + ", " + z);
+        if (!inCoordList(c)) {
+//System.out.println("not in cood list: " + x + ", " + y + ", " + z);
+            foundCorrect = false;
+            return false;
+        }
+
+        iterateCount++;
+        return true;
+    }
+
+    /**
+     * Returns whether all voxels have been found, and that the number of
+     * times iterated through the grid is equal to the expected value.
+     *
+     * @return True if voxels were found correctly
+     */
+    public boolean foundAllVoxels() {
+//System.out.println("iterateCount: " + iterateCount);
+//System.out.println("vcSetCount: " + vcSetCount);
+        return (foundCorrect && (iterateCount == vcSetCount));
+    }
+
+    /**
+     * Returns the number of times voxels of the correct state was found.
+     *
+     * @return count of the times voxels of the correct state was found\
+     */
+    public int getIterateCount() {
+        return iterateCount;
+    }
+
+    /**
+     * Check if the VoxelCoordinate is in the known list, and removes
+     * it from the list if found.
+     *
+     * @param c The voxel coordinate
+     * @return True if the voxel coordinate is in the know list
+     */
+    private boolean inCoordList(VoxelCoordinate c) {
+        if (vcSet.contains(c)) {
+            vcSet.remove(c);
+            return true;
+        }
+
+        return false;
+    }
+}
+
+/**
+ * Class to test that the find methods actually found the voxel states in the correct coordinate.
+ *
+ * @author Tony
+ *
+ */
+class FindIterateTester implements ClassTraverser {
+    private boolean foundCorrect;
+    private HashSet<VoxelCoordinate> vcSet;
+    private int iterateCount;
+    private int vcSetCount;
+
+    /**
+     * Constructor that takes in a HashSet of VoxelCoordinates known to be
+     * in the VoxelClass to find
+     * @param vc
+     */
+    public FindIterateTester(HashSet<VoxelCoordinate> vc) {
+        this.vcSet = (HashSet<VoxelCoordinate>)vc.clone();
+        foundCorrect = true;
+        iterateCount = 0;
+        vcSetCount = vcSet.size();
+    }
+
+    /**
+     * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public void found(int x, int y, int z, byte vd) {
+        VoxelCoordinate c = new VoxelCoordinate(x, y, z);
+//System.out.println(x + ", " + y + ", " + z);
+        if (!inCoordList(c)) {
+//System.out.println("not in cood list: " + x + ", " + y + ", " + z);
+            foundCorrect = false;
+        }
+
+        iterateCount++;
+    }
+
+    /**
+     * A voxel of the class requested has been found.
+     * VoxelData classes may be reused so clone the object
+     * if you keep a copy.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     *
+     * @return True to continue, false stops the traversal.
+     */
+    public boolean foundInterruptible(int x, int y, int z, byte vd) {
         VoxelCoordinate c = new VoxelCoordinate(x, y, z);
 //System.out.println(x + ", " + y + ", " + z);
         if (!inCoordList(c)) {

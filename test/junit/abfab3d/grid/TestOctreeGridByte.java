@@ -201,13 +201,13 @@ System.out.println("Checking equals");
             vcSetInt.add(new VoxelCoordinate(17, 6, z));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttribute(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttribute(VoxelClasses.INTERIOR, ft);
 
         assertTrue("Found state iterator did not find all voxels with INTERIOR state",
@@ -215,7 +215,7 @@ System.out.println("Checking equals");
 
         // make sure that finding a voxel not in the list returns false
         grid.setData(7, 6, 2, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttribute(VoxelClasses.EXTERIOR, ft);
 
         assertFalse("Found state iterator should return false",
@@ -223,7 +223,7 @@ System.out.println("Checking equals");
 
         // make sure that not finding a voxel in the list returns false
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttribute(VoxelClasses.INTERIOR, ft);
 
         assertFalse("Found state iterator should return false",
@@ -247,7 +247,7 @@ System.out.println("Checking equals");
             vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttribute(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
@@ -919,13 +919,13 @@ grid.printTree();
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttributeInterruptible(VoxelClasses.INTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with INTERIOR state",
@@ -935,7 +935,7 @@ grid.printTree();
         // do this by adding a new exterior voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, mat);
         grid.setData(1, 3, 3, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
 
         assertFalse("Found state interruptible iterator should return false",
@@ -946,7 +946,7 @@ grid.printTree();
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to exterior state
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetInt);
+        ft = new FindAttributeIterateTester(vcSetInt);
         grid.findAttributeInterruptible(VoxelClasses.INTERIOR, ft);
 
         assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
@@ -969,7 +969,7 @@ grid.printTree();
             vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
+        ft = new FindAttributeIterateTester(vcSetExt);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
@@ -999,13 +999,13 @@ grid.printTree();
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat2, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat2,
@@ -1013,7 +1013,7 @@ grid.printTree();
 
         // make sure that finding a voxel not in the list returns false
         grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertFalse("Found material iterator should return false",
@@ -1021,7 +1021,7 @@ grid.printTree();
 
         // make sure that not finding a voxel in the list returns false
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat1, ft);
 
         assertFalse("Found material iterator should return false",
@@ -1045,7 +1045,7 @@ grid.printTree();
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
@@ -1077,13 +1077,13 @@ grid.printTree();
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttributeInterruptible(mat2, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat2,
@@ -1093,7 +1093,7 @@ grid.printTree();
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
         grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
         assertFalse("Found material interruptible iterator should return false",
@@ -1104,7 +1104,7 @@ grid.printTree();
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to EXTERIOR state
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttributeInterruptible(mat2, ft);
 
         assertFalse("Found material interruptible iterator should return false", ft.foundAllVoxels());
@@ -1127,7 +1127,7 @@ grid.printTree();
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
@@ -1157,13 +1157,13 @@ grid.printTree();
             vcSetIntMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExtMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetIntMat2);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
         grid.findAttribute(VoxelClasses.INTERIOR, mat2, ft);
 
         assertTrue("Found state iterator did not find all voxels with INTERIOR state and material " + mat2,
@@ -1171,7 +1171,7 @@ grid.printTree();
 
         // make sure that finding a voxel not in the list returns false
         grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertFalse("Found state and material iterator should return false",
@@ -1179,7 +1179,7 @@ grid.printTree();
 
         // make sure that not finding a voxel in the list returns false
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetIntMat2);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
         grid.findAttribute(VoxelClasses.INTERIOR, ft);
 
         assertFalse("Found state and material iterator should return false",
@@ -1203,7 +1203,7 @@ grid.printTree();
             vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
@@ -1240,17 +1240,17 @@ grid.printTree();
             vcSetExtMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExtMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetIntMat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
         grid.findAttributeInterruptible(VoxelClasses.INTERIOR, mat1, ft);
         assertTrue("Found iterator did not find all voxels with INTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindIterateTester(vcSetExtMat2);
+        ft = new FindAttributeIterateTester(vcSetExtMat2);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat2, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat2,
                 ft.foundAllVoxels());
@@ -1259,7 +1259,7 @@ grid.printTree();
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
         grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertFalse("Found state and material interruptible iterator should return false",
@@ -1270,7 +1270,7 @@ grid.printTree();
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior and mat2 voxels
         grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindIterateTester(vcSetExtMat2);
+        ft = new FindAttributeIterateTester(vcSetExtMat2);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat2, ft);
 
         assertFalse("Found state and material iterator should return false", ft.foundAllVoxels());
@@ -1293,7 +1293,7 @@ grid.printTree();
             vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExtMat1);
+        ft = new FindAttributeIterateTester(vcSetExtMat1);
         grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
@@ -1431,7 +1431,7 @@ grid.printTree();
         }
 
         // make sure that all coordinates in list have been set to mat1 in grid
-        FindIterateTester ft = new FindIterateTester(vcSetMat1);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat1,
@@ -1441,7 +1441,7 @@ grid.printTree();
         grid.removeAttribute(mat1);
 
         // check that find mat1 returns false and iterate count returns zero
-        ft = new FindIterateTester(vcSetMat1);
+        ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
         assertFalse("Found iterator did not return false after removing material " + mat1,
@@ -1463,7 +1463,7 @@ grid.printTree();
         }
 
         // make sure other material has not been removed
-        ft = new FindIterateTester(vcSetMat2);
+        ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat2, ft);
 
         assertTrue("Found iterator did not find all voxels with material " + mat2,
