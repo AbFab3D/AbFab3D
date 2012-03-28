@@ -121,7 +121,6 @@ public class BaseTestGrid extends TestCase {
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if (x == y && y == z) {
                         assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
-                        assertTrue("Material wrong", vd.getMaterial() == 1);
                     }
                 }
             }
@@ -162,7 +161,6 @@ public class BaseTestGrid extends TestCase {
                     VoxelData vd = grid.getData(xcoord, ycoord, zcoord);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
-                    assertTrue("Material wrong", vd.getMaterial() == 1);
                 }
             }
         }
