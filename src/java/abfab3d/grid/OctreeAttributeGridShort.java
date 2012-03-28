@@ -253,8 +253,8 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(int x, int y, int z, byte state) {
-        // TODO: not implemented yet
-        throw new IllegalArgumentException("Not Implemented");
+        // TODO: This is not really right but is hard to deal with for BlockBased
+        root.setData(null, x, y, z, state,Grid.NO_MATERIAL);
     }
 
     /**
@@ -266,8 +266,12 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(double x, double y, double z, byte state) {
-        // TODO: not implemented yet
-        throw new IllegalArgumentException("Not Implemented");
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        // TODO: This is not really right but is hard to deal with for BlockBased
+        root.setData(null, s_x, slice, s_z, state,Grid.NO_MATERIAL);
     }
 
     /**

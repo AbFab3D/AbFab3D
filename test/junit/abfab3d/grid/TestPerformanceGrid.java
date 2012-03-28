@@ -496,7 +496,7 @@ System.out.println("Finding exterior voxels");
 
             if (display) {
                 float tps = 1000000000f / totalTime[n];
-                System.out.println(String.format("%1$-25s",name) + "        : " + String.format("%1$-13s",totalTime[n]) + " NS " + String.format("%1$-7s",formater.format(tps)) + " TPS " + " " + String.format("%1$-7s",formater.format((float)totalTime[n] / totalTime[0])) + "X");
+                System.out.println(String.format("%1$-31s",name) + "        : " + String.format("%1$-13s",totalTime[n]) + " NS " + String.format("%1$-7s",formater.format(tps)) + " TPS " + " " + String.format("%1$-7s",formater.format((float)totalTime[n] / totalTime[0])) + "X");
             }
         }
 
@@ -528,7 +528,7 @@ System.out.println("Finding exterior voxels");
 
             if (display) {
                 float tps = 1000000000f / totalTime[n];
-                System.out.println(String.format("%1$-25s",name) + "        : " + String.format("%1$-13s",totalTime[n]) + " NS " + String.format("%1$-7s",formater.format(tps)) + " TPS " + " " + String.format("%1$-7s",formater.format((float)totalTime[n] / totalTime[0])) + "X");
+                System.out.println(String.format("%1$-31s",name) + "        : " + String.format("%1$-13s",totalTime[n]) + " NS " + String.format("%1$-7s",formater.format(tps)) + " TPS " + " " + String.format("%1$-7s",formater.format((float)totalTime[n] / totalTime[0])) + "X");
             }
         }
 
@@ -674,7 +674,7 @@ System.out.println("Finding exterior voxels");
             String name = grids[n].getClass().getSimpleName();
 
             if (display) {
-                System.out.println(String.format("%1$-25s",name) + "        : " + totalTime[n] + " " + formater.format((float)totalTime[n] / totalTime[0]) + "X");
+                System.out.println(String.format("%1$-30s",name) + "        : " + totalTime[n] + " " + formater.format((float)totalTime[n] / totalTime[0]) + "X");
             }
         }
 
