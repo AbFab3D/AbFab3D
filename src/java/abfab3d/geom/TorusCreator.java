@@ -15,6 +15,9 @@ package abfab3d.geom;
 // External Imports
 import java.util.*;
 import java.io.*;
+
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.DualWrapper;
 import org.web3d.vrml.sav.ContentHandler;
 
 // Internal Imports
@@ -87,17 +90,25 @@ public class TorusCreator extends GeometryCreator {
     /**
      * Generate the geometry and issue commands to the provided handler.
      *
-     * @param handler The stream to issue commands
+     * @param grid The stream to issue commands
      */
     public void generate(Grid grid) {
+        AttributeGrid wrapper = null;
+
+        if (grid instanceof AttributeGrid) {
+            wrapper = (AttributeGrid) grid;
+        } else {
+            wrapper = new DualWrapper(grid);
+        }
+        
         // Wall all grid points and check implicit equations points = 0
         // f(x,y,z) = (or - sqrt(x^2 + y^2)) ^ 2 + z^2 - ir^2
 
         // TODO: can we detect surface points?
 
-        int w = grid.getWidth();
-        int h = grid.getHeight();
-        int d = grid.getDepth();
+        int w = wrapper.getWidth();
+        int h = wrapper.getHeight();
+        int d = wrapper.getDepth();
 
         double[] wcoords = new double[3];
         double fval;
@@ -106,12 +117,12 @@ public class TorusCreator extends GeometryCreator {
         for(int i=0; i < w; i++) {
             for(int j=0; j < h; j++) {
                 for(int k=0; k < d; k++) {
-                    grid.getWorldCoords(i,j,k,wcoords);
+                    wrapper.getWorldCoords(i,j,k,wcoords);
 
                     if (surface(wcoords[0],wcoords[1],wcoords[2])) {
-                        grid.setData(i,j,k,Grid.EXTERIOR, outerMaterial);
+                        wrapper.setData(i,j,k,Grid.EXTERIOR, outerMaterial);
                     } else if (inside(wcoords[0],wcoords[1],wcoords[2])) {
-                        grid.setData(i,j,k,Grid.INTERIOR, innerMaterial);
+                        wrapper.setData(i,j,k,Grid.INTERIOR, innerMaterial);
                     }
                 }
             }

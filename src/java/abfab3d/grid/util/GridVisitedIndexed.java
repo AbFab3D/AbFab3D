@@ -32,7 +32,7 @@ import abfab3d.grid.*;
   *
   * @author Alan Hudson
   */
- public class GridVisitedIndexed implements ClassTraverser {
+ public class GridVisitedIndexed implements ClassTraverser, ClassAttributeTraverser {
     /** The width of the grid */
     protected int width;
 
@@ -54,17 +54,19 @@ import abfab3d.grid.*;
     /** Grid for findUnvisited calc. */
     protected Grid grid;
 
-    /**
-     * Constructor.
-     *
-     * @param w The number of voxels in width
-     * @param h The number of voxels in height
-     * @param d The number of voxels in depth
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     * @param maxEntries The maximum entries multiplier before switching to an array
-     */
+     /** Grid for findUnvisited calc. */
+     protected AttributeGrid gridAtt;
+     
+     /**
+      * Constructor
+      *
+      * @param grid
+      * @param target
+      */
     public GridVisitedIndexed(Grid grid, Grid.VoxelClasses target) {
+        if (grid instanceof AttributeGrid) {
+            this.gridAtt = (AttributeGrid) grid;
+        }
         this.grid = grid;
         width = grid.getWidth();
         height = grid.getHeight();
@@ -79,17 +81,17 @@ import abfab3d.grid.*;
         grid.find(target, this);
     }
 
-    /**
-     * Constructor.
-     *
-     * @param w The number of voxels in width
-     * @param h The number of voxels in height
-     * @param d The number of voxels in depth
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     * @param maxEntries The maximum entries multiplier before switching to an array
-     */
-    public GridVisitedIndexed(Grid grid, Grid.VoxelClasses target, int mat) {
+     /**
+      * Constructor
+      *
+      * @param grid
+      * @param target
+      * @param mat
+      */
+    public GridVisitedIndexed(AttributeGrid grid, Grid.VoxelClasses target, int mat) {
+        if (grid instanceof AttributeGrid) {
+            this.gridAtt = (AttributeGrid) grid;
+        }
         this.grid = grid;
         width = grid.getWidth();
         height = grid.getHeight();
@@ -101,7 +103,7 @@ import abfab3d.grid.*;
         // Initialize set, assume 1% used
         unvisitedSet = new HashSet<VoxelCoordinate>((int)Math.ceil(width * height * depth * 0.01f));
 
-        grid.find(target, mat, this);
+        gridAtt.findAttribute(target, mat, this);
     }
 
     /**
@@ -121,9 +123,7 @@ import abfab3d.grid.*;
     /**
      * Has this voxel been visited.
      *
-     * @param x The x voxel coordinate
-     * @param y The y voxel coordinate
-     * @param z The z voxel coordinate
+     * @param vc The voxel coordinate
      * @return Whether its been visited
      */
     public boolean getVisited(VoxelCoordinate vc) {
@@ -194,7 +194,7 @@ import abfab3d.grid.*;
      * @param z The z grid coordinate
      * @param vd The voxel data
      */
-    public void found(int x, int y, int z, VoxelData vd) {
+    public void found(int x, int y, int z, byte vd) {
         VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
 
 //System.out.println("Add to unvisited: " + vc);
@@ -213,8 +213,43 @@ import abfab3d.grid.*;
      *
      * @return True to continue, false stops the traversal.
      */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+    public boolean foundInterruptible(int x, int y, int z, byte vd) {
         // not used
         return false;
     }
+
+     /**
+      * A voxel of the class requested has been found.
+      * VoxelData classes may be reused so clone the object
+      * if you keep a copy.
+      *
+      * @param x The x grid coordinate
+      * @param y The y grid coordinate
+      * @param z The z grid coordinate
+      * @param vd The voxel data
+      */
+     public void found(int x, int y, int z, VoxelData vd) {
+         VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
+
+//System.out.println("Add to unvisited: " + vc);
+         unvisitedSet.add(vc);
+     }
+
+     /**
+      * A voxel of the class requested has been found.
+      * VoxelData classes may be reused so clone the object
+      * if you keep a copy.
+      *
+      * @param x The x grid coordinate
+      * @param y The y grid coordinate
+      * @param z The z grid coordinate
+      * @param vd The voxel data
+      *
+      * @return True to continue, false stops the traversal.
+      */
+     public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+         // not used
+         return false;
+     }
+
  }

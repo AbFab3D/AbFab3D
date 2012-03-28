@@ -16,7 +16,6 @@ package abfab3d.io.output;
 import java.util.*;
 import java.io.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
-import org.web3d.vrml.sav.ContentHandler;
 import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
 import org.web3d.vrml.export.X3DClassicRetainedExporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -95,8 +94,8 @@ public class BoxesX3DExporter implements Exporter {
      */
     public void write(Grid grid, Map<Integer, float[]> matColors) {
 
-        if (grid instanceof OctreeGridByte) {
-            ((OctreeGridByte)grid).write(writer, (OctreeGridByte)grid, matColors);
+        if (grid instanceof OctreeAttributeGridByte) {
+            ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
             return;
         }
 

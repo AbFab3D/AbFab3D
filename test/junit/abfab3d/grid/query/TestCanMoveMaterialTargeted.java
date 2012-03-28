@@ -14,7 +14,6 @@ package abfab3d.grid.query;
 
 // External Imports
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
@@ -27,7 +26,7 @@ import abfab3d.path.StraightPath;
  * @author Alan Hudson
  * @version
  */
-public class TestCanMoveMaterialTargeted extends BaseTestGrid {
+public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -42,7 +41,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
     public void testBasic() {
         int size = 12;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
         int mat1_count = 5;
@@ -86,7 +85,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
     public void testIgnoreOther() {
         int size = 12;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
         int mat1_count = 5;
@@ -139,7 +138,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         int matToMove = 2;
         int target = 1;
 
-        Grid grid = new ArrayGridByte(100,100,100,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
         setX(grid, 50, 40, Grid.EXTERIOR, 1, 40, 60);
@@ -187,7 +186,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
     public void testComplexFalse() {
         int matToMove = 2;
         int target = 1;
-        Grid grid = new ArrayGridByte(100,100,100,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
         setX(grid, 50, 40, Grid.EXTERIOR, 1, 40, 60);
@@ -244,7 +243,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         int material2 = 2;
         int size = 9;
         int center = size / 2;
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // set the material to move at the center of the grid
         grid.setData(center, center, center, Grid.EXTERIOR, material2);
@@ -326,7 +325,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
     public void testIgnoredVoxels() {
         int size = 12;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
         int mat1_count = 5;
@@ -352,7 +351,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
     public void testGetIgnoredCount() {
         int size = 20;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Fill voxels such that it looks like:
         //
@@ -366,20 +365,20 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         setX(grid, 9, 10, Grid.EXTERIOR, 3, 8, 10);
         setX(grid, 8, 10, Grid.EXTERIOR, 3, 8, 12);
         grid.setData(12, 9, 10, Grid.EXTERIOR, 3);
-        
+
         setX(grid, 12, 10, Grid.EXTERIOR, 2, 5, 15);
 //        setY(grid, 5, 10, Grid.EXTERIOR, 2, 8, 11);
         setY(grid, 15, 10, Grid.EXTERIOR, 2, 8, 11);
-        
+
         int[] minBounds = {5, 8, 10};
         int[] maxBounds = {15, 12, 10};
 
         // Move mat 1 in negative x direction
         StraightPath path = new StraightPath(new int[] {-1,0,0});
-        CanMoveMaterialTargeted query = 
-        	new CanMoveMaterialTargeted(1, 2, path);
+        CanMoveMaterialTargeted query =
+            new CanMoveMaterialTargeted(1, 2, path);
         boolean escaped = query.execute(grid);
-        
+
         assertTrue("Negative X Axis move of material 1 is not true", escaped == true);
         assertEquals("Ignored voxel count is not 4", 4, query.getIgnoredCount());
 
@@ -390,17 +389,17 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         assertTrue("Negative X Axis move of material 3 is not true", escaped == true);
         assertEquals("Ignored voxel count is not 6", 6, query.getIgnoredCount());
     }
-    
+
     /**
      * Execute can move of a material against a target material.
-     * 
+     *
      * @param grid The grid
      * @param dir The direction to check movement
      * @param mat The material to move
      * @param target The target material to check against
      * @return True if the material can move away from the target material
      */
-    private boolean canMove(Grid grid, int[] dir, int mat, int target) {
+    private boolean canMove(AttributeGrid grid, int[] dir, int mat, int target) {
         StraightPath path = new StraightPath(dir);
         CanMoveMaterialTargeted query = new CanMoveMaterialTargeted(mat, target, path);
 
@@ -413,7 +412,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         int endIndex = 15;
         int yIndex = 10;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         setX(grid, yIndex, 0, Grid.INTERIOR, 1, startIndex+1, endIndex-1);
         setX(grid, yIndex, 0, Grid.OUTSIDE, 0, 11, 12);
@@ -438,7 +437,7 @@ public class TestCanMoveMaterialTargeted extends BaseTestGrid {
         int endIndex = 300;
         int yIndex = 10;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         setX(grid, yIndex, 0, Grid.INTERIOR, 1, startIndex+1, endIndex-1);
         setX(grid, yIndex, 0, Grid.OUTSIDE, 0, 201, 249);

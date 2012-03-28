@@ -15,21 +15,19 @@ package lettering;
 // External Imports
 import java.io.*;
 import java.util.HashMap;
-import javax.imageio.*;
 import java.awt.image.BufferedImage;
+
+import abfab3d.io.input.IndexedTriangleSetLoader;
+import abfab3d.io.output.*;
 import org.j3d.geom.GeometryData;
-import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import abfab3d.geom.*;
 import abfab3d.grid.*;
-import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.grid.op.*;
 
 import java.awt.*;
-import java.awt.font.*;
-import java.awt.geom.*;
 
 // Internal Imports
 
@@ -39,19 +37,25 @@ import java.awt.geom.*;
  * @author Alan Hudson
  */
 public class Lettering {
-    /**  Resolution of the printer in meters.  */
-    public static final double RESOLUTION = 0.000025;
-//    public static final double RESOLUTION = 0.0004;
+    public static final double SCALE = 1;
+
+    public static final int EXT_MAT = 1;
+    public static final int INT_MAT = 1;
+
+    // Input model is in mm's
+    
+    /**  Resolution of the printer in mm's.  */
+    public static final double RESOLUTION = 0.15 * SCALE;
 
     public Lettering() {
     }
 
-    public void generate(String filename) {
+    public void generate(String base, String filename) {
         double resolution = RESOLUTION;
 
-        double bodyWidth = 0.1;
-        double bodyHeight = 0.05;
-        double bodyDepth = 0.0025;
+        double bodyWidth = 62 * SCALE;
+        double bodyHeight = 120 * SCALE;
+        double bodyDepth = 15 * SCALE;
 
         // Calculate maximum bounds
 
@@ -69,62 +73,85 @@ public class Lettering {
             bigIndex = true;
         }
 
-System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
+System.out.println("Main Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
         Grid grid = null;
 
         if (bigIndex) {
-            grid = new ArrayGridByteIndexLong(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+            grid = new ArrayAttributeGridByteIndexLong(voxelsX, voxelsY, voxelsZ, resolution, resolution);
         } else {
-            grid = new ArrayGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+            grid = new ArrayAttributeGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
         }
 
+        // TODO: Remove me, debug
+        grid = new RangeCheckWrapper(grid, true);
 
-        // Create Base
-        double tx = bodyWidth / 2.0;
-        double ty = bodyHeight / 2.0;
-        double tz = bodyDepth / 2.0;
-        int mat = 1;
+        long start = System.currentTimeMillis();
+        loadFile(grid, base, SCALE);
+        System.out.println("load time: " + (System.currentTimeMillis() - start));
 
-        int bodyWidthPixels = (int) Math.ceil(bodyWidth / resolution);
-        int bodyHeightPixels = (int) Math.ceil(bodyHeight / resolution);
-        int bodyDepthPixels = (int) Math.ceil(bodyDepth / resolution);
+        String text = "12345678 2:19";
 
-        System.out.println("body pixels: " + bodyWidthPixels + " " + bodyHeightPixels + " depth: " + bodyDepthPixels);
-        int bodyImageWidthPixels = (int) Math.floor((bodyWidth * 0.99) / resolution);
-        int bodyImageHeightPixels = (int) Math.floor((bodyHeight * 0.99) / resolution);
-        int picTx = (int) ((bodyWidthPixels - bodyImageWidthPixels) / 2.0f);
-        int picTy = (int) ((bodyHeightPixels - bodyImageHeightPixels) / 2.0f);
-        int picTz = (int) ((bodyDepth / 2.0 / resolution));
+        double labelWidth = 61 * SCALE;
+        double labelHeight = 8 * SCALE;
+//        double labelDepth = 0.5;
+        double labelDepth = 1 * SCALE;
 
-        picTx = 0;
-        picTy = 0;
-        picTz = 0;
+        int labelWidthPixels = (int) Math.ceil(labelWidth / resolution);
+        int labelHeightPixels = (int) Math.ceil(labelHeight / resolution);
+        int labelDepthPixels = (int) Math.ceil(labelDepth / resolution);
+
+        System.out.println("label pixels: " + labelWidthPixels + " " + labelHeightPixels + " " + labelDepthPixels);
+
 
         int threshold = 75;
-        int bodyImageDepth = bodyDepthPixels;
-        //int bodyImageDepth = -picTz;
         boolean invert = false;
         boolean removeStray = false;
 
 
-if (1==1) {
-        BufferedImage image = createImage(bodyWidthPixels, bodyHeightPixels, "AbFab3D", "Pump Demi Bold LET", Font.BOLD, -1);
+        if (1==0) {
+            BufferedImage image = createImage(labelWidthPixels, labelHeightPixels, text, "Pump Demi Bold LET", Font.BOLD, -1);
+/*
+            int picTx = (int) (labelWidthPixels / 2.0);
+            int picTy = (int) labelWidthPixels;
+            int picTz = 0;
+*/
+//            int picTx = 20;
+            int picTx = (int) (80 * SCALE);     // Y in base world
+            int picTy = (int) (15 * SCALE);     // Z in base world
+            int picTz = (int) (25 * SCALE);      // X in base world
 
-        Operation op = new ApplyImage(image,0,0,0,bodyImageWidthPixels, bodyImageHeightPixels, threshold, invert, bodyImageDepth, removeStray, mat);
-        op.execute(grid);
+            // Make height double so we can rotate.
+/*            
+            Grid grid2 = grid.createEmpty(labelWidthPixels * 2, labelWidthPixels * 2, labelDepthPixels * 2,
+                grid.getVoxelSize(), grid.getSliceHeight());
+ */
+            Grid grid2 = grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+                    grid.getVoxelSize(), grid.getSliceHeight());
+            
+            System.out.println("Creating image grid: " + grid2.getWidth() + " " + grid2.getHeight() + " " + grid.getDepth());
+            System.out.println("image tx: " + picTx + " " + picTy + " " + picTz);
+            // TODO: remove me
+            grid2 = new RangeCheckWrapper(grid2, false);
 
-        op = new Union(grid, 0, 0, 0, 1);
+            Operation op = new ApplyImage(image,picTx,picTy,picTz,
+                    HalfAxis.Z_POSITIVE,HalfAxis.X_POSITIVE,HalfAxis.Y_POSITIVE,
+                    labelWidthPixels, labelHeightPixels, threshold, invert, labelDepthPixels, removeStray, EXT_MAT);
+            op.execute(grid2);
 
-        op.execute(grid);
-}
+            //debugGrid(grid2, "text1.x3db");
+            op = new Subtract(grid2, 0, 0, 0, 1);
+            //op = new Union(grid2, 0, 0, 0, 1);
 
-if (1==1) {
+            op.execute(grid);
+
+        }
+
+if (1==0) {
     System.out.println("Putting into Octree");
-    Grid grid2 = new OctreeGridByte(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+    Grid grid2 = new OctreeAttributeGridByte(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
-    Operation op2 = new Copy(grid2, 0,0,0);
-    op2.execute(grid);
-    grid = grid2;
+    Operation op2 = new Copy(grid, 0,0,0);
+    grid2 = op2.execute(grid2);
 }
         System.out.println("Writing grid");
 
@@ -138,6 +165,18 @@ if (1==1) {
         } catch(Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private void debugGrid(Grid grid, String filename) {
+        try {
+            FileOutputStream fos = new FileOutputStream(filename);
+            String encoding = filename.substring(filename.lastIndexOf(".")+1);
+
+            ErrorReporter console = new PlainTextErrorReporter();
+            writeDebug(grid, "x3db", fos, console);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }        
     }
 
     /**
@@ -182,7 +221,7 @@ if (1==1) {
             g.setFont(f);
             metrics = g.getFontMetrics();
             fs = metrics.stringWidth(text);
-            System.out.println("final size: " + fs);
+            System.out.println("final font size: " + fs);
 
         } else {
             g.setFont(f);
@@ -194,7 +233,8 @@ if (1==1) {
         //int x = metrics.stringWidth(text)/2;
         int x = 0;
 System.out.println("width: " + metrics.stringWidth(text) + " x: " + x);
-        int y = h - 80;
+//        int y = h - 80;       // TODO: what's this number mean?
+        int y = h;       // TODO: what's this number mean?
 
 System.out.println("putting text at: " + x + " " + y);
         g.drawString(text, x, y);
@@ -203,9 +243,75 @@ System.out.println("putting text at: " + x + " " + y);
 
     }
 
+    /**
+     *  Load a 3D file into the grid
+     *  
+     * @param file
+     */
+    private void loadFile(Grid grid, String file, double scale) {
+        IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
+        loader.processFile(new File(file));
+        
+        GeometryData geom = new GeometryData();
+        geom.geometryType = GeometryData.INDEXED_TRIANGLES;
+        geom.coordinates = loader.getCoords();
+        geom.indexes = loader.getVerts();
+        geom.indexesCount = geom.indexes.length;
+
+        loader.computeModelBounds();
+        float[] bounds = loader.getBounds();
+
+        int len = geom.coordinates.length;
+
+        for(int i=0; i < len; i++)  {
+            geom.coordinates[i] = (float) ((double) geom.coordinates[i] * scale);
+        }
+        
+        for(int i=0; i < bounds.length; i++) {
+            bounds[i] = (float) ((double)bounds[i] * scale);
+        }
+
+System.out.println("bounds: " + java.util.Arrays.toString(bounds));
+/*
+        double x = grid.getWidth() / 2.0 / RESOLUTION;
+        double y = grid.getHeight() / 2.0 / RESOLUTION;
+        double z = grid.getDepth() / 2.0 / RESOLUTION;
+*/
+        double x = -bounds[0] * 1.1;
+        double y = -bounds[2] * 1.1;
+        double z = -bounds[4] * 1.1;
+
+System.out.println("translate: " + x + " " + y + " " + z);
+        TriangleModelCreator tmc = null;
+
+        double rx = 0,ry = 1,rz = 0,rangle = 0;
+
+        // TODO: using a transform with InteriorFinder duplicates geometry transform
+
+/*
+        tmc = new TriangleModelCreator(geom,x,y,z,
+                rx,ry,rz,rangle,EXT_MAT,INT_MAT,true);
+*/
+
+        tmc = new TriangleModelCreator(geom,x,y,z,
+                rx,ry,rz,rangle,EXT_MAT,INT_MAT,true,
+                new InteriorFinderTriangleBased(geom,bounds, x,y,z,rx,ry,rz,rangle,INT_MAT));
+
+        tmc.generate(grid);
+        
+    }
     private void write(Grid grid, String type, OutputStream os, ErrorReporter console) {
+        System.out.println("exterior voxels: " + grid.findCount(Grid.VoxelClasses.EXTERIOR));
         // Output File
-        BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
+//        BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
+//        RegionsX3DExporter exporter = new RegionsX3DExporter(type, os, console);
+//        BoxSimplifiedX3DExporter exporter = new BoxSimplifiedX3DExporter(type, os, console);
+//        BoxBatcherX3DExporter exporter = new BoxBatcherX3DExporter(type, os, console);
+        EdgeCollapseSimplifier reducer = new EdgeCollapseSimplifier(16, 0.71);
+
+        //reducer = null;
+
+        MarchingCubesX3DExporter exporter = new MarchingCubesX3DExporter(type, os, console, reducer);
 
         exporter.write(grid, null);
         exporter.close();
@@ -217,14 +323,14 @@ System.out.println("putting text at: " + x + " " + y);
         BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[] {0,1,0});
+        colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
+        colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
         transparency.put(new Integer(Grid.INTERIOR), new Float(0));
         transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
-        transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
+        transparency.put(new Integer(Grid.OUTSIDE), new Float(0.95));
 
         exporter.writeDebug(grid, colors, transparency);
         exporter.close();
@@ -232,6 +338,7 @@ System.out.println("putting text at: " + x + " " + y);
 
     public static void main(String[] args) {
         Lettering c = new Lettering();
-        c.generate("out.x3db");
+        c.generate("/cygwin/home/giles/projs/shapeways/code/trunk/service/creator/soundwave_cover/src/models/soundwave_cover/x3d/IPHONE4.x3db",
+                "out.x3db");
     }
 }

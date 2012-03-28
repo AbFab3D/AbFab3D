@@ -25,7 +25,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Copy implements Operation {
+public class Copy implements Operation, AttributeOperation {
     /** The x location */
     private int x;
 
@@ -35,11 +35,11 @@ public class Copy implements Operation {
     /** The z location */
     private int z;
 
-    /** The dest grid */
-    private Grid dest;
+    /** The src grid */
+    private Grid src;
 
-    public Copy(Grid dest, int x, int y, int z) {
-        this.dest = dest;
+    public Copy(Grid src, int x, int y, int z) {
+        this.src = src;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -49,13 +49,13 @@ public class Copy implements Operation {
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
-     * @param grid The grid to use for grid src
+     * @param dest The grid to use for grid src
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
-        int width = grid.getWidth();
-        int depth = grid.getDepth();
-        int height = grid.getHeight();
+    public AttributeGrid execute(AttributeGrid dest) {
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
 
         int state;
 
@@ -71,7 +71,7 @@ public class Copy implements Operation {
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
-                    vd = grid.getData(x,y,z);
+                    vd = dest.getData(x,y,z);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         // TODO: really only works on empty
@@ -82,6 +82,47 @@ public class Copy implements Operation {
             }
         }
 
-        return grid;
+        return dest;
     }
+
+    /**
+     * Execute an operation on a grid.  If the operation changes the grid
+     * dimensions then a new one will be returned from the call.
+     *
+     * @param dest The grid to use for grid src
+     * @return The new grid
+     */
+    public Grid execute(Grid dest) {
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
+
+        int state;
+
+        int origin_x = x;
+        int origin_y = y;
+        int origin_z = z;
+        byte vd;
+
+        // TODO: Optimize using copy constructors for same types
+        // TODO: Optimize using iterator for MARKED only copies
+        // TODO: Add a param for wether to copy outside.  Really just a union then
+
+        for(int x=0; x < width; x++) {
+            for(int y=0; y < height; y++) {
+                for(int z=0; z < depth; z++) {
+                    vd = src.getState(x,y,z);
+
+                    if (vd != Grid.OUTSIDE) {
+                        // TODO: really only works on empty
+                        dest.setState(origin_x + x, origin_y + y, origin_z + z,
+                                vd);
+                    }
+                }
+            }
+        }
+
+        return dest;
+    }
+
 }

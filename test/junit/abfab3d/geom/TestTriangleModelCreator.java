@@ -27,9 +27,6 @@ import org.j3d.geom.CylinderGenerator;
 import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
-import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
-import org.web3d.vrml.export.X3DBinarySerializer;
-import org.web3d.vrml.sav.BinaryContentHandler;
 
 // Internal Imports
 import abfab3d.grid.*;
@@ -75,7 +72,7 @@ public class TestTriangleModelCreator extends TestCase {
         int gHeight = (int) (height / VERT_RESOLUTION) + 10;
         int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
 
-        Grid grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+        AttributeGrid grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         // translate the cube so it does not occupy one more row, height, and depth than it should
         // by having the "left" side start on a grid line
@@ -133,7 +130,7 @@ public class TestTriangleModelCreator extends TestCase {
 		// Test an exterior only cube
 		//------------------------------------------------------
 
-		grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+		grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         createCubeInGrid(grid, width, height, depth,
         		translateX, translateY, translateZ,
@@ -177,7 +174,7 @@ public class TestTriangleModelCreator extends TestCase {
         int gHeight = (int) (height / VERT_RESOLUTION) + 10;
         int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
 
-        Grid grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+        AttributeGrid grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         // translate the cube so it does not occupy one more row, height, and depth than it should
         // by having the "left" side start on a grid line
@@ -234,7 +231,7 @@ public class TestTriangleModelCreator extends TestCase {
 		// Test an exterior only cube
 		//------------------------------------------------------
 
-		grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+		grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         createCubeInGrid(grid, width, height, depth,
         		translateX, translateY, translateZ,
@@ -278,8 +275,8 @@ public class TestTriangleModelCreator extends TestCase {
         int gHeight = (int) (height / VERT_RESOLUTION) + 10;
         int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
 
-        Grid grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
-        grid = new RangeCheckWrapper(grid);
+        AttributeGrid grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+        grid = new RangeCheckAttributeWrapper(grid);
 
 //System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
 
@@ -400,7 +397,7 @@ public class TestTriangleModelCreator extends TestCase {
 		double translateY = Math.round((height / 2.0f) * 1000f) / 1000f;
 		double translateZ = Math.round(radius * 1000f) / 1000f;
 
-        Grid grid = createCylinderInGrid(height, radius,
+        AttributeGrid grid = createCylinderInGrid(height, radius,
         		translateX, translateY, translateZ,
         		outerMaterial, innerMaterial, GeometryData.TRIANGLES);
 
@@ -445,7 +442,7 @@ public class TestTriangleModelCreator extends TestCase {
         double voxelSize = 0.001;
         int gridSize = (int) (2 * bounds / voxelSize) + 30; // add 2 voxels as buffer
 
-        Grid grid = new ArrayGridByte(gridSize, gridSize, gridSize, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridByte(gridSize, gridSize, gridSize, voxelSize, voxelSize);
 
         int indexOffset = 5;
 		double translateX = Math.round(bounds * 1000f) / 1000f + indexOffset * voxelSize;
@@ -495,7 +492,7 @@ public class TestTriangleModelCreator extends TestCase {
         byte outerMaterial = 1;
         byte innerMaterial = 2;
 
-		Grid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial,
+		AttributeGrid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial,
 				GeometryData.TRIANGLES, true);
 
 		printGridStates(grid);
@@ -515,7 +512,7 @@ public class TestTriangleModelCreator extends TestCase {
      * @param fill Should the interior be filled or just a shell
      * @return The grid containing the cube
      */
-    private static Grid createTorusInGrid(float ir, float or, int facets,
+    private static AttributeGrid createTorusInGrid(float ir, float or, int facets,
     		byte outerMaterial, byte innerMaterial, int geomType, boolean fill) {
 
     	TorusGenerator tg = new TorusGenerator(ir, or, facets, facets);
@@ -530,7 +527,7 @@ public class TestTriangleModelCreator extends TestCase {
         int size = (int) (2.0 * bounds / HORIZ_RESOLUTION) + bufferVoxel;
 //System.out.println("grid voxels per side: " + size);
 
-        Grid grid = new ArrayGridByte(size, size, size, HORIZ_RESOLUTION, VERT_RESOLUTION);
+        AttributeGrid grid = new ArrayAttributeGridByte(size, size, size, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         double x = bounds + bufferVoxel/2 * HORIZ_RESOLUTION;
         double y = x;
@@ -558,7 +555,7 @@ public class TestTriangleModelCreator extends TestCase {
      * @param innerMaterial The inner material
      * @return The grid containing the cube
      */
-    private static void createCubeInGrid(Grid grid, float cWidth, float cHeight, float cDepth,
+    private static void createCubeInGrid(AttributeGrid grid, float cWidth, float cHeight, float cDepth,
     		double translateX, double translateY, double translateZ,
     		byte outerMaterial, byte innerMaterial, int geomType, boolean fill) {
 
@@ -582,14 +579,8 @@ public class TestTriangleModelCreator extends TestCase {
     /**
      * Creates a simple cube in a grid and returns the grid.
      *
-     * @param cWidth The width of the cube
-     * @param cHeight The height of the cube
-     * @param cDepth The depth of the cube
-     * @param outerMaterial The outer material
-     * @param innerMaterial The inner material
-     * @return The grid containing the cube
      */
-    private static Grid createCylinderInGrid(float height, float radius,
+    private static AttributeGrid createCylinderInGrid(float height, float radius,
     		double translateX, double translateY, double translatZ,
     		byte outerMaterial, byte innerMaterial, int geomType) {
 
@@ -608,7 +599,7 @@ public class TestTriangleModelCreator extends TestCase {
 
 //System.out.println("grid dimensions: " + gWidth + " " + gHeight + " " + gDepth);
 
-        Grid grid = new ArrayGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
+        AttributeGrid grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
 //        double x = bounds;// + 5.0 * HORIZ_RESOLUTION;
 //        double y = x;
@@ -631,12 +622,11 @@ public class TestTriangleModelCreator extends TestCase {
      * only for cubes aligned with the axes.
      *
      * @param grid The grid
-     * @param startIndex The starting index of the cube
      * @param xVoxels The number of cube voxels in the x axis
      * @param yVoxels The number of cube voxels in the y axis
      * @param zVoxels The number of cube voxels in the z axis
      */
-    private void checkCubeVoxelStates(Grid grid, int outerMaterial, int innerMaterial,
+    private void checkCubeVoxelStates(AttributeGrid grid, int outerMaterial, int innerMaterial,
     		int xStartIndex, int yStartIndex, int zStartIndex,
     		int xVoxels, int yVoxels, int zVoxels) {
 
@@ -677,7 +667,7 @@ public class TestTriangleModelCreator extends TestCase {
 								Grid.EXTERIOR, grid.getState(x, y, z));
 
 						assertEquals("Outer material is not " + outerMaterial + " for grid: " + x + ", " + y + ", " + z,
-								outerMaterial, grid.getMaterial(x, y, z));
+								outerMaterial, grid.getAttribute(x, y, z));
 
 					} else if (x > xStartIndex && x < (xEndIndex) &&
 							   y > yStartIndex && y < (yEndIndex) &&
@@ -687,7 +677,7 @@ public class TestTriangleModelCreator extends TestCase {
 								Grid.INTERIOR, grid.getState(x, y, z));
 
 						assertEquals("Inner material is not " + innerMaterial + " for grid: " + x + ", " + y + ", " + z,
-								innerMaterial, grid.getMaterial(x, y, z));
+								innerMaterial, grid.getAttribute(x, y, z));
 
 					} else {
 						assertEquals("State is not outside for grid: " + x + ", " + y + ", " + z,
@@ -704,12 +694,11 @@ public class TestTriangleModelCreator extends TestCase {
      * only for cubes aligned with the axes.
      *
      * @param grid The grid
-     * @param startIndex The starting index of the cube
      * @param xVoxels The number of cube voxels in the x axis
      * @param yVoxels The number of cube voxels in the y axis
      * @param zVoxels The number of cube voxels in the z axis
      */
-    private void checkCubeOnlyVoxelStates(Grid grid, int outerMaterial, int innerMaterial,
+    private void checkCubeOnlyVoxelStates(AttributeGrid grid, int outerMaterial, int innerMaterial,
     		int xStartIndex, int yStartIndex, int zStartIndex,
     		int xVoxels, int yVoxels, int zVoxels) {
 
@@ -747,7 +736,7 @@ public class TestTriangleModelCreator extends TestCase {
 								Grid.EXTERIOR, grid.getState(x, y, z));
 
 						assertEquals("Outer material is not " + outerMaterial + " for grid: " + x + ", " + y + ", " + z,
-								outerMaterial, grid.getMaterial(x, y, z));
+								outerMaterial, grid.getAttribute(x, y, z));
 
 					} else if (x > xStartIndex && x < (xEndIndex) &&
 							   y > yStartIndex && y < (yEndIndex) &&
@@ -757,7 +746,7 @@ public class TestTriangleModelCreator extends TestCase {
 								Grid.INTERIOR, grid.getState(x, y, z));
 
 						assertEquals("Inner material is not " + innerMaterial + " for grid: " + x + ", " + y + ", " + z,
-								innerMaterial, grid.getMaterial(x, y, z));
+								innerMaterial, grid.getAttribute(x, y, z));
 					}
         		}
         	}
@@ -770,12 +759,8 @@ public class TestTriangleModelCreator extends TestCase {
      * only for cubes aligned with the axes.
      *
      * @param grid The grid
-     * @param startIndex The starting index of the cube
-     * @param xVoxels The number of cube voxels in the x axis
-     * @param yVoxels The number of cube voxels in the y axis
-     * @param zVoxels The number of cube voxels in the z axis
      */
-    private void checkCylinder(Grid grid, float height, float radius,
+    private void checkCylinder(AttributeGrid grid, float height, float radius,
     		byte outerMaterial, byte innerMaterial) {
 
     	int outerMatPerSlice = 0;
@@ -797,7 +782,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         	for (int z=0; z<gridDepth; z++) {
 
-    			mat = grid.getMaterial(x, midHeight, z);
+    			mat = grid.getAttribute(x, midHeight, z);
     			if (mat == outerMaterial) {
     				outerMatPerSlice++;
     			} else if (mat == innerMaterial) {
@@ -860,7 +845,7 @@ public class TestTriangleModelCreator extends TestCase {
 				expectedInMatCount, grid.findCount(innerMaterial));
     }
 
-    private void checkVoxelStatePattern(Grid grid) {
+    private void checkVoxelStatePattern(AttributeGrid grid) {
 
     	int gridWidth = grid.getWidth();
     	int gridHeight = grid.getHeight();
@@ -975,7 +960,7 @@ public class TestTriangleModelCreator extends TestCase {
      *
      * @param grid The grid
      */
-    private void printGridStates(Grid grid) {
+    private void printGridStates(AttributeGrid grid) {
     	int gridWidth = grid.getWidth();
     	int gridHeight = grid.getHeight();
     	int gridDepth = grid.getDepth();
@@ -1028,7 +1013,7 @@ public class TestTriangleModelCreator extends TestCase {
             byte outerMaterial = 1;
             byte innerMaterial = 2;
 
-    		Grid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial,
+    		AttributeGrid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial,
     				GeometryData.TRIANGLES, true);
 
 		    FileOutputStream fos = new FileOutputStream(filename);
@@ -1064,7 +1049,7 @@ public class TestTriangleModelCreator extends TestCase {
         }
     }
 
-    private void generate(Grid grid, String filename) {
+    private void generate(AttributeGrid grid, String filename) {
         try {
             ErrorReporter console = new PlainTextErrorReporter();
 

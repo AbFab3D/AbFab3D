@@ -13,8 +13,6 @@
 package abfab3d.grid;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
 /**
  * A grid backed by blocked tiles.  Inspired by Field3D.  Later may
@@ -28,13 +26,13 @@ import java.io.*;
  *
  * @author Alan Hudson
  */
-public class BlockBasedGridShort extends BaseGrid {
+public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
     private static final int DEFAULT_BLOCK_ORDER = 4;
 
-    /** BlockShort order (size = 2^blockOrder) */
+    /** BlockByteorder (size = 2^blockOrder) */
     protected int blockOrder;
 
-    protected BlockShort[] data;
+    protected BlockByte[] data;
 
     protected int blockResX;
     protected int blockResY;
@@ -60,7 +58,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public BlockBasedGridShort(double w, double h, double d, double pixel, double sheight) {
+    public BlockBasedAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
         this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
            (int) (d / pixel) + 1, pixel, sheight, DEFAULT_BLOCK_ORDER);
     }
@@ -74,7 +72,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public BlockBasedGridShort(int w, int h, int d, double pixel, double sheight) {
+    public BlockBasedAttributeGridByte(int w, int h, int d, double pixel, double sheight) {
         this(w,h,d,pixel,sheight,DEFAULT_BLOCK_ORDER);
     }
 
@@ -87,7 +85,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public BlockBasedGridShort(double w, double h, double d, double pixel, double sheight, int blockOrder) {
+    public BlockBasedAttributeGridByte(double w, double h, double d, double pixel, double sheight, int blockOrder) {
         this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
            (int) (d / pixel) + 1, pixel, sheight, blockOrder);
     }
@@ -101,7 +99,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public BlockBasedGridShort(int w, int h, int d, double pixel, double sheight, int blockOrder) {
+    public BlockBasedAttributeGridByte(int w, int h, int d, double pixel, double sheight, int blockOrder) {
         super(w,h,d,pixel,sheight);
 
 /*
@@ -149,7 +147,7 @@ public class BlockBasedGridShort extends BaseGrid {
 
 //System.out.println("blockRes: " + blockResX + " " + blockResY + " " + blockResZ);
         blockXZSize = blockResX * blockResZ;
-        data = new BlockShort[blockResX * blockResY * blockResZ];
+        data = new BlockByte[blockResX * blockResY * blockResZ];
 
         outside = new VoxelDataByte(OUTSIDE, 0);
     }
@@ -167,7 +165,7 @@ public class BlockBasedGridShort extends BaseGrid {
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
 
         // TODO: what to do about block order?
-        Grid ret_val = new BlockBasedGridShort(w,h,d,pixel,sheight,4);
+        Grid ret_val = new BlockBasedAttributeGridByte(w,h,d,pixel,sheight,4);
 
         return ret_val;
     }
@@ -177,10 +175,20 @@ public class BlockBasedGridShort extends BaseGrid {
      *
      * @param grid The grid
      */
-    public BlockBasedGridShort(BlockBasedGridShort grid) {
+    public BlockBasedAttributeGridByte(BlockBasedAttributeGridByte grid) {
         // TODO: what to do about block order?
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
+        
+        this.blockOrder = grid.blockOrder;
+        this.blockResX = grid.blockResX;
+        this.blockResY = grid.blockResY;
+        this.blockResZ = grid.blockResZ;
+        this.blockXZSize = grid.blockXZSize;
+        this.blockMax = grid.blockMax;
+        this.outside = (VoxelDataByte) grid.outside.clone();
+        this.bcoord = grid.bcoord.clone();
+        this.vcoord = grid.vcoord.clone();
         this.data = grid.data.clone();
     }
 
@@ -190,7 +198,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
         // Find block coord
@@ -199,17 +207,17 @@ public class BlockBasedGridShort extends BaseGrid {
         // Inline getBlockID call, confirm faster?
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
 //System.out.println("gd: " + x + " " + y + " " + z + " id: " + id + " block: " + block);
         if (block != null) {
             // Find coord in block
             getVoxelInBlock(x, y, z, vcoord);
 
-            short val = block.getValue(vcoord, blockOrder);
+            byte val = block.getValue(vcoord, blockOrder);
 
-            byte state = (byte) ((val & 0xFFFF) >> 14);
-            short mat = (short) (0x3FFF & val);
+            byte state = (byte) ((val & 0xFF) >> 6);
+            byte mat = (byte) (0x3F & val);
 
             VoxelDataByte vd = new VoxelDataByte(state, mat);
             return vd;
@@ -224,7 +232,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public VoxelData getData(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -236,16 +244,16 @@ public class BlockBasedGridShort extends BaseGrid {
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         if (block != null) {
             // Find coord in block
             getVoxelInBlock(s_x, slice, s_z, vcoord);
 
-            short val = block.getValue(vcoord, blockOrder);
+            byte val = block.getValue(vcoord, blockOrder);
 
-            byte state = (byte) ((val & 0xFFFF) >> 14);
-            short mat = (short) (0x3FFF & val);
+            byte state = (byte) ((val & 0xFF) >> 6);
+            byte mat = (byte) (0x3F & val);
 
             VoxelDataByte vd = new VoxelDataByte(state, mat);
             return vd;
@@ -260,7 +268,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -272,15 +280,15 @@ public class BlockBasedGridShort extends BaseGrid {
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         if (block != null) {
             // Find coord in block
             getVoxelInBlock(s_x, slice, s_z, vcoord);
 
-            short val = block.getValue(vcoord, blockOrder);
+            byte val = block.getValue(vcoord, blockOrder);
 
-            byte state = (byte) ((val & 0xFFFF) >> 14);
+            byte state = (byte) ((val & 0xFF) >> 6);
 
             return state;
         } else {
@@ -294,23 +302,22 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
+     * @return The voxel state
      */
     public byte getState(int x, int y, int z) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
-
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         if (block != null) {
             // Find coord in block
             getVoxelInBlock(x, y, z, vcoord);
 
-            short val = block.getValue(vcoord, blockOrder);
+            byte val = block.getValue(vcoord, blockOrder);
 
-            byte state = (byte) ((val & 0xFFFF) >> 14);
+            byte state = (byte) ((val & 0xFF) >> 6);
 
             return state;
         } else {
@@ -324,9 +331,9 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
-    public int getMaterial(double x, double y, double z) {
+    public int getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -336,14 +343,14 @@ public class BlockBasedGridShort extends BaseGrid {
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         if (block != null) {
             // Find coord in block
             getVoxelInBlock(s_x, slice, s_z, vcoord);
 
-            short val = block.getValue(vcoord, blockOrder);
-            short mat = (short) (0x3FFF & val);
+            byte val = block.getValue(vcoord, blockOrder);
+            byte mat = (byte) (0x3F & val);
 
             return (int) mat;
         }
@@ -357,22 +364,23 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
+     * @return The voxel material
      */
-    public int getMaterial(int x, int y, int z) {
+    public int getAttribute(int x, int y, int z) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         if (block != null) {
             // Find coord in block
             getVoxelInBlock(x, y, z, vcoord);
 
-            short val = block.getValue(vcoord, blockOrder);
-            short mat = (short) (0x3FFF & val);
+            byte val = block.getValue(vcoord, blockOrder);
+
+            byte mat = (byte) (0x3F & val);
 
             return (int) mat;
         }
@@ -399,18 +407,18 @@ public class BlockBasedGridShort extends BaseGrid {
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         // Find coord in block
         getVoxelInBlock(s_x, slice, s_z, vcoord);
 
         if (block != null) {
 
-            block.setValue((short) (0xFFFF & (state << 14 | ((short)material))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)material))), vcoord, blockOrder);
         } else {
-            block = new BlockShort(blockOrder);
+            block = new BlockByte(blockOrder);
             data[id] = block;
-            block.setValue((short) (0xFFFF & (state << 14 | ((short)material))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)material))), vcoord, blockOrder);
         }
     }
 
@@ -429,18 +437,18 @@ public class BlockBasedGridShort extends BaseGrid {
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 //System.out.println("id: " + id + " block: " + block);
 
         // Find coord in block
         getVoxelInBlock(x, y, z, vcoord);
 
         if (block != null) {
-            block.setValue((short) (0xFFFF & (state << 14 | ((short)material))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)material))), vcoord, blockOrder);
         } else {
-            block = new BlockShort(blockOrder);
+            block = new BlockByte(blockOrder);
             data[id] = block;
-            block.setValue((short) (0xFFFF & (state << 14 | ((short)material))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)material))), vcoord, blockOrder);
         }
     }
 
@@ -452,29 +460,29 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setMaterial(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, int material) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         // Find coord in block
         getVoxelInBlock(x, y, z, vcoord);
 
         if (block != null) {
             // TODO: can we do better then this?
-            short val = block.getValue(vcoord, blockOrder);
-            byte state = (byte) ((val & 0xFFFF) >> 14);
+            byte val = block.getValue(vcoord, blockOrder);
+            byte state = (byte) ((val & 0xFF) >> 6);
 
-            block.setValue((short) (0xFFFF & (state << 14 | ((short)material))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)material))), vcoord, blockOrder);
         } else {
-            block = new BlockShort(blockOrder);
+            block = new BlockByte(blockOrder);
             data[id] = block;
             byte state = OUTSIDE;
 
-            block.setValue((short) (0xFF & (state << 14 | ((short)material))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)material))), vcoord, blockOrder);
         }
     }
 
@@ -485,7 +493,6 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
         // Find block coord
@@ -493,23 +500,61 @@ public class BlockBasedGridShort extends BaseGrid {
 
         int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
 
-        BlockShort block = data[id];
+        BlockByte block = data[id];
 
         // Find coord in block
         getVoxelInBlock(x, y, z, vcoord);
 
         if (block != null) {
             // TODO: can we do better then this?
-            short val = block.getValue(vcoord, blockOrder);
-            short mat = (short) (0x3FFF & val);
+            byte val = block.getValue(vcoord, blockOrder);
+            byte mat = (byte) (0x3F & val);
 
-            block.setValue((short) (0xFFFF & (state << 14 | ((short)mat))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)mat))), vcoord, blockOrder);
         } else {
-            block = new BlockShort(blockOrder);
+            block = new BlockByte(blockOrder);
             data[id] = block;
-            short mat = 0;
+            byte mat = 0;
 
-            block.setValue((short) (0xFFFF & (state << 14 | ((short)mat))), vcoord, blockOrder);
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)mat))), vcoord, blockOrder);
+        }
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     */
+    public void setState(double x, double y, double z, byte state) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        // Find block coord
+        getBlockCoord(s_x, slice, s_z, bcoord);
+
+        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
+
+        BlockByte block = data[id];
+
+        // Find coord in block
+        getVoxelInBlock(s_x, slice, s_z, vcoord);
+
+        if (block != null) {
+            // TODO: can we do better then this?
+            byte val = block.getValue(vcoord, blockOrder);
+            byte mat = (byte) (0x3F & val);
+
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)mat))), vcoord, blockOrder);
+        } else {
+            block = new BlockByte(blockOrder);
+            data[id] = block;
+            byte mat = 0;
+
+            block.setValue((byte) (0xFF & (state << 6 | ((byte)mat))), vcoord, blockOrder);
         }
     }
 
@@ -517,7 +562,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * Clone the object.
      */
     public Object clone() {
-        BlockBasedGridShort ret_val = new BlockBasedGridShort(this);
+        BlockBasedAttributeGridByte ret_val = new BlockBasedAttributeGridByte(this);
 
         return ret_val;
     }
@@ -530,6 +575,9 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param t The traverer to call for each voxel
      */
     public void find(VoxelClasses vc, ClassTraverser t) {
+//        super.find(vc, t);
+
+
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -548,20 +596,88 @@ public class BlockBasedGridShort extends BaseGrid {
         int[] coord = new int[3];
 
         for(int i=0; i < len; i++) {
-            BlockShort block = data[i];
+            BlockByte block = data[i];
 
             if (block == null) {
                 continue;
             }
 
 
-            short[] data = block.getData();
+            byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte state = (byte) ((data[j] & 0xFFFF) >> 14);
-                short mat = (short) (0x3FFF & data[j]);
+                byte state = (byte) ((data[j] & 0xFF) >> 6);
+                byte mat = (byte) (0x3F & data[j]);
 
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
+                getVoxelCoord(i,j, coord);
+
+                switch(vc) {
+                    case ALL:
+                        t.found(coord[0],coord[1],coord[2],state);
+                        break;
+                    case MARKED:
+                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                            t.found(coord[0],coord[1],coord[2],state);
+                        }
+                        break;
+                    case EXTERIOR:
+                        if (state == Grid.EXTERIOR) {
+                            t.found(coord[0],coord[1],coord[2],state);
+                        }
+                        break;
+                    case INTERIOR:
+                        if (state == Grid.INTERIOR) {
+                            t.found(coord[0],coord[1],coord[2],state);
+                        }
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
+//        super.find(vc, t);
+
+
+        // Sadly this is slower, why?
+        // Its faster when sparse, slower when not.  I suspect its all
+        // that math to get the x,y,z
+
+        // Traverse blocks instead
+
+        int len = data.length;
+
+        if (vc == VoxelClasses.OUTSIDE) {
+            // Use slow route
+            super.findAttribute(vc, t);
+
+            return;
+        }
+
+        int[] coord = new int[3];
+
+        for(int i=0; i < len; i++) {
+            BlockByte block = data[i];
+
+            if (block == null) {
+                continue;
+            }
+
+
+            byte[] data = block.getData();
+            int len2 = data.length;
+            for(int j=0; j < len2; j++) {
+                byte state = (byte) ((data[j] & 0xFF) >> 6);
+                byte mat = (byte) (0x3F & data[j]);
+
+                VoxelDataByte vd = new VoxelDataByte(state,mat);
 
                 getVoxelCoord(i,j, coord);
 
@@ -599,7 +715,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
+    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -610,7 +726,7 @@ public class BlockBasedGridShort extends BaseGrid {
 
         if (vc == VoxelClasses.OUTSIDE) {
             // Use slow route
-            super.find(vc, t);
+            super.findAttribute(vc, t);
 
             return;
         }
@@ -618,24 +734,24 @@ public class BlockBasedGridShort extends BaseGrid {
         int[] coord = new int[3];
 
         for(int i=0; i < len; i++) {
-            BlockShort block = data[i];
+            BlockByte block = data[i];
 
             if (block == null) {
                 continue;
             }
 
 
-            short[] data = block.getData();
+            byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte state = (byte) ((data[j] & 0xFFFF) >> 14);
-                short material = (short) (0x3FFF & data[j]);
+                byte state = (byte) ((data[j] & 0xFF) >> 6);
+                byte material = (byte) (0x3F & data[j]);
 
                 if (mat != material) {
                     continue;
                 }
 
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
+                VoxelDataByte vd = new VoxelDataByte(state,mat);
 
                 getVoxelCoord(i,j, coord);
 
@@ -671,6 +787,8 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param t The traverer to call for each voxel
      */
     public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
+//        super.find(vc, t);
+
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -690,45 +808,41 @@ public class BlockBasedGridShort extends BaseGrid {
 
         loop:
         for(int i=0; i < len; i++) {
-            BlockShort block = data[i];
+            BlockByte block = data[i];
 
             if (block == null) {
                 continue;
             }
 
 
-            short[] data = block.getData();
+            byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte state = (byte) ((data[j] & 0xFFFF) >> 14);
-                short mat = (short) (0x3FFF & data[j]);
-
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
+                byte state = (byte) ((data[j] & 0xFF) >> 6);
+                byte mat = (byte) (0x3F & data[j]);
 
                 getVoxelCoord(i,j, coord);
 
                 switch(vc) {
                     case ALL:
-                        if(!t.foundInterruptible(coord[0],coord[1],coord[2],vd))
+                        if(!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                             break loop;
                         break;
                     case MARKED:
                         if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],vd))
+                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                                 break loop;
                         }
                         break;
                     case EXTERIOR:
-                        state = vd.getState();
                         if (state == Grid.EXTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],vd))
+                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                                 break loop;
                         }
                         break;
                     case INTERIOR:
-                        state = vd.getState();
                         if (state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],vd))
+                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                                 break loop;
                         }
                         break;
@@ -745,7 +859,7 @@ public class BlockBasedGridShort extends BaseGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -756,7 +870,7 @@ public class BlockBasedGridShort extends BaseGrid {
 
         if (vc == VoxelClasses.OUTSIDE) {
             // Use slow route
-            super.findInterruptible(vc, t);
+            super.findAttributeInterruptible(vc, t);
 
             return;
         }
@@ -765,23 +879,23 @@ public class BlockBasedGridShort extends BaseGrid {
 
         loop:
         for(int i=0; i < len; i++) {
-            BlockShort block = data[i];
+            BlockByte block = data[i];
 
             if (block == null) {
                 continue;
             }
 
-            short[] data = block.getData();
+            byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte state = (byte) ((data[j] & 0xFFFF) >> 14);
-                short material = (short) (0x3FFF & data[j]);
+                byte state = (byte) ((data[j] & 0xFF) >> 6);
+                byte material = (byte) (0x3F & data[j]);
 
                 if (mat != material) {
                     continue;
                 }
 
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
+                VoxelDataByte vd = new VoxelDataByte(state,mat);
 
                 getVoxelCoord(i,j, coord);
 
@@ -912,26 +1026,26 @@ public class BlockBasedGridShort extends BaseGrid {
 
 }
 
-class BlockShort {
-    protected short[] data;
+class BlockByte {
+    protected byte[] data;
 
-    public BlockShort(int blockOrder) {
-        data = new short[1 << blockOrder << blockOrder << blockOrder];
+    public BlockByte(int blockOrder) {
+        data = new byte[1 << blockOrder << blockOrder << blockOrder];
         //System.out.println("Created block: " + data.length + " this: " + this);
     }
 
-    public short getValue(int[] vcoord, int blockOrder) {
+    public byte getValue(int[] vcoord, int blockOrder) {
 //System.out.println("bgv: " + java.util.Arrays.toString(vcoord));
         return data[(vcoord[1] << blockOrder << blockOrder) + (vcoord[0] << blockOrder) + vcoord[2]];
 
     }
 
-    public void setValue(short val, int[] vcoord, int blockOrder) {
+    public void setValue(byte val, int[] vcoord, int blockOrder) {
 //System.out.println("sv: " + val + " vcoord: " + java.util.Arrays.toString(vcoord));
         data[(vcoord[1] << blockOrder << blockOrder) + (vcoord[0] << blockOrder) + vcoord[2]] = val;
     }
 
-    public short[] getData() {
+    public byte[] getData() {
         return data;
     }
 }

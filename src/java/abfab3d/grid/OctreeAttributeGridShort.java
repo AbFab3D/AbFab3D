@@ -14,7 +14,6 @@ package abfab3d.grid;
 
 // External Imports
 import java.util.*;
-import java.io.*;
 
 /**
  * A grid backed by an Octree
@@ -27,7 +26,7 @@ import java.io.*;
  *
  * @author Alan Hudson
  */
-public class OctreeGridShort extends BaseGrid {
+public class OctreeAttributeGridShort extends BaseAttributeGrid {
     protected OctreeCellInternalShort root;
 
     /**
@@ -39,7 +38,7 @@ public class OctreeGridShort extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public OctreeGridShort(double w, double h, double d, double pixel, double sheight) {
+    public OctreeAttributeGridShort(double w, double h, double d, double pixel, double sheight) {
         this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
            (int) (d / pixel) + 1, pixel, sheight);
     }
@@ -53,7 +52,7 @@ public class OctreeGridShort extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public OctreeGridShort(int w, int h, int d, double pixel, double sheight) {
+    public OctreeAttributeGridShort(int w, int h, int d, double pixel, double sheight) {
         super(w,h,d,pixel,sheight);
 
         if (pixel != sheight)
@@ -100,7 +99,7 @@ public class OctreeGridShort extends BaseGrid {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        Grid ret_val = new OctreeGridShort(w,h,d,pixel,sheight);
+        Grid ret_val = new OctreeAttributeGridShort(w,h,d,pixel,sheight);
 
         return ret_val;
     }
@@ -110,7 +109,7 @@ public class OctreeGridShort extends BaseGrid {
      *
      * @param grid The grid
      */
-    public OctreeGridShort(OctreeGridShort grid) {
+    public OctreeAttributeGridShort(OctreeAttributeGridShort grid) {
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
 
@@ -123,7 +122,6 @@ public class OctreeGridShort extends BaseGrid {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
         return root.getData(x,y,z);
@@ -135,7 +133,6 @@ public class OctreeGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
      */
     public VoxelData getData(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -151,7 +148,6 @@ public class OctreeGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
      */
     public byte getState(double x, double y, double z) {
         int slice = (int) (y / sheight);
@@ -168,7 +164,6 @@ public class OctreeGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
      */
     public byte getState(int x, int y, int z) {
         VoxelData vd = root.getData(x,y,z);
@@ -182,9 +177,8 @@ public class OctreeGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
      */
-    public int getMaterial(double x, double y, double z) {
+    public int getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -199,9 +193,8 @@ public class OctreeGridShort extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
      */
-    public int getMaterial(int x, int y, int z) {
+    public int getAttribute(int x, int y, int z) {
         VoxelData vd = root.getData(x,y,z);
 
         return vd.getMaterial();
@@ -246,7 +239,7 @@ public class OctreeGridShort extends BaseGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setMaterial(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, int material) {
         // TODO: not implemented yet
         throw new IllegalArgumentException("Not Implemented");
     }
@@ -258,9 +251,21 @@ public class OctreeGridShort extends BaseGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
+        // TODO: not implemented yet
+        throw new IllegalArgumentException("Not Implemented");
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     */
+    public void setState(double x, double y, double z, byte state) {
         // TODO: not implemented yet
         throw new IllegalArgumentException("Not Implemented");
     }
@@ -269,7 +274,7 @@ public class OctreeGridShort extends BaseGrid {
      * Clone the object.
      */
     public Object clone() {
-        OctreeGridShort ret_val = new OctreeGridShort(this);
+        OctreeAttributeGridShort ret_val = new OctreeAttributeGridShort(this);
 
         return ret_val;
     }
@@ -294,13 +299,19 @@ public class OctreeGridShort extends BaseGrid {
     }
 
     /**
-     * Traverse a class of material types.  May be much faster then
+     * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
-     * @param mat The material to traverse
+     * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(int mat, ClassTraverser t) {
+    public void find(VoxelClasses vc, ClassTraverser t) {
+        if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
+            // I can't see a reason to optimize this
+            super.find(vc, t);
+            return;
+        }
+
         ArrayList<OctreeCellInternalShort> list = new ArrayList();
         ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
 
@@ -312,8 +323,7 @@ public class OctreeGridShort extends BaseGrid {
             while(itr.hasNext()) {
                 OctreeCellInternalShort cell = itr.next();
 
-                if (!findInterruptible(cell, mat, t))
-                    return;
+                find(cell, vc, t);
 
                 OctreeCellInternalShort[] children = cell.children;
 
@@ -345,10 +355,10 @@ public class OctreeGridShort extends BaseGrid {
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, ClassTraverser t) {
+    public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
         if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
             // I can't see a reason to optimize this
-            super.find(vc, t);
+            super.findAttribute(vc, t);
             return;
         }
 
@@ -363,7 +373,7 @@ public class OctreeGridShort extends BaseGrid {
             while(itr.hasNext()) {
                 OctreeCellInternalShort cell = itr.next();
 
-                find(cell, vc, t);
+                findAttribute(cell, vc, t);
 
                 OctreeCellInternalShort[] children = cell.children;
 
@@ -439,6 +449,250 @@ public class OctreeGridShort extends BaseGrid {
         }
     }
 
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t) {
+        if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
+            // I can't see a reason to optimize this
+            super.findAttributeInterruptible(vc, t);
+            return;
+        }
+
+        ArrayList<OctreeCellInternalShort> list = new ArrayList();
+        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
+
+        list.add(root);
+
+        while(list.size() > 0) {
+            Iterator<OctreeCellInternalShort> itr = list.iterator();
+
+            while(itr.hasNext()) {
+                OctreeCellInternalShort cell = itr.next();
+
+                if (!findAttributeInterruptible(cell, vc, t))
+                    return;
+
+                OctreeCellInternalShort[] children = cell.children;
+
+                if (children != null) {
+                    int len = children.length;
+
+                    for(int i=0; i < len; i++) {
+                        if (children[i] != null)
+                            add_list.add(children[i]);
+                    }
+                }
+            }
+
+            list.clear();
+
+            itr = add_list.iterator();
+            while(itr.hasNext()) {
+                list.add(itr.next());
+            }
+
+            add_list.clear();
+        }
+    }
+
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+        if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
+            // I can't see a reason to optimize this
+            super.findAttribute(vc,mat, t);
+            return;
+        }
+
+        ArrayList<OctreeCellInternalShort> list = new ArrayList();
+        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
+
+        list.add(root);
+
+        while(list.size() > 0) {
+            Iterator<OctreeCellInternalShort> itr = list.iterator();
+
+            while(itr.hasNext()) {
+                OctreeCellInternalShort cell = itr.next();
+
+                findAttribute(cell, vc, mat, t);
+
+                OctreeCellInternalShort[] children = cell.children;
+
+                if (children != null) {
+                    int len = children.length;
+
+                    for(int i=0; i < len; i++) {
+                        if (children[i] != null)
+                            add_list.add(children[i]);
+                    }
+                }
+            }
+
+            list.clear();
+
+            itr = add_list.iterator();
+            while(itr.hasNext()) {
+                list.add(itr.next());
+            }
+
+            add_list.clear();
+        }
+    }
+
+    /**
+     * Traverse a class of voxel and material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+        if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
+            // I can't see a reason to optimize this
+            super.findAttributeInterruptible(vc, mat, t);
+            return;
+        }
+
+        ArrayList<OctreeCellInternalShort> list = new ArrayList();
+        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
+
+        list.add(root);
+
+        while(list.size() > 0) {
+            Iterator<OctreeCellInternalShort> itr = list.iterator();
+
+            while(itr.hasNext()) {
+                OctreeCellInternalShort cell = itr.next();
+
+                if (!findAttributeInterruptible(cell, vc, mat, t))
+                    return;
+
+                OctreeCellInternalShort[] children = cell.children;
+
+                if (children != null) {
+                    int len = children.length;
+
+                    for(int i=0; i < len; i++) {
+                        if (children[i] != null)
+                            add_list.add(children[i]);
+                    }
+                }
+            }
+
+            list.clear();
+
+            itr = add_list.iterator();
+            while(itr.hasNext()) {
+                list.add(itr.next());
+            }
+
+            add_list.clear();
+        }
+    }
+
+    /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttribute(int mat, ClassAttributeTraverser t) {
+        ArrayList<OctreeCellInternalShort> list = new ArrayList();
+        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
+
+        list.add(root);
+
+        while(list.size() > 0) {
+            Iterator<OctreeCellInternalShort> itr = list.iterator();
+
+            while(itr.hasNext()) {
+                OctreeCellInternalShort cell = itr.next();
+
+                findAttribute(cell, mat, t);
+
+                OctreeCellInternalShort[] children = cell.children;
+
+                if (children != null) {
+                    int len = children.length;
+
+                    for(int i=0; i < len; i++) {
+                        if (children[i] != null)
+                            add_list.add(children[i]);
+                    }
+                }
+            }
+
+            list.clear();
+
+            itr = add_list.iterator();
+            while(itr.hasNext()) {
+                list.add(itr.next());
+            }
+
+            add_list.clear();
+        }
+    }
+
+    /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
+        ArrayList<OctreeCellInternalShort> list = new ArrayList();
+        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
+
+        list.add(root);
+
+        while(list.size() > 0) {
+            Iterator<OctreeCellInternalShort> itr = list.iterator();
+
+            while(itr.hasNext()) {
+                OctreeCellInternalShort cell = itr.next();
+
+                if (!findAttributeInterruptible(cell, mat, t))
+                    return;
+
+                OctreeCellInternalShort[] children = cell.children;
+
+                if (children != null) {
+                    int len = children.length;
+
+                    for(int i=0; i < len; i++) {
+                        if (children[i] != null)
+                            add_list.add(children[i]);
+                    }
+                }
+            }
+
+            list.clear();
+
+            itr = add_list.iterator();
+            while(itr.hasNext()) {
+                list.add(itr.next());
+            }
+
+            add_list.clear();
+        }
+    }
+
+
     private void find(OctreeCellInternalShort cell, VoxelClasses vc, ClassTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
@@ -449,10 +703,130 @@ public class OctreeGridShort extends BaseGrid {
                     // TODO: I think this is right
                     switch(vc) {
                         case ALL:
-                            t.found(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL);
+                            t.found(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL.getState());
                             break;
                         case OUTSIDE:
-                            t.found(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL);
+                            t.found(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL.getState());
+                            break;
+                    }
+                }
+            }
+        } else {
+            byte state;
+
+            if (cell.level == cell.maxLevel) {
+//System.out.println(" TERM.  State: " + cell.allState.getState() + " pos: " + cell.vcx + " " + cell.vcy + " " + cell.vcz);
+                switch(vc) {
+                    case ALL:
+                        t.found(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState());
+                        break;
+                    case MARKED:
+                        state = cell.allState.getState();
+                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                            t.found(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState());
+                        }
+                        break;
+                    case EXTERIOR:
+                        state = cell.allState.getState();
+                        if (state == Grid.EXTERIOR) {
+                            t.found(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState());
+                        }
+                       break;
+                    case INTERIOR:
+                        state = cell.allState.getState();
+                        if (state == Grid.INTERIOR) {
+                            t.found(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState());
+                        }
+                        break;
+                    case OUTSIDE:
+                        state = cell.allState.getState();
+                        if (state == Grid.OUTSIDE) {
+                            t.found(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState());
+                        }
+                        break;
+                }
+            } else {
+//System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
+                // TODO: Not sure why this works might be dodgy
+                if (cell.level > 2) {
+                    switch(vc) {
+                        case ALL:
+                            for(int i=0; i < cell.size; i++) {
+                                for(int j=0; j < cell.size; j++) {
+                                    for(int k=0; k < cell.size; k++) {
+                                        t.found(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState());
+                                    }
+                                }
+                            }
+                            break;
+                        case MARKED:
+                            state = cell.allState.getState();
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            t.found(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState());
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case EXTERIOR:
+                            state = cell.allState.getState();
+                            if (state == Grid.EXTERIOR) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            t.found(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState());
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case INTERIOR:
+                            state = cell.allState.getState();
+                            if (state == Grid.INTERIOR) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            t.found(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState());
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case OUTSIDE:
+                            state = cell.allState.getState();
+                            if (state == Grid.OUTSIDE) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            t.found(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState());
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void findAttribute(OctreeCellInternalShort cell, VoxelClasses vc, ClassAttributeTraverser t) {
+//System.out.println("find: " + cell);
+        if (cell.allState.getState() == cell.MIXED) {
+            int len = cell.children.length;
+
+            for(int i=0; i < len; i++) {
+                if (cell.children[i] == null) {
+                    // TODO: I think this is right
+                    switch(vc) {
+                        case ALL:
+                            t.found(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL);
+                            break;
+                        case OUTSIDE:
+                            t.found(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL);
                             break;
                     }
                 }
@@ -477,7 +851,7 @@ public class OctreeGridShort extends BaseGrid {
                         if (state == Grid.EXTERIOR) {
                             t.found(cell.vcx,cell.vcy,cell.vcz,cell.allState);
                         }
-                       break;
+                        break;
                     case INTERIOR:
                         state = cell.allState.getState();
                         if (state == Grid.INTERIOR) {
@@ -559,111 +933,6 @@ public class OctreeGridShort extends BaseGrid {
         }
     }
 
-    /**
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
-        if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
-            // I can't see a reason to optimize this
-            super.find(vc,mat, t);
-            return;
-        }
-
-        ArrayList<OctreeCellInternalShort> list = new ArrayList();
-        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
-
-        list.add(root);
-
-        while(list.size() > 0) {
-            Iterator<OctreeCellInternalShort> itr = list.iterator();
-
-            while(itr.hasNext()) {
-                OctreeCellInternalShort cell = itr.next();
-
-                find(cell, vc, mat, t);
-
-                OctreeCellInternalShort[] children = cell.children;
-
-                if (children != null) {
-                    int len = children.length;
-
-                    for(int i=0; i < len; i++) {
-                        if (children[i] != null)
-                            add_list.add(children[i]);
-                    }
-                }
-            }
-
-            list.clear();
-
-            itr = add_list.iterator();
-            while(itr.hasNext()) {
-                list.add(itr.next());
-            }
-
-            add_list.clear();
-        }
-    }
-
-
-
-    /**
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
-        if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
-            // I can't see a reason to optimize this
-            super.findInterruptible(vc, mat, t);
-            return;
-        }
-
-        ArrayList<OctreeCellInternalShort> list = new ArrayList();
-        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
-
-        list.add(root);
-
-        while(list.size() > 0) {
-            Iterator<OctreeCellInternalShort> itr = list.iterator();
-
-            while(itr.hasNext()) {
-                OctreeCellInternalShort cell = itr.next();
-
-                if (!findInterruptible(cell, vc, mat, t))
-                    return;
-
-                OctreeCellInternalShort[] children = cell.children;
-
-                if (children != null) {
-                    int len = children.length;
-
-                    for(int i=0; i < len; i++) {
-                        if (children[i] != null)
-                            add_list.add(children[i]);
-                    }
-                }
-            }
-
-            list.clear();
-
-            itr = add_list.iterator();
-            while(itr.hasNext()) {
-                list.add(itr.next());
-            }
-
-            add_list.clear();
-        }
-    }
-
     private boolean findInterruptible(OctreeCellInternalShort cell, VoxelClasses vc, ClassTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
@@ -674,11 +943,145 @@ public class OctreeGridShort extends BaseGrid {
                     // TODO: I think this is right
                     switch(vc) {
                         case ALL:
-                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL))
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL.getState()))
                                 return false;
                             break;
                         case OUTSIDE:
-                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL))
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL.getState()))
+                                return false;
+                            break;
+                    }
+                }
+            }
+        } else {
+            byte state;
+
+            if (cell.level == cell.maxLevel) {
+//System.out.println(" TERM.  State: " + cell.allState.getState());
+                switch(vc) {
+                    case ALL:
+                        if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState()))
+                            return false;
+                        break;
+                    case MARKED:
+                        state = cell.allState.getState();
+                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState()))
+                                return false;
+                        }
+                        break;
+                    case EXTERIOR:
+                        state = cell.allState.getState();
+                        if (state == Grid.EXTERIOR) {
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState()))
+                                return false;
+                        }
+                        break;
+                    case INTERIOR:
+                        state = cell.allState.getState();
+                        if (state == Grid.INTERIOR) {
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState()))
+                                return false;
+                        }
+                        break;
+                    case OUTSIDE:
+                        state = cell.allState.getState();
+                        if (state == Grid.OUTSIDE) {
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState()))
+                                return false;
+                        }
+                        break;
+                }
+            } else {
+//System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
+                // TODO: Not sure why this works might be dodgy
+                if (cell.level > 2) {
+                    switch(vc) {
+                        case ALL:
+                            for(int i=0; i < cell.size; i++) {
+                                for(int j=0; j < cell.size; j++) {
+                                    for(int k=0; k < cell.size; k++) {
+                                        if (!t.foundInterruptible(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState()))
+                                            return false;
+                                    }
+                                }
+                            }
+                            break;
+                        case MARKED:
+                            state = cell.allState.getState();
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            if (!t.foundInterruptible(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState()))
+                                                return false;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case EXTERIOR:
+                            state = cell.allState.getState();
+                            if (state == Grid.EXTERIOR) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            if (!t.foundInterruptible(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState()))
+                                                return false;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case INTERIOR:
+                            state = cell.allState.getState();
+                            if (state == Grid.INTERIOR) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            if (!t.foundInterruptible(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState()))
+                                                return false;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        case OUTSIDE:
+                            state = cell.allState.getState();
+                            if (state == Grid.OUTSIDE) {
+                                for(int i=0; i < cell.size; i++) {
+                                    for(int j=0; j < cell.size; j++) {
+                                        for(int k=0; k < cell.size; k++) {
+                                            if (!t.foundInterruptible(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState()))
+                                                return false;
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean findAttributeInterruptible(OctreeCellInternalShort cell, VoxelClasses vc, ClassAttributeTraverser t) {
+//System.out.println("find: " + cell);
+        if (cell.allState.getState() == cell.MIXED) {
+            int len = cell.children.length;
+
+            for(int i=0; i < len; i++) {
+                if (cell.children[i] == null) {
+                    // TODO: I think this is right
+                    switch(vc) {
+                        case ALL:
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL))
+                                return false;
+                            break;
+                        case OUTSIDE:
+                            if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL))
                                 return false;
                             break;
                     }
@@ -798,52 +1201,7 @@ public class OctreeGridShort extends BaseGrid {
         return true;
     }
 
-
-    /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(int mat, ClassTraverser t) {
-        ArrayList<OctreeCellInternalShort> list = new ArrayList();
-        ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
-
-        list.add(root);
-
-        while(list.size() > 0) {
-            Iterator<OctreeCellInternalShort> itr = list.iterator();
-
-            while(itr.hasNext()) {
-                OctreeCellInternalShort cell = itr.next();
-
-                find(cell, mat, t);
-
-                OctreeCellInternalShort[] children = cell.children;
-
-                if (children != null) {
-                    int len = children.length;
-
-                    for(int i=0; i < len; i++) {
-                        if (children[i] != null)
-                            add_list.add(children[i]);
-                    }
-                }
-            }
-
-            list.clear();
-
-            itr = add_list.iterator();
-            while(itr.hasNext()) {
-                list.add(itr.next());
-            }
-
-            add_list.clear();
-        }
-    }
-
-    private void find(OctreeCellInternalShort cell, int mat, ClassTraverser t) {
+    private void findAttribute(OctreeCellInternalShort cell, int mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -852,7 +1210,7 @@ public class OctreeGridShort extends BaseGrid {
                 if (cell.children[i] == null) {
                     // OUTSIDE = 0 materialID
                     if (mat == 0)
-                        t.found(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL);
+                        t.found(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL);
                 }
             }
         } else {
@@ -889,7 +1247,49 @@ public class OctreeGridShort extends BaseGrid {
                 if (cell.children[i] == null) {
                     // OUTSIDE = 0 materialID
                     if (mat == 0)
-                        if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL))
+                        if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL.getState()))
+                            return false;
+                }
+            }
+        } else {
+            byte state;
+
+            if (cell.level == cell.maxLevel) {
+                if (cell.allState.getMaterial() == mat) {
+                    if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,cell.allState.getState()))
+                        return false;
+                }
+            } else {
+//System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
+                // TODO: Not sure why this works might be dodgy
+                if (cell.level > 2) {
+                    if (cell.allState.getMaterial() == mat) {
+                        for(int i=0; i < cell.size; i++) {
+                            for(int j=0; j < cell.size; j++) {
+                                for(int k=0; k < cell.size; k++) {
+                                    if (!t.foundInterruptible(cell.vcx + i,cell.vcy + j,cell.vcz + k,cell.allState.getState()))
+                                        return false;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
+    }
+
+    private boolean findAttributeInterruptible(OctreeCellInternalShort cell, int mat, ClassAttributeTraverser t) {
+//System.out.println("find: " + cell);
+        if (cell.allState.getState() == cell.MIXED) {
+            int len = cell.children.length;
+
+            for(int i=0; i < len; i++) {
+                if (cell.children[i] == null) {
+                    // OUTSIDE = 0 materialID
+                    if (mat == 0)
+                        if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL))
                             return false;
                 }
             }
@@ -922,7 +1322,7 @@ public class OctreeGridShort extends BaseGrid {
         return true;
     }
 
-    private void find(OctreeCellInternalShort cell, VoxelClasses vc, int mat, ClassTraverser t) {
+    private void findAttribute(OctreeCellInternalShort cell, VoxelClasses vc, int mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -933,11 +1333,11 @@ public class OctreeGridShort extends BaseGrid {
                     switch(vc) {
                         case ALL:
                             if (cell.allState.getMaterial() == mat)
-                                t.found(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL);
+                                t.found(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL);
                             break;
                         case OUTSIDE:
                             if (cell.allState.getMaterial() == mat)
-                                t.found(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL);
+                                t.found(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL);
                             break;
                     }
                 }
@@ -1051,7 +1451,7 @@ public class OctreeGridShort extends BaseGrid {
     }
 
 
-    private boolean findInterruptible(OctreeCellInternalShort cell, VoxelClasses vc, int mat, ClassTraverser t) {
+    private boolean findAttributeInterruptible(OctreeCellInternalShort cell, VoxelClasses vc, int mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1062,12 +1462,12 @@ public class OctreeGridShort extends BaseGrid {
                     switch(vc) {
                         case ALL:
                             if (cell.allState.getMaterial() == mat)
-                                if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL))
+                                if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL))
                                     return false;
                             break;
                         case OUTSIDE:
                             if (cell.allState.getMaterial() == mat)
-                                if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz,BaseGrid.EMPTY_VOXEL))
+                                if (!t.foundInterruptible(cell.vcx,cell.vcy,cell.vcz, BaseAttributeGrid.EMPTY_VOXEL))
                                     return false;
                             break;
                     }
@@ -1119,7 +1519,7 @@ public class OctreeGridShort extends BaseGrid {
                 if (cell.allState.getMaterial() != mat)
                     return true;
 
-//System.out.println(" ALL: " + cell.allState.getState() + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
+//System.out.println(" ALL: " + cell.allState + " cell.size: " + cell.size + " level: " + cell.level + " max_level: " + cell.maxLevel);
                 // TODO: Not sure why this works might be dodgy
                 if (cell.level > 2) {
                     switch(vc) {
@@ -1198,7 +1598,7 @@ public class OctreeGridShort extends BaseGrid {
      *
      * @param mat The aterialID
      */
-    public void removeMaterial(int mat) {
+    public void removeAttribute(int mat) {
         ArrayList<VoxelCoordinate> remove_list = new ArrayList(100);
 
         ArrayList<OctreeCellInternalShort> list = new ArrayList();
@@ -1254,7 +1654,6 @@ public class OctreeGridShort extends BaseGrid {
      * full grid traversal for some implementations.
      *
      * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
      */
     public int findCount(VoxelClasses vc) {
         int ret_val = 0;

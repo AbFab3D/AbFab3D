@@ -85,7 +85,7 @@ public class RegionFinder {
         if (mat == -1) {
             return executeState(grid);
         } else {
-            return executeMaterial(grid);
+            return executeMaterial((AttributeGrid)grid);
         }
     }
 
@@ -126,7 +126,7 @@ public class RegionFinder {
      * @param grid The grid to use for grid src
      * @return The region of voxels
      */
-    private List<Region> executeMaterial(Grid grid) {
+    private List<Region> executeMaterial(AttributeGrid grid) {
         this.grid = grid;
         regions = new ArrayList<Region>();
 

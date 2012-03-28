@@ -13,8 +13,6 @@
 package abfab3d.grid;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
 /**
  * A grid backed by arrays.
@@ -26,9 +24,8 @@ import java.io.*;
  *
  * @author Alan Hudson
  */
-public class ArrayGridShortUnPacked extends BaseGrid {
-    protected byte[] stateData;
-    protected short[] materialData;
+public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
+    protected short[][][] data;
 
     /**
      * Constructor.
@@ -39,11 +36,11 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public ArrayGridShortUnPacked(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1, 
+    public ArrayAttributeGridShortIndexLong(double w, double h, double d, double pixel, double sheight) {
+        this((int) (Math.ceil(w / pixel)) + 1,
         	 (int) (Math.ceil(h / sheight)) + 1,
              (int) (Math.ceil(d / pixel)) + 1, 
-             pixel,
+             pixel, 
              sheight);
     }
 
@@ -56,11 +53,11 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public ArrayGridShortUnPacked(int w, int h, int d, double pixel, double sheight) {
+    public ArrayAttributeGridShortIndexLong(int w, int h, int d, double pixel, double sheight) {
         super(w,h,d,pixel,sheight);
 
-        stateData = new byte[height * width * depth];
-        materialData = new short[height * width * depth];
+        // TODO: Align memory with slice access patterns.  Need to verify
+        data = new short[height][width][depth];
     }
 
     /**
@@ -68,12 +65,10 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      *
      * @param grid The grid
      */
-    public ArrayGridShortUnPacked(ArrayGridShortUnPacked grid) {
+    public ArrayAttributeGridShortIndexLong(ArrayAttributeGridShortIndexLong grid) {
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
-
-        this.stateData = grid.stateData.clone();
-        this.materialData = grid.materialData.clone();
+        this.data = grid.data.clone();
     }
 
     /**
@@ -87,7 +82,7 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        Grid ret_val = new ArrayGridShortUnPacked(w,h,d,pixel,sheight);
+        Grid ret_val = new ArrayAttributeGridShortIndexLong(w,h,d,pixel,sheight);
 
         return ret_val;
     }
@@ -98,13 +93,11 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
-        int idx = y * sliceSize + x * depth + z;
-
-        byte state = stateData[idx];
-        short mat = materialData[idx];
+        short datum = data[y][x][z];
+        byte state = (byte) ((datum & 0xFFFF) >> 14);
+        short mat = (short) (0x3FFF & datum);
 
         VoxelDataShort vd = new VoxelDataShort(state, mat);
 
@@ -117,17 +110,16 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
      */
     public VoxelData getData(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * depth + s_z;
+        short datum = data[slice][s_x][s_z];
 
-        byte state = stateData[idx];
-        short mat = materialData[idx];
+        byte state = (byte) ((datum & 0xFFFF) >> 14);
+        short mat = (short) (0x3FFF & datum);
 
         return new VoxelDataShort(state, mat);
     }
@@ -138,16 +130,15 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
      */
     public byte getState(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * depth + s_z;
+        short datum = data[slice][s_x][s_z];
 
-        byte state = stateData[idx];
+        byte state = (byte) ((datum & 0xFFFF) >> 14);
 
         return state;
     }
@@ -158,12 +149,11 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
      */
     public byte getState(int x, int y, int z) {
-        int idx = y * sliceSize + x * depth + z;
+        short datum = data[y][x][z];
 
-        byte state = stateData[idx];
+        byte state = (byte) ((datum & 0xFFFF) >> 14);
 
         return state;
     }
@@ -174,16 +164,15 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
      */
-    public int getMaterial(double x, double y, double z) {
+    public int getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * depth + s_z;
+        short datum = data[slice][s_x][s_z];
 
-        short mat = materialData[idx];
+        short mat = (short) (0x3FFF & datum);
 
         return mat;
     }
@@ -194,12 +183,11 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
      */
-    public int getMaterial(int x, int y, int z) {
-        int idx = y * sliceSize + x * depth + z;
+    public int getAttribute(int x, int y, int z) {
+        short datum = data[y][x][z];
 
-        short mat = materialData[idx];
+        short mat = (short) (0x3FFF & datum);
 
         return mat;
     }
@@ -218,10 +206,8 @@ public class ArrayGridShortUnPacked extends BaseGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        int idx = slice * sliceSize + s_x * depth + s_z;
 
-        stateData[idx] = state;
-        materialData[idx] = (short) material;
+        data[slice][s_x][s_z] = (short) (0xFFFF & (((short)state) << 14 | ((short)material)));
     }
 
     /**
@@ -234,10 +220,7 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param material The material
      */
     public void setData(int x, int y, int z, byte state, int material) {
-        int idx = y * sliceSize + x * depth + z;
-
-        stateData[idx] = state;
-        materialData[idx] = (short) material;
+        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
     }
 
     /**
@@ -248,10 +231,10 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setMaterial(int x, int y, int z, int material) {
-        int idx = y * sliceSize + x * depth + z;
+    public void setAttribute(int x, int y, int z, int material) {
+        byte state = (byte) ((data[y][x][z] & 0xFFFF) >> 14);
 
-        materialData[idx] = (short) material;
+        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
     }
 
     /**
@@ -261,19 +244,36 @@ public class ArrayGridShortUnPacked extends BaseGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
-        int idx = y * sliceSize + x * depth + z;
+        short mat = (short) (0x3FFF & data[y][x][z]);
 
-        stateData[idx] = state;
+        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)mat));
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     */
+    public void setState(double x, double y, double z, byte state) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        short mat = (short) (0x3FFF & data[slice][s_x][s_z]);
+
+        data[slice][s_x][s_z] = (short) (0xFFFF & (((short)state) << 14 | (short)mat));
     }
 
     /**
      * Clone the object.
      */
     public Object clone() {
-        ArrayGridShortUnPacked ret_val = new ArrayGridShortUnPacked(this);
+        ArrayAttributeGridShortIndexLong ret_val = new ArrayAttributeGridShortIndexLong(this);
 
         return ret_val;
     }

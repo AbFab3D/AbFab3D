@@ -68,7 +68,7 @@ public class Shapeways {
             IOManager site = IOManager.getIOManager();
             site.setDebug(true);
 
-if (1==2)            site.login("swapitest", "testme!");
+if (1==1)            site.login("swapitest", "testme!");
 
 
             byte[] file = site.readFile(new File(filename));
@@ -83,6 +83,7 @@ if (1==2)            site.login("swapitest", "testme!");
             model.setFilename(name);
             model.setTitle(name);
             model.setAvailability(0);
+            model.setMaterials(new String[] {"Black Detail", "White Detail"});
 
             site.saveNewModel(model);
 
@@ -192,16 +193,16 @@ if (1==2)            site.login("swapitest", "testme!");
 
     public static void main(String[] args) {
         Shapeways c = new Shapeways();
-        //c.upload("../../test/models/sphere_10cm_rough.x3dv","sphere_10cm_rough.x3dv", "x3dv",1);
+        c.upload("../../test/models/sphere_10cm_rough.x3dv","sphere_10cm_rough.x3dv", "x3dv",1);
         //c.upload("../../test/models/sphere_10cm_smooth.x3dv","sphere_10cm_smooth.x3dv", "x3dv",1);
 
-        //c.upload("../../test/models/cube-1cm3.stl", "cube-1cm3.stl", "STL", 1);
+//        c.upload("../../test/models/cube-1cm3.stl", "cube-1cm3.stl", "STL", 1);
 //        c.upload("../../test/models/toxic.stl",0.001f);
 //        c.upload("../../test/models/toxic.x3dv",0.001f);
 //        c.upload("../../test/models/Spring.stl","STL", 10f);
-          //c.upload("../../test/models/ball-r5.stl", "ball-r5.stl", "STL", 1f);
+//          c.upload("../../test/models/ball-r5.stl", "ball-r5.stl", "STL", 1f);
 //          c.upload("../../test/models/lightpoem.x3d", "lightpoem.x3d", "x3d", 1f);
-          c.upload("../../test/models/lightpoem_default.x3db", "lightpoem_default.x3db", "x3db", 1f);
+          //c.upload("../../test/models/lightpoem_default.x3db", "lightpoem_default.x3db", "x3db", 1f);
 
     }
 }

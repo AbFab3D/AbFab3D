@@ -14,12 +14,10 @@ package abfab3d.grid.op;
 
 // External Imports
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.*;
-import abfab3d.grid.op.RemoveMaterial;
 
 /**
  * Tests the functionality of RemoveMaterial Operation
@@ -27,7 +25,7 @@ import abfab3d.grid.op.RemoveMaterial;
  * @author Alan Hudson
  * @version
  */
-public class TestRemoveMaterial extends BaseTestGrid {
+public class TestRemoveMaterial extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -42,7 +40,7 @@ public class TestRemoveMaterial extends BaseTestGrid {
     public void testBasic() {
         int size = 11;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
         int mat1_count = 5;
@@ -72,7 +70,7 @@ public class TestRemoveMaterial extends BaseTestGrid {
         assertEquals("Material1 count wrong after insert2",
             grid.findCount(1),mat1_count);
 
-        Operation op = new RemoveMaterial(1);
+        AttributeOperation op = new RemoveMaterial(1);
         op.execute(grid);
 
         assertEquals("Material1 count wrong after removal",

@@ -105,8 +105,8 @@ public class BoxSimplifiedX3DExporter implements Exporter {
      */
     public void write(Grid grid, Map<Integer, float[]> matColors) {
 
-        if (grid instanceof OctreeGridByte) {
-            ((OctreeGridByte)grid).write(writer, (OctreeGridByte)grid, matColors);
+        if (grid instanceof OctreeAttributeGridByte) {
+            ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
             return;
         }
 /*

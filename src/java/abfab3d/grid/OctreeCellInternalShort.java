@@ -13,8 +13,6 @@
 package abfab3d.grid;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
 /**
  * An internal cell in an Octree structure.
@@ -130,7 +128,7 @@ public class OctreeCellInternalShort implements OctreeCell, Cloneable {
             OctreeCellInternalShort child = children[oc];
 
             if (child == null)
-                return BaseGrid.EMPTY_VOXEL;
+                return BaseAttributeGrid.EMPTY_VOXEL;
 
             return children[oc].getData(x,y,z);
         } else {
@@ -511,10 +509,10 @@ System.out.println("Going to parent: " + parent);
                     // TODO: I think this is right
                     switch(vc) {
                         case ALL:
-                            t.found(vcx,vcy,vcz,BaseGrid.EMPTY_VOXEL);
+                            t.found(vcx,vcy,vcz, BaseAttributeGrid.EMPTY_VOXEL.getState());
                             break;
                         case OUTSIDE:
-                            t.found(vcx,vcy,vcz,BaseGrid.EMPTY_VOXEL);
+                            t.found(vcx,vcy,vcz, BaseAttributeGrid.EMPTY_VOXEL.getState());
                             break;
                     }
                 }
@@ -526,30 +524,30 @@ System.out.println("Going to parent: " + parent);
 //System.out.println(pad + " TERM.  State: " + allState.getState());
                 switch(vc) {
                     case ALL:
-                        t.found(vcx,vcy,vcz,allState);
+                        t.found(vcx,vcy,vcz,allState.getState());
                         break;
                     case MARKED:
                         state = allState.getState();
                         if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                     case EXTERIOR:
                         state = allState.getState();
                         if (state == Grid.EXTERIOR) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                     case INTERIOR:
                         state = allState.getState();
                         if (state == Grid.INTERIOR) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                     case OUTSIDE:
                         state = allState.getState();
                         if (state == Grid.OUTSIDE) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                 }
@@ -562,7 +560,7 @@ System.out.println("Going to parent: " + parent);
                             for(int i=0; i < size; i++) {
                                 for(int j=0; j < size; j++) {
                                     for(int k=0; k < size; k++) {
-                                        t.found(vcx + i,vcy + j,vcz + k,allState);
+                                        t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                     }
                                 }
                             }
@@ -573,7 +571,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }
@@ -585,7 +583,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }
@@ -597,7 +595,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }
@@ -609,7 +607,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }
@@ -642,10 +640,10 @@ System.out.println("Going to parent: " + parent);
                     // TODO: I think this is right
                     switch(vc) {
                         case ALL:
-                            t.found(vcx,vcy,vcz,BaseGrid.EMPTY_VOXEL);
+                            t.found(vcx,vcy,vcz, BaseAttributeGrid.EMPTY_VOXEL.getState());
                             break;
                         case OUTSIDE:
-                            t.found(vcx,vcy,vcz,BaseGrid.EMPTY_VOXEL);
+                            t.found(vcx,vcy,vcz, BaseAttributeGrid.EMPTY_VOXEL.getState());
                             break;
                     }
                 }
@@ -657,30 +655,30 @@ System.out.println("Going to parent: " + parent);
 //System.out.println(pad + " TERM.  State: " + allState.getState());
                 switch(vc) {
                     case ALL:
-                        t.found(vcx,vcy,vcz,allState);
+                        t.found(vcx,vcy,vcz,allState.getState());
                         break;
                     case MARKED:
                         state = allState.getState();
                         if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                     case EXTERIOR:
                         state = allState.getState();
                         if (state == Grid.EXTERIOR) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                     case INTERIOR:
                         state = allState.getState();
                         if (state == Grid.INTERIOR) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                     case OUTSIDE:
                         state = allState.getState();
                         if (state == Grid.OUTSIDE) {
-                            t.found(vcx,vcy,vcz,allState);
+                            t.found(vcx,vcy,vcz,allState.getState());
                         }
                         break;
                 }
@@ -693,7 +691,7 @@ System.out.println("Going to parent: " + parent);
                             for(int i=0; i < size; i++) {
                                 for(int j=0; j < size; j++) {
                                     for(int k=0; k < size; k++) {
-                                        t.found(vcx + i,vcy + j,vcz + k,allState);
+                                        t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                     }
                                 }
                             }
@@ -704,7 +702,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }
@@ -716,7 +714,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }
@@ -728,7 +726,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }
@@ -740,7 +738,7 @@ System.out.println("Going to parent: " + parent);
                                 for(int i=0; i < size; i++) {
                                     for(int j=0; j < size; j++) {
                                         for(int k=0; k < size; k++) {
-                                            t.found(vcx + i,vcy + j,vcz + k,allState);
+                                            t.found(vcx + i,vcy + j,vcz + k,allState.getState());
                                         }
                                     }
                                 }

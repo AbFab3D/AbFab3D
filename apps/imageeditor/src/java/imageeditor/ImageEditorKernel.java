@@ -17,6 +17,9 @@ import java.io.*;
 import java.util.*;
 import javax.imageio.*;
 import java.awt.image.BufferedImage;
+
+import abfab3d.io.output.EdgeCollapseSimplifier;
+import abfab3d.io.output.MarchingCubesX3DExporter;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
@@ -26,19 +29,14 @@ import org.web3d.vrml.sav.BinaryContentHandler;
 import abfab3d.geom.*;
 import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
-import abfab3d.io.output.RegionsX3DExporter;
 import abfab3d.grid.op.*;
 import abfab3d.creator.*;
 import abfab3d.creator.shapeways.*;
-
-import javax.vecmath.*;
 
 //import java.awt.*;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.font.*;
-import java.awt.geom.*;
 
 /**
  * Geometry Kernel for the ImageEditor.
@@ -247,12 +245,12 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
         boolean useBlockBased = false;
 
         if (bigIndex) {
-            grid = new ArrayGridByteIndexLong(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+            grid = new ArrayAttributeGridByteIndexLong(voxelsX, voxelsY, voxelsZ, resolution, resolution);
         } else {
             if (useBlockBased) {
-                grid = new BlockBasedGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+                grid = new BlockBasedAttributeGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
             } else {
-                grid = new ArrayGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
+                grid = new ArrayAttributeGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
             }
         }
 
@@ -472,11 +470,10 @@ System.out.println("New Creating bail: " + bail_tx + " " + bail_ty + " " + bail_
 if (1==0) {
     // Sadly NetFabb doesn't like my Octree Output
     System.out.println("***Putting into Octree");
-    grid2 = new OctreeGridByte(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+    grid2 = new OctreeAttributeGridByte(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
-    Operation op2 = new Copy(grid2, 0,0,0);
-    op2.execute(grid);
-    grid = grid2;
+    Operation op2 = new Copy(grid, 0,0,0);
+    grid = op2.execute(grid2);
 }
         System.out.println("Writing grid");
 
@@ -621,6 +618,7 @@ if (1==0) {
 
         // Output File
         //BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
+/*
 System.out.println("Creating Regions Exporter");
         RegionsX3DExporter exporter = new RegionsX3DExporter(handler, console, true);
         float[] mat_color = new float[] {0.8f,0.8f,0.8f,0};
@@ -629,6 +627,17 @@ System.out.println("Creating Regions Exporter");
 
         exporter.write(grid, colors);
         exporter.close();
+*/
+
+        EdgeCollapseSimplifier reducer = new EdgeCollapseSimplifier(16, 0.71);
+
+        //reducer = null;
+
+        MarchingCubesX3DExporter exporter = new MarchingCubesX3DExporter(handler, console, true, reducer);
+
+        exporter.write(grid, null);
+        exporter.close();
+
     }
 
     private void writeDebug(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
@@ -684,7 +693,7 @@ System.out.println("Creating Regions Exporter");
 System.out.println("createTorus: " + ir + " or: " + or);
         TorusGenerator tg = new TorusGenerator((float)ir, (float)or, facets, facets);
         GeometryData geom = new GeometryData();
-        geom.geometryType = GeometryData.TRIANGLES;
+        geom.geometryType = GeometryData.INDEXED_TRIANGLES;
         tg.generate(geom);
 
         TriangleModelCreator tmc = new TriangleModelCreator(geom,tx,ty,tz,

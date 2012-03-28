@@ -73,19 +73,16 @@ public class TransformPosition implements Operation, ClassTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
+     * @param state The voxel data
      */
-    public void found(int x, int y, int z, VoxelData vd) {
+    public void found(int x, int y, int z, byte state) {
         src.getWorldCoords(x,y,z,wcoords);
 
         p.set(wcoords);
 
         matrix.transform(p);
 
-        byte state = vd.getState();
-        int mat = vd.getMaterial();
-
-        dest.setData(x,y,z,Grid.OUTSIDE, 0);
+        dest.setState(x,y,z,Grid.OUTSIDE);
 
         if (DEBUG && !dest.insideGrid(p.x,p.y,p.z)) {
             System.out.println("Point outside grid: " + x + " " + y + " " + z);
@@ -96,7 +93,7 @@ public class TransformPosition implements Operation, ClassTraverser {
             return;
         }
 
-        dest.setData(p.x, p.y, p.z, state, mat);
+        dest.setState(p.x, p.y, p.z, state);
      }
 
     /**
@@ -105,9 +102,9 @@ public class TransformPosition implements Operation, ClassTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
+     * @param state The voxel data
      */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+    public boolean foundInterruptible(int x, int y, int z, byte state) {
         // ignore
         return true;
     }

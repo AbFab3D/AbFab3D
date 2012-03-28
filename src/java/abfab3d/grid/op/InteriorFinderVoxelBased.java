@@ -31,7 +31,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
+public class InteriorFinderVoxelBased implements AttributeOperation, ClassAttributeTraverser {
     private static final int OUTSIDE = 0;
     private static final int ENTERING = 1;
     private static final int EXITING = 2;
@@ -44,7 +44,7 @@ public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
     protected int innerMaterial;
 
     /** The grid we are operating on */
-    private Grid gridOp;
+    private AttributeGrid gridOp;
 
 
     /**
@@ -65,11 +65,11 @@ public class InteriorFinderVoxelBased implements Operation, ClassTraverser {
      * @param grid The grid to use for grid A.
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
+    public AttributeGrid execute(AttributeGrid grid) {
         gridOp = grid;
 
 System.out.println("Creating grid for Interior Finding");
-        Grid result = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
+        AttributeGrid result = (AttributeGrid) grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
 
 //System.out.println("Filling model");
@@ -98,7 +98,7 @@ System.out.println("Outer material: " + material);
                         continue;
                     }
 
-//System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status + " mat: " + vd.getMaterial());
+//System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status + " mat: " + vd.getAttribute());
                     if (status == OUTSIDE) {
                         if (state == Grid.EXTERIOR) {
 //System.out.println("outside, found exterior, set to entering at: " + x + " " + y + " " + z);
@@ -320,7 +320,7 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 
 System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTERIOR));
 
-        result.find(Grid.VoxelClasses.INTERIOR, this);
+        result.findAttribute(Grid.VoxelClasses.INTERIOR, this);
         gridOp = null;
 
         return grid;

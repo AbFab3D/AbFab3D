@@ -17,24 +17,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.vecmath.Matrix4d;
-
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.geom.TorusCreator;
 import abfab3d.geom.TriangleModelCreator;
 import abfab3d.grid.*;
-import abfab3d.grid.op.RemoveMaterial;
 import abfab3d.io.output.BoxesX3DExporter;
-import abfab3d.util.MatrixUtil;
 
 /**
  * Tests the functionality of DilationCube Operation
@@ -42,7 +37,7 @@ import abfab3d.util.MatrixUtil;
  * @author Tony Wong
  * @version
  */
-public class TestDilationCube extends BaseTestGrid {
+public class TestDilationCube extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -58,14 +53,14 @@ public class TestDilationCube extends BaseTestGrid {
         int size = 10;
         int material = 1;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
                 setX(grid, y, z, Grid.INTERIOR, material, 2, 7);
             }
         }
-  
+
         int distance = 1;
 
         DilationCube ec = new DilationCube(distance);
@@ -77,26 +72,26 @@ public class TestDilationCube extends BaseTestGrid {
         for (int y=0; y<height; y++) {
             for (int z=0; z<depth; z++) {
                 for (int x=0; x<width; x++) {
-                	byte state = dilatedGrid.getState(x, y, z);
+                    byte state = dilatedGrid.getState(x, y, z);
 //                    System.out.println(x + ", " + y + ", " + z + ": " + state);
 
                     if (y >= 2 && y < 10) {
-                      	if (z >=2 && z < 10) {
-                      		if (x >= 2 && x < 10) {
-                      			assertEquals("State of (" + x + " " + y + " " + z + " is not interior",
-                      					Grid.INTERIOR, state);
-                      		} else {
-                      			assertEquals("State of (" + x + " " + y + " " + z + " is not outside", 
-                      					Grid.OUTSIDE, state);
-                      		}
-                      	} else {
-                  			assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
-                  					Grid.OUTSIDE, state);
-                  		}
+                        if (z >=2 && z < 10) {
+                            if (x >= 2 && x < 10) {
+                                assertEquals("State of (" + x + " " + y + " " + z + " is not interior",
+                                        Grid.INTERIOR, state);
+                            } else {
+                                assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
+                                        Grid.OUTSIDE, state);
+                            }
+                        } else {
+                            assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
+                                    Grid.OUTSIDE, state);
+                        }
                       } else {
-              			assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
-              					Grid.OUTSIDE, state);
-              		}
+                        assertEquals("State of (" + x + " " + y + " " + z + " is not outside",
+                                Grid.OUTSIDE, state);
+                    }
 
                 }
             }
@@ -113,22 +108,22 @@ public class TestDilationCube extends BaseTestGrid {
         for (int y=0; y<height; y++) {
             for (int z=0; z<depth; z++) {
                 for (int x=0; x<width; x++) {
-                	byte state = dilatedGrid.getState(x, y, z);
+                    byte state = dilatedGrid.getState(x, y, z);
 //                    System.out.println(x + ", " + y + ", " + z + ": " + state);
-                    
+
                     if (y >= 2 && y < 8) {
-                    	if (z >=2 && y < 8) {
-                    		if (x >= 2 && x < 8) {
-                    			assertEquals(Grid.INTERIOR, state);
-                    		} else {
-                    			assertEquals(Grid.OUTSIDE, state);
-                    		}
-                    	} else {
-                			assertEquals(Grid.OUTSIDE, state);
-                		}
+                        if (z >=2 && y < 8) {
+                            if (x >= 2 && x < 8) {
+                                assertEquals(Grid.INTERIOR, state);
+                            } else {
+                                assertEquals(Grid.OUTSIDE, state);
+                            }
+                        } else {
+                            assertEquals(Grid.OUTSIDE, state);
+                        }
                     } else {
-            			assertEquals(Grid.INTERIOR, state);
-            		}
+                        assertEquals(Grid.INTERIOR, state);
+                    }
                 }
             }
         }
@@ -142,7 +137,7 @@ public class TestDilationCube extends BaseTestGrid {
     private Grid generateCube() {
         int size = 10;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         for (int y=5; y<6; y++) {
             for (int z=5; z<6; z++) {
@@ -165,7 +160,7 @@ public class TestDilationCube extends BaseTestGrid {
         double bounds = TriangleModelCreator.findMaxBounds(geom);
         double size = 2.1 * bounds;  // Slightly over allocate
 
-        Grid grid = new ArrayGridByte(size,size,size,0.0005, 0.0005);
+        Grid grid = new ArrayAttributeGridByte(size,size,size,0.0005, 0.0005);
 
         double x = bounds;
         double y = x;
@@ -192,7 +187,7 @@ public class TestDilationCube extends BaseTestGrid {
     private Grid generateDumbBell() {
         int size = 20;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // left cube
         for (int y=0; y<size; y++) {

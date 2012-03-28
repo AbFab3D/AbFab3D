@@ -14,14 +14,12 @@ package abfab3d.grid.op;
 
 // External Imports
 import java.util.*;
-import java.io.*;
 
 import abfab3d.intersect.TriangleIntersectionDoubleUtil;
 import abfab3d.util.MatrixUtil;
 import org.web3d.util.spatial.AllRegion;
 import org.web3d.util.spatial.GridTrianglePartition;
 import org.web3d.util.spatial.TunnelRegion;
-import org.web3d.vrml.sav.ContentHandler;
 import org.j3d.geom.*;
 import org.web3d.util.spatial.Triangle;
 import javax.vecmath.*;
@@ -34,12 +32,9 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
+public class InteriorFinderTriangleBased implements Operation  {
     /** Should we use spatial acceleration */
     private static final boolean SPATIAL_ACCEL = true;
-
-    /** The material to process */
-    protected int material;
 
     /** The material to use for new voxels */
     protected int innerMaterial;
@@ -58,6 +53,9 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
     /** The grid we are operating on */
     private Grid gridOp;
 
+    /** The grid we are operating on */
+    private AttributeGrid gridOpAtt;
+    
     /** Do we need to transform the points */
     private boolean needTransform;
 
@@ -76,17 +74,16 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
     /** The number of voxels per side in the spatial structure */
     private int numVoxels;
 
-    private int int_count;
-    
+    /** RayCast hit counts */
+    private int[][][] counts;
+
     /**
      * Constructor.
      *
-     * @param material The materialID of exterior voxels
      * @param newMaterial The materialID to assign new interior voxels
      */
-    public InteriorFinderTriangleBased(GeometryData geom, float[] bounds, int material, int newMaterial) {
+    public InteriorFinderTriangleBased(GeometryData geom, float[] bounds, int newMaterial) {
         this.geom = geom;
-        this.material = material;
         this.innerMaterial = newMaterial;
         this.bounds = bounds.clone();
 
@@ -104,9 +101,8 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
     */
     public InteriorFinderTriangleBased(GeometryData geom, float[] bounds,
                                        double x, double y, double z, double rx, double ry, double rz, double rangle,
-                                       int material, int newMaterial) {
+                                       int newMaterial) {
         this.geom = geom;
-        this.material = material;
         this.innerMaterial = newMaterial;
         this.bounds = bounds.clone();
 
@@ -129,8 +125,13 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
      * @return The new grid
      */
     public Grid execute(Grid grid) {
+        if (grid instanceof AttributeGrid) {
+            gridOpAtt = (AttributeGrid) grid;
+        }
         gridOp = grid;
         
+        counts = new int[grid.getWidth()][grid.getHeight()][grid.getDepth()];
+
         // TODO: Assume we have enough material entries to count num interiors
         result = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
                 grid.getVoxelSize(), grid.getSliceHeight());
@@ -313,9 +314,14 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         }
         
         // Any voxel with material = 3 should be an interior voxel.
-        result.find(3, this);
+        if (grid instanceof AttributeGrid) {
+            writeAttributeInterior();
+        } else {
+            writeInterior();
+        }
 
         gridOp = null;
+        gridOpAtt = null;
         result = null;
         
         return grid;
@@ -460,8 +466,8 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setData(i,coords[1],coords[2], Grid.INTERIOR,
-                            result.getMaterial(i,coords[1],coords[2]) + 1);
+                    result.setState(i,coords[1],coords[2], Grid.INTERIOR);
+                    counts[i][coords[1]][coords[2]]++;
                 }
             }
         } else if (axis == TunnelRegion.Axis.Y) {
@@ -472,8 +478,8 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setData(coords[0],i,coords[2], Grid.INTERIOR,
-                            result.getMaterial(coords[0],i,coords[2]) + 1);
+                    result.setState(coords[0],i,coords[2], Grid.INTERIOR);
+                    counts[coords[0]][i][coords[2]]++;
                 }
             }
         } else if (axis == TunnelRegion.Axis.Z) {
@@ -485,8 +491,8 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setData(coords[0],coords[1],i, Grid.INTERIOR,
-                            result.getMaterial(coords[0],coords[1],i) + 1);
+                    result.setState(coords[0],coords[1],i, Grid.INTERIOR);
+                    counts[coords[0]][coords[1]][i]++;
                 }
             }
         }
@@ -543,14 +549,14 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
         numVoxels = (int) Math.max(Math.max(w,h),d);
         int num_tris = 0;
 
-        System.out.println("real grid size: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
+        //System.out.println("real grid size: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
         if (geom.geometryType == GeometryData.TRIANGLES) {
             num_tris = geom.coordinates.length / 3;
         } else {
             num_tris = geom.indexes.length / 3;
         }
 
-        System.out.println("Init spatial: voxels: " + numVoxels + " tris: " + num_tris);
+        //System.out.println("Init spatial: voxels: " + numVoxels + " tris: " + num_tris);
 
         GridTrianglePartition ret_val = new GridTrianglePartition(voxelSize, numVoxels, num_tris);
 
@@ -599,34 +605,43 @@ public class InteriorFinderTriangleBased implements Operation, ClassTraverser {
 
         return ret_val;
     }
-            
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        // TODO: can remove
-        int_count++;
-        
-        gridOp.setData(x,y,z,Grid.INTERIOR, innerMaterial);
 
+    /**
+     * Write interior state to final grid.
+     */
+    private void writeInterior() {
+        int w = gridOp.getWidth();
+        int h = gridOp.getHeight();
+        int d = gridOp.getDepth();
+        
+        for(int i=0; i < w; i++) {
+            for(int j=0; j < h; j++) {
+                for(int k=0; k < d; k++) {
+                    if (counts[i][j][k] == 3) {
+                        gridOp.setState(i,j,k,Grid.INTERIOR);
+                    }
+                }
+            }
+        }
     }
 
     /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
+     * Write interior state to final grid.
      */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        // ignore
-        return true;
+    private void writeAttributeInterior() {
+        int w = gridOp.getWidth();
+        int h = gridOp.getHeight();
+        int d = gridOp.getDepth();
+
+        for(int i=0; i < w; i++) {
+            for(int j=0; j < h; j++) {
+                for(int k=0; k < d; k++) {
+                    if (counts[i][j][k] == 3) {
+                        gridOpAtt.setData(i,j,k,Grid.INTERIOR, innerMaterial);
+                    }
+                }
+            }
+        }
     }
 }
 

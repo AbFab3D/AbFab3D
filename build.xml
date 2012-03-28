@@ -455,7 +455,7 @@
      <mkdir dir="${test.classes.dir}" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d" jars="support/junit-4.8.1.jar xj3d-sav_2.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="support/junit-4.8.1.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar j3d-org-all_1.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/util" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="support/junit-4.8.1.jar vecmath.jar j3d-org-all_1.0.0.jar xj3d-sav_2.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="support/junit-4.8.1.jar j3d-org-all_1.0.0.jar" />

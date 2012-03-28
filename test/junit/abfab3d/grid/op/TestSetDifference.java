@@ -17,24 +17,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.vecmath.Matrix4d;
-
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
-import abfab3d.geom.TorusCreator;
-import abfab3d.geom.TriangleModelCreator;
 import abfab3d.grid.*;
-import abfab3d.grid.op.RemoveMaterial;
 import abfab3d.io.output.BoxesX3DExporter;
-import abfab3d.util.MatrixUtil;
 
 /**
  * Tests the functionality of the SetDifference Operation
@@ -42,7 +33,7 @@ import abfab3d.util.MatrixUtil;
  * @author Tony Wong
  * @version
  */
-public class TestSetDifference extends BaseTestGrid {
+public class TestSetDifference extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -57,8 +48,8 @@ public class TestSetDifference extends BaseTestGrid {
     public void testBasic() {
         int size = 10;
 
-        Grid grid1 = new ArrayGridByte(size,size,size,0.001, 0.001);
-        Grid grid2 = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid1 = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid2 = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // set left rump of dumbbell for both grid
         for (int y=2; y<8; y++) {
@@ -83,7 +74,7 @@ public class TestSetDifference extends BaseTestGrid {
 
         // get the set difference of grid1 and grid2
         SetDifference sd = new SetDifference(grid1, grid2);
-        Grid diffGrid = sd.execute();
+        Grid diffGrid = sd.execute(null);
 
         // set difference grid should be outside at left rump coordinates
         for (int y=2; y<8; y++) {
@@ -116,8 +107,8 @@ public class TestSetDifference extends BaseTestGrid {
         int size = 10;
         int newMaterial = 5;
 
-        Grid grid1 = new ArrayGridByte(size,size,size,0.001, 0.001);
-        Grid grid2 = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid1 = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid2 = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // set left rump of dumbbell for both grid
         for (int y=2; y<8; y++) {
@@ -142,7 +133,7 @@ public class TestSetDifference extends BaseTestGrid {
 
         // get the set difference of grid1 and grid2
         SetDifference sd = new SetDifference(grid1, grid2, newMaterial);
-        Grid diffGrid = sd.execute();
+        AttributeGrid diffGrid = sd.execute(null);
 
         // set difference grid should be outside at left rump coordinates
         for (int y=2; y<8; y++) {
@@ -165,11 +156,11 @@ public class TestSetDifference extends BaseTestGrid {
             assertEquals("(" + x + ", 5, 5) state is not " + Grid.INTERIOR,
                     Grid.INTERIOR, diffGrid.getState(x, 5, 5));
             assertEquals("(" + x + ", 5, 5) material is not " + newMaterial,
-            		newMaterial, diffGrid.getMaterial(x, 5, 5));
+                    newMaterial, diffGrid.getAttribute(x, 5, 5));
         }
 
     }
-    
+
     //---------------------------------------------------
     // Functions for writing out an dilated object
     //---------------------------------------------------
@@ -182,7 +173,7 @@ public class TestSetDifference extends BaseTestGrid {
     private Grid generateDumbBell() {
         int size = 20;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // left cube
         for (int y=0; y<size; y++) {
@@ -230,7 +221,7 @@ public class TestSetDifference extends BaseTestGrid {
         generate(dilatedGrid, "postCubeDilationOfDumbBell_distance" + distance + ".x3db");
 
         SetDifference sd = new SetDifference(originalGrid, dilatedGrid);
-        Grid diffGridTheta = sd.execute();
+        AttributeGrid diffGridTheta = sd.execute(null);
         generate(diffGridTheta, "diffThetaOfCubeMorphDumbBell_distance" + distance + ".x3db");
 
     }
@@ -253,7 +244,7 @@ public class TestSetDifference extends BaseTestGrid {
         generate(dilatedGrid, "postSphereDilationOfDumbBell_distance" + distance + ".x3db");
 
         SetDifference sd = new SetDifference(originalGrid, dilatedGrid);
-        Grid diffGridTheta = sd.execute();
+        AttributeGrid diffGridTheta = sd.execute(null);
         generate(diffGridTheta, "diffThetaOfSphereMorphDumbBell_distance" + distance + ".x3db");
 
     }

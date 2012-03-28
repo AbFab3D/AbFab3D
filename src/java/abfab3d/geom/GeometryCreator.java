@@ -22,12 +22,6 @@ import abfab3d.grid.Grid;
 /**
  * Creator of 3D geometry.
  *
- * For now this library will concentrate on geometry.  Only very
- * simple support will be added normals and colors.
- *
- * Geometry streams assume they are combined so do not generate
- * profile/component declarations.
- *
  * @author Alan Hudson
  *
  * Coordinate System(X3D):
@@ -41,7 +35,7 @@ public abstract class GeometryCreator {
     /**
      * Generate the geometry and issue commands to the provided handler.
      *
-     * @param handler The stream to issue commands
+     * @param dest The dest grid
      */
-    public abstract void generate(Grid grid);
+    public abstract void generate(Grid dest);
 }

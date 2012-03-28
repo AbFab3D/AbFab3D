@@ -1,0 +1,40 @@
+<HTML><BODY><FORM name=Editor" method="GET" action="http://localhost:8080/hosted_creator/CreatorHost" target = "Right frame">
+<input type="hidden" name="creatorID" value="ImageEditor">
+<TABLE>
+<TR><TD>Invert Image</TD><TD><SELECT name="bodyImageInvert" selected="true" "><OPTION value="true">true</OPTION>
+<OPTION value="false">false</OPTION>
+</SELECT><TD/></TR>
+<TR><TD>Image Mapping Technique</TD><TD><SELECT name="bodyImageType" selected="SQUARE" "><OPTION value="SQUARE">SQUARE</OPTION>
+<OPTION value="CIRCULAR">CIRCULAR</OPTION>
+</SELECT><TD/></TR>
+<TR><TD>Depth Technique</TD><TD><SELECT name="bodyImageStyle" selected="ENGRAVED" "><OPTION value="ENGRAVED">ENGRAVED</OPTION>
+<OPTION value="EMBOSSED">EMBOSSED</OPTION>
+</SELECT><TD/></TR>
+<TR><TD>Depth Amount</TD><TD><INPUT type="text" name="bodyImageDepth" value="0.0042" />
+<TD/></TR>
+<TR><TD>Resolution</TD><TD><INPUT type="text" name="resolution" value="0.00018" />
+<TD/></TR>
+<TR><TD>Minimum WallThickness</TD><TD><INPUT type="text" name="minWallThickness" value="0.003" />
+<TD/></TR>
+<TR><TD>Body Width</TD><TD><INPUT type="text" name="bodyWidth" value="0.025" />
+<TD/></TR>
+<TR><TD>Body Height</TD><TD><INPUT type="text" name="bodyHeight" value="0.04" />
+<TD/></TR>
+<TR><TD>Body Depth</TD><TD><INPUT type="text" name="bodyDepth" value="0.0032" />
+<TD/></TR>
+<TR><TD>Body Shape</TD><TD><SELECT name="bodyGeometry" selected="CUBE" "><OPTION value="CUBE">CUBE</OPTION>
+<OPTION value="CYLINDER">CYLINDER</OPTION>
+<OPTION value="NONE">NONE</OPTION>
+</SELECT><TD/></TR>
+<TR><TD>Connector Style</TD><TD><SELECT name="bailStyle" selected="TORUS" "><OPTION value="TORUS">TORUS</OPTION>
+<OPTION value="NONE">NONE</OPTION>
+</SELECT><TD/></TR>
+<TR><TD>Connector Inner Radius</TD><TD><INPUT type="text" name="bailInnerRadius" value="0.001" />
+<TD/></TR>
+<TR><TD>Connector Outer Radius</TD><TD><INPUT type="text" name="bailOuterRadius" value="0.004" />
+<TD/></TR>
+</TABLE>
+<INPUT TYPE=SUBMIT VALUE="Submit">
+</FORM>
+</BODY>
+</HEAD>

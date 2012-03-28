@@ -26,10 +26,7 @@ import abfab3d.path.Path;
  *
  * @author Alan Hudson
  */
-public class CountMaterials implements ClassTraverser {
-    /** The grid we are using */
-    private Grid grid;
-
+public class CountMaterials implements ClassAttributeTraverser {
     /** The material count */
     private int count;
 
@@ -48,7 +45,7 @@ public class CountMaterials implements ClassTraverser {
     public Map<Integer,Integer> execute(Grid grid) {
         seen = new HashMap<Integer,Integer>();
 
-        grid.find(VoxelClasses.MARKED,this);
+        ((AttributeGrid)grid).findAttribute(VoxelClasses.MARKED,this);
 
         return seen;
     }

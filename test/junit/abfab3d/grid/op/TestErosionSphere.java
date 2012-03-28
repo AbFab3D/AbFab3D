@@ -17,24 +17,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import javax.vecmath.Matrix4d;
-
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.geom.TorusCreator;
 import abfab3d.geom.TriangleModelCreator;
 import abfab3d.grid.*;
-import abfab3d.grid.op.RemoveMaterial;
 import abfab3d.io.output.BoxesX3DExporter;
-import abfab3d.util.MatrixUtil;
 
 /**
  * Tests the functionality of ErosionCube Operation
@@ -42,7 +37,7 @@ import abfab3d.util.MatrixUtil;
  * @author Tony Wong
  * @version
  */
-public class TestErosionSphere extends BaseTestGrid {
+public class TestErosionSphere extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -57,7 +52,7 @@ public class TestErosionSphere extends BaseTestGrid {
     public void testBasic() {
         int size = 10;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
@@ -102,7 +97,7 @@ public class TestErosionSphere extends BaseTestGrid {
     public void testBlah() {
         int size = 3;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        Grid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         for (int y=0; y<size; y++) {
             for (int x=0; x<size; x++) {
@@ -134,7 +129,7 @@ public class TestErosionSphere extends BaseTestGrid {
     private Grid generateCube() {
         int size = 10;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         for (int y=0; y<size; y++) {
             for (int z=0; z<size; z++) {
@@ -157,7 +152,7 @@ public class TestErosionSphere extends BaseTestGrid {
         double bounds = TriangleModelCreator.findMaxBounds(geom);
         double size = 2.1 * bounds;  // Slightly over allocate
 
-        Grid grid = new ArrayGridByte(size,size,size,0.0005, 0.0005);
+        Grid grid = new ArrayAttributeGridByte(size,size,size,0.0005, 0.0005);
 
         double x = bounds;
         double y = x;
@@ -184,7 +179,7 @@ public class TestErosionSphere extends BaseTestGrid {
     private Grid generateDumbBell() {
         int size = 20;
 
-        Grid grid = new ArrayGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // left cube
         for (int y=0; y<size; y++) {

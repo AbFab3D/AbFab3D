@@ -18,7 +18,6 @@ package abfab3d.grid.query;
 import java.util.HashSet;
 
 import abfab3d.grid.*;
-import abfab3d.grid.Grid.VoxelClasses;
 import abfab3d.path.Path;
 
 /**
@@ -33,15 +32,15 @@ import abfab3d.path.Path;
  *
  * @author Alan Hudson
  */
-public class CanMoveMaterialAllPaths implements ClassTraverser {
+public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
     /** The material to remove */
     private int material;
 
     /** The path to use */
     private Path[] paths;
 
-    /** The grid we are using */
-    private Grid grid;
+    /** The gridAtt we are using */
+    private AttributeGrid gridAtt;
 
     /** Coordinates that can be ignored */
     HashSet<VoxelCoordinate>[] ignoreSet;
@@ -60,19 +59,19 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
      * to exit the voxel space.  Any intersection with
      * another materialID will cause failure.
      *
-     * @param grid The grid to use for grid src
+     * @param grid The gridAtt to use for gridAtt src
      * @return true if it can move to an exit.
      */
-    public boolean execute(Grid grid) {
+    public boolean execute(AttributeGrid grid) {
 //        allEscaped = true;
-        this.grid = grid;
+        this.gridAtt = grid;
 
         for (int i=0; i<ignoreSet.length; i++) {
             ignoreSet[i] = new HashSet<VoxelCoordinate>();
         }
 
-//        grid.find(VoxelClasses.EXTERIOR, material, this);
-        grid.findInterruptible(material, this);
+//        gridAtt.find(VoxelClasses.EXTERIOR, material, this);
+        grid.findAttributeInterruptible(material, this);
 
         return canEscape();
     }
@@ -82,9 +81,9 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
      * VoxelData classes may be reused so clone the object
      * if you keep a copy.
      *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
+     * @param x The x gridAtt coordinate
+     * @param y The y gridAtt coordinate
+     * @param z The z gridAtt coordinate
      * @param start The voxel data
      */
     public void found(int x, int y, int z, VoxelData start) {
@@ -103,12 +102,12 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
 
             int[] pos = new int[] {x,y,z};
 
-            paths[i].init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
+            paths[i].init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
             while(paths[i].next(pos)) {
-                VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+                VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
 
-//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
+//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
                 if (vd.getState() != Grid.OUTSIDE &&
                     vd.getMaterial() != material) {
 
@@ -135,9 +134,9 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
      * VoxelData classes may be reused so clone the object
      * if you keep a copy.
      *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
+     * @param x The x gridAtt coordinate
+     * @param y The y gridAtt coordinate
+     * @param z The z gridAtt coordinate
      * @param start The voxel data
      */
     public boolean foundInterruptible(int x, int y, int z, VoxelData start) {
@@ -158,12 +157,12 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
 
             int[] pos = new int[] {x,y,z};
 
-            paths[i].init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
+            paths[i].init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
             while(paths[i].next(pos)) {
-                VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+                VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
 
-//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
+//System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
                 if (vd.getState() != Grid.OUTSIDE &&
                     vd.getMaterial() != material) {
 
@@ -196,10 +195,10 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
         int[] pos = new int[] {x, y, z};
 
         Path invertedPath = paths[ignoreSetIndex].invertPath();
-        invertedPath.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
+        invertedPath.init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
         while(invertedPath.next(pos)) {
-            VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+            VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
 
             // can optimize by ignoring interior voxels and only checking for exterior voxels
             if (vd.getState() == Grid.OUTSIDE)
@@ -233,7 +232,7 @@ public class CanMoveMaterialAllPaths implements ClassTraverser {
 
     /**
      * Removes bad paths from the array of paths. A path is bad if any voxel
-     * cannot move out of the grid bounds in that path.
+     * cannot move out of the gridAtt bounds in that path.
      *
      * @param badPaths An array of booleans where its value indicates whether
      *   the corresponding path by index is good or bad

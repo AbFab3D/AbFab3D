@@ -28,7 +28,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class CuttingPlane implements Operation {
+public class CuttingPlane implements Operation, AttributeOperation {
     /** The axis of the cutting plane */
     private Axis axis;
 
@@ -52,13 +52,13 @@ public class CuttingPlane implements Operation {
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
-     * @param grid The grid to use
+     * @param dest The grid to use
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
-        int width = grid.getWidth();
-        int depth = grid.getDepth();
-        int height = grid.getHeight();
+    public Grid execute(Grid dest) {
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
 
         if (axis == Axis.X) {
             if (dir == 1) {
@@ -66,13 +66,13 @@ public class CuttingPlane implements Operation {
 
                 // Convert location to grid coordinates
                 int[] coords = new int[3];
-                grid.getGridCoords(0,0,loc,coords);
+                dest.getGridCoords(0, 0, loc, coords);
 
                 // Mark all voxels above plane as OUTSIDE
                 for(int k=coords[2]+1; k < depth; k++) {
                     for(int i=0; i < width; i++) {
                         for(int j=0; j < height; j++) {
-                            grid.setData(i,j,k,Grid.OUTSIDE,0);
+                            dest.setState(i, j, k, Grid.OUTSIDE);
                         }
                     }
                 }
@@ -81,8 +81,8 @@ public class CuttingPlane implements Operation {
                 for(int k=coords[2]+1; k < depth; k++) {
                     for(int i=0; i < width; i++) {
                         for(int j=0; j < height; j++) {
-                            if (grid.getState(i,j,k) == Grid.INTERIOR) {
-                                grid.setData(i,j,k,Grid.EXTERIOR,material);
+                            if (dest.getState(i,j,k) == Grid.INTERIOR) {
+                                dest.setState(i,j,k,Grid.EXTERIOR);
                             }
                         }
                     }
@@ -90,6 +90,50 @@ public class CuttingPlane implements Operation {
             }
         }
 
-        return grid;
+        return dest;
+    }
+    /**
+     * Execute an operation on a grid.  If the operation changes the grid
+     * dimensions then a new one will be returned from the call.
+     *
+     * @param dest The grid to use
+     * @return The new grid
+     */
+    public AttributeGrid execute(AttributeGrid dest) {
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
+
+        if (axis == Axis.X) {
+            if (dir == 1) {
+                // RIGHT = +X direction, loc is Z coordinate
+
+                // Convert location to grid coordinates
+                int[] coords = new int[3];
+                dest.getGridCoords(0, 0, loc, coords);
+
+                // Mark all voxels above plane as OUTSIDE
+                for(int k=coords[2]+1; k < depth; k++) {
+                    for(int i=0; i < width; i++) {
+                        for(int j=0; j < height; j++) {
+                            dest.setData(i, j, k, Grid.OUTSIDE, 0);
+                        }
+                    }
+                }
+
+                // Mark any INTERIOR voxels on the plane as EXTERIOR
+                for(int k=coords[2]+1; k < depth; k++) {
+                    for(int i=0; i < width; i++) {
+                        for(int j=0; j < height; j++) {
+                            if (dest.getState(i,j,k) == Grid.INTERIOR) {
+                                dest.setData(i,j,k,Grid.EXTERIOR,material);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return dest;
     }
 }

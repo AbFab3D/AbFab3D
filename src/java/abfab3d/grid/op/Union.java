@@ -27,10 +27,19 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Union implements Operation, ClassTraverser {
+public class Union implements Operation, AttributeOperation {
+    /** The grid used for A */
+    private Grid gridA;
+
+    /** The grid used for A */
+    private Grid gridAAtt;
+
     /** The grid to subtract */
     private Grid gridB;
 
+    /** The grid to subtract */
+    private AttributeGrid gridBAtt;
+    
     /** The x translation of gridB */
     private double x;
 
@@ -43,10 +52,12 @@ public class Union implements Operation, ClassTraverser {
     /** The material for new exterior voxels */
     private int material;
 
-    /** The grid used for A */
-    private Grid gridA;
 
     public Union(Grid b, double x, double y, double z, int material) {
+        if (b instanceof AttributeGrid) {
+            gridBAtt = (AttributeGrid) b;
+        }
+        
         gridB = b;
         this.x = x;
         this.y = y;
@@ -65,13 +76,83 @@ public class Union implements Operation, ClassTraverser {
         int width = grid.getWidth();
         int depth = grid.getDepth();
         int height = grid.getHeight();
+
+        if (grid instanceof AttributeGrid) {
+            gridAAtt = (AttributeGrid) grid;
+        }
         gridA = grid;
 
         // TODO: Make sure the grids are the same size
 
-        gridB.find(Grid.VoxelClasses.MARKED, this);
+        gridB.find(Grid.VoxelClasses.MARKED, new Handler(gridA));
 
         return grid;
+    }
+
+    /**
+     * Execute an operation on a grid.  If the operation changes the grid
+     * dimensions then a new one will be returned from the call.
+     *
+     * @param grid The grid to use for grid A.
+     * @return The new grid
+     */
+    public AttributeGrid execute(AttributeGrid grid) {
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+        int height = grid.getHeight();
+        gridA = grid;
+
+        // TODO: Make sure the grids are the same size
+
+        gridBAtt.findAttribute(Grid.VoxelClasses.MARKED, new AttributeHandler((AttributeGrid)gridA,material));
+
+        return grid;
+    }
+    
+}
+
+class Handler implements ClassTraverser {
+    private Grid gridA;
+    
+    public Handler(Grid grid) {
+        gridA = grid;    
+    }
+    
+    /**
+     * A voxel of the class requested has been found.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public void found(int x, int y, int z, byte vd) {
+        if (vd == Grid.EXTERIOR || vd == Grid.INTERIOR) {
+            gridA.setState(x,y,z,vd);
+        }
+    }
+
+    /**
+     * A voxel of the class requested has been found.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param vd The voxel data
+     */
+    public boolean foundInterruptible(int x, int y, int z, byte vd) {
+        // ignore
+        return true;
+    }    
+}
+
+class AttributeHandler implements ClassAttributeTraverser {
+    private AttributeGrid gridAAtt;
+    private int mat;
+
+    public AttributeHandler(AttributeGrid grid, int material) {
+        gridAAtt = grid;
+        this.mat = material;
     }
 
     /**
@@ -83,14 +164,14 @@ public class Union implements Operation, ClassTraverser {
      * @param vd The voxel data
      */
     public void found(int x, int y, int z, VoxelData vd) {
-        byte bstate = vd.getState();
-        byte astate = gridA.getState(x,y,z);
-        int mat = vd.getMaterial();
+        byte state = vd.getState();
 
-        if (bstate == Grid.EXTERIOR || bstate == Grid.INTERIOR) {
-            gridA.setData(x,y,z,bstate, mat);
+        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+            // TODO: this is not using the passed in material, should it?
+//            gridAAtt.setData(x,y,z,state, mat);
+            gridAAtt.setData(x,y,z,state, vd.getMaterial());
         }
-     }
+    }
 
     /**
      * A voxel of the class requested has been found.
@@ -103,5 +184,5 @@ public class Union implements Operation, ClassTraverser {
     public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
         // ignore
         return true;
-    }
+    }        
 }

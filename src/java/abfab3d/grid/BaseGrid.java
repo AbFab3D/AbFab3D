@@ -13,8 +13,6 @@
 package abfab3d.grid;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
 /**
  * Base class implementation of Grids.  Includes common code that
@@ -56,7 +54,7 @@ public abstract class BaseGrid implements Grid, Cloneable {
     protected int sliceSize;
 
     static {
-        EMPTY_VOXEL = new VoxelDataByte(Grid.OUTSIDE, 0);
+        EMPTY_VOXEL = new VoxelDataByte(Grid.OUTSIDE, NO_MATERIAL);
     }
 
     /**
@@ -105,36 +103,31 @@ public abstract class BaseGrid implements Grid, Cloneable {
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    byte state;
+                    byte state = getState(x,y,z);
 
                     switch(vc) {
                         case ALL:
-                            t.found(x,y,z,vd);
+                            t.found(x,y,z,state);
                             break;
                         case MARKED:
-                            state = vd.getState();
+                            state = getState(x,y,z);
                             if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
+                                t.found(x,y,z,state);
                             }
                             break;
                         case EXTERIOR:
-                            state = vd.getState();
                             if (state == Grid.EXTERIOR) {
-                                t.found(x,y,z,vd);
+                                t.found(x,y,z,state);
                             }
                             break;
                         case INTERIOR:
-                            state = vd.getState();
                             if (state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
+                                t.found(x,y,z,state);
                             }
                             break;
                         case OUTSIDE:
-                            state = vd.getState();
                             if (state == Grid.OUTSIDE) {
-                                t.found(x,y,z,vd);
+                                t.found(x,y,z,state);
                             }
                             break;
                     }
@@ -143,205 +136,12 @@ public abstract class BaseGrid implements Grid, Cloneable {
         }
     }
 
-    /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(int mat, ClassTraverser t) {
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
-                        t.found(x,y,z,vd);
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    if (vd.getMaterial() != mat) {
-                        continue;
-                    }
-
-                    byte state;
-
-                    switch(vc) {
-                        case MARKED:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-    }
 
     /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
      * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
-        loop:
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    byte state;
-
-                    switch(vc) {
-                        case ALL:
-                            if (!t.foundInterruptible(x,y,z,vd))
-                                break loop;
-                            break;
-                        case MARKED:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case OUTSIDE:
-                            state = vd.getState();
-                            if (state == Grid.OUTSIDE) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(int mat, ClassTraverser t) {
-        loop:
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
-                        if (!t.foundInterruptible(x,y,z,vd))
-                            break loop;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
-        loop:
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    if (vd.getMaterial() != mat) {
-                        continue;
-                    }
-
-                    byte state;
-
-                    switch(vc) {
-                        case MARKED:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param t The traverer to call for each voxel
      */
     public int findCount(VoxelClasses vc) {
         int ret_val = 0;
@@ -390,81 +190,48 @@ public abstract class BaseGrid implements Grid, Cloneable {
     }
 
     /**
-     * Count a class of material types.  May be much faster then
+     * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
-     * @param mat The class of material to traverse
-     * @return The number
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
      */
-    public int findCount(int mat) {
-        int ret_val = 0;
-
+    public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
+        loop:
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    byte state = getState(x,y,z);
 
-                    byte state;
-
-                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
-                        ret_val++;
-                    }
-                }
-            }
-        }
-
-        return ret_val;
-    }
-
-    /**
-     * Reassign a group of materials to a new materialID
-     *
-     * @param materials The new list of materials
-     * @param mat The new materialID
-     */
-    public void reassignMaterial(int[] materials, int matID) {
-        // assume unindexed if we got here.  Best to traverse
-        // whole structure
-
-        int len = materials.length;
-
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    int mat;
-                    byte state = vd.getState();
-
-                    if (state != Grid.OUTSIDE) {
-                        mat = vd.getMaterial();
-
-                        for(int i=0; i < len; i++) {
-                            if (mat == materials[i]) {
-                                setData(x,y,z, state, matID);
+                    switch(vc) {
+                        case ALL:
+                            if (!t.foundInterruptible(x,y,z,state))
+                                break loop;
+                            break;
+                        case MARKED:
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,state))
+                                    break loop;
                             }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    /**
-     * Remove all voxels associated with the Material.
-     *
-     * @param mat The aterialID
-     */
-    public void removeMaterial(int mat) {
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    byte state;
-
-                    if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
-                        setData(x,y,z, Grid.OUTSIDE, 0);
+                            break;
+                        case EXTERIOR:
+                            if (state == Grid.EXTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,state))
+                                    break loop;
+                            }
+                            break;
+                        case INTERIOR:
+                            if (state == Grid.INTERIOR) {
+                                if (!t.foundInterruptible(x,y,z,state))
+                                    break loop;
+                            }
+                            break;
+                        case OUTSIDE:
+                            if (state == Grid.OUTSIDE) {
+                                if (!t.foundInterruptible(x,y,z,state))
+                                    break loop;
+                            }
+                            break;
                     }
                 }
             }

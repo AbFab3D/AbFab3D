@@ -15,6 +15,9 @@ package abfab3d.geom;
 // External Imports
 import java.util.*;
 import java.io.*;
+
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.DualWrapper;
 import org.web3d.vrml.sav.ContentHandler;
 
 // Internal Imports
@@ -87,21 +90,29 @@ public class CubeCreator extends GeometryCreator {
     /**
      * Generate the geometry and issue commands to the provided handler.
      *
-     * @param handler The stream to issue commands
+     * @param grid The dest grid
      */
     public void generate(Grid grid) {
+        AttributeGrid wrapper = null;
+
+        if (grid instanceof AttributeGrid) {
+            wrapper = (AttributeGrid) grid;
+        } else {
+            wrapper = new DualWrapper(grid);
+        }
+        
         if (styles == null) {
-            createSolidCube(grid);
+            createSolidCube(wrapper);
             return;
         }
 
         Style[] side_styles = styles[0];
 
         double x_pos,y_pos,z_pos;
-        double vsize = grid.getVoxelSize();
+        double vsize = wrapper.getVoxelSize();
         double hvsize = vsize / 2.0;
-        double sheight = grid.getSliceHeight();
-        double hsheight = grid.getSliceHeight() / 2.0;
+        double sheight = wrapper.getSliceHeight();
+        double hsheight = wrapper.getSliceHeight() / 2.0;
         int[] coords1 = new int[3];
         int[] coords2 = new int[3];
         int start,end;
@@ -149,69 +160,69 @@ public class CubeCreator extends GeometryCreator {
                     z_pos = ulz;
                     y_pos = 0;
 
-                    grid.getGridCoords(ulx,0,z_pos,coords1);
-                    grid.getGridCoords(urx,height,z_pos,coords2);
+                    wrapper.getGridCoords(ulx,0,z_pos,coords1);
+                    wrapper.getGridCoords(urx,height,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            grid.setData(x_idx, y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, y_idx, coords1[2],Grid.EXTERIOR,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
                     y_pos = uly;
                     z_pos = ulz;
 
-                    grid.getGridCoords(ulx,y_pos,z_pos,coords1);
-                    grid.getGridCoords(urx,y_pos,z_pos,coords2);
+                    wrapper.getGridCoords(ulx,y_pos,z_pos,coords1);
+                    wrapper.getGridCoords(urx,y_pos,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
 //System.out.println("Top Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
 //System.out.println("Bottom Row");
                     y_pos = lly;
                     z_pos = llz;
 
-                    grid.getGridCoords(llx,y_pos,z_pos,coords1);
-                    grid.getGridCoords(lrx,y_pos,z_pos,coords2);
+                    wrapper.getGridCoords(llx,y_pos,z_pos,coords1);
+                    wrapper.getGridCoords(lrx,y_pos,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
 //System.out.println("Bottom Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
                     x_pos = llx;
                     z_pos = llz;
 
-                    grid.getGridCoords(x_pos,lly,z_pos,coords1);
-                    grid.getGridCoords(x_pos,uly,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lly,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 //System.out.println("Left Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
                     x_pos = lrx;
                     z_pos = lrz;
 
-                    grid.getGridCoords(x_pos,lly,z_pos,coords1);
-                    grid.getGridCoords(x_pos,uly,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lly,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 }
             }
@@ -257,14 +268,14 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     z_pos = ulz;
                     y_pos = 0;
 
-                    grid.getGridCoords(ulx,0,z_pos,coords1);
-                    grid.getGridCoords(urx,height,z_pos,coords2);
+                    wrapper.getGridCoords(ulx,0,z_pos,coords1);
+                    wrapper.getGridCoords(urx,height,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            grid.setData(x_idx, y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, y_idx, coords1[2],Grid.EXTERIOR,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
@@ -272,53 +283,53 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     z_pos = ulz;
 
 
-                    grid.getGridCoords(ulx,y_pos,z_pos,coords1);
-                    grid.getGridCoords(urx,y_pos,z_pos,coords2);
+                    wrapper.getGridCoords(ulx,y_pos,z_pos,coords1);
+                    wrapper.getGridCoords(urx,y_pos,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 //System.out.println("Top Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
                     y_pos = lly;
                     z_pos = llz;
 
-                    grid.getGridCoords(ulx,y_pos,z_pos,coords1);
-                    grid.getGridCoords(urx,y_pos,z_pos,coords2);
+                    wrapper.getGridCoords(ulx,y_pos,z_pos,coords1);
+                    wrapper.getGridCoords(urx,y_pos,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 //System.out.println("Bottom Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        grid.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
                     x_pos = llx;
                     z_pos = llz;
 
-                    grid.getGridCoords(x_pos,lly,z_pos,coords1);
-                    grid.getGridCoords(x_pos,uly,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lly,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 //System.out.println("Left Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
                     x_pos = lrx;
                     z_pos = lrz;
 
-                    grid.getGridCoords(x_pos,lry,z_pos,coords1);
-                    grid.getGridCoords(x_pos,ury,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lry,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,ury,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 //System.out.println("Right Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 }
             }
@@ -366,65 +377,65 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     x_pos = ulx;
                     y_pos = uly;
 
-                    grid.getGridCoords(x_pos,0,ulz,coords1);
-                    grid.getGridCoords(x_pos,height,urz,coords2);
+                    wrapper.getGridCoords(x_pos,0,ulz,coords1);
+                    wrapper.getGridCoords(x_pos,height,urz,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            grid.setData(coords1[0], y_idx, z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(coords1[0], y_idx, z_idx,Grid.EXTERIOR,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
                     x_pos = ulx;
                     y_pos = uly;
 
-                    grid.getGridCoords(x_pos,y_pos,ulz,coords1);
-                    grid.getGridCoords(x_pos,y_pos,urz,coords2);
+                    wrapper.getGridCoords(x_pos,y_pos,ulz,coords1);
+                    wrapper.getGridCoords(x_pos,y_pos,urz,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        grid.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
                     x_pos = llx;
                     y_pos = lly;
 
-                    grid.getGridCoords(x_pos,y_pos,llz,coords1);
-                    grid.getGridCoords(x_pos,y_pos,lrz,coords2);
+                    wrapper.getGridCoords(x_pos,y_pos,llz,coords1);
+                    wrapper.getGridCoords(x_pos,y_pos,lrz,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        grid.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
 //System.out.println("Left Row");
                     x_pos = llx;
                     z_pos = llz;
 
-                    grid.getGridCoords(x_pos,lly,z_pos,coords1);
-                    grid.getGridCoords(x_pos,uly,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lly,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
 //System.out.println("Right Row");
                     x_pos = lrx;
                     z_pos = lrz;
 
-                    grid.getGridCoords(x_pos,lly,z_pos,coords1);
-                    grid.getGridCoords(x_pos,uly,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lly,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 }
             }
@@ -471,65 +482,65 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     x_pos = ulx;
                     y_pos = uly;
 
-                    grid.getGridCoords(x_pos,0,ulz,coords1);
-                    grid.getGridCoords(x_pos,height,urz,coords2);
+                    wrapper.getGridCoords(x_pos,0,ulz,coords1);
+                    wrapper.getGridCoords(x_pos,height,urz,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            grid.setData(coords1[0], y_idx, z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(coords1[0], y_idx, z_idx,Grid.EXTERIOR,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
                     x_pos = ulx;
                     y_pos = uly;
 
-                    grid.getGridCoords(x_pos,y_pos,ulz,coords1);
-                    grid.getGridCoords(x_pos,y_pos,urz,coords2);
+                    wrapper.getGridCoords(x_pos,y_pos,ulz,coords1);
+                    wrapper.getGridCoords(x_pos,y_pos,urz,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        grid.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
                     x_pos = llx;
                     y_pos = lly;
 
-                    grid.getGridCoords(x_pos,y_pos,llz,coords1);
-                    grid.getGridCoords(x_pos,y_pos,lrz,coords2);
+                    wrapper.getGridCoords(x_pos,y_pos,llz,coords1);
+                    wrapper.getGridCoords(x_pos,y_pos,lrz,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        grid.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
 //System.out.println("Left Row");
                     x_pos = llx;
                     z_pos = llz;
 
-                    grid.getGridCoords(x_pos,lly,z_pos,coords1);
-                    grid.getGridCoords(x_pos,uly,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lly,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,uly,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
 //System.out.println("Right Row");
                     x_pos = lrx;
                     z_pos = lrz;
 
-                    grid.getGridCoords(x_pos,lry,z_pos,coords1);
-                    grid.getGridCoords(x_pos,ury,z_pos,coords2);
+                    wrapper.getGridCoords(x_pos,lry,z_pos,coords1);
+                    wrapper.getGridCoords(x_pos,ury,z_pos,coords2);
 
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        grid.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
                     }
                 }
             }
@@ -577,12 +588,12 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     y_pos = uly;
 
 // TODO: Why not y + height / 2?
-                    grid.getGridCoords(llx,height,ulz,coords1);
-                    grid.getGridCoords(lrx,height,urz,coords2);
+                    wrapper.getGridCoords(llx,height,ulz,coords1);
+                    wrapper.getGridCoords(lrx,height,urz,coords2);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                            grid.setData(x_idx, coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, coords1[1], z_idx,Grid.EXTERIOR,materialID);
                         }
                     }
                 } else {
@@ -633,12 +644,12 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     x_pos = ulx;
                     y_pos = uly;
 
-                    grid.getGridCoords(llx,0,ulz,coords1);
-                    grid.getGridCoords(lrx,0,urz,coords2);
+                    wrapper.getGridCoords(llx,0,ulz,coords1);
+                    wrapper.getGridCoords(lrx,0,urz,coords2);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                            grid.setData(x_idx, coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, coords1[1], z_idx,Grid.EXTERIOR,materialID);
                         }
                     }
                 } else {
@@ -648,10 +659,17 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
         }
 
 //        System.out.println("Final Grid:");
-//        System.out.println(grid.toStringAll());
+//        System.out.println(wrapper.toStringAll());
     }
 
     private void createSolidCube(Grid grid) {
+        AttributeGrid wrapper = null;
+        
+        if (grid instanceof AttributeGrid) {
+            wrapper = (AttributeGrid) grid;
+        } else {
+            wrapper = new DualWrapper(grid);
+        }
 
         int[] coords1 = new int[3];
         int[] coords2 = new int[3];
@@ -680,19 +698,23 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
 //System.out.println("ll: " + llx + " " + lly + " " + llz);
 //System.out.println("ur: " + urx + " " + ury + " " + urz);
-        grid.getGridCoords(llx,lly,llz,coords1);
-        grid.getGridCoords(urx,ury,urz,coords2);
+        wrapper.getGridCoords(llx, lly, llz, coords1);
+        wrapper.getGridCoords(urx, ury, urz, coords2);
 
 //System.out.println("center: " + x + " " + y + " " + z);
 //System.out.println("dims: " + width + " " + height + " " + depth);
 //System.out.println("llx: " + java.util.Arrays.toString(coords1));
 //System.out.println("urx: " + java.util.Arrays.toString(coords2));
+        int cnt = 0;
         for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
             for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
                 for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                    grid.setData(x_idx, y_idx, z_idx,Grid.EXTERIOR,materialID);
+                    wrapper.setData(x_idx, y_idx, z_idx,Grid.EXTERIOR,materialID);
+                    cnt++;
                 }
             }
         }
+        
+        System.out.println("cube voxels: " + cnt);
     }
 }

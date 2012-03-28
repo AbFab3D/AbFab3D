@@ -38,7 +38,7 @@ import abfab3d.grid.*;
   *
   * @author Alan Hudson
   */
- public class GridVisited implements ClassTraverser {
+ public class GridVisited implements ClassTraverser, ClassAttributeTraverser {
     /** Memory usage for VoxelCoordinate.  Guess Java memory usage */
     private static final int VC_MEMORY = 4 + 8 + 3 * 4;
 
@@ -64,6 +64,9 @@ import abfab3d.grid.*;
     /** Grid for findUnvisited calc. */
     protected Grid grid;
 
+     /** Grid for findUnvisited calc. */
+     protected AttributeGrid gridAtt;
+     
     /** The unvisited coordinate found */
     protected VoxelCoordinate unvisited;
 
@@ -85,8 +88,6 @@ import abfab3d.grid.*;
      * @param w The number of voxels in width
      * @param h The number of voxels in height
      * @param d The number of voxels in depth
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
      * @param maxEntries The maximum entries multiplier before switching to an array
      */
     public GridVisited(int w, int h, int d, int maxEntries) {
@@ -125,9 +126,7 @@ import abfab3d.grid.*;
     /**
      * Has this voxel been visited.
      *
-     * @param x The x voxel coordinate
-     * @param y The y voxel coordinate
-     * @param z The z voxel coordinate
+     * @param vc The voxel coordinate
      * @return Whether its been visited
      */
     public boolean getVisited(VoxelCoordinate vc) {
@@ -196,12 +195,18 @@ import abfab3d.grid.*;
      * @param grid The grid
      */
     public VoxelCoordinate findUnvisited(Grid grid) {
-        this.grid = grid;
         unvisited = null;
+
+        if (grid instanceof AttributeGrid) {
+            this.gridAtt = (AttributeGrid) grid;
+        }
+
+        this.grid = grid;
 
         grid.findInterruptible(Grid.VoxelClasses.MARKED, this);
 
         grid = null;
+        gridAtt = null;
 
         return unvisited;
     }
@@ -211,13 +216,16 @@ import abfab3d.grid.*;
      *
      * @param grid The grid
      */
-    public VoxelCoordinate findUnvisited(Grid grid, int mat) {
-        this.grid = grid;
+    public VoxelCoordinate findUnvisited(AttributeGrid grid, int mat) {
         unvisited = null;
 
-        grid.findInterruptible(Grid.VoxelClasses.MARKED, mat, this);
+        this.gridAtt = grid;
+        this.grid = grid;
+
+        gridAtt.findAttributeInterruptible(Grid.VoxelClasses.MARKED, mat, this);
 
         grid = null;
+        gridAtt = null;
 
         return unvisited;
     }
@@ -264,6 +272,20 @@ import abfab3d.grid.*;
         // ignore
     }
 
+     /**
+      * A voxel of the class requested has been found.
+      * VoxelData classes may be reused so clone the object
+      * if you keep a copy.
+      *
+      * @param x The x grid coordinate
+      * @param y The y grid coordinate
+      * @param z The z grid coordinate
+      * @param state The voxel data
+      */
+     public void found(int x, int y, int z, byte state) {
+         // ignore
+     }
+
     /**
      * A voxel of the class requested has been found.
      * VoxelData classes may be reused so clone the object
@@ -297,4 +319,36 @@ import abfab3d.grid.*;
         }
     }
 
+     /**
+      * A voxel of the class requested has been found.
+      * VoxelData classes may be reused so clone the object
+      * if you keep a copy.
+      *
+      * @param x The x grid coordinate
+      * @param y The y grid coordinate
+      * @param z The z grid coordinate
+      * @param state The voxel data
+      *
+      * @return True to continue, false stops the traversal.
+      */
+     public boolean foundInterruptible(int x, int y, int z, byte state) {
+         if (visitedSet != null) {
+             VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
+             if (visitedSet.contains(vc)) {
+                 return true;
+             }
+
+             unvisited = vc;
+
+             return false;
+         } else {
+             if (visitedArray[x][y][z] == true) {
+                 // continue search
+                 return true;
+             } else {
+                 unvisited = new VoxelCoordinate(x,y,z);
+                 return false;
+             }
+         }
+     }
  }

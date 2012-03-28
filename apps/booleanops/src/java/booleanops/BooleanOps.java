@@ -15,16 +15,18 @@ package booleanops;
 // External Imports
 import java.util.*;
 import java.io.*;
+
+import abfab3d.grid.op.InteriorFinderTriangleBased;
+import abfab3d.util.BoundingBoxUtilsFloat;
 import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
 import org.j3d.geom.*;
 
 // Internal Imports
 import abfab3d.geom.*;
-import abfab3d.geom.CubeCreator.Style;
 import abfab3d.grid.*;
 import abfab3d.grid.op.Subtract;
-import abfab3d.grid.op.Downsample;
+import abfab3d.grid.op.Union;
 import abfab3d.io.output.BoxesX3DExporter;
 
 
@@ -35,9 +37,11 @@ import abfab3d.io.output.BoxesX3DExporter;
  * @author Alan Hudson
  */
 public class BooleanOps {
+//    public static final double HORIZ_RESOLUTION = 0.0002;
     public static final double HORIZ_RESOLUTION = 0.0002;
 
-    /** Verticle resolution of the printer in meters.  */
+    /** Vertical resolution of the printer in meters.  */
+//    public static final double VERT_RESOLUTION = 0.0002;
     public static final double VERT_RESOLUTION = 0.0002;
 
     public void generate(String filename) {
@@ -45,9 +49,6 @@ public class BooleanOps {
 
         float bsize = 0.0254f;
         float overlap = 0.02f;
-        boolean useArrays = true;
-
-        // TODO: arrays are using much less ram then hashmap?
 
         BoxGenerator tg = new BoxGenerator(bsize,bsize,bsize);
         GeometryData geom = new GeometryData();
@@ -57,17 +58,32 @@ public class BooleanOps {
         double[] trans =  new double[3];
         double[] maxsize = new double[3];
 
+        BoundingBoxUtilsFloat bc = new BoundingBoxUtilsFloat();
+
+        float[] bounds = new float[6];
+        bc.computeMinMax(geom.coordinates,geom.vertexCount,bounds);
 
         findGridParams(geom, HORIZ_RESOLUTION, VERT_RESOLUTION, trans, maxsize);
+
+        // account for larger cylinder size
+        maxsize[0] *= 1.2;
+        maxsize[1] *= 1.2;
+        maxsize[2] *= 1.2;
+
 //            maxsize[1] += 2 * overlap;  // account for overlap of cylinder
 
-        double x = trans[0];
-        double y = trans[1];
-        double z = trans[2];
+//        double x = trans[0];
+//        double y = trans[1];
+//        double z = trans[2];
 
-        Grid grid = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
+        double x = maxsize[0] / 2;
+        double y = maxsize[1] / 2;
+        double z = maxsize[2] / 2;
+
+        Grid grid = new ArrayAttributeGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
+System.out.println("Grid size: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
         TriangleModelCreator tmc = null;
 
         double rx = 0,ry = 1,rz = 0,rangle = 0;
@@ -76,12 +92,12 @@ public class BooleanOps {
 
 
         tmc = new TriangleModelCreator(geom,x,y,z,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true,
+                new InteriorFinderTriangleBased(geom,bounds,x,y,z,rx,ry,rz,rangle,innerMaterial));
 
         tmc.generate(grid);
 
-
-        double height = bsize;
+        double height = bsize * 1.1;
         double radius = bsize / 2.5f;
         int facets = 64;
 
@@ -89,6 +105,8 @@ public class BooleanOps {
         geom = new GeometryData();
         geom.geometryType = GeometryData.TRIANGLES;
         cg.generate(geom);
+
+        bc.computeMinMax(geom.coordinates,geom.vertexCount,bounds);
 
         // reuse size and center of box, make sure cylinder is smaller
 
@@ -106,18 +124,21 @@ public class BooleanOps {
             System.out.println("   Cyl: " + java.util.Arrays.toString(nmaxsize));
         }
 
-        Grid grid2 = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
+        Grid grid2 = new ArrayAttributeGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
 
+
         tmc = new TriangleModelCreator(geom,x,y,z,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true,
+                new InteriorFinderTriangleBased(geom,bounds,x,y,z,rx,ry,rz,rangle,innerMaterial));
 
         tmc.generate(grid2);
 
 
-        Subtract op = new Subtract(grid2, 0, 0, 0, 1);
-        op.execute(grid);
+//        Subtract op = new Subtract(grid2, 0, 0, 0, 1);
+        Union op = new Union(grid2, 0, 0, 0, 1);
+        grid = op.execute(grid);
 
 
         rx = 1;
@@ -125,23 +146,25 @@ public class BooleanOps {
         rz = 0;
         rangle = 1.57075;
 
-        grid2 = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
+        grid2 = new ArrayAttributeGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         tmc = new TriangleModelCreator(geom,x,y,z,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+            rx,ry,rz,rangle,outerMaterial,innerMaterial,true,
+                new InteriorFinderTriangleBased(geom,bounds,x,y,z,rx,ry,rz,rangle,innerMaterial));
 
         tmc.generate(grid2);
 
-        op = new Subtract(grid2, 0, 0, 0, 1);
-        op.execute(grid);
+//        op = new Subtract(grid2, 0, 0, 0, 1);
+        op = new Union(grid2, 0, 0, 0, 1);
+        grid = op.execute(grid);
 
         rx = 0;
         ry = 0;
         rz = 1;
         rangle = 1.57075;
 
-        grid2 = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
+        grid2 = new ArrayAttributeGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         tmc = new TriangleModelCreator(geom,x,y,z,
@@ -149,8 +172,9 @@ public class BooleanOps {
 
         tmc.generate(grid2);
 
-        op = new Subtract(grid2, 0, 0, 0, 1);
-        op.execute(grid);
+//        op = new Subtract(grid2, 0, 0, 0, 1);
+        op = new Union(grid2, 0, 0, 0, 1);
+        grid = op.execute(grid);
 
 
         grid2 = null;  // Free this to save memory
@@ -179,6 +203,7 @@ public class BooleanOps {
             transparency.put(new Integer(Grid.INTERIOR), new Float(0));
             transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
             transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
+
 
 //            exporter.write(grid, null);
             exporter.writeDebug(grid, colors, transparency);

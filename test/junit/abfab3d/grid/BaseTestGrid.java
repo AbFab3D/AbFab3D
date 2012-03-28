@@ -39,7 +39,7 @@ public class BaseTestGrid extends TestCase {
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    grid.setData(x,y,z,Grid.EXTERIOR, 1);
+                    grid.setState(x,y,z,Grid.EXTERIOR);
                 }
             }
         }
@@ -49,7 +49,6 @@ public class BaseTestGrid extends TestCase {
                 for(int z=0; z < depth; z++) {
                     VoxelData vd = grid.getData(x,y,z);
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
-                    assertTrue("Material wrong", vd.getMaterial() == 1);
                 }
             }
         }
@@ -70,9 +69,9 @@ public class BaseTestGrid extends TestCase {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
-                        grid.setData(x,y,z,Grid.EXTERIOR, 1);
+                        grid.setState(x,y,z,Grid.EXTERIOR);
                     } else {
-                        grid.setData(x,y,z,Grid.INTERIOR, 2);
+                        grid.setState(x,y,z,Grid.INTERIOR);
                     }
 
                 }
@@ -86,10 +85,8 @@ public class BaseTestGrid extends TestCase {
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
                         assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
-                        assertTrue("Material wrong", vd.getMaterial() == 1);
                     } else {
                         assertTrue("State wrong", vd.getState() == Grid.INTERIOR);
-                        assertTrue("Material wrong", vd.getMaterial() == 2);
                     }
                 }
             }
@@ -111,7 +108,7 @@ public class BaseTestGrid extends TestCase {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     if (x == y && y == z) {
-                        grid.setData(x,y,z,Grid.EXTERIOR, 1);
+                        grid.setState(x,y,z,Grid.EXTERIOR);
                     }
                 }
             }
@@ -151,7 +148,7 @@ public class BaseTestGrid extends TestCase {
                 ycoord = (double)(y)*sliceHeight + sliceHeight/2.0;
                 for(int z=0; z < depth; z++) {
                     zcoord = (double)(z)*voxelSize + voxelSize/2.0;
-                    grid.setData(xcoord, ycoord, zcoord, Grid.EXTERIOR, (byte)1);
+                    grid.setState(xcoord, ycoord, zcoord, Grid.EXTERIOR);
                 }
             }
         }
@@ -181,7 +178,7 @@ public class BaseTestGrid extends TestCase {
      */
     protected static void setX(Grid grid, int y, int z, byte state, int mat, int startIndex, int endIndex) {
         for(int x=startIndex; x <= endIndex; x++) {
-            grid.setData(x,y,z, state, mat);
+            grid.setState(x,y,z, state);
         }
     }
 
@@ -195,7 +192,7 @@ public class BaseTestGrid extends TestCase {
      */
     protected static void setY(Grid grid, int x, int z, byte state, int mat, int startIndex, int endIndex) {
         for(int y=startIndex; y <= endIndex; y++) {
-            grid.setData(x,y,z, state, mat);
+            grid.setState(x,y,z, state);
         }
     }
 
@@ -209,7 +206,7 @@ public class BaseTestGrid extends TestCase {
      */
     protected static void setZ(Grid grid, int x, int y, byte state, int mat, int startIndex, int endIndex) {
         for(int z=startIndex; z <= endIndex; z++) {
-            grid.setData(x,y,z, state, mat);
+            grid.setState(x,y,z, state);
         }
     }
 
@@ -220,7 +217,7 @@ public class BaseTestGrid extends TestCase {
      * @param grid The grid to set
      * @param x The X plane to set
      * @param state The new state
-     * @param mat The new material
+     * @param material The new material
      */
     protected static void setPlaneX(Grid grid, int x, byte state, int material) {
         int height = grid.getHeight();
@@ -228,7 +225,7 @@ public class BaseTestGrid extends TestCase {
 
         for (int y=0; y<height; y++) {
             for (int z=0; z<depth; z++) {
-                grid.setData(x, y, z, state, material);
+                grid.setState(x, y, z, state);
             }
         }
     }
@@ -239,7 +236,7 @@ public class BaseTestGrid extends TestCase {
      * @param grid The grid to set
      * @param y The Y plane to set
      * @param state The new state
-     * @param mat The new material
+     * @param material The new material
      */
     protected static void setPlaneY(Grid grid, int y, byte state, int material) {
         int width = grid.getWidth();
@@ -247,7 +244,7 @@ public class BaseTestGrid extends TestCase {
 
         for (int x=0; x<width; x++) {
             for (int z=0; z<depth; z++) {
-                grid.setData(x, y, z, state, material);
+                grid.setState(x, y, z, state);
             }
         }
     }
@@ -258,7 +255,7 @@ public class BaseTestGrid extends TestCase {
      * @param grid The grid to set
      * @param z The Z plane to set
      * @param state The new state
-     * @param mat The new material
+     * @param material The new material
      */
     protected static void setPlaneZ(Grid grid, int z, byte state, int material) {
         int width = grid.getWidth();
@@ -266,7 +263,7 @@ public class BaseTestGrid extends TestCase {
 
         for (int x=0; x<width; x++) {
             for (int y=0; y<height; y++) {
-                grid.setData(x, y, z, state, material);
+                grid.setState(x, y, z, state);
             }
         }
     }

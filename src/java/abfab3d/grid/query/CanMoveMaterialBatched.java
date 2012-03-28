@@ -29,7 +29,7 @@ import abfab3d.path.*;
  *
  * @author Alan Hudson
  */
-public class CanMoveMaterialBatched implements ClassTraverser {
+public class CanMoveMaterialBatched implements ClassAttributeTraverser {
     /** The material to remove */
     private int material;
 
@@ -40,7 +40,7 @@ public class CanMoveMaterialBatched implements ClassTraverser {
     private boolean allEscaped;
 
     /** The grid we are using */
-    private Grid grid;
+    private AttributeGrid gridAtt;
 
     /** Coordinates that can be ignored */
     private HashSet<VoxelCoordinate> ignoreSet;
@@ -60,12 +60,12 @@ public class CanMoveMaterialBatched implements ClassTraverser {
      */
     public boolean execute(Grid grid) {
         allEscaped = true;
-        this.grid = grid;
+        this.gridAtt = (AttributeGrid)grid;
 
         this.ignoreSet = new HashSet<VoxelCoordinate>();
 
         // TODO: just use material and say class only moves external?
-        grid.findInterruptible(material, this);
+        gridAtt.findAttributeInterruptible(material, this);
 
         return allEscaped;
     }
@@ -107,7 +107,7 @@ public class CanMoveMaterialBatched implements ClassTraverser {
 
         // Move along path till edge or
 //System.out.println("pos: " + java.util.Arrays.toString(pos) + " w: " + grid.getWidth());
-        path.init(x,y,z, grid.getWidth(), grid.getHeight(), grid.getDepth());
+        path.init(x,y,z, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
         boolean escaped = true;
 
@@ -120,9 +120,9 @@ System.out.println("Not aligned: " + path);
 }
             // Diagonal path, process unbatched
             while(path.next(pos)) {
-                VoxelData vd = grid.getData(pos[0], pos[1], pos[2]);
+                VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
 
-    //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
+    //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
                 if (vd.getState() != Grid.OUTSIDE &&
                     vd.getMaterial() != material) {
 
@@ -148,7 +148,7 @@ System.out.println("getData method not implemented");
                 VoxelData vd = voxels[i];
 
     //System.out.println("i: " + i + " vd: " + vd);
-    //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getMaterial());
+    //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
                 if (vd.getState() != Grid.OUTSIDE &&
                     vd.getMaterial() != material) {
 
@@ -174,7 +174,6 @@ System.out.println("getData method not implemented");
     /**
      * Add voxels to be ignored for a given path as specified by ignoreSetIndex.
      *
-     * @param ignoreSetIndex The index of the path array to add voxels to ignore
      * @param x The X coordinate for the starting position
      * @param y The Y coordinate for the starting position
      * @param z The Z coordinate for the starting position
@@ -183,10 +182,10 @@ System.out.println("getData method not implemented");
         int[] pos = new int[] {x, y, z};
 
         Path invertedPath = path.invertPath();
-        invertedPath.init(pos, grid.getWidth(), grid.getHeight(), grid.getDepth());
+        invertedPath.init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
         while(invertedPath.next(pos)) {
-            byte state = grid.getState(pos[0], pos[1], pos[2]);
+            byte state = gridAtt.getState(pos[0], pos[1], pos[2]);
 
             // can optimize by ignoring interior voxels and only checking for exterior voxels
             if (state == Grid.OUTSIDE)

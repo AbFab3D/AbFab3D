@@ -20,12 +20,12 @@ import junit.framework.TestSuite;
 // Internal Imports
 
 /**
- * Tests the functionality of a OccupiedWrapper
+ * Tests the functionality of a World Coordinate
  *
  * @author Alan Hudson
  * @version
  */
-public class TestWorldCoordinate extends BaseTestGrid {
+public class TestWorldCoordinate extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -38,35 +38,35 @@ public class TestWorldCoordinate extends BaseTestGrid {
      * Test setGrid.
      */
     public void testHashCode() {
-    	float x = 2.5f;
-    	float y = 10.1f;
-    	float z = 55f;
-    	
+        float x = 2.5f;
+        float y = 10.1f;
+        float z = 55f;
+
         WorldCoordinate wc1 = new WorldCoordinate(x, y, z);
-        
+
         int hc1 = wc1.hashCode();
 
         x = x * 2;
 
         WorldCoordinate wc2 = new WorldCoordinate(x, y, z);
         int hc2 = wc2.hashCode();
-        
+
         assertFalse("HashCode should not be equal", hc1 == hc2);
     }
-    
+
     public void testEquals() {
-    	float x = 2.5f;
-    	float y = 10.1f;
-    	float z = 55f;
-    	
-    	WorldCoordinate wc1 = new WorldCoordinate(x, y, z);
-    	WorldCoordinate wc2 = new WorldCoordinate(10.1f, 55f, 2.5f);
-    	
-    	assertFalse("WC1 should not be equal to WC2", wc1.equals(wc2));
-    	
-    	wc2 = new WorldCoordinate(2.5f, 10.1f, 55f);
-    	
-    	assertTrue("WC1 is not equal to WC2", wc1.equals(wc2));
+        float x = 2.5f;
+        float y = 10.1f;
+        float z = 55f;
+
+        WorldCoordinate wc1 = new WorldCoordinate(x, y, z);
+        WorldCoordinate wc2 = new WorldCoordinate(10.1f, 55f, 2.5f);
+
+        assertFalse("WC1 should not be equal to WC2", wc1.equals(wc2));
+
+        wc2 = new WorldCoordinate(2.5f, 10.1f, 55f);
+
+        assertTrue("WC1 is not equal to WC2", wc1.equals(wc2));
     }
 
 

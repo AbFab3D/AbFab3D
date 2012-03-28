@@ -69,8 +69,8 @@ public class LinkedRings {
 
 System.out.println("voxels: " + (size / VERT_RESOLUTION));
 
-            Grid grid = new ArrayGridByte(size,size,size,
-//            Grid grid = new OctreeGridByte(size,size,size,
+            Grid grid = new ArrayAttributeGridByte(size,size,size,
+//            Grid grid = new OctreeAttributeGridByte(size,size,size,
                 HORIZ_RESOLUTION, VERT_RESOLUTION);
 
 

@@ -24,7 +24,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Downsample implements Operation {
+public class Downsample implements Operation, AttributeOperation {
     /** Width of the grid under operation */
     private int width;
 
@@ -41,16 +41,50 @@ public class Downsample implements Operation {
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
-     * @param grid The grid to use for grid A.
+     * @param dest The grid to use for grid A.
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
-        width = grid.getWidth();
-        depth = grid.getDepth();
-        height = grid.getHeight();
+    public Grid execute(Grid dest) {
+        width = dest.getWidth();
+        depth = dest.getDepth();
+        height = dest.getHeight();
 
-        Grid ret_val = grid.createEmpty(width / 2,depth / 2,height / 2,
-            grid.getVoxelSize() * 2.0, grid.getSliceHeight() * 2.0);
+        Grid ret_val = dest.createEmpty(width / 2,depth / 2,height / 2,
+            dest.getVoxelSize() * 2.0, dest.getSliceHeight() * 2.0);
+
+
+        int len_x = width / 2;
+        int len_y = height / 2;
+        int len_z = depth / 2;
+        int state;
+
+        System.out.println("Downsample to: " + len_x + " " + len_y + " " + len_z);
+        for(int x=0; x < len_x; x++) {
+            for(int y=0; y < len_y; y++) {
+                for(int z=0; z < len_z; z++) {
+                    ret_val.setState(x,y,z,
+                        avgState(dest, x*2, y*2,z*2));
+                }
+            }
+        }
+
+        return ret_val;
+    }
+
+    /**
+     * Execute an operation on a grid.  If the operation changes the grid
+     * dimensions then a new one will be returned from the call.
+     *
+     * @param dest The grid to use for grid A.
+     * @return The new grid
+     */
+    public AttributeGrid execute(AttributeGrid dest) {
+        width = dest.getWidth();
+        depth = dest.getDepth();
+        height = dest.getHeight();
+
+        AttributeGrid ret_val = (AttributeGrid) dest.createEmpty(width / 2,depth / 2,height / 2,
+                dest.getVoxelSize() * 2.0, dest.getSliceHeight() * 2.0);
 
 
         int len_x = width / 2;
@@ -63,7 +97,7 @@ public class Downsample implements Operation {
             for(int y=0; y < len_y; y++) {
                 for(int z=0; z < len_z; z++) {
                     ret_val.setData(x,y,z,
-                        avgState(grid, x*2, y*2,z*2), avgMaterial(grid, x*2, y*2, z*2));
+                            avgState(dest, x*2, y*2,z*2), avgMaterial(dest, x*2, y*2, z*2));
                 }
             }
         }

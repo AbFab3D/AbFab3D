@@ -155,7 +155,7 @@ public class TriangleModelCreator extends GeometryCreator {
             bc.computeMinMax(geom.coordinates,geom.indexes, bounds);
         }
         
-        interiorFinder = new InteriorFinderTriangleBased(geom,bounds, x,y,z,rx,ry,rz,rangle,outerMaterialID, innerMaterialID);
+        interiorFinder = new InteriorFinderTriangleBased(geom,bounds, x,y,z,rx,ry,rz,rangle,innerMaterialID);
         //interiorFinder = new InteriorFinderVoxelBased(outerMaterialID,innerMaterialID);
     }
 
@@ -218,6 +218,8 @@ public class TriangleModelCreator extends GeometryCreator {
      * @param grid The grid to generate into
      */
     public void generate(Grid grid) {
+        AttributeGrid gridAtt = null;
+        
         voxelSize = grid.getVoxelSize();
         halfVoxel = voxelSize / 2.0;
         sliceHeight = grid.getSliceHeight();
@@ -283,7 +285,7 @@ public class TriangleModelCreator extends GeometryCreator {
 //System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
 
                 tri = new Triangle(coords, i);
-                insert(tri, grid, outerMaterialID);
+                insert(tri, grid);
             }
         } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
             int len = geom.indexesCount / 3;
@@ -295,6 +297,132 @@ public class TriangleModelCreator extends GeometryCreator {
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
     //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
                 
+                v.x = geom.coordinates[geom.indexes[idx] * 3];
+                v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
+                v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
+
+                idx++;
+                mat.transform(v);
+                coords[0] = (float) v.x;
+                coords[1] = (float) v.y;
+                coords[2] = (float) v.z;
+
+                v.x = geom.coordinates[geom.indexes[idx] * 3];
+                v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
+                v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
+
+                idx++;
+                mat.transform(v);
+                coords[3] = (float) v.x;
+                coords[4] = (float) v.y;
+                coords[5] = (float) v.z;
+
+                v.x = geom.coordinates[geom.indexes[idx] * 3];
+                v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
+                v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
+                mat.transform(v);
+                coords[6] = (float) v.x;
+                coords[7] = (float) v.y;
+                coords[8] = (float) v.z;
+
+                idx++;
+//System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
+                tri = new Triangle(coords, i);
+                insert(tri, grid);
+            }
+        }
+
+        if (!fill)
+            return;
+
+        interiorFinder.execute(grid);
+    }
+
+    /**
+     * Generate the geometry and issue commands to the provided handler.
+     *
+     * @param grid The grid to generate into
+     */
+    public void generate(AttributeGrid grid) {
+        AttributeGrid gridAtt = null;
+
+        voxelSize = grid.getVoxelSize();
+        halfVoxel = voxelSize / 2.0;
+        sliceHeight = grid.getSliceHeight();
+        halfSlice = sliceHeight / 2.0;
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+
+        // TODO: We should move both of these to grid ops for better reuse
+
+        // TODO: optimize away matrix multiple if no transformation provided.
+
+        // Find exterior voxels using triangle/voxel overlaps.  Color Voxels.
+
+        Matrix4d mat = MatrixUtil.createMatrix(
+                new double[] {0,0,0},
+                new double[] {1,1,1}, new double[] {rx,ry,rz,rangle}, new double[] {x,y,z},
+                new double[] {0,0,1,0});
+
+//System.out.println("Triangulate with material: " + outerMaterialID);
+        int idx = 0;
+        Triangle tri;
+        float[] coords = new float[9];
+
+        if (geom.geometryType == GeometryData.TRIANGLES) {
+            int len = geom.vertexCount / 3;
+
+//System.out.println("Triangles to insert: " + len);
+
+            Point3d v = new Point3d();
+
+            for(int i=0; i < len; i++ ) {
+                //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
+                //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
+                //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
+                v.x = geom.coordinates[idx++];
+                v.y = geom.coordinates[idx++];
+                v.z = geom.coordinates[idx++];
+
+                mat.transform(v);
+                coords[0] = (float) v.x;
+                coords[1] = (float) v.y;
+                coords[2] = (float) v.z;
+
+                v.x = geom.coordinates[idx++];
+                v.y = geom.coordinates[idx++];
+                v.z = geom.coordinates[idx++];
+
+                mat.transform(v);
+                coords[3] = (float) v.x;
+                coords[4] = (float) v.y;
+                coords[5] = (float) v.z;
+
+                v.x = geom.coordinates[idx++];
+                v.y = geom.coordinates[idx++];
+                v.z = geom.coordinates[idx++];
+
+                mat.transform(v);
+                coords[6] = (float) v.x;
+                coords[7] = (float) v.y;
+                coords[8] = (float) v.z;
+
+//System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
+
+                tri = new Triangle(coords, i);
+                insert(tri, grid, outerMaterialID);
+            }
+        } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
+            int len = geom.indexesCount / 3;
+
+            Point3d v = new Point3d();
+
+            for(int i=0; i < len; i++ ) {
+                //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
+                //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
+                //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
+
                 v.x = geom.coordinates[geom.indexes[idx] * 3];
                 v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
                 v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
@@ -342,7 +470,7 @@ public class TriangleModelCreator extends GeometryCreator {
      * @param tri The triangle
      * @param grid The grid to use
      */
-    public void insert(Triangle tri, Grid grid, int material) {
+    public void insert(Triangle tri, AttributeGrid grid, int material) {
 
         tri.calcBounds(minBounds, maxBounds);
 
@@ -426,13 +554,102 @@ System.out.flush();
     }
 
     /**
+     * Insert an object into the structure.
+     *
+     * @param tri The triangle
+     * @param grid The grid to use
+     */
+    public void insert(Triangle tri, Grid grid) {
+
+        tri.calcBounds(minBounds, maxBounds);
+
+        double[] minGridWorldCoord = new double[3];
+        double[] maxGridWorldCoord = new double[3];
+
+        grid.getGridBounds(minGridWorldCoord, maxGridWorldCoord);
+
+/*
+System.out.println("Grid Min: " + java.util.Arrays.toString(minGridWorldCoord));
+System.out.println("Grid Max: " + java.util.Arrays.toString(maxGridWorldCoord));
+*/
+        grid.getGridCoords(minBounds[0], minBounds[1], minBounds[2], minCoords);
+        grid.getGridCoords(maxBounds[0], maxBounds[1], maxBounds[2], maxCoords);
+
+/*
+System.out.println("Triangle: " + java.util.Arrays.toString(tri.coords));
+System.out.println("minBounds: " + java.util.Arrays.toString(minBounds));
+System.out.println("maxBounds: " + java.util.Arrays.toString(maxBounds));
+System.out.flush();
+*/
+
+        // Handle on voxel boundary issues
+        if (minBounds[0] % voxelSize == 0) {
+            minBounds[0] -= halfVoxel;
+            if (minBounds[0] < minGridWorldCoord[0]) {
+                minBounds[0] = minGridWorldCoord[0];
+            }
+        }
+
+        if (minBounds[2] % voxelSize == 2) {
+            minBounds[2] -= halfVoxel;
+            if (minBounds[2] < minGridWorldCoord[2]) {
+                minBounds[2] = minGridWorldCoord[2];
+            }
+        }
+
+        if (minBounds[1] % sliceHeight == 0) {
+            minBounds[1] -= halfSlice;
+            if (minBounds[1] < minGridWorldCoord[1]) {
+                minBounds[1] = minGridWorldCoord[1];
+            }
+        }
+
+        if (maxBounds[0] % voxelSize == 0) {
+            maxBounds[0] += halfVoxel;
+            if (maxBounds[0] > maxGridWorldCoord[0]) {
+                maxBounds[0] = maxGridWorldCoord[0];
+            }
+        }
+
+        if (maxBounds[2] % voxelSize == 2) {
+            maxBounds[2] += halfVoxel;
+            if (maxBounds[2] > minGridWorldCoord[2]) {
+                maxBounds[2] = minGridWorldCoord[2];
+            }
+        }
+
+        if (maxBounds[1] % sliceHeight == 0) {
+            maxBounds[1] += halfSlice;
+            if (maxBounds[1] > maxGridWorldCoord[1]) {
+                maxBounds[1] = maxGridWorldCoord[1];
+            }
+        }
+
+/*
+System.out.println("after bounds check");
+System.out.println("minBounds: " + java.util.Arrays.toString(minBounds));
+System.out.println("maxBounds: " + java.util.Arrays.toString(maxBounds));
+System.out.flush();
+*/
+
+        grid.getGridCoords(minBounds[0], minBounds[1], minBounds[2], minCoords);
+        grid.getGridCoords(maxBounds[0], maxBounds[1], maxBounds[2], maxCoords);
+/*
+System.out.println("minCoords: " + java.util.Arrays.toString(minCoords));
+System.out.println("maxCoords: " + java.util.Arrays.toString(maxCoords));
+System.out.flush();
+*/
+        fillCellsExact(minCoords, maxCoords, tri, grid);
+    }
+    
+    /**
      * Fill in the grid given a box of grid coordinates.
      *
      * @param min The min bounds in cell coords
      * @param max The max bounds in cell coords
      * @param material The ID to fill in
      */
-    protected void fillCellsExact(int[] min, int[] max, Triangle tri, Grid grid, int material) {
+    protected void fillCellsExact(int[] min, int[] max, Triangle tri, AttributeGrid grid, int material) {
         final int len_x = max[0] - min[0] + 1;
         final int len_y = max[1] - min[1] + 1;
         final int len_z = max[2] - min[2] + 1;
@@ -467,6 +684,47 @@ System.out.flush();
         }
     }
 
+    /**
+     * Fill in the grid given a box of grid coordinates.
+     *
+     * @param min The min bounds in cell coords
+     * @param max The max bounds in cell coords
+     */
+    protected void fillCellsExact(int[] min, int[] max, Triangle tri, Grid grid) {
+        final int len_x = max[0] - min[0] + 1;
+        final int len_y = max[1] - min[1] + 1;
+        final int len_z = max[2] - min[2] + 1;
+
+        int i,j,k;
+
+        Vector3d v0 = new Vector3d(tri.coords[0], tri.coords[1], tri.coords[2]);
+        Vector3d v1 = new Vector3d(tri.coords[3], tri.coords[4], tri.coords[5]);
+        Vector3d v2 = new Vector3d(tri.coords[6], tri.coords[7], tri.coords[8]);
+
+        double[] vcoords = new double[3];
+        for(int x = 0; x < len_x; x++) {
+            for(int y = 0; y < len_y; y++) {
+                for(int z = 0; z < len_z; z++) {
+                    i = min[0] + x;
+                    j = min[1] + y;
+                    k = min[2] + z;
+
+
+                    grid.getWorldCoords(i,j,k,vcoords);
+                    if (intersectsTriangle(v0,v1,v2, vcoords)) {
+//System.out.println("Set data: " + i + " " + j + " " + k);
+                        grid.setState(i,j,k,Grid.EXTERIOR);
+
+                        if (COLLECT_STATS) {
+                            cellsFilled ++;
+                        }
+
+                    }
+                }
+            }
+        }
+    }
+    
     /**
      * Does triangle overlap a voxel.
      *
@@ -670,208 +928,6 @@ System.out.flush();
      */
     public double max(double a, double b, double c) {
         return (a > b) ? ((a > c) ? a : c) : ((b > c) ? b : c);
-    }
-
-    /**
-     * Fill in interior voxels by walking the voxel grid
-     * and counting cross of exterior voxels.
-     */
-    private Grid fillByWalking(Grid grid) {
-        // I suspect this method will be fairly buggy.  But it should
-        // be fast
-
-        Grid result = (Grid) grid.clone();
-
-//System.out.println("Filling model");
-        byte state;
-        byte last = Grid.OUTSIDE;
-        int cnt = 0;
-        int status = 0;  // 0 = outside, 1 == coming into exterior, 2 == coming out inside, 3 == inside
-
-        // Find interior voxels using in/out tests
-        // March across XAXIS
-        for(int y=0; y < height; y++) {
-            for(int z=0; z < depth; z++) {
-                status = 0;
-                for(int x=0; x < width; x++) {
-                    state = grid.getState(x,y,z);
-
-//System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
-                    if (status == 0) {
-                        if (state == Grid.EXTERIOR) {
-//System.out.println("Found exterior at: " + x + " " + y + " " + z);
-                            status = 1;
-                        } else if (state == Grid.INTERIOR) {
-                            // No exterior voxel found?
-                            status = 3;
-                        }
-                    } else if (status == 1) {
-                        if (state == Grid.OUTSIDE) {
-//System.out.println("Found inside at1: " + x + " " + y + " " + z);
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            status = 3;
-                            continue;
-                        } else if (state == Grid.INTERIOR) {
-//System.out.println("Found inside at2: " + x + " " + y + " " + z);
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            status = 3;
-                        }
-                    } else if (status == 2) {
-                        if (state == Grid.OUTSIDE) {
-                            status = 0;
-                        } else if (state == Grid.INTERIOR) {
-                            status = 3;
-                        }
-                    } else if (status == 3) {
-                        if (state == Grid.OUTSIDE) {
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            continue;
-                        } else if (state == Grid.INTERIOR) {
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            continue;
-                        } else if (state == Grid.EXTERIOR) {
-//System.out.println("Exiting at1: " + x + " " + y + " " + z);
-                            status = 2;
-                        }
-                    }
-                }
-            }
-        }
-
-System.out.println("XAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTERIOR));
-        // March across YAXIS
-        for(int x=0; x < width; x++) {
-            for(int z=0; z < depth; z++) {
-                status = 0;
-                for(int y=0; y < height; y++) {
-                    state = grid.getState(x,y,z);
-
-//System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
-
-                    if (status == 0) {
-                        if (state == Grid.EXTERIOR) {
-//System.out.println("Found exterior at: " + x + " " + y + " " + z);
-                            status = 1;
-                        } else if (state == Grid.INTERIOR) {
-                            // No exterior voxel found?
-                            status = 3;
-                            continue;
-                        }
-                    } else if (status == 1) {
-                        if (state == Grid.OUTSIDE) {
-//System.out.println("Found inside at1: " + x + " " + y + " " + z);
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            status = 3;
-                            continue;
-                        } else if (state == Grid.INTERIOR) {
-//System.out.println("Found inside at1: " + x + " " + y + " " + z);
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            status = 3;
-                        }
-                    } else if (status == 2) {
-                        if (state == Grid.OUTSIDE) {
-                            status = 0;
-                        } else if (state == Grid.INTERIOR) {
-                            status = 3;
-                            continue;
-                        }
-                    } else if (status == 3) {
-                        if (state == Grid.OUTSIDE) {
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            continue;
-                        } else if (state == Grid.INTERIOR) {
-                            result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                            cnt++;
-                            continue;
-                        } else if (state == Grid.EXTERIOR) {
-//System.out.println("Exiting at1: " + x + " " + y + " " + z);
-                            status = 2;
-                        }
-                    }
-
-                    result.setData(x,y,z,Grid.OUTSIDE,0);
-                }
-            }
-        }
-
-System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTERIOR));
-
-//System.out.println("*****");
-
-        status = 0;
-        // March across ZAXIS
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
-                status = 0;
-                for(int z=0; z < depth; z++) {
-                    state = grid.getState(x,y,z);
-
-//System.out.println("test: " + x + " " + y + " " + z + " state: " + state + " status: " + status);
-
-                    if (status == 0) {
-                        if (state == Grid.EXTERIOR) {
-//System.out.println("Found exterior at: " + x + " " + y + " " + z);
-                            status = 1;
-                        } else if (state == Grid.INTERIOR) {
-                            // No exterior voxel found?
-                            status = 3;
-                        }
-                    } else if (status == 1) {
-                        if (state == Grid.OUTSIDE) {
-//System.out.println("Found inside at1: " + x + " " + y + " " + z);
-                            if (result.getState(x,y,z) == Grid.INTERIOR) {
-                                cnt++;
-                                status = 3;
-                                continue;
-                            }
-                        } else if (state == Grid.INTERIOR) {
-//System.out.println("Found inside at1: " + x + " " + y + " " + z);
-                            if (result.getState(x,y,z) == Grid.INTERIOR) {
-                                cnt++;
-                                status = 3;
-                            }
-                        }
-                    } else if (status == 2) {
-                        if (state == Grid.OUTSIDE) {
-                            status = 0;
-                        } else if (state == Grid.INTERIOR) {
-                            status = 3;
-                            continue;
-                        }
-                    } else if (status == 3) {
-                        if (state == Grid.OUTSIDE) {
-                            if (result.getState(x,y,z) == Grid.INTERIOR) {
-                                result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                                cnt++;
-                                continue;
-                            }
-                        } else if (state == Grid.INTERIOR) {
-                            if (result.getState(x,y,z) == Grid.INTERIOR) {
-                                result.setData(x,y,z,Grid.INTERIOR,innerMaterialID);
-                                cnt++;
-                                continue;
-                            }
-                        } else if (state == Grid.EXTERIOR) {
-//System.out.println("Exiting at1: " + x + " " + y + " " + z);
-                            status = 2;
-                        }
-                    }
-
-                    result.setData(x,y,z,Grid.OUTSIDE,0);
-                }
-            }
-        }
-
-System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTERIOR));
-
-        return result;
     }
 
     /**

@@ -14,13 +14,11 @@ package abfab3d.grid.query;
 
 // External Imports
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import java.util.*;
 
 // Internal Imports
 import abfab3d.BaseTestCase;
-import abfab3d.grid.query.RegionFinder;
 import abfab3d.grid.*;
 
 /**
@@ -42,7 +40,7 @@ public class TestRegionFinder extends BaseTestCase {
      * Test basic operation
      */
     public void testBasic() {
-        Grid grid = new ArrayGridByte(20,20,20,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(20,20,20,0.1,0.1);
 
         // Create a simple region
         grid.setData(5,5,5,Grid.EXTERIOR,1);
@@ -72,7 +70,7 @@ public class TestRegionFinder extends BaseTestCase {
         int h = 20;
         int d = 20;
 
-        Grid grid = new ArrayGridByte(20,20,20,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(20,20,20,0.1,0.1);
 
         // Create a simple region
         HashSet<VoxelCoordinate> region1 = new HashSet<VoxelCoordinate>();
@@ -165,7 +163,7 @@ public class TestRegionFinder extends BaseTestCase {
         int h = 20;
         int d = 20;
 
-        Grid grid = new ArrayGridByte(20,20,20,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(20,20,20,0.1,0.1);
 
         // Create a simple region
         HashSet<VoxelCoordinate> region1 = new HashSet<VoxelCoordinate>();
@@ -285,16 +283,16 @@ public class TestRegionFinder extends BaseTestCase {
         int regions_axis = 5;
         int size = (region_size + region_buffer) * regions_axis;
 
-        Grid grid = null;
+        AttributeGrid grid = null;
 
         int num_regions = regions_axis * regions_axis * regions_axis;
 
         HashMap<Integer, Integer> regions = new HashMap<Integer, Integer>(num_regions);
 
         if (num_regions < 63) {
-            grid = new ArrayGridByte(size,size,size,0.1,0.1);
+            grid = new ArrayAttributeGridByte(size,size,size,0.1,0.1);
         } else {
-            grid = new ArrayGridShort(size,size,size,0.1,0.1);
+            grid = new ArrayAttributeGridShort(size,size,size,0.1,0.1);
         }
 
 System.out.println("Num Regions: " + num_regions + " voxels: " + size);

@@ -15,6 +15,8 @@ package linkedcubes;
 // External Imports
 import java.util.*;
 import java.io.*;
+
+import abfab3d.grid.BlockBasedAttributeGridByte;
 import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
 
@@ -79,7 +81,7 @@ public class LinkedCubes {
             styles[3][2] = Style.LEFT_ROW;
             styles[3][3] = Style.RIGHT_ROW;
 
-            Grid grid = new OctreeGridByte(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION);
+            Grid grid = new BlockBasedAttributeGridByte(80,80,80,PRINTER_RESOLUTION, PRINTER_RESOLUTION);
 
             double x,y,z;
             CubeCreator cg = null;

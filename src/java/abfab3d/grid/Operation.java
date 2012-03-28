@@ -24,8 +24,8 @@ public interface Operation {
      *
      * TODO: add region specification to allow subsets operation.
      *
-     * @param grid The grid to use
+     * @param dest The grid to use or null to create one
      * @return The new grid
      */
-    public Grid execute(Grid grid);
+    public Grid execute(Grid dest);
 }

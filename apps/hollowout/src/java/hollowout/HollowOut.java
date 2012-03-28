@@ -15,15 +15,13 @@ package hollowout;
 // External Imports
 import java.util.*;
 import java.io.*;
-import org.web3d.vrml.sav.ContentHandler;
-import org.web3d.vrml.sav.BinaryContentHandler;
+
 import org.web3d.vrml.export.*;
 import org.web3d.util.ErrorReporter;
 import org.j3d.geom.*;
 
 // Internal Imports
 import abfab3d.geom.*;
-import abfab3d.geom.CubeCreator.Style;
 import abfab3d.grid.*;
 import abfab3d.grid.op.*;
 import abfab3d.io.output.BoxesX3DExporter;
@@ -70,7 +68,7 @@ public class HollowOut {
         maxsize[1] += thickenPasses * VERT_RESOLUTION;
         maxsize[2] += thickenPasses * HORIZ_RESOLUTION;
 
-        Grid grid = new ArrayGridByte(maxsize[0],maxsize[1],maxsize[2],
+        Grid grid = new ArrayAttributeGridByte(maxsize[0],maxsize[1],maxsize[2],
             HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         TriangleModelCreator tmc = null;

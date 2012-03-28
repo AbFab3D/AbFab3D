@@ -18,7 +18,6 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
-import abfab3d.grid.util.GridVisited;
 import abfab3d.grid.*;
 
 /**
@@ -124,7 +123,7 @@ public class TestGridVisited extends TestCase {
         int h = 2;
         int d = 2;
 
-        Grid grid = new ArrayGridByte(w,h,d,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(w,h,d,0.1,0.1);
         grid.setData(0,0,0,Grid.EXTERIOR,1);
         grid.setData(0,0,1,Grid.EXTERIOR,1);
 
@@ -150,7 +149,7 @@ public class TestGridVisited extends TestCase {
         int h = 2;
         int d = 2;
 
-        Grid grid = new ArrayGridByte(w,h,d,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(w,h,d,0.1,0.1);
         grid.setData(0,0,0,Grid.EXTERIOR,1);
         grid.setData(0,0,1,Grid.EXTERIOR,1);
 
@@ -177,7 +176,7 @@ public class TestGridVisited extends TestCase {
         int h = 10;
         int d = 10;
 
-        Grid grid = new ArrayGridByte(w,h,d,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(w,h,d,0.1,0.1);
         grid.setData(0,0,0,Grid.EXTERIOR,1);
         grid.setData(0,0,1,Grid.EXTERIOR,1);
         grid.setData(0,1,0,Grid.EXTERIOR,1);

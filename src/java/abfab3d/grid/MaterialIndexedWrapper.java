@@ -14,9 +14,6 @@ package abfab3d.grid;
 
 // External Imports
 import java.util.*;
-import org.j3d.geom.GeometryData;
-
-import abfab3d.grid.Grid.VoxelClasses;
 
 // Internal Imports
 
@@ -37,12 +34,12 @@ import abfab3d.grid.Grid.VoxelClasses;
  *
  * @author Alan Hudson
  */
-public class MaterialIndexedWrapper implements GridWrapper {
+public class MaterialIndexedWrapper implements AttributeGridWrapper {
     /** Starting size of Sets per material */
     private static final int INDEX_SIZE = 1024;
 
     /** The wrapper grid */
-    private Grid grid;
+    private AttributeGrid grid;
 
     /** The index */
     private HashMap<Integer, HashSet<VoxelCoordinate>> index;
@@ -61,7 +58,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      *
      * @param grid The grid to wrap
      */
-    public MaterialIndexedWrapper(Grid grid) {
+    public MaterialIndexedWrapper(AttributeGrid grid) {
         this.grid = grid;
 
         index = new HashMap<Integer, HashSet<VoxelCoordinate>>();
@@ -81,7 +78,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
         }
 
         if (wrap.grid != null)
-            this.grid = (Grid) wrap.grid.clone();
+            this.grid = (AttributeGrid) wrap.grid.clone();
         if (wrap.index != null)
             this.index = (HashMap<Integer, HashSet<VoxelCoordinate>>) wrap.index.clone();
         if (wrap.optIndex != null)
@@ -96,7 +93,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param grid The grid to wrap
      * @param optRead Optimize for read usage
      */
-    public MaterialIndexedWrapper(Grid grid, boolean optRead) {
+    public MaterialIndexedWrapper(AttributeGrid grid, boolean optRead) {
         this.grid = grid;
         this.optRead = optRead;
 
@@ -122,9 +119,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * Reassign a group of materials to a new materialID
      *
      * @param materials The new list of materials
-     * @param mat The new materialID
+     * @param matID The new materialID
      */
-    public void reassignMaterial(int[] materials, int matID) {
+    public void reassignAttribute(int[] materials, int matID) {
 
         int len = materials.length;
 
@@ -150,7 +147,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
             Iterator<VoxelCoordinate> itr = coords.iterator();
             while(itr.hasNext()) {
                 VoxelCoordinate vc = itr.next();
-                grid.setMaterial(vc.getX(), vc.getY(), vc.getZ(), matID);
+                grid.setAttribute(vc.getX(), vc.getY(), vc.getZ(), matID);
                 target.add(vc);
             }
 
@@ -166,7 +163,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      *
      * @param mat The materialID
      */
-    public void removeMaterial(int mat) {
+    public void removeAttribute(int mat) {
         Integer b = new Integer(mat);
 
         HashSet<VoxelCoordinate> coords = index.get(b);
@@ -196,7 +193,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      *
      * @param grid The grid or null to clear.
      */
-    public void setGrid(Grid grid) {
+    public void setGrid(AttributeGrid grid) {
         // TODO: This needs to recreate indexes
         this.grid = grid;
     }
@@ -211,7 +208,6 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel data
      */
     public VoxelData getData(double x, double y, double z) {
         return grid.getData(x,y,z);
@@ -223,7 +219,6 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
         return grid.getData(x,y,z);
@@ -235,7 +230,6 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel state
      */
     public byte getState(double x, double y, double z) {
         return grid.getState(x,y,z);
@@ -247,7 +241,6 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel state
      */
     public byte getState(int x, int y, int z) {
         return grid.getState(x,y,z);
@@ -259,10 +252,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
      */
-    public int getMaterial(double x, double y, double z) {
-        return grid.getMaterial(x,y,z);
+    public int getAttribute(double x, double y, double z) {
+        return grid.getAttribute(x, y, z);
     }
 
     /**
@@ -271,10 +263,9 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param The voxel material
      */
-    public int getMaterial(int x, int y, int z) {
-        return grid.getMaterial(x,y,z);
+    public int getAttribute(int x, int y, int z) {
+        return grid.getAttribute(x, y, z);
     }
 
     /**
@@ -314,7 +305,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param val The value.  0 = nothing. > 0 materialID
+     * @param material The value.  0 = nothing. > 0 materialID
      */
     public void setData(int x, int y, int z, byte state, int material) {
         Integer b = new Integer(material);
@@ -341,7 +332,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setMaterial(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, int material) {
         Integer b = new Integer(material);
 
         HashSet<VoxelCoordinate> coords = index.get(b);
@@ -353,7 +344,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
         VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
         coords.add(vc);
 
-        grid.setMaterial(x,y,z,material);
+        grid.setAttribute(x, y, z, material);
 
         optIndex = null;
     }
@@ -365,9 +356,20 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
     public void setState(int x, int y, int z, byte state) {
+        grid.setState(x,y,z,state);
+    }
+
+    /**
+     * Set the state value of a voxel.  Leaves the material unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param state The value.  0 = nothing. > 0 materialID
+     */
+    public void setState(double x, double y, double z, byte state) {
         grid.setState(x,y,z,state);
     }
 
@@ -460,7 +462,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
+    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
         Integer b = new Integer(mat);
 
         HashSet<VoxelCoordinate> coords = index.get(b);
@@ -515,7 +517,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(int mat, ClassTraverser t) {
+    public void findAttribute(int mat, ClassAttributeTraverser t) {
         Integer b = new Integer(mat);
 
         HashSet<VoxelCoordinate> coords = index.get(b);
@@ -553,6 +555,17 @@ public class MaterialIndexedWrapper implements GridWrapper {
     }
 
     /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
+        grid.findAttribute(vc, t);
+    }
+
+    /**
      * Traverse a class of voxel and material types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -560,7 +573,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
         Integer b = new Integer(mat);
 
         if (optRead) {
@@ -680,7 +693,7 @@ public class MaterialIndexedWrapper implements GridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findInterruptible(int mat, ClassTraverser t) {
+    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
         Integer b = new Integer(mat);
 
 // TODO: add optRead enhancements
@@ -718,6 +731,17 @@ public class MaterialIndexedWrapper implements GridWrapper {
      */
     public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
         grid.findInterruptible(vc, t);
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t) {
+        grid.findAttributeInterruptible(vc, t);
     }
 
     /**
@@ -891,7 +915,7 @@ System.out.println("Speed opt: " + (System.currentTimeMillis() - startTime));
 
 }
 
-class EmptyFound implements ClassTraverser {
+class EmptyFound implements ClassAttributeTraverser {
     /**
      * A voxel of the class requested has been found.
      * VoxelData classes may be reused so clone the object

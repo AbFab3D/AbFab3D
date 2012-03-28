@@ -28,9 +28,9 @@ public interface ClassTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
+     * @param state The voxel state
      */
-    public void found(int x, int y, int z, VoxelData vd);
+    public void found(int x, int y, int z, byte state);
 
     /**
      * A voxel of the class requested has been found.
@@ -40,9 +40,9 @@ public interface ClassTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
+     * @param state The voxel state
      *
      * @return True to continue, false stops the traversal.
      */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd);
+    public boolean foundInterruptible(int x, int y, int z, byte state);
 }

@@ -13,9 +13,6 @@
 package abfab3d.grid;
 
 // External Imports
-import java.util.*;
-
-import abfab3d.grid.Grid.VoxelClasses;
 
 // Internal Imports
 
@@ -177,97 +174,17 @@ public class RangeCheckWrapper implements GridWrapper {
     }
 
     /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel material
-     */
-    public int getMaterial(double x, double y, double z) {
-        verifyRange(x,y,z);
-
-        return grid.getMaterial(x,y,z);
-    }
-
-    /**
-     * Get the material of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel material
-     */
-    public int getMaterial(int x, int y, int z) {
-        verifyRange(x,y,z);
-
-        return grid.getMaterial(x,y,z);
-    }
-
-    /**
-     * Set the value of a voxel.
+     * Set the state value of a voxel.  Leaves the material unchanged.
      *
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setState(int x, int y, int z, byte state) {
         verifyRange(x,y,z);
 
-        VoxelData vd = grid.getData(x,y,z);
-
-/*
-        // Not sure why this was here, doesn't seem to make sense.
-
-        if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
-            && vd.getMaterial() != material ) {
-            throw new IllegalArgumentException("Invalid state change at pos: " + x + " " + y + " " + z);
-        }
-  */
-        grid.setData(x,y,z,state,material);
-    }
-
-    /**
-     * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The new state
-     * @param material The new material value.  0 = nothing. > 0 materialID
-     */
-    public void setData(int x, int y, int z, byte state, int material) {
-        verifyRange(x,y,z);
-
-        VoxelData vd = grid.getData(x,y,z);
-
-/*
-        // Not sure why this was here, doesn't seem to make sense.
-        if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
-            && vd.getMaterial() != material ) {
-            
-            System.out.println("curr state: " + vd.getState() + " new state: " + state);
-            System.out.println("old material: " + vd.getMaterial() + " new mat: " + material);
-            throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
-        }
-  */
-        grid.setData(x,y,z,state,material);
-    }
-
-    /**
-     * Set the material value of a voxel.  Leaves the state unchanged.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param material The materialID
-     */
-    public void setMaterial(int x, int y, int z, int material) {
-        verifyRange(x,y,z);
-
-        grid.setMaterial(x,y,z,material);
+        grid.setState(x,y,z,state);
     }
 
     /**
@@ -277,8 +194,9 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
+     * @return material The materialID
      */
-    public void setState(int x, int y, int z, byte state) {
+    public void setState(double x, double y, double z, byte state) {
         verifyRange(x,y,z);
 
         grid.setState(x,y,z,state);
@@ -338,19 +256,6 @@ public class RangeCheckWrapper implements GridWrapper {
     }
 
     /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(int mat, ClassTraverser t) {
-        verifyGrid();
-
-        grid.find(mat,t);
-    }
-
-    /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -364,33 +269,6 @@ public class RangeCheckWrapper implements GridWrapper {
     }
 
     /**
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(VoxelClasses vc, int mat, ClassTraverser t) {
-        verifyGrid();
-
-        grid.find(vc, mat, t);
-    }
-
-    /**
-     * Traverse a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(int mat, ClassTraverser t) {
-        verifyGrid();
-
-        grid.findInterruptible(mat,t);
-    }
-
-    /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -401,52 +279,6 @@ public class RangeCheckWrapper implements GridWrapper {
         verifyGrid();
 
         grid.findInterruptible(vc, t);
-    }
-
-    /**
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t) {
-        verifyGrid();
-
-        grid.findInterruptible(vc, mat, t);
-    }
-
-    /**
-     * Count a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The class of material to traverse
-     * @return The number
-     */
-    public int findCount(int mat) {
-        verifyGrid();
-
-        return grid.findCount(mat);
-    }
-
-    /**
-     * Remove all voxels associated with the Material.
-     *
-     * @param mat The aterialID
-     */
-    public void removeMaterial(int mat) {
-        grid.removeMaterial(mat);
-    }
-
-    /**
-     * Reassign a group of materials to a new materialID
-     *
-     * @param materials The new list of materials
-     * @param matID The new materialID
-     */
-    public void reassignMaterial(int[] materials, int matID) {
-        grid.reassignMaterial(materials, matID);
     }
 
     /**

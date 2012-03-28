@@ -58,20 +58,20 @@ public class Subtract implements Operation, ClassTraverser {
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
-     * @param grid The grid to use for grid A.
+     * @param dest The grid to use for grid A.
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
-        int width = grid.getWidth();
-        int depth = grid.getDepth();
-        int height = grid.getHeight();
-        gridA = grid;
+    public Grid execute(Grid dest) {
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
+        gridA = dest;
 
         // TODO: Make sure the grids are the same size
 
         gridB.find(Grid.VoxelClasses.MARKED, this);
 
-        return grid;
+        return dest;
     }
 
     /**
@@ -82,11 +82,8 @@ public class Subtract implements Operation, ClassTraverser {
      * @param z The z grid coordinate
      * @param vd The voxel data
      */
-    public void found(int x, int y, int z, VoxelData vd) {
-        byte bstate = vd.getState();
-        byte astate = gridA.getState(x,y,z);
-
-        gridA.setData(x,y,z, Grid.OUTSIDE, 0);
+    public void found(int x, int y, int z, byte vd) {
+        gridA.setState(x,y,z, Grid.OUTSIDE);
 
 /*
         if (bstate == Grid.EXTERIOR) {
@@ -118,7 +115,7 @@ public class Subtract implements Operation, ClassTraverser {
      * @param z The z grid coordinate
      * @param vd The voxel data
      */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+    public boolean foundInterruptible(int x, int y, int z, byte vd) {
         // ignore
         return true;
     }

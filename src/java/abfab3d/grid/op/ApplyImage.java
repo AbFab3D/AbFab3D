@@ -28,7 +28,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class ApplyImage implements Operation {
+public class ApplyImage implements Operation, AttributeOperation {
     /** The x origin */
     private int x0;
 
@@ -70,7 +70,15 @@ public class ApplyImage implements Operation {
 
     /** The axis z pixels should be applied against in the grid */
     private HalfAxis zAxis;
-    
+
+    public ApplyImage(BufferedImage image, int x, int y, int z,
+                      int w, int h,
+                      int threshold,
+                      boolean blackExterior, int pixelDepth, boolean removeStray) {
+
+        this(image,x,y,z,HalfAxis.X_POSITIVE, HalfAxis.Y_POSITIVE, HalfAxis.Z_POSITIVE,w,h,threshold,blackExterior,pixelDepth,removeStray,1);
+    }
+
     public ApplyImage(BufferedImage image, int x, int y, int z,
         int w, int h,
         int threshold,
@@ -109,13 +117,13 @@ public class ApplyImage implements Operation {
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
-     * @param grid The grid to use for grid A.
+     * @param dest The grid to use for grid A.
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
-        int width = grid.getWidth();
-        int depth = grid.getDepth();
-        int height = grid.getHeight();
+    public Grid execute(Grid dest) {
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
 
         int src_w_pixels = image.getWidth();
         int src_h_pixels = image.getHeight();
@@ -190,7 +198,7 @@ System.out.println("depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z < pixelDepth; z++) {
-                                setData(grid, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR);
                             }
                         }
                     }
@@ -239,7 +247,7 @@ System.out.println("depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z < pixelDepth; z++) {
-                                setData(grid,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
+                                setData(dest,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR);
                             }
                         }
                     }
@@ -291,7 +299,7 @@ System.out.println("depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(grid, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR);
                             }
                         }
                     }
@@ -340,7 +348,7 @@ System.out.println("depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(grid, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR);
                             }
                         }
                     }
@@ -349,10 +357,257 @@ System.out.println("depth: " + pixelDepth);
         }
 
         System.out.println("Pixels Applied: " + applied);
-        return grid;
+        return dest;
     }
 
-    private void setData(Grid grid, int x, int y, int z, HalfAxis xAxis, HalfAxis yAxis, HalfAxis zAxis,
+    /**
+     * Execute an operation on a grid.  If the operation changes the grid
+     * dimensions then a new one will be returned from the call.
+     *
+     * @param dest The grid to use for grid A.
+     * @return The new grid
+     */
+    public AttributeGrid execute(AttributeGrid dest) {
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
+
+        int src_w_pixels = image.getWidth();
+        int src_h_pixels = image.getHeight();
+
+        float w_scale = (float) w / src_w_pixels;
+        float h_scale = (float) h / src_h_pixels;
+/*
+System.out.println("src: " + src_w_pixels + " " + src_h_pixels);
+System.out.println("scale: " + w_scale + " h: " + h_scale);
+System.out.println("target: " + w + " " + h);
+System.out.println("depth: " + pixelDepth);
+*/
+        BufferedImage cell_img =
+                new BufferedImage(w, h,
+                        BufferedImage.TYPE_BYTE_GRAY);
+
+        Graphics2D g = (Graphics2D)cell_img.getGraphics();
+
+        // TODO: I sort of remember this being crappy.  See dirbs IPTester for results
+        AffineTransform tx =
+                AffineTransform.getScaleInstance(w_scale, h_scale);
+        AffineTransformOp tx_op =
+                new AffineTransformOp(tx, AffineTransformOp.TYPE_BICUBIC);
+
+
+        g.drawImage(image, tx_op, 0, 0);
+        long applied = 0;
+
+        if (pixelDepth > 0) {
+            if (blackExterior) {
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+//                        int rgb = cell_img.getRGB(x, y) & 0xFF;
+                        int rgb = cell_img.getRGB(x, h - y - 1) & 0xFF;
+
+                        if (rgb < threshold) {
+                            if (removeStray) {
+                                boolean anySame = false;
+                                int rgb2;
+
+                                if (x  > 1) {
+                                    rgb2 = cell_img.getRGB(x-1,h - y - 1) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (x + 1 < w) {
+                                    rgb2 = cell_img.getRGB(x+1,h - y - 1) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y + 1 < h) {
+                                    rgb2 = cell_img.getRGB(x,h - y - 2) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y > 2) {
+                                    rgb2 = cell_img.getRGB(x,h - y) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+
+                                if (!anySame) {
+                                    //System.out.println("removing stray");
+                                    continue;
+                                }
+                            }
+
+                            applied++;
+
+                            for(int z = 0; z < pixelDepth; z++) {
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        int rgb = cell_img.getRGB(x, h - y - 1) & 0xFF;
+
+                        if (rgb >= threshold) {
+                            if (removeStray) {
+                                boolean anySame = false;
+                                int rgb2;
+
+                                if (x > 1) {
+                                    rgb2 = cell_img.getRGB(x-1,h - y - 1) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (x + 1 < w) {
+                                    rgb2 = cell_img.getRGB(x+1,h - y - 1) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y + 1 > h) {
+                                    rgb2 = cell_img.getRGB(x,h - y - 2) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y > 2) {
+//System.out.println("h: " + h + " " + (h-y) + " y: " + y);
+                                    rgb2 = cell_img.getRGB(x,h - y) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+
+                                if (!anySame) {
+//                                    System.out.println("removing stray");
+                                    continue;
+                                }
+                            }
+
+                            applied++;
+                            for(int z = 0; z < pixelDepth; z++) {
+                                setData(dest,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if (blackExterior) {
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+//                        int rgb = cell_img.getRGB(x, y) & 0xFF;
+                        int rgb = cell_img.getRGB(x, h - y - 1) & 0xFF;
+
+                        if (rgb < threshold) {
+                            if (removeStray) {
+                                boolean anySame = false;
+                                int rgb2;
+
+                                if (x  > 1) {
+                                    rgb2 = cell_img.getRGB(x-1,h - y - 1) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (x + 1 < w) {
+                                    rgb2 = cell_img.getRGB(x+1,h - y - 1) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y + 1 < h) {
+                                    rgb2 = cell_img.getRGB(x,h - y - 2) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y > 2) {
+                                    rgb2 = cell_img.getRGB(x,h - y) & 0xFF;
+                                    if (rgb2 < threshold) {
+                                        anySame = true;
+                                    }
+                                }
+
+                                if (!anySame) {
+                                    //System.out.println("removing stray");
+                                    continue;
+                                }
+                            }
+
+                            applied++;
+
+                            for(int z = 0; z > pixelDepth; z--) {
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (int y = 0; y < h; y++) {
+                    for (int x = 0; x < w; x++) {
+                        int rgb = cell_img.getRGB(x, h - y - 1) & 0xFF;
+
+                        if (rgb >= threshold) {
+                            if (removeStray) {
+                                boolean anySame = false;
+                                int rgb2;
+
+                                if (x > 1) {
+                                    rgb2 = cell_img.getRGB(x-1,h - y - 1) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (x + 1 < w) {
+                                    rgb2 = cell_img.getRGB(x+1,h - y - 1) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y + 1 > h) {
+                                    rgb2 = cell_img.getRGB(x,h - y - 2) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+                                if (y > 2) {
+//System.out.println("h: " + h + " " + (h-y) + " y: " + y);
+                                    rgb2 = cell_img.getRGB(x,h - y) & 0xFF;
+                                    if (rgb2 >= threshold) {
+                                        anySame = true;
+                                    }
+                                }
+
+                                if (!anySame) {
+//                                    System.out.println("removing stray");
+                                    continue;
+                                }
+                            }
+
+                            applied++;
+                            for(int z = 0; z > pixelDepth; z--) {
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        System.out.println("Pixels Applied: " + applied);
+        return dest;
+    }
+
+    private void setData(AttributeGrid grid, int x, int y, int z, HalfAxis xAxis, HalfAxis yAxis, HalfAxis zAxis,
                          byte state, int material) {
         int xval = 0;
         int yval = 0;
@@ -420,6 +675,76 @@ System.out.println("depth: " + pixelDepth);
         }
 
         grid.setData(xval, yval, zval, state, material);
+    }
+
+    private void setData(Grid grid, int x, int y, int z, HalfAxis xAxis, HalfAxis yAxis, HalfAxis zAxis,
+                         byte state) {
+        int xval = 0;
+        int yval = 0;
+        int zval = 0;
+
+        switch(xAxis) {
+            case X_POSITIVE:
+                xval = x0 + x;
+                break;
+            case Y_POSITIVE:
+                xval = y0 + y;
+                break;
+            case Z_POSITIVE:
+                xval = z0 + z;
+                break;
+            case X_NEGATIVE:
+                xval = x0 - x;
+                break;
+            case Y_NEGATIVE:
+                xval = y0 - y;
+                break;
+            case Z_NEGATIVE:
+                xval = z0 - z;
+                break;
+        }
+        switch(yAxis) {
+            case X_POSITIVE:
+                yval = x0 + x;
+                break;
+            case Y_POSITIVE:
+                yval = y0 + y;
+                break;
+            case Z_POSITIVE:
+                yval = z0 + z;
+                break;
+            case X_NEGATIVE:
+                yval = x0 - x;
+                break;
+            case Y_NEGATIVE:
+                yval = y0 - y;
+                break;
+            case Z_NEGATIVE:
+                yval = z0 - z;
+                break;
+        }
+        switch(zAxis) {
+            case X_POSITIVE:
+                zval = x0 + x;
+                break;
+            case Y_POSITIVE:
+                zval = y0 + y;
+                break;
+            case Z_POSITIVE:
+                zval = z0 + z;
+                break;
+            case X_NEGATIVE:
+                zval = x0 - x;
+                break;
+            case Y_NEGATIVE:
+                zval = y0 - y;
+                break;
+            case Z_NEGATIVE:
+                zval = z0 - z;
+                break;
+        }
+
+        grid.setState(xval, yval, zval, state);
     }
 
 }

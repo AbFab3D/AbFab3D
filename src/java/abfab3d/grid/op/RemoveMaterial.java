@@ -22,7 +22,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class RemoveMaterial implements Operation {
+public class RemoveMaterial implements AttributeOperation {
     /** The material to remove */
     private int material;
 
@@ -37,8 +37,8 @@ public class RemoveMaterial implements Operation {
      * @param grid The grid to use for grid src
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
-        grid.removeMaterial(material);
+    public AttributeGrid execute(AttributeGrid grid) {
+        grid.removeAttribute(material);
 
         return grid;
     }

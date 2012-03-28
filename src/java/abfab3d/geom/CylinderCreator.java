@@ -15,6 +15,9 @@ package abfab3d.geom;
 // External Imports
 import java.util.*;
 import java.io.*;
+
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.DualWrapper;
 import org.web3d.vrml.sav.ContentHandler;
 
 // Internal Imports
@@ -80,6 +83,14 @@ public class CylinderCreator extends GeometryCreator {
      * @param grid The grid to update
      */
     public void generate(Grid grid) {
+        AttributeGrid wrapper = null;
+
+        if (grid instanceof AttributeGrid) {
+            wrapper = (AttributeGrid) grid;
+        } else {
+            wrapper = new DualWrapper(grid);
+        }
+        
         int[] coords1 = new int[3];
         int[] coords2 = new int[3];
         int start,end, r;
@@ -88,37 +99,36 @@ public class CylinderCreator extends GeometryCreator {
         double h = height / 2.0;
 
         if (swapYZ) {
-//            grid.getGridCoords(x,z, y - h,coords1);
-            grid.getGridCoords(x,z - h, y,coords1);
-            grid.getGridCoords(radius,0,0,coords2);
+            //            wrapper.getGridCoords(x,z, y - h,coords1);
+            wrapper.getGridCoords(x,z - h, y,coords1);
+            wrapper.getGridCoords(radius,0,0,coords2);
 
             start = coords1[1];
-            end = start + (int)(Math.floor(height / grid.getSliceHeight()));
+            end = start + (int)(Math.floor(height / wrapper.getSliceHeight()));
             r = coords2[0];
             int xc = coords1[0];
             int zc = coords1[2];
 
-    System.out.println("Generate grid from: " + start + " end: " + end);
+            System.out.println("Generate grid from: " + start + " end: " + end);
             for(int y=start; y < end; y++) {
-                rasterCircleSwapYZ(grid, xc, y, zc, r, materialID);
+                rasterCircleSwapYZ(wrapper, xc, y, zc, r, materialID);
             }
         } else {
-            grid.getGridCoords(x,y - h,z,coords1);
-            grid.getGridCoords(radius,0,0,coords2);
+            wrapper.getGridCoords(x,y - h,z,coords1);
+            wrapper.getGridCoords(radius,0,0,coords2);
 
             start = coords1[1];
-            end = start + (int)(Math.floor(height / grid.getSliceHeight()));
+            end = start + (int)(Math.floor(height / wrapper.getSliceHeight()));
             r = coords2[0];
             int xc = coords1[0];
             int zc = coords1[2];
 
-    System.out.println("Generate grid from: " + start + " end: " + end + " at: " + xc + " " + zc + " r: " + r);
+            System.out.println("Generate grid from: " + start + " end: " + end + " at: " + xc + " " + zc + " r: " + r);
             for(int y=start; y < end; y++) {
-                rasterCircle(grid, xc, y, zc, r, materialID);
+                rasterCircle(wrapper, xc, y, zc, r, materialID);
             }
         }
     }
-
 
     /**
      * Create a circle on a grid, xz plane
@@ -128,7 +138,7 @@ public class CylinderCreator extends GeometryCreator {
      * @param z0 The z center
      * @param radius The radius in voxels
      */
-    private void rasterCircle(Grid grid, int x0, int y0, int z0, int radius, int mat) {
+    private void rasterCircle(AttributeGrid grid, int x0, int y0, int z0, int radius, int mat) {
         int f = 1 - radius;
         int ddF_x = 1;
         int ddF_z = -2 * radius;
@@ -138,10 +148,10 @@ public class CylinderCreator extends GeometryCreator {
         grid.setData(x0, y0, z0 + radius, Grid.EXTERIOR, mat);
         //setPixel(x0, z0 + radius);
 
-        grid.setData(x0, y0, z0 - radius,Grid.EXTERIOR, mat);
+        grid.setData(x0, y0, z0 - radius, Grid.EXTERIOR, mat);
         //setPixel(x0, z0 - radius);
 
-        rasterLine(grid,x0 - radius, x0 + radius,y0,z0,z0,mat);
+        rasterLine(grid, x0 - radius, x0 + radius, y0, z0, z0, mat);
         //setPixel(x0 + radius, y0);
         //setPixel(x0 - radius, y0);
 
@@ -158,19 +168,19 @@ public class CylinderCreator extends GeometryCreator {
             ddF_x += 2;
             f += ddF_x;
 
-            rasterLine(grid,x0 - x, x0 + x, y0, z0 + z, z0 + z, mat);
+            rasterLine(grid, x0 - x, x0 + x, y0, z0 + z, z0 + z, mat);
             //setPixel(x0 + x, y0 + y);
             //setPixel(x0 - x, y0 + y);
 
-            rasterLine(grid,x0 - x, x0 + x, y0, z0 - z, z0 - z, mat);
+            rasterLine(grid, x0 - x, x0 + x, y0, z0 - z, z0 - z, mat);
             //setPixel(x0 + x, z0 - z);
             //setPixel(x0 - x, z0 - z);
 
-            rasterLine(grid,x0 - z, x0 + z, y0, z0 + x, z0 + x, mat);
+            rasterLine(grid, x0 - z, x0 + z, y0, z0 + x, z0 + x, mat);
             //setPixel(x0 + z, z0 + x);
             //setPixel(x0 - z, z0 + x);
 
-            rasterLine(grid,x0 - z, x0 + z, y0, z0 - x, z0 - x, mat);
+            rasterLine(grid, x0 - z, x0 + z, y0, z0 - x, z0 - x, mat);
             //setPixel(x0 + z, z0 - x);
             //setPixel(x0 - z, z0 - x);
         }
@@ -184,7 +194,7 @@ public class CylinderCreator extends GeometryCreator {
      * @param z0 The z center
      * @param radius The radius in voxels
      */
-    private void rasterCircleSwapYZ(Grid grid, int x0, int y0, int z0, int radius, int mat) {
+    private void rasterCircleSwapYZ(AttributeGrid grid, int x0, int y0, int z0, int radius, int mat) {
         int f = 1 - radius;
         int ddF_x = 1;
         int ddF_z = -2 * radius;
@@ -233,7 +243,7 @@ public class CylinderCreator extends GeometryCreator {
         }
     }
 
-    private void rasterLine(Grid grid, int x, int x2, int y, int z, int z2, int mat) {
+    private void rasterLine(AttributeGrid grid, int x, int x2, int y, int z, int z2, int mat) {
         int w = x2 - x;
         int h = z2 - z;
         int dx1 = 0, dz1 = 0, dx2 = 0, dz2 = 0;
@@ -269,8 +279,8 @@ public class CylinderCreator extends GeometryCreator {
             }
         }
     }
-
-    private void rasterLineSwapYZ(Grid grid, int x, int x2, int y, int z, int z2, int mat) {
+    
+    private void rasterLineSwapYZ(AttributeGrid grid, int x, int x2, int y, int z, int z2, int mat) {
         int w = x2 - x;
         int h = z2 - z;
         int dx1 = 0, dz1 = 0, dx2 = 0, dz2 = 0;
@@ -294,7 +304,7 @@ public class CylinderCreator extends GeometryCreator {
         int numerator = longest >> 1 ;
 
         for (int i=0;i <= longest;i++) {
-            grid.setData(x,z,y,Grid.EXTERIOR,mat);
+            grid.setData(x, z, y, Grid.EXTERIOR, mat);
             numerator += shortest ;
             if (!(numerator<longest)) {
                 numerator -= longest ;
@@ -306,5 +316,4 @@ public class CylinderCreator extends GeometryCreator {
             }
         }
     }
-
 }

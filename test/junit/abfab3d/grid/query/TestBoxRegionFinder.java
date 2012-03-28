@@ -18,13 +18,10 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import java.util.*;
 import org.j3d.geom.GeometryData;
-import org.j3d.geom.BoxGenerator;
-import org.j3d.geom.CylinderGenerator;
 import org.j3d.geom.TorusGenerator;
 //import org.web3d.util.ErrorReporter;
 
 // Internal Imports
-import abfab3d.grid.query.RegionFinder;
 import abfab3d.grid.*;
 import abfab3d.geom.TriangleModelCreator;
 
@@ -55,7 +52,7 @@ public class TestBoxRegionFinder extends TestCase {
         byte outerMaterial = 1;
         byte innerMaterial = 2;
 
-        Grid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial,
+        AttributeGrid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial,
                 GeometryData.TRIANGLES, false, new int[] {0,1,0});
 
         FindRegionRecorder rc1 = new FindRegionRecorder();
@@ -140,7 +137,7 @@ System.out.println("Regions for x: " + regions.size());
      * Test edge conditions
      */
     public void testYBreakIt() {
-        Grid grid = new ArrayGridByte(4,6,5,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(4,6,5,0.1,0.1);
 
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         vcSetExt.add(new VoxelCoordinate(2,0,1));
@@ -201,7 +198,7 @@ System.out.println("vol: " + vol);
      * Test edge conditions
      */
     public void testZBreakIt() {
-        Grid grid = new ArrayGridByte(4,5,6,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(4,5,6,0.1,0.1);
 
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         vcSetExt.add(new VoxelCoordinate(2,0,1));
@@ -262,7 +259,7 @@ System.out.println("vol: " + vol);
      * Test basic operation
      */
     public void testZCentric() {
-        Grid grid = new ArrayGridByte(20,20,30,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(20,20,30,0.1,0.1);
 
         // Create a simple region
         grid.setData(5,5,5,Grid.EXTERIOR,1);
@@ -300,7 +297,7 @@ System.out.println("vol: " + vol);
      * Test basic operation
      */
     public void testYCentric() {
-        Grid grid = new ArrayGridByte(20,30,20,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(20,30,20,0.1,0.1);
 
         // Create a simple region
         grid.setData(5,5,5,Grid.EXTERIOR,1);
@@ -338,7 +335,7 @@ System.out.println("vol: " + vol);
      * Test edge conditions
      */
     public void testEdgeEnd() {
-        Grid grid = new ArrayGridByte(4,5,4,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(4,5,4,0.1,0.1);
 
         // Create a simple region
         grid.setData(3,3,1,Grid.EXTERIOR,1);
@@ -378,7 +375,7 @@ System.out.println("vol: " + vol);
      * Test edge conditions
      */
     public void testEdgeStart() {
-        Grid grid = new ArrayGridByte(4,5,4,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(4,5,4,0.1,0.1);
 
         // Create a simple region
         grid.setData(3,0,0,Grid.EXTERIOR,1);
@@ -418,7 +415,7 @@ System.out.println("vol: " + vol);
      * Test edge conditions
      */
     public void testZCentricEdgeEnd() {
-        Grid grid = new ArrayGridByte(4,4,5,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(4,4,5,0.1,0.1);
 
         // Create a simple region
         grid.setData(3,2,1,Grid.EXTERIOR,1);
@@ -460,7 +457,7 @@ System.out.println("vol: " + vol);
      * Test edge conditions
      */
     public void testZCentricEdgeStart() {
-        Grid grid = new ArrayGridByte(4,4,5,0.1,0.1);
+        AttributeGrid grid = new ArrayAttributeGridByte(4,4,5,0.1,0.1);
 
         // Create a simple region
         grid.setData(3,0,0,Grid.EXTERIOR,1);
@@ -505,10 +502,10 @@ System.out.println("vol: " + vol);
      * @param outerMaterial The outer material
      * @param innerMaterial The inner material
      * @param geomType The geometry type to use
-     * @param fillShould the interior be filled or just a shell
+     * @param fill Should the interior be filled or just a shell
      * @return The grid containing the cube
      */
-    private static Grid createTorusInGrid(float ir, float or, int facets,
+    private static AttributeGrid createTorusInGrid(float ir, float or, int facets,
             byte outerMaterial, byte innerMaterial, int geomType, boolean fill, int[] add) {
 
         TorusGenerator tg = new TorusGenerator(ir, or, facets, facets);
@@ -523,7 +520,7 @@ System.out.println("vol: " + vol);
         int size = (int) (2.0 * bounds / HORIZ_RESOLUTION) + bufferVoxel;
 //System.out.println("grid voxels per side: " + size);
 
-        Grid grid = new ArrayGridByte(size + add[0], size + add[1], size + add[2], HORIZ_RESOLUTION, VERT_RESOLUTION);
+        AttributeGrid grid = new ArrayAttributeGridByte(size + add[0], size + add[1], size + add[2], HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         double x = bounds + bufferVoxel/2 * HORIZ_RESOLUTION;
         double y = x;
@@ -569,7 +566,6 @@ class FindRegionTester implements RegionTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
      */
     public void found(int x, int y, int z) {
         VoxelCoordinate c = new VoxelCoordinate(x, y, z);
@@ -590,7 +586,6 @@ class FindRegionTester implements RegionTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
      *
      * @return True to continue, false stops the traversal.
      */
@@ -651,7 +646,6 @@ class FindRegionRecorder implements RegionTraverser {
     /**
      * Constructor that takes in a HashSet of VoxelCoordinates known to be
      * in the VoxelClass to find
-     * @param vc
      */
     public FindRegionRecorder() {
         this.vcSet = new HashSet<VoxelCoordinate>();
@@ -665,7 +659,6 @@ class FindRegionRecorder implements RegionTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
      */
     public void found(int x, int y, int z) {
         VoxelCoordinate c = new VoxelCoordinate(x, y, z);
@@ -685,7 +678,6 @@ class FindRegionRecorder implements RegionTraverser {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @param vd The voxel data
      *
      * @return True to continue, false stops the traversal.
      */

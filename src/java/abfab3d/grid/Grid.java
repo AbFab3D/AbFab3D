@@ -42,6 +42,9 @@ public interface Grid extends Cloneable {
     // Marked is EXTERIOR | INTERIOR
     public enum VoxelClasses {ALL, MARKED, EXTERIOR, INTERIOR, OUTSIDE};
 
+    /** The value for a voxel with no specified material */
+    public static final int NO_MATERIAL = 0;
+
     /**
      * Get the data for a voxel
      *
@@ -99,56 +102,15 @@ public interface Grid extends Cloneable {
     public byte getState(int x, int y, int z);
 
     /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel material
-     */
-    public int getMaterial(double x, double y, double z);
-
-    /**
-     * Get the material of the voxel.
+     * Set the state value of a voxel.  Leaves the material unchanged.
      *
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @return The voxel material
-     */
-    public int getMaterial(int x, int y, int z);
-
-    /**
-     * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
+     * @return material The materialID
      */
-    public void setData(double x, double y, double z, byte state, int material);
-
-    /**
-     * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The value.  0 = nothing. > 0 materialID
-     * @param material The materialID
-     */
-    public void setData(int x, int y, int z, byte state, int material);
-
-    /**
-     * Set the material value of a voxel.  Leaves the state unchanged.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param material The materialID
-     */
-    public void setMaterial(int x, int y, int z, int material);
+    public void setState(int x, int y, int z, byte state);
 
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
@@ -159,7 +121,7 @@ public interface Grid extends Cloneable {
      * @param state The value.  0 = nothing. > 0 materialID
      * @return material The materialID
      */
-    public void setState(int x, int y, int z, byte state);
+    public void setState(double x, double y, double z, byte state);
 
     /**
      * Get the grid coordinates for a world coordinate.
@@ -199,15 +161,6 @@ public interface Grid extends Cloneable {
     public int findCount(VoxelClasses vc);
 
     /**
-     * Count a class of material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param mat The class of material to traverse
-     * @return The number
-     */
-    public int findCount(int mat);
-
-    /**
      * Count a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -220,50 +173,10 @@ public interface Grid extends Cloneable {
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(int mat, ClassTraverser t);
-
-    /*
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void find(VoxelClasses vc, int mat, ClassTraverser t);
-
-    /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.
-     *
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */
     public void findInterruptible(VoxelClasses vc, ClassTraverser t);
-
-    /**
-     * Traverse a class of voxels types.  May be much faster then
-     * full grid traversal for some implementations.  Allows interruption
-     * of the find stream.
-     *
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(int mat, ClassTraverser t);
-
-    /*
-     * Traverse a class of voxel and material types.  May be much faster then
-     * full grid traversal for some implementations.  Allows interruption
-     * of the find stream.
-     *
-     * @param vc The class of voxels to traverse
-     * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
-     */
-    public void findInterruptible(VoxelClasses vc, int mat, ClassTraverser t);
 
     /**
      * Get the number of height cells.
@@ -326,21 +239,6 @@ public interface Grid extends Cloneable {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight);
-
-    /**
-     * Remove all voxels associated with the Material.
-     *
-     * @param mat The materialID
-     */
-    public void removeMaterial(int mat);
-
-    /**
-     * Reassign a group of materials to a new materialID
-     *
-     * @param materials The new list of materials
-     * @param matID The new materialID
-     */
-    public void reassignMaterial(int[] materials, int matID);
 
     /**
      * Determine if a voxel coordinate is inside the grid space.

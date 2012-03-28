@@ -22,7 +22,11 @@ package abfab3d.grid;
  * @author Alan Hudson
  */
 
-public class VoxelCoordinate implements Cloneable {
+public class VoxelCoordinate implements Cloneable, Comparable {
+    /** Maximum number of voxels per side of a grid we support */
+    private static final long MAX_VOXELS = 30000;
+    private static final long MAX_VOXELS_SQ = MAX_VOXELS * MAX_VOXELS;
+
     /** The x coordinate */
     protected int x;
 
@@ -87,6 +91,41 @@ public class VoxelCoordinate implements Cloneable {
 
     public int getZ() {
         return z;
+    }
+
+    public int compareTo(Object o2) {
+        // TODO: Decide whether to keep this here
+
+        VoxelCoordinate vc1 = this;
+        VoxelCoordinate vc2 = (VoxelCoordinate) o2;
+
+        
+        long v1 = vc1.getX() * MAX_VOXELS_SQ + vc1.getY() * MAX_VOXELS + vc1.getZ();
+        long v2 = vc2.getX() * MAX_VOXELS_SQ + vc2.getY() * MAX_VOXELS + vc2.getZ();
+        
+System.out.println(this + " to: " + o2 + " v1: " + v1 + " v2: " + v2);
+        return ((v1 < v2) ? -1 : ((v1 == v2) ? 0 : 1));
+/*        
+        if (vc1.getX() < vc2.getX()) {
+            return -1;
+        }
+
+        if (vc1.getY() < vc2.getY()) {
+            return -1;
+        }
+
+        if (vc1.getZ() < vc2.getZ()) {
+            return -1;
+        }
+
+        if (vc1.getX() == vc2.getX() &&
+                vc1.getY() == vc2.getY() && vc1.getZ() == vc2.getZ()) {
+
+            return 0;
+        }
+
+        return 1;
+*/        
     }
 
     public Object clone() {
