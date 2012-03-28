@@ -21,6 +21,7 @@ import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
 
 import java.text.NumberFormat;
+import java.util.Random;
 
 // Internal Imports
 
@@ -40,7 +41,7 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
     public static final int SMALL_SIZE = 32;
     public static final int LARGE_SIZE = 128;
 
-    public static final int TIMES = 10;
+    public static final int TIMES = 15;
     public static final int SMALL_TIMES = 3 * TIMES;
     public static final int LARGE_TIMES = TIMES;
 
@@ -158,13 +159,14 @@ System.out.println("Finding exterior voxels");
      */
     public void testWriteAccessXSmall() {
 
-        createGrids(SMALL_SIZE);
 
         System.out.println("WriteAccess XSmall");
         for(int i=0; i < WARMUP2; i++) {
+            createGrids(SMALL_SIZE);
             writeAccessX(grids,SMALL_TIMES,false);
         }
         for(int i=0; i < RUNS; i++) {
+            createGrids(SMALL_SIZE);
             writeAccessX(grids,SMALL_TIMES,true);
         }
     }
@@ -173,13 +175,14 @@ System.out.println("Finding exterior voxels");
      * Test the write speed of slice aligned traversal.
      */
     public void testWriteAccessXLarge() {
-        createGrids(LARGE_SIZE);
 
         System.out.println("WriteAccess Large");
         for(int i=0; i < WARMUP2; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessX(grids,LARGE_TIMES,false);
         }
         for(int i=0; i < RUNS; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessX(grids,LARGE_TIMES,true);
         }
     }
@@ -188,13 +191,14 @@ System.out.println("Finding exterior voxels");
      * Test the write speed of a solid object with just exteriors
      */
     public void testWriteAccessTorusShellLarge() {
-        createGrids(LARGE_SIZE);
 
         //System.out.println("WriteAccessTorusShell Large");
         for(int i=0; i < WARMUP2; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES, false, false);
         }
         for(int i=0; i < RUNS; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES, false, true);
         }
     }
@@ -203,14 +207,16 @@ System.out.println("Finding exterior voxels");
      * Test the write speed of a solid object with interiors
      */
     public void testWriteAccessTorusSolidLarge() {
-        createGrids(LARGE_SIZE);
 
         int div = 8;    // Solid is much slower then other things
         //System.out.println("WriteAccessTorusSolid Large");
         for(int i=0; i < WARMUP2; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES / div, true, false);
         }
+
         for(int i=0; i < RUNS; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES / div, true, true);
         }
     }
@@ -219,15 +225,35 @@ System.out.println("Finding exterior voxels");
      * Test the write speed of sparse object.  In theory will give block based structures a workout.
      */
     public void testWriteAccessLinkedCubesLarge() {
-        createGrids(LARGE_SIZE);
 
         //System.out.println("WriteAccessTorusSolid Large");
         for(int i=0; i < WARMUP2; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessLinkedCubes(grids, LARGE_TIMES, false);
         }
 
         for(int i=0; i < RUNS; i++) {
+            createGrids(LARGE_SIZE);
             writeAccessLinkedCubes(grids, LARGE_TIMES, true);
+        }
+    }
+
+    /**
+     * Test the write speed of sparse object.  In theory will give block based structures a workout.
+     */
+    public void testWriteAccessRandom() {
+        int div = 8;    // Solid is much slower then other things
+
+
+        //System.out.println("WriteAccessTorusSolid Large");
+        for(int i=0; i < WARMUP2; i++) {
+            createGrids(LARGE_SIZE);
+            writeAccessRandom(grids, LARGE_TIMES / div, false);
+        }
+
+        for(int i=0; i < RUNS; i++) {
+            createGrids(LARGE_SIZE);
+            writeAccessRandom(grids, LARGE_TIMES / div, true);
         }
     }
 
@@ -488,6 +514,47 @@ System.out.println("Finding exterior voxels");
 
             for(int i=0; i < times; i++) {
                 setTorus(grids[n], fill);
+            }
+
+            totalTime[n] = System.nanoTime() - stime;
+
+            String name = grids[n].getClass().getSimpleName();
+
+            if (display) {
+                float tps = 1000000000f / totalTime[n];
+                System.out.println(String.format("%1$-31s",name) + "        : " + String.format("%1$-13s",totalTime[n]) + " NS " + String.format("%1$-7s",formater.format(tps)) + " TPS " + " " + String.format("%1$-7s",formater.format((float)totalTime[n] / totalTime[0])) + "X");
+            }
+        }
+
+
+        if (display) System.out.println();
+
+    }
+
+    /**
+     * Voxelize an object shell.
+     *
+     * @param times
+     * @param display
+     */
+    public static void writeAccessRandom(Grid[] grids, int times, boolean display) {
+        if (display) {
+            System.out.println("WriteAccessRandom Times:");
+        }
+
+        long[] totalTime = new long[grids.length];
+        float percent = 0.01f;
+
+        for(int n=0; n < grids.length; n++) {
+            // warmup
+            for(int i=0; i < WARMUP; i++) {
+                setRandom(grids[n], percent);
+            }
+
+            long stime = System.nanoTime();
+
+            for(int i=0; i < times; i++) {
+                setRandom(grids[n], percent);
             }
 
             totalTime[n] = System.nanoTime() - stime;
@@ -814,6 +881,37 @@ System.out.println("Finding exterior voxels");
 */
 
     /**
+     * Write a random pattern to the grid
+     *
+     * @param grid
+     * @param percent How much of the grid to fill
+     */
+    protected static void setRandom(Grid grid, float percent) {
+        // Use a static seed for reproducibility
+        Random r = new Random(42);
+
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        int d = grid.getDepth();
+        
+        int num = Math.round(grid.getWidth() * grid.getHeight() * grid.getDepth() * percent);
+        int cnt = 0;
+
+        while(cnt < num) {
+            int x = r.nextInt(w);
+            int y = r.nextInt(h);
+            int z = r.nextInt(d);
+            
+            if (grid.getState(x,y,z) != Grid.OUTSIDE) {
+                continue;
+            }
+            
+            cnt++;
+            grid.setState(x,y,z,Grid.EXTERIOR);
+        }        
+    }
+
+    /**
      * Set a torus into the grid
      *
      * @param grid
@@ -995,5 +1093,6 @@ System.out.println("Finding exterior voxels");
         tester.testWriteAccessTorusShellLarge();
         tester.testWriteAccessTorusSolidLarge();
         tester.testWriteAccessLinkedCubesLarge();
+        tester.testWriteAccessRandom();
     }
 }
