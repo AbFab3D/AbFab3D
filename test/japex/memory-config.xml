@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testSuite name="AbFab3DMemory" xmlns="http://www.sun.com/japex/testSuite">
+
+    <param name="japex.reportsDirectory" value="reports/japex"/>
+    <param name="japex.plotGroupSize" value="20" />
+
+    <param name="japex.classPath" value="classes"/>
+    <param name="japex.classPath" value="classes/japex"/>
+    <param name="japex.classPath" value="lib/*.jar"/>
+
+    <param name="japex.resultUnit" value="MB"/>
+    <param name="japex.warmupIterations" value="0"/>
+    <param name="japex.runIterations" value="1"/>
+    <param name="width" value="128" />
+    <param name="height" value="128" />
+    <param name="depth" value="128" />
+
+<!--    <driver name="ArrayGrid" normal="true"> -->
+
+    <driver name="Array" >
+        <param name="japex.driverClass" value="abfab3d.grid.ArrayGridDriver"/>
+        <param name="description" value="Array Grid"/>
+    </driver>
+
+    <!--
+    <driver name="ArrayAttribute" >
+        <param name="japex.driverClass" value="abfab3d.grid.ArrayAttributeGridDriver"/>
+        <param name="description" value="Array Grid"/>
+    </driver>
+-->
+    <driver name="BlockBasedAtt" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockBasedAttributeGridDriver"/>
+        <param name="description" value="BlockBasedAtt Grid"/>
+    </driver>
+    <driver name="BlockBased" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockBasedGridDriver"/>
+        <param name="description" value="BlockBased Grid"/>
+    </driver>
+    <driver name="BlockArray" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockArrayGridDriver"/>
+        <param name="description" value="BlockArray Grid"/>
+    </driver>
+<!--
+    <driver name="Octree" >
+        <param name="japex.driverClass" value="abfab3d.grid.OctreeGridDriver"/>
+        <param name="description" value="Octree Grid"/>
+    </driver>
+-->
+    <testCase name="128TorusShell">
+        <param name="width" value="128" />
+        <param name="height" value="128" />
+        <param name="depth" value="128" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="128TorusSolid">
+        <param name="width" value="128" />
+        <param name="height" value="128" />
+        <param name="depth" value="128" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="128Random">
+        <param name="width" value="128" />
+        <param name="height" value="128" />
+        <param name="depth" value="128" />
+        <param name="input" value="WriteRandom" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="256TorusShell">
+        <param name="width" value="256" />
+        <param name="height" value="256" />
+        <param name="depth" value="256" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="256TorusSolid">
+        <param name="width" value="256" />
+        <param name="height" value="256" />
+        <param name="depth" value="256" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="256Random">
+        <param name="width" value="256" />
+        <param name="height" value="256" />
+        <param name="depth" value="256" />
+        <param name="input" value="WriteRandom" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="512TorusShell">
+        <param name="width" value="512" />
+        <param name="height" value="512" />
+        <param name="depth" value="512" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="512TorusSolid">
+        <param name="width" value="512" />
+        <param name="height" value="512" />
+        <param name="depth" value="512" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="512Random">
+        <param name="width" value="512" />
+        <param name="height" value="512" />
+        <param name="depth" value="512" />
+        <param name="input" value="WriteRandom" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="1024TorusShell">
+        <param name="width" value="1024" />
+        <param name="height" value="1024" />
+        <param name="depth" value="1024" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="1024TorusSolid">
+        <param name="width" value="1024" />
+        <param name="height" value="1024" />
+        <param name="depth" value="1024" />
+        <param name="input" value="WriteTorusShell" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="1024Random">
+        <param name="width" value="1024" />
+        <param name="height" value="1024" />
+        <param name="depth" value="1024" />
+        <param name="input" value="WriteRandom" />
+        <param name="type" value="memory" />
+    </testCase>
+    
+<!--
+    <testCase name="LargeRandom">
+        <param name="width" value="2048" />
+        <param name="height" value="2048" />
+        <param name="depth" value="2048" />
+        <param name="input" value="WriteRandom" />
+        <param name="type" value="memory" />
+    </testCase>
+    <testCase name="XLargeRandom">
+        <param name="width" value="4096" />
+        <param name="height" value="4096" />
+        <param name="depth" value="4096" />
+        <param name="input" value="WriteRandom" />
+        <param name="type" value="memory" />
+    </testCase>
+-->
+
+</testSuite>
