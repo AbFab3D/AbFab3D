@@ -49,86 +49,86 @@ public class TestBlockArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test f.nextpow2 function
      */
     public void testHelpFun_nextpow2() {
-    	assertEquals("Result should be ", 0, f.nextpow2(1));
-    	assertEquals("Result should be ", 2, f.nextpow2(3));
-    	assertEquals("Result should be ", 2, f.nextpow2(3.1));
-    	assertEquals("Result should be ", 5, f.nextpow2(32));
-    	assertEquals("Result should be ", 6, f.nextpow2(33));
+    assertEquals("Result should be ", 0, f.nextpow2(1));
+    assertEquals("Result should be ", 2, f.nextpow2(3));
+    assertEquals("Result should be ", 2, f.nextpow2(3.1));
+    assertEquals("Result should be ", 5, f.nextpow2(32));
+    assertEquals("Result should be ", 6, f.nextpow2(33));
     }
     
     /**
      * Test f.c2i conversion function
      */
     public void testHelpFun_coordToIndex() {
-    	int[] order = {1,1,1}; // 2x2x2 cube
-    	
-    	assertEquals("Result should be ", 0, f.coordToIndex(new int[] {0,0,0},order));
-    	assertEquals("Result should be ", 1, f.coordToIndex(new int[] {1,0,0},order));
-    	assertEquals("Result should be ", 2, f.coordToIndex(new int[] {0,1,0},order));
-    	assertEquals("Result should be ", 3, f.coordToIndex(new int[] {1,1,0},order));
-    	assertEquals("Result should be ", 4, f.coordToIndex(new int[] {0,0,1},order));
-    	assertEquals("Result should be ", 5, f.coordToIndex(new int[] {1,0,1},order));
-    	assertEquals("Result should be ", 6, f.coordToIndex(new int[] {0,1,1},order));
-    	assertEquals("Result should be ", 7, f.coordToIndex(new int[] {1,1,1},order));
+    int[] order = {1,1,1}; // 2x2x2 cube
+    
+    assertEquals("Result should be ", 0, f.coordToIndex(new int[] {0,0,0},order));
+    assertEquals("Result should be ", 1, f.coordToIndex(new int[] {1,0,0},order));
+    assertEquals("Result should be ", 2, f.coordToIndex(new int[] {0,1,0},order));
+    assertEquals("Result should be ", 3, f.coordToIndex(new int[] {1,1,0},order));
+    assertEquals("Result should be ", 4, f.coordToIndex(new int[] {0,0,1},order));
+    assertEquals("Result should be ", 5, f.coordToIndex(new int[] {1,0,1},order));
+    assertEquals("Result should be ", 6, f.coordToIndex(new int[] {0,1,1},order));
+    assertEquals("Result should be ", 7, f.coordToIndex(new int[] {1,1,1},order));
     }
     
     /**
      * Test blockIndex
      */
     public void testBlockIndex() {
-    	BlockArrayGrid grid = new BlockArrayGrid(16, 16, 16, 1.0, 1.0, new int[] {3,3,3});
-    	
-    	assertEquals("block order ", 3, grid.BLOCK_ORDER[0]);
-    	assertEquals("grid order ", 1, grid.GRID_ORDER[0]);
-    	
-    	int[] gridSize = grid.gridSizeInBlocks();
-    	int[] blockSize = grid.blockSizeInVoxels();
-    	
-    	assertEquals("grid width in blocks ", 2, gridSize[0]);
-    	assertEquals("block width in voxels ", 8, blockSize[0]);
-    	
-    	assertEquals("number of blocks ", 8, grid.blocks.length);
-    	
-    	assertEquals("Result should be ", 0, grid.blockIndex(new int[] {0,0,0}));
-    	assertEquals("Result should be ", 1, grid.blockIndex(new int[] {15,0,0}));
-    	assertEquals("Result should be ", 7, grid.blockIndex(new int[] {15,15,15}));
+    BlockArrayGrid grid = new BlockArrayGrid(16, 16, 16, 1.0, 1.0, new int[] {3,3,3});
+    
+    assertEquals("block order ", 3, grid.BLOCK_ORDER[0]);
+    assertEquals("grid order ", 1, grid.GRID_ORDER[0]);
+    
+    int[] gridSize = grid.gridSizeInBlocks();
+    int[] blockSize = grid.blockSizeInVoxels();
+    
+    assertEquals("grid width in blocks ", 2, gridSize[0]);
+    assertEquals("block width in voxels ", 8, blockSize[0]);
+    
+    assertEquals("number of blocks ", 8, grid.blocks.length);
+    
+    assertEquals("Result should be ", 0, grid.blockIndex(new int[] {0,0,0}));
+    assertEquals("Result should be ", 1, grid.blockIndex(new int[] {15,0,0}));
+    assertEquals("Result should be ", 7, grid.blockIndex(new int[] {15,15,15}));
     }
     
     /**
      * Test grid set and get
      */
     public void testSetGet() {
-    	BlockArrayGrid grid = new BlockArrayGrid(4096,4096,4096,1.0,1.0,new int[] {4,4,4});
-    	
-    	byte[][][] data = {{ {0,1,2},
-    						 {3,4,5},
-    						 {6,7,2} },
-    					   { {5,7,3},
-      						 {4,1,0},
-      						 {5,4,3} },
-    					   { {1,3,0},
-      						 {2,5,4},
-      						 {7,4,7} }};
-    	
-    	for (int x = 0; x < 3; x++) {
-    		for (int y = 0; y < 3; y++) {
-    			for (int z = 0; z < 3; z++) {
-    				grid.set(x,y,z, data[x][y][z]);
-    		    	assertEquals("Result should be ",data[x][y][z],grid.get(x,y,z));
-    			}
-    		}
-    	}
+    BlockArrayGrid grid = new BlockArrayGrid(4096,4096,4096,1.0,1.0,new int[] {4,4,4});
+    
+    byte[][][] data = {{ {0,1,2},
+     {3,4,5},
+     {6,7,2} },
+       { {5,7,3},
+       {4,1,0},
+       {5,4,3} },
+       { {1,3,0},
+       {2,5,4},
+       {7,4,7} }};
+    
+    for (int x = 0; x < 3; x++) {
+    for (int y = 0; y < 3; y++) {
+    for (int z = 0; z < 3; z++) {
+    grid.set(x,y,z, data[x][y][z]);
+        assertEquals("Result should be ",data[x][y][z],grid.get(x,y,z));
+    }
+    }
+    }
     }
 
     /**
      * Test copy constructor.
      */
     public void testBlockArrayGridCopyConstructor() {
-    	BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2});
-    	
-    	assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
-    	assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 1));
-    	
+    BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2});
+    
+    assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
+    assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 1));
+    
         grid.setData(0, 0, 0, Grid.INTERIOR, 2);
         grid.setData(9, 8, 7, Grid.EXTERIOR, 1);
         grid.setData(5, 0, 7, Grid.INTERIOR, 0);
@@ -152,11 +152,11 @@ public class TestBlockArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test creating an empty grid.
      */
     public void testCreateEmpty() {
-    	BlockArrayGrid grid = new BlockArrayGrid(100, 101, 102, 0.001, 0.001, new int[] {2,2,2});
+    BlockArrayGrid grid = new BlockArrayGrid(100, 101, 102, 0.001, 0.001, new int[] {2,2,2});
         
-    	assertEquals("block width in voxels ", 4, ((BlockArrayGrid)grid).blockSizeInVoxels()[0]);
-    	assertEquals("grid width in blocks ", 32, ((BlockArrayGrid)grid).gridSizeInBlocks()[0]);
-    	
+    assertEquals("block width in voxels ", 4, ((BlockArrayGrid)grid).blockSizeInVoxels()[0]);
+    assertEquals("grid width in blocks ", 32, ((BlockArrayGrid)grid).gridSizeInBlocks()[0]);
+    
         grid.setData(5, 5, 5, Grid.EXTERIOR, 10);
         
         Grid grid2 = grid.createEmpty(10, 11, 12, 0.002, 0.003);
@@ -213,9 +213,9 @@ public class TestBlockArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test getState by voxels.
      */
     public void testGetStateByVoxel() {
-    	BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2});
+    BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2});
         
-    	grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)2);
+    grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)2);
         grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)1);
         grid.setData(5, 0, 7, Grid.INTERIOR, (byte)0);
 
@@ -231,16 +231,16 @@ public class TestBlockArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test getState by world coordinates.
      */
     public void testGetStateByCoord() {
-    	BlockArrayGrid grid = new BlockArrayGrid(1.0, 0.4, 0.5, 0.05, 0.01, new int[] {0,0,0});
+    BlockArrayGrid grid = new BlockArrayGrid(1.0, 0.4, 0.5, 0.05, 0.01, new int[] {0,0,0});
 
-    	// make sure the grid is the expected size
-    	int xVoxels = grid.getWidth();
-    	int yVoxels = grid.getHeight();
-    	int zVoxels = grid.getDepth();
+    // make sure the grid is the expected size
+    int xVoxels = grid.getWidth();
+    int yVoxels = grid.getHeight();
+    int zVoxels = grid.getDepth();
         assertTrue(xVoxels >= 20);
         assertTrue(yVoxels >= 40);
         assertTrue(zVoxels >= 10);
-    	
+    
         // set and test get on some random world coordinates
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)2);
         grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte)1);
@@ -713,9 +713,9 @@ public class TestBlockArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test setState.
      */
     public void testSetState() {
-    	int size = 10;
-    	
-    	BlockArrayGrid grid = new BlockArrayGrid(size, size, size, 0.001, 0.001, new int[] {0,0,0});
+    int size = 10;
+    
+    BlockArrayGrid grid = new BlockArrayGrid(size, size, size, 0.001, 0.001, new int[] {0,0,0});
         
         grid.setData(0, 0, 0, Grid.INTERIOR, 1);
         grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
@@ -740,13 +740,13 @@ public class TestBlockArrayGrid extends BaseTestGrid implements ClassTraverser {
      * Test clone.
      */
     public void testClone() {
-    	int size = 10;
-    	double voxelSize = 0.002;
-    	double sliceHeight = 0.001;
-    	
-    	BlockArrayGrid grid = new BlockArrayGrid(size, size, size, voxelSize, sliceHeight, new int[] {2,2,2});
+    int size = 10;
+    double voxelSize = 0.002;
+    double sliceHeight = 0.001;
+    
+    BlockArrayGrid grid = new BlockArrayGrid(size, size, size, voxelSize, sliceHeight, new int[] {2,2,2});
         
-    	grid.setData(0, 0, 0, Grid.INTERIOR, 1);
+    grid.setData(0, 0, 0, Grid.INTERIOR, 1);
         grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
         grid.setData(5, 0, 7, Grid.INTERIOR, 3);
         
