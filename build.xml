@@ -12,8 +12,10 @@
     <property name="apps.dir" value="${basedir}/apps"/>
     <property name="release.dir" value="${basedir}/release"/>
     <property name="test.dir" value="${basedir}/test/junit"/>
+    <property name="japex.dir" value="${basedir}/test/japex"/>
     <property name="classes.dir" value="${basedir}/classes" />
-    <property name="test.classes.dir" value="${classes.dir}/test" />      
+    <property name="test.classes.dir" value="${classes.dir}/test" />
+    <property name="japex.classes.dir" value="${classes.dir}/japex" />
     <property name="jar.dir" value="${basedir}/jars" />
     <property name="lib.dir" value="${basedir}/lib"/>
     <property name="manifest.dir" value="${basedir}/manifest"/>
@@ -36,6 +38,7 @@
     <property name="emma.coverage.dir" location="${emma.out.dir}/coverage" />  
     <property name="emma.instr.dir" location="${emma.out.dir}/instrumented" /> 
 
+    <property name="env.JAPEX_HOME" value="lib/support/japex" />
     <path id="run.classpath" >
       <pathelement location="${classes.dir}" />
     </path>
@@ -481,7 +484,39 @@
       </classpath>
     </junit>
   </target>
-    
+
+    <!-- Begin Japex Tasks -->
+    <target name="runJapex" depends="compileJapex">
+        <java dir="." fork="true" classname="com.sun.japex.Japex">
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${japex.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+            </classpath>
+            <arg line="test/japex/speed-config.xml"/>
+            <jvmarg value="-Xmx400M" />
+        </java>
+    </target>
+    <target name="runJapexMemory" depends="compileJapex">
+        <java dir="." fork="true" classname="com.sun.japex.Japex">
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${japex.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+            </classpath>
+            <arg line="test/japex/memory-config.xml"/>
+            <jvmarg value="-Xmx4000M" />
+        </java>
+    </target>
+
+    <target name="compileJapex" depends="init" description="Compile all Japex source files">
+        <mkdir dir="${japex.classes.dir}" />
+        <compilejava destdir="${japex.classes.dir}" srcdir="${japex.dir}" package="abfab3d/grid" jars="j3d-org-all_1.0.0.jar support/japex/*.jar" />
+    </target>
+
+    <!-- End Japex Tests -->
+
+
     <target name="clean" description="Deletes all the generated artifacts.">
         <delete dir="${javadocs.dir}" />
         <delete dir="${classes.dir}" />
