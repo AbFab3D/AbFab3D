@@ -45,8 +45,8 @@ public class TransformPosition implements Operation, ClassTraverser {
     /** Scratch coords */
     private double[] wcoords;
 
-    public TransformPosition(Matrix4d matrix, Grid dest) {
-        this.dest = dest;
+    public TransformPosition(Matrix4d matrix, Grid src) {
+        this.src = src;
         this.matrix = matrix;
         p = new Point3d();
         wcoords = new double[3];
@@ -56,15 +56,17 @@ public class TransformPosition implements Operation, ClassTraverser {
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
-     * @param grid The grid to use for grid A.
+     * TODO: add region specification to allow subsets operation.
+     *
+     * @param dest The grid to use or null to create one
      * @return The new grid
      */
-    public Grid execute(Grid grid) {
-        this.src = grid;
+    public Grid execute(Grid dest) {
+        this.dest = dest;
 
-        grid.find(Grid.VoxelClasses.MARKED, this);
+        src.find(Grid.VoxelClasses.MARKED, this);
 
-        return grid;
+        return dest;
     }
 
     /**

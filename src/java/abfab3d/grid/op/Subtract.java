@@ -22,14 +22,19 @@ import abfab3d.grid.*;
  * Subtraction operation.
  *
  * Subtracts one grid from another.  Grid A is the base grid.  B is
- * the subtracted grid.  EXTERIOR voxels of grid B will become
- * new EXTERIOR points on grid A.
+ * the subtracting grid.  MARKED voxels of grid B will become
+ * OUTSIDE voxels of A.
+ *
+ * Would like a mode that preserves EXTERIOR/INTERRIOR difference.
  *
  * @author Alan Hudson
  */
 public class Subtract implements Operation, ClassTraverser {
-    /** The grid to subtract */
-    private Grid gridB;
+    /** The grid used for subtraction */
+    private Grid src;
+
+    /** The dest grid */
+    private Grid dest;
 
     /** The x translation of gridB */
     private double x;
@@ -43,11 +48,9 @@ public class Subtract implements Operation, ClassTraverser {
     /** The material for new exterior voxels */
     private int material;
 
-    /** The grid used for A */
-    private Grid gridA;
 
-    public Subtract(Grid b, double x, double y, double z, int material) {
-        gridB = b;
+    public Subtract(Grid src, double x, double y, double z, int material) {
+        this.src = src;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -65,11 +68,11 @@ public class Subtract implements Operation, ClassTraverser {
         int width = dest.getWidth();
         int depth = dest.getDepth();
         int height = dest.getHeight();
-        gridA = dest;
+        this.dest = dest;
 
         // TODO: Make sure the grids are the same size
 
-        gridB.find(Grid.VoxelClasses.MARKED, this);
+        src.find(Grid.VoxelClasses.MARKED, this);
 
         return dest;
     }
@@ -83,7 +86,7 @@ public class Subtract implements Operation, ClassTraverser {
      * @param vd The voxel data
      */
     public void found(int x, int y, int z, byte vd) {
-        gridA.setState(x,y,z, Grid.OUTSIDE);
+        dest.setState(x,y,z, Grid.OUTSIDE);
 
 /*
         if (bstate == Grid.EXTERIOR) {
