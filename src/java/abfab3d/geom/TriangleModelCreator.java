@@ -146,16 +146,7 @@ public class TriangleModelCreator extends GeometryCreator {
             throw new IllegalArgumentException("Unsupported geometryType: " + geom.geometryType);
         }
 
-        BoundingBoxUtilsFloat bc = new BoundingBoxUtilsFloat();
-        
-        float[] bounds = new float[6];
-        if (geom.geometryType == GeometryData.TRIANGLES) {
-            bc.computeMinMax(geom.coordinates,geom.vertexCount, bounds);
-        } else {
-            bc.computeMinMax(geom.coordinates,geom.indexes, bounds);
-        }
-        
-        interiorFinder = new InteriorFinderTriangleBased(geom,bounds, x,y,z,rx,ry,rz,rangle,innerMaterialID);
+        interiorFinder = new InteriorFinderTriangleBased(geom,x,y,z,rx,ry,rz,rangle,innerMaterialID);
         //interiorFinder = new InteriorFinderVoxelBased(outerMaterialID,innerMaterialID);
     }
 

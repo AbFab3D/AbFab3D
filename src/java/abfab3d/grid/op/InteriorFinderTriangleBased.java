@@ -16,6 +16,7 @@ package abfab3d.grid.op;
 import java.util.*;
 
 import abfab3d.intersect.TriangleIntersectionDoubleUtil;
+import abfab3d.util.BoundingBoxUtilsFloat;
 import abfab3d.util.MatrixUtil;
 import org.web3d.util.spatial.AllRegion;
 import org.web3d.util.spatial.GridTrianglePartition;
@@ -62,9 +63,6 @@ public class InteriorFinderTriangleBased implements Operation  {
     /** The triangle geometry */
     private GeometryData geom;
     
-    /** The bounds of the geometry */
-    private float[] bounds;
-
     /** Spatial data structure to speed ray / box intersects */
     private GridTrianglePartition spatial;
 
@@ -82,10 +80,9 @@ public class InteriorFinderTriangleBased implements Operation  {
      *
      * @param newMaterial The materialID to assign new interior voxels
      */
-    public InteriorFinderTriangleBased(GeometryData geom, float[] bounds, int newMaterial) {
+    public InteriorFinderTriangleBased(GeometryData geom, int newMaterial) {
         this.geom = geom;
         this.innerMaterial = newMaterial;
-        this.bounds = bounds.clone();
 
         needTransform = false;
     }
@@ -99,12 +96,11 @@ public class InteriorFinderTriangleBased implements Operation  {
     * @param rz The z rotation applied before voxelization
     * @param rangle The angle rotation applied before voxelization
     */
-    public InteriorFinderTriangleBased(GeometryData geom, float[] bounds,
+    public InteriorFinderTriangleBased(GeometryData geom,
                                        double x, double y, double z, double rx, double ry, double rz, double rangle,
                                        int newMaterial) {
         this.geom = geom;
         this.innerMaterial = newMaterial;
-        this.bounds = bounds.clone();
 
         this.x = x;
         this.y = y;
@@ -136,9 +132,11 @@ public class InteriorFinderTriangleBased implements Operation  {
         result = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
                 grid.getVoxelSize(), grid.getSliceHeight());
 
+        float[] bounds = new float[6];
+
         if (needTransform) {
             float[] coords = new float[geom.coordinates.length];
-            
+
             Matrix4d mat = MatrixUtil.createMatrix(
                     new double[]{0, 0, 0},
                     new double[]{1, 1, 1}, new double[]{rx, ry, rz, rangle}, new double[]{x, y, z},
@@ -200,6 +198,15 @@ public class InteriorFinderTriangleBased implements Operation  {
 
             }
 
+            BoundingBoxUtilsFloat bc = new BoundingBoxUtilsFloat();
+
+            if (geom.geometryType == GeometryData.TRIANGLES) {
+                bc.computeMinMax(geom.coordinates,geom.vertexCount, bounds);
+            } else {
+                bc.computeMinMax(geom.coordinates,geom.indexes, bounds);
+            }
+
+
 
             // Transform bounds
             Point3d min = new Point3d(bounds[0], bounds[2], bounds[4]);
@@ -214,6 +221,27 @@ public class InteriorFinderTriangleBased implements Operation  {
             bounds[1] = (float) max.x;
             bounds[3] = (float) max.y;
             bounds[5] = (float) max.z;
+            
+            double[] minb = new double[3];
+            double[] maxb = new double[3];
+
+            // TODO: Not sure that rotating bounds will work right.
+
+            grid.getGridBounds(minb,maxb);
+            bounds[0] = (float) minb[0];
+            bounds[2] = (float) minb[1];
+            bounds[4] = (float) minb[2];
+            bounds[1] = (float) (maxb[0] - grid.getVoxelSize() / 2.0f);
+            bounds[3] = (float) (maxb[1] - grid.getSliceHeight() / 2.0f);
+            bounds[5] = (float) (maxb[2] - grid.getVoxelSize() / 2.0f);;
+        } else {
+            BoundingBoxUtilsFloat bc = new BoundingBoxUtilsFloat();
+
+            if (geom.geometryType == GeometryData.TRIANGLES) {
+                bc.computeMinMax(geom.coordinates,geom.vertexCount, bounds);
+            } else {
+                bc.computeMinMax(geom.coordinates,geom.indexes, bounds);
+            }
         }
         
         int[] min = new int[3];
@@ -381,7 +409,12 @@ public class InteriorFinderTriangleBased implements Operation  {
         // TODO: Should we use TimSort?
         Collections.sort(hits);
 
-    //if (hits.size() > 0) System.out.println("hits: " + hits.size());
+/*
+    if (hits.size() > 0) {
+System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " + rayZ);
+        System.out.println("hits: " + hits.size());
+    }
+*/
         int hlen = hits.size() - 1;
         HitRecord a;
         HitRecord b;
@@ -444,7 +477,7 @@ public class InteriorFinderTriangleBased implements Operation  {
 //System.out.println("fill cells: " + java.util.Arrays.toString(minCoords) + " " + java.util.Arrays.toString(maxCoords));
             fillCells(true, t_result, axis, minCoords, maxCoords);
 
-//                System.out.println("vals: " + java.util.Arrays.toString(result));
+                //System.out.println("vals: " + java.util.Arrays.toString(t_result));
         }
 
         hits.clear();
@@ -637,7 +670,7 @@ public class InteriorFinderTriangleBased implements Operation  {
             for(int j=0; j < h; j++) {
                 for(int k=0; k < d; k++) {
                     if (counts[i][j][k] == 3) {
-                        gridOpAtt.setData(i,j,k,Grid.INTERIOR, innerMaterial);
+                        gridOpAtt.setData(i, j, k, Grid.INTERIOR, innerMaterial);
                     }
                 }
             }
