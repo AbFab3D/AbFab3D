@@ -205,35 +205,6 @@ public class InteriorFinderTriangleBased implements Operation  {
             } else {
                 bc.computeMinMax(geom.coordinates,geom.indexes, bounds);
             }
-
-
-
-            // Transform bounds
-            Point3d min = new Point3d(bounds[0], bounds[2], bounds[4]);
-            Point3d max = new Point3d(bounds[1], bounds[3], bounds[5]);
-            
-            mat.transform(min);
-            mat.transform(max);
-            
-            bounds[0] = (float) min.x;
-            bounds[2] = (float) min.y;
-            bounds[4] = (float) min.z;
-            bounds[1] = (float) max.x;
-            bounds[3] = (float) max.y;
-            bounds[5] = (float) max.z;
-            
-            double[] minb = new double[3];
-            double[] maxb = new double[3];
-
-            // TODO: Not sure that rotating bounds will work right.
-
-            grid.getGridBounds(minb,maxb);
-            bounds[0] = (float) minb[0];
-            bounds[2] = (float) minb[1];
-            bounds[4] = (float) minb[2];
-            bounds[1] = (float) (maxb[0] - grid.getVoxelSize() / 2.0f);
-            bounds[3] = (float) (maxb[1] - grid.getSliceHeight() / 2.0f);
-            bounds[5] = (float) (maxb[2] - grid.getVoxelSize() / 2.0f);;
         } else {
             BoundingBoxUtilsFloat bc = new BoundingBoxUtilsFloat();
 
