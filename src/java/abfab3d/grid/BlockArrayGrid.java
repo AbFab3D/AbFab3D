@@ -34,19 +34,19 @@ package abfab3d.grid;
  */
 public class BlockArrayGrid extends BaseGrid {
     // dimensions of grid in blocks
-	// dimensions of blocks in voxels
-	// values given in 2^n
-	protected final int[] GRID_ORDER;
+// dimensions of blocks in voxels
+// values given in 2^n
+protected final int[] GRID_ORDER;
     protected final int[] BLOCK_ORDER;
     protected final int[] GRID_SIZE_IN_BLOCKS;
     protected final int[] BLOCK_SIZE_IN_VOXELS;
     protected final int[] GRID_SIZE_IN_VOXELS;
     
     // unified description of grid's dimensionality
-    // 		{ gridOrder[3]
-    // 		  blockOrder[3]
-    //	 	  GRID_SIZE_IN_BLOCKS[3]
-    //	 	  BLOCK_SIZE_IN_VOXELS[3] }
+    // { gridOrder[3]
+    //   blockOrder[3]
+    //   GRID_SIZE_IN_BLOCKS[3]
+    //   BLOCK_SIZE_IN_VOXELS[3] }
     protected final int[] SIZER;
     
     // the outside block - the core of the DBGrid memory optimization is reusing this everywhere
@@ -79,54 +79,54 @@ public class BlockArrayGrid extends BaseGrid {
      */
     public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockOrder, double[] gridOrigin) {
         // satisfy BaseGrid
-    	super(w,h,d,pixel,sheight);
+    super(w,h,d,pixel,sheight);
         
         // set up the BlockArrayGrid...
-    	
-    	// record the block order and offset
-    	BLOCK_ORDER = blockOrder;
-    	offset = gridOrigin;
-    	
-    	// find invscale values
-    	scale = new double[] {1.0/pixel, 1.0/sheight, 1.0/pixel}; 
-    	
-    	// what are the dims of the blocks in voxels
-    	int[] blockWidth = {1 << blockOrder[0], 1 << blockOrder[1], 1 << blockOrder[2]};
-    	
-    	// what is the size of the grid in 2^n
-    	GRID_ORDER = new int[] {f.nextpow2((double) w / (double) blockWidth[0]),
-				    			f.nextpow2((double) h / (double) blockWidth[1]),
-				    			f.nextpow2((double) d / (double) blockWidth[2])};
-    	
-    	GRID_SIZE_IN_BLOCKS = new int[] {f.p2(GRID_ORDER[0]),
-		 		  f.p2(GRID_ORDER[1]),
-		 		  f.p2(GRID_ORDER[2])};
-    	BLOCK_SIZE_IN_VOXELS = new int[] {f.p2(BLOCK_ORDER[0]),
-				  f.p2(BLOCK_ORDER[1]),
-				  f.p2(BLOCK_ORDER[2])};
-    	GRID_SIZE_IN_VOXELS = new int[] {f.p2(BLOCK_ORDER[0]) * f.p2(GRID_ORDER[0]),
-				  f.p2(BLOCK_ORDER[1]) * f.p2(GRID_ORDER[1]),
-				  f.p2(BLOCK_ORDER[2]) * f.p2(GRID_ORDER[2])};
-		SIZER = new int[] { GRID_ORDER[0],
-							GRID_ORDER[1],
-							GRID_ORDER[2],
-							BLOCK_ORDER[0],
-							BLOCK_ORDER[1],
-							BLOCK_ORDER[2],
-							GRID_SIZE_IN_BLOCKS[0],
-							GRID_SIZE_IN_BLOCKS[1],
-							GRID_SIZE_IN_BLOCKS[2],
-							BLOCK_SIZE_IN_VOXELS[0],
-							BLOCK_SIZE_IN_VOXELS[1],
-							BLOCK_SIZE_IN_VOXELS[2]};
-    	
-    	// initialize the outside block
-    	OUTSIDE = new Block(SIZER,(byte)0);
-    	
-    	// initialize blocks with all OUTSIDE blocks (i.e. an empty grid)
-    	blocks = new Block[1 << GRID_ORDER[0] << GRID_ORDER[1] << GRID_ORDER[2]];
+    
+    // record the block order and offset
+    BLOCK_ORDER = blockOrder;
+    offset = gridOrigin;
+    
+    // find invscale values
+    scale = new double[] {1.0/pixel, 1.0/sheight, 1.0/pixel}; 
+    
+    // what are the dims of the blocks in voxels
+    int[] blockWidth = {1 << blockOrder[0], 1 << blockOrder[1], 1 << blockOrder[2]};
+    
+    // what is the size of the grid in 2^n
+    GRID_ORDER = new int[] {f.nextpow2((double) w / (double) blockWidth[0]),
+    f.nextpow2((double) h / (double) blockWidth[1]),
+    f.nextpow2((double) d / (double) blockWidth[2])};
+    
+    GRID_SIZE_IN_BLOCKS = new int[] {f.p2(GRID_ORDER[0]),
+   f.p2(GRID_ORDER[1]),
+   f.p2(GRID_ORDER[2])};
+    BLOCK_SIZE_IN_VOXELS = new int[] {f.p2(BLOCK_ORDER[0]),
+  f.p2(BLOCK_ORDER[1]),
+  f.p2(BLOCK_ORDER[2])};
+    GRID_SIZE_IN_VOXELS = new int[] {f.p2(BLOCK_ORDER[0]) * f.p2(GRID_ORDER[0]),
+  f.p2(BLOCK_ORDER[1]) * f.p2(GRID_ORDER[1]),
+  f.p2(BLOCK_ORDER[2]) * f.p2(GRID_ORDER[2])};
+SIZER = new int[] { GRID_ORDER[0],
+GRID_ORDER[1],
+GRID_ORDER[2],
+BLOCK_ORDER[0],
+BLOCK_ORDER[1],
+BLOCK_ORDER[2],
+GRID_SIZE_IN_BLOCKS[0],
+GRID_SIZE_IN_BLOCKS[1],
+GRID_SIZE_IN_BLOCKS[2],
+BLOCK_SIZE_IN_VOXELS[0],
+BLOCK_SIZE_IN_VOXELS[1],
+BLOCK_SIZE_IN_VOXELS[2]};
+    
+    // initialize the outside block
+    OUTSIDE = new Block(SIZER,(byte)0);
+    
+    // initialize blocks with all OUTSIDE blocks (i.e. an empty grid)
+    blocks = new Block[1 << GRID_ORDER[0] << GRID_ORDER[1] << GRID_ORDER[2]];
         for (int i = 0; i < blocks.length; i++) {
-        	blocks[i] = OUTSIDE;
+        blocks[i] = OUTSIDE;
         }
     }
     
@@ -142,7 +142,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @param gridOrigin The position of the origin voxel in world coords
      */
     public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockOrder) {
-    	this(w,h,d,pixel,sheight,blockOrder,new double[] {0,0,0});
+    this(w,h,d,pixel,sheight,blockOrder,new double[] {0,0,0});
     }
     
     /**
@@ -157,7 +157,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @param gridOrigin The position of the origin voxel in world coords
      */
     public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockOrder) {
-    	this(w,h,d,pixel,sheight,blockOrder,new double[] {0,0,0});
+    this(w,h,d,pixel,sheight,blockOrder,new double[] {0,0,0});
     }
     
     /**
@@ -172,8 +172,8 @@ public class BlockArrayGrid extends BaseGrid {
      * @param gridOrigin The position of the origin voxel in world coords
      */
     public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockOrder, double[] gridOrigin) {
-    	this((int) (w / pixel) + 1, (int) (h / sheight) + 1, 
-    			(int) (d / pixel) + 1, pixel, sheight, blockOrder, gridOrigin);
+    this((int) (w / pixel) + 1, (int) (h / sheight) + 1, 
+    (int) (d / pixel) + 1, pixel, sheight, blockOrder, gridOrigin);
     }
     
     /**
@@ -185,7 +185,7 @@ public class BlockArrayGrid extends BaseGrid {
      * Grid size 4096^3, Block size 16^3.
      */
     public BlockArrayGrid() {
-    	this(4096.0,4096.0,4096.0,1.0,1.0,new int[] {4, 4, 4},new double[] {0.0,0.0,0.0});
+    this(4096.0,4096.0,4096.0,1.0,1.0,new int[] {4, 4, 4},new double[] {0.0,0.0,0.0});
     }
     
     /**
@@ -200,7 +200,7 @@ public class BlockArrayGrid extends BaseGrid {
      * other params will be per the current object
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-    	return new BlockArrayGrid(w,h,d,pixel,sheight,BLOCK_ORDER,offset);
+    return new BlockArrayGrid(w,h,d,pixel,sheight,BLOCK_ORDER,offset);
     }
     
     /**
@@ -213,37 +213,37 @@ public class BlockArrayGrid extends BaseGrid {
             grid.getVoxelSize(), grid.getSliceHeight());
         
         // clone stuff
-    	BLOCK_ORDER = grid.BLOCK_ORDER.clone();
-    	GRID_ORDER = grid.GRID_ORDER.clone();
-    	GRID_SIZE_IN_BLOCKS = grid.GRID_SIZE_IN_BLOCKS.clone();
+    BLOCK_ORDER = grid.BLOCK_ORDER.clone();
+    GRID_ORDER = grid.GRID_ORDER.clone();
+    GRID_SIZE_IN_BLOCKS = grid.GRID_SIZE_IN_BLOCKS.clone();
         BLOCK_SIZE_IN_VOXELS = grid.BLOCK_SIZE_IN_VOXELS.clone();
         GRID_SIZE_IN_VOXELS = grid.GRID_SIZE_IN_VOXELS.clone();
         SIZER = grid.SIZER.clone();
-    	OUTSIDE = new Block(SIZER,(byte)0); // voxels are non-final, don't share
-    	offset = grid.offset.clone();
-    	scale = grid.scale.clone();
-    	blocks = grid.blocks.clone();
+    OUTSIDE = new Block(SIZER,(byte)0); // voxels are non-final, don't share
+    offset = grid.offset.clone();
+    scale = grid.scale.clone();
+    blocks = grid.blocks.clone();
     }
     
     /**
      * Get size of blocks in voxels
      */
     public int[] blockSizeInVoxels() {
-    	return BLOCK_SIZE_IN_VOXELS;
+    return BLOCK_SIZE_IN_VOXELS;
     }
     
     /**
      * Get size of grid in blocks
      */
     public int[] gridSizeInBlocks() {
-    	return GRID_SIZE_IN_BLOCKS;
+    return GRID_SIZE_IN_BLOCKS;
     }
     
     /**
      * Get size of grid in voxels
      */
     public int[] gridSizeInVoxels() {
-    	return GRID_SIZE_IN_VOXELS;
+    return GRID_SIZE_IN_VOXELS;
     }
     
     /**
@@ -255,7 +255,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return The voxel state
      */
     public VoxelData getData(int x, int y, int z) {
-    	return getVoxelData(x,y,z);
+    return getVoxelData(x,y,z);
     }
 
     /**
@@ -267,7 +267,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return The voxel state
      */
     public VoxelData getData(double x, double y, double z) {
-    	return getVoxelData(x,y,z);
+    return getVoxelData(x,y,z);
     }
 
     /**
@@ -279,7 +279,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return The voxel state
      */
     public byte getState(double x, double y, double z) {
-    	return get(x,y,z);
+    return get(x,y,z);
     }
 
     /**
@@ -291,7 +291,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return The voxel state
      */
     public byte getState(int x, int y, int z) {
-    	return get(x,y,z);
+    return get(x,y,z);
     }
 
     /**
@@ -303,7 +303,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return The voxel material
      */
     public int getMaterial(double x, double y, double z) {
-    	return 0; // this is the no-material version
+    return 0; // this is the no-material version
     }
 
     /**
@@ -315,7 +315,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return The voxel material
      */
     public int getMaterial(int x, int y, int z) {
-    	return 0; // this is the no-material version
+    return 0; // this is the no-material version
     }
 
     /**
@@ -328,8 +328,8 @@ public class BlockArrayGrid extends BaseGrid {
      * @param material The material
      */
     public void setData(double x, double y, double z, byte state, int material) {
-    	int[] coord = worldToGrid(new double[] {x,y,z});
-    	set(coord[0],coord[1],coord[2],state);
+    int[] coord = worldToGrid(new double[] {x,y,z});
+    set(coord[0],coord[1],coord[2],state);
     }
 
     /**
@@ -342,12 +342,12 @@ public class BlockArrayGrid extends BaseGrid {
      * @param material The material
      */
     public void setData(int x, int y, int z, byte state, int material) {
-    	set(x,y,z,state);
+    set(x,y,z,state);
     }
 
     /**
      * Set the material value of a voxel.
-	 * This is the no material version, so it actually does NOTHING!
+ * This is the no material version, so it actually does NOTHING!
      *
      * @param x The x grid coordinate
      * @param y The y grid coordinate
@@ -404,7 +404,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return a VoxelData object describing the voxel
      */
     protected VoxelData getVoxelData(int x, int y, int z) {
-    	return new VoxelDataByte((byte) get(x,y,z), 0);
+    return new VoxelDataByte((byte) get(x,y,z), 0);
     }
     
     /**
@@ -416,8 +416,8 @@ public class BlockArrayGrid extends BaseGrid {
      * @return a VoxelData object describing the voxel
      */
     protected VoxelData getVoxelData(double x, double y, double z) {
-    	int[] gc = worldToGrid(new double[] {x,y,z});
-    	return getVoxelData(gc[0],gc[1],gc[2]);
+    int[] gc = worldToGrid(new double[] {x,y,z});
+    return getVoxelData(gc[0],gc[1],gc[2]);
     }
     
     /**
@@ -427,7 +427,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return the voxel's value
      */
     protected byte get(int[] index) {
-    	return blocks[index[0]].get(index[1]);
+    return blocks[index[0]].get(index[1]);
     }
     
     /**
@@ -437,8 +437,8 @@ public class BlockArrayGrid extends BaseGrid {
      * @return the voxel's value
      */
     protected byte get(int x, int y, int z) {
-    	int[] gc = {x,y,z};
-    	return get(new int[] {f.blockIndex(gc,SIZER), f.voxelIndex(gc,SIZER)});
+    int[] gc = {x,y,z};
+    return get(new int[] {f.blockIndex(gc,SIZER), f.voxelIndex(gc,SIZER)});
     }
     
     /**
@@ -448,8 +448,8 @@ public class BlockArrayGrid extends BaseGrid {
      * @return the voxel's value
      */
     protected byte get(double x, double y, double z) {
-    	int[] gc = worldToGrid(new double[] {x,y,z});
-    	return get(gc[0], gc[1], gc[2]);
+    int[] gc = worldToGrid(new double[] {x,y,z});
+    return get(gc[0], gc[1], gc[2]);
     }
     
     /**
@@ -459,12 +459,12 @@ public class BlockArrayGrid extends BaseGrid {
      * @param value, the data to set
      */
     protected void set(int[] index, byte value) {
-    	if (value != 0 & blocks[index[0]] == OUTSIDE) {
-    		blocks[index[0]] = new Block(SIZER);
-    	}
-    	if (blocks[index[0]].set(index[1], value)) {
-    		blocks[index[0]] = OUTSIDE;
-    	}
+    if (value != 0 & blocks[index[0]] == OUTSIDE) {
+    blocks[index[0]] = new Block(SIZER);
+    }
+    if (blocks[index[0]].set(index[1], value)) {
+    blocks[index[0]] = OUTSIDE;
+    }
     }
     
     /**
@@ -474,8 +474,8 @@ public class BlockArrayGrid extends BaseGrid {
      * @param value, the data to set
      */
     protected void set(int x, int y, int z, byte value) {
-    	int[] gc = {x,y,z};
-    	set(new int[] {f.blockIndex(gc,SIZER), f.voxelIndex(gc,SIZER)},value);
+    int[] gc = {x,y,z};
+    set(new int[] {f.blockIndex(gc,SIZER), f.voxelIndex(gc,SIZER)},value);
     }
     
     /**
@@ -485,8 +485,8 @@ public class BlockArrayGrid extends BaseGrid {
      * @param value, the data to set
      */
     protected void set(double x, double y, double z, byte value) {
-    	int[] gc = worldToGrid(new double[] {x,y,z});
-    	set(gc[0],gc[1],gc[2],value);
+    int[] gc = worldToGrid(new double[] {x,y,z});
+    set(gc[0],gc[1],gc[2],value);
     }
     
     /**
@@ -496,11 +496,11 @@ public class BlockArrayGrid extends BaseGrid {
      * @param value, the data to set
      */
     protected void setBlock(int[] coord, byte value) {
-    	if (value == 0) {
-    		blocks[blockIndex(coord)] = OUTSIDE;
-    	} else {
-    		blocks[blockIndex(coord)].setAll(value);
-    	}
+    if (value == 0) {
+    blocks[blockIndex(coord)] = OUTSIDE;
+    } else {
+    blocks[blockIndex(coord)].setAll(value);
+    }
     }
     
     /**
@@ -510,7 +510,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @param value, the data to set
      */
     protected void setBlock(double[] coord, byte value) {
-    	setBlock(worldToGrid(coord),value);
+    setBlock(worldToGrid(coord),value);
     }
     
     /**
@@ -520,9 +520,9 @@ public class BlockArrayGrid extends BaseGrid {
      * @return the grid coordinate
      */
     protected int[] worldToGrid(double[] coord) {
-    	return new int[] {(int) Math.floor(coord[0]*scale[0]),
-    					  (int) Math.floor(coord[1]*scale[1]),
-    					  (int) Math.floor(coord[2]*scale[2])}; 
+    return new int[] {(int) Math.floor(coord[0]*scale[0]),
+      (int) Math.floor(coord[1]*scale[1]),
+      (int) Math.floor(coord[2]*scale[2])}; 
     }
     
     /**
@@ -532,7 +532,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @return the block index within grid's block array
      */
     protected int blockIndex(int[] coord) {
-    	return f.blockIndex(coord, SIZER);
+    return f.blockIndex(coord, SIZER);
     }
     
     /**
@@ -542,15 +542,15 @@ public class BlockArrayGrid extends BaseGrid {
      * @return the block index within grid's block array
      */
     protected int blockIndex(double[] coord) {
-    	return blockIndex(worldToGrid(coord));
+    return blockIndex(worldToGrid(coord));
     }
     
     /**
      * Clone factory.
      */
     public Object clone() {
-		return new BlockArrayGrid(this);
-	}
+return new BlockArrayGrid(this);
+}
 }
 
 
@@ -657,7 +657,7 @@ class Block {
      * @return TRUE if all voxels in block have equal values
      */
     public boolean allEqual() {
-    	return points.allEqual();
+    return points.allEqual();
     }
     
 }
@@ -690,11 +690,11 @@ class PointSet {
         ndirty = 0;
     }
     
-	/**
-	 * 
-	 * @param sizer
-	 * @param value
-	 */
+/**
+ * 
+ * @param sizer
+ * @param value
+ */
     public PointSet(int[] sizer, byte value) {
         data = new byte[1 << sizer[3] << sizer[4] << sizer[5]]; // xsize*ysize*zsize
         
@@ -702,7 +702,7 @@ class PointSet {
         if (value > 0) {
             ndirty = data.length;
         } else {
-        	ndirty = 0;
+        ndirty = 0;
         }
         
         // set all the values
@@ -737,25 +737,25 @@ class PointSet {
      * @return TRUE if the block should become OUTSIDE
      */
     public boolean set(int index, byte value) {
-    	boolean r = false;
-    	
-    	// check whether we need to change ndirty
-    	//
-    	// TODO - remove this to gain speed?
-    	// 
-    	// there's some cost here
-    	// it may be worth omitting this in favor
-    	// of being less efficient at reclaiming
-    	// memory when blocks become clean
-    	// 
-    	// dirty blocks are expected to be orders
-    	// of magnitude less common compared to
-    	// clean OUTSIDE blocks, so periodically
-    	// doing a check against all dirty blocks
-    	// when memory becomes problematic may be
-    	// a more efficient method
-    	byte oldVal = data[index];
-    	if (oldVal != value) {
+    boolean r = false;
+    
+    // check whether we need to change ndirty
+    //
+    // TODO - remove this to gain speed?
+    // 
+    // there's some cost here
+    // it may be worth omitting this in favor
+    // of being less efficient at reclaiming
+    // memory when blocks become clean
+    // 
+    // dirty blocks are expected to be orders
+    // of magnitude less common compared to
+    // clean OUTSIDE blocks, so periodically
+    // doing a check against all dirty blocks
+    // when memory becomes problematic may be
+    // a more efficient method
+    byte oldVal = data[index];
+    if (oldVal != value) {
             if (oldVal == (byte) 0) {
                 ndirty += 1;
             } else if (value == 0) {
@@ -765,10 +765,10 @@ class PointSet {
                 }
             }
         }
-    	
-    	// set the value
+    
+    // set the value
         data[index] = value;
-    	return r;
+    return r;
     }
     
     /**
@@ -780,8 +780,8 @@ class PointSet {
      * @return TRUE if block should be replaced with OUTSIDE
      */
     public boolean set(int[] coord, int[] sizer, byte value) {
-    	return set(f.coordToIndex(coord, new int[] {sizer[3], sizer[4], sizer[5]}),
-    			   value);
+    return set(f.coordToIndex(coord, new int[] {sizer[3], sizer[4], sizer[5]}),
+       value);
     }
     
     /**
@@ -801,10 +801,10 @@ class PointSet {
      * @return TRUE if all voxels in block are equal-valued
      */
     public boolean allEqual() {
-    	for (int i = 1; i < data.length; i++) {
+    for (int i = 1; i < data.length; i++) {
             if (data[i] != data[0]) return false;
         }
-    	return true;
+    return true;
     }
 }
 
@@ -812,101 +812,101 @@ class PointSet {
  * Various helper functions.
  */
 class f {
-	/**
-	 * Find the index of a block containing a given voxel coord within grid.
-	 * 
-	 * @param coord, the (x,y,z) of a voxel in the grid
-	 * @param sizer, {gridOrder[3]
-	 *  			  blockOrder[3]
-	 *				  GRID_SIZE_IN_BLOCKS[3]
-	 * 				  BLOCK_SIZE_IN_VOXELS[3]}
-	 * @return index within grid's array of blocks
-	 */
-	static int blockIndex(int coord[], int[] sizer) {
-		return coordToIndex(new int[] {coord[0] >> sizer[3],
-									   coord[1] >> sizer[4],
-									   coord[2] >> sizer[5]},
-							new int[] {sizer[0],sizer[1],sizer[2]});
-	}
-	
-	/**
-	 * Find the index of a voxel within a block, given voxel coord within grid.
-	 * 
-	 * @param coord, the (x,y,z) of a voxel in the grid
-	 * @param sizer, {gridOrder[0..2]
-	 *  			  blockOrder[3..5]
-	 *				  GRID_SIZE_IN_BLOCKS[6..8]
-	 * 				  BLOCK_SIZE_IN_VOXELS[9..11]}
-	 * @return index within block's array of voxels
-	 */
-	static int voxelIndex(int coord[], int[] sizer) {
-		// TODO - can this be more efficient?
-		return coordToIndex( new int[] {coord[0] % sizer[9],
-									    coord[1] % sizer[10],
-									    coord[2] % sizer[11]},
-						     new int[] {sizer[3], sizer[4], sizer[5]});
-	}
-	
-	/**
-	 * Quickly calculate an index within a flattened 3D grid.
-	 * 
-	 * The first value is assumed to be the least significant bit.
-	 * For example:
-	 * 		x y z | i
-	 * 		0 0 0 | 0
-	 *      1 0 0 | 1
-	 *      0 1 0 | 2
-	 *      1 1 0 | 3  ...and so forth.
-	 * 
-	 * @param c, the xyz
-	 * @param ord, the order of each grid dimension as 2^n
-	 * @return the index
-	 */
-	static int coordToIndex(int[] c, int[] ord) {
-		return c[0] + (c[1] << ord[0]) + (c[2] << ord[0] << ord[1]);
-	}
+/**
+ * Find the index of a block containing a given voxel coord within grid.
+ * 
+ * @param coord, the (x,y,z) of a voxel in the grid
+ * @param sizer, {gridOrder[3]
+ *    blockOrder[3]
+ *  GRID_SIZE_IN_BLOCKS[3]
+ *   BLOCK_SIZE_IN_VOXELS[3]}
+ * @return index within grid's array of blocks
+ */
+static int blockIndex(int coord[], int[] sizer) {
+return coordToIndex(new int[] {coord[0] >> sizer[3],
+   coord[1] >> sizer[4],
+   coord[2] >> sizer[5]},
+new int[] {sizer[0],sizer[1],sizer[2]});
+}
 
-	/**
-	 * Find the order of the next power of two.
-	 * 
-	 * If already a power of two, return the order of value.
-	 * 
-	 * @param value
-	 * @return 2^n >= value
-	 */
-	static int nextpow2(int value) {
-		int p2 = 1;
-		int r = 0;
-		// check higher powers while not high enough
-		while (p2 < value) {
-			p2 = p2 << 1;
-			r += 1;
-		}
-		return r;
-	}
-	
-	/**
-	 * Find the order of the next power of two.
-	 * 
-	 * If already a power of two, return the order of value.
-	 * 
-	 * @param value
-	 * @return 2^n >= value
-	 */
-	static int nextpow2(double value) {
-		return nextpow2((int) Math.ceil(value));
-	}
-	
-	/**
-	 * Find 2^n.
-	 * 
-	 * @param value
-	 * @return 2^value
-	 */
-	static int p2(int value) {
-		// return (int) Math.pow(2,value);
-		return 1 << value;
-	}
+/**
+ * Find the index of a voxel within a block, given voxel coord within grid.
+ * 
+ * @param coord, the (x,y,z) of a voxel in the grid
+ * @param sizer, {gridOrder[0..2]
+ *    blockOrder[3..5]
+ *  GRID_SIZE_IN_BLOCKS[6..8]
+ *   BLOCK_SIZE_IN_VOXELS[9..11]}
+ * @return index within block's array of voxels
+ */
+static int voxelIndex(int coord[], int[] sizer) {
+// TODO - can this be more efficient?
+return coordToIndex( new int[] {coord[0] % sizer[9],
+    coord[1] % sizer[10],
+    coord[2] % sizer[11]},
+     new int[] {sizer[3], sizer[4], sizer[5]});
+}
+
+/**
+ * Quickly calculate an index within a flattened 3D grid.
+ * 
+ * The first value is assumed to be the least significant bit.
+ * For example:
+ * x y z | i
+ * 0 0 0 | 0
+ *      1 0 0 | 1
+ *      0 1 0 | 2
+ *      1 1 0 | 3  ...and so forth.
+ * 
+ * @param c, the xyz
+ * @param ord, the order of each grid dimension as 2^n
+ * @return the index
+ */
+static int coordToIndex(int[] c, int[] ord) {
+return c[0] + (c[1] << ord[0]) + (c[2] << ord[0] << ord[1]);
+}
+
+/**
+ * Find the order of the next power of two.
+ * 
+ * If already a power of two, return the order of value.
+ * 
+ * @param value
+ * @return 2^n >= value
+ */
+static int nextpow2(int value) {
+int p2 = 1;
+int r = 0;
+// check higher powers while not high enough
+while (p2 < value) {
+p2 = p2 << 1;
+r += 1;
+}
+return r;
+}
+
+/**
+ * Find the order of the next power of two.
+ * 
+ * If already a power of two, return the order of value.
+ * 
+ * @param value
+ * @return 2^n >= value
+ */
+static int nextpow2(double value) {
+return nextpow2((int) Math.ceil(value));
+}
+
+/**
+ * Find 2^n.
+ * 
+ * @param value
+ * @return 2^value
+ */
+static int p2(int value) {
+// return (int) Math.pow(2,value);
+return 1 << value;
+}
 }
 
 
