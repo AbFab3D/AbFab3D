@@ -501,7 +501,7 @@ System.out.flush();
             }
         }
 
-        if (minBounds[2] % voxelSize == 2) {
+        if (minBounds[2] % voxelSize == 0) {
             minBounds[2] -= halfVoxel;
             if (minBounds[2] < minGridWorldCoord[2]) {
                 minBounds[2] = minGridWorldCoord[2];
@@ -522,10 +522,10 @@ System.out.flush();
             }
         }
 
-        if (maxBounds[2] % voxelSize == 2) {
+        if (maxBounds[2] % voxelSize == 0) {
             maxBounds[2] += halfVoxel;
-            if (maxBounds[2] > minGridWorldCoord[2]) {
-                maxBounds[2] = minGridWorldCoord[2];
+            if (maxBounds[2] > maxGridWorldCoord[2]) {
+                maxBounds[2] = maxGridWorldCoord[2];
             }
         }
 
@@ -542,7 +542,6 @@ System.out.println("minBounds: " + java.util.Arrays.toString(minBounds));
 System.out.println("maxBounds: " + java.util.Arrays.toString(maxBounds));
 System.out.flush();
 */
-
         grid.getGridCoords(minBounds[0], minBounds[1], minBounds[2], minCoords);
         grid.getGridCoords(maxBounds[0], maxBounds[1], maxBounds[2], maxCoords);
 /*
