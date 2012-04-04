@@ -113,7 +113,7 @@ public class BoxesX3DExporter implements Exporter {
         int idx = 0;
 //        float[] color = new float[] {0.8f,0.8f,0.8f};
         float[] def_color = new float[] {34/255.0f,139/255.0f,34/255.0f};
-        float def_transparency = 0.5f;
+        float def_transparency = 1f;
         float[] color = def_color;
         float transparency = def_transparency;
 
