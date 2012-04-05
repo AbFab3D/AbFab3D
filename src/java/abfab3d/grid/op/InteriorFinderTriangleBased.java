@@ -73,7 +73,7 @@ public class InteriorFinderTriangleBased implements Operation  {
     private int numVoxels;
 
     /** RayCast hit counts */
-    private int[][][] counts;
+    private byte[][][] counts;
 
     /**
      * Constructor.
@@ -126,11 +126,9 @@ public class InteriorFinderTriangleBased implements Operation  {
         }
         gridOp = grid;
         
-        counts = new int[grid.getWidth()][grid.getHeight()][grid.getDepth()];
+        counts = new byte[grid.getWidth()][grid.getHeight()][grid.getDepth()];
 
-        // TODO: Assume we have enough material entries to count num interiors
-        result = grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(),
-                grid.getVoxelSize(), grid.getSliceHeight());
+        result = grid;
 
         float[] bounds = new float[6];
 
@@ -312,7 +310,6 @@ public class InteriorFinderTriangleBased implements Operation  {
             }
         }
         
-        // Any voxel with material = 3 should be an interior voxel.
         if (grid instanceof AttributeGrid) {
             writeAttributeInterior();
         } else {
@@ -781,5 +778,4 @@ class HitRecord implements Comparable {
 
         return (this.hit[axis] < ta.hit[axis] ? -1 : 1);
     }
-
 }
