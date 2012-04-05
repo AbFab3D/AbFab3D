@@ -1,6 +1,6 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
- *                               Java Source
+ *						Shapeways, Inc Copyright (c) 2011
+ *							   Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
@@ -33,524 +33,474 @@ package abfab3d.grid;
  * @author James Gray
  */
 public class BlockArrayGrid extends BaseGrid {
-    // dimensions of grid in blocks
-// dimensions of blocks in voxels
-// values given in 2^n
-protected final int[] GRID_ORDER;
-    protected final int[] BLOCK_ORDER;
-    protected final int[] GRID_SIZE_IN_BLOCKS;
-    protected final int[] BLOCK_SIZE_IN_VOXELS;
-    protected final int[] GRID_SIZE_IN_VOXELS;
-    
-    // unified description of grid's dimensionality
-    // { gridOrder[3]
-    //   blockOrder[3]
-    //   GRID_SIZE_IN_BLOCKS[3]
-    //   BLOCK_SIZE_IN_VOXELS[3] }
-    protected final int[] SIZER;
-    
-    // the outside block - the core of the DBGrid memory optimization is reusing this everywhere
-    // 
-    // support for other homogeneous blocks types be nice at some point, but mind the cost
-    // due to multi-material & other attributes, the "inside" block from DBGrid is insufficient
-    // using parallel voxel data may be a way to reclaim this? if we want to? is it needed?
-    protected final Block OUTSIDE;
-    
-    // offset of the grid's origin in number of voxels
-    protected double[] offset;
-    
-    // for converting grid units to world dimensions
-    // world*scale = grid
-    protected double[] scale;
-    
-    // storage for blocks, x is LSB & z is MSB, use c2i() to convert
-    protected Block[] blocks;
-    
-    /**
-     * Constructor.
-     *
-     * @param w The number of voxels in width
-     * @param h The number of voxels in height
-     * @param d The number of voxels in depth
-     * @param pixel The size of the pixels (world size of voxels in xz)
-     * @param sheight The slice height in meters (world size of voxels in y)
-     * @param blockOrder The dimensionality of blocks in voxels, value as 2^n
-     * @param gridOrigin The position of the origin voxel in world coords
-     */
-    public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockOrder, double[] gridOrigin) {
-        // satisfy BaseGrid
-    super(w,h,d,pixel,sheight);
-        
-        // set up the BlockArrayGrid...
-    
-    // record the block order and offset
-    BLOCK_ORDER = blockOrder;
-    offset = gridOrigin;
-    
-    // find invscale values
-    scale = new double[] {1.0/pixel, 1.0/sheight, 1.0/pixel}; 
-    
-    // what are the dims of the blocks in voxels
-    int[] blockWidth = {1 << blockOrder[0], 1 << blockOrder[1], 1 << blockOrder[2]};
-    
-    // what is the size of the grid in 2^n
-    GRID_ORDER = new int[] {f.nextpow2((double) w / (double) blockWidth[0]),
-    f.nextpow2((double) h / (double) blockWidth[1]),
-    f.nextpow2((double) d / (double) blockWidth[2])};
-    
-    GRID_SIZE_IN_BLOCKS = new int[] {f.p2(GRID_ORDER[0]),
-   f.p2(GRID_ORDER[1]),
-   f.p2(GRID_ORDER[2])};
-    BLOCK_SIZE_IN_VOXELS = new int[] {f.p2(BLOCK_ORDER[0]),
-  f.p2(BLOCK_ORDER[1]),
-  f.p2(BLOCK_ORDER[2])};
-    GRID_SIZE_IN_VOXELS = new int[] {f.p2(BLOCK_ORDER[0]) * f.p2(GRID_ORDER[0]),
-  f.p2(BLOCK_ORDER[1]) * f.p2(GRID_ORDER[1]),
-  f.p2(BLOCK_ORDER[2]) * f.p2(GRID_ORDER[2])};
-SIZER = new int[] { GRID_ORDER[0],
-GRID_ORDER[1],
-GRID_ORDER[2],
-BLOCK_ORDER[0],
-BLOCK_ORDER[1],
-BLOCK_ORDER[2],
-GRID_SIZE_IN_BLOCKS[0],
-GRID_SIZE_IN_BLOCKS[1],
-GRID_SIZE_IN_BLOCKS[2],
-BLOCK_SIZE_IN_VOXELS[0],
-BLOCK_SIZE_IN_VOXELS[1],
-BLOCK_SIZE_IN_VOXELS[2]};
-    
-    // initialize the outside block
-    OUTSIDE = new Block(SIZER,(byte)0);
-    
-    // initialize blocks with all OUTSIDE blocks (i.e. an empty grid)
-    blocks = new Block[1 << GRID_ORDER[0] << GRID_ORDER[1] << GRID_ORDER[2]];
-        for (int i = 0; i < blocks.length; i++) {
-        blocks[i] = OUTSIDE;
-        }
-    }
-    
-    /**
-     * Constructor.
-     *
-     * @param w The number of voxels in width
-     * @param h The number of voxels in height
-     * @param d The number of voxels in depth
-     * @param pixel The size of the pixels (world size of voxels in xz)
-     * @param sheight The slice height in meters (world size of voxels in y)
-     * @param blockOrder The dimensionality of blocks in voxels, value as 2^n
-     * @param gridOrigin The position of the origin voxel in world coords
-     */
-    public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockOrder) {
-    this(w,h,d,pixel,sheight,blockOrder,new double[] {0,0,0});
-    }
-    
-    /**
-     * Constructor.
-     *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels (world size of voxels in xz)
-     * @param sheight The slice height in meters (world size of voxels in y)
-     * @param blockOrder The dimensionality of blocks in voxels, value as 2^n
-     * @param gridOrigin The position of the origin voxel in world coords
-     */
-    public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockOrder) {
-    this(w,h,d,pixel,sheight,blockOrder,new double[] {0,0,0});
-    }
-    
-    /**
-     * Constructor using world coordinates.
-     *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     * @param blockOrder The dimensionality of blocks in voxels, value as 2^n
-     * @param gridOrigin The position of the origin voxel in world coords
-     */
-    public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockOrder, double[] gridOrigin) {
-    this((int) (w / pixel) + 1, (int) (h / sheight) + 1, 
-    (int) (d / pixel) + 1, pixel, sheight, blockOrder, gridOrigin);
-    }
-    
-    /**
-     * Constructor using some default values.
-     * 
-     * Defaults should be updated pending testing
-     * of what constitutes good default values.
-     * 
-     * Grid size 4096^3, Block size 16^3.
-     */
-    public BlockArrayGrid() {
-    this(4096.0,4096.0,4096.0,1.0,1.0,new int[] {4, 4, 4},new double[] {0.0,0.0,0.0});
-    }
-    
-    /**
-     * Create an empty grid.
-     *
-     * @param w The number of voxels in width
-     * @param h The number of voxels in height
-     * @param d The number of voxels in depth
-     * @param pixel The size of the pixels (world size of voxels in xz)
-     * @param sheight The slice height in meters (world size of voxels in y)
-     * 
-     * other params will be per the current object
-     */
-    public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-    return new BlockArrayGrid(w,h,d,pixel,sheight,BLOCK_ORDER,offset);
-    }
-    
-    /**
-     * Copy Constructor.
-     *
-     * @param grid The grid
-     */
-    public BlockArrayGrid(BlockArrayGrid grid) {
-        super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight());
-        
-        // clone stuff
-    BLOCK_ORDER = grid.BLOCK_ORDER.clone();
-    GRID_ORDER = grid.GRID_ORDER.clone();
-    GRID_SIZE_IN_BLOCKS = grid.GRID_SIZE_IN_BLOCKS.clone();
-        BLOCK_SIZE_IN_VOXELS = grid.BLOCK_SIZE_IN_VOXELS.clone();
-        GRID_SIZE_IN_VOXELS = grid.GRID_SIZE_IN_VOXELS.clone();
-        SIZER = grid.SIZER.clone();
-    OUTSIDE = new Block(SIZER,(byte)0); // voxels are non-final, don't share
-    offset = grid.offset.clone();
-    scale = grid.scale.clone();
-    blocks = grid.blocks.clone();
-    }
-    
-    /**
-     * Get size of blocks in voxels
-     */
-    public int[] blockSizeInVoxels() {
-    return BLOCK_SIZE_IN_VOXELS;
-    }
-    
-    /**
-     * Get size of grid in blocks
-     */
-    public int[] gridSizeInBlocks() {
-    return GRID_SIZE_IN_BLOCKS;
-    }
-    
-    /**
-     * Get size of grid in voxels
-     */
-    public int[] gridSizeInVoxels() {
-    return GRID_SIZE_IN_VOXELS;
-    }
-    
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel state
-     */
-    public VoxelData getData(int x, int y, int z) {
-    return getVoxelData(x,y,z);
-    }
+	// declare constant blocks
+	static final Block OUTSIDE_BLOCK = new ConstantBlock(Grid.OUTSIDE);
+	static final Block EXTERIOR_BLOCK = new ConstantBlock(Grid.EXTERIOR);
+	static final Block INTERIOR_BLOCK = new ConstantBlock(Grid.INTERIOR);
+	
+	// type of blocks to use for this grid
+	// options are:
+	// 		0: ArrayBlock, a block where voxels are represented as an array of bytes
+	// 		1: RLEBlock, a block where voxels are stored via run-length encoding
+	public final int GRID_BLOCK_TYPE;
+	
+	// dimensions of the 1D containers
+	public final int BLOCKS_PER_GRID; 
+	public final int VOXELS_PER_BLOCK;
+	
+	// corresponding 3D dimensions
+	public final int[] GRID_WIDTH_IN_BLOCKS;
+	public final int[] BLOCK_WIDTH_IN_VOXELS;
+	
+	// corresponding 3D dimensions in 2^n form
+	public final int[] GRID_TWOS_ORDER;
+	public final int[] BLOCK_TWOS_ORDER;
+	
+	// offset of the grid's origin in number of voxels
+	protected double[] offset = {0.0, 0.0, 0.0};
+	
+	// for converting grid units to world dimensions
+	// world*scale = grid
+	protected double[] scale = {1.0, 1.0, 1.0};
+	
+	// storage for blocks, x is LSB & z is MSB, use c2i() to convert
+	protected Block[] blocks;
+	
+	// preallocated index tuples
+	protected int[] idx = {0,0};
+	protected int[] coord = {0,0,0};
+	
+	/**
+	 * Constructor.
+	 *
+	 * @param w The number of voxels in width
+	 * @param h The number of voxels in height
+	 * @param d The number of voxels in depth
+	 * @param pixel The size of the pixels (world size of voxels in xz)
+	 * @param sheight The slice height in meters (world size of voxels in y)
+	 * @param blockTwosOrder The dimensionality of blocks in voxels, value as 2^n
+	 * @param blockType, the type of blocks to use.
+	 * 				options are:
+	 * 					0: ArrayBlock, a block where voxels are represented as an array of bytes
+	 * 					1: RLEBlock, a block where voxels are stored via run-length encoding
+	 */
+	public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockTwosOrder, int blockType) {
+		// satisfy BaseGrid
+		super(w,h,d,pixel,sheight);
+		
+		// set up the BlockArrayGrid constants
+		GRID_BLOCK_TYPE = blockType;
+		BLOCK_TWOS_ORDER = blockTwosOrder;
+		BLOCK_WIDTH_IN_VOXELS = new int[] {(int) Math.pow(2,BLOCK_TWOS_ORDER[0]),
+										   (int) Math.pow(2,BLOCK_TWOS_ORDER[1]),
+										   (int) Math.pow(2,BLOCK_TWOS_ORDER[2])};
+		
+		GRID_TWOS_ORDER = new int[] {f.nextpow2((double) w / (double) BLOCK_WIDTH_IN_VOXELS[0]),
+									 f.nextpow2((double) h / (double) BLOCK_WIDTH_IN_VOXELS[1]),
+									 f.nextpow2((double) d / (double) BLOCK_WIDTH_IN_VOXELS[2])};
+		
+		GRID_WIDTH_IN_BLOCKS = new int[] {(int) Math.pow(2,GRID_TWOS_ORDER[0]),
+										  (int) Math.pow(2,GRID_TWOS_ORDER[1]),
+										  (int) Math.pow(2,GRID_TWOS_ORDER[2])};
+		
+		BLOCKS_PER_GRID = GRID_WIDTH_IN_BLOCKS[0]*GRID_WIDTH_IN_BLOCKS[1]*GRID_WIDTH_IN_BLOCKS[2];
+		VOXELS_PER_BLOCK = BLOCK_WIDTH_IN_VOXELS[0]*BLOCK_WIDTH_IN_VOXELS[1]*BLOCK_WIDTH_IN_VOXELS[2];
+		
+		// set world scales
+		scale[0] = 1.0/pixel;
+		scale[1] = 1.0/sheight;
+		scale[2] = scale[0];
+		
+		// initialize blocks array
+		switch (GRID_BLOCK_TYPE) {
+			case 0:
+				blocks = new Block[BLOCKS_PER_GRID];
+				break;
+			case 1:
+				blocks = new Block[BLOCKS_PER_GRID];
+				break;
+			default:
+				throw new IllegalArgumentException("Specified block type not a defined type.");
+		}
+		for (int i = 0; i < blocks.length; i++) {
+			blocks[i] = OUTSIDE_BLOCK;
+		}
+	}
+	
+	/**
+	 * Constructor using world coordinates.
+	 *
+	 * @param w The width in world coords
+	 * @param h The height in world coords
+	 * @param d The depth in world coords
+	 * @param pixel The size of the pixels
+	 * @param sheight The slice height in meters
+	 * @param blockTwosOrder The dimensionality of blocks in voxels, value as 2^n
+	 * @param blockType, the type of blocks to use.
+	 * 				options are:
+	 * 					0: ArrayBlock, a block where voxels are represented as an array of bytes
+	 * 					1: RLEBlock, a block where voxels are stored via run-length encoding
+	 */
+	public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockTwosOrder, int blockType) {
+		this((int) (w/pixel)+1, (int) (h/sheight)+1, (int) (d/pixel)+1, pixel, sheight, blockTwosOrder, blockType);
+	}
+	
+	/**
+	 * Create an empty grid.
+	 *
+	 * @param w The number of voxels in width
+	 * @param h The number of voxels in height
+	 * @param d The number of voxels in depth
+	 * @param pixel The size of the pixels (world size of voxels in xz)
+	 * @param sheight The slice height in meters (world size of voxels in y)
+	 * 
+	 * other params will be per the current object
+	 */
+	public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
+		return new BlockArrayGrid(w,h,d,pixel,sheight,BLOCK_TWOS_ORDER,GRID_BLOCK_TYPE);
+	}
+	
+	/**
+	 * Copy Constructor.
+	 *
+	 * @param grid The grid
+	 */
+	public BlockArrayGrid(BlockArrayGrid grid) {
+		this(grid.GRID_WIDTH_IN_BLOCKS[0]*grid.BLOCK_WIDTH_IN_VOXELS[0],
+			 grid.GRID_WIDTH_IN_BLOCKS[1]*grid.BLOCK_WIDTH_IN_VOXELS[1],
+			 grid.GRID_WIDTH_IN_BLOCKS[2]*grid.BLOCK_WIDTH_IN_VOXELS[2],
+			 1.0/grid.scale[0],
+			 1.0/grid.scale[1],
+			 grid.BLOCK_TWOS_ORDER,
+			 grid.GRID_BLOCK_TYPE);
+		offset = grid.offset.clone();
+		blocks = grid.blocks.clone();
+	}
+	
+	/**
+	 * Get the data of the voxel
+	 *
+	 * @param x The x grid coordinate
+	 * @param y The y grid coordinate
+	 * @param z The z grid coordinate
+	 * @return The voxel state
+	 */
+	public VoxelData getData(int x, int y, int z) {
+		return getVoxelData(x,y,z);
+	}
 
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public VoxelData getData(double x, double y, double z) {
-    return getVoxelData(x,y,z);
-    }
+	/**
+	 * Get the data of the voxel
+	 *
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
+	 * @return The voxel state
+	 */
+	public VoxelData getData(double wx, double wy, double wz) {
+		return getVoxelData(wx,wy,wz);
+	}
 
-    /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public byte getState(double x, double y, double z) {
-    return get(x,y,z);
-    }
+	/**
+	 * Get the state of the voxel
+	 *
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
+	 * @return The voxel state
+	 */
+	public byte getState(double wx, double wy, double wz) {
+		return get(wx,wy,wz);
+	}
 
-    /**
-     * Get the state of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel state
-     */
-    public byte getState(int x, int y, int z) {
-    return get(x,y,z);
-    }
+	/**
+	 * Get the state of the voxel.
+	 *
+	 * @param x The x grid coordinate
+	 * @param y The y grid coordinate
+	 * @param z The z grid coordinate
+	 * @return The voxel state
+	 */
+	public byte getState(int x, int y, int z) {
+		return get(x,y,z);
+	}
 
-    /**
-     * Get the material of the voxel.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel material
-     */
-    public int getMaterial(double x, double y, double z) {
-    return 0; // this is the no-material version
-    }
+	/**
+	 * Get the material of the voxel.
+	 *
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
+	 * @return The voxel material
+	 */
+	public int getMaterial(double wx, double wy, double wz) {
+		return 0; // this is the no-material version
+	}
 
-    /**
-     * Get the material of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel material
-     */
-    public int getMaterial(int x, int y, int z) {
-    return 0; // this is the no-material version
-    }
+	/**
+	 * Get the material of the voxel.
+	 *
+	 * @param x The x grid coordinate
+	 * @param y The y grid coordinate
+	 * @param z The z grid coordinate
+	 * @return The voxel material
+	 */
+	public int getMaterial(int x, int y, int z) {
+		return 0; // this is the no-material version
+	}
 
-    /**
-     * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The voxel state
-     * @param material The material
-     */
-    public void setData(double x, double y, double z, byte state, int material) {
-    int[] coord = worldToGrid(new double[] {x,y,z});
-    set(coord[0],coord[1],coord[2],state);
-    }
+	/**
+	 * Set the value of a voxel.
+	 *
+	 * @param wx,wy,yz, The world coordinates
+	 * @param state, the voxel state
+	 * @param material, the material
+	 */
+	public void setData(double wx, double wy, double wz, byte state, int material) {
+		coord = worldToGrid(wx,wy,wz);
+		set(coord[0],coord[1],coord[2],state);
+	}
 
-    /**
-     * Set the value of a voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param state The voxel state
-     * @param material The material
-     */
-    public void setData(int x, int y, int z, byte state, int material) {
-    set(x,y,z,state);
-    }
+	/**
+	 * Set the value of a voxel.
+	 *
+	 * @param x The x grid coordinate
+	 * @param y The y grid coordinate
+	 * @param z The z grid coordinate
+	 * @param state The voxel state
+	 * @param material The material
+	 */
+	public void setData(int x, int y, int z, byte state, int material) {
+		set(x,y,z,state);
+	}
 
-    /**
-     * Set the material value of a voxel.
- * This is the no material version, so it actually does NOTHING!
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param material The materialID
-     */
-    public void setMaterial(int x, int y, int z, int material) {
-        return; // this is the "no material" version
-    }
-    
-    /**
-     * Set the material value of a voxel.
-     * This is the no material version, so it actually does NOTHING!
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param material The materialID
-     */
-    public void setMaterial(double x, double y, double z, int material) {
-        return; // this is the "no material" version
-    }
+	/**
+	 * Set the material value of a voxel.
+	 * This is the no material version, so it actually does NOTHING!
+	 *
+	 * @param x The x grid coordinate
+	 * @param y The y grid coordinate
+	 * @param z The z grid coordinate
+	 * @param material The materialID
+	 */
+	public void setMaterial(int x, int y, int z, int material) {
+		return; // this is the "no material" version
+	}
+	
+	/**
+	 * Set the material value of a voxel.
+	 * This is the no material version, so it actually does NOTHING!
+	 *
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
+	 * @param material The materialID
+	 */
+	public void setMaterial(double wx, double wy, double wz, int material) {
+		return; // this is the "no material" version
+	}
 
-    /**
-     * Set the state value of a voxel.  Leaves the material unchanged.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param state The value.
-     */
-    public void setState(int x, int y, int z, byte state) {
-        set(x,y,z,state);
-    }
-    
-    /**
-     * Set the state value of a voxel.  Leaves the material unchanged.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The value.
-     */
-    public void setState(double x, double y, double z, byte state) {
-        set(x,y,z,state);
-    }
-    
-    /**
-     * Read a voxel to VoxelData by grid coordinate.
-     * Currently assumes all active voxels are EXTERNAL.
-     * This is "no material" version to mat = 0.
-     * 
-     * @param coord, the coord to read
-     * @return a VoxelData object describing the voxel
-     */
-    protected VoxelData getVoxelData(int x, int y, int z) {
-    return new VoxelDataByte((byte) get(x,y,z), 0);
-    }
-    
-    /**
-     * Read a voxel to VoxelData by world coordinate.
-     * Currently assumes all active voxels are EXTERNAL.
-     * This is "no material" version to mat = 0.
-     * 
-     * @param coord, the coord to read
-     * @return a VoxelData object describing the voxel
-     */
-    protected VoxelData getVoxelData(double x, double y, double z) {
-    int[] gc = worldToGrid(new double[] {x,y,z});
-    return getVoxelData(gc[0],gc[1],gc[2]);
-    }
-    
-    /**
-     * Get a voxel's value by index.
-     * 
-     * @param index, the {blockIndex, voxelIndex} to get
-     * @return the voxel's value
-     */
-    protected byte get(int[] index) {
-    return blocks[index[0]].get(index[1]);
-    }
-    
-    /**
-     * Get voxel data by grid coords.
-     * 
-     * @param xyz, the voxel to read
-     * @return the voxel's value
-     */
-    protected byte get(int x, int y, int z) {
-    int[] gc = {x,y,z};
-    return get(new int[] {f.blockIndex(gc,SIZER), f.voxelIndex(gc,SIZER)});
-    }
-    
-    /**
-     * Get voxel data by world coords.
-     * 
-     * @param xyz, the voxel to read
-     * @return the voxel's value
-     */
-    protected byte get(double x, double y, double z) {
-    int[] gc = worldToGrid(new double[] {x,y,z});
-    return get(gc[0], gc[1], gc[2]);
-    }
-    
-    /**
-     * Set a voxel's value by index.
-     * 
-     * @param index, the {blockIndex, voxelIndex} to set
-     * @param value, the data to set
-     */
-    protected void set(int[] index, byte value) {
-    if (value != 0 & blocks[index[0]] == OUTSIDE) {
-    blocks[index[0]] = new Block(SIZER);
-    }
-    if (blocks[index[0]].set(index[1], value)) {
-    blocks[index[0]] = OUTSIDE;
-    }
-    }
-    
-    /**
-     * Set a voxel's value by grid coords.
-     * 
-     * @param xyz, the coords of the voxel to set
-     * @param value, the data to set
-     */
-    protected void set(int x, int y, int z, byte value) {
-    int[] gc = {x,y,z};
-    set(new int[] {f.blockIndex(gc,SIZER), f.voxelIndex(gc,SIZER)},value);
-    }
-    
-    /**
-     * Set a voxel's value by world coords.
-     * 
-     * @param xyz, the coords of the voxel to set
-     * @param value, the data to set
-     */
-    protected void set(double x, double y, double z, byte value) {
-    int[] gc = worldToGrid(new double[] {x,y,z});
-    set(gc[0],gc[1],gc[2],value);
-    }
-    
-    /**
-     * Set all voxels within a block to a given value.
-     * 
-     * @param coord, a grid coordinate in the block
-     * @param value, the data to set
-     */
-    protected void setBlock(int[] coord, byte value) {
-    if (value == 0) {
-    blocks[blockIndex(coord)] = OUTSIDE;
-    } else {
-    blocks[blockIndex(coord)].setAll(value);
-    }
-    }
-    
-    /**
-     * Set all voxels within a block to a given value.
-     * 
-     * @param coord, a world coordinate in the block
-     * @param value, the data to set
-     */
-    protected void setBlock(double[] coord, byte value) {
-    setBlock(worldToGrid(coord),value);
-    }
-    
-    /**
-     * Convert world coordinates to grid coordinates.
-     * 
-     * @param coord, the world coordinate
-     * @return the grid coordinate
-     */
-    protected int[] worldToGrid(double[] coord) {
-    return new int[] {(int) Math.floor(coord[0]*scale[0]),
-      (int) Math.floor(coord[1]*scale[1]),
-      (int) Math.floor(coord[2]*scale[2])}; 
-    }
-    
-    /**
-     * Given a grid coord, return the containing block's index.
-     * 
-     * @param coord, the grid coordinate
-     * @return the block index within grid's block array
-     */
-    protected int blockIndex(int[] coord) {
-    return f.blockIndex(coord, SIZER);
-    }
-    
-    /**
-     * Given a world coord, return the containing block's index.
-     * 
-     * @param coord, the world coordinate
-     * @return the block index within grid's block array
-     */
-    protected int blockIndex(double[] coord) {
-    return blockIndex(worldToGrid(coord));
-    }
-    
-    /**
-     * Clone factory.
-     */
-    public Object clone() {
-return new BlockArrayGrid(this);
-}
+	/**
+	 * Set the state value of a voxel.  Leaves the material unchanged.
+	 *
+	 * @param x The x grid coordinate
+	 * @param y The y grid coordinate
+	 * @param z The z grid coordinate
+	 * @param state The value.
+	 */
+	public void setState(int x, int y, int z, byte state) {
+		set(x,y,z,state);
+	}
+	
+	/**
+	 * Set the state value of a voxel.  Leaves the material unchanged.
+	 *
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
+	 * @param state The value.
+	 */
+	public void setState(double wx, double wy, double wz, byte state) {
+		set(wx,wy,wz,state);
+	}
+	
+	/**
+	 * Read a voxel to VoxelData by grid coordinate.
+	 * Currently assumes all active voxels are EXTERNAL.
+	 * This is "no material" version to mat = 0.
+	 * 
+	 * @param coord, the coord to read
+	 * @return a VoxelData object describing the voxel
+	 */
+	protected VoxelData getVoxelData(int x, int y, int z) {
+		return new VoxelDataByte((byte) get(x,y,z), 0);
+	}
+	
+	/**
+	 * Read a voxel to VoxelData by world coordinate.
+	 * Currently assumes all active voxels are EXTERNAL.
+	 * This is "no material" version to mat = 0.
+	 * 
+	 * @param coord, the coord to read
+	 * @return a VoxelData object describing the voxel
+	 */
+	protected VoxelData getVoxelData(double wx, double wy, double wz) {
+		coord = worldToGrid(wx,wy,wz);
+		return getVoxelData(coord[0],coord[1],coord[2]);
+	}
+	
+	/**
+	 * Get a voxel's value by index.
+	 * 
+	 * @param index, the {blockIndex, voxelIndex} to get
+	 * @return the voxel's value
+	 */
+	protected byte get(int idxBlockInGrid, int idxVoxelInBlock) {
+		return blocks[idxBlockInGrid].get(idxVoxelInBlock);
+	}
+	
+	/**
+	 * Get a voxel's value by index.
+	 * 
+	 * @param index, the [idxBlockInGrid, idxVoxelInBlock] to get
+	 * @return the voxel's state
+	 */
+	protected byte get(int[] index) {
+		return blocks[index[0]].get(index[1]);
+	}
+	
+	/**
+	 * Get voxel data by grid coords.
+	 * 
+	 * @param xyz, the voxel to read
+	 * @return the voxel's value
+	 */
+	protected byte get(int x, int y, int z) {
+		idx = f.coordToIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER);
+		return get(idx[0],idx[1]);
+	}
+	
+	/**
+	 * Get voxel data by world coords.
+	 * 
+	 * @param xyz, the voxel to read
+	 * @return the voxel's value
+	 */
+	protected byte get(double wx, double wy, double wz) {
+		coord = worldToGrid(wx,wy,wz);
+		return get(coord[0],coord[1],coord[2]);
+	}
+	
+	/**
+	 * Set a voxel's value by index.
+	 * 
+	 * @param idxBlockInGrid, idxVoxelInBlock, the location of the voxel
+	 * @param state, the data to set
+	 */
+	protected void set(int idxBlockInGrid, int idxVoxelInBlock, byte state) {
+		if (blocks[idxBlockInGrid] == OUTSIDE_BLOCK) {
+			if (state != Grid.OUTSIDE) {
+				switch(GRID_BLOCK_TYPE) {
+					case 0:
+						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
+						break;
+					case 1:
+						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
+						break;
+					default:
+						throw new IllegalArgumentException("Specified block type not a defined type.");
+				}
+				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
+			}
+		} else {
+			blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
+		}
+	}
+	
+	/**
+	 * Set a voxel's value by index.
+	 * 
+	 * @param index, the [idxBlockInGrid, idxVoxelInBlock] to set
+	 * @param state, the data to set
+	 */
+	protected void set(int[] index, byte state) {
+		set(index[0],index[1],state);
+	}
+	
+	/**
+	 * Set a voxel's value by grid coords.
+	 * 
+	 * @param xyz, the coords of the voxel to set
+	 * @param state, the data to set
+	 */
+	protected void set(int x, int y, int z, byte state) {
+		idx = f.coordToIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER);
+		set(idx[0], idx[1], state);
+	}
+	
+	/**
+	 * Set a voxel's state by world coords.
+	 * 
+	 * @param xyz, the coords of the voxel to set
+	 * @param state, the data to set
+	 */
+	protected void set(double wx, double wy, double wz, byte state) {
+		coord = worldToGrid(wx,wy,wz);
+		set(coord[0],coord[1],coord[2],state);
+	}
+	
+	/**
+	 * Set all voxels within a block to a given value.
+	 * 
+	 * @param coord, a grid coordinate in the block
+	 * @param state, the state to set
+	 */
+	protected void setBlock(int x, int y, int z, byte state) {
+		switch(state) {
+			case Grid.OUTSIDE:
+				blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)] = OUTSIDE_BLOCK;
+				break;
+			case Grid.EXTERIOR:
+				blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)] = EXTERIOR_BLOCK;
+				break;
+			case Grid.INTERIOR:
+				blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)] = INTERIOR_BLOCK;
+				break;
+			default:
+				blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)].setAll(state, VOXELS_PER_BLOCK);
+		}
+	}
+	
+	/**
+	 * Set all voxels within a block to a given value.
+	 * 
+	 * @param coord, a world coordinate in the block
+	 * @param value, the data to set
+	 */
+	protected void setBlock(double wx, double wy, double wz, byte value) {
+		coord = worldToGrid(wx,wy,wz);
+		setBlock(coord[0],coord[1],coord[2],value);
+	}
+	
+	/**
+	 * Convert world coordinates to grid coordinates.
+	 * 
+	 * @param coord, the world coordinate
+	 * @return the grid coordinate
+	 */
+	protected int[] worldToGrid(double wx, double wy, double wz) {
+		coord[0] = (int) Math.floor(wx*scale[0]);
+		coord[1] = (int) Math.floor(wy*scale[1]);
+		coord[2] = (int) Math.floor(wz*scale[2]);
+		return coord;
+	}
+	
+	/**
+	 * Clone factory.
+	 */
+	public Object clone() {
+		return new BlockArrayGrid(this);
+	}
 }
 
 
@@ -575,92 +525,79 @@ return new BlockArrayGrid(this);
  * like different voxel data types or voxels of non-singular length.
  * 
  */
-class Block {
-    PointSet points;
-    byte blockType;
-    
-    /**
-     * Construct a new block.
-     * 
-     * @param sizer, the grid sizer
-     * @param type, the type of block
-     */
-    public Block(int[] sizer, byte type) {
-        blockType = type;
-        points = new PointSet(sizer, type);
-    }
-    
-    /**
-     * Construct a new block. Assumed to be a "dirty" block.
-     * 
-     * @param sizer, the grid sizer
-     */
-    public Block(int[] sizer) {
-        blockType = 1;  // dirty block
-        points = new PointSet(sizer);
-    }
-    
-    /**
-     * Get the value of a voxel by index within block.
-     * 
-     * @param index, the index of the voxel within the block
-     * @return the value of the voxel
-     */
-    public byte get(int index) {
-        return points.get(index);
-    }
-    
-    /**
-     * Get the value of a voxel by coord within block.
-     * 
-     * @param coord, the coord of the voxel within the block
-     * @param sizer, the grid sizer
-     * @return the value of the voxel
-     */
-    public byte get(int[] coord, int[] sizer) {
-        return points.get(coord,sizer);
-    }
-    
-    /**
-     * Set the value of a given voxel by index within block.
-     * 
-     * @param index, the index within the block to modify
-     * @param value, the data to set
-     * @return TRUE if the block should be replaced with OUTSIDE
-     */
-    public boolean set(int index, byte value) {
-        return points.set(index, value);
-    }
-    
-    /**
-     * Set the value of a given voxel by coord within block.
-     * 
-     * @param coord, the x,y,z within the block to modify
-     * @param sizer, the grid sizer
-     * @param value, the data to set
-     * @return TRUE if the block should be replaced with OUTSIDE
-     */
-    public boolean set(int[] coord, int[] sizer, byte value) {
-        return points.set(coord, sizer, value);
-    }
-    
-    /**
-     * Set all voxels in block to the same value.
-     * 
-     * @param value, the data to set
-     */
-    public void setAll(byte value) {
-        points.setAll(value);
-    }
-    
-    /**
-     * @return TRUE if all voxels in block have equal values
-     */
-    public boolean allEqual() {
-    return points.allEqual();
-    }
-    
+class ArrayBlock implements Block {
+	PointSet points;
+	
+	/**
+	 * Construct a new block.
+	 * 
+	 * Voxels are initially set to the Grid.OUTSIDE state.
+	 * 
+	 * @param voxelsPerBlock, xSize*ySize*zSize in voxels
+	 */
+	public ArrayBlock(int voxelsPerBlock) {
+		points = new PointSet(voxelsPerBlock);
+	}
+	
+	/**
+	 * Construct a new block.
+	 * 
+	 * @param voxelsPerBlock, xSize*ySize*zSize in voxels
+	 * @param state, initialization state of the voxels
+	 */
+	public ArrayBlock(int voxelsPerBlock, byte state) {
+		points = new PointSet(voxelsPerBlock, state);
+	}
+	
+	/**
+	 * Get the value of a voxel by index within block.
+	 * 
+	 * @param index, the index of the voxel within the block
+	 * @return the value of the voxel
+	 */
+	public byte get(int index) {
+		return points.get(index);
+	}
+	
+	/**
+	 * Set the state of voxel at index.
+	 * 
+	 * @param index
+	 * @param state
+	 */
+	public void set(int index, byte state) {
+		points.set(index, state);
+	}
+	
+	/**
+	 * Set all voxels in block to the same state.
+	 * 
+	 * @param state
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		points = new PointSet(voxelsPerBlock, state);
+	}
+	
+	/**
+	 * Check if all voxels in the block have equal values.
+	 * 
+	 * @return true if all voxels in block are equal-valued
+	 */
+	public boolean allEqual() {
+		return points.allEqual();
+	}
+	
+	/**
+	 * Returns a clone of this block.
+	 */
+	public ArrayBlock clone() {
+		ArrayBlock dupe = new ArrayBlock(points.size());
+		dupe.points = points.clone();
+		return dupe;
+	}
+	
 }
+
 
 
 /**
@@ -677,236 +614,552 @@ class Block {
  * If value == 0, the point is an OUTSIDE (inactive) point.
  */
 class PointSet {
-    protected byte[] data;
-    protected int ndirty;
-    
-    /**
-     * Construct a PointSet given a grid sizer.
-     * 
-     * @param sizer
-     */
-    public PointSet(int[] sizer) {
-        data = new byte[1 << sizer[3] << sizer[4] << sizer[5]]; // xsize*ysize*zsize
-        ndirty = 0;
-    }
-    
-/**
- * 
- * @param sizer
- * @param value
- */
-    public PointSet(int[] sizer, byte value) {
-        data = new byte[1 << sizer[3] << sizer[4] << sizer[5]]; // xsize*ysize*zsize
-        
-        // is this a dirty block?
-        if (value > 0) {
-            ndirty = data.length;
-        } else {
-        ndirty = 0;
-        }
-        
-        // set all the values
-        setAll(value);
-    }
-    
-    /**
-     * Get voxel data by index within block.
-     * 
-     * @param index
-     * @return
-     */
-    public byte get(int index) {
-        return data[index];
-    }
-    
-    /**
-     * Get voxel data by coord within block.
-     * 
-     * @param coord, an (x,y,z) location within a block
-     * @return data of voxel at coord
-     */
-    public byte get(int[] coord, int[] sizer) {
-        return get(f.coordToIndex(coord, new int[] {sizer[3], sizer[4], sizer[5]}));
-    }
-    
-    /**
-     * Set voxel data by index within block.
-     * 
-     * @param index, the index of the voxel to modify
-     * @param value, the data to set
-     * @return TRUE if the block should become OUTSIDE
-     */
-    public boolean set(int index, byte value) {
-    boolean r = false;
-    
-    // check whether we need to change ndirty
-    //
-    // TODO - remove this to gain speed?
-    // 
-    // there's some cost here
-    // it may be worth omitting this in favor
-    // of being less efficient at reclaiming
-    // memory when blocks become clean
-    // 
-    // dirty blocks are expected to be orders
-    // of magnitude less common compared to
-    // clean OUTSIDE blocks, so periodically
-    // doing a check against all dirty blocks
-    // when memory becomes problematic may be
-    // a more efficient method
-    byte oldVal = data[index];
-    if (oldVal != value) {
-            if (oldVal == (byte) 0) {
-                ndirty += 1;
-            } else if (value == 0) {
-                ndirty -= 1;
-                if (ndirty <= 0) {
-                    r = true;
-                }
-            }
-        }
-    
-    // set the value
-        data[index] = value;
-    return r;
-    }
-    
-    /**
-     * Set voxel data by coord within block.
-     * 
-     * @param coord, the x,y,z within the block to modify
-     * @param sizer, the grid sizer
-     * @param value, the data to set
-     * @return TRUE if block should be replaced with OUTSIDE
-     */
-    public boolean set(int[] coord, int[] sizer, byte value) {
-    return set(f.coordToIndex(coord, new int[] {sizer[3], sizer[4], sizer[5]}),
-       value);
-    }
-    
-    /**
-     * Set every voxel in the block to the same value.
-     * 
-     * @param value, the data to set
-     */
-    public void setAll(byte value) {
-        for (int i = 0; i < data.length; i++) {
-            data[i] = value;
-        }
-    }
-    
-    /**
-     * Check if all voxels in the block have equal values.
-     * 
-     * @return TRUE if all voxels in block are equal-valued
-     */
-    public boolean allEqual() {
-    for (int i = 1; i < data.length; i++) {
-            if (data[i] != data[0]) return false;
-        }
-    return true;
-    }
+	protected byte[] data;
+	
+	/**
+	 * Construct a PointSet given the size of the set.
+	 * 
+	 * @param voxelsPerBlock
+	 */
+	public PointSet(int voxelsPerBlock) {
+		data = new byte[voxelsPerBlock];
+	}
+	
+	/**
+	 * 
+	 * @param voxelsPerBlock
+	 * @param state
+	 */
+	public PointSet(int voxelsPerBlock, byte state) {
+		data = new byte[voxelsPerBlock];
+		setAll(state);
+	}
+	
+	/**
+	 * Get voxel data by index within block.
+	 * 
+	 * @param index
+	 * @return state of referenced voxel
+	 */
+	public byte get(int index) {
+		return data[index];
+	}
+	
+	/**
+	 * Set voxel data by index within block.
+	 * 
+	 * @param index, the index of the voxel to modify
+	 * @param state, the state to set
+	 */
+	public void set(int index, byte state) {
+		data[index] = state;
+	}
+	
+	/**
+	 * Gets the size of the PointSet, equivalent to the
+	 * voxelsPerBlock value it was created with.
+	 */
+	public int size() {
+		return data.length;
+	}
+	
+	/**
+	 * Set all blocks to the same state.
+	 * 
+	 * @param state
+	 * @param voxelsPerBlock
+	 */
+	public void setAll(byte state) {
+		for (int i = 0; i < data.length; i++) {
+			data[i] = state;
+		}
+	}
+	
+	/**
+	 * Check if all voxels in the block have equal values.
+	 * 
+	 * @return true if all voxels in block are equal-valued
+	 */
+	public boolean allEqual() {
+		for (int i = 1; i < data.length; i++) {
+			if (data[i] != data[0]) return false;
+		}
+		return true;
+	}
+	
+	/**
+	 * Return a clone of this PointSet.
+	 */
+	public PointSet clone() {
+		PointSet dupe = new PointSet(data.length);
+		for (int i = 0; i < data.length; i++) {
+			dupe.set(i,data[i]);
+		}
+		return dupe;
+	}
 }
+
+
+
+/**
+ * A block implementation using Run Length Encoding.
+ * 
+ * Code elements are stored as a linked list since they only
+ * make sense when read from start anyway.
+ * 
+ * This should give reasonably efficient memory utilization -
+ * provided that the code remains reasonably short.
+ * 
+ * Filling a large grid with data which oscillates at the 
+ * resolution would give very poor memory performance. However,
+ * this would be bad for any RLE implementation, and more so
+ * given Java's object overhead. So don't use RLE for that case!
+ * 
+ */
+class RLEBlock implements Block {
+	// block attributes
+	RLENode head;
+	
+	// pointers
+	protected static RLENode node;
+	protected static RLENode prevNode;
+	protected static int n;
+	protected static int start;
+	protected static int r0;
+	protected static int r1;
+	
+	/**
+	 * Construct a block with a size. Voxels are inactive.
+	 * 
+	 * @param blockSize
+	 */
+	public RLEBlock(int voxelsPerBlock) {
+		head = new RLENode(voxelsPerBlock, Grid.OUTSIDE);
+	}
+	
+	/**
+	 * Construct a block with a size. Voxels are given state.
+	 * 
+	 * @param blockSize
+	 */
+	public RLEBlock(int voxelsPerBlock, byte state) {
+		head = new RLENode(voxelsPerBlock, state);
+	}
+	
+	/**
+	 * Construct a block with dimensional sizes.
+	 * 
+	 * The data is stored 1D, so this is for convenience.
+	 * 
+	 * @param xSize
+	 * @param ySize
+	 * @param zSize
+	 */
+	public RLEBlock(int xSize, int ySize, int zSize) {
+		this(xSize*ySize*zSize);
+	}
+	
+	/**
+	 * Construct a block with dimensional sizes and a voxel state.
+	 * 
+	 * @param xSize
+	 * @param ySize
+	 * @param zSize
+	 * @param state
+	 */
+	public RLEBlock(int xSize, int ySize, int zSize, byte state) {
+		this(xSize*ySize*zSize, state);
+	}
+	
+	/**
+	 * Get the state of a voxel.
+	 * 
+	 * @param index, the index of the block inside
+	 * 		the voxel, following the same xyz<-->i
+	 * 		schema observed for Block. Method does
+	 * 		not check that index < blockSize, and
+	 * 		will throw null pointers if you try it.
+	 * @return the activation state of the voxel.
+	 * 		may be Grid.OUTSIDE or Grid.EXTERIOR.
+	 */
+	public byte get(int index) {
+		node = head;
+		n = node.length;
+		
+		// find the node containing index
+		while (n <= index) {
+			node = node.next;
+			n += node.length;
+		}
+		return node.state;
+	}
+	
+	/**
+	 * Set the state of a voxel.
+	 * 
+	 * @param index, the index of the block inside
+	 * 		the voxel, following the same xyz<-->i
+	 * 		schema observed for Block. Method does
+	 * 		not check that index < blockSize, and
+	 * 		will throw null pointers if you try it.
+	 * @param state, the desired voxel state. the
+	 * 		supported values are Grid.OUTSIDE and
+	 * 		Grid.EXTERIOR. If another value is used,
+	 * 		state will be assumed as Grid.EXTERIOR.
+	 */
+	public void set(int index, byte state) {
+		node = head;
+		prevNode = null;
+		n = node.length;
+		start = 0;
+		
+		// find the node containing index & the offset
+		while (n <= index) {
+			start = n;
+			prevNode = node;
+			node = node.next;
+			n += node.length;
+		}
+		
+		// only make changes if changes are needed
+		if (state != node.state) {
+			// case: node has unit length
+			if (node.length == 1) {
+				node.state = state;
+			} else {
+				// find segment lengths
+				r0 = index - start;
+				r1 = node.length - r0;
+				
+				if (r0 == 0) {
+					// Changing first element within node
+					if (prevNode == null) {
+						// changing head
+						prevNode = new RLENode(1,state);
+						prevNode.next = node;
+						head = prevNode;
+					} else if (prevNode.state == state) {
+						prevNode.length += 1;
+					} else {
+						RLENode newNode = new RLENode(1,state);
+						prevNode.next = newNode;
+						newNode.next = node;
+					}
+					node.length -= 1;
+				} else if (r1 == 1) {
+					// Changing last element of run
+					if (node.next == null) {
+						node.next = new RLENode(1,state);
+					} else if (node.next.state == state){
+						node.next.length += 1;
+					} else {
+						RLENode newNode = new RLENode(1,state);
+						newNode.next = node.next;
+						node.next = newNode;
+					}
+					node.length -= 1;
+				} else {
+					// Changing intermediate element of run
+					// Known not at an end (i.e. node.length != 2)
+					// Need insert two new nodes
+					RLENode newNode = new RLENode(r1-1,node.state);
+					newNode.next = node.next;
+					node.next = newNode;
+					
+					newNode = new RLENode(1,state);
+					newNode.next = node.next;
+					node.next = newNode;
+					
+					node.length = r0;
+				}
+			}
+			// try to merge with neighbors
+			if (node.next != null) {
+				if (node.next.state == node.state) {
+					node.next.length += node.length;
+					node = node.next;
+				}
+			}
+			if (prevNode != null) {
+				if (prevNode.state == node.state) {
+					prevNode.length += node.length;
+					if (node.next != null) {
+						prevNode.next = node.next;
+					}
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Set all voxels in block to the same value.
+	 * 
+	 * @param state, the desired voxel state. the
+	 * 		supported values are Grid.OUTSIDE and
+	 * 		Grid.EXTERIOR. If another value is used,
+	 * 		state will be assumed as Grid.EXTERIOR.
+	 * @param voxelsPerBlock
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		head = new RLENode(voxelsPerBlock,state);
+	}
+	
+	/**
+	 * Check whether all voxels in block have the same states.
+	 * 
+	 * @return true if all voxels in block have equal states.
+	 */
+	public boolean allEqual() {
+		return (head.next == null);
+	}
+	
+	/**
+	 * Return a clone of this block.
+	 */
+	public RLEBlock clone() {
+		RLEBlock dupe = new RLEBlock(0);
+		RLENode dupenode = dupe.head;
+		node = head;
+		
+		dupe.head = node.clone();
+		while (node.next != null) {
+			dupenode.next = node.next.clone();
+			dupenode = dupenode.next;
+			node = node.next;
+		}
+		return dupe;
+	}
+	
+	/**
+	 * Node object for linked list.
+	 */
+	class RLENode {
+		public RLENode next;
+		public int length;
+		public byte state;
+		
+		/**
+		 * Constructor.
+		 * 
+		 * @param length, the run length for this state
+		 */
+		public RLENode(int length, byte state) {
+			this.length = length;
+			this.state = state;
+		}
+		
+		/**
+		 * Clone factory. Returns a new node with the
+		 * same length as this node. However, the new
+		 * new node's next attribute will remain null.
+		 */
+		public RLENode clone() {
+			return new RLENode(length,state);
+		}
+	}
+}
+
+
+
+/**
+ * A block that can't be changed for nothing.
+ * 
+ * All gets will be the initial state, sets
+ * will throw an error.
+ */
+class ConstantBlock implements Block {
+	final byte state;
+	
+	/**
+	 * Construct a new block.
+	 * 
+	 * State is expected to be Grid.OUTSIDE, Grid.INSIDE,
+	 * or Grid.EXTERIOR. But any byte would be accepted.
+	 * 
+	 * @param state
+	 */
+	public ConstantBlock(byte state) {
+		this.state = state;
+	}
+	
+	/**
+	 * Get the state of the block. Constant block,
+	 * so any get method will return this value.
+	 */
+	public byte get() {
+		return state;
+	}
+	
+	/**
+	 * Get the value of a voxel within the block.
+	 */
+	public byte get(int index) {
+		return state;
+	}
+	
+	/**
+	 * Set the value. Constant block - throws exception!
+	 */
+	public void set(int index, byte state) {
+		throw new UnsupportedOperationException("Cannot set elements of a ConstantBlock.");
+	}
+	
+	/**
+	 * Set the value. Constant block - throws exception!
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		throw new UnsupportedOperationException("Cannot set elements of a ConstantBlock.");
+	}
+	
+	/**
+	 * Returns whether all voxels in block have equal states.
+	 */
+	public boolean allEqual() {
+		return true;
+	}
+	
+	/**
+	 * Returns a copy of this block.
+	 */
+	public ConstantBlock clone() {
+		return new ConstantBlock(state);
+	}
+}
+
+/**
+ * Interface for Blocks.
+ * 
+ * All Blocks are assumed to use linear indexing
+ * such that 3D x,y,z voxels are reduced to 1D,
+ * with x being the least significant value.
+ */
+interface Block {
+	
+	// Get a voxel's state.
+	public byte get(int index);
+	
+	// Set a voxel's state.
+	public void set(int index, byte state);
+	
+	// Set all voxels in block to one state.
+	public void setAll(byte state, int voxelsPerBlock);
+	
+	// Find whether all voxels in block have the same state.
+	public boolean allEqual();
+	
+	// Return a copy of this block.
+	public Block clone();
+}
+
+
 
 /**
  * Various helper functions.
  */
 class f {
-/**
- * Find the index of a block containing a given voxel coord within grid.
- * 
- * @param coord, the (x,y,z) of a voxel in the grid
- * @param sizer, {gridOrder[3]
- *    blockOrder[3]
- *  GRID_SIZE_IN_BLOCKS[3]
- *   BLOCK_SIZE_IN_VOXELS[3]}
- * @return index within grid's array of blocks
- */
-static int blockIndex(int coord[], int[] sizer) {
-return coordToIndex(new int[] {coord[0] >> sizer[3],
-   coord[1] >> sizer[4],
-   coord[2] >> sizer[5]},
-new int[] {sizer[0],sizer[1],sizer[2]});
+	protected static int[] idx = {0,0};
+	protected static int[] blockCoordInGrid = {0,0,0};
+	protected static int[] voxelCoordInBlock = {0,0,0};
+	
+	/**
+	 * Convert from x,y,z voxel coordinates to block and voxel index values.
+	 * 
+	 * @param x,y,z the voxel coordinate
+	 * @param gridTwosOrder, the size of the grid in blocks using twos order
+	 * @param blockTwosOrder, the size of the block in voxels using twos order
+	 * @return [idxBlockInGrid, idxVoxelInBlock] index where the voxel is stored
+	 */
+	static int[] coordToIndex(int x, int y, int z, int[] gridTwosOrder, int[] blockTwosOrder) {
+		// find the index of the block within the grid
+		blockCoordInGrid[0] = x >> blockTwosOrder[0];
+		blockCoordInGrid[1] = y >> blockTwosOrder[1];
+		blockCoordInGrid[2] = z >> blockTwosOrder[2];
+		idx[0] = c2i(blockCoordInGrid[0], blockCoordInGrid[1], blockCoordInGrid[2], gridTwosOrder);
+		
+		// find the index of the voxel within the block
+		voxelCoordInBlock[0] = x - (blockCoordInGrid[0] << blockTwosOrder[0]);
+		voxelCoordInBlock[1] = y - (blockCoordInGrid[1] << blockTwosOrder[1]);
+		voxelCoordInBlock[2] = z - (blockCoordInGrid[2] << blockTwosOrder[2]);
+		idx[1] = c2i(voxelCoordInBlock[0], voxelCoordInBlock[1], voxelCoordInBlock[2], blockTwosOrder);;
+		
+		return idx;
+	}
+	
+	/**
+	 * Convert from x,y,z voxel coordinates to block index value.
+	 * 
+	 * Less efficient if you also need voxel index, saves computation if you only
+	 * need the block index.
+	 * 
+	 * @param x,y,z the voxel coordinate
+	 * @param gridTwosOrder, the size of the grid in blocks using twos order
+	 * @return idxBlockInGrid, index of the block containing the voxel coordinate
+	 */
+	static int blockIndex(int x, int y, int z, int[] gridTwosOrder, int[] blockTwosOrder) {
+		// find the index of the block within the grid
+		return c2i(x >> blockTwosOrder[0], y >> blockTwosOrder[1], z >> blockTwosOrder[2], gridTwosOrder);
+	}
+	
+	/**
+	 * Quickly calculate an index within a flattened 3D grid.
+	 * 
+	 * Bit order is as follows:
+	 * 		y x z | i
+	 * 		0 0 0 | 0
+	 * 		1 0 0 | 1
+	 * 		0 1 0 | 2
+	 * 		1 1 0 | 3
+	 * 
+	 * @param cx, cy, cz, the coordinates 
+	 * @param twosOrder, the order of the cooordinate space 2^n
+	 * @return the 1D index value
+	 */
+	static int c2i(int cx, int cy, int cz, int[] twosOrder) {
+		return cy + (cx << twosOrder[1]) + (cz << twosOrder[1] << twosOrder[0]);
+	}
+	
+	/**
+	 * Find the order of the next power of two.
+	 * 
+	 * If already a power of two, return the order of value.
+	 * 
+	 * @param value
+	 * @return 2^n >= value
+	 */
+	static int nextpow2(int value) {
+		int p2 = 1;
+		int r = 0;
+		// check higher powers while not high enough
+		while (p2 < value) {
+			p2 = p2 << 1;
+			r += 1;
+		}
+		return r;
+	}
+	
+	/**
+	 * Find the order of the next power of two.
+	 * 
+	 * If already a power of two, return the order of value.
+	 * 
+	 * @param value
+	 * @return 2^n >= value
+	 */
+	static int nextpow2(double value) {
+		return nextpow2((int) Math.ceil(value));
+	}
+	
+	/**
+	 * Find 2^n.
+	 * 
+	 * @param value
+	 * @return 2^value
+	 */
+	static int p2(int value) {
+		// return (int) Math.pow(2,value);
+		return 1 << value;
+	}
 }
 
-/**
- * Find the index of a voxel within a block, given voxel coord within grid.
- * 
- * @param coord, the (x,y,z) of a voxel in the grid
- * @param sizer, {gridOrder[0..2]
- *    blockOrder[3..5]
- *  GRID_SIZE_IN_BLOCKS[6..8]
- *   BLOCK_SIZE_IN_VOXELS[9..11]}
- * @return index within block's array of voxels
- */
-static int voxelIndex(int coord[], int[] sizer) {
-// TODO - can this be more efficient?
-return coordToIndex( new int[] {coord[0] % sizer[9],
-    coord[1] % sizer[10],
-    coord[2] % sizer[11]},
-     new int[] {sizer[3], sizer[4], sizer[5]});
-}
-
-/**
- * Quickly calculate an index within a flattened 3D grid.
- * 
- * The first value is assumed to be the least significant bit.
- * For example:
- * x y z | i
- * 0 0 0 | 0
- *      1 0 0 | 1
- *      0 1 0 | 2
- *      1 1 0 | 3  ...and so forth.
- * 
- * @param c, the xyz
- * @param ord, the order of each grid dimension as 2^n
- * @return the index
- */
-static int coordToIndex(int[] c, int[] ord) {
-return c[0] + (c[1] << ord[0]) + (c[2] << ord[0] << ord[1]);
-}
-
-/**
- * Find the order of the next power of two.
- * 
- * If already a power of two, return the order of value.
- * 
- * @param value
- * @return 2^n >= value
- */
-static int nextpow2(int value) {
-int p2 = 1;
-int r = 0;
-// check higher powers while not high enough
-while (p2 < value) {
-p2 = p2 << 1;
-r += 1;
-}
-return r;
-}
-
-/**
- * Find the order of the next power of two.
- * 
- * If already a power of two, return the order of value.
- * 
- * @param value
- * @return 2^n >= value
- */
-static int nextpow2(double value) {
-return nextpow2((int) Math.ceil(value));
-}
-
-/**
- * Find 2^n.
- * 
- * @param value
- * @return 2^value
- */
-static int p2(int value) {
-// return (int) Math.pow(2,value);
-return 1 << value;
-}
-}
 
 
