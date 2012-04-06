@@ -1,5 +1,5 @@
 /*****************************************************************************
- *						Shapeways, Inc Copyright (c) 2011
+ *						Shapeways, Inc Copyright (c) 2012
  *							   Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -12,6 +12,9 @@
 
 package abfab3d.grid;
 
+import java.util.ArrayList;
+
+// TODO: Many comments are out-of-date due to refactoring. 
 
 /**
  * A BlockArrayGrid, inspired by DBGrid.
@@ -42,8 +45,8 @@ public class BlockArrayGrid extends BaseGrid {
 	// options are:
 	// 		0: ArrayBlock, a block where voxels are represented as an array of bytes
 	// 		1: RLEBlock, a block where voxels are stored via run-length encoding
-    public enum BlockType {Array, RLE}
-    public BlockType GRID_BLOCK_TYPE;
+	public enum BlockType {Array, RLE, RLEArrayList};
+	public BlockType GRID_BLOCK_TYPE;
 	
 	// dimensions of the 1D containers
 	public final int BLOCKS_PER_GRID; 
@@ -56,6 +59,10 @@ public class BlockArrayGrid extends BaseGrid {
 	// corresponding 3D dimensions in 2^n form
 	public final int[] GRID_TWOS_ORDER;
 	public final int[] BLOCK_TWOS_ORDER;
+	
+	// largest dimensional coordinate of voxel in block
+	// used to enable remainder by bitwise and in min ops
+	protected final int[] BLOCK_LAST_INDEX;
 	
 	// offset of the grid's origin in number of voxels
 	protected double[] offset = {0.0, 0.0, 0.0};
@@ -106,6 +113,9 @@ public class BlockArrayGrid extends BaseGrid {
 		
 		BLOCKS_PER_GRID = GRID_WIDTH_IN_BLOCKS[0]*GRID_WIDTH_IN_BLOCKS[1]*GRID_WIDTH_IN_BLOCKS[2];
 		VOXELS_PER_BLOCK = BLOCK_WIDTH_IN_VOXELS[0]*BLOCK_WIDTH_IN_VOXELS[1]*BLOCK_WIDTH_IN_VOXELS[2];
+		BLOCK_LAST_INDEX = new int[] { (1 << BLOCK_TWOS_ORDER[0])-1 ,
+									   (1 << BLOCK_TWOS_ORDER[1])-1 ,
+									   (1 << BLOCK_TWOS_ORDER[2])-1 };
 		
 		// set world scales
 		scale[0] = 1.0/pixel;
@@ -113,16 +123,7 @@ public class BlockArrayGrid extends BaseGrid {
 		scale[2] = scale[0];
 		
 		// initialize blocks array
-		switch (GRID_BLOCK_TYPE) {
-			case Array:
-				blocks = new Block[BLOCKS_PER_GRID];
-				break;
-			case RLE:
-				blocks = new Block[BLOCKS_PER_GRID];
-				break;
-			default:
-				throw new IllegalArgumentException("Specified block type not a defined type.");
-		}
+		blocks = new Block[BLOCKS_PER_GRID];
 		for (int i = 0; i < blocks.length; i++) {
 			blocks[i] = OUTSIDE_BLOCK;
 		}
@@ -193,9 +194,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Get the data of the voxel
 	 *
-	 * @param wx The x world coordinate
-	 * @param wy The y world coordinate
-	 * @param wz The z world coordinate
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
 	 * @return The voxel state
 	 */
 	public VoxelData getData(double wx, double wy, double wz) {
@@ -205,9 +206,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Get the state of the voxel
 	 *
-	 * @param wx The x world coordinate
-	 * @param wy The y world coordinate
-	 * @param wz The z world coordinate
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
 	 * @return The voxel state
 	 */
 	public byte getState(double wx, double wy, double wz) {
@@ -229,9 +230,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Get the material of the voxel.
 	 *
-	 * @param wx The x world coordinate
-	 * @param wy The y world coordinate
-	 * @param wz The z world coordinate
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
 	 * @return The voxel material
 	 */
 	public int getMaterial(double wx, double wy, double wz) {
@@ -292,9 +293,9 @@ public class BlockArrayGrid extends BaseGrid {
 	 * Set the material value of a voxel.
 	 * This is the no material version, so it actually does NOTHING!
 	 *
-	 * @param wx The x world coordinate
-	 * @param wy The y world coordinate
-	 * @param wz The z world coordinate
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
 	 * @param material The materialID
 	 */
 	public void setMaterial(double wx, double wy, double wz, int material) {
@@ -316,9 +317,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Set the state value of a voxel.  Leaves the material unchanged.
 	 *
-	 * @param wx The x world coordinate
-	 * @param wy The y world coordinate
-	 * @param wz The z world coordinate
+	 * @param x The x world coordinate
+	 * @param y The y world coordinate
+	 * @param z The z world coordinate
 	 * @param state The value.
 	 */
 	public void setState(double wx, double wy, double wz, byte state) {
@@ -330,6 +331,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * Currently assumes all active voxels are EXTERNAL.
 	 * This is "no material" version to mat = 0.
 	 * 
+	 * @param coord, the coord to read
 	 * @return a VoxelData object describing the voxel
 	 */
 	protected VoxelData getVoxelData(int x, int y, int z) {
@@ -341,6 +343,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * Currently assumes all active voxels are EXTERNAL.
 	 * This is "no material" version to mat = 0.
 	 * 
+	 * @param coord, the coord to read
 	 * @return a VoxelData object describing the voxel
 	 */
 	protected VoxelData getVoxelData(double wx, double wy, double wz) {
@@ -375,8 +378,8 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @return the voxel's value
 	 */
 	protected byte get(int x, int y, int z) {
-		idx = f.coordToIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER);
-		return get(idx[0],idx[1]);
+		return get( f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER),
+					f.voxelIndex(x, y, z, BLOCK_LAST_INDEX, BLOCK_TWOS_ORDER) );
 	}
 	
 	/**
@@ -397,6 +400,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @param state, the data to set
 	 */
 	protected void set(int idxBlockInGrid, int idxVoxelInBlock, byte state) {
+		// System.out.println("Setting voxel at index ("+idxBlockInGrid+","+idxVoxelInBlock+").");
 		if (blocks[idxBlockInGrid] == OUTSIDE_BLOCK) {
 			if (state != Grid.OUTSIDE) {
 				switch(GRID_BLOCK_TYPE) {
@@ -406,9 +410,13 @@ public class BlockArrayGrid extends BaseGrid {
 					case RLE:
 						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
 						break;
+					case RLEArrayList:
+						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
+						break;
 					default:
 						throw new IllegalArgumentException("Specified block type not a defined type.");
 				}
+//				System.out.println("Block has "+blocks[idxBlockInGrid].getClass());
 				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
 			}
 		} else {
@@ -433,8 +441,8 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @param state, the data to set
 	 */
 	protected void set(int x, int y, int z, byte state) {
-		idx = f.coordToIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER);
-		set(idx[0], idx[1], state);
+		set(f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER),
+			f.voxelIndex(x, y, z, BLOCK_LAST_INDEX, BLOCK_TWOS_ORDER), state);
 	}
 	
 	/**
@@ -499,6 +507,37 @@ public class BlockArrayGrid extends BaseGrid {
 	 */
 	public Object clone() {
 		return new BlockArrayGrid(this);
+	}
+	
+	/**
+	 * Attempt to clean the BlockGrid by reclaiming blocks which have
+	 * homogeneous voxel state.
+	 * 
+	 * This currently only looks for blocks which can be replaced with
+	 * one of the grid's constant blocks, representing Grid.OUTSIDE,
+	 * Grid.EXTERIOR, and Grid.INTERIOR states.
+	 */
+	public void clean() {
+		for (int i = 0; i < BLOCKS_PER_GRID; i++) {
+			// first, is it homogeneous?
+			// cost varies by block type
+			// commonly O(n) for array-like, O(n log n) for sorted
+			// some structures, O(1) (e.g. block 
+			if (blocks[i].allEqual()) { // blocks[i].getClass() != 'f' & 
+				switch (blocks[i].get(0)) {
+					case Grid.OUTSIDE:
+						blocks[i] = OUTSIDE_BLOCK;
+						break;
+					case Grid.EXTERIOR:
+						blocks[i] = EXTERIOR_BLOCK;
+						break;
+					case Grid.INTERIOR:
+						blocks[i] = INTERIOR_BLOCK;
+						break;
+				}
+			}
+		} 
+		System.gc();
 	}
 }
 
@@ -961,6 +1000,252 @@ class RLEBlock implements Block {
 
 
 /**
+ * A block implementation using Run Length Encoding.
+ * 
+ * Uses ArrayList to store the run lengths and states. This
+ * should provide a baseline for this style of encoding.
+ * 
+ * Filling a large grid with data which oscillates at the 
+ * resolution would give poor memory performance. However,
+ * this would be bad for any RLE implementation, so don't
+ * use RLE for that case!
+ * 
+ */
+class RLEArrayListBlock implements Block {
+	protected ArrayList<Integer> runLength;
+	protected ArrayList<Byte> runState;
+	
+	/**
+	 * Construct a block with a size. Voxels are inactive.
+	 * 
+	 * @param blockSize
+	 */
+	public RLEArrayListBlock(int voxelsPerBlock) {
+		this(voxelsPerBlock,Grid.OUTSIDE);
+	}
+	
+	/**
+	 * Construct a block with a size. Voxels are given state.
+	 * 
+	 * @param blockSize
+	 */
+	public RLEArrayListBlock(int voxelsPerBlock, byte state) {
+		runLength = new ArrayList<Integer>();
+		runState = new ArrayList<Byte>();
+		runLength.add(voxelsPerBlock);
+		runState.add(state);
+	}
+	
+	/**
+	 * Construct a block with dimensional sizes.
+	 * 
+	 * The data is stored 1D, so this is for convenience.
+	 * 
+	 * @param xSize
+	 * @param ySize
+	 * @param zSize
+	 */
+	public RLEArrayListBlock(int xSize, int ySize, int zSize) {
+		this(xSize*ySize*zSize);
+	}
+	
+	/**
+	 * Construct a block with dimensional sizes and a voxel state.
+	 * 
+	 * @param xSize
+	 * @param ySize
+	 * @param zSize
+	 * @param state
+	 */
+	public RLEArrayListBlock(int xSize, int ySize, int zSize, byte state) {
+		this(xSize*ySize*zSize, state);
+	}
+	
+	/**
+	 * Get the state of a voxel.
+	 * 
+	 * @param index, the index of the block inside
+	 * 		the voxel, following the same xyz<-->i
+	 * 		schema observed for Block. Method does
+	 * 		not check that index < blockSize, and
+	 * 		will throw null pointers if you try it.
+	 * @return the activation state of the voxel.
+	 */
+	public byte get(int index) {
+		int length = 0;
+		for (int i = 0; i < runLength.size(); i++) {
+			length += runLength.get(i);
+			if (index < length) {
+				return runState.get(i).byteValue();
+			}
+		}
+		throw new IllegalArgumentException("Index exceeds length of stored code.");
+	}
+	
+	/**
+	 * Set the state of a voxel.
+	 * 
+	 * @param index, the index of the block inside
+	 * 		the voxel, following the same xyz<-->i
+	 * 		schema observed for Block. Method does
+	 * 		not check that index < blockSize, and
+	 * 		will throw null pointers if you try it.
+	 * @param state, the desired voxel state.
+	 */
+	public void set(int index, byte state) {
+//		System.out.println("Setting state "+state+" at index "+index+".");
+//		System.out.print("Old code: ");
+//		int voxOld = 0;
+//		for (int j = 0; j < runLength.size(); j++) {
+//			System.out.print(" "+runState.get(j).byteValue()+"_"+runLength.get(j).intValue());
+//			voxOld += runLength.get(j).intValue();
+//		}
+//		System.out.print("\n");
+//		System.out.println("Lengths: "+runLength.size()+", states: "+runState.size()+", voxels: "+voxOld+".");
+		
+		int oldLength = 0;
+		int length = 0;
+		for (int i = 0; i < runLength.size(); i++) {
+			length += runLength.get(i).intValue();
+			if (index < length) {
+				// log the unmodified run length
+				oldLength = runLength.get(i).intValue();
+				
+				// check if a modification is needed
+				if (state == runState.get(i).byteValue()) {
+//					System.out.println("Matched previously coded state, nothing happened.");
+					return;
+				}
+				
+				// case: index to modify is at end of run
+				if (index == length - 1) {
+//					System.out.println("index to modify is at end of run");
+					// case: no following run
+					if (i == runLength.size() - 1) {
+						runLength.set(i, oldLength - 1);
+						runLength.add(i+1,1);
+						runState.add(i+1,state);
+					// case: neighbor matches state to assign
+					} else if (i < runLength.size() - 1 & state == runState.get(i+1).byteValue()) {
+						runLength.set(i+1,runLength.get(i+1).intValue() + 1);
+						if (oldLength == 1) {
+							runLength.remove(i);
+							runState.remove(i);
+							while (runState.get(i-1).byteValue()==runState.get(i).byteValue()) {
+								runLength.set(i-1,runLength.get(i-1).intValue()+runLength.get(i).intValue());
+								runLength.remove(i);
+								runState.remove(i);
+							}
+						} else {
+							runLength.set(i,oldLength - 1);
+						}
+					// case: need to insert new run after this one
+					} else {
+						runLength.set(i,oldLength - 1);
+						runLength.add(i+1,1);
+						runState.add(i+1,state);
+					}
+				// case: index to modify is at beginning of run
+				} else if (index == length - oldLength) {
+//					System.out.println("index to modify is at beginning of run");
+					// case: no prior run
+					if (i == 0) {
+						runLength.set(i, oldLength - 1);
+						runLength.add(i,1);
+						runState.add(i,state);
+					// case: neighbor matches state to assign
+					} else if (i > 0 & state == runState.get(i-1).byteValue()) {
+						runLength.set(i-1,runLength.get(i-1).intValue() + 1);
+						if (oldLength == 1) {
+							runLength.remove(i);
+							runState.remove(i);
+							while (runState.get(i-1).byteValue()==runState.get(i).byteValue()) {
+								runLength.set(i-1,runLength.get(i-1).intValue()+runLength.get(i).intValue());
+								runLength.remove(i);
+								runState.remove(i);
+							}
+						} else {
+							runLength.set(i,oldLength - 1);
+						}
+					// case: need to insert new run before this one
+					} else {
+						runLength.set(i,oldLength - 1);
+						runLength.add(i,1);
+						runState.add(i,state);
+					}
+				// case: index to modify is in middle of run
+				//		 need to insert two new runs
+				} else {
+//					System.out.println("index to modify is in middle of run");
+					// modify the current run
+					runLength.set(i,(index)-(length - oldLength));
+					
+					// add the outer following run
+					runLength.add(i+1,oldLength - runLength.get(i).intValue() - 1);
+					runState.add(i+1,runState.get(i).byteValue());
+					
+					// add the inner following run
+					runLength.add(i+1,1);
+					runState.add(i+1,state);
+				}
+				
+//				System.out.print("New code: ");
+//				int voxNew = 0;
+//				for (int j = 0; j < runLength.size(); j++) {
+//					System.out.print(" "+runState.get(j).byteValue()+"_"+runLength.get(j).intValue());
+//					voxNew += runLength.get(j).intValue();
+//				}
+//				System.out.print("\n");
+//				System.out.println("Lengths: "+runLength.size()+", states: "+runState.size()+", voxels: "+voxNew+".");
+				return;
+			}
+		}
+		throw new IllegalArgumentException("Index exceeded length of code.");
+	}
+	
+	/**
+	 * Set all voxels in block to the same value.
+	 * 
+	 * @param state, the desired voxel state. the
+	 * 		supported values are Grid.OUTSIDE and
+	 * 		Grid.EXTERIOR. If another value is used,
+	 * 		state will be assumed as Grid.EXTERIOR.
+	 * @param voxelsPerBlock
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		runLength = new ArrayList<Integer>();
+		runState = new ArrayList<Byte>();
+		runLength.add(voxelsPerBlock);
+		runState.add(state);
+	}
+	
+	/**
+	 * Check whether all voxels in block have the same states.
+	 * 
+	 * @return true if all voxels in block have equal states.
+	 */
+	public boolean allEqual() {
+		return (runLength.get(1) == 0);
+	}
+	
+	/**
+	 * Return a clone of this block.
+	 */
+	public RLEArrayListBlock clone() {
+		RLEArrayListBlock newBlock = new RLEArrayListBlock(0);
+		newBlock.runLength = new ArrayList<Integer>(this.runLength.size());
+		newBlock.runState = new ArrayList<Byte>(this.runState.size());
+		for (int i = 0; i < runLength.size(); i++) {
+			newBlock.runLength.set(i,this.runLength.get(i).intValue());
+			newBlock.runState.set(i,this.runState.get(i).byteValue());
+		}
+		return newBlock;
+	}
+}
+
+
+
+/**
  * A block that can't be changed for nothing.
  * 
  * All gets will be the initial state, sets
@@ -1056,33 +1341,6 @@ interface Block {
  * Various helper functions.
  */
 class f {
-	protected static int[] idx = {0,0};
-	protected static int[] blockCoordInGrid = {0,0,0};
-	protected static int[] voxelCoordInBlock = {0,0,0};
-	
-	/**
-	 * Convert from x,y,z voxel coordinates to block and voxel index values.
-	 * 
-	 * @param x,y,z the voxel coordinate
-	 * @param gridTwosOrder, the size of the grid in blocks using twos order
-	 * @param blockTwosOrder, the size of the block in voxels using twos order
-	 * @return [idxBlockInGrid, idxVoxelInBlock] index where the voxel is stored
-	 */
-	static int[] coordToIndex(int x, int y, int z, int[] gridTwosOrder, int[] blockTwosOrder) {
-		// find the index of the block within the grid
-		blockCoordInGrid[0] = x >> blockTwosOrder[0];
-		blockCoordInGrid[1] = y >> blockTwosOrder[1];
-		blockCoordInGrid[2] = z >> blockTwosOrder[2];
-		idx[0] = c2i(blockCoordInGrid[0], blockCoordInGrid[1], blockCoordInGrid[2], gridTwosOrder);
-		
-		// find the index of the voxel within the block
-		voxelCoordInBlock[0] = x - (blockCoordInGrid[0] << blockTwosOrder[0]);
-		voxelCoordInBlock[1] = y - (blockCoordInGrid[1] << blockTwosOrder[1]);
-		voxelCoordInBlock[2] = z - (blockCoordInGrid[2] << blockTwosOrder[2]);
-		idx[1] = c2i(voxelCoordInBlock[0], voxelCoordInBlock[1], voxelCoordInBlock[2], blockTwosOrder);;
-		
-		return idx;
-	}
 	
 	/**
 	 * Convert from x,y,z voxel coordinates to block index value.
@@ -1100,21 +1358,43 @@ class f {
 	}
 	
 	/**
-	 * Quickly calculate an index within a flattened 3D grid.
+	 * Convert from x,y,z voxel coordinates to block index value.
+	 * 
+	 * Less efficient if you also need voxel index, saves computation if you only
+	 * need the block index.
+	 * 
+	 * @param x,y,z the voxel coordinate
+	 * @param gridTwosOrder, the size of the grid in blocks using twos order
+	 * @return idxBlockInGrid, index of the block containing the voxel coordinate
+	 */
+	static int voxelIndex(int x, int y, int z, int[] blockLastIndex, int[] blockTwosOrder) {
+		return c2i(x & blockLastIndex[0], y & blockLastIndex[1], z & blockLastIndex[2], blockTwosOrder);
+	}
+	
+	/**
+	 * Calculate an index within a 1D representation of 3D integer locations.
 	 * 
 	 * Bit order is as follows:
-	 * 		y x z | i
+	 * 		z x y | i
 	 * 		0 0 0 | 0
 	 * 		1 0 0 | 1
 	 * 		0 1 0 | 2
 	 * 		1 1 0 | 3
+	 * 		0 0 1 | 4
+	 * 
+	 * This order should be observed to maintain consistency with other 
+	 * AbFab3D classes. It may bias some comparisons between grids according
+	 * to the structure of the test data used. However, this method should
+	 * be the only place where a (x,y,z) ==> (i0,i1) mapping occurs; all
+	 * other methods in this class and its sub-classes should refer to this
+	 * method when such a calculation is required.
 	 * 
 	 * @param cx, cy, cz, the coordinates 
 	 * @param twosOrder, the order of the cooordinate space 2^n
 	 * @return the 1D index value
 	 */
 	static int c2i(int cx, int cy, int cz, int[] twosOrder) {
-		return cy + (cx << twosOrder[1]) + (cz << twosOrder[1] << twosOrder[0]);
+		return cz + (cx << twosOrder[2]) + (cy << twosOrder[2] << twosOrder[0]);
 	}
 	
 	/**
@@ -1146,17 +1426,6 @@ class f {
 	 */
 	static int nextpow2(double value) {
 		return nextpow2((int) Math.ceil(value));
-	}
-	
-	/**
-	 * Find 2^n.
-	 * 
-	 * @param value
-	 * @return 2^value
-	 */
-	static int p2(int value) {
-		// return (int) Math.pow(2,value);
-		return 1 << value;
 	}
 }
 
