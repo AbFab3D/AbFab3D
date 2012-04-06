@@ -12,8 +12,6 @@ public class OctreeGridDriver extends BaseGridDriver {
     double slice_height = 0.001;
 
     public void allocate(TestCase testCase) {
-        super.prepare(testCase);
-
         int w = Integer.parseInt(testCase.getParam("width"));
         int h = Integer.parseInt(testCase.getParam("height"));
         int d = Integer.parseInt(testCase.getParam("depth"));
@@ -21,10 +19,5 @@ public class OctreeGridDriver extends BaseGridDriver {
         grid =  new OctreeAttributeGridByte(w,h,d,voxel_size, slice_height);
 
         String input = testCase.getParam("input");
-
-        if (input.equals("ReadRandom")) {
-            writeRandom(grid, 0.1f);
-        }
     }
-
 }

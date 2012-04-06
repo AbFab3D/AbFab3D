@@ -7,15 +7,12 @@ import com.sun.japex.TestCase;
  *
  * @author Alan Hudson
  */
-public class ArrayAttributeGridDriver extends BaseGridDriver {
-    double voxel_size = 0.001;
-    double slice_height = 0.001;
-
+public class BlockArrayGridRLEDriver extends BaseGridDriver {
     public void allocate(TestCase testCase) {
         int w = Integer.parseInt(testCase.getParam("width"));
         int h = Integer.parseInt(testCase.getParam("height"));
         int d = Integer.parseInt(testCase.getParam("depth"));
 
-        grid =  new ArrayAttributeGridByte(w,h,d,voxel_size, slice_height);
+        grid =  new BlockArrayGrid(w,h,d,voxel_size, slice_height, new int[] {3,3,3}, BlockArrayGrid.BlockType.RLE);
     }
 }
