@@ -1,5 +1,5 @@
 /*****************************************************************************
- *						Shapeways, Inc Copyright (c) 2011
+ *						Shapeways, Inc Copyright (c) 2012
  *							   Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -62,12 +62,12 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		
 		// bit order is y,x,z
 		assertEquals("Result should be ", 0, f.c2i(0,0,0,order));
-		assertEquals("Result should be ", 1, f.c2i(0,1,0,order));
+		assertEquals("Result should be ", 1, f.c2i(0,0,1,order));
 		assertEquals("Result should be ", 2, f.c2i(1,0,0,order));
-		assertEquals("Result should be ", 3, f.c2i(1,1,0,order));
-		assertEquals("Result should be ", 4, f.c2i(0,0,1,order));
+		assertEquals("Result should be ", 3, f.c2i(1,0,1,order));
+		assertEquals("Result should be ", 4, f.c2i(0,1,0,order));
 		assertEquals("Result should be ", 5, f.c2i(0,1,1,order));
-		assertEquals("Result should be ", 6, f.c2i(1,0,1,order));
+		assertEquals("Result should be ", 6, f.c2i(1,1,0,order));
 		assertEquals("Result should be ", 7, f.c2i(1,1,1,order));
 	}
 	
@@ -76,57 +76,74 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 */
 	public void testHelpFun_coordToIndex() {
 		int[] order = {1,1,1}; // 2x2x2 cube
+		int[] last = {1,1,1}; // last valid index values
 		int[] idx = {-1,-1}; // container
 		
 		// test block zero results
-		idx = f.coordToIndex(0,0,0,order,order);
+		idx[0] = f.blockIndex(0,0,0,order,order);
+		idx[1] = f.voxelIndex(0,0,0,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 0, idx[1]);
-		idx = f.coordToIndex(0,1,0,order,order);
+		idx[0] = f.blockIndex(0,0,1,order,order);
+		idx[1] = f.voxelIndex(0,0,1,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 1, idx[1]);
-		idx = f.coordToIndex(1,0,0,order,order);
+		idx[0] = f.blockIndex(1,0,0,order,order);
+		idx[1] = f.voxelIndex(1,0,0,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 2, idx[1]);
-		idx = f.coordToIndex(1,1,0,order,order);
+		idx[0] = f.blockIndex(1,0,1,order,order);
+		idx[1] = f.voxelIndex(1,0,1,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 3, idx[1]);
-		idx = f.coordToIndex(0,0,1,order,order);
+		idx[0] = f.blockIndex(0,1,0,order,order);
+		idx[1] = f.voxelIndex(0,1,0,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 4, idx[1]);
-		idx = f.coordToIndex(0,1,1,order,order);
+		idx[0] = f.blockIndex(0,1,1,order,order);
+		idx[1] = f.voxelIndex(0,1,1,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 5, idx[1]);
-		idx = f.coordToIndex(1,0,1,order,order);
+		idx[0] = f.blockIndex(1,1,0,order,order);
+		idx[1] = f.voxelIndex(1,1,0,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 6, idx[1]);
-		idx = f.coordToIndex(1,1,1,order,order);
+		idx[0] = f.blockIndex(1,1,1,order,order);
+		idx[1] = f.voxelIndex(1,1,1,last,order);
 		assertEquals("Result should be ", 0, idx[0]);
 		assertEquals("Result should be ", 7, idx[1]);
 		
 		// test block seven results
-		idx = f.coordToIndex(2,2,2,order,order);
+		idx[0] = f.blockIndex(2,2,2,order,order);
+		idx[1] = f.voxelIndex(2,2,2,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 0, idx[1]);
-		idx = f.coordToIndex(2,3,2,order,order);
+		idx[0] = f.blockIndex(2,2,3,order,order);
+		idx[1] = f.voxelIndex(2,2,3,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 1, idx[1]);
-		idx = f.coordToIndex(3,2,2,order,order);
+		idx[0] = f.blockIndex(3,2,2,order,order);
+		idx[1] = f.voxelIndex(3,2,2,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 2, idx[1]);
-		idx = f.coordToIndex(3,3,2,order,order);
+		idx[0] = f.blockIndex(3,2,3,order,order);
+		idx[1] = f.voxelIndex(3,2,3,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 3, idx[1]);
-		idx = f.coordToIndex(2,2,3,order,order);
+		idx[0] = f.blockIndex(2,3,2,order,order);
+		idx[1] = f.voxelIndex(2,3,2,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 4, idx[1]);
-		idx = f.coordToIndex(2,3,3,order,order);
+		idx[0] = f.blockIndex(2,3,3,order,order);
+		idx[1] = f.voxelIndex(2,3,3,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 5, idx[1]);
-		idx = f.coordToIndex(3,2,3,order,order);
+		idx[0] = f.blockIndex(3,3,2,order,order);
+		idx[1] = f.voxelIndex(3,3,2,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 6, idx[1]);
-		idx = f.coordToIndex(3,3,3,order,order);
+		idx[0] = f.blockIndex(3,3,3,order,order);
+		idx[1] = f.voxelIndex(3,3,3,last,order);
 		assertEquals("Result should be ", 7, idx[0]);
 		assertEquals("Result should be ", 7, idx[1]);
 	}
@@ -136,7 +153,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test blockIndex
 	 */
 	public void testBlockIndex() {
-		BlockArrayGrid grid = new BlockArrayGrid(16, 16, 16, 1.0, 1.0, new int[] {3,3,3}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(16, 16, 16, 1.0, 1.0, new int[] {3,3,3}, BlockArrayGrid.BlockType.RLE);
 		
 		assertEquals("block order ", 3, grid.BLOCK_TWOS_ORDER[0]);
 		assertEquals("grid order ", 1, grid.GRID_TWOS_ORDER[0]);
@@ -150,7 +167,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		assertEquals("number of blocks ", 8, grid.blocks.length);
 		
 		assertEquals("Result should be ", 0, f.blockIndex(0,0,0,grid.GRID_TWOS_ORDER,grid.BLOCK_TWOS_ORDER));
-		assertEquals("Result should be ", 1, f.blockIndex(0,15,0,grid.GRID_TWOS_ORDER,grid.BLOCK_TWOS_ORDER));
+		assertEquals("Result should be ", 1, f.blockIndex(0,0,15,grid.GRID_TWOS_ORDER,grid.BLOCK_TWOS_ORDER));
 		assertEquals("Result should be ", 7, f.blockIndex(15,15,15,grid.GRID_TWOS_ORDER,grid.BLOCK_TWOS_ORDER));
 	}
 	
@@ -158,7 +175,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test grid set and get
 	 */
 	public void testSetGet() {
-		BlockArrayGrid grid = new BlockArrayGrid(4096,4096,4096,1.0,1.0,new int[] {4,4,4}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(4096,4096,4096,1.0,1.0,new int[] {4,4,4}, BlockArrayGrid.BlockType.RLE);
 		
 		byte[][][] data = {{ {0,1,2},
 							 {3,4,5},
@@ -186,7 +203,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test copy constructor.
 	 */
 	public void testBlockArrayGridCopyConstructor() {
-		BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		
 		assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
 		assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 1));
@@ -214,7 +231,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test creating an empty grid.
 	 */
 	public void testCreateEmpty() {
-		BlockArrayGrid grid = new BlockArrayGrid(100, 101, 102, 0.001, 0.001, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(100, 101, 102, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 			
 		assertEquals("block width in voxels ", 4, ((BlockArrayGrid)grid).BLOCK_WIDTH_IN_VOXELS[0]);
 		assertEquals("grid width in blocks ", 32, ((BlockArrayGrid)grid).GRID_WIDTH_IN_BLOCKS[0]);
@@ -235,22 +252,22 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test set/get all data points.
 	 */
 	public void testSetGetByVoxelCoords() {
-		Grid grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, 1);
+		Grid grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelCoords(grid);
 
-		grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelCoords(grid);
 
-		grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelCoords(grid);
 
-		grid = new BlockArrayGrid(16,8,8,0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(16,8,8,0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelCoords(grid);
 
-		grid = new BlockArrayGrid(16, 16, 16, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(16, 16, 16, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelCoords(grid);
 
-		grid = new BlockArrayGrid(100, 91, 85, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(100, 91, 85, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelCoords(grid);
 	}
 
@@ -258,16 +275,16 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test set/get all data points.
 	 */
 	public void testSetGetByWorldCoords() {
-		Grid grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, 1);
+		Grid grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelByWorldCoords(grid);
 
-		grid = new BlockArrayGrid(3,2,2,0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(3,2,2,0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelByWorldCoords(grid);
 
-		grid = new BlockArrayGrid(11, 11, 11, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(11, 11, 11, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelByWorldCoords(grid);
 
-		grid = new BlockArrayGrid(100, 91, 85, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(100, 91, 85, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		setGetAllVoxelByWorldCoords(grid);
 	}
 
@@ -275,7 +292,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test getState by voxels.
 	 */
 	public void testGetStateByVoxel() {
-		BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 			
 		grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)2);
 		grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)1);
@@ -293,7 +310,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	 * Test getState by world coordinates.
 	 */
 	public void testGetStateByCoord() {
-		BlockArrayGrid grid = new BlockArrayGrid(1.0, 0.4, 0.5, 0.05, 0.01, new int[] {0,0,0}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(1.0, 0.4, 0.5, 0.05, 0.01, new int[] {0,0,0}, BlockArrayGrid.BlockType.RLE);
 	
 		// make sure the grid is the expected size
 		int xVoxels = grid.getWidth();
@@ -313,7 +330,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 
 		// should expect width=3, height=6, depth=4
 		// set data for a mid-voxel and test the bounds
-		grid = new BlockArrayGrid(0.12, 0.11, 0.16, 0.05, 0.02, new int[] {0,0,0}, 1);
+		grid = new BlockArrayGrid(0.12, 0.11, 0.16, 0.05, 0.02, new int[] {0,0,0}, BlockArrayGrid.BlockType.RLE);
 		grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (byte)2);
 		assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.07, 0.075));
 		assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.06, 0.05));
@@ -361,7 +378,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		int[] row = {0, 3, 5};
 		byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
 
-		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.05, 0.02, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.05, 0.02, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 
 		width = grid.getWidth();
 		height = grid.getHeight();
@@ -417,7 +434,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		int[] stateDepth = {10, 6, 1};
 		byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
 
-		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.05, 0.02, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.05, 0.02, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 
 		width = grid.getWidth();
 		height = grid.getHeight();
@@ -468,7 +485,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		int depth = 10;
 		int mat = 1;
 
-		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
 		HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
@@ -518,7 +535,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 				{width-1, height-1, depth-1}
 		};
 
-		grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		vcSetExt = new HashSet<VoxelCoordinate>();
 
 		for (int i=0; i<coords.length; i++) {
@@ -543,7 +560,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		int depth = 10;
 		int mat = 1;
 
-		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
 		HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
@@ -599,7 +616,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 				{width-1, height-1, depth-1}
 		};
 
-		grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		vcSetExt = new HashSet<VoxelCoordinate>();
 
 		for (int i=0; i<coords.length; i++) {
@@ -625,7 +642,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		double voxelWidth = 0.02;
 		double sliceHeight = 0.01;
 
-		Grid grid = new BlockArrayGrid(xWorldCoord, yWorldCoord, zWorldCoord, voxelWidth, sliceHeight, new int[] {2,2,2}, 1);
+		Grid grid = new BlockArrayGrid(xWorldCoord, yWorldCoord, zWorldCoord, voxelWidth, sliceHeight, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 
 		double xcoord = 0.55;
 		double ycoord = 0.0202;
@@ -668,7 +685,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		double voxelWidth = 0.02;
 		double sliceHeight = 0.01;
 
-		Grid grid = new BlockArrayGrid(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight, new int[] {2,2,2}, 1);
+		Grid grid = new BlockArrayGrid(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 
 		int xcoord = 27;
 		int ycoord = 2;
@@ -697,7 +714,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		double voxelWidth = 0.02;
 		double sliceHeight = 0.01;
 
-		Grid grid = new BlockArrayGrid(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight, new int[] {2,2,2}, 1);
+		Grid grid = new BlockArrayGrid(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 
 		xVoxels = grid.getWidth();
 		yVoxels = grid.getHeight();
@@ -730,11 +747,11 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		double sliceHeight = 0.0015;
 
 		// voxel coordinates
-		Grid grid = new BlockArrayGrid(50, 25, 70, 0.05, sliceHeight, new int[] {2,2,2}, 1);
+		Grid grid = new BlockArrayGrid(50, 25, 70, 0.05, sliceHeight, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		assertEquals("Slice height is not " + sliceHeight, sliceHeight, grid.getSliceHeight());
 
 		// world coordinates
-		grid = new BlockArrayGrid(0.12, 0.11, 0.12, 0.05, sliceHeight, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(0.12, 0.11, 0.12, 0.05, sliceHeight, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		assertEquals("Slice height is not" + sliceHeight, sliceHeight, grid.getSliceHeight());
 	}
 
@@ -745,11 +762,11 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		double voxelSize = 0.025;
 
 		// voxel coordinates
-		Grid grid = new BlockArrayGrid(50, 25, 70, voxelSize, 0.01, new int[] {2,2,2}, 1);
+		Grid grid = new BlockArrayGrid(50, 25, 70, voxelSize, 0.01, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
 
 		// world coordinates
-		grid = new BlockArrayGrid(0.12, 0.11, 0.12, voxelSize, 0.01, new int[] {2,2,2}, 1);
+		grid = new BlockArrayGrid(0.12, 0.11, 0.12, voxelSize, 0.01, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 		assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
 	}
 	
@@ -759,7 +776,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 	public void testSetState() {
 	int size = 10;
 	
-	BlockArrayGrid grid = new BlockArrayGrid(size, size, size, 0.001, 0.001, new int[] {0,0,0}, 1);
+	BlockArrayGrid grid = new BlockArrayGrid(size, size, size, 0.001, 0.001, new int[] {0,0,0}, BlockArrayGrid.BlockType.RLE);
 		
 		grid.setData(0, 0, 0, Grid.INTERIOR, 1);
 		grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
@@ -788,7 +805,7 @@ public class TestBlockArrayGrid_RLEBlock extends BaseTestGrid implements ClassTr
 		double voxelSize = 0.002;
 		double sliceHeight = 0.001;
 		
-		BlockArrayGrid grid = new BlockArrayGrid(size, size, size, voxelSize, sliceHeight, new int[] {2,2,2}, 1);
+		BlockArrayGrid grid = new BlockArrayGrid(size, size, size, voxelSize, sliceHeight, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLE);
 			
 		grid.setData(0, 0, 0, Grid.INTERIOR, 1);
 		grid.setData(9, 9, 9, Grid.EXTERIOR, 2);

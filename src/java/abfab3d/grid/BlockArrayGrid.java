@@ -1,5 +1,5 @@
 /*****************************************************************************
- *						Shapeways, Inc Copyright (c) 2011
+ *						Shapeways, Inc Copyright (c) 2012
  *							   Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -42,7 +42,8 @@ public class BlockArrayGrid extends BaseGrid {
 	// options are:
 	// 		0: ArrayBlock, a block where voxels are represented as an array of bytes
 	// 		1: RLEBlock, a block where voxels are stored via run-length encoding
-	public final int GRID_BLOCK_TYPE;
+	public enum BlockType {Array, RLE};
+	public BlockType GRID_BLOCK_TYPE;
 	
 	// dimensions of the 1D containers
 	public final int BLOCKS_PER_GRID; 
@@ -55,6 +56,10 @@ public class BlockArrayGrid extends BaseGrid {
 	// corresponding 3D dimensions in 2^n form
 	public final int[] GRID_TWOS_ORDER;
 	public final int[] BLOCK_TWOS_ORDER;
+	
+	// largest dimensional coordinate of voxel in block
+	// used to enable remainder by bitwise and in min ops
+	protected final int[] BLOCK_LAST_INDEX;
 	
 	// offset of the grid's origin in number of voxels
 	protected double[] offset = {0.0, 0.0, 0.0};
@@ -84,7 +89,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * 					0: ArrayBlock, a block where voxels are represented as an array of bytes
 	 * 					1: RLEBlock, a block where voxels are stored via run-length encoding
 	 */
-	public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockTwosOrder, int blockType) {
+	public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockTwosOrder, BlockType blockType) {
 		// satisfy BaseGrid
 		super(w,h,d,pixel,sheight);
 		
@@ -105,6 +110,9 @@ public class BlockArrayGrid extends BaseGrid {
 		
 		BLOCKS_PER_GRID = GRID_WIDTH_IN_BLOCKS[0]*GRID_WIDTH_IN_BLOCKS[1]*GRID_WIDTH_IN_BLOCKS[2];
 		VOXELS_PER_BLOCK = BLOCK_WIDTH_IN_VOXELS[0]*BLOCK_WIDTH_IN_VOXELS[1]*BLOCK_WIDTH_IN_VOXELS[2];
+		BLOCK_LAST_INDEX = new int[] { (1 << BLOCK_TWOS_ORDER[0])-1 ,
+									   (1 << BLOCK_TWOS_ORDER[1])-1 ,
+									   (1 << BLOCK_TWOS_ORDER[2])-1 };
 		
 		// set world scales
 		scale[0] = 1.0/pixel;
@@ -113,10 +121,10 @@ public class BlockArrayGrid extends BaseGrid {
 		
 		// initialize blocks array
 		switch (GRID_BLOCK_TYPE) {
-			case 0:
+			case Array:
 				blocks = new Block[BLOCKS_PER_GRID];
 				break;
-			case 1:
+			case RLE:
 				blocks = new Block[BLOCKS_PER_GRID];
 				break;
 			default:
@@ -141,7 +149,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * 					0: ArrayBlock, a block where voxels are represented as an array of bytes
 	 * 					1: RLEBlock, a block where voxels are stored via run-length encoding
 	 */
-	public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockTwosOrder, int blockType) {
+	public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockTwosOrder, BlockType blockType) {
 		this((int) (w/pixel)+1, (int) (h/sheight)+1, (int) (d/pixel)+1, pixel, sheight, blockTwosOrder, blockType);
 	}
 	
@@ -376,8 +384,8 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @return the voxel's value
 	 */
 	protected byte get(int x, int y, int z) {
-		idx = f.coordToIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER);
-		return get(idx[0],idx[1]);
+		return get( f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER),
+					f.voxelIndex(x, y, z, BLOCK_LAST_INDEX, BLOCK_TWOS_ORDER) );
 	}
 	
 	/**
@@ -401,10 +409,10 @@ public class BlockArrayGrid extends BaseGrid {
 		if (blocks[idxBlockInGrid] == OUTSIDE_BLOCK) {
 			if (state != Grid.OUTSIDE) {
 				switch(GRID_BLOCK_TYPE) {
-					case 0:
+					case Array:
 						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
 						break;
-					case 1:
+					case RLE:
 						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
 						break;
 					default:
@@ -434,8 +442,8 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @param state, the data to set
 	 */
 	protected void set(int x, int y, int z, byte state) {
-		idx = f.coordToIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER);
-		set(idx[0], idx[1], state);
+		set(f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER),
+			f.voxelIndex(x, y, z, BLOCK_LAST_INDEX, BLOCK_TWOS_ORDER), state);
 	}
 	
 	/**
@@ -500,6 +508,37 @@ public class BlockArrayGrid extends BaseGrid {
 	 */
 	public Object clone() {
 		return new BlockArrayGrid(this);
+	}
+	
+	/**
+	 * Attempt to clean the BlockGrid by reclaiming blocks which have
+	 * homogeneous voxel state.
+	 * 
+	 * This currently only looks for blocks which can be replaced with
+	 * one of the grid's constant blocks, representing Grid.OUTSIDE,
+	 * Grid.EXTERIOR, and Grid.INTERIOR states.
+	 */
+	public void clean() {
+		for (int i = 0; i < BLOCKS_PER_GRID; i++) {
+			// first, is it homogeneous?
+			// cost varies by block type
+			// commonly O(n) for array-like, O(n log n) for sorted
+			// some structures, O(1) (e.g. block 
+			if (blocks[i].allEqual()) { // blocks[i].getClass() != 'f' & 
+				switch (blocks[i].get(0)) {
+					case Grid.OUTSIDE:
+						blocks[i] = OUTSIDE_BLOCK;
+						break;
+					case Grid.EXTERIOR:
+						blocks[i] = EXTERIOR_BLOCK;
+						break;
+					case Grid.INTERIOR:
+						blocks[i] = INTERIOR_BLOCK;
+						break;
+				}
+			}
+		} 
+		System.gc();
 	}
 }
 
@@ -1057,33 +1096,6 @@ interface Block {
  * Various helper functions.
  */
 class f {
-	protected static int[] idx = {0,0};
-	protected static int[] blockCoordInGrid = {0,0,0};
-	protected static int[] voxelCoordInBlock = {0,0,0};
-	
-	/**
-	 * Convert from x,y,z voxel coordinates to block and voxel index values.
-	 * 
-	 * @param x,y,z the voxel coordinate
-	 * @param gridTwosOrder, the size of the grid in blocks using twos order
-	 * @param blockTwosOrder, the size of the block in voxels using twos order
-	 * @return [idxBlockInGrid, idxVoxelInBlock] index where the voxel is stored
-	 */
-	static int[] coordToIndex(int x, int y, int z, int[] gridTwosOrder, int[] blockTwosOrder) {
-		// find the index of the block within the grid
-		blockCoordInGrid[0] = x >> blockTwosOrder[0];
-		blockCoordInGrid[1] = y >> blockTwosOrder[1];
-		blockCoordInGrid[2] = z >> blockTwosOrder[2];
-		idx[0] = c2i(blockCoordInGrid[0], blockCoordInGrid[1], blockCoordInGrid[2], gridTwosOrder);
-		
-		// find the index of the voxel within the block
-		voxelCoordInBlock[0] = x - (blockCoordInGrid[0] << blockTwosOrder[0]);
-		voxelCoordInBlock[1] = y - (blockCoordInGrid[1] << blockTwosOrder[1]);
-		voxelCoordInBlock[2] = z - (blockCoordInGrid[2] << blockTwosOrder[2]);
-		idx[1] = c2i(voxelCoordInBlock[0], voxelCoordInBlock[1], voxelCoordInBlock[2], blockTwosOrder);;
-		
-		return idx;
-	}
 	
 	/**
 	 * Convert from x,y,z voxel coordinates to block index value.
@@ -1101,21 +1113,43 @@ class f {
 	}
 	
 	/**
-	 * Quickly calculate an index within a flattened 3D grid.
+	 * Convert from x,y,z voxel coordinates to block index value.
+	 * 
+	 * Less efficient if you also need voxel index, saves computation if you only
+	 * need the block index.
+	 * 
+	 * @param x,y,z the voxel coordinate
+	 * @param gridTwosOrder, the size of the grid in blocks using twos order
+	 * @return idxBlockInGrid, index of the block containing the voxel coordinate
+	 */
+	static int voxelIndex(int x, int y, int z, int[] blockLastIndex, int[] blockTwosOrder) {
+		return c2i(x & blockLastIndex[0], y & blockLastIndex[1], z & blockLastIndex[2], blockTwosOrder);
+	}
+	
+	/**
+	 * Calculate an index within a 1D representation of 3D integer locations.
 	 * 
 	 * Bit order is as follows:
-	 * 		y x z | i
+	 * 		z x y | i
 	 * 		0 0 0 | 0
 	 * 		1 0 0 | 1
 	 * 		0 1 0 | 2
 	 * 		1 1 0 | 3
+	 * 		0 0 1 | 4
+	 * 
+	 * This order should be observed to maintain consistency with other 
+	 * AbFab3D classes. It may bias some comparisons between grids according
+	 * to the structure of the test data used. However, this method should
+	 * be the only place where a (x,y,z) ==> (i0,i1) mapping occurs; all
+	 * other methods in this class and its sub-classes should refer to this
+	 * method when such a calculation is required.
 	 * 
 	 * @param cx, cy, cz, the coordinates 
 	 * @param twosOrder, the order of the cooordinate space 2^n
 	 * @return the 1D index value
 	 */
 	static int c2i(int cx, int cy, int cz, int[] twosOrder) {
-		return cy + (cx << twosOrder[1]) + (cz << twosOrder[1] << twosOrder[0]);
+		return cz + (cx << twosOrder[2]) + (cy << twosOrder[2] << twosOrder[0]);
 	}
 	
 	/**
@@ -1147,17 +1181,6 @@ class f {
 	 */
 	static int nextpow2(double value) {
 		return nextpow2((int) Math.ceil(value));
-	}
-	
-	/**
-	 * Find 2^n.
-	 * 
-	 * @param value
-	 * @return 2^value
-	 */
-	static int p2(int value) {
-		// return (int) Math.pow(2,value);
-		return 1 << value;
 	}
 }
 
