@@ -42,7 +42,8 @@ public class BlockArrayGrid extends BaseGrid {
 	// options are:
 	// 		0: ArrayBlock, a block where voxels are represented as an array of bytes
 	// 		1: RLEBlock, a block where voxels are stored via run-length encoding
-	public final int GRID_BLOCK_TYPE;
+    public enum BlockType {Array, RLE}
+    public BlockType GRID_BLOCK_TYPE;
 	
 	// dimensions of the 1D containers
 	public final int BLOCKS_PER_GRID; 
@@ -84,7 +85,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * 					0: ArrayBlock, a block where voxels are represented as an array of bytes
 	 * 					1: RLEBlock, a block where voxels are stored via run-length encoding
 	 */
-	public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockTwosOrder, int blockType) {
+	public BlockArrayGrid(int w, int h, int d, double pixel, double sheight, int[] blockTwosOrder, BlockType blockType) {
 		// satisfy BaseGrid
 		super(w,h,d,pixel,sheight);
 		
@@ -113,10 +114,10 @@ public class BlockArrayGrid extends BaseGrid {
 		
 		// initialize blocks array
 		switch (GRID_BLOCK_TYPE) {
-			case 0:
+			case Array:
 				blocks = new Block[BLOCKS_PER_GRID];
 				break;
-			case 1:
+			case RLE:
 				blocks = new Block[BLOCKS_PER_GRID];
 				break;
 			default:
@@ -141,7 +142,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * 					0: ArrayBlock, a block where voxels are represented as an array of bytes
 	 * 					1: RLEBlock, a block where voxels are stored via run-length encoding
 	 */
-	public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockTwosOrder, int blockType) {
+	public BlockArrayGrid(double w, double h, double d, double pixel, double sheight, int[] blockTwosOrder, BlockType blockType) {
 		this((int) (w/pixel)+1, (int) (h/sheight)+1, (int) (d/pixel)+1, pixel, sheight, blockTwosOrder, blockType);
 	}
 	
@@ -192,9 +193,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Get the data of the voxel
 	 *
-	 * @param x The x world coordinate
-	 * @param y The y world coordinate
-	 * @param z The z world coordinate
+	 * @param wx The x world coordinate
+	 * @param wy The y world coordinate
+	 * @param wz The z world coordinate
 	 * @return The voxel state
 	 */
 	public VoxelData getData(double wx, double wy, double wz) {
@@ -204,9 +205,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Get the state of the voxel
 	 *
-	 * @param x The x world coordinate
-	 * @param y The y world coordinate
-	 * @param z The z world coordinate
+	 * @param wx The x world coordinate
+	 * @param wy The y world coordinate
+	 * @param wz The z world coordinate
 	 * @return The voxel state
 	 */
 	public byte getState(double wx, double wy, double wz) {
@@ -228,9 +229,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Get the material of the voxel.
 	 *
-	 * @param x The x world coordinate
-	 * @param y The y world coordinate
-	 * @param z The z world coordinate
+	 * @param wx The x world coordinate
+	 * @param wy The y world coordinate
+	 * @param wz The z world coordinate
 	 * @return The voxel material
 	 */
 	public int getMaterial(double wx, double wy, double wz) {
@@ -291,9 +292,9 @@ public class BlockArrayGrid extends BaseGrid {
 	 * Set the material value of a voxel.
 	 * This is the no material version, so it actually does NOTHING!
 	 *
-	 * @param x The x world coordinate
-	 * @param y The y world coordinate
-	 * @param z The z world coordinate
+	 * @param wx The x world coordinate
+	 * @param wy The y world coordinate
+	 * @param wz The z world coordinate
 	 * @param material The materialID
 	 */
 	public void setMaterial(double wx, double wy, double wz, int material) {
@@ -315,9 +316,9 @@ public class BlockArrayGrid extends BaseGrid {
 	/**
 	 * Set the state value of a voxel.  Leaves the material unchanged.
 	 *
-	 * @param x The x world coordinate
-	 * @param y The y world coordinate
-	 * @param z The z world coordinate
+	 * @param wx The x world coordinate
+	 * @param wy The y world coordinate
+	 * @param wz The z world coordinate
 	 * @param state The value.
 	 */
 	public void setState(double wx, double wy, double wz, byte state) {
@@ -329,7 +330,6 @@ public class BlockArrayGrid extends BaseGrid {
 	 * Currently assumes all active voxels are EXTERNAL.
 	 * This is "no material" version to mat = 0.
 	 * 
-	 * @param coord, the coord to read
 	 * @return a VoxelData object describing the voxel
 	 */
 	protected VoxelData getVoxelData(int x, int y, int z) {
@@ -341,7 +341,6 @@ public class BlockArrayGrid extends BaseGrid {
 	 * Currently assumes all active voxels are EXTERNAL.
 	 * This is "no material" version to mat = 0.
 	 * 
-	 * @param coord, the coord to read
 	 * @return a VoxelData object describing the voxel
 	 */
 	protected VoxelData getVoxelData(double wx, double wy, double wz) {
@@ -401,10 +400,10 @@ public class BlockArrayGrid extends BaseGrid {
 		if (blocks[idxBlockInGrid] == OUTSIDE_BLOCK) {
 			if (state != Grid.OUTSIDE) {
 				switch(GRID_BLOCK_TYPE) {
-					case 0:
+					case Array:
 						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
 						break;
-					case 1:
+					case RLE:
 						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
 						break;
 					default:
