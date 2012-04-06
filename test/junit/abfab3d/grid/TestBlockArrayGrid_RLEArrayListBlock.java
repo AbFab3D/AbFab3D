@@ -277,11 +277,9 @@ public class TestBlockArrayGrid_RLEArrayListBlock extends BaseTestGrid implement
 	 */
 	public void testSetGetByWorldCoords() {
 		Grid grid = new BlockArrayGrid(8, 8, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLEArrayList);
-		System.out.println("Blocks: "+((BlockArrayGrid) grid).BLOCKS_PER_GRID);
 		setGetAllVoxelByWorldCoords(grid);
 
 		grid = new BlockArrayGrid(3,2,2,0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLEArrayList);
-		System.out.println("Blocks: "+((BlockArrayGrid) grid).BLOCKS_PER_GRID);
 		setGetAllVoxelByWorldCoords(grid);
 
 		grid = new BlockArrayGrid(11, 11, 11, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.RLEArrayList);
