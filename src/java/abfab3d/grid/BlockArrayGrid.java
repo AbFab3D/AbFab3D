@@ -12,6 +12,9 @@
 
 package abfab3d.grid;
 
+import java.util.ArrayList;
+
+// TODO: Many comments are out-of-date due to refactoring. 
 
 /**
  * A BlockArrayGrid, inspired by DBGrid.
@@ -42,7 +45,7 @@ public class BlockArrayGrid extends BaseGrid {
 	// options are:
 	// 		0: ArrayBlock, a block where voxels are represented as an array of bytes
 	// 		1: RLEBlock, a block where voxels are stored via run-length encoding
-	public enum BlockType {Array, RLE};
+	public enum BlockType {Array, RLE, RLEArrayList};
 	public BlockType GRID_BLOCK_TYPE;
 	
 	// dimensions of the 1D containers
@@ -120,16 +123,7 @@ public class BlockArrayGrid extends BaseGrid {
 		scale[2] = scale[0];
 		
 		// initialize blocks array
-		switch (GRID_BLOCK_TYPE) {
-			case Array:
-				blocks = new Block[BLOCKS_PER_GRID];
-				break;
-			case RLE:
-				blocks = new Block[BLOCKS_PER_GRID];
-				break;
-			default:
-				throw new IllegalArgumentException("Specified block type not a defined type.");
-		}
+		blocks = new Block[BLOCKS_PER_GRID];
 		for (int i = 0; i < blocks.length; i++) {
 			blocks[i] = OUTSIDE_BLOCK;
 		}
@@ -406,6 +400,7 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @param state, the data to set
 	 */
 	protected void set(int idxBlockInGrid, int idxVoxelInBlock, byte state) {
+		// System.out.println("Setting voxel at index ("+idxBlockInGrid+","+idxVoxelInBlock+").");
 		if (blocks[idxBlockInGrid] == OUTSIDE_BLOCK) {
 			if (state != Grid.OUTSIDE) {
 				switch(GRID_BLOCK_TYPE) {
@@ -415,9 +410,13 @@ public class BlockArrayGrid extends BaseGrid {
 					case RLE:
 						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
 						break;
+					case RLEArrayList:
+						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
+						break;
 					default:
 						throw new IllegalArgumentException("Specified block type not a defined type.");
 				}
+//				System.out.println("Block has "+blocks[idxBlockInGrid].getClass());
 				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
 			}
 		} else {
@@ -995,6 +994,252 @@ class RLEBlock implements Block {
 		public RLENode clone() {
 			return new RLENode(length,state);
 		}
+	}
+}
+
+
+
+/**
+ * A block implementation using Run Length Encoding.
+ * 
+ * Uses ArrayList to store the run lengths and states. This
+ * should provide a baseline for this style of encoding.
+ * 
+ * Filling a large grid with data which oscillates at the 
+ * resolution would give poor memory performance. However,
+ * this would be bad for any RLE implementation, so don't
+ * use RLE for that case!
+ * 
+ */
+class RLEArrayListBlock implements Block {
+	protected ArrayList<Integer> runLength;
+	protected ArrayList<Byte> runState;
+	
+	/**
+	 * Construct a block with a size. Voxels are inactive.
+	 * 
+	 * @param blockSize
+	 */
+	public RLEArrayListBlock(int voxelsPerBlock) {
+		this(voxelsPerBlock,Grid.OUTSIDE);
+	}
+	
+	/**
+	 * Construct a block with a size. Voxels are given state.
+	 * 
+	 * @param blockSize
+	 */
+	public RLEArrayListBlock(int voxelsPerBlock, byte state) {
+		runLength = new ArrayList<Integer>();
+		runState = new ArrayList<Byte>();
+		runLength.add(voxelsPerBlock);
+		runState.add(state);
+	}
+	
+	/**
+	 * Construct a block with dimensional sizes.
+	 * 
+	 * The data is stored 1D, so this is for convenience.
+	 * 
+	 * @param xSize
+	 * @param ySize
+	 * @param zSize
+	 */
+	public RLEArrayListBlock(int xSize, int ySize, int zSize) {
+		this(xSize*ySize*zSize);
+	}
+	
+	/**
+	 * Construct a block with dimensional sizes and a voxel state.
+	 * 
+	 * @param xSize
+	 * @param ySize
+	 * @param zSize
+	 * @param state
+	 */
+	public RLEArrayListBlock(int xSize, int ySize, int zSize, byte state) {
+		this(xSize*ySize*zSize, state);
+	}
+	
+	/**
+	 * Get the state of a voxel.
+	 * 
+	 * @param index, the index of the block inside
+	 * 		the voxel, following the same xyz<-->i
+	 * 		schema observed for Block. Method does
+	 * 		not check that index < blockSize, and
+	 * 		will throw null pointers if you try it.
+	 * @return the activation state of the voxel.
+	 */
+	public byte get(int index) {
+		int length = 0;
+		for (int i = 0; i < runLength.size(); i++) {
+			length += runLength.get(i);
+			if (index < length) {
+				return runState.get(i).byteValue();
+			}
+		}
+		throw new IllegalArgumentException("Index exceeds length of stored code.");
+	}
+	
+	/**
+	 * Set the state of a voxel.
+	 * 
+	 * @param index, the index of the block inside
+	 * 		the voxel, following the same xyz<-->i
+	 * 		schema observed for Block. Method does
+	 * 		not check that index < blockSize, and
+	 * 		will throw null pointers if you try it.
+	 * @param state, the desired voxel state.
+	 */
+	public void set(int index, byte state) {
+//		System.out.println("Setting state "+state+" at index "+index+".");
+//		System.out.print("Old code: ");
+//		int voxOld = 0;
+//		for (int j = 0; j < runLength.size(); j++) {
+//			System.out.print(" "+runState.get(j).byteValue()+"_"+runLength.get(j).intValue());
+//			voxOld += runLength.get(j).intValue();
+//		}
+//		System.out.print("\n");
+//		System.out.println("Lengths: "+runLength.size()+", states: "+runState.size()+", voxels: "+voxOld+".");
+		
+		int oldLength = 0;
+		int length = 0;
+		for (int i = 0; i < runLength.size(); i++) {
+			length += runLength.get(i).intValue();
+			if (index < length) {
+				// log the unmodified run length
+				oldLength = runLength.get(i).intValue();
+				
+				// check if a modification is needed
+				if (state == runState.get(i).byteValue()) {
+//					System.out.println("Matched previously coded state, nothing happened.");
+					return;
+				}
+				
+				// case: index to modify is at end of run
+				if (index == length - 1) {
+//					System.out.println("index to modify is at end of run");
+					// case: no following run
+					if (i == runLength.size() - 1) {
+						runLength.set(i, oldLength - 1);
+						runLength.add(i+1,1);
+						runState.add(i+1,state);
+					// case: neighbor matches state to assign
+					} else if (i < runLength.size() - 1 & state == runState.get(i+1).byteValue()) {
+						runLength.set(i+1,runLength.get(i+1).intValue() + 1);
+						if (oldLength == 1) {
+							runLength.remove(i);
+							runState.remove(i);
+							while (runState.get(i-1).byteValue()==runState.get(i).byteValue()) {
+								runLength.set(i-1,runLength.get(i-1).intValue()+runLength.get(i).intValue());
+								runLength.remove(i);
+								runState.remove(i);
+							}
+						} else {
+							runLength.set(i,oldLength - 1);
+						}
+					// case: need to insert new run after this one
+					} else {
+						runLength.set(i,oldLength - 1);
+						runLength.add(i+1,1);
+						runState.add(i+1,state);
+					}
+				// case: index to modify is at beginning of run
+				} else if (index == length - oldLength) {
+//					System.out.println("index to modify is at beginning of run");
+					// case: no prior run
+					if (i == 0) {
+						runLength.set(i, oldLength - 1);
+						runLength.add(i,1);
+						runState.add(i,state);
+					// case: neighbor matches state to assign
+					} else if (i > 0 & state == runState.get(i-1).byteValue()) {
+						runLength.set(i-1,runLength.get(i-1).intValue() + 1);
+						if (oldLength == 1) {
+							runLength.remove(i);
+							runState.remove(i);
+							while (runState.get(i-1).byteValue()==runState.get(i).byteValue()) {
+								runLength.set(i-1,runLength.get(i-1).intValue()+runLength.get(i).intValue());
+								runLength.remove(i);
+								runState.remove(i);
+							}
+						} else {
+							runLength.set(i,oldLength - 1);
+						}
+					// case: need to insert new run before this one
+					} else {
+						runLength.set(i,oldLength - 1);
+						runLength.add(i,1);
+						runState.add(i,state);
+					}
+				// case: index to modify is in middle of run
+				//		 need to insert two new runs
+				} else {
+//					System.out.println("index to modify is in middle of run");
+					// modify the current run
+					runLength.set(i,(index)-(length - oldLength));
+					
+					// add the outer following run
+					runLength.add(i+1,oldLength - runLength.get(i).intValue() - 1);
+					runState.add(i+1,runState.get(i).byteValue());
+					
+					// add the inner following run
+					runLength.add(i+1,1);
+					runState.add(i+1,state);
+				}
+				
+//				System.out.print("New code: ");
+//				int voxNew = 0;
+//				for (int j = 0; j < runLength.size(); j++) {
+//					System.out.print(" "+runState.get(j).byteValue()+"_"+runLength.get(j).intValue());
+//					voxNew += runLength.get(j).intValue();
+//				}
+//				System.out.print("\n");
+//				System.out.println("Lengths: "+runLength.size()+", states: "+runState.size()+", voxels: "+voxNew+".");
+				return;
+			}
+		}
+		throw new IllegalArgumentException("Index exceeded length of code.");
+	}
+	
+	/**
+	 * Set all voxels in block to the same value.
+	 * 
+	 * @param state, the desired voxel state. the
+	 * 		supported values are Grid.OUTSIDE and
+	 * 		Grid.EXTERIOR. If another value is used,
+	 * 		state will be assumed as Grid.EXTERIOR.
+	 * @param voxelsPerBlock
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		runLength = new ArrayList<Integer>();
+		runState = new ArrayList<Byte>();
+		runLength.add(voxelsPerBlock);
+		runState.add(state);
+	}
+	
+	/**
+	 * Check whether all voxels in block have the same states.
+	 * 
+	 * @return true if all voxels in block have equal states.
+	 */
+	public boolean allEqual() {
+		return (runLength.get(1) == 0);
+	}
+	
+	/**
+	 * Return a clone of this block.
+	 */
+	public RLEArrayListBlock clone() {
+		RLEArrayListBlock newBlock = new RLEArrayListBlock(0);
+		newBlock.runLength = new ArrayList<Integer>(this.runLength.size());
+		newBlock.runState = new ArrayList<Byte>(this.runState.size());
+		for (int i = 0; i < runLength.size(); i++) {
+			newBlock.runLength.set(i,this.runLength.get(i).intValue());
+			newBlock.runState.set(i,this.runState.get(i).byteValue());
+		}
+		return newBlock;
 	}
 }
 
