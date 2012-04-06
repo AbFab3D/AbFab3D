@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testSuite name="AbFab3D" xmlns="http://www.sun.com/japex/testSuite">
 
-    <param name="japex.reportsDirectory" value="reports/japex"/>
+    <param name="japex.reportsDirectory" value="reports/japex/cpu"/>
     <param name="japex.plotGroupSize" value="20" />
 
     <param name="japex.classPath" value="classes"/>
@@ -9,11 +9,11 @@
     <param name="japex.classPath" value="lib/*.jar"/>
 
     <param name="japex.resultUnit" value="ms"/>
-    <param name="japex.warmupIterations" value="15"/>
-    <param name="japex.runIterations" value="15"/>
-    <param name="width" value="128" />
-    <param name="height" value="128" />
-    <param name="depth" value="128" />
+    <param name="japex.warmupIterations" value="10"/>
+    <param name="japex.runIterations" value="35"/>
+    <param name="width" value="512" />
+    <param name="height" value="512" />
+    <param name="depth" value="512" />
 
 <!--    <driver name="ArrayGrid" normal="true"> -->
     <driver name="Array" >
@@ -32,20 +32,34 @@
         <param name="japex.driverClass" value="abfab3d.grid.BlockBasedGridDriver"/>
         <param name="description" value="BlockBased Grid"/>
     </driver>
+    <driver name="BlockBasedBit" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockBasedGridBitDriver"/>
+        <param name="description" value="BlockBasedBit Grid"/>
+    </driver>
     <driver name="BlockArray" >
         <param name="japex.driverClass" value="abfab3d.grid.BlockArrayGridDriver"/>
         <param name="description" value="BlockArray Grid"/>
     </driver>
+    <driver name="BlockRLE" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockArrayGridRLEDriver"/>
+        <param name="description" value="BlockRLE Grid"/>
+    </driver>
+
+<!--
     <driver name="Octree" >
         <param name="japex.driverClass" value="abfab3d.grid.OctreeGridDriver"/>
         <param name="description" value="Octree Grid"/>
     </driver>
+ -->
 
+<!--
     <testCase name="WriteRandom">
         <param name="input" value="WriteRandom" />
         <param name="type" value="cpu" />
     </testCase>
+-->
 
+<!--
     <testCase name="WriteTorusSolid">
         <param name="input" value="WriteTorusSolid" />
         <param name="type" value="cpu" />
@@ -55,15 +69,26 @@
         <param name="input" value="WriteTorusShell" />
         <param name="type" value="cpu" />
     </testCase>
-
+-->
     <testCase name="WriteLinkedCubes">
         <param name="input" value="WriteLinkedCubes" />
         <param name="type" value="cpu" />
     </testCase>
 
+    <testCase name="ReadYXZ">
+        <param name="input" value="ReadYXZ" />
+        <param name="type" value="cpu" />
+    </testCase>
+    <testCase name="ReadExterior">
+        <param name="input" value="ReadExterior" />
+        <param name="type" value="cpu" />
+    </testCase>
+    <testCase name="ReadXZY">
+        <param name="input" value="ReadXZY" />
+        <param name="type" value="cpu" />
+    </testCase>
     <testCase name="ReadRandom">
         <param name="input" value="ReadRandom" />
         <param name="type" value="cpu" />
     </testCase>
-
 </testSuite>

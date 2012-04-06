@@ -10,67 +10,164 @@ import org.j3d.geom.TorusGenerator;
 import java.util.Random;
 
 /**
- * TODO: Add docs
+ * Base Japex setup for grid testing.
  *
  * @author Alan Hudson
  */
 public abstract class BaseGridDriver extends JapexDriverBase {
+    double voxel_size = 0.001;
+    double slice_height = 0.001;
+    
     protected int CLEAR_MEMORY = 2;
-    protected static final long MEMORY_UNITS = 1;
+    protected static final long MEMORY_UNITS = (long) 10e3;    // Kilobytes
 
     protected float randomPercent = 0.16f;
     protected Grid grid;
+    protected Grid torusGridShell;
+    protected Grid torusGridSolid;
+    
     protected long startMemory;
+    protected long alloc;
 
     public abstract void allocate(TestCase testCase);
 
     public void prepare(TestCase testCase) {
+        //System.out.println("Prepare FreeMemory: " + Runtime.getRuntime().freeMemory() + " max: " +  Runtime.getRuntime().maxMemory() + " total: " +  Runtime.getRuntime().totalMemory());
+
+//        System.out.println("prepare");
+
         if (testCase.getParam("type").equals("memory")) {
             // Work harder to clear memory for memory tests
             CLEAR_MEMORY = 25;
         }
-    }
-
-    public void run(TestCase testCase) {
-        clearMemory();
-
-        startMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / MEMORY_UNITS;
-        System.out.println("\nFreeMemory: " + startMemory + " max: " +  Runtime.getRuntime().maxMemory() + " total: " +  Runtime.getRuntime().totalMemory());
-
-        allocate(testCase);
 
         String input = testCase.getParam("input");
 
-        if (input.equals("WriteRandom")) {
+        // prepare torus grid.  Avoid TriangleModelCreator during runtime as its really expensive
+        int w = Integer.parseInt(testCase.getParam("width"));
+        int h = Integer.parseInt(testCase.getParam("height"));
+        int d = Integer.parseInt(testCase.getParam("depth"));
+
+        //System.out.println("\nPre FreeMem: " + Runtime.getRuntime().freeMemory() + " max: " +  Runtime.getRuntime().maxMemory() + " tot: " +  Runtime.getRuntime().totalMemory() + " alc: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
+
+        if (!testCase.getParam("type").equals("memory")) {
+            torusGridShell =  new ArrayGridByte(w,h,d,voxel_size, slice_height);
+            writeTorus(torusGridShell, false);
+            torusGridSolid =  new ArrayGridByte(w,h,d,voxel_size, slice_height);
+            writeTorus(torusGridSolid, true);
+        }
+
+        if (input.equals("ReadRandom")) {
+            allocate(testCase);
             writeRandom(grid, randomPercent);
+        } else if (input.equals("ReadExterior")) {
+            allocate(testCase);
+            writeTorus(grid, true);
+        } else if (input.equals("ReadInterior")) {
+            allocate(testCase);
+            writeTorus(grid, true);
+        } else if (input.equals("ReadXZY")) {
+            allocate(testCase);
+            writeTorus(grid, true);
+        } else if (input.equals("ReadYXZ")) {
+            allocate(testCase);
+            writeTorus(grid, true);
+        }
+    }
+
+    public void run(TestCase testCase) {
+//System.out.println("run");
+        int times = 1;
+        
+        clearMemory();
+
+        startMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / MEMORY_UNITS;
+        //System.out.println("\nFreeMemory: " + startMemory + " max: " +  Runtime.getRuntime().maxMemory() + " total: " +  Runtime.getRuntime().totalMemory());
+
+
+        String input = testCase.getParam("input");
+
+
+        if (input.equals("WriteRandom")) {
+            allocate(testCase);
+            
+            for (int i=0; i < times; i++) {
+                writeRandom(grid, randomPercent);
+            }
         } else if (input.equals("WriteTorusShell")) {
-            setTorus(grid, false);
+            allocate(testCase);
+            for (int i=0; i < times; i++) {
+                if (torusGridShell != null) {
+                    copyGrid(torusGridShell, grid);
+                } else {
+                    writeTorus(grid, false);
+                }
+            }
         } else if (input.equals("WriteTorusSolid")) {
-            setTorus(grid, true);
+            allocate(testCase);
+
+            for (int i=0; i < times; i++) {
+                if (torusGridSolid != null) {
+                    copyGrid(torusGridSolid, grid);
+                } else {
+                    writeTorus(grid, true);
+                }
+            }
         } else if (input.equals("WriteLinkedCubes")) {
-            setLinkedCubes(grid);
+            allocate(testCase);
+
+            for (int i=0; i < times; i++) {
+                writeLinkedCubes(grid);
+            }
         } else if (input.equals("ReadRandom")) {
-            readRandom(grid,randomPercent);
+            for (int i=0; i < times; i++) {
+                readRandom(grid,randomPercent);
+            }
+        } else if (input.equals("ReadExterior")) {
+            for (int i=0; i < times; i++) {
+                readExterior(grid);
+            }
+        } else if (input.equals("ReadInterior")) {
+            for (int i=0; i < times; i++) {
+                readInterior(grid);
+            }
+        } else if (input.equals("ReadXZY")) {
+            for (int i=0; i < times; i++) {
+                readStyleXZY(grid);
+            }
+        } else if (input.equals("ReadYXZ")) {
+            for (int i=0; i < times; i++) {
+                readStyleYXZ(grid);
+            }
+        }  else {
+            System.out.println("Unhandled input: " + input);
         }
 
         // Make a test cleanup its own memory allocation
         clearMemory();
 
+        if (testCase.getParam("type").equals("memory")) {
+            alloc = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / MEMORY_UNITS;
+            grid = null;
+        }
     }
 
     public void finish(TestCase testCase) {
+//System.out.println("finish");
         clearMemory();  // Only count permanent storage costs
 
         if (testCase.getParam("type").equals("memory")) {
+/*
             long alloc = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / MEMORY_UNITS;
+            System.out.println("\nFreeMemory: " + Runtime.getRuntime().freeMemory() + " max: " +  Runtime.getRuntime().maxMemory() + " total: " +  Runtime.getRuntime().totalMemory());
             System.out.println("\n   free: " + Runtime.getRuntime().freeMemory() + " used: " + (alloc));
 //            testCase.setLongParam("japex.resultValue",Runtime.getRuntime().maxMemory() - Runtime.getRuntime().freeMemory());
-            testCase.setLongParam("japex.resultValue",alloc );
+*/
+            testCase.setLongParam("japex.resultValue",alloc);
         } else {
             super.finish(testCase);
         }
 
-        grid = null;
         clearMemory();
     }
     
@@ -106,7 +203,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
      *
      * @param grid
      */
-    protected static void setTorus(Grid grid, boolean solid) {
+    protected void writeTorus(Grid grid, boolean solid) {
 
         float max_dim = (float) Math.max(Math.max(grid.getWidth() * grid.getVoxelSize(), grid.getHeight()) * grid.getSliceHeight(), grid.getDepth() * grid.getVoxelSize());
 
@@ -143,7 +240,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
         //System.out.println("interior cnt: " + grid.findCount(Grid.VoxelClasses.INTERIOR) + " solid: " + solid);
     }
 
-    public static void setLinkedCubes(Grid grid) {
+    public static void writeLinkedCubes(Grid grid) {
         CubeCreator.Style[][] styles = new CubeCreator.Style[6][];
 
         styles[0] = new CubeCreator.Style[4];
@@ -256,14 +353,14 @@ public abstract class BaseGridDriver extends JapexDriverBase {
     }
 
     /**
-     * Write a random pattern to the grid
+     * Read a random pattern from the grid
      *
      * @param grid
-     * @param percent How much of the grid to fill
+     * @param percent How much of the grid to read
      */
     protected void readRandom(Grid grid, float percent) {
         // Use a static seed for reproducibility
-        // Differnt from read seed to mix it up
+        // Different from read seed to mix it up
         Random r = new Random(17);
 
         int w = grid.getWidth();
@@ -287,7 +384,25 @@ public abstract class BaseGridDriver extends JapexDriverBase {
             }
         }
     }
-    
+
+    /**
+     * Read all exterior voxels
+     *
+     * @param grid
+     */
+    protected void readExterior(Grid grid) {
+        grid.find(Grid.VoxelClasses.EXTERIOR, new CountTraverser());
+    }
+
+    /**
+     * Read all exterior voxels
+     *
+     * @param grid
+     */
+    protected void readInterior(Grid grid) {
+        grid.find(Grid.VoxelClasses.INTERIOR, new CountTraverser());
+    }
+
     protected void clearMemory() {
         for(int i=0; i < CLEAR_MEMORY; i++) {
             System.gc();
@@ -296,5 +411,86 @@ public abstract class BaseGridDriver extends JapexDriverBase {
             } catch(Exception e)  {}
         }            
         
+    }
+
+    /**
+     * Read from a grid using y,x,z axis order.  Likely fast path.
+     * @param grid
+     */
+    protected void readStyleYXZ(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        int cnt = 0;
+
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    byte state = grid.getState(x,y,z);
+                    
+                    if (state == Grid.EXTERIOR) {
+                        cnt++;
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * Read from a grid using y,x,z axis order.  Likely slower path.
+     */
+    protected void readStyleXZY(Grid grid) {
+        int height = grid.getHeight();
+        int width = grid.getWidth();
+        int depth = grid.getDepth();
+
+        int cnt = 0;
+
+        for(int x=0; x < width; x++) {
+            for(int z=0; z < depth; z++) {
+                for(int y=0; y < height; y++) {
+                    byte state = grid.getState(x,y,z);
+
+                    if (state == Grid.EXTERIOR) {
+                        cnt++;
+                    }
+                }
+            }
+        }
+    }
+    
+    private void copyGrid(Grid src, Grid dest) {
+        int w = src.getWidth();
+        int h = src.getHeight();
+        int d = src.getDepth();
+
+        for(int y=0; y < h; y++) {
+            for(int x=0; x < w; x++) {
+                for(int z=0; z < d; z++) {
+                    dest.setState(x,y,z,src.getState(x,y,z));
+                }
+            }
+        }            
+    }
+}
+
+class CountTraverser implements ClassTraverser {
+    private long cnt;
+
+    @Override
+    public void found(int x, int y, int z, byte state) {
+        cnt++;
+    }
+
+    @Override
+    public boolean foundInterruptible(int x, int y, int z, byte state) {
+        cnt++;
+
+        return true;
+    }
+
+    public long getCnt() {
+        return cnt;
     }
 }

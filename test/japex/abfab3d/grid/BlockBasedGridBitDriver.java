@@ -7,7 +7,7 @@ import com.sun.japex.TestCase;
  *
  * @author Alan Hudson
  */
-public class ArrayAttributeGridDriver extends BaseGridDriver {
+public class BlockBasedGridBitDriver extends BaseGridDriver {
     double voxel_size = 0.001;
     double slice_height = 0.001;
 
@@ -16,6 +16,6 @@ public class ArrayAttributeGridDriver extends BaseGridDriver {
         int h = Integer.parseInt(testCase.getParam("height"));
         int d = Integer.parseInt(testCase.getParam("depth"));
 
-        grid =  new ArrayAttributeGridByte(w,h,d,voxel_size, slice_height);
+        grid =  new BlockBasedGridBit(w,h,d,voxel_size, slice_height);
     }
 }

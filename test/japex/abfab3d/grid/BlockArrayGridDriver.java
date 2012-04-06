@@ -14,6 +14,6 @@ public class BlockArrayGridDriver extends BaseGridDriver {
         int h = Integer.parseInt(testCase.getParam("height"));
         int d = Integer.parseInt(testCase.getParam("depth"));
 
-        grid =  new BlockArrayGrid(w,h,d,voxel_size, slice_height, new int[] {7,7,7}, BlockType.Array);
+        grid =  new BlockArrayGrid(w,h,d,voxel_size, slice_height, new int[] {3,3,3}, BlockType.Array);
     }
 }
