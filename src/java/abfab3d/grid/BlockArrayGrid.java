@@ -13,6 +13,7 @@
 package abfab3d.grid;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 
 // TODO: Many comments are out-of-date due to refactoring. 
 
@@ -45,7 +46,7 @@ public class BlockArrayGrid extends BaseGrid {
 	// options are:
 	// 		0: ArrayBlock, a block where voxels are represented as an array of bytes
 	// 		1: RLEBlock, a block where voxels are stored via run-length encoding
-	public enum BlockType {Array, RLE, RLEArrayList};
+	public enum BlockType {Array, RLE, RLEArrayList, BitSet, KeyValue};
 	public BlockType GRID_BLOCK_TYPE;
 	
 	// dimensions of the 1D containers
@@ -413,6 +414,12 @@ public class BlockArrayGrid extends BaseGrid {
 					case RLEArrayList:
 						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
 						break;
+					case BitSet:
+						blocks[idxBlockInGrid] = new BitSetBlock(VOXELS_PER_BLOCK);
+						break;
+					case KeyValue:
+						blocks[idxBlockInGrid] = new KeyValueBlock();
+						break;
 					default:
 						throw new IllegalArgumentException("Specified block type not a defined type.");
 				}
@@ -518,25 +525,47 @@ public class BlockArrayGrid extends BaseGrid {
 	 * Grid.EXTERIOR, and Grid.INTERIOR states.
 	 */
 	public void clean() {
-		for (int i = 0; i < BLOCKS_PER_GRID; i++) {
-			// first, is it homogeneous?
-			// cost varies by block type
-			// commonly O(n) for array-like, O(n log n) for sorted
-			// some structures, O(1) (e.g. block 
-			if (blocks[i].allEqual()) { // blocks[i].getClass() != 'f' & 
-				switch (blocks[i].get(0)) {
-					case Grid.OUTSIDE:
-						blocks[i] = OUTSIDE_BLOCK;
-						break;
-					case Grid.EXTERIOR:
-						blocks[i] = EXTERIOR_BLOCK;
-						break;
-					case Grid.INTERIOR:
-						blocks[i] = INTERIOR_BLOCK;
-						break;
+		if (GRID_BLOCK_TYPE == BlockType.KeyValue) {
+			for (int i = 0; i < BLOCKS_PER_GRID; i++) {
+				// TODO: change this over to a class comparison
+				if (blocks[i] != OUTSIDE_BLOCK & 
+					blocks[i] != EXTERIOR_BLOCK &
+					blocks[i] != INTERIOR_BLOCK) {
+					if (((KeyValueBlock) blocks[i]).allEqual(VOXELS_PER_BLOCK)) {
+						switch (blocks[i].get(0)) {
+							case Grid.OUTSIDE:
+								blocks[i] = OUTSIDE_BLOCK;
+								break;
+							case Grid.EXTERIOR:
+								blocks[i] = EXTERIOR_BLOCK;
+								break;
+							case Grid.INTERIOR:
+								blocks[i] = INTERIOR_BLOCK;
+								break;
+						}
+					}
 				}
 			}
-		} 
+		}
+			for (int i = 0; i < BLOCKS_PER_GRID; i++) {
+				// first, is it homogeneous?
+				// cost varies by block type
+				// commonly O(n) for array-like, O(n log n) for sorted
+				// some structures, O(1) (e.g. block 
+				if (blocks[i].allEqual()) { // blocks[i].getClass() != 'f' & 
+					switch (blocks[i].get(0)) {
+						case Grid.OUTSIDE:
+							blocks[i] = OUTSIDE_BLOCK;
+							break;
+						case Grid.EXTERIOR:
+							blocks[i] = EXTERIOR_BLOCK;
+							break;
+						case Grid.INTERIOR:
+							blocks[i] = INTERIOR_BLOCK;
+							break;
+					}
+				}
+			}
 		System.gc();
 	}
 }
@@ -1093,15 +1122,6 @@ class RLEArrayListBlock implements Block {
 	 * @param state, the desired voxel state.
 	 */
 	public void set(int index, byte state) {
-//		System.out.println("Setting state "+state+" at index "+index+".");
-//		System.out.print("Old code: ");
-//		int voxOld = 0;
-//		for (int j = 0; j < runLength.size(); j++) {
-//			System.out.print(" "+runState.get(j).byteValue()+"_"+runLength.get(j).intValue());
-//			voxOld += runLength.get(j).intValue();
-//		}
-//		System.out.print("\n");
-//		System.out.println("Lengths: "+runLength.size()+", states: "+runState.size()+", voxels: "+voxOld+".");
 		
 		int oldLength = 0;
 		int length = 0;
@@ -1113,13 +1133,11 @@ class RLEArrayListBlock implements Block {
 				
 				// check if a modification is needed
 				if (state == runState.get(i).byteValue()) {
-//					System.out.println("Matched previously coded state, nothing happened.");
 					return;
 				}
 				
 				// case: index to modify is at end of run
 				if (index == length - 1) {
-//					System.out.println("index to modify is at end of run");
 					// case: no following run
 					if (i == runLength.size() - 1) {
 						runLength.set(i, oldLength - 1);
@@ -1147,7 +1165,6 @@ class RLEArrayListBlock implements Block {
 					}
 				// case: index to modify is at beginning of run
 				} else if (index == length - oldLength) {
-//					System.out.println("index to modify is at beginning of run");
 					// case: no prior run
 					if (i == 0) {
 						runLength.set(i, oldLength - 1);
@@ -1176,7 +1193,6 @@ class RLEArrayListBlock implements Block {
 				// case: index to modify is in middle of run
 				//		 need to insert two new runs
 				} else {
-//					System.out.println("index to modify is in middle of run");
 					// modify the current run
 					runLength.set(i,(index)-(length - oldLength));
 					
@@ -1188,15 +1204,6 @@ class RLEArrayListBlock implements Block {
 					runLength.add(i+1,1);
 					runState.add(i+1,state);
 				}
-				
-//				System.out.print("New code: ");
-//				int voxNew = 0;
-//				for (int j = 0; j < runLength.size(); j++) {
-//					System.out.print(" "+runState.get(j).byteValue()+"_"+runLength.get(j).intValue());
-//					voxNew += runLength.get(j).intValue();
-//				}
-//				System.out.print("\n");
-//				System.out.println("Lengths: "+runLength.size()+", states: "+runState.size()+", voxels: "+voxNew+".");
 				return;
 			}
 		}
@@ -1239,6 +1246,232 @@ class RLEArrayListBlock implements Block {
 			newBlock.runLength.set(i,this.runLength.get(i).intValue());
 			newBlock.runState.set(i,this.runState.get(i).byteValue());
 		}
+		return newBlock;
+	}
+}
+
+
+
+/**
+ * A Block implementation using BitSet. Each voxel is two bits.
+ * 
+ * States are:
+ * 		00: Grid.OUTSIDE
+ * 		01: Grid.EXTERIOR
+ * 		10: Grid.INTERIOR
+ * 		11: Grid.USER_DEFINED
+ * 
+ */
+class BitSetBlock implements Block {
+	protected BitSet states;
+	protected boolean b0;
+	protected boolean b1;
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param voxelsPerBlock, the size of the block to construct
+	 */
+	BitSetBlock(int voxelsPerBlock) {
+		states = new BitSet(voxelsPerBlock << 1);
+	}
+	
+	/**
+	 * Get a state.
+	 */
+	public byte get(int index) {
+		return pack(states.get(index<<1),states.get((index<<1)+1));
+	}
+	
+	/**
+	 * Set a state.
+	 */
+	public void set(int index, byte state) {
+		unpack(state);
+		states.set(index<<1,b0);
+		states.set((index<<1)+1,b1);
+	}
+	
+	/**
+	 * Set all states to state.
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		unpack(state);
+		for (int i = 2; i < states.size(); i+=2) {
+			states.set(i<<1,b0);
+			states.set((i<<1)+1,b1);
+		}
+	}
+	
+	/**
+	 * Check whether all states are equal.
+	 */
+	public boolean allEqual() {
+		for (int i = 2; i < states.size(); i+=2) {
+			if (states.get(i) != states.get(0) || states.get(i+1) != states.get(1)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Clone factory.
+	 */
+	public BitSetBlock clone() {
+		BitSetBlock newBlock = new BitSetBlock(states.size());
+		newBlock.states = (BitSet) states.clone();
+		return newBlock;
+	}
+	
+	/**
+	 * Use state to set protected vars b1,b0.
+	 * 
+	 * @param state, get bits of the two LSB
+	 */
+	private void unpack(byte state) {
+		b0 = (state & 1) == 1;
+		b1 = (state & 2) == 2;
+	}
+	
+	/**
+	 * Get the byte representation of two bits.
+	 * 
+	 * @param bit0, bit1 the data to pack
+	 * @return the byte representation of the bits
+	 */
+	private byte pack(boolean bit0, boolean bit1) {
+		if (bit1) {
+			if(bit0) {
+				return 3;
+			}
+			return 2;
+		}
+		if (bit0) {
+			return 1;
+		}
+		return 0;
+	}
+}
+
+
+
+/**
+ * A Block implementation based on a simple key-value store,
+ * where the linear index result for "voxel in block" is
+ * taken to be the key. ArrayList is used for the key and
+ * value stores.
+ * 
+ * Allowed states are:
+ * 		00: Grid.OUTSIDE
+ * 		01: Grid.EXTERIOR
+ * 		10: Grid.INTERIOR
+ * 		11: Grid.USER_DEFINED
+ *
+ */
+class KeyValueBlock implements Block {
+	protected ArrayList<Integer> keys;
+	protected ArrayList<Byte> values;
+	protected boolean b0;
+	protected boolean b1;
+	protected int key;
+	
+	/**
+	 * Constructor.
+	 */
+	KeyValueBlock() {
+		keys = new ArrayList<Integer>();
+		values = new ArrayList<Byte>();
+	}
+	
+	/**
+	 * Get a voxel state.
+	 */
+	public byte get(int index) {
+		for (int i = 0; i < keys.size(); i++) {
+			key = keys.get(i);
+			if (key > index) {
+				return Grid.OUTSIDE;
+			} else if (key == index) {
+				return values.get(i);
+			}
+		}
+		throw new IllegalArgumentException("Index exceeds size of block.");
+	}
+	
+	/**
+	 * Set a voxel state.
+	 */
+	public void set(int index, byte state) {
+		for (int i = 0; i < keys.size(); i++) {
+			key = keys.get(i);
+			// insert before
+			if (key > index) {
+				keys.add(i,index);
+				values.add(i,state);
+				return;
+			// change state of existing entry
+			} else if (key == index) {
+				values.set(i, state);
+				return;
+			}
+		}
+		// new entry after list
+		keys.add(keys.size(),index);
+		values.add(keys.size(),state);
+	}
+	
+	/**
+	 * Set all states. This will implicitly set the full
+	 * range of voxels which can possibly be in the block,
+	 * which is probably wasteful and should be replaced
+	 * with a ConstantBlock on the grid level.
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		keys = new ArrayList<Integer>(voxelsPerBlock);
+		values = new ArrayList<Byte>(voxelsPerBlock);
+		for (int i = 0; i < voxelsPerBlock; i++) {
+			keys.set(i, i);
+			values.set(i,state);
+		}
+	}
+	
+	/**
+	 * Test whether all *stored* states are equal.
+	 * 
+	 * Warning: Not all states are known by the block.
+	 * 			Any Grid.OUTSIDE states are implicit.
+	 * 			To get a useful answer, you also need
+	 * 			to check the size of the value store.
+	 * 			Using allEqual(int) incorporates this.
+	 */
+	public boolean allEqual() {
+		for (int i = 0; i < values.size(); i++) {
+			if (values.get(i) != values.get(0)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Test whether all voxel states in block are equal. 
+	 */
+	public boolean allEqual(int voxelsInBlock) {
+		if (keys.size() != voxelsInBlock) {
+			return false;
+		}
+		return allEqual();
+	}
+	
+	/**
+	 * Clone factory.
+	 */
+	@SuppressWarnings("unchecked")
+	public KeyValueBlock clone() {
+		KeyValueBlock newBlock = new KeyValueBlock();
+		newBlock.keys = (ArrayList<Integer>) keys.clone();
+		newBlock.values = (ArrayList<Byte>) values.clone();
 		return newBlock;
 	}
 }
