@@ -14,5 +14,6 @@ public class BlockArrayGridRLEDriver extends BaseGridDriver {
         int d = Integer.parseInt(testCase.getParam("depth"));
 
         grid =  new BlockArrayGrid(w,h,d,voxel_size, slice_height, new int[] {3,3,3}, BlockArrayGrid.BlockType.RLE);
+        ((BlockArrayGrid)grid).clean(); // only do this if checking for compressed memory usage
     }
 }
