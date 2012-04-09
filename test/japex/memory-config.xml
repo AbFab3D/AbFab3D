@@ -16,14 +16,14 @@
     <param name="depth" value="128" />
 
 <!--    <driver name="ArrayGrid" normal="true"> -->
-    <driver name="Array" >
+<!--    <driver name="Array" >
         <param name="japex.driverClass" value="abfab3d.grid.ArrayGridDriver"/>
         <param name="description" value="Array Grid"/>
     </driver>
     <driver name="ArrayAttribute" >
         <param name="japex.driverClass" value="abfab3d.grid.ArrayAttributeGridDriver"/>
         <param name="description" value="Array Grid"/>
-    </driver>
+    </driver> -->
 
     <driver name="BlockBasedAtt" >
         <param name="japex.driverClass" value="abfab3d.grid.BlockBasedAttributeGridDriver"/>
@@ -46,11 +46,23 @@
         <param name="japex.driverClass" value="abfab3d.grid.BlockArrayGridRLEDriver"/>
         <param name="description" value="BlockRLE Grid"/>
     </driver>
+    <driver name="BlockRLEArrayList" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockArrayGridRLEArrayListDriver"/>
+        <param name="description" value="BlockArrayList Grid"/>
+    </driver>
+    <driver name="BlockBitSet" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockArrayGridBitSetDriver"/>
+        <param name="description" value="BlockBitSet Grid"/>
+    </driver>
+<!--    <driver name="BlockKeyValue" >
+        <param name="japex.driverClass" value="abfab3d.grid.BlockArrayGridKeyValueDriver"/>
+        <param name="description" value="BlockKeyValue Grid"/>
+    </driver> -->
 
-    <driver name="Octree" >
+<!--    <driver name="Octree" >
         <param name="japex.driverClass" value="abfab3d.grid.OctreeGridDriver"/>
         <param name="description" value="Octree Grid"/>
-    </driver>
+    </driver> -->
 <!--
     <testCase name="128TorusShell">
         <param name="width" value="128" />

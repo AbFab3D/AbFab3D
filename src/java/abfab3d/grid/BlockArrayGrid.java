@@ -15,6 +15,7 @@ package abfab3d.grid;
 import java.util.ArrayList;
 import java.util.BitSet;
 
+
 // TODO: Many comments are out-of-date due to refactoring. 
 
 /**
@@ -79,6 +80,14 @@ public class BlockArrayGrid extends BaseGrid {
 	protected int[] idx = {0,0};
 	protected int[] coord = {0,0,0};
 	
+	// log activity for each block
+	// if activity[i] >= VOXELS_PER_BLOCK, clean() may recover memory
+	// dealing with setAll() is another issue...
+	// however, it is not yet exposed at the grid level, and may never need
+	// to be since any grid optimization to exploit setAll() would likely
+	// benefit more from using ConstantBlock objects.
+	protected int[] activity;
+	
 	/**
 	 * Constructor.
 	 *
@@ -128,6 +137,8 @@ public class BlockArrayGrid extends BaseGrid {
 		for (int i = 0; i < blocks.length; i++) {
 			blocks[i] = OUTSIDE_BLOCK;
 		}
+		
+		activity = new int[BLOCKS_PER_GRID];
 	}
 	
 	/**
@@ -429,6 +440,9 @@ public class BlockArrayGrid extends BaseGrid {
 		} else {
 			blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
 		}
+		
+		// increment activity counter
+		activity[idxBlockInGrid] += 1;
 	}
 	
 	/**
@@ -1114,6 +1128,10 @@ class RLEArrayListBlock implements Block {
 	/**
 	 * Set the state of a voxel.
 	 * 
+	 * Code not collapsed in all cases. Could be optimized to
+	 * cost more CPU in order to save some RAM, but the gain
+	 * is unlikely to be very large in most usage patterns.
+	 * 
 	 * @param index, the index of the block inside
 	 * 		the voxel, following the same xyz<-->i
 	 * 		schema observed for Block. Method does
@@ -1123,84 +1141,73 @@ class RLEArrayListBlock implements Block {
 	 */
 	public void set(int index, byte state) {
 		
-		int oldLength = 0;
+		// length of run through end of node containing index
 		int length = 0;
 		for (int i = 0; i < runLength.size(); i++) {
 			length += runLength.get(i).intValue();
 			if (index < length) {
-				// log the unmodified run length
-				oldLength = runLength.get(i).intValue();
-				
 				// check if a modification is needed
 				if (state == runState.get(i).byteValue()) {
 					return;
 				}
 				
-				// case: index to modify is at end of run
-				if (index == length - 1) {
-					// case: no following run
-					if (i == runLength.size() - 1) {
-						runLength.set(i, oldLength - 1);
-						runLength.add(i+1,1);
-						runState.add(i+1,state);
-					// case: neighbor matches state to assign
-					} else if (i < runLength.size() - 1 & state == runState.get(i+1).byteValue()) {
-						runLength.set(i+1,runLength.get(i+1).intValue() + 1);
-						if (oldLength == 1) {
-							runLength.remove(i);
-							runState.remove(i);
-							while (runState.get(i-1).byteValue()==runState.get(i).byteValue()) {
-								runLength.set(i-1,runLength.get(i-1).intValue()+runLength.get(i).intValue());
-								runLength.remove(i);
-								runState.remove(i);
-							}
+				// log the unmodified run length
+				int oldLength = runLength.get(i).intValue();
+				
+				if (oldLength == 1) {
+					// case: unit-length run
+					runState.set(i,state);
+				} else if (index == length - 1) {
+					// case: target at end of run
+					runLength.set(i,oldLength-1);
+					if (i < runLength.size()-1) {
+						// case: following run exists
+						if (state == runState.get(i+1).byteValue()) {
+							// if neighbor matches state, contribute length to neighbor
+							runLength.set(i+1, runLength.get(i+1)+1);
 						} else {
-							runLength.set(i,oldLength - 1);
+							// else insert a node at following position
+							runLength.add(i+1,1);
+							runState.add(i+1,state);
 						}
-					// case: need to insert new run after this one
+						
 					} else {
-						runLength.set(i,oldLength - 1);
+						// case: no following run exists
+						// insert a node at following position
 						runLength.add(i+1,1);
 						runState.add(i+1,state);
 					}
-				// case: index to modify is at beginning of run
-				} else if (index == length - oldLength) {
-					// case: no prior run
-					if (i == 0) {
-						runLength.set(i, oldLength - 1);
-						runLength.add(i,1);
-						runState.add(i,state);
-					// case: neighbor matches state to assign
-					} else if (i > 0 & state == runState.get(i-1).byteValue()) {
-						runLength.set(i-1,runLength.get(i-1).intValue() + 1);
-						if (oldLength == 1) {
-							runLength.remove(i);
-							runState.remove(i);
-							while (runState.get(i-1).byteValue()==runState.get(i).byteValue()) {
-								runLength.set(i-1,runLength.get(i-1).intValue()+runLength.get(i).intValue());
-								runLength.remove(i);
-								runState.remove(i);
-							}
-						} else {
-							runLength.set(i,oldLength - 1);
-						}
-					// case: need to insert new run before this one
-					} else {
-						runLength.set(i,oldLength - 1);
-						runLength.add(i,1);
-						runState.add(i,state);
-					}
-				// case: index to modify is in middle of run
-				//		 need to insert two new runs
-				} else {
-					// modify the current run
-					runLength.set(i,(index)-(length - oldLength));
 					
-					// add the outer following run
+				} else if (index == length - oldLength) {
+					// case: target at beginning of run
+					runLength.set(i,oldLength-1);
+					if (i>0) {
+						// case: prior run exists
+						if (state == runState.get(i-1).byteValue()) {
+							// if neighbor matches state, contribute length to neighbor
+							runLength.set(i-1,runLength.get(i-1)+1);
+						} else {
+							// else insert a node at current position
+							runLength.add(i,1);
+							runState.add(i,state);
+						}
+					} else {
+						// case: no prior run exists
+						// insert a node at current position
+						runLength.add(i,1);
+						runState.add(i,state);
+					}
+					
+				} else {
+					// case: target in middle of run
+					// insert two nodes following
+					runLength.set(i, index - (length - oldLength));
+					
+					// insert outer node with matching state
 					runLength.add(i+1,oldLength - runLength.get(i).intValue() - 1);
 					runState.add(i+1,runState.get(i).byteValue());
 					
-					// add the inner following run
+					// insert inner node with new state
 					runLength.add(i+1,1);
 					runState.add(i+1,state);
 				}
@@ -1391,12 +1398,12 @@ class KeyValueBlock implements Block {
 		for (int i = 0; i < keys.size(); i++) {
 			key = keys.get(i);
 			if (key > index) {
-				return Grid.OUTSIDE;
+				break;
 			} else if (key == index) {
 				return values.get(i);
 			}
 		}
-		throw new IllegalArgumentException("Index exceeds size of block.");
+		return Grid.OUTSIDE;
 	}
 	
 	/**
@@ -1407,6 +1414,9 @@ class KeyValueBlock implements Block {
 			key = keys.get(i);
 			// insert before
 			if (key > index) {
+				// anything unpopulated is already implicitly outside
+				if (state == Grid.OUTSIDE) return;
+				// add new entry, maintaining key ordering
 				keys.add(i,index);
 				values.add(i,state);
 				return;
@@ -1416,9 +1426,12 @@ class KeyValueBlock implements Block {
 				return;
 			}
 		}
+		// anything unpopulated is already implicitly outside
+		if (state == Grid.OUTSIDE) return;
+		
 		// new entry after list
-		keys.add(keys.size(),index);
-		values.add(keys.size(),state);
+		keys.add(index);
+		values.add(state);
 	}
 	
 	/**
@@ -1479,10 +1492,9 @@ class KeyValueBlock implements Block {
 
 
 /**
- * A block that can't be changed for nothing.
+ * A block whose state can't be changed.
  * 
- * All gets will be the initial state, sets
- * will throw an error.
+ * All gets will get the initial state, all sets will throw an error.
  */
 class ConstantBlock implements Block {
 	final byte state;
