@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 
 
+
 // TODO: Many comments are out-of-date due to refactoring. 
 
 /**
@@ -47,7 +48,7 @@ public class BlockArrayGrid extends BaseGrid {
 	// options are:
 	// 		0: ArrayBlock, a block where voxels are represented as an array of bytes
 	// 		1: RLEBlock, a block where voxels are stored via run-length encoding
-	public enum BlockType {Array, RLE, RLEArrayList, BitSet, KeyValue};
+	public enum BlockType {Array, BitArray, BitSet, RLE, RLEArrayList, KeyValue};
 	public BlockType GRID_BLOCK_TYPE;
 	
 	// dimensions of the 1D containers
@@ -287,7 +288,9 @@ public class BlockArrayGrid extends BaseGrid {
 	public void setData(int x, int y, int z, byte state, int material) {
 		set(x,y,z,state);
 	}
-
+	
+	
+	
 	/**
 	 * Set the material value of a voxel.
 	 * This is the no material version, so it actually does NOTHING!
@@ -412,12 +415,17 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @param state, the data to set
 	 */
 	protected void set(int idxBlockInGrid, int idxVoxelInBlock, byte state) {
-		// System.out.println("Setting voxel at index ("+idxBlockInGrid+","+idxVoxelInBlock+").");
 		if (blocks[idxBlockInGrid] == OUTSIDE_BLOCK) {
 			if (state != Grid.OUTSIDE) {
 				switch(GRID_BLOCK_TYPE) {
 					case Array:
 						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
+						break;
+					case BitArray:
+						blocks[idxBlockInGrid] = new BitArrayBlock(VOXELS_PER_BLOCK);
+						break;
+					case BitSet:
+						blocks[idxBlockInGrid] = new BitSetBlock(VOXELS_PER_BLOCK);
 						break;
 					case RLE:
 						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
@@ -425,8 +433,31 @@ public class BlockArrayGrid extends BaseGrid {
 					case RLEArrayList:
 						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
 						break;
+					case KeyValue:
+						blocks[idxBlockInGrid] = new KeyValueBlock();
+						break;
+					default:
+						throw new IllegalArgumentException("Specified block type not a defined type.");
+				}
+				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
+			}
+		} else if (blocks[idxBlockInGrid] == EXTERIOR_BLOCK) {
+			if (state != Grid.EXTERIOR) {
+				switch(GRID_BLOCK_TYPE) {
+					case Array:
+						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
+						break;
+					case BitArray:
+						blocks[idxBlockInGrid] = new BitArrayBlock(VOXELS_PER_BLOCK);
+						break;
 					case BitSet:
 						blocks[idxBlockInGrid] = new BitSetBlock(VOXELS_PER_BLOCK);
+						break;
+					case RLE:
+						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
+						break;
+					case RLEArrayList:
+						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
 						break;
 					case KeyValue:
 						blocks[idxBlockInGrid] = new KeyValueBlock();
@@ -434,7 +465,32 @@ public class BlockArrayGrid extends BaseGrid {
 					default:
 						throw new IllegalArgumentException("Specified block type not a defined type.");
 				}
-//				System.out.println("Block has "+blocks[idxBlockInGrid].getClass());
+				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
+			}
+		} else if (blocks[idxBlockInGrid] == INTERIOR_BLOCK) {
+			if (state != Grid.INTERIOR) {
+				switch(GRID_BLOCK_TYPE) {
+					case Array:
+						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
+						break;
+					case BitArray:
+						blocks[idxBlockInGrid] = new BitArrayBlock(VOXELS_PER_BLOCK);
+						break;
+					case BitSet:
+						blocks[idxBlockInGrid] = new BitSetBlock(VOXELS_PER_BLOCK);
+						break;
+					case RLE:
+						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
+						break;
+					case RLEArrayList:
+						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
+						break;
+					case KeyValue:
+						blocks[idxBlockInGrid] = new KeyValueBlock();
+						break;
+					default:
+						throw new IllegalArgumentException("Specified block type not a defined type.");
+				}
 				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
 			}
 		} else {
@@ -479,6 +535,7 @@ public class BlockArrayGrid extends BaseGrid {
 	
 	/**
 	 * Set all voxels within a block to a given value.
+	 * Exploit existing constant blocks where possible.
 	 * 
 	 * @param coord, a grid coordinate in the block
 	 * @param state, the state to set
@@ -542,6 +599,7 @@ public class BlockArrayGrid extends BaseGrid {
 		if (GRID_BLOCK_TYPE == BlockType.KeyValue) {
 			for (int i = 0; i < BLOCKS_PER_GRID; i++) {
 				// TODO: change this over to a class comparison
+				// Or just nuke it, since KeyValueBlock seems to waste too much time resizing
 				if (blocks[i] != OUTSIDE_BLOCK & 
 					blocks[i] != EXTERIOR_BLOCK &
 					blocks[i] != INTERIOR_BLOCK) {
@@ -557,29 +615,31 @@ public class BlockArrayGrid extends BaseGrid {
 								blocks[i] = INTERIOR_BLOCK;
 								break;
 						}
+						activity[i] = 0;
 					}
 				}
 			}
 		}
-			for (int i = 0; i < BLOCKS_PER_GRID; i++) {
-				// first, is it homogeneous?
-				// cost varies by block type
-				// commonly O(n) for array-like, O(n log n) for sorted
-				// some structures, O(1) (e.g. block 
-				if (blocks[i].allEqual()) { // blocks[i].getClass() != 'f' & 
-					switch (blocks[i].get(0)) {
-						case Grid.OUTSIDE:
-							blocks[i] = OUTSIDE_BLOCK;
-							break;
-						case Grid.EXTERIOR:
-							blocks[i] = EXTERIOR_BLOCK;
-							break;
-						case Grid.INTERIOR:
-							blocks[i] = INTERIOR_BLOCK;
-							break;
-					}
+		for (int i = 0; i < BLOCKS_PER_GRID; i++) {
+			// skip if we haven't written to block enough to fully populate it
+			if (activity[i] < VOXELS_PER_BLOCK) continue;
+			
+			// is it homogeneous? cost varies by block type
+			if (blocks[i].allEqual()) { 
+				switch (blocks[i].get(0)) {
+					case Grid.OUTSIDE:
+						blocks[i] = OUTSIDE_BLOCK;
+						break;
+					case Grid.EXTERIOR:
+						blocks[i] = EXTERIOR_BLOCK;
+						break;
+					case Grid.INTERIOR:
+						blocks[i] = INTERIOR_BLOCK;
+						break;
 				}
+				activity[i] = 0;
 			}
+		}
 		System.gc();
 	}
 }
@@ -1364,6 +1424,110 @@ class BitSetBlock implements Block {
 
 
 /**
+ * A Block implementation using BitArray. Each voxel is two bits.
+ * 
+ * States are:
+ * 		00: Grid.OUTSIDE
+ * 		01: Grid.EXTERIOR
+ * 		10: Grid.INTERIOR
+ * 		11: Grid.USER_DEFINED
+ * 
+ */
+class BitArrayBlock implements Block {
+	protected BitArray states;
+	protected boolean b0;
+	protected boolean b1;
+	
+	/**
+	 * Constructor.
+	 * 
+	 * @param voxelsPerBlock, the size of the block to construct
+	 */
+	BitArrayBlock(int voxelsPerBlock) {
+		states = new BitArray(voxelsPerBlock << 1);
+	}
+	
+	/**
+	 * Get a state.
+	 */
+	public byte get(int index) {
+		return pack(states.get(index<<1),states.get((index<<1)+1));
+	}
+	
+	/**
+	 * Set a state.
+	 */
+	public void set(int index, byte state) {
+		unpack(state);
+		states.set(index<<1,b0);
+		states.set((index<<1)+1,b1);
+	}
+	
+	/**
+	 * Set all states to state.
+	 */
+	public void setAll(byte state, int voxelsPerBlock) {
+		unpack(state);
+		for (int i = 2; i < states.size(); i+=2) {
+			states.set(i<<1,b0);
+			states.set((i<<1)+1,b1);
+		}
+	}
+	
+	/**
+	 * Check whether all states are equal.
+	 */
+	public boolean allEqual() {
+		for (int i = 2; i < states.size(); i+=2) {
+			if (states.get(i) != states.get(0) || states.get(i+1) != states.get(1)) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Clone factory.
+	 */
+	public BitArrayBlock clone() {
+		BitArrayBlock newBlock = new BitArrayBlock(states.size());
+		newBlock.states = (BitArray) states.clone();
+		return newBlock;
+	}
+	
+	/**
+	 * Use state to set protected vars b1,b0.
+	 * 
+	 * @param state, get bits of the two LSB
+	 */
+	private void unpack(byte state) {
+		b0 = (state & 1) == 1;
+		b1 = (state & 2) == 2;
+	}
+	
+	/**
+	 * Get the byte representation of two bits.
+	 * 
+	 * @param bit0, bit1 the data to pack
+	 * @return the byte representation of the bits
+	 */
+	private byte pack(boolean bit0, boolean bit1) {
+		if (bit1) {
+			if(bit0) {
+				return 3;
+			}
+			return 2;
+		}
+		if (bit0) {
+			return 1;
+		}
+		return 0;
+	}
+}
+
+
+
+/**
  * A Block implementation based on a simple key-value store,
  * where the linear index result for "voxel in block" is
  * taken to be the key. ArrayList is used for the key and
@@ -1671,6 +1835,71 @@ class f {
 	 */
 	static int nextpow2(double value) {
 		return nextpow2((int) Math.ceil(value));
+	}
+}
+
+
+/**
+ * Affords bit[] using byte[] in memory. Should be somewhat
+ * smaller and more efficient than the equivalent BitSet if
+ * you don't need dynamic size. 
+ * 
+ */
+class BitArray {
+	protected byte[] data;
+	
+	/**
+	 * Construct a bit array using byte[].
+	 * 
+	 * @param nbits, desired length in bits
+	 */
+	public BitArray(int nbits) {
+		int nbytes = nbits >> 3;
+		if (nbits % 8 > 0) {
+			nbytes += 1;
+		}
+		data = new byte[nbytes];
+	}
+	
+	/**
+	 * Get a bit's value.
+	 * 
+	 * @param i, the index to get the value of
+	 * @return the stored value
+	 */
+	public boolean get(int i) {
+		return (data[i>>3] & (1<<(i&0x7))) == (1<<(i&0x7));
+	}
+	
+	/**
+	 * Set a bit's value.
+	 * 
+	 * @param i, the index to set the value of
+	 * @param b, the value to store
+	 */
+	public void set(int i, boolean b) {
+		if (b) {
+			data[i>>3] |= (0x1<<(i&0x7));
+		} else {
+			data[i>>3] &= ~(0x1<<(i&0x7));
+		}
+	}
+	
+	/**
+	 * 
+	 * @return the length of the bit array
+	 */
+	public int size() {
+		return data.length << 3;
+	}
+	
+	/**
+	 * Clone factory.
+	 */
+	public BitArray clone() {
+		BitArray r = new BitArray(data.length<<3);
+		r.data = data.clone();
+		return r;
 	}
 }
 
