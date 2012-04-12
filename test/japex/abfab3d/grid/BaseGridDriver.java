@@ -164,10 +164,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
 //            testCase.setLongParam("japex.resultValue",Runtime.getRuntime().maxMemory() - Runtime.getRuntime().freeMemory());
 */
             testCase.setLongParam("japex.resultValue",alloc);
-        } else {
-            super.finish(testCase);
         }
-
         clearMemory();
     }
     
@@ -438,7 +435,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
     }
 
     /*
-     * Read from a grid using y,x,z axis order.  Likely slower path.
+     * Read from a grid using x,z,y axis order.  Likely slower path.
      */
     protected void readStyleXZY(Grid grid) {
         int height = grid.getHeight();
