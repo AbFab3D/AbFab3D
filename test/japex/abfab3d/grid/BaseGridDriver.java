@@ -19,7 +19,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
     double slice_height = 0.001;
     
     protected int CLEAR_MEMORY = 2;
-    protected static final long MEMORY_UNITS = (long) 10e3;    // Kilobytes
+    protected static final long MEMORY_UNITS = (long) 1e3;    // Kilobytes
 
     protected float randomPercent = 0.16f;
     protected Grid grid;
