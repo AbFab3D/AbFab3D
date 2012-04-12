@@ -1,9 +1,6 @@
 package logo3d;
 
-import static org.junit.Assert.*;
-import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestSuite;
 
 /**
  * Tests the functionality of DrawLine.
