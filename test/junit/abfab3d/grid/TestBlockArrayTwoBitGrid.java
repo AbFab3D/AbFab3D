@@ -79,9 +79,9 @@ public class TestBlockArrayTwoBitGrid extends BaseTestGrid implements ClassTrave
 		
 		assertEquals("number of blocks ", 8, grid.blocks.length);
 		
-		assertEquals("Result should be ", 0, func.blockIdx(0,0,0,grid.BLOCK_TWOS_ORDER,grid.GRID_TWOS_ORDER));
-		assertEquals("Result should be ", 1, func.blockIdx(0,0,15,grid.BLOCK_TWOS_ORDER,grid.GRID_TWOS_ORDER));
-		assertEquals("Result should be ", 7, func.blockIdx(15,15,15,grid.BLOCK_TWOS_ORDER,grid.GRID_TWOS_ORDER));
+		assertEquals("Result should be ", 0, func.blockIdx(0,0,0,grid.BLOCK_TWOS_ORDER,grid.GRIDORDER_Z,grid.GRIDORDER_XPLUSZ));
+		assertEquals("Result should be ", 1, func.blockIdx(0,0,15,grid.BLOCK_TWOS_ORDER,grid.GRIDORDER_Z,grid.GRIDORDER_XPLUSZ));
+		assertEquals("Result should be ", 7, func.blockIdx(15,15,15,grid.BLOCK_TWOS_ORDER,grid.GRIDORDER_Z,grid.GRIDORDER_XPLUSZ));
 	}
 	
 	/**

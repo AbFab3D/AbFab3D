@@ -36,15 +36,16 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	// temp objects
 	protected byte byt;
 	protected int idx;
-	protected int x0;
-	protected int y0;
-	protected int z0;
 	
-	// size of grid as power of two
+	// size of grid & block as power of two
 	public final int[] GRID_TWOS_ORDER;
-	
-	// size of block as power of two
 	protected final int[] BLOCK_TWOS_ORDER;
+	
+	// for index lookup calculations
+	protected final int GRIDORDER_XPLUSZ;
+	protected final int GRIDORDER_Z;
+	protected final int BLOCKORDER_XPLUSZ;
+	protected final int BLOCKORDER_Z;
 	
 	// width of grid in blocks, width of block in voxels
 	protected final int[] GRID_SIZE_IN_BLOCKS;
@@ -96,6 +97,11 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 		BLOCK_SIZE_IN_VOXELS = new int[] {1<<BLOCK_TWOS_ORDER[0],1<<BLOCK_TWOS_ORDER[1],1<<BLOCK_TWOS_ORDER[2]};
 		VOXELS_PER_BLOCK = BLOCK_SIZE_IN_VOXELS[0]*BLOCK_SIZE_IN_VOXELS[1]*BLOCK_SIZE_IN_VOXELS[2];
 		BLOCK_LAST_INDEX = new int[] {GRID_SIZE_IN_BLOCKS[0]-1,GRID_SIZE_IN_BLOCKS[1]-1,GRID_SIZE_IN_BLOCKS[2]-1};
+		
+		GRIDORDER_XPLUSZ = GRID_TWOS_ORDER[0]+GRID_TWOS_ORDER[2];
+		GRIDORDER_Z = GRID_TWOS_ORDER[2];
+		BLOCKORDER_XPLUSZ = BLOCK_TWOS_ORDER[0]+BLOCK_TWOS_ORDER[2];
+		BLOCKORDER_Z = BLOCK_TWOS_ORDER[2];
 		
 		// initialize blocks array
 		blocks = new Block[(1<<GRID_TWOS_ORDER[0])*(1<<GRID_TWOS_ORDER[1])*(1<<GRID_TWOS_ORDER[2])];
@@ -186,8 +192,8 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	 * Get the state of a voxel using grid coordinates.
 	 */
 	public byte getState(int x, int y, int z) {
-		return blocks[func.blockIdx(x,y,z,BLOCK_TWOS_ORDER,GRID_TWOS_ORDER)].get(
-				func.voxelIdx(x,y,z,BLOCK_TWOS_ORDER,BLOCK_LAST_INDEX));
+		return blocks[func.blockIdx(x,y,z,BLOCK_TWOS_ORDER,GRIDORDER_Z,GRIDORDER_XPLUSZ)].get(
+				func.voxelIdx(x,y,z,BLOCK_LAST_INDEX,BLOCKORDER_Z,BLOCKORDER_XPLUSZ));
 	}
 	
 	/**
@@ -201,19 +207,23 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	 * Set the state of a voxel using grid coordinates.
 	 */
 	public void setState(int x, int y, int z, byte state) {
-		idx = func.blockIdx(x,y,z,BLOCK_TWOS_ORDER,GRID_TWOS_ORDER);
+		idx = func.blockIdx(x,y,z,BLOCK_TWOS_ORDER,GRIDORDER_Z,GRIDORDER_XPLUSZ);
 		if (blocks[idx] instanceof TwoBitBlock) {
 			// set the voxel state and increment the block activity counter
-			blocks[idx].set(func.voxelIdx(x,y,z,BLOCK_TWOS_ORDER,BLOCK_LAST_INDEX),state);
+			blocks[idx].set(func.voxelIdx(x,y,z,BLOCK_LAST_INDEX,BLOCKORDER_Z,BLOCKORDER_XPLUSZ),state);
 			activity[idx] += 1;
 		} else {
 			// only replace a ConstantBlock if we need a conflicting voxel state
 			byt = blocks[idx].get(0);
 			if (state != byt) {
 				// create a new block, filled with state of the ConstantBlock it replaces
-				blocks[idx] = new TwoBitBlock(VOXELS_PER_BLOCK,byt);
+				if (byt != Grid.OUTSIDE) {
+					blocks[idx] = new TwoBitBlock(VOXELS_PER_BLOCK,byt);
+				} else {
+					blocks[idx] = new TwoBitBlock(VOXELS_PER_BLOCK);
+				}
 				// set the voxel state and increment the block activity counter
-				blocks[idx].set(func.voxelIdx(x,y,z,BLOCK_TWOS_ORDER,BLOCK_LAST_INDEX),state);
+				blocks[idx].set(func.voxelIdx(x,y,z,BLOCK_LAST_INDEX,BLOCKORDER_Z,BLOCKORDER_XPLUSZ),state);
 				activity[idx] += 1;
 			}
 		}
@@ -233,13 +243,10 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	 * @param t The traverser to call for each voxel
 	 */
 	public void find(VoxelClasses vc, ClassTraverser t) {
-		//idx = -1;
-		for (int y0 = 0; y0 < height; y0+=BLOCK_SIZE_IN_VOXELS[1]) {
-			for (int x0 = 0; x0 < width; x0+=BLOCK_SIZE_IN_VOXELS[0]) {
+		for (int x0 = 0; x0 < width; x0+=BLOCK_SIZE_IN_VOXELS[0]) {
+			for (int y0 = 0; y0 < height; y0+=BLOCK_SIZE_IN_VOXELS[1]) {
 				for (int z0 = 0; z0 < depth; z0+=BLOCK_SIZE_IN_VOXELS[2]) {
-					// increment block index
-					//idx += 1; this should work, something's probably in the wrong order above?
-					idx = func.blockIdx(x0,y0,z0,BLOCK_TWOS_ORDER,GRID_TWOS_ORDER);
+					idx = func.blockIdx(x0,y0,z0,BLOCK_TWOS_ORDER,GRIDORDER_Z,GRIDORDER_XPLUSZ);
 					if (blocks[idx] instanceof ConstantBlock) {
 						// same state for all contained voxels
 						byt = blocks[idx].get(0);
@@ -259,8 +266,8 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 								break;
 						}
 						// set all voxels within this homogeneous block
-						for (int y = y0; y < y0+BLOCK_SIZE_IN_VOXELS[1]; y++) {
-							for (int x = x0; x < x0+BLOCK_SIZE_IN_VOXELS[0]; x++) {
+						for (int x = x0; x < x0+BLOCK_SIZE_IN_VOXELS[0]; x++) {
+							for (int y = y0; y < y0+BLOCK_SIZE_IN_VOXELS[1]; y++) {
 								for (int z = z0; z < z0+BLOCK_SIZE_IN_VOXELS[2]; z++) {
 									// push coords & state
 									t.found(x,y,z,byt);
@@ -269,10 +276,10 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 						}
 					} else {
 						// check voxel states individually
-						for (int y = y0; y < y0+BLOCK_SIZE_IN_VOXELS[1]; y++) {
-							for (int x = x0; x < x0+BLOCK_SIZE_IN_VOXELS[0]; x++) {
+						for (int x = x0; x < x0+BLOCK_SIZE_IN_VOXELS[0]; x++) {
+							for (int y = y0; y < y0+BLOCK_SIZE_IN_VOXELS[1]; y++) {
 								for (int z = z0; z < z0+BLOCK_SIZE_IN_VOXELS[2]; z++) {
-									byt = blocks[idx].get(func.voxelIdx(x,y,z,BLOCK_TWOS_ORDER,BLOCK_LAST_INDEX));
+									byt = blocks[idx].get(func.voxelIdx(x,y,z,BLOCK_LAST_INDEX,BLOCKORDER_Z,BLOCKORDER_XPLUSZ));
 									// check if block meets requested type
 									switch (vc) {
 										case OUTSIDE:
@@ -300,8 +307,6 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 		}
 	}
 	
-	
-	
 	/**
 	 * Attempt to reclaim blocks with homogeneous state and
 	 * replace them with constant blocks. Invoke the GC and
@@ -311,6 +316,7 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	public void clean() {
 		for (int i = 0; i < blocks.length; i++) {
 			// skip block if we haven't used it enough to fill it
+			// activity is nominally zero for constant blocks
 			if (activity[i] < VOXELS_PER_BLOCK) continue;
 			
 			// is it homogeneous?
@@ -501,31 +507,31 @@ class func {
 	 * Convert world coordinate to voxel coordinate.
 	 */
 	static int w2v (double w, double size) {
-		return (int) Math.floor(w/size);
+		return (int) (w/size); // Math.floor(w/size);
 	}
 	
 	/**
-	 * Find the 1D block index given voxel coord. Bit order is y-up: from LSB, order is z,x,y.
+	 * Find the 1D block index given voxel coord. Order is y-up: from LSB, count z,x,y.
 	 * 
 	 * @param x,y,z coordinates to translate
 	 * @return equivalent index value
 	 */
-	static int blockIdx(int x, int y, int z, int[] blockTwosOrder, int[] gridTwosOrder) {
+	static int blockIdx(int x, int y, int z, int[] blockTwosOrder, int gridTwosOrderZ, int gridTwosOrderXPlusZ) {
 		return (z >> blockTwosOrder[2])
-			+ ((x >> blockTwosOrder[0]) << gridTwosOrder[2])
-			+ ((y >> blockTwosOrder[1]) << (gridTwosOrder[0]+gridTwosOrder[2]));
+			+ ((x >> blockTwosOrder[0]) << gridTwosOrderZ)
+			+ ((y >> blockTwosOrder[1]) << gridTwosOrderXPlusZ);
 	}
 	
 	/**
-	 * Find the 1D voxel index given voxel coord. Bit order is y-up: from LSB, order is z,x,y.
+	 * Find the 1D voxel index given voxel coord. Order is y-up: from LSB, count z,x,y.
 	 * 
 	 * @param x,y,z coordinates to translate
 	 * @return equivalent index value
 	 */
-	static int voxelIdx(int x, int y, int z, int[] blockTwosOrder, int[] blockLastIndex) {
+	static int voxelIdx(int x, int y, int z, int[] blockLastIndex, int blockTwosOrderZ, int blockTwosOrderXPlusZ) {
 		return (z & blockLastIndex[2])
-			+ ((x & blockLastIndex[0]) << blockTwosOrder[2])
-			+ ((y & blockLastIndex[1]) << (blockTwosOrder[0]+blockTwosOrder[2]));
+			+ ((x & blockLastIndex[0]) << blockTwosOrderZ)
+			+ ((y & blockLastIndex[1]) << blockTwosOrderXPlusZ);
 	}
 }
 

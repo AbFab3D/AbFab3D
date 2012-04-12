@@ -1596,8 +1596,6 @@ class FindIterateTester implements ClassTraverser {
      * @return True if voxels were found correctly
      */
     public boolean foundAllVoxels() {
-//System.out.println("iterateCount: " + iterateCount);
-//System.out.println("vcSetCount: " + vcSetCount);
         return (foundCorrect && (iterateCount == vcSetCount));
     }
 
