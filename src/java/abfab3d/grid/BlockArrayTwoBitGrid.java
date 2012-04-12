@@ -16,13 +16,11 @@ package abfab3d.grid;
  * BlockArrayTwoBitGrid, a grid using ConstantBlocks for homogeneous
  * blocks and TwoBitBlocks for heterogeneous blocks.
  * 
- * CPU efficiency should be fairly high, making some mild compromises
- * to reduce memory requirements. Memory usage depends on what blocks
- * are currently ConstantBlocks or TwoBitBlocks. ConstantBlocks cost
- * one byte plus object overhead, while TwoBitBlocks cost two bits per
- * voxel plus overhead. The other major cost is the array of blocks
- * itself. However, object overhead for ConstantBlocks is minimized
- * by trying to instantiate only one per supported voxel type.
+ * Compared to non-blocked grids, lookup operations are slightly slower
+ * as the 1D index of both the block and the voxel inside the block must
+ * be calculated. However, this provides significantly improved scalability
+ * with regard to memory requirements. Accessing voxels via find() is also
+ * significantly faster.
  * 
  * Homogeneous constant blocks are not checked for aggressively, but
  * an attempt to reclaim blocks (GC allowing) can be made via clean().
@@ -75,11 +73,12 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	/**
 	 * Constructor, grid size in voxels.
 	 * 
-	 * @param w
-	 * @param h
-	 * @param d
-	 * @param pixel
-	 * @param sheight
+	 * @param w, the desired width along the x axis in voxels
+	 * @param h, the desired height along the y axis in voxels
+	 * @param d, the deisred depth along the z axis in voxels
+	 * @param pixel, the x-z scale of a voxel
+	 * @param sheight, the y height of a voxel
+	 * @param blockTwosOrder, the [x,y,z] scale of a block in voxels as 2^n
 	 */
 	public BlockArrayTwoBitGrid(int w, int h, int d, double pixel, double sheight, int[] blockTwosOrder) {
 		// satisfy BaseGrid
@@ -114,11 +113,12 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	/**
 	 * Constructor, grid size in world coordinates.
 	 * 
-	 * @param w
-	 * @param h
-	 * @param d
-	 * @param pixel
-	 * @param sheight
+	 * @param w, the desired width along the x axis in world scale
+	 * @param h, the desired height along the y axis in world scale
+	 * @param d, the deisred depth along the z axis in world scale
+	 * @param pixel, the x-z scale of a voxel
+	 * @param sheight, the y height of a voxel
+	 * @param blockTwosOrder, the [x,y,z] scale of a block in voxels as 2^n
 	 */
 	public BlockArrayTwoBitGrid(double w, double h, double d, double pixel, double sheight, int[] blockTwosOrder) {
 		this((int) (w/pixel)+1, (int) (h/sheight)+1, (int) (d/pixel)+1, pixel, sheight, blockTwosOrder);
@@ -127,11 +127,11 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	/**
 	 * Constructor, grid size in voxels. Use blocks of 16x16x16 voxels.
 	 * 
-	 * @param w
-	 * @param h
-	 * @param d
-	 * @param pixel
-	 * @param sheight
+	 * @param w, the desired width along the x axis in voxels
+	 * @param h, the desired height along the y axis in voxels
+	 * @param d, the deisred depth along the z axis in voxels
+	 * @param pixel, the x-z scale of a voxel
+	 * @param sheight, the y height of a voxel
 	 */
 	public BlockArrayTwoBitGrid(int w, int h, int d, double pixel, double sheight) {
 		this(w, h, d, pixel, sheight, new int[] {4,4,4});
@@ -140,11 +140,11 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	/**
 	 * Constructor, grid size in world coordinates. Use blocks of 16x16x16 voxels.
 	 * 
-	 * @param w
-	 * @param h
-	 * @param d
-	 * @param pixel
-	 * @param sheight
+	 * @param w, the desired width along the x axis in world scale
+	 * @param h, the desired height along the y axis in world scale
+	 * @param d, the deisred depth along the z axis in world scale
+	 * @param pixel, the x-z scale of a voxel
+	 * @param sheight, the y height of a voxel
 	 */
 	public BlockArrayTwoBitGrid(double w, double h, double d, double pixel, double sheight) {
 		this((int) (w/pixel)+1, (int) (h/sheight)+1, (int) (d/pixel)+1, pixel, sheight, new int[] {4,4,4});
@@ -444,6 +444,11 @@ class TwoBitArray {
 	protected byte[] data;
 	final int length;
 	
+	/**
+	 * Constructor.
+	 * 
+	 * @param nbins, the number of two-bit bins to construct an array of
+	 */
 	public TwoBitArray(int nbins) {
 		int nbytes = nbins << 2;
 		if ((nbytes&0x3) > 0) {
@@ -452,21 +457,39 @@ class TwoBitArray {
 		data = new byte[nbytes];
 		length = nbins;
 	}
-
+	
+	/**
+	 * Get the state of a bin.
+	 * 
+	 * @param i, the ith two-bit bin to get the state of.
+	 * @return the bin's state, as the first two bits of a byte.
+	 */
 	public byte get(int i) {
 		return (byte) ((data[i>>2] >>> ((i&3)<<1)) & 0x3);
 	}
 	
+	/**
+	 * Set the state of a bin.
+	 * 
+	 * @param i, the ith two-bit bin to get the state of.
+	 * @param b, first two bits are the state, following bits are zeros.
+	 */
 	public void set(int i, byte b) {
 		data[i>>2] = (byte) ( (data[i>>2] & ~(0x3<<((i&0x3)<<1))) | (b<<((i&0x3)<<1)) );
 	}
 	
+	/**
+	 * Clone factory.
+	 */
 	public TwoBitArray clone() {
 		TwoBitArray r = new TwoBitArray(data.length >> 2);
 		r.data = data.clone();
 		return r;
 	}
 	
+	/**
+	 * @return true if all bins have equal state.
+	 */
 	public boolean allEqual() {
 		if ( (data[0]&0x3) == ((data[0]&0x0C)>>>2) && 
 			 (data[0]&0x3) == ((data[0]&0x30)>>>4) &&
@@ -487,6 +510,11 @@ class TwoBitArray {
 		return false;
 	}
 	
+	/**
+	 * Set all bins to the provided state.
+	 * 
+	 * @param b, first two bits are the state, following bits are zeros.
+	 */
 	public void setAll(byte b) {
 		b = (byte) (b | (b<<2) | (b<<4) | (b<<6));
 		for (int i = 0; i < data.length; i++) {
@@ -507,7 +535,7 @@ class func {
 	 * Convert world coordinate to voxel coordinate.
 	 */
 	static int w2v (double w, double size) {
-		return (int) (w/size); // Math.floor(w/size);
+		return (int) (w/size);
 	}
 	
 	/**
