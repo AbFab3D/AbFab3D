@@ -320,7 +320,7 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 			if (activity[i] < VOXELS_PER_BLOCK) continue;
 			
 			// is it homogeneous?
-			if (blocks[i].allEqual()) {
+			if (blocks[i].allEqual(VOXELS_PER_BLOCK)) {
 				// set it to the appropriate constant block
 				switch (blocks[i].get(0)) {
 					case Grid.OUTSIDE:
@@ -416,15 +416,15 @@ class TwoBitBlock implements Block {
 	/**
 	 * Check whether all states are equal.
 	 */
-	public boolean allEqual() {
-		return voxels.allEqual();
+	public boolean allEqual(int voxelsPerBlock) {
+		return voxels.allEqual(voxelsPerBlock);
 	}
 	
 	/**
 	 * Clone factory.
 	 */
 	public TwoBitBlock clone() {
-		TwoBitBlock r = new TwoBitBlock(voxels.length);
+		TwoBitBlock r = new TwoBitBlock(voxels.size());
 		r.voxels = (TwoBitArray) voxels.clone();
 		return r;
 	}
@@ -442,7 +442,6 @@ class TwoBitBlock implements Block {
  */
 class TwoBitArray {
 	protected byte[] data;
-	final int length;
 	
 	/**
 	 * Constructor.
@@ -450,12 +449,11 @@ class TwoBitArray {
 	 * @param nbins, the number of two-bit bins to construct an array of
 	 */
 	public TwoBitArray(int nbins) {
-		int nbytes = nbins << 2;
+		int nbytes = nbins >> 2;
 		if ((nbytes&0x3) > 0) {
 			nbytes += 1;
 		}
 		data = new byte[nbytes];
-		length = nbins;
 	}
 	
 	/**
@@ -490,17 +488,17 @@ class TwoBitArray {
 	/**
 	 * @return true if all bins have equal state.
 	 */
-	public boolean allEqual() {
+	public boolean allEqual(int voxelsPerBlock) {
 		if ( (data[0]&0x3) == ((data[0]&0x0C)>>>2) && 
 			 (data[0]&0x3) == ((data[0]&0x30)>>>4) &&
 			 (data[0]&0x3) == ((data[0]&0xC0)>>>6) ) {
-			for (int i = 1; i < (length-1); i++) {
+			for (int i = 1; i < (data.length-1); i++) {
 				if (data[i] != data[0]) {
 					return false;
 				}
 			}
 			// check last byte
-			for (int i = 0; i < (data.length << 2) - length; i++) {
+			for (int i = 0; i < (data.length << 2) - voxelsPerBlock; i++) {
 				if (((data[data.length-1]>>>(i<<1)) & 0x3) != (data[0] & 0x3)) {
 					return false;
 				}
@@ -508,6 +506,17 @@ class TwoBitArray {
 			return true;
 		}
 		return false;
+	}
+	
+	/**
+	 * Analogous to array.length, but without spending another int. Value
+	 * represents the storage capacity of data[] in two-bit units, which
+	 * may be greater than voxelsPerBlock by up to three.
+	 * 
+	 * @return
+	 */
+	public int size() {
+		return data.length << 2;
 	}
 	
 	/**
