@@ -415,8 +415,8 @@ public class BlockArrayGrid extends BaseGrid {
 	 * @param state, the data to set
 	 */
 	protected void set(int idxBlockInGrid, int idxVoxelInBlock, byte state) {
-		if (blocks[idxBlockInGrid] == OUTSIDE_BLOCK) {
-			if (state != Grid.OUTSIDE) {
+		if (blocks[idxBlockInGrid] instanceof ConstantBlock) {
+			if (state != blocks[idxBlockInGrid].get(0)) {
 				switch(GRID_BLOCK_TYPE) {
 					case Array:
 						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
@@ -440,58 +440,8 @@ public class BlockArrayGrid extends BaseGrid {
 						throw new IllegalArgumentException("Specified block type not a defined type.");
 				}
 				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
-			}
-		} else if (blocks[idxBlockInGrid] == EXTERIOR_BLOCK) {
-			if (state != Grid.EXTERIOR) {
-				switch(GRID_BLOCK_TYPE) {
-					case Array:
-						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
-						break;
-					case BitArray:
-						blocks[idxBlockInGrid] = new BitArrayBlock(VOXELS_PER_BLOCK);
-						break;
-					case BitSet:
-						blocks[idxBlockInGrid] = new BitSetBlock(VOXELS_PER_BLOCK);
-						break;
-					case RLE:
-						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
-						break;
-					case RLEArrayList:
-						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
-						break;
-					case KeyValue:
-						blocks[idxBlockInGrid] = new KeyValueBlock();
-						break;
-					default:
-						throw new IllegalArgumentException("Specified block type not a defined type.");
-				}
-				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
-			}
-		} else if (blocks[idxBlockInGrid] == INTERIOR_BLOCK) {
-			if (state != Grid.INTERIOR) {
-				switch(GRID_BLOCK_TYPE) {
-					case Array:
-						blocks[idxBlockInGrid] = new ArrayBlock(VOXELS_PER_BLOCK);
-						break;
-					case BitArray:
-						blocks[idxBlockInGrid] = new BitArrayBlock(VOXELS_PER_BLOCK);
-						break;
-					case BitSet:
-						blocks[idxBlockInGrid] = new BitSetBlock(VOXELS_PER_BLOCK);
-						break;
-					case RLE:
-						blocks[idxBlockInGrid] = new RLEBlock(VOXELS_PER_BLOCK);
-						break;
-					case RLEArrayList:
-						blocks[idxBlockInGrid] = new RLEArrayListBlock(VOXELS_PER_BLOCK);
-						break;
-					case KeyValue:
-						blocks[idxBlockInGrid] = new KeyValueBlock();
-						break;
-					default:
-						throw new IllegalArgumentException("Specified block type not a defined type.");
-				}
-				blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
+			} else {
+				return;
 			}
 		} else {
 			blocks[idxBlockInGrid].set(idxVoxelInBlock,state);
@@ -552,7 +502,7 @@ public class BlockArrayGrid extends BaseGrid {
 				blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)] = INTERIOR_BLOCK;
 				break;
 			default:
-				blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)].setAll(state, VOXELS_PER_BLOCK);
+				blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)].setAll(state);
 		}
 	}
 	
@@ -619,25 +569,26 @@ public class BlockArrayGrid extends BaseGrid {
 					}
 				}
 			}
-		}
-		for (int i = 0; i < BLOCKS_PER_GRID; i++) {
-			// skip if we haven't written to block enough to fully populate it
-			if (activity[i] < VOXELS_PER_BLOCK) continue;
-			
-			// is it homogeneous? cost varies by block type
-			if (blocks[i].allEqual()) { 
-				switch (blocks[i].get(0)) {
-					case Grid.OUTSIDE:
-						blocks[i] = OUTSIDE_BLOCK;
-						break;
-					case Grid.EXTERIOR:
-						blocks[i] = EXTERIOR_BLOCK;
-						break;
-					case Grid.INTERIOR:
-						blocks[i] = INTERIOR_BLOCK;
-						break;
+		} else {
+			for (int i = 0; i < BLOCKS_PER_GRID; i++) {
+				// skip if we haven't written to block enough to fully populate it
+				if (activity[i] < VOXELS_PER_BLOCK) continue;
+				
+				// is it homogeneous? cost varies by block type
+				if (blocks[i].allEqual()) { 
+					switch (blocks[i].get(0)) {
+						case Grid.OUTSIDE:
+							blocks[i] = OUTSIDE_BLOCK;
+							break;
+						case Grid.EXTERIOR:
+							blocks[i] = EXTERIOR_BLOCK;
+							break;
+						case Grid.INTERIOR:
+							blocks[i] = INTERIOR_BLOCK;
+							break;
+					}
+					activity[i] = 0;
 				}
-				activity[i] = 0;
 			}
 		}
 		System.gc();
@@ -715,8 +666,8 @@ class ArrayBlock implements Block {
 	 * 
 	 * @param state
 	 */
-	public void setAll(byte state, int voxelsPerBlock) {
-		points = new PointSet(voxelsPerBlock, state);
+	public void setAll(byte state) {
+		points = new PointSet(points.size(), state);
 	}
 	
 	/**
@@ -1041,8 +992,21 @@ class RLEBlock implements Block {
 	 * 		state will be assumed as Grid.EXTERIOR.
 	 * @param voxelsPerBlock
 	 */
-	public void setAll(byte state, int voxelsPerBlock) {
-		head = new RLENode(voxelsPerBlock,state);
+	public void setAll(byte state) {
+		head = new RLENode(size(),state);
+	}
+	
+	/**
+	 * Get total length of runs.
+	 */
+	private int size() {
+		node = head;
+		int length = node.length;
+		while (node.next != null) {
+			node = node.next;
+			length += node.length;
+		}
+		return length;
 	}
 	
 	/**
@@ -1286,11 +1250,22 @@ class RLEArrayListBlock implements Block {
 	 * 		state will be assumed as Grid.EXTERIOR.
 	 * @param voxelsPerBlock
 	 */
-	public void setAll(byte state, int voxelsPerBlock) {
+	public void setAll(byte state) {
 		runLength = new ArrayList<Integer>();
 		runState = new ArrayList<Byte>();
-		runLength.add(voxelsPerBlock);
+		runLength.add(size());
 		runState.add(state);
+	}
+	
+	/**
+	 * Get total length of runs.
+	 */
+	private int size() {
+		int length = runLength.get(0).intValue();
+		for (int i = 1; i < runLength.size(); i++) {
+			length += runLength.get(i).intValue();
+		}
+		return length;
 	}
 	
 	/**
@@ -1362,7 +1337,7 @@ class BitSetBlock implements Block {
 	/**
 	 * Set all states to state.
 	 */
-	public void setAll(byte state, int voxelsPerBlock) {
+	public void setAll(byte state) {
 		unpack(state);
 		for (int i = 2; i < states.size(); i+=2) {
 			states.set(i<<1,b0);
@@ -1466,7 +1441,7 @@ class BitArrayBlock implements Block {
 	/**
 	 * Set all states to state.
 	 */
-	public void setAll(byte state, int voxelsPerBlock) {
+	public void setAll(byte state) {
 		unpack(state);
 		for (int i = 2; i < states.size(); i+=2) {
 			states.set(i<<1,b0);
@@ -1604,10 +1579,10 @@ class KeyValueBlock implements Block {
 	 * which is probably wasteful and should be replaced
 	 * with a ConstantBlock on the grid level.
 	 */
-	public void setAll(byte state, int voxelsPerBlock) {
-		keys = new ArrayList<Integer>(voxelsPerBlock);
-		values = new ArrayList<Byte>(voxelsPerBlock);
-		for (int i = 0; i < voxelsPerBlock; i++) {
+	public void setAll(byte state) {
+		keys = new ArrayList<Integer>(keys.size());
+		values = new ArrayList<Byte>(keys.size());
+		for (int i = 0; i < keys.size(); i++) {
 			keys.set(i, i);
 			values.set(i,state);
 		}
@@ -1651,97 +1626,6 @@ class KeyValueBlock implements Block {
 		newBlock.values = (ArrayList<Byte>) values.clone();
 		return newBlock;
 	}
-}
-
-
-
-/**
- * A block whose state can't be changed.
- * 
- * All gets will get the initial state, all sets will throw an error.
- */
-class ConstantBlock implements Block {
-	final byte state;
-	
-	/**
-	 * Construct a new block.
-	 * 
-	 * State is expected to be Grid.OUTSIDE, Grid.INSIDE,
-	 * or Grid.EXTERIOR. But any byte would be accepted.
-	 * 
-	 * @param state
-	 */
-	public ConstantBlock(byte state) {
-		this.state = state;
-	}
-	
-	/**
-	 * Get the state of the block. Constant block,
-	 * so any get method will return this value.
-	 */
-	public byte get() {
-		return state;
-	}
-	
-	/**
-	 * Get the value of a voxel within the block.
-	 */
-	public byte get(int index) {
-		return state;
-	}
-	
-	/**
-	 * Set the value. Constant block - throws exception!
-	 */
-	public void set(int index, byte state) {
-		throw new UnsupportedOperationException("Cannot set elements of a ConstantBlock.");
-	}
-	
-	/**
-	 * Set the value. Constant block - throws exception!
-	 */
-	public void setAll(byte state, int voxelsPerBlock) {
-		throw new UnsupportedOperationException("Cannot set elements of a ConstantBlock.");
-	}
-	
-	/**
-	 * Returns whether all voxels in block have equal states.
-	 */
-	public boolean allEqual() {
-		return true;
-	}
-	
-	/**
-	 * Returns a copy of this block.
-	 */
-	public ConstantBlock clone() {
-		return new ConstantBlock(state);
-	}
-}
-
-/**
- * Interface for Blocks.
- * 
- * All Blocks are assumed to use linear indexing
- * such that 3D x,y,z voxels are reduced to 1D,
- * with x being the least significant value.
- */
-interface Block {
-	
-	// Get a voxel's state.
-	public byte get(int index);
-	
-	// Set a voxel's state.
-	public void set(int index, byte state);
-	
-	// Set all voxels in block to one state.
-	public void setAll(byte state, int voxelsPerBlock);
-	
-	// Find whether all voxels in block have the same state.
-	public boolean allEqual();
-	
-	// Return a copy of this block.
-	public Block clone();
 }
 
 
@@ -1855,7 +1739,7 @@ class BitArray {
 	 */
 	public BitArray(int nbits) {
 		int nbytes = nbits >> 3;
-		if (nbits % 8 > 0) {
+		if ((nbits&0x7) > 0) {
 			nbytes += 1;
 		}
 		data = new byte[nbytes];
