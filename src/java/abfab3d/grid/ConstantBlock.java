@@ -52,7 +52,7 @@ class ConstantBlock implements Block {
 	/**
 	 * Returns whether all voxels in block have equal states.
 	 */
-	public boolean allEqual() {
+	public boolean allEqual(int voxelsPerBlock) {
 		return true;
 	}
 	

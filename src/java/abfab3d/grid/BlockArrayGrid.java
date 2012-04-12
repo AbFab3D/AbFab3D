@@ -43,6 +43,7 @@ public class BlockArrayGrid extends BaseGrid {
 	static final Block OUTSIDE_BLOCK = new ConstantBlock(Grid.OUTSIDE);
 	static final Block EXTERIOR_BLOCK = new ConstantBlock(Grid.EXTERIOR);
 	static final Block INTERIOR_BLOCK = new ConstantBlock(Grid.INTERIOR);
+	static final Block USERDEF_BLOCK = new ConstantBlock(Grid.USER_DEFINED);
 	
 	// type of blocks to use for this grid
 	// options are:
@@ -575,7 +576,7 @@ public class BlockArrayGrid extends BaseGrid {
 				if (activity[i] < VOXELS_PER_BLOCK) continue;
 				
 				// is it homogeneous? cost varies by block type
-				if (blocks[i].allEqual()) { 
+				if (blocks[i].allEqual(VOXELS_PER_BLOCK)) { 
 					switch (blocks[i].get(0)) {
 						case Grid.OUTSIDE:
 							blocks[i] = OUTSIDE_BLOCK;
@@ -675,7 +676,7 @@ class ArrayBlock implements Block {
 	 * 
 	 * @return true if all voxels in block are equal-valued
 	 */
-	public boolean allEqual() {
+	public boolean allEqual(int voxelsPerBlock) {
 		return points.allEqual();
 	}
 	
@@ -1014,7 +1015,7 @@ class RLEBlock implements Block {
 	 * 
 	 * @return true if all voxels in block have equal states.
 	 */
-	public boolean allEqual() {
+	public boolean allEqual(int voxelsPerBlock) {
 		return (head.next == null);
 	}
 	
@@ -1273,7 +1274,7 @@ class RLEArrayListBlock implements Block {
 	 * 
 	 * @return true if all voxels in block have equal states.
 	 */
-	public boolean allEqual() {
+	public boolean allEqual(int voxelsPerBlock) {
 		return (runLength.get(1) == 0);
 	}
 	
@@ -1348,7 +1349,7 @@ class BitSetBlock implements Block {
 	/**
 	 * Check whether all states are equal.
 	 */
-	public boolean allEqual() {
+	public boolean allEqual(int voxelsPerBlock) {
 		for (int i = 2; i < states.size(); i+=2) {
 			if (states.get(i) != states.get(0) || states.get(i+1) != states.get(1)) {
 				return false;
@@ -1452,7 +1453,7 @@ class BitArrayBlock implements Block {
 	/**
 	 * Check whether all states are equal.
 	 */
-	public boolean allEqual() {
+	public boolean allEqual(int voxelsPerBlock) {
 		for (int i = 2; i < states.size(); i+=2) {
 			if (states.get(i) != states.get(0) || states.get(i+1) != states.get(1)) {
 				return false;

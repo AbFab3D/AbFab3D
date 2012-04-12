@@ -19,7 +19,7 @@ interface Block {
 	public void setAll(byte state);
 	
 	// Find whether all voxels in block have the same state.
-	public boolean allEqual();
+	public boolean allEqual(int voxelsPerBlock);
 	
 	// Return a copy of this block.
 	public Block clone();
