@@ -55,10 +55,10 @@ public class DilationSphere implements Operation, AttributeOperation {
         // Create an empty copy of the grid, increased by twice the size of
         // the dilation distance
         Grid dilatedGrid = dest.createEmpty(width + 2 * radius,
-        		                            depth + 2 * radius,
-        		                            height + 2 * radius,
-        		                            dest.getVoxelSize(),
-        		                            dest.getSliceHeight());
+                                            height + 2 * radius,
+                                            depth + 2 * radius,
+                                            dest.getVoxelSize(),
+                                            dest.getSliceHeight());
         
         // Loop through original grid to find filled voxels and apply dilation
         for(int y=0; y < height; y++) {
@@ -97,11 +97,11 @@ public class DilationSphere implements Operation, AttributeOperation {
         // Create an empty copy of the grid, increased by twice the size of
         // the dilation distance
         AttributeGrid dilatedGrid = (AttributeGrid) dest.createEmpty(width + 2 * radius,
-                depth + 2 * radius,
-                height + 2 * radius,
-                dest.getVoxelSize(),
-                dest.getSliceHeight());
-
+                                                                     height + 2 * radius,
+                                                                     depth + 2 * radius,
+                                                                     dest.getVoxelSize(),
+                                                                     dest.getSliceHeight());
+        
         // Loop through original grid to find filled voxels and apply dilation
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {

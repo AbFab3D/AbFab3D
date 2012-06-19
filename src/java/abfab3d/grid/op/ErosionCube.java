@@ -53,13 +53,13 @@ public class ErosionCube implements Operation, AttributeOperation {
         // Create an empty copy of the grid
         // TODO: Decide on whether we should decrease the size of the
         // eroded grid by the erosion distance
-//        Grid erodedGrid = grid.createEmpty(width, depth, height,
-//            grid.getVoxelSize(), grid.getSliceHeight());
+        //        Grid erodedGrid = grid.createEmpty(width, heigt, depth,
+        //            grid.getVoxelSize(), grid.getSliceHeight());
         AttributeGrid erodedGrid = (AttributeGrid) grid.createEmpty(width - 2 * distance,
-                depth - 2 * distance,
-                height - 2 * distance,
-                grid.getVoxelSize(),
-                grid.getSliceHeight());
+                                                                    height - 2 * distance,
+                                                                    depth - 2 * distance,
+                                                                    grid.getVoxelSize(),
+                                                                    grid.getSliceHeight());
 
         // Voxels less than the distance from the grid edge can be ignored
         // A cube of length "distance" will never fit into the grid at those
@@ -118,11 +118,11 @@ public class ErosionCube implements Operation, AttributeOperation {
         // Create an empty copy of the grid
         // TODO: Decide on whether we should decrease the size of the
         // eroded grid by the erosion distance
-//        Grid erodedGrid = grid.createEmpty(width, depth, height,
+//        Grid erodedGrid = grid.createEmpty(width, height, depth, 
 //            grid.getVoxelSize(), grid.getSliceHeight());
         Grid erodedGrid = grid.createEmpty(width - 2 * distance,
-        		                           depth - 2 * distance,
-        		                           height - 2 * distance,
+                                           height - 2 * distance,
+                                           depth - 2 * distance,
                                            grid.getVoxelSize(),
                                            grid.getSliceHeight());
 
@@ -181,3 +181,6 @@ public class ErosionCube implements Operation, AttributeOperation {
     	return true;
     }
 }
+
+
+

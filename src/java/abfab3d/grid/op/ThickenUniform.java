@@ -50,7 +50,7 @@ public class ThickenUniform implements Operation, AttributeOperation {
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
-        Grid ret_val = grid.createEmpty(width + 1,depth + 1,height + 1,
+        Grid ret_val = grid.createEmpty(width + 1,height + 1,depth + 1,
             grid.getVoxelSize(), grid.getSliceHeight());
 
         //Copy
@@ -110,7 +110,7 @@ public class ThickenUniform implements Operation, AttributeOperation {
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
-        Grid ret_val = grid.createEmpty(width + 1,depth + 1,height + 1,
+        Grid ret_val = grid.createEmpty(width + 1,height + 1,depth + 1,
                 grid.getVoxelSize(), grid.getSliceHeight());
 
         //Copy

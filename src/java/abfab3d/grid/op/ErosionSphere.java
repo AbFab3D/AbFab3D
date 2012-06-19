@@ -54,11 +54,11 @@ public class ErosionSphere implements Operation, AttributeOperation {
         // Create an empty copy of the grid
         // TODO: Decide on whether we should decrease the size of the
         // eroded grid by the erosion distance
-//        Grid erodedGrid = grid.createEmpty(width, depth, height,
+//        Grid erodedGrid = grid.createEmpty(width, height, depth, 
 //            grid.getVoxelSize(), grid.getSliceHeight());
         Grid erodedGrid = dest.createEmpty(width - 2 * radius,
-        		                           depth - 2 * radius,
-        		                           height - 2 * radius,
+                                           height - 2 * radius,
+                                           depth - 2 * radius,
                                            dest.getVoxelSize(),
                                            dest.getSliceHeight());
 
@@ -120,10 +120,10 @@ public class ErosionSphere implements Operation, AttributeOperation {
 //        Grid erodedGrid = grid.createEmpty(width, depth, height,
 //            grid.getVoxelSize(), grid.getSliceHeight());
         AttributeGrid erodedGrid = (AttributeGrid) dest.createEmpty(width - 2 * radius,
-                depth - 2 * radius,
-                height - 2 * radius,
-                dest.getVoxelSize(),
-                dest.getSliceHeight());
+                                                                    height - 2 * radius,
+                                                                    depth - 2 * radius,
+                                                                    dest.getVoxelSize(),
+                                                                    dest.getSliceHeight());
 
         // Voxels less than the radius from the grid edge can be ignored
         // A sphere of radius "radius" will never fit into the grid at

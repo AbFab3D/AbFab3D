@@ -49,7 +49,7 @@ public class Downsample implements Operation, AttributeOperation {
         depth = dest.getDepth();
         height = dest.getHeight();
 
-        Grid ret_val = dest.createEmpty(width / 2,depth / 2,height / 2,
+        Grid ret_val = dest.createEmpty(width / 2,height / 2,depth / 2,
             dest.getVoxelSize() * 2.0, dest.getSliceHeight() * 2.0);
 
 
@@ -83,7 +83,7 @@ public class Downsample implements Operation, AttributeOperation {
         depth = dest.getDepth();
         height = dest.getHeight();
 
-        AttributeGrid ret_val = (AttributeGrid) dest.createEmpty(width / 2,depth / 2,height / 2,
+        AttributeGrid ret_val = (AttributeGrid) dest.createEmpty(width / 2,height / 2,depth / 2,
                 dest.getVoxelSize() * 2.0, dest.getSliceHeight() * 2.0);
 
 
