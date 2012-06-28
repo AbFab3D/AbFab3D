@@ -180,8 +180,48 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 				return VOXEL_USER_DEFINED;
 		}
 	}
-	
-	/**
+
+    /**
+     * Get the VoxelData of a voxel given grid coordinates.
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        switch(getState(x,y,z)) {
+            case Grid.OUTSIDE:
+                vd.setState(Grid.OUTSIDE);
+                break;
+            case Grid.EXTERIOR:
+                vd.setState(Grid.EXTERIOR);
+                break;
+            case Grid.INTERIOR:
+                vd.setState(Grid.INTERIOR);
+                break;
+            default:
+                vd.setState(Grid.USER_DEFINED);
+                break;
+        }
+    }
+
+    /**
+     * Get the VoxelData of a voxel given world coordinates.
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        switch(getState(func.w2v(x,pixelSize),func.w2v(y,sheight),func.w2v(z,pixelSize))) {
+            case Grid.OUTSIDE:
+                vd.setState(Grid.OUTSIDE);
+                break;
+            case Grid.EXTERIOR:
+                vd.setState(Grid.EXTERIOR);
+                break;
+            case Grid.INTERIOR:
+                vd.setState(Grid.INTERIOR);
+                break;
+            default:
+                vd.setState(Grid.USER_DEFINED);
+                break;
+        }
+    }
+
+    /**
 	 * Get the VoxelData of a voxel given world coordinates.
 	 */
 	public VoxelData getData(double x, double y, double z) {

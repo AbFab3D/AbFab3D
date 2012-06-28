@@ -126,6 +126,42 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
     }
 
     /**
+     * Get the data of the voxel
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        byte datum = data[y][x][z];
+
+        byte state = (byte) ((datum & 0xFF) >> 6);
+        byte mat = (byte) (0x3F & datum);
+
+        vd.setData(state,mat);
+    }
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        byte datum = data[slice][s_x][s_z];
+
+        byte state = (byte) ((datum & 0xFF) >> 6);
+        byte mat = (byte) (0x3F & datum);
+
+        vd.setData(state,mat);
+    }
+
+    /**
      * Get the state of the voxel
      *
      * @param x The x world coordinate
@@ -184,7 +220,6 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param The voxel material
      */
     public int getAttribute(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;

@@ -229,6 +229,39 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
     /**
      * Get the data of the voxel
      *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @return The voxel state
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        // Find block coord
+        getBlockCoord(x, y, z, bcoord);
+
+        // Inline getBlockID call, confirm faster?
+        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
+
+        BlockByte block = data[id];
+
+//System.out.println("gd: " + x + " " + y + " " + z + " id: " + id + " block: " + block);
+        if (block != null) {
+            // Find coord in block
+            getVoxelInBlock(x, y, z, vcoord);
+
+            byte val = block.getValue(vcoord, blockOrder);
+
+            byte state = (byte) ((val & 0xFF) >> 6);
+            byte mat = (byte) (0x3F & val);
+
+            vd.setData(state,mat);
+        } else {
+            vd.setData(Grid.OUTSIDE, Grid.NO_MATERIAL);
+        }
+    }
+
+    /**
+     * Get the data of the voxel
+     *
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
@@ -256,9 +289,45 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             byte mat = (byte) (0x3F & val);
 
             VoxelDataByte vd = new VoxelDataByte(state, mat);
+
             return vd;
         } else {
             return outside;
+        }
+    }
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @return The voxel state
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        // Find block coord
+        getBlockCoord(s_x, slice, s_z, bcoord);
+
+        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
+
+        BlockByte block = data[id];
+
+        if (block != null) {
+            // Find coord in block
+            getVoxelInBlock(s_x, slice, s_z, vcoord);
+
+            byte val = block.getValue(vcoord, blockOrder);
+
+            byte state = (byte) ((val & 0xFF) >> 6);
+            byte mat = (byte) (0x3F & val);
+
+            vd.setData(state,mat);
+        } else {
+            vd.setData(Grid.OUTSIDE, Grid.NO_MATERIAL);
         }
     }
 
@@ -643,9 +712,6 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
-//        super.find(vc, t);
-
-
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -654,7 +720,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
 
         int len = data.length;
 
-        if (vc == VoxelClasses.OUTSIDE) {
+        if (vc == VoxelClasses.OUTSIDE || vc == VoxelClasses.ALL) {
             // Use slow route
             super.findAttribute(vc, t);
 
@@ -724,7 +790,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
 
         int len = data.length;
 
-        if (vc == VoxelClasses.OUTSIDE) {
+        if (vc == VoxelClasses.OUTSIDE || vc == VoxelClasses.ALL) {
             // Use slow route
             super.findAttribute(vc, t);
 
@@ -954,7 +1020,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
         subID = pos - (vcoord[1] << blockOrder << blockOrder);
 //System.out.println("pos: " + pos + " vc1: " + vcoord[1] + " subID: " + subID);
         vcoord[0] = subID >> blockOrder;
-        vcoord[2] = subID % ((int)Math.pow(2, blockOrder));  // TODO: optimize
+        vcoord[2] = subID % (1 << blockOrder);
 //System.out.println("mod: " + ((Math.pow(2, blockOrder))));
         // Reverse this
         //coord[0] = x & ((1 << blockOrder) - 1);

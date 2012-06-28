@@ -192,6 +192,86 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
     }
 
     /**
+     * Get the data for a voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        // Slow method, must traverse all lists
+
+        Iterator<HashSet<Voxel>> itr = data.values().iterator();
+
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        VoxelCoordinate vc = new VoxelCoordinate(s_x,slice,s_z);
+        Voxel tv = new Voxel(vc, null);
+
+        while(itr.hasNext()) {
+            HashSet<Voxel> set = itr.next();
+            Iterator<Voxel> itr2 = set.iterator();
+
+            // TODO: Does contains call make it faster?
+            if (set.contains(tv)) {
+                while(itr2.hasNext()) {
+                    Voxel v = itr2.next();
+                    VoxelCoordinate vc2 = v.getCoordinate();
+
+                    if (vc.equals(vc2)) {
+                        VoxelData ans = v.getData();
+                        vd.setData(ans.getState(), ans.getMaterial());
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Not found, that's OUTSIDE, material 0
+        vd.setData(Grid.OUTSIDE, Grid.NO_MATERIAL);
+    }
+
+    /**
+     * Get the state of the voxel.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        // Slow method, must traverse all lists
+
+        Iterator<HashSet<Voxel>> itr = data.values().iterator();
+
+        VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
+        Voxel tv = new Voxel(vc, null);
+
+        while(itr.hasNext()) {
+            HashSet<Voxel> set = itr.next();
+            Iterator<Voxel> itr2 = set.iterator();
+
+            // TODO: Does contains call make it faster?
+            if (set.contains(tv)) {
+                while(itr2.hasNext()) {
+                    Voxel v = itr2.next();
+                    VoxelCoordinate vc2 = v.getCoordinate();
+
+                    if (vc.equals(vc2)) {
+                        VoxelData ans = v.getData();
+                        vd.setData(ans.getState(), ans.getMaterial());
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Not found, that's OUTSIDE, material 0
+        vd.setData(Grid.OUTSIDE, Grid.NO_MATERIAL);
+    }
+
+    /**
      * Get the state of the voxel
      *
      * @param x The x world coordinate

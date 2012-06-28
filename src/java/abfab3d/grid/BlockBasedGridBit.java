@@ -263,6 +263,68 @@ public class BlockBasedGridBit extends BaseGrid {
     }
 
     /**
+     * Get the data of the voxel
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @return The voxel state
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        // Find block coord
+        getBlockCoord(x, y, z, bcoord);
+
+        // Inline getBlockID call, confirm faster?
+        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
+
+        BlockBit block = data[id];
+
+//System.out.println("gd: " + x + " " + y + " " + z + " id: " + id + " block: " + block);
+        if (block != null) {
+            // Find coord in block
+            getVoxelInBlock(x, y, z, vcoord);
+
+            byte val = block.getValue(vcoord, blockOrder);
+
+            vd.setData(val, Grid.NO_MATERIAL);
+        } else {
+            vd.setData(Grid.OUTSIDE, Grid.NO_MATERIAL);
+        }
+    }
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @return The voxel state
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        // Find block coord
+        getBlockCoord(s_x, slice, s_z, bcoord);
+
+        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
+
+        BlockBit block = data[id];
+
+        if (block != null) {
+            // Find coord in block
+            getVoxelInBlock(s_x, slice, s_z, vcoord);
+
+            byte val = block.getValue(vcoord, blockOrder);
+
+            vd.setData(val, Grid.NO_MATERIAL);
+        } else {
+            vd.setData(Grid.OUTSIDE, Grid.NO_MATERIAL);
+        }
+    }
+
+    /**
      * Get the state of the voxel
      *
      * @param x The x world coordinate

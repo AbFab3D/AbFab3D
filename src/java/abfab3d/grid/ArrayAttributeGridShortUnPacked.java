@@ -129,6 +129,42 @@ public class ArrayAttributeGridShortUnPacked extends BaseAttributeGrid {
     }
 
     /**
+     * Get the data of the voxel
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        int idx = y * sliceSize + x * depth + z;
+
+        byte state = stateData[idx];
+        short mat = materialData[idx];
+
+        vd.setData(state,mat);
+    }
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        int idx = slice * sliceSize + s_x * depth + s_z;
+
+        byte state = stateData[idx];
+        short mat = materialData[idx];
+
+        vd.setData(state,mat);
+    }
+
+    /**
      * Get the state of the voxel
      *
      * @param x The x world coordinate

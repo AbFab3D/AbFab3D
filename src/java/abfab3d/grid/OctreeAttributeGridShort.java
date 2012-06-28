@@ -130,6 +130,18 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
     /**
      * Get the data of the voxel
      *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     */
+    public void getData(int x, int y, int z,VoxelData vd) {
+        VoxelData ans = root.getData(x,y,z);
+        vd.setData(ans.getState(), ans.getMaterial());
+    }
+
+    /**
+     * Get the data of the voxel
+     *
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
@@ -140,6 +152,22 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
         int s_z = (int) (z / pixelSize);
 
         return root.getData(s_x,slice,s_z);
+    }
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        VoxelData ans = root.getData(s_x,slice,s_z);
+        vd.setData(ans.getState(), ans.getMaterial());
     }
 
     /**

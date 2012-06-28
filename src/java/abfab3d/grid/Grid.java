@@ -46,7 +46,7 @@ public interface Grid extends Cloneable {
     public static final int NO_MATERIAL = 0;
 
     /**
-     * Get the data for a voxel
+     * Get the data for a voxel.  A new instance of VoxelData is created.
      *
      * @param x The x world coordinate
      * @param y The y world coordinate
@@ -54,6 +54,16 @@ public interface Grid extends Cloneable {
      * @return The voxel data
      */
     public VoxelData getData(double x, double y, double z);
+
+    /**
+     * Get the data for a voxel.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @return The voxel data
+     */
+    public void getData(double x, double y, double z, VoxelData data);
 
     /**
      * Get the state of the voxel.
@@ -66,17 +76,27 @@ public interface Grid extends Cloneable {
     public VoxelData getData(int x, int y, int z);
 
     /**
-     * Get the state of the voxels specified in the area.
+     * Get the data for a voxel.
      *
-     * @param x1 The starting x grid coordinate
-     * @param x2 The ending x grid coordinate
-     * @param y1 The starting y grid coordinate
-     * @param y2 The ending y grid coordinate
-     * @param z1 The starting z grid coordinate
-     * @param z2 The ending z grid coordinate
-     *
-     * @param ret Returns the data at each position.  3 dim array represented as flat, must be preallocated
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @return The voxel data
      */
+    public void getData(int x, int y, int z, VoxelData data);
+
+    /**
+    * Get the state of the voxels specified in the area.
+    *
+    * @param x1 The starting x grid coordinate
+    * @param x2 The ending x grid coordinate
+    * @param y1 The starting y grid coordinate
+    * @param y2 The ending y grid coordinate
+    * @param z1 The starting z grid coordinate
+    * @param z2 The ending z grid coordinate
+    *
+    * @param ret Returns the data at each position.  3 dim array represented as flat, must be preallocated
+    */
      // Proposed addition but not implemented yet
 /*
     public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret);

@@ -139,6 +139,34 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z grid coordinate
      * @return The voxel state
      */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        verifyRange(x,y,z);
+
+        grid.getData(x,y,z,vd);
+    }
+
+    /**
+     * Get the data for a voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @return The voxel data
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        verifyRange(x,y,z);
+
+        grid.getData(x,y,z,vd);
+    }
+
+    /**
+     * Get the state of the voxel.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @return The voxel state
+     */
     public VoxelData getData(int x, int y, int z) {
         verifyRange(x,y,z);
 

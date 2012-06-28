@@ -192,8 +192,33 @@ public class BlockArrayGrid extends BaseGrid {
 		offset = grid.offset.clone();
 		blocks = grid.blocks.clone();
 	}
-	
-	/**
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @return The voxel state
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        vd.setData((byte) get(x,y,z), 0);
+    }
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param wx The x world coordinate
+     * @param wy The y world coordinate
+     * @param wz The z world coordinate
+     * @return The voxel state
+     */
+    public void getData(double wx, double wy, double wz, VoxelData vd) {
+        coord = worldToGrid(wx,wy,wz);
+        vd.setData(get(coord[0],coord[1],coord[2]),0);
+    }
+
+    /**
 	 * Get the data of the voxel
 	 *
 	 * @param x The x grid coordinate

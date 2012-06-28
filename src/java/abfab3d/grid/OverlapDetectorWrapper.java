@@ -122,6 +122,28 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param y The y grid coordinate
      * @param z The z grid coordinate
      */
+    public void getData(int x, int y, int z,VoxelData vd) {
+        grid.getData(x,y,z,vd);
+    }
+
+    /**
+     * Get the data for a voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     */
+    public void getData(double x, double y, double z,VoxelData vd) {
+        grid.getData(x,y,z,vd);
+    }
+
+    /**
+     * Get the state of the voxel.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     */
     public VoxelData getData(int x, int y, int z) {
         return grid.getData(x,y,z);
     }

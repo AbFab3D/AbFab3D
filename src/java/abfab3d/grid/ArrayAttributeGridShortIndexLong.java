@@ -125,6 +125,41 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
     }
 
     /**
+     * Get the data of the voxel
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        short datum = data[y][x][z];
+        byte state = (byte) ((datum & 0xFFFF) >> 14);
+        short mat = (short) (0x3FFF & datum);
+
+        vd.setData(state,mat);
+    }
+
+    /**
+     * Get the data of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        short datum = data[slice][s_x][s_z];
+
+        byte state = (byte) ((datum & 0xFFFF) >> 14);
+        short mat = (short) (0x3FFF & datum);
+
+        vd.setData(state,mat);
+    }
+
+    /**
      * Get the state of the voxel
      *
      * @param x The x world coordinate
