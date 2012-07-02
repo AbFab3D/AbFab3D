@@ -5,7 +5,7 @@
   
     <description></description>
 
-    <property name="version" value="0.8.1" />    
+    <property name="version" value="0.9.0" />
     <property name="version.point" value="1" />
 
     <property name="src.dir" value="${basedir}/src"/>
@@ -25,7 +25,7 @@
 
     <property name="entrypoint" value="abfab3d.Creator" />
 
-    <property name="runarg0" value="-Xmx1768m"/>
+    <property name="runarg0" value="-Xmx4000M"/>
 <!--    
     <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
     <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
@@ -486,7 +486,7 @@
   </target>
 
     <!-- Begin Japex Tasks -->
-    <target name="runJapex" depends="compileJapex">
+    <target name="runJapex" depends="compile,compileJapex">
         <java dir="." fork="true" classname="com.sun.japex.Japex">
             <classpath>
                 <pathelement path="${classes.dir}" />
@@ -494,10 +494,10 @@
                 <fileset dir="${lib.dir}" includes="**/*.jar" />
             </classpath>
             <arg line="test/japex/speed-config.xml"/>
-            <jvmarg value="-Xmx400M" />
+            <jvmarg value="-Xmx4000M" />
         </java>
     </target>
-    <target name="runJapexMemory" depends="compileJapex">
+    <target name="runJapexMemory" depends="compile,compileJapex">
         <java dir="." fork="true" classname="com.sun.japex.Japex">
             <classpath>
                 <pathelement path="${classes.dir}" />
@@ -505,7 +505,7 @@
                 <fileset dir="${lib.dir}" includes="**/*.jar" />
             </classpath>
             <arg line="test/japex/memory-config.xml"/>
-            <jvmarg value="-Xmx4000M" />
+            <jvmarg value="-Xmx5000M" />
         </java>
     </target>
 
@@ -573,6 +573,18 @@
     <ant target="stageLib" />    
     <ant target="stageSource" />
   </target>
+
+    <target name="runSpeed" depends="" description="Run the application">
+        <java classname="abfab3d.grid.TestMultiThreaded" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${test.classes.dir}" />
+
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
+            </classpath>
+        </java>
+    </target>
     
 </project>
 
