@@ -209,6 +209,12 @@ public class TriangleModelCreator extends GeometryCreator {
      * @param grid The grid to generate into
      */
     public void generate(Grid grid) {
+    	// if grid is actually an AttributeGrid, use alternative execute
+    	if (grid instanceof AttributeGrid) {
+    		generate( (AttributeGrid) grid);
+    		return;
+    	}
+    	
         AttributeGrid gridAtt = null;
         
         voxelSize = grid.getVoxelSize();
