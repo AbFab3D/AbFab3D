@@ -59,6 +59,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         if(dataLength >= Integer.MAX_VALUE){
             System.out.printf("Out of memory");
             Thread.currentThread().dumpStack();
+            return;
         }
         data = new byte[height * width * depth];
     }
