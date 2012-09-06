@@ -61,11 +61,14 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(int mat, ClassAttributeTraverser t) {
+        
+        
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
+                    
                     VoxelData vd = getData(x,y,z);
-
+                    
                     if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                         t.found(x,y,z,vd);
                     }
@@ -83,6 +86,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
@@ -201,7 +205,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      */
     public int findCount(int mat) {
         int ret_val = 0;
-
+        
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
