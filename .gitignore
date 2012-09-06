@@ -11,3 +11,5 @@ jars/
 *~
 *comp.bat
 *.orig
+reports/
+*.class
