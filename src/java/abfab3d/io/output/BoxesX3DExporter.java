@@ -31,7 +31,7 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class BoxesX3DExporter implements Exporter {
-    private static final boolean STATS = true;
+    private static final boolean STATS = false;
 
     /** Should we use per-vertex color to show materials */
     private static final boolean MAT_COLOR = true;

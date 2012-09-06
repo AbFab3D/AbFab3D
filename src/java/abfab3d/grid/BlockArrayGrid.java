@@ -1,6 +1,6 @@
 /*****************************************************************************
- *						Shapeways, Inc Copyright (c) 2012
- *							   Java Source
+ *			Shapeways, Inc Copyright (c) 2012
+ *				   Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
@@ -16,8 +16,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 
 
-
-// TODO: Many comments are out-of-date due to refactoring. 
 
 /**
  * A BlockArrayGrid, inspired by DBGrid.

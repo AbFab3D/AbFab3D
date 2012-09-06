@@ -53,7 +53,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * Constructor.
      *
      * @param w The width in world coords
-     * @param h The height in world coords
+    * @param h The height in world coords
      * @param d The depth in world coords
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
@@ -189,7 +189,14 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
         this.outside = (VoxelDataByte) grid.outside.clone();
         this.bcoord = grid.bcoord.clone();
         this.vcoord = grid.vcoord.clone();
-        this.data = grid.data.clone();
+        
+        data = new BlockByte[blockResX * blockResY * blockResZ];
+        for(int b =0; b < data.length; b++){
+            BlockByte bd = grid.data[b];
+            if(bd != null){
+                data[b] = (BlockByte)bd.clone();
+            }
+        }
     }
 
     /**
@@ -1095,6 +1102,15 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
 class BlockByte {
     protected byte[] data;
 
+    /**
+       copyu contstructor 
+     */
+    public BlockByte(BlockByte bb) {
+
+        if(bb != null)
+            data = bb.data.clone();
+    }
+
     public BlockByte(int blockOrder) {
         data = new byte[1 << blockOrder << blockOrder << blockOrder];
         //System.out.println("Created block: " + data.length + " this: " + this);
@@ -1114,4 +1130,11 @@ class BlockByte {
     public byte[] getData() {
         return data;
     }
+    
+    public Object clone(){
+        
+        return new BlockByte(this);
+
+    }
+
 }
