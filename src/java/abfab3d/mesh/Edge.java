@@ -12,13 +12,14 @@
 package abfab3d.mesh;
 
 /**
- * Edge defined by 2 half edges.  Includes singled linked list of other edges in the face.
+ * Edge defined by 2 half edges.
  */
 public class Edge {
-
+    /** One half edge, get the other via twin */
     public HalfEdge he;
 
-    public Edge next; // just a list
+    /** List of all edges */
+    public Edge next;
 
     public String toString() {
 

@@ -14,8 +14,7 @@ package abfab3d.mesh;
 import javax.vecmath.Point3d;
 
 /**
- * Vertex defined by a point in space.  Includes links to an edge and a single linked list of vertices
- * in the face.
+ * Vertex defined by a point in space.
  */
 public class Vertex {
 
@@ -24,7 +23,7 @@ public class Vertex {
 
     public HalfEdge link; //associate each vertex with tail of _some_ edge
 
-    public Vertex next;// just a list
+    public Vertex next;  // List of all vertices
 
 }
 

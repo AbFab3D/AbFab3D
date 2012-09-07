@@ -17,6 +17,6 @@ package abfab3d.mesh;
 public class Face {
 
     public HalfEdge he;
-    public Face next;  // just a list
+    public Face next;  // List of faces
 
 }
