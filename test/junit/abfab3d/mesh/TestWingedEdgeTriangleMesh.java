@@ -27,9 +27,6 @@ import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.*;
 
 // Internal Imports
-import abfab3d.grid.*;
-import abfab3d.grid.Grid.VoxelClasses;
-import abfab3d.io.output.BoxesX3DExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
 import javax.vecmath.Point3d;
@@ -69,7 +66,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         while (v != null) {
             System.out.println(v);
-            v = v.next;
+            v = v.getNext();
         }
 
         for (int i = 0; i < findex.length; i++) {
@@ -124,7 +121,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         boolean found = false;
 
         while (edges != null) {
-            he = edges.he;
+            he = edges.getHe();
 
             if ((he.getHead() == v1 && he.getTail() == v2) ||
                 (he.getHead() == v2 && he.getTail() == v1)) {
@@ -132,7 +129,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 break;
             }
 
-            edges = edges.next;
+            edges = edges.getNext();
         }
 
         if (!found) {
@@ -275,7 +272,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         boolean found = false;
 
         while (edges != null) {
-            he = edges.he;
+            he = edges.getHe();
 
             if ((he.getHead() == v1 && he.getTail() == v2) ||
                     (he.getHead() == v2 && he.getTail() == v1)) {
@@ -283,7 +280,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 break;
             }
 
-            edges = edges.next;
+            edges = edges.getNext();
         }
 
         if (!found) {
@@ -360,7 +357,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         Edge edges = mesh.getEdges();
 
         while(edges != null) {
-            HalfEdge he = edges.he;
+            HalfEdge he = edges.getHe();
             HalfEdge twin = he.getTwin();
 
             if (twin == null) {
@@ -370,7 +367,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 return false;
             }
 
-            edges = edges.next;
+            edges = edges.getNext();
         }
 
         return manifold;
@@ -383,15 +380,15 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      * @return
      */
     private boolean verifyTriangles(WingedEdgeTriangleMesh mesh) {
-        for(Face faces = mesh.getFaces(); faces != null; faces = faces.next) {
+        for(Face faces = mesh.getFaces(); faces != null; faces = faces.getNext()) {
             Vertex p1;
             Vertex p2;
             Vertex p3;
 
-            p1 = faces.he.getHead();
-            p2 = faces.he.getTail();
+            p1 = faces.getHe().getHead();
+            p2 = faces.getHe().getTail();
 
-            HalfEdge he = faces.he.next;
+            HalfEdge he = faces.getHe().getNext();
 
             if (he.getHead() != p1 && he.getHead() != p2) {
                 p3 = he.getHead();
@@ -404,15 +401,15 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
             double EPS = 1e-10;
 
-            if (p1.p.epsilonEquals(p2.p, EPS)) {
+            if (p1.getPoint().epsilonEquals(p2.getPoint(), EPS)) {
                 System.out.println("Points equal: " + p1 + " p2: " + p2);
                 return false;
             }
-            if (p1.p.epsilonEquals(p3.p, EPS)) {
+            if (p1.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
                 System.out.println("Points equal: " + p1 + " p2: " + p3);
                 return false;
             }
-            if (p2.p.epsilonEquals(p3.p, EPS)) {
+            if (p2.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
                 System.out.println("Points equal: " + p2 + " p2: " + p3);
                 return false;
             }
