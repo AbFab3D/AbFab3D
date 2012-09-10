@@ -41,6 +41,7 @@ public class WingedEdgeTriangleMesh {
 
     // TODO: Used a linked hashmap to get a consistent order for debugging
     private HashMap<HalfEdgeKey, HalfEdge> edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
+    private HalfEdgeKey skey = new HalfEdgeKey();
 
     private int vertexCount = 0;
 
@@ -75,7 +76,10 @@ public class WingedEdgeTriangleMesh {
                 Vertex v1 = V[face[j]];
                 Vertex v2 = V[face[(j + 1) % face.length]];
                 HalfEdge he = buildHalfEdge(v1, v2);
-                edgeMap.put(new HalfEdgeKey(he.getTail(), he.getHead()), he);
+//                edgeMap.put(new HalfEdgeKey(he.getTail(), he.getHead()), he);
+
+                // TODO: why is this backwards?
+                edgeMap.put(new HalfEdgeKey(he.getHead(), he.getTail()), he);
                 eface.add(he);
             }
 
@@ -92,8 +96,11 @@ public class WingedEdgeTriangleMesh {
         for (HalfEdge he1 : edgeMap.values()) {
             if (he1.getTwin() == null) {
                 // get halfedge of _opposite_ direction
-                key.o1 = he1.getHead();
-                key.o2 = he1.getTail();
+                //key.setHead(he1.getHead());
+                //key.setTail(he1.getTail());
+
+                key.setHead(he1.getTail());
+                key.setTail(he1.getHead());
                 HalfEdge he2 = edgeMap.get(key);
                 if (he2 != null) {
                     betwin(he1, he2);
@@ -288,14 +295,19 @@ public class WingedEdgeTriangleMesh {
                     throw new IllegalArgumentException("Invalid edge");
                 }
 */
-                key.o1 = he1.getHead();
-                key.o2 = he1.getTail();
+                key.setHead(he1.getHead());
+                key.setTail(he1.getTail());
                 HalfEdge e2 = edgeMap.get(key);
                 if (e2 != null) {
                     betwin(he1, e2);
                 } else {
                     writeOBJ(System.out);
-                    throw new IllegalArgumentException("Can't find twin for: " + he1);
+                    System.out.println("EdgeMap: ");
+                    for(Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
+                        System.out.println(entry.getKey() + " val: " + entry.getValue());
+                    }
+                    throw new IllegalArgumentException("Can't find twin for: " + he1 + " o1: " + he1.getHead().getID() + " o2: " + he1.getTail().getID());
+
                 }
             }
         }
@@ -318,7 +330,18 @@ public class WingedEdgeTriangleMesh {
             if (he.getHead() == vorig) {
                 if (DEBUG) System.out.print("   Update vertex: " + he);
                 hedges.add(he.getEdge());
+
+                // remove old edgeMap entry
+                HalfEdgeKey key = new HalfEdgeKey(he.getHead(), he.getTail());
+                edgeMap.remove(key);
+
                 he.setHead(vnew);
+
+                // readd edgeMap entry
+                key.setHead(he.getHead());
+                key.setTail(he.getTail());
+                edgeMap.put(key, he);
+
                 if (DEBUG) System.out.println("   to -->: " + he);
 
                 // Recurse into next face to find other vertex
@@ -326,7 +349,18 @@ public class WingedEdgeTriangleMesh {
             } else if (he.getTail() == vorig) {
                 if (DEBUG) System.out.print("   Update vertex: " + he);
                 hedges.add(he.getEdge());
+
+                // remove old edgeMap entry
+                HalfEdgeKey key = new HalfEdgeKey(he.getHead(), he.getTail());
+                edgeMap.remove(key);
+
                 he.setTail(vnew);
+
+                // readd edgeMap entry
+                key.setHead(he.getHead());
+                key.setTail(he.getTail());
+                edgeMap.put(key, he);
+
                 if (DEBUG) System.out.println("   to -->: " + he);
 
                 // Recurse into next face to find other vertex
@@ -653,7 +687,6 @@ public class WingedEdgeTriangleMesh {
             lastEdge.setNext(null);
         }
 
-        edgeMap.remove(e);
     }
 
     void removeHalfEdge(HalfEdge he) {
@@ -677,7 +710,9 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
             twin.setTwin(null);
         }
 
-
+        // TODO: causes problems
+        //System.out.println("Removing edgeMap: " + he);
+        //edgeMap.remove(new HalfEdgeKey(he.getHead(), he.getTail()));
     }
 
     private void addFace(Face f) {

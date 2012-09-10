@@ -13,10 +13,13 @@
 package abfab3d.mesh;
 
 // External Imports
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Random;
 
+import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.output.SAVExporter;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -154,48 +157,6 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
     }
 
     /**
-     * Collapse many edges from a manifold structure.  Confirm it stays manifold
-     */
-    public void testSphere() throws Exception {
-        SphereGenerator generator = new SphereGenerator(10, 4);
-        GeometryData data = new GeometryData();
-
-        data.geometryType = GeometryData.INDEXED_TRIANGLES;
-        data.geometryComponents = GeometryData.NORMAL_DATA;
-
-        generator.generate(data);
-
-
-        Point3d[] verts = new Point3d[data.vertexCount];
-        int len = data.vertexCount;
-        int idx = 0;
-
-        for(int i=0; i < len; i++) {
-            idx = i * 3;
-            verts[i] = new Point3d(data.coordinates[idx++], data.coordinates[idx++], data.coordinates[idx++]);
-        }
-
-        len = data.indexes.length / 3;
-        int faces[][] = new int[len][3];
-        idx = 0;
-
-        for(int i=0; i < len; i++) {
-            faces[i][0] = data.indexes[idx++];
-            faces[i][1] = data.indexes[idx++];
-            faces[i][2] = data.indexes[idx++];
-        }
-
-        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
-
-        writeMesh(we, "c:/tmp/sphere.x3dv");
-
-        we.writeOBJ(System.out);
-
-        assertTrue("Initial Manifold", isManifold(we));
-
-    }
-
-    /**
      * Test a box is manifold on construction and edge collapse
      */
     public void testBox() throws Exception {
@@ -304,6 +265,160 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
     }
 
+    /**
+     * Test a box is manifold on construction and edge collapse
+     */
+    public void testManifoldSpeedKnot() throws Exception {
+        IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
+        loader.processFile(new File("test/junit/models/speed-knot.x3db"));
+
+        GeometryData data = new GeometryData();
+        data.geometryType = GeometryData.INDEXED_TRIANGLES;
+        data.coordinates = loader.getCoords();
+        data.vertexCount = data.coordinates.length / 3;
+        data.indexes = loader.getVerts();
+        data.indexesCount = data.indexes.length;
+
+        Point3d[] verts = new Point3d[data.vertexCount];
+        int len = data.vertexCount;
+        int idx = 0;
+
+        for(int i=0; i < len; i++) {
+            idx = i * 3;
+            verts[i] = new Point3d(data.coordinates[idx++], data.coordinates[idx++], data.coordinates[idx++]);
+        }
+
+        len = data.indexes.length / 3;
+        int faces[][] = new int[len][3];
+        idx = 0;
+
+        for(int i=0; i < len; i++) {
+            faces[i][0] = data.indexes[idx++];
+            faces[i][1] = data.indexes[idx++];
+            faces[i][2] = data.indexes[idx++];
+        }
+
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
+
+        writeMesh(we, "c:/tmp/speed-knot1.x3dv");
+
+        //we.writeOBJ(System.out);
+
+        assertTrue("Initial Manifold", isManifold(we));
+        assertTrue("Initial Triangle Check", verifyTriangles(we));
+
+        Random rand = new Random(42);
+        int collapses = 100;
+
+        for(int i=0; i < collapses; i++) {
+            idx = rand.nextInt(faces.length / 3);
+
+            Edge e = we.getEdges();
+
+            for(int j=0; j < idx; j++) {
+                e = e.getNext();
+            }
+
+
+            System.out.println("Collapse: " + idx + " e: " + e);
+            Point3d pos = new Point3d();
+            Point3d p1 = e.getHe().getHead().getPoint();
+            Point3d p2 = e.getHe().getTail().getPoint();
+            pos.x = (p1.x + p2.x) / 2.0;
+            pos.y = (p1.y + p2.y) / 2.0;
+            pos.z = (p1.z + p2.z) / 2.0;
+
+            we.collapseEdge(e, pos);
+
+            writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
+
+            assertTrue("Manifold", isManifold(we));
+            assertTrue("Triangle Check", verifyTriangles(we));
+        }
+
+        assertTrue("Manifold2", isManifold(we));
+        assertTrue("Triangle Check2", verifyTriangles(we));
+
+        writeMesh(we, "c:/tmp/speed-knot2.x3dv");
+    }
+
+    /**
+     * Test a box is manifold on construction and edge collapse
+     */
+    public void testManifoldE() throws Exception {
+        IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
+        loader.processFile(new File("test/junit/models/wTest1_ITS.x3d"));
+
+        GeometryData data = new GeometryData();
+        data.geometryType = GeometryData.INDEXED_TRIANGLES;
+        data.coordinates = loader.getCoords();
+        data.vertexCount = data.coordinates.length / 3;
+        data.indexes = loader.getVerts();
+        data.indexesCount = data.indexes.length;
+
+        Point3d[] verts = new Point3d[data.vertexCount];
+        int len = data.vertexCount;
+        int idx = 0;
+
+        for(int i=0; i < len; i++) {
+            idx = i * 3;
+            verts[i] = new Point3d(data.coordinates[idx++], data.coordinates[idx++], data.coordinates[idx++]);
+        }
+
+        len = data.indexes.length / 3;
+        int faces[][] = new int[len][3];
+        idx = 0;
+
+        for(int i=0; i < len; i++) {
+            faces[i][0] = data.indexes[idx++];
+            faces[i][1] = data.indexes[idx++];
+            faces[i][2] = data.indexes[idx++];
+        }
+
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
+
+        writeMesh(we, "c:/tmp/etest1.x3dv");
+
+        we.writeOBJ(System.out);
+
+        assertTrue("Initial Manifold", isManifold(we));
+        assertTrue("Initial Triangle Check", verifyTriangles(we));
+
+        Random rand = new Random(42);
+        int collapses = 10;
+
+        for(int i=0; i < collapses; i++) {
+            idx = rand.nextInt(faces.length / 3);
+
+            Edge e = we.getEdges();
+
+            for(int j=0; j < idx; j++) {
+                e = e.getNext();
+            }
+
+
+            System.out.println("Collapse: " + idx + " e: " + e);
+            Point3d pos = new Point3d();
+            Point3d p1 = e.getHe().getHead().getPoint();
+            Point3d p2 = e.getHe().getTail().getPoint();
+            pos.x = (p1.x + p2.x) / 2.0;
+            pos.y = (p1.y + p2.y) / 2.0;
+            pos.z = (p1.z + p2.z) / 2.0;
+
+            we.collapseEdge(e, pos);
+
+            writeMesh(we, "c:/tmp/etest_loop" + i + ".x3dv");
+
+            assertTrue("Manifold", isManifold(we));
+            assertTrue("Triangle Check", verifyTriangles(we));
+        }
+
+        assertTrue("Manifold2", isManifold(we));
+        assertTrue("Triangle Check2", verifyTriangles(we));
+
+        writeMesh(we, "c:/tmp/etest2.x3dv");
+    }
+
     private void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
         SAVExporter se = new SAVExporter();
         HashMap<String,Object> params = new HashMap<String, Object>();
@@ -396,6 +511,16 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 p3 = he.getHead();
             } else {
                 System.out.println("Cannot find third unique point?");
+                he = faces.getHe();
+                HalfEdge start = he;
+                while(he != null) {
+                    System.out.println(he);
+                    he = he.getNext();
+
+                    if (he == start) {
+                        break;
+                    }
+                }
                 return false;
             }
 
