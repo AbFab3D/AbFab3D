@@ -18,5 +18,23 @@ public class Face {
 
     public HalfEdge he;
     public Face next;  // List of faces
+    public Face prev;
 
+    public String toString() {
+        String st = "";
+
+        HalfEdge the = he;
+        HalfEdge start = the;
+
+        while(the != null) {
+            st += the.getHead().getID() + "->" + the.getTail().getID() + ", ";
+            the = the.next;
+
+            if (the == start) {
+                break;
+            }
+        }
+
+        return "face: " + st;
+    }
 }

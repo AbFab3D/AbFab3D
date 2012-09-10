@@ -12,7 +12,7 @@
 package abfab3d.mesh;
 
 /**
- * Edge defined by 2 half edges.
+ * Edge defined by 2 half edges.  Doubly linked list structure.
  */
 public class Edge {
     /** One half edge, get the other via twin */
@@ -20,11 +20,12 @@ public class Edge {
 
     /** List of all edges */
     public Edge next;
+    public Edge prev;
 
     public String toString() {
 
         if (he != null)
-            return "edge: " + he + ":" + ((he.twin != null) ? he.twin.toString() : "null");
+            return "edge: " + he + ":" + ((he.getTwin() != null) ? he.getTwin().toString() : "null");
         else
             return "edge [null]";
 

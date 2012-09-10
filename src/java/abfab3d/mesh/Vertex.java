@@ -17,13 +17,22 @@ import javax.vecmath.Point3d;
  * Vertex defined by a point in space.
  */
 public class Vertex {
+    private static final boolean DEBUG = false;
 
     public Point3d p;
-    public int id;
+    private int id;
 
     public HalfEdge link; //associate each vertex with tail of _some_ edge
 
     public Vertex next;  // List of all vertices
 
+    public int getID() {
+        return id;
+    }
+
+    public void setID(int id) {
+        if (DEBUG) System.out.println("Setting id:  from: " + this.id + " to: " + id);
+        this.id = id;
+    }
 }
 

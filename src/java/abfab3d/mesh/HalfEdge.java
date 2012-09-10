@@ -20,18 +20,57 @@ package abfab3d.mesh;
  * @author Alan Hudson
  */
 public class HalfEdge {
+    private static final boolean DEBUG = false;
 
-    public Vertex head;
-    public Vertex tail;
+    private Vertex head;
+    private Vertex tail;
 
     public HalfEdge next;
     public HalfEdge prev;
-    public HalfEdge twin;
+    protected HalfEdge twin;
 
     public Edge edge;
     public Face left;
 
     public String toString() {
-        return "(" + tail.id + "->" + head.id + ")";
+        String t = null;
+        String h = null;
+
+        if (tail != null) {
+            t = "" + tail.getID();
+        }
+
+        if (head != null) {
+            h = "" + head.getID();
+        }
+
+        return "(" + h + "->" + t + ")";
+    }
+
+    public HalfEdge getTwin() {
+        return twin;
+    }
+
+    public void setTwin(HalfEdge twin) {
+        if (DEBUG) System.out.println("Setting twin: " + this + " to: " + twin);
+        this.twin = twin;
+    }
+
+    public Vertex getHead() {
+        return head;
+    }
+
+    public void setHead(Vertex head) {
+        if (DEBUG) System.out.println("Setting head: " + this + " to: " + head.getID());
+        this.head = head;
+    }
+
+    public Vertex getTail() {
+        return tail;
+    }
+
+    public void setTail(Vertex tail) {
+        if (DEBUG) System.out.println("Setting tail: " + this + " to: " + tail.getID());
+        this.tail = tail;
     }
 }
