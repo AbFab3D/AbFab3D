@@ -37,7 +37,10 @@ public class WingedEdgeTriangleMesh {
 
     private Edge edges;
     private Edge lastEdge;
-    private HashMap<HalfEdgeKey, HalfEdge> edgeMap = new HashMap<HalfEdgeKey, HalfEdge>();
+//    private HashMap<HalfEdgeKey, HalfEdge> edgeMap = new HashMap<HalfEdgeKey, HalfEdge>();
+
+    // TODO: Used a linked hashmap to get a consistent order for debugging
+    private HashMap<HalfEdgeKey, HalfEdge> edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
 
     private int vertexCount = 0;
 
@@ -48,7 +51,7 @@ public class WingedEdgeTriangleMesh {
         for (int nv = 0; nv < V.length; nv++) {
 
             V[nv] = new Vertex();
-            V[nv].p = new Point3d(vertCoord[nv]);
+            V[nv].setPoint(new Point3d(vertCoord[nv]));
             V[nv].setID(nv);
         }
 
@@ -109,7 +112,6 @@ public class WingedEdgeTriangleMesh {
         for (int i = 0; i < V.length; i++) {
             addVertex(V[i]);
         }
-
     }
 
     /**
@@ -139,16 +141,16 @@ public class WingedEdgeTriangleMesh {
         Vertex[][] findex = new Vertex[faceCount][];
         int fcount = 0;
 
-        for (Face f = faces; f != null; f = f.next) {
+        for (Face f = faces; f != null; f = f.getNext()) {
 
             Vertex[] face = new Vertex[3];
             findex[fcount++] = face;
             int v = 0;
-            HalfEdge he = f.he;
+            HalfEdge he = f.getHe();
             do {
                 face[v++] = he.getHead();
-                he = he.next;
-            } while (he != f.he);
+                he = he.getNext();
+            } while (he != f.getHe());
         }
 
         return findex;
@@ -178,7 +180,7 @@ public class WingedEdgeTriangleMesh {
         while(f != null) {
             cnt++;
 
-            f = f.next;
+            f = f.getNext();
 
             if (f == start) {
                 break;
@@ -202,7 +204,7 @@ public class WingedEdgeTriangleMesh {
         while(e != null) {
             cnt++;
 
-            e = e.next;
+            e = e.getNext();
 
             if (e == start) {
                 break;
@@ -221,20 +223,20 @@ public class WingedEdgeTriangleMesh {
     public void collapseEdge(Edge e, Point3d pos) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
         // reuse first vertex as new common vertex
-        Vertex commonv = e.he.getHead();
-        tvertices.remove(commonv.p);
-        commonv.p.x = pos.x;
-        commonv.p.y = pos.y;
-        commonv.p.z = pos.z;
-        tvertices.put(commonv.p, commonv);
+        Vertex commonv = e.getHe().getHead();
+        tvertices.remove(commonv.getPoint());
+        commonv.getPoint().x = pos.x;
+        commonv.getPoint().y = pos.y;
+        commonv.getPoint().z = pos.z;
+        tvertices.put(commonv.getPoint(), commonv);
 
         if (DEBUG) System.out.println("Moving vertex: " + commonv.getID() + " to: " + pos);
 
         // remove deleted faces
-        Face face1 = e.he.left;
-        Face face2 = e.he.getTwin().left;
+        Face face1 = e.getHe().getLeft();
+        Face face2 = e.getHe().getTwin().getLeft();
 
-        Vertex removev = e.he.getTail();
+        Vertex removev = e.getHe().getTail();
 
         if (DEBUG) System.out.println("Update vertex refs: remove: " + removev.getID() + " to: " + commonv.getID());
 
@@ -254,20 +256,20 @@ public class WingedEdgeTriangleMesh {
         removeFace(face2);
         removeEdge(e);
 
+        // Fix up dangling half edges
         HalfEdge he1;
-
-        System.out.println("Edges involved");
-        for (Edge e1 : redges) {
-            System.out.println(e1 + " hc: " + e1.hashCode());
-        }
-
-        System.out.println("Fixing twins");
-
         HalfEdgeKey key = new HalfEdgeKey();
 
+        // TODO: Debug fixup all edges
+        System.out.println("Using all edges instead of list");
+        redges.clear();
+        for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
+            redges.add(e1);
+        }
+
         for (Edge e1 : redges) {
 
-            he1 = e1.he;
+            he1 = e1.getHe();
 
             if (he1 == null) {
                 continue;
@@ -292,7 +294,8 @@ public class WingedEdgeTriangleMesh {
                 if (e2 != null) {
                     betwin(he1, e2);
                 } else {
-                    throw new IllegalArgumentException("Invalid edge");
+                    writeOBJ(System.out);
+                    throw new IllegalArgumentException("Can't find twin for: " + he1);
                 }
             }
         }
@@ -308,29 +311,29 @@ public class WingedEdgeTriangleMesh {
      */
     private void changeVertex(Face f, Vertex vorig, Vertex vnew, List<Edge> hedges) {
         if (DEBUG) System.out.println("ChangeVertex on face: " + f + " orig: " + vorig.getID() + " vnew: " + vnew.getID());
-        HalfEdge he = f.he;
+        HalfEdge he = f.getHe();
         HalfEdge start = he;
 
         while(he != null) {
             if (he.getHead() == vorig) {
                 if (DEBUG) System.out.print("   Update vertex: " + he);
-                hedges.add(he.edge);
+                hedges.add(he.getEdge());
                 he.setHead(vnew);
                 if (DEBUG) System.out.println("   to -->: " + he);
 
                 // Recurse into next face to find other vertex
-                changeVertex(he.getTwin().left, vorig, vnew, hedges);
+                changeVertex(he.getTwin().getLeft(), vorig, vnew, hedges);
             } else if (he.getTail() == vorig) {
                 if (DEBUG) System.out.print("   Update vertex: " + he);
-                hedges.add(he.edge);
+                hedges.add(he.getEdge());
                 he.setTail(vnew);
                 if (DEBUG) System.out.println("   to -->: " + he);
 
                 // Recurse into next face to find other vertex
-                changeVertex(he.getTwin().left, vorig, vnew, hedges);
+                changeVertex(he.getTwin().getLeft(), vorig, vnew, hedges);
             }
 
-            he = he.next;
+            he = he.getNext();
 
             if (he == start) {
                 break;
@@ -345,30 +348,30 @@ public class WingedEdgeTriangleMesh {
         Edge e;
         int counter = 0;
 
-        for (v = vertices; v != null; v = v.next) {
-            out.println("v " + v.p + " id: " + v.getID());
+        for (v = vertices; v != null; v = v.getNext()) {
+            out.println("v " + v.getPoint() + " id: " + v.getID());
             v.setID(counter);
             counter++;
         }
 
-        for (f = faces; f != null; f = f.next) {
+        for (f = faces; f != null; f = f.getNext()) {
 
             out.print("f");
-            HalfEdge he = f.he;
+            HalfEdge he = f.getHe();
             do {
                 out.print(" " + he.getHead().getID());
-                he = he.next;
-            } while (he != f.he);
+                he = he.getNext();
+            } while (he != f.getHe());
 
             out.println(" hc: " + f.hashCode());
         }
 
-        for (e = edges; e != null; e = e.next) {
+        for (e = edges; e != null; e = e.getNext()) {
 
-            out.print("e " + e.he.getHead().getID() + " " + e.he.getTail().getID());
-            HalfEdge twin = e.he.getTwin();
+            out.print("e " + e.getHe().getHead().getID() + " " + e.getHe().getTail().getID());
+            HalfEdge twin = e.getHe().getTwin();
             if (twin != null)
-                out.print("  tw: " + twin.getHead().getID() + " " + e.he.getTwin().getTail().getID());
+                out.print("  tw: " + twin.getHead().getID() + " " + e.getHe().getTwin().getTail().getID());
             else
                 out.print("  tw: null");
 
@@ -379,7 +382,7 @@ public class WingedEdgeTriangleMesh {
     Vertex buildVertex(Point3d p) {
 
         Vertex v = new Vertex();
-        v.p = p;
+        v.setPoint(p);
         addVertex(v);
         return v;
     }
@@ -395,7 +398,7 @@ public class WingedEdgeTriangleMesh {
 
         } else {
 
-            lastVertex.next = v;
+            lastVertex.setNext(v);
             lastVertex = v;
 
         }
@@ -404,7 +407,7 @@ public class WingedEdgeTriangleMesh {
 
         //System.out.println("index: " + v.index);
 
-        tvertices.put(v.p, v);
+        tvertices.put(v.getPoint(), v);
 
     }
 
@@ -412,10 +415,10 @@ public class WingedEdgeTriangleMesh {
 
         Vertex prev = getPreviousVertex(v);
         if (prev != null) {
-            prev.next = v.next;
+            prev.setNext(v.getNext());
             if (v == lastVertex) {
                 lastVertex = prev;
-                lastVertex.next = null;
+                lastVertex.setNext(null);
             }
         }
 
@@ -429,13 +432,13 @@ public class WingedEdgeTriangleMesh {
 
         Face f = new Face();
 
-        f.he = (HalfEdge) hedges[0];
+        f.setHe((HalfEdge) hedges[0]);
 
         int size = hedges.length;
         for (int e = 0; e < size; e++) {
 
             HalfEdge he1 = hedges[e];
-            he1.left = f;
+            he1.setLeft(f);
             HalfEdge he2 = (HalfEdge) hedges[(e + 1) % size];
             joinHalfEdges(he1, he2);
 
@@ -491,14 +494,14 @@ public class WingedEdgeTriangleMesh {
 
         //System.out.println("getTwin() " + head.index + "-" + tail.index);
         // return halfedge, which has corresponding head and tail
-        HalfEdge he = head.link;
+        HalfEdge he = head.getLink();
         do {
             //System.out.println(" ?twin? " + he);
             if ((he.getHead() == head) && (he.getTail() == tail)) {
                 return he;
             }
-            he = he.next;
-        } while (he != head.link);
+            he = he.getNext();
+        } while (he != head.getLink());
 
         return null;
     }
@@ -533,7 +536,7 @@ public class WingedEdgeTriangleMesh {
 
         Face face = buildFaceV(vert);
 
-        HalfEdge he = face.he;
+        HalfEdge he = face.getHe();
 
         do {
 
@@ -543,8 +546,8 @@ public class WingedEdgeTriangleMesh {
                 betwin(he, twin);
                 buildEdge(he); // create the edge!
             }
-            he = he.next;
-        } while (he != face.he);
+            he = he.getNext();
+        } while (he != face.getHe());
 
 
         return face;
@@ -556,13 +559,13 @@ public class WingedEdgeTriangleMesh {
 
         Face f = new Face();
 
-        f.he = vhedges.get(0);
+        f.setHe(vhedges.get(0));
 
         int size = vhedges.size();
         for (int e = 0; e < size; e++) {
 
             HalfEdge he1 = vhedges.get(e);
-            he1.left = f;
+            he1.setLeft(f);
 
             HalfEdge he2 = vhedges.get((e + 1) % size);
             joinHalfEdges(he1, he2);
@@ -577,17 +580,17 @@ public class WingedEdgeTriangleMesh {
 
     void joinHalfEdges(HalfEdge he1, HalfEdge he2) {
 
-        he1.next = he2;
-        he2.prev = he1;
+        he1.setNext(he2);
+        he2.setPrev(he1);
 
     }
 
 
     public Vertex getPreviousVertex(Vertex vert) {
 
-        for (Vertex v = vertices; v != null; v = v.next) {
+        for (Vertex v = vertices; v != null; v = v.getNext()) {
 
-            if (v.next == vert)
+            if (v.getNext() == vert)
                 return v;
         }
 
@@ -600,19 +603,19 @@ public class WingedEdgeTriangleMesh {
         if (DEBUG) {
             System.out.println("Removing face: " + f + " hc: " + f.hashCode());
         }
-        Face prev = f.prev;
+        Face prev = f.getPrev();
 
         if (prev != null) {
-            prev.next = f.next;
+            prev.setNext(f.getNext());
         } else {
             // updating head
-            faces = f.next;
+            faces = f.getNext();
         }
-        f.next.prev = f.prev;
+        f.getNext().setPrev(f.getPrev());
 
         if (f == lastFace) {
             lastFace = prev;
-            lastFace.next = null;
+            lastFace.setNext(null);
         }
 
     }
@@ -620,15 +623,15 @@ public class WingedEdgeTriangleMesh {
     public void removeHalfEdges(Face f) {
 
         if (DEBUG) System.out.println("Removing half edges for face: " + f);
-        HalfEdge he = f.he;
+        HalfEdge he = f.getHe();
         do {
 
             removeHalfEdge(he);
 
-            he.prev = null;
-            he = he.next;
+            he.setPrev(null);
+            he = he.getNext();
 
-        } while (he != f.he);
+        } while (he != f.getHe());
 
     }
 
@@ -636,19 +639,21 @@ public class WingedEdgeTriangleMesh {
 
         if (DEBUG) System.out.println("removeEdge: " + e);
 
-        Edge prev = e.prev;
+        Edge prev = e.getPrev();
 
         if (prev != null) {
-            prev.next = e.next;
+            prev.setNext(e.getNext());
         } else {
-            edges = e.next;
+            edges = e.getNext();
         }
-        e.next.prev = e.prev;
+        e.getNext().setPrev(e.getPrev());
 
         if (e == lastEdge) {
             lastEdge = prev;
-            lastEdge.next = null;
+            lastEdge.setNext(null);
         }
+
+        edgeMap.remove(e);
     }
 
     void removeHalfEdge(HalfEdge he) {
@@ -656,12 +661,12 @@ public class WingedEdgeTriangleMesh {
         if (DEBUG) System.out.println("removeHalfEdge()" + he);
 
         HalfEdge twin = he.getTwin();
-        Edge e = he.edge;
+        Edge e = he.getEdge();
 
-        if (e.he == he) {
+        if (e.getHe() == he) {
             // this he is at the head of he list
             // place another one at the head
-            e.he = he.getTwin();
+            e.setHe(he.getTwin());
         }
 
         if (twin == null) {
@@ -685,8 +690,8 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
 
         } else {
 
-            lastFace.next = f;
-            f.prev = lastFace;
+            lastFace.setNext(f);
+            f.setPrev(lastFace);
             lastFace = f;
         }
 
@@ -701,8 +706,8 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
             lastEdge = e;
             edges = e;
         } else {
-            lastEdge.next = e;
-            e.prev = lastEdge;
+            lastEdge.setNext(e);
+            e.setPrev(lastEdge);
             lastEdge = e;
         }
     }
@@ -712,8 +717,8 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
         HalfEdge he = new HalfEdge();
 
         he.setTail(tail);
-        if (tail.link == null)
-            tail.link = he; // link the tail vertex to this edge
+        if (tail.getLink() == null)
+            tail.setLink(he); // link the tail vertex to this edge
         he.setHead(head);
         return he;
 
@@ -722,11 +727,11 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
     Edge buildEdge(HalfEdge he) {
 
         Edge e = new Edge();
-        e.he = he;
-        he.edge = e;
+        e.setHe(he);
+        he.setEdge(e);
 
         if (he.getTwin() != null) {
-            he.getTwin().edge = e;
+            he.getTwin().setEdge(e);
         }
 
         addEdge(e);
@@ -750,7 +755,7 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
         while (f != null) {
 
             count++;
-            f = f.next;
+            f = f.getNext();
 
         }
         return count;
@@ -762,7 +767,7 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
         Vertex v = vertices;
         while (v != null) {
             v.setID(vc++);
-            v = v.next;
+            v = v.getNext();
         }
         return vc;
 
@@ -778,10 +783,10 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
         Vertex v = vertices;
         while (v != null) {
 //      if(v.p.dist2(p) < EPS2){
-            if (v.p.distanceSquared(p) < eps) {
+            if (v.getPoint().distanceSquared(p) < eps) {
                 return v;
             }
-            v = v.next;
+            v = v.getNext();
         }
         return null;
     }
@@ -797,237 +802,4 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
         return (Vertex) tvertices.get(v);
 
     }
-
-
-    /**
-     * search for pyramid with p as a head vertex and replaces it with prims made on the base of
-     * of that pyramid
-     */
-    /*
-      public void addPrism(Point3d p, double capHeight, double capRadius, double capTopScale,
-                           boolean straightenBase, double baseRadius){
-
-        //System.out.println("addPrism()");
-        initVertexIndices(); // for debug
-
-        Vertex headVertex = findVertex(p);
-        if(headVertex == null){
-          headVertex = findVertexSlow(p);
-          if(headVertex == null){
-            System.out.println("vertex: " + p);
-            System.out.println("WingedEdge.addPrism(): failed to find Vertex");
-            Thread.dumpStack();
-            return;
-          }
-          //return;
-        }
-
-        //System.out.println("vertex found: " + headVertex.p);
-
-        HalfEdge he = headVertex.link;
-
-        Vector baseV = new Vector();
-        do{
-          //
-          // traverse all faces adjacent to the vertex, and collect all vertices, which remains after
-          // removing that face
-          //
-          //System.out.println("edge :" + he.tail.index + "-" + he.head.index);
-          baseV.add(he.head);
-          removeFace(he.left);
-          removeHalfEdges(he.left);
-
-          //facesToRemove.add(he.left);
-
-          if(he.twin == null)
-            break;
-          he = he.twin.next;
-        }while(he != headVertex.link);
-
-        removeVertex(headVertex);
-
-
-        int baseSize = baseV.size();
-        Vertex base[] = new Vertex[baseSize];
-        baseV.toArray(base);
-
-        // reverse array of vertices
-        for(int i = 0; i < baseSize/2; i++){
-
-          int i2 = baseSize-i-1;
-          Vertex t = base[i2];
-          base[i2] = base[i];
-          base[i] = t;
-        }
-
-        Point3d baseCenter = new Point3d();
-        for(int i = 0; i < baseSize; i++){
-          baseCenter.addSet(base[i].p);
-        }
-        baseCenter.mulSet(1./baseSize);
-
-        Point3d spine = headVertex.p.sub(baseCenter);
-        Point3d axis = new Point3d(spine);
-        axis.normalize();
-
-        Point3d basep[] = new Point3d[base.length];
-        for(int i=0; i < basep.length; i++){
-          basep[i] = base[i].p;
-        }
-
-        Point3d dbase[] = PointSimulator.distrubute_points_on_circle(basep, baseCenter, axis);
-
-        Vertex upperBase[] = new Vertex[baseSize*2];
-
-        for(int i = 0; i < baseSize; i++){
-
-          if(straightenBase){
-            // make some scaling of the base
-            base[i].p.set(baseCenter.add(base[i].p.sub(baseCenter).mul(baseRadius)));
-
-          }
-
-          Point3d bp1 = dbase[i].sub(baseCenter);
-          Point3d bp2 = dbase[(i+1)%baseSize].sub(baseCenter);
-          bp2 = bp2.add(bp1);
-
-          // we are making upper base with double count of vertices
-          // make bp orthogonal to axis  //bp.subSet(axis.mul(bp.dot(axis)));
-          bp1.normalize();
-          bp2.normalize();
-
-          Point3d vp1 = bp1.mulSet(capRadius).add(baseCenter).add(spine);
-          upperBase[2*i] = buildVertex(vp1);
-          Point3d vp2 = bp2.mulSet(capRadius).add(baseCenter).add(spine);
-          upperBase[2*i+1] = buildVertex(vp2);
-
-        }
-
-
-        //writeOBJ(System.out);
-
-        Vertex[] side = new Vertex[3];
-
-        for(int i = 0; i < base.length; i++){
-
-          side[0] = upperBase[(2*i+1)];
-          side[1] = upperBase[2*i];
-          side[2] = base[i];
-          addNewFace(side);
-
-          side[0] = upperBase[(2*i+1)];
-          side[1] = base[i];
-          side[2] = base[(i+1)%base.length];
-          addNewFace(side);
-          side[0] = upperBase[(2*i+2)%upperBase.length];
-          side[1] = upperBase[(2*i+1)];
-          side[2] = base[(i+1)%base.length];
-          addNewFace(side);
-
-        }
-
-
-        Point3d capTopCenter = baseCenter.add(spine.add(axis.mul(capRadius*capHeight)));
-        Vertex capTop[] = new Vertex[3];
-        for(int i=0; i < capTop.length; i++){
-
-          Point3d capVert = dbase[i].sub(baseCenter);
-          capVert.normalize();
-          capVert.mulSet(capRadius*capTopScale);
-          capTop[i] = buildVertex(capTopCenter.add(capVert));
-        }
-
-        side[0] = capTop[0];
-        side[1] = capTop[1];
-        side[2] = capTop[2];
-        addNewFace(side);
-
-        for(int i = 0; i < capTop.length; i++){
-
-
-          side[0] = upperBase[(2*i+1)];
-          side[1] = capTop[i];
-          side[2] = upperBase[2*i];
-          addNewFace(side);
-
-          side[0] = capTop[i];
-          side[1] = upperBase[(2*i+1)];
-          side[2] = capTop[(i+1)%base.length];
-          addNewFace(side);
-          side[0] = upperBase[(2*i+2)%upperBase.length];
-          side[1] = capTop[(i+1)%base.length];
-          side[2] = upperBase[(2*i+1)];
-          addNewFace(side);
-
-        }
-
-
-        //writeOBJ(System.out);
-
-      }
-
-    */
-
-    //
-    //  returns Voronoy polygon around given vertex
-    //
-    //
-/*
-  public Point3d[] getVoronoyCell(Point3d center){
-    
-    Vertex vert = findVertex(center);
-
-    HalfEdge he = vert.link;
-    if(he == null){
-      System.out.println("bad vertex without link!");
-      Thread.dumpStack();
-      System.out.println("");
-      return new Point3d[0];
-    }
-
-    Vector vv = new Vector();
-
-    do{
-      vv.add(he.head); 
-      //CCW order
-      if(he.prev.twin == null) // it is boundary vertex - no Voronoy cell for it
-        return null;
-      he = he.prev.twin;        
-      // CW order of vertices 
-      //if(he.twin == null) // it is boundary vertex - no Voronoy cell for it
-      //  return null;      
-      //he = he.twin.next;      
-
-    }while(he != vert.link);
-    
-    Point3d[] vout = new Point3d[vv.size()];
-    for(int i=0; i < vout.length; i++){
-      Point3d 
-        v0 = vert.p, 
-        v1 = ((Vertex)vv.elementAt(i)).p,
-        v2 = ((Vertex)vv.elementAt((i+1)%vout.length)).p;
-
-      double circle[] = Qhull.circumcenter(v0.x, v0.y, v1.x, v1.y, v2.x, v2.y);
-      vout[i] = new Point3d(circle[0], circle[1], 0);
-    }
-    return vout;
-  }
-*/
-/*
-  public Point3d getFaceCenter(HalfEdge he){
-
-    int count = 1;
-    Point3d center = new Point3d(he.head.p);
-    HalfEdge start = he;
-    while(he.next != start){
-      he = he.next;
-      center.addSet(he.head.p);
-      count++;
-    }
-    center.mulSet(1./count);
-
-    return center;
-  }
-
-  */
 }
