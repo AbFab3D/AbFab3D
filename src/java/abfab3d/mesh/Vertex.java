@@ -19,12 +19,12 @@ import javax.vecmath.Point3d;
 public class Vertex {
     private static final boolean DEBUG = false;
 
-    public Point3d p;
+    private Point3d point;
     private int id;
 
-    public HalfEdge link; //associate each vertex with tail of _some_ edge
+    private HalfEdge link; //associate each vertex with tail of _some_ edge
 
-    public Vertex next;  // List of all vertices
+    private Vertex next;  // List of all vertices
 
     public int getID() {
         return id;
@@ -33,6 +33,30 @@ public class Vertex {
     public void setID(int id) {
         if (DEBUG) System.out.println("Setting id:  from: " + this.id + " to: " + id);
         this.id = id;
+    }
+
+    public Point3d getPoint() {
+        return point;
+    }
+
+    public void setPoint(Point3d p) {
+        this.point = p;
+    }
+
+    public HalfEdge getLink() {
+        return link;
+    }
+
+    public void setLink(HalfEdge link) {
+        this.link = link;
+    }
+
+    public Vertex getNext() {
+        return next;
+    }
+
+    public void setNext(Vertex next) {
+        this.next = next;
     }
 }
 

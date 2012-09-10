@@ -25,12 +25,12 @@ public class HalfEdge {
     private Vertex head;
     private Vertex tail;
 
-    public HalfEdge next;
-    public HalfEdge prev;
-    protected HalfEdge twin;
+    private HalfEdge next;
+    private HalfEdge prev;
+    private HalfEdge twin;
 
-    public Edge edge;
-    public Face left;
+    private Edge edge;
+    private Face left;
 
     public String toString() {
         String t = null;
@@ -72,5 +72,37 @@ public class HalfEdge {
     public void setTail(Vertex tail) {
         if (DEBUG) System.out.println("Setting tail: " + this + " to: " + tail.getID());
         this.tail = tail;
+    }
+
+    public HalfEdge getNext() {
+        return next;
+    }
+
+    public void setNext(HalfEdge next) {
+        this.next = next;
+    }
+
+    public HalfEdge getPrev() {
+        return prev;
+    }
+
+    public void setPrev(HalfEdge prev) {
+        this.prev = prev;
+    }
+
+    public Edge getEdge() {
+        return edge;
+    }
+
+    public void setEdge(Edge edge) {
+        this.edge = edge;
+    }
+
+    public Face getLeft() {
+        return left;
+    }
+
+    public void setLeft(Face left) {
+        this.left = left;
     }
 }

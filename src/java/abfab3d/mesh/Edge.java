@@ -15,20 +15,43 @@ package abfab3d.mesh;
  * Edge defined by 2 half edges.  Doubly linked list structure.
  */
 public class Edge {
-    /** One half edge, get the other via twin */
-    public HalfEdge he;
+    private HalfEdge he;
 
-    /** List of all edges */
-    public Edge next;
-    public Edge prev;
+    private Edge next;
+    private Edge prev;
 
     public String toString() {
 
-        if (he != null)
-            return "edge: " + he + ":" + ((he.getTwin() != null) ? he.getTwin().toString() : "null");
+        if (getHe() != null)
+            return "edge: " + getHe() + ":" + ((getHe().getTwin() != null) ? getHe().getTwin().toString() : "null");
         else
             return "edge [null]";
 
     }
 
+    /** One half edge, get the other via twin */
+    public HalfEdge getHe() {
+        return he;
+    }
+
+    public void setHe(HalfEdge he) {
+        this.he = he;
+    }
+
+    /** List of all edges */
+    public Edge getNext() {
+        return next;
+    }
+
+    public void setNext(Edge next) {
+        this.next = next;
+    }
+
+    public Edge getPrev() {
+        return prev;
+    }
+
+    public void setPrev(Edge prev) {
+        this.prev = prev;
+    }
 }

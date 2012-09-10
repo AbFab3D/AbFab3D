@@ -16,19 +16,19 @@ package abfab3d.mesh;
  */
 public class Face {
 
-    public HalfEdge he;
-    public Face next;  // List of faces
-    public Face prev;
+    private HalfEdge he;
+    private Face next;  // List of faces
+    private Face prev;
 
     public String toString() {
         String st = "";
 
-        HalfEdge the = he;
+        HalfEdge the = getHe();
         HalfEdge start = the;
 
         while(the != null) {
             st += the.getHead().getID() + "->" + the.getTail().getID() + ", ";
-            the = the.next;
+            the = the.getNext();
 
             if (the == start) {
                 break;
@@ -36,5 +36,29 @@ public class Face {
         }
 
         return "face: " + st;
+    }
+
+    public HalfEdge getHe() {
+        return he;
+    }
+
+    public void setHe(HalfEdge he) {
+        this.he = he;
+    }
+
+    public Face getNext() {
+        return next;
+    }
+
+    public void setNext(Face next) {
+        this.next = next;
+    }
+
+    public Face getPrev() {
+        return prev;
+    }
+
+    public void setPrev(Face prev) {
+        this.prev = prev;
     }
 }
