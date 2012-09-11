@@ -51,9 +51,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
-     inkscape:cx="181.85244"
-     inkscape:cy="152.9818"
+     inkscape:zoom="3.959798"
+     inkscape:cx="265.86815"
+     inkscape:cy="148.41585"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -463,7 +463,7 @@
        y="399.59433"
        x="354.46426"
        height="5.7142859"
-       width="15.470881"
+       width="12.524453"
        id="rect3849"
        style="color:#000000;fill:#ffffff;stroke:#808080;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate" />
     <text
@@ -476,7 +476,7 @@
          sodipodi:role="line"
          id="tspan3051"
          x="355.99493"
-         y="404.43918">head</tspan></text>
+         y="404.43918">end</tspan></text>
     <path
        sodipodi:nodetypes="cc"
        inkscape:connector-curvature="0"
@@ -486,7 +486,7 @@
     <rect
        style="color:#000000;fill:#ffffff;stroke:#808080;stroke-width:0.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
        id="rect3843"
-       width="9.5535707"
+       width="13.749999"
        height="5.625"
        x="249.46428"
        y="404.14789" />
@@ -500,6 +500,6 @@
          sodipodi:role="line"
          id="tspan3057"
          x="250.51399"
-         y="409.07153">tail</tspan></text>
+         y="409.07153">start</tspan></text>
   </g>
 </svg>
