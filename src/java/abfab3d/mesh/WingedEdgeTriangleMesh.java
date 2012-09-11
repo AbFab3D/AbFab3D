@@ -269,6 +269,20 @@ public class WingedEdgeTriangleMesh {
         if (DEBUG) System.out.println("Removing vertex: " + removev.getID());
         removeVertex(removev);
 
+        HalfEdge he = face1.getHe();
+        do {
+            redges.add(he.getEdge());
+            he = he.getNext();
+
+        } while (he != face1.getHe());
+
+        he = face2.getHe();
+        do {
+            redges.add(he.getEdge());
+            he = he.getNext();
+
+        } while (he != face2.getHe());
+
         removeHalfEdges(face1);
         removeHalfEdges(face2);
         removeFace(face1);
@@ -278,20 +292,20 @@ public class WingedEdgeTriangleMesh {
         // Fix up dangling half edges
         HalfEdge he1;
         HalfEdgeKey key = new HalfEdgeKey();
-/*
+
         System.out.println("Edges Involved");
         for(Edge edge : redges) {
             System.out.println("   " + edge + " hc: " + edge.hashCode());
         }
-*/
 
+/*
         // TODO: Debug fixup all edges, why is this necessary?
         System.out.println("Using all edges instead of list");
         redges.clear();
         for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
             redges.add(e1);
         }
-
+*/
         for (Edge e1 : redges) {
 
             he1 = e1.getHe();
