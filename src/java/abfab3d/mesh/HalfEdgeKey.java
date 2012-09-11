@@ -17,43 +17,43 @@ package abfab3d.mesh;
  */
 public class HalfEdgeKey {
 
-    private Vertex head, tail;
+    private Vertex start, end;
 
     public HalfEdgeKey() {
     }
 
-    public HalfEdgeKey(Vertex head, Vertex tail) {
-        this.head = head;
-        this.tail = tail;
+    public HalfEdgeKey(Vertex start, Vertex end) {
+        this.start = start;
+        this.end = end;
     }
 
     public int hashCode() {
-        return head.hashCode() + 119 * tail.hashCode();
+        return start.hashCode() + 119 * end.hashCode();
     }
 
     public boolean equals(Object obj) {
         HalfEdgeKey hk = (HalfEdgeKey) obj;
-        return (hk.head == head) && (hk.tail == tail);
+        return (hk.start == start) && (hk.end == end);
 
     }
 
-    public Vertex getHead() {
-        return head;
+    public Vertex getStart() {
+        return start;
     }
 
-    public void setHead(Vertex head) {
-        this.head = head;
+    public void setStart(Vertex start) {
+        this.start = start;
     }
 
-    public Vertex getTail() {
-        return tail;
+    public Vertex getEnd() {
+        return end;
     }
 
-    public void setTail(Vertex tail) {
-        this.tail = tail;
+    public void setEnd(Vertex end) {
+        this.end = end;
     }
 
     public String toString() {
-        return "HalfEdgeKey: " + (head != null ? (head.getID()) : "null") + "->" + (tail != null ? (tail.getID()) : "null");
+        return "HalfEdgeKey: " + (start != null ? (start.getID()) : "null") + "->" + (end != null ? (end.getID()) : "null");
     }
 }

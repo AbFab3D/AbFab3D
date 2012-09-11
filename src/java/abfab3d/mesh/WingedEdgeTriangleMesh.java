@@ -76,10 +76,10 @@ public class WingedEdgeTriangleMesh {
                 Vertex v1 = V[face[j]];
                 Vertex v2 = V[face[(j + 1) % face.length]];
                 HalfEdge he = buildHalfEdge(v1, v2);
-//                edgeMap.put(new HalfEdgeKey(he.getTail(), he.getHead()), he);
+//                edgeMap.put(new HalfEdgeKey(he.getEnd(), he.getStart()), he);
 
                 // TODO: why is this backwards?
-                edgeMap.put(new HalfEdgeKey(he.getHead(), he.getTail()), he);
+                edgeMap.put(new HalfEdgeKey(he.getStart(), he.getEnd()), he);
                 eface.add(he);
             }
 
@@ -96,18 +96,18 @@ public class WingedEdgeTriangleMesh {
         for (HalfEdge he1 : edgeMap.values()) {
             if (he1.getTwin() == null) {
                 // get halfedge of _opposite_ direction
-                //key.setHead(he1.getHead());
-                //key.setTail(he1.getTail());
+                //key.setStart(he1.getStart());
+                //key.setEnd(he1.getEnd());
 
-                key.setHead(he1.getTail());
-                key.setTail(he1.getHead());
+                key.setStart(he1.getEnd());
+                key.setEnd(he1.getStart());
                 HalfEdge he2 = edgeMap.get(key);
                 if (he2 != null) {
                     betwin(he1, he2);
                     buildEdge(he1); // create the edge!
                 } else {
                     if (DEBUG && notifyNonManifold) {
-                        System.out.println("NonManifold hedge: " + he1 + " ? " + he1.getHead().getID() + "->" + he1.getTail().getID());
+                        System.out.println("NonManifold hedge: " + he1 + " ? " + he1.getStart().getID() + "->" + he1.getEnd().getID());
                     }
                     // Null twin means its an outer edge on a non-manifold surface
                     buildEdge(he1);
@@ -130,12 +130,24 @@ public class WingedEdgeTriangleMesh {
         return edges;
     }
 
+    public Iterator<Edge> edgeIterator() {
+        return new EdgeIterator(edges);
+    }
+
     public Vertex getVertices() {
         return vertices;
     }
 
+    public Iterator<Vertex> vertexIterator() {
+        return new VertexIterator(vertices);
+    }
+
     public Face getFaces() {
         return faces;
+    }
+
+    public Iterator<Face> faceIterator() {
+        return new FaceIterator(faces);
     }
 
     public Vertex[][] getFaceIndexes() {
@@ -155,7 +167,7 @@ public class WingedEdgeTriangleMesh {
             int v = 0;
             HalfEdge he = f.getHe();
             do {
-                face[v++] = he.getHead();
+                face[v++] = he.getStart();
                 he = he.getNext();
             } while (he != f.getHe());
         }
@@ -230,7 +242,7 @@ public class WingedEdgeTriangleMesh {
     public void collapseEdge(Edge e, Point3d pos) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
         // reuse first vertex as new common vertex
-        Vertex commonv = e.getHe().getHead();
+        Vertex commonv = e.getHe().getStart();
         tvertices.remove(commonv.getPoint());
         commonv.getPoint().x = pos.x;
         commonv.getPoint().y = pos.y;
@@ -243,11 +255,11 @@ public class WingedEdgeTriangleMesh {
         Face face1 = e.getHe().getLeft();
         Face face2 = e.getHe().getTwin().getLeft();
 
-        Vertex removev = e.getHe().getTail();
+        Vertex removev = e.getHe().getEnd();
 
         if (DEBUG) System.out.println("Update vertex refs: remove: " + removev.getID() + " to: " + commonv.getID());
 
-        ArrayList<Edge> redges = new ArrayList<Edge>();
+        HashSet<Edge> redges = new HashSet<Edge>();
 
         // Update vertex references to common vertex
         changeVertex(face1, removev, commonv, redges);
@@ -266,8 +278,14 @@ public class WingedEdgeTriangleMesh {
         // Fix up dangling half edges
         HalfEdge he1;
         HalfEdgeKey key = new HalfEdgeKey();
+/*
+        System.out.println("Edges Involved");
+        for(Edge edge : redges) {
+            System.out.println("   " + edge + " hc: " + edge.hashCode());
+        }
+*/
 
-        // TODO: Debug fixup all edges
+        // TODO: Debug fixup all edges, why is this necessary?
         System.out.println("Using all edges instead of list");
         redges.clear();
         for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
@@ -286,8 +304,8 @@ public class WingedEdgeTriangleMesh {
 
             if (twin == null) {
 /*
-                key.o1 = he1.getTail();
-                key.o2 = he1.getHead();
+                key.o1 = he1.getEnd();
+                key.o2 = he1.getStart();
                 HalfEdge e2 = edgeMap.get(key);
                 if (e2 != null) {
                     betwin(he1, e2);
@@ -295,8 +313,8 @@ public class WingedEdgeTriangleMesh {
                     throw new IllegalArgumentException("Invalid edge");
                 }
 */
-                key.setHead(he1.getHead());
-                key.setTail(he1.getTail());
+                key.setStart(he1.getStart());
+                key.setEnd(he1.getEnd());
                 HalfEdge e2 = edgeMap.get(key);
                 if (e2 != null) {
                     betwin(he1, e2);
@@ -306,11 +324,13 @@ public class WingedEdgeTriangleMesh {
                     for(Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
                         System.out.println(entry.getKey() + " val: " + entry.getValue());
                     }
-                    throw new IllegalArgumentException("Can't find twin for: " + he1 + " o1: " + he1.getHead().getID() + " o2: " + he1.getTail().getID());
+                    throw new IllegalArgumentException("Can't find twin for: " + he1 + " o1: " + he1.getStart().getID() + " o2: " + he1.getEnd().getID());
 
                 }
             }
         }
+
+        // find and remove any degenerate faces
     }
 
     /**
@@ -321,44 +341,44 @@ public class WingedEdgeTriangleMesh {
      * @param vnew The new vertex
      * @param hedges List of hald
      */
-    private void changeVertex(Face f, Vertex vorig, Vertex vnew, List<Edge> hedges) {
+    private void changeVertex(Face f, Vertex vorig, Vertex vnew, Set<Edge> hedges) {
         if (DEBUG) System.out.println("ChangeVertex on face: " + f + " orig: " + vorig.getID() + " vnew: " + vnew.getID());
         HalfEdge he = f.getHe();
         HalfEdge start = he;
 
         while(he != null) {
-            if (he.getHead() == vorig) {
+            if (he.getStart() == vorig) {
                 if (DEBUG) System.out.print("   Update vertex: " + he);
                 hedges.add(he.getEdge());
 
                 // remove old edgeMap entry
-                HalfEdgeKey key = new HalfEdgeKey(he.getHead(), he.getTail());
+                HalfEdgeKey key = new HalfEdgeKey(he.getStart(), he.getEnd());
                 edgeMap.remove(key);
 
-                he.setHead(vnew);
+                he.setStart(vnew);
 
                 // readd edgeMap entry
-                key.setHead(he.getHead());
-                key.setTail(he.getTail());
+                key.setStart(he.getStart());
+                key.setEnd(he.getEnd());
                 edgeMap.put(key, he);
 
                 if (DEBUG) System.out.println("   to -->: " + he);
 
                 // Recurse into next face to find other vertex
                 changeVertex(he.getTwin().getLeft(), vorig, vnew, hedges);
-            } else if (he.getTail() == vorig) {
+            } else if (he.getEnd() == vorig) {
                 if (DEBUG) System.out.print("   Update vertex: " + he);
                 hedges.add(he.getEdge());
 
                 // remove old edgeMap entry
-                HalfEdgeKey key = new HalfEdgeKey(he.getHead(), he.getTail());
+                HalfEdgeKey key = new HalfEdgeKey(he.getStart(), he.getEnd());
                 edgeMap.remove(key);
 
-                he.setTail(vnew);
+                he.setEnd(vnew);
 
                 // readd edgeMap entry
-                key.setHead(he.getHead());
-                key.setTail(he.getTail());
+                key.setStart(he.getStart());
+                key.setEnd(he.getEnd());
                 edgeMap.put(key, he);
 
                 if (DEBUG) System.out.println("   to -->: " + he);
@@ -393,7 +413,7 @@ public class WingedEdgeTriangleMesh {
             out.print("f");
             HalfEdge he = f.getHe();
             do {
-                out.print(" " + he.getHead().getID());
+                out.print(" " + he.getStart().getID());
                 he = he.getNext();
             } while (he != f.getHe());
 
@@ -402,10 +422,10 @@ public class WingedEdgeTriangleMesh {
 
         for (e = edges; e != null; e = e.getNext()) {
 
-            out.print("e " + e.getHe().getHead().getID() + " " + e.getHe().getTail().getID());
+            out.print("e " + e.getHe().getStart().getID() + " " + e.getHe().getEnd().getID());
             HalfEdge twin = e.getHe().getTwin();
             if (twin != null)
-                out.print("  tw: " + twin.getHead().getID() + " " + e.getHe().getTwin().getTail().getID());
+                out.print("  tw: " + twin.getStart().getID() + " " + e.getHe().getTwin().getEnd().getID());
             else
                 out.print("  tw: null");
 
@@ -531,7 +551,7 @@ public class WingedEdgeTriangleMesh {
         HalfEdge he = head.getLink();
         do {
             //System.out.println(" ?twin? " + he);
-            if ((he.getHead() == head) && (he.getTail() == tail)) {
+            if ((he.getStart() == head) && (he.getEnd() == tail)) {
                 return he;
             }
             he = he.getNext();
@@ -574,7 +594,7 @@ public class WingedEdgeTriangleMesh {
 
         do {
 
-            HalfEdge twin = getTwin(he.getTail(), he.getHead());
+            HalfEdge twin = getTwin(he.getEnd(), he.getStart());
             //System.out.println("he:" + he + " twin: " + twin);
             if (twin != null) {
                 betwin(he, twin);
@@ -712,7 +732,7 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
 
         // TODO: causes problems
         //System.out.println("Removing edgeMap: " + he);
-        //edgeMap.remove(new HalfEdgeKey(he.getHead(), he.getTail()));
+        //edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
     }
 
     private void addFace(Face f) {
@@ -751,10 +771,10 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
 
         HalfEdge he = new HalfEdge();
 
-        he.setTail(tail);
+        he.setEnd(tail);
         if (tail.getLink() == null)
             tail.setLink(he); // link the tail vertex to this edge
-        he.setHead(head);
+        he.setStart(head);
         return he;
 
     }

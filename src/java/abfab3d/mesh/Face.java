@@ -27,7 +27,7 @@ public class Face {
         HalfEdge start = the;
 
         while(the != null) {
-            st += the.getHead().getID() + "->" + the.getTail().getID() + ", ";
+            st += the.getStart().getID() + "->" + the.getEnd().getID() + ", ";
             the = the.getNext();
 
             if (the == start) {
