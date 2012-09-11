@@ -44,7 +44,7 @@ public class HalfEdge {
             h = "" + head.getID();
         }
 
-        return "(" + h + "->" + t + ")";
+        return "(" + t + "->" + h + ")";
     }
 
     public HalfEdge getTwin() {

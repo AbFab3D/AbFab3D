@@ -13,6 +13,8 @@ package abfab3d.mesh;
 
 import javax.vecmath.Point3d;
 
+import static abfab3d.util.Output.fmt;
+
 /**
  * Vertex defined by a point in space.
  */
@@ -57,6 +59,10 @@ public class Vertex {
 
     public void setNext(Vertex next) {
         this.next = next;
+    }
+
+    public String toString(){
+        return fmt("%2d (%10.7f,%10.7f,%10.7f)", id, point.x,point.y,point.z);
     }
 }
 

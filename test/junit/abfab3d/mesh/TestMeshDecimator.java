@@ -52,11 +52,15 @@ public class TestMeshDecimator extends TestCase {
      *
      * @throws Exception
      */
-    public void testBasic() throws Exception {
+    public void testPyramid() throws Exception {
 
-        Point3d[] pyr_vert = new Point3d[] {new Point3d(-1, -1, -1), new Point3d(1, -1, -1),
-                new Point3d(1, 1, -1), new Point3d(-1, 1, -1),
-                new Point3d(0, 0, 1)};
+        Point3d[] pyr_vert = new Point3d[] {
+            new Point3d(-1., -1., -1.), 
+            new Point3d( 1., -1., -1.),
+            new Point3d( 1.,  1., -1.), 
+            new Point3d(-1.,  1., -1.),
+            new Point3d( 0.,  0.,  1.), 
+        };
         int pyr_faces[][] = new int[][]{{3, 2, 0}, {2,1,0}, {0, 1, 4}, {1, 2, 4}, {2, 3, 4}, {3, 0, 4}};
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(pyr_vert, pyr_faces);
@@ -90,8 +94,7 @@ public class TestMeshDecimator extends TestCase {
 
         int count = md.processMesh(we, 100);
 
-        printf("final faces count: %d\n", count);
-        
+        printf("final faces count: %d\n", count);        
 
     }
 
