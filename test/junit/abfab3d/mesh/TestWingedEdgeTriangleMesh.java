@@ -127,8 +127,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         while (edges != null) {
             he = edges.getHe();
 
-            if ((he.getHead() == v1 && he.getTail() == v2) ||
-                (he.getHead() == v2 && he.getTail() == v1)) {
+            if ((he.getStart() == v1 && he.getEnd() == v2) ||
+                (he.getStart() == v2 && he.getEnd() == v1)) {
                 found = true;
                 break;
             }
@@ -236,8 +236,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         while (edges != null) {
             he = edges.getHe();
 
-            if ((he.getHead() == v1 && he.getTail() == v2) ||
-                    (he.getHead() == v2 && he.getTail() == v1)) {
+            if ((he.getStart() == v1 && he.getEnd() == v2) ||
+                    (he.getStart() == v2 && he.getEnd() == v1)) {
                 found = true;
                 break;
             }
@@ -323,8 +323,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
             System.out.println("Collapse: " + idx + " e: " + e);
             Point3d pos = new Point3d();
-            Point3d p1 = e.getHe().getHead().getPoint();
-            Point3d p2 = e.getHe().getTail().getPoint();
+            Point3d p1 = e.getHe().getStart().getPoint();
+            Point3d p2 = e.getHe().getEnd().getPoint();
             pos.x = (p1.x + p2.x) / 2.0;
             pos.y = (p1.y + p2.y) / 2.0;
             pos.z = (p1.z + p2.z) / 2.0;
@@ -400,8 +400,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
             System.out.println("Collapse: " + idx + " e: " + e);
             Point3d pos = new Point3d();
-            Point3d p1 = e.getHe().getHead().getPoint();
-            Point3d p2 = e.getHe().getTail().getPoint();
+            Point3d p1 = e.getHe().getStart().getPoint();
+            Point3d p2 = e.getHe().getEnd().getPoint();
             pos.x = (p1.x + p2.x) / 2.0;
             pos.y = (p1.y + p2.y) / 2.0;
             pos.z = (p1.z + p2.z) / 2.0;
@@ -501,15 +501,15 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             Vertex p2;
             Vertex p3;
 
-            p1 = faces.getHe().getHead();
-            p2 = faces.getHe().getTail();
+            p1 = faces.getHe().getStart();
+            p2 = faces.getHe().getEnd();
 
             HalfEdge he = faces.getHe().getNext();
 
-            if (he.getHead() != p1 && he.getHead() != p2) {
-                p3 = he.getHead();
-            } else if (he.getTail() != p1 && he.getTail() != p2) {
-                p3 = he.getHead();
+            if (he.getStart() != p1 && he.getStart() != p2) {
+                p3 = he.getStart();
+            } else if (he.getEnd() != p1 && he.getEnd() != p2) {
+                p3 = he.getStart();
             } else {
                 System.out.println("Cannot find third unique point?");
                 he = faces.getHe();

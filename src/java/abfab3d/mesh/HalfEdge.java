@@ -22,8 +22,8 @@ package abfab3d.mesh;
 public class HalfEdge {
     private static final boolean DEBUG = false;
 
-    private Vertex head;
-    private Vertex tail;
+    private Vertex start;
+    private Vertex end;
 
     private HalfEdge next;
     private HalfEdge prev;
@@ -36,12 +36,12 @@ public class HalfEdge {
         String t = null;
         String h = null;
 
-        if (tail != null) {
-            t = "" + tail.getID();
+        if (end != null) {
+            t = "" + end.getID();
         }
 
-        if (head != null) {
-            h = "" + head.getID();
+        if (start != null) {
+            h = "" + start.getID();
         }
 
         return "(" + h + "->" + t + ")";
@@ -56,22 +56,22 @@ public class HalfEdge {
         this.twin = twin;
     }
 
-    public Vertex getHead() {
-        return head;
+    public Vertex getStart() {
+        return start;
     }
 
-    public void setHead(Vertex head) {
-        if (DEBUG) System.out.println("Setting head: " + this + " to: " + head.getID());
-        this.head = head;
+    public void setStart(Vertex start) {
+        if (DEBUG) System.out.println("Setting start: " + this + " to: " + start.getID());
+        this.start = start;
     }
 
-    public Vertex getTail() {
-        return tail;
+    public Vertex getEnd() {
+        return end;
     }
 
-    public void setTail(Vertex tail) {
-        if (DEBUG) System.out.println("Setting tail: " + this + " to: " + tail.getID());
-        this.tail = tail;
+    public void setEnd(Vertex end) {
+        if (DEBUG) System.out.println("Setting end: " + this + " to: " + end.getID());
+        this.end = end;
     }
 
     public HalfEdge getNext() {
