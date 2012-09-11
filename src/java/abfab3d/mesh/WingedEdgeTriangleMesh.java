@@ -13,6 +13,7 @@
 package abfab3d.mesh;
 
 import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
 import java.io.PrintStream;
 import java.util.*;
 
@@ -25,7 +26,7 @@ import java.util.*;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private Face faces;
     private Face lastFace;
@@ -44,6 +45,12 @@ public class WingedEdgeTriangleMesh {
     private HalfEdgeKey skey = new HalfEdgeKey();
 
     private int vertexCount = 0;
+
+    /** Scratch vector for computation */
+    private Vector3d svec1 = new Vector3d();
+
+    /** Scratch vector for computation */
+    private Vector3d svec2 = new Vector3d();
 
     public WingedEdgeTriangleMesh(Point3d vertCoord[], int[][] findex) {
 
@@ -236,7 +243,7 @@ public class WingedEdgeTriangleMesh {
     /**
      * Collapse an edge.
      *
-     * @param e
+     * @param e The edge to collapse
      * @param pos The position of the new common vertex
      */
     public void collapseEdge(Edge e, Point3d pos) {
@@ -292,11 +299,12 @@ public class WingedEdgeTriangleMesh {
         // Fix up dangling half edges
         HalfEdge he1;
         HalfEdgeKey key = new HalfEdgeKey();
-
+/*
         System.out.println("Edges Involved");
         for(Edge edge : redges) {
             System.out.println("   " + edge + " hc: " + edge.hashCode());
         }
+*/
 
 /*
         // TODO: Debug fixup all edges, why is this necessary?
@@ -306,6 +314,44 @@ public class WingedEdgeTriangleMesh {
             redges.add(e1);
         }
 */
+        if (DEBUG) System.out.println("Checking for degenerate faces:");
+        // find and remove any degenerate faces
+        for (Edge e1 : redges) {
+
+            he1 = e1.getHe();
+
+            if (he1 == null) {
+                continue;
+            }
+
+            Face f = he1.getLeft();
+
+            if (isFaceDegenerate(f)) {
+                if (DEBUG) {
+                    System.out.println("Found degenerate face: " + f);
+                }
+
+                removeHalfEdges(f);
+                removeFace(f);
+            }
+
+            HalfEdge twin = he1.getTwin();
+
+            if (twin == null) {
+                continue;
+            }
+            f = twin.getLeft();
+
+            if (isFaceDegenerate(f)) {
+                if (DEBUG) {
+                    System.out.println("Found degenerate face: " + f);
+                }
+
+                removeHalfEdges(f);
+                removeFace(f);
+            }
+        }
+
         for (Edge e1 : redges) {
 
             he1 = e1.getHe();
@@ -344,8 +390,70 @@ public class WingedEdgeTriangleMesh {
             }
         }
 
-        // find and remove any degenerate faces
+
     }
+
+    /**
+     * Check if a face is degenerate.  Does it goto burning man etc?  More formally are any two
+     * points coincident.
+     *
+     * @param f The face
+     * @return true if the face is degenerate
+     */
+    private boolean isFaceDegenerate(Face f) {
+        Vertex p1;
+        Vertex p2;
+        Vertex p3;
+
+        p1 = f.getHe().getStart();
+        p2 = f.getHe().getEnd();
+
+        HalfEdge he = f.getHe().getNext();
+
+        if (he.getStart() != p1 && he.getStart() != p2) {
+            p3 = he.getStart();
+        } else if (he.getEnd() != p1 && he.getEnd() != p2) {
+            p3 = he.getStart();
+        } else {
+            // Cannot find a unique third point
+            return true;
+        }
+
+
+        svec1.x = p2.getPoint().x - p1.getPoint().x;
+        svec1.y = p2.getPoint().y - p1.getPoint().y;
+        svec1.z = p2.getPoint().z - p1.getPoint().z;
+
+        svec2.x = p3.getPoint().x - p1.getPoint().x;
+        svec2.y = p3.getPoint().y - p1.getPoint().y;
+        svec2.z = p3.getPoint().z - p1.getPoint().z;
+
+        svec1.cross(svec1,svec2);
+        double area = svec1.length();
+
+        if (DEBUG) System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + p2.getID() + " " + p3.getID() + " p: " + p1.getPoint() + " p2: " + p2.getPoint() + " p3: " + p3.getPoint() + " area: " + area);
+
+        double EPS = 1e-10;
+
+        if (area < EPS)  {
+            return true;
+        }
+/*
+
+System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + p2.getID() + " " + p3.getID() + " p: " + p1.getPoint() + " p2: " + p2.getPoint() + " p3: " + p3.getPoint());
+        if (p1.getPoint().epsilonEquals(p2.getPoint(), EPS)) {
+            return true;
+        }
+        if (p1.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
+            return true;
+        }
+        if (p2.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
+            return true;
+        }
+*/
+        return false;
+    }
+
 
     /**
      * Change a vertex reference from one vertex to another for a face.
@@ -666,6 +774,11 @@ public class WingedEdgeTriangleMesh {
 
     }
 
+    /**
+     * Remove a face from the mesh.  This method does not remove any edges or vertices.
+     *
+     * @param f The face to remove
+     */
     public void removeFace(Face f) {
 
         if (DEBUG) {
@@ -688,6 +801,11 @@ public class WingedEdgeTriangleMesh {
 
     }
 
+    /**
+     * Remove the half edges making up a face.
+     *
+     * @param f The face to remove
+     */
     public void removeHalfEdges(Face f) {
 
         if (DEBUG) System.out.println("Removing half edges for face: " + f);
@@ -703,6 +821,11 @@ public class WingedEdgeTriangleMesh {
 
     }
 
+    /**
+     * Remove an edge.  Does not remove any vertices or other related structures.
+     *
+     * @param e The edge to remove
+     */
     public void removeEdge(Edge e) {
 
         if (DEBUG) System.out.println("removeEdge: " + e);
@@ -744,7 +867,7 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
             twin.setTwin(null);
         }
 
-        // TODO: causes problems
+        // TODO: causes problems, not sure why
         //System.out.println("Removing edgeMap: " + he);
         //edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
     }
@@ -851,7 +974,6 @@ if (DEBUG) System.out.println("Clearing twin: " + twin);
 
         Vertex v = vertices;
         while (v != null) {
-//      if(v.p.dist2(p) < EPS2){
             if (v.getPoint().distanceSquared(p) < eps) {
                 return v;
             }

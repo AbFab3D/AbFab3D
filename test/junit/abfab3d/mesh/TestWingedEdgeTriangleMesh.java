@@ -157,6 +157,79 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertEquals("Edge Count", expected_edges - 1, we.getEdgeCount());
     }
 
+    public void testDegenerateFace() throws Exception {
+        Point3d[] verts = new Point3d[] {
+                new Point3d(-1, 0, -1),
+                new Point3d(0, 0, -1),
+                new Point3d(1, 0, -1),
+                new Point3d(0, 0, -0.5),
+                new Point3d(-1, 0, 0),
+                new Point3d(1, 0, 0),
+                new Point3d(0, 0, 0.5),
+                new Point3d(-1, 0, 1),
+                new Point3d(0, 0, 1),
+                new Point3d(1, 0, 1),
+                new Point3d(0.5,0,0)
+        };
+        int faces[][] = new int[][]{{1,0,3}, {2,1,3}, {0,4,3}, {2,3,5}, {3,4,6}, {3,6,10}, {3,10,5}, {10,6,5}, {4,7,6}, {6,7,8}, {6,8,9}, {5,6,9}};
+
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
+
+        we.writeOBJ(System.out);
+
+        writeMesh(we, "c:/tmp/degenface1.x3dv");
+
+        int expected_verts = 11;
+        int expected_faces = 12;
+        int expected_edges = 22;
+        assertEquals("Initial Vertex Count", expected_verts, we.getVertexCount());
+        assertEquals("Initial Face Count", expected_faces, we.getFaceCount());
+        assertEquals("Initial Edge Count", expected_edges, we.getEdgeCount());
+
+
+        // Find edge from vertex 3 to 5
+        Vertex v1 = we.findVertex(verts[3]);
+        Vertex v2 = we.findVertex(verts[6]);
+
+        Edge edges = we.getEdges();
+        HalfEdge he = null;
+
+        boolean found = false;
+
+        while (edges != null) {
+            he = edges.getHe();
+
+            if ((he.getStart() == v1 && he.getEnd() == v2) ||
+                    (he.getStart() == v2 && he.getEnd() == v1)) {
+                found = true;
+                break;
+            }
+
+            edges = edges.getNext();
+        }
+
+        if (!found) {
+            fail("Edge not found");
+        }
+
+        System.out.println("edge: " + edges);
+
+        // use center point of vertices as new pos
+        Point3d pos = new Point3d();
+        pos.x = (verts[3].x + verts[6].x) / 2.0;
+        pos.y = (verts[3].y + verts[6].y) / 2.0;
+        pos.z = (verts[3].z + verts[6].z) / 2.0;
+
+        we.collapseEdge(edges, pos);
+        writeMesh(we, "c:/tmp/degenface2.x3dv");
+        we.writeOBJ(System.out);
+
+        // verify number of vertices remaining
+        assertEquals("Vertex Count", expected_verts - 1, we.getVertexCount());
+        assertEquals("Face Count", expected_faces - 4, we.getFaceCount());
+        assertEquals("Edge Count", expected_edges - 4, we.getEdgeCount());
+    }
+
     /**
      * Test a box is manifold on construction and edge collapse
      */
