@@ -130,12 +130,24 @@ public class WingedEdgeTriangleMesh {
         return edges;
     }
 
+    public Iterator<Edge> edgeIterator() {
+        return new EdgeIterator(edges);
+    }
+
     public Vertex getVertices() {
         return vertices;
     }
 
+    public Iterator<Vertex> vertexIterator() {
+        return new VertexIterator(vertices);
+    }
+
     public Face getFaces() {
         return faces;
+    }
+
+    public Iterator<Face> faceIterator() {
+        return new FaceIterator(faces);
     }
 
     public Vertex[][] getFaceIndexes() {
@@ -247,7 +259,7 @@ public class WingedEdgeTriangleMesh {
 
         if (DEBUG) System.out.println("Update vertex refs: remove: " + removev.getID() + " to: " + commonv.getID());
 
-        ArrayList<Edge> redges = new ArrayList<Edge>();
+        HashSet<Edge> redges = new HashSet<Edge>();
 
         // Update vertex references to common vertex
         changeVertex(face1, removev, commonv, redges);
@@ -267,13 +279,18 @@ public class WingedEdgeTriangleMesh {
         HalfEdge he1;
         HalfEdgeKey key = new HalfEdgeKey();
 
-        // TODO: Debug fixup all edges
+        System.out.println("Edges Involved");
+        for(Edge edge : redges) {
+            System.out.println("   " + edge + " hc: " + edge.hashCode());
+        }
+/*
+        // TODO: Debug fixup all edges, why is this necessary?
         System.out.println("Using all edges instead of list");
         redges.clear();
         for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
             redges.add(e1);
         }
-
+*/
         for (Edge e1 : redges) {
 
             he1 = e1.getHe();
@@ -311,6 +328,8 @@ public class WingedEdgeTriangleMesh {
                 }
             }
         }
+
+        // find and remove any degenerate faces
     }
 
     /**
@@ -321,7 +340,7 @@ public class WingedEdgeTriangleMesh {
      * @param vnew The new vertex
      * @param hedges List of hald
      */
-    private void changeVertex(Face f, Vertex vorig, Vertex vnew, List<Edge> hedges) {
+    private void changeVertex(Face f, Vertex vorig, Vertex vnew, Set<Edge> hedges) {
         if (DEBUG) System.out.println("ChangeVertex on face: " + f + " orig: " + vorig.getID() + " vnew: " + vnew.getID());
         HalfEdge he = f.getHe();
         HalfEdge start = he;

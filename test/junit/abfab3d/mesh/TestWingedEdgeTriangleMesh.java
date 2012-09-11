@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Random;
 
 import abfab3d.io.input.IndexedTriangleSetLoader;
@@ -542,4 +543,85 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         return true;
     }
+
+    /**
+     * Test vertex iterator
+     *
+     * @throws Exception
+     */
+    public void testVertexIteratorBasic() throws Exception {
+
+        Point3d[] pyr_vert = new Point3d[] {new Point3d(-1, -1, -1), new Point3d(1, -1, -1),
+                new Point3d(1, 1, -1), new Point3d(-1, 1, -1),
+                new Point3d(0, 0, 1)};
+        int pyr_faces[][] = new int[][]{{3, 2, 0}, {2,1,0}, {0, 1, 4}, {1, 2, 4}, {2, 3, 4}, {3, 0, 4}};
+
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(pyr_vert, pyr_faces);
+
+
+        int cnt = 0;
+
+        for(Iterator<Vertex>  itr = we.vertexIterator(); itr.hasNext();) {
+            Vertex v = itr.next();
+            cnt++;
+        }
+
+        int expected_verts = pyr_vert.length;
+        assertEquals("Vertex Count",expected_verts,cnt);
+    }
+
+    /**
+     * Test face iterator
+     *
+     * @throws Exception
+     */
+    public void testFaceIteratorBasic() throws Exception {
+
+        Point3d[] pyr_vert = new Point3d[] {new Point3d(-1, -1, -1), new Point3d(1, -1, -1),
+                new Point3d(1, 1, -1), new Point3d(-1, 1, -1),
+                new Point3d(0, 0, 1)};
+        int pyr_faces[][] = new int[][]{{3, 2, 0}, {2,1,0}, {0, 1, 4}, {1, 2, 4}, {2, 3, 4}, {3, 0, 4}};
+
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(pyr_vert, pyr_faces);
+
+
+        int cnt = 0;
+
+        for(Iterator<Face>  itr = we.faceIterator(); itr.hasNext();) {
+            Face f = itr.next();
+            cnt++;
+        }
+
+        int expected_faces = pyr_faces.length;
+
+        assertEquals("Face Count",expected_faces,cnt);
+    }
+
+    /**
+     * Test edge iterator
+     *
+     * @throws Exception
+     */
+    public void testEdgeIteratorBasic() throws Exception {
+
+        Point3d[] pyr_vert = new Point3d[] {new Point3d(-1, -1, -1), new Point3d(1, -1, -1),
+                new Point3d(1, 1, -1), new Point3d(-1, 1, -1),
+                new Point3d(0, 0, 1)};
+        int pyr_faces[][] = new int[][]{{3, 2, 0}, {2,1,0}, {0, 1, 4}, {1, 2, 4}, {2, 3, 4}, {3, 0, 4}};
+
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(pyr_vert, pyr_faces);
+
+
+        int cnt = 0;
+
+        for(Iterator<Edge>  itr = we.edgeIterator(); itr.hasNext();) {
+            Edge e = itr.next();
+            cnt++;
+        }
+
+        int expected_edges = 9;
+
+        assertEquals("Edge Count",expected_edges,cnt);
+    }
+
 }
