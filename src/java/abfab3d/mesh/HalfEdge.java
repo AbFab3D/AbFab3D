@@ -33,6 +33,8 @@ public class HalfEdge {
     private Face left;
 
     public String toString() {
+        String s = super.toString();
+        s = s.substring(s.indexOf("@"), s.length());
         String t = null;
         String h = null;
 
@@ -44,7 +46,7 @@ public class HalfEdge {
             h = "" + start.getID();
         }
 
-        return "(" + t + "->" + h + ")";
+        return s + "(" + t + "->" + h + ")";
     }
 
     public HalfEdge getTwin() {

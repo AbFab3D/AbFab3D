@@ -13,10 +13,12 @@
 package abfab3d.mesh;
 
 // External Imports
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.output.SAVExporter;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -30,6 +32,7 @@ import org.web3d.vrml.export.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
 import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
 
 import static abfab3d.util.Output.printf; 
 
@@ -52,7 +55,7 @@ public class TestMeshDecimator extends TestCase {
      *
      * @throws Exception
      */
-    public void testPyramid() throws Exception {
+    public void _testPyramid() throws Exception {
 
         Point3d[] pyr_vert = new Point3d[] {
             new Point3d(-1., -1., -1.), 
@@ -98,7 +101,61 @@ public class TestMeshDecimator extends TestCase {
 
     }
 
-    private void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
+    public void testFile() throws Exception {
+
+        //String fpath = "test/models/speed-knot.x3db";
+        String fpath = "test/models/sphere_10cm_rough.x3dv";
+        
+        WingedEdgeTriangleMesh mesh = loadMesh(fpath);
+
+        printf("mesh faces: %d, vertices: %d, edges: %d\n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
+        writeMesh(mesh,"c:/tmp/test_01.x3dv");
+        
+        int fcount = mesh.getFaceCount();
+
+        MeshDecimator md = new MeshDecimator();
+        
+        int count = md.processMesh(mesh, 100);
+                               
+    }
+
+    /**
+       
+     */
+    public static WingedEdgeTriangleMesh loadMesh(String fpath){
+        
+        IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
+        
+        loader.processFile(new File(fpath));
+        
+        GeometryData data = new GeometryData();
+        data.coordinates = loader.getCoords();
+        data.vertexCount = data.coordinates.length / 3;
+        data.indexes = loader.getVerts();
+        data.indexesCount = data.indexes.length;
+
+        Vector3d[] verts = new Vector3d[data.vertexCount];
+        int len = data.vertexCount;
+        int idx = 0;        
+        
+        for(int i=0; i < len; i++) {
+            idx = i * 3;
+            verts[i] = new Vector3d(data.coordinates[idx++], data.coordinates[idx++], data.coordinates[idx++]);
+        }
+
+        len = data.indexes.length / 3;
+        idx = 0;
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+        for(int i=0; i < len; i++) {
+            its.addTri(verts[data.indexes[idx++]],verts[data.indexes[idx++]],verts[data.indexes[idx++]]);
+        }
+        
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+        return we;
+
+    }
+
+    public static void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
         SAVExporter se = new SAVExporter();
         HashMap<String,Object> params = new HashMap<String, Object>();
 

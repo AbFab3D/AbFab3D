@@ -22,10 +22,11 @@ public class Edge {
 
     public String toString() {
 
-        if (getHe() != null)
+        if (getHe() != null){
             return "edge: " + getHe() + ":" + ((getHe().getTwin() != null) ? getHe().getTwin().toString() : "null");
-        else
+        } else {
             return "edge [null]";
+        }
 
     }
 
