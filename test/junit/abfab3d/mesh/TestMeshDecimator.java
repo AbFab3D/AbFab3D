@@ -104,18 +104,19 @@ public class TestMeshDecimator extends TestCase {
     public void testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
-        String fpath = "test/models/sphere_10cm_rough.x3dv";
+        //String fpath = "test/models/sphere_10cm_rough.x3dv";
+        String fpath = "test/models/sphere_10cm_smooth.x3dv";
         
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
 
         printf("mesh faces: %d, vertices: %d, edges: %d\n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
-        writeMesh(mesh,"c:/tmp/test_01.x3dv");
+        writeMesh(mesh,"c:/tmp/sphere_10cm_smooth_fixed.x3dv");
         
         int fcount = mesh.getFaceCount();
 
         MeshDecimator md = new MeshDecimator();
         
-        int count = md.processMesh(mesh, 100);
+        //int count = md.processMesh(mesh, 100);
                                
     }
 
