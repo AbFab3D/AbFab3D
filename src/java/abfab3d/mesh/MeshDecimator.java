@@ -20,6 +20,7 @@ import javax.vecmath.Matrix4d;
 import javax.vecmath.Point3d;
 
 import static abfab3d.util.Output.printf; 
+import static abfab3d.util.Output.fmt; 
 
 /**
    decimator to reduce face count of triangle mesh    
@@ -144,6 +145,7 @@ public class MeshDecimator {
         Edge e = m_mesh.getEdges();        
         int count = 0;        
         while(e != null){            
+            e.setUserData(new Integer(count));
             m_edgeArray.set(count++, e);
             e = e.getNext();
         }      
@@ -160,6 +162,7 @@ public class MeshDecimator {
     protected boolean doIteration(){
         
         // find candidate to collapse
+        printf("doIteration()\n");
         
         getCandidateEdges(m_candidates);
         EdgeData bestCandidate = null;
@@ -168,13 +171,23 @@ public class MeshDecimator {
         
         // calculate errorFucntion for 
         for(int i =0; i < m_candidates.length; i++){
+
             EdgeData ed = m_candidates[i];
             calculateErrorFunction(ed);
-            if(ed.errorValue < minError)
+            printf("candidate: %d, error: %10.5f\n", ((Integer)ed.edge.getUserData()).intValue(), ed.errorValue );
+            if(ed.errorValue < minError){               
                 bestCandidate = ed;
+                minError = ed.errorValue;
+            }
         }
 
         if(bestCandidate != null) {
+            EdgeData ed = bestCandidate;
+            getCandidateVertex(ed);
+            printf("bestCandidate: %d, error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
+            printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
+            printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
+            printf("new vertex: %s\n", formatPoint(ed.point));
 
             // do collapse 
             m_ecr.removedEdges.clear();
@@ -183,11 +196,17 @@ public class MeshDecimator {
             m_ecr.faceCount = 0;
             m_ecr.vertexCount = 0;
             
-            m_mesh.collapseEdge(bestCandidate.edge, bestCandidate.point, m_ecr);
+            m_mesh.collapseEdge(ed.edge, ed.point, m_ecr);
+            
+            Set<Edge> edges = m_ecr.removedEdges;
+            for(Edge edge : edges) {
+                Integer index = (Integer)edge.getUserData();
+                printf("removed edge: %d\n", index.intValue());
+                // remove edge from array 
+                m_edgeArray.set(index.intValue(), null);                
+            }
 
-            // TODO actual collapse 
-            //ecd.faceCount-= m_ecr.faceCount;
-            m_faceCount -= 2;
+            m_faceCount -= 2;            
             
             return true;
         } else {
@@ -219,7 +238,7 @@ public class MeshDecimator {
     void getCandidateEdges(EdgeData ed[]){
         
         for(int i = 0; i < ed.length; i++){
-
+            
             m_edgeArray.getRandomEdge(ed[i]);  
             
         }
@@ -322,8 +341,9 @@ public class MeshDecimator {
         //
         Random m_rnd = new Random(101);
 
-        public EdgeArray(int asize){
+        public EdgeArray(int _asize){
 
+            asize = _asize;
             array = new Edge[asize];
             count = 0;
             
@@ -353,6 +373,12 @@ public class MeshDecimator {
                 ed.index = i;
             }                
         }
+    }
+
+    static String formatPoint(Point3d p){
+
+        return fmt("(%8.5f,%8.5f,%8.5f)", p.x, p.y, p.z);
+
     }
 
     /**
