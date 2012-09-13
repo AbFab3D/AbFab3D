@@ -246,8 +246,9 @@ public class WingedEdgeTriangleMesh {
      * @param e The edge to collapse
      * @param pos The position of the new common vertex
      */
-    public boolean collapseEdge(Edge e, Point3d pos, Set<Edge> removedEdges) {
+    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseResult ecr) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
+        Set<Edge> removedEdges = ecr.removedEdges;
         // reuse first vertex as new common vertex
         Vertex commonv = e.getHe().getStart();
         tvertices.remove(commonv.getPoint());

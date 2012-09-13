@@ -149,8 +149,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.y = (verts[3].y + verts[5].y) / 2.0;
         pos.z = (verts[3].z + verts[5].z) / 2.0;
 
-        HashSet<Edge> removedEdges = new HashSet<Edge>();
-        we.collapseEdge(edges, pos, removedEdges);
+        EdgeCollapseResult ecr = new EdgeCollapseResult();
+        we.collapseEdge(edges, pos, ecr);
 
         writeMesh(we, "c:/tmp/collapse2.x3dv");
 
@@ -223,8 +223,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.y = (verts[3].y + verts[6].y) / 2.0;
         pos.z = (verts[3].z + verts[6].z) / 2.0;
 
-        HashSet<Edge> removedEdges = new HashSet<Edge>();
-        we.collapseEdge(edges, pos, removedEdges);
+        EdgeCollapseResult ecr = new EdgeCollapseResult();
+        we.collapseEdge(edges, pos, ecr);
 
         writeMesh(we, "c:/tmp/degenface2.x3dv");
         we.writeOBJ(System.out);
@@ -333,8 +333,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.y = (verts[1].y + verts[2].y) / 2.0;
         pos.z = (verts[1].z + verts[2].z) / 2.0;
 
-        HashSet<Edge> removedEdges = new HashSet<Edge>();
-        we.collapseEdge(edges, pos, removedEdges);
+        EdgeCollapseResult ecr = new EdgeCollapseResult();
+        we.collapseEdge(edges, pos, ecr);
 
         writeMesh(we, "c:/tmp/box2.x3dv");
 
@@ -444,8 +444,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.y = (verts[1].y + verts[2].y) / 2.0;
         pos.z = (verts[1].z + verts[2].z) / 2.0;
 
-        HashSet<Edge> removedEdges = new HashSet<Edge>();
-        we.collapseEdge(edges, pos, removedEdges);
+        EdgeCollapseResult ecr = new EdgeCollapseResult();
+        we.collapseEdge(edges, pos, ecr);
 
         we.writeOBJ(System.out);
         writeMesh(we, "c:/tmp/box2.x3dv");
@@ -519,8 +519,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             pos.y = (p1.y + p2.y) / 2.0;
             pos.z = (p1.z + p2.z) / 2.0;
 
-            HashSet<Edge> removedEdges = new HashSet<Edge>();
-            we.collapseEdge(e, pos, removedEdges);
+            EdgeCollapseResult ecr = new EdgeCollapseResult();
+            we.collapseEdge(e, pos, ecr);
 
             writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
 
@@ -597,8 +597,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             pos.y = (p1.y + p2.y) / 2.0;
             pos.z = (p1.z + p2.z) / 2.0;
 
-            HashSet<Edge> removedEdges = new HashSet<Edge>();
-            we.collapseEdge(e, pos, removedEdges);
+            EdgeCollapseResult ecr = new EdgeCollapseResult();
+            we.collapseEdge(e, pos, ecr);
 
             writeMesh(we, "c:/tmp/etest_loop" + i + ".x3dv");
             we.writeOBJ(System.out);
@@ -672,8 +672,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.y = (p1.y + p2.y) / 2.0;
         pos.z = (p1.z + p2.z) / 2.0;
 
-        HashSet<Edge> removedEdges = new HashSet<Edge>();
-        we.collapseEdge(e, pos, removedEdges);
+        EdgeCollapseResult ecr = new EdgeCollapseResult();
+        we.collapseEdge(e, pos, ecr);
 
         we.writeOBJ(System.out);
         writeMesh(we, "c:/tmp/me2.x3dv");
