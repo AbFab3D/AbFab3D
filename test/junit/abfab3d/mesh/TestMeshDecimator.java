@@ -17,6 +17,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Random;
+import java.util.ArrayList;
 
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.output.SAVExporter;
@@ -101,7 +103,102 @@ public class TestMeshDecimator extends TestCase {
 
     }
 
-    public void testFile() throws Exception {
+    public void  testArray() throws Exception {
+        
+        
+        int N = 10000000;
+
+        Integer al[] = new Integer[N];
+        
+        printf("testArray()  N: %d\n", N);
+        
+        long t0 = System.currentTimeMillis();
+
+        Integer obj = new Integer(5);
+
+        for(int i = 0; i < N; i++){
+            al[i] = new Integer(i);
+        }
+        printf("fill array: %d ms\n", (System.currentTimeMillis()-t0));
+
+        int n1 = N/10;
+
+        Random rnd = new Random(49);
+
+        t0 = System.currentTimeMillis();
+        
+        int count = N;
+        int countMissed = 0;
+        int alength = count;
+        while(count > n1){
+
+            int k = rnd.nextInt(alength);
+            
+            if(al[k] != null){
+                al[k] = null;
+                count--;
+                if(count < alength*3/5){
+                    // removes nulls from array 
+                    for(int i =0, j = 0; i < alength; i++){
+                        if(al[i] != null)
+                            al[j++] = al[i];
+                    }
+                    alength = count;
+                    //al = a;
+                }
+            } else {
+                countMissed++;
+            }
+        }
+        
+        printf("count: %d, countMissed: %d, time: %d ms\n", count, countMissed, (System.currentTimeMillis()-t0));
+
+        t0 = System.currentTimeMillis();
+
+        for(int i = 0; i < N; i++){
+            al[i] = obj;
+        }
+        printf("fill array: %d ms\n", (System.currentTimeMillis()-t0));
+        
+    }
+
+    public void  _testArrayList() throws Exception {
+        ArrayList al = new ArrayList();
+        
+        int N = 10000000;
+
+        printf("testArrayList()  N: %d\n", N);
+        
+        long t0 = System.currentTimeMillis();
+        for(int i = 0; i < N; i++){
+            al.add(new Integer(i));
+        }
+        printf("fill array: %d ms\n", (System.currentTimeMillis()-t0));
+
+        int n1 = N/10;
+
+        Random rnd = new Random(49);
+
+        t0 = System.currentTimeMillis();
+        
+        int count = N;
+        int countMissed = 0;
+
+        while(count > n1){
+            int k = rnd.nextInt(N);
+            if(al.get(k) != null){
+                al.set(k, null);
+                count--;
+            } else {
+                countMissed++;
+            }
+        }
+        
+        printf("count: %d, countMissed: %d, time: %d ms\n", count, countMissed, (System.currentTimeMillis()-t0));
+        
+    }
+
+    public void _testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
         //String fpath = "test/models/sphere_10cm_rough.x3dv";

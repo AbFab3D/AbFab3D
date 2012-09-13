@@ -217,7 +217,7 @@ public class WingedEdgeTriangleMesh {
     }
 
     /**
-     * Get the count of triangles in this mesh.  Traverses the face list to count so its a relatively
+     * Get the count of edges in this mesh.  Traverses the edge list to count so its a relatively
      * slow operation.
      *
      * @return The count
