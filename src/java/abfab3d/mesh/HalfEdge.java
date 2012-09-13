@@ -35,18 +35,19 @@ public class HalfEdge {
     public String toString() {
         String s = super.toString();
         s = s.substring(s.indexOf("@"), s.length());
-        String t = null;
-        String h = null;
+        String start_st = null;
+        String end_st = null;
 
-        if (end != null) {
-            t = "" + end.getID();
-        }
 
         if (start != null) {
-            h = "" + start.getID();
+            start_st = "" + start.getID();
         }
 
-        return s + "(" + t + "->" + h + ")";
+        if (end != null) {
+            end_st = "" + end.getID();
+        }
+
+        return s + "(" + start_st + "->" + end_st + ")";
     }
 
     public HalfEdge getTwin() {

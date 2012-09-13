@@ -19,6 +19,7 @@ public class Edge {
 
     private Edge next;
     private Edge prev;
+    private Object userData;
 
     public String toString() {
 
@@ -54,5 +55,13 @@ public class Edge {
 
     public void setPrev(Edge prev) {
         this.prev = prev;
+    }
+
+    public Object getUserData() {
+        return userData;
+    }
+
+    public void setUserData(Object userData) {
+        this.userData = userData;
     }
 }
