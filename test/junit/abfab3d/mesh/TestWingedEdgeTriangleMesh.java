@@ -1092,4 +1092,100 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
 
     }
+    public void testVertexEdgeIterator() throws Exception {
+        GeometryData data = new GeometryData();
+
+        data.vertexCount = 8;
+        data.coordinates = new float[]{
+                1, -1, 1,
+                1, 1, 1,
+                -1, 1, 1,
+                -1, -1, 1,
+                1, -1, -1,
+                1, 1, -1,
+                -1, 1, -1,
+                -1, -1, -1
+        };
+
+        data.indexesCount = 36;
+        data.indexes = new int[]{
+                1, 2, 3,
+                0, 1, 3,
+
+                5, 1, 0,
+                4, 5, 0,
+
+                5, 6, 2,
+                5, 2, 1,
+
+                2, 6, 7,
+                2, 7, 3,
+
+                6, 5, 4,
+                7, 6, 4,
+
+                3, 7, 4,
+                3, 4, 0
+        };
+
+        Point3d[] verts = new Point3d[data.vertexCount];
+        int len = data.vertexCount;
+        int idx = 0;
+
+        for (int i = 0; i < len; i++) {
+            idx = i * 3;
+            verts[i] = new Point3d(data.coordinates[idx++], data.coordinates[idx++], data.coordinates[idx++]);
+        }
+
+        len = data.indexes.length / 3;
+        int faces[][] = new int[len][3];
+        idx = 0;
+
+        for (int i = 0; i < len; i++) {
+            faces[i][0] = data.indexes[idx++];
+            faces[i][1] = data.indexes[idx++];
+            faces[i][2] = data.indexes[idx++];
+        }
+
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
+
+        Vertex vert = we.findVertex(verts[2]);
+        VertexEdgeIterator itr = new VertexEdgeIterator(we, vert);
+
+        int cnt = 0;
+        int expected_edges = 5;
+        int[][] expected_results = new int[][] {
+                {1,2}, {2,3}, {2,7}, {2,6}, {2,5}
+        };
+
+        int[][] results = new int[expected_edges][2];
+
+        while(itr.hasNext()) {
+            Edge e = itr.next();
+
+            results[cnt][0] = Math.min(e.getHe().getStart().getID(),e.getHe().getEnd().getID());
+            results[cnt][1] = Math.max(e.getHe().getStart().getID(),e.getHe().getEnd().getID());
+            cnt++;
+        }
+
+        assertEquals("Edge Count", expected_edges, cnt);
+
+        int found_cnt = 0;
+        for(int i=0; i < expected_results.length; i++) {
+            boolean found = false;
+
+            for(int j=0; j < results.length; j++) {
+                if (results[j][0] == expected_results[i][0] && results[j][1] == expected_results[i][1]) {
+                    found_cnt++;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                System.out.println("Didn't find: " + expected_results[i][0] + "->" + expected_results[i][1]);
+            }
+        }
+
+        assertEquals("Edges found", expected_results.length, found_cnt);
+    }
 }
