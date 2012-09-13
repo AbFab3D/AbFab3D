@@ -294,6 +294,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         }
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
+        int edge_cnt = we.getEdgeCount();
 
         writeMesh(we, "c:/tmp/box.x3dv");
 
@@ -343,6 +344,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Manifold2", isManifold(we));
 
         assertTrue("Triangle Check2", verifyTriangles(we));
+
+        assertEquals("Edge count", edge_cnt - 1, we.getEdgeCount());
 
     }
 
@@ -405,6 +408,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         }
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
+        int edge_cnt = we.getEdgeCount();
 
         writeMesh(we, "c:/tmp/box.x3dv");
 
@@ -454,6 +458,9 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         assertTrue("Triangle Check2", verifyTriangles(we));
 
+        // No change expected
+        assertEquals("Edge count", edge_cnt, we.getEdgeCount());
+
     }
 
     /**
@@ -461,7 +468,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      */
     public void testManifoldSpeedKnot() throws Exception {
         IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
-        loader.processFile(new File("test/junit/models/speed-knot.x3db"));
+        loader.processFile(new File("test/models/speed-knot.x3db"));
 
         GeometryData data = new GeometryData();
         data.geometryType = GeometryData.INDEXED_TRIANGLES;
@@ -500,6 +507,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         Random rand = new Random(42);
         int collapses = 100;
+        int valid = 0;
 
         for (int i = 0; i < collapses; i++) {
             idx = rand.nextInt(faces.length / 3);
@@ -511,7 +519,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             }
 
 
-            System.out.println("Collapse: " + idx + " e: " + e);
+            //System.out.println("Collapse: " + idx + " e: " + e);
             Point3d pos = new Point3d();
             Point3d p1 = e.getHe().getStart().getPoint();
             Point3d p2 = e.getHe().getEnd().getPoint();
@@ -520,14 +528,17 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             pos.z = (p1.z + p2.z) / 2.0;
 
             HashSet<Edge> removedEdges = new HashSet<Edge>();
-            we.collapseEdge(e, pos, removedEdges);
+            if (we.collapseEdge(e, pos, removedEdges)) {
+                valid++;
+                writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
+            }
 
-            writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
 
             assertTrue("Manifold", isManifold(we));
             assertTrue("Triangle Check", verifyTriangles(we));
         }
 
+        System.out.println("Valid collapses: " + valid);
         assertTrue("Manifold2", isManifold(we));
         assertTrue("Triangle Check2", verifyTriangles(we));
 
