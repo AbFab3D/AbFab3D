@@ -42,6 +42,7 @@ public class MeshDecimator {
 
 
     EdgeArray edgeArray;
+    EdgeData m_candidates[];
 
     /**
        the instance of the MeshDecimator can be reused fpor several meshes  
@@ -87,9 +88,11 @@ public class MeshDecimator {
             printf("MeshDecimator.doInitialization()\n");
         
         ecd.faceCount = mesh.getFaceCount();
-        ecd.candidates = new EdgeData[10];
-        for(int i = 0; i < ecd.candidates.length; i++){
-            ecd.candidates[i] = new EdgeData();
+
+        m_candidates = new EdgeData[10];
+
+        for(int i = 0; i < m_candidates.length; i++){
+            m_candidates[i] = new EdgeData();
         }
 
         /*
@@ -168,14 +171,14 @@ public class MeshDecimator {
         
         // find candidate to collapse
         
-        EdgeData candidates[] = getCandidateEdges(ecd.candidates);
+        getCandidateEdges(m_candidates);
         EdgeData bestCandidate = null;
 
         double minError = Double.MAX_VALUE;
         
         // calculate errorFucntion for 
-        for(int i =0; i < candidates.length; i++){
-            EdgeData ed = candidates[i];
+        for(int i =0; i < m_candidates.length; i++){
+            EdgeData ed = m_candidates[i];
             calculateErrorFunction(ed);
             if(ed.errorValue < minError)
                 bestCandidate = ed;
@@ -199,7 +202,7 @@ public class MeshDecimator {
     /**
        calculates error function for removing this edge 
      */
-    double calculateErrorFunction(EdgeData ed){
+    protected double calculateErrorFunction(EdgeData ed){
 
         Edge edge = ed.edge;
         HalfEdge he = edge.getHe();
@@ -214,15 +217,13 @@ public class MeshDecimator {
         
     }
 
-    EdgeData[] getCandidateEdges(EdgeData ed[]){
+    protected void getCandidateEdges(EdgeData ed[]){
         
         for(int i = 0; i < ed.length; i++){
 
             edgeArray.getRandomEdge(ed[i]);  
-
+            
         }
-
-        return ed;
 
     }
 
@@ -334,26 +335,15 @@ public class MeshDecimator {
     }
 
     /**
-       class to keep info about the Edge 
-     */
+       class to keep info about an Edge 
+    */    
     static class EdgeData {
         
         Edge edge; // reference to Edge (to get to Vertices etc.) 
         int index; // index in array of al edges for random access 
         double errorValue; // error calculated for this edge 
-        Point3d candidate; // place for candidate vertex 
-        
+        Point3d candidate; // place for candidate vertex                 
     }
 
-    /**
-       stricture to descrinbe collapse of edge
-     */
-    static class EdgeCollapseData {
-
-        Set<Edge> removedEdges = new HashSet<Edge>(); 
-        int faceCount;
-        int edgeCount;
-        EdgeData candidates[];
-    }
 }
 

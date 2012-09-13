@@ -27,6 +27,8 @@ public class Vertex {
     private HalfEdge link; //associate each vertex with tail of _some_ edge
 
     private Vertex next;  // List of all vertices
+    
+    private Object userData;
 
     public int getID() {
         return id;
@@ -64,5 +66,14 @@ public class Vertex {
     public String toString(){
         return fmt("%2d (%10.7f,%10.7f,%10.7f)", id, point.x,point.y,point.z);
     }
+
+    public Object getUserData() {
+        return userData;
+    }
+
+    public void setUserData(Object userData) {
+        this.userData = userData;
+    }
+
 }
 
