@@ -103,7 +103,7 @@ public class TestMeshDecimator extends TestCase {
 
     }
 
-    public void  testArray() throws Exception {
+    public void  _testArray() throws Exception {
         
         
         int N = 10000000;
@@ -198,22 +198,24 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
-    public void _testFile() throws Exception {
+    public void testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
-        //String fpath = "test/models/sphere_10cm_rough.x3dv";
-        String fpath = "test/models/sphere_10cm_smooth.x3dv";
+        String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
+        //String fpath = "test/models/sphere_10cm_smooth.x3dv";
         
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
-
-        printf("mesh faces: %d, vertices: %d, edges: %d\n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
-        writeMesh(mesh,"c:/tmp/sphere_10cm_smooth_fixed.x3dv");
-        
         int fcount = mesh.getFaceCount();
+
+        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());
+        
+        printf("initila count: %d\n\n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
 
         MeshDecimator md = new MeshDecimator();
         
-        //int count = md.processMesh(mesh, 100);
+        int count = md.processMesh(mesh, fcount-4);
+
+        writeMesh(mesh,"c:/tmp/decimated.x3dv");
                                
     }
 

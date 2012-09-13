@@ -20,6 +20,7 @@ import javax.vecmath.Matrix4d;
 import javax.vecmath.Point3d;
 
 import static abfab3d.util.Output.printf; 
+import static abfab3d.util.Output.fmt; 
 
 /**
    decimator to reduce face count of triangle mesh    
@@ -38,11 +39,20 @@ public class MeshDecimator {
 
     static final boolean DEBUG = true;
 
-    WingedEdgeTriangleMesh mesh;
+    // mesjh we are working on 
+    WingedEdgeTriangleMesh m_mesh;
 
+    // array of all edges 
+    EdgeArray m_edgeArray;
 
-    EdgeArray edgeArray;
+    // cadidate edges to check for collapse 
     EdgeData m_candidates[];
+
+    // result of individual edge collapse 
+    EdgeCollapseResult m_ecr;
+
+    // current count of faces in mesh 
+    int m_faceCount;
 
     /**
        the instance of the MeshDecimator can be reused fpor several meshes  
@@ -62,33 +72,36 @@ public class MeshDecimator {
                 
         printf("MeshDecimator.processMesh(%s, %d)\n", mesh, targetFaceCount);
         
-        this.mesh = mesh;
-
-        EdgeCollapseData ecd = new EdgeCollapseData();
+        this.m_mesh = mesh;
                         
-        doInitialization(ecd);
+        m_faceCount = m_mesh.getFaceCount();
+
+        doInitialization();
         
         // do decimation 
 
-        printf("currentFaceCount: %d\n", ecd.faceCount);
+        printf("initial face count: %d\n", m_faceCount);
 
-        while(ecd.faceCount > targetFaceCount){
-            doIteration(ecd);
+        while(m_faceCount > targetFaceCount){
+            doIteration();
         }
         
-        return mesh.getFaceCount();
+        printf("final face count: %d\n", m_faceCount);
+        int actuallFaceCount = mesh.getFaceCount();
+        printf("actual face count: %d\n", actuallFaceCount);
+        return actuallFaceCount;
+
     }
 
     /**
        init vertices with initial quadrics 
      */
-    protected void doInitialization(EdgeCollapseData ecd){
+    protected void doInitialization(){
 
         if(DEBUG)
             printf("MeshDecimator.doInitialization()\n");
         
-        ecd.faceCount = mesh.getFaceCount();
-
+        m_ecr = new EdgeCollapseResult();        
         m_candidates = new EdgeData[10];
 
         for(int i = 0; i < m_candidates.length; i++){
@@ -122,54 +135,34 @@ public class MeshDecimator {
         }
         */
 
-        Edge e = mesh.getEdges();
+        int ecount = m_mesh.getEdgeCount();
         
+        //ecd.edgeCount = count;
+        printf("edges count: %d\n", ecount);
+        m_edgeArray = new EdgeArray(ecount);
+        
+        // fill edges array 
+        Edge e = m_mesh.getEdges();        
         int count = 0;        
         while(e != null){            
-            e = e.getNext();
-            count++;
-        }        
-
-        ecd.edgeCount = count;
-
-        printf("edges count: %d\n", count);
-        edgeArray = new EdgeArray(count);
-
-        e = mesh.getEdges();        
-        count = 0;        
-        while(e != null){            
-            edgeArray.set(count++, e);
+            e.setUserData(new Integer(count));
+            m_edgeArray.set(count++, e);
             e = e.getNext();
         }      
         printf("edgesArray done\n");
     }
 
-    /**
-       
-       
-     */
-    static double getLength(Edge e){
 
-        return getLength(e.getHe());
-    }
-    
-    static double getLength(HalfEdge he){
-        
-        Vertex v0 = he.getStart();
-        Vertex v1 = he.getEnd();
-        
-        return v0.getPoint().distance(v1.getPoint());
-        
-    }
 
     /**
        do one iteration 
        return true if collapse was successfull 
        return false otherwise 
      */
-    protected boolean doIteration(EdgeCollapseData ecd){
+    protected boolean doIteration(){
         
         // find candidate to collapse
+        printf("doIteration()\n");
         
         getCandidateEdges(m_candidates);
         EdgeData bestCandidate = null;
@@ -178,18 +171,43 @@ public class MeshDecimator {
         
         // calculate errorFucntion for 
         for(int i =0; i < m_candidates.length; i++){
+
             EdgeData ed = m_candidates[i];
             calculateErrorFunction(ed);
-            if(ed.errorValue < minError)
+            printf("candidate: %d, error: %10.5f\n", ((Integer)ed.edge.getUserData()).intValue(), ed.errorValue );
+            if(ed.errorValue < minError){               
                 bestCandidate = ed;
+                minError = ed.errorValue;
+            }
         }
 
         if(bestCandidate != null) {
-            // do collapse 
-            //mesh.collapseEdge();
-            // TODO actual collapse 
-            ecd.faceCount-=2;
+            EdgeData ed = bestCandidate;
+            getCandidateVertex(ed);
+            printf("bestCandidate: %d, error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
+            printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
+            printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
+            printf("new vertex: %s\n", formatPoint(ed.point));
 
+            // do collapse 
+            m_ecr.removedEdges.clear();
+            m_ecr.insertedVertex = null;
+            m_ecr.edgeCount = 0;
+            m_ecr.faceCount = 0;
+            m_ecr.vertexCount = 0;
+            
+            m_mesh.collapseEdge(ed.edge, ed.point, m_ecr);
+            
+            Set<Edge> edges = m_ecr.removedEdges;
+            for(Edge edge : edges) {
+                Integer index = (Integer)edge.getUserData();
+                printf("removed edge: %d\n", index.intValue());
+                // remove edge from array 
+                m_edgeArray.set(index.intValue(), null);                
+            }
+
+            m_faceCount -= 2;            
+            
             return true;
         } else {
             printf("!!!ERROR!!! no edge candidate was found\n");
@@ -202,8 +220,8 @@ public class MeshDecimator {
     /**
        calculates error function for removing this edge 
      */
-    protected double calculateErrorFunction(EdgeData ed){
-
+    double calculateErrorFunction(EdgeData ed){
+        
         Edge edge = ed.edge;
         HalfEdge he = edge.getHe();
         Vertex v0 = he.getStart();
@@ -216,12 +234,12 @@ public class MeshDecimator {
         return ed.errorValue;
         
     }
-
-    protected void getCandidateEdges(EdgeData ed[]){
+    
+    void getCandidateEdges(EdgeData ed[]){
         
         for(int i = 0; i < ed.length; i++){
-
-            edgeArray.getRandomEdge(ed[i]);  
+            
+            m_edgeArray.getRandomEdge(ed[i]);  
             
         }
 
@@ -238,14 +256,36 @@ public class MeshDecimator {
         */
         Edge edge = ed.edge;
         HalfEdge he = edge.getHe();
-        Point3d candidate = ed.candidate; 
+        if(ed.point == null)
+            ed.point = new Point3d();
 
-        candidate.set(he.getStart().getPoint());
-        candidate.add(he.getEnd().getPoint());
-        candidate.scale(0.5);
+        Point3d point = ed.point; 
+        
+        point.set(he.getStart().getPoint());
+        point.add(he.getEnd().getPoint());
+        point.scale(0.5);
                
     }        
 
+    /**       
+       
+     */
+    static double getLength(Edge e){
+
+        return getLength(e.getHe());
+    }
+    
+    /**
+       
+     */
+    static double getLength(HalfEdge he){
+        
+        Vertex v0 = he.getStart();
+        Vertex v1 = he.getEnd();
+        
+        return v0.getPoint().distance(v1.getPoint());
+        
+    }
 
     /**
        class responsible for calculation with quadric 
@@ -301,8 +341,9 @@ public class MeshDecimator {
         //
         Random m_rnd = new Random(101);
 
-        public EdgeArray(int asize){
+        public EdgeArray(int _asize){
 
+            asize = _asize;
             array = new Edge[asize];
             count = 0;
             
@@ -334,6 +375,12 @@ public class MeshDecimator {
         }
     }
 
+    static String formatPoint(Point3d p){
+
+        return fmt("(%8.5f,%8.5f,%8.5f)", p.x, p.y, p.z);
+
+    }
+
     /**
        class to keep info about an Edge 
     */    
@@ -342,7 +389,7 @@ public class MeshDecimator {
         Edge edge; // reference to Edge (to get to Vertices etc.) 
         int index; // index in array of al edges for random access 
         double errorValue; // error calculated for this edge 
-        Point3d candidate; // place for candidate vertex                 
+        Point3d point; // place for candidate vertex                 
     }
 
 }

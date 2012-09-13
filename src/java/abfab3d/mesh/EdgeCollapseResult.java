@@ -16,17 +16,24 @@ import java.util.HashSet;
 import javax.vecmath.Point3d;
 
 /**
-   structure to describe edge collapse event 
+   structure to describe edge collapse result 
 */
-public class EdgeCollapseData {
+public class EdgeCollapseResult {
+    
+    //edges removed during collapse 
+    public Set<Edge> removedEdges = new HashSet<Edge>(); 
 
-    // input data 
-    Edge edgeToCollapse; 
-    Point3d point;       // location of new vertex 
+    // new vertex created during collapse 
+    public Vertex insertedVertex;  
 
-    // return data 
-    Set<Edge> removedEdges = new HashSet<Edge>(); 
-    int faceCount;  // removed faces count
-    int edgeCount;  // removed edges count
-    int vertexCount; // removed vertex count        
+    // removed faces count
+    public int faceCount;  
+
+    // removed edges count
+    public int edgeCount;  
+    
+    // removed vertex count  
+    public int vertexCount; 
+
+
 }
