@@ -26,7 +26,7 @@ import java.util.*;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private Face faces;
     private Face lastFace;
@@ -333,6 +333,7 @@ public class WingedEdgeTriangleMesh {
         HalfEdge he = face1.getHe();
         do {
             removedEdges.add(he.getEdge());
+            relatedEdges.add(he.getEdge());
             he = he.getNext();
 
         } while (he != face1.getHe());
@@ -340,6 +341,7 @@ public class WingedEdgeTriangleMesh {
         he = face2.getHe();
         do {
             removedEdges.add(he.getEdge());
+            relatedEdges.add(he.getEdge());
             he = he.getNext();
 
         } while (he != face2.getHe());
