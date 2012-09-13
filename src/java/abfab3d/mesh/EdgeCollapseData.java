@@ -20,12 +20,13 @@ import javax.vecmath.Point3d;
 */
 public class EdgeCollapseData {
 
-    Edge edgeToCollapse;
-    Point3d point; 
-    Set<Edge> removedEdges = new HashSet<Edge>();  // place for removed edges 
-    
-    int faceCount;  // face count after collapse 
-    int edgeCount;  // edge cont after collapse 
-    int vertexCount; // vertex count after collapse  
-        
+    // input data 
+    Edge edgeToCollapse; 
+    Point3d point;       // location of new vertex 
+
+    // return data 
+    Set<Edge> removedEdges = new HashSet<Edge>(); 
+    int faceCount;  // removed faces count
+    int edgeCount;  // removed edges count
+    int vertexCount; // removed vertex count        
 }
