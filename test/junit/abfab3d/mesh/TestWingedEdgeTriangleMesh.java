@@ -345,8 +345,9 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         assertTrue("Triangle Check2", verifyTriangles(we));
 
-        assertEquals("Edge count", edge_cnt - 1, we.getEdgeCount());
-
+        int removed_edges = 1;
+        assertEquals("Edge count", edge_cnt - removed_edges, we.getEdgeCount());
+        assertEquals("Removed Edges", removed_edges, ecr.removedEdges.size());
     }
 
     /**

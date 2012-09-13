@@ -26,7 +26,7 @@ import java.util.*;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     private Face faces;
     private Face lastFace;
@@ -330,9 +330,9 @@ public class WingedEdgeTriangleMesh {
         if (DEBUG) System.out.println("Removing vertex: " + removev.getID());
         removeVertex(removev);
 
+
         HalfEdge he = face1.getHe();
         do {
-            removedEdges.add(he.getEdge());
             relatedEdges.add(he.getEdge());
             he = he.getNext();
 
@@ -340,7 +340,6 @@ public class WingedEdgeTriangleMesh {
 
         he = face2.getHe();
         do {
-            removedEdges.add(he.getEdge());
             relatedEdges.add(he.getEdge());
             he = he.getNext();
 
@@ -351,6 +350,7 @@ public class WingedEdgeTriangleMesh {
         removeFace(face1);
         removeFace(face2);
         removeEdge(e);
+        removedEdges.add(e);
 
         // Fix up dangling half edges
         HalfEdge he1;
@@ -387,7 +387,7 @@ public class WingedEdgeTriangleMesh {
                     System.out.println("Found degenerate face: " + f);
                 }
 
-                removeHalfEdges(f);
+                removeHalfEdges(f, removedEdges);
                 removeFace(f);
 
                 // TODO: Need to remove a vertex as well?
