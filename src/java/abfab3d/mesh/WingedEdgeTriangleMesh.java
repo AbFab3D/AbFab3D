@@ -255,6 +255,7 @@ public class WingedEdgeTriangleMesh {
         if (!canCollapseEdge(e, pos)) {
             return false;
         }
+
         Vertex commonv = e.getHe().getStart();
         Face face1 = e.getHe().getLeft();
         Face face2 = e.getHe().getTwin().getLeft();
@@ -266,6 +267,7 @@ public class WingedEdgeTriangleMesh {
         commonv.getPoint().y = pos.y;
         commonv.getPoint().z = pos.z;
         tvertices.put(commonv.getPoint(), commonv);
+        ecr.insertedVertex = commonv;
 
         HashSet<Face> visited = new HashSet<Face>();
         HashSet<Edge> relatedEdges = new HashSet<Edge>();
