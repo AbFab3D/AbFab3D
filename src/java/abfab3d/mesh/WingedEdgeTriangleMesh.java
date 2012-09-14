@@ -393,10 +393,15 @@ public class WingedEdgeTriangleMesh {
                     throw new IllegalArgumentException("Invalid edge");
                 }
 */
+/*
                 key.setStart(he1.getStart());
                 key.setEnd(he1.getEnd());
+*/
+                key.setStart(he1.getEnd());
+                key.setEnd(he1.getStart());
                 HalfEdge e2 = edgeMap.get(key);
                 if (e2 != null) {
+                    if (DEBUG) System.out.println("betwin: " + he1 + " to: " + e2);
                     betwin(he1, e2);
                 } else {
                     writeOBJ(System.out);
@@ -415,7 +420,7 @@ public class WingedEdgeTriangleMesh {
     }
 
     /**
-     * Collapse an edge.
+     * Tests whether an edge collapse is legal.  Checks manifold.  Might check for face flips later.
      *
      * @param e   The edge to collapse
      * @param pos The position of the new common vertex
@@ -554,8 +559,12 @@ public class WingedEdgeTriangleMesh {
             HalfEdge twin = he1.getTwin();
 
             if (twin == null) {
+/*
                 key.setStart(he1.getStart());
                 key.setEnd(he1.getEnd());
+*/
+                key.setStart(he1.getEnd());
+                key.setEnd(he1.getStart());
                 HalfEdge e2 = edgeMap.get(key);
                 if (e2 != null) {
                     betwin(he1, e2);
