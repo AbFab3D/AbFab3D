@@ -255,64 +255,13 @@ public class WingedEdgeTriangleMesh {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
         Set<Edge> removedEdges = ecr.removedEdges;
 
-        Vertex commonv = e.getHe().getStart();
-        Vertex new_vertex = new Vertex(commonv);
-
-        new_vertex.getPoint().x = pos.x;
-        new_vertex.getPoint().y = pos.y;
-        new_vertex.getPoint().z = pos.z;
-
-        if (DEBUG) System.out.println("Moving vertex: " + commonv.getID() + " to: " + pos);
-
-        Face face1 = e.getHe().getLeft();
-        Face face2 = e.getHe().getTwin().getLeft();
-
-        Vertex removev = e.getHe().getEnd();
-
-        if (DEBUG) System.out.println("Update vertex refs: remove: " + removev.getID() + " to: " + commonv.getID());
-
-        // Try proposed changes and validate
-        HashSet<Triangle> tris = new HashSet<Triangle>();
-
-        // Start with initial faces to be removed
-        Vertex[] v = new Vertex[3];
-        int cnt = 0;
-        HalfEdge the = face1.getHe();
-        HalfEdge start = the;
-        while(the != null) {
-            v[cnt++] = the.getStart();
-            the = the.getNext();
-            if (the == start) {
-                break;
-            }
-        }
-        Triangle t1 = new Triangle(v[0],v[1],v[2]);
-
-        cnt = 0;
-        the = face2.getHe();
-        start = the;
-        while(the != null) {
-            v[cnt++] = the.getStart();
-            the = the.getNext();
-            if (the == start) {
-                break;
-            }
-        }
-        Triangle t2 = new Triangle(v[0],v[1],v[2]);
-
-        tris.add(t1);
-        tris.add(t2);
-
-        Set<Triangle> related = findRelatedTriangles(tris);
-        related.remove(t1);
-        related.remove(t2);
-
-        changeVertexTrial(face1,face2, removev, new_vertex, related);
-
-        if (!Triangle.isManifoldOver(related)) {
-            if (DEBUG) System.out.println("edgeCollapse invalid due to manifold");
+        if (!canCollapseEdge(e, pos)) {
             return false;
         }
+        Vertex commonv = e.getHe().getStart();
+        Face face1 = e.getHe().getLeft();
+        Face face2 = e.getHe().getTwin().getLeft();
+        Vertex removev = e.getHe().getEnd();
 
         // reuse first vertex as new common vertex
         tvertices.remove(commonv.getPoint());
@@ -327,7 +276,6 @@ public class WingedEdgeTriangleMesh {
         // Update vertex references to common vertex
         changeVertex(face1, removev, commonv, visited, relatedEdges);
         visited.clear();
-
 
         changeVertex(face2, removev, commonv, visited, relatedEdges);
 
@@ -468,6 +416,77 @@ public class WingedEdgeTriangleMesh {
     }
 
     /**
+     * Collapse an edge.
+     *
+     * @param e   The edge to collapse
+     * @param pos The position of the new common vertex
+     */
+    public boolean canCollapseEdge(Edge e, Point3d pos) {
+        if (DEBUG) System.out.println("Checking Collapsing edge: " + e + " to pos: " + pos);
+
+        Vertex commonv = e.getHe().getStart();
+        Vertex new_vertex = new Vertex(commonv);
+
+        new_vertex.getPoint().x = pos.x;
+        new_vertex.getPoint().y = pos.y;
+        new_vertex.getPoint().z = pos.z;
+
+        if (DEBUG) System.out.println("Moving vertex: " + commonv.getID() + " to: " + pos);
+
+        Face face1 = e.getHe().getLeft();
+        Face face2 = e.getHe().getTwin().getLeft();
+
+        Vertex removev = e.getHe().getEnd();
+
+        if (DEBUG) System.out.println("Update vertex refs: remove: " + removev.getID() + " to: " + commonv.getID());
+
+        // Try proposed changes and validate
+        HashSet<Triangle> tris = new HashSet<Triangle>();
+
+        // Start with initial faces to be removed
+        Vertex[] v = new Vertex[3];
+        int cnt = 0;
+        HalfEdge the = face1.getHe();
+        HalfEdge start = the;
+        while(the != null) {
+            v[cnt++] = the.getStart();
+            the = the.getNext();
+            if (the == start) {
+                break;
+            }
+        }
+        Triangle t1 = new Triangle(v[0],v[1],v[2]);
+
+        cnt = 0;
+        the = face2.getHe();
+        start = the;
+        while(the != null) {
+            v[cnt++] = the.getStart();
+            the = the.getNext();
+            if (the == start) {
+                break;
+            }
+        }
+        Triangle t2 = new Triangle(v[0],v[1],v[2]);
+
+        tris.add(t1);
+        tris.add(t2);
+
+        Set<Triangle> related = findRelatedTriangles(tris);
+        related.remove(t1);
+        related.remove(t2);
+
+        changeVertexTrial(face1,face2, removev, new_vertex, related);
+
+        if (!Triangle.isManifoldOver(related)) {
+            if (DEBUG) System.out.println("edgeCollapse invalid due to manifold");
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Remove all faces with zero area.
      */
     public void removeDegenerateFaces() {
@@ -519,6 +538,42 @@ public class WingedEdgeTriangleMesh {
 
             // TODO: Need to remove a vertex as well?
         }
+
+        // reconnect half edges
+        Edge e1 = edges;
+        HalfEdgeKey key = new HalfEdgeKey();
+
+        while(e1 != null) {
+
+            he1 = e1.getHe();
+
+            if (he1 == null) {
+                e1 = e1.getNext();
+                continue;
+            }
+
+            HalfEdge twin = he1.getTwin();
+
+            if (twin == null) {
+                key.setStart(he1.getStart());
+                key.setEnd(he1.getEnd());
+                HalfEdge e2 = edgeMap.get(key);
+                if (e2 != null) {
+                    betwin(he1, e2);
+                } else {
+                    writeOBJ(System.out);
+                    System.out.println("EdgeMap: ");
+                    for (Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
+                        System.out.println(entry.getKey() + " val: " + entry.getValue());
+                    }
+                    throw new IllegalArgumentException("Can't find twin for: " + he1 + " o1: " + he1.getStart().getID() + " o2: " + he1.getEnd().getID());
+
+                }
+            }
+
+            e1 = e1.getNext();
+        }
+
     }
 
 
