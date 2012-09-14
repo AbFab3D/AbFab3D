@@ -26,7 +26,7 @@ import java.util.*;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean CHECK_DEGENERATE_PER_COLLAPSE = false;
 
     private Face faces;
