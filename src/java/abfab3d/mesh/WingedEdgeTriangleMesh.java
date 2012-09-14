@@ -487,10 +487,8 @@ public class WingedEdgeTriangleMesh {
                         if (DEBUG) System.out.println("Duplicate detected: " + e1 + " is: " + e2);
                         // TODO: Are there any references we need to fix up?
 
-                        // TODO: need to localize
-                        Face f = faces;
-                        while(f != null) {
-                            HalfEdge he = f.getHe();
+                        for(Edge re : related) {
+                            HalfEdge he = re.getHe();
                             HalfEdge start = he;
 
                             while(he != null) {
@@ -504,7 +502,7 @@ public class WingedEdgeTriangleMesh {
                                     break;
                                 }
                             }
-                            f = f.getNext();
+
                         }
 
                         // What about twin references to halfEdge?

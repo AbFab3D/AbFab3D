@@ -539,7 +539,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             EdgeCollapseResult ecr = new EdgeCollapseResult();
             if (we.collapseEdge(e, pos, ecr)) {
                 valid++;
-                writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
+                //writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
             }
 
 
