@@ -295,6 +295,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
         int edge_cnt = we.getEdgeCount();
+        int face_cnt = we.getFaceCount();
 
         writeMesh(we, "c:/tmp/box.x3dv");
 
@@ -337,6 +338,10 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         EdgeCollapseResult ecr = new EdgeCollapseResult();
         we.collapseEdge(edges, pos, ecr);
 
+        System.out.println("Removed Edges: " + ecr.removedEdges);
+        for(Edge e : ecr.removedEdges) {
+            System.out.println("e: " + e.hashCode());
+        }
         writeMesh(we, "c:/tmp/box2.x3dv");
 
         we.writeOBJ(System.out);
@@ -345,9 +350,11 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         assertTrue("Triangle Check2", verifyTriangles(we));
 
-        int removed_edges = 1;
+        int removed_edges = 3;   // should this not be 3?
+        int removed_faces = 2;
         assertEquals("Edge count", edge_cnt - removed_edges, we.getEdgeCount());
         assertEquals("Removed Edges", removed_edges, ecr.removedEdges.size());
+        assertEquals("Removed Faces",face_cnt - removed_faces,we.getFaceCount());
     }
 
     /**
@@ -461,6 +468,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         // No change expected
         assertEquals("Edge count", edge_cnt, we.getEdgeCount());
+        assertEquals("Removed Edges", 0, ecr.removedEdges.size());
 
     }
 
