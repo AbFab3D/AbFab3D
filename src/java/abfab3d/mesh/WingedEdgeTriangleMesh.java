@@ -26,7 +26,8 @@ import java.util.*;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
+    private static final boolean CHECK_DEGENERATE_PER_COLLAPSE = false;
 
     private Face faces;
     private Face lastFace;
@@ -306,11 +307,8 @@ public class WingedEdgeTriangleMesh {
         Set<Triangle> related = findRelatedTriangles(tris);
         related.remove(t1);
         related.remove(t2);
-        if (DEBUG) System.out.println("Original list of affected tris: " + related);
 
         changeVertexTrial(face1,face2, removev, commonv, related);
-
-        if (DEBUG) System.out.println("Final list of affected tris: " + related);
 
         if (!Triangle.isManifoldOver(related)) {
             if (DEBUG) System.out.println("edgeCollapse invalid due to manifold");
@@ -371,43 +369,47 @@ public class WingedEdgeTriangleMesh {
             redges.add(e1);
         }
 */
-        if (DEBUG) System.out.println("Checking for degenerate faces:");
-        // find and remove any degenerate faces
-        for (Edge e1 : relatedEdges) {
+        if (CHECK_DEGENERATE_PER_COLLAPSE) {
+            if (DEBUG) System.out.println("Checking for degenerate faces:");
+            // find and remove any degenerate faces
+            for (Edge e1 : relatedEdges) {
 
-            he1 = e1.getHe();
+                he1 = e1.getHe();
 
-            if (he1 == null) {
-                continue;
-            }
-
-            Face f = he1.getLeft();
-
-            if (isFaceDegenerate(f)) {
-                if (DEBUG) {
-                    System.out.println("Found degenerate face: " + f);
+                if (he1 == null) {
+                    continue;
                 }
 
-                removeHalfEdges(f, removedEdges);
-                removeFace(f);
+                Face f = he1.getLeft();
 
-                // TODO: Need to remove a vertex as well?
-            }
+                if (isFaceDegenerate(f)) {
+                    if (DEBUG) {
+                        System.out.println("Found degenerate face: " + f);
+                    }
 
-            HalfEdge twin = he1.getTwin();
+                    removeHalfEdges(f, removedEdges);
+                    removeFace(f);
 
-            if (twin == null) {
-                continue;
-            }
-            f = twin.getLeft();
-
-            if (isFaceDegenerate(f)) {
-                if (DEBUG) {
-                    System.out.println("Found degenerate face: " + f);
+                    // TODO: Need to remove a vertex as well?
                 }
 
-                removeHalfEdges(f, removedEdges);
-                removeFace(f);
+                HalfEdge twin = he1.getTwin();
+
+                if (twin == null) {
+                    continue;
+                }
+                f = twin.getLeft();
+
+                if (isFaceDegenerate(f)) {
+                    if (DEBUG) {
+                        System.out.println("Found degenerate face: " + f);
+                    }
+
+                    removeHalfEdges(f, removedEdges);
+                    removeFace(f);
+
+                    // TODO: Need to remove a vertex as well?
+                }
             }
         }
 
@@ -452,6 +454,60 @@ public class WingedEdgeTriangleMesh {
 
         return true;
     }
+
+    /**
+     * Remove all faces with zero area.
+     */
+    public void removeDegenerateFaces() {
+        Edge e = edges;
+        HalfEdge he1;
+        ArrayList<Face> to_remove = new ArrayList<Face>();
+
+        while(e != null) {
+
+            he1 = e.getHe();
+
+            if (he1 == null) {
+                continue;
+            }
+
+            Face f = he1.getLeft();
+
+            if (isFaceDegenerate(f)) {
+                if (DEBUG) {
+                    System.out.println("Found degenerate face: " + f);
+                }
+
+                to_remove.add(f);
+            }
+
+            HalfEdge twin = he1.getTwin();
+
+            if (twin == null) {
+                continue;
+            }
+            f = twin.getLeft();
+
+            if (isFaceDegenerate(f)) {
+                if (DEBUG) {
+                    System.out.println("Found degenerate face: " + f);
+                }
+
+                to_remove.add(f);
+            }
+            e = e.getNext();
+        }
+
+        if (DEBUG) System.out.println("Degenerate faces to remove: " + to_remove.size());
+        for(Face f : to_remove) {
+            if (DEBUG) System.out.println("   Removing face: " + f);
+            removeHalfEdges(f);
+            removeFace(f);
+
+            // TODO: Need to remove a vertex as well?
+        }
+    }
+
 
     /**
      * Find any duplicate edges and remove them
@@ -678,7 +734,7 @@ public class WingedEdgeTriangleMesh {
         double area = svec1.length();
 
         if (DEBUG)
-            System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + p2.getID() + " " + p3.getID() + " p: " + p1.getPoint() + " p2: " + p2.getPoint() + " p3: " + p3.getPoint() + " area: " + area);
+            System.out.println("Checking for degenerate: f: " + f.hashCode() + " v: " + p1.getID() + " " + p2.getID() + " " + p3.getID() + " p: " + p1.getPoint() + " p2: " + p2.getPoint() + " p3: " + p3.getPoint() + " area: " + area);
 
         double EPS = 1e-10;
 
