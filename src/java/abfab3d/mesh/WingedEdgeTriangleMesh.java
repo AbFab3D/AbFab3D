@@ -345,12 +345,13 @@ public class WingedEdgeTriangleMesh {
 
         } while (he != face2.getHe());
 
-        removeHalfEdges(face1);
-        removeHalfEdges(face2);
+        removeHalfEdges(face1, removedEdges);
+        removeHalfEdges(face2, removedEdges);
         removeFace(face1);
         removeFace(face2);
         removeEdge(e);
         removedEdges.add(e);
+        removeDuplicateEdges(relatedEdges, removedEdges);
 
         // Fix up dangling half edges
         HalfEdge he1;
@@ -451,6 +452,127 @@ public class WingedEdgeTriangleMesh {
 
         return true;
     }
+
+    /**
+     * Find any duplicate edges and remove them
+     *
+     * @param removedEdges
+     */
+    private void removeDuplicateEdges(Set<Edge> related, Set<Edge> removedEdges) {
+        if (DEBUG) System.out.println("Removing duplicated edges: ");
+
+        ArrayList<Edge> to_remove = new ArrayList<Edge>();
+        HashSet<Edge> to_save = new HashSet<Edge>();
+
+        for(Edge e1 : related) {
+            for(Edge e2 : related) {
+                if (e1 == e2) {
+                    continue;
+                }
+
+                if (to_save.contains(e1)) {
+                    continue;
+                }
+
+                HalfEdge he1 = e1.getHe();
+                HalfEdge he2 = e2.getHe();
+                if (he1 != null && he2 != null) {
+                    Vertex start1 = he1.getStart();
+                    Vertex end1 = he1.getEnd();
+                    Vertex start2 = he2.getStart();
+                    Vertex end2 = he2.getEnd();
+
+                    if ((start1 == start2 && end1 == end2) ||
+                        (start1 == end2 && end1 == start2)) {
+                        if (DEBUG) System.out.println("Duplicate detected: " + e1 + " is: " + e2);
+                        // TODO: Are there any references we need to fix up?
+
+                        for(Edge re : related) {
+                            HalfEdge he = re.getHe();
+                            HalfEdge start = he;
+
+                            while(he != null) {
+                                if (he.getEdge() == e1) {
+                                    if (DEBUG) System.out.println("***Found ref: " + e1);
+                                    he.setEdge(e2);
+                                }
+
+                                he = he.getNext();
+                                if (he == start) {
+                                    break;
+                                }
+                            }
+
+                        }
+
+                        // What about twin references to halfEdge?
+                        to_remove.add(e1);
+                        to_save.add(e2);
+
+                    }
+                }
+            }
+        }
+
+        for(Edge e : to_remove) {
+            if (DEBUG) System.out.println("Removing dup edge: " + e);
+            HalfEdge he = e.getHe();
+
+            // TODO: This breaks things because of the reassign.  Just let them fall of without references?
+            /*
+            if(he != null) {
+                removeHalfEdge(he, removedEdges);
+            }
+            */
+            removeEdge(e);
+            removedEdges.add(e);
+        }
+
+/*
+        Iterator<Face> fitr = new FaceIterator(faces);
+        HashSet<Edge> refEdges = new HashSet<Edge>(vertexCount * 2);
+
+        if (DEBUG) System.out.println("Faces: " + getFaceCount());
+        while(fitr.hasNext()) {
+            Face f = fitr.next();
+            HalfEdge he = f.getHe();
+            HalfEdge start = he;
+
+            while(he != null) {
+                refEdges.add(he.getEdge());
+                he = he.getNext();
+
+                if (he == start) {
+                    break;
+                }
+            }
+        }
+
+        if (DEBUG) System.out.println("Edges: " + getEdgeCount());
+        Iterator<Edge> eitr = new EdgeIterator(edges);
+
+        while(eitr.hasNext()) {
+            Edge e = eitr.next();
+            if (!refEdges.contains(e)) {
+                if (DEBUG) System.out.println("Removing unreferenced edge: " + e);
+                HalfEdge he = e.getHe();
+
+                if (he != null) {
+                    removeHalfEdge(he);
+                    he = he.getTwin();
+
+                    if (he != null) {
+                        removeHalfEdge(he);
+                    }
+                }
+
+                removeEdge(e);
+                removedEdges.add(e);
+            }
+        }
+*/
+    }
+
 
     /**
      * Add all triangles that share a vertex with any of the triangles.
