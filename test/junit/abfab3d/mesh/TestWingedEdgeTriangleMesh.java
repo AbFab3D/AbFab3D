@@ -1423,6 +1423,27 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             }
         }
 
+        // Make sure all faces have three half edges
+        Iterator<Face> fitr = mesh.faceIterator();
+        while(fitr.hasNext()) {
+            Face f = fitr.next();
+
+            HalfEdge he = f.getHe();
+            HalfEdge start = he;
+            int cnt = 0;
+            while(he != null) {
+                cnt++;
+                he = he.getNext();
+                if (he == start) {
+                    break;
+                }
+            }
+
+            if (cnt != 3) {
+                System.out.println("Face without 3 half edges: " + f);
+                return false;
+            }
+        }
         return true;
     }
 
