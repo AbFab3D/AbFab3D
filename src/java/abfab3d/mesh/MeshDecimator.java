@@ -85,8 +85,9 @@ public class MeshDecimator {
         int count = 100; // to avoid cycling 
 
         while(m_faceCount > targetFaceCount && count-- > 0){
-            doIteration();
-        }
+            if(!doIteration())
+                break;
+       } 
         
         printf("final face count: %d\n", m_faceCount);
         int actuallFaceCount = mesh.getFaceCount();
@@ -184,49 +185,56 @@ public class MeshDecimator {
             }
         }
 
-        if(bestCandidate != null && bestCandidate.edge.getHe() != null) {
-            EdgeData ed = bestCandidate;
-            getCandidateVertex(ed);
-            if(DEBUG){                
-                printf("remove edge: %d error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
-                //printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
-                //printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
-                //printf("new vertex: %s\n", formatPoint(ed.point));
-            }
-            // do collapse 
-            m_ecr.removedEdges.clear();
-            m_ecr.insertedVertex = null;
-            m_ecr.edgeCount = 0;
-            m_ecr.faceCount = 0;
-            m_ecr.vertexCount = 0;
-
-            if(DEBUG) printf("edge before: %d\n", m_mesh.getEdgeCount());            
-
-            if(m_mesh.collapseEdge(ed.edge, ed.point, m_ecr)){
-
-                if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
-                m_faceCount -= 2;  //m_ecr.faceCount
-                
-                Set<Edge> edges = m_ecr.removedEdges;
-                if(DEBUG) printf("removed edges: ");
-                for(Edge edge : edges) {
-                    Integer index = (Integer)edge.getUserData();
-                    if(DEBUG) printf(" %d", index.intValue());
-                    // remove edge from array 
-                    m_edgeArray.set(index.intValue(), null);                
-                }
-                if(DEBUG) printf("\n");
-            } else {
-                if(DEBUG) printf("failed to collapse\n");                
-            }
-            
-            return true;
-        } else {
+        if(bestCandidate == null ||
+           bestCandidate.edge.getHe() == null) {
             printf("!!!ERROR!!! no edge candidate was found\n");
             //Thread.currenThread().dumpStack();
             // should not happens 
             return false;
         }
+            
+        EdgeData ed = bestCandidate;
+        getCandidateVertex(ed);
+        if(DEBUG){                
+            printf("remove edge: %d error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
+            //printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
+            //printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
+            //printf("new vertex: %s\n", formatPoint(ed.point));
+        }
+        // do collapse 
+        m_ecr.removedEdges.clear();
+        m_ecr.insertedVertex = null;
+        m_ecr.edgeCount = 0;
+        m_ecr.faceCount = 0;
+        m_ecr.vertexCount = 0;
+        
+        if(DEBUG) printf("edge before: %d\n", m_mesh.getEdgeCount());            
+        
+        
+        if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecr)){
+
+            if(DEBUG) printf("failed to collapse\n");                
+            return false;
+            
+        }
+        
+        if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
+        m_faceCount -= 2;  //m_ecr.faceCount
+        if(DEBUG) printf("moved vertex: %s\n", m_ecr.insertedVertex);  
+        
+        Set<Edge> edges = m_ecr.removedEdges;
+        if(DEBUG) printf("removed edges: ");
+        for(Edge edge : edges) {
+            Integer index = (Integer)edge.getUserData();
+            if(DEBUG) printf(" %d", index.intValue());
+            // remove edge from array 
+            m_edgeArray.set(index.intValue(), null);                
+        }
+
+        if(DEBUG) printf("\n");
+
+        return true;
+
     }    
 
     /**
