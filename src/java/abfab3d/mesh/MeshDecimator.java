@@ -37,7 +37,7 @@ import static abfab3d.util.Output.fmt;
  */
 public class MeshDecimator {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     // mesjh we are working on 
     WingedEdgeTriangleMesh m_mesh;
@@ -162,8 +162,9 @@ public class MeshDecimator {
     protected boolean doIteration(){
         
         // find candidate to collapse
-        printf("doIteration()\n");
-        
+        if(DEBUG){
+            printf("doIteration()\n");
+        }
         getCandidateEdges(m_candidates);
         EdgeData bestCandidate = null;
 
@@ -174,21 +175,23 @@ public class MeshDecimator {
 
             EdgeData ed = m_candidates[i];
             calculateErrorFunction(ed);
-            printf("candidate: %d, error: %10.5f\n", ((Integer)ed.edge.getUserData()).intValue(), ed.errorValue );
+            if(DEBUG)
+                printf("candidate: %d, error: %10.5f\n", ((Integer)ed.edge.getUserData()).intValue(), ed.errorValue );
             if(ed.errorValue < minError){               
                 bestCandidate = ed;
                 minError = ed.errorValue;
             }
         }
 
-        if(bestCandidate != null) {
+        if(bestCandidate != null && bestCandidate.edge.getHe() != null) {
             EdgeData ed = bestCandidate;
             getCandidateVertex(ed);
-            printf("bestCandidate: %d, error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
-            printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
-            printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
-            printf("new vertex: %s\n", formatPoint(ed.point));
-
+            if(DEBUG){                
+                printf("bestCandidate: %d, error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
+                printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
+                printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
+                printf("new vertex: %s\n", formatPoint(ed.point));
+            }
             // do collapse 
             m_ecr.removedEdges.clear();
             m_ecr.insertedVertex = null;
@@ -196,19 +199,26 @@ public class MeshDecimator {
             m_ecr.faceCount = 0;
             m_ecr.vertexCount = 0;
 
-            printf("edge count before: %d\n", m_mesh.getEdgeCount());
+            if(DEBUG){
+                printf("edge count before: %d\n", m_mesh.getEdgeCount());
+            }
+
             m_mesh.collapseEdge(ed.edge, ed.point, m_ecr);
-            printf("edge count after: %d\n", m_mesh.getEdgeCount());
-            
+
+            if(DEBUG){
+                printf("edge count after: %d, removedFaces: %d\n", m_mesh.getEdgeCount(), m_ecr.faceCount);
+            }
+                
             Set<Edge> edges = m_ecr.removedEdges;
             for(Edge edge : edges) {
                 Integer index = (Integer)edge.getUserData();
-                printf("removed edge: %d\n", index.intValue());
+                if(DEBUG)
+                    printf("removed edge: %d\n", index.intValue());
                 // remove edge from array 
                 m_edgeArray.set(index.intValue(), null);                
             }
-
-            m_faceCount -= 2;            
+            
+            m_faceCount -= 1;  //m_ecr.faceCount
             
             return true;
         } else {
@@ -226,6 +236,12 @@ public class MeshDecimator {
         
         Edge edge = ed.edge;
         HalfEdge he = edge.getHe();
+        if(he == null){
+            printf("error: he null\n");
+            Thread.currentThread().dumpStack();
+            return Double.MAX_VALUE;
+        }
+            
         Vertex v0 = he.getStart();
         Vertex v1 = he.getEnd();
         Point3d p0 = v0.getPoint();
