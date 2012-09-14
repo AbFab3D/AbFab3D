@@ -202,7 +202,7 @@ public class TestMeshDecimator extends TestCase {
 
         //String fpath = "test/models/speed-knot.x3db";
         String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
-        //String fpath = "test/models/sphere_10cm_smooth.x3dv";
+        //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
         int fcount = mesh.getFaceCount();

@@ -195,8 +195,10 @@ public class MeshDecimator {
             m_ecr.edgeCount = 0;
             m_ecr.faceCount = 0;
             m_ecr.vertexCount = 0;
-            
+
+            printf("edge count before: %d\n", m_mesh.getEdgeCount());
             m_mesh.collapseEdge(ed.edge, ed.point, m_ecr);
+            printf("edge count after: %d\n", m_mesh.getEdgeCount());
             
             Set<Edge> edges = m_ecr.removedEdges;
             for(Edge edge : edges) {
