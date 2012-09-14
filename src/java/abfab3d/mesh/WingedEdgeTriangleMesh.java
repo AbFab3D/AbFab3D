@@ -254,17 +254,16 @@ public class WingedEdgeTriangleMesh {
     public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseResult ecr) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
         Set<Edge> removedEdges = ecr.removedEdges;
-        // reuse first vertex as new common vertex
+
         Vertex commonv = e.getHe().getStart();
-        tvertices.remove(commonv.getPoint());
-        commonv.getPoint().x = pos.x;
-        commonv.getPoint().y = pos.y;
-        commonv.getPoint().z = pos.z;
-        tvertices.put(commonv.getPoint(), commonv);
+        Vertex new_vertex = new Vertex(commonv);
+
+        new_vertex.getPoint().x = pos.x;
+        new_vertex.getPoint().y = pos.y;
+        new_vertex.getPoint().z = pos.z;
 
         if (DEBUG) System.out.println("Moving vertex: " + commonv.getID() + " to: " + pos);
 
-        // remove deleted faces
         Face face1 = e.getHe().getLeft();
         Face face2 = e.getHe().getTwin().getLeft();
 
@@ -308,12 +307,19 @@ public class WingedEdgeTriangleMesh {
         related.remove(t1);
         related.remove(t2);
 
-        changeVertexTrial(face1,face2, removev, commonv, related);
+        changeVertexTrial(face1,face2, removev, new_vertex, related);
 
         if (!Triangle.isManifoldOver(related)) {
             if (DEBUG) System.out.println("edgeCollapse invalid due to manifold");
             return false;
         }
+
+        // reuse first vertex as new common vertex
+        tvertices.remove(commonv.getPoint());
+        commonv.getPoint().x = pos.x;
+        commonv.getPoint().y = pos.y;
+        commonv.getPoint().z = pos.z;
+        tvertices.put(commonv.getPoint(), commonv);
 
         HashSet<Face> visited = new HashSet<Face>();
         HashSet<Edge> relatedEdges = new HashSet<Edge>();
@@ -342,6 +348,8 @@ public class WingedEdgeTriangleMesh {
             he = he.getNext();
 
         } while (he != face2.getHe());
+
+        // remove deleted faces
 
         removeHalfEdges(face1, removedEdges);
         removeHalfEdges(face2, removedEdges);
@@ -396,6 +404,8 @@ public class WingedEdgeTriangleMesh {
                 HalfEdge twin = he1.getTwin();
 
                 if (twin == null) {
+                    e1 = e1.getNext();
+
                     continue;
                 }
                 f = twin.getLeft();
@@ -410,6 +420,8 @@ public class WingedEdgeTriangleMesh {
 
                     // TODO: Need to remove a vertex as well?
                 }
+
+                e1 = e1.getNext();
             }
         }
 
@@ -484,6 +496,7 @@ public class WingedEdgeTriangleMesh {
             HalfEdge twin = he1.getTwin();
 
             if (twin == null) {
+                e = e.getNext();
                 continue;
             }
             f = twin.getLeft();

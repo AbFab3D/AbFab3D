@@ -30,6 +30,17 @@ public class Vertex {
     
     private Object userData;
 
+    public Vertex() {
+    }
+
+    public Vertex(Vertex c) {
+        this.point = new Point3d(c.point);
+        this.id = c.id;
+        this.link = c.link;
+        this.next = c.next;
+        this.userData = c.userData;
+    }
+
     public int getID() {
         return id;
     }
