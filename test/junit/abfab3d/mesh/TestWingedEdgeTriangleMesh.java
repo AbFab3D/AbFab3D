@@ -1424,6 +1424,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         }
 
         // Make sure all faces have three half edges
+        // Make sure all edge and face references in halfedge are valid
         Iterator<Face> fitr = mesh.faceIterator();
         while(fitr.hasNext()) {
             Face f = fitr.next();
@@ -1432,6 +1433,14 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             HalfEdge start = he;
             int cnt = 0;
             while(he != null) {
+                if (!findEdge(mesh, he.getEdge())) {
+                    System.out.println("Cannot find edge: " + he.getEdge());
+                    return false;
+                }
+                if (!findFace(mesh, he.getLeft())) {
+                    System.out.println("Cannot find face: " + he.getLeft());
+                    return false;
+                }
                 cnt++;
                 he = he.getNext();
                 if (he == start) {
@@ -1444,7 +1453,49 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 return false;
             }
         }
+
         return true;
     }
 
+    /**
+     * Traverse edges list and make sure an edge is traversible from there.
+     *
+     * @param mesh
+     * @param e
+     * @return
+     */
+    private boolean findEdge(WingedEdgeTriangleMesh mesh, Edge e) {
+        Edge edges = mesh.getEdges();
+
+        while(edges != null) {
+            if (edges == e) {
+                return true;
+            }
+
+            edges = edges.getNext();
+        }
+
+        return false;
+    }
+
+    /**
+     * Traverse edges list and make sure an edge is traversible from there.
+     *
+     * @param mesh
+     * @param f
+     * @return
+     */
+    private boolean findFace(WingedEdgeTriangleMesh mesh, Face f) {
+        Face faces = mesh.getFaces();
+
+        while(faces != null) {
+            if (faces == f) {
+                return true;
+            }
+
+            faces = faces.getNext();
+        }
+
+        return false;
+    }
 }
