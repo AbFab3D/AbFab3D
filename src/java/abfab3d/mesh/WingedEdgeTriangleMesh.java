@@ -88,9 +88,6 @@ public class WingedEdgeTriangleMesh {
                 Vertex v1 = V[face[j]];
                 Vertex v2 = V[face[(j + 1) % face.length]];
                 HalfEdge he = buildHalfEdge(v1, v2);
-//                edgeMap.put(new HalfEdgeKey(he.getEnd(), he.getStart()), he);
-
-                // TODO: why is this backwards?
                 edgeMap.put(new HalfEdgeKey(he.getStart(), he.getEnd()), he);
                 eface.add(he);
             }
@@ -1262,13 +1259,13 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
             // updating head
             faces = f.getNext();
         }
-        f.getNext().setPrev(f.getPrev());
 
         if (f == lastFace) {
             lastFace = prev;
             lastFace.setNext(null);
+        } else {
+            f.getNext().setPrev(f.getPrev());
         }
-
     }
 
     /**
@@ -1327,13 +1324,13 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         } else {
             edges = e.getNext();
         }
-        e.getNext().setPrev(e.getPrev());
 
         if (e == lastEdge) {
             lastEdge = prev;
             lastEdge.setNext(null);
+        } else {
+            e.getNext().setPrev(e.getPrev());
         }
-
     }
 
     void removeHalfEdge(HalfEdge he) {
