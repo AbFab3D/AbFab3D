@@ -389,6 +389,8 @@ public class MeshDecimator {
             Object oldValue = array[i];
             array[i] = value;
 
+            //printf("edgesArray.set(%d, %s)\n", i, value);
+
             if(value == null && oldValue != null){
                 count--;
             } else if(value != null && oldValue == null){
@@ -397,12 +399,19 @@ public class MeshDecimator {
         }
 
         public void getRandomEdge(EdgeData ed){
+
+            ed.edge = null;
+
+            int count = 100;
             
-            int i = m_rnd.nextInt(asize);
-            if(array[i] != null){
-                ed.edge = array[i];
-                ed.index = i;
-            }                
+            while(count-- > 0){
+                int i = m_rnd.nextInt(asize);            
+                if(array[i] != null){
+                    ed.edge = array[i];
+                    ed.index = i;
+                    return;
+                }                
+            }
         }
     }
 
