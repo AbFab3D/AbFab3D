@@ -1326,7 +1326,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
      */
     public void removeEdge(Edge e) {
 
-        if (DEBUG) System.out.println("removeEdge: " + e);
+        if (DEBUG) System.out.println("removeEdge: " + e.hashCode());
 
         Edge prev = e.getPrev();
 
@@ -1340,7 +1340,12 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
             lastEdge = prev;
             lastEdge.setNext(null);
         } else {
-            e.getNext().setPrev(e.getPrev());
+            Edge next = e.getNext();
+
+            // its possible an edge can get removed twice, this would crash.
+            if (next != null) {
+                next.setPrev(e.getPrev());
+            }
         }
     }
 
