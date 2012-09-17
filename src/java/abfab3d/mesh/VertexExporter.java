@@ -13,11 +13,13 @@ package abfab3d.mesh;
 
 import java.util.Set;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Point3d;
 
 import abfab3d.io.output.STLWriter;
 import abfab3d.util.TriangleCollector;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 
 /**
@@ -28,9 +30,9 @@ public class VertexExporter {
 
 
     /**
-       writes trianles surrounding set of vertices into STL file 
+       writes triangles surrounding the given set of vertices into STL file 
      */
-    public void exportVertexSTL(Set<Vertex> vset, String fpath){
+    public static void exportVertexSTL(Set<Vertex> vset, String fpath){
         
         try {
             STLWriter writer = new STLWriter(fpath);
@@ -41,15 +43,17 @@ public class VertexExporter {
                 
                 HalfEdge start = v.getLink();
                 HalfEdge he = start;
-                
+                int tricount = 0;
+
                 do{ 
                     
-                    addTriangle(writer,he);
+                    printf("he: %s\n", he);
+                    writeTriangle(writer,he);
                     
                     HalfEdge twin = he.getTwin();
                     he = twin.getNext();  
                                         
-                } while(he != start);
+                } while(he != start && tricount++ < 20);
                 
             }
 
@@ -59,15 +63,26 @@ public class VertexExporter {
             
             e.printStackTrace();
             
-        }
-        
+        }        
     }
 
-
-    static void addTriangle(TriangleCollector tc, HalfEdge he){
+    static void writeTriangle(TriangleCollector tc, HalfEdge he){
                
-        Vertex vert = he.getStart();
-        Vector3d v0 = new Vector3d(vert.getPoint());
+        Point3d p0 = he.getStart().getPoint();
+        he = he.getNext();
+        Point3d p1 = he.getStart().getPoint();
+        he = he.getNext();
+        Point3d p2 = he.getStart().getPoint();
+        
+        printf("tri: %s, %s %s\n", fp(p0),fp(p1),fp(p2));
+        
+        tc.addTri(new Vector3d(p0),new Vector3d(p1),new Vector3d(p2));
+
+    }
+
+    public static String fp(Point3d p){
+
+        return fmt("(%8.5f,%8.5f,%8.5f)", p.x, p.y, p.z);
         
     }
        
