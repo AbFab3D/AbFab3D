@@ -53,6 +53,8 @@ public class MeshDecimator {
 
     // current count of faces in mesh 
     int m_faceCount;
+    // count of collapseEdge() calls
+    int m_collapseCount;
 
     /**
        the instance of the MeshDecimator can be reused fpor several meshes  
@@ -106,6 +108,8 @@ public class MeshDecimator {
         
         m_ecr = new EdgeCollapseResult();        
         m_candidates = new EdgeData[10];
+
+        m_collapseCount = 0;
 
         for(int i = 0; i < m_candidates.length; i++){
             m_candidates[i] = new EdgeData();
@@ -208,15 +212,22 @@ public class MeshDecimator {
         m_ecr.faceCount = 0;
         m_ecr.vertexCount = 0;
         
-        if(DEBUG) printf("edge before: %d\n", m_mesh.getEdgeCount());            
-        
-        
+        if(DEBUG) printf("collapseCount: %d, edge before: %d\n", m_collapseCount, m_mesh.getEdgeCount());                    
+
+        try {
+            MeshExporter.writeMeshSTL(m_mesh, fmt("c:/tmp/mesh_%04d.stl",m_collapseCount));
+        } catch(Exception e){ e.printStackTrace(); 
+        }
+        exportEdge(fmt("c:/tmp/edge_%04d.stl",m_collapseCount), ed);        
+
         if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecr)){
 
             if(DEBUG) printf("failed to collapse\n");                
             return false;
             
         }
+
+        m_collapseCount++;
         
         if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
         m_faceCount -= 2;  //m_ecr.faceCount
@@ -389,6 +400,8 @@ public class MeshDecimator {
             Object oldValue = array[i];
             array[i] = value;
 
+            //printf("edgesArray.set(%d, %s)\n", i, value);
+
             if(value == null && oldValue != null){
                 count--;
             } else if(value != null && oldValue == null){
@@ -397,20 +410,38 @@ public class MeshDecimator {
         }
 
         public void getRandomEdge(EdgeData ed){
+
+            ed.edge = null;
+
+            int count = 100;
             
-            int i = m_rnd.nextInt(asize);
-            if(array[i] != null){
-                ed.edge = array[i];
-                ed.index = i;
-            }                
+            while(count-- > 0){
+                int i = m_rnd.nextInt(asize);            
+                if(array[i] != null){
+                    ed.edge = array[i];
+                    ed.index = i;
+                    return;
+                }                
+            }
         }
     }
 
-    static String formatPoint(Point3d p){
+    public static String formatPoint(Point3d p){
 
         return fmt("(%8.5f,%8.5f,%8.5f)", p.x, p.y, p.z);
 
     }
+    
+    static void exportEdge(String fpath, EdgeData ed){
+        HashSet vertices = new HashSet();
+        HalfEdge he = ed.edge.getHe();
+        vertices.add(he.getStart());
+        vertices.add(he.getEnd());
+
+        VertexExporter.exportVertexSTL(vertices, fpath);
+
+    }
+    
 
     /**
        class to keep info about an Edge 

@@ -92,7 +92,7 @@ public class TestMeshDecimator extends TestCase {
             System.out.println(" ]");
         }
 
-        writeMesh(we,"c:/tmp/pyramid.x3dv");
+        MeshExporter.writeMesh(we,"c:/tmp/pyramid.x3dv");
 
         MeshDecimator md = new MeshDecimator();
 
@@ -218,7 +218,7 @@ public class TestMeshDecimator extends TestCase {
 
         verifyStructure(mesh, true);
 
-        writeMesh(mesh,"c:/tmp/decimated.x3dv");
+        MeshExporter.writeMesh(mesh,"c:/tmp/decimated.x3d");
                                
     }
 
@@ -256,48 +256,6 @@ public class TestMeshDecimator extends TestCase {
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
         return we;
 
-    }
-
-    public static void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
-        SAVExporter se = new SAVExporter();
-        HashMap<String,Object> params = new HashMap<String, Object>();
-
-        FileOutputStream fos = null;
-
-        try {
-            BinaryContentHandler writer = null;
-            fos = new FileOutputStream(filename);
-            String encoding = filename.substring(filename.lastIndexOf(".")+1);
-
-            ErrorReporter console = new PlainTextErrorReporter();
-
-            if (encoding.equals("x3db")) {
-                writer = new X3DBinaryRetainedDirectExporter(fos,
-                        3, 0, console,
-                        X3DBinarySerializer.METHOD_FASTEST_PARSING,
-                        0.001f, true);
-            } else if (encoding.equals("x3dv")) {
-                writer = new X3DClassicRetainedExporter(fos,3,0,console);
-            } else if (encoding.equals("x3d")) {
-                writer = new X3DXMLRetainedExporter(fos,3,0,console);
-            } else {
-                throw new IllegalArgumentException("Unhandled X3D encoding: " + encoding);
-            }
-
-            writer.startDocument("","", "utf8", "#X3D", "V3.0", "");
-            writer.profileDecl("Immersive");
-            writer.startNode("NavigationInfo", null);
-            writer.startField("avatarSize");
-            writer.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);
-            writer.endNode(); // NavigationInfo
-
-            se.outputX3D(we, params,writer);
-            writer.endDocument();
-        } finally {
-            if (fos != null) {
-                fos.close();
-            }
-        }
     }
 
 
