@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.Set;
 
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.output.SAVExporter;
@@ -61,7 +62,7 @@ public class TestMeshDecimator extends TestCase {
      *
      * @throws Exception
      */
-    public void _testPyramid() throws Exception {
+    public void testPyramid() throws Exception {
 
         Point3d[] pyr_vert = new Point3d[] {
             new Point3d(-1., -1., -1.), 
@@ -74,7 +75,7 @@ public class TestMeshDecimator extends TestCase {
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(pyr_vert, pyr_faces);
 
-        we.writeOBJ(System.out);
+        //we.writeOBJ(System.out);
 
         Vertex[][] findex = we.getFaceIndexes();
         Vertex v = we.getVertices();
@@ -83,7 +84,7 @@ public class TestMeshDecimator extends TestCase {
             System.out.println(v);
             v = v.getNext();
         }
-
+        /*
         for (int i = 0; i < findex.length; i++) {
 
             Vertex face[] = findex[i];
@@ -94,16 +95,43 @@ public class TestMeshDecimator extends TestCase {
             }
             System.out.println(" ]");
         }
+        */
+        //MeshExporter.writeMesh(we,"c:/tmp/pyramid.x3d");
 
-        MeshExporter.writeMesh(we,"c:/tmp/pyramid.x3dv");
+        //MeshDecimator md = new MeshDecimator();
 
-        MeshDecimator md = new MeshDecimator();
+        //printf("startng decimations\n");
 
-        printf("startng decimations\n");
+        //int count = md.processMesh(we, 100);
+        
+        //printf("final faces count: %d\n", count);        
 
-        int count = md.processMesh(we, 100);
+        verifyVertices(we);
+        
+        Edge edge = findEdge(we, 1, 4);
+        printf("\nedge to collapse: %s\n" ,edge);
+        HalfEdge he = edge.getHe();
+        
+        Point3d pnt = new Point3d();
+        
+        pnt.set(he.getStart().getPoint());
+        pnt.add(he.getStart().getPoint());
+        pnt.scale(0.5);
+        EdgeCollapseResult ecr = new EdgeCollapseResult();
+        
+        we.collapseEdge(edge, pnt, ecr);
+        
+        printf("edge after: %d\n", we.getEdgeCount());  
+        printf("moved vertex: %s\n", ecr.insertedVertex);          
+        Set<Edge> redges = ecr.removedEdges;
+        printf("removed edges:(count %d) ", redges.size());
+        for(Edge re : redges) {
+            printf(" %s", re);
+            // remove edge from array 
+        }
 
-        printf("final faces count: %d\n", count);        
+        verifyVertices(we);
+        
 
     }
 
@@ -202,7 +230,7 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
-    public void testFile() throws Exception {
+    public void _testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
         String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
@@ -217,13 +245,17 @@ public class TestMeshDecimator extends TestCase {
 
         MeshDecimator md = new MeshDecimator();
         
-        int count = md.processMesh(mesh, fcount/2);
+        int count = md.processMesh(mesh, fcount-1);
 
-        verifyStructure(mesh, true);
+        verifyVertices(mesh);
+
+        //verifyStructure(mesh, true);
 
         MeshExporter.writeMesh(mesh,"c:/tmp/decimated.x3d");
                                
     }
+
+
 
     /**
        
@@ -312,6 +344,75 @@ public class TestMeshDecimator extends TestCase {
             }
         }
         return true;
+    }
+
+    /**
+       check, that all the vertices have consistent ring of faces 
+     */
+    static void verifyVertices(WingedEdgeTriangleMesh mesh){
+
+        Vertex v = mesh.getVertices();
+        while( v != null){
+            printf("v: %s\n", v);
+
+            HalfEdge start = v.getLink();
+            HalfEdge he = start;
+            int tricount = 0;
+            
+            do{                 
+                printf("he: %s; %s; %s;\n", he, he.getNext(),  he.getNext().getNext()); 
+                
+                if(tricount++ > 20){
+                    printf("error: tricount exceded\n");
+                    break;
+                }
+
+                HalfEdge twin = he.getTwin();
+                he = twin.getNext(); 
+                
+            } while(he != start);
+
+            v = v.getNext();
+        }
+    }
+
+    static Edge findEdge(WingedEdgeTriangleMesh mesh, int v0, int v1){
+
+        Vertex v = mesh.getVertices();
+        Vertex vert0 = null;
+        
+        while(v != null){
+            int id = v.getID();
+            if(id == v0){
+                vert0 = v;
+                break;
+            }
+            v = v.getNext();
+        }
+
+        HalfEdge start = vert0.getLink();
+        HalfEdge he = start;
+        int tricount = 0;
+
+        do{                 
+            //printf("he: %s; %s; %s;\n", he, he.getNext(),  he.getNext().getNext()); 
+            if(he.getStart().getID() == v1){ // should be getEnd()
+                return he.getEdge();
+
+            }
+                
+            if(tricount++ > 20){
+                printf("error: tricount exceded\n");
+                break;
+            }
+            
+            HalfEdge twin = he.getTwin();
+            he = twin.getNext(); 
+            
+        } while(he != start);
+
+        return null;
+        
     }
 
 }
