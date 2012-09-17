@@ -23,6 +23,9 @@ import java.util.Iterator;
 
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.output.SAVExporter;
+import abfab3d.io.output.MeshExporter;
+
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;

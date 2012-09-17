@@ -19,6 +19,8 @@ import java.util.HashSet;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Point3d;
 
+//import abfab3d.io.output.MeshExporter;
+
 import static abfab3d.util.Output.printf; 
 import static abfab3d.util.Output.fmt; 
 
@@ -214,10 +216,10 @@ public class MeshDecimator {
         
         if(DEBUG) printf("collapseCount: %d, edge before: %d\n", m_collapseCount, m_mesh.getEdgeCount());                    
 
-        try {
-            MeshExporter.writeMeshSTL(m_mesh, fmt("c:/tmp/mesh_%04d.stl",m_collapseCount));
-        } catch(Exception e){ e.printStackTrace(); 
-        }
+        //try {
+            //MeshExporter.writeMeshSTL(m_mesh, fmt("c:/tmp/mesh_%04d.stl",m_collapseCount));
+        //} catch(Exception e){ e.printStackTrace(); 
+        //}
         exportEdge(fmt("c:/tmp/edge_%04d.stl",m_collapseCount), ed);        
 
         if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecr)){
@@ -438,7 +440,7 @@ public class MeshDecimator {
         vertices.add(he.getStart());
         vertices.add(he.getEnd());
 
-        VertexExporter.exportVertexSTL(vertices, fpath);
+        //VertexExporter.exportVertexSTL(vertices, fpath);
 
     }
     
