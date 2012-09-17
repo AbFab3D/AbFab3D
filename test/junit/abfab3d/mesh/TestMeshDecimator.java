@@ -223,6 +223,7 @@ public class TestMeshDecimator extends TestCase {
 
         MeshExporter.writeMesh(mesh,"c:/tmp/decimated.x3d");
         assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
+        assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
     }
 
     /**
