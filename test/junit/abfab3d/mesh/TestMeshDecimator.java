@@ -219,10 +219,8 @@ public class TestMeshDecimator extends TestCase {
         
         int count = md.processMesh(mesh, fcount/2);
 
-        verifyStructure(mesh, true);
-
         MeshExporter.writeMesh(mesh,"c:/tmp/decimated.x3d");
-                               
+        assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
     }
 
     /**
@@ -260,59 +258,5 @@ public class TestMeshDecimator extends TestCase {
         return we;
 
     }
-
-
-    /**
-     * Verify that the mesh structure is correct.  
-     * Chase as many pointers and references as we can to confirm that
-     * nothing is messed up.
-     *
-     * @param mesh
-     * @return
-     */
-    private boolean verifyStructure(WingedEdgeTriangleMesh mesh, boolean manifold) {
-        // Walk edges and make sure no referenced head or twin values are null
-
-        Iterator<Edge> eitr = mesh.edgeIterator();
-        while(eitr.hasNext()) {
-            Edge e = eitr.next();
-
-            if (e.getHe() == null) {
-                System.out.println("Edge found with null Head: " + e);
-                return false;
-            }
-            
-            HalfEdge twin = e.getHe().getTwin();
-
-            if (manifold && twin == null) {
-                System.out.println("Edge found with null Twin: " + e);
-                return false;
-            }
-        }
-
-        // Make sure all faces have three half edges
-        Iterator<Face> fitr = mesh.faceIterator();
-        while(fitr.hasNext()) {
-            Face f = fitr.next();
-
-            HalfEdge he = f.getHe();
-            HalfEdge start = he;
-            int cnt = 0;
-            while(he != null) {
-                cnt++;
-                he = he.getNext();
-                if (he == start) {
-                    break;
-                }
-            }
-
-            if (cnt != 3) {
-                System.out.println("Face without 3 half edges: " + f);
-                return false;
-            }
-        }
-        return true;
-    }
-
 }
 
