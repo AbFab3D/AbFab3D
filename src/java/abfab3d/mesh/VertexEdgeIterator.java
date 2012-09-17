@@ -22,6 +22,8 @@ import java.util.Iterator;
  * @author Alan Hudson
  */
 public class VertexEdgeIterator implements Iterator<Edge> {
+    private static final boolean DEBUG = false;
+
     /**
      * The list of neighboring vertices
      */
@@ -35,6 +37,10 @@ public class VertexEdgeIterator implements Iterator<Edge> {
 
         findEdges(v.getLink().getLeft(), v);
 
+        if (DEBUG) {
+            System.out.println("Edges for vertex: " + v);
+            System.out.println(edges);
+        }
         itr = edges.iterator();
     }
 

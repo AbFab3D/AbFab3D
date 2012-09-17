@@ -32,6 +32,9 @@ public class HalfEdge {
     private Edge edge;
     private Face left;
 
+    // TODO: Debug var, remove
+    private boolean removed;
+
     public String toString() {
         String s = super.toString();
         s = s.substring(s.indexOf("@"), s.length());
@@ -47,7 +50,11 @@ public class HalfEdge {
             end_st = "" + end.getID();
         }
 
-        return s + "(" + start_st + "->" + end_st + ")";
+        String dead = "";
+        if (removed) {
+            dead = " DEAD";
+        }
+        return s + "(" + start_st + "->" + end_st + ")" + dead;
     }
 
     public HalfEdge getTwin() {
@@ -107,5 +114,13 @@ public class HalfEdge {
 
     public void setLeft(Face left) {
         this.left = left;
+    }
+
+    public boolean isRemoved() {
+        return removed;
+    }
+
+    public void setRemoved(boolean removed) {
+        this.removed = removed;
     }
 }

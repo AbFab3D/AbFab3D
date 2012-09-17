@@ -196,11 +196,11 @@ System.out.println("Adding param: " + p.getName());
                 break;
             case FILE_DIALOG:
                 if (p.getDefaultValue() == null) {
-                    ps.println(indent(8) + "String dir = \".\";");
+                    ps.println(indent(8) + "String dir_" + p.getName() + " = \".\";");
                 } else {
-                    ps.println(indent(8) + "String dir = \"" + p.getDefaultValue() + "\";");
+                    ps.println(indent(8) + "String dir_" + p.getName() + " = \"" + p.getDefaultValue() + "\";");
                 }
-                ps.println(indent(8) + p.getName() + "Dialog = new JFileChooser(new File(dir));");
+                ps.println(indent(8) + p.getName() + "Dialog = new JFileChooser(new File(dir_" + p.getName() + "));");
                 ps.println(indent(8) + p.getName() + "Button = new JButton(\"Browse\");");
                 ps.println(indent(8) + p.getName() + "Button.addActionListener(this);");
             default:
@@ -225,7 +225,6 @@ System.out.println("Adding param: " + p.getName());
      * Add user interface elements for Global Buttons
      *
      * @param ps The stream to print too
-     * @param p The parameter
      */
     private void addGlobalButtons(PrintStream ps) {
         ps.println(indent(8) + "submitButton = new JButton(\"Submit\");");

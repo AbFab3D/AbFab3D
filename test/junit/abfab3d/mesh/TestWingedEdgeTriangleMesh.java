@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 
+import static abfab3d.util.Output.printf;
+
 // Internal Imports
 
 /**
@@ -312,6 +314,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         we.writeOBJ(System.out);
 
         assertTrue("Initial Manifold", isManifold(we));
+        assertTrue("Initial Structural Check", verifyStructure(we, true));
         assertTrue("Initial Triangle Check", verifyTriangles(we));
 
         // Find edge from vertex 1 to 2
@@ -361,7 +364,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Manifold2", isManifold(we));
 
         assertTrue("Triangle Check2", verifyTriangles(we));
-        assertTrue("Structural Check", verifyStructure(we,true));
+        assertTrue("Structural Check", verifyStructure(we, true));
 
         int removed_edges = 3;
         int removed_faces = 2;
@@ -438,7 +441,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Initial Manifold", isManifold(we));
         assertTrue("Initial Triangle Check", verifyTriangles(we));
 
-        // Find edge from vertex 1 to 2
+        // Find edge from vertex 0 to 2
         Vertex v1 = we.findVertex(verts[0]);
         Vertex v2 = we.findVertex(verts[2]);
 
@@ -528,11 +531,11 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Initial Triangle Check", verifyTriangles(we));
 
         Random rand = new Random(42);
-        int collapses = 5000;
+        int collapses = 1000;
         int valid = 0;
 
         for (int i = 0; i < collapses; i++) {
-            idx = rand.nextInt(faces.length / 3);
+            idx = rand.nextInt(we.getEdgeCount());
 
             Edge e = we.getEdges();
 
@@ -552,21 +555,23 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             EdgeCollapseResult ecr = new EdgeCollapseResult();
             if (we.collapseEdge(e, pos, ecr)) {
                 valid++;
+                System.out.println("Collapsed Edge: " + valid);
                 //writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
+                assertTrue("Manifold", isManifold(we));
+                assertTrue("Triangle Check", verifyTriangles(we));
+                //assertTrue("Structural Check", verifyStructure(we,true));
             }
-
-
-            assertTrue("Manifold", isManifold(we));
-            assertTrue("Triangle Check", verifyTriangles(we));
-            assertTrue("Structural Check", verifyStructure(we,true));
         }
 
         System.out.println("Valid collapses: " + valid);
+        assertTrue("Structural Check", verifyStructure(we, true));
+        writeMesh(we, "c:/tmp/speed-knot2.x3dv");
 
+        System.out.println("Removing degenerate faces");
         we.removeDegenerateFaces();
         assertTrue("Structural Check", verifyStructure(we,true));
 
-        writeMesh(we, "c:/tmp/speed-knot2.x3dv");
+        writeMesh(we, "c:/tmp/speed-knot3.x3dv");
     }
 
     /**
@@ -612,11 +617,11 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Initial Triangle Check", verifyTriangles(we));
 
         Random rand = new Random(42);
-        int collapses = 100;
+        int collapses = 158;
         int valid = 0;
 
         for (int i = 0; i < collapses; i++) {
-            idx = rand.nextInt(faces.length / 3);
+            idx = rand.nextInt(we.getEdgeCount());
 
             Edge e = we.getEdges();
 
@@ -624,7 +629,10 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 e = e.getNext();
             }
 
-
+            if (e == null) {
+                System.out.println("Cannot find egde?");
+                continue;
+            }
             //System.out.println("Collapse: " + idx + " e: " + e);
             Point3d pos = new Point3d();
             Point3d p1 = e.getHe().getStart().getPoint();
@@ -649,95 +657,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         writeMesh(we, "c:/tmp/sphere_10cm_rough_manifold2.x3dv");
 
         we.removeDegenerateFaces();
-        assertTrue("Structural Check", verifyStructure(we,true));
-    }
-
-    /**
-     * Test a box is manifold on construction and edge collapse
-     */
-    public void testManifoldSphereCanCollapses() throws Exception {
-        IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
-        loader.processFile(new File("test/models/sphere_10cm_rough_manifold.x3dv"));
-
-        GeometryData data = new GeometryData();
-        data.geometryType = GeometryData.INDEXED_TRIANGLES;
-        data.coordinates = loader.getCoords();
-        data.vertexCount = data.coordinates.length / 3;
-        data.indexes = loader.getVerts();
-        data.indexesCount = data.indexes.length;
-
-        Point3d[] verts = new Point3d[data.vertexCount];
-        int len = data.vertexCount;
-        int idx = 0;
-
-        for (int i = 0; i < len; i++) {
-            idx = i * 3;
-            verts[i] = new Point3d(data.coordinates[idx++], data.coordinates[idx++], data.coordinates[idx++]);
-        }
-
-        len = data.indexes.length / 3;
-        int faces[][] = new int[len][3];
-        idx = 0;
-
-        for (int i = 0; i < len; i++) {
-            faces[i][0] = data.indexes[idx++];
-            faces[i][1] = data.indexes[idx++];
-            faces[i][2] = data.indexes[idx++];
-        }
-
-        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, faces);
-
-        writeMesh(we, "c:/tmp/sphere_10cm_rough_manifold1.x3dv");
-
-        //we.writeOBJ(System.out);
-
-        assertTrue("Initial Manifold", isManifold(we));
-        assertTrue("Initial Triangle Check", verifyTriangles(we));
-
-        int valid = 0;
-        int collapses = 5;
-
-        for(int i=0; i < collapses; i++) {
-            valid = 0;
-            Iterator<Edge> eitr = we.edgeIterator();
-
-            while(eitr.hasNext()) {
-                Edge e = eitr.next();
-
-                //System.out.println("Collapse: " + idx + " e: " + e);
-                Point3d pos = new Point3d();
-                Point3d p1 = e.getHe().getStart().getPoint();
-                Point3d p2 = e.getHe().getEnd().getPoint();
-                pos.x = (p1.x + p2.x) / 2.0;
-                pos.y = (p1.y + p2.y) / 2.0;
-                pos.z = (p1.z + p2.z) / 2.0;
-
-                EdgeCollapseResult ecr = new EdgeCollapseResult();
-                if (we.canCollapseEdge(e, pos)) {
-                    valid++;
-                    //writeMesh(we, "c:/tmp/sphere_10cm_rough_manifold_loop" + i + ".x3dv");
-                }  else {
-                    System.out.println("Cannot collapse: " + e);
-                }
-            }
-
-            System.out.println("Valid collapses: " + valid + " out of: " + we.getEdgeCount());
-
-            Edge e = we.getEdges();
-            Point3d pos = new Point3d();
-            Point3d p1 = e.getHe().getStart().getPoint();
-            Point3d p2 = e.getHe().getEnd().getPoint();
-            pos.x = (p1.x + p2.x) / 2.0;
-            pos.y = (p1.y + p2.y) / 2.0;
-            pos.z = (p1.z + p2.z) / 2.0;
-
-            EdgeCollapseResult ecr = new EdgeCollapseResult();
-            if (we.canCollapseEdge(e, pos)) {
-                System.out.println("Collapse edge: " + e);
-            } else {
-                System.out.println("Cannot collapse edge: " + e);
-            }
-        }
+        assertTrue("Structural Check", verifyStructure(we, true));
     }
 
     /**
@@ -745,7 +665,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      */
     public void testManifoldE() throws Exception {
         IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
-        loader.processFile(new File("test/junit/models/wTest1_ITS.x3d"));
+        loader.processFile(new File("test/models/wTest1_ITS.x3d"));
 
         GeometryData data = new GeometryData();
         data.geometryType = GeometryData.INDEXED_TRIANGLES;
@@ -936,7 +856,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      * @param mesh
      * @return
      */
-    private boolean isManifold(WingedEdgeTriangleMesh mesh) {
+    public static boolean isManifold(WingedEdgeTriangleMesh mesh) {
         // Check via twins structure
         boolean manifold = true;
         Edge edges = mesh.getEdges();
@@ -1032,7 +952,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         return manifold;
     }
 
-    private void processEdge(int index1, int index2, LongHashMap edgeCount) {
+    private static void processEdge(int index1, int index2, LongHashMap edgeCount) {
 
 //System.out.println("Edges being processed: " + index1 + "," + index2);
 
@@ -1345,7 +1265,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             if (he.getStart() != p1 && he.getStart() != p2) {
                 p3 = he.getStart();
             } else if (he.getEnd() != p1 && he.getEnd() != p2) {
-                p3 = he.getStart();
+                p3 = he.getEnd();
             } else {
                 System.out.println("Cannot find third unique point?");
                 he = faces.getHe();
@@ -1364,15 +1284,15 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             double EPS = 1e-10;
 
             if (p1.getPoint().epsilonEquals(p2.getPoint(), EPS)) {
-                System.out.println("Points equal: " + p1 + " p2: " + p2);
+                System.out.println("Points equal(1,2): " + p1 + " p2: " + p2 + " face: " + faces);
                 return false;
             }
             if (p1.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
-                System.out.println("Points equal: " + p1 + " p2: " + p3);
+                System.out.println("Points equal(1,3): " + p1 + " p2: " + p3 + " face: " + faces);
                 return false;
             }
             if (p2.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
-                System.out.println("Points equal: " + p2 + " p2: " + p3);
+                System.out.println("Points equal(2,3): " + p2 + " p2: " + p3 + " face: " + faces);
                 return false;
             }
 
@@ -1403,8 +1323,9 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      * @param mesh
      * @return
      */
-    private boolean verifyStructure(WingedEdgeTriangleMesh mesh, boolean manifold) {
+    public static boolean verifyStructure(WingedEdgeTriangleMesh mesh, boolean manifold) {
         // Walk edges and make sure no referenced head or twin values are null
+        // Make sure twin references same vertices
 
         Iterator<Edge> eitr = mesh.edgeIterator();
         while(eitr.hasNext()) {
@@ -1415,22 +1336,44 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 return false;
             }
 
+            if (e.getHe().isRemoved()) {
+                System.out.println("Edge removed but used: " + e.getHe());
+            }
             HalfEdge twin = e.getHe().getTwin();
 
             if (manifold && twin == null) {
                 System.out.println("Edge found with null Twin: " + e);
                 return false;
             }
+
+            if (twin != null) {
+                if (twin.isRemoved()) {
+                    System.out.println("Twin Edge removed but used: " + e.getHe());
+                }
+                if (e.getHe().getStart() != twin.getEnd() ||
+                    e.getHe().getEnd() != twin.getStart()) {
+                    System.out.println("Invalid twins: " + e.getHe() + " twin: " + twin);
+                    System.out.println("Invalid twins: " + e.getHe().hashCode() + " twin: " + twin.hashCode());
+                    return false;
+                }
+            }
         }
 
         // Make sure all faces have three half edges
         // Make sure all edge and face references in halfedge are valid
+        // Make sure forward traversal(next) around face is same as backwards(prev)
+
         Iterator<Face> fitr = mesh.faceIterator();
         while(fitr.hasNext()) {
             Face f = fitr.next();
 
             HalfEdge he = f.getHe();
             HalfEdge start = he;
+
+            if (he == null) {
+                System.out.println("Half edge null: " + f);
+                return false;
+            }
             int cnt = 0;
             while(he != null) {
                 if (!findEdge(mesh, he.getEdge())) {
@@ -1441,6 +1384,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                     System.out.println("Cannot find face: " + he.getLeft());
                     return false;
                 }
+
                 cnt++;
                 he = he.getNext();
                 if (he == start) {
@@ -1449,8 +1393,120 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             }
 
             if (cnt != 3) {
-                System.out.println("Face without 3 half edges: " + f);
+                System.out.println("Face without 3 half edges(next): " + f);
                 return false;
+            }
+
+            he = f.getHe();
+            start = he;
+            cnt = 0;
+            while(he != null) {
+                cnt++;
+                he = he.getPrev();
+                if (he == start) {
+                    break;
+                }
+            }
+
+            if (cnt != 3) {
+                System.out.println("Face without 3 half edges(prev): " + f);
+                return false;
+            }
+
+        }
+
+        // verify vertex link is bidirectional, ie edge thinks its connected to vertex
+        Iterator<Vertex> vitr = mesh.vertexIterator();
+        while(vitr.hasNext()) {
+            Vertex v = vitr.next();
+
+            if (v.isRemoved()) {
+                System.out.println("Vertex removed but linked: " + v);
+                return false;
+            }
+            HalfEdge he = v.getLink();
+
+            if (he == null) {
+                System.out.println("Vertex not linked: " + v);
+                return false;
+            }
+
+            if (he.getStart() != v && he.getEnd() != v) {
+                System.out.println("Vertex linkage not bidirectional: " + v + " he: " + he);
+            }
+        }
+
+        // Check for any edges that are duplicated
+        Iterator<Edge> eitr1 = mesh.edgeIterator();
+        Iterator<Edge> eitr2 = mesh.edgeIterator();
+
+        while(eitr1.hasNext()) {
+            Edge e1 = eitr1.next();
+
+            while(eitr2.hasNext()) {
+                Edge e2 = eitr2.next();
+
+                if (e1 == e2) {
+                    continue;
+                }
+
+                HalfEdge he1 = e1.getHe();
+                HalfEdge he2 = e2.getHe();
+
+                if (he1 != null) {
+                    if (he1.getStart() == he1.getEnd()) {
+                        System.out.println("Collapsed edge detected: " + he1);
+                        return false;
+                    }
+                }
+                if (he2 != null) {
+                    if (he2.getStart() == he2.getEnd()) {
+                        System.out.println("Collapsed edge detected: " + he2);
+                        return false;
+                    }
+                }
+                if (he1 != null && he2 != null) {
+                    Vertex start1 = he1.getStart();
+                    Vertex end1 = he1.getEnd();
+                    Vertex start2 = he2.getStart();
+                    Vertex end2 = he2.getEnd();
+
+                    if ((start1 == start2 && end1 == end2) ||
+                            (start1 == end2 && end1 == start2)) {
+                        System.out.println("Duplicate detected: " + e1 + " is: " + e2);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        vitr = mesh.vertexIterator();
+
+        while(vitr.hasNext()){
+            Vertex v = vitr.next();
+
+            //printf("vertex: %s\n", v);
+
+            HalfEdge start = v.getLink();
+            HalfEdge he = start;
+            int tricount = 0;
+
+            if (start.isRemoved()) {
+                System.out.println("Using dead half edge: " + he + " hc: " + he.hashCode());
+                return false;
+            }
+
+            do{
+
+                //printf("he: %s\n", he + " hc: " + he.hashCode());
+
+                HalfEdge twin = he.getTwin();
+                he = twin.getNext();
+
+            } while(he != start && tricount++ < 20);
+
+            if (tricount >= 20) {
+                System.out.println("***Strange linking error?");
             }
         }
 
@@ -1464,7 +1520,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      * @param e
      * @return
      */
-    private boolean findEdge(WingedEdgeTriangleMesh mesh, Edge e) {
+    private static boolean findEdge(WingedEdgeTriangleMesh mesh, Edge e) {
         Edge edges = mesh.getEdges();
 
         while(edges != null) {
@@ -1485,7 +1541,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      * @param f
      * @return
      */
-    private boolean findFace(WingedEdgeTriangleMesh mesh, Face f) {
+    private static boolean findFace(WingedEdgeTriangleMesh mesh, Face f) {
         Face faces = mesh.getFaces();
 
         while(faces != null) {

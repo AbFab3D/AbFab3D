@@ -30,6 +30,9 @@ public class Vertex {
     
     private Object userData;
 
+    // TODO: Debug var, remove
+    private boolean removed;
+
     public Vertex() {
     }
 
@@ -75,7 +78,12 @@ public class Vertex {
     }
 
     public String toString(){
-        return fmt("%2d (%10.7f,%10.7f,%10.7f)", id, point.x,point.y,point.z);
+        String dead = "";
+        if (removed) {
+            dead = " DEAD";
+        }
+
+        return fmt("%2d (%10.7f,%10.7f,%10.7f%s)", id, point.x,point.y,point.z, dead);
     }
 
     public Object getUserData() {
@@ -84,6 +92,14 @@ public class Vertex {
 
     public void setUserData(Object userData) {
         this.userData = userData;
+    }
+
+    public boolean isRemoved() {
+        return removed;
+    }
+
+    public void setRemoved(boolean removed) {
+        this.removed = removed;
     }
 
 }
