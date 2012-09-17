@@ -9,14 +9,17 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.mesh;
+package abfab3d.io.output;
 
 import java.util.Set;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Point3d;
 
-import abfab3d.io.output.STLWriter;
 import abfab3d.util.TriangleCollector;
+
+import abfab3d.mesh.Vertex;
+import abfab3d.mesh.HalfEdge;
+
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;

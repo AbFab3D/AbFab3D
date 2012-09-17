@@ -9,7 +9,7 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.mesh;
+package abfab3d.io.output;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -30,8 +30,11 @@ import org.web3d.vrml.export.X3DBinarySerializer;
 import org.web3d.vrml.export.X3DClassicRetainedExporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
 
-import abfab3d.io.output.SAVExporter;
-import abfab3d.io.output.STLWriter;
+//import abfab3d.io.output.SAVExporter;
+//import abfab3d.io.output.STLWriter;
+import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.Face;
+import abfab3d.mesh.HalfEdge;
 
 public class MeshExporter {
     
