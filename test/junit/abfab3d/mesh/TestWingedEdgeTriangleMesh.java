@@ -853,7 +853,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
      * @param mesh
      * @return
      */
-    private boolean isManifold(WingedEdgeTriangleMesh mesh) {
+    public static boolean isManifold(WingedEdgeTriangleMesh mesh) {
         // Check via twins structure
         boolean manifold = true;
         Edge edges = mesh.getEdges();
@@ -949,7 +949,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         return manifold;
     }
 
-    private void processEdge(int index1, int index2, LongHashMap edgeCount) {
+    private static void processEdge(int index1, int index2, LongHashMap edgeCount) {
 
 //System.out.println("Edges being processed: " + index1 + "," + index2);
 

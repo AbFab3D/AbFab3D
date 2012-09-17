@@ -215,6 +215,8 @@ public class TestMeshDecimator extends TestCase {
         
         printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
 
+        assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+
         MeshDecimator md = new MeshDecimator();
         
         int count = md.processMesh(mesh, fcount/2);
