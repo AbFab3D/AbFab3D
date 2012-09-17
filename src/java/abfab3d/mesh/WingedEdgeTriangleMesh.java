@@ -248,7 +248,7 @@ public class WingedEdgeTriangleMesh {
      * @param e   The edge to collapse
      * @param pos The position of the new common vertex
      */
-    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseResult ecr) {
+    public boolean collapseEdgeOrig(Edge e, Point3d pos, EdgeCollapseResult ecr) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
         Set<Edge> removedEdges = ecr.removedEdges;
 
@@ -306,7 +306,6 @@ public class WingedEdgeTriangleMesh {
         removedEdges.add(e);
         removeDuplicateEdges(relatedEdges, removedEdges);
 
-        // Fix up dangling half edges
         HalfEdge he1;
         HalfEdgeKey key = new HalfEdgeKey();
 
@@ -372,8 +371,13 @@ public class WingedEdgeTriangleMesh {
             }
         }
 
+        // Fix up dangling half edges
         for (Edge e1 : relatedEdges) {
 
+            if (removedEdges.contains(e1)) {
+                // Don't fix up removed edges
+                continue;
+            }
             he1 = e1.getHe();
 
             if (he1 == null) {
@@ -400,16 +404,241 @@ public class WingedEdgeTriangleMesh {
                 key.setStart(he1.getEnd());
                 key.setEnd(he1.getStart());
                 HalfEdge e2 = edgeMap.get(key);
+
                 if (e2 != null) {
+                    if (e2.isRemoved()) {
+                        System.out.println("Removed edge in map, bad: ");
+                        System.out.println("EdgeMap: ");
+                        for (Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
+                            System.out.println(entry.getKey() + " val: " + entry.getValue());
+                        }
+
+                    }
+
                     if (DEBUG) System.out.println("betwin: " + he1 + " to: " + e2);
                     betwin(he1, e2);
                 } else {
                     writeOBJ(System.out);
-                    System.out.println("EdgeMap: ");
-                    for (Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
-                        System.out.println(entry.getKey() + " val: " + entry.getValue());
+                    throw new IllegalArgumentException("Can't find twin for: " + he1 + " for edge: " + e1);
+
+                }
+            }
+        }
+
+
+        return true;
+    }
+
+    /**
+     * Collapse an edge.
+     *
+     * @param e   The edge to collapse
+     * @param pos The position of the new common vertex
+     */
+    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseResult ecr) {
+        if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
+        Set<Edge> removedEdges = ecr.removedEdges;
+
+        if (!canCollapseEdge(e, pos)) {
+            return false;
+        }
+
+        Vertex commonv = e.getHe().getStart();
+        Face face1 = e.getHe().getLeft();
+        Face face2 = e.getHe().getTwin().getLeft();
+        Vertex removev = e.getHe().getEnd();
+
+        HashSet<Face> visited = new HashSet<Face>();
+        HashSet<Edge> relatedEdges = new HashSet<Edge>();
+
+        // remove deleted faces
+
+        removeHalfEdges(face1, removedEdges);
+        removeHalfEdges(face2, removedEdges);
+        removeFace(face1);
+        removeFace(face2);
+        removeEdge(e);
+        removedEdges.add(e);
+
+        Vertex new_vert = buildVertex(pos);
+        ecr.insertedVertex = new_vert;
+
+        Vertex[] remove_verts = new Vertex[] {removev, commonv};
+
+        for(int i=0; i < remove_verts.length; i++) {
+            if (DEBUG) System.out.println("Update vert refs: " + remove_verts[i]);
+            VertexEdgeIterator vei = new VertexEdgeIterator(this, remove_verts[i]);
+            while(vei.hasNext()) {
+                Edge ve = vei.next();
+
+                HalfEdge he = ve.getHe();
+
+                if (he == null || he.isRemoved()) {
+                    continue;
+                }
+
+                if (he.getStart() == remove_verts[i]) {
+                    if (DEBUG) System.out.print("   Update vertex: " + he);
+                    relatedEdges.add(he.getEdge());
+
+                    // remove old edgeMap entry
+                    HalfEdgeKey key = new HalfEdgeKey(he.getStart(), he.getEnd());
+                    edgeMap.remove(key);
+
+                    he.setStart(new_vert);
+                    new_vert.setLink(he);  // insure linkage is valid
+
+                    // readd edgeMap entry
+                    key.setStart(he.getStart());
+                    key.setEnd(he.getEnd());
+                    edgeMap.put(key, he);
+
+                    if (DEBUG) System.out.println("   to -->: " + he);
+
+                    HalfEdge twin = he.getTwin();
+
+                    if (twin != null) {
+                        if (DEBUG) System.out.print("   Update vertex: " + twin);
+
+                        // remove old edgeMap entry
+                        key = new HalfEdgeKey(twin.getStart(), twin.getEnd());
+                        edgeMap.remove(key);
+
+                        twin.setEnd(new_vert);
+
+                        // readd edgeMap entry
+                        key.setStart(twin.getStart());
+                        key.setEnd(twin.getEnd());
+                        edgeMap.put(key, twin);
+
+                        if (DEBUG) System.out.println("   to -->: " + twin);
                     }
-                    throw new IllegalArgumentException("Can't find twin for: " + he1 + " o1: " + he1.getStart().getID() + " o2: " + he1.getEnd().getID());
+                } else if (he.getEnd() == remove_verts[i]) {
+                    if (DEBUG) System.out.print("   Update vertex: " + he);
+                    relatedEdges.add(he.getEdge());
+
+                    // remove old edgeMap entry
+                    HalfEdgeKey key = new HalfEdgeKey(he.getStart(), he.getEnd());
+                    edgeMap.remove(key);
+
+                    he.setEnd(new_vert);
+                    new_vert.setLink(he);  // insure linkage is valid
+
+                    // readd edgeMap entry
+                    key.setStart(he.getStart());
+                    key.setEnd(he.getEnd());
+                    edgeMap.put(key, he);
+
+                    if (DEBUG) System.out.println("   to -->: " + he);
+
+                    HalfEdge twin = he.getTwin();
+
+                    if (twin != null) {
+                        if (DEBUG) System.out.print("   Update vertex: " + he);
+
+                        // remove old edgeMap entry
+                        key = new HalfEdgeKey(twin.getStart(), twin.getEnd());
+                        edgeMap.remove(key);
+
+                        twin.setStart(new_vert);
+
+                        // readd edgeMap entry
+                        key.setStart(twin.getStart());
+                        key.setEnd(twin.getEnd());
+                        edgeMap.put(key, twin);
+
+                        if (DEBUG) System.out.println("   to -->: " + he);
+                    }
+                }
+            }
+        }
+
+        if (DEBUG) System.out.println("Removing vertex: " + removev.getID());
+        removeVertex(removev);
+        removeVertex(commonv);
+
+        HalfEdge he = face1.getHe();
+        do {
+            relatedEdges.add(he.getEdge());
+            he = he.getNext();
+
+        } while (he != face1.getHe());
+
+        he = face2.getHe();
+        do {
+            relatedEdges.add(he.getEdge());
+            he = he.getNext();
+
+        } while (he != face2.getHe());
+
+        removeDuplicateEdges(relatedEdges, removedEdges);
+
+        HalfEdge he1;
+        HalfEdgeKey key = new HalfEdgeKey();
+
+        if (DEBUG) {
+            System.out.println("Edges Involved");
+            for (Edge edge : relatedEdges) {
+                System.out.println("   " + edge + " hc: " + edge.hashCode());
+            }
+        }
+/*
+        // TODO: Debug fixup all edges, why is this necessary?
+        System.out.println("Using all edges instead of list");
+        redges.clear();
+        for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
+            redges.add(e1);
+        }
+*/
+        // Fix up dangling half edges
+        for (Edge e1 : relatedEdges) {
+
+            if (removedEdges.contains(e1)) {
+                // Don't fix up removed edges
+                continue;
+            }
+            he1 = e1.getHe();
+
+            if (he1 == null) {
+                continue;
+            }
+
+            HalfEdge twin = he1.getTwin();
+
+            if (twin == null) {
+/*
+                key.o1 = he1.getEnd();
+                key.o2 = he1.getStart();
+                HalfEdge e2 = edgeMap.get(key);
+                if (e2 != null) {
+                    betwin(he1, e2);
+                } else {
+                    throw new IllegalArgumentException("Invalid edge");
+                }
+*/
+/*
+                key.setStart(he1.getStart());
+                key.setEnd(he1.getEnd());
+*/
+                key.setStart(he1.getEnd());
+                key.setEnd(he1.getStart());
+                HalfEdge e2 = edgeMap.get(key);
+
+                if (e2 != null) {
+                    if (e2.isRemoved()) {
+                        System.out.println("Removed edge in map, bad: ");
+                        System.out.println("EdgeMap: ");
+                        for (Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
+                            System.out.println(entry.getKey() + " val: " + entry.getValue());
+                        }
+
+                    }
+
+                    if (DEBUG) System.out.println("betwin: " + he1 + " to: " + e2);
+                    betwin(he1, e2);
+                } else {
+                    writeOBJ(System.out);
+                    throw new IllegalArgumentException("Can't find twin for: " + he1 + " for edge: " + e1);
 
                 }
             }
@@ -559,23 +788,21 @@ public class WingedEdgeTriangleMesh {
             HalfEdge twin = he1.getTwin();
 
             if (twin == null) {
-/*
-                key.setStart(he1.getStart());
-                key.setEnd(he1.getEnd());
-*/
                 key.setStart(he1.getEnd());
                 key.setEnd(he1.getStart());
                 HalfEdge e2 = edgeMap.get(key);
                 if (e2 != null) {
                     betwin(he1, e2);
                 } else {
+                    // this is ok for non-manifold.
+/*
                     writeOBJ(System.out);
                     System.out.println("EdgeMap: ");
                     for (Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
                         System.out.println(entry.getKey() + " val: " + entry.getValue());
                     }
                     throw new IllegalArgumentException("Can't find twin for: " + he1 + " o1: " + he1.getStart().getID() + " o2: " + he1.getEnd().getID());
-
+  */
                 }
             }
 
@@ -619,13 +846,26 @@ public class WingedEdgeTriangleMesh {
                         if (DEBUG) System.out.println("Duplicate detected: " + e1 + " is: " + e2);
                         // TODO: Are there any references we need to fix up?
 
+                        // Update any vertex links of edge to be deleted
                         for(Edge re : related) {
                             HalfEdge he = re.getHe();
                             HalfEdge start = he;
 
                             while(he != null) {
                                 if (he.getEdge() == e1) {
-                                    if (DEBUG) System.out.println("***Found ref: " + e1);
+                                    if (DEBUG) System.out.println("***Found ref: " + e1 + " change to: " + e2);
+                                    if (DEBUG) System.out.println("***Found ref: " + e1.getHe() + " change to: " + e2.getHe());
+                                    if (DEBUG) System.out.println("***link start: " + he.getStart().getLink());
+                                    if (DEBUG) System.out.println("***link end: " + he.getEnd().getLink());
+
+                                    if (he.getStart().getLink().isRemoved()) {
+                                        if (DEBUG) System.out.println("***Fix link ref: v: " + he.getStart() + " link: " + he.getStart().getLink() + " to: " + e2.getHe());
+                                        he.getStart().setLink(e2.getHe());
+                                    }
+                                    if (he.getEnd().getLink().isRemoved()) {
+                                        if (DEBUG) System.out.println("***Fix link ref: v: " + he.getEnd() + " link: " + he.getEnd().getLink() + " to: " + e2.getHe());
+                                        he.getEnd().setLink(e2.getHe());
+                                    }
                                     he.setEdge(e2);
                                 }
 
@@ -791,7 +1031,7 @@ public class WingedEdgeTriangleMesh {
         if (he.getStart() != p1 && he.getStart() != p2) {
             p3 = he.getStart();
         } else if (he.getEnd() != p1 && he.getEnd() != p2) {
-            p3 = he.getStart();
+            p3 = he.getEnd();
         } else {
             // Cannot find a unique third point
             return true;
@@ -866,6 +1106,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
                 edgeMap.remove(key);
 
                 he.setStart(vnew);
+                vnew.setLink(he);  // insure linkage is valid
 
                 // readd edgeMap entry
                 key.setStart(he.getStart());
@@ -874,8 +1115,12 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
                 if (DEBUG) System.out.println("   to -->: " + he);
 
-                // Recurse into next face to find other vertex
-                changeVertex(he.getTwin().getLeft(), vorig, vnew, visited, hedges);
+                HalfEdge twin = he.getTwin();
+
+                if (twin != null) {
+                    // Recurse into next face to find other vertex
+                    changeVertex(twin.getLeft(), vorig, vnew, visited, hedges);
+                }
             } else if (he.getEnd() == vorig) {
                 if (DEBUG) System.out.print("   Update vertex: " + he);
                 hedges.add(he.getEdge());
@@ -885,6 +1130,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
                 edgeMap.remove(key);
 
                 he.setEnd(vnew);
+                vnew.setLink(he);  // insure linkage is valid
 
                 // readd edgeMap entry
                 key.setStart(he.getStart());
@@ -893,8 +1139,12 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
                 if (DEBUG) System.out.println("   to -->: " + he);
 
-                // Recurse into next face to find other vertex
-                changeVertex(he.getTwin().getLeft(), vorig, vnew, visited, hedges);
+                HalfEdge twin = he.getTwin();
+
+                if (twin != null) {
+                        // Recurse into next face to find other vertex
+                    changeVertex(twin.getLeft(), vorig, vnew, visited, hedges);
+                }
             }
 
             he = he.getNext();
@@ -1021,13 +1271,24 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         for (e = edges; e != null; e = e.getNext()) {
 
             out.print("e " + e.getHe().getStart().getID() + " " + e.getHe().getEnd().getID());
+            if (e.getHe().isRemoved()) {
+                out.print("HE DEAD!");
+            }
             HalfEdge twin = e.getHe().getTwin();
-            if (twin != null)
+            if (twin != null) {
+                if (twin.isRemoved()) {
+                    out.print("TWIN DEAD!");
+                }
                 out.print("  tw: " + twin.getStart().getID() + " " + e.getHe().getTwin().getEnd().getID());
-            else
+            } else
                 out.print("  tw: null");
 
             System.out.println(" hc: " + e.hashCode());
+        }
+
+        System.out.println("EdgeMap: ");
+        for (Map.Entry<HalfEdgeKey, HalfEdge> entry : edgeMap.entrySet()) {
+            System.out.println(entry.getKey() + " val: " + entry.getValue());
         }
     }
 
@@ -1077,7 +1338,9 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
             vertices = v.getNext();
         }
 
-
+        v.setLink(null);    // unlink from structure, force npe on users
+        v.setNext(null);
+        v.setRemoved(true);
         tvertices.remove(v);
         vertexCount--;
     }
@@ -1273,7 +1536,12 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
         if (f == lastFace) {
             lastFace = prev;
-            lastFace.setNext(null);
+
+            if (lastFace == null) {
+                // just removed last face?
+            } else {
+                lastFace.setNext(null);
+            }
         } else {
             f.getNext().setPrev(f.getPrev());
         }
@@ -1338,7 +1606,12 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
         if (e == lastEdge) {
             lastEdge = prev;
-            lastEdge.setNext(null);
+
+            if (lastEdge == null) {
+                // just removed all but last edge?
+            } else {
+                lastEdge.setNext(null);
+            }
         } else {
             Edge next = e.getNext();
 
@@ -1370,9 +1643,11 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
             twin.setTwin(null);
         }
 
+        he.setRemoved(true);
+
         // TODO: causes problems, not sure why
-        //System.out.println("Removing edgeMap: " + he);
-        //edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
+        if (DEBUG) System.out.println("***Removing edgeMap: " + he);
+        edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
     }
 
     void removeHalfEdge(HalfEdge he, Set<Edge> removedEdges) {
@@ -1397,9 +1672,11 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
             twin.setTwin(null);
         }
 
+        he.setRemoved(true);
+
         // TODO: causes problems, not sure why
-        //System.out.println("Removing edgeMap: " + he);
-        //edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
+        if(DEBUG) System.out.println("Removing edgeMap: " + he);
+        edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
     }
 
     private void addFace(Face f) {
@@ -1434,7 +1711,8 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         }
     }
 
-    private HalfEdge buildHalfEdge(Vertex tail, Vertex head) {
+
+    private HalfEdge buildHalfEdge(Vertex head, Vertex tail) {
 
         HalfEdge he = new HalfEdge();
 
@@ -1445,6 +1723,20 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         return he;
 
     }
+
+/*
+    private HalfEdge buildHalfEdge(Vertex start, Vertex end) {
+
+        HalfEdge he = new HalfEdge();
+
+        he.setEnd(end);
+        if (end.getLink() == null)
+            end.setLink(he); // link the tail vertex to this edge
+        he.setStart(start);
+        return he;
+
+    }
+  */
 
     Edge buildEdge(HalfEdge he) {
 
@@ -1464,6 +1756,9 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
     void betwin(HalfEdge he1, HalfEdge he2) {
 
+        if (he1.isRemoved() || he2.isRemoved()) {
+            throw new IllegalArgumentException("Trying to betwin with a dead edge: " + he1 + " he2: " + he2);
+        }
         he1.setTwin(he2);
         he2.setTwin(he1);
 

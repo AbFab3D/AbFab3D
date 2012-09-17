@@ -35,6 +35,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Random;
 
+import static abfab3d.util.Output.printf;
+
 // Internal Imports
 
 /**
@@ -312,6 +314,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         we.writeOBJ(System.out);
 
         assertTrue("Initial Manifold", isManifold(we));
+        assertTrue("Initial Structural Check", verifyStructure(we, true));
         assertTrue("Initial Triangle Check", verifyTriangles(we));
 
         // Find edge from vertex 1 to 2
@@ -361,7 +364,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Manifold2", isManifold(we));
 
         assertTrue("Triangle Check2", verifyTriangles(we));
-        assertTrue("Structural Check", verifyStructure(we,true));
+        assertTrue("Structural Check", verifyStructure(we, true));
 
         int removed_edges = 3;
         int removed_faces = 2;
@@ -528,7 +531,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Initial Triangle Check", verifyTriangles(we));
 
         Random rand = new Random(42);
-        int collapses = 5000;
+        int collapses = 1000;
         int valid = 0;
 
         for (int i = 0; i < collapses; i++) {
@@ -614,7 +617,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Initial Triangle Check", verifyTriangles(we));
 
         Random rand = new Random(42);
-        int collapses = 500;
+        int collapses = 158;
         int valid = 0;
 
         for (int i = 0; i < collapses; i++) {
@@ -1262,7 +1265,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             if (he.getStart() != p1 && he.getStart() != p2) {
                 p3 = he.getStart();
             } else if (he.getEnd() != p1 && he.getEnd() != p2) {
-                p3 = he.getStart();
+                p3 = he.getEnd();
             } else {
                 System.out.println("Cannot find third unique point?");
                 he = faces.getHe();
@@ -1281,15 +1284,15 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             double EPS = 1e-10;
 
             if (p1.getPoint().epsilonEquals(p2.getPoint(), EPS)) {
-                System.out.println("Points equal: " + p1 + " p2: " + p2);
+                System.out.println("Points equal(1,2): " + p1 + " p2: " + p2 + " face: " + faces);
                 return false;
             }
             if (p1.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
-                System.out.println("Points equal: " + p1 + " p2: " + p3);
+                System.out.println("Points equal(1,3): " + p1 + " p2: " + p3 + " face: " + faces);
                 return false;
             }
             if (p2.getPoint().epsilonEquals(p3.getPoint(), EPS)) {
-                System.out.println("Points equal: " + p2 + " p2: " + p3);
+                System.out.println("Points equal(2,3): " + p2 + " p2: " + p3 + " face: " + faces);
                 return false;
             }
 
@@ -1333,6 +1336,9 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
                 return false;
             }
 
+            if (e.getHe().isRemoved()) {
+                System.out.println("Edge removed but used: " + e.getHe());
+            }
             HalfEdge twin = e.getHe().getTwin();
 
             if (manifold && twin == null) {
@@ -1341,6 +1347,9 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             }
 
             if (twin != null) {
+                if (twin.isRemoved()) {
+                    System.out.println("Twin Edge removed but used: " + e.getHe());
+                }
                 if (e.getHe().getStart() != twin.getEnd() ||
                     e.getHe().getEnd() != twin.getStart()) {
                     System.out.println("Invalid twins: " + e.getHe() + " twin: " + twin);
@@ -1411,14 +1420,93 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         while(vitr.hasNext()) {
             Vertex v = vitr.next();
 
+            if (v.isRemoved()) {
+                System.out.println("Vertex removed but linked: " + v);
+                return false;
+            }
             HalfEdge he = v.getLink();
+
             if (he == null) {
-                System.out.println("Vertex not linked: " + he);
+                System.out.println("Vertex not linked: " + v);
                 return false;
             }
 
             if (he.getStart() != v && he.getEnd() != v) {
                 System.out.println("Vertex linkage not bidirectional: " + v + " he: " + he);
+            }
+        }
+
+        // Check for any edges that are duplicated
+        Iterator<Edge> eitr1 = mesh.edgeIterator();
+        Iterator<Edge> eitr2 = mesh.edgeIterator();
+
+        while(eitr1.hasNext()) {
+            Edge e1 = eitr1.next();
+
+            while(eitr2.hasNext()) {
+                Edge e2 = eitr2.next();
+
+                if (e1 == e2) {
+                    continue;
+                }
+
+                HalfEdge he1 = e1.getHe();
+                HalfEdge he2 = e2.getHe();
+
+                if (he1 != null) {
+                    if (he1.getStart() == he1.getEnd()) {
+                        System.out.println("Collapsed edge detected: " + he1);
+                        return false;
+                    }
+                }
+                if (he2 != null) {
+                    if (he2.getStart() == he2.getEnd()) {
+                        System.out.println("Collapsed edge detected: " + he2);
+                        return false;
+                    }
+                }
+                if (he1 != null && he2 != null) {
+                    Vertex start1 = he1.getStart();
+                    Vertex end1 = he1.getEnd();
+                    Vertex start2 = he2.getStart();
+                    Vertex end2 = he2.getEnd();
+
+                    if ((start1 == start2 && end1 == end2) ||
+                            (start1 == end2 && end1 == start2)) {
+                        System.out.println("Duplicate detected: " + e1 + " is: " + e2);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        vitr = mesh.vertexIterator();
+
+        while(vitr.hasNext()){
+            Vertex v = vitr.next();
+
+            //printf("vertex: %s\n", v);
+
+            HalfEdge start = v.getLink();
+            HalfEdge he = start;
+            int tricount = 0;
+
+            if (start.isRemoved()) {
+                System.out.println("Using dead half edge: " + he + " hc: " + he.hashCode());
+                return false;
+            }
+
+            do{
+
+                //printf("he: %s\n", he + " hc: " + he.hashCode());
+
+                HalfEdge twin = he.getTwin();
+                he = twin.getNext();
+
+            } while(he != start && tricount++ < 20);
+
+            if (tricount >= 20) {
+                System.out.println("***Strange linking error?");
             }
         }
 
