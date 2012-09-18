@@ -86,7 +86,7 @@ public class MeshDecimator {
 
         printf("initial face count: %d\n", m_faceCount);
 
-        int count = 100; // to avoid cycling 
+        int count = m_faceCount - targetFaceCount; // to avoid cycling 
 
         while(m_faceCount > targetFaceCount && count-- > 0){
             if(!doIteration())
@@ -101,7 +101,7 @@ public class MeshDecimator {
     }
 
     /**
-       init vertices with initial quadrics 
+       init vertices with initial quadric s
      */
     protected void doInitialization(){
 
@@ -109,7 +109,7 @@ public class MeshDecimator {
             printf("MeshDecimator.doInitialization()\n");
         
         m_ecr = new EdgeCollapseResult();        
-        m_candidates = new EdgeData[10];
+        m_candidates = new EdgeData[50];
 
         m_collapseCount = 0;
 

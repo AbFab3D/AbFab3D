@@ -44,6 +44,8 @@ import javax.vecmath.Vector3d;
 import static abfab3d.util.Output.printf; 
 import static abfab3d.util.Output.fmt; 
 
+import static java.lang.System.currentTimeMillis;
+
 /**
  * Tests the functionality of MeshDecimator
  *
@@ -242,11 +244,13 @@ public class TestMeshDecimator extends TestCase {
 
     public void testFile() throws Exception {
 
-        //String fpath = "test/models/speed-knot.x3db";
-        String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
+        String fpath = "test/models/speed-knot.x3db";
+        //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
+
+        setVerticesUserData(mesh);
         MeshExporter.writeMesh(mesh,"c:/tmp/mesh_orig.x3d");
 
         int fcount = mesh.getFaceCount();
@@ -257,20 +261,24 @@ public class TestMeshDecimator extends TestCase {
 
         assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
 
+
         MeshDecimator md = new MeshDecimator();
 
-        for(int i =1; i < 10; i++){
-            
-            md.DEBUG = true;
-            mesh.DEBUG = true; 
-            printf("step: %2d\n",i);
-            md.processMesh(mesh, fcount - 2*i);
-            verifyVertices(mesh);
-            
-            MeshExporter.writeMesh(mesh,fmt("c:/tmp/mesh_%03d.x3d", i));
-            assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
-            assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
-        }
+        md.DEBUG = false;
+        mesh.DEBUG = false; 
+
+        int new_count = fcount/10;
+
+        long t0 = currentTimeMillis();
+        printf("processMesh() start\n");
+        md.processMesh(mesh, new_count);
+        printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
+        
+        MeshExporter.writeMesh(mesh,fmt("c:/tmp/mesh_dec_%06d.x3d", new_count));
+        assertTrue("verifyVertices", verifyVertices(mesh));        
+        assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
+        assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+        
     }
 
     
@@ -310,26 +318,44 @@ public class TestMeshDecimator extends TestCase {
         return we;
 
     }
+    
+    /**
+       inits all vertices user data to Integer
+     */
+    static void setVerticesUserData(WingedEdgeTriangleMesh mesh){
+        
+        int vcount = 0;
+        Vertex v = mesh.getVertices();
+        while( v != null){
+            v.setUserData(new Integer(vcount));
+            vcount++;
+            v = v.getNext();
+        }
+    }
+
     /**
        check, that all the vertices have consistent ring of faces 
      */
-    static void verifyVertices(WingedEdgeTriangleMesh mesh){
-        printf("verifyVertices()\n");
+    static boolean verifyVertices(WingedEdgeTriangleMesh mesh){
+
+        //printf("verifyVertices()\n");
         Vertex v = mesh.getVertices();
         int vcount = 0;
         while( v != null){
-            printf("v:%s: ", v);
+            //printf("v:%s: ", v);
             vcount++;
             HalfEdge start = v.getLink();
             HalfEdge he = start;
             int tricount = 0;
             
             do{                 
-                printf("[%3d %3d %3d] ", he.getEnd().getID(), he.getNext().getEnd().getID(),  he.getNext().getNext().getEnd().getID()); 
+                //printf("[%3s %3s %3s] ", he.getEnd().getUserData(), he.getNext().getEnd().getUserData(),  he.getNext().getNext().getEnd().getUserData()); 
                 
-                if(tricount++ > 20){
-                    printf("\nerror: tricount exceded\n");
-                    break;
+                if(tricount++ > 100){
+
+                    printf("verifyVertices() !!! tricount exceeded\n");
+                    
+                    return false;
                 }
 
                 HalfEdge twin = he.getTwin();
@@ -341,7 +367,9 @@ public class TestMeshDecimator extends TestCase {
             v = v.getNext();
         }
         printf("vcount: %3d\n:", vcount);
-                    
+
+        return true;
+
     }
 
     static Edge findEdge(WingedEdgeTriangleMesh mesh, int v0, int v1){

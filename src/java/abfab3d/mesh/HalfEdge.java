@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
+import static abfab3d.util.Output.fmt;
+
 /**
  * Representation of half an edge.
  * <p/>
@@ -36,6 +38,13 @@ public class HalfEdge {
     private boolean removed;
 
     public String toString() {
+        //return toString1();
+        return toString2();
+        
+    }
+
+    private String toString1(){
+        
         String s = super.toString();
         s = s.substring(s.indexOf("@"), s.length());
         String start_st = null;
@@ -54,7 +63,23 @@ public class HalfEdge {
         if (removed) {
             dead = " DEAD";
         }
-        return s + "(" + start_st + "->" + end_st + ")" + dead;
+        return s + "(" + start_st + " ->" + end_st + ")" + dead;
+    }
+
+    private String toString2(){
+
+        String ss,se;
+        if(start != null)
+            ss = String.valueOf(start.getUserData());
+        else 
+            ss = "NULL";
+        if(end != null)
+            se = String.valueOf(end.getUserData());
+        else 
+            se = "NULL";
+        
+        return fmt("[%4s->%4s]",ss, se);
+
     }
 
     public HalfEdge getTwin() {

@@ -21,21 +21,17 @@ public class Face {
     private Face prev;
 
     public String toString() {
-        String st = "";
+        String st = "[";
 
         HalfEdge the = getHe();
         HalfEdge start = the;
-
-        while(the != null) {
-            st += the.getStart().getID() + "->" + the.getEnd().getID() + ", ";
+        do {
+            st += the.getStart().getUserData() + " ";
             the = the.getNext();
+        }while(the != start);
+        st += "]";
 
-            if (the == start) {
-                break;
-            }
-        }
-
-        return "face: " + st;
+        return "f: " + st;
     }
 
     public HalfEdge getHe() {

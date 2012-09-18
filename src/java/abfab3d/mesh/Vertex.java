@@ -14,12 +14,13 @@ package abfab3d.mesh;
 import javax.vecmath.Point3d;
 
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
 
 /**
  * Vertex defined by a point in space.
  */
 public class Vertex {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     private Point3d point;
     private int id;
@@ -49,7 +50,10 @@ public class Vertex {
     }
 
     public void setID(int id) {
-        if (DEBUG) System.out.println("Setting id:  from: " + this.id + " to: " + id);
+        if (DEBUG) {
+            //printf("vertex: setID() from: %s to %s\n", this.id, id);            
+            //Thread.currentThread().dumpStack();
+        }
         this.id = id;
     }
 
@@ -83,7 +87,10 @@ public class Vertex {
             dead = " DEAD";
         }
 
-        return fmt("%3d (%10.7f,%10.7f,%10.7f%s)", id, point.x,point.y,point.z, dead);
+        //return fmt("%3d (%10.7f,%10.7f,%10.7f%s)", id, point.x,point.y,point.z, dead);
+
+        return fmt("%3s (%10.7f,%10.7f,%10.7f%s)", userData, point.x,point.y,point.z, dead);
+
     }
 
     public Object getUserData() {

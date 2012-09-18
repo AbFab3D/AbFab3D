@@ -684,6 +684,7 @@ public class WingedEdgeTriangleMesh {
         HalfEdge hR = e.getHe();
         Vertex v0 = hR.getEnd();
         Vertex v1 = hR.getStart();
+
         if(v0.isRemoved()){
             printf("!!!error!!! removing removed vertex: %s\n", v0);
             return false;
@@ -697,16 +698,18 @@ public class WingedEdgeTriangleMesh {
         HalfEdge hL = hR.getTwin();        
         Face fL = hL.getLeft();
         Face fR = hR.getLeft();
-        
+        if(DEBUG)printf("fR: %s\nfL: %s", fR, fL);
+
         HalfEdge 
             hLp = hL.getPrev(),            
+            hLpt = hLp.getTwin(),
             hLn = hL.getNext(),
             hLnt = hLn.getTwin(),
             hRn = hR.getNext(),
             hRnt = hRn.getTwin(),
             hRp = hR.getPrev(),
-            hRpt = hRp.getTwin(),
-            hLpt = hLp.getTwin();
+            hRpt = hRp.getTwin();
+
         Vertex 
             vR = hRp.getStart(),
             vL = hLn.getEnd();
@@ -715,25 +718,35 @@ public class WingedEdgeTriangleMesh {
             e1L = hLn.getEdge(),
             e0R = hRn.getEdge(),
             e0L = hLp.getEdge();
+
+        removeEdge(e);
+        removeEdge(e0R);
+        removeEdge(e0L);
+
         if(DEBUG){
-            printf("v0: %s, v1: %s, vR: %s, vL: %s\n", v0,v1, vL, vR);
-            printf("hL: %s, hR: %s\n", hL, hR);
-            printf("hLp: %s hLpt: %s\n", hLp, hLpt);
-            printf("hLn: %s hLnt: %s\n", hLn, hLnt);
-            printf("hRp: %s hRpt: %s\n", hRp, hRpt);
-            printf("hRn: %s hRnt: %s\n", hRn, hRnt);                
+            printf("v0: %s, v1: %s\n",v0,v1);
+            printf("vR: %s, vL: %s\n",vL, vR);
+            printf("hL: %s,  hR: %s\n", hL, hR);
+            printf("hLp:%s hLpt: %s\n", hLp, hLpt);
+            printf("hLn:%s hLnt: %s\n", hLn, hLnt);
+            printf("hRp:%s hRpt: %s\n", hRp, hRpt);
+            printf("hRn:%s hRnt: %s\n", hRn, hRnt);                
         }
         // link all v0 half edges to v1
 
         HalfEdge end = hLp;
         HalfEdge he = hRnt;        
         int maxcount = 30; // just in case to avoid infinite cycle
+        
+        if(DEBUG)printf("moving v0-> v1\n"); 
         do{                 
-            he.setEnd(v1);
             HalfEdge next = he.getNext();
+            if(DEBUG)printf("  before he: %s; next: %s ", he, next);             
+
+            he.setEnd(v1);
             next.setStart(v1);
-            
-            if(DEBUG)printf("move v0->v1 he: %s; next: %s\n", he, next); 
+
+            if(DEBUG)printf("   after  he: %s; next: %s\n", he, next);             
             
             if(--maxcount < 0){
                 printf("!!!!!error: maxcount exceeded!!!!!\n");
@@ -745,8 +758,8 @@ public class WingedEdgeTriangleMesh {
         // close the opposite sides of 2 removed faces 
         betwin(hRnt, hRpt);
         betwin(hLpt, hLnt);
-        hRnt.setEdge(e1R);
-        hLpt.setEdge(e1L);
+        hRnt.setEdge(e1R);  e1R.setHe(hRnt);
+        hLpt.setEdge(e1L);  e1L.setHe(hLpt);
 
         // set link to us in case if link was removed 
         vL.setLink(hLnt);
@@ -756,16 +769,13 @@ public class WingedEdgeTriangleMesh {
         e.setHe(null);
         e0L.setHe(null);
         e0R.setHe(null);
+        
         if(DEBUG)printf("removing vertex: %d\n", v0.getID());
         removeVertex(v0);
 
         removeFace(fL);
         removeFace(fR);
         
-        removeEdge(e);
-        removeEdge(e0R);
-        removeEdge(e0L);
-
         ecr.removedEdges.add(e);
         ecr.removedEdges.add(e0L);
         ecr.removedEdges.add(e0R);
@@ -1725,7 +1735,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
      */
     public void removeEdge(Edge e) {
 
-        if (DEBUG) System.out.println("removeEdge: " + e.hashCode());
+        if (DEBUG) System.out.println("removeEdge: " + e.getUserData());
 
         Edge prev = e.getPrev();
 
