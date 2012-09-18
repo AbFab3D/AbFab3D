@@ -89,9 +89,8 @@ public class MeshDecimator {
         int count = m_faceCount - targetFaceCount; // to avoid cycling 
 
         while(m_faceCount > targetFaceCount && count-- > 0){
-            if(!doIteration())
-                break;
-       } 
+            doIteration();
+        } 
         
         printf("final face count: %d\n", m_faceCount);
         int actuallFaceCount = mesh.getFaceCount();
@@ -109,7 +108,7 @@ public class MeshDecimator {
             printf("MeshDecimator.doInitialization()\n");
         
         m_ecr = new EdgeCollapseResult();        
-        m_candidates = new EdgeData[50];
+        m_candidates = new EdgeData[20];
 
         m_collapseCount = 0;
 

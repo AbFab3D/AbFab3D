@@ -660,6 +660,9 @@ public class WingedEdgeTriangleMesh {
         // third iteration of this 
 
         // how we do it? 
+        //
+        // /doc/html/svg/EdgeCollapse_Basic.svg  for all notations 
+        //
         // 1) we identify 2 faces needed to be removed 
         // on edge v0->v1 
         // 
@@ -681,6 +684,8 @@ public class WingedEdgeTriangleMesh {
         //
         // 2) link halfedges connected to v0 to v1
         
+
+        
         HalfEdge hR = e.getHe();
         Vertex v0 = hR.getEnd();
         Vertex v1 = hR.getStart();
@@ -693,7 +698,6 @@ public class WingedEdgeTriangleMesh {
             printf("!!!error!!! removing removed vertex: %s\n", v1);
             return false;
         }
-        v1.getPoint().set(pos);
         
         HalfEdge hL = hR.getTwin();        
         Face fL = hL.getLeft();
@@ -719,6 +723,33 @@ public class WingedEdgeTriangleMesh {
             e0R = hRn.getEdge(),
             e0L = hLp.getEdge();
 
+        //
+        // check if collapse amy cause surface pinch
+        // the illeagl collapse is the following: 
+        // if edge adjacent to v0 have common vertex with edge adjacent to v1 (except edges, whcih surround fR and fL )
+        // then our collapse will cause surface pinch aong such edge 
+        // 
+        HashSet v1set = new HashSet();
+        HalfEdge he = hLnt.getNext();
+
+        while(he != hRpt){
+            v1set.add(he.getEnd());
+            he = he.getTwin().getNext();
+        }
+        // v1set has all the vertices conected to v1 
+        he = hRnt.getNext();
+        while(he != hLpt){
+            if(v1set.contains(he.getEnd())){
+                if(DEBUG)printf("!!!illegal collapse. Surface pinch detected!!!\n");
+                return false;
+            }
+            he = he.getTwin().getNext();
+        }
+        //
+        // if we are here - no surface pinch occurs. Proseed with collapse.
+        //
+        v1.getPoint().set(pos);        
+
         removeEdge(e);
         removeEdge(e0R);
         removeEdge(e0L);
@@ -735,9 +766,9 @@ public class WingedEdgeTriangleMesh {
         // link all v0 half edges to v1
 
         HalfEdge end = hLp;
-        HalfEdge he = hRnt;        
-        int maxcount = 30; // just in case to avoid infinite cycle
-        
+
+        he = hRnt;        
+        int maxcount = 30; // just in case to avoid infinite cycle        
         if(DEBUG)printf("moving v0-> v1\n"); 
         do{                 
             HalfEdge next = he.getNext();

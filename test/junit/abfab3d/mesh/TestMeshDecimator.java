@@ -244,9 +244,9 @@ public class TestMeshDecimator extends TestCase {
 
     public void testFile() throws Exception {
 
-        String fpath = "test/models/speed-knot.x3db";
+        //String fpath = "test/models/speed-knot.x3db";
         //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
-        //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
+        String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
 
@@ -267,18 +267,19 @@ public class TestMeshDecimator extends TestCase {
         md.DEBUG = false;
         mesh.DEBUG = false; 
 
-        int new_count = fcount/10;
-
-        long t0 = currentTimeMillis();
-        printf("processMesh() start\n");
-        md.processMesh(mesh, new_count);
-        printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
-        
-        MeshExporter.writeMesh(mesh,fmt("c:/tmp/mesh_dec_%06d.x3d", new_count));
-        assertTrue("verifyVertices", verifyVertices(mesh));        
-        assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
-        assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
-        
+        for(int i = 0; i < 10; i++){
+            
+            fcount = fcount/2;
+            long t0 = currentTimeMillis();
+            printf("processMesh() start\n");
+            md.processMesh(mesh, fcount);
+            printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
+            fcount = mesh.getFaceCount();
+            MeshExporter.writeMesh(mesh,fmt("c:/tmp/mesh_dec_%06d.x3d", fcount));
+            assertTrue("verifyVertices", verifyVertices(mesh));        
+            assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
+            assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+        }
     }
 
     
@@ -362,7 +363,7 @@ public class TestMeshDecimator extends TestCase {
                 he = twin.getNext(); 
                 
             } while(he != start);
-            printf("\n");
+            //printf("\n");
             
             v = v.getNext();
         }
