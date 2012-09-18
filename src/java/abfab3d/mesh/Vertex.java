@@ -83,7 +83,7 @@ public class Vertex {
             dead = " DEAD";
         }
 
-        return fmt("%2d (%10.7f,%10.7f,%10.7f%s)", id, point.x,point.y,point.z, dead);
+        return fmt("%3d (%10.7f,%10.7f,%10.7f%s)", id, point.x,point.y,point.z, dead);
     }
 
     public Object getUserData() {

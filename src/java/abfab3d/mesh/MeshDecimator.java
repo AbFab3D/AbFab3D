@@ -39,7 +39,7 @@ import static abfab3d.util.Output.fmt;
  */
 public class MeshDecimator {
 
-    static final boolean DEBUG = true;
+    static boolean DEBUG = true;
 
     // mesjh we are working on 
     WingedEdgeTriangleMesh m_mesh;
@@ -232,7 +232,7 @@ public class MeshDecimator {
         m_collapseCount++;
         
         if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
-        m_faceCount -= 2;  //m_ecr.faceCount
+        m_faceCount -= m_ecr.faceCount;  //
         if(DEBUG) printf("moved vertex: %s\n", m_ecr.insertedVertex);  
         
         Set<Edge> edges = m_ecr.removedEdges;

@@ -22,13 +22,10 @@ public class Edge {
     private Object userData;
 
     public String toString() {
-
-        if (getHe() != null){
-            return "edge: " + getHe() + ":" + ((getHe().getTwin() != null) ? getHe().getTwin().toString() : "null");
-        } else {
-            return "edge [null]";
-        }
-
+        
+        String heStr = (getHe() != null) ? he.toString() : "null";         
+        //return "edge: " + getHe() + ":" + ((getHe().getTwin() != null) ? getHe().getTwin().toString() : "null");
+        return "edge [" + String.valueOf(userData) + ", " + heStr + "]";
     }
 
     /** One half edge, get the other via twin */

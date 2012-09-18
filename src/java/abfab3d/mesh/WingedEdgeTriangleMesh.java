@@ -17,6 +17,7 @@ import javax.vecmath.Vector3d;
 import java.io.PrintStream;
 import java.util.*;
 
+import static abfab3d.util.Output.printf;
 
 /**
  * 3D Triangle Mesh structure implemented using a WingedEdge datastructure.  Made for easy traversal of edges and dynamic in
@@ -26,7 +27,7 @@ import java.util.*;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh {
-    private static final boolean DEBUG = false;
+    static boolean DEBUG = false;
     private static final boolean CHECK_DEGENERATE_PER_COLLAPSE = false;
 
     private Face faces;
@@ -435,7 +436,7 @@ public class WingedEdgeTriangleMesh {
      * @param e   The edge to collapse
      * @param pos The position of the new common vertex
      */
-    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseResult ecr) {
+    public boolean collapseEdge_v2(Edge e, Point3d pos, EdgeCollapseResult ecr) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
         Set<Edge> removedEdges = ecr.removedEdges;
 
@@ -647,6 +648,136 @@ public class WingedEdgeTriangleMesh {
 
         return true;
     }
+
+
+    /**
+     * Collapse an edge.
+     *
+     * @param e   The edge to collapse
+     * @param pos The position of the new common vertex
+     */
+    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseResult ecr) {
+        // third iteration of this 
+
+        // how we do it? 
+        // 1) we identify 2 faces needed to be removed 
+        // on edge v0->v1 
+        // 
+        //                   
+        //                    V1.
+        //                .   |    . 
+        //             .      |       .
+        //         .          |          .
+        //      .       FL    |    FR       .
+        //   .                |               .
+        //    .               |           .
+        //        .           |        .
+        //            .       |     .
+        //                .   |  .
+        //                    V0....................
+        //
+        // fR- right face
+        // fL- left face       
+        //
+        // 2) link halfedges connected to v0 to v1
+        
+        HalfEdge hR = e.getHe();
+        Vertex v0 = hR.getEnd();
+        Vertex v1 = hR.getStart();
+        if(v0.isRemoved()){
+            printf("!!!error!!! removing removed vertex: %s\n", v0);
+            return false;
+        }
+        if(v1.isRemoved()){
+            printf("!!!error!!! removing removed vertex: %s\n", v1);
+            return false;
+        }
+        v1.getPoint().set(pos);
+        
+        HalfEdge hL = hR.getTwin();        
+        Face fL = hL.getLeft();
+        Face fR = hR.getLeft();
+        
+        HalfEdge 
+            hLp = hL.getPrev(),            
+            hLn = hL.getNext(),
+            hLnt = hLn.getTwin(),
+            hRn = hR.getNext(),
+            hRnt = hRn.getTwin(),
+            hRp = hR.getPrev(),
+            hRpt = hRp.getTwin(),
+            hLpt = hLp.getTwin();
+        Vertex 
+            vR = hRp.getStart(),
+            vL = hLn.getEnd();
+        Edge 
+            e1R = hRp.getEdge(),
+            e1L = hLn.getEdge(),
+            e0R = hRn.getEdge(),
+            e0L = hLp.getEdge();
+        if(DEBUG){
+            printf("v0: %s, v1: %s, vR: %s, vL: %s\n", v0,v1, vL, vR);
+            printf("hL: %s, hR: %s\n", hL, hR);
+            printf("hLp: %s hLpt: %s\n", hLp, hLpt);
+            printf("hLn: %s hLnt: %s\n", hLn, hLnt);
+            printf("hRp: %s hRpt: %s\n", hRp, hRpt);
+            printf("hRn: %s hRnt: %s\n", hRn, hRnt);                
+        }
+        // link all v0 half edges to v1
+
+        HalfEdge end = hLp;
+        HalfEdge he = hRnt;        
+        int maxcount = 30; // just in case to avoid infinite cycle
+        do{                 
+            he.setEnd(v1);
+            HalfEdge next = he.getNext();
+            next.setStart(v1);
+            
+            if(DEBUG)printf("move v0->v1 he: %s; next: %s\n", he, next); 
+            
+            if(--maxcount < 0){
+                printf("!!!!!error: maxcount exceeded!!!!!\n");
+                break;
+            }            
+            he = next.getTwin();             
+        } while(he != end);
+
+        // close the opposite sides of 2 removed faces 
+        betwin(hRnt, hRpt);
+        betwin(hLpt, hLnt);
+        hRnt.setEdge(e1R);
+        hLpt.setEdge(e1L);
+
+        // set link to us in case if link was removed 
+        vL.setLink(hLnt);
+        vR.setLink(hRnt);
+        v1.setLink(hRpt);
+
+        e.setHe(null);
+        e0L.setHe(null);
+        e0R.setHe(null);
+        if(DEBUG)printf("removing vertex: %d\n", v0.getID());
+        removeVertex(v0);
+
+        removeFace(fL);
+        removeFace(fR);
+        
+        removeEdge(e);
+        removeEdge(e0R);
+        removeEdge(e0L);
+
+        ecr.removedEdges.add(e);
+        ecr.removedEdges.add(e0L);
+        ecr.removedEdges.add(e0R);
+
+        ecr.insertedVertex = v1;
+        ecr.faceCount = 2;
+        ecr.edgeCount = 3;
+        ecr.vertexCount = 1;        
+
+        return true;        
+    }
+
 
     /**
      * Tests whether an edge collapse is legal.  Checks manifold.  Might check for face flips later.
@@ -1712,14 +1843,18 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
     }
 
 
-    private HalfEdge buildHalfEdge(Vertex head, Vertex tail) {
+    private HalfEdge buildHalfEdge(Vertex start, Vertex end) {
 
         HalfEdge he = new HalfEdge();
 
-        he.setEnd(tail);
-        if (tail.getLink() == null)
-            tail.setLink(he); // link the tail vertex to this edge
-        he.setStart(head);
+        he.setEnd(end);
+        he.setStart(start);
+
+        if (start.getLink() == null){
+            // vertex has no link - set it 
+            start.setLink(he); // link to the end vertex of this HE
+        }
+
         return he;
 
     }

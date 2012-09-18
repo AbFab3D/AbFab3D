@@ -42,6 +42,7 @@ import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 
 import static abfab3d.util.Output.printf; 
+import static abfab3d.util.Output.fmt; 
 
 /**
  * Tests the functionality of MeshDecimator
@@ -62,7 +63,7 @@ public class TestMeshDecimator extends TestCase {
      *
      * @throws Exception
      */
-    public void testPyramid() throws Exception {
+    public void _testPyramid() throws Exception {
 
         Point3d[] pyr_vert = new Point3d[] {
             new Point3d(-1., -1., -1.), 
@@ -79,11 +80,19 @@ public class TestMeshDecimator extends TestCase {
 
         Vertex[][] findex = we.getFaceIndexes();
         Vertex v = we.getVertices();
-
         while (v != null) {
             System.out.println(v);
             v = v.getNext();
         }
+        
+        Edge e1 = we.getEdges();
+        int ecount = 0;
+        while(e1 != null){
+            e1.setUserData(new Integer(ecount++));
+            e1 = e1.getNext();
+        }
+
+
         /*
         for (int i = 0; i < findex.length; i++) {
 
@@ -104,11 +113,11 @@ public class TestMeshDecimator extends TestCase {
 
         //int count = md.processMesh(we, 100);
         
-        //printf("final faces count: %d\n", count);        
 
         verifyVertices(we);
-        
-        Edge edge = findEdge(we, 1, 4);
+
+        Edge edge = findEdge(we, 4, 1);
+
         printf("\nedge to collapse: %s\n" ,edge);
         HalfEdge he = edge.getHe();
         
@@ -121,18 +130,19 @@ public class TestMeshDecimator extends TestCase {
         
         we.collapseEdge(edge, pnt, ecr);
         
-        printf("edge after: %d\n", we.getEdgeCount());  
         printf("moved vertex: %s\n", ecr.insertedVertex);          
+        printf("edge coount after collapse: %d\n", we.getEdgeCount());  
         Set<Edge> redges = ecr.removedEdges;
         printf("removed edges:(count %d) ", redges.size());
         for(Edge re : redges) {
             printf(" %s", re);
-            // remove edge from array 
+            // remove edge from array         
         }
+        printf("\n");
 
         verifyVertices(we);
         
-
+        
     }
 
     public void  _testArray() throws Exception {
@@ -230,13 +240,15 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
-    public void _testFile() throws Exception {
+    public void testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
         String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
+        MeshExporter.writeMesh(mesh,"c:/tmp/mesh_orig.x3d");
+
         int fcount = mesh.getFaceCount();
 
         printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());
@@ -246,19 +258,22 @@ public class TestMeshDecimator extends TestCase {
         assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
 
         MeshDecimator md = new MeshDecimator();
-        
-        int count = md.processMesh(mesh, fcount-1);
 
-        verifyVertices(mesh);
-
-        //verifyStructure(mesh, true);
-
-        MeshExporter.writeMesh(mesh,"c:/tmp/decimated.x3d");
-        assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
-        assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+        for(int i =1; i < 10; i++){
+            
+            md.DEBUG = true;
+            mesh.DEBUG = true; 
+            printf("step: %2d\n",i);
+            md.processMesh(mesh, fcount - 2*i);
+            verifyVertices(mesh);
+            
+            MeshExporter.writeMesh(mesh,fmt("c:/tmp/mesh_%03d.x3d", i));
+            assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
+            assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+        }
     }
 
-
+    
 
     /**
        
@@ -299,20 +314,21 @@ public class TestMeshDecimator extends TestCase {
        check, that all the vertices have consistent ring of faces 
      */
     static void verifyVertices(WingedEdgeTriangleMesh mesh){
-
+        printf("verifyVertices()\n");
         Vertex v = mesh.getVertices();
+        int vcount = 0;
         while( v != null){
-            printf("v: %s\n", v);
-
+            printf("v:%s: ", v);
+            vcount++;
             HalfEdge start = v.getLink();
             HalfEdge he = start;
             int tricount = 0;
             
             do{                 
-                printf("he: %s; %s; %s;\n", he, he.getNext(),  he.getNext().getNext()); 
+                printf("[%3d %3d %3d] ", he.getEnd().getID(), he.getNext().getEnd().getID(),  he.getNext().getNext().getEnd().getID()); 
                 
                 if(tricount++ > 20){
-                    printf("error: tricount exceded\n");
+                    printf("\nerror: tricount exceded\n");
                     break;
                 }
 
@@ -320,12 +336,17 @@ public class TestMeshDecimator extends TestCase {
                 he = twin.getNext(); 
                 
             } while(he != start);
-
+            printf("\n");
+            
             v = v.getNext();
         }
+        printf("vcount: %3d\n:", vcount);
+                    
     }
 
     static Edge findEdge(WingedEdgeTriangleMesh mesh, int v0, int v1){
+
+        printf("findEdge()\n");
 
         Vertex v = mesh.getVertices();
         Vertex vert0 = null;
@@ -338,16 +359,21 @@ public class TestMeshDecimator extends TestCase {
             }
             v = v.getNext();
         }
-
+        
+        printf("vert0: %s\n", vert0);
+        
+        
         HalfEdge start = vert0.getLink();
         HalfEdge he = start;
         int tricount = 0;
 
         do{                 
             //printf("he: %s; %s; %s;\n", he, he.getNext(),  he.getNext().getNext()); 
-            if(he.getStart().getID() == v1){ // should be getEnd()
+            if(he.getEnd().getID() == v1){ 
+                
+                printf("vert1: %s\n", he.getEnd());
                 return he.getEdge();
-
+                
             }
                 
             if(tricount++ > 20){
