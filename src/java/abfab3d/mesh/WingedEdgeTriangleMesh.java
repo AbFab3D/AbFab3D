@@ -36,7 +36,12 @@ public class WingedEdgeTriangleMesh {
     private Vertex vertices;
     private Vertex lastVertex;
 
+    //
     private HashMap<Point3d, Vertex> tvertices = new HashMap<Point3d, Vertex>();
+    
+    // work set for topology check 
+    private HashSet m_vset = new HashSet();
+    static boolean TEST_TOPOLOGY = false;
 
     private Edge edges;
     private Edge lastEdge;
@@ -682,9 +687,7 @@ public class WingedEdgeTriangleMesh {
         // fR- right face
         // fL- left face       
         //
-        // 2) link halfedges connected to v0 to v1
-        
-
+        // 2) link halfedges connected to v0 to v1                
         
         HalfEdge hR = e.getHe();
         Vertex v0 = hR.getEnd();
@@ -698,6 +701,8 @@ public class WingedEdgeTriangleMesh {
             printf("!!!error!!! removing removed vertex: %s\n", v1);
             return false;
         }
+
+        HalfEdge he;// working variable 
         
         HalfEdge hL = hR.getTwin();        
         Face fL = hL.getLeft();
@@ -714,6 +719,7 @@ public class WingedEdgeTriangleMesh {
             hRp = hR.getPrev(),
             hRpt = hRp.getTwin();
 
+
         Vertex 
             vR = hRp.getStart(),
             vL = hLn.getEnd();
@@ -729,9 +735,10 @@ public class WingedEdgeTriangleMesh {
         // if edge adjacent to v0 have common vertex with edge adjacent to v1 (except edges, whcih surround fR and fL )
         // then our collapse will cause surface pinch aong such edge 
         // 
-        HashSet v1set = new HashSet();
-        HalfEdge he = hLnt.getNext();
-
+        HashSet v1set = m_vset;
+        v1set.clear();
+        he = hLnt.getNext();
+        
         while(he != hRpt){
             v1set.add(he.getEnd());
             he = he.getTwin().getNext();
@@ -744,12 +751,17 @@ public class WingedEdgeTriangleMesh {
                 return false;
             }
             he = he.getTwin().getNext();
-        }
+        }        
+        
         //
-        // if we are here - no surface pinch occurs. Proseed with collapse.
+        // if we are here - no surface pinch occurs. 
         //
+        //  Proseed with collapse.
+        //
+        // move v1 to new position 
         v1.getPoint().set(pos);        
 
+        // remove all removable edges 
         removeEdge(e);
         removeEdge(e0R);
         removeEdge(e0L);
@@ -763,50 +775,56 @@ public class WingedEdgeTriangleMesh {
             printf("hRp:%s hRpt: %s\n", hRp, hRpt);
             printf("hRn:%s hRnt: %s\n", hRn, hRnt);                
         }
-        // link all v0 half edges to v1
-
+        //
+        // relink aldedges from v0 to v1
+        //
         HalfEdge end = hLp;
-
         he = hRnt;        
-        int maxcount = 30; // just in case to avoid infinite cycle        
+        int maxcount = 30; // to avoid infinite cycle if cycle is broken 
         if(DEBUG)printf("moving v0-> v1\n"); 
         do{                 
             HalfEdge next = he.getNext();
             if(DEBUG)printf("  before he: %s; next: %s ", he, next);             
-
             he.setEnd(v1);
             next.setStart(v1);
 
-            if(DEBUG)printf("   after  he: %s; next: %s\n", he, next);             
-            
+            if(DEBUG)printf("   after  he: %s; next: %s\n", he, next);                         
             if(--maxcount < 0){
-                printf("!!!!!error: maxcount exceeded!!!!!\n");
+                printf("!!!!!error: maxcount exceeded!!!!! for vertex: %d\n", v0.getID());
                 break;
             }            
-            he = next.getTwin();             
+            he = next.getTwin(); 
+
         } while(he != end);
 
-        // close the opposite sides of 2 removed faces 
+        //
+        // remove collapsed faces 
+        //
+        removeFace(fL);
+        removeFace(fR);
+        //
+        // close outer sides of removed faces 
         betwin(hRnt, hRpt);
         betwin(hLpt, hLnt);
         hRnt.setEdge(e1R);  e1R.setHe(hRnt);
         hLpt.setEdge(e1L);  e1L.setHe(hLpt);
-
-        // set link to us in case if link was removed 
+        //
+        // reset link to HalfEdges on modified vertices 
+        //
         vL.setLink(hLnt);
         vR.setLink(hRnt);
         v1.setLink(hRpt);
 
+        // release pointers for removed edges 
         e.setHe(null);
         e0L.setHe(null);
         e0R.setHe(null);
         
+        // remove the vertex 
         if(DEBUG)printf("removing vertex: %d\n", v0.getID());
         removeVertex(v0);
-
-        removeFace(fL);
-        removeFace(fR);
         
+        // compose result 
         ecr.removedEdges.add(e);
         ecr.removedEdges.add(e0L);
         ecr.removedEdges.add(e0R);
@@ -1491,11 +1509,15 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         v.setID(vertexCount++);
 
         //System.out.println("index: " + v.index);
-
-        tvertices.put(v.getPoint(), v);
+        // we probably don't need this map 
+        //tvertices.put(v.getPoint(), v);
 
     }
 
+    /**
+       
+       
+     */
     public void removeVertex(Vertex v) {
 
         Vertex prev = getPreviousVertex(v);
@@ -1513,7 +1535,9 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         v.setLink(null);    // unlink from structure, force npe on users
         v.setNext(null);
         v.setRemoved(true);
-        tvertices.remove(v);
+        // do we need that tvertices 
+        //tvertices.remove(v);
+        
         vertexCount--;
     }
 

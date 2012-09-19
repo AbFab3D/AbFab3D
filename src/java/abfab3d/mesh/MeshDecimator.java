@@ -58,6 +58,8 @@ public class MeshDecimator {
     // count of collapseEdge() calls
     int m_collapseCount;
 
+    static final int RANDOM_CANDIDATES_COUNT = 20; 
+
     /**
        the instance of the MeshDecimator can be reused fpor several meshes  
      */
@@ -108,7 +110,7 @@ public class MeshDecimator {
             printf("MeshDecimator.doInitialization()\n");
         
         m_ecr = new EdgeCollapseResult();        
-        m_candidates = new EdgeData[20];
+        m_candidates = new EdgeData[RANDOM_CANDIDATES_COUNT];
 
         m_collapseCount = 0;
 
@@ -219,7 +221,7 @@ public class MeshDecimator {
             //MeshExporter.writeMeshSTL(m_mesh, fmt("c:/tmp/mesh_%04d.stl",m_collapseCount));
         //} catch(Exception e){ e.printStackTrace(); 
         //}
-        exportEdge(fmt("c:/tmp/edge_%04d.stl",m_collapseCount), ed);        
+        //exportEdge(fmt("c:/tmp/edge_%04d.stl",m_collapseCount), ed);        
 
         if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecr)){
 
@@ -424,6 +426,7 @@ public class MeshDecimator {
                     return;
                 }                
             }
+            printf("!!!failed to find new random edge in getRandomEdge()\n");
         }
     }
 
