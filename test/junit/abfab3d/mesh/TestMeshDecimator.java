@@ -41,6 +41,7 @@ import org.web3d.vrml.sav.BinaryContentHandler;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
 
 import static abfab3d.util.Output.printf; 
 import static abfab3d.util.Output.fmt; 
@@ -148,6 +149,96 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
+    
+    public void testQuadric(){
+        
+        Point3d p[] = new Point3d[]{
+            new Point3d(0,0,0), // 0
+            new Point3d(1,0,0), // 1
+            new Point3d(1,1,0), // 2
+            new Point3d(0,1,0), // 3
+            new Point3d(0,0,1), // 4
+            new Point3d(1,0,1), // 5
+            new Point3d(1,1,1), // 6
+            new Point3d(0,1,1)};// 7
+        
+        int faces[][] = new int[][]{{6,5,2},{5,1,2}, {7,6,2}, {7,3,2}, {4,5,6}, {4,6,7}, {0,4,7}, {0,7,3}, {5,4,1}, {4,0,1}, {3,2,1}, {3,1,0}};
+
+        Vector4d p526 = MeshDecimator.makePlane(p[5], p[2], p[6],null);
+        Vector4d p627 = MeshDecimator.makePlane(p[6], p[2], p[7],null);
+        Vector4d p675 = MeshDecimator.makePlane(p[6], p[7], p[5],null);
+        
+        MeshDecimator.Quadric q526 = new MeshDecimator.Quadric(p[5], p[2], p[6]);
+        MeshDecimator.Quadric q627 = new MeshDecimator.Quadric(p[6], p[2], p[7]);
+        MeshDecimator.Quadric q675 = new MeshDecimator.Quadric(p[6], p[7], p[5]);
+        MeshDecimator.Quadric q734 = new MeshDecimator.Quadric(p[7], p[3], p[4]);
+        double eps = 1.0e-5;
+        MeshDecimator.Quadric q56s = new MeshDecimator.Quadric(p[5],p[6], eps);
+
+        MeshDecimator.Quadric q6 = new MeshDecimator.Quadric(q526);
+        q6.addSet(q627).addSet(q675);
+        MeshDecimator.Quadric q7 = new MeshDecimator.Quadric(q734);
+        q7.addSet(q627).addSet(q675);
+        
+        MeshDecimator.Quadric q67 = new MeshDecimator.Quadric(q6);
+        q67.addSet(q7);
+        
+        /*
+        for(int i = 0; i < p.length ; i++){
+            
+            //printf("p526t[%d]): %10.7f\n",  i, MeshDecimator.planePointDistance2(p526, p[i]));
+            //printf("p627[%d]): %10.7f\n",  i, MeshDecimator.planePointDistance2(p627, p[i]));
+            //printf("p675[%d]): %10.7f\n",  i, MeshDecimator.planePointDistance2(p675, p[i]));
+            //printf("q1(p[%d]): %10.7f\n",  i, q1.evaluate(p[i]));
+            //printf("q2(p[%d]): %10.7f\n",  i, q2.evaluate(p[i]));
+            //printf("q3(p[%d]): %10.7f\n",  i, q3.evaluate(p[i]));
+            printf(" q6(p[%d]): %10.7f\n", i,   q6.evaluate(p[i]));
+            printf(" q7(p[%d]): %10.7f\n", i, q7.evaluate(p[i]));
+            printf("q67(p[%d]): %10.7f\n\n", i, q67.evaluate(p[i]));
+
+        }
+        
+        Point3d p67 = q67.getMinimum(new Point3d());
+        printf("p67: [%10.7f %10.7f %10.7f] \n", p67.x,p67.y,p67.z);
+        
+        printf("q67(p67): %10.7f\n\n", q67.evaluate(p67));
+        Point3d pp = new Point3d(p67);
+        pp.add(new Point3d(0.,-0.1,0.1));
+        printf("q67(p67): %10.7f\n", q67.evaluate(pp));
+        
+
+        MeshDecimator.Quadric qe65 = new MeshDecimator.Quadric(q526);
+        qe65.addSet(q675);
+        
+        printf("qe65(p6): %10.7f\n", qe65.evaluate(p[6]));
+        printf("qe65(p5): %10.7f\n", qe65.evaluate(p[5]));
+        
+        printf("qe65.det:  %10.7e\n", qe65.determinant());
+        printf("q56s.det: %10.7e\n", q56s.determinant());
+        
+        Point3d p56s = q56s.getMinimum(new Point3d());
+                
+        printf("p56s: %s\n",p56s);
+        
+        qe65.addSet(q56s);
+        printf("dets: [%10.7e]\n", qe65.determinant());
+
+        Point3d p65 = qe65.getMinimum(new Point3d());
+
+        printf("p65: [%10.7f,%10.7f,%10.7f]\n", p65.x,p65.y,p65.z);
+
+        */
+        MeshDecimator.Quadric q57 = new MeshDecimator.Quadric(p[5], p[7], 1.e-05);
+        q675.addSet(q57);
+        Point3d p57 =  q675.getMinimum(new Point3d());
+        
+        printf("det: %10.7e\n", q675.determinant());
+        printf("p57: [%10.7f,%10.7f,%10.7f]\n", p57.x,p57.y,p57.z);
+        
+
+
+    }
+
     public void  _testArray() throws Exception {
         
         
@@ -243,7 +334,7 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
-    public void testFile() throws Exception {
+    public void _testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
         //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
@@ -283,7 +374,8 @@ public class TestMeshDecimator extends TestCase {
             fcount = mesh.getFaceCount();
 
             MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%06d.stl", fcount));
-
+            
+            // these things hang on large file - TODO - check this 
             //assertTrue("verifyVertices", verifyVertices(mesh));        
             //assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
             //assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
