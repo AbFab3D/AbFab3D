@@ -150,7 +150,7 @@ public class TestMeshDecimator extends TestCase {
     }
 
     
-    public void testQuadric(){
+    public void _testQuadric(){
         
         Point3d p[] = new Point3d[]{
             new Point3d(0,0,0), // 0
@@ -160,27 +160,27 @@ public class TestMeshDecimator extends TestCase {
             new Point3d(0,0,1), // 4
             new Point3d(1,0,1), // 5
             new Point3d(1,1,1), // 6
-            new Point3d(0,1,1)};// 7
+            new Point3d(0.1,1.1,1)};// 7
         
         int faces[][] = new int[][]{{6,5,2},{5,1,2}, {7,6,2}, {7,3,2}, {4,5,6}, {4,6,7}, {0,4,7}, {0,7,3}, {5,4,1}, {4,0,1}, {3,2,1}, {3,1,0}};
 
-        Vector4d p526 = MeshDecimator.makePlane(p[5], p[2], p[6],null);
-        Vector4d p627 = MeshDecimator.makePlane(p[6], p[2], p[7],null);
-        Vector4d p675 = MeshDecimator.makePlane(p[6], p[7], p[5],null);
+        Vector4d p526 = Quadric.makePlane(p[5], p[2], p[6],null);
+        Vector4d p627 = Quadric.makePlane(p[6], p[2], p[7],null);
+        Vector4d p675 = Quadric.makePlane(p[6], p[7], p[5],null);
         
-        MeshDecimator.Quadric q526 = new MeshDecimator.Quadric(p[5], p[2], p[6]);
-        MeshDecimator.Quadric q627 = new MeshDecimator.Quadric(p[6], p[2], p[7]);
-        MeshDecimator.Quadric q675 = new MeshDecimator.Quadric(p[6], p[7], p[5]);
-        MeshDecimator.Quadric q734 = new MeshDecimator.Quadric(p[7], p[3], p[4]);
+        Quadric q526 = new Quadric(p[5], p[2], p[6]);
+        Quadric q627 = new Quadric(p[6], p[2], p[7]);
+        Quadric q675 = new Quadric(p[6], p[7], p[5]);
+        Quadric q734 = new Quadric(p[7], p[3], p[4]);
         double eps = 1.0e-5;
-        MeshDecimator.Quadric q56s = new MeshDecimator.Quadric(p[5],p[6], eps);
+        Quadric q56s = new Quadric(p[5],p[6], eps);
 
-        MeshDecimator.Quadric q6 = new MeshDecimator.Quadric(q526);
+        Quadric q6 = new Quadric(q526);
         q6.addSet(q627).addSet(q675);
-        MeshDecimator.Quadric q7 = new MeshDecimator.Quadric(q734);
+        Quadric q7 = new Quadric(q734);
         q7.addSet(q627).addSet(q675);
         
-        MeshDecimator.Quadric q67 = new MeshDecimator.Quadric(q6);
+        Quadric q67 = new Quadric(q6);
         q67.addSet(q7);
         
         /*
@@ -207,7 +207,7 @@ public class TestMeshDecimator extends TestCase {
         printf("q67(p67): %10.7f\n", q67.evaluate(pp));
         
 
-        MeshDecimator.Quadric qe65 = new MeshDecimator.Quadric(q526);
+        Quadric qe65 = new Quadric(q526);
         qe65.addSet(q675);
         
         printf("qe65(p6): %10.7f\n", qe65.evaluate(p[6]));
@@ -227,14 +227,23 @@ public class TestMeshDecimator extends TestCase {
 
         printf("p65: [%10.7f,%10.7f,%10.7f]\n", p65.x,p65.y,p65.z);
 
-        */
-        MeshDecimator.Quadric q57 = new MeshDecimator.Quadric(p[5], p[7], 1.e-05);
+        
+        Quadric q57 = new Quadric(p[5], p[7], 1.e-05);
         q675.addSet(q57);
         Point3d p57 =  q675.getMinimum(new Point3d());
         
         printf("det: %10.7e\n", q675.determinant());
-        printf("p57: [%10.7f,%10.7f,%10.7f]\n", p57.x,p57.y,p57.z);
-        
+        printf("p57: [%18.15f,%18.15f,%18.15f]\n", p57.x,p57.y,p57.z);
+        */
+
+        Quadric q713 = new Quadric(p[7], p[1], p[3]);
+        printf("det713: %10.7e\n", q713.determinant());
+        Quadric q71 = new Quadric(p[7], p[1], 1.e-05);
+        printf("det 71: %10.7e\n", q71.determinant());
+        q713.addSet(q71);
+        printf("det 713: %10.7e\n", q713.determinant());
+        Point3d p713 = q713.getMinimum(new Point3d());
+        printf("p 713: [ %18.15f, %18.15f, %18.15f] \n", p713.x,p713.y,p713.z);
 
 
     }
@@ -334,12 +343,14 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
-    public void _testFile() throws Exception {
+    public void testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
         //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
-        String fpath = "c:/tmp/text_iso_2.stl";
+        //String fpath = "c:/tmp/text_iso_2.stl";
+        String fpath = "c:/tmp/rtc_v3_04.stl";
+
         
         long t0 = currentTimeMillis();
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
@@ -363,9 +374,9 @@ public class TestMeshDecimator extends TestCase {
         md.DEBUG = false;
         mesh.DEBUG = false; 
 
-        for(int i = 0; i < 1; i++){
+        for(int i = 0; i < 6; i++){
             
-            fcount = fcount/10;
+            fcount = fcount/2;
             t0 = currentTimeMillis();
             printf("processMesh() start\n");
             md.processMesh(mesh, fcount);
@@ -545,9 +556,7 @@ public class TestMeshDecimator extends TestCase {
             
         } while(he != start);
 
-        return null;
-        
+        return null;        
     }
-
 }
 
