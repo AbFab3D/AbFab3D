@@ -459,7 +459,7 @@ public class MeshDecimator {
         Quadric  // scratch quadric for calculations 
             m_q0 = new Quadric();
 
-        double m_midEdgeQuadricWeight = 1.e-5;
+        double m_midEdgeQuadricWeight = 1.e-3;
         double m_edgeLengthWeight = 1.e-2;
         double m_quadricWeight = 1;
 

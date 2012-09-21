@@ -86,26 +86,30 @@ public class STLReader  {
         int fcount = readInt(data);      
 
         printf("fcount: %d\n",fcount);
+        int faces = 0;
 
         Vector3d 
             v0 = new Vector3d(),
             v1 = new Vector3d(),
             v2 = new Vector3d();
-
-        for(int f = 0; f < fcount; f++){
-            // ignore normal 
-            data.skip(3*4);
-            readVector3Df(data, v0);                
-            readVector3Df(data, v1);                
-            readVector3Df(data, v2);                
-            if(out != null)
-                out.addTri(v0,v1, v2);
-
-            data.skip(2); // unsused stuff 
-
+        //for(int f = 0; f < fcount; f++){
+        try {
+            while(true) {
+                // ignore normal 
+                data.skip(3*4);
+                readVector3Df(data, v0);                
+                readVector3Df(data, v1);                
+                readVector3Df(data, v2);                
+                if(out != null)
+                    out.addTri(v0,v1, v2);
+                
+                data.skip(2); // unsused stuff 
+                faces++;                
+            }
+        } catch(Exception e){
+            data.close();
+            printf("faces read: %d\n", faces);
         }
-        
-        data.close();
         
         printf("STLReader.read() done in %d ms\n", (currentTimeMillis() - t0));
         
