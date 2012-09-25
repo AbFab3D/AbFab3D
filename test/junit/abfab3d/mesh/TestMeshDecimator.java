@@ -350,6 +350,7 @@ public class TestMeshDecimator extends TestCase {
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         //String fpath = "c:/tmp/text_iso_2.stl";
         String fpath = "c:/tmp/sf31.stl";
+        //String fpath = "c:/tmp/sf21.stl";
         //String fpath = "c:/tmp/rtc_v3_04.stl";
 
         
