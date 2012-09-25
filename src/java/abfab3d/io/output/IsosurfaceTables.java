@@ -574,7 +574,7 @@ public class IsosurfaceTables {
         {} 
     }; //triTable_v2
 
-    static public final int triTable[][] = triTable_v1;
+    static public final int triTable[][] = triTable_v2;
 
 
 }

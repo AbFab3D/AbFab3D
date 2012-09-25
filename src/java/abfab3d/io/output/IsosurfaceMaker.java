@@ -160,22 +160,23 @@ public class IsosurfaceMaker {
                     int base = ix  + iy * m_nx; // offset of point (x,y)
                     int base1 = base + m_nx;     // offset of point (x, y+1)
 
-                    cell.val[0] = slice0.data[base];
-                    cell.val[1] = slice0.data[base + 1];
-                    cell.val[2] = slice1.data[base + 1];
-                    cell.val[3] = slice1.data[base];
-                    cell.val[4] = slice0.data[base1];
-                    cell.val[5] = slice0.data[base1 + 1];
-                    cell.val[6] = slice1.data[base1 + 1];
-                    cell.val[7] = slice1.data[base1];
+                    cell.val[0] = slice0.data[base] - m_isoValue;
+                    cell.val[1] = slice0.data[base + 1] - m_isoValue;
+                    cell.val[2] = slice1.data[base + 1] - m_isoValue;
+                    cell.val[3] = slice1.data[base] - m_isoValue;
+                    cell.val[4] = slice0.data[base1] - m_isoValue;
+                    cell.val[5] = slice0.data[base1 + 1] - m_isoValue;
+                    cell.val[6] = slice1.data[base1 + 1] - m_isoValue;
+                    cell.val[7] = slice1.data[base1] - m_isoValue;
+                    shiftFromZero(cell.val);
 
                     switch(m_algorithm){
                     default:
                     case CUBES:
-                        polygoniseCube(cell, m_isoValue, triangles, tcollector);
+                        polygonizeCube(cell, triangles, tcollector);
                         break;
                     case TETRAHEDRA:
-                        polygoniseCube_tetra(cell, m_isoValue, triangles, tcollector);
+                        polygonizeCube_tetra(cell, 0., triangles, tcollector);
                         break;
                     }                    
                 }// ix
@@ -189,18 +190,33 @@ public class IsosurfaceMaker {
         }  // for(iz...           
     }
 
-   
-    public static void polygoniseCube(Cell g, double iso, Vector3d triangles[], TriangleCollector ggen){
+    static final double ISOEPS = 1.e-2;
+
+    /**
+       shifts values close to zeto to EPS distance above zero 
+     */
+    public static void shiftFromZero(double v[]){
+
+        for(int i = 0; i < v.length; i++){
+            if(abs(v[i]) < ISOEPS){
+                v[i] = ISOEPS; 
+            }
+        }        
+    }
+    
+    public static void polygonizeCube(Cell g, Vector3d triangles[], TriangleCollector ggen){
 
         int cubeindex = 0;
-        if (g.val[0] < iso) cubeindex |= 1;
-        if (g.val[1] < iso) cubeindex |= 2;
-        if (g.val[2] < iso) cubeindex |= 4;
-        if (g.val[3] < iso) cubeindex |= 8;
-        if (g.val[4] < iso) cubeindex |= 16;
-        if (g.val[5] < iso) cubeindex |= 32;
-        if (g.val[6] < iso) cubeindex |= 64;
-        if (g.val[7] < iso) cubeindex |= 128;
+        double iso = 0.0;
+
+        if (g.val[0] < 0) cubeindex |= 1;
+        if (g.val[1] < 0) cubeindex |= 2;
+        if (g.val[2] < 0) cubeindex |= 4;
+        if (g.val[3] < 0) cubeindex |= 8;
+        if (g.val[4] < 0) cubeindex |= 16;
+        if (g.val[5] < 0) cubeindex |= 32;
+        if (g.val[6] < 0) cubeindex |= 64;
+        if (g.val[7] < 0) cubeindex |= 128;
 
         /* Cube is entirely in/out of the surface */
         if (edgeTable[cubeindex] == 0)
@@ -305,16 +321,16 @@ public class IsosurfaceMaker {
                3+--------2---------+2
                                    
     */
-    public static void polygoniseCube_tetra(Cell cell, double iso, Vector3d triangles[], TriangleCollector ggen){
+    public static void polygonizeCube_tetra(Cell cell, double iso, Vector3d triangles[], TriangleCollector ggen){
 
         int count;
 
-        count = polygoniseTetra(cell, iso, 0,2,3,7, triangles); if(count > 0) addTri(ggen, triangles, count);
-        count = polygoniseTetra(cell, iso, 0,6,2,7, triangles); if(count > 0) addTri(ggen, triangles, count);
-        count = polygoniseTetra(cell, iso, 0,4,6,7, triangles); if(count > 0) addTri(ggen, triangles, count);
-        count = polygoniseTetra(cell, iso, 0,6,1,2, triangles); if(count > 0) addTri(ggen, triangles, count);
-        count = polygoniseTetra(cell, iso, 0,1,6,4, triangles); if(count > 0) addTri(ggen, triangles, count);
-        count = polygoniseTetra(cell, iso, 5,6,1,4, triangles); if(count > 0) addTri(ggen, triangles, count);
+        count = polygonizeTetra(cell, iso, 0,2,3,7, triangles); if(count > 0) addTri(ggen, triangles, count);
+        count = polygonizeTetra(cell, iso, 0,6,2,7, triangles); if(count > 0) addTri(ggen, triangles, count);
+        count = polygonizeTetra(cell, iso, 0,4,6,7, triangles); if(count > 0) addTri(ggen, triangles, count);
+        count = polygonizeTetra(cell, iso, 0,6,1,2, triangles); if(count > 0) addTri(ggen, triangles, count);
+        count = polygonizeTetra(cell, iso, 0,1,6,4, triangles); if(count > 0) addTri(ggen, triangles, count);
+        count = polygonizeTetra(cell, iso, 5,6,1,4, triangles); if(count > 0) addTri(ggen, triangles, count);
         
     }
 
@@ -328,7 +344,7 @@ public class IsosurfaceMaker {
        this is to make positive valued area looks solid from outside 
               
     */
-    public static int polygoniseTetra(Cell g, double iso,int v0,int v1,int v2,int v3,Vector3d tri[]) {
+    public static int polygonizeTetra(Cell g, double iso,int v0,int v1,int v2,int v3,Vector3d tri[]) {
         
         /*
           Determine which of the 16 cases we have given which vertices

@@ -467,7 +467,7 @@ System.out.println("Creating Regions Exporter");
         int ny = grid.getHeight();
         int nz = grid.getDepth();
         double vs = grid.getVoxelSize();
-        int smoothSteps = 0;
+        int smoothSteps = 2;
 
         double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
         double ibounds[] = extendBounds(gbounds, -vs/2);
