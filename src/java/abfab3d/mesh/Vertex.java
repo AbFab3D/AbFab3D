@@ -28,7 +28,8 @@ public class Vertex {
     private HalfEdge link; //associate each vertex with tail of _some_ edge
 
     private Vertex next;  // List of all vertices
-    
+    private Vertex prev;
+
     private Object userData;
 
     // TODO: Debug var, remove
@@ -79,6 +80,14 @@ public class Vertex {
 
     public void setNext(Vertex next) {
         this.next = next;
+    }
+
+    public Vertex getPrev() {
+        return prev;
+    }
+
+    public void setPrev(Vertex prev) {
+        this.prev = prev;
     }
 
     public String toString(){

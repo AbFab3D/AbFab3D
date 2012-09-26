@@ -1495,15 +1495,12 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         //System.out.println("addVertex: " + v.p);
         // is the list empty?
         if (vertices == null) {
-
             lastVertex = v;
             vertices = v;
-
         } else {
-
             lastVertex.setNext(v);
+            v.setPrev(lastVertex);
             lastVertex = v;
-
         }
 
         v.setID(vertexCount++);
@@ -1514,30 +1511,37 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
     }
 
-    /**
-       
-       
-     */
     public void removeVertex(Vertex v) {
+        if (DEBUG) {
+            System.out.println("Removing vertex: " + v + " hc: " + v.hashCode());
+        }
+        Vertex prev = v.getPrev();
 
-        Vertex prev = getPreviousVertex(v);
         if (prev != null) {
             prev.setNext(v.getNext());
-            if (v == lastVertex) {
-                lastVertex = prev;
+        } else {
+            // updating head
+            vertices = v.getNext();
+        }
+
+        if (v == lastVertex) {
+            lastVertex = prev;
+
+            if (lastVertex == null) {
+                // just removed last face?
+            } else {
                 lastVertex.setNext(null);
             }
         } else {
-            // removed head
-            vertices = v.getNext();
+            v.getNext().setPrev(v.getPrev());
         }
 
         v.setLink(null);    // unlink from structure, force npe on users
         v.setNext(null);
         v.setRemoved(true);
-        // do we need that tvertices 
+        // do we need that tvertices
         //tvertices.remove(v);
-        
+
         vertexCount--;
     }
 
@@ -1698,18 +1702,6 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
     }
 
-
-    public Vertex getPreviousVertex(Vertex vert) {
-
-        for (Vertex v = vertices; v != null; v = v.getNext()) {
-
-            if (v.getNext() == vert)
-                return v;
-        }
-
-        return null;
-
-    }
 
     /**
      * Remove a face from the mesh.  This method does not remove any edges or vertices.
