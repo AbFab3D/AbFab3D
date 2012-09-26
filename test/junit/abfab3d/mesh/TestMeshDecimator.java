@@ -379,9 +379,9 @@ public class TestMeshDecimator extends TestCase {
         md.DEBUG = false;
         mesh.DEBUG = false; 
 
-        for(int i = 0; i < 8; i++){
+        for(int i = 0; i < 2; i++){
             
-            fcount = fcount/2;
+            fcount = fcount/8;
             t0 = currentTimeMillis();
             printf("processMesh() start\n");
             md.processMesh(mesh, fcount);
@@ -398,7 +398,6 @@ public class TestMeshDecimator extends TestCase {
             //printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
         }
     }
-
     
 
     /**

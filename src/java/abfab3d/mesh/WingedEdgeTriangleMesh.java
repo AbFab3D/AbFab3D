@@ -41,6 +41,8 @@ public class WingedEdgeTriangleMesh {
     
     // work set for topology check 
     private HashSet m_vset = new HashSet();
+    // checker of face flip 
+    protected FaceFlipChecker m_faceFlipChecker = new FaceFlipChecker(); 
     static boolean TEST_TOPOLOGY = false;
 
     private Edge edges;
@@ -733,9 +735,9 @@ public class WingedEdgeTriangleMesh {
             e0L = hLp.getEdge();
 
         //
-        // check if collapse amy cause surface pinch
-        // the illeagl collapse is the following: 
-        // if edge adjacent to v0 have common vertex with edge adjacent to v1 (except edges, whcih surround fR and fL )
+        // check if collapse may cause surface pinch
+        // the illeagal collapse is the following: 
+        // if edge adjacent to v0 have common vertex with edge adjacent to v1 (except edges, which surround fR and fL )
         // then our collapse will cause surface pinch aong such edge 
         // 
         HashSet v1set = m_vset;
@@ -751,6 +753,7 @@ public class WingedEdgeTriangleMesh {
         while(he != hLpt){
             if(v1set.contains(he.getEnd())){
                 if(DEBUG)printf("!!!illegal collapse. Surface pinch detected!!!\n");
+                ecr.returnCode = EdgeCollapseResult.FAILURE_SURFACE_PINCH;
                 return false;
             }
             he = he.getTwin().getNext();
@@ -758,6 +761,38 @@ public class WingedEdgeTriangleMesh {
         
         //
         // if we are here - no surface pinch occurs. 
+        // check if face flip occur 
+        // face flip means, that face normals change direction to opposite after vertex was moved
+
+        // check face flip of faces connected to v1 
+        he = hLnt;
+        Point3d pv1 = v1.getPoint();  
+        while(he != hRp){
+            Point3d p0 = he.getStart().getPoint();
+            Point3d p1 = he.getNext().getEnd().getPoint();
+            if(m_faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)){
+                ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
+                return false;                
+            }
+            he = he.getNext().getTwin();
+        }
+        
+        // check face flip of faces connected to v0 
+        he = hRnt;
+        Point3d pv0 = v0.getPoint();  
+        while(he != hLp){
+
+            Point3d p0 = he.getStart().getPoint();
+            Point3d p1 = he.getNext().getEnd().getPoint();
+            if(m_faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)){
+                ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
+                return false;                
+            }
+            he = he.getNext().getTwin();
+        }
+        
+        
+
         //
         //  Proseed with collapse.
         //
@@ -779,7 +814,7 @@ public class WingedEdgeTriangleMesh {
             printf("hRn:%s hRnt: %s\n", hRn, hRnt);                
         }
         //
-        // relink aldedges from v0 to v1
+        // relink all edges from v0 to v1
         //
         HalfEdge end = hLp;
         he = hRnt;        
@@ -818,7 +853,7 @@ public class WingedEdgeTriangleMesh {
         vR.setLink(hRnt);
         v1.setLink(hRpt);
 
-        // release pointers for removed edges 
+        // release pointers to removed edges 
         e.setHe(null);
         e0L.setHe(null);
         e0R.setHe(null);
@@ -836,10 +871,12 @@ public class WingedEdgeTriangleMesh {
         ecr.faceCount = 2;
         ecr.edgeCount = 3;
         ecr.vertexCount = 1;        
+        ecr.returnCode = EdgeCollapseResult.SUCCESS;
 
         return true;        
     }
 
+    
 
     /**
      * Tests whether an edge collapse is legal.  Checks manifold.  Might check for face flips later.
@@ -2012,4 +2049,50 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
     public Vertex findVertex(Point3d v) {
         return (Vertex) tvertices.get(v);
     }
+
+    
+    /**
+       class to check face Flip 
+   
+     */
+    public static class FaceFlipChecker {
+
+        Vector3d 
+            // p0 = new Vector3d(), // we move origin to p0
+            m_p1 = new Vector3d(),
+            m_v0 = new Vector3d(),
+            m_v1 = new Vector3d(), 
+            m_n0 = new Vector3d(), 
+            m_n1 = new Vector3d();   
+
+        /**
+           return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal 
+           return false otherwise
+        */
+        public boolean checkFaceFlip(Point3d p0, Point3d p1, Point3d v0, Point3d v1){
+            
+            m_p1.set(p1);
+            m_v0.set(v0);
+            m_v1.set(v1);
+
+            m_p1.sub(p0);
+            m_v0.sub(p0);
+            m_v1.sub(p0);
+            
+            m_n0.cross(m_p1, m_v0); 
+            
+            m_n1.cross(m_p1, m_v1);
+
+            double dot = m_n0.dot(m_n1);
+        
+            if(dot < 0.) // face flip 
+                return true;
+            else 
+                return false;
+        }
+        
+    }// class FaceFlipChecker 
+
+
+
 }
