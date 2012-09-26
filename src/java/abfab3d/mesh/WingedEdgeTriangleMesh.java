@@ -254,9 +254,10 @@ public class WingedEdgeTriangleMesh {
      * @param e   The edge to collapse
      * @param pos The position of the new common vertex
      */
+    /*
     public boolean collapseEdgeOrig(Edge e, Point3d pos, EdgeCollapseResult ecr) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
-        Set<Edge> removedEdges = ecr.removedEdges;
+        ArrayList<Edge> removedEdges = ecr.removedEdges;
 
         if (!canCollapseEdge(e, pos)) {
             return false;
@@ -321,14 +322,14 @@ public class WingedEdgeTriangleMesh {
                 System.out.println("   " + edge + " hc: " + edge.hashCode());
             }
         }
-/*
+
         // TODO: Debug fixup all edges, why is this necessary?
-        System.out.println("Using all edges instead of list");
-        redges.clear();
-        for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
-            redges.add(e1);
-        }
-*/
+//        System.out.println("Using all edges instead of list");
+//        redges.clear();
+//        for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
+//            redges.add(e1);
+//        }
+
         if (CHECK_DEGENERATE_PER_COLLAPSE) {
             if (DEBUG) System.out.println("Checking for degenerate faces:");
             // find and remove any degenerate faces
@@ -393,20 +394,20 @@ public class WingedEdgeTriangleMesh {
             HalfEdge twin = he1.getTwin();
 
             if (twin == null) {
-/*
-                key.o1 = he1.getEnd();
-                key.o2 = he1.getStart();
-                HalfEdge e2 = edgeMap.get(key);
-                if (e2 != null) {
-                    betwin(he1, e2);
-                } else {
-                    throw new IllegalArgumentException("Invalid edge");
-                }
-*/
-/*
-                key.setStart(he1.getStart());
-                key.setEnd(he1.getEnd());
-*/
+
+//                key.o1 = he1.getEnd();
+//                key.o2 = he1.getStart();
+//                HalfEdge e2 = edgeMap.get(key);
+//                if (e2 != null) {
+//                    betwin(he1, e2);
+//                } else {
+//                    throw new IllegalArgumentException("Invalid edge");
+//                }
+
+
+//                key.setStart(he1.getStart());
+//                key.setEnd(he1.getEnd());
+
                 key.setStart(he1.getEnd());
                 key.setEnd(he1.getStart());
                 HalfEdge e2 = edgeMap.get(key);
@@ -434,6 +435,7 @@ public class WingedEdgeTriangleMesh {
 
         return true;
     }
+    */
 
     /**
      * Collapse an edge.
@@ -441,9 +443,10 @@ public class WingedEdgeTriangleMesh {
      * @param e   The edge to collapse
      * @param pos The position of the new common vertex
      */
+    /*
     public boolean collapseEdge_v2(Edge e, Point3d pos, EdgeCollapseResult ecr) {
         if (DEBUG) System.out.println("Collapsing edge: " + e + " to pos: " + pos);
-        Set<Edge> removedEdges = ecr.removedEdges;
+        ArrayList<Edge> removedEdges = ecr.removedEdges;
 
         if (!canCollapseEdge(e, pos)) {
             return false;
@@ -588,14 +591,14 @@ public class WingedEdgeTriangleMesh {
                 System.out.println("   " + edge + " hc: " + edge.hashCode());
             }
         }
-/*
+
         // TODO: Debug fixup all edges, why is this necessary?
-        System.out.println("Using all edges instead of list");
-        redges.clear();
-        for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
-            redges.add(e1);
-        }
-*/
+//        System.out.println("Using all edges instead of list");
+//        redges.clear();
+//        for(Edge e1 = edges; e1 != null; e1 = e1.getNext()) {
+//            redges.add(e1);
+//        }
+
         // Fix up dangling half edges
         for (Edge e1 : relatedEdges) {
 
@@ -612,20 +615,20 @@ public class WingedEdgeTriangleMesh {
             HalfEdge twin = he1.getTwin();
 
             if (twin == null) {
-/*
-                key.o1 = he1.getEnd();
-                key.o2 = he1.getStart();
-                HalfEdge e2 = edgeMap.get(key);
-                if (e2 != null) {
-                    betwin(he1, e2);
-                } else {
-                    throw new IllegalArgumentException("Invalid edge");
-                }
-*/
-/*
-                key.setStart(he1.getStart());
-                key.setEnd(he1.getEnd());
-*/
+
+//                key.o1 = he1.getEnd();
+//                key.o2 = he1.getStart();
+//                HalfEdge e2 = edgeMap.get(key);
+//                if (e2 != null) {
+//                    betwin(he1, e2);
+//                } else {
+//                    throw new IllegalArgumentException("Invalid edge");
+//                }
+
+
+//                key.setStart(he1.getStart());
+//                key.setEnd(he1.getEnd());
+
                 key.setStart(he1.getEnd());
                 key.setEnd(he1.getStart());
                 HalfEdge e2 = edgeMap.get(key);
@@ -653,7 +656,7 @@ public class WingedEdgeTriangleMesh {
 
         return true;
     }
-
+    */
 
     /**
      * Collapse an edge.

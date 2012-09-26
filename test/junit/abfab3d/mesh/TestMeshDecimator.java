@@ -136,7 +136,7 @@ public class TestMeshDecimator extends TestCase {
         
         printf("moved vertex: %s\n", ecr.insertedVertex);          
         printf("edge coount after collapse: %d\n", we.getEdgeCount());  
-        Set<Edge> redges = ecr.removedEdges;
+        ArrayList<Edge> redges = ecr.removedEdges;
         printf("removed edges:(count %d) ", redges.size());
         for(Edge re : redges) {
             printf(" %s", re);
@@ -350,8 +350,8 @@ public class TestMeshDecimator extends TestCase {
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         //String fpath = "c:/tmp/text_iso_2.stl";
         //String fpath = "c:/tmp/sf31.stl";
-        //String fpath = "c:/tmp/leaf_01.stl";
-        String fpath = "c:/tmp/leaf_01_0832206.stl";
+        String fpath = "c:/tmp/leaf_01.stl";
+        //String fpath = "c:/tmp/leaf_01_0832206.stl";
         //String fpath = "c:/tmp/sf21.stl";
         //String fpath = "c:/tmp/rtc_v3_04.stl";
         

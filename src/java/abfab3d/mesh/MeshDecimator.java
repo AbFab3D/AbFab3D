@@ -14,6 +14,7 @@ package abfab3d.mesh;
 import java.util.Random;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.ArrayList;
 
 
 import javax.vecmath.Matrix3d;
@@ -93,7 +94,7 @@ public class MeshDecimator {
     }
 
     /**
-       the instance of the MeshDecimator can be reused fpor several meshes  
+       the instance of the MeshDecimator can be reused for several meshes  
      */
     public MeshDecimator(){
         
@@ -128,7 +129,7 @@ public class MeshDecimator {
         while(m_faceCount > targetFaceCount && count < targetCount ){
             doIteration();
             count += 2;
-            if(m_faceCount % 1000 == 0){
+            if(m_faceCount % 100000 == 0){
                 long t1 = System.currentTimeMillis();
                 
                 double timeSinceStart = (double)(t1 - t0)/1000;
@@ -268,7 +269,8 @@ public class MeshDecimator {
         if(DEBUG) printf("moved vertex: %s\n", m_ecr.insertedVertex);  
         m_ecr.insertedVertex.setUserData(ed.vertexUserData);
 
-        Set<Edge> edges = m_ecr.removedEdges;
+        ArrayList<Edge> edges = m_ecr.removedEdges;
+
         if(DEBUG) printf("removed edges: ");
         for(Edge edge : edges) {
             Integer index = (Integer)edge.getUserData();

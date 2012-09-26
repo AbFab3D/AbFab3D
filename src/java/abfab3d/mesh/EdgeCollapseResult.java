@@ -11,8 +11,9 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-import java.util.Set;
-import java.util.HashSet;
+//import java.util.Set;
+//import java.util.HashSet;
+import java.util.ArrayList;
 import javax.vecmath.Point3d;
 
 /**
@@ -21,7 +22,7 @@ import javax.vecmath.Point3d;
 public class EdgeCollapseResult {
     
     //edges removed during collapse 
-    public Set<Edge> removedEdges = new HashSet<Edge>(); 
+    public ArrayList<Edge> removedEdges = new ArrayList<Edge>(); 
 
     // new vertex created during collapse 
     public Vertex insertedVertex;  
