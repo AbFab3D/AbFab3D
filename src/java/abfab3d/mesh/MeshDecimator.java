@@ -60,7 +60,7 @@ public class MeshDecimator {
     // count of collapseEdge() calls
     int m_collapseCount;
 
-    static final int RANDOM_CANDIDATES_COUNT = 20; 
+    static final int RANDOM_CANDIDATES_COUNT = 10; 
 
     //
     // object, which calculates errors and new vertex placement 
@@ -120,10 +120,27 @@ public class MeshDecimator {
 
         printf("initial face count: %d\n", m_faceCount);
 
-        int count = m_faceCount - targetFaceCount; // to avoid cycling 
-
-        while(m_faceCount > targetFaceCount && count-- > 0){
+        int targetCount = m_faceCount - targetFaceCount; // to avoid cycling 
+        int count = 0;
+        int f0 = m_faceCount;
+        long t0 = System.currentTimeMillis();
+        long time0 = t0;
+        while(m_faceCount > targetFaceCount && count < targetCount ){
             doIteration();
+            count += 2;
+            if(m_faceCount % 1000 == 0){
+                long t1 = System.currentTimeMillis();
+                
+                double timeSinceStart = (double)(t1 - t0)/1000;
+                double coeff = timeSinceStart/count;
+                double totalTime = (coeff*targetCount);
+                double timeToFinish = totalTime - timeSinceStart;
+                int f1 = m_faceCount;
+                double fps = 1000.*(f0-f1)/(t1-time0);
+                printf("face count: %7d time to finish: %5.0f sec, total time: %5.0f, fps: %5.0f \n", m_faceCount, timeToFinish, totalTime, fps );
+                f0 = f1;
+                time0 = t1;
+            }
         } 
         
         printf("final face count: %d\n", m_faceCount);
@@ -496,23 +513,34 @@ public class MeshDecimator {
             Quadric q1 = (Quadric)v1.getUserData();
             
             m_q0.set(q0);
-            m_q0.addSet(q1);
-            m_q0.addSet(new Quadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight));
+            m_q0.addSet(q1);           
+            Quadric midEdge = new Quadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight);
+            m_q0.addSet(midEdge);
             
             // add small quadric centered at mid edge 
             //m_q.add(q1);
 
             if(ed.point == null)
                 ed.point = new Point3d();
-            
-            m_q0.getMinimum(ed.point);
+            try {
+                m_q0.getMinimum(ed.point);
+                double quadricError = m_quadricWeight * m_q0.evaluate(ed.point);
+                double edgeError = m_edgeLengthWeight * v0.getPoint().distanceSquared(v1.getPoint());
 
-            double quadricError = m_quadricWeight * m_q0.evaluate(ed.point);
-            double edgeError = m_edgeLengthWeight * v0.getPoint().distanceSquared(v1.getPoint());
+                ed.errorValue = quadricError + edgeError;
+                ed.vertexUserData = new Quadric(m_q0);
+                
+            } catch (Exception e){
 
-            ed.errorValue = quadricError + edgeError;
-
-            ed.vertexUserData = new Quadric(m_q0);
+                printf("Quadric inversion exception\n");
+                printf("q0: %s\n", q0);
+                printf("q1: %s\n", q1);
+                printf("m_q0: %s\n", m_q0);
+                printf("midedge: %s\n", midEdge);
+                ed.errorValue = Double.MAX_VALUE;
+                ed.vertexUserData = new Quadric(q0);
+                
+            }
 
             return;
             

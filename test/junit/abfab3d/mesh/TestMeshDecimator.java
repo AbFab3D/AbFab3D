@@ -349,20 +349,23 @@ public class TestMeshDecimator extends TestCase {
         //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         //String fpath = "c:/tmp/text_iso_2.stl";
-        String fpath = "c:/tmp/sf31.stl";
+        //String fpath = "c:/tmp/sf31.stl";
+        //String fpath = "c:/tmp/leaf_01.stl";
+        String fpath = "c:/tmp/leaf_01_0832206.stl";
         //String fpath = "c:/tmp/sf21.stl";
         //String fpath = "c:/tmp/rtc_v3_04.stl";
-
         
         long t0 = currentTimeMillis();
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
         printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
         t0 = currentTimeMillis();
 
-        setVerticesUserData(mesh);
-        MeshExporter.writeMeshSTL(mesh,"c:/tmp/mesh_orig.stl");
+        //setVerticesUserData(mesh);
 
         int fcount = mesh.getFaceCount();
+
+        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
+
 
         printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());
         
@@ -386,7 +389,7 @@ public class TestMeshDecimator extends TestCase {
             printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
             fcount = mesh.getFaceCount();
 
-            MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%06d.stl", fcount));
+            MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
             
             // these things hang on large file - TODO - check this 
             //assertTrue("verifyVertices", verifyVertices(mesh));        
