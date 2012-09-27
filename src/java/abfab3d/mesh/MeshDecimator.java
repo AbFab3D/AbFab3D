@@ -26,6 +26,7 @@ import javax.vecmath.Vector3d;
 
 import static abfab3d.util.Output.printf; 
 import static abfab3d.util.Output.fmt; 
+import static java.lang.System.currentTimeMillis; 
 
 /**
    decimator to reduce face count of triangle mesh    
@@ -60,6 +61,12 @@ public class MeshDecimator {
     int m_faceCount;
     // count of collapseEdge() calls
     int m_collapseCount;
+    // count of surface pinch prevented 
+    int m_surfacePinchCount;
+    // count of face flip prevented 
+    int m_faceFlipCount;
+
+
 
     static final int RANDOM_CANDIDATES_COUNT = 10; 
 
@@ -115,17 +122,26 @@ public class MeshDecimator {
                         
         m_faceCount = m_mesh.getFaceCount();
 
-        doInitialization();
+        m_surfacePinchCount = 0;
+        m_faceFlipCount = 0;
+
+
+        long ts = currentTimeMillis();
+        doInitialization();        
+        long ts1 = currentTimeMillis();
+        printf("MeshDecimator.doInitialization() done in %d ms\n", (ts1-ts));
+        ts = ts1;
         
-        // do decimation 
+        //printf("initial face count: %d\n", m_faceCount);
 
-        printf("initial face count: %d\n", m_faceCount);
-
-        int targetCount = m_faceCount - targetFaceCount; // to avoid cycling 
+        int targetCount = m_faceCount - targetFaceCount; // to avoid cycling         
         int count = 0;
         int f0 = m_faceCount;
         long t0 = System.currentTimeMillis();
         long time0 = t0;
+
+        // do decimation 
+        
         while(m_faceCount > targetFaceCount && count < targetCount ){
             doIteration();
             count += 2;
@@ -144,9 +160,17 @@ public class MeshDecimator {
             }
         } 
         
-        printf("final face count: %d\n", m_faceCount);
+        ts1 = currentTimeMillis();
+        printf("MeshDecimator.doIterations() done in %d ms\n", (ts1-ts));
+        ts = ts1;
+
         int actuallFaceCount = mesh.getFaceCount();
+        printf(" final face count: %d\n", m_faceCount);
         printf("actual face count: %d\n", actuallFaceCount);
+        printf("surface pinch count: %d\n", m_surfacePinchCount);
+        printf("face flip count: %d\n", m_faceFlipCount);
+        printf("edges collapsed: %d\n", m_collapseCount);
+
         return actuallFaceCount;
 
     }
@@ -257,19 +281,30 @@ public class MeshDecimator {
 
         if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecr)){
 
-            if(DEBUG) printf("failed to collapse\n");                
+            if(DEBUG) printf("failed to collapse\n");  
+            switch(m_ecr.returnCode){
+            case EdgeCollapseResult.FAILURE_SURFACE_PINCH:
+                m_surfacePinchCount++; 
+                break;
+            case EdgeCollapseResult.FAILURE_FACE_FLIP:
+                m_faceFlipCount++; 
+                break;                
+            }
             return false;
             
         }
 
-        m_collapseCount++;
         
         if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
         m_faceCount -= m_ecr.faceCount;  //
         if(DEBUG) printf("moved vertex: %s\n", m_ecr.insertedVertex);  
-        m_ecr.insertedVertex.setUserData(ed.vertexUserData);
+        // asign new quadric to moved vertex 
+        ((Quadric)(m_ecr.insertedVertex.getUserData())).set(ed.vertexUserData);
+        //m_ecr.insertedVertex.setUserData(ed.vertexUserData.clone());
 
         ArrayList<Edge> edges = m_ecr.removedEdges;
+
+        m_collapseCount += edges.size();
 
         if(DEBUG) printf("removed edges: ");
         for(Edge edge : edges) {
@@ -407,7 +442,7 @@ public class MeshDecimator {
         int index; // index in array of al edges for random access 
         double errorValue; // error calculated for this edge 
         Point3d point; // place for candidate vertex                 
-        Object vertexUserData; // user data for new vertex 
+        Quadric vertexUserData = new Quadric(); // user data for new vertex 
     }
 
 
@@ -478,7 +513,7 @@ public class MeshDecimator {
         Quadric  // scratch quadric for calculations 
             m_q0 = new Quadric();
 
-        double m_midEdgeQuadricWeight = 1.e-3;
+        double m_midEdgeQuadricWeight = 1.e-3; // weight of quadric centered at mid edge 
         double m_edgeLengthWeight = 1.e-2;
         double m_quadricWeight = 1;
 
@@ -514,23 +549,27 @@ public class MeshDecimator {
             Quadric q0 = (Quadric)v0.getUserData();
             Quadric q1 = (Quadric)v1.getUserData();
             
-            m_q0.set(q0);
-            m_q0.addSet(q1);           
-            Quadric midEdge = new Quadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight);
-            m_q0.addSet(midEdge);
+            Quadric.getMidEdgeQuadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight, m_q0);
+            m_q0.addSet(q0);
+            m_q0.addSet(q1);       
+    
+            //Quadric midEdge = new Quadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight);
+            //m_q0.addSet(midEdge);
             
             // add small quadric centered at mid edge 
             //m_q.add(q1);
 
             if(ed.point == null)
                 ed.point = new Point3d();
+
             try {
                 m_q0.getMinimum(ed.point);
                 double quadricError = m_quadricWeight * m_q0.evaluate(ed.point);
                 double edgeError = m_edgeLengthWeight * v0.getPoint().distanceSquared(v1.getPoint());
 
                 ed.errorValue = quadricError + edgeError;
-                ed.vertexUserData = new Quadric(m_q0);
+
+                ed.vertexUserData.set(m_q0);
                 
             } catch (Exception e){
 
@@ -538,7 +577,7 @@ public class MeshDecimator {
                 printf("q0: %s\n", q0);
                 printf("q1: %s\n", q1);
                 printf("m_q0: %s\n", m_q0);
-                printf("midedge: %s\n", midEdge);
+                //printf("midedge: %s\n", midEdge);
                 ed.errorValue = Double.MAX_VALUE;
                 ed.vertexUserData = new Quadric(q0);
                 

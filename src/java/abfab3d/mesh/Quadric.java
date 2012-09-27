@@ -94,22 +94,9 @@ public class Quadric {
        quadric centered at midpoint of p0, p1 and scaled by scale
     */
     public Quadric(Point3d p0, Point3d p1, double scale) {
-        double 
-            x = 0.5*(p0.x + p1.x),
-            y = 0.5*(p0.y + p1.y),
-            z = 0.5*(p0.z + p1.z);
         
-        m00 = scale;
-        m01 = 0;
-        m02 = 0;
-        m03 = -x*scale;
-        m11 = scale;
-        m12 = 0;
-        m13 = -y*scale;
-        m22 = scale;
-        m23 = -z*scale;;
-        m33 = (x*x + y*y + z*z)*scale;
-        
+        getMidEdgeQuadric(p0, p1, scale, this);
+
     }
     
     /**
@@ -127,7 +114,9 @@ public class Quadric {
     }
     
     public Quadric(Vector4d plane) {
+
         this(plane.x, plane.y, plane.z, plane.w);
+
     }
     
     
@@ -205,7 +194,7 @@ public class Quadric {
     }
     
     public String toString(){
-        return fmt("[%8.5f,%8.5f,%8.5f,%8.5f;%8.5f,%8.5f,%8.5f;%8.5f,%8.5f;%8.5f]", 
+        return fmt("[%8.5e, %8.5e,%8.5e,%8.5e;%8.5e,%8.5e,%8.5e;%8.5e,%8.5e;%8.5e]", 
                    m00, m01, m02, m03, m11, m12, m13, m22, m23, m33);
     }
     
@@ -233,6 +222,33 @@ public class Quadric {
         return pnt;
     }
     
+    /**
+       returns quadric centered in the middle between points p0 and p1
+     */
+    public static Quadric getMidEdgeQuadric(Point3d p0, Point3d p1, double scale, Quadric outQ){
+        double 
+            x = 0.5*(p0.x + p1.x),
+            y = 0.5*(p0.y + p1.y),
+            z = 0.5*(p0.z + p1.z);
+        
+        outQ.m00 = scale;
+        outQ.m01 = 0;
+        outQ.m02 = 0;
+        outQ.m03 = -x*scale;
+        outQ.m11 = scale;
+        outQ.m12 = 0;
+        outQ.m13 = -y*scale;
+        outQ.m22 = scale;
+        outQ.m23 = -z*scale;;
+        outQ.m33 = (x*x + y*y + z*z)*scale;
+
+        return outQ;
+
+    }
+
+    public Object clone(){
+        return new Quadric(this);
+    }
     
     public static Vector4d makePlane(Point3d p0, Point3d p1, Point3d p2, Vector4d plane){
         

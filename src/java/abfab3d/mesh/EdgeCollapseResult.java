@@ -20,6 +20,13 @@ import javax.vecmath.Point3d;
    structure to describe edge collapse result 
 */
 public class EdgeCollapseResult {
+
+    public static final int 
+        SUCCESS = 0, 
+        FAILURE_SURFACE_PINCH = 1, 
+        FAILURE_FACE_FLIP = 2;
+
+        
     
     //edges removed during collapse 
     public ArrayList<Edge> removedEdges = new ArrayList<Edge>(); 
@@ -35,6 +42,7 @@ public class EdgeCollapseResult {
     
     // removed vertex count  
     public int vertexCount; 
-
+    
+    public int returnCode;
 
 }
