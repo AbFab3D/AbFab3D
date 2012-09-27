@@ -1223,7 +1223,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
     }
 
-    int getFaceCount() {
+    public int getFaceCount() {
 
         int count = 0;
         Face f = faces;
