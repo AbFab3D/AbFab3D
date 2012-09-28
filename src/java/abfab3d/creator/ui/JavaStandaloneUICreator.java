@@ -271,7 +271,7 @@ System.out.println("Adding param: " + p.getName());
 
         ps.println();
 
-        // Create Kernal
+        // Create Kernel
         String class_name = kernel.getClass().getName();
         ps.println(indent(12) + class_name + " kernel = new " + class_name + "();");
 
@@ -308,7 +308,6 @@ System.out.println("Adding param: " + p.getName());
 
 
         itr = params.values().iterator();
-        boolean more_elses = false;
 
         while(itr.hasNext()) {
             Parameter p = itr.next();
@@ -325,13 +324,10 @@ System.out.println("Adding param: " + p.getName());
                 ps.println(indent(16) + "File file = " + p.getName() + "Dialog" + ".getSelectedFile();");
                 ps.println(indent(16) + " ((JTextField)" + p.getName() + "Editor).setText(file.toString());");
                 ps.println(indent(12) + "}");
-                more_elses = true;
             }
         }
 
-        if (more_elses) {
-            ps.println(indent(8) + "}");
-        }
+        ps.println(indent(8) + "}");
 
         ps.println(indent(4) + "}");
     }
