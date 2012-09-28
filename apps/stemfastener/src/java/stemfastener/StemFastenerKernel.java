@@ -17,6 +17,8 @@ import java.io.*;
 import java.util.*;
 import javax.imageio.*;
 import java.awt.image.BufferedImage;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Point3d;
 
 import abfab3d.grid.query.RegionFinder;
 import abfab3d.io.output.*;
@@ -368,12 +370,33 @@ System.out.println("Creating Regions Exporter");
     }
 
     private void writeIsosurfaceMaker(Grid grid) throws IOException {
+        
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
         double vs = grid.getVoxelSize();
-        int smoothSteps = 2;
+        for(int ix = 0; ix < nx; ix++){
+            for(int iy = 0; iy < ny; iy++){
+                grid.setState(ix, iy, 0, Grid.OUTSIDE);
+                grid.setState(ix, iy, nz-1, Grid.OUTSIDE);
+            }
+        }
+        for(int ix = 0; ix < nx; ix++){
+            for(int iz = 0; iz < nz; iz++){
+                grid.setState(ix, 0, iz, Grid.OUTSIDE);
+                grid.setState(ix, ny-1, iz, Grid.OUTSIDE);
+            }
+        }
+        for(int iz = 0; iz < nz; iz++){
+            for(int iy = 0; iy < ny; iy++){
+                grid.setState(0,    iy, iz, Grid.OUTSIDE);
+                grid.setState(nx-1, iy, iz, Grid.OUTSIDE);
+            }
+        }
 
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        int smoothSteps = 0;
+        
         double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
         double ibounds[] = extendBounds(gbounds, -vs/2);
 
@@ -383,10 +406,15 @@ System.out.println("Creating Regions Exporter");
         im.setGridSize(nx, ny, nz);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-
+        
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, smoothSteps), its);
+        
         int[][] faces = its.getFaces();
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
+        Point3d vert[] = its.getVertices();
+        //writeSTL("out.stl", vert, faces);
+        
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(vert, faces);
+        MeshExporter.writeMeshSTL(mesh,fmt("out1.stl"));
 
         int fcount = faces.length;
         MeshDecimator md = new MeshDecimator();
@@ -399,12 +427,25 @@ System.out.println("Creating Regions Exporter");
 
         fcount = mesh.getFaceCount();
 
-        MeshExporter.writeMeshSTL(mesh,fmt("out.stl", fcount));
+        MeshExporter.writeMeshSTL(mesh,fmt("out2.stl", fcount));
 
         System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
 
 
     }
+
+    private void writeSTL(String path, Vector3d v[], int faces[][]) throws IOException {
+
+        STLWriter stl = new STLWriter(path);
+
+        for(int i = 0; i < faces.length; i++){
+            int face[] = faces[i];
+            stl.addTri(v[face[0]],v[face[1]],v[face[2]]);
+        }
+         
+        stl.close();
+    }
+
 
     /**
      return bounds extended by given margin
