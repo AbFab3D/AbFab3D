@@ -54,7 +54,7 @@ import static java.lang.System.currentTimeMillis;
  */
 public class StemFastenerKernel extends HostedKernel {
     /** Debugging level.  0-5.  0 is none */
-    private static final int DEBUG_LEVEL = 0;
+    private static final int DEBUG_LEVEL = 5;
 
     /** The horizontal and vertical resolution */
     private double resolution;
@@ -95,17 +95,17 @@ public class StemFastenerKernel extends HostedKernel {
                 step, seq++, true, 0, 0.1, null, null)
         );
 
-        params.put("bodyWidth", new Parameter("bodyWidth", "Body Width", "The width of the main body", "0.0762", 1,
+        params.put("bodyWidth", new Parameter("bodyWidth", "Body Width", "The width of the main body", "0.0362", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0.01, 1, null, null)
         );
 
-        params.put("bodyHeight", new Parameter("bodyHeight", "Body Height", "The height of the main body", "0.0762", 1,
+        params.put("bodyHeight", new Parameter("bodyHeight", "Body Height", "The height of the main body", " 0.001", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0.01, 1, null, null)
+            step, seq++, false, 0, 1, null, null)
         );
 
-        params.put("bodyDepth", new Parameter("bodyDepth", "Body Depth", "The depth of the main body", "0.002", 1,
+        params.put("bodyDepth", new Parameter("bodyDepth", "Body Depth", "The depth of the main body", "0.0362", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.0007, 1, null, null)
         );
@@ -123,18 +123,18 @@ public class StemFastenerKernel extends HostedKernel {
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.0001, 1, null, null)
         );
-        params.put("headDiameter", new Parameter("headDiameter", "Stem Diameter", "The diameter of the head", "0.0014", 1,
+        params.put("headDiameter", new Parameter("headDiameter", "Head Diameter", "The diameter of the head", "0.0021", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.0001, 1, null, null)
         );
 
-        params.put("headPercent", new Parameter("headPercent", "Head Percent", "The percent of the sphere", "0.5", 1,
+        params.put("headPercent", new Parameter("headPercent", "Head Percent", "The percent of the sphere", "0.3", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
 
         // Likely want this = headDiameter + 1%.  Having expressions would be nice.
-        params.put("spacing", new Parameter("spacing", "Stem spacing", "The spacing from each edge", "0.0014", 1,
+        params.put("spacing", new Parameter("spacing", "Stem spacing", "The spacing from each edge", "0.0021", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.0001, 1, null, null)
         );
@@ -154,9 +154,10 @@ public class StemFastenerKernel extends HostedKernel {
         // Calculate maximum bounds
 
         double max_width = bodyWidth * 1.2;
-        double max_height = bodyHeight * 1.2;
-        double max_depth = (bodyDepth + stemHeight + headDiameter) * 1.2;
+        double max_height = (2.0 * Math.max(bodyHeight, stemHeight + headDiameter)) * 1.2;
+        double max_depth = bodyDepth * 1.2;
 
+        System.out.println("Depth: " + max_depth);
         // Setup Grid
         boolean bigIndex = false;
         int voxelsX = (int) Math.ceil(max_width / resolution);
@@ -184,30 +185,34 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
 
         if (DEBUG_LEVEL > 0) grid = new RangeCheckWrapper(grid);
 
-        double scx = grid.getWidth() * grid.getVoxelSize() / 2.0;
-        double scy = grid.getHeight() * grid.getSliceHeight() / 2.0;
-        double scz = grid.getDepth() * grid.getVoxelSize() / 2.0;
+        Grid stem = makeStem(null);
 
-        // Make head
-        double hcx = scx;
-        double hcy = scy + stemHeight / 2.0 + headPercent * headDiameter;
-        double hcz = scz;
+        int px = (int) (headDiameter / resolution);
+        int pz = (int) (headDiameter / resolution);
+        int py = grid.getHeight() / 2;
 
-        SphereCreator sc = new SphereCreator(headDiameter / 2, hcx, hcy, hcz, 0, 1, 0, 0, 1, 1);
-        sc.generate(grid);
+        System.out.println("py: " + py);
 
-        // Truncate head
-        double th = (1 - headPercent) * headDiameter;
-        CubeCreator trunc = new CubeCreator(null, stemDiameter * 6, th, stemDiameter * 6, hcx,hcy - th / 2.0,hcz, 1);
-        trunc.generate(grid);
+        int rows = (int) Math.floor((grid.getWidth() - 2 * headDiameter / resolution) / ((spacing + stemDiameter) / resolution));
+        int cols = (int) Math.floor((grid.getDepth() - 2 * headDiameter / resolution) / ((spacing + stemDiameter) / resolution));
 
-        // Make Stem
-        CubeCreator stem = new CubeCreator(null, stemDiameter, stemHeight, stemDiameter, scx,scy,scz, 1);
-        stem.generate(grid);
+        System.out.println("Rows: " + rows + " cols: " + cols);
+        for(int i=0; i < rows; i++) {
+            pz = (int) (headDiameter / resolution);
+            for(int j=0; j < cols; j++) {
+                Operation copy = new Copy(stem, px,py,pz);
+                copy.execute(grid);
 
-        // Make ref steam
-        stem = new CubeCreator(null, stemDiameter, stemHeight, stemDiameter, scx + spacing + stemDiameter / 2.0 + stemDiameter / 2.0,scy,scz, 1);
-        stem.generate(grid);
+                pz = pz + (int) ((spacing + stemDiameter) / resolution);
+            }
+            px = px + (int) ((spacing + stemDiameter) / resolution);
+        }
+
+        // Add body
+        int cy = py - (int) ((bodyHeight / 2.0 / resolution));
+        System.out.println("Cube y: " + cy);
+        CubeCreator cc = new CubeCreator(null, bodyWidth, bodyHeight, bodyDepth, grid.getWidth() / 2.0,cy, bodyDepth / 2.0, 1);
+        cc.generate(grid);
 
         System.out.println("Writing grid");
 
@@ -232,65 +237,49 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
         return new KernelResults(true, min_bounds, max_bounds);
     }
 
-    /**
-     * Create an image from a text string.
-     *
-     * @param w The width of the textual space
-     * @param h The height of the textual space
-     * @param text The text string
-     * @param font The font to use
-     * @param style The font style to use
-     * @param size The font size to use, or -1 till fill the space
-     */
-    private BufferedImage createImage(int w, int h, String text, String font, int style, int size) {
-        Font f = null;
-        FontMetrics metrics = null;
+    private Grid makeStem(Grid ingrid) {
+        double slop = 1.2;
+        int w = (int) Math.round((stemDiameter * 5.0) / resolution * slop);
+        int h = (int) Math.round((stemHeight + headDiameter) / resolution * slop);
+        int d = (int) Math.round((stemDiameter * 5.0 / resolution * slop));
 
-        BufferedImage cell_img =
-            new BufferedImage(w, h,
-                              BufferedImage.TYPE_BYTE_GRAY);
+        Grid grid = null;
 
-        Graphics2D g = (Graphics2D)cell_img.getGraphics();
-
-        if (size <= 0) {
-            size = 10;
-            f = new Font(font, style, size);
-            g.setFont(f);
-
-            metrics = g.getFontMetrics();
-            int fs = metrics.stringWidth(text);
-
-            while(fs < w) {
-                size++;
-                f = new Font(font, style, size);
-                g.setFont(f);
-
-                metrics = g.getFontMetrics();
-                fs = metrics.stringWidth(text);
-            }
-
-            size--;
-            f = new Font(font, style, size);
-            g.setFont(f);
-            metrics = g.getFontMetrics();
-            fs = metrics.stringWidth(text);
-            System.out.println("final size: " + fs);
-
+        if (ingrid == null) {
+            grid = new ArrayGridByte(w,h,d,resolution,resolution);
         } else {
-            g.setFont(f);
+            grid = ingrid;
         }
 
+        System.out.println("Stem w: " + w + " h: " + h + " d: " + d);
+        double scx = grid.getWidth() * grid.getVoxelSize() / 2.0;
+        double scy = grid.getHeight() * grid.getSliceHeight() / 2.0;
+        double scz = grid.getDepth() * grid.getVoxelSize() / 2.0;
 
+        // Make head
+        double hcx = scx;
+        double hcy = scy + stemHeight / 2.0 + headPercent * headDiameter / 2.0;
+        double hcz = scz;
 
-//        int x = w - metrics.stringWidth(text)/2;
-        //int x = metrics.stringWidth(text)/2;
-        int x = 0;
+        SphereCreator sc = new SphereCreator(headDiameter / 2, hcx, hcy, hcz, 0, 1, 0, 0, 1, 1);
+        sc.generate(grid);
 
-        int y = h - 80;
+        // Truncate head
+        double th = (headPercent) * headDiameter;
+        CubeCreator trunc = new CubeCreator(null, stemDiameter * 5.0, th, stemDiameter * 5.0, hcx,hcy - th,hcz, 1);
 
-        g.drawString(text, x, y);
+        Grid grid2 = grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+                grid.getVoxelSize(), grid.getSliceHeight());
 
-        return cell_img;
+        trunc.generate(grid2);
+        Operation op = new Subtract(grid2, 0, 0, 0, 1);
+        op.execute(grid);
+
+        // Make Stem
+        CubeCreator stem = new CubeCreator(null, stemDiameter, stemHeight, stemDiameter, scx,scy,scz, 1);
+        stem.generate(grid);
+
+        return grid;
 
     }
 
@@ -311,6 +300,9 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
 
             pname = "bodyHeight";
             bodyHeight = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyDepth";
+            bodyDepth = ((Double) params.get(pname)).doubleValue();
 
             pname = "stemDiameter";
             stemDiameter = ((Double) params.get(pname)).doubleValue();
@@ -427,7 +419,7 @@ System.out.println("Creating Regions Exporter");
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
         colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[] {0,1,0});
+        colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
@@ -437,82 +429,6 @@ System.out.println("Creating Regions Exporter");
 
         exporter.writeDebug(grid, colors, transparency);
         exporter.close();
-    }
-
-    /**
-     * Create a cube.
-     */
-    private void createCube(Grid grid, double tx, double ty, double tz, double w, double h, double d, int mat) {
-        // Create the base structure
-
-        CubeCreator cg = null;
-        cg = new CubeCreator(null, w, h, d, tx,ty,tz,mat);
-        cg.generate(grid);
-
-    }
-
-    /**
-     * Create a cylinder.
-     */
-    private void createCylinder(Grid grid, double tx, double ty, double tz,
-        double rx, double ry, double rz, double ra,
-        double height, double radius, int facets, int mat) {
-
-        CylinderCreator cg = null;
-        cg = new CylinderCreator(height, radius, tx,ty,tz,rx,ry,rz,ra,mat);
-        cg.generate(grid);
-    }
-
-    /**
-     * Create a torus.
-     */
-    private void createTorus(Grid grid, double tx, double ty, double tz,
-        double rx, double ry, double rz, double ra,
-        double ir, double or, int facets, int mat, boolean filled) {
-
-System.out.println("createTorus: " + ir + " or: " + or);
-        TorusGenerator tg = new TorusGenerator((float)ir, (float)or, facets, facets);
-        GeometryData geom = new GeometryData();
-        geom.geometryType = GeometryData.INDEXED_TRIANGLES;
-        tg.generate(geom);
-
-        TriangleModelCreator tmc = new TriangleModelCreator(geom,tx,ty,tz,
-            rx,ry,rz,ra,mat,mat,filled);
-
-        tmc.generate(grid);
-    }
-
-    private void createTorus(Grid grid, double tx, double ty, double tz,
-                             double rx, double ry, double rz, double ra,
-                             double ir, double or, int zlimit, int facets, int mat, boolean filled) {
-
-        System.out.println("createTorus: " + ir + " or: " + or + " zlimit: " + zlimit + " total: " + grid.getDepth());
-        TorusGenerator tg = new TorusGenerator((float)ir, (float)or, facets, facets);
-        GeometryData geom = new GeometryData();
-        geom.geometryType = GeometryData.INDEXED_TRIANGLES;
-        tg.generate(geom);
-
-        TriangleModelCreator tmc = new TriangleModelCreator(geom,tx,ty,tz,
-                rx,ry,rz,ra,mat,mat,filled);
-
-        tmc.generate(grid);
-
-        int w = grid.getWidth();
-        int h = grid.getHeight();
-        int d = grid.getDepth();
-        int removed = 0;
-
-        for(int y=0; y < h; y++) {
-            for(int x=0; x < w; x++) {
-                for(int z=zlimit; z < d; z++) {
-                    if (grid.getState(x,y,z) != Grid.OUTSIDE) {
-                        removed++;
-                        grid.setState(x,y,z, Grid.OUTSIDE);
-                    }
-                }
-            }
-        }
-        System.out.println("Removed torus: " + removed);
     }
 
 }
