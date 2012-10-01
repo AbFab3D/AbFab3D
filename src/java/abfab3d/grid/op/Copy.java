@@ -21,7 +21,8 @@ import abfab3d.grid.*;
  * Copy a grid to another grid.  Assumes the grid fits into the
  * destination.
  *
- * TODO: Untested
+ * TODO: Optimize using iterator for MARKED only copies
+ * TODO: Add a param for wether to copy outside.  Really just a union then
  *
  * @author Alan Hudson
  */
@@ -53,20 +54,15 @@ public class Copy implements Operation, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid execute(AttributeGrid dest) {
-        int width = dest.getWidth();
-        int depth = dest.getDepth();
-        int height = dest.getHeight();
-
-        int state;
+        int width = src.getWidth();
+        int height = src.getHeight();
+        int depth = src.getDepth();
 
         int origin_x = x;
         int origin_y = y;
         int origin_z = z;
         VoxelData vd;
 
-        // TODO: Optimize using copy constructors for same types
-        // TODO: Optimize using iterator for MARKED only copies
-        // TODO: Add a param for wether to copy outside.  Really just a union then
 
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
@@ -93,20 +89,14 @@ public class Copy implements Operation, AttributeOperation {
      * @return The new grid
      */
     public Grid execute(Grid dest) {
-        int width = dest.getWidth();
-        int depth = dest.getDepth();
-        int height = dest.getHeight();
-
-        int state;
+        int width = src.getWidth();
+        int height = src.getHeight();
+        int depth = src.getDepth();
 
         int origin_x = x;
         int origin_y = y;
         int origin_z = z;
         byte vd;
-
-        // TODO: Optimize using copy constructors for same types
-        // TODO: Optimize using iterator for MARKED only copies
-        // TODO: Add a param for wether to copy outside.  Really just a union then
 
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
@@ -124,5 +114,4 @@ public class Copy implements Operation, AttributeOperation {
 
         return dest;
     }
-
 }
