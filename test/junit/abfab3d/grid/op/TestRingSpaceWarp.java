@@ -52,7 +52,7 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
         double[] dest2 = new double[3];
 
         warp.transform(coord, dest);
-        warp.transform(dest, dest2);
+        warp.invert(dest, dest2);
 
         double EPS = 1e-10;
 
@@ -60,6 +60,7 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
         assertEquals("Same Y", coord[1],dest2[1],EPS);
         assertEquals("Same Z", coord[2],dest2[2],EPS);
     }
+
     /**
      * Test equality of forward and backward conversion
      */
@@ -73,6 +74,41 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
         double[] dest2 = new double[3];
 
         warp.transform(coord, dest);
+        warp.invert(dest, dest2);
+
+        double EPS = 1e-10;
+
+        assertEquals("Same X", coord[0],dest2[0],EPS);
+        assertEquals("Same Y", coord[1],dest2[1],EPS);
+        assertEquals("Same Z", coord[2],dest2[2],EPS);
+    }
+
+    /**
+     * Test equality of forward and backward conversion
+     */
+/*
+    public void testConvertGrid() {
+        Grid grid = new ArrayAttributeGridByte(10,10,10,0.001,0.001);
+        double r = 0.05;
+        RingSpaceWarp warp = new RingSpaceWarp(grid,r);
+
+        double[] coord = new double[] {1,2,3};
+        double[] dest = new double[3];
+        double[] dest2 = new double[3];
+
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                for(int z=0; z < depth; z++) {
+                    grid.getWorldCoords(x,y,z,coord);
+                    warp.transform();
+                }
+            }
+        }
+        warp.transform(coord, dest);
         warp.transform(dest, dest2);
 
         double EPS = 1e-10;
@@ -81,4 +117,5 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
         assertEquals("Same Y", coord[1],dest2[1],EPS);
         assertEquals("Same Z", coord[2],dest2[2],EPS);
     }
+  */
 }
