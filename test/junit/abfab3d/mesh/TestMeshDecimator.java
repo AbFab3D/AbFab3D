@@ -352,8 +352,7 @@ public class TestMeshDecimator extends TestCase {
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
         //String fpath = "c:/tmp/text_iso_2.stl";
         //String fpath = "c:/tmp/sf31.stl";
-        //String fpath = "c:/tmp/leaf_01.stl";
-        String fpath = "c:/tmp/pen_v6.stl";
+        String fpath = "c:/tmp/leaf_01.stl";
         //String fpath = "c:/tmp/leaf_01_0832206.stl";
         //String fpath = "c:/tmp/sf21.stl";
         //String fpath = "c:/tmp/rtc_v3_04.stl";
@@ -382,9 +381,9 @@ public class TestMeshDecimator extends TestCase {
         md.DEBUG = false;
         mesh.DEBUG = false; 
 
-        for(int i = 0; i < 4; i++){
+        for(int i = 0; i < 2; i++){
             
-            fcount = fcount/2;
+            fcount = fcount/8;
             t0 = currentTimeMillis();
             printf("processMesh() start\n");
             md.processMesh(mesh, fcount);
