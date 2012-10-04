@@ -24,9 +24,11 @@ import java.util.Set;
 
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.input.STLReader;
+import abfab3d.io.input.STLRasterizer;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.io.output.MeshExporter;
 
+import abfab3d.grid.Grid;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -343,7 +345,7 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
-    public void testFile() throws Exception {
+    public void _testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
         //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
@@ -400,6 +402,22 @@ public class TestMeshDecimator extends TestCase {
         }
     }
     
+
+    public void testRasterizer(){
+
+        String fpath = "c:/tmp/pen_v6.stl";
+        STLRasterizer sr = new STLRasterizer();
+        try {
+            Grid grid = sr.rasterizeFile(fpath);
+        
+            printf("done!\n");
+
+        } catch(Exception e){
+
+            e.printStackTrace();
+
+        }
+    }
 
     /**
        

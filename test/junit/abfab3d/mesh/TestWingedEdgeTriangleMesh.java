@@ -227,7 +227,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.z = (verts[3].z + verts[6].z) / 2.0;
 
         System.out.println("This should do nothing?");
-        we.removeDegenerateFaces();
+        //we.removeDegenerateFaces();
 
         EdgeCollapseResult ecr = new EdgeCollapseResult();
         we.collapseEdge(edges, pos, ecr);
@@ -236,7 +236,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         we.writeOBJ(System.out);
         assertTrue("Structural Check", verifyStructure(we, false));
 
-        we.removeDegenerateFaces();
+        //we.removeDegenerateFaces();
         writeMesh(we, "c:/tmp/degenface3.x3dv");
         we.writeOBJ(System.out);
         assertTrue("Structural Check", verifyStructure(we, false));
@@ -568,7 +568,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         writeMesh(we, "c:/tmp/speed-knot2.x3dv");
 
         System.out.println("Removing degenerate faces");
-        we.removeDegenerateFaces();
+        //we.removeDegenerateFaces();
         assertTrue("Structural Check", verifyStructure(we,true));
 
         writeMesh(we, "c:/tmp/speed-knot3.x3dv");
@@ -656,7 +656,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         writeMesh(we, "c:/tmp/sphere_10cm_rough_manifold2.x3dv");
 
-        we.removeDegenerateFaces();
+        //we.removeDegenerateFaces();
         assertTrue("Structural Check", verifyStructure(we, true));
     }
 
