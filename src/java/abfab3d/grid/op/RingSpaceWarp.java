@@ -86,9 +86,9 @@ public class RingSpaceWarp implements Operation, AttributeOperation {
         double r = radius + in[2];
         double sina = Math.sin(angle);
         double cosa = Math.cos(angle);
-        out[0] = r * cosa;
+        out[0] = r * sina;
         out[1] = in[1];
-        out[2] = r * sina;
+        out[2] = r * cosa;
     }
 
     /**
@@ -120,6 +120,7 @@ public class RingSpaceWarp implements Operation, AttributeOperation {
      * @param out
      */
     protected void transform(double[] in, double[] out) {
+
         double angle = in[0] / radius;
         double r = radius + in[2];
         double sina = Math.sin(angle);
@@ -135,18 +136,16 @@ public class RingSpaceWarp implements Operation, AttributeOperation {
      * @param out
      */
     protected void invert(double[] in, double[] out) {
+
         double wx = in[0] / radius;
         double wy = in[1];
         double wz = in[2] / radius;
 
         double dist = Math.sqrt(wx * wx + wz * wz);
-        double phi = Math.atan2(wz, wx);
-        wx = dist - 1;
-        wz = phi + Math.PI;    // says add only if negative? doesn't fix
+        double angle = Math.atan2(wx, wz);
 
-        //if (phi < 0) phi += Math.PI;
-        wx = wx * radius;
-        wz = wz * radius;
+        wx = angle * radius;
+        wz = (dist-1) * radius;
 
         out[0] = wx;
         out[1] = wy;
