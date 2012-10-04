@@ -30,7 +30,7 @@ public class VoxelStateSetter implements ClassTraverser {
 
     Grid grid; 
     byte stateToSet;
-    VoxelStateSetter(Grid grid, byte stateToSet){
+    public VoxelStateSetter(Grid grid, byte stateToSet){
         this.grid = grid;
         this.stateToSet = stateToSet;
     }
