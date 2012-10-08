@@ -118,7 +118,7 @@ public class MeshRasterizer implements TriangleCollector {
     }
 
     /**
-       the final mandatory step after all rasterization is done
+       the final mandatory sxtep after all rasterization is done
        it stores data from ZBuffer into supplied grid
      */
     public void getRaster(Grid grid){
@@ -130,6 +130,8 @@ public class MeshRasterizer implements TriangleCollector {
     
     
     protected void fillGrid(Grid grid){
+
+        m_zbuffer.sort();
         
         //printf("MeshRasterizer.fillGrid()\n");
                 

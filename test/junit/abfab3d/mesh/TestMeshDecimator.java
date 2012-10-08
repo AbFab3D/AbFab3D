@@ -44,6 +44,7 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ClassTraverser;
+import abfab3d.grid.op.ErosionMask;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -412,11 +413,17 @@ public class TestMeshDecimator extends TestCase {
         }
     }
     
-    public void testDecimatorQuality(){
-
-        //String fpath = "c:/tmp/pen_v6.stl";
-        String fpath = "c:/tmp/mesh_text_orig.stl";
+    public void testDecimatorQuality() throws Exception {
+    
+        //String fpath = "c:/tmp/pen_v6.stl"; // strange rasterization errors 
+        //String fpath = "c:/tmp/mesh_text_orig.stl";
         //String fpath = "c:/tmp/leaf_01.stl";
+        //String fpath = "c:/tmp/torus_01.stl";
+        //String fpath = "c:/tmp/block_01.stl";
+        //String fpath = "c:/tmp/block_02.stl";
+        //String fpath = "c:/tmp/torus_01.stl";
+        String fpath = "c:/tmp/rtc_v3_04.stl";
+
 
         long t0 = currentTimeMillis();
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
@@ -429,12 +436,13 @@ public class TestMeshDecimator extends TestCase {
 
         int fcount = mesh.getFaceCount();
         printf("mesh faces: %d \n",fcount);
+        //double maxErodedVolumeMM3 = 1.; // 1mm^3
 
         double mbounds[] = mesh.getBounds();
         
         printf("model bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",mbounds[0]*MM,mbounds[1]*MM,mbounds[2]*MM,mbounds[3]*MM,mbounds[4]*MM,mbounds[5]*MM);
         
-        double voxelSize = 1.e-4; // 0.1 mm;
+        double voxelSize = 0.1e-3; // 0.1 mm;
         double voxelVolume = voxelSize*voxelSize*voxelSize;
 
         int padding = 2; // empty padding arind the model 
@@ -462,7 +470,9 @@ public class TestMeshDecimator extends TestCase {
         
         Grid grid1 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
 
-        //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "c:/tmp/grid1.stl");
+        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig.stl"));
+
+        //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "c:/tmp/diff_orig.stl");
 
         int count1 = grid1.findCount(Grid.VoxelClasses.INTERIOR);
         
@@ -480,14 +490,21 @@ public class TestMeshDecimator extends TestCase {
             t0 = currentTimeMillis();            
             //Grid gridDiff = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);  
             Grid gridDiff = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);              
-            getDifference(grid1, grid2, gridDiff);                
+            getDifference(grid1, grid2, gridDiff);   
+            int countDiff = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
+            ErosionMask err = new ErosionMask(1);
+            err.execute(gridDiff);
             //printf("difference found: %d ms\n",(currentTimeMillis() - t0));            
-            int count3 = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
-            
+            int countEroded = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
+            double erodedVolume = countEroded*voxelVolume*MM3;
+            double differenceVolume = countDiff*voxelVolume*MM3;
             printf("CURRENT_FACE_COUNT: %d\n", mesh.getFaceCount());
-            printf("DIFFERENCE_COUNT: %d DIFFERENCE_VOLUME: %7.2f mm^3\n", count3, count3*voxelVolume* MM3);
-            if(count3 > 0){
-                writeIsosurface(gridDiff, gbounds, voxelSize, gridX, gridY, gridZ, fmt("c:/tmp/diff_%02d.stl", i));
+            printf("DIFFERENCE: %7.2f mm^3, LARGE_DIFFERENCE: %7.2f mm^3\n", differenceVolume, erodedVolume);
+            String fout = fmt("c:/tmp/diff_%02d.stl", i);
+            if(countEroded > 0){
+                writeIsosurface(gridDiff, gbounds, voxelSize, gridX, gridY, gridZ, fout);
+                MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%02d.stl", i));
+                break;
             }
         }
                 
@@ -585,6 +602,27 @@ public class TestMeshDecimator extends TestCase {
             bounds[4] - margin, 
             bounds[5] + margin, 
         };
+    }
+
+
+    public void _testCombination(){
+        try {
+            String f1 = "c:/tmp/block_01.0.stl";
+            String f2 = "c:/tmp/block_01.1.stl";
+            String fout = "c:/tmp/block_01.stl";
+            
+            STLReader reader = new STLReader();
+            STLWriter writer = new STLWriter(fout);
+            
+            reader.read(f1, writer);
+            reader.read(f2, writer);
+            
+            writer.close();
+
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
     }
 
     public void _testRasterizer(){

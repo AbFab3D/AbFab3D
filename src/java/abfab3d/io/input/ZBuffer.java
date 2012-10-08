@@ -99,8 +99,7 @@ public class ZBuffer {
      */
     public void setPixel(int x, int y, double z){
 
-        if(x < 0 || x >= Nx || y < 0 || y >= Ny)
-            return;            
+        if(x < 0 || x >= Nx || y < 0 || y >= Ny)  return;            
 
         int c = x + Nx*y;
         

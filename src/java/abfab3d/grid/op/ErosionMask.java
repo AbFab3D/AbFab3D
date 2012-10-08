@@ -57,7 +57,10 @@ public class ErosionMask implements Operation, AttributeOperation {
      * @return original grid modified
      */
     public Grid execute(Grid grid) {
-
+        
+        if(grid instanceof AttributeGrid){
+            return execute((AttributeGrid)grid);
+        }
         printf("ErosionMask.execute(Grid) not implemented!\n");
         
         return grid;
