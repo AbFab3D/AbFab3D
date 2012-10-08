@@ -18,6 +18,8 @@ import java.io.PrintStream;
 import org.web3d.util.HashSet;
 import java.util.*;
 
+import abfab3d.util.TriangleCollector;
+
 import static abfab3d.util.Output.printf;
 
 /**
@@ -1277,6 +1279,64 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         return (Vertex) tvertices.get(v);
     }
 
+    /**
+       return bounds of the mesh 
+       as double[]{xmin,xmax, ymin, ymax, zmin, zmax}
+       
+     */
+    public double[] getBounds(){
+        
+        double 
+            xmin = Double.MAX_VALUE, xmax = Double.MIN_VALUE, 
+            ymin = Double.MAX_VALUE, ymax = Double.MIN_VALUE, 
+            zmin = Double.MAX_VALUE, zmax = Double.MIN_VALUE;
+        
+        for(Iterator<Vertex> it  = vertexIterator(); it.hasNext();){
+
+            Vertex vert = it.next();
+            Point3d v = vert.getPoint();
+
+            if(v.x < xmin) xmin = v.x;
+            if(v.x > xmax) xmax = v.x;
+
+            if(v.y < ymin) ymin = v.y;
+            if(v.y > ymax) ymax = v.y;
+
+            if(v.z < zmin) zmin = v.z;
+            if(v.z > zmax) zmax = v.z;
+                        
+        }
+        
+        return new double[]{xmin, xmax, ymin, ymax, zmin, zmax};
+            
+    }
+
+    /**
+
+       feeds all triangular faces into TriangleCollector 
+
+     */
+    public void getTriangles(TriangleCollector tc){
+        Vector3d 
+            p0 = new Vector3d(),
+            p1 = new Vector3d(),
+            p2 = new Vector3d();
+        
+        for(Iterator<Face> it = faceIterator(); it.hasNext(); ){
+            Face f = it.next();
+            HalfEdge he = f.getHe();
+            HalfEdge he1 = he.getNext();
+            Vertex 
+                v0 = he.getStart(),
+                v1 = he.getEnd(),
+                v2 = he1.getEnd();
+            p0.set(v0.getPoint());
+            p1.set(v1.getPoint());
+            p2.set(v2.getPoint());
+            tc.addTri(p0, p1, p2);
+        }
+    }
+
     
     /**
        class to check face Flip 
@@ -1319,6 +1379,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         }
         
     }// class FaceFlipChecker 
+
 
 
 

@@ -12,6 +12,7 @@
 
 package abfab3d.grid;
 
+import java.io.Serializable;
 // External Imports
 
 /**
@@ -25,7 +26,7 @@ package abfab3d.grid;
  *
  * @author Alan Hudson
  */
-public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGrid, Cloneable {
+public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGrid, Cloneable, Serializable {
     /**
      * Constructor.
      *

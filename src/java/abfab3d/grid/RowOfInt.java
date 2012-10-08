@@ -13,7 +13,7 @@
  package abfab3d.grid;
 
 /**
-   interface to desribe the row of integer of variable length
+   interface to describe the row of integer of variable length
  */
 public interface RowOfInt {
     

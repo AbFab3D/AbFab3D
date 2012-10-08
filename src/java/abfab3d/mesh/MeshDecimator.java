@@ -44,6 +44,7 @@ import static java.lang.System.currentTimeMillis;
 public class MeshDecimator {
 
     static boolean DEBUG = true;
+    static boolean m_printStat = true;
 
     // mesjh we are working on 
     WingedEdgeTriangleMesh m_mesh;
@@ -129,7 +130,7 @@ public class MeshDecimator {
         long ts = currentTimeMillis();
         doInitialization();        
         long ts1 = currentTimeMillis();
-        printf("MeshDecimator.doInitialization() done in %d ms\n", (ts1-ts));
+        printf("MeshDecimator.doInitialization() %d ms\n", (ts1-ts));
         ts = ts1;
         
         //printf("initial face count: %d\n", m_faceCount);
@@ -154,23 +155,24 @@ public class MeshDecimator {
                 double timeToFinish = totalTime - timeSinceStart;
                 int f1 = m_faceCount;
                 double fps = 1000.*(f0-f1)/(t1-time0);
-                printf("face count: %7d time to finish: %5.0f sec, total time: %5.0f, fps: %5.0f \n", m_faceCount, timeToFinish, totalTime, fps );
+                //printf("face count: %7d time to finish: %5.0f sec, total time: %5.0f, fps: %5.0f \n", m_faceCount, timeToFinish, totalTime, fps );
                 f0 = f1;
                 time0 = t1;
             }
         } 
         
         ts1 = currentTimeMillis();
-        printf("MeshDecimator.doIterations() done in %d ms\n", (ts1-ts));
+        printf("MeshDecimator.doIterations() %d ms\n", (ts1-ts));
         ts = ts1;
 
         int actuallFaceCount = mesh.getFaceCount();
-        printf(" final face count: %d\n", m_faceCount);
-        printf("actual face count: %d\n", actuallFaceCount);
-        printf("surface pinch count: %d\n", m_surfacePinchCount);
-        printf("face flip count: %d\n", m_faceFlipCount);
-        printf("edges collapsed: %d\n", m_collapseCount);
-
+        if(m_printStat){
+            printf(" final face count: %d\n", m_faceCount);
+            printf("actual face count: %d\n", actuallFaceCount);
+            printf("surface pinch count: %d\n", m_surfacePinchCount);
+            printf("face flip count: %d\n", m_faceFlipCount);
+            printf("edges collapsed: %d\n", m_collapseCount);
+        }
         return actuallFaceCount;
 
     }

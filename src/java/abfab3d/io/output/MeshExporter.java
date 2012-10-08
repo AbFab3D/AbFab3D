@@ -83,12 +83,13 @@ public class MeshExporter {
 
     public static void writeMeshSTL(WingedEdgeTriangleMesh we, String filename) throws IOException {
         
-        Face face = we.getFaces();
         STLWriter writer = new STLWriter(filename);
-
+        we.getTriangles(writer);
         
+        /*
+        Face face = we.getFaces();
         while(face != null){
-
+            
             
             HalfEdge he = face.getHe();
             Point3d p0 = he.getStart().getPoint();
@@ -101,7 +102,7 @@ public class MeshExporter {
             face = face.getNext();
             
         }
-
+        */
 
         writer.close();
 

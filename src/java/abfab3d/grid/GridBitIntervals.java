@@ -13,8 +13,7 @@
 package abfab3d.grid;
 
 
-//import abfab3d.grid.util.RowOfInt;
-//import abfab3d.grid.util.BitIntervals;
+import java.io.Serializable;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -25,7 +24,7 @@ import static abfab3d.util.Output.fmt;
 
    @author Vladimir Bulatov
 */
-public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, GridIntervals{
+public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, GridIntervals, Serializable {
     
     public static final int ORIENTATION_X=0, ORIENTATION_Y=1, ORIENTATION_Z = 2; // orientation of intervals 
 
@@ -33,7 +32,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     protected int m_nx, m_ny, m_nz; 
     protected RowOfInt m_data[];
     
-    protected GridBitIntervals(){
+    public GridBitIntervals(){
         super(1, 1, 1,  1., 1.);
         // this is to make subclass GridBitIntervalsBlocks 
         // it is apparently very bad
@@ -315,6 +314,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         }
 
         public boolean foundInterruptible(int x, int y, int z, byte state){
+
             m_count++;
             return true;
         }
@@ -344,8 +344,11 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
      */
     public void findInterruptible(VoxelClasses vc, ClassTraverser t) {
 
+        //printf("findInterruptible(%s, %s)\n", vc, t);
+
         RowProcesser rp = new RowProcesser(t);
         int data;
+        
         switch(vc){
 
         default:             
@@ -359,9 +362,8 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             data = 1;
             break;
         }
-        
-        // TODO different orientation ? 
-        
+                
+        // TODO different orientation ?         
         for(int y = 0; y < m_ny; y++){
             for(int x = 0; x < m_nx; x++){
                 RowOfInt row = m_data[x + m_nx*y];
@@ -370,9 +372,12 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 if(!row.findInterruptible(data, rp ))
                     return;
             }
-        }                        
+        }  
     }
 
+    /**
+       utility class to traverse one row of data 
+     */
     static class RowProcesser implements IntervalTraverser {
 
         ClassTraverser m_t;

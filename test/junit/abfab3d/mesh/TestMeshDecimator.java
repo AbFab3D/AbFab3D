@@ -22,13 +22,28 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
 
+
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
+
+
+import org.web3d.vrml.sav.BinaryContentHandler;
+
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.input.STLReader;
 import abfab3d.io.input.STLRasterizer;
+import abfab3d.io.input.MeshRasterizer;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.io.output.MeshExporter;
+import abfab3d.io.output.IsosurfaceMaker;
+import abfab3d.io.output.STLWriter;
+
 
 import abfab3d.grid.Grid;
+import abfab3d.grid.GridShortIntervals;
+import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.ClassTraverser;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -38,12 +53,6 @@ import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.*;
 
-// Internal Imports
-import org.web3d.vrml.sav.BinaryContentHandler;
-
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
 
 import static abfab3d.util.Output.printf; 
 import static abfab3d.util.Output.fmt; 
@@ -57,6 +66,10 @@ import static java.lang.System.currentTimeMillis;
  * @version
  */
 public class TestMeshDecimator extends TestCase {
+    
+    static final double MM = 1000; // m -> mm conversion 
+    static final double MM3 = 1.e9; // m^3 -> mm^3 conversion 
+
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
@@ -368,9 +381,7 @@ public class TestMeshDecimator extends TestCase {
 
         MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
 
-
-        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());
-        
+        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());        
         printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
 
         assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
@@ -401,12 +412,188 @@ public class TestMeshDecimator extends TestCase {
         }
     }
     
+    public void testDecimatorQuality(){
 
-    public void testRasterizer(){
+        //String fpath = "c:/tmp/pen_v6.stl";
+        String fpath = "c:/tmp/mesh_text_orig.stl";
+        //String fpath = "c:/tmp/leaf_01.stl";
 
+        long t0 = currentTimeMillis();
+        WingedEdgeTriangleMesh mesh = loadMesh(fpath);
+        printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
+
+
+        MeshDecimator md = new MeshDecimator();
+        md.DEBUG = false;
+        mesh.DEBUG = false; 
+
+        int fcount = mesh.getFaceCount();
+        printf("mesh faces: %d \n",fcount);
+
+        double mbounds[] = mesh.getBounds();
+        
+        printf("model bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",mbounds[0]*MM,mbounds[1]*MM,mbounds[2]*MM,mbounds[3]*MM,mbounds[4]*MM,mbounds[5]*MM);
+        
+        double voxelSize = 1.e-4; // 0.1 mm;
+        double voxelVolume = voxelSize*voxelSize*voxelSize;
+
+        int padding = 2; // empty padding arind the model 
+
+        int gridX = (int)Math.ceil((mbounds[1] - mbounds[0])/voxelSize);
+        int gridY = (int)Math.ceil((mbounds[3] - mbounds[2])/voxelSize);
+        int gridZ = (int)Math.ceil((mbounds[5] - mbounds[4])/voxelSize);
+
+        printf("model Grid: [%d x %d x %d]\n",gridX, gridY, gridZ);
+
+        gridX += 2*padding;
+        gridY += 2*padding;
+        gridZ += 2*padding;
+
+        printf("voxels Grid: [%d x %d x %d]\n",gridX, gridY, gridZ);
+
+        double gbounds[] = new double[]{mbounds[0] - padding*voxelSize,
+                                        mbounds[0] + (gridX-padding)*voxelSize,
+                                        mbounds[2] - padding*voxelSize,
+                                        mbounds[2] + (gridY-padding)*voxelSize,
+                                        mbounds[4] - padding*voxelSize,
+                                        mbounds[4] + (gridZ-padding)*voxelSize};
+        
+        printf("grid bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",gbounds[0]*MM,gbounds[1]*MM,gbounds[2]*MM,gbounds[3]*MM,gbounds[4]*MM,gbounds[5]*MM);
+        
+        Grid grid1 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
+
+        //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "c:/tmp/grid1.stl");
+
+        int count1 = grid1.findCount(Grid.VoxelClasses.INTERIOR);
+        
+        printf("MODEL_FACE_COUNT: %d\n", fcount);
+        printf("MODEL_VOXELS_COUNT: %d VOLUME: %7.2f mm^3\n", count1, count1*voxelVolume* MM3);
+
+        for(int i = 0; i < 10; i++){      
+  
+            fcount = fcount/2;
+            md.processMesh(mesh, fcount);
+            Grid grid2 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
+            int count2 = grid2.findCount(Grid.VoxelClasses.INTERIOR);
+
+            //printf("count2: %d volume2: %7.2f mm^3\n", count2, count2*voxelVolume* MM3);            
+            t0 = currentTimeMillis();            
+            //Grid gridDiff = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);  
+            Grid gridDiff = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);              
+            getDifference(grid1, grid2, gridDiff);                
+            //printf("difference found: %d ms\n",(currentTimeMillis() - t0));            
+            int count3 = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
+            
+            printf("CURRENT_FACE_COUNT: %d\n", mesh.getFaceCount());
+            printf("DIFFERENCE_COUNT: %d DIFFERENCE_VOLUME: %7.2f mm^3\n", count3, count3*voxelVolume* MM3);
+            if(count3 > 0){
+                writeIsosurface(gridDiff, gbounds, voxelSize, gridX, gridY, gridZ, fmt("c:/tmp/diff_%02d.stl", i));
+            }
+        }
+                
+    }
+
+    Grid makeGrid(WingedEdgeTriangleMesh mesh, double gbounds[], int gridX, int gridY, int gridZ, double voxelSize){
+        
+        long t0 = currentTimeMillis();
+        
+        MeshRasterizer mr = new MeshRasterizer(gbounds, gridX, gridY, gridZ);         
+        mesh.getTriangles(mr);
+
+        Grid grid = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);        
+        //Grid grid = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);        
+        mr.getRaster(grid);
+        //printf("mesh rasterized: %d ms\n",(currentTimeMillis() - t0));
+
+        return grid;
+
+    }
+
+    /**
+       makes symetric difference of two grids
+     */
+    public void getDifference(Grid grid1, Grid grid2, Grid difference){
+        
+        grid1.findInterruptible(Grid.VoxelClasses.MARKED, new GridDifference(grid2,difference));
+        grid2.findInterruptible(Grid.VoxelClasses.MARKED, new GridDifference(grid1,difference));        
+
+    }
+    
+    /**
+       compares voxel from 
+       traversal is going over marked voxels of another grid
+       if gridToCompare has empty voxel, then the difference grid has it's voxel set
+     */
+    static class GridDifference implements ClassTraverser {
+        
+        Grid gridToCompare; // grid to compare to
+        Grid gridDifference; // difference grid to write to 
+        
+        GridDifference(Grid gridToCompare, Grid gridDifference){
+
+            this.gridToCompare = gridToCompare;
+            this.gridDifference = gridDifference; 
+
+        }
+
+        public void found(int x, int y, int z, byte state){
+            
+            foundInterruptible(x, y, z, state);
+
+        }
+        
+        public boolean foundInterruptible(int x, int y, int z, byte state){
+
+            if(gridToCompare.getState(x,y,z) == Grid.OUTSIDE){
+                gridDifference.setState(x,y,z, Grid.INTERIOR);
+            }
+            return true;
+            
+        }
+
+    } // class GridDifference
+
+    
+    /**
+       
+     */
+    void writeIsosurface(Grid grid, double bounds[], double voxelSize, int nx, int ny, int nz, String fpath){
+
+        IsosurfaceMaker im = new IsosurfaceMaker();
+        
+        im.setIsovalue(0.);
+        im.setBounds(extendBounds(bounds, -voxelSize/2));
+        im.setGridSize(nx, ny, nz);
+
+        IsosurfaceMaker.SliceGrid fdata = new IsosurfaceMaker.SliceGrid(grid, bounds, 0);
+        try {
+            STLWriter stlwriter = new STLWriter(fpath);
+            im.makeIsosurface(fdata, stlwriter);
+            stlwriter.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    static double[] extendBounds(double bounds[], double margin){
+        
+        return new double[]{
+            bounds[0] - margin, 
+            bounds[1] + margin, 
+            bounds[2] - margin, 
+            bounds[3] + margin, 
+            bounds[4] - margin, 
+            bounds[5] + margin, 
+        };
+    }
+
+    public void _testRasterizer(){
+        
         String fpath = "c:/tmp/pen_v6.stl";
         STLRasterizer sr = new STLRasterizer();
+        
         try {
+            
             Grid grid = sr.rasterizeFile(fpath);
         
             printf("done!\n");

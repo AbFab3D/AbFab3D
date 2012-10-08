@@ -83,15 +83,15 @@ public class MeshRasterizer implements TriangleCollector {
         m_sz = gridZ/(bounds[5] - bounds[4]);
         
         m_tx = -m_sx*bounds[0];
-        m_ty = -m_sx*bounds[1];
-        m_tz = -m_sx*bounds[2]; 
+        m_ty = -m_sy*bounds[2];
+        m_tz = -m_sz*bounds[4]; 
         
         // break possble symmetry (dirty hack)
         m_tx += EPSILON_SHIFT;
     }
     
     public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
-       
+
         double 
             x0, y0, z0, 
             x1, y1, z1, 
@@ -105,11 +105,13 @@ public class MeshRasterizer implements TriangleCollector {
         y1 = m_sy*v1.y+m_ty;
         z1 = m_sz*v1.z+m_tz;
 
-        x2 = m_sx*v1.x+m_tx;
-        y2 = m_sy*v1.y+m_ty;
-        z2 = m_sz*v1.z+m_tz;
+        x2 = m_sx*v2.x+m_tx;
+        y2 = m_sy*v2.y+m_ty;
+        z2 = m_sz*v2.z+m_tz;
         
+        //printf("fillTriangle(%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f,%7.1f)\n",x0, y0, z0, x1, y1, z1, x2, y2, z2);
         m_zbuffer.fillTriangle(x0, y0, z0, x1, y1, z1, x2, y2, z2);
+        
 
         return true;
 
@@ -120,7 +122,6 @@ public class MeshRasterizer implements TriangleCollector {
        it stores data from ZBuffer into supplied grid
      */
     public void getRaster(Grid grid){
-
         
         fillGrid(grid);
 
@@ -130,11 +131,15 @@ public class MeshRasterizer implements TriangleCollector {
     
     protected void fillGrid(Grid grid){
         
+        //printf("MeshRasterizer.fillGrid()\n");
+                
         for(int y = 0; y < m_ny; y++){
             
             for(int x = 0; x < m_nx; x++){
                 
                 int len = m_zbuffer.getCount(x,y);
+                //printf("len: %d %d %d\n", x,y, len);
+
                 if(len < 2)
                     continue;
                 

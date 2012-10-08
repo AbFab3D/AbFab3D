@@ -74,11 +74,11 @@ public class STLRasterizer {
         printf("voxels Grid: [%d x %d x %d]\n",gridX, gridY, gridZ);
 
         double gbounds[] = new double[]{mbounds[0] - m_padding*m_voxelSize,
-                                        mbounds[0] + gridX*m_voxelSize,
+                                        mbounds[0] + (gridX-m_padding)*m_voxelSize,
                                         mbounds[2] - m_padding*m_voxelSize,
-                                        mbounds[2] + gridY*m_voxelSize,
+                                        mbounds[2] + (gridY-m_padding)*m_voxelSize,
                                         mbounds[4] - m_padding*m_voxelSize,
-                                        mbounds[4] + gridZ*m_voxelSize};
+                                        mbounds[4] + (gridZ-m_padding)*m_voxelSize};
                                                         
         MeshRasterizer mr = new MeshRasterizer(gbounds, gridX, gridY, gridZ);
         // read file again 

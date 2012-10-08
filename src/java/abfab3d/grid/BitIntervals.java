@@ -13,6 +13,7 @@
 
 package abfab3d.grid;
 
+import java.io.Serializable;
 
 import static abfab3d.util.Output.printf;
 
@@ -31,7 +32,7 @@ import static abfab3d.util.Output.printf;
    @author Vladimir Bulatov
    
  */
-public class BitIntervals implements RowOfInt{
+public class BitIntervals implements RowOfInt, Serializable {
     
     short m_intervals[];
 

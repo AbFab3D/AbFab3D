@@ -13,6 +13,8 @@
 package abfab3d.grid;
 
 // External Imports
+import java.io.Serializable;
+
 
 /**
  * Base class implementation of Grids.  Includes common code that
@@ -25,7 +27,7 @@ package abfab3d.grid;
  *
  * @author Alan Hudson
  */
-public abstract class BaseGrid implements Grid, Cloneable {
+public abstract class BaseGrid implements Grid, Cloneable,Serializable {
     // Empty voxel data value
     protected static final VoxelData EMPTY_VOXEL;
 
