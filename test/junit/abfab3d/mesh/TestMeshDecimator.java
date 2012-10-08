@@ -416,23 +416,24 @@ public class TestMeshDecimator extends TestCase {
     public void testDecimatorQuality() throws Exception {
     
         //String fpath = "c:/tmp/pen_v6.stl"; // strange rasterization errors 
-        //String fpath = "c:/tmp/mesh_text_orig.stl";
+        String fpath = "c:/tmp/mesh_text_orig.stl";
         //String fpath = "c:/tmp/leaf_01.stl";
-        //String fpath = "c:/tmp/torus_01.stl";
+        //String fpath = "c:/tmp/torus_02.stl";
         //String fpath = "c:/tmp/block_01.stl";
         //String fpath = "c:/tmp/block_02.stl";
         //String fpath = "c:/tmp/torus_01.stl";
-        String fpath = "c:/tmp/rtc_v3_04.stl";
+        //String fpath = "c:/tmp/rtc_v3_04.stl";
 
 
         long t0 = currentTimeMillis();
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
         printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
+        mesh.DEBUG = false; 
 
 
         MeshDecimator md = new MeshDecimator();
         md.DEBUG = false;
-        mesh.DEBUG = false; 
+        md.setMaxCollapseError(5.e-8);        
 
         int fcount = mesh.getFaceCount();
         printf("mesh faces: %d \n",fcount);
@@ -440,12 +441,13 @@ public class TestMeshDecimator extends TestCase {
 
         double mbounds[] = mesh.getBounds();
         
-        printf("model bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",mbounds[0]*MM,mbounds[1]*MM,mbounds[2]*MM,mbounds[3]*MM,mbounds[4]*MM,mbounds[5]*MM);
+        printf("model bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",
+               mbounds[0]*MM,mbounds[1]*MM,mbounds[2]*MM,mbounds[3]*MM,mbounds[4]*MM,mbounds[5]*MM);
         
         double voxelSize = 0.1e-3; // 0.1 mm;
         double voxelVolume = voxelSize*voxelSize*voxelSize;
 
-        int padding = 2; // empty padding arind the model 
+        int padding = 2; // empty padding around the model 
 
         int gridX = (int)Math.ceil((mbounds[1] - mbounds[0])/voxelSize);
         int gridY = (int)Math.ceil((mbounds[3] - mbounds[2])/voxelSize);
@@ -466,7 +468,8 @@ public class TestMeshDecimator extends TestCase {
                                         mbounds[4] - padding*voxelSize,
                                         mbounds[4] + (gridZ-padding)*voxelSize};
         
-        printf("grid bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",gbounds[0]*MM,gbounds[1]*MM,gbounds[2]*MM,gbounds[3]*MM,gbounds[4]*MM,gbounds[5]*MM);
+        printf("grid bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",
+               gbounds[0]*MM,gbounds[1]*MM,gbounds[2]*MM,gbounds[3]*MM,gbounds[4]*MM,gbounds[5]*MM);
         
         Grid grid1 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
 
@@ -479,9 +482,9 @@ public class TestMeshDecimator extends TestCase {
         printf("MODEL_FACE_COUNT: %d\n", fcount);
         printf("MODEL_VOXELS_COUNT: %d VOLUME: %7.2f mm^3\n", count1, count1*voxelVolume* MM3);
 
-        for(int i = 0; i < 10; i++){      
+        for(int i = 0; i < 5; i++){      
   
-            fcount = fcount/2;
+            fcount = fcount/4;
             md.processMesh(mesh, fcount);
             Grid grid2 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
             int count2 = grid2.findCount(Grid.VoxelClasses.INTERIOR);
@@ -499,7 +502,7 @@ public class TestMeshDecimator extends TestCase {
             double erodedVolume = countEroded*voxelVolume*MM3;
             double differenceVolume = countDiff*voxelVolume*MM3;
             printf("CURRENT_FACE_COUNT: %d\n", mesh.getFaceCount());
-            printf("DIFFERENCE: %7.2f mm^3, LARGE_DIFFERENCE: %7.2f mm^3\n", differenceVolume, erodedVolume);
+            printf("DIFFERENCE: %7.2f mm^3, LARGE_DIFFERENCE: %7.2f mm^3 count: %d\n", differenceVolume, erodedVolume, countEroded);
             String fout = fmt("c:/tmp/diff_%02d.stl", i);
             if(countEroded > 0){
                 writeIsosurface(gridDiff, gbounds, voxelSize, gridX, gridY, gridZ, fout);
@@ -507,6 +510,7 @@ public class TestMeshDecimator extends TestCase {
                 break;
             }
         }
+        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_decimated.stl"));
                 
     }
 

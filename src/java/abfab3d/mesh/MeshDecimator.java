@@ -67,7 +67,9 @@ public class MeshDecimator {
     // count of face flip prevented 
     int m_faceFlipCount;
 
-
+    double m_maxError;
+    // maximal error allowed during collapse 
+    double m_maxCollapseError = Double.MAX_VALUE;
 
     static final int RANDOM_CANDIDATES_COUNT = 10; 
 
@@ -107,7 +109,10 @@ public class MeshDecimator {
     public MeshDecimator(){
         
     }
-    
+
+    public void setMaxCollapseError(double maxCollapseError){
+        m_maxCollapseError = maxCollapseError;
+    }
     
     /**
        decimates the mesh to have targetFaceCount
@@ -118,7 +123,7 @@ public class MeshDecimator {
     public int processMesh(WingedEdgeTriangleMesh mesh, int targetFaceCount){
                 
         printf("MeshDecimator.processMesh(%s, %d)\n", mesh, targetFaceCount);
-        
+                
         this.m_mesh = mesh;
                         
         m_faceCount = m_mesh.getFaceCount();
@@ -172,6 +177,7 @@ public class MeshDecimator {
             printf("surface pinch count: %d\n", m_surfacePinchCount);
             printf("face flip count: %d\n", m_faceFlipCount);
             printf("edges collapsed: %d\n", m_collapseCount);
+            printf("MAX_COLLAPSE_ERROR: %10.5e\n", m_maxError);
         }
         return actuallFaceCount;
 
@@ -185,6 +191,7 @@ public class MeshDecimator {
         if(DEBUG)
             printf("MeshDecimator.doInitialization()\n");
         
+        m_maxError = 0;
         m_ecr = new EdgeCollapseResult();        
         m_candidates = new EdgeData[RANDOM_CANDIDATES_COUNT];
         // 
@@ -255,9 +262,16 @@ public class MeshDecimator {
             // should not happens 
             return false;
         }
-            
+        
         EdgeData ed = bestCandidate;
         m_errorFunction.calculateVertex(ed);
+
+        if(ed.errorValue > m_maxCollapseError){
+
+            return false;
+            
+        }
+        
 
         if(DEBUG){                
             printf("remove edge: %d error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
@@ -294,7 +308,7 @@ public class MeshDecimator {
             }
             return false;
             
-        }
+        } 
 
         
         if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
@@ -315,6 +329,10 @@ public class MeshDecimator {
             // remove edge from array 
             m_edgeArray.set(index.intValue(), null);                
         }
+
+        if(ed.errorValue > m_maxError){
+            m_maxError = ed.errorValue;
+        }            
 
         if(DEBUG) printf("\n");
 
