@@ -43,7 +43,7 @@ import static java.lang.System.currentTimeMillis;
  */
 public class MeshDecimator {
 
-    static boolean DEBUG = true;
+    static boolean DEBUG = false;
     static boolean m_printStat = true;
 
     // mesjh we are working on 
