@@ -416,7 +416,11 @@ public class TestMeshDecimator extends TestCase {
     public void testDecimatorQuality() throws Exception {
     
         //String fpath = "c:/tmp/pen_v6.stl"; // strange rasterization errors 
-        String fpath = "c:/tmp/mesh_text_orig.stl";
+        //String fpath = "c:/tmp/mesh_text_orig.stl";
+        //String fpath = "c:/tmp/out_grid_04_2_1.stl";
+        //String fpath = "c:/tmp/out_grid_04_2_out.stl";
+        //String fpath = "c:/tmp/out_grid_04_2_out_dec_00_s.stl";
+        String fpath = "c:/tmp/ring_image.stl";
         //String fpath = "c:/tmp/leaf_01.stl";
         //String fpath = "c:/tmp/torus_02.stl";
         //String fpath = "c:/tmp/block_01.stl";
@@ -433,7 +437,7 @@ public class TestMeshDecimator extends TestCase {
 
         MeshDecimator md = new MeshDecimator();
         md.DEBUG = false;
-        md.setMaxCollapseError(5.e-8);        
+        md.setMaxCollapseError(1.e-8);        
 
         int fcount = mesh.getFaceCount();
         printf("mesh faces: %d \n",fcount);
@@ -471,46 +475,47 @@ public class TestMeshDecimator extends TestCase {
         printf("grid bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",
                gbounds[0]*MM,gbounds[1]*MM,gbounds[2]*MM,gbounds[3]*MM,gbounds[4]*MM,gbounds[5]*MM);
         
-        Grid grid1 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
+        //Grid grid1 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
 
-        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig.stl"));
+        //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig.stl"));
 
         //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "c:/tmp/diff_orig.stl");
 
-        int count1 = grid1.findCount(Grid.VoxelClasses.INTERIOR);
+        //int count1 = grid1.findCount(Grid.VoxelClasses.INTERIOR);
         
         printf("MODEL_FACE_COUNT: %d\n", fcount);
-        printf("MODEL_VOXELS_COUNT: %d VOLUME: %7.2f mm^3\n", count1, count1*voxelVolume* MM3);
+        //printf("MODEL_VOXELS_COUNT: %d VOLUME: %7.2f mm^3\n", count1, count1*voxelVolume* MM3);
 
-        for(int i = 0; i < 5; i++){      
+        for(int i = 0; i < 10; i++){      
   
-            fcount = fcount/4;
+            fcount = fcount/2;
             md.processMesh(mesh, fcount);
-            Grid grid2 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
-            int count2 = grid2.findCount(Grid.VoxelClasses.INTERIOR);
+            //Grid grid2 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
+            //int count2 = grid2.findCount(Grid.VoxelClasses.INTERIOR);
 
             //printf("count2: %d volume2: %7.2f mm^3\n", count2, count2*voxelVolume* MM3);            
             t0 = currentTimeMillis();            
             //Grid gridDiff = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);  
-            Grid gridDiff = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);              
-            getDifference(grid1, grid2, gridDiff);   
-            int countDiff = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
-            ErosionMask err = new ErosionMask(1);
-            err.execute(gridDiff);
+            //Grid gridDiff = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);              
+            //getDifference(grid1, grid2, gridDiff);   
+            //int countDiff = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
+            //ErosionMask err = new ErosionMask(1);
+            //err.execute(gridDiff);
             //printf("difference found: %d ms\n",(currentTimeMillis() - t0));            
-            int countEroded = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
-            double erodedVolume = countEroded*voxelVolume*MM3;
-            double differenceVolume = countDiff*voxelVolume*MM3;
+            //int countEroded = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
+            //double erodedVolume = countEroded*voxelVolume*MM3;
+            //double differenceVolume = countDiff*voxelVolume*MM3;
             printf("CURRENT_FACE_COUNT: %d\n", mesh.getFaceCount());
-            printf("DIFFERENCE: %7.2f mm^3, LARGE_DIFFERENCE: %7.2f mm^3 count: %d\n", differenceVolume, erodedVolume, countEroded);
-            String fout = fmt("c:/tmp/diff_%02d.stl", i);
-            if(countEroded > 0){
-                writeIsosurface(gridDiff, gbounds, voxelSize, gridX, gridY, gridZ, fout);
-                MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%02d.stl", i));
-                break;
-            }
+            //printf("DIFFERENCE: %7.2f mm^3, LARGE_DIFFERENCE: %7.2f mm^3 count: %d\n", differenceVolume, erodedVolume, countEroded);
+            //String fout = fmt("c:/tmp/diff_%02d.stl", i);
+            MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%02d.stl", i));
+            //if(countEroded > 0){
+                //writeIsosurface(gridDiff, gbounds, voxelSize, gridX, gridY, gridZ, fout);
+                //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%02d.stl", i));
+            //    break;
+            //}
         }
-        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_decimated.stl"));
+        //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_decimated.stl"));
                 
     }
 
