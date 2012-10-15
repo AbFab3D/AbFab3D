@@ -22,6 +22,11 @@ import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Initializable;
 
+import static java.lang.Math.sqrt;
+
+import static abfab3d.util.Output.printf;
+
+
 /**
    a collection of various VecTransforms
    
@@ -161,7 +166,7 @@ public class VecTransforms {
 
 
     /**
-       performs scale 
+       performs scaling by given factor
      */
     public static class Scale  implements VecTransform, Initializable  {
 
@@ -219,6 +224,136 @@ public class VecTransforms {
     } // class Scale
 
 
+
+    /**
+       performs inversion in a sphere of given center and radius 
+     */
+    public static class SphereInversion  implements VecTransform, Initializable  {
+
+        public Vector3d m_center = new Vector3d(0,0,1); 
+        public double m_radius = sqrt(2.); 
+
+        private double radius2; 
+        static double EPS = 1.e-20;
+
+        public int initialize(){
+
+            radius2 = m_radius*m_radius; 
+            return RESULT_OK;
+
+        }
+
+                
+        /**
+         *
+         */
+        public int transform(Vec in, Vec out) {
+            
+            double x = in.v[0];
+            double y = in.v[1];
+            double z = in.v[2];
+            
+            // move center to origin 
+            x -= m_center.x;
+            y -= m_center.y;
+            z -= m_center.z;
+            double r2 = (x*x + y*y + z*z);
+            if(r2 < EPS) r2 = EPS;
+
+            double scale = radius2/r2;
+            
+            x *= scale;
+            y *= scale;
+            z *= scale;
+
+            // move origin back to center
+            x += m_center.x;
+            y += m_center.y;
+            z += m_center.z;
+            
+            out.v[0] = x;
+            out.v[1] = y;
+            out.v[2] = z;
+            
+            return RESULT_OK;
+        }                
+
+        /**
+         *  composite transform is identical to direct transform
+         */
+        public int inverse_transform(Vec in, Vec out) {
+            
+            transform(in, out);
+
+            return RESULT_OK;
+
+        }
+    } // class SphereInversion
+
+    
+    /**
+       reflect in a given plane 
+     */
+    public static class PlaneReflection  implements VecTransform, Initializable  {
+
+        public Vector3d m_pointOnPlane = new Vector3d(0,0,0); 
+        public Vector3d m_planeNormal = new Vector3d(1,0,0); 
+
+
+        public int initialize(){
+
+            m_planeNormal.normalize();
+
+            return RESULT_OK;
+
+        }
+
+                
+        /**
+         *
+         */
+        public int transform(Vec in, Vec out) {
+            
+            double x = in.v[0];
+            double y = in.v[1];
+            double z = in.v[2];
+            
+            // move center to origin 
+            x -= m_pointOnPlane.x;
+            y -= m_pointOnPlane.y;
+            z -= m_pointOnPlane.z;
+
+            double dot = 2*(x*m_planeNormal.x + y*m_planeNormal.y + z*m_planeNormal.z);
+            
+            x -= dot*m_planeNormal.x;
+            y -= dot*m_planeNormal.y;
+            z -= dot*m_planeNormal.z;
+
+            // move origin back to center
+            x += m_pointOnPlane.x;
+            y += m_pointOnPlane.y;
+            z += m_pointOnPlane.z;
+            
+            out.v[0] = x;
+            out.v[1] = y;
+            out.v[2] = z;
+            
+            return RESULT_OK;
+        }                
+
+        /**
+         *  composite transform is identical to direct transform
+         */
+        public int inverse_transform(Vec in, Vec out) {
+            
+            transform(in, out);
+
+            return RESULT_OK;
+
+        }
+    } // class PlaneReflection
+
+
     /**
        
      */
@@ -236,7 +371,7 @@ public class VecTransforms {
         public int initialize(){
             
             for(int i = 0; i < m_transforms.size(); i++){
-                VecTransform tr = m_transforms.get(i);
+                 VecTransform tr = m_transforms.get(i);
                 if(tr instanceof Initializable){
                     int res = ((Initializable)tr).initialize();
                     if(res != RESULT_OK)

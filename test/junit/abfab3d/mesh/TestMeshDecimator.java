@@ -420,7 +420,9 @@ public class TestMeshDecimator extends TestCase {
         //String fpath = "c:/tmp/out_grid_04_2_1.stl";
         //String fpath = "c:/tmp/out_grid_04_2_out.stl";
         //String fpath = "c:/tmp/out_grid_04_2_out_dec_00_s.stl";
-        String fpath = "c:/tmp/ring_image.stl";
+        //String fpath = "c:/tmp/ring_image.stl";
+        //String fpath = "c:/tmp/ring_image_90s.stl";
+        String fpath = "c:/tmp/ring_image_45s.stl";
         //String fpath = "c:/tmp/leaf_01.stl";
         //String fpath = "c:/tmp/torus_02.stl";
         //String fpath = "c:/tmp/block_01.stl";
