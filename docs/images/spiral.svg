@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.0 r9654"
+   sodipodi:docname="spiral.svg">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3791">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop3793" />
+      <stop
+         style="stop-color:#f6f6f6;stop-opacity:0.99130434;"
+         offset="1"
+         id="stop3795" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3783">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop3785" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop3787" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3759">
+      <stop
+         style="stop-color:#0803f9;stop-opacity:1;"
+         offset="0"
+         id="stop3761" />
+      <stop
+         style="stop-color:#193ac5;stop-opacity:0;"
+         offset="1"
+         id="stop3763" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3791"
+       id="linearGradient3797"
+       x1="85.306732"
+       y1="324.86716"
+       x2="667.66611"
+       y2="324.86716"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="382.89385"
+     inkscape:cy="796.08963"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1497"
+     inkscape:window-height="986"
+     inkscape:window-x="396"
+     inkscape:window-y="103"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       d="m 364.28571,357.36218 c 9.16817,5.62266 -3.05598,15.13254 -9.34523,15.23811 -17.04348,0.28609 -24.61344,-19.81772 -21.13099,-33.92856 6.2293,-25.24098 35.75393,-35.10038 58.51189,-27.02386 33.39822,11.85261 45.83093,51.88203 32.91675,83.09521 -17.21257,41.60227 -68.07507,56.66123 -107.67855,38.80963 -49.83693,-22.46441 -67.54231,-84.29828 -44.70251,-132.26188 27.66206,-58.09033 100.53834,-78.45265 156.84521,-50.59539 66.3557,32.82882 89.38134,116.78886 56.48827,181.42854 C 448.2142,506.75305 353.14418,532.44624 280.17868,494.50513 197.27066,451.39404 168.90693,345.19632 211.90465,263.90994 260.14159,172.71889 377.47948,141.68247 467.08318,189.74302 566.56026,243.09934 600.27102,371.58659 547.14298,469.50488 488.67211,577.27031 349.02857,613.65669 242.79779,555.45756 126.74219,491.87586 87.679203,341.07067 150.95222,226.52904 219.64186,102.18184 381.61292,60.441433 504.46407,128.7906 c 132.63996,73.79523 177.05846,246.93559 103.63133,378.09518 -78.89896,140.93368 -263.21138,188.0308 -402.67851,109.5242 -2.57035,-1.44685 -5.11961,-2.93116 -7.64673,-4.45225"
+       sodipodi:t0="0"
+       sodipodi:argument="-18.299429"
+       sodipodi:radius="304.21426"
+       sodipodi:revolution="4.2546287"
+       sodipodi:expansion="1"
+       sodipodi:cy="357.36218"
+       sodipodi:cx="364.28571"
+       id="path3770"
+       style="fill:none;stroke:#808080;stroke-width:25;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       sodipodi:type="spiral"
+       transform="translate(-11.428571,-20)"
+       inkscape:export-filename="D:\home\00_shapeways\projects\abfab3d\code\trunk\docs\images\spiral.png"
+       inkscape:export-xdpi="300.06674"
+       inkscape:export-ydpi="300.06674" />
+    <path
+       sodipodi:type="spiral"
+       style="fill:none;stroke:#000000;stroke-width:10;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       id="path3768"
+       sodipodi:cx="364.28571"
+       sodipodi:cy="357.36218"
+       sodipodi:expansion="1"
+       sodipodi:revolution="4.2546287"
+       sodipodi:radius="304.21426"
+       sodipodi:argument="-18.299429"
+       sodipodi:t0="0"
+       d="m 364.28571,357.36218 c 9.16817,5.62266 -3.05598,15.13254 -9.34523,15.23811 -17.04348,0.28609 -24.61344,-19.81772 -21.13099,-33.92856 6.2293,-25.24098 35.75393,-35.10038 58.51189,-27.02386 33.39822,11.85261 45.83093,51.88203 32.91675,83.09521 -17.21257,41.60227 -68.07507,56.66123 -107.67855,38.80963 -49.83693,-22.46441 -67.54231,-84.29828 -44.70251,-132.26188 27.66206,-58.09033 100.53834,-78.45265 156.84521,-50.59539 66.3557,32.82882 89.38134,116.78886 56.48827,181.42854 C 448.2142,506.75305 353.14418,532.44624 280.17868,494.50513 197.27066,451.39404 168.90693,345.19632 211.90465,263.90994 260.14159,172.71889 377.47948,141.68247 467.08318,189.74302 566.56026,243.09934 600.27102,371.58659 547.14298,469.50488 488.67211,577.27031 349.02857,613.65669 242.79779,555.45756 126.74219,491.87586 87.679203,341.07067 150.95222,226.52904 219.64186,102.18184 381.61292,60.441433 504.46407,128.7906 c 132.63996,73.79523 177.05846,246.93559 103.63133,378.09518 -78.89896,140.93368 -263.21138,188.0308 -402.67851,109.5242 -2.57035,-1.44685 -5.11961,-2.93116 -7.64673,-4.45225"
+       inkscape:export-filename="D:\home\00_shapeways\projects\abfab3d\code\trunk\docs\images\spiral.png"
+       inkscape:export-xdpi="300.06674"
+       inkscape:export-ydpi="300.06674"
+       transform="translate(-11.428568,-21.42857)" />
+  </g>
+</svg>
