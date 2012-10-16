@@ -104,6 +104,10 @@ public class DataSources {
         public double m_baseThickness = 0.5; // relative thickness of solid base 
         public String m_imagePath; 
         
+        public int m_xTilesCount = 1; // number of image tiles in x-direction 
+        public int m_yTilesCount = 1; // number of image tiles in y-direction 
+
+
         private double xmin, xmax, ymin, ymax, zmin, zmax, zbase;
         
         private int imageWidth, imageHeight;
@@ -121,7 +125,6 @@ public class DataSources {
             zmin = m_centerZ - m_sizeZ/2;
             zmax = m_centerZ + m_sizeZ/2;
             zbase = zmin + (zmax - zmin)*m_baseThickness;
-
 
             BufferedImage image = null;
 
@@ -153,15 +156,27 @@ public class DataSources {
                 y = pnt.v[1],
                 z = pnt.v[2];
 
-            if(x < xmin || x > xmax ||
-               y < ymin || y > ymax ||
+            x = (x-xmin)/(xmax-xmin);
+            y = (y-ymin)/(ymax-ymin);
+            
+            if(x < 0 || x > 1 ||
+               y < 0 || y > 1 ||
                z < zmin || z > zmax){
                 data.v[0] = 0;
                 return RESULT_OK;
             }
 
-            double imageX = imageWidth*(x-xmin)/(xmax-xmin);
-            double imageY = imageHeight*(1-(y-ymin)/(ymax-ymin));// change Y-direction 
+            if(m_xTilesCount > 1){
+                x *= m_xTilesCount;
+                x -= Math.floor(x);
+            }
+            if(m_yTilesCount > 1){
+                y *= m_yTilesCount;
+                y -= Math.floor(y);
+            }
+                
+            double imageX = imageWidth*x;
+            double imageY = imageHeight*(1-y);// reverse Y-direction 
 
             double pixelValue = getPixelBox(imageX,imageY);
             // pixel value for black is 0 for white is 255;
