@@ -65,10 +65,10 @@ public class TestGridMaker extends TestCase {
     /**
 
      */
-    public void _testImageRing1() {
+    public void testImageRing1() {
         
         printf("testImageRing1()\n");
-        double voxelSize = 1.e-4;
+        double voxelSize = 2.e-4;
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
         int smoothSteps = 0;
         double margin = 4*voxelSize;
@@ -104,7 +104,7 @@ public class TestGridMaker extends TestCase {
 
         VecTransforms.Rotation rot = new VecTransforms.Rotation();
         rot.m_axis = new Vector3d(1,0,0);
-        rot.m_angle = 0*TORAD;
+        rot.m_angle = 90*TORAD;
         
         compTrans.add(rot);
         compTrans.add(rw);
@@ -122,7 +122,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_image_45.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_numbers.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -130,7 +130,7 @@ public class TestGridMaker extends TestCase {
     /**
 
      */
-    public void testImageRingTiled() {
+    public void _testImageRingTiled() {
         
         printf("testImageTiled()\n");
         double voxelSize = 1.e-4;
