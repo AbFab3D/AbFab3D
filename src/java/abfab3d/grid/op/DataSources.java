@@ -18,6 +18,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 
 import java.io.File;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 
@@ -53,6 +54,27 @@ public class DataSources {
         
         private double xmin, xmax, ymin, ymax, zmin, zmax;
         
+        /**
+           
+         */
+        public void setSize(double sx, double sy, double sz){
+            m_sizeX = sx;
+            m_sizeY = sy;
+            m_sizeZ = sz;
+        }
+
+        /**
+           
+         */
+        public void setLocation(double x, double y, double z){
+            m_centerX = x;
+            m_centerY = y;
+            m_centerZ = z;
+        }
+
+        /**
+           
+         */
         public int initialize(){
             
             xmin = m_centerX - m_sizeX/2;
@@ -65,6 +87,7 @@ public class DataSources {
             zmax = m_centerZ + m_sizeZ/2;
 
             return RESULT_OK;
+
         }
 
         /**
@@ -113,6 +136,42 @@ public class DataSources {
         private int imageWidth, imageHeight;
         private int imageData[]; 
 
+        /**
+           
+         */
+        public void setSize(double sx, double sy, double sz){
+            m_sizeX = sx;
+            m_sizeY = sy;
+            m_sizeZ = sz;
+        }
+
+        /**
+           
+         */
+        public void setLocation(double x, double y, double z){
+            m_centerX = x;
+            m_centerY = y;
+            m_centerZ = z;
+        }
+
+        public void setTiles(int tx, int ty){
+
+            m_xTilesCount = tx;
+            m_yTilesCount = ty;
+            
+        }
+
+        public void setBaseThickness(double baseThickness){
+            
+            m_baseThickness = baseThickness;
+            
+        }
+
+        public void setImagePath(String path){
+            
+            m_imagePath = path;
+            
+        }
 
         public int initialize(){
             
@@ -131,6 +190,7 @@ public class DataSources {
             try {
                 image = ImageIO.read(new File(m_imagePath));                
             } catch(Exception e){
+                imageData = null;
                 e.printStackTrace();
                 return RESULT_ERROR;
             }
@@ -149,7 +209,7 @@ public class DataSources {
          * returns 0 otherwise
          */
         public int getDataValue(Vec pnt, Vec data) {
-
+                        
             double res = 1.;
             double 
                 x = pnt.v[0],
@@ -162,6 +222,11 @@ public class DataSources {
             if(x < 0 || x > 1 ||
                y < 0 || y > 1 ||
                z < zmin || z > zmax){
+                data.v[0] = 0;
+                return RESULT_OK;
+            }
+
+            if(imageData == null){               
                 data.v[0] = 0;
                 return RESULT_OK;
             }
@@ -212,6 +277,69 @@ public class DataSources {
         }
 
     }  // class ImageBitmap
-    
 
+    /**
+       return maximum values from the given list of data sources
+     */
+    public static class Maximum implements DataSource, Initializable {
+
+        Vector<DataSource> dataSources = new Vector<DataSource>();
+        
+        public Maximum(){  
+
+        }
+
+        /**
+           add items to set of data sources 
+         */
+        public void addDataSource(DataSource ds){
+
+            dataSources.add(ds);
+
+        }
+
+        public int initialize(){
+
+            for(int i = 0; i < dataSources.size(); i++){
+                
+                DataSource ds = dataSources.get(i);
+                if(ds instanceof Initializable){
+                    ((Initializable)ds).initialize();
+                }
+            }      
+            return RESULT_OK;
+            
+        }
+        
+
+        /**
+         * calculates values of all data sources and return maximal value
+         * can be used to make union of few shapes 
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            double maxValue = Double.MIN_VALUE;
+
+            for(int i = 0; i < dataSources.size(); i++){
+                
+                DataSource ds = dataSources.get(i);
+                int res = ds.getDataValue(pnt, data);
+                if(res != RESULT_OK)
+                    continue;
+                
+                if(data.v[0] > maxValue)
+                    maxValue = data.v[0];
+                
+            }
+            
+            data.v[0] = maxValue;
+            
+            return RESULT_OK;
+        }        
+
+    } // class Maximum 
+    
 }
+
+
+
