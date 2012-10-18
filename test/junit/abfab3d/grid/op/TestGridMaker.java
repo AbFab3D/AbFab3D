@@ -65,7 +65,7 @@ public class TestGridMaker extends TestCase {
     /**
 
      */
-    public void testImageRing1() {
+    public void _testImageRing1() {
         
         printf("testImageRing1()\n");
         double voxelSize = 2.e-4;
@@ -190,6 +190,87 @@ public class TestGridMaker extends TestCase {
         
         printf("writeIsosurface()\n");
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_tiled.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+    public void testRingWithBand() {
+        
+        printf("testImageTiled()\n");
+        double voxelSize = 1.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double bandWidth = 0.002;// 1mm 
+        double bandThickness = 0.004;// 4mm 
+        
+        double margin = 4*voxelSize;
+
+        double ringDiameter = 0.05; // 5cm 
+        double ringWidth = 0.01; // 1cm 
+        double ringThickness = 0.002; // 2mm 
+
+        double gridWidth = ringDiameter + 2*bandThickness + 2*margin;
+        double gridHeight  = ringWidth + 2*bandWidth + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
+        image.setLocation(0,0,ringThickness/2);
+        image.setBaseThickness(0.5);
+        image.setTiles(12, 1);
+        image.setImagePath("docs/images/Tile_DecorativeCeiling_1k_h.png");
+
+        DataSources.Block topBand = new DataSources.Block();
+        topBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
+        topBand.setLocation(0, ringWidth/2, bandThickness/2);
+
+        //DataSources.Block bottomBand = new DataSources.Block();
+        DataSources.ImageBitmap bottomBand = new DataSources.ImageBitmap();
+        bottomBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
+        bottomBand.setLocation(0, -ringWidth/2, bandThickness/2);
+        bottomBand.setTiles((int)(ringDiameter*Math.PI/bandWidth), 1);
+        bottomBand.setImagePath("docs/images/circle.png");
+
+        DataSources.Maximum union = new DataSources.Maximum();
+        
+        union.addDataSource(image);
+        union.addDataSource(topBand);
+        union.addDataSource(bottomBand);
+
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.m_radius = ringDiameter/2;
+
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.m_axis = new Vector3d(1,0,0);
+        rot.m_angle = 0*TORAD;
+        
+        compTrans.add(rot);
+        compTrans.add(rw);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(union);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_with_band.stl");
         printf("writeIsosurface() done\n");
         
     }
