@@ -21,6 +21,10 @@ import java.awt.image.BufferedImage;
 
 import abfab3d.grid.query.RegionFinder;
 import abfab3d.io.output.*;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.LaplasianSmooth;
+import abfab3d.mesh.MeshDecimator;
+import abfab3d.mesh.WingedEdgeTriangleMesh;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
@@ -37,6 +41,10 @@ import abfab3d.creator.shapeways.*;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+
+import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * Geometry Kernel for the ImageEditor.
@@ -121,7 +129,7 @@ public class ImagePopperKernel extends HostedKernel {
             step, seq++, true, 0, 0.1, null, null)
         );
 */
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.000075", 1,
+        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.0001", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
         );
@@ -313,7 +321,7 @@ if (1==1) {
             ErrorReporter console = new PlainTextErrorReporter();
             //writeDebug(grid, handler, console);
             //write(grid, handler, console);
-            write2(grid);
+            writeIsosurfaceMaker(grid);
         } catch(Exception e) {
             e.printStackTrace();
 
@@ -456,7 +464,7 @@ System.out.println("Creating Regions Exporter");
         MarchingCubesX3DExporter exporter = new MarchingCubesX3DExporter(handler, console, true, reducer);
 
         Map<Integer, float[]> matColors = new HashMap<Integer, float[]>();
-        matColors.put(0, new float[] {0.8f,0.8f,0.8f,1f});
+        matColors.put(0, new float[]{0.8f, 0.8f, 0.8f, 1f});
         exporter.write(grid, matColors);
         exporter.close();
 
@@ -484,6 +492,73 @@ System.out.println("Creating Regions Exporter");
 
     }
 
+    private void writeIsosurfaceMaker(Grid grid) throws IOException {
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        double vs = grid.getVoxelSize();
+        int smoothSteps = 0;
+
+        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
+        double ibounds[] = extendBounds(gbounds, -vs/2);
+
+        IsosurfaceMaker im = new IsosurfaceMaker();
+        im.setIsovalue(0.);
+        im.setBounds(ibounds);
+        im.setGridSize(nx, ny, nz);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+
+        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, smoothSteps), its);
+        int[][] faces = its.getFaces();
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
+
+        int iterationCount = 2;
+        double centerWeight = 1.0; // any non negative value is OK
+
+        LaplasianSmooth ls = new LaplasianSmooth();
+
+        ls.setCenterWeight(centerWeight);
+
+        System.out.println("***Smoothing mesh");
+        long t0 = currentTimeMillis();
+        for(int i = 0; i < iterationCount; i++){
+            printf("smoothMesh()\n");
+            t0 = currentTimeMillis();
+            ls.processMesh(mesh, 10);
+            printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
+        }
+
+        int fcount = faces.length;
+        MeshDecimator md = new MeshDecimator();
+        md.setMaxCollapseError(1e-9);
+        long start_time = System.currentTimeMillis();
+
+        int target = mesh.getTriangleCount() / 4;
+        int current = fcount;
+        System.out.println("Original face count: " + fcount);
+
+        while(true) {
+            target = mesh.getTriangleCount() / 2;
+            System.out.println("Target face count : " + target);
+            md.processMesh(mesh, target);
+
+            current = mesh.getFaceCount();
+            System.out.println("Current face count: " + current);
+            if (current > target * 1.25) {
+                // not worth continuing
+                break;
+            }
+        }
+        System.out.println("Final face count: " + current);
+
+        MeshExporter.writeMeshSTL(mesh,fmt("out.stl", fcount));
+
+        System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+
+
+    }
+
     /**
      return bounds extended by given margin
      */
@@ -505,7 +580,7 @@ System.out.println("Creating Regions Exporter");
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
         colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[] {0,1,0});
+        colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
@@ -515,82 +590,6 @@ System.out.println("Creating Regions Exporter");
 
         exporter.writeDebug(grid, colors, transparency);
         exporter.close();
-    }
-
-    /**
-     * Create a cube.
-     */
-    private void createCube(Grid grid, double tx, double ty, double tz, double w, double h, double d, int mat) {
-        // Create the base structure
-
-        CubeCreator cg = null;
-        cg = new CubeCreator(null, w, h, d, tx,ty,tz,mat);
-        cg.generate(grid);
-
-    }
-
-    /**
-     * Create a cylinder.
-     */
-    private void createCylinder(Grid grid, double tx, double ty, double tz,
-        double rx, double ry, double rz, double ra,
-        double height, double radius, int facets, int mat) {
-
-        CylinderCreator cg = null;
-        cg = new CylinderCreator(height, radius, tx,ty,tz,rx,ry,rz,ra,mat);
-        cg.generate(grid);
-    }
-
-    /**
-     * Create a torus.
-     */
-    private void createTorus(Grid grid, double tx, double ty, double tz,
-        double rx, double ry, double rz, double ra,
-        double ir, double or, int facets, int mat, boolean filled) {
-
-System.out.println("createTorus: " + ir + " or: " + or);
-        TorusGenerator tg = new TorusGenerator((float)ir, (float)or, facets, facets);
-        GeometryData geom = new GeometryData();
-        geom.geometryType = GeometryData.INDEXED_TRIANGLES;
-        tg.generate(geom);
-
-        TriangleModelCreator tmc = new TriangleModelCreator(geom,tx,ty,tz,
-            rx,ry,rz,ra,mat,mat,filled);
-
-        tmc.generate(grid);
-    }
-
-    private void createTorus(Grid grid, double tx, double ty, double tz,
-                             double rx, double ry, double rz, double ra,
-                             double ir, double or, int zlimit, int facets, int mat, boolean filled) {
-
-        System.out.println("createTorus: " + ir + " or: " + or + " zlimit: " + zlimit + " total: " + grid.getDepth());
-        TorusGenerator tg = new TorusGenerator((float)ir, (float)or, facets, facets);
-        GeometryData geom = new GeometryData();
-        geom.geometryType = GeometryData.INDEXED_TRIANGLES;
-        tg.generate(geom);
-
-        TriangleModelCreator tmc = new TriangleModelCreator(geom,tx,ty,tz,
-                rx,ry,rz,ra,mat,mat,filled);
-
-        tmc.generate(grid);
-
-        int w = grid.getWidth();
-        int h = grid.getHeight();
-        int d = grid.getDepth();
-        int removed = 0;
-
-        for(int y=0; y < h; y++) {
-            for(int x=0; x < w; x++) {
-                for(int z=zlimit; z < d; z++) {
-                    if (grid.getState(x,y,z) != Grid.OUTSIDE) {
-                        removed++;
-                        grid.setState(x,y,z, Grid.OUTSIDE);
-                    }
-                }
-            }
-        }
-        System.out.println("Removed torus: " + removed);
     }
 
 }
