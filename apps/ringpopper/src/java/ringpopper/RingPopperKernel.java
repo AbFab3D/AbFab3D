@@ -69,6 +69,7 @@ public class RingPopperKernel extends HostedKernel {
     private double innerDiameter;
     private double ringThickness;
     private double ringWidth;
+    private double bandWidth;
 
     /** Percentage of the ringThickness to use as a base */
     private double baseThickness;
@@ -141,6 +142,11 @@ public class RingPopperKernel extends HostedKernel {
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
+        params.put("bandWidth", new Parameter("bandWidth", "Band Width", "The width of the bands", "0.001", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
+        );
+
 
         step++;
         seq = 0;
@@ -162,7 +168,7 @@ public class RingPopperKernel extends HostedKernel {
 
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                step, seq++, true, 0, 15, null, null)
+                step, seq++, true, 0, 100, null, null)
         );
 
         return params;
@@ -184,8 +190,8 @@ public class RingPopperKernel extends HostedKernel {
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
         double margin = 4*resolution;
 
-        double gridWidth = innerDiameter + 2*Math.hypot(ringThickness,ringWidth) + 2*margin;
-        double gridHeight  = Math.hypot(ringThickness,ringWidth) + 2*margin;
+        double gridWidth = innerDiameter + 2*ringThickness + 2*margin;
+        double gridHeight  = ringWidth + 2*bandWidth + 2*margin;
         double gridDepth = gridWidth;
 
         double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
@@ -216,14 +222,14 @@ public class RingPopperKernel extends HostedKernel {
 
             if (bandStyle == BandStyle.TOP || bandStyle == BandStyle.BOTH) {
                 DataSources.Block top_band = new DataSources.Block();
-                top_band.setSize(innerDiameter*Math.PI,ringWidth, ringThickness);
+                top_band.setSize(innerDiameter*Math.PI,bandWidth, ringThickness);
                 top_band.setLocation(0, ringWidth/2, ringThickness/2);
                 union.addDataSource(top_band);
             }
 
             if (bandStyle == BandStyle.BOTTOM || bandStyle == BandStyle.BOTH) {
                 DataSources.Block bottom_band = new DataSources.Block();
-                bottom_band.setSize(innerDiameter*Math.PI,ringWidth, ringThickness);
+                bottom_band.setSize(innerDiameter*Math.PI,bandWidth, ringThickness);
                 bottom_band.setLocation(0, -ringWidth/2, ringThickness/2);
                 union.addDataSource(bottom_band);
             }
@@ -332,6 +338,9 @@ if (1==1) {
 
             pname = "ringWidth";
             ringWidth = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bandWidth";
+            bandWidth = ((Double) params.get(pname)).doubleValue();
 
             pname = "baseThickness";
             baseThickness = ((Double) params.get(pname)).doubleValue();

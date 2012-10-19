@@ -30,6 +30,11 @@ JButton uploadButton;
     /** The thickness of the ring Editor */
     protected JComponent ringThicknessEditor;
 
+    /** How smooth to make the object Field */
+    protected String smoothSteps;
+    /** How smooth to make the object Editor */
+    protected JComponent smoothStepsEditor;
+
     /** Whether to put lines on the band Field */
     protected String bandStyle;
     /** Whether to put lines on the band Editor */
@@ -67,6 +72,11 @@ JButton uploadButton;
     /** What material to design for Editor */
     protected JComponent materialEditor;
 
+    /** The width of the bands Field */
+    protected String bandWidth;
+    /** The width of the bands Editor */
+    protected JComponent bandWidthEditor;
+
 
     public Editor(String name) { super(name); }
     public static void main(String[] args) {
@@ -81,7 +91,7 @@ JButton uploadButton;
         setVisible(true);
     }
     public void setupUI() {
-        GridLayout layout = new GridLayout(18,3);
+        GridLayout layout = new GridLayout(20,3);
         setLayout(layout);
 
         JLabel step1 = new JLabel("Step: 1");
@@ -106,7 +116,7 @@ JButton uploadButton;
         Font tilingXFont = tilingXLabel.getFont();
         tilingXLabel.setFont(tilingXFont.deriveFont(tilingXFont.getStyle() ^ Font.BOLD));
         getContentPane().add(tilingXLabel);
-        tilingXEditor = new JTextField("1");
+        tilingXEditor = new JTextField("8");
         getContentPane().add(tilingXEditor);
         getContentPane().add(new JLabel(""));
 
@@ -169,8 +179,17 @@ JButton uploadButton;
         Font baseThicknessFont = baseThicknessLabel.getFont();
         baseThicknessLabel.setFont(baseThicknessFont.deriveFont(baseThicknessFont.getStyle() ^ Font.BOLD));
         getContentPane().add(baseThicknessLabel);
-        baseThicknessEditor = new JTextField("0.4");
+        baseThicknessEditor = new JTextField("0");
         getContentPane().add(baseThicknessEditor);
+        getContentPane().add(new JLabel(""));
+
+        JLabel bandWidthLabel = new JLabel("Band Width");
+        bandWidthLabel.setToolTipText("The width of the bands");
+        Font bandWidthFont = bandWidthLabel.getFont();
+        bandWidthLabel.setFont(bandWidthFont.deriveFont(bandWidthFont.getStyle() ^ Font.BOLD));
+        getContentPane().add(bandWidthLabel);
+        bandWidthEditor = new JTextField("0.001");
+        getContentPane().add(bandWidthEditor);
         getContentPane().add(new JLabel(""));
 
         getContentPane().add(new JLabel(""));
@@ -207,6 +226,15 @@ JButton uploadButton;
         getContentPane().add(resolutionEditor);
         getContentPane().add(new JLabel(""));
 
+        JLabel smoothStepsLabel = new JLabel("Smooth Steps");
+        smoothStepsLabel.setToolTipText("How smooth to make the object");
+        Font smoothStepsFont = smoothStepsLabel.getFont();
+        smoothStepsLabel.setFont(smoothStepsFont.deriveFont(smoothStepsFont.getStyle() ^ Font.BOLD));
+        getContentPane().add(smoothStepsLabel);
+        smoothStepsEditor = new JTextField("3");
+        getContentPane().add(smoothStepsEditor);
+        getContentPane().add(new JLabel(""));
+
         submitButton = new JButton("Submit");
         getContentPane().add(submitButton);
         submitButton.addActionListener(this);
@@ -222,6 +250,7 @@ JButton uploadButton;
             ringWidth = ((JTextField)ringWidthEditor).getText();
             baseThickness = ((JTextField)baseThicknessEditor).getText();
             ringThickness = ((JTextField)ringThicknessEditor).getText();
+            smoothSteps = ((JTextField)smoothStepsEditor).getText();
             bandStyle = (String) ((JComboBox)bandStyleEditor).getSelectedItem();
             tilingX = ((JTextField)tilingXEditor).getText();
             image = ((JTextField)imageEditor).getText();
@@ -229,12 +258,14 @@ JButton uploadButton;
             tilingY = ((JTextField)tilingYEditor).getText();
             innerDiameter = ((JTextField)innerDiameterEditor).getText();
             material = (String) ((JComboBox)materialEditor).getSelectedItem();
+            bandWidth = ((JTextField)bandWidthEditor).getText();
 
             ringpopper.RingPopperKernel kernel = new ringpopper.RingPopperKernel();
             HashMap<String,String> params = new HashMap<String,String>();
             params.put("ringWidth", ringWidth);
             params.put("baseThickness", baseThickness);
             params.put("ringThickness", ringThickness);
+            params.put("smoothSteps", smoothSteps);
             params.put("bandStyle", bandStyle);
             params.put("tilingX", tilingX);
             params.put("image", image);
@@ -242,6 +273,7 @@ JButton uploadButton;
             params.put("tilingY", tilingY);
             params.put("innerDiameter", innerDiameter);
             params.put("material", material);
+            params.put("bandWidth", bandWidth);
             Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
             try {
                 FileOutputStream fos = new FileOutputStream("out.x3db");
