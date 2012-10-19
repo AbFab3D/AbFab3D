@@ -67,12 +67,12 @@ public class GridSaver {
 
         System.out.println("***Smoothing mesh");
         long t0 = currentTimeMillis();
-        for(int i = 0; i < smoothSteps; i++){
+        //for(int i = 0; i < smoothSteps; i++){
             printf("smoothMesh()\n");
             t0 = currentTimeMillis();
-            ls.processMesh(mesh, 10);
+            ls.processMesh(mesh, smoothSteps);
             printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
-        }
+        //}
 
         int fcount = faces.length;
 
