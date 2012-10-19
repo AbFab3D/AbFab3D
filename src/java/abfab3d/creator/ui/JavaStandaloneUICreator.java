@@ -193,6 +193,14 @@ System.out.println("Adding param: " + p.getName());
                 }
                 ps.println("};");
                 ps.println(indent(8) + p.getName() + "Editor = new JComboBox(" + p.getName() + "Enums);");
+                int idx = 0;
+                String[] evals = p.getEnumValues();
+                for(int i=0; i < evals.length; i++) {
+                    if (evals[i].equals(p.getDefaultValue())) {
+                        idx = i;
+                    }
+                }
+                ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + idx + ");");
                 break;
             case FILE_DIALOG:
                 if (p.getDefaultValue() == null) {
