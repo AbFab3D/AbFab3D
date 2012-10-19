@@ -154,6 +154,8 @@ public class ImagePopperKernel extends HostedKernel {
      */
     public KernelResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
 
+        long start = System.currentTimeMillis();
+
         pullParams(params);
 
         // Calculate maximum bounds
@@ -321,7 +323,8 @@ if (1==1) {
             ErrorReporter console = new PlainTextErrorReporter();
             //writeDebug(grid, handler, console);
             //write(grid, handler, console);
-            writeIsosurfaceMaker(grid);
+            writeIsosurfaceMaker(grid,3, 1e-9);
+//            writeIsosurfaceMaker(grid,3, 0);
         } catch(Exception e) {
             e.printStackTrace();
 
@@ -334,70 +337,9 @@ if (1==1) {
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
 
 
+        System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
         return new KernelResults(true, min_bounds, max_bounds);
-    }
-
-    /**
-     * Create an image from a text string.
-     *
-     * @param w The width of the textual space
-     * @param h The height of the textual space
-     * @param text The text string
-     * @param font The font to use
-     * @param style The font style to use
-     * @param size The font size to use, or -1 till fill the space
-     */
-    private BufferedImage createImage(int w, int h, String text, String font, int style, int size) {
-        Font f = null;
-        FontMetrics metrics = null;
-
-        BufferedImage cell_img =
-            new BufferedImage(w, h,
-                              BufferedImage.TYPE_BYTE_GRAY);
-
-        Graphics2D g = (Graphics2D)cell_img.getGraphics();
-
-        if (size <= 0) {
-            size = 10;
-            f = new Font(font, style, size);
-            g.setFont(f);
-
-            metrics = g.getFontMetrics();
-            int fs = metrics.stringWidth(text);
-
-            while(fs < w) {
-                size++;
-                f = new Font(font, style, size);
-                g.setFont(f);
-
-                metrics = g.getFontMetrics();
-                fs = metrics.stringWidth(text);
-            }
-
-            size--;
-            f = new Font(font, style, size);
-            g.setFont(f);
-            metrics = g.getFontMetrics();
-            fs = metrics.stringWidth(text);
-            System.out.println("final size: " + fs);
-
-        } else {
-            g.setFont(f);
-        }
-
-
-
-//        int x = w - metrics.stringWidth(text)/2;
-        //int x = metrics.stringWidth(text)/2;
-        int x = 0;
-
-        int y = h - 80;
-
-        g.drawString(text, x, y);
-
-        return cell_img;
-
     }
 
     /**
@@ -439,65 +381,11 @@ if (1==1) {
         }
     }
 
-    private void write(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
-
-        // Output File
-        //BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
-/*
-System.out.println("Creating Regions Exporter");
-        RegionsX3DExporter exporter = new RegionsX3DExporter(handler, console, true);
-        float[] mat_color = new float[] {0.8f,0.8f,0.8f,0};
-        HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(1), mat_color);
-
-        exporter.write(grid, colors);
-        exporter.close();
-*/
-
-        // Sadlt this number needs to change based on resolution
-//        EdgeCollapseSimplifier reducer = new EdgeCollapseSimplifier(16, 0.71);
-        EdgeCollapseSimplifier reducer = new EdgeCollapseSimplifier(500, 0.61);
-
-        // Use Meshlab instead right now.
-        reducer = null;
-
-        MarchingCubesX3DExporter exporter = new MarchingCubesX3DExporter(handler, console, true, reducer);
-
-        Map<Integer, float[]> matColors = new HashMap<Integer, float[]>();
-        matColors.put(0, new float[]{0.8f, 0.8f, 0.8f, 1f});
-        exporter.write(grid, matColors);
-        exporter.close();
-
-    }
-
-    private void write2(Grid grid) throws IOException {
+    private void writeIsosurfaceMaker(Grid grid, int smoothSteps, double maxCollapseError) throws IOException {
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
         double vs = grid.getVoxelSize();
-        int smoothSteps = 2;
-
-        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
-        double ibounds[] = extendBounds(gbounds, -vs/2);
-
-        IsosurfaceMaker im = new IsosurfaceMaker();
-        im.setIsovalue(0.);
-        im.setBounds(ibounds);
-        im.setGridSize(nx, ny, nz);
-
-        STLWriter stlmaker = new STLWriter("out.stl");
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, smoothSteps), stlmaker);
-
-        stlmaker.close();
-
-    }
-
-    private void writeIsosurfaceMaker(Grid grid) throws IOException {
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
-        double vs = grid.getVoxelSize();
-        int smoothSteps = 0;
 
         double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
         double ibounds[] = extendBounds(gbounds, -vs/2);
@@ -509,11 +397,10 @@ System.out.println("Creating Regions Exporter");
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, smoothSteps), its);
+        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
         int[][] faces = its.getFaces();
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
 
-        int iterationCount = 2;
         double centerWeight = 1.0; // any non negative value is OK
 
         LaplasianSmooth ls = new LaplasianSmooth();
@@ -522,7 +409,7 @@ System.out.println("Creating Regions Exporter");
 
         System.out.println("***Smoothing mesh");
         long t0 = currentTimeMillis();
-        for(int i = 0; i < iterationCount; i++){
+        for(int i = 0; i < smoothSteps; i++){
             printf("smoothMesh()\n");
             t0 = currentTimeMillis();
             ls.processMesh(mesh, 10);
@@ -530,33 +417,34 @@ System.out.println("Creating Regions Exporter");
         }
 
         int fcount = faces.length;
-        MeshDecimator md = new MeshDecimator();
-        md.setMaxCollapseError(1e-9);
-        long start_time = System.currentTimeMillis();
 
-        int target = mesh.getTriangleCount() / 4;
-        int current = fcount;
-        System.out.println("Original face count: " + fcount);
+        if (maxCollapseError > 0) {
+            MeshDecimator md = new MeshDecimator();
+            md.setMaxCollapseError(maxCollapseError);
+            long start_time = System.currentTimeMillis();
 
-        while(true) {
-            target = mesh.getTriangleCount() / 2;
-            System.out.println("Target face count : " + target);
-            md.processMesh(mesh, target);
+            int target = mesh.getTriangleCount() / 4;
+            int current = fcount;
+            System.out.println("Original face count: " + fcount);
 
-            current = mesh.getFaceCount();
-            System.out.println("Current face count: " + current);
-            if (current > target * 1.25) {
-                // not worth continuing
-                break;
+            while(true) {
+                target = mesh.getTriangleCount() / 2;
+                System.out.println("Target face count : " + target);
+                md.processMesh(mesh, target);
+
+                current = mesh.getFaceCount();
+                System.out.println("Current face count: " + current);
+                if (current > target * 1.25) {
+                    // not worth continuing
+                    break;
+                }
             }
+
+            fcount = mesh.getFaceCount();
+            System.out.println("Final face count: " + fcount);
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
         }
-        System.out.println("Final face count: " + current);
-
         MeshExporter.writeMeshSTL(mesh,fmt("out.stl", fcount));
-
-        System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
-
-
     }
 
     /**
