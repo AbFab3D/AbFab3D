@@ -75,6 +75,7 @@ public class RingPopperKernel extends HostedKernel {
 
     /** The horizontal and vertical resolution */
     private double resolution;
+    private int smoothSteps;
 
     /** The image filename */
     private String image;
@@ -102,7 +103,7 @@ public class RingPopperKernel extends HostedKernel {
             step, seq++, false, 0, 0.1, null, null)
         );
 
-        params.put("tilingX", new Parameter("tilingX", "Tiling X", "The tiling along left/right of the ring", "1", 1,
+        params.put("tilingX", new Parameter("tilingX", "Tiling X", "The tiling along left/right of the ring", "8", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 50, null, null)
         );
@@ -112,7 +113,7 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 50, null, null)
         );
 
-        params.put("bandStyle", new Parameter("bandStyle", "Band Style", "Whether to put lines on the band", bandStyle.NONE.toString(), 1,
+        params.put("bandStyle", new Parameter("bandStyle", "Band Style", "Whether to put lines on the band", bandStyle.BOTH.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, enumToStringArray(bandStyle.values()))
         );
@@ -136,7 +137,7 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 1, null, null)
         );
 
-        params.put("baseThickness", new Parameter("baseThickness", "Base Thickness", "The thickness percent of the ring base", "0.4", 1,
+        params.put("baseThickness", new Parameter("baseThickness", "Base Thickness", "The thickness percent of the ring base", "0", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
@@ -157,6 +158,11 @@ public class RingPopperKernel extends HostedKernel {
         params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
+                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0, 15, null, null)
         );
 
         return params;
@@ -200,6 +206,29 @@ public class RingPopperKernel extends HostedKernel {
         image_src.m_yTilesCount = tilingY;
         image_src.m_imagePath = image;
 
+        DataSources.Maximum union = null;
+
+        if (bandStyle != BandStyle.NONE) {
+            union = new DataSources.Maximum();
+
+
+            union.addDataSource(image_src);
+
+            if (bandStyle == BandStyle.TOP || bandStyle == BandStyle.BOTH) {
+                DataSources.Block top_band = new DataSources.Block();
+                top_band.setSize(innerDiameter*Math.PI,ringWidth, ringThickness);
+                top_band.setLocation(0, ringWidth/2, ringThickness/2);
+                union.addDataSource(top_band);
+            }
+
+            if (bandStyle == BandStyle.BOTTOM || bandStyle == BandStyle.BOTH) {
+                DataSources.Block bottom_band = new DataSources.Block();
+                bottom_band.setSize(innerDiameter*Math.PI,ringWidth, ringThickness);
+                bottom_band.setLocation(0, -ringWidth/2, ringThickness/2);
+                union.addDataSource(bottom_band);
+            }
+        }
+
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
@@ -216,9 +245,14 @@ public class RingPopperKernel extends HostedKernel {
 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image_src);
 
-        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
+        if (bandStyle != BandStyle.NONE) {
+            gm.setDataSource(union);
+        } else {
+            gm.setDataSource(image_src);
+        }
+
+        Grid grid = new ArrayGridByte(nx, ny, nz, resolution, resolution);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
@@ -265,7 +299,7 @@ if (1==1) {
 
         System.out.println("Writing grid");
 
-        GridSaver.writeIsosurfaceMakerSTL("out.stl", grid,3, 1e-9);
+        GridSaver.writeIsosurfaceMakerSTL("out.stl", grid,smoothSteps, 1e-9);
 
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
@@ -316,6 +350,9 @@ if (1==1) {
 
             pname = "material";
             material = ((String) params.get(pname));
+
+            pname = "smoothSteps";
+            smoothSteps = ((Integer) params.get(pname)).intValue();
 
         } catch(Exception e) {
             e.printStackTrace();
