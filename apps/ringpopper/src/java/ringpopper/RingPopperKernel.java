@@ -26,6 +26,7 @@ import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import app.common.X3DViewer;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
@@ -59,7 +60,7 @@ public class RingPopperKernel extends HostedKernel {
     /** Debugging level.  0-5.  0 is none */
     private static final int DEBUG_LEVEL = 0;
 
-    enum BandStyle {NONE, TOP, BOTTOM, BOTH};
+    enum EdgeStyle {NONE, TOP, BOTTOM, BOTH};
 
     private String[] availableMaterials = new String[] {"White Strong & Flexible", "White Strong & Flexible Polished",
         "Silver", "Silver Glossy", "Stainless Steel","Gold Plated Matte", "Gold Plated Glossy","Antique Bronze Matte",
@@ -83,7 +84,7 @@ public class RingPopperKernel extends HostedKernel {
 
     private int tilingX;
     private int tilingY;
-    private BandStyle bandStyle;
+    private EdgeStyle edgeStyle;
 
     private String material;
 
@@ -114,9 +115,9 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 50, null, null)
         );
 
-        params.put("bandStyle", new Parameter("bandStyle", "Band Style", "Whether to put lines on the band", bandStyle.BOTH.toString(), 1,
+        params.put("edgeStyle", new Parameter("edgeStyle", "Band Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, enumToStringArray(bandStyle.values()))
+                step, seq++, false, -1, 1, null, enumToStringArray(edgeStyle.values()))
         );
 
         step++;
@@ -214,20 +215,20 @@ public class RingPopperKernel extends HostedKernel {
 
         DataSources.Maximum union = null;
 
-        if (bandStyle != BandStyle.NONE) {
+        if (edgeStyle != edgeStyle.NONE) {
             union = new DataSources.Maximum();
 
 
             union.addDataSource(image_src);
 
-            if (bandStyle == BandStyle.TOP || bandStyle == BandStyle.BOTH) {
+            if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
                 DataSources.Block top_band = new DataSources.Block();
                 top_band.setSize(innerDiameter*Math.PI,bandWidth, ringThickness);
                 top_band.setLocation(0, ringWidth/2, ringThickness/2);
                 union.addDataSource(top_band);
             }
 
-            if (bandStyle == BandStyle.BOTTOM || bandStyle == BandStyle.BOTH) {
+            if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
                 DataSources.Block bottom_band = new DataSources.Block();
                 bottom_band.setSize(innerDiameter*Math.PI,bandWidth, ringThickness);
                 bottom_band.setLocation(0, -ringWidth/2, ringThickness/2);
@@ -252,7 +253,7 @@ public class RingPopperKernel extends HostedKernel {
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
 
-        if (bandStyle != BandStyle.NONE) {
+        if (edgeStyle != edgeStyle.NONE) {
             gm.setDataSource(union);
         } else {
             gm.setDataSource(image_src);
@@ -305,8 +306,9 @@ if (1==1) {
 
         System.out.println("Writing grid");
 
-        GridSaver.writeIsosurfaceMakerSTL("out.stl", grid,smoothSteps, 1e-9);
-
+//        GridSaver.writeIsosurfaceMakerSTL("out.stl", grid,smoothSteps, 1e-9);
+//        GridSaver.writeIsosurfaceMaker("out.x3d", grid,smoothSteps, 1e-9);
+        X3DViewer.viewX3DOM(grid, smoothSteps, 1e-9);
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
         grid.getWorldCoords(0,0,0, min_bounds);
@@ -354,8 +356,8 @@ if (1==1) {
             pname = "tilingY";
             tilingY = ((Integer) params.get(pname)).intValue();
 
-            pname = "bandStyle";
-            bandStyle = BandStyle.valueOf((String) params.get(pname));
+            pname = "edgeStyle";
+            edgeStyle = edgeStyle.valueOf((String) params.get(pname));
 
             pname = "material";
             material = ((String) params.get(pname));
