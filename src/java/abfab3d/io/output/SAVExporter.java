@@ -32,6 +32,9 @@ public class SAVExporter {
     public static final String EXPORT_NORMALS = "EXPORT_NORMALS";
     public static final String VERTEX_NORMALS = "VERTEX_NORMALS";
     public static final String COMPACT_VERTICES = "COMPACT_VERTICES";
+    public static final String GEOMETRY_TYPE = "GEOMETRY_TYPE";
+
+    public enum GeometryType {INDEXEDTRIANGLESET,INDEXEDFACESET}
 
     /**
      * Output a toxiclibs TriangleMesh to an X3D stream.  By default this exporter exports
@@ -68,7 +71,8 @@ public class SAVExporter {
         boolean export_normals = true;
         boolean vertex_normals = true;
         boolean compact_vertices = false;
-        
+        GeometryType gtype = GeometryType.INDEXEDTRIANGLESET;
+
         if (params != null) {
             Boolean val = (Boolean) params.get(EXPORT_NORMALS);
             if (val != null) {
@@ -84,6 +88,11 @@ public class SAVExporter {
             if (val != null) {
                 compact_vertices = val.booleanValue();
             }
+            GeometryType val2 = (GeometryType) params.get(GEOMETRY_TYPE);
+
+            if (val2 != null) {
+                gtype = val2;
+            }
         }
 
         if (vertex_normals && export_normals) {
@@ -93,7 +102,14 @@ public class SAVExporter {
         List<Face> faces = mesh.getFaces();
         Collection<Vertex> vertices = mesh.getVertices();
 
-        int[] indices = new int[faces.size() * 3];
+        int[] indices = null;
+
+        if (gtype == GeometryType.INDEXEDTRIANGLESET) {
+            indices = new int[faces.size() * 3];
+        } else if (gtype == GeometryType.INDEXEDFACESET) {
+            indices = new int[faces.size() * 4];
+        }
+
         float[] coords = new float[vertices.size() * 3];
         float[] normals = null;
         int num_coords = vertices.size();
@@ -113,11 +129,20 @@ public class SAVExporter {
                 indices[idx++] = vb.id;
                 indices[idx++] = vc.id;
 
+                if (gtype == GeometryType.INDEXEDFACESET) {
+                    indices[idx++] = -1;
+                }
                 normals[n_idx++] = face.normal.x;
                 normals[n_idx++] = face.normal.y;
                 normals[n_idx++] = face.normal.z;
             }
 
+            idx = 0;
+            for(Vertex vert : vertices) {
+                coords[idx++] = vert.x;
+                coords[idx++] = vert.y;
+                coords[idx++] = vert.z;
+            }
         } else {
 
             if (compact_vertices) {
@@ -162,7 +187,9 @@ public class SAVExporter {
                     indices[idx++] = va_idx.intValue();
                     indices[idx++] = vb_idx.intValue();
                     indices[idx++] = vc_idx.intValue();
-                    
+                    if (gtype == GeometryType.INDEXEDFACESET) {
+                        indices[idx++] = -1;
+                    }
                 }
                 num_coords = reassigned.size();
             } else {
@@ -198,6 +225,10 @@ public class SAVExporter {
                     indices[idx++] = va.id;
                     indices[idx++] = vb.id;
                     indices[idx++] = vc.id;
+                    if (gtype == GeometryType.INDEXEDFACESET) {
+                        indices[idx++] = -1;
+                    }
+
                 }
 
                 if (bad_cnt > 0) {
@@ -240,11 +271,18 @@ public class SAVExporter {
         mm.createAppearance(material, finish, MaterialMapper.Shading.FIXED, 5, stream);
 
         stream.startField("geometry");
-        stream.startNode("IndexedTriangleSet", null);
+        if (gtype == GeometryType.INDEXEDTRIANGLESET) {
+            stream.startNode("IndexedTriangleSet", null);
+        } else {
+            stream.startNode("IndexedFaceSet", null);
+        }
         stream.startField("normalPerVertex");
         stream.fieldValue(vertex_normals);
-        stream.startField("index");
-        stream.fieldValue(indices, indices.length);
+        if (gtype == GeometryType.INDEXEDTRIANGLESET) {
+            stream.startField("index");
+        } else {
+            stream.startField("coordIndex");
+        }
         stream.startField("coord");
         stream.startNode("Coordinate", null);
         stream.startField("point");
@@ -315,6 +353,7 @@ public class SAVExporter {
         boolean export_normals = false;
         boolean vertex_normals = false;
         boolean compact_vertices = false;
+        GeometryType gtype = GeometryType.INDEXEDTRIANGLESET;
 
         if (params != null) {
             Boolean val = (Boolean) params.get(EXPORT_NORMALS);
@@ -331,11 +370,23 @@ public class SAVExporter {
             if (val != null) {
                 compact_vertices = val.booleanValue();
             }
+
+            GeometryType val2 = (GeometryType) params.get(GEOMETRY_TYPE);
+
+            if (val2 != null) {
+                gtype = val2;
+            }
         }
 
         abfab3d.mesh.Vertex[][] faces = mesh.getFaceIndexes();
 
-        int[] indices = new int[faces.length * 3];
+        int[] indices = null;
+
+        if (gtype == GeometryType.INDEXEDTRIANGLESET) {
+            indices = new int[faces.length * 3];
+        } else if (gtype == GeometryType.INDEXEDFACESET) {
+            indices = new int[faces.length * 4];
+        }
         float[] coords = new float[mesh.getVertexCount() * 3];
         float[] normals = null;
         int num_coords = mesh.getVertexCount();
@@ -353,6 +404,9 @@ public class SAVExporter {
                 indices[idx++] = va.getID();
                 indices[idx++] = vb.getID();
                 indices[idx++] = vc.getID();
+                if (gtype == GeometryType.INDEXEDFACESET) {
+                    indices[idx++] = -1;
+                }
 
                 Vector3d ac = new Vector3d(va.getPoint());
                 ac.sub(vc.getPoint());
@@ -364,6 +418,18 @@ public class SAVExporter {
                 normals[n_idx++] = (float) ac.x;
                 normals[n_idx++] = (float) ac.y;
                 normals[n_idx++] = (float) ac.z;
+            }
+
+            idx = 0;
+            abfab3d.mesh.Vertex v = mesh.getVertices();
+
+            while (v != null) {
+
+                coords[idx++] = (float) v.getPoint().x;
+                coords[idx++] = (float) v.getPoint().y;
+                coords[idx++] = (float) v.getPoint().z;
+
+                v = v.getNext();
             }
 
         } else {
@@ -411,6 +477,10 @@ public class SAVExporter {
                     indices[idx++] = vb_idx.intValue();
                     indices[idx++] = vc_idx.intValue();
 
+                    if (gtype == GeometryType.INDEXEDFACESET) {
+                        indices[idx++] = -1;
+                    }
+
                 }
                 num_coords = reassigned.size();
             } else {
@@ -446,6 +516,10 @@ public class SAVExporter {
                     indices[idx++] = va.getID();
                     indices[idx++] = vb.getID();
                     indices[idx++] = vc.getID();
+                    if (gtype == GeometryType.INDEXEDFACESET) {
+                        indices[idx++] = -1;
+                    }
+
                 }
 
                 if (bad_cnt > 0) {
@@ -500,10 +574,19 @@ public class SAVExporter {
         mm.createAppearance(material, finish, MaterialMapper.Shading.FIXED, 5, stream);
 
         stream.startField("geometry");
-        stream.startNode("IndexedTriangleSet", null);
+        stream.startField("geometry");
+        if (gtype == GeometryType.INDEXEDTRIANGLESET) {
+            stream.startNode("IndexedTriangleSet", null);
+        } else {
+            stream.startNode("IndexedFaceSet", null);
+        }
         stream.startField("normalPerVertex");
         stream.fieldValue(vertex_normals);
-        stream.startField("index");
+        if (gtype == GeometryType.INDEXEDTRIANGLESET) {
+            stream.startField("index");
+        } else {
+            stream.startField("coordIndex");
+        }
         stream.fieldValue(indices, indices.length);
         stream.startField("coord");
         stream.startNode("Coordinate", null);
