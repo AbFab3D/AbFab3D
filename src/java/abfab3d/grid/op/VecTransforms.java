@@ -16,6 +16,8 @@ import java.util.Vector;
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
+import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
 import abfab3d.util.Vec;
@@ -431,4 +433,332 @@ public class VecTransforms {
         }
     }        
 
+
+    /**
+       makes transformations to reproduce one of frieze symmetry patterns
+     */
+    public static class FriezeSymmetry  implements VecTransform, Initializable  {
+
+        static final int     // orbifold notation 
+            FRIEZE_II = 0,   // oo oo
+            FRIEZE_IX = 1,   // oo X
+            FRIEZE_IS = 2,   // oo *
+            FRIEZE_SII = 3,  // * oo oo
+            FRIEZE_22I = 4,  // 2 2 oo
+            FRIEZE_2SI = 5,  // 2 * oo
+            FRIEZE_S22I = 6; // * 2 2 oo
+        
+        
+        public int m_maxCount = 100; // maximal number of iterations to gett to FD 
+        public double m_domainWidth = 0.01; // width of fundamental domain in meters
+        public int m_friezeType; 
+
+        // sides of fundamental domain (FD). 
+        // Sides point outside of fundanetal domain. 
+        // points inside of FD satisfy pnt.dot(sides[i]) < 0
+        // points outside of FD satisfy pnt.dot(sides[i]) > 0        
+        protected Vector4d planes[];
+        
+        protected Matrix4d trans[]; // pairng transformations of fundamental domain 
+        // trans[i] transform FD into area adjacent to side i
+        protected Matrix4d invtrans[]; // inverse transformations 
+        // intrans[i] transforms area adjacent to side i into FD 
+        // fundamental domain 
+
+        public void setFriezeType(int friezeType){
+            m_friezeType = friezeType;
+        }
+        public void setDomainWidth(double width){
+            m_domainWidth = width;
+        }
+
+        public int initialize(){
+
+            switch(m_friezeType){
+            default: 
+            case FRIEZE_II:  initII(); break;
+            case FRIEZE_S22I:initS22I(); break;
+            case FRIEZE_IS:  initIS(); break;
+            case FRIEZE_SII: initSII(); break;
+            case FRIEZE_2SI: init2SI(); break;
+            case FRIEZE_22I: init22I(); break;
+            case FRIEZE_IX:  initIX(); break;
+            }
+
+            return RESULT_OK;
+
+        }
+
+        protected void initII(){
+
+            planes = new Vector4d[2]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+            Vector4d p2 = new Vector4d(1,0,0,0);
+
+            Matrix4d m0 = getReflection(planes[0]);
+            Matrix4d m1 = getReflection(p2);
+
+            trans = new Matrix4d[2];
+
+            trans[0] = new Matrix4d(); 
+            trans[1] = new Matrix4d(); 
+
+            trans[0].mul(m0,m1);
+            trans[1].mul(m1,m0);
+            
+            invtrans = makeInversion(trans);
+        }
+
+        protected void initIX(){
+
+            planes = new Vector4d[2]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+            Vector4d p2 = new Vector4d(1,0,0,0);
+            Vector4d p3 = new Vector4d(0,1,0,0);
+
+            Matrix4d m0 = getReflection(planes[0]);
+            Matrix4d m1 = getReflection(p2);
+            Matrix4d t = new Matrix4d(); 
+            t.mul(m0, m1);
+            t.mul(getReflection(p3));
+            
+            trans = new Matrix4d[2];
+
+            trans[0] = t;
+            trans[1] = new Matrix4d(); 
+            trans[1].invert(t);
+            
+            invtrans = makeInversion(trans);
+        }
+
+        protected void init22I(){
+
+            planes = new Vector4d[2]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+            Vector4d p2 = new Vector4d(0,1,0,0);
+
+            trans = new Matrix4d[2];
+
+            trans[0] = new Matrix4d(); 
+            trans[1] = new Matrix4d(); 
+
+            trans[0].mul(getReflection(planes[0]),getReflection(p2));
+            trans[1].mul(getReflection(planes[1]),getReflection(p2));
+            
+            invtrans = makeInversion(trans);
+        }
+
+        protected void initSII(){
+
+            planes = new Vector4d[2]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+
+            trans = new Matrix4d[2];
+
+            trans[0] = getReflection(planes[0]);
+            trans[1] = getReflection(planes[1]);
+            
+            invtrans = makeInversion(trans);
+        }
+
+        protected void initIS(){
+
+            planes = new Vector4d[3]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+            planes[2] = new Vector4d(0,-1,0,0);
+
+            Vector4d p2 = new Vector4d(1,0,0,0);
+
+            Matrix4d m0 = getReflection(planes[0]);
+            Matrix4d m1 = getReflection(p2);
+
+            trans = new Matrix4d[3];
+
+            trans[0] = new Matrix4d(); 
+            trans[1] = new Matrix4d(); 
+
+            trans[0].mul(m0,m1);
+            trans[1].mul(m1,m0);
+            trans[2] = getReflection(planes[2]);
+            
+            invtrans = makeInversion(trans);
+        }
+
+        protected void initS22I(){
+
+            planes = new Vector4d[3]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+            planes[2] = new Vector4d(0,-1,0,0);
+
+            trans = new Matrix4d[3];
+
+            trans[0] = getReflection(planes[0]);
+            trans[1] = getReflection(planes[1]);
+            trans[2] = getReflection(planes[2]);
+            
+            invtrans = makeInversion(trans);
+        }
+
+        protected void init2SI(){
+
+            planes = new Vector4d[3]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+            planes[2] = new Vector4d(0,-1,0,0);
+
+            trans = new Matrix4d[3];
+
+            trans[0] = getReflection(planes[0]);
+            trans[1] = getReflection(planes[1]);
+            
+            trans[2] = new Matrix4d();
+            trans[2].mul(getReflection(planes[2]), getReflection(new Vector4d(1,0,0,0))); // rotation pi
+            
+            invtrans = makeInversion(trans);
+
+        }
+
+                
+        /**
+         *
+         */
+        public int transform(Vec in, Vec out) {
+            
+            // this is one  to many transform 
+            // it only makes sence for inverse transform 
+            // so we apply only identity transform to the input 
+            double x = in.v[0];
+            double y = in.v[1];
+            double z = in.v[2];
+            
+            out.v[0] = x;
+            out.v[1] = y;
+            out.v[2] = z;
+            
+            return RESULT_OK;
+        }                
+
+        /**
+         *  composite transform is identical to direct transform
+         */
+        public int inverse_transform(Vec in, Vec out) {
+            
+            Vector4d vin = new Vector4d(in.v[0],in.v[1],in.v[2],1);
+
+            toFundamentalDomain(vin, planes, invtrans, m_maxCount);
+            
+            // save result 
+            out.v[0] = vin.x;
+            out.v[1] = vin.y;
+            out.v[2] = vin.z;
+            
+            return RESULT_OK;
+
+        }
+    } // class FriezeSymmetry
+
+
+
+
+    /**
+       return tranform corresponding to reflection in the given plane
+       plane is expected to be normalized 
+    */
+    public static Matrix4d getReflection(Vector4d p){
+        
+        Matrix4d m = new Matrix4d();
+
+        // transformation act on 4D vectors as followns 
+        //  x-> x - 2*p*dot(p,x);
+
+        m.m00 = 1-2*p.x*p.x;
+        m.m01 =  -2*p.x*p.y;
+        m.m02 =  -2*p.x*p.z;
+        m.m03 =  -2*p.x*p.w;
+
+        m.m10 =  -2*p.y*p.x;
+        m.m11 = 1-2*p.y*p.y;
+        m.m12 =  -2*p.y*p.z;
+        m.m13 =  -2*p.y*p.w;
+
+        m.m20 =  -2*p.z*p.x;
+        m.m21 =  -2*p.z*p.y;
+        m.m22 = 1-2*p.z*p.z;
+        m.m23 =  -2*p.z*p.w;
+       
+        m.m30 =  0;
+        m.m31 =  0;
+        m.m32 =  0;
+        m.m33 =  1;
+       
+        return m;
+    }
+    
+    /**
+       return array of inverse transforms 
+    */
+    public static Matrix4d[] makeInversion(Matrix4d trans[]){
+        
+        Matrix4d itr[] = new Matrix4d[trans.length];
+        for(int i = 0; i < itr.length; i++){
+            itr[i] = new Matrix4d();
+            itr[i].invert(trans[i]);
+        }
+        
+        return itr;
+    }
+
+    /**
+       normalizes each vector of the array 
+     */
+    static public void normalize(Vector4d v[]){
+
+        for(int i =0; i < v.length; i++){
+            v[i].normalize();
+        }        
+    }
+
+    static public void normalizePlane(Vector4d p){
+        double norm = Math.sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+        p.scale(1./norm);
+        
+    }
+
+    public static int toFundamentalDomain(Vector4d v, Vector4d planes[], Matrix4d[] trans, int maxCount ){
+        
+        // transform point to fundamental domain
+        int count = maxCount;
+
+        while(count-- > 0){
+
+            boolean found = false; 
+
+            for(int i =0; i < planes.length; i++){
+                double d = planes[i].dot(v);
+                //printf("d[%d]:%7.2f\n", i, d);
+
+                if(d > 0) {
+                    found = true;
+                    trans[i].transform(v);
+                    //printf("    v: (%5.2f,%5.2f,%5.2f,%5.2f)\n", v.x, v.y, v.z, v.w);
+                    break; // out of planes cycle                     
+                }                           
+            }
+            
+            if(!found){
+                // we are in FD
+                return 0;
+            }
+        }        
+        // if we are here - we haven't found FD 
+        // do somthing 
+        //printf("out of iterations\n");
+        return -1;
+    }
 }

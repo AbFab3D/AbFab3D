@@ -18,6 +18,8 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
+import javax.vecmath.Matrix4d;
 
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
@@ -194,7 +196,7 @@ public class TestGridMaker extends TestCase {
         
     }
 
-    public void testRingWithBand() {
+    public void _testRingWithBand() {
         
         printf("testImageTiled()\n");
         double voxelSize = 1.e-4;
@@ -343,6 +345,85 @@ public class TestGridMaker extends TestCase {
         
     }
 
+
+    /**
+       ring with Frieze pattern 
+     */
+    public void testFiezeRing() {
+        
+        printf("testImageRingTiled()\n");
+        double voxelSize = 2.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 4*voxelSize;
+
+        double ringDiameter = 0.05; // 5cm 
+        double ringWidth = 0.01; // 1cm 
+        double ringThickness = 0.003; // 3mm
+
+        double gridWidth = ringDiameter + 2*ringThickness + 2*margin;
+        double gridHeight  = ringWidth*Math.sqrt(2) + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(ringWidth, ringWidth, ringThickness);
+        image.setLocation(0,0,0);
+        image.setBaseThickness(0.5);
+        image.setTiles(1,1);
+        image.m_imagePath = "docs/images/R.png";
+        
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        //
+        // this may independently rotate each image fragmnent 
+        //
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.m_axis = new Vector3d(0,0,1);
+        rot.m_angle = 0*TORAD;
+
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.m_radius = ringDiameter/2;
+        
+        VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
+        fs.setDomainWidth(ringWidth);
+        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_S22I);
+        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_II);
+        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IS);
+        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_SII);
+        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_2SI);
+        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_22I);
+        fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IX);
+
+        compTrans.add(rot);
+        compTrans.add(fs);
+        compTrans.add(rw);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(image);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_frieze.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+
     /**
        spherical inversion
      */
@@ -486,10 +567,69 @@ public class TestGridMaker extends TestCase {
             rw.inverse_transform(ringPnt, bandPnt);
             printf("xyz: (%7.5f,%7.5f,%7.5f) -> (%7.5f,%7.5f,%7.5f)\n", x, y, z, bandPnt.v[0],bandPnt.v[1],bandPnt.v[2]);
             
-        }
+        }        
+    }
+    
+    public void _testFriezeTransform() {
+        
+        Vector4d p1 = new Vector4d(1,1,1,0);
+        VecTransforms.normalizePlane(p1);
 
+        Vector4d p2 = new Vector4d(1,1,1,0.1);
+        VecTransforms.normalizePlane(p2);
+
+        Matrix4d r1 = VecTransforms.getReflection(p1);
+        Matrix4d r2 = VecTransforms.getReflection(p2);        
+        Matrix4d r1r2 = new Matrix4d();
+        Matrix4d r2r1 = new Matrix4d();
+        r1r2.mul(r1,r2);
+        r2r1.mul(r2,r1);
+        
+        for(int i = 0; i <= 10; i++){
+            double x = 0.1 * i;
+            double y = x;
+            double z = x;
+
+            Vector4d v = new Vector4d(x,y,z,1);
+            Vector4d u = new Vector4d();
+            Vector4d t = new Vector4d();
+
+            r1r2.transform(v,u);
+            r2r1.transform(v,t);
+            //u.x /= u.w;
+            //u.y /= u.w;
+            //u.z /= u.w;
+
+            printf("(%5.2f,%5.2f,%5.2f,%5.2f) ->(%5.2f,%5.2f,%5.2f,%5.2f) ->(%5.2f,%5.2f,%5.2f,%5.2f) \n", v.x,v.y,v.z,v.w, u.x,u.y,u.z,u.w, t.x,t.y,t.z,t.w);
+            
+        }
         
     }
+
+    public void _testFriezeTransform2() {
+
+        VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
+        fs.setDomainWidth(0.07);
+        fs.initialize();
+        
+        for(int i = 0; i <= 10; i++){
+            
+            double x = 0.1 * i + 0.05;
+            double y = x;
+            double z = x;
+            Vec in = new Vec(3);
+            in.v[0] = x;
+            in.v[1] = y;
+            in.v[2] = z;
+            Vec out = new Vec(3);
+            fs.inverse_transform(in,out);
+            
+            printf("(%5.2f,%5.2f,%5.2f) -> (%5.2f,%5.2f,%5.2f)\n", in.v[0],in.v[1],in.v[2], out.v[0],out.v[1],out.v[2]);
+            
+        }
+
+    }
+
 
 
     /**
