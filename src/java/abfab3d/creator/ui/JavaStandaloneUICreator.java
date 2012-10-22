@@ -235,11 +235,13 @@ System.out.println("Adding param: " + p.getName());
      * @param ps The stream to print too
      */
     private void addGlobalButtons(PrintStream ps) {
-        ps.println(indent(8) + "submitButton = new JButton(\"Submit\");");
+        ps.println(indent(8) + "submitButton = new JButton(\"Generate\");");
         ps.println(indent(8) + "getContentPane().add(submitButton);");
         ps.println(indent(8) + "submitButton.addActionListener(this);");
 
-        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+        ps.println(indent(8) + "printButton = new JButton(\"Check Printability\");");
+        ps.println(indent(8) + "getContentPane().add(printButton);");
+        ps.println(indent(8) + "printButton.addActionListener(this);");
 
         ps.println(indent(8) + "uploadButton = new JButton(\"Upload\");");
         ps.println(indent(8) + "getContentPane().add(uploadButton);");
@@ -305,7 +307,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
         ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
-        ps.println(indent(16) + "kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        ps.println(indent(16) + "kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
         ps.println(indent(16) + "fos.close();");
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Model Done\");");
@@ -347,6 +349,7 @@ System.out.println("Adding param: " + p.getName());
             Iterator<Parameter> itr = params.values().iterator();
 
         ps.println("JButton submitButton;");
+        ps.println("JButton printButton;");
         ps.println("JButton uploadButton;");
 
         while(itr.hasNext()) {
