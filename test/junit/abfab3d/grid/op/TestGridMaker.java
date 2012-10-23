@@ -49,6 +49,7 @@ import static abfab3d.util.MathUtil.TORAD;
 
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
+import static java.lang.Math.sqrt;
 
 /**
  * Tests the functionality of GridMaker
@@ -349,7 +350,7 @@ public class TestGridMaker extends TestCase {
     /**
        ring with Frieze pattern 
      */
-    public void testFiezeRing() {
+    public void testFriezeRing() {
         
         printf("testImageRingTiled()\n");
         double voxelSize = 2.e-4;
@@ -360,10 +361,15 @@ public class TestGridMaker extends TestCase {
         double ringDiameter = 0.05; // 5cm 
         double ringWidth = 0.01; // 1cm 
         double ringThickness = 0.003; // 3mm
+        int tileCount = 20;
+
+
+        double tileWidth = ringDiameter*Math.PI/tileCount; 
 
         double gridWidth = ringDiameter + 2*ringThickness + 2*margin;
         double gridHeight  = ringWidth*Math.sqrt(2) + 2*margin;
         double gridDepth = gridWidth;
+        
 
         double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
 
@@ -374,7 +380,7 @@ public class TestGridMaker extends TestCase {
 
         DataSources.ImageBitmap image = new DataSources.ImageBitmap();
         
-        image.setSize(ringWidth, ringWidth, ringThickness);
+        image.setSize(tileWidth, ringWidth, ringThickness);
         image.setLocation(0,0,0);
         image.setBaseThickness(0.5);
         image.setTiles(1,1);
@@ -392,7 +398,7 @@ public class TestGridMaker extends TestCase {
         rw.m_radius = ringDiameter/2;
         
         VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
-        fs.setDomainWidth(ringWidth);
+        fs.setDomainWidth(tileWidth);
         //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_S22I);
         //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_II);
         //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IS);
@@ -600,7 +606,8 @@ public class TestGridMaker extends TestCase {
             //u.y /= u.w;
             //u.z /= u.w;
 
-            printf("(%5.2f,%5.2f,%5.2f,%5.2f) ->(%5.2f,%5.2f,%5.2f,%5.2f) ->(%5.2f,%5.2f,%5.2f,%5.2f) \n", v.x,v.y,v.z,v.w, u.x,u.y,u.z,u.w, t.x,t.y,t.z,t.w);
+            printf("(%5.2f,%5.2f,%5.2f,%5.2f) ->(%5.2f,%5.2f,%5.2f,%5.2f) ->(%5.2f,%5.2f,%5.2f,%5.2f) \n", 
+                   v.x,v.y,v.z,v.w, u.x,u.y,u.z,u.w, t.x,t.y,t.z,t.w);
             
         }
         
@@ -626,6 +633,45 @@ public class TestGridMaker extends TestCase {
             
             printf("(%5.2f,%5.2f,%5.2f) -> (%5.2f,%5.2f,%5.2f)\n", in.v[0],in.v[1],in.v[2], out.v[0],out.v[1],out.v[2]);
             
+        }
+
+    }
+
+    public void testFriezeTransform3() {
+
+        Vector4d p0 = new Vector4d(1,0,0,0);
+        Vector4d p1 = new Vector4d(-1/sqrt(2),1/sqrt(2),0,0);
+        
+        
+        Matrix4d r0 = VecTransforms.getReflection(p0);
+        Matrix4d r1 = VecTransforms.getReflection(p1);        
+
+        Matrix4d r0r1 = new Matrix4d();
+        r0r1.mul(r0, r1);
+        Matrix4d r1r0 = new Matrix4d();
+        r1r0.mul(r1, r0);
+        
+        Matrix4d m4 = new Matrix4d();
+        m4.rotZ(Math.PI/2);
+        printf("\n");
+        
+        for(int i = 0; i <= 10; i++){
+            
+            double x = 0.1 * i + 0.05;
+            double y = 0;
+            double z = 0;
+            Vector4d in = new Vector4d(x,y,z,1);
+
+            Vector4d u = new Vector4d();
+            Vector4d v = new Vector4d();
+
+            r0r1.transform(in,u);
+            r1r0.transform(in,v);
+            
+            printf("(%5.2f,%5.2f,%5.2f) -> (%5.2f,%5.2f,%5.2f) -> (%5.2f,%5.2f,%5.2f)\n", 
+                   in.x,in.y,in.z, 
+                   u.x,u.y,u.z, 
+                   v.x,v.y,v.z);
         }
 
     }
