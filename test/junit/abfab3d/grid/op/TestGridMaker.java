@@ -373,7 +373,7 @@ public class TestGridMaker extends TestCase {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
         DataSources.ImageBitmap image = new DataSources.ImageBitmap();
-        
+
         image.setSize(ringWidth, ringWidth, ringThickness);
         image.setLocation(0,0,0);
         image.setBaseThickness(0.5);
