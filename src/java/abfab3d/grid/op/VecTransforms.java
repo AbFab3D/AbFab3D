@@ -439,7 +439,7 @@ public class VecTransforms {
      */
     public static class FriezeSymmetry  implements VecTransform, Initializable  {
 
-        static final int     // orbifold notation 
+        public static final int     // orbifold notation
             FRIEZE_II = 0,   // oo oo
             FRIEZE_IX = 1,   // oo X
             FRIEZE_IS = 2,   // oo *

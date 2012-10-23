@@ -61,6 +61,26 @@ public class RingPopperKernel extends HostedKernel {
     private static final int DEBUG_LEVEL = 0;
 
     enum EdgeStyle {NONE, TOP, BOTTOM, BOTH};
+    enum SymmetryStyle {
+        NONE(-1),
+        FRIEZE_II(0),   // oo oo
+        FRIEZE_IX (1),   // oo X
+        FRIEZE_IS(2),   // oo *
+        FRIEZE_SII(3),  // * oo oo
+        FRIEZE_22I(4),  // 2 2 oo
+        FRIEZE_2SI(5),  // 2 * oo
+        FRIEZE_S22I(6); // * 2 2 oo
+
+        private int code;
+
+        SymmetryStyle(int code) {
+            this.code = code;
+        }
+
+        public int getCode() {
+            return code;
+        }
+    }
 
     private String[] availableMaterials = new String[] {"White Strong & Flexible", "White Strong & Flexible Polished",
         "Silver", "Silver Glossy", "Stainless Steel","Gold Plated Matte", "Gold Plated Glossy","Antique Bronze Matte",
@@ -85,6 +105,7 @@ public class RingPopperKernel extends HostedKernel {
     private int tilingX;
     private int tilingY;
     private EdgeStyle edgeStyle;
+    private SymmetryStyle symmetryStyle;
 
     private String material;
 
@@ -115,7 +136,12 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 50, null, null)
         );
 
-        params.put("edgeStyle", new Parameter("edgeStyle", "Band Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
+        params.put("symmetryStyle", new Parameter("symmetryStyle", "Symmetry Style", "Whether to put lines on the band", symmetryStyle.NONE.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(symmetryStyle.values()))
+        );
+
+        params.put("edgeStyle", new Parameter("edgeStyle", "Edge Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, enumToStringArray(edgeStyle.values()))
         );
@@ -186,6 +212,9 @@ public class RingPopperKernel extends HostedKernel {
 
         pullParams(params);
 
+        if (acc == Accuracy.VISUAL) {
+            resolution = resolution * 1.5;
+        }
         //resolution = 5.e-5;
         //double voxelSize = 5.e-5;
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
@@ -236,6 +265,23 @@ public class RingPopperKernel extends HostedKernel {
             }
         }
 
+
+        int fsType = VecTransforms.FriezeSymmetry.FRIEZE_22I;
+        VecTransforms.FriezeSymmetry fs = null;
+        if (fsType > -1) {
+            double tileWidth = innerDiameter*Math.PI/tilingX;
+            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_S22I);
+            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_II);
+            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IS);
+            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_SII);
+            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_2SI);
+            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_22I);
+            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IX);
+            System.out.println("Using frieze symmetry: " + fsType);
+            fs = new VecTransforms.FriezeSymmetry();
+            fs.setFriezeType(fsType);
+            fs.setDomainWidth(tileWidth);
+        }
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
@@ -246,6 +292,9 @@ public class RingPopperKernel extends HostedKernel {
         rot.m_angle = 0*TORAD;
 
         compTrans.add(rot);
+        if (fsType > -1) {
+            compTrans.add(fs);
+        }
         compTrans.add(rw);
 
         GridMaker gm = new GridMaker();
@@ -308,7 +357,15 @@ if (1==1) {
 
 //        GridSaver.writeIsosurfaceMakerSTL("out.stl", grid,smoothSteps, 1e-9);
 //        GridSaver.writeIsosurfaceMaker("out.x3d", grid,smoothSteps, 1e-9);
-        X3DViewer.viewX3DOM(grid, smoothSteps, 1e-9);
+        HashMap<String, Object> exp_params = new HashMap<String, Object>();
+        exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
+        if (acc == Accuracy.VISUAL) {
+            // X3DOM requires IFS for normal generation
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDFACESET);
+        } else {
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
+        }
+        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9);
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
         grid.getWorldCoords(0,0,0, min_bounds);

@@ -74,10 +74,12 @@ public class JavaStandaloneUICreator {
             ps.println("import java.awt.event.*;");
             ps.println("import java.io.*;");
             ps.println("import abfab3d.creator.GeometryKernel;");
+            ps.println("import abfab3d.creator.KernelResults;");
             ps.println("import abfab3d.creator.util.ParameterUtil;");
             ps.println("import org.web3d.vrml.export.PlainTextErrorReporter;");
             ps.println("import org.web3d.vrml.sav.BinaryContentHandler;");
             ps.println("import org.web3d.vrml.export.*;");
+            ps.println("import app.common.*;");
 
             ps.println("");
             ps.println("public class " + className + " extends JFrame implements ActionListener {");
@@ -303,14 +305,93 @@ System.out.println("Adding param: " + p.getName());
 
         // Generate Geometry
         ps.println(indent(12) + "try {");
-        ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(\"out.x3db\");");
+        ps.println(indent(16) + "String filename = \"/tmp/out.x3d\";");
+        ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
+        ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
+        ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
+//        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DXMLRetainedExporter(fos, 3, 0, console, 6);");
+        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
+        ps.println(indent(16) + "fos.close();");
+
+        ps.println(indent(16) + "double[] bounds_min = results.getMinBounds();");
+        ps.println(indent(16) + "double[] bounds_max = results.getMaxBounds();");
+
+        ps.println(indent(16) + "double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);");
+        ps.println(indent(16) + "max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);");
+
+        ps.println(indent(16) + "double z = 2 * max_axis / Math.tan(Math.PI / 4);");
+        ps.println(indent(16) + "float[] pos = new float[] {0,0,(float) z};");
+
+        ps.println(indent(16) + "X3DViewer.viewX3DOM(\"out.x3d\",pos);");
+
+        ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
+        ps.println(indent(12) + "System.out.println(\"Model Done\");");
+
+        ps.println(indent(8) + "} else if (e.getSource() == printButton) {");
+        ps.println(indent(12) + "// Get all params to global string vars");
+
+        itr = params.values().iterator();
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            if (remove.contains(p.getName())) {
+                continue;
+            }
+
+            switch(getEditor(p)) {
+                case TEXTFIELD:
+                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
+                    break;
+                case FILE_DIALOG:
+                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
+                    break;
+                case COMBOBOX:
+                    ps.println(indent(12) + p.getName() + " = (String) ((JComboBox)" + p.getName() + "Editor).getSelectedItem();");
+                    break;
+                default:
+                    System.out.println("Unhandled action for editor: " + getEditor(p));
+            }
+
+        }
+
+        ps.println();
+
+        // Create Kernel
+        class_name = kernel.getClass().getName();
+        ps.println(indent(12) + class_name + " kernel = new " + class_name + "();");
+
+        // Put params into a map
+
+        ps.println(indent(12) + "HashMap<String,String> params = new HashMap<String,String>();");
+        itr = params.values().iterator();
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            if (remove.contains(p.getName())) {
+                continue;
+            }
+
+            ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
+        }
+
+        ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
+
+        // Generate Geometry
+        ps.println(indent(12) + "try {");
+        ps.println(indent(16) + "String filename = \"/tmp/out.x3db\";");
+        ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
         ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
-        ps.println(indent(16) + "kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
+        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
         ps.println(indent(16) + "fos.close();");
+
+        ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
+        ps.println(indent(16) + "String material = (String) parsed_params.get(\"material\");");
+        ps.println(indent(16) + "wtr.runWallThickness(\"/tmp/out.x3db\", material);");
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
-        ps.println(indent(12) + "System.out.println(\"Model Done\");");
+        ps.println(indent(12) + "System.out.println(\"Printability Done\");");
 
         ps.println(indent(8) + "} else if (e.getSource() == uploadButton) {");
         ps.println(indent(12) + "System.out.println(\"Uploading Model\");");

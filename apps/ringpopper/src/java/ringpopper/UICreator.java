@@ -32,7 +32,7 @@ System.out.println("Creating Java User Interface for imageeditor");
         steps.add(new Step(2, "Material", "Select your Material"));
         steps.add(new Step(3, "Advanced", "Advanced Parameters"));
 
-        uic.createInterface("ringpopper.ui", "Editor", "AbFab3D Image Creator","src/java/ringpopper/ui", steps, new HashMap<String,String>(), kernel, new HashSet<String>());
+        uic.createInterface("ringpopper.ui", "Editor", "AbFab3D Ring Creator","src/java/ringpopper/ui", steps, new HashMap<String,String>(), kernel, new HashSet<String>());
 
 System.out.println("Creating HTML User Interface for imageeditor");
         BasicHTMLUICreator uic2 = new BasicHTMLUICreator();

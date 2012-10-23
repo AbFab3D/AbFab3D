@@ -20,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -120,6 +121,33 @@ public class MeshExporter {
         } else {
             throw new IllegalArgumentException("Unhandled file format: " + encoding);
         }
+
+        writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
+        writer.profileDecl("Immersive");
+        writer.startNode("NavigationInfo", null);
+        writer.startField("avatarSize");
+        writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
+        writer.endNode(); // NavigationInfo
+        writer.startNode("Viewpoint", null);
+        writer.startField("position");
+        writer.fieldValue(pos, 3);
+        writer.endNode(); // Viewpoint
+
+        se.outputX3D(we, params, writer);
+        writer.endDocument();
+    }
+
+    /**
+     * Write a mesh to an X3D file
+     *
+     * @param we
+     * @throws IOException
+     */
+    public static void writeMesh(WingedEdgeTriangleMesh we, BinaryContentHandler writer, Map<String, Object> params, float[] pos) throws IOException {
+
+        SAVExporter se = new SAVExporter();
+
+        ErrorReporter console = new PlainTextErrorReporter();
 
         writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
         writer.profileDecl("Immersive");
