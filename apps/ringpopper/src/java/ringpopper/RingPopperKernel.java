@@ -238,9 +238,15 @@ public class RingPopperKernel extends HostedKernel {
         image_src.m_sizeX = tileWidth;//innerDiameter*Math.PI;
         image_src.m_sizeY = ringWidth;
         image_src.m_sizeZ = ringThickness;
-        image_src.m_centerZ = ringThickness/2;
-        image_src.m_baseThickness = baseThickness;
-        image_src.m_xTilesCount = 1;//tilingX;
+
+        image_src.setBaseThickness(baseThickness);
+        if (symmetryStyle != SymmetryStyle.NONE) {
+            image_src.m_xTilesCount = 1;
+            image_src.setLocation(0,0,0);
+        } else {
+            image_src.m_xTilesCount = tilingX;
+            image_src.m_centerZ = ringThickness/2;
+        }
         image_src.m_yTilesCount = tilingY;
         image_src.m_imagePath = image;
 
@@ -268,9 +274,10 @@ public class RingPopperKernel extends HostedKernel {
         }
 
 
-        int fsType = VecTransforms.FriezeSymmetry.FRIEZE_22I;
         VecTransforms.FriezeSymmetry fs = null;
-        if (fsType > -1) {
+
+        System.out.println("SymStyle: " + symmetryStyle);
+        if (symmetryStyle != SymmetryStyle.NONE) {
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_S22I);
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_II);
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IS);
@@ -278,10 +285,10 @@ public class RingPopperKernel extends HostedKernel {
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_2SI);
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_22I);
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IX);
-            System.out.println("Using frieze symmetry: " + fsType);
+            System.out.println("Using frieze symmetry: " + symmetryStyle + " code: " + symmetryStyle.getCode());
             fs = new VecTransforms.FriezeSymmetry();
-            fs.setFriezeType(fsType);
-            fs.setDomainWidth(tileWidth);
+            fs.setFriezeType(symmetryStyle.getCode());
+            fs.setDomainWidth(ringWidth);
         }
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
 
@@ -293,7 +300,7 @@ public class RingPopperKernel extends HostedKernel {
         rot.m_angle = 0*TORAD;
 
         compTrans.add(rot);
-        if (fsType > -1) {
+        if (symmetryStyle != SymmetryStyle.NONE) {
             compTrans.add(fs);
         }
         compTrans.add(rw);
@@ -416,6 +423,9 @@ if (1==1) {
 
             pname = "edgeStyle";
             edgeStyle = edgeStyle.valueOf((String) params.get(pname));
+
+            pname = "symmetryStyle";
+            symmetryStyle = symmetryStyle.valueOf((String) params.get(pname));
 
             pname = "material";
             material = ((String) params.get(pname));
