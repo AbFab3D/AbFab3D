@@ -90,7 +90,7 @@ public class RingPopperKernel extends HostedKernel {
     private double innerDiameter;
     private double ringThickness;
     private double ringWidth;
-    private double bandWidth;
+    private double edgeWidth;
 
     /** Percentage of the ringThickness to use as a base */
     private double baseThickness;
@@ -169,7 +169,7 @@ public class RingPopperKernel extends HostedKernel {
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
-        params.put("bandWidth", new Parameter("bandWidth", "Band Width", "The width of the bands", "0.001", 1,
+        params.put("edgeWidth", new Parameter("edgeWidth", "Edge Width", "The width of the bands", "0.001", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
@@ -221,7 +221,7 @@ public class RingPopperKernel extends HostedKernel {
         double margin = 4*resolution;
 
         double gridWidth = innerDiameter + 2*ringThickness + 2*margin;
-        double gridHeight  = ringWidth + 2*bandWidth + 2*margin;
+        double gridHeight  = ringWidth + 2*edgeWidth + 2*margin;
         double gridDepth = gridWidth;
 
         double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
@@ -231,11 +231,16 @@ public class RingPopperKernel extends HostedKernel {
         int nz = (int)((bounds[5] - bounds[4])/resolution);
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        double tileWidth = innerDiameter*Math.PI/tilingX;
+        double tileWidth = 0;
+        if (symmetryStyle == SymmetryStyle.NONE) {
+            tileWidth = innerDiameter*Math.PI;
+        } else {
+            tileWidth = innerDiameter*Math.PI/tilingX;
+        }
 
         DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
 
-        image_src.m_sizeX = tileWidth;//innerDiameter*Math.PI;
+        image_src.m_sizeX = tileWidth;
         image_src.m_sizeY = ringWidth;
         image_src.m_sizeZ = ringThickness;
 
@@ -260,14 +265,14 @@ public class RingPopperKernel extends HostedKernel {
 
             if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
                 DataSources.Block top_band = new DataSources.Block();
-                top_band.setSize(innerDiameter*Math.PI,bandWidth, ringThickness);
+                top_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
                 top_band.setLocation(0, ringWidth/2, ringThickness/2);
                 union.addDataSource(top_band);
             }
 
             if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
                 DataSources.Block bottom_band = new DataSources.Block();
-                bottom_band.setSize(innerDiameter*Math.PI,bandWidth, ringThickness);
+                bottom_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
                 bottom_band.setLocation(0, -ringWidth/2, ringThickness/2);
                 union.addDataSource(bottom_band);
             }
@@ -373,7 +378,7 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
-        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9);
+        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-10);
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
         grid.getWorldCoords(0,0,0, min_bounds);
@@ -406,8 +411,8 @@ if (1==1) {
             pname = "ringWidth";
             ringWidth = ((Double) params.get(pname)).doubleValue();
 
-            pname = "bandWidth";
-            bandWidth = ((Double) params.get(pname)).doubleValue();
+            pname = "edgeWidth";
+            edgeWidth = ((Double) params.get(pname)).doubleValue();
 
             pname = "baseThickness";
             baseThickness = ((Double) params.get(pname)).doubleValue();
