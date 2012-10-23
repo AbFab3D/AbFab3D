@@ -26,6 +26,7 @@ import javax.imageio.ImageIO;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
+import abfab3d.util.VecTransform;
 
 
 import static abfab3d.util.ImageUtil.getRed;
@@ -121,15 +122,22 @@ public class DataSources {
        
      */
     public static class ImageBitmap implements DataSource, Initializable {
-
+        
         public double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
         
         public double m_baseThickness = 0.5; // relative thickness of solid base 
         public String m_imagePath; 
+
+        public int m_imageType = IMAGE_POSITIVE;
+
+        public static final int IMAGE_POSITIVE = 0, IMAGE_NEGATIVE = 1;
+        
+        
         
         public int m_xTilesCount = 1; // number of image tiles in x-direction 
         public int m_yTilesCount = 1; // number of image tiles in y-direction 
-
+        
+        protected BufferedImage m_image;
 
         private double xmin, xmax, ymin, ymax, zmin, zmax, zbase;
         
@@ -173,6 +181,18 @@ public class DataSources {
             
         }
 
+        public void setImage(BufferedImage image){
+
+            m_image = image;
+
+        }
+
+        public void setImageType(int type){
+
+            m_imageType = type; 
+
+        }
+
         public int initialize(){
             
             xmin = m_centerX - m_sizeX/2;
@@ -186,14 +206,18 @@ public class DataSources {
             zbase = zmin + (zmax - zmin)*m_baseThickness;
 
             BufferedImage image = null;
-
-            try {
-                image = ImageIO.read(new File(m_imagePath));                
-            } catch(Exception e){
-                imageData = null;
-                e.printStackTrace();
-                return RESULT_ERROR;
+            if(m_image != null){
+                image = m_image;
+            } else {
+                try {
+                    image = ImageIO.read(new File(m_imagePath));                
+                } catch(Exception e){
+                    imageData = null;
+                    e.printStackTrace();
+                    return RESULT_ERROR;
+                }
             }
+
             imageWidth = image.getWidth();
             imageHeight = image.getHeight();
             
@@ -244,10 +268,18 @@ public class DataSources {
             double imageY = imageHeight*(1-y);// reverse Y-direction 
 
             double pixelValue = getPixelBox(imageX,imageY);
-            // pixel value for black is 0 for white is 255;
-            // we need to reverse it
 
-            pixelValue = 1 - pixelValue/255.;
+            // pixel value for black is 0 for white is 255;
+            // we may need to reverse it
+            switch(m_imageType){
+            default: 
+            case IMAGE_POSITIVE: 
+                pixelValue = 1 - pixelValue/255.;
+                break;
+            case IMAGE_NEGATIVE:
+                pixelValue = pixelValue/255.;
+                break;
+            }
 
             double d = (zbase  + (zmax - zbase)*pixelValue - z);
 
@@ -278,8 +310,10 @@ public class DataSources {
 
     }  // class ImageBitmap
 
+
     /**
        return maximum values from the given list of data sources
+       can be used to make union of few shapes        
      */
     public static class Maximum implements DataSource, Initializable {
 
@@ -338,7 +372,133 @@ public class DataSources {
         }        
 
     } // class Maximum 
+
+
+    /**
+       subtracts (dataSource1 - dataSource2)       
+       can be usef for boolean difference 
+     */
+    public static class Subtraction implements DataSource, Initializable {
+
+        DataSource dataSource1;
+        DataSource dataSource2;
+        
+        public Subtraction(){     
+
+        }
+
+        public void setSources(DataSource ds1, DataSource ds2){
+
+            dataSource1 = ds1;
+            dataSource2 = ds2;
+
+        }
+        
+
+        public int initialize(){
+
+            if(dataSource1 != null && dataSource1 instanceof Initializable){
+                ((Initializable)dataSource1).initialize();
+            }
+            if(dataSource2 != null && dataSource2 instanceof Initializable){
+                ((Initializable)dataSource2).initialize();
+            }
+            return RESULT_OK;
+            
+        }
+        
+
+        /**
+         * calculates values of all data sources and return maximal value
+         * can be used to make union of few shapes 
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            int res = dataSource1.getDataValue(pnt, data);
+            if(res != RESULT_OK)
+                return res;
+
+            double d = data.v[0];            
+            
+            if(d > 0.0){
+
+                res = dataSource2.getDataValue(pnt, data);
+                if(res != RESULT_OK)
+                    return res;
+                
+                if(data.v[0] > 0){
+                    // we should return 0
+                    data.v[0] = 0;
+                } else {
+                    data.v[0] = 1;                    
+                }
+                
+            }
+            
+            return RESULT_OK;
+        }        
+
+    } // class Difference
+
     
+    /**
+       class to accept generic DataSource and VecTransform 
+       
+       in getDataValue() it applued inverse_transform to the point and calcylates data value in 
+       transformed point
+       
+     */
+    public static class DataTransformer implements DataSource, Initializable {
+        
+        protected DataSource dataSource;
+        protected VecTransform transform;
+        
+        public DataTransformer(){  
+        }
+
+        public void setDataSource(DataSource ds){
+            dataSource = ds;
+        }
+
+        public void setTransform(VecTransform vt){
+            transform = vt;
+        }
+
+        public int initialize(){
+            
+            if(dataSource != null && dataSource instanceof Initializable){
+                ((Initializable)dataSource).initialize();
+            }
+            if(transform != null && transform instanceof Initializable){
+                ((Initializable)transform).initialize();
+            }               
+            return RESULT_OK;            
+        }
+        
+
+        /**
+         * calculates values of all data sources and return maximal value
+         * can be used to make union of few shapes 
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            if(transform != null){
+                transform.inverse_transform(pnt, pnt);
+            }               
+            
+            if(dataSource != null){
+                return getDataValue(pnt, data);
+            } else {
+                data.v[0] = 1;
+            }
+
+            return RESULT_OK;
+
+        }        
+
+    } // class DataTransformer
+ 
+   
 }
 
 
