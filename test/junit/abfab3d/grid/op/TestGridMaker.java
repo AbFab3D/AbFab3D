@@ -17,6 +17,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+import java.awt.Font;
+import java.awt.Insets;
+
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
@@ -39,6 +42,7 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.MathUtil;
+import abfab3d.util.TextUtil;
 
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
@@ -348,9 +352,76 @@ public class TestGridMaker extends TestCase {
 
 
     /**
+       ring with fancy profile
+     */
+    public void testTextRing() {
+        
+        printf("testImageRingTiled()\n");
+        double voxelSize = 2.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 4*voxelSize;
+
+        double ringDiameter = 0.05; // 5cm 
+        double ringWidth = 0.01; // 1cm 
+        double ringThickness = 0.003; // 3mm
+
+        double gridWidth = ringDiameter + 2*ringWidth + 2*margin;
+        double gridHeight  = ringWidth + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(Math.PI*ringDiameter, ringWidth, ringThickness);
+        image.setLocation(0,0,0);
+        image.setBaseThickness(0.);
+        image.setImageType(image.IMAGE_NEGATIVE);
+        image.setTiles(1,1);
+        //image.setImagePath("docs/images/star_4_arms_1.png");
+        image.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
+        
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.m_axis = new Vector3d(0,1,0);
+        rot.m_angle = 0*TORAD;
+
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.m_radius = ringDiameter/2;
+        
+        compTrans.add(rot);
+        compTrans.add(rw);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(image);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_text.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+
+    /**
        ring with Frieze pattern 
      */
-    public void testFriezeRing() {
+    public void _testFriezeRing() {
         
         printf("testImageRingTiled()\n");
         double voxelSize = 2.e-4;
@@ -636,7 +707,7 @@ public class TestGridMaker extends TestCase {
 
     }
 
-    public void testFriezeTransform3() {
+    public void _testFriezeTransform3() {
 
         Vector4d p0 = new Vector4d(1,0,0,0);
         Vector4d p1 = new Vector4d(-1/sqrt(2),1/sqrt(2),0,0);
