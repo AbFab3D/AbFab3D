@@ -231,14 +231,16 @@ public class RingPopperKernel extends HostedKernel {
         int nz = (int)((bounds[5] - bounds[4])/resolution);
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
+        double tileWidth = innerDiameter*Math.PI/tilingX;
+
         DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
 
-        image_src.m_sizeX = innerDiameter*Math.PI;
+        image_src.m_sizeX = tileWidth;//innerDiameter*Math.PI;
         image_src.m_sizeY = ringWidth;
         image_src.m_sizeZ = ringThickness;
         image_src.m_centerZ = ringThickness/2;
         image_src.m_baseThickness = baseThickness;
-        image_src.m_xTilesCount = tilingX;
+        image_src.m_xTilesCount = 1;//tilingX;
         image_src.m_yTilesCount = tilingY;
         image_src.m_imagePath = image;
 
@@ -269,7 +271,6 @@ public class RingPopperKernel extends HostedKernel {
         int fsType = VecTransforms.FriezeSymmetry.FRIEZE_22I;
         VecTransforms.FriezeSymmetry fs = null;
         if (fsType > -1) {
-            double tileWidth = innerDiameter*Math.PI/tilingX;
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_S22I);
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_II);
             //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IS);
