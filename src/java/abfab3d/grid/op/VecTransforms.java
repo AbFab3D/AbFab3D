@@ -56,11 +56,16 @@ public class VecTransforms {
     /**
 
        wraps band in xy plane about a cylinder of given radius
+       see RingSpaceWarp.svg 
        
      */
     public static class RingWrap implements VecTransform, Initializable {
 
         public double m_radius = 0.035; // units are meters       
+        
+        public void setRadius(double r){
+            m_radius = r;
+        }
 
         public int initialize(){
             // do sometithing? 
@@ -123,6 +128,13 @@ public class VecTransforms {
         private Matrix3d 
             mat = new Matrix3d(),
             mat_inv = new Matrix3d();
+
+        public void setRotation(Vector3d axis, double angle){
+
+            m_axis = new Vector3d(axis); 
+            m_angle = angle;
+            
+        }
 
         public int initialize(){
 

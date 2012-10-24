@@ -70,6 +70,8 @@ public class GridMaker {
             nz = grid.getDepth();
 
         makeTransform();
+        if(m_transform == null)
+            m_transform = new VecTransforms.Identity();
 
         if(m_transform instanceof Initializable){
             ((Initializable)m_transform).initialize();

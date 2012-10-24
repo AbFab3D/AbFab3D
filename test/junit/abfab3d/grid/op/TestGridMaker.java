@@ -365,6 +365,7 @@ public class TestGridMaker extends TestCase {
         double ringDiameter = 0.05; // 5cm 
         double ringWidth = 0.01; // 1cm 
         double ringThickness = 0.003; // 3mm
+        double textDepth = 0.001; // 1mm
 
         double gridWidth = ringDiameter + 2*ringWidth + 2*margin;
         double gridHeight  = ringWidth + 2*margin;
@@ -377,33 +378,44 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
-        
-        image.setSize(Math.PI*ringDiameter, ringWidth, ringThickness);
-        image.setLocation(0,0,0);
-        image.setBaseThickness(0.);
-        image.setImageType(image.IMAGE_NEGATIVE);
-        image.setTiles(1,1);
-        //image.setImagePath("docs/images/star_4_arms_1.png");
-        image.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
-        
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
-        
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(0,1,0);
-        rot.m_angle = 0*TORAD;
+                
+        DataSources.ImageBitmap ringBand = new DataSources.ImageBitmap();        
+        ringBand.setSize(Math.PI*ringDiameter, ringWidth, ringThickness);
+        ringBand.setLocation(0,0,ringThickness/2); // make z-offset to have band in positive z halfspace 
+        ringBand.setBaseThickness(0.5);
+        ringBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        ringBand.setTiles(20,1); 
+        ringBand.setImagePath("docs/images/star_4_arms_1.png");
 
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
-        rw.m_radius = ringDiameter/2;
         
-        compTrans.add(rot);
-        compTrans.add(rw);
+        DataSources.ImageBitmap textBand = new DataSources.ImageBitmap();        
+        textBand.setSize(Math.PI*ringDiameter, ringWidth, textDepth);
+        textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
+        textBand.setBaseThickness(0.);
+        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        textBand.setTiles(1,1);
+        textBand.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
         
+        // we want text on the inside. So it should face in opposite direction 
+        VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
+        textRotation.setRotation(new Vector3d(0,1,0), 180*TORAD);
+        
+        // rotated text 
+        DataSources.DataTransformer rotatedText = new DataSources.DataTransformer();
+        rotatedText.setDataSource(textBand);
+        rotatedText.setTransform(textRotation);
+        
+        DataSources.Subtraction ringMinusText = new DataSources.Subtraction();
+        ringMinusText.setSources(ringBand, rotatedText); // 
+
+        VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
+        ringWrap.setRadius(ringDiameter/2);
+
         GridMaker gm = new GridMaker();
                 
         gm.setBounds(bounds);
-        gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setTransform(ringWrap);
+        gm.setDataSource(ringMinusText);        
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 

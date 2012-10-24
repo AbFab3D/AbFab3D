@@ -208,9 +208,12 @@ public class DataSources {
             BufferedImage image = null;
             if(m_image != null){
                 image = m_image;
+            } else if(m_imagePath == null){
+                imageData = null; 
+                return RESULT_OK;                
             } else {
                 try {
-                    image = ImageIO.read(new File(m_imagePath));                
+                    image = ImageIO.read(new File(m_imagePath));
                 } catch(Exception e){
                     imageData = null;
                     e.printStackTrace();
@@ -251,7 +254,7 @@ public class DataSources {
             }
 
             if(imageData == null){               
-                data.v[0] = 0;
+                data.v[0] = 1;
                 return RESULT_OK;
             }
 
@@ -487,7 +490,7 @@ public class DataSources {
             }               
             
             if(dataSource != null){
-                return getDataValue(pnt, data);
+                return dataSource.getDataValue(pnt, data);
             } else {
                 data.v[0] = 1;
             }
@@ -500,6 +503,4 @@ public class DataSources {
  
    
 }
-
-
 
