@@ -147,8 +147,9 @@ public class TestMeshDecimator extends TestCase {
         pnt.add(he.getStart().getPoint());
         pnt.scale(0.5);
         EdgeCollapseResult ecr = new EdgeCollapseResult();
+        EdgeCollapseParams ecp = new EdgeCollapseParams();
         
-        we.collapseEdge(edge, pnt, ecr);
+        we.collapseEdge(edge, pnt, ecp, ecr);
         
         printf("moved vertex: %s\n", ecr.insertedVertex);          
         printf("edge coount after collapse: %d\n", we.getEdgeCount());  
@@ -389,6 +390,7 @@ public class TestMeshDecimator extends TestCase {
 
 
         MeshDecimator md = new MeshDecimator();
+        md.setMaxCollapseError(1.e-9);        
 
         md.DEBUG = false;
         mesh.DEBUG = false; 
@@ -413,7 +415,49 @@ public class TestMeshDecimator extends TestCase {
         }
     }
     
-    public void testDecimatorQuality() throws Exception {
+    public void testFileMaxEdge() throws Exception {
+
+        String fpath = "c:/tmp/mesh_text_orig.stl";
+        
+        long t0 = currentTimeMillis();
+        WingedEdgeTriangleMesh mesh = loadMesh(fpath);
+        printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
+        t0 = currentTimeMillis();
+
+        int fcount = mesh.getFaceCount();
+
+        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
+
+        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());        
+        printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
+
+        assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+
+
+        MeshDecimator md = new MeshDecimator();
+        md.setMaxCollapseError(1.e-8);        
+        md.setMaxEdgeLength(0.5e-3);        
+
+        md.DEBUG = false;
+        mesh.DEBUG = false; 
+
+        for(int i = 0; i < 10; i++){
+            
+            fcount = fcount/2;
+            t0 = currentTimeMillis();
+            printf("processMesh() start\n");
+            md.processMesh(mesh, fcount);
+            //md.DEBUG = true;
+            printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
+            fcount = mesh.getFaceCount();
+
+            MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
+            
+        }
+    }
+    
+
+    public void _testDecimatorQuality() throws Exception {
     
         //String fpath = "c:/tmp/pen_v6.stl"; // strange rasterization errors 
         //String fpath = "c:/tmp/mesh_text_orig.stl";

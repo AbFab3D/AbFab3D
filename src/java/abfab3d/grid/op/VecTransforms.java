@@ -182,25 +182,16 @@ public class VecTransforms {
     /**
        performs scaling by given factor
      */
-    public static class Scale  implements VecTransform, Initializable  {
+    public static class Scale  implements VecTransform {
 
-        public Vector3d m_scale = new Vector3d(1,1,1); 
+        protected double sx = 1, sy = 1, sz = 1; 
 
-        private Matrix3d 
-            mat = new Matrix3d(),
-            mat_inv = new Matrix3d();
+        public void setScale(double s){
 
-        public int initialize(){
+            sx = s;
+            sy = s;
+            sz = s;
 
-            mat.m00 = m_scale.x;
-            mat.m11 = m_scale.y;
-            mat.m22 = m_scale.z;
-
-            mat_inv.m00 = 1/m_scale.x;
-            mat_inv.m11 = 1/m_scale.y;
-            mat_inv.m22 = 1/m_scale.z;
-
-            return RESULT_OK;
         }
 
         /**
@@ -208,13 +199,9 @@ public class VecTransforms {
          */
         public int transform(Vec in, Vec out) {
             
-            Vector3d v = new Vector3d(in.v[0],in.v[1],in.v[2]);
-
-            mat.transform(v);
-
-            out.v[0] = v.x;
-            out.v[1] = v.y;
-            out.v[2] = v.z;
+            out.v[0] = in.v[0]*sx;
+            out.v[1] = in.v[1]*sy;
+            out.v[2] = in.v[2]*sz;
 
             return RESULT_OK;
         }                
@@ -224,13 +211,9 @@ public class VecTransforms {
          */
         public int inverse_transform(Vec in, Vec out) {
             
-            Vector3d v = new Vector3d(in.v[0],in.v[1],in.v[2]);
-
-            mat_inv.transform(v);
-
-            out.v[0] = v.x;
-            out.v[1] = v.y;
-            out.v[2] = v.z;
+            out.v[0] = in.v[0]/sx;
+            out.v[1] = in.v[1]/sy;
+            out.v[2] = in.v[2]/sz;
 
             return RESULT_OK;
 
@@ -249,6 +232,13 @@ public class VecTransforms {
 
         private double radius2; 
         static double EPS = 1.e-20;
+
+        public void setSphere(Vector3d center, double radius){
+
+            m_center = new Vector3d(center);
+            m_radius = radius;
+
+        }
 
         public int initialize(){
 
@@ -312,7 +302,6 @@ public class VecTransforms {
 
         public Vector3d m_pointOnPlane = new Vector3d(0,0,0); 
         public Vector3d m_planeNormal = new Vector3d(1,0,0); 
-
 
         public int initialize(){
 

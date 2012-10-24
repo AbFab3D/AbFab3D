@@ -57,6 +57,8 @@ public class MeshDecimator {
 
     // result of individual edge collapse 
     EdgeCollapseResult m_ecr;
+    // parameters of individual edge collapse
+    EdgeCollapseParams m_ecp; 
 
     // current count of faces in mesh 
     int m_faceCount;
@@ -66,8 +68,11 @@ public class MeshDecimator {
     int m_surfacePinchCount;
     // count of face flip prevented 
     int m_faceFlipCount;
+    // count of long edge creation prevented 
+    int m_longEdgeCount;
 
-    double m_maxError;
+    double m_maxEdgeLength2=0.; // square of maximal allowed edge length (if positive) 
+    double m_maxError=0.;
     // maximal error allowed during collapse 
     double m_maxCollapseError = Double.MAX_VALUE;
 
@@ -115,6 +120,15 @@ public class MeshDecimator {
     }
     
     /**
+       set maximal allowed edge length 
+     */
+    public void setMaxEdgeLength(double maxLength){
+
+        m_maxEdgeLength2 = maxLength*maxLength;
+
+    }
+
+    /**
        decimates the mesh to have targetFaceCount
        
        returns final face count of the mesh 
@@ -130,6 +144,7 @@ public class MeshDecimator {
 
         m_surfacePinchCount = 0;
         m_faceFlipCount = 0;
+        m_longEdgeCount = 0;
 
 
         long ts = currentTimeMillis();
@@ -176,6 +191,7 @@ public class MeshDecimator {
             printf("actual face count: %d\n", actuallFaceCount);
             printf("surface pinch count: %d\n", m_surfacePinchCount);
             printf("face flip count: %d\n", m_faceFlipCount);
+            printf("long edge count: %d\n", m_longEdgeCount);
             printf("edges collapsed: %d\n", m_collapseCount);
             printf("MAX_COLLAPSE_ERROR: %10.5e\n", m_maxError);
         }
@@ -193,6 +209,7 @@ public class MeshDecimator {
         
         m_maxError = 0;
         m_ecr = new EdgeCollapseResult();        
+        m_ecp = new EdgeCollapseParams();        
         m_candidates = new EdgeData[RANDOM_CANDIDATES_COUNT];
         // 
         //m_errorFunction = new ErrorMidEdge();
@@ -280,6 +297,7 @@ public class MeshDecimator {
             //printf("new vertex: %s\n", formatPoint(ed.point));
         }
 
+        
         // do collapse 
         m_ecr.removedEdges.clear();
         m_ecr.insertedVertex = null;
@@ -287,15 +305,11 @@ public class MeshDecimator {
         m_ecr.faceCount = 0;
         m_ecr.vertexCount = 0;
         
-        if(DEBUG) printf("collapseCount: %d, edge before: %d\n", m_collapseCount, m_mesh.getEdgeCount());                    
+        m_ecp.maxEdgeLength2 = m_maxEdgeLength2;
 
-        //try {
-            //MeshExporter.writeMeshSTL(m_mesh, fmt("c:/tmp/mesh_%04d.stl",m_collapseCount));
-        //} catch(Exception e){ e.printStackTrace(); 
-        //}
-        //exportEdge(fmt("c:/tmp/edge_%04d.stl",m_collapseCount), ed);        
+        if(DEBUG) printf("collapseCount: %d, edge before: %d\n", m_collapseCount, m_mesh.getEdgeCount());    
 
-        if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecr)){
+        if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecp, m_ecr)){
 
             if(DEBUG) printf("failed to collapse\n");  
             switch(m_ecr.returnCode){
@@ -304,6 +318,9 @@ public class MeshDecimator {
                 break;
             case EdgeCollapseResult.FAILURE_FACE_FLIP:
                 m_faceFlipCount++; 
+                break;                
+            case EdgeCollapseResult.FAILURE_LONG_EDGE:
+                m_longEdgeCount++; 
                 break;                
             }
             return false;
