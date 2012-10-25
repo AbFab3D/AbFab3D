@@ -221,6 +221,49 @@ public class VecTransforms {
     } // class Scale
 
 
+    /**
+       
+       perforsm tranaslation 
+       
+     */
+    public static class Translation  implements VecTransform {
+
+        protected double tx = 1, ty = 1, tz = 1; 
+
+        public void setTranslation(double tx, double ty, double tz){
+
+            this.tx = tx;
+            this.ty = ty;
+            this.tz = tz;
+
+        }
+
+        /**
+         *
+         */
+        public int transform(Vec in, Vec out) {
+            
+            out.v[0] = in.v[0] + tx;
+            out.v[1] = in.v[1] + ty;
+            out.v[2] = in.v[2] + tz;
+
+            return RESULT_OK;
+        }                
+
+        /**
+         *
+         */
+        public int inverse_transform(Vec in, Vec out) {
+            
+            out.v[0] = in.v[0] - tx;
+            out.v[1] = in.v[1] - ty;
+            out.v[2] = in.v[2] - tz;
+
+            return RESULT_OK;
+
+        }
+    } // class Translation
+
 
     /**
        performs inversion in a sphere of given center and radius 

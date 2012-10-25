@@ -433,7 +433,6 @@ public class TestMeshDecimator extends TestCase {
 
         assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
 
-
         MeshDecimator md = new MeshDecimator();
         md.setMaxCollapseError(1.e-8);        
         md.setMaxEdgeLength(0.5e-3);        
