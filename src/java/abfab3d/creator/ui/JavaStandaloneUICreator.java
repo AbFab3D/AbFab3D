@@ -16,6 +16,11 @@ package abfab3d.creator.ui;
 import java.util.*;
 import java.io.*;
 
+import javax.swing.JFileChooser;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+
 // Internal Imports
 import abfab3d.creator.*;
 
@@ -109,6 +114,9 @@ public class JavaStandaloneUICreator {
 
             Iterator<Parameter> itr = sorted_params.iterator();
 
+            // Create the menu bar
+            createMenu(ps);
+            
             ps.println(indent(8) + "GridLayout layout = new GridLayout(" + (params.size() - remove.size() + 1 + steps.size() + (steps.size() - 1)) + ",3);");
             ps.println(indent(8) + "setLayout(layout);");
             ps.println();
@@ -161,6 +169,18 @@ public class JavaStandaloneUICreator {
         System.out.println("Done creating editor");
     }
 
+    public void createMenu(PrintStream ps) {
+    	ps.println(indent(8) + "JMenuBar menubar = new JMenuBar();");
+    	ps.println(indent(8) + "JMenu filemenu = new JMenu(\"File\");");
+    	ps.println(indent(8) + "JMenuItem fileOpen = new JMenuItem(\"Open\");");
+    	ps.println(indent(8) + "JMenuItem fileSave = new JMenuItem(\"Save\");");
+    	ps.println(indent(8) + "filemenu.add(fileOpen);");
+    	ps.println(indent(8) + "filemenu.add(fileSave);");
+    	ps.println(indent(8) + "menubar.add(filemenu);");
+    	ps.println(indent(8) + "setJMenuBar(menubar);");
+    	ps.println(indent(8) + "openDialog = new JFileChooser(new File(\"/tmp\"));");
+    }
+    
     /**
      * Add a user interface element for an item.
      *
@@ -312,7 +332,7 @@ System.out.println("Adding param: " + p.getName());
         setParams(ps, params, remove);
         
         ps.println(indent(12) + "try {");
-        ps.println(indent(12) + "System.out.println(\"\nGenerating Model\");");
+        ps.println(indent(12) + "System.out.println(\"Generating Model\");");
         ps.println(indent(16) + "String filename = \"/tmp/out.x3db\";");
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
@@ -331,8 +351,21 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(12) + "ModelUploadOauthRunner uploader = new ModelUploadOauthRunner();");
         ps.println(indent(12) + "uploader.uploadModel(filename, modelId, scale, title, description, isPublic, viewState);");
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
-        //ps.println(indent(8) + "}");
 
+        // Open a file
+        ps.println(indent(8) + "} else if (e.getSource() == uploadButton) {");
+
+        ps.println(indent(12) + "int returnVal = openDialog.showOpenDialog(this);");
+        ps.println(indent(12) + "try {");
+        ps.println(indent(16) + "if (returnVal == JFileChooser.APPROVE_OPTION) {");
+        ps.println(indent(20) + "File selectedFile = openDialog.getSelectedFile();");
+        ps.println(indent(20) + "FileInputStream fis = new FileInputStream(selectedFile);");
+        ps.println(indent(20) + "Properties configProp = new Properties();");
+        ps.println(indent(20) + "configProp.load(fis);");
+        ps.println(indent(20) + "System.out.println(configProp.toString());");
+        ps.println(indent(16) + "}");
+        ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
+        
         Iterator<Parameter> itr = params.values().iterator();
 
         while(itr.hasNext()) {
@@ -364,9 +397,12 @@ System.out.println("Adding param: " + p.getName());
     private void addGlobalVars(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
             Iterator<Parameter> itr = params.values().iterator();
 
-        ps.println("JButton submitButton;");
-        ps.println("JButton printButton;");
-        ps.println("JButton uploadButton;");
+        ps.println(indent(4) + "JButton submitButton;");
+        ps.println(indent(4) + "JButton printButton;");
+        ps.println(indent(4) + "JButton uploadButton;");
+        ps.println(indent(4) + "JMenuItem fileOpen;");
+        ps.println(indent(4) + "JMenuItem fileSave;");
+        ps.println(indent(4) + "JFileChooser chooser;");
 
         while(itr.hasNext()) {
             Parameter p = itr.next();
