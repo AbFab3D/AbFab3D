@@ -80,7 +80,8 @@ public class JavaStandaloneUICreator {
             ps.println("import org.web3d.vrml.sav.BinaryContentHandler;");
             ps.println("import org.web3d.vrml.export.*;");
             ps.println("import app.common.*;");
-
+            ps.println("import app.common.upload.shapeways.oauth.*;");
+            
             ps.println("");
             ps.println("public class " + className + " extends JFrame implements ActionListener {");
 
@@ -257,51 +258,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(8) + "if (e.getSource() == submitButton) {");
         ps.println(indent(12) + "// Get all params to global string vars");
 
-        Iterator<Parameter> itr = params.values().iterator();
-
-        while(itr.hasNext()) {
-            Parameter p = itr.next();
-            if (remove.contains(p.getName())) {
-                continue;
-            }
-
-            switch(getEditor(p)) {
-                case TEXTFIELD:
-                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
-                    break;
-                case FILE_DIALOG:
-                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
-                    break;
-                case COMBOBOX:
-                    ps.println(indent(12) + p.getName() + " = (String) ((JComboBox)" + p.getName() + "Editor).getSelectedItem();");
-                    break;
-                default:
-                    System.out.println("Unhandled action for editor: " + getEditor(p));
-            }
-
-        }
-
-        ps.println();
-
-        // Create Kernel
-        String class_name = kernel.getClass().getName();
-        ps.println(indent(12) + class_name + " kernel = new " + class_name + "();");
-
-        // Put params into a map
-
-        ps.println(indent(12) + "HashMap<String,String> params = new HashMap<String,String>();");
-        itr = params.values().iterator();
-
-        while(itr.hasNext()) {
-            Parameter p = itr.next();
-            if (remove.contains(p.getName())) {
-                continue;
-            }
-
-            ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
-        }
-
-        ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
+        setParams(ps, params, remove);
 
         // Generate Geometry
         ps.println(indent(12) + "try {");
@@ -331,51 +288,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(8) + "} else if (e.getSource() == printButton) {");
         ps.println(indent(12) + "// Get all params to global string vars");
 
-        itr = params.values().iterator();
-
-        while(itr.hasNext()) {
-            Parameter p = itr.next();
-            if (remove.contains(p.getName())) {
-                continue;
-            }
-
-            switch(getEditor(p)) {
-                case TEXTFIELD:
-                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
-                    break;
-                case FILE_DIALOG:
-                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
-                    break;
-                case COMBOBOX:
-                    ps.println(indent(12) + p.getName() + " = (String) ((JComboBox)" + p.getName() + "Editor).getSelectedItem();");
-                    break;
-                default:
-                    System.out.println("Unhandled action for editor: " + getEditor(p));
-            }
-
-        }
-
-        ps.println();
-
-        // Create Kernel
-        class_name = kernel.getClass().getName();
-        ps.println(indent(12) + class_name + " kernel = new " + class_name + "();");
-
-        // Put params into a map
-
-        ps.println(indent(12) + "HashMap<String,String> params = new HashMap<String,String>();");
-        itr = params.values().iterator();
-
-        while(itr.hasNext()) {
-            Parameter p = itr.next();
-            if (remove.contains(p.getName())) {
-                continue;
-            }
-
-            ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
-        }
-
-        ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
+        setParams(ps, params, remove);
 
         // Generate Geometry
         ps.println(indent(12) + "try {");
@@ -395,12 +308,34 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Printability Done\");");
 
+        // Upload model
         ps.println(indent(8) + "} else if (e.getSource() == uploadButton) {");
+        
+        setParams(ps, params, remove);
+        
+        ps.println(indent(12) + "try {");
+        ps.println(indent(12) + "System.out.println(\"\nGenerating Model\");");
+        ps.println(indent(16) + "String filename = \"/tmp/out.x3db\";");
+        ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
+        ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
+        ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
+        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        ps.println(indent(16) + "fos.close();");
+
         ps.println(indent(12) + "System.out.println(\"Uploading Model\");");
+        ps.println(indent(12) + "Integer modelId = null;");
+        ps.println(indent(12) + "Float scale = 1.0f;");
+        ps.println(indent(12) + "String title = \"Image Popper Model\";");
+        ps.println(indent(12) + "String description = \"Generated by the ImagePopper creator\";");
+        ps.println(indent(12) + "Integer isPublic = null;");  // default 1 - 3D model is public
+        ps.println(indent(12) + "Integer viewState = null;"); // default 1 - 3D model is for sale
+        ps.println(indent(12) + "ModelUploadOauthRunner uploader = new ModelUploadOauthRunner();");
+        ps.println(indent(12) + "uploader.uploadModel(filename, modelId, scale, title, description, isPublic, viewState);");
+        ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         //ps.println(indent(8) + "}");
 
-
-        itr = params.values().iterator();
+        Iterator<Parameter> itr = params.values().iterator();
 
         while(itr.hasNext()) {
             Parameter p = itr.next();
@@ -492,5 +427,53 @@ System.out.println("Adding param: " + p.getName());
         }
 
         return Editors.TEXTFIELD;
+    }
+    
+    private void setParams(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
+    	Iterator<Parameter> itr = params.values().iterator();
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            if (remove.contains(p.getName())) {
+                continue;
+            }
+
+            switch(getEditor(p)) {
+                case TEXTFIELD:
+                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
+                    break;
+                case FILE_DIALOG:
+                    ps.println(indent(12) + p.getName() + " = ((JTextField)" + p.getName() + "Editor).getText();");
+                    break;
+                case COMBOBOX:
+                    ps.println(indent(12) + p.getName() + " = (String) ((JComboBox)" + p.getName() + "Editor).getSelectedItem();");
+                    break;
+                default:
+                    System.out.println("Unhandled action for editor: " + getEditor(p));
+            }
+
+        }
+
+        ps.println();
+
+        // Create Kernel
+        String class_name = kernel.getClass().getName();
+        ps.println(indent(12) + class_name + " kernel = new " + class_name + "();");
+
+        // Put params into a map
+
+        ps.println(indent(12) + "HashMap<String,String> params = new HashMap<String,String>();");
+        itr = params.values().iterator();
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            if (remove.contains(p.getName())) {
+                continue;
+            }
+
+            ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
+        }
+
+        ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
     }
 }

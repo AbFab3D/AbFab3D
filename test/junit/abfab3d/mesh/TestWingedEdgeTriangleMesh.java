@@ -152,7 +152,9 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.z = (verts[3].z + verts[5].z) / 2.0;
 
         EdgeCollapseResult ecr = new EdgeCollapseResult();
-        we.collapseEdge(edges, pos, ecr);
+        EdgeCollapseParams ecp = new EdgeCollapseParams();
+
+        we.collapseEdge(edges, pos, ecp, ecr);
 
         writeMesh(we, "c:/tmp/collapse2.x3dv");
 
@@ -230,7 +232,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         //we.removeDegenerateFaces();
 
         EdgeCollapseResult ecr = new EdgeCollapseResult();
-        we.collapseEdge(edges, pos, ecr);
+        EdgeCollapseParams ecp = new EdgeCollapseParams();
+        we.collapseEdge(edges, pos, ecp, ecr);
 
         writeMesh(we, "c:/tmp/degenface2.x3dv");
         we.writeOBJ(System.out);
@@ -349,7 +352,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.z = (verts[1].z + verts[2].z) / 2.0;
 
         EdgeCollapseResult ecr = new EdgeCollapseResult();
-        we.collapseEdge(edges, pos, ecr);
+        EdgeCollapseParams ecp = new EdgeCollapseParams();
+        we.collapseEdge(edges, pos, ecp, ecr);
 
 /*
         System.out.println("Removed Edges: " + ecr.removedEdges);
@@ -473,7 +477,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.z = (verts[1].z + verts[2].z) / 2.0;
 
         EdgeCollapseResult ecr = new EdgeCollapseResult();
-        we.collapseEdge(edges, pos, ecr);
+        EdgeCollapseParams ecp = new EdgeCollapseParams();
+        we.collapseEdge(edges, pos, ecp, ecr);
 
         we.writeOBJ(System.out);
         writeMesh(we, "c:/tmp/box2.x3dv");
@@ -553,7 +558,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             pos.z = (p1.z + p2.z) / 2.0;
 
             EdgeCollapseResult ecr = new EdgeCollapseResult();
-            if (we.collapseEdge(e, pos, ecr)) {
+            EdgeCollapseParams ecp = new EdgeCollapseParams();
+            if (we.collapseEdge(e, pos, ecp, ecr)) {
                 valid++;
                 System.out.println("Collapsed Edge: " + valid);
                 //writeMesh(we, "c:/tmp/speed-knot_loop" + i + ".x3dv");
@@ -642,7 +648,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             pos.z = (p1.z + p2.z) / 2.0;
 
             EdgeCollapseResult ecr = new EdgeCollapseResult();
-            if (we.collapseEdge(e, pos, ecr)) {
+            EdgeCollapseParams ecp = new EdgeCollapseParams();
+            if (we.collapseEdge(e, pos, ecp, ecr)) {
                 valid++;
                 //writeMesh(we, "c:/tmp/sphere_10cm_rough_manifold_loop" + i + ".x3dv");
             }
@@ -724,7 +731,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             pos.z = (p1.z + p2.z) / 2.0;
 
             EdgeCollapseResult ecr = new EdgeCollapseResult();
-            we.collapseEdge(e, pos, ecr);
+            EdgeCollapseParams ecp = new EdgeCollapseParams();
+            we.collapseEdge(e, pos, ecp, ecr);
 
             writeMesh(we, "c:/tmp/etest_loop" + i + ".x3dv");
             we.writeOBJ(System.out);
@@ -799,7 +807,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         pos.z = (p1.z + p2.z) / 2.0;
 
         EdgeCollapseResult ecr = new EdgeCollapseResult();
-        we.collapseEdge(e, pos, ecr);
+        EdgeCollapseParams ecp = new EdgeCollapseParams();
+        we.collapseEdge(e, pos, ecp, ecr);
 
         we.writeOBJ(System.out);
         writeMesh(we, "c:/tmp/me2.x3dv");
