@@ -195,15 +195,30 @@ System.out.println("Adding param: " + p.getName());
                     }
                 }
                 ps.println("};");
+
                 ps.println(indent(8) + p.getName() + "Editor = new JComboBox(" + p.getName() + "Enums);");
                 int idx = 0;
+
                 String[] evals = p.getEnumValues();
-                for(int i=0; i < evals.length; i++) {
-                    if (evals[i].equals(p.getDefaultValue())) {
-                        idx = i;
+                if (evals != null) {
+                    for(int i=0; i < evals.length; i++) {
+                        if (evals[i].equals(p.getDefaultValue())) {
+                            idx = i;
+                        }
+                    }
+                    ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + idx + ");");
+                } else {
+                    if (p.getDataType() == Parameter.DataType.BOOLEAN) {
+                        vals = new String[] {"true", "false"};
+                        if (p.getDefaultValue().equalsIgnoreCase("true")) {
+                            ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + 0 + ");");
+                        } else {
+                            ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + 1 + ");");
+                        }
+                    } else {
+                        vals = p.getEnumValues();
                     }
                 }
-                ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + idx + ");");
                 break;
             case FILE_DIALOG:
                 if (p.getDefaultValue() == null) {
@@ -314,7 +329,7 @@ System.out.println("Adding param: " + p.getName());
         setParams(ps, params, remove);
         
         ps.println(indent(12) + "try {");
-        ps.println(indent(12) + "System.out.println(\"\nGenerating Model\");");
+        ps.println(indent(12) + "System.out.println(\"Generating Model\");");
         ps.println(indent(16) + "String filename = \"/tmp/out.x3db\";");
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");

@@ -46,6 +46,22 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
+        <compilejava package="app/common/upload/shapeways/oauth/api"
+                     jars=""
+                >
+            <classpath-elements>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
+        <compilejava package="app/common/upload/shapeways/oauth"
+                     jars=""
+                >
+            <classpath-elements>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
 
     </target>
 
@@ -53,7 +69,7 @@
     <target name="clean" description="Deletes all the generated artifacts.">
         <delete dir="${javadocs.dir}"/>
         <delete dir="${classes.dir}"/>
-        <delete file="src/java/imagepopper/ui/Editor.java" />
+        <delete file="src/java/imagepopper/ui/Editor.java"/>
     </target>
 
     <target name="updateXj3D">
