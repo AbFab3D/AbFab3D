@@ -356,7 +356,7 @@ public class TestGridMaker extends TestCase {
     /**
        cup with image on outside
      */
-    public void testCup() {
+    public void _testCup() {
         
         printf("testCup()\n");
         double voxelSize = 2.e-4;
@@ -383,9 +383,10 @@ public class TestGridMaker extends TestCase {
         
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
         image.setLocation(0,0,0);
-        image.setBaseThickness(0.5);
-        image.setTiles(20,10);
-        image.setImagePath("docs/images/star_4_arms_1.png");
+        image.setBaseThickness(0.7);
+        image.setTiles(20,4);
+        //image.setImagePath("docs/images/star_4_arms_1.png");
+        image.setImagePath("docs/images/R.png");
         
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
@@ -397,18 +398,23 @@ public class TestGridMaker extends TestCase {
         rw.setRadius(ringDiameter/2);
         
         double ringRadius = ringDiameter/2;
-        double sradius = 20*ringRadius;
+
+        double soffset = 10*ringRadius;
+        double sradius = Math.hypot(soffset, ringRadius);
 
         VecTransforms.SphereInversion inversion = new VecTransforms.SphereInversion();
-        inversion.setSphere(new Vector3d(0,ringWidth/2,0), sradius);
+        inversion.setSphere(new Vector3d(0,-soffset-ringWidth/2,0), sradius);
 
-        VecTransforms.Scale scale = new VecTransforms.Scale();
-        scale.setScale((ringRadius*ringRadius)/(sradius*sradius));
+        //VecTransforms.Scale scale = new VecTransforms.Scale();
+        //scale.setScale((ringRadius*ringRadius)/(sradius*sradius));
+
+        VecTransforms.Translation translation = new VecTransforms.Translation();
+        translation.setTranslation(0, ringWidth, 0);
 
         compTrans.add(rot);
         compTrans.add(rw);
         compTrans.add(inversion);
-        compTrans.add(scale);
+        compTrans.add(translation);
 
         
         GridMaker gm = new GridMaker();
@@ -425,6 +431,133 @@ public class TestGridMaker extends TestCase {
         
         printf("writeIsosurface()\n");
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/cup_image.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+    /**
+       cup with fancy profile
+     */
+    public void _testCup2() {
+        
+        printf("testCup()\n");
+        double voxelSize = 2.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 4*voxelSize;
+
+        double cupDiameter = 5*CM; 
+        double cupHeight = 5*CM; 
+        double ringThickness = 0.3*CM;
+
+        double gridWidth = cupDiameter + 2*margin;
+        double gridHeight  = cupHeight + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(cupDiameter/2, cupHeight, cupDiameter*Math.PI);
+        image.setLocation(-cupDiameter/4,0,0);
+        image.setBaseThickness(0.0);
+        image.setTiles(1,1);
+        image.setImagePath("docs/images/cup_profile.png");
+        
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.m_axis = new Vector3d(0,1,0);
+        rot.m_angle = -90*TORAD;
+
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.setRadius(cupDiameter/2);
+        
+        compTrans.add(rot);
+        compTrans.add(rw);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(image);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/cup_profile.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+    /*
+      
+     */
+    public void testPlate() {
+        
+        printf("testCup()\n");
+        double voxelSize = 2.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 4*voxelSize;
+
+        double cupDiameter = 10*CM; 
+        double cupHeight = 1*CM; 
+
+        double gridWidth = cupDiameter + 2*margin;
+        double gridHeight  = cupHeight + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(cupDiameter/2, cupHeight, cupDiameter*Math.PI);
+        image.setLocation(-cupDiameter/4,0,0);
+        image.setBaseThickness(0.0);
+        image.setTiles(1,1);
+        image.setImagePath("docs/images/plate_profile.png");
+        
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.m_axis = new Vector3d(0,1,0);
+        rot.m_angle = -90*TORAD;
+
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.setRadius(cupDiameter/2);
+        
+        compTrans.add(rot);
+        compTrans.add(rw);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(image);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/plate_profile.stl");
         printf("writeIsosurface() done\n");
         
     }

@@ -215,15 +215,30 @@ System.out.println("Adding param: " + p.getName());
                     }
                 }
                 ps.println("};");
+
                 ps.println(indent(8) + p.getName() + "Editor = new JComboBox(" + p.getName() + "Enums);");
                 int idx = 0;
+
                 String[] evals = p.getEnumValues();
-                for(int i=0; i < evals.length; i++) {
-                    if (evals[i].equals(p.getDefaultValue())) {
-                        idx = i;
+                if (evals != null) {
+                    for(int i=0; i < evals.length; i++) {
+                        if (evals[i].equals(p.getDefaultValue())) {
+                            idx = i;
+                        }
+                    }
+                    ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + idx + ");");
+                } else {
+                    if (p.getDataType() == Parameter.DataType.BOOLEAN) {
+                        vals = new String[] {"true", "false"};
+                        if (p.getDefaultValue().equalsIgnoreCase("true")) {
+                            ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + 0 + ");");
+                        } else {
+                            ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + 1 + ");");
+                        }
+                    } else {
+                        vals = p.getEnumValues();
                     }
                 }
-                ps.println("((JComboBox)" + p.getName() + "Editor).setSelectedIndex(" + idx + ");");
                 break;
             case FILE_DIALOG:
                 if (p.getDefaultValue() == null) {
@@ -318,6 +333,8 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
         ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
         ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        ps.println(indent(16) + "bos.flush();");
+        ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
 
         ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
