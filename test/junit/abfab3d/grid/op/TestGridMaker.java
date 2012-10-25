@@ -62,6 +62,8 @@ import static java.lang.Math.sqrt;
  */
 public class TestGridMaker extends TestCase {
 
+    static final double CM = 0.01; // cm -> meters
+
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
@@ -352,9 +354,85 @@ public class TestGridMaker extends TestCase {
 
 
     /**
-       ring with fancy profile
+       cup with image on outside
      */
-    public void testTextRing() {
+    public void testCup() {
+        
+        printf("testCup()\n");
+        double voxelSize = 2.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 4*voxelSize;
+
+        double ringDiameter = 5*CM; 
+        double ringWidth = 5*CM; 
+        double ringThickness = 0.3*CM;
+
+        double gridWidth = ringDiameter + 2*ringThickness + 2*margin;
+        double gridHeight  = ringWidth + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
+        image.setLocation(0,0,0);
+        image.setBaseThickness(0.5);
+        image.setTiles(20,10);
+        image.setImagePath("docs/images/star_4_arms_1.png");
+        
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.m_axis = new Vector3d(0,1,0);
+        rot.m_angle = 0*TORAD;
+
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.setRadius(ringDiameter/2);
+        
+        double ringRadius = ringDiameter/2;
+        double sradius = 20*ringRadius;
+
+        VecTransforms.SphereInversion inversion = new VecTransforms.SphereInversion();
+        inversion.setSphere(new Vector3d(0,ringWidth/2,0), sradius);
+
+        VecTransforms.Scale scale = new VecTransforms.Scale();
+        scale.setScale((ringRadius*ringRadius)/(sradius*sradius));
+
+        compTrans.add(rot);
+        compTrans.add(rw);
+        compTrans.add(inversion);
+        compTrans.add(scale);
+
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(image);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/cup_image.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+    /**
+       ring with text on inside
+     */
+    public void _testTextRing() {
         
         printf("testImageRingTiled()\n");
         double voxelSize = 2.e-4;

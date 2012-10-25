@@ -17,33 +17,12 @@ import java.util.ArrayList;
 import javax.vecmath.Point3d;
 
 /**
-   structure to describe edge collapse result 
+   structure to describe edge collapse options
 */
-public class EdgeCollapseResult {
-
-    public static final int 
-        SUCCESS = 0, 
-        FAILURE_SURFACE_PINCH = 1, 
-        FAILURE_FACE_FLIP = 2,
-        FAILURE_LONG_EDGE = 3;
-
-        
+public class EdgeCollapseParams {
     
-    //edges removed during collapse 
-    public ArrayList<Edge> removedEdges = new ArrayList<Edge>(); 
-
-    // new vertex created during collapse 
-    public Vertex insertedVertex;  
-
-    // removed faces count
-    public int faceCount;  
-
-    // removed edges count
-    public int edgeCount;  
-    
-    // removed vertex count  
-    public int vertexCount; 
-    
-    public int returnCode;
+    // if this is greater than zero, it is square of maximal length of edges 
+    // allowed as result of edge collapse    
+    public double maxEdgeLength2 = 0.; 
 
 }

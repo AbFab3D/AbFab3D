@@ -259,7 +259,7 @@ public class WingedEdgeTriangleMesh {
      * @param e   The edge to collapse
      * @param pos The position of the new common vertex
      */
-    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseResult ecr) {
+    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseParams ecp, EdgeCollapseResult ecr) {
         // third iteration of this 
 
         // how we do it? 
@@ -354,15 +354,23 @@ public class WingedEdgeTriangleMesh {
         
         //
         // if we are here - no surface pinch occurs. 
-        // check if face flip occur 
-        // face flip means, that face normals change direction to opposite after vertex was moved
 
+
+        // check if face flip occur 
+        // face flip means, that face normals change direction to opposite after vertex was moved        
         // check face flip of faces connected to v1 
         he = hLnt;
         Point3d pv1 = v1.getPoint();  
         while(he != hRp){
             Point3d p0 = he.getStart().getPoint();
             Point3d p1 = he.getNext().getEnd().getPoint();
+            if(ecp.maxEdgeLength2 > 0.){
+                // we need to check for max edge 
+                if(pos.distanceSquared(p0) > ecp.maxEdgeLength2){
+                    ecr.returnCode = EdgeCollapseResult.FAILURE_LONG_EDGE;
+                    return false;
+                }
+            }
             if(m_faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)){
                 ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                 return false;                
@@ -377,6 +385,13 @@ public class WingedEdgeTriangleMesh {
 
             Point3d p0 = he.getStart().getPoint();
             Point3d p1 = he.getNext().getEnd().getPoint();
+            if(ecp.maxEdgeLength2 > 0.){
+                // we need to check for max edge length
+                if(pos.distanceSquared(p0) > ecp.maxEdgeLength2){
+                    ecr.returnCode = EdgeCollapseResult.FAILURE_LONG_EDGE;
+                    return false;
+                }
+            }
             if(m_faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)){
                 ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                 return false;                
