@@ -172,13 +172,16 @@ public class JavaStandaloneUICreator {
     public void createMenu(PrintStream ps) {
     	ps.println(indent(8) + "JMenuBar menubar = new JMenuBar();");
     	ps.println(indent(8) + "JMenu filemenu = new JMenu(\"File\");");
-    	ps.println(indent(8) + "JMenuItem fileOpen = new JMenuItem(\"Open\");");
-    	ps.println(indent(8) + "JMenuItem fileSave = new JMenuItem(\"Save\");");
+    	ps.println(indent(8) + "fileOpen = new JMenuItem(\"Open\");");
+    	ps.println(indent(8) + "fileSave = new JMenuItem(\"Save\");");
+    	ps.println(indent(8) + "fileOpen.addActionListener(this);");
+    	ps.println(indent(8) + "fileSave.addActionListener(this);");
     	ps.println(indent(8) + "filemenu.add(fileOpen);");
     	ps.println(indent(8) + "filemenu.add(fileSave);");
     	ps.println(indent(8) + "menubar.add(filemenu);");
     	ps.println(indent(8) + "setJMenuBar(menubar);");
     	ps.println(indent(8) + "openDialog = new JFileChooser(new File(\"/tmp\"));");
+    	ps.println(indent(8) + "saveDialog = new JFileChooser(new File(\"/tmp\"));");
     }
     
     /**
@@ -370,18 +373,41 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
 
         // Open a file
-        ps.println(indent(8) + "} else if (e.getSource() == uploadButton) {");
+        ps.println(indent(8) + "} else if (e.getSource() == fileOpen) {");
 
         ps.println(indent(12) + "int returnVal = openDialog.showOpenDialog(this);");
         ps.println(indent(12) + "try {");
         ps.println(indent(16) + "if (returnVal == JFileChooser.APPROVE_OPTION) {");
         ps.println(indent(20) + "File selectedFile = openDialog.getSelectedFile();");
         ps.println(indent(20) + "FileInputStream fis = new FileInputStream(selectedFile);");
-        ps.println(indent(20) + "Properties configProp = new Properties();");
-        ps.println(indent(20) + "configProp.load(fis);");
+        ps.println(indent(20) + "Properties props = new Properties();");
+        ps.println(indent(20) + "props.load(fis);");
         ps.println(indent(20) + "System.out.println(configProp.toString());");
         ps.println(indent(16) + "}");
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
+        
+        // Save a file
+        ps.println(indent(8) + "} else if (e.getSource() == fileSave) {");
+
+        ps.println(indent(12) + "int returnVal = saveDialog.showOpenDialog(this);");
+        ps.println(indent(12) + "if (returnVal == JFileChooser.APPROVE_OPTION) {");
+        
+        gatherParams(ps, params, remove);
+//        ps.println(indent(16) + "System.out.println(properties);");
+        ps.println(indent(16) + "File selectedFile = saveDialog.getSelectedFile();");
+        ps.println(indent(20) + "BufferedWriter bw = null;");
+        ps.println(indent(16) + "try {");
+        ps.println(indent(20) + "FileWriter fw = new FileWriter(selectedFile.getAbsoluteFile());");
+        ps.println(indent(20) + "bw = new BufferedWriter(fw);");
+        ps.println(indent(20) + "bw.write(properties);");
+        ps.println(indent(16) + "} catch(IOException ioe) {");
+        ps.println(indent(20) + "ioe.printStackTrace();");
+        ps.println(indent(16) + "} finally {");
+        ps.println(indent(20) + "try {");
+        ps.println(indent(24) + "if (bw != null) bw.close();");
+        ps.println(indent(20) + "} catch (IOException ioe) { }");
+        ps.println(indent(16) + "}");
+        ps.println(indent(12) + "}");
         
         Iterator<Parameter> itr = params.values().iterator();
 
@@ -419,8 +445,9 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(4) + "JButton uploadButton;");
         ps.println(indent(4) + "JMenuItem fileOpen;");
         ps.println(indent(4) + "JMenuItem fileSave;");
-        ps.println(indent(4) + "JFileChooser chooser;");
-
+        ps.println(indent(4) + "JFileChooser openDialog;");
+        ps.println(indent(4) + "JFileChooser saveDialog;");
+        
         while(itr.hasNext()) {
             Parameter p = itr.next();
             if (remove.contains(p.getName())) {
@@ -527,4 +554,67 @@ System.out.println("Adding param: " + p.getName());
 
         ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
     }
+    
+    private void gatherParams(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
+    	ps.println(indent(16) + "String properties = \"\";");
+    	
+    	Iterator<Parameter> itr = params.values().iterator();
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            if (remove.contains(p.getName())) {
+                continue;
+            }
+
+            switch(getEditor(p)) {
+                case TEXTFIELD:
+                    ps.println(indent(16) + "properties += \"" + p.getName() + "=\"" + " + ((JTextField)" + p.getName() + "Editor).getText() + \"\\n\";");
+                    break;
+                case FILE_DIALOG:
+                    ps.println(indent(16) + "properties += \"" + p.getName() + "=\"" + " + ((JTextField)" + p.getName() + "Editor).getText() + \"\\n\";");
+                    break;
+                case COMBOBOX:
+                    ps.println(indent(16) + "properties += \"" + p.getName() + "=\"" + " + (String) ((JComboBox)" + p.getName() + "Editor).getSelectedItem() + \"\\n\";");
+                    break;
+                default:
+                    System.out.println("Unhandled action for editor: " + getEditor(p) + "\"");
+            }
+        }
+    }
+    
+    private void populateFields(PrintStream ps, Map<String,Parameter> params, Set<String> remove, Properties props) {
+    	ps.println(indent(16) + "String properties = \"\";");
+    	
+    	Iterator<Parameter> itr = params.values().iterator();
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            if (remove.contains(p.getName())) {
+                continue;
+            }
+
+            String name = p.getName();
+            String val = props.getProperty(name);
+            
+            // Skip if parameter not found in properties
+            if (val == null) {
+            	continue;
+            }
+            
+            switch(getEditor(p)) {
+                case TEXTFIELD:
+                    ps.println(indent(16) + "((JTextField)" + name + "Editor).setText(" + val + ");");
+                    break;
+                case FILE_DIALOG:
+                    ps.println(indent(16) + "properties += \"" + name + "=\"" + " + ((JTextField)" + name + "Editor).getText() + \"\\n\";");
+                    break;
+                case COMBOBOX:
+                    ps.println(indent(16) + "properties += \"" + name + "=\"" + " + (String) ((JComboBox)" + name + "Editor).getSelectedItem() + \"\\n\";");
+                    break;
+                default:
+                    System.out.println("Unhandled action for editor: " + getEditor(p) + "\"");
+            }
+        }
+    }
+
 }
