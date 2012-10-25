@@ -385,6 +385,8 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
         ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
         ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        ps.println(indent(16) + "bos.flush();");
+        ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
 
         ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
