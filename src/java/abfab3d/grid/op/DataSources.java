@@ -355,7 +355,8 @@ public class DataSources {
          */
         public int getDataValue(Vec pnt, Vec data) {
 
-            double maxValue = Double.MIN_VALUE;
+            //double maxValue = Double.MIN_VALUE;
+            double maxValue = 0;
 
             for(int i = 0; i < dataSources.size(); i++){
                 
