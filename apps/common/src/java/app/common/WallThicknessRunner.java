@@ -131,7 +131,8 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         double minSuspectVol = 0.05;
         double minUnsafeVol = 0.5;
 
-        String[] params = new String[] {"-input", "/tmp/out.x3db", "-wt", Double.toString(wt), "-visType","1",
+        // TODO: Stop hardcoding params
+        String[] params = new String[] {"-input", "/tmp/out.x3d", "-wt", Double.toString(wt), "-visType","1",
                 "-visDir","/tmp", "-maxReg", "500", "-debug","4", "-bir", Double.toString(bir),
                 "-minSuspectVol",Double.toString(minSuspectVol),"-minUnsafeVol",Double.toString(minUnsafeVol)};
         String workingDirPath = "/tmp";
