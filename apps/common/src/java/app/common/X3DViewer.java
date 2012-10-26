@@ -156,8 +156,9 @@ public class X3DViewer {
                 ps.println("<Viewpoint position='" + pos[0] + " " + pos[1] + " " + pos[2] + "' />");
             }
             for(int i=0; i < filename.length; i++) {
-                ps.println("<Inline url='" + filename[i] + "' />");
-
+                if (filename[i] != null) {
+                    ps.println("<Inline url='" + filename[i] + "' />");
+                }
             }
             ps.println("</Scene>");
             ps.println("</X3D>");

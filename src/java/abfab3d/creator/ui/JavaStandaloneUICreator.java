@@ -330,19 +330,20 @@ System.out.println("Adding param: " + p.getName());
         setParams(ps, params, remove);
 
         // Printability Check
+        // TODO: Outputting as .x3d for visualization, might not want to do that in general
+        String tmp_dir = "/tmp/";
         ps.println(indent(12) + "try {");
-        ps.println(indent(16) + "String filename = \"/tmp/out.x3db\";");
+        ps.println(indent(16) + "String filename = \"" + tmp_dir + "out.x3d\";");
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
-        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+//        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DXMLRetainedExporter(bos, 3, 0, console, 6);");
         ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
         ps.println(indent(16) + "bos.flush();");
         ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
 
-        // TODO: Outputting as .x3d for visualization, might not want to do that in general
-        String tmp_dir = "/tmp/";
 
         ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
         ps.println(indent(16) + "String material = (String) parsed_params.get(\"material\");");
@@ -357,7 +358,8 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "float[] pos = new float[] {0,0,(float) z};");
 
         // Make the fully qualified path be relative
-        ps.println(indent(16) + "String viz = res.getVisualization().replace(\"" + tmp_dir + "\",\"\");");
+        ps.println(indent(16) + "String viz = res.getVisualization();");
+        ps.println(indent(16) + "if (viz != null) viz = viz.replace(\"" + tmp_dir + "\",\"\");");
         ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out.x3d\",viz},pos);");
 
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
