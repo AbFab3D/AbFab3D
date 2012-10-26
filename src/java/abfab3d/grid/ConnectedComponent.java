@@ -553,5 +553,28 @@ public class ConnectedComponent implements Comparable, Region {
         return false;
     }
 
-    
+    /**
+     * Checks whether a coordinate is in the region.
+     *
+     * @param vc The coordinate
+     */
+    public boolean contains(VoxelCoordinate vc) {
+
+        // TODO: untested and slow
+        int len3 = m_component.size()/3;
+
+        for(int i = 0; i < len3; i=i+3){
+            if (vc.getX() == m_component.get(i)) {
+                if (vc.getY() == m_component.get(i+1)) {
+                    if (vc.getZ() == m_component.get(i+2)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+
 }

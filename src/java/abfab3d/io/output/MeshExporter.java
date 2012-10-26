@@ -37,10 +37,13 @@ public class MeshExporter {
      * @param filename
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
+    public static void writeMesh(WingedEdgeTriangleMesh we, String filename, HashMap<String, Object> params) throws IOException {
 
         SAVExporter se = new SAVExporter();
-        HashMap<String, Object> params = new HashMap<String, Object>();
+
+        if (params == null) {
+            params = new HashMap<String, Object>();
+        }
 
         FileOutputStream fos = null;
 
@@ -80,6 +83,17 @@ public class MeshExporter {
         }
     }
 
+    /**
+     * Write a mesh to an X3D file
+     *
+     * @param we
+     * @param filename
+     * @throws IOException
+     */
+    public static void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
+
+        writeMesh(we, filename, null);
+    }
 
     /**
      * Write a mesh to an X3D file

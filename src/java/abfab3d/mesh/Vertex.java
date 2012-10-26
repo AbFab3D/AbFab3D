@@ -1,122 +1,38 @@
-/*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2012
- *                               Java Source
- *
- * This source is licensed under the GNU LGPL v2.1
- * Please read http://www.gnu.org/copyleft/lgpl.html for more information
- *
- * This software comes with the standard NO WARRANTY disclaimer for any
- * purpose. Use it at your own risk. If there's a problem you get to fix it.
- *
- ****************************************************************************/
 package abfab3d.mesh;
 
 import javax.vecmath.Point3d;
 
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-
 /**
- * Vertex defined by a point in space.
+ * TODO: Add docs
+ *
+ * @author Alan Hudson
  */
-public class Vertex {
-    private static final boolean DEBUG = true;
+public interface Vertex {
+    int getID();
 
-    private Point3d point;
-    private int id;
+    void setID(int id);
 
-    private HalfEdge link; //associate each vertex with tail of _some_ edge
+    Point3d getPoint();
 
-    private Vertex next;  // List of all vertices
-    private Vertex prev;
+    void setPoint(Point3d p);
 
-    private Object userData;
+    HalfEdge getLink();
 
-    // TODO: Debug var, remove
-    private boolean removed;
+    void setLink(HalfEdge link);
 
-    public Vertex() {
-    }
+    Vertex getNext();
 
-    public Vertex(Vertex c) {
-        this.point = new Point3d(c.point);
-        this.id = c.id;
-        this.link = c.link;
-        this.next = c.next;
-        this.userData = c.userData;
-    }
+    void setNext(Vertex next);
 
-    public int getID() {
-        return id;
-    }
+    Vertex getPrev();
 
-    public void setID(int id) {
-        if (DEBUG) {
-            //printf("vertex: setID() from: %s to %s\n", this.id, id);            
-            //Thread.currentThread().dumpStack();
-        }
-        this.id = id;
-    }
+    void setPrev(Vertex prev);
 
-    public Point3d getPoint() {
-        return point;
-    }
+    Object getUserData();
 
-    public void setPoint(Point3d p) {
-        this.point = p;
-    }
+    void setUserData(Object userData);
 
-    public HalfEdge getLink() {
-        return link;
-    }
+    boolean isRemoved();
 
-    public void setLink(HalfEdge link) {
-        this.link = link;
-    }
-
-    public Vertex getNext() {
-        return next;
-    }
-
-    public void setNext(Vertex next) {
-        this.next = next;
-    }
-
-    public Vertex getPrev() {
-        return prev;
-    }
-
-    public void setPrev(Vertex prev) {
-        this.prev = prev;
-    }
-
-    public String toString(){
-        String dead = "";
-        if (removed) {
-            dead = " DEAD";
-        }
-
-        //return fmt("%3d (%10.7f,%10.7f,%10.7f%s)", id, point.x,point.y,point.z, dead);
-
-        return fmt("%3s (%10.7f,%10.7f,%10.7f%s)", userData, point.x,point.y,point.z, dead);
-
-    }
-
-    public Object getUserData() {
-        return userData;
-    }
-
-    public void setUserData(Object userData) {
-        this.userData = userData;
-    }
-
-    public boolean isRemoved() {
-        return removed;
-    }
-
-    public void setRemoved(boolean removed) {
-        this.removed = removed;
-    }
-
+    void setRemoved(boolean removed);
 }
-

@@ -213,6 +213,7 @@ public class RingPopperKernel extends HostedKernel {
         pullParams(params);
 
         if (acc == Accuracy.VISUAL) {
+            // TODO: not sure I like this, could have two params:  visualResolution, printResolution
             resolution = resolution * 1.5;
         }
         //resolution = 5.e-5;
@@ -220,8 +221,8 @@ public class RingPopperKernel extends HostedKernel {
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
         double margin = 4*resolution;
 
-        double gridWidth = innerDiameter + 2*ringThickness + 2*margin;
-        double gridHeight  = ringWidth + 2*edgeWidth + 2*margin;
+        double gridWidth = 1.5 * (innerDiameter + 2*ringThickness + 2*margin);
+        double gridHeight  = 1.5 * (ringWidth + 2*edgeWidth + 2*margin);
         double gridDepth = gridWidth;
 
         double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
@@ -378,6 +379,7 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
+//        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9);
         GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-10);
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];

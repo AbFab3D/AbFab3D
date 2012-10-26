@@ -35,6 +35,23 @@ public class BoxRegion implements Region {
         this.size = size.clone();
     }
 
+    /**
+     * Checks whether a coordinate is in the region.
+     *
+     * @param vc The coordinate
+     */
+    public boolean contains(VoxelCoordinate vc) {
+        if ((vc.getX() >= origin[0]) && vc.getX() <= (origin[0] + size[0])) {
+            if ((vc.getY() >= origin[1]) && vc.getY() <= (origin[1] + size[1])) {
+                if ((vc.getZ() >= origin[2]) && vc.getZ() <= (origin[2] + size[2])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     /*
      * Traverse a region and call the RegionTraverser per voxel coordinate.
      *

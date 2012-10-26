@@ -13,20 +13,10 @@
 package app.common;
 
 import abfab3d.grid.Grid;
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.MeshExporter;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.LaplasianSmooth;
-import abfab3d.mesh.MeshDecimator;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
+import org.apache.commons.io.FileUtils;
 
 import java.awt.*;
 import java.io.*;
-
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
-import org.apache.commons.io.FileUtils;
 
 /**
  * Common code for viewing X3D files.
@@ -84,7 +74,7 @@ public class X3DViewer {
             ps.println("<body>");
 
             ps.println("<p class='case'>");
-            GridSaver.writeIsosurfaceMaker(grid,bos, "x3d", smoothSteps, maxDecimateError);
+            GridSaver.writeIsosurfaceMaker(grid, bos, "x3d", smoothSteps, maxDecimateError);
 
 //            ps.println("<script type='text/javascript' src='http://www.x3dom.org/x3dom/release/x3dom.js'></script>");
             ps.println("<script type='text/javascript' src='x3dom/x3dom.js'></script>");
@@ -99,6 +89,7 @@ public class X3DViewer {
 
         Desktop.getDesktop().browse(f.toURI());
     }
+
     /**
      * View an X3D file using an external X3DOM player
      *
@@ -106,6 +97,16 @@ public class X3DViewer {
      * @throws IOException
      */
     public static void viewX3DOM(String filename, float[] pos) throws IOException {
+        viewX3DOM(new String[] {filename}, pos);
+    }
+
+    /**
+     * View an X3D file using an external X3DOM player
+     *
+     * @param filename
+     * @throws IOException
+     */
+    public static void viewX3DOM(String[] filename, float[] pos) throws IOException {
         // TODO: Make thread safe using tempDir
         String dest = "/tmp/";
         File dir = new File(dest);
@@ -154,7 +155,10 @@ public class X3DViewer {
             if (pos != null) {
                 ps.println("<Viewpoint position='" + pos[0] + " " + pos[1] + " " + pos[2] + "' />");
             }
-            ps.println("<Inline url='" + filename + "' />");
+            for(int i=0; i < filename.length; i++) {
+                ps.println("<Inline url='" + filename[i] + "' />");
+
+            }
             ps.println("</Scene>");
             ps.println("</X3D>");
 

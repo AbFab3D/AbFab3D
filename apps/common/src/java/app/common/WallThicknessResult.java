@@ -10,10 +10,12 @@ public class WallThicknessResult {
 
     private ResultType result;
     private int exitCode;
+    private String viz;
 
-    public WallThicknessResult(int exitCode, ResultType result) {
+    public WallThicknessResult(int exitCode, ResultType result, String viz) {
         this.exitCode = exitCode;
         this.result = result;
+        this.viz = viz;
     }
 
     public ResultType getResult() {
@@ -30,5 +32,9 @@ public class WallThicknessResult {
 
     public void setExitCode(int exitCode) {
         this.exitCode = exitCode;
+    }
+
+    public String getVisualization() {
+        return viz;
     }
 }

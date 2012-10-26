@@ -20,7 +20,7 @@
     <property name="lib.dir" value="${basedir}/lib"/>
     <property name="manifest.dir" value="${basedir}/manifest"/>
     <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
-    <property name="xj3d.dir" value="..\..\xj3d\software\Xj3D2\Xj3D\trunk" />
+    <property name="xj3d.dir" value="..\..\..\xj3d\code\trunk" />
     <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
 
     <property name="entrypoint" value="abfab3d.Creator" />
@@ -186,6 +186,7 @@
                 abfab3d/grid/query/*
                 abfab3d/grid/util/*
                 abfab3d/intersect/*
+                abfab3d/mesh/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
                 abfab3d/path/*

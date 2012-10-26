@@ -32,7 +32,8 @@ import app.common.WallThicknessResult.ResultType;
  * @author Alan Hudson
  */
 public class WallThicknessRunner {
-    private static final String RESULT = "result";
+    public static final String RESULT = "result";
+    public static final String VISUALIZATION = "visualization";
 
     private static final String SCRIPT_FILE = "wallthickness_ribt.sh";
     private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server";
@@ -50,6 +51,7 @@ public class WallThicknessRunner {
     private static final String THIN_RUMP_RATIO_MARKER = "TOTAL_THIN_RUMP_RATIO:";
     private static final String THIN_REGION_MARKER = "REGION:";
     private static final String WT_WARNING_MARKER = "WT_WARNING:";
+    private static final String VIZ_MARKER = "VIZ_FILE:";
 
     /** The output stream */
     protected ByteArrayOutputStream outStream;
@@ -129,7 +131,7 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         double minSuspectVol = 0.05;
         double minUnsafeVol = 0.5;
 
-        String[] params = new String[] {"-input", "/tmp/out.x3db", "-wt", Double.toString(wt), "-visType","2",
+        String[] params = new String[] {"-input", "/tmp/out.x3db", "-wt", Double.toString(wt), "-visType","1",
                 "-visDir","/tmp", "-maxReg", "500", "-debug","4", "-bir", Double.toString(bir),
                 "-minSuspectVol",Double.toString(minSuspectVol),"-minUnsafeVol",Double.toString(minUnsafeVol)};
         String workingDirPath = "/tmp";
@@ -143,19 +145,21 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
 
             if (exit_code != 0) {
                 System.out.println("ExitCode: " + exit_code);
-                return new WallThicknessResult(exit_code, ResultType.SUSPECT);
+                return new WallThicknessResult(exit_code, ResultType.SUSPECT, null);
             }
             HashMap<String,Object> outMap = new HashMap<String,Object>();
 
             parseOutputStream(outMap);
 
             ResultType res = ResultType.valueOf((String)outMap.get(RESULT));
-            ret_val = new WallThicknessResult(exit_code, res);
+            String viz = (String) outMap.get(VISUALIZATION);
+            ret_val = new WallThicknessResult(exit_code, res, viz);
 
             System.out.println("Result: " + res);
+            System.out.println("viz:" + viz);
         } catch(IOException ioe) {
             ioe.printStackTrace();
-            ret_val = new WallThicknessResult(1, ResultType.SUSPECT);
+            ret_val = new WallThicknessResult(1, ResultType.SUSPECT, null);
         }
 
         return ret_val;
@@ -246,6 +250,9 @@ System.out.println("OutputStream: " + outStream);
                 } else if (line.startsWith(RESULT_MARKER)) {
                     val = line.replace(RESULT_MARKER, "");
                     outMap.put(RESULT, val.trim());
+                } else if (line.startsWith(VIZ_MARKER)) {
+                    val = line.replace(VIZ_MARKER, "");
+                    outMap.put(VISUALIZATION, val.trim());
                 }
             }
 
@@ -384,7 +391,6 @@ System.out.println("OutputStream: " + outStream);
 
         return exit_code;
     }
-
 }
 
 class MaterialProperties {
