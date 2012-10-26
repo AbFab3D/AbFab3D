@@ -329,7 +329,7 @@ System.out.println("Adding param: " + p.getName());
 
         setParams(ps, params, remove);
 
-        // Generate Geometry
+        // Printability Check
         ps.println(indent(12) + "try {");
         ps.println(indent(16) + "String filename = \"/tmp/out.x3db\";");
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
@@ -341,9 +341,25 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
 
+        // TODO: Outputting as .x3d for visualization, might not want to do that in general
+        String tmp_dir = "/tmp/";
+
         ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
         ps.println(indent(16) + "String material = (String) parsed_params.get(\"material\");");
-        ps.println(indent(16) + "wtr.runWallThickness(\"/tmp/out.x3db\", material);");
+        ps.println(indent(16) + "WallThicknessResult res = wtr.runWallThickness(\"" + tmp_dir + "out.x3d\", material);");
+        ps.println(indent(16) + "double[] bounds_min = results.getMinBounds();");
+        ps.println(indent(16) + "double[] bounds_max = results.getMaxBounds();");
+
+        ps.println(indent(16) + "double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);");
+        ps.println(indent(16) + "max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);");
+
+        ps.println(indent(16) + "double z = 2 * max_axis / Math.tan(Math.PI / 4);");
+        ps.println(indent(16) + "float[] pos = new float[] {0,0,(float) z};");
+
+        // Make the fully qualified path be relative
+        ps.println(indent(16) + "String viz = res.getVisualization().replace(\"" + tmp_dir + "\",\"\");");
+        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out.x3d\",viz},pos);");
+
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Printability Done\");");
 

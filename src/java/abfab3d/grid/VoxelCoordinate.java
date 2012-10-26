@@ -36,6 +36,10 @@ public class VoxelCoordinate implements Cloneable, Comparable {
     /** The z coordinate */
     protected int z;
 
+    public VoxelCoordinate() {
+
+    }
+
     public VoxelCoordinate(int x, int y, int z) {
         this.x = x;
         this.y = y;
@@ -69,6 +73,12 @@ public class VoxelCoordinate implements Cloneable, Comparable {
      */
     public boolean equals(VoxelCoordinate ta) {
         return (ta.x == this.x && ta.y == this.y && this.z == ta.z);
+    }
+
+    public void setValue(int x, int y, int z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
     /**
