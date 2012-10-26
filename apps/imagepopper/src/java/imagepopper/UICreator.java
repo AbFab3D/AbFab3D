@@ -28,8 +28,9 @@ System.out.println("Creating Java User Interface for imageeditor");
 
         ArrayList<Step> steps = new ArrayList<Step>();
         steps.add(new Step(0, "Image", "Select your Image"));
-        steps.add(new Step(1, "Body", "Select your Main shape"));
-        steps.add(new Step(2, "Bail", "Add a Bail/Connector"));
+        steps.add(new Step(1, "Size", "Select your size"));
+        steps.add(new Step(2, "Material", "Select your Material"));
+        steps.add(new Step(3, "Advanced", "Advanced Parameters"));
 
         uic.createInterface("imagepopper.ui", "Editor", "AbFab3D Image Creator","src/java/imagepopper/ui", steps, new HashMap<String,String>(), kernel, new HashSet<String>());
 

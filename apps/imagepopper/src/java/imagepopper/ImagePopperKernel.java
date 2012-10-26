@@ -62,6 +62,7 @@ public class ImagePopperKernel extends HostedKernel {
 
     /** The horizontal and vertical resolution */
     private double resolution;
+    private int smoothSteps;
 
     /** The width of the body geometry */
     private double bodyWidth;
@@ -83,6 +84,12 @@ public class ImagePopperKernel extends HostedKernel {
     private double bodyImageDepth;
     private double bodyImageDepth2;
 
+    private String material;
+
+    private String[] availableMaterials = new String[] {"White Strong & Flexible", "White Strong & Flexible Polished",
+            "Silver", "Silver Glossy", "Stainless Steel","Gold Plated Matte", "Gold Plated Glossy","Antique Bronze Matte",
+            "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
+
     /**
      * Get the parameters for this editor.
      *
@@ -94,7 +101,7 @@ public class ImagePopperKernel extends HostedKernel {
         int seq = 0;
         int step = 0;
 
-        params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5.png", 1,
+        params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5_04_combined.jpg", 1,
             Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
@@ -131,11 +138,6 @@ public class ImagePopperKernel extends HostedKernel {
             step, seq++, true, 0, 0.1, null, null)
         );
 */
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.0001", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, true, 0, 0.1, null, null)
-        );
-
         params.put("bodyWidth", new Parameter("bodyWidth", "Body Width", "The width of the main body", "0.055330948", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0.01, 1, null, null)
@@ -144,6 +146,28 @@ public class ImagePopperKernel extends HostedKernel {
         params.put("bodyHeight", new Parameter("bodyHeight", "Body Height", "The height of the main body", "0.04", 1,
             Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
             step, seq++, false, 0.01, 1, null, null)
+        );
+
+        step++;
+        seq = 0;
+
+        params.put("material", new Parameter("material", "Material", "What material to design for", "Silver Glossy", 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, availableMaterials)
+        );
+
+        step++;
+        seq = 0;
+
+        // Advanced Params
+        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
+                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0, 100, null, null)
         );
 
         return params;
@@ -160,6 +184,10 @@ public class ImagePopperKernel extends HostedKernel {
 
         pullParams(params);
 
+        if (acc == Accuracy.VISUAL) {
+            // TODO: not sure I like this, could have two params:  visualResolution, printResolution
+            resolution = resolution * 1.5;
+        }
         // Calculate maximum bounds
 
         // TODO: We should be able to accurately calculate this
@@ -321,17 +349,15 @@ if (1==1) {
 
         System.out.println("Writing grid");
 
-        try {
-            ErrorReporter console = new PlainTextErrorReporter();
-            //writeDebug(grid, handler, console);
-            //write(grid, handler, console);
-            GridSaver.writeIsosurfaceMaker("out.stl", grid,3, 1e-9);
-//            writeIsosurfaceMaker(grid,3, 0);
-        } catch(Exception e) {
-            e.printStackTrace();
-
-            return new KernelResults(false, KernelResults.INTERNAL_ERROR, "Failed Writing Grid", null, null);
+        HashMap<String, Object> exp_params = new HashMap<String, Object>();
+        exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
+        if (acc == Accuracy.VISUAL) {
+            // X3DOM requires IFS for normal generation
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDFACESET);
+        } else {
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
+        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9);
 
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
@@ -376,6 +402,9 @@ if (1==1) {
 
             pname = "bodyImageDepth2";
             bodyImageDepth2 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "smoothSteps";
+            smoothSteps = ((Integer) params.get(pname)).intValue();
 
         } catch(Exception e) {
             e.printStackTrace();
