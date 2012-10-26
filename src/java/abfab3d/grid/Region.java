@@ -22,6 +22,13 @@ package abfab3d.grid;
  * @author Alan Hudson
  */
 public interface Region {
+    /**
+     * Checks whether a coordinate is in the region.
+     *
+     * @param vc The coordinate
+     */
+    public boolean contains(VoxelCoordinate vc);
+
     /*
      * Traverse a region and call the RegionTraverser per voxel coordinate.
      *

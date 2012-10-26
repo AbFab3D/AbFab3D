@@ -356,7 +356,7 @@ public class TestGridMaker extends TestCase {
     /**
        cup with image on outside
      */
-    public void _testCup() {
+    public void testCup() {
         
         printf("testCup()\n");
         double voxelSize = 2.e-4;

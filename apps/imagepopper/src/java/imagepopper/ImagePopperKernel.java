@@ -325,7 +325,7 @@ if (1==1) {
             ErrorReporter console = new PlainTextErrorReporter();
             //writeDebug(grid, handler, console);
             //write(grid, handler, console);
-            GridSaver.writeIsosurfaceMakerSTL("out.stl", grid,3, 1e-9);
+            GridSaver.writeIsosurfaceMaker("out.stl", grid,3, 1e-9);
 //            writeIsosurfaceMaker(grid,3, 0);
         } catch(Exception e) {
             e.printStackTrace();

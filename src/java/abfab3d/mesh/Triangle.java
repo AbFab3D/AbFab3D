@@ -2,7 +2,6 @@ package abfab3d.mesh;
 
 import org.web3d.util.LongHashMap;
 
-import javax.vecmath.Point3d;
 import java.util.Set;
 
 /**

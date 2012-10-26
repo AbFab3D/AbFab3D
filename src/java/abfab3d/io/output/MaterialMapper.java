@@ -53,6 +53,21 @@ public class MaterialMapper {
 
         if (material == null || material.equals("None")) {
             // Do not issue any appearance commands
+        } else if (material.equalsIgnoreCase("Debug")) {
+            // Finish 0 will be diffuseColor
+            float[] diffuseColor = new float[] {1,1,1};
+
+            if (finish != null && finish.length > 0) {
+                String[] toks = finish[0].split(" ");
+                int idx = 0;
+                for(int i=0; i < toks.length; i++) {
+                    diffuseColor[idx++] = Float.parseFloat(toks[i]);
+                    if (idx >= 3) {
+                        break;
+                    }
+                }
+            }
+            applyDebug(handler,diffuseColor,quality);
         } else if (material.equalsIgnoreCase("White Strong & Flexible")) {
             applyWSFNonPolished(handler,quality);
         } else if (material.equals("Stainless Steel")) {
@@ -144,6 +159,22 @@ public class MaterialMapper {
         handler.fieldValue(new float[] {0.95f, 0.95f, 0.95f},3);
         handler.startField("shininess");
         handler.fieldValue(0.9f);
+        handler.endNode();  // Material
+        handler.endNode();  // Appearance
+    }
+
+    /**
+     * White Strong Flexible with no finishes.
+     *
+     * @param handler The X3D content handler to output too
+     * @param quality A value from 1-10 indicating how much computation resources to use
+     */
+    public void applyDebug(BinaryContentHandler handler, float[] diffuseColor, int quality) {
+        handler.startNode("Appearance", null);
+        handler.startField("material");
+        handler.startNode("Material", null);
+        handler.startField("diffuseColor");
+        handler.fieldValue(diffuseColor,3);
         handler.endNode();  // Material
         handler.endNode();  // Appearance
     }

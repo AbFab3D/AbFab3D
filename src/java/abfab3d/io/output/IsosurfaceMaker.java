@@ -103,7 +103,6 @@ public class IsosurfaceMaker {
        
      */
     public void makeIsosurface(SliceCalculator scalculator, TriangleCollector tcollector){
-                
         double xmin = m_bounds[0];
         double xmax = m_bounds[1];
         double ymin = m_bounds[2];
@@ -118,6 +117,10 @@ public class IsosurfaceMaker {
         double dx = (xmax - xmin)/nx1;
         double dy = (ymax - ymin)/ny1;
         double dz = (zmax - zmin)/nz1;
+
+        System.out.println("x0: " + xmin + " " + ymin + " " + zmin);
+        System.out.println("dx: " + dx + " " + dy + " " + dz);
+        System.out.println("bounds: " + java.util.Arrays.toString(m_bounds));
 
         SliceData slice0 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
         SliceData slice1 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
