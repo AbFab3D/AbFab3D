@@ -30,7 +30,8 @@ System.out.println("Creating Java User Interface for imageeditor");
         steps.add(new Step(0, "Image", "Select your Image"));
         steps.add(new Step(1, "Size", "Select your size"));
         steps.add(new Step(2, "Material", "Select your Material"));
-        steps.add(new Step(3, "Advanced", "Advanced Parameters"));
+        steps.add(new Step(3, "Engraving", "Select your text"));
+        steps.add(new Step(4, "Advanced", "Advanced Parameters"));
 
         uic.createInterface("ringpopper.ui", "Editor", "AbFab3D Ring Creator","src/java/ringpopper/ui", steps, new HashMap<String,String>(), kernel, new HashSet<String>());
 

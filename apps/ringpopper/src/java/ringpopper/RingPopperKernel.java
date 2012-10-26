@@ -13,6 +13,7 @@
 package ringpopper;
 
 // External Imports
+import java.awt.*;
 import java.io.*;
 import java.util.*;
 import javax.imageio.*;
@@ -26,6 +27,7 @@ import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.util.TextUtil;
 import app.common.X3DViewer;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
@@ -40,9 +42,6 @@ import abfab3d.creator.*;
 import abfab3d.creator.shapeways.*;
 
 //import java.awt.*;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
 
 import static abfab3d.util.MathUtil.TORAD;
 import static abfab3d.util.Output.fmt;
@@ -108,6 +107,8 @@ public class RingPopperKernel extends HostedKernel {
     private SymmetryStyle symmetryStyle;
 
     private String material;
+    private String text = "Test Image Text gg";
+    private int fontSize = 20;
 
     /**
      * Get the parameters for this editor.
@@ -174,6 +175,18 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 1, null, null)
         );
 
+        step++;
+        seq = 0;
+
+        params.put("text", new Parameter("text", "text", "Engraved Text", "To a special someone", 1,
+                Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, null)
+        );
+
+        params.put("fontSize", new Parameter("fontSize", "fontSize", "The font size", "20", 1,
+                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 3, 50, null, null)
+        );
 
         step++;
         seq = 0;
@@ -261,7 +274,6 @@ public class RingPopperKernel extends HostedKernel {
         if (edgeStyle != edgeStyle.NONE) {
             union = new DataSources.Maximum();
 
-
             union.addDataSource(image_src);
 
             if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
@@ -279,18 +291,44 @@ public class RingPopperKernel extends HostedKernel {
             }
         }
 
+        DataSources.ImageBitmap textBand = null;
+        DataSources.DataTransformer rotatedText = null;
+        DataSources.Subtraction ringMinusText = null;
+
+        double textDepth = 0.001; // 1mm
+
+        if (text != null && text.length() > 0) {
+            textBand = new DataSources.ImageBitmap();
+            textBand.setSize(Math.PI*innerDiameter, ringWidth, textDepth);
+            textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
+            textBand.setBaseThickness(0.);
+            textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+            textBand.setTiles(1,1);
+            textBand.setImage(TextUtil.createTextImage(1000, 150, text, new Font("Times New Roman", Font.BOLD, fontSize), new Insets(10, 10, 10, 10)));
+
+            // we want text on the inside. So it should face in opposite direction
+            VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
+            textRotation.setRotation(new Vector3d(0,1,0), 180*TORAD);
+
+            // rotated text
+            rotatedText = new DataSources.DataTransformer();
+            rotatedText.setDataSource(textBand);
+            rotatedText.setTransform(textRotation);
+
+            ringMinusText = new DataSources.Subtraction();
+
+            if (edgeStyle == edgeStyle.NONE) {
+                ringMinusText.setSources(image_src, rotatedText); //
+            } else {
+                ringMinusText.setSources(union, rotatedText); //
+            }
+
+        }
 
         VecTransforms.FriezeSymmetry fs = null;
 
         System.out.println("SymStyle: " + symmetryStyle);
         if (symmetryStyle != SymmetryStyle.NONE) {
-            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_S22I);
-            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_II);
-            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IS);
-            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_SII);
-            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_2SI);
-            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_22I);
-            //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IX);
             System.out.println("Using frieze symmetry: " + symmetryStyle + " code: " + symmetryStyle.getCode());
             fs = new VecTransforms.FriezeSymmetry();
             fs.setFriezeType(symmetryStyle.getCode());
@@ -316,10 +354,14 @@ public class RingPopperKernel extends HostedKernel {
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
 
-        if (edgeStyle != edgeStyle.NONE) {
-            gm.setDataSource(union);
+        if (textBand != null) {
+            gm.setDataSource(ringMinusText);
         } else {
-            gm.setDataSource(image_src);
+            if (edgeStyle != edgeStyle.NONE) {
+                gm.setDataSource(union);
+            } else {
+                gm.setDataSource(image_src);
+            }
         }
 
         Grid grid = new ArrayGridByte(nx, ny, nz, resolution, resolution);
@@ -433,6 +475,12 @@ if (1==1) {
 
             pname = "symmetryStyle";
             symmetryStyle = symmetryStyle.valueOf((String) params.get(pname));
+
+            pname = "text";
+            text = ((String) params.get(pname));
+
+            pname = "fontSize";
+            fontSize = ((Integer) params.get(pname)).intValue();
 
             pname = "material";
             material = ((String) params.get(pname));
