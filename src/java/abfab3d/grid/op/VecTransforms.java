@@ -757,15 +757,9 @@ public class VecTransforms {
 
         public int initialize(){
 
-            switch(m_friezeType){
+            switch(m_symmetryType){
             default: 
-            case FRIEZE_II:  initII(); break;
-            case FRIEZE_S22I:initS22I(); break;
-            case FRIEZE_IS:  initIS(); break;
-            case FRIEZE_SII: initSII(); break;
-            case FRIEZE_2SI: init2SI(); break;
-            case FRIEZE_22I: init22I(); break;
-            case FRIEZE_IX:  initIX(); break;
+            case WP_S442:  initS442(); break;
             }
 
             return RESULT_OK;
