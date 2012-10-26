@@ -708,6 +708,124 @@ public class VecTransforms {
     } // class FriezeSymmetry
 
 
+    /**
+       makes transformations to reproduce one of wallpaper symmetry patterns
+     */
+    public static class WallpaperSymmetry  implements VecTransform, Initializable  {
+
+        public static final int     // orbifold notation
+            WP_O  = 0,    // O
+            WP_XX = 1,   // xx
+            WP_SX = 2,   // *x
+            WP_SS = 3,   // **
+            WP_632 = 4,   // 632
+            WP_S632 = 5,   // *632
+            WP_333 = 6,   // 333
+            WP_S333 = 7,   // *333
+            WP_3S3 = 8,   // 3*3
+            WP_442 = 9,   // 442
+            WP_S442 = 10,   // *442
+            WP_4S2 = 11,   // 4*2
+            WP_2222 = 12,   // 2222
+            WP_22X = 13,   // 22x
+            WP_22S = 14,   // 22*
+            WP_S2222 = 15,   // *2222
+            WP_2S22 = 16;   // 2*22        
+        
+        protected int m_maxCount = 100; // maximal number of iterations to get to FD 
+        protected double m_domainWidth = 0.01; // width of fundamental domain in meters
+        protected int m_symmetryType; // one of WP_ constants 
+
+        // sides of fundamental domain (FD). 
+        // Sides point outside of fundanetal domain. 
+        // points inside of FD satisfy pnt.dot(sides[i]) < 0
+        // points outside of FD satisfy pnt.dot(sides[i]) > 0        
+        protected Vector4d planes[];
+        
+        protected Matrix4d trans[]; // pairing transformations of fundamental domain 
+        // trans[i] transform FD into area adjacent to side i
+        protected Matrix4d invtrans[]; // inverse transformations 
+        // intrans[i] transforms area adjacent to side i into FD 
+        // fundamental domain 
+
+        public void setSymmetryType(int symmetryType){
+            m_symmetryType = symmetryType;
+        }
+        public void setDomainWidth(double width){
+            m_domainWidth = width;
+        }
+
+        public int initialize(){
+
+            switch(m_symmetryType){
+            default: 
+            case WP_S442:  initS442(); break;
+            }
+
+            return RESULT_OK;
+
+        }
+
+        protected void initS442(){
+
+            planes = new Vector4d[2]; 
+            planes[0] = new Vector4d(-1,0,0,-m_domainWidth/2);
+            planes[1] = new Vector4d(1,0,0,-m_domainWidth/2);
+            Vector4d p2 = new Vector4d(1,0,0,0);
+
+            Matrix4d m0 = getReflection(planes[0]);
+            Matrix4d m1 = getReflection(p2);
+
+            trans = new Matrix4d[2];
+
+            trans[0] = new Matrix4d(); 
+            trans[1] = new Matrix4d(); 
+
+            trans[0].mul(m0,m1);
+            trans[1].mul(m1,m0);
+            
+            invtrans = makeInversion(trans);
+
+        }
+
+                
+        /**
+         *
+         */
+        public int transform(Vec in, Vec out) {
+            
+            // this is one  to many transform 
+            // it only makes sence for inverse transform 
+            // so we apply only identity transform to the input 
+            double x = in.v[0];
+            double y = in.v[1];
+            double z = in.v[2];
+            
+            out.v[0] = x;
+            out.v[1] = y;
+            out.v[2] = z;
+            
+            return RESULT_OK;
+        }                
+
+        /**
+         *  composite transform is identical to direct transform
+         */
+        public int inverse_transform(Vec in, Vec out) {
+            
+            Vector4d vin = new Vector4d(in.v[0],in.v[1],in.v[2],1);
+
+            toFundamentalDomain(vin, planes, invtrans, m_maxCount);
+            
+            // save result 
+            out.v[0] = vin.x;
+            out.v[1] = vin.y;
+            out.v[2] = vin.z;
+            
+            return RESULT_OK;
+
+        }
+    } // class WallpaperSymmetry
 
 
     /**
@@ -774,6 +892,7 @@ public class VecTransforms {
         
     }
 
+
     public static int toFundamentalDomain(Vector4d v, Vector4d planes[], Matrix4d[] trans, int maxCount ){
         
         // transform point to fundamental domain
@@ -797,12 +916,12 @@ public class VecTransforms {
             
             if(!found){
                 // we are in FD
-                return 0;
+                return VecTransform.RESULT_OK;
             }
         }        
         // if we are here - we haven't found FD 
         // do somthing 
         //printf("out of iterations\n");
-        return -1;
+        return VecTransform.RESULT_ERROR;
     }
 }
