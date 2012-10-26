@@ -502,7 +502,7 @@ public class TestGridMaker extends TestCase {
     /*
       
      */
-    public void testPlate() {
+    public void _testPlate() {
         
         printf("testCup()\n");
         double voxelSize = 2.e-4;
@@ -605,7 +605,8 @@ public class TestGridMaker extends TestCase {
         textBand.setBaseThickness(0.);
         textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         textBand.setTiles(1,1);
-        textBand.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
+        textBand.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", 
+                                                   new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
         
         // we want text on the inside. So it should face in opposite direction 
         VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
@@ -930,41 +931,47 @@ public class TestGridMaker extends TestCase {
 
     }
 
-    public void _testFriezeTransform3() {
 
-        Vector4d p0 = new Vector4d(1,0,0,0);
-        Vector4d p1 = new Vector4d(-1/sqrt(2),1/sqrt(2),0,0);
-        
-        
+    public void testTransform3() {
+
+        /*
+          |      
+       1  +            +
+          |         /  |
+          |   p2  /    |
+          |     /      |  p1 
+          |   /        |
+          | /          |
+          +------------+ .....
+          0     p0     1
+                
+         */
+
+        Vector4d p0 = new Vector4d(0,-1,0,0);
+        Vector4d p1 = new Vector4d(1,0,0,-1);
+        Vector4d p2 = new Vector4d(-1/sqrt(2),1/sqrt(2),0,0);
+                
         Matrix4d r0 = VecTransforms.getReflection(p0);
-        Matrix4d r1 = VecTransforms.getReflection(p1);        
-
-        Matrix4d r0r1 = new Matrix4d();
-        r0r1.mul(r0, r1);
-        Matrix4d r1r0 = new Matrix4d();
-        r1r0.mul(r1, r0);
-        
-        Matrix4d m4 = new Matrix4d();
-        m4.rotZ(Math.PI/2);
-        printf("\n");
-        
-        for(int i = 0; i <= 10; i++){
+        Matrix4d r1 = VecTransforms.getReflection(p1);
+        Matrix4d r2 = VecTransforms.getReflection(p2);
+                
+        Matrix4d trans[] = new Matrix4d[]{r0, r1, r2};
+        Vector4d planes[] = new Vector4d[]{p0, p1, p2};
+        int maxCount = 10;
+        for(int i = 0; i <= 100; i++){
             
-            double x = 0.1 * i + 0.05;
-            double y = 0;
+            double x = i*0.2;
+            double y = 0.5;
             double z = 0;
+        
+
             Vector4d in = new Vector4d(x,y,z,1);
 
-            Vector4d u = new Vector4d();
-            Vector4d v = new Vector4d();
-
-            r0r1.transform(in,u);
-            r1r0.transform(in,v);
-            
-            printf("(%5.2f,%5.2f,%5.2f) -> (%5.2f,%5.2f,%5.2f) -> (%5.2f,%5.2f,%5.2f)\n", 
-                   in.x,in.y,in.z, 
-                   u.x,u.y,u.z, 
-                   v.x,v.y,v.z);
+            int res = VecTransforms.toFundamentalDomain(in, planes, trans, maxCount );
+            if(res == VecTransform.RESULT_OK)
+                printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f)\n", x,y,z, in.x,in.y,in.z);
+            else 
+                printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f) error\n", x,y,z, in.x,in.y,in.z);
         }
 
     }
