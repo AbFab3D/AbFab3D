@@ -17,9 +17,7 @@
           <root url="file://$MODULE_DIR$/../lib" />
         </CLASSES>
         <JAVADOC />
-        <SOURCES>
-          <root url="file://C:/tmp/toxiclibs/postspectacular-toxiclibs-599d2a58cdf6/src.core" />
-        </SOURCES>
+        <SOURCES />
         <jarDirectory url="file://$MODULE_DIR$/../lib" recursive="false" />
       </library>
     </orderEntry>
