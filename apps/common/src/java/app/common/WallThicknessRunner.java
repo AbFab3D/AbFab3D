@@ -145,6 +145,8 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
 
             if (exit_code != 0) {
                 System.out.println("ExitCode: " + exit_code);
+                System.out.println("out: " + outStream.toString());
+                System.out.println("err: " + errStream.toString());
                 return new WallThicknessResult(exit_code, ResultType.SUSPECT, null);
             }
             HashMap<String,Object> outMap = new HashMap<String,Object>();
@@ -172,7 +174,6 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
      * @param outMap The parameter map
      */
     protected void parseOutputStream(Map<String, Object> outMap) {
-System.out.println("OutputStream: " + outStream);
         String output = outStream.toString();
         StringTokenizer lineTokenizer = new StringTokenizer(output, "\n");
 
