@@ -315,14 +315,14 @@ public class DataSources {
 
 
     /**
-       return maximum values from the given list of data sources
+       return 1 if any of input data sources is 1, return 0 if all data sources are 0 
        can be used to make union of few shapes        
      */
-    public static class Maximum implements DataSource, Initializable {
+    public static class Union implements DataSource, Initializable {
 
         Vector<DataSource> dataSources = new Vector<DataSource>();
         
-        public Maximum(){  
+        public Union(){  
 
         }
 
@@ -365,17 +365,18 @@ public class DataSources {
                 if(res != RESULT_OK)
                     continue;
                 
-                if(data.v[0] > maxValue)
-                    maxValue = data.v[0];
+                if(data.v[0] > 0){
+                    data.v[0] = 1;
+                    return RESULT_OK;                    
+                }
                 
             }
-            
-            data.v[0] = maxValue;
-            
+            // we are here if none of dataSources return positive value 
+            data.v[0] = 0;            
             return RESULT_OK;
         }        
 
-    } // class Maximum 
+    } // class Union
 
 
     /**

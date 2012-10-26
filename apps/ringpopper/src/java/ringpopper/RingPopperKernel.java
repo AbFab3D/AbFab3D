@@ -269,10 +269,10 @@ public class RingPopperKernel extends HostedKernel {
         image_src.m_yTilesCount = tilingY;
         image_src.m_imagePath = image;
 
-        DataSources.Maximum union = null;
+        DataSources.Union union = null;
 
         if (edgeStyle != edgeStyle.NONE) {
-            union = new DataSources.Maximum();
+            union = new DataSources.Union();
 
             union.addDataSource(image_src);
 

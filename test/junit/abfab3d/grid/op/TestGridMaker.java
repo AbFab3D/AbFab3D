@@ -248,7 +248,7 @@ public class TestGridMaker extends TestCase {
         bottomBand.setTiles((int)(ringDiameter*Math.PI/bandWidth), 1);
         bottomBand.setImagePath("docs/images/circle.png");
 
-        DataSources.Maximum union = new DataSources.Maximum();
+        DataSources.Union union = new DataSources.Union();
         
         union.addDataSource(image);
         union.addDataSource(topBand);
