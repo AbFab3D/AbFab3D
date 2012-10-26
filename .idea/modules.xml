@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/src/AbFab3D Lib.iml" filepath="$PROJECT_DIR$/src/AbFab3D Lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/common/src/AppCommon.iml" filepath="$PROJECT_DIR$/apps/common/src/AppCommon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/dla/src/Dla.iml" filepath="$PROJECT_DIR$/apps/dla/src/Dla.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" filepath="$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" filepath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" filepath="$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" />
+    </modules>
+  </component>
+</project>
+

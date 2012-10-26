@@ -1,9 +1,7 @@
 
 classes
 release
-.idea/
 apps/booleanops/out.*
-*.iml
 *.x3db
 *.x3dv
 apps/test/
