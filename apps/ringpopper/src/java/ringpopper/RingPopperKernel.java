@@ -178,6 +178,14 @@ public class RingPopperKernel extends HostedKernel {
         step++;
         seq = 0;
 
+        params.put("material", new Parameter("material", "Material", "What material to design for", "Silver Glossy", 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, availableMaterials)
+        );
+
+        step++;
+        seq = 0;
+
         params.put("text", new Parameter("text", "text", "Engraved Text", "To a special someone", 1,
                 Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, null)
@@ -187,15 +195,6 @@ public class RingPopperKernel extends HostedKernel {
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 3, 50, null, null)
         );
-
-        step++;
-        seq = 0;
-
-        params.put("material", new Parameter("material", "Material", "What material to design for", "Silver Glossy", 1,
-                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, availableMaterials)
-        );
-
 
         step++;
         seq = 0;
