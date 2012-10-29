@@ -463,13 +463,14 @@ public class VecTransforms {
                 return RESULT_OK;                
             }
 
+            Vec vin = new Vec(in);
             for(int i = m_transforms.size()-1; i >= 0; i--){
 
                 VecTransform tr = m_transforms.get(i);
-                int res = tr.inverse_transform(in, out);
+                int res = tr.inverse_transform(vin, out);
                 if(res != RESULT_OK)
                     return res;
-                in.set(out);
+                vin.set(out);
             }
             
             return RESULT_OK;

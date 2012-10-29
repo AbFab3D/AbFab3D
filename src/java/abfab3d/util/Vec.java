@@ -25,6 +25,13 @@ public class Vec {
 
     }
 
+    public Vec(Vec in){
+
+        v = new double[in.v.length];
+        set(in);
+
+    }
+
     public void set(double x, double y, double z){
 
         v[0] = x;

@@ -28,6 +28,8 @@ import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.TextUtil;
+import abfab3d.util.DataSource;
+
 import app.common.X3DViewer;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
@@ -244,37 +246,54 @@ public class RingPopperKernel extends HostedKernel {
         int nz = (int)((bounds[5] - bounds[4])/resolution);
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        double tileWidth = 0;
-        if (symmetryStyle == SymmetryStyle.NONE) {
-            tileWidth = innerDiameter*Math.PI;
-        } else {
-            tileWidth = innerDiameter*Math.PI/tilingX;
-        }
-
+        
         DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
-
-        image_src.m_sizeX = tileWidth;
-        image_src.m_sizeY = ringWidth;
-        image_src.m_sizeZ = ringThickness;
-
+        
+        image_src.setLocation(0,0,ringThickness/2);
+        image_src.setImagePath(image);
         image_src.setBaseThickness(baseThickness);
-        if (symmetryStyle != SymmetryStyle.NONE) {
-            image_src.m_xTilesCount = 1;
-            image_src.setLocation(0,0,0);
-        } else {
-            image_src.m_xTilesCount = tilingX;
-            image_src.m_centerZ = ringThickness/2;
-        }
-        image_src.m_yTilesCount = tilingY;
-        image_src.m_imagePath = image;
 
-        DataSources.Union union = null;
+        if(symmetryStyle == SymmetryStyle.NONE) {
+
+            // image spans the whole ring length
+            image_src.setSize(innerDiameter*Math.PI, ringWidth, ringThickness);
+            image_src.setTiles(tilingX, tilingY);
+
+        } else {
+
+            // image spans only one tile
+            image_src.setSize(innerDiameter*Math.PI/tilingX, ringWidth, ringThickness);
+            image_src.setTiles(1, tilingY);
+
+        }
+        
+        DataSource image_band = image_src;
+
+        System.out.println("SymStyle: " + symmetryStyle);        
+        if(symmetryStyle != SymmetryStyle.NONE){
+            
+            DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();
+            image_frieze.setDataSource(image_src);
+        
+            VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
+            fs.setFriezeType(symmetryStyle.getCode());
+            double tileWidth = innerDiameter*Math.PI/tilingX;
+            fs.setDomainWidth(tileWidth);
+
+            image_frieze.setTransform(fs);
+            image_frieze.setDataSource(image_src);
+
+            image_band = image_frieze;
+        }
+
+        DataSource image_with_edges = image_band;
 
         if (edgeStyle != edgeStyle.NONE) {
-            union = new DataSources.Union();
 
-            union.addDataSource(image_src);
-
+            DataSources.Union union =  new DataSources.Union();
+            
+            union.addDataSource(image_band);
+            
             if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
                 DataSources.Block top_band = new DataSources.Block();
                 top_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
@@ -288,6 +307,8 @@ public class RingPopperKernel extends HostedKernel {
                 bottom_band.setLocation(0, -ringWidth/2 - edgeWidth/2, ringThickness/2);
                 union.addDataSource(bottom_band);
             }
+
+            image_with_edges = union;
         }
 
         DataSources.ImageBitmap textBand = null;
@@ -296,7 +317,10 @@ public class RingPopperKernel extends HostedKernel {
 
         double textDepth = 0.001; // 1mm
 
+        DataSource complete_band = image_with_edges;
+
         if (text != null && text.length() > 0) {
+
             textBand = new DataSources.ImageBitmap();
             textBand.setSize(Math.PI*innerDiameter, ringWidth, textDepth);
             textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
@@ -316,23 +340,13 @@ public class RingPopperKernel extends HostedKernel {
 
             ringMinusText = new DataSources.Subtraction();
 
-            if (edgeStyle == edgeStyle.NONE) {
-                ringMinusText.setSources(image_src, rotatedText); //
-            } else {
-                ringMinusText.setSources(union, rotatedText); //
-            }
+            ringMinusText.setSources(image_with_edges, rotatedText); //
 
-        }
+            complete_band = ringMinusText;
+            
+        } 
 
-        VecTransforms.FriezeSymmetry fs = null;
 
-        System.out.println("SymStyle: " + symmetryStyle);
-        if (symmetryStyle != SymmetryStyle.NONE) {
-            System.out.println("Using frieze symmetry: " + symmetryStyle + " code: " + symmetryStyle.getCode());
-            fs = new VecTransforms.FriezeSymmetry();
-            fs.setFriezeType(symmetryStyle.getCode());
-            fs.setDomainWidth(ringWidth);
-        }
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
@@ -343,25 +357,13 @@ public class RingPopperKernel extends HostedKernel {
         rot.m_angle = 0*TORAD;
 
         compTrans.add(rot);
-        if (symmetryStyle != SymmetryStyle.NONE) {
-            compTrans.add(fs);
-        }
         compTrans.add(rw);
 
         GridMaker gm = new GridMaker();
 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-
-        if (textBand != null) {
-            gm.setDataSource(ringMinusText);
-        } else {
-            if (edgeStyle != edgeStyle.NONE) {
-                gm.setDataSource(union);
-            } else {
-                gm.setDataSource(image_src);
-            }
-        }
+        gm.setDataSource(complete_band);
 
         Grid grid = new ArrayGridByte(nx, ny, nz, resolution, resolution);
 

@@ -412,33 +412,31 @@ public class DataSources {
             
         }
         
-
         /**
          * calculates values of all data sources and return maximal value
          * can be used to make union of few shapes 
          */
         public int getDataValue(Vec pnt, Vec data) {
-
+            
+            //workPnt.set(pnt);
             int res = dataSource1.getDataValue(pnt, data);
+
+            if(res != RESULT_OK || data.v[0] <= 0.0){
+                data.v[0] = 0.0;
+                return res;
+            }
+            // we are here if data.v[0] > 0
+            
+            res = dataSource2.getDataValue(pnt, data);
             if(res != RESULT_OK)
                 return res;
-
-            double d = data.v[0];            
             
-            if(d > 0.0){
-
-                res = dataSource2.getDataValue(pnt, data);
-                if(res != RESULT_OK)
-                    return res;
-                
-                if(data.v[0] > 0){
-                    // we should return 0
-                    data.v[0] = 0;
-                } else {
-                    data.v[0] = 1;                    
-                }
-                
-            }
+            if(data.v[0] > 0){
+                // we should return 0
+                data.v[0] = 0;
+            } else {
+                data.v[0] = 1;                    
+            }                    
             
             return RESULT_OK;
         }        
@@ -487,18 +485,22 @@ public class DataSources {
          */
         public int getDataValue(Vec pnt, Vec data) {
 
+            Vec workPnt = new Vec(pnt);
+
             if(transform != null){
-                transform.inverse_transform(pnt, pnt);
+                int res = transform.inverse_transform(pnt, workPnt);
+                if(res != RESULT_OK){
+                    data.v[0] = 0;                    
+                    return res;
+                }
             }               
             
             if(dataSource != null){
-                return dataSource.getDataValue(pnt, data);
+                return dataSource.getDataValue(workPnt, data);
             } else {
                 data.v[0] = 1;
+                return RESULT_OK;
             }
-
-            return RESULT_OK;
-
         }        
 
     } // class DataTransformer
