@@ -278,14 +278,14 @@ public class RingPopperKernel extends HostedKernel {
             if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
                 DataSources.Block top_band = new DataSources.Block();
                 top_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
-                top_band.setLocation(0, ringWidth/2, ringThickness/2);
+                top_band.setLocation(0, ringWidth/2+edgeWidth/2, ringThickness/2);
                 union.addDataSource(top_band);
             }
 
             if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
                 DataSources.Block bottom_band = new DataSources.Block();
                 bottom_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
-                bottom_band.setLocation(0, -ringWidth/2, ringThickness/2);
+                bottom_band.setLocation(0, -ringWidth/2 - edgeWidth/2, ringThickness/2);
                 union.addDataSource(bottom_band);
             }
         }
