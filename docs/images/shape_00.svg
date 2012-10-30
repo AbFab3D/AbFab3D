@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="707.125"
+   height="707.15625"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.0 r9654"
+   sodipodi:docname="feet.svg"
+   inkscape:export-filename="D:\home\00_shapeways\projects\abfab3d\code\trunk\docs\images\feet.png"
+   inkscape:export-xdpi="300.06674"
+   inkscape:export-ydpi="300.06674">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3791">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop3793" />
+      <stop
+         style="stop-color:#f6f6f6;stop-opacity:0.99130434;"
+         offset="1"
+         id="stop3795" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3783">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop3785" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop3787" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3759">
+      <stop
+         style="stop-color:#0803f9;stop-opacity:1;"
+         offset="0"
+         id="stop3761" />
+      <stop
+         style="stop-color:#193ac5;stop-opacity:0;"
+         offset="1"
+         id="stop3763" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3791"
+       id="linearGradient3797"
+       x1="85.306732"
+       y1="324.86716"
+       x2="667.66614"
+       y2="324.86716"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="566.44756"
+     inkscape:cy="314.89492"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1086"
+     inkscape:window-height="983"
+     inkscape:window-x="802"
+     inkscape:window-y="22"
+     inkscape:window-maximized="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(13,190.65625)">
+    <path
+       style="fill:#000000"
+       d="M 142.0404,435.08044 C 148.57944,380.34965 194.65445,339.75221 295.28844,300.05096 398.80336,259.21321 432.16556,227.51433 440.59166,161.99214 448.48747,100.59362 467.05082,67.156339 511.1229,34.947693 544.63239,10.458331 553.12727,6.9729192 573.24086,9.4610442 639.10748,17.608856 690.42911,112.03018 681.72955,209.05781 675.31515,280.5984 637.08501,318.60686 536.66146,353.28478 453.64184,381.95282 416.04057,400.97605 332.46693,456.59092 231.63622,523.68968 192.91751,527.75784 154.56772,475.28269 145.0708,462.28779 140.53055,447.71745 142.0404,435.08044 z"
+       id="path3004"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="D:\home\00_shapeways\projects\abfab3d\code\trunk\docs\images\feet.png"
+       inkscape:export-xdpi="300.06674"
+       inkscape:export-ydpi="300.06674"
+       sodipodi:nodetypes="ssssssssss" />
+  </g>
+</svg>

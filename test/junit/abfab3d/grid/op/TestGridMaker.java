@@ -43,6 +43,7 @@ import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.MathUtil;
 import abfab3d.util.TextUtil;
+import abfab3d.util.Symmetry;
 
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
@@ -70,7 +71,84 @@ public class TestGridMaker extends TestCase {
     public static Test suite() {
         return new TestSuite(TestGridMaker.class);
     }
-   
+
+    /**
+       
+     */
+    public void testSymmetricImage() {
+        
+        printf("_testSymmetricImage()\n");
+        double voxelSize = 1.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 4*voxelSize;
+
+        double rectWidth = 5*CM; 
+        double rectHeight = 5*CM; 
+        double rectDepth = 0.2*CM; 
+        double tileWidth = 1*CM;
+        double tileHeight = 1*CM;
+        double baseThichness = 0.0; 
+        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S442; 
+        int symmetryType = VecTransforms.WallpaperSymmetry.WP_442; 
+        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S632; 
+        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S333; 
+        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S2222; 
+
+        //String imagePath = "docs/images/shape_01.png";
+        String imagePath = "docs/images/shape_00.png";
+
+        double gridWidth = rectWidth + 2*margin;
+        double gridHeight  = rectHeight + 2*margin;
+        double gridDepth = rectDepth + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(tileWidth, tileHeight, rectDepth);
+        image.setLocation(tileWidth/2,tileHeight/2,0);
+        image.setBaseThickness(baseThichness);
+        image.setImagePath(imagePath);
+        
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.m_axis = new Vector3d(1,0,0);
+        rot.m_angle = 0*TORAD;
+        
+        VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
+        wps.setSymmetryType(symmetryType);
+        wps.setDomainWidth(tileWidth);
+        wps.setDomainHeight(tileHeight);
+
+        //compTrans.add(rot);
+        compTrans.add(wps);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(image);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/symmetry_test.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
     /**
 
      */
@@ -356,7 +434,7 @@ public class TestGridMaker extends TestCase {
     /**
        cup with image on outside
      */
-    public void testCup() {
+    public void _testCup() {
         
         printf("testCup()\n");
         double voxelSize = 2.e-4;
@@ -878,8 +956,8 @@ public class TestGridMaker extends TestCase {
         Vector4d p2 = new Vector4d(1,1,1,0.1);
         VecTransforms.normalizePlane(p2);
 
-        Matrix4d r1 = VecTransforms.getReflection(p1);
-        Matrix4d r2 = VecTransforms.getReflection(p2);        
+        Matrix4d r1 = Symmetry.getReflection(p1);
+        Matrix4d r2 = Symmetry.getReflection(p2);        
         Matrix4d r1r2 = new Matrix4d();
         Matrix4d r2r1 = new Matrix4d();
         r1r2.mul(r1,r2);
@@ -932,7 +1010,7 @@ public class TestGridMaker extends TestCase {
     }
 
 
-    public void testTransform3() {
+    public void _testTransform3() {
 
         /*
           |      
@@ -951,9 +1029,9 @@ public class TestGridMaker extends TestCase {
         Vector4d p1 = new Vector4d(1,0,0,-1);
         Vector4d p2 = new Vector4d(-1/sqrt(2),1/sqrt(2),0,0);
                 
-        Matrix4d r0 = VecTransforms.getReflection(p0);
-        Matrix4d r1 = VecTransforms.getReflection(p1);
-        Matrix4d r2 = VecTransforms.getReflection(p2);
+        Matrix4d r0 = Symmetry.getReflection(p0);
+        Matrix4d r1 = Symmetry.getReflection(p1);
+        Matrix4d r2 = Symmetry.getReflection(p2);
                 
         Matrix4d trans[] = new Matrix4d[]{r0, r1, r2};
         Vector4d planes[] = new Vector4d[]{p0, p1, p2};
@@ -967,7 +1045,7 @@ public class TestGridMaker extends TestCase {
 
             Vector4d in = new Vector4d(x,y,z,1);
 
-            int res = VecTransforms.toFundamentalDomain(in, planes, trans, maxCount );
+            int res = Symmetry.toFundamentalDomain(in, planes, trans, maxCount );
             if(res == VecTransform.RESULT_OK)
                 printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f)\n", x,y,z, in.x,in.y,in.z);
             else 
