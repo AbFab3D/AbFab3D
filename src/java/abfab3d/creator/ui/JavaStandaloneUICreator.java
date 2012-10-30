@@ -494,11 +494,16 @@ System.out.println("Adding param: " + p.getName());
             if (getEditor(p) == Editors.FILE_DIALOG) {
                 ps.println(indent(8) + "} else if (e.getSource() == " + p.getName() + "Button) {");
 
+                ps.println(indent(12) + "String lastDir = prefs.get(\"LAST_" + p.getName().toUpperCase() + "_DIR\", DEFAULT_DIR);");
+                ps.println(indent(12) + p.getName() + "Dialog.setCurrentDirectory(new File(lastDir));");
                 ps.println(indent(12) + "int returnVal = " + p.getName() + "Dialog" + ".showOpenDialog(this);");
 
                 ps.println(indent(12) + "if (returnVal == JFileChooser.APPROVE_OPTION) {");
                 ps.println(indent(16) + "File file = " + p.getName() + "Dialog" + ".getSelectedFile();");
-                ps.println(indent(16) + " ((JTextField)" + p.getName() + "Editor).setText(file.toString());");
+                ps.println(indent(16) + "if (file.exists()) {");
+                ps.println(indent(20) + "prefs.put(\"LAST_" + p.getName().toUpperCase() + "_DIR\", file.getParent());");
+                ps.println(indent(20) + "((JTextField)" + p.getName() + "Editor).setText(file.toString());");
+                ps.println(indent(16) + "}");
                 ps.println(indent(12) + "}");
             }
         }
