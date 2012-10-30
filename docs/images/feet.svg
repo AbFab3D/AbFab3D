@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="707.125"
+   height="707.15625"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.0 r9654"
+   sodipodi:docname="feet.svg"
+   inkscape:export-filename="D:\home\00_shapeways\projects\abfab3d\code\trunk\docs\images\feet.png"
+   inkscape:export-xdpi="300.06674"
+   inkscape:export-ydpi="300.06674">
+  <defs
+     id="defs4">
+    <linearGradient
+       id="linearGradient3791">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop3793" />
+      <stop
+         style="stop-color:#f6f6f6;stop-opacity:0.99130434;"
+         offset="1"
+         id="stop3795" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3783">
+      <stop
+         style="stop-color:#000000;stop-opacity:1;"
+         offset="0"
+         id="stop3785" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="1"
+         id="stop3787" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient3759">
+      <stop
+         style="stop-color:#0803f9;stop-opacity:1;"
+         offset="0"
+         id="stop3761" />
+      <stop
+         style="stop-color:#193ac5;stop-opacity:0;"
+         offset="1"
+         id="stop3763" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient3791"
+       id="linearGradient3797"
+       x1="85.306732"
+       y1="324.86716"
+       x2="667.66614"
+       y2="324.86716"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="566.44756"
+     inkscape:cy="314.89492"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1086"
+     inkscape:window-height="983"
+     inkscape:window-x="802"
+     inkscape:window-y="22"
+     inkscape:window-maximized="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(13,190.65625)">
+    <path
+       style="fill:#000000"
+       d="m 136.29048,427.45916 c 5.72092,-47.88321 46.03131,-83.40136 134.07461,-118.13544 90.56378,-35.72838 119.75191,-63.4613 127.12379,-120.78576 6.90794,-53.71672 23.14876,-82.97054 61.70682,-111.149443 29.31699,-21.425406 36.74904,-24.474745 54.34615,-22.297919 57.6258,7.128409 102.52639,89.736332 94.91526,174.624472 -5.61187,62.58988 -39.05889,95.84296 -126.91808,126.18219 -72.63272,25.08128 -105.52956,41.72444 -178.64699,90.38113 -88.2154,58.70378 -122.08987,62.26296 -155.64158,16.35317 -8.30872,-11.36906 -12.28092,-24.11645 -10.95998,-35.1724 z m 490.3652,-180.56421 c 1.61113,-10.35957 17.22555,-17.40554 26.00755,-11.73586 11.95571,7.71864 9.08151,20.07587 -5.83373,25.08125 -12.00589,4.02906 -21.86196,-2.49091 -20.17382,-13.34539 z m 7.69575,-54.93158 c 16.86756,-14.96238 32.88321,-14.78439 37.00221,0.41121 4.52144,16.68036 -27.12438,25.53438 -38.01282,10.63541 -2.47521,-3.38693 -2.02044,-8.3579 1.01061,-11.04662 z M 543.38551,28.214871 c 0.84157,-5.411216 11.47449,-17.106106 23.62871,-25.9886267 28.1486,-20.5715253 58.6084,-21.1405643 69.82741,-1.30449816 11.439,20.22503786 -0.65336,38.99494086 -32.308,50.14882786 -14.01316,4.937736 -30.45613,8.670594 -36.53997,8.295281 -13.40829,-0.82717 -26.7062,-17.660746 -24.60815,-31.150984 z m 82.41742,110.211179 c 6.41759,-9.94047 33.36285,-16.35531 42.88293,-10.20912 10.20319,6.58721 3.58202,23.72345 -12.75506,33.01131 -11.22328,6.3806 -16.76541,5.67731 -24.94705,-3.16586 -6.69185,-7.23287 -8.5766,-14.37645 -5.18082,-19.63633 z M 604.37074,88.082242 c 2.74013,-17.618897 24.97921,-32.602282 46.58903,-31.388974 14.53905,0.816325 18.08749,3.327116 18.94549,13.405346 1.4402,16.91658 -30.25802,43.862956 -48.29763,41.057376 -16.61132,-2.58343 -19.76671,-6.8073 -17.23689,-23.073748 z"
+       id="path3004"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="D:\home\00_shapeways\projects\abfab3d\code\trunk\docs\images\feet.png"
+       inkscape:export-xdpi="300.06674"
+       inkscape:export-ydpi="300.06674" />
+  </g>
+</svg>
