@@ -152,7 +152,7 @@ public class Symmetry {
         return new Symmetry(planes, trans);
         
     }
-
+    
     public static Symmetry getS22I(double domainWidth){
         
         Vector4d planes[] = new Vector4d[3]; 
@@ -197,8 +197,8 @@ public class Symmetry {
         
         Vector4d planes[] = new Vector4d[3]; 
         planes[0] = new Vector4d(0,-1,0,0);
-        planes[1] = new Vector4d(1,0,0,-domainWidth);
-        planes[2] = new Vector4d(-1/SQRT2,1/SQRT2,0,0);
+        planes[1] = new Vector4d(1/SQRT2,1/SQRT2,0,-domainWidth/(2*SQRT2));
+        planes[2] = new Vector4d(-1,0,0,0);
 
         Matrix4d trans[] = new Matrix4d[3];
         
@@ -209,7 +209,6 @@ public class Symmetry {
         return new Symmetry(planes, trans);
         
     }
-
     
     /**
        wallpaper group 442
@@ -217,26 +216,47 @@ public class Symmetry {
      */
     public static Symmetry get442(double domainWidth){
         
-        Vector4d p[] = new Vector4d[4]; 
-        Matrix4d trans[] = new Matrix4d[4]; 
+        Vector4d p[] = new Vector4d[3]; 
+        Matrix4d trans[] = new Matrix4d[3]; 
 
+        p[0] = new Vector4d(1/SQRT2,-1/SQRT2,0,-domainWidth/(2*SQRT2));
+        p[1] = new Vector4d(1/SQRT2, 1/SQRT2,0,-domainWidth/(2*SQRT2));
+        p[2] = new Vector4d(-1,0,0,0);
                 
-        p[0] = new Vector4d(0,-1,0,0);
-        p[1] = new Vector4d(1,0,0,-domainWidth);
-        p[2] = new Vector4d(0,1,0,-domainWidth);
-        p[3] = new Vector4d(-1,0,0,0);
-
-        Vector4d p01 = new Vector4d(-1/SQRT2,1/SQRT2,0,0);
+        Vector4d p01 = new Vector4d(0,1,0,0);
         
         for(int i =0; i < trans.length; i++){
             trans[i] = new Matrix4d();
+            trans[i].mul(getReflection(p[i]),getReflection(p01));
         }
-
-        trans[0].mul(getReflection(p[0]),getReflection(p01));
-        trans[1].mul(getReflection(p[1]),getReflection(p01));
-        trans[2].mul(getReflection(p[2]),getReflection(p01));
-        trans[3].mul(getReflection(p[3]),getReflection(p01));
         
+        return new Symmetry(p, trans);
+        
+    }
+
+    /**
+       wallpaper group 4*2
+       
+     */
+    public static Symmetry get4S2(double domainWidth){
+        
+        Vector4d p[] = new Vector4d[3]; 
+        Matrix4d trans[] = new Matrix4d[3]; 
+
+        p[0] = new Vector4d(1/SQRT2,-1/SQRT2,0,-domainWidth/(2*SQRT2));
+        p[1] = new Vector4d(1/SQRT2, 1/SQRT2,0,-domainWidth/(2*SQRT2));
+        p[2] = new Vector4d(-1,0,0,0);
+                
+        Vector4d p01 = new Vector4d(0,1,0,0);
+        
+        trans[0] = new Matrix4d();
+        trans[0].mul(getReflection(p[0]),getReflection(p01));
+
+        trans[1] = new Matrix4d();
+        trans[1].mul(getReflection(p[1]),getReflection(p01));
+
+        trans[2] = getReflection(p[2]);
+            
         return new Symmetry(p, trans);
         
     }
@@ -249,8 +269,8 @@ public class Symmetry {
         
         Vector4d planes[] = new Vector4d[3]; 
         planes[0] = new Vector4d(0,-1,0,0);
-        planes[1] = new Vector4d(1,0,0,-domainWidth);
-        planes[2] = new Vector4d(-1./2,SQRT3/2,0,0);
+        planes[1] = new Vector4d(SQRT3/2, 0.5, 0, -domainWidth/4);
+        planes[2] = new Vector4d(-1,0,0,0);
 
         Matrix4d trans[] = new Matrix4d[3];
         
@@ -263,15 +283,73 @@ public class Symmetry {
     }
 
     /**
+       wallpaper group 632
+       
+     */
+    public static Symmetry get632(double domainWidth){
+        
+        Vector4d p[] = new Vector4d[3]; 
+        Matrix4d trans[] = new Matrix4d[3]; 
+
+        p[0] = new Vector4d(SQRT3/2, -0.5, 0, -domainWidth/4);
+        p[1] = new Vector4d(SQRT3/2, 0.5, 0, -domainWidth/4);
+        p[2] = new Vector4d(-1,0,0,0);
+                
+        Vector4d p01 = new Vector4d(0,1,0,0);
+        
+        trans[0] = new Matrix4d();
+        trans[0].mul(getReflection(p[0]),getReflection(p01));
+
+        trans[1] = new Matrix4d();
+        trans[1].mul(getReflection(p[1]),getReflection(p01));
+
+        trans[2] = new Matrix4d();
+        trans[2].mul(getReflection(p[2]),getReflection(p01));
+
+            
+        return new Symmetry(p, trans);
+        
+    }
+
+
+    /**
+       wallpaper group 3*3
+       
+     */
+    public static Symmetry get3S3(double domainWidth){
+        
+        Vector4d p[] = new Vector4d[3]; 
+        Matrix4d trans[] = new Matrix4d[3]; 
+
+        p[0] = new Vector4d(SQRT3/2, -0.5, 0, -domainWidth/4);
+        p[1] = new Vector4d(SQRT3/2, 0.5, 0, -domainWidth/4);
+        p[2] = new Vector4d(-1,0,0,0);
+                
+        Vector4d p01 = new Vector4d(0,1,0,0);
+        
+        trans[0] = new Matrix4d();
+        trans[0].mul(getReflection(p[0]),getReflection(p01));
+
+        trans[1] = new Matrix4d();
+        trans[1].mul(getReflection(p[1]),getReflection(p01));
+
+        trans[2] = getReflection(p[2]);
+            
+        return new Symmetry(p, trans);
+        
+    }
+
+
+    /**
        wallpaper group *333
        
      */
     public static Symmetry getS333(double domainWidth){
         
         Vector4d planes[] = new Vector4d[3]; 
-        planes[0] = new Vector4d(-1./2,-SQRT3/2,0,0);
-        planes[1] = new Vector4d(1,0,0,-domainWidth);
-        planes[2] = new Vector4d(-1./2,SQRT3/2,0,0);
+        planes[0] = new Vector4d(0, -1, 0, 0);
+        planes[1] = new Vector4d(SQRT3/2, 0.5, 0, -domainWidth/4);
+        planes[2] = new Vector4d(-SQRT3/2, 0.5,0, -domainWidth/4);
 
         Matrix4d trans[] = new Matrix4d[3];
         
@@ -280,6 +358,31 @@ public class Symmetry {
         }
         
         return new Symmetry(planes, trans);
+        
+    }
+
+    /**
+       wallpaper group 333
+       
+     */
+    public static Symmetry get333(double domainWidth){
+
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d( SQRT3/2, -0.5, 0, -domainWidth/4);
+        p[1] = new Vector4d( SQRT3/2,  0.5, 0, -domainWidth/4);
+        p[2] = new Vector4d(-SQRT3/2,  0.5, 0, -domainWidth/4);
+        p[3] = new Vector4d(-SQRT3/2, -0.5, 0, -domainWidth/4);
+
+        Vector4d p01 = new Vector4d(0, -1, 0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+        for(int i = 0; i < trans.length; i++){
+            trans[i] = new Matrix4d();
+            trans[i].mul(getReflection(p[i]),getReflection(p01));
+        }
+        
+        return new Symmetry(p, trans);
         
     }
 
@@ -291,10 +394,10 @@ public class Symmetry {
     public static Symmetry getS2222(double domainWidth, double domainHeight){
         
         Vector4d planes[] = new Vector4d[4]; 
-        planes[0] = new Vector4d(1,0,0,-domainWidth);
-        planes[1] = new Vector4d(0,1,0,-domainHeight);
-        planes[2] = new Vector4d(-1,0,0,0);
-        planes[3] = new Vector4d(0,-1,0,0);
+        planes[0] = new Vector4d(0,-1,0,0);
+        planes[1] = new Vector4d(1,0,0,-domainWidth/2);
+        planes[2] = new Vector4d(0,1,0,-domainHeight/2);
+        planes[3] = new Vector4d(-1,0,0,-domainWidth/2);
 
         Matrix4d trans[] = new Matrix4d[4];
         
@@ -306,6 +409,227 @@ public class Symmetry {
         
     }
 
+    /**
+       wallpaper group 2222
+       
+     */
+    public static Symmetry get2222(double domainWidth, double domainHeight){
+        
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d(0,-1,0,-domainHeight/2);
+        p[1] = new Vector4d(1,0,0,-domainWidth/2);
+        p[2] = new Vector4d(0,1,0,-domainHeight/2);
+        p[3] = new Vector4d(-1,0,0,-domainWidth/2);
+        
+        Vector4d p01 = new Vector4d(0,1,0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+        for(int i=0; i < 4; i++){
+            trans[i] = new Matrix4d();
+            trans[i].mul(getReflection(p[i]),getReflection(p01));
+        }
+        
+        return new Symmetry(p, trans);
+        
+    }
+
+    /**
+       wallpaper group 2*22
+       
+     */
+    public static Symmetry get2S22(double domainWidth, double domainHeight){
+        
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d(0,-1,0,-domainHeight/2);
+        p[1] = new Vector4d(1,0,0,-domainWidth/2);
+        p[2] = new Vector4d(0,1,0,-domainHeight/2);
+        p[3] = new Vector4d(-1,0,0,-domainWidth/2);
+        
+        Vector4d p01 = new Vector4d(0,1,0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+        trans[0] = getReflection(p[0]);
+        trans[1] = getReflection(p[1]);
+        trans[2] = getReflection(p[2]);
+        trans[3] = new Matrix4d();
+        trans[3].mul(getReflection(p[3]),getReflection(p01));
+        
+        return new Symmetry(p, trans);
+        
+    }
+
+    /**
+       wallpaper group 22*
+       
+     */
+    public static Symmetry get22S(double domainWidth, double domainHeight){
+        
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d(0,-1,0,-domainHeight/2);
+        p[1] = new Vector4d(1,0,0, -domainWidth/2);
+        p[2] = new Vector4d(0,1,0, -domainHeight/2);
+        p[3] = new Vector4d(-1,0,0,-domainWidth/2);
+        
+        Vector4d p01 = new Vector4d(0,1,0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+        trans[0] = getReflection(p[0]);
+
+        trans[1] = new Matrix4d();
+        trans[1].mul(getReflection(p[1]),getReflection(p01));
+
+        trans[2] = getReflection(p[2]);
+
+        trans[3] = new Matrix4d();
+        trans[3].mul(getReflection(p[3]),getReflection(p01));
+        
+        return new Symmetry(p, trans);
+        
+    }
+
+    /**
+       wallpaper group **
+       
+     */
+    public static Symmetry getSS(double domainWidth, double domainHeight){
+        
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d(0,-1,0,-domainHeight/2);
+        p[1] = new Vector4d(1,0,0, -domainWidth/2);
+        p[2] = new Vector4d(0,1,0, -domainHeight/2);
+        p[3] = new Vector4d(-1,0,0,-domainWidth/2);
+        
+        Vector4d p01 = new Vector4d(0,1,0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+
+        trans[0] = new Matrix4d();
+        trans[0].mul(getReflection(p[0]),getReflection(p01));
+
+        trans[1] = getReflection(p[1]);
+
+        trans[2] = new Matrix4d();
+        trans[2].mul(getReflection(p[2]),getReflection(p01));
+
+        trans[3] = getReflection(p[3]);
+        
+        return new Symmetry(p, trans);
+        
+    }
+ 
+    /**
+       wallpaper group *X
+       
+     */
+    public static Symmetry getSX(double domainWidth, double domainHeight){
+        
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d(0,-1,0,-domainHeight/2);
+        p[1] = new Vector4d(1,0,0, -domainWidth/2);
+        p[2] = new Vector4d(0,1,0, -domainHeight/2);
+        p[3] = new Vector4d(-1,0,0,-domainWidth/2);
+        
+        Vector4d py = new Vector4d(0,1,0,0);
+        Vector4d px = new Vector4d(1,0,0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+
+        trans[0] = getReflection(p[0]);
+
+        trans[2] = getReflection(p[2]);
+
+        trans[1] = new Matrix4d();
+        trans[1].mul(getReflection(p[1]),getReflection(py));
+        trans[1].mul(getReflection(px));
+
+        trans[2] = getReflection(p[2]);
+
+        trans[3] = new Matrix4d();
+        trans[3].mul(getReflection(p[3]),getReflection(py));
+        trans[3].mul(getReflection(px));
+        
+        return new Symmetry(p, trans);
+        
+    }
+
+    /**
+       wallpaper group 22X
+       
+     */
+    public static Symmetry get22X(double domainWidth, double domainHeight){
+        
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d(0,-1,0,-domainHeight/2);
+        p[1] = new Vector4d(1,0,0, -domainWidth/2);
+        p[2] = new Vector4d(0,1,0, -domainHeight/2);
+        p[3] = new Vector4d(-1,0,0,-domainWidth/2);
+        
+        Vector4d py = new Vector4d(0,1,0,0);
+        Vector4d px = new Vector4d(1,0,0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+
+        trans[0] = new Matrix4d();
+        trans[0].mul(getReflection(p[0]),getReflection(px));
+        trans[0].mul(getReflection(py));
+
+        trans[1] = new Matrix4d();
+        trans[1].mul(getReflection(p[1]),getReflection(py));
+        trans[1].mul(getReflection(px));
+
+        trans[2] = new Matrix4d();
+        trans[2].mul(getReflection(p[2]),getReflection(px));
+        trans[2].mul(getReflection(py));
+
+        trans[3] = new Matrix4d();
+        trans[3].mul(getReflection(p[3]),getReflection(py));
+        trans[3].mul(getReflection(px));
+        
+        return new Symmetry(p, trans);
+        
+    }
+
+    /**
+       wallpaper group XX
+       
+     */
+    public static Symmetry getXX(double domainWidth, double domainHeight){
+        
+        Vector4d p[] = new Vector4d[4]; 
+        p[0] = new Vector4d(0,-1,0,-domainHeight/2);
+        p[1] = new Vector4d(1,0,0, -domainWidth/2);
+        p[2] = new Vector4d(0,1,0, -domainHeight/2);
+        p[3] = new Vector4d(-1,0,0,-domainWidth/2);
+        
+        Vector4d py = new Vector4d(0,1,0,0);
+        Vector4d px = new Vector4d(1,0,0,0);
+
+        Matrix4d trans[] = new Matrix4d[4];
+        
+
+        trans[0] = new Matrix4d();
+        trans[0].mul(getReflection(p[0]),getReflection(py));
+
+        trans[1] = new Matrix4d();
+        trans[1].mul(getReflection(p[1]),getReflection(py));
+        trans[1].mul(getReflection(px));
+
+        trans[2] = new Matrix4d();
+        trans[2].mul(getReflection(p[2]),getReflection(py));
+
+        trans[3] = new Matrix4d();
+        trans[3].mul(getReflection(p[3]),getReflection(py));
+        trans[3].mul(getReflection(px));
+        
+        return new Symmetry(p, trans);
+        
+    }
  
     /**
        return array of inverse transforms 

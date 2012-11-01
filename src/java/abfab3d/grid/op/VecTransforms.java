@@ -619,10 +619,21 @@ public class VecTransforms {
             switch(m_symmetryType){
             default: 
             case WP_S442:  m_sym = Symmetry.getS442(m_domainWidth); break;
-            case WP_442:  m_sym = Symmetry.get442(m_domainWidth); break;
+            case WP_442:   m_sym = Symmetry.get442(m_domainWidth); break;
+            case WP_4S2:   m_sym = Symmetry.get4S2(m_domainWidth); break;
             case WP_S632:  m_sym = Symmetry.getS632(m_domainWidth); break;
+            case WP_632:   m_sym = Symmetry.get632(m_domainWidth); break;
+            case WP_3S3:   m_sym = Symmetry.get3S3(m_domainWidth); break;
             case WP_S333:  m_sym = Symmetry.getS333(m_domainWidth); break;
-            case WP_S2222:  m_sym = Symmetry.getS2222(m_domainWidth,m_domainHeight); break;
+            case WP_333:   m_sym = Symmetry.get333(m_domainWidth); break;
+            case WP_S2222: m_sym = Symmetry.getS2222(m_domainWidth,m_domainHeight); break;
+            case WP_2222:  m_sym = Symmetry.get2222(m_domainWidth,m_domainHeight); break;
+            case WP_2S22:  m_sym = Symmetry.get2S22(m_domainWidth,m_domainHeight); break;
+            case WP_22S:   m_sym = Symmetry.get22S(m_domainWidth,m_domainHeight); break;
+            case WP_SS:    m_sym = Symmetry.getSS(m_domainWidth,m_domainHeight); break;
+            case WP_SX:    m_sym = Symmetry.getSX(m_domainWidth,m_domainHeight); break;
+            case WP_22X:   m_sym = Symmetry.get22X(m_domainWidth,m_domainHeight); break;
+            case WP_XX:    m_sym = Symmetry.getXX(m_domainWidth,m_domainHeight); break;
             }
 
             return RESULT_OK;
