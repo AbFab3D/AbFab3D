@@ -74,6 +74,7 @@ public class JavaStandaloneUICreator {
             ps.println("");
             ps.println("import java.util.*;");
             ps.println("import javax.swing.*;");
+            ps.println("import javax.swing.filechooser.FileNameExtensionFilter;");
             ps.println("import java.awt.GridLayout;");
             ps.println("import java.awt.Font;");
             ps.println("import java.awt.event.*;");
@@ -106,7 +107,10 @@ public class JavaStandaloneUICreator {
             ps.println("    }");
             ps.println();
             ps.println("    public void launch() {");
-            ps.println("        prefs = Preferences.userNodeForPackage(this.getClass());");
+        	ps.println("        prefs = Preferences.userNodeForPackage(this.getClass());");
+        	ps.println("        recentFiles = new RecentFiles(MAX_RECENT_FILES, prefs);");
+        	ps.println("        recentFilesMenuItems = new JMenuItem[MAX_RECENT_FILES];");
+
 //            ps.println("        params = kernel.getParams();");
             ps.println("        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);");
             ps.println("        setupUI();");
@@ -179,18 +183,31 @@ public class JavaStandaloneUICreator {
     }
 
     public void createMenu(PrintStream ps) {
-        ps.println(indent(8) + "JMenuBar menubar = new JMenuBar();");
-        ps.println(indent(8) + "JMenu filemenu = new JMenu(\"File\");");
-        ps.println(indent(8) + "fileOpen = new JMenuItem(\"Open\");");
-        ps.println(indent(8) + "fileSave = new JMenuItem(\"Save\");");
-        ps.println(indent(8) + "fileOpen.addActionListener(this);");
-        ps.println(indent(8) + "fileSave.addActionListener(this);");
-        ps.println(indent(8) + "filemenu.add(fileOpen);");
-        ps.println(indent(8) + "filemenu.add(fileSave);");
-        ps.println(indent(8) + "menubar.add(filemenu);");
-        ps.println(indent(8) + "setJMenuBar(menubar);");
-        ps.println(indent(8) + "openDialog = new JFileChooser(new File(prefs.get(LAST_DIR, DEFAULT_DIR)));");
-        ps.println(indent(8) + "saveDialog = new JFileChooser(new File(prefs.get(LAST_DIR, DEFAULT_DIR)));");
+    	ps.println(indent(8) + "JMenuBar menubar = new JMenuBar();");
+    	ps.println(indent(8) + "filemenu = new JMenu(\"File\");");
+    	ps.println(indent(8) + "fileOpen = new JMenuItem(\"Open\");");
+    	ps.println(indent(8) + "fileSave = new JMenuItem(\"Save\");");
+    	ps.println(indent(8) + "fileOpen.addActionListener(this);");
+    	ps.println(indent(8) + "fileSave.addActionListener(this);");
+    	ps.println(indent(8) + "filemenu.add(fileOpen);");
+    	ps.println(indent(8) + "filemenu.add(fileSave);");
+    	ps.println(indent(8) + "menubar.add(filemenu);");
+    	ps.println(indent(8) + "setJMenuBar(menubar);");
+    	ps.println(indent(8) + "FileNameExtensionFilter filter = new FileNameExtensionFilter(\"AbFab3D Parameters File\", FILE_EXTENSION);");
+    	ps.println(indent(8) + "openDialog = new JFileChooser(new File(prefs.get(LAST_DIR, DEFAULT_DIR)));");
+    	ps.println(indent(8) + "openDialog.setFileFilter(filter);");
+    	ps.println(indent(8) + "saveDialog = new JFileChooser(new File(prefs.get(LAST_DIR, DEFAULT_DIR)));");
+    	ps.println(indent(8) + "saveDialog.setFileFilter(filter);");
+    	
+    	ps.println(indent(8) + "filemenu.addSeparator();");
+    	
+    	ps.println(indent(8) + "int size = recentFiles.size();");
+    	ps.println(indent(8) + "for (int i=0; i<size; i++) {");
+    	ps.println(indent(12) + "File f = new File(recentFiles.get(i));");
+    	ps.println(indent(12) + "recentFilesMenuItems[i] = new JMenuItem(f.getAbsolutePath());");
+    	ps.println(indent(12) + "recentFilesMenuItems[i].addActionListener(this);");
+    	ps.println(indent(12) + "filemenu.add(recentFilesMenuItems[i]);");
+    	ps.println(indent(8) + "}");
     }
 
     /**
@@ -422,6 +439,26 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(20) + "if (selectedFile.exists()) {");
         ps.println(indent(24) + "FileInputStream fis = new FileInputStream(selectedFile);");
         ps.println(indent(24) + "prefs.put(LAST_DIR, selectedFile.getParent());");
+        
+        ps.println(indent(24) + "recentFiles.add(selectedFile.getAbsolutePath());");
+        
+        // remove current recent files menu items
+    	ps.println(indent(24) + "for (int i=0; i<recentFilesMenuItems.length; i++) {");
+    	ps.println(indent(28) + "if (recentFilesMenuItems[i] != null) {");
+    	ps.println(indent(32) + "filemenu.remove(recentFilesMenuItems[i]);");
+    	ps.println(indent(32) + "recentFilesMenuItems[i] = null;");
+    	ps.println(indent(28) + "}");
+    	ps.println(indent(24) + "}");
+        
+    	// then add new recent files menu items
+    	ps.println(indent(24) + "int size = recentFiles.size();");
+    	ps.println(indent(24) + "for (int i=0; i<size; i++) {");
+    	ps.println(indent(28) + "File f = new File(recentFiles.get(i));");
+    	ps.println(indent(28) + "recentFilesMenuItems[i] = new JMenuItem(f.getAbsolutePath());");
+    	ps.println(indent(28) + "recentFilesMenuItems[i].addActionListener(this);");
+    	ps.println(indent(28) + "filemenu.add(recentFilesMenuItems[i]);");
+    	ps.println(indent(24) + "}");
+        
         ps.println(indent(24) + "Properties props = new Properties();");
         ps.println(indent(24) + "props.load(fis);");
         ps.println(indent(24) + "Enumeration en = props.propertyNames();");
@@ -485,10 +522,35 @@ System.out.println("Adding param: " + p.getName());
         gatherParams(ps, params, remove);
 //        ps.println(indent(16) + "System.out.println(properties);");
         ps.println(indent(16) + "File selectedFile = saveDialog.getSelectedFile();");
+        ps.println(indent(16) + "String filePath = selectedFile.getAbsolutePath();");
         ps.println(indent(16) + "prefs.put(LAST_DIR, selectedFile.getParent());");
+        
+        // add an extension if file name doesn't have it
+        ps.println(indent(16) + "if (!filePath.endsWith(\".\" + FILE_EXTENSION)) {");
+        ps.println(indent(20) + "filePath += \".\" + FILE_EXTENSION;");
+        ps.println(indent(16) + "}");
+        ps.println(indent(16) + "recentFiles.add(filePath);");
+        
+        // remove current recent files menu items
+    	ps.println(indent(16) + "for (int i=0; i<recentFilesMenuItems.length; i++) {");
+    	ps.println(indent(20) + "if (recentFilesMenuItems[i] != null) {");
+    	ps.println(indent(24) + "filemenu.remove(recentFilesMenuItems[i]);");
+    	ps.println(indent(24) + "recentFilesMenuItems[i] = null;");
+    	ps.println(indent(20) + "}");
+    	ps.println(indent(16) + "}");
+        
+    	// then add new recent files menu items
+    	ps.println(indent(16) + "int size = recentFiles.size();");
+    	ps.println(indent(16) + "for (int i=0; i<size; i++) {");
+    	ps.println(indent(20) + "File f = new File(recentFiles.get(i));");
+    	ps.println(indent(20) + "recentFilesMenuItems[i] = new JMenuItem(f.getAbsolutePath());");
+    	ps.println(indent(20) + "recentFilesMenuItems[i].addActionListener(this);");
+    	ps.println(indent(20) + "filemenu.add(recentFilesMenuItems[i]);");
+    	ps.println(indent(16) + "}");
+    	
         ps.println(indent(16) + "BufferedWriter bw = null;");
         ps.println(indent(16) + "try {");
-        ps.println(indent(20) + "FileWriter fw = new FileWriter(selectedFile.getAbsoluteFile());");
+        ps.println(indent(20) + "FileWriter fw = new FileWriter(new File(filePath));");
         ps.println(indent(20) + "bw = new BufferedWriter(fw);");
         ps.println(indent(20) + "bw.write(properties);");
         ps.println(indent(16) + "} catch(IOException ioe) {");
@@ -525,8 +587,90 @@ System.out.println("Adding param: " + p.getName());
             }
         }
 
-        ps.println(indent(8) + "}");
+        // Open a recent file
+        ps.println(indent(8) + "} else {");
+    	ps.println(indent(12) + "for (int h=0; h<recentFilesMenuItems.length; h++) {");
+    	ps.println(indent(16) + "if (recentFilesMenuItems[h] != null) {");
+    	ps.println(indent(20) + "if (e.getSource() == recentFilesMenuItems[h]) {");
+    	ps.println(indent(24) + "String filePath = recentFilesMenuItems[h].getText();");
+    	ps.println(indent(24) + "File selectedFile = new File(filePath);");
+        ps.println(indent(24) + "try {");
+        ps.println(indent(28) + "if (selectedFile.exists()) {");
+        ps.println(indent(32) + "FileInputStream fis = new FileInputStream(selectedFile);");
+        ps.println(indent(32) + "recentFiles.add(selectedFile.getAbsolutePath());");
+        
+        // remove current recent files menu items
+    	ps.println(indent(32) + "for (int i=0; i<recentFilesMenuItems.length; i++) {");
+    	ps.println(indent(36) + "if (recentFilesMenuItems[i] != null) {");
+    	ps.println(indent(40) + "filemenu.remove(recentFilesMenuItems[i]);");
+    	ps.println(indent(40) + "recentFilesMenuItems[i] = null;");
+    	ps.println(indent(36) + "}");
+    	ps.println(indent(32) + "}");
+        
+    	// then add new recent files menu items
+    	ps.println(indent(32) + "int size = recentFiles.size();");
+    	ps.println(indent(32) + "for (int i=0; i<size; i++) {");
+    	ps.println(indent(36) + "File f = new File(recentFiles.get(i));");
+    	ps.println(indent(36) + "recentFilesMenuItems[i] = new JMenuItem(f.getAbsolutePath());");
+    	ps.println(indent(36) + "recentFilesMenuItems[i].addActionListener(this);");
+    	ps.println(indent(36) + "filemenu.add(recentFilesMenuItems[i]);");
+    	ps.println(indent(32) + "}");
+        
+        ps.println(indent(32) + "Properties props = new Properties();");
+        ps.println(indent(32) + "props.load(fis);");
+        ps.println(indent(32) + "Enumeration en = props.propertyNames();");
+        ps.println(indent(32) + "while(en.hasMoreElements()) {");
+        ps.println(indent(36) + "String key = (String) en.nextElement();");
+        ps.println(indent(36) + "String val = (String) props.getProperty(key);");
+//        ps.println(indent(28) + "System.out.println(key + \" = \" + val);");
+        
+    	itr = params.values().iterator();
+    	count = 0;
 
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            String name = p.getName();
+            if (remove.contains(name)) {
+                continue;
+            }
+            
+            if (count == 0) {
+            	ps.println(indent(36) + "if (key.equals(\"" + name + "\")) {");
+            } else {
+            	ps.println(indent(36) + "else if (key.equals(\"" + name + "\")) {");
+            }
+            
+            switch(getEditor(p)) {
+                case TEXTFIELD:
+                    ps.println(indent(40) + "((JTextField)" + name + "Editor).setText(val);");
+                    break;
+                case FILE_DIALOG:
+                    ps.println(indent(40) + "((JTextField)" + name + "Editor).setText(val);");
+                    break;
+                case COMBOBOX:
+                	ps.println(indent(40) + "int count = ((JComboBox)" + name + "Editor).getItemCount();");
+                	ps.println(indent(40) + "for (int i=0; i<count; i++) {");
+                	ps.println(indent(44) + "String item = (String) ((JComboBox)" + name + "Editor).getItemAt(i);");
+                	ps.println(indent(44) + "if (item.equals(val)) {");
+                	ps.println(indent(48) + "((JComboBox)" + name + "Editor).setSelectedIndex(i);");
+                	ps.println(indent(48) + "break;");
+                	ps.println(indent(44) + "}");
+                	ps.println(indent(40) + "}");
+                default:
+                    System.out.println("Unhandled action for editor: " + getEditor(p));
+            }
+            ps.println(indent(36) + "}");
+            count++;
+        }
+
+        ps.println(indent(32) + "}");
+        ps.println(indent(28) + "}");
+        ps.println(indent(24) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
+        ps.println(indent(20) + "}");
+    	ps.println(indent(16) + "}");
+        ps.println(indent(12) + "}");
+        
+    	ps.println(indent(8) + "}");
         ps.println(indent(4) + "}");
     }
 
@@ -539,8 +683,13 @@ System.out.println("Adding param: " + p.getName());
 //        ps.println(indent(4) + "Map<String,Parameter> params;");
         ps.println(indent(4) + "private static final String LAST_DIR = \"LAST_DIR\";");
         ps.println(indent(4) + "private static final String DEFAULT_DIR = \"/tmp\";");
+        ps.println(indent(4) + "private static final String FILE_EXTENSION = \"apf\";");
+        ps.println(indent(4) + "private static final int MAX_RECENT_FILES = 4;");
         ps.println(indent(4) + "private Preferences prefs;");
+        ps.println(indent(4) + "private RecentFiles recentFiles;");
+        ps.println(indent(4) + "private JMenuItem[] recentFilesMenuItems;");
 
+        ps.println(indent(4) + "JMenu filemenu;");
         ps.println(indent(4) + "JButton submitButton;");
         ps.println(indent(4) + "JButton printButton;");
         ps.println(indent(4) + "JButton uploadButton;");
