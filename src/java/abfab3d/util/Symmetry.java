@@ -17,6 +17,8 @@ import javax.vecmath.Matrix4d;
 
 import static java.lang.Math.sqrt;
 
+import static abfab3d.util.Output.printf;
+
 /**
    does calculations necessary for different symmetry operations 
 
@@ -24,6 +26,7 @@ import static java.lang.Math.sqrt;
  */
 public class Symmetry {
 
+    static final boolean DEBUG = false;
     static final double 
         SQRT2 = sqrt(2),
         SQRT3 = sqrt(3);
@@ -630,7 +633,39 @@ public class Symmetry {
         return new Symmetry(p, trans);
         
     }
- 
+
+    /**
+       wallpaper group o
+       
+     */
+    public static Symmetry getO(double domainWidth, double domainHeight, double skew){
+       
+
+        double w = domainWidth;
+        double h = domainHeight;
+        double sx = domainWidth*skew; 
+        double norm = sqrt(sx*sx + h*h);
+        double nx = h/norm;
+        double ny = sx/norm;
+
+        Vector4d p[] = new Vector4d[4]; 
+               
+        p[0] = new Vector4d(0,-1,0,-h/2);
+        p[1] = new Vector4d(nx,-ny, 0, -(nx*w - ny*h)/2);
+        p[2] = new Vector4d(0,1,0, -h/2);
+        p[3] = new Vector4d(-nx,ny,0,-(nx*w - ny*h)/2);
+        
+        Matrix4d trans[] = new Matrix4d[4];        
+
+        trans[0] = getTranslation(-sx, -h, 0);
+        trans[1] = getTranslation(w-sx, 0, 0);
+        trans[2] = getTranslation(sx, h, 0);
+        trans[3] = getTranslation(-(w-sx), 0, 0);
+        
+        return new Symmetry(p, trans);
+        
+    }
+  
     /**
        return array of inverse transforms 
     */
@@ -680,6 +715,26 @@ public class Symmetry {
         return m;
     }
 
+    /**
+
+       return matrix of given translation 
+
+     */
+    public static Matrix4d getTranslation(double tx, double ty, double tz){
+
+        Matrix4d m = new Matrix4d();
+        m.m00 = 1;
+        m.m11 = 1;
+        m.m22 = 1;
+        m.m33 = 1;
+
+        m.m03 = tx; 
+        m.m13 = ty; 
+        m.m23 = tz; 
+
+        return m;
+    }
+
 
     /**
        transforms input vector v into fundamental domain using given Symmetry 
@@ -702,12 +757,12 @@ public class Symmetry {
 
             for(int i =0; i < planes.length; i++){
                 double d = planes[i].dot(v);
-                //printf("d[%d]:%7.2f\n", i, d);
+                if(DEBUG)printf("d[%d]:%7.2f\n", i, d);
 
                 if(d > 0) {
                     found = true;
                     trans[i].transform(v);
-                    //printf("    v: (%5.2f,%5.2f,%5.2f,%5.2f)\n", v.x, v.y, v.z, v.w);
+                    if(DEBUG)printf("    v: (%5.2f,%5.2f,%5.2f,%5.2f)\n", v.x, v.y, v.z, v.w);
                     break; // out of planes cycle                     
                 }                           
             }
@@ -719,7 +774,7 @@ public class Symmetry {
         }        
         // if we are here - we haven't found FD 
         // do somthing 
-        //printf("out of iterations\n");
+        if(DEBUG)printf("out of iterations\n");
         return VecTransform.RESULT_ERROR;
     }   
 }

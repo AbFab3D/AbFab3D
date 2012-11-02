@@ -598,6 +598,7 @@ public class VecTransforms {
         protected double m_domainWidth = 0.01; 
          // height of fundamental domain in meters (if used) 
         protected double m_domainHeight = 0.01;
+        protected double m_domainSkew = 0.;
 
         protected int m_symmetryType; // one of WP_ constants                 
         
@@ -612,6 +613,9 @@ public class VecTransforms {
         }
         public void setDomainHeight(double height){
             m_domainHeight = height;
+        }
+        public void setDomainSkew(double skew){
+            m_domainSkew = skew;
         }
 
         public int initialize(){
@@ -634,6 +638,7 @@ public class VecTransforms {
             case WP_SX:    m_sym = Symmetry.getSX(m_domainWidth,m_domainHeight); break;
             case WP_22X:   m_sym = Symmetry.get22X(m_domainWidth,m_domainHeight); break;
             case WP_XX:    m_sym = Symmetry.getXX(m_domainWidth,m_domainHeight); break;
+            case WP_O:    m_sym = Symmetry.getO(m_domainWidth,m_domainHeight, m_domainSkew); break;
             }
 
             return RESULT_OK;

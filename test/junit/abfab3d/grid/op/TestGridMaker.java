@@ -91,9 +91,10 @@ public class TestGridMaker extends TestCase {
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22S, "docs/images/wp_fd_01.png", "c:/tmp/wp12_22S.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SS, "docs/images/wp_fd_01.png", "c:/tmp/wp13_SS.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "c:/tmp/wp14_SX.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "c:/tmp/wp15_22X.stl");        
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");
-        
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "c:/tmp/wp15_22X.stl"); 
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");        
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp_fd_01.png", "c:/tmp/wp17_O.stl");
+
     }
     
     public void makeSymmetricImage(int symmetryType, String imagePath, String outFileName) {
@@ -106,9 +107,11 @@ public class TestGridMaker extends TestCase {
 
         double rectWidth = 3*CM; 
         double rectHeight = 3*CM; 
-        double rectDepth = 0.2*CM; 
+        double rectDepth = 1*CM; 
+        double imageDepth = 0.1*CM;
         double tileWidth = 1*CM;
         double tileHeight = 1*CM;
+        double tileSkew = 0.3333;
         double baseThichness = 0.0; 
         
         double gridWidth = rectWidth + 2*margin;
@@ -122,10 +125,9 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-
         DataSources.ImageBitmap image = new DataSources.ImageBitmap();
         
-        image.setSize(tileWidth, tileHeight, rectDepth);
+        image.setSize(tileWidth, tileHeight, imageDepth);
         image.setLocation(0,0,0);
         image.setBaseThickness(baseThichness);
         image.setImagePath(imagePath);
@@ -133,22 +135,34 @@ public class TestGridMaker extends TestCase {
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
         VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(1,0,0);
-        rot.m_angle = 45*TORAD;
+        rot.m_axis = new Vector3d(1,1,1);
+        rot.m_angle = 30*TORAD;
         
         VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
         wps.setSymmetryType(symmetryType);
         wps.setDomainWidth(tileWidth);
         wps.setDomainHeight(tileHeight);
+        wps.setDomainSkew(tileSkew);
 
         compTrans.add(rot);
         compTrans.add(wps);
+
+        DataSources.DataTransformer tiling = new DataSources.DataTransformer();
+        tiling.setDataSource(image);
+        tiling.setTransform(compTrans);
+        
+        DataSources.Block box = new DataSources.Block();
+        box.setSize(rectWidth, rectHeight, rectDepth);
+        DataSources.Intersection clip = new DataSources.Intersection();
+        
+        clip.addDataSource(box);
+        clip.addDataSource(tiling);
         
         GridMaker gm = new GridMaker();
                 
         gm.setBounds(bounds);
-        gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setDataSource(clip);
+
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -1067,6 +1081,34 @@ public class TestGridMaker extends TestCase {
 
     }
 
+    public void _testTransform4() {
+
+        Symmetry s = Symmetry.getO(1., 1., 0.);
+        int maxCount = 100;
+        
+        Matrix4d t = Symmetry.getTranslation(1,0,0);
+        printf("t: (%s)\n", t);
+        Vector4d v = new Vector4d(0.5,0,0,1);
+        printf("v: (%5.2f,%5.2f,%5.2f,%5.2f)\n", v.x,  v.y,  v.z,  v.w);
+        t.transform(v);
+        printf("-> (%5.2f,%5.2f,%5.2f,%5.2f)\n", v.x,  v.y,  v.z,  v.w);
+        //for(int i = 0; i <= 100; i++){
+        for(int i = 0; i <= 0; i++){
+            
+            double x = 1.2;
+            double y = 0.;
+            double z = 0;        
+
+            Vector4d in = new Vector4d(x,y,z,1);
+
+            int res = Symmetry.toFundamentalDomain(in, s, maxCount);
+            if(res == VecTransform.RESULT_OK)
+                printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f)\n", x,y,z, in.x,in.y,in.z);
+            else 
+                printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f) error\n", x,y,z, in.x,in.y,in.z);
+        }
+
+    }
 
 
     /**

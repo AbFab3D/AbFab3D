@@ -355,9 +355,6 @@ public class DataSources {
          */
         public int getDataValue(Vec pnt, Vec data) {
 
-            //double maxValue = Double.MIN_VALUE;
-            double maxValue = 0;
-
             for(int i = 0; i < dataSources.size(); i++){
                 
                 DataSource ds = dataSources.get(i);
@@ -377,6 +374,71 @@ public class DataSources {
         }        
 
     } // class Union
+
+    
+    /**
+       Intersection of multiple data sourrces 
+       return 1 if all data sources return 1
+       return 0 otherwise
+     */
+    public static class Intersection implements DataSource, Initializable {
+
+        Vector<DataSource> dataSources = new Vector<DataSource>();
+        
+        public Intersection(){  
+
+        }
+
+        /**
+           add items to set of data sources 
+         */
+        public void addDataSource(DataSource ds){
+
+            dataSources.add(ds);
+
+        }
+
+        public int initialize(){
+
+            for(int i = 0; i < dataSources.size(); i++){
+                
+                DataSource ds = dataSources.get(i);
+                if(ds instanceof Initializable){
+                    ((Initializable)ds).initialize();
+                }
+            }      
+            return RESULT_OK;
+            
+        }
+        
+
+        /**
+         * calculates values of all data sources and return maximal value
+         * can be used to make union of few shapes 
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            for(int i = 0; i < dataSources.size(); i++){
+                
+                DataSource ds = dataSources.get(i);
+                int res = ds.getDataValue(pnt, data);
+                if(res != RESULT_OK){
+                    data.v[0] = 0;
+                    return res;
+                }
+                
+                if(data.v[0] <= 0.){
+                    data.v[0] = 0;
+                    return RESULT_OK;                    
+                }
+                
+            }
+            // we are here if none of dataSources return 0
+            data.v[0] = 2;            
+            return RESULT_OK;
+        }        
+
+    } // class Intersection
 
 
     /**
@@ -441,7 +503,7 @@ public class DataSources {
             return RESULT_OK;
         }        
 
-    } // class Difference
+    } // class Subtraction
 
     
     /**
