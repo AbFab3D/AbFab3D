@@ -611,6 +611,7 @@ public class VecTransforms {
         protected double m_domainWidth = 0.01; 
          // height of fundamental domain in meters (if used) 
         protected double m_domainHeight = 0.01;
+        protected double m_domainSkew = 0.;
 
         protected int m_symmetryType; // one of WP_ constants                 
         
@@ -626,6 +627,9 @@ public class VecTransforms {
         public void setDomainHeight(double height){
             m_domainHeight = height;
         }
+        public void setDomainSkew(double skew){
+            m_domainSkew = skew;
+        }
 
         public int initialize(){
 
@@ -635,7 +639,16 @@ public class VecTransforms {
             case WP_442:  m_sym = Symmetry.get442(m_domainWidth); break;
             case WP_S632:  m_sym = Symmetry.getS632(m_domainWidth); break;
             case WP_S333:  m_sym = Symmetry.getS333(m_domainWidth); break;
-            case WP_S2222:  m_sym = Symmetry.getS2222(m_domainWidth,m_domainHeight); break;
+            case WP_333:   m_sym = Symmetry.getS333(m_domainWidth); break;
+            case WP_S2222: m_sym = Symmetry.getS2222(m_domainWidth,m_domainHeight); break;
+            case WP_2222:  m_sym = Symmetry.get2222(m_domainWidth,m_domainHeight); break;
+            case WP_2S22:  m_sym = Symmetry.get2S22(m_domainWidth,m_domainHeight); break;
+            case WP_22S:   m_sym = Symmetry.get22S(m_domainWidth,m_domainHeight); break;
+            case WP_SS:    m_sym = Symmetry.getSS(m_domainWidth,m_domainHeight); break;
+            case WP_SX:    m_sym = Symmetry.getSX(m_domainWidth,m_domainHeight); break;
+            case WP_22X:   m_sym = Symmetry.get22X(m_domainWidth,m_domainHeight); break;
+            case WP_XX:    m_sym = Symmetry.getXX(m_domainWidth,m_domainHeight); break;
+            case WP_O:    m_sym = Symmetry.getO(m_domainWidth,m_domainHeight, m_domainSkew); break;
             }
 
             return RESULT_OK;
