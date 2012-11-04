@@ -132,18 +132,17 @@ public class DataSources {
 
         public static final int IMAGE_POSITIVE = 0, IMAGE_NEGATIVE = 1;
         
-        
-        
+                
         public int m_xTilesCount = 1; // number of image tiles in x-direction 
         public int m_yTilesCount = 1; // number of image tiles in y-direction 
         
         protected BufferedImage m_image;
 
         private double xmin, xmax, ymin, ymax, zmin, zmax, zbase;
-        
+        private boolean useGrayscale = true;
         private int imageWidth, imageHeight;
         private int imageData[]; 
-
+        
         /**
            
          */
@@ -191,6 +190,10 @@ public class DataSources {
 
             m_imageType = type; 
 
+        }
+
+        public void setUseGrayscale(boolean value){
+            useGrayscale = value;
         }
 
         public int initialize(){
@@ -271,7 +274,7 @@ public class DataSources {
             double imageY = imageHeight*(1-y);// reverse Y-direction 
 
             double pixelValue = getPixelBox(imageX,imageY);
-
+            
             // pixel value for black is 0 for white is 255;
             // we may need to reverse it
             switch(m_imageType){
@@ -283,14 +286,18 @@ public class DataSources {
                 pixelValue = pixelValue/255.;
                 break;
             }
-
-            double d = (zbase  + (zmax - zbase)*pixelValue - z);
+            double d;
+            if(useGrayscale){                
+                d = (zbase  + (zmax - zbase)*pixelValue - z);                
+            } else {
+                d = pixelValue;
+            }
 
             if(d > 0)
                 data.v[0] = 1;
             else 
                 data.v[0] = 0;
-            
+        
             return RESULT_OK;
         }                
         

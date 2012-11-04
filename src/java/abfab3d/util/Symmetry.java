@@ -647,20 +647,21 @@ public class Symmetry {
         double norm = sqrt(sx*sx + h*h);
         double nx = h/norm;
         double ny = sx/norm;
+        int sign = (sx >= 0.)? (1):(-1);
 
         Vector4d p[] = new Vector4d[4]; 
                
         p[0] = new Vector4d(0,-1,0,-h/2);
-        p[1] = new Vector4d(nx,-ny, 0, -(nx*w - ny*h)/2);
+        p[1] = new Vector4d(nx,-ny, 0,-(nx*w - sign*ny*h)/2);
         p[2] = new Vector4d(0,1,0, -h/2);
-        p[3] = new Vector4d(-nx,ny,0,-(nx*w - ny*h)/2);
-        
+        p[3] = new Vector4d(-nx,ny, 0,-(nx*w - sign*ny*h)/2);
+
         Matrix4d trans[] = new Matrix4d[4];        
 
         trans[0] = getTranslation(-sx, -h, 0);
-        trans[1] = getTranslation(w-sx, 0, 0);
+        trans[1] = getTranslation(w-sign*sx, 0, 0);
         trans[2] = getTranslation(sx, h, 0);
-        trans[3] = getTranslation(-(w-sx), 0, 0);
+        trans[3] = getTranslation(-(w-sign*sx), 0, 0);
         
         return new Symmetry(p, trans);
         

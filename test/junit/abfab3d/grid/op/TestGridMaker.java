@@ -75,8 +75,8 @@ public class TestGridMaker extends TestCase {
     /**
        
      */
-    public void testSymmetricImage() {
-        
+    public void _testSymmetricImage() {
+        /*
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "c:/tmp/wp01_s442.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "c:/tmp/wp02_442.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_4S2, "docs/images/wp_fd.png", "c:/tmp/wp03_4S2.stl");
@@ -93,7 +93,8 @@ public class TestGridMaker extends TestCase {
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "c:/tmp/wp14_SX.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "c:/tmp/wp15_22X.stl"); 
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");        
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp_fd_01.png", "c:/tmp/wp17_O.stl");
+        */
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "c:/tmp/wp17_O.stl");
 
     }
     
@@ -111,8 +112,13 @@ public class TestGridMaker extends TestCase {
         double imageDepth = 0.1*CM;
         double tileWidth = 1*CM;
         double tileHeight = 1*CM;
-        double tileSkew = 0.3333;
+        double tileSkew = 0.2;//0.3333;
         double baseThichness = 0.0; 
+        double tileRotationAngle = 0*TORAD;
+        Vector3d tileRotationAxis = new Vector3d(1,1,1);
+        boolean useGrayscale = true;
+        int imageType = DataSources.ImageBitmap.IMAGE_POSITIVE;
+        
         
         double gridWidth = rectWidth + 2*margin;
         double gridHeight  = rectHeight + 2*margin;
@@ -131,12 +137,14 @@ public class TestGridMaker extends TestCase {
         image.setLocation(0,0,0);
         image.setBaseThickness(baseThichness);
         image.setImagePath(imagePath);
-        
+        image.setUseGrayscale(useGrayscale);
+        image.setImageType(imageType);
+
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
         VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(1,1,1);
-        rot.m_angle = 30*TORAD;
+        rot.m_axis = tileRotationAxis;
+        rot.m_angle = tileRotationAngle;
         
         VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
         wps.setSymmetryType(symmetryType);
@@ -664,6 +672,53 @@ public class TestGridMaker extends TestCase {
         printf("writeIsosurface()\n");
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/plate_profile.stl");
         printf("writeIsosurface() done\n");
+        
+    }
+
+    public void testText() {
+        
+        double textWidth = 5*CM;
+        double textHeight = 1*CM;
+        double textDepth = 0.3*CM;
+        double voxelSize = 0.01*CM;
+        double margin = 1*voxelSize;
+        int smoothSteps = 0;
+        
+        double gridWidth = textWidth + 2*margin;
+        double gridHeight  = textHeight + 2*margin;
+        double gridDepth = textDepth + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};        
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap textBand = new DataSources.ImageBitmap();        
+        textBand.setSize(textWidth, textHeight, textDepth);
+        textBand.setLocation(0,0,0); 
+        textBand.setBaseThickness(0.0);
+        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        textBand.setTiles(1,1);
+        textBand.setImage(TextUtil.createTextImage(1000, 200, "Test Image Text gg", 
+                                                   new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
+
+
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        //gm.setTransform(ringWrap);
+        gm.setDataSource(textBand);        
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/text_test.stl");
+        printf("writeIsosurface() done\n");
+        
         
     }
 
