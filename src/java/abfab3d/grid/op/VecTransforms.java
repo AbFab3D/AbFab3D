@@ -151,35 +151,40 @@ public class VecTransforms {
          *
          */
         public int transform(Vec in, Vec out) {
-            
-            Vector3d v = new Vector3d(in.v[0],in.v[1],in.v[2]);
 
-            mat.transform(v);
+            double x,y,z;
 
-            out.v[0] = v.x;
-            out.v[1] = v.y;
-            out.v[2] = v.z;
+            x = in.v[0];
+            y = in.v[1];
+            z = in.v[2];
+
+            out.v[0] = mat.m00* x + mat.m01*y + mat.m02*z;
+            out.v[1] = mat.m10* x + mat.m11*y + mat.m12*z;
+            out.v[2] = mat.m20* x + mat.m21*y + mat.m22*z;
 
             return RESULT_OK;
-        }                
+        }
 
         /**
          *
          */
         public int inverse_transform(Vec in, Vec out) {
-            
-            Vector3d v = new Vector3d(in.v[0],in.v[1],in.v[2]);
 
-            mat_inv.transform(v);
+            double x,y,z;
 
-            out.v[0] = v.x;
-            out.v[1] = v.y;
-            out.v[2] = v.z;
+            x = in.v[0];
+            y = in.v[1];
+            z = in.v[2];
+
+            out.v[0] = mat_inv.m00* x + mat_inv.m01*y + mat_inv.m02*z;
+            out.v[1] = mat_inv.m10* x + mat_inv.m11*y + mat_inv.m12*z;
+            out.v[2] = mat_inv.m20* x + mat_inv.m21*y + mat_inv.m22*z;
 
             return RESULT_OK;
 
         }
-    } // class Rotation 
+
+    } // class Rotation
 
 
     /**
@@ -410,7 +415,10 @@ public class VecTransforms {
         
         public Vector<VecTransform> m_transforms = new Vector<VecTransform>();
 
-        
+        // Scratch var to avoid allocations
+        private Vec vin = null;
+
+
         public void add(VecTransform transform){
 
             m_transforms.add(transform);
@@ -466,7 +474,12 @@ public class VecTransforms {
                 return RESULT_OK;                
             }
 
-            Vec vin = new Vec(in);
+            if (vin == null || vin.v.length != in.v.length) {
+                vin = new Vec(in);
+            } else {
+                vin.set(in);
+            }
+
             for(int i = m_transforms.size()-1; i >= 0; i--){
 
                 VecTransform tr = m_transforms.get(i);
