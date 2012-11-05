@@ -8,6 +8,7 @@
     <property name="version" value="1.0.0"/>
     <property name="src.dir" value="${basedir}/src"/>
     <property name="apps.dir" value="${basedir}/apps"/>
+    <property name="apps.common.dir" value="../common"/>
     <property name="release.dir" value="${basedir}/release"/>
     <property name="test.dir" value="${basedir}/test/junit"/>
     <property name="abfab3d.classes.dir" value="../../classes"/>
@@ -38,6 +39,10 @@
     <target name="init" description="Create destination directories">
         <mkdir dir="${classes.dir}"/>
         <mkdir dir="${javadocs.dir}"/>
+    </target>
+
+    <target name="compileCommon">
+        <ant antfile="${apps.common.dir}/build.xml" target="build" inheritall="false"/>
     </target>
 
     <target name="compile" depends="init" description="Compile all Java source files">
