@@ -675,7 +675,7 @@ public class TestGridMaker extends TestCase {
         
     }
 
-    public void testText() {
+    public void _testText() {
         
         double textWidth = 5*CM;
         double textHeight = 1*CM;
@@ -686,7 +686,7 @@ public class TestGridMaker extends TestCase {
         
         double gridWidth = textWidth + 2*margin;
         double gridHeight  = textHeight + 2*margin;
-        double gridDepth = textDepth + 2*margin;
+        double gridDepth = 2*textDepth + 2*margin;
 
         double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};        
         int nx = (int)((bounds[1] - bounds[0])/voxelSize);
@@ -703,11 +703,13 @@ public class TestGridMaker extends TestCase {
         textBand.setImage(TextUtil.createTextImage(1000, 200, "Test Image Text gg", 
                                                    new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
 
+        
+        VecTransform ripples = new Ripples(textHeight/3,textHeight/3,textHeight/3,0.,0.,textDepth);
 
         GridMaker gm = new GridMaker();
                 
         gm.setBounds(bounds);
-        //gm.setTransform(ringWrap);
+        gm.setTransform(ripples);
         gm.setDataSource(textBand);        
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
@@ -717,10 +719,37 @@ public class TestGridMaker extends TestCase {
         
         printf("writeIsosurface()\n");
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/text_test.stl");
-        printf("writeIsosurface() done\n");
-        
+        printf("writeIsosurface() done\n");        
         
     }
+
+    static class Ripples implements VecTransform {
+        
+        double m_periodX, m_periodY, m_periodZ, m_ampX, m_ampY, m_ampZ;
+
+        Ripples(double periodX, double periodY, double periodZ, double ampX, double ampY, double ampZ){
+            m_periodX = periodX;
+            m_periodY = periodY;
+            m_periodZ = periodZ;
+            
+            m_ampX = ampX;
+            m_ampY = ampY;
+            m_ampZ = ampZ;
+            
+        }
+
+        public int transform(Vec in, Vec out) {
+            
+            return RESULT_OK;
+        }
+
+        public int inverse_transform(Vec in, Vec out) {
+
+            return RESULT_OK;
+        }        
+    }
+
+    
 
     /**
        ring with text on inside
