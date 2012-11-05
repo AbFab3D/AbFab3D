@@ -99,27 +99,29 @@ public class TestGridMaker extends TestCase {
     }
     
     public void makeSymmetricImage(int symmetryType, String imagePath, String outFileName) {
-        
         printf("_testSymmetricImage()\n");
         double voxelSize = 1.e-4;
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
         int smoothSteps = 0;
-        double margin = 1*voxelSize;
+        double margin = 4*voxelSize;
 
-        double rectWidth = 3*CM; 
+        double rectWidth = 3*CM;
         double rectHeight = 3*CM; 
         double rectDepth = 1*CM; 
         double imageDepth = 0.1*CM;
+
         double tileWidth = 1*CM;
         double tileHeight = 1*CM;
         double tileSkew = 0.2;//0.3333;
         double baseThichness = 0.0; 
+
+        //String imagePath = "docs/images/shape_01.png";
+
         double tileRotationAngle = 0*TORAD;
         Vector3d tileRotationAxis = new Vector3d(1,1,1);
         boolean useGrayscale = true;
         int imageType = DataSources.ImageBitmap.IMAGE_POSITIVE;
-        
-        
+
         double gridWidth = rectWidth + 2*margin;
         double gridHeight  = rectHeight + 2*margin;
         double gridDepth = rectDepth + 2*margin;
@@ -135,6 +137,7 @@ public class TestGridMaker extends TestCase {
         
         image.setSize(tileWidth, tileHeight, imageDepth);
         image.setLocation(0,0,0);
+
         image.setBaseThickness(baseThichness);
         image.setImagePath(imagePath);
         image.setUseGrayscale(useGrayscale);
@@ -143,16 +146,17 @@ public class TestGridMaker extends TestCase {
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
         VecTransforms.Rotation rot = new VecTransforms.Rotation();
+
         rot.m_axis = tileRotationAxis;
         rot.m_angle = tileRotationAngle;
-        
+
         VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
         wps.setSymmetryType(symmetryType);
         wps.setDomainWidth(tileWidth);
         wps.setDomainHeight(tileHeight);
         wps.setDomainSkew(tileSkew);
 
-        compTrans.add(rot);
+        //compTrans.add(rot);
         compTrans.add(wps);
 
         DataSources.DataTransformer tiling = new DataSources.DataTransformer();
@@ -179,7 +183,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, outFileName);
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/symmetry_test.stl");
         printf("writeIsosurface() done\n");
         
     }
