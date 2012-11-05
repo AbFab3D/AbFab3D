@@ -132,7 +132,7 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         double minUnsafeVol = 0.5;
 
         // TODO: Stop hardcoding params
-        String[] params = new String[] {"-input", "/tmp/out.x3d", "-wt", Double.toString(wt), "-visType","1",
+        String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
                 "-visDir","/tmp", "-maxReg", "500", "-debug","4", "-bir", Double.toString(bir),
                 "-minSuspectVol",Double.toString(minSuspectVol),"-minUnsafeVol",Double.toString(minUnsafeVol)};
         String workingDirPath = "/tmp";
@@ -149,6 +149,8 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
                 System.out.println("out: " + outStream.toString());
                 System.out.println("err: " + errStream.toString());
                 return new WallThicknessResult(exit_code, ResultType.SUSPECT, null);
+            } else {
+                System.out.println("out: " + outStream.toString());
             }
             HashMap<String,Object> outMap = new HashMap<String,Object>();
 
