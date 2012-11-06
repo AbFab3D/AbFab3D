@@ -75,28 +75,52 @@ public class TestGridMaker extends TestCase {
     /**
        
      */
-    public void testSymmetricImage() {
-        
+    public void _testSymmetricImage() {
+        /*
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "c:/tmp/wp01_s442.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "c:/tmp/wp02_442.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_4S2, "docs/images/wp_fd.png", "c:/tmp/wp03_4S2.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S632, "docs/images/wp_fd.png", "c:/tmp/wp04_S632.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_632, "docs/images/wp_fd.png", "c:/tmp/wp05_632.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_3S3, "docs/images/wp_fd.png", "c:/tmp/wp06_3S3.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S333, "docs/images/wp_fd.png", "c:/tmp/wp07_S333.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_333, "docs/images/wp_fd.png", "c:/tmp/wp08_333.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S2222, "docs/images/wp_fd_01.png", "c:/tmp/wp09_S2222.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2222, "docs/images/wp_fd_01.png", "c:/tmp/wp10_2222.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2S22, "docs/images/wp_fd_01.png", "c:/tmp/wp11_2S22.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22S, "docs/images/wp_fd_01.png", "c:/tmp/wp12_22S.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SS, "docs/images/wp_fd_01.png", "c:/tmp/wp13_SS.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "c:/tmp/wp14_SX.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "c:/tmp/wp15_22X.stl"); 
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");        
+        */
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "c:/tmp/wp17_O.stl");
+
+    }
+    
+    public void makeSymmetricImage(int symmetryType, String imagePath, String outFileName) {
         printf("_testSymmetricImage()\n");
         double voxelSize = 1.e-4;
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
         int smoothSteps = 0;
         double margin = 4*voxelSize;
 
-        double rectWidth = 5*CM; 
-        double rectHeight = 5*CM; 
-        double rectDepth = 0.2*CM; 
+        double rectWidth = 3*CM;
+        double rectHeight = 3*CM; 
+        double rectDepth = 1*CM; 
+        double imageDepth = 0.1*CM;
+
         double tileWidth = 1*CM;
         double tileHeight = 1*CM;
+        double tileSkew = 0.2;//0.3333;
         double baseThichness = 0.0; 
-        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S442; 
-        int symmetryType = VecTransforms.WallpaperSymmetry.WP_442; 
-        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S632; 
-        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S333; 
-        //int symmetryType = VecTransforms.WallpaperSymmetry.WP_S2222; 
 
         //String imagePath = "docs/images/shape_01.png";
-        String imagePath = "docs/images/shape_00.png";
+
+        double tileRotationAngle = 0*TORAD;
+        Vector3d tileRotationAxis = new Vector3d(1,1,1);
+        boolean useGrayscale = true;
+        int imageType = DataSources.ImageBitmap.IMAGE_POSITIVE;
 
         double gridWidth = rectWidth + 2*margin;
         double gridHeight  = rectHeight + 2*margin;
@@ -109,33 +133,48 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-
         DataSources.ImageBitmap image = new DataSources.ImageBitmap();
         
-        image.setSize(tileWidth, tileHeight, rectDepth);
-        image.setLocation(tileWidth/2,tileHeight/2,0);
+        image.setSize(tileWidth, tileHeight, imageDepth);
+        image.setLocation(0,0,0);
+
         image.setBaseThickness(baseThichness);
         image.setImagePath(imagePath);
-        
+        image.setUseGrayscale(useGrayscale);
+        image.setImageType(imageType);
+
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
         VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(1,0,0);
-        rot.m_angle = 0*TORAD;
-        
+
+        rot.m_axis = tileRotationAxis;
+        rot.m_angle = tileRotationAngle;
+
         VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
         wps.setSymmetryType(symmetryType);
         wps.setDomainWidth(tileWidth);
         wps.setDomainHeight(tileHeight);
+        wps.setDomainSkew(tileSkew);
 
         //compTrans.add(rot);
         compTrans.add(wps);
+
+        DataSources.DataTransformer tiling = new DataSources.DataTransformer();
+        tiling.setDataSource(image);
+        tiling.setTransform(compTrans);
+        
+        DataSources.Block box = new DataSources.Block();
+        box.setSize(rectWidth, rectHeight, rectDepth);
+        DataSources.Intersection clip = new DataSources.Intersection();
+        
+        clip.addDataSource(box);
+        clip.addDataSource(tiling);
         
         GridMaker gm = new GridMaker();
                 
         gm.setBounds(bounds);
-        gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setDataSource(clip);
+
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -640,6 +679,82 @@ public class TestGridMaker extends TestCase {
         
     }
 
+    public void _testText() {
+        
+        double textWidth = 5*CM;
+        double textHeight = 1*CM;
+        double textDepth = 0.3*CM;
+        double voxelSize = 0.01*CM;
+        double margin = 1*voxelSize;
+        int smoothSteps = 0;
+        
+        double gridWidth = textWidth + 2*margin;
+        double gridHeight  = textHeight + 2*margin;
+        double gridDepth = 2*textDepth + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};        
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap textBand = new DataSources.ImageBitmap();        
+        textBand.setSize(textWidth, textHeight, textDepth);
+        textBand.setLocation(0,0,0); 
+        textBand.setBaseThickness(0.0);
+        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        textBand.setTiles(1,1);
+        textBand.setImage(TextUtil.createTextImage(1000, 200, "Test Image Text gg", 
+                                                   new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
+
+        
+        VecTransform ripples = new Ripples(textHeight/3,textHeight/3,textHeight/3,0.,0.,textDepth);
+
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(ripples);
+        gm.setDataSource(textBand);        
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/text_test.stl");
+        printf("writeIsosurface() done\n");        
+        
+    }
+
+    static class Ripples implements VecTransform {
+        
+        double m_periodX, m_periodY, m_periodZ, m_ampX, m_ampY, m_ampZ;
+
+        Ripples(double periodX, double periodY, double periodZ, double ampX, double ampY, double ampZ){
+            m_periodX = periodX;
+            m_periodY = periodY;
+            m_periodZ = periodZ;
+            
+            m_ampX = ampX;
+            m_ampY = ampY;
+            m_ampZ = ampZ;
+            
+        }
+
+        public int transform(Vec in, Vec out) {
+            
+            return RESULT_OK;
+        }
+
+        public int inverse_transform(Vec in, Vec out) {
+
+            return RESULT_OK;
+        }        
+    }
+
+    
+
     /**
        ring with text on inside
      */
@@ -1054,6 +1169,34 @@ public class TestGridMaker extends TestCase {
 
     }
 
+    public void _testTransform4() {
+
+        Symmetry s = Symmetry.getO(1., 1., 0.);
+        int maxCount = 100;
+        
+        Matrix4d t = Symmetry.getTranslation(1,0,0);
+        printf("t: (%s)\n", t);
+        Vector4d v = new Vector4d(0.5,0,0,1);
+        printf("v: (%5.2f,%5.2f,%5.2f,%5.2f)\n", v.x,  v.y,  v.z,  v.w);
+        t.transform(v);
+        printf("-> (%5.2f,%5.2f,%5.2f,%5.2f)\n", v.x,  v.y,  v.z,  v.w);
+        //for(int i = 0; i <= 100; i++){
+        for(int i = 0; i <= 0; i++){
+            
+            double x = 1.2;
+            double y = 0.;
+            double z = 0;        
+
+            Vector4d in = new Vector4d(x,y,z,1);
+
+            int res = Symmetry.toFundamentalDomain(in, s, maxCount);
+            if(res == VecTransform.RESULT_OK)
+                printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f)\n", x,y,z, in.x,in.y,in.z);
+            else 
+                printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f) error\n", x,y,z, in.x,in.y,in.z);
+        }
+
+    }
 
 
     /**

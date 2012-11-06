@@ -88,27 +88,35 @@ public class JavaStandaloneUICreator {
             ps.println("import org.web3d.vrml.export.*;");
             ps.println("import app.common.*;");
             ps.println("import app.common.upload.shapeways.oauth.*;");
-            
+
             ps.println("");
-            ps.println("public class " + className + " extends JFrame implements ActionListener {");
+            ps.println("public class " + className + " implements ActionListener {");
 
             addGlobalVars(ps, params, remove);
 
-            ps.println("    public " + className + "(String name) { super(name); }");
+            ps.println("    public " + className + "(String name) { this.fname = name; }");
             ps.println("    public static void main(String[] args) {");
             ps.println("        " + className + " editor = new " + className + "(\"" + title + "\");");
+
+            ps.println("        if (args.length > 0) {");
+            ps.println("            editor.generate(args[0]);");
+            ps.println("            return;");
+            ps.println("        }");
+
             ps.println("        editor.launch();");
             ps.println("    }");
             ps.println();
             ps.println("    public void launch() {");
-        	ps.println("        prefs = Preferences.userNodeForPackage(this.getClass());");
+            ps.println("        frame = new JFrame(fname);");
+            ps.println("        prefs = Preferences.userNodeForPackage(this.getClass());");
         	ps.println("        recentFiles = new RecentFiles(MAX_RECENT_FILES, prefs);");
         	ps.println("        recentFilesMenuItems = new JMenuItem[MAX_RECENT_FILES];");
+
 //            ps.println("        params = kernel.getParams();");
-            ps.println("        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);");
+            ps.println("        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);");
             ps.println("        setupUI();");
-            ps.println("        pack();");
-            ps.println("        setVisible(true);");
+            ps.println("        frame.pack();");
+            ps.println("        frame.setVisible(true);");
             ps.println("    }");
             ps.println("    public void setupUI() {");
 
@@ -122,9 +130,9 @@ public class JavaStandaloneUICreator {
 
             // Create the menu bar
             createMenu(ps);
-            
+
             ps.println(indent(8) + "GridLayout layout = new GridLayout(" + (params.size() - remove.size() + 1 + steps.size() + (steps.size() - 1)) + ",3);");
-            ps.println(indent(8) + "setLayout(layout);");
+            ps.println(indent(8) + "frame.setLayout(layout);");
             ps.println();
 
             itr = sorted_params.iterator();
@@ -143,15 +151,15 @@ public class JavaStandaloneUICreator {
 
                     if (curr_step != 0) {
                         // Add spacer
-                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
-                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
-                        ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+                        ps.println(indent(8) + "frame.getContentPane().add(new JLabel(\"\"));");
+                        ps.println(indent(8) + "frame.getContentPane().add(new JLabel(\"\"));");
+                        ps.println(indent(8) + "frame.getContentPane().add(new JLabel(\"\"));");
                     }
 
                     ps.println(indent(8) + "JLabel step" + (curr_step+1) + " = new JLabel(\"Step: " + (curr_step+1) + "\");");
-                    ps.println(indent(8) + "getContentPane().add(step" + (curr_step+1) + ");");
-                    ps.println(indent(8) + "getContentPane().add(new JLabel(\"" + step.getDesc() + "\"));");
-                    ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+                    ps.println(indent(8) + "frame.getContentPane().add(step" + (curr_step+1) + ");");
+                    ps.println(indent(8) + "frame.getContentPane().add(new JLabel(\"" + step.getDesc() + "\"));");
+                    ps.println(indent(8) + "frame.getContentPane().add(new JLabel(\"\"));");
                 }
 
                 addParameterUI(ps, p);
@@ -163,6 +171,7 @@ public class JavaStandaloneUICreator {
 
             ps.println();
             addActions(ps,params,remove);
+            addGenerate(ps,params,remove);
 
             ps.println("}");
 
@@ -185,7 +194,7 @@ public class JavaStandaloneUICreator {
     	ps.println(indent(8) + "filemenu.add(fileOpen);");
     	ps.println(indent(8) + "filemenu.add(fileSave);");
     	ps.println(indent(8) + "menubar.add(filemenu);");
-    	ps.println(indent(8) + "setJMenuBar(menubar);");
+    	ps.println(indent(8) + "frame.setJMenuBar(menubar);");
     	ps.println(indent(8) + "FileNameExtensionFilter filter = new FileNameExtensionFilter(\"AbFab3D Parameters File\", FILE_EXTENSION);");
     	ps.println(indent(8) + "openDialog = new JFileChooser(new File(prefs.get(LAST_DIR, DEFAULT_DIR)));");
     	ps.println(indent(8) + "openDialog.setFileFilter(filter);");
@@ -202,7 +211,7 @@ public class JavaStandaloneUICreator {
     	ps.println(indent(12) + "filemenu.add(recentFilesMenuItems[i]);");
     	ps.println(indent(8) + "}");
     }
-    
+
     /**
      * Add a user interface element for an item.
      *
@@ -216,7 +225,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(8) + "Font " + (p.getName()) + "Font = " + p.getName() + "Label.getFont();");
         ps.println(indent(8) + p.getName()  + "Label.setFont(" + p.getName() + "Font.deriveFont(" + p.getName() + "Font.getStyle() ^ Font.BOLD));");
 
-        ps.println(indent(8) + "getContentPane().add(" + p.getName() + "Label);");
+        ps.println(indent(8) + "frame.getContentPane().add(" + p.getName() + "Label);");
 
         switch(getEditor(p)) {
             case COMBOBOX:
@@ -274,15 +283,15 @@ System.out.println("Adding param: " + p.getName());
             default:
                 ps.println(indent(8) + p.getName() + "Editor = new JTextField(\"" + p.getDefaultValue() + "\");");
         }
-        ps.println(indent(8) + "getContentPane().add(" + p.getName() + "Editor);");
+        ps.println(indent(8) + "frame.getContentPane().add(" + p.getName() + "Editor);");
 
         // Determine third column content
         switch(getEditor(p)) {
             case FILE_DIALOG:
-                ps.println(indent(8) + "getContentPane().add(" + p.getName() + "Button);");
+                ps.println(indent(8) + "frame.getContentPane().add(" + p.getName() + "Button);");
                 break;
             default:
-                ps.println(indent(8) + "getContentPane().add(new JLabel(\"\"));");
+                ps.println(indent(8) + "frame.getContentPane().add(new JLabel(\"\"));");
         }
 
         ps.println();
@@ -296,16 +305,87 @@ System.out.println("Adding param: " + p.getName());
      */
     private void addGlobalButtons(PrintStream ps) {
         ps.println(indent(8) + "submitButton = new JButton(\"Generate\");");
-        ps.println(indent(8) + "getContentPane().add(submitButton);");
+        ps.println(indent(8) + "frame.getContentPane().add(submitButton);");
         ps.println(indent(8) + "submitButton.addActionListener(this);");
 
         ps.println(indent(8) + "printButton = new JButton(\"Check Printability\");");
-        ps.println(indent(8) + "getContentPane().add(printButton);");
+        ps.println(indent(8) + "frame.getContentPane().add(printButton);");
         ps.println(indent(8) + "printButton.addActionListener(this);");
 
         ps.println(indent(8) + "uploadButton = new JButton(\"Upload\");");
-        ps.println(indent(8) + "getContentPane().add(uploadButton);");
+        ps.println(indent(8) + "frame.getContentPane().add(uploadButton);");
         ps.println(indent(8) + "uploadButton.addActionListener(this);");
+    }
+
+    private void addGenerate(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
+
+        ps.println(indent(4) + "public void generate(String filename) {");
+
+        // Create Kernel
+        String class_name = kernel.getClass().getName();
+        ps.println(indent(8) + class_name + " kernel = new " + class_name + "();");
+
+        ps.println(indent(8) + "try{");
+        ps.println(indent(8) + "FileInputStream fis = new FileInputStream(filename);");
+        ps.println(indent(8) + "Properties props = new Properties();");
+        ps.println(indent(8) + "props.load(fis);");
+        ps.println(indent(8) + "Enumeration en = props.propertyNames();");
+        ps.println(indent(8) + "while(en.hasMoreElements()) {");
+        ps.println(indent(12) + "String key = (String) en.nextElement();");
+        ps.println(indent(12) + "String val = (String) props.getProperty(key);");
+
+        Iterator<Parameter> itr = params.values().iterator();
+        int count = 0;
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            String name = p.getName();
+            if (remove.contains(name)) {
+                continue;
+            }
+
+            if (count == 0) {
+                ps.println(indent(12) + "if (key.equals(\"" + name + "\")) {");
+            } else {
+                ps.println(indent(12) + "else if (key.equals(\"" + name + "\")) {");
+            }
+
+            count++;
+            ps.println(indent(32) + name + " = val;");
+
+            ps.println(indent(32) + "}");
+        }
+        ps.println(indent(32) + "}");
+
+        ps.println(indent(12) + "HashMap<String,String> params = new HashMap<String,String>();");
+        itr = params.values().iterator();
+
+        while(itr.hasNext()) {
+            Parameter p = itr.next();
+            if (remove.contains(p.getName())) {
+                continue;
+            }
+
+            ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
+        }
+
+        ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
+
+
+        // Generate Geometry
+        ps.println(indent(16) + "String outfile = \"/tmp/out.x3db\";");
+
+        ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(outfile);");
+        ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
+        ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
+        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        ps.println(indent(16) + "fos.close();");
+
+        ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
+        ps.println(indent(12) + "System.out.println(\"Model Done\");");
+
+        ps.println(indent(8) + "}");
     }
 
     private void addActions(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
@@ -348,16 +428,27 @@ System.out.println("Adding param: " + p.getName());
         setParams(ps, params, remove);
 
         // Printability Check
-        // TODO: Outputting as .x3d for visualization, might not want to do that in general
+        // TODO: Have to output twice, once for viz with IndexedFaceSet and once for wallthickness as indexedtrianglesets
         String tmp_dir = "/tmp/";
         ps.println(indent(12) + "try {");
-        ps.println(indent(16) + "String filename = \"" + tmp_dir + "out.x3d\";");
+        ps.println(indent(16) + "String filename = \"" + tmp_dir + "out.x3db\";");
+        ps.println(indent(16) + "System.out.println(\"Outputing analytical file:\" + filename);");
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
-//        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
-        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DXMLRetainedExporter(bos, 3, 0, console, 6);");
+        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
         ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        ps.println(indent(16) + "bos.flush();");
+        ps.println(indent(16) + "bos.close();");
+        ps.println(indent(16) + "fos.close();");
+
+        ps.println(indent(16) + "filename = \"" + tmp_dir + "out_viz.x3d\";");
+        ps.println(indent(16) + "System.out.println(\"Outputing viz file:\" + filename);");
+        ps.println(indent(16) + "fos = new FileOutputStream(filename);");
+        ps.println(indent(16) + "bos = new BufferedOutputStream(fos);");
+        ps.println(indent(16) + "console = new PlainTextErrorReporter();");
+        ps.println(indent(16) + "writer = (BinaryContentHandler) new X3DXMLRetainedExporter(bos, 3, 0, console, 6);");
+        ps.println(indent(16) + "results = kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
         ps.println(indent(16) + "bos.flush();");
         ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
@@ -365,7 +456,7 @@ System.out.println("Adding param: " + p.getName());
 
         ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
         ps.println(indent(16) + "String material = (String) parsed_params.get(\"material\");");
-        ps.println(indent(16) + "WallThicknessResult res = wtr.runWallThickness(\"" + tmp_dir + "out.x3d\", material);");
+        ps.println(indent(16) + "WallThicknessResult res = wtr.runWallThickness(\"" + tmp_dir + "out.x3db\", material);");
         ps.println(indent(16) + "double[] bounds_min = results.getMinBounds();");
         ps.println(indent(16) + "double[] bounds_max = results.getMaxBounds();");
 
@@ -378,16 +469,16 @@ System.out.println("Adding param: " + p.getName());
         // Make the fully qualified path be relative
         ps.println(indent(16) + "String viz = res.getVisualization();");
         ps.println(indent(16) + "if (viz != null) viz = viz.replace(\"" + tmp_dir + "\",\"\");");
-        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out.x3d\",viz},pos);");
+        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out_viz.x3d\",viz},pos);");
 
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Printability Done\");");
 
         // Upload model
         ps.println(indent(8) + "} else if (e.getSource() == uploadButton) {");
-        
+
         setParams(ps, params, remove);
-        
+
         ps.println(indent(12) + "try {");
         ps.println(indent(16) + "System.out.println(\"Generating Model\");");
         ps.println(indent(16) + "String filename = \"/tmp/out.x3db\";");
@@ -414,7 +505,7 @@ System.out.println("Adding param: " + p.getName());
 
         ps.println(indent(12) + "String lastDir = prefs.get(LAST_DIR, DEFAULT_DIR);");
         ps.println(indent(12) + "openDialog.setCurrentDirectory(new File(lastDir));");
-        ps.println(indent(12) + "int returnVal = openDialog.showOpenDialog(this);");
+        ps.println(indent(12) + "int returnVal = openDialog.showOpenDialog(frame);");
         ps.println(indent(12) + "try {");
         ps.println(indent(16) + "if (returnVal == JFileChooser.APPROVE_OPTION) {");
         ps.println(indent(20) + "File selectedFile = openDialog.getSelectedFile();");
@@ -448,9 +539,9 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(28) + "String key = (String) en.nextElement();");
         ps.println(indent(28) + "String val = (String) props.getProperty(key);");
 //        ps.println(indent(28) + "System.out.println(key + \" = \" + val);");
-        
-    	Iterator<Parameter> itr = params.values().iterator();
-    	int count = 0;
+
+        Iterator<Parameter> itr = params.values().iterator();
+        int count = 0;
 
         while(itr.hasNext()) {
             Parameter p = itr.next();
@@ -458,13 +549,13 @@ System.out.println("Adding param: " + p.getName());
             if (remove.contains(name)) {
                 continue;
             }
-            
+
             if (count == 0) {
-            	ps.println(indent(28) + "if (key.equals(\"" + name + "\")) {");
+                ps.println(indent(28) + "if (key.equals(\"" + name + "\")) {");
             } else {
-            	ps.println(indent(28) + "else if (key.equals(\"" + name + "\")) {");
+                ps.println(indent(28) + "else if (key.equals(\"" + name + "\")) {");
             }
-            
+
             switch(getEditor(p)) {
                 case TEXTFIELD:
                     ps.println(indent(32) + "((JTextField)" + name + "Editor).setText(val);");
@@ -473,14 +564,14 @@ System.out.println("Adding param: " + p.getName());
                     ps.println(indent(32) + "((JTextField)" + name + "Editor).setText(val);");
                     break;
                 case COMBOBOX:
-                	ps.println(indent(32) + "int count = ((JComboBox)" + name + "Editor).getItemCount();");
-                	ps.println(indent(32) + "for (int i=0; i<count; i++) {");
-                	ps.println(indent(36) + "String item = (String) ((JComboBox)" + name + "Editor).getItemAt(i);");
-                	ps.println(indent(36) + "if (item.equals(val)) {");
-                	ps.println(indent(40) + "((JComboBox)" + name + "Editor).setSelectedIndex(i);");
-                	ps.println(indent(40) + "break;");
-                	ps.println(indent(36) + "}");
-                	ps.println(indent(32) + "}");
+                    ps.println(indent(32) + "int count = ((JComboBox)" + name + "Editor).getItemCount();");
+                    ps.println(indent(32) + "for (int i=0; i<count; i++) {");
+                    ps.println(indent(36) + "String item = (String) ((JComboBox)" + name + "Editor).getItemAt(i);");
+                    ps.println(indent(36) + "if (item.equals(val)) {");
+                    ps.println(indent(40) + "((JComboBox)" + name + "Editor).setSelectedIndex(i);");
+                    ps.println(indent(40) + "break;");
+                    ps.println(indent(36) + "}");
+                    ps.println(indent(32) + "}");
                 default:
                     System.out.println("Unhandled action for editor: " + getEditor(p));
             }
@@ -492,15 +583,15 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(20) + "}");
         ps.println(indent(16) + "}");
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
-        
+
         // Save a file
         ps.println(indent(8) + "} else if (e.getSource() == fileSave) {");
 
         ps.println(indent(12) + "String lastDir = prefs.get(LAST_DIR, DEFAULT_DIR);");
         ps.println(indent(12) + "saveDialog.setCurrentDirectory(new File(lastDir));");
-        ps.println(indent(12) + "int returnVal = saveDialog.showSaveDialog(this);");
+        ps.println(indent(12) + "int returnVal = saveDialog.showSaveDialog(frame);");
         ps.println(indent(12) + "if (returnVal == JFileChooser.APPROVE_OPTION) {");
-        
+
         gatherParams(ps, params, remove);
 //        ps.println(indent(16) + "System.out.println(properties);");
         ps.println(indent(16) + "File selectedFile = saveDialog.getSelectedFile();");
@@ -543,7 +634,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(20) + "} catch (IOException ioe) { }");
         ps.println(indent(16) + "}");
         ps.println(indent(12) + "}");
-        
+
         itr = params.values().iterator();
 
         while(itr.hasNext()) {
@@ -557,7 +648,7 @@ System.out.println("Adding param: " + p.getName());
 
                 ps.println(indent(12) + "String lastDir = prefs.get(\"LAST_" + p.getName().toUpperCase() + "_DIR\", DEFAULT_DIR);");
                 ps.println(indent(12) + p.getName() + "Dialog.setCurrentDirectory(new File(lastDir));");
-                ps.println(indent(12) + "int returnVal = " + p.getName() + "Dialog" + ".showOpenDialog(this);");
+                ps.println(indent(12) + "int returnVal = " + p.getName() + "Dialog" + ".showOpenDialog(frame);");
 
                 ps.println(indent(12) + "if (returnVal == JFileChooser.APPROVE_OPTION) {");
                 ps.println(indent(16) + "File file = " + p.getName() + "Dialog" + ".getSelectedFile();");
@@ -661,12 +752,14 @@ System.out.println("Adding param: " + p.getName());
      */
     private void addGlobalVars(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
         Iterator<Parameter> itr = params.values().iterator();
-        
+
 //        ps.println(indent(4) + "Map<String,Parameter> params;");
         ps.println(indent(4) + "private static final String LAST_DIR = \"LAST_DIR\";");
         ps.println(indent(4) + "private static final String DEFAULT_DIR = \"/tmp\";");
         ps.println(indent(4) + "private static final String FILE_EXTENSION = \"apf\";");
         ps.println(indent(4) + "private static final int MAX_RECENT_FILES = 4;");
+        ps.println(indent(4) + "private String fname;");
+        ps.println(indent(4) + "private JFrame frame;");
         ps.println(indent(4) + "private Preferences prefs;");
         ps.println(indent(4) + "private RecentFiles recentFiles;");
         ps.println(indent(4) + "private JMenuItem[] recentFilesMenuItems;");
@@ -679,7 +772,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(4) + "JMenuItem fileSave;");
         ps.println(indent(4) + "JFileChooser openDialog;");
         ps.println(indent(4) + "JFileChooser saveDialog;");
-        
+
         while(itr.hasNext()) {
             Parameter p = itr.next();
             if (remove.contains(p.getName())) {
@@ -738,9 +831,9 @@ System.out.println("Adding param: " + p.getName());
 
         return Editors.TEXTFIELD;
     }
-    
+
     private void setParams(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
-    	Iterator<Parameter> itr = params.values().iterator();
+        Iterator<Parameter> itr = params.values().iterator();
 
         while(itr.hasNext()) {
             Parameter p = itr.next();
@@ -786,12 +879,12 @@ System.out.println("Adding param: " + p.getName());
 
         ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
     }
-    
+
     private void gatherParams(PrintStream ps, Map<String,Parameter> params, Set<String> remove) {
-    	ps.println(indent(16) + "String properties = \"\";");
-    	ps.println(indent(16) + "String val = null;");
-    	
-    	Iterator<Parameter> itr = params.values().iterator();
+        ps.println(indent(16) + "String properties = \"\";");
+        ps.println(indent(16) + "String val = null;");
+
+        Iterator<Parameter> itr = params.values().iterator();
 
         while(itr.hasNext()) {
             Parameter p = itr.next();
@@ -801,11 +894,11 @@ System.out.println("Adding param: " + p.getName());
 
             switch(getEditor(p)) {
                 case TEXTFIELD:
-                	ps.println(indent(16) + "val = ((JTextField)" + p.getName() + "Editor).getText().replaceAll(\"\\\\\\\\+\", \"/\");");
+                    ps.println(indent(16) + "val = ((JTextField)" + p.getName() + "Editor).getText().replaceAll(\"\\\\\\\\+\", \"/\");");
                     ps.println(indent(16) + "properties += \"" + p.getName() + "=\"" + " + val + \"\\n\";");
                     break;
                 case FILE_DIALOG:
-                	ps.println(indent(16) + "val = ((JTextField)" + p.getName() + "Editor).getText().replaceAll(\"\\\\\\\\+\", \"/\");");
+                    ps.println(indent(16) + "val = ((JTextField)" + p.getName() + "Editor).getText().replaceAll(\"\\\\\\\\+\", \"/\");");
                     ps.println(indent(16) + "properties += \"" + p.getName() + "=\"" + " + val + \"\\n\";");
                     break;
                 case COMBOBOX:
@@ -816,5 +909,5 @@ System.out.println("Adding param: " + p.getName());
             }
         }
     }
-    
+
 }
