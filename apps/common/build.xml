@@ -29,7 +29,7 @@
 
     <target name="build"
             description="Complete clean, setup, compilation, run"
-            depends="clean,init,compile"/>
+            depends="clean,init,compile,jar"/>
 
     <!-- Create destination directories -->
     <target name="init" description="Create destination directories">
@@ -65,6 +65,17 @@
 
     </target>
 
+    <target name="jar" depends="compile">
+        <createjar name="abfab3d_apps_common" 
+            version="${version}"
+            manifest="abfab3d_apps_common.mf"
+            includes="app/common/*
+                app/common/upload/*
+                app/common/upload/shapeways/oauth/*
+                app/common/upload/shapeways/oauth/api/*
+                "
+        />
+    </target>
 
     <target name="clean" description="Deletes all the generated artifacts.">
         <delete dir="${javadocs.dir}"/>

@@ -358,16 +358,17 @@ System.out.println("Adding param: " + p.getName());
                 pw.println("</SELECT><TD/></TR>");
                 break;
             case FILE_DIALOG:
-/*
-                if (p.getDefaultValue() == null) {
-                    pw.println(indent(8) + "String dir = \".\";");
-                } else {
-                    pw.println(indent(8) + "String dir = \"" + p.getDefaultValue() + "\";");
-                }
-                pw.println(indent(8) + p.getName() + "Dialog = new JFileChooser(new File(dir));");
-                pw.println(indent(8) + p.getName() + "Button = new JButton(\"Browse\");");
-                pw.println(indent(8) + p.getName() + "Button.addActionListener(this);");
-*/
+                pw.print("<TR><TD>");
+                pw.print(p.getNameDesc());
+                pw.print("</TD><TD>");
+                pw.print("<INPUT type=\"file\" name=\"");
+                pw.print("p_");
+                pw.print(p.getName());
+                pw.print("\" id=\"p_");
+                pw.print(p.getName());
+                pw.print("\">");
+                pw.println("<TD/></TR>");
+                
                 break;
             case TEXTAREA:
                 pw.print("<TR><TD>");
