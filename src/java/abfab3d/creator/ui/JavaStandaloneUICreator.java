@@ -404,8 +404,9 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
 //        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
-        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DXMLRetainedExporter(fos, 3, 0, console, 6);");
-        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
+//        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DXMLRetainedExporter(fos, 3, 0, console, 6);");
+//        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
+        writeMesh(ps, true, "VISUAL");
         ps.println(indent(16) + "fos.close();");
 
         ps.println(indent(16) + "double[] bounds_min = results.getMinBounds();");
@@ -436,8 +437,9 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
-        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
-        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+//        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+//        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        writeMesh(ps, true, "PRINT");
         ps.println(indent(16) + "bos.flush();");
         ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
@@ -485,8 +487,9 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
         ps.println(indent(16) + "BufferedOutputStream bos = new BufferedOutputStream(fos);");
         ps.println(indent(16) + "PlainTextErrorReporter console = new PlainTextErrorReporter();");
-        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
-        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+//        ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DBinaryRetainedDirectExporter(bos, 3, 0, console, X3DBinarySerializer.METHOD_FASTEST_PARSING, 0.001f, true);");
+//        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+        writeMesh(ps, true, "PRINT");
         ps.println(indent(16) + "fos.close();");
 
         ps.println(indent(16) + "System.out.println(\"Uploading Model\");");
@@ -910,4 +913,31 @@ System.out.println("Adding param: " + p.getName());
         }
     }
 
+	/**
+	 * Write the X3D file.
+	 */
+	private void writeMesh(PrintStream ps, boolean headlight, String accuracy) {
+		ps.println(indent(16) + "BinaryContentHandler writer = (BinaryContentHandler) new X3DXMLRetainedExporter(fos, 3, 0, console, 6);");
+		
+	    // Write the X3D header
+	    ps.println(indent(16) + "writer.startDocument(\"\",\"\", \"utf8\", \"#X3D\", \"V3.2\", \"\");");
+	    ps.println(indent(16) + "writer.profileDecl(\"Immersive\");");
+	    
+	    // Write the mesh
+	    if (accuracy.equals("PRINT")) {
+	    	ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.PRINT, writer);");
+	    } else {
+	    	ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
+	    }
+	    
+	    // Write the environment (NavigationInfo, Viewpoint, Headlight, etc)
+	    ps.println(indent(16) + "writer.startNode(\"NavigationInfo\", null);");
+	    ps.println(indent(16) + "writer.startField(\"avatarSize\");");
+	    ps.println(indent(16) + "writer.fieldValue(new float[] {0.01f, 1.6f, 0.75f}, 3);");
+	    ps.println(indent(16) + "writer.startField(\"headlight\");");
+	    ps.println(indent(16) + "writer.fieldValue(" + headlight + ");");
+	    ps.println(indent(16) + "writer.endNode();"); // NavigationInfo
+
+	    ps.println(indent(16) + "writer.endDocument();");
+	}
 }

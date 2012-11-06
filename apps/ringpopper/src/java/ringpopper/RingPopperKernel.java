@@ -422,13 +422,11 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
-//        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9);
-        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-10);
+        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9, true);
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
         grid.getWorldCoords(0,0,0, min_bounds);
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
-
 
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
