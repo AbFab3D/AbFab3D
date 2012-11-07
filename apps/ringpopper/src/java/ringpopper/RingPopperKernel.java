@@ -428,7 +428,7 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
-        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, maxDecimationError);
+        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, maxDecimationError, true);
 
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];

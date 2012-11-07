@@ -126,14 +126,17 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         MaterialProperties props = wtProps.get(material);
 
         double wt = props.getMinWallthickness();
-//        double bir = 2.7;
         double bir = 2.7;
-        double minSuspectVol = 0.05;
-        double minUnsafeVol = 0.5;
+//        double minSuspectVol = 0.05;
+//        double minUnsafeVol = 0.5;
+
+        //if we want to filter out only 5 voxels size, we use 5 * 0.1*0.1*0.1 mm = 0.005 mm^3
+        double minSuspectVol = 0.005;
+        double minUnsafeVol = 0.05;
 
         // TODO: Stop hardcoding params
         String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
-                "-visDir","/tmp", "-maxReg", "500", "-debug","4", "-bir", Double.toString(bir),
+                "-visDir","/tmp", "-maxReg", "1000", "-debug","4", "-bir", Double.toString(bir),
                 "-minSuspectVol",Double.toString(minSuspectVol),"-minUnsafeVol",Double.toString(minUnsafeVol)};
         String workingDirPath = "/tmp";
 
@@ -293,6 +296,17 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
                 // Assume we have cygwin installed
                 cmd[0] = "\\cygwin\\bin\\bash.exe" ;
                 cmd[1] = name;
+
+                File f = new File(cmd[0]);
+                if (!f.exists()) {
+                    cmd[0] = "c:\\cygwin\\bin\\bash.exe" ;
+                    f = new File(cmd[0]);
+
+                    if (!f.exists()) {
+                        System.out.println("Cannot find cygwin bash.exe");
+                        return -1;
+                    }
+                }
             } else {
                 // Assume a UNIX box
                 cmd[0] = "/bin/bash" ;

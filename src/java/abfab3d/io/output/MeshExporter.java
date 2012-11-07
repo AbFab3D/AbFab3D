@@ -178,6 +178,38 @@ public class MeshExporter {
         writer.endDocument();
     }
 
+    /**
+     * Write a mesh to an X3D file
+     *
+     * @param we
+     * @throws IOException
+     */
+    public static void writeMesh(WingedEdgeTriangleMesh we, BinaryContentHandler writer, Map<String, 
+    		Object> params, float[] pos, boolean meshOnly) throws IOException {
+
+        ErrorReporter console = new PlainTextErrorReporter();
+
+        if (!meshOnly) {
+            writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
+            writer.profileDecl("Immersive");
+            writer.startNode("NavigationInfo", null);
+            writer.startField("avatarSize");
+            writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
+            writer.endNode(); // NavigationInfo
+            writer.startNode("Viewpoint", null);
+            writer.startField("position");
+            writer.fieldValue(pos, 3);
+            writer.endNode(); // Viewpoint
+        }
+
+        SAVExporter se = new SAVExporter();
+        se.outputX3D(we, params, writer);
+        
+        if (!meshOnly) {
+            writer.endDocument();
+        }
+    }
+    
     public static void writeMeshSTL(WingedEdgeTriangleMesh we, String filename) throws IOException {
 
         STLWriter writer = new STLWriter(filename);
