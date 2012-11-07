@@ -441,7 +441,8 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "bos.flush();");
         ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
-
+/*
+        // No longer needed with new viz
         ps.println(indent(16) + "filename = \"" + tmp_dir + "out_viz.x3d\";");
         ps.println(indent(16) + "System.out.println(\"Outputing viz file:\" + filename);");
         ps.println(indent(16) + "fos = new FileOutputStream(filename);");
@@ -452,7 +453,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "bos.flush();");
         ps.println(indent(16) + "bos.close();");
         ps.println(indent(16) + "fos.close();");
-
+ */
 
         ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
         ps.println(indent(16) + "String material = (String) parsed_params.get(\"material\");");
@@ -469,7 +470,8 @@ System.out.println("Adding param: " + p.getName());
         // Make the fully qualified path be relative
         ps.println(indent(16) + "String viz = res.getVisualization();");
         ps.println(indent(16) + "if (viz != null) viz = viz.replace(\"" + tmp_dir + "\",\"\");");
-        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out_viz.x3d\",viz},pos);");
+//        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out_viz.x3d\",viz},pos);");
+        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {viz},pos);");
 
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Printability Done\");");
