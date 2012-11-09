@@ -291,7 +291,7 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
 
             if(osName.indexOf("Windows") > -1) {
                 // Assume we have cygwin installed
-                cmd[0] = "\\cygwin\\bin\\bash.exe" ;
+                cmd[0] = "c:\\cygwin\\bin\\bash.exe" ;
                 cmd[1] = name;
             } else {
                 // Assume a UNIX box

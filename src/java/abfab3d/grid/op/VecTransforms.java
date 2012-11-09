@@ -202,6 +202,14 @@ public class VecTransforms {
 
         }
 
+        public void setScale(double sx, double sy, double sz){
+
+            this.sx = sx;
+            this.sy = sy;
+            this.sz = sz;
+
+        }
+
         /**
          *
          */

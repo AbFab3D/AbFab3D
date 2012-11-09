@@ -55,6 +55,7 @@ import static abfab3d.util.MathUtil.TORAD;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.sqrt;
+import static java.lang.Math.PI;
 
 /**
  * Tests the functionality of GridMaker
@@ -92,10 +93,9 @@ public class TestGridMaker extends TestCase {
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SS, "docs/images/wp_fd_01.png", "c:/tmp/wp13_SS.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "c:/tmp/wp14_SX.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "c:/tmp/wp15_22X.stl"); 
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");        
-        */
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");                
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "c:/tmp/wp17_O.stl");
-
+        */
     }
     
     public void makeSymmetricImage(int symmetryType, String imagePath, String outFileName) {
@@ -316,6 +316,93 @@ public class TestGridMaker extends TestCase {
         
         printf("writeIsosurface()\n");
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_tiled.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+
+    /**
+
+     */
+    public void testTorusRing() {
+        
+        printf("testTorusRing()\n");
+        double voxelSize = 2.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 1*voxelSize;
+
+        double ringR = 3*CM;
+        double ringr = 0.5*CM;
+        double ringThickness = 0.2*CM;
+        int tilesR = 20;
+        int tilesr = 3;
+
+        double gridWidth =2*(ringR + ringr) + 2*margin;
+        double gridHeight  = 2*(ringr) + 2*margin;
+        double gridDepth = gridWidth;
+
+        double tileWidth = 2*PI*ringr/tilesr;
+        double tileHeight = 2*PI*(ringR)/tilesR;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);  
+
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(tileWidth, tileHeight, ringThickness);
+        image.setLocation(0,0,-ringThickness);
+        image.setBaseThickness(0.);
+        image.setTiles(1,1);
+        image.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        image.setImagePath("docs/images/tile_01.png");
+        
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
+        wps.setSymmetryType(VecTransforms.WallpaperSymmetry.WP_O);
+        wps.setDomainWidth(tileWidth);
+        wps.setDomainHeight(tileHeight);
+        wps.setDomainSkew(0);
+
+        VecTransforms.RingWrap rw1 = new VecTransforms.RingWrap();
+        rw1.setRadius(ringr);
+
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.setRotation(new Vector3d(0,0,1), 90*TORAD);
+
+        VecTransforms.Scale scale = new VecTransforms.Scale();
+        scale.setScale(1, 1, 0.5);
+        
+        VecTransforms.RingWrap rw2 = new VecTransforms.RingWrap();
+        rw2.setRadius(ringR);
+        
+        compTrans.add(wps);
+        compTrans.add(rw1);
+        compTrans.add(rot);
+        compTrans.add(scale);
+        compTrans.add(rw2);
+               
+
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(image);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_torus.stl");
         printf("writeIsosurface() done\n");
         
     }
