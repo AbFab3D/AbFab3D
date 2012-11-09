@@ -25,6 +25,7 @@ import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import app.common.RegionPrunner;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
@@ -59,10 +60,16 @@ import app.common.GridSaver;
 public class ImagePopperKernel extends HostedKernel {
     /** Debugging level.  0-5.  0 is none */
     private static final int DEBUG_LEVEL = 0;
+    enum Regions {
+        ALL, ONE
+    }
 
     /** The horizontal and vertical resolution */
     private double resolution;
     private int smoothSteps;
+
+    /** How many regions to keep */
+    private Regions regions;
 
     /** The width of the body geometry */
     private double bodyWidth;
@@ -163,6 +170,11 @@ public class ImagePopperKernel extends HostedKernel {
         params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("regions", new Parameter("regions", "Regions", "How many regions to keep", Regions.ALL.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(Regions.values()))
         );
 
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
@@ -310,30 +322,9 @@ System.out.println("read file: " + filename);
             op.execute(grid);
         }
 
-        System.out.println("Finding Regions: ");
-        // Remove all but the largest region
-        RegionFinder finder = new RegionFinder();
-        List<Region> regions = finder.execute(grid);
-        Region largest = regions.get(0);
-
-        System.out.println("Regions: " + regions.size());
-        for(Region r : regions) {
-            if (r.getVolume() > largest.getVolume()) {
-                largest = r;
-            }
-            //System.out.println("Region: " + r.getVolume());
+        if (regions != Regions.ALL) {
+            RegionPrunner.reduceToOneRegion(grid);
         }
-
-        System.out.println("Largest Region: " + largest);
-        RegionClearer clearer = new RegionClearer(grid);
-        System.out.println("Clearing regions: ");
-        for(Region r : regions) {
-            if (r != largest) {
-                //System.out.println("   Region: " + r.getVolume());
-                r.traverse(clearer);
-            }
-        }
-
 /*
 if (1==1) {
         BufferedImage image = createImage(bodyWidthPixels, bodyHeightPixels, "AbFab3D", "Pump Demi Bold LET", Font.BOLD, -1);
@@ -357,7 +348,7 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
-        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9);
+        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9, true);
 
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
@@ -406,6 +397,10 @@ if (1==1) {
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
+            pname = "regions";
+            regions = Regions.valueOf((String) params.get(pname));
+
+
         } catch(Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
@@ -445,23 +440,12 @@ if (1==1) {
         exporter.close();
     }
 
-}
-
-class RegionClearer implements RegionTraverser {
-    private Grid grid;
-
-    public RegionClearer(Grid grid) {
-        this.grid = grid;
-    }
-    @Override
-    public void found(int x, int y, int z) {
-        grid.setState(x,y,z,Grid.OUTSIDE);
-    }
-
-    @Override
-    public boolean foundInterruptible(int x, int y, int z) {
-        grid.setState(x,y,z,Grid.OUTSIDE);
-
-        return true;
+    public static <T extends Enum<T>> String[] enumToStringArray(T[] values) {
+        int i = 0;
+        String[] result = new String[values.length];
+        for (T value: values) {
+            result[i++] = value.name();
+        }
+        return result;
     }
 }

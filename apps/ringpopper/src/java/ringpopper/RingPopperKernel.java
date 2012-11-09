@@ -99,6 +99,7 @@ public class RingPopperKernel extends HostedKernel {
     /** The horizontal and vertical resolution */
     private double resolution;
     private int smoothSteps;
+    private double maxDecimationError;
 
     /** The image filename */
     private String image;
@@ -180,15 +181,7 @@ public class RingPopperKernel extends HostedKernel {
         step++;
         seq = 0;
 
-        params.put("material", new Parameter("material", "Material", "What material to design for", "Silver Glossy", 1,
-                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, availableMaterials)
-        );
-
-        step++;
-        seq = 0;
-
-        params.put("text", new Parameter("text", "text", "Engraved Text", "To a special someone", 1,
+        params.put("text", new Parameter("text", "text", "Engraved Text", "MADE IN THE FUTURE", 1,
                 Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, null)
         );
@@ -201,10 +194,23 @@ public class RingPopperKernel extends HostedKernel {
         step++;
         seq = 0;
 
+        params.put("material", new Parameter("material", "Material", "What material to design for", "Silver Glossy", 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, availableMaterials)
+        );
+
+        step++;
+        seq = 0;
+
         // Advanced Params
         params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "1e-10", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0, 1, null, null)
         );
 
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
@@ -315,7 +321,7 @@ public class RingPopperKernel extends HostedKernel {
         DataSources.DataTransformer rotatedText = null;
         DataSources.Subtraction ringMinusText = null;
 
-        double textDepth = 0.001; // 1mm
+        double textDepth = 0.0003; // 1mm
 
         DataSource complete_band = image_with_edges;
 
@@ -422,13 +428,12 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
-//        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9);
-        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-10);
+        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, maxDecimationError, true);
+
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
         grid.getWorldCoords(0,0,0, min_bounds);
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
-
 
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
@@ -446,6 +451,9 @@ if (1==1) {
         try {
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
+
+            pname = "maxDecimationError";
+            maxDecimationError = ((Double) params.get(pname)).doubleValue();
 
             pname = "innerDiameter";
             innerDiameter = ((Double) params.get(pname)).doubleValue();
