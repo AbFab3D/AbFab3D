@@ -457,6 +457,11 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "fos.close();");
  */
 
+        // Release memory used before running wallthickness
+        ps.println(indent(16) + "kernel = null;");
+        ps.println(indent(16) + "System.out.println(\"Clearing memory\");");
+        ps.println(indent(16) + "System.gc();");
+        ps.println(indent(16) + "System.gc();");
         ps.println(indent(16) + "WallThicknessRunner wtr = new WallThicknessRunner();");
         ps.println(indent(16) + "String material = (String) parsed_params.get(\"material\");");
         ps.println(indent(16) + "WallThicknessResult res = wtr.runWallThickness(\"" + tmp_dir + "out.x3db\", material);");
