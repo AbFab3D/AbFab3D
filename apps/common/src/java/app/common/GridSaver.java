@@ -101,7 +101,8 @@ public class GridSaver {
 
                 current = mesh.getFaceCount();
                 System.out.println("Current face count: " + current);
-                if (current > target * 1.25) {
+                if (current >= target * 1.25) {
+                    System.out.println("Leaving loop");
                     // not worth continuing
                     break;
                 }
@@ -183,7 +184,7 @@ public class GridSaver {
 
                 current = mesh.getFaceCount();
                 System.out.println("Current face count: " + current);
-                if (current > target * 1.25) {
+                if (current >= target * 1.25) {
                     // not worth continuing
                     break;
                 }
@@ -273,7 +274,7 @@ public class GridSaver {
 
                 current = mesh.getFaceCount();
                 System.out.println("Current face count: " + current);
-                if (current > target * 1.25) {
+                if (current >= target * 1.25) {
                     // not worth continuing
                     break;
                 }
@@ -298,9 +299,56 @@ public class GridSaver {
      *
      * @param grid
      * @param smoothSteps
-     * @param maxCollapseError
      * @throws IOException
      */
+    public static WingedEdgeTriangleMesh createIsosurface(Grid grid, int smoothSteps) throws IOException {
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        double vs = grid.getVoxelSize();
+
+
+        double gbounds[] = new double[]{-nx*vs/2,nx*vs/2,-ny*vs/2,ny*vs/2,-nz*vs/2,nz*vs/2};
+        double ibounds[] = extendBounds(gbounds, -vs/2);
+
+        IsosurfaceMaker im = new IsosurfaceMaker();
+        im.setIsovalue(0.);
+        im.setBounds(ibounds);
+        im.setGridSize(nx, ny, nz);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+
+        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
+        int[][] faces = its.getFaces();
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
+
+        double centerWeight = 1.0; // any non negative value is OK
+
+        LaplasianSmooth ls = new LaplasianSmooth();
+
+        ls.setCenterWeight(centerWeight);
+
+        System.out.println("***Smoothing mesh");
+        long t0 = currentTimeMillis();
+        //for(int i = 0; i < smoothSteps; i++){
+        printf("smoothMesh()\n");
+        t0 = currentTimeMillis();
+        ls.processMesh(mesh, smoothSteps);
+        printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
+        //}
+
+
+        return mesh;
+    }
+
+        /**
+        * Write a grid using the IsoSurfaceMaker to the specified file
+        *
+        * @param grid
+        * @param smoothSteps
+        * @param maxCollapseError
+        * @throws IOException
+        */
     public static void writeIsosurfaceMaker(Grid grid, BinaryContentHandler writer, Map<String,Object> params,
     		int smoothSteps, double maxCollapseError, boolean meshOnly) throws IOException {
         int nx = grid.getWidth();
@@ -338,6 +386,7 @@ public class GridSaver {
         printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
         //}
 
+        // We could release the grid at this point
         int fcount = faces.length;
 
         if (maxCollapseError > 0) {
@@ -356,7 +405,7 @@ public class GridSaver {
 
                 current = mesh.getFaceCount();
                 System.out.println("Current face count: " + current);
-                if (current > target * 1.25) {
+                if (current >= target * 1.25) {
                     // not worth continuing
                     break;
                 }
@@ -375,7 +424,54 @@ public class GridSaver {
 
         MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly);
     }
-    
+
+    /**
+     * Write a grid using the IsoSurfaceMaker to the specified file
+     *
+     * @param maxCollapseError
+     * @throws IOException
+     */
+    public static void writeIsosurfaceMaker(WingedEdgeTriangleMesh mesh, int gw, int gh, int gd, double vs, double sh, BinaryContentHandler writer, Map<String,Object> params,
+                                            double maxCollapseError, boolean meshOnly) throws IOException {
+        // We could release the grid at this point
+        int fcount = mesh.getFaceCount();
+
+        if (maxCollapseError > 0) {
+            MeshDecimator md = new MeshDecimator();
+            md.setMaxCollapseError(maxCollapseError);
+            long start_time = System.currentTimeMillis();
+
+            int target = mesh.getTriangleCount() / 4;
+            int current = fcount;
+            System.out.println("Original face count: " + fcount);
+
+            while(true) {
+                target = mesh.getTriangleCount() / 2;
+                System.out.println("Target face count : " + target);
+                md.processMesh(mesh, target);
+
+                current = mesh.getFaceCount();
+                System.out.println("Current face count: " + current);
+                if (current >= target * 1.25) {
+                    // not worth continuing
+                    break;
+                }
+            }
+
+            fcount = mesh.getFaceCount();
+            System.out.println("Final face count: " + fcount);
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+        }
+
+        double max_axis = Math.max(gh * sh, gw * vs);
+        max_axis = Math.max(max_axis, gd * vs);
+
+        double z = 2 * max_axis / Math.tan(Math.PI / 4);
+        float[] pos = new float[] {0,0,(float) z};
+
+        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly);
+    }
+
     /**
      return bounds extended by given margin
      */

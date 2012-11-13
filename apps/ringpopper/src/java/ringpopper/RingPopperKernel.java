@@ -30,6 +30,7 @@ import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.TextUtil;
 import abfab3d.util.DataSource;
 
+import app.common.RegionPrunner;
 import app.common.X3DViewer;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
@@ -112,6 +113,9 @@ public class RingPopperKernel extends HostedKernel {
     private String material;
     private String text = "Test Image Text gg";
     private int fontSize = 20;
+
+    /** How many regions to keep */
+    private RegionPrunner.Regions regions;
 
     /**
      * Get the parameters for this editor.
@@ -211,6 +215,11 @@ public class RingPopperKernel extends HostedKernel {
         params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "1e-10", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 1, null, null)
+        );
+
+        params.put("regions", new Parameter("regions", "Regions", "How many regions to keep", RegionPrunner.Regions.ALL.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(RegionPrunner.Regions.values()))
         );
 
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
@@ -371,38 +380,25 @@ public class RingPopperKernel extends HostedKernel {
         gm.setTransform(compTrans);
         gm.setDataSource(complete_band);
 
-        Grid grid = new ArrayGridByte(nx, ny, nz, resolution, resolution);
+        boolean bigIndex = false;
+        
+        if ((long) nx * ny * nz > Math.pow(2,31)) {
+            bigIndex = true;
+        }
+
+        boolean useBlockBased = true;
+
+        Grid grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
+
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
         printf("gm.makeGrid() done\n");
 
 
-/*
-        System.out.println("Finding Regions: ");
-        // Remove all but the largest region
-        RegionFinder finder = new RegionFinder();
-        List<Region> regions = finder.execute(grid);
-        Region largest = regions.get(0);
-
-        System.out.println("Regions: " + regions.size());
-        for(Region r : regions) {
-            if (r.getVolume() > largest.getVolume()) {
-                largest = r;
-            }
-            //System.out.println("Region: " + r.getVolume());
+        if (regions != RegionPrunner.Regions.ALL) {
+            RegionPrunner.reduceToOneRegion(grid);
         }
-
-        System.out.println("Largest Region: " + largest);
-        RegionClearer clearer = new RegionClearer(grid);
-        System.out.println("Clearing regions: ");
-        for(Region r : regions) {
-            if (r != largest) {
-                //System.out.println("   Region: " + r.getVolume());
-                r.traverse(clearer);
-            }
-        }
-*/
 /*
 if (1==1) {
         BufferedImage image = createImage(bodyWidthPixels, bodyHeightPixels, "AbFab3D", "Pump Demi Bold LET", Font.BOLD, -1);
@@ -418,8 +414,6 @@ if (1==1) {
 
         System.out.println("Writing grid");
 
-//        GridSaver.writeIsosurfaceMakerSTL("out.stl", grid,smoothSteps, 1e-9);
-//        GridSaver.writeIsosurfaceMaker("out.x3d", grid,smoothSteps, 1e-9);
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
         if (acc == Accuracy.VISUAL) {
@@ -428,12 +422,25 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
-        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, maxDecimationError, true);
 
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
-        grid.getWorldCoords(0,0,0, min_bounds);
+        grid.getWorldCoords(0, 0, 0, min_bounds);
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
+
+        WingedEdgeTriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
+        int gw = grid.getWidth();
+        int gh = grid.getHeight();
+        int gd = grid.getDepth();
+        double sh = grid.getSliceHeight();
+        double vs = grid.getVoxelSize();
+
+        // Release grid to lower total memory requirements
+        grid = null;
+        System.gc();
+
+        GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
+
 
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
@@ -497,6 +504,9 @@ if (1==1) {
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
+            pname = "regions";
+            regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
+
         } catch(Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
@@ -543,24 +553,5 @@ if (1==1) {
             result[i++] = value.name();
         }
         return result;
-    }
-}
-
-class RegionClearer implements RegionTraverser {
-    private Grid grid;
-
-    public RegionClearer(Grid grid) {
-        this.grid = grid;
-    }
-    @Override
-    public void found(int x, int y, int z) {
-        grid.setState(x,y,z,Grid.OUTSIDE);
-    }
-
-    @Override
-    public boolean foundInterruptible(int x, int y, int z) {
-        grid.setState(x,y,z,Grid.OUTSIDE);
-
-        return true;
     }
 }

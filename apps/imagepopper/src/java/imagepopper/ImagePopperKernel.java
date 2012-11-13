@@ -13,88 +13,84 @@
 package imagepopper;
 
 // External Imports
-import java.io.*;
-import java.util.*;
-import javax.imageio.*;
-import javax.vecmath.Matrix4d;
-import java.awt.image.BufferedImage;
 
-import abfab3d.grid.query.RegionFinder;
-import abfab3d.io.output.*;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.LaplasianSmooth;
-import abfab3d.mesh.MeshDecimator;
+import abfab3d.creator.KernelResults;
+import abfab3d.creator.Parameter;
+import abfab3d.creator.shapeways.HostedKernel;
+import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.Grid;
+import abfab3d.grid.op.DataSources;
+import abfab3d.grid.op.GridMaker;
+import abfab3d.io.output.BoxesX3DExporter;
+import abfab3d.io.output.SAVExporter;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import app.common.GridSaver;
 import app.common.RegionPrunner;
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
-import abfab3d.geom.*;
-import abfab3d.grid.*;
-import abfab3d.grid.op.*;
-import abfab3d.creator.*;
-import abfab3d.creator.shapeways.*;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static abfab3d.util.Output.printf;
 
 //import java.awt.*;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
-
-import app.common.GridSaver;
 
 /**
  * Geometry Kernel for the ImageEditor.
- *
+ * <p/>
  * Some images don't seem to work right, saving them with paint "fixes" this.  Not sure why.
- *    And example of this is the cat.png image.
+ * And example of this is the cat.png image.
  *
  * @author Alan Hudson
  */
 public class ImagePopperKernel extends HostedKernel {
-    /** Debugging level.  0-5.  0 is none */
+    /**
+     * Debugging level.  0-5.  0 is none
+     */
     private static final int DEBUG_LEVEL = 0;
-    enum Regions {
-        ALL, ONE
-    }
 
-    /** The horizontal and vertical resolution */
+    /**
+     * The horizontal and vertical resolution
+     */
     private double resolution;
     private int smoothSteps;
+    private double maxDecimationError;
 
-    /** How many regions to keep */
-    private Regions regions;
+    /**
+     * How many regions to keep
+     */
+    private RegionPrunner.Regions regions;
 
-    /** The width of the body geometry */
-    private double bodyWidth;
+    /**
+     * The width of the body geometry
+     */
+    private double bodyWidth1;
+    private double bodyWidth2;
 
-    /** The height of the body geometry */
-    private double bodyHeight;
+    /**
+     * The height of the body geometry
+     */
+    private double bodyHeight1;
+    private double bodyHeight2;
 
-    /** The depth of the body geometry */
-    private double bodyDepth;
+    /**
+     * The depth of the body geometry
+     */
+    private double bodyDepth1;
+    private double bodyDepth2;
 
-    /** The image filename */
+    /**
+     * The image filename
+     */
     private String filename;
     private String filename2;
 
-    /** Should we invert the image */
-    private boolean invert;
-
-    /** The depth of body image */
-    private double bodyImageDepth;
-    private double bodyImageDepth2;
-
     private String material;
 
-    private String[] availableMaterials = new String[] {"White Strong & Flexible", "White Strong & Flexible Polished",
-            "Silver", "Silver Glossy", "Stainless Steel","Gold Plated Matte", "Gold Plated Glossy","Antique Bronze Matte",
+    private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
+            "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
             "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
 
     /**
@@ -102,37 +98,27 @@ public class ImagePopperKernel extends HostedKernel {
      *
      * @return The parameters.
      */
-    public Map<String,Parameter> getParams() {
-        HashMap<String,Parameter> params = new HashMap<String,Parameter>();
+    public Map<String, Parameter> getParams() {
+        HashMap<String, Parameter> params = new HashMap<String, Parameter>();
 
         int seq = 0;
         int step = 0;
 
         params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5_04_combined.jpg", 1,
-            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
-            step, seq++, false, 0, 0.1, null, null)
+                Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
         );
         params.put("bodyImage2", new Parameter("bodyImage2", "Image Layer 2", "The image to use for the front body", "NONE", 1,
                 Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
 
-        params.put("bodyImageInvert", new Parameter("bodyImageInvert", "Invert Image", "Should we use black for cutting", "true", 1,
-            Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0, 0.1, null, null)
+        params.put("bodyDepth1", new Parameter("bodyDepth1", "Depth Amount - Layer 1", "The depth of the image", "0.0013", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
         );
 
-        params.put("bodyImageType", new Parameter("bodyImageType", "Image Mapping Technique", "The type of image", "SQUARE", 1,
-            Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-            step, seq++, true, 0, 0.1, null, new String[] {"SQUARE","CIRCULAR"})
-        );
-
-        params.put("bodyImageDepth", new Parameter("bodyImageDepth", "Depth Amount - Layer 1", "The depth of the image", "0.0013", 1,
-            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0, 1, null, null)
-        );
-
-        params.put("bodyImageDepth2", new Parameter("bodyImageDepth2", "Depth Amount - Layer 2", "The depth of the image", "0.0008", 1,
+        params.put("bodyDepth2", new Parameter("bodyDepth2", "Depth Amount - Layer 2", "The depth of the image", "0.0008", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
@@ -145,14 +131,24 @@ public class ImagePopperKernel extends HostedKernel {
             step, seq++, true, 0, 0.1, null, null)
         );
 */
-        params.put("bodyWidth", new Parameter("bodyWidth", "Body Width", "The width of the main body", "0.055330948", 1,
-            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0.01, 1, null, null)
+        params.put("bodyWidth1", new Parameter("bodyWidth1", "Body Width", "The width of layer 1", "0.055330948", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
         );
 
-        params.put("bodyHeight", new Parameter("bodyHeight", "Body Height", "The height of the main body", "0.04", 1,
-            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0.01, 1, null, null)
+        params.put("bodyHeight1", new Parameter("bodyHeight1", "Body Height", "The height of layer 1", "0.04", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
+        );
+
+        params.put("bodyWidth2", new Parameter("bodyWidth2", "Body Width", "The width of layer 2", "0.055330948", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
+        );
+
+        params.put("bodyHeight2", new Parameter("bodyHeight2", "Body Height", "The height of layer 2", "0.04", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
         );
 
         step++;
@@ -172,9 +168,14 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, true, 0, 0.1, null, null)
         );
 
-        params.put("regions", new Parameter("regions", "Regions", "How many regions to keep", Regions.ALL.toString(), 1,
+        params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "1e-9", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0, 1, null, null)
+        );
+
+        params.put("regions", new Parameter("regions", "Regions", "How many regions to keep", RegionPrunner.Regions.ALL.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, enumToStringArray(Regions.values()))
+                step, seq++, false, -1, 1, null, enumToStringArray(RegionPrunner.Regions.values()))
         );
 
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
@@ -186,157 +187,76 @@ public class ImagePopperKernel extends HostedKernel {
     }
 
     /**
-     * @param params The parameters
-     * @param acc The accuracy to generate the model
+     * @param params  The parameters
+     * @param acc     The accuracy to generate the model
      * @param handler The X3D content handler to use
      */
-    public KernelResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
+    public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
 
         long start = System.currentTimeMillis();
 
         pullParams(params);
 
+        Grid grid = null;
+
         if (acc == Accuracy.VISUAL) {
             // TODO: not sure I like this, could have two params:  visualResolution, printResolution
             resolution = resolution * 1.5;
         }
-        // Calculate maximum bounds
+        double image1Width = bodyWidth1;
+        double image1Height = bodyHeight1;
+        double image1Depth = bodyDepth1;
+        double voxelSize = resolution;
 
-        // TODO: We should be able to accurately calculate this
-        double max_width = bodyWidth * 1.2;
-        double max_height = bodyHeight * 1.3;
-        double max_depth = (bodyImageDepth + bodyImageDepth2) * 1.2;
+        double margin = 1 * voxelSize;
 
-        // Setup Grid
-        boolean bigIndex = false;
-        int voxelsX = (int) Math.ceil(max_width / resolution);
-        int voxelsY = (int) Math.ceil(max_height / resolution);
-        int voxelsZ = (int) Math.ceil(max_depth / resolution);
+        double gridWidth = image1Width + 2 * margin;
+        double gridHeight = image1Height + 2 * margin;
+        double gridDepth = 4 * image1Depth + 2 * margin;
 
-        if ((long) voxelsX * voxelsY * voxelsZ > Math.pow(2,31)) {
-            bigIndex = true;
-        }
+        double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -gridDepth / 2, gridDepth / 2};
+        int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
+        int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
+        int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
-        Grid grid = null;
+        DataSources.Union union = new DataSources.Union();
 
-        boolean useBlockBased = true;
-
-        if (bigIndex) {
-            grid = new ArrayAttributeGridByteIndexLong(voxelsX, voxelsY, voxelsZ, resolution, resolution);
-        } else {
-            if (useBlockBased) {
-                grid = new BlockBasedAttributeGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
-            } else {
-                grid = new ArrayAttributeGridByte(voxelsX, voxelsY, voxelsZ, resolution, resolution);
-            }
-        }
-
-        if (DEBUG_LEVEL > 0) grid = new RangeCheckWrapper(grid);
-
-        double body_cx = max_width / 2.0;
-        double body_cy = max_height / 2.0;
-        double body_cz = max_depth / 2.0;
-        int mat = 1;
-
-        int bodyWidthPixels = (int) Math.ceil(bodyWidth / resolution);
-        int bodyHeightPixels = (int) Math.ceil(bodyHeight / resolution);
-        int bodyDepthPixels = (int) Math.ceil(bodyDepth / resolution);
-
-        System.out.println("body pixels: " + bodyWidthPixels + " " + bodyHeightPixels + " depth: " + bodyDepthPixels);
-
-        int bodyImageWidthPixels = 0;
-        int bodyImageHeightPixels = 0;
-        int picTxPixels = 0;
-        int picTyPixels = 0;
-        int picTzPixels = 0;
-        int bodyImageDepthPixels = 0;
-        int bodyImageDepthPixels2 = 0;
-
-        bodyImageWidthPixels = bodyWidthPixels;
-        bodyImageHeightPixels = bodyHeightPixels;
-
-        picTxPixels = ((int) Math.ceil((body_cx - bodyWidth / 2.0) / resolution));
-        picTyPixels = ((int) Math.ceil((body_cy - bodyHeight / 2.0) / resolution));
-        picTzPixels = 0;   // Start outside
-        bodyImageDepthPixels = (int) Math.ceil(bodyImageDepth / resolution);
-        bodyImageDepthPixels2 = (int) Math.ceil(bodyImageDepth2 / resolution);
-
-        int threshold = 240;
-
-        boolean removeStray = true;
-
-        Grid grid2 = null;
-        Grid grid3 = null;
-        Operation op = null;
-
-
-        if (!filename.equalsIgnoreCase("NONE")) {
-System.out.println("read file: " + filename);
-            BufferedImage image = ImageIO.read(new File(filename));
-
-            grid2 = grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(),
-                grid.getVoxelSize(), grid.getSliceHeight());
-
-
-            if (DEBUG_LEVEL > 0) grid2 = new RangeCheckWrapper(grid2);
-
-    System.out.println("image tx: " + picTxPixels + " " + picTyPixels + " " + picTzPixels);
-    System.out.println("image size: " + bodyImageWidthPixels + " " + bodyImageHeightPixels + " " + ((int) Math.abs(bodyImageDepthPixels)));
-
-            // silver used 55
-            picTzPixels = 1;
-            op = new ApplyImage(image,picTxPixels,picTyPixels,picTzPixels,bodyImageWidthPixels, bodyImageHeightPixels,
-                threshold, invert, bodyImageDepthPixels, removeStray, mat);
-
-            op.execute(grid2);
-
-            op = new Union(grid2, 0, 0, 0, 1);
-
-            op.execute(grid);
-        }
+        DataSources.ImageBitmap layer1 = new DataSources.ImageBitmap();
+        layer1.setSize(image1Width, image1Height, image1Depth);
+        layer1.setLocation(0, 0, 0);
+        layer1.setBaseThickness(0.0);
+        layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        layer1.setTiles(1, 1);
+        layer1.setImagePath(filename);
+        union.addDataSource(layer1);
 
         if (!filename2.equalsIgnoreCase("NONE")) {
-            System.out.println("read file: " + filename2);
-            BufferedImage image = ImageIO.read(new File(filename2));
-
-            grid2 = grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(),
-                    grid.getVoxelSize(), grid.getSliceHeight());
-
-
-            if (DEBUG_LEVEL > 0) grid2 = new RangeCheckWrapper(grid2);
-
-            picTzPixels += bodyImageDepthPixels;
-
-            System.out.println("image2 tx: " + picTxPixels + " " + picTyPixels + " " + picTzPixels);
-            System.out.println("image2 size: " + bodyImageWidthPixels + " " + bodyImageHeightPixels + " " + ((int) Math.abs(bodyImageDepthPixels)));
-
-
-            op = new ApplyImage(image,picTxPixels,picTyPixels,picTzPixels,bodyImageWidthPixels, bodyImageHeightPixels,
-                    threshold, invert, bodyImageDepthPixels2, false, mat);
-
-            op.execute(grid2);
-
-            op = new Union(grid2, 0, 0, 0, 1);
-
-            op.execute(grid);
+            DataSources.ImageBitmap layer2 = new DataSources.ImageBitmap();
+            layer2.setSize(image1Width, image1Height, image1Depth);
+            layer2.setLocation(0, 0, image1Depth + voxelSize);
+            layer2.setBaseThickness(0.0);
+            layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+            layer2.setTiles(1, 1);
+            layer2.setImagePath(filename2);
+            union.addDataSource(layer2);
         }
 
-        if (regions != Regions.ALL) {
+
+        GridMaker gm = new GridMaker();
+
+        gm.setBounds(bounds);
+        gm.setDataSource(union);
+
+        grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);
+        printf("gm.makeGrid() done\n");
+
+        if (regions != RegionPrunner.Regions.ALL) {
             RegionPrunner.reduceToOneRegion(grid);
         }
-/*
-if (1==1) {
-        BufferedImage image = createImage(bodyWidthPixels, bodyHeightPixels, "AbFab3D", "Pump Demi Bold LET", Font.BOLD, -1);
-
-        Operation op = new ApplyImage(image,0,0,0,bodyImageWidthPixels, bodyImageHeightPixels, threshold, invert, bodyImageDepth, removeStray, mat);
-        op.execute(grid);
-
-        op = new Union(grid, 0, 0, 0, 1);
-
-        op.execute(grid);
-}
-*/
 
         System.out.println("Writing grid");
 
@@ -348,12 +268,25 @@ if (1==1) {
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
-        GridSaver.writeIsosurfaceMaker(grid,handler,params,smoothSteps, 1e-9, true);
 
         double[] min_bounds = new double[3];
         double[] max_bounds = new double[3];
-        grid.getWorldCoords(0,0,0, min_bounds);
+        grid.getWorldCoords(0, 0, 0, min_bounds);
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
+
+        WingedEdgeTriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
+        int gw = grid.getWidth();
+        int gh = grid.getHeight();
+        int gd = grid.getDepth();
+        double sh = grid.getSliceHeight();
+        double vs = grid.getVoxelSize();
+
+        // Release grid to lower total memory requirements
+        grid = null;
+        System.gc();
+
+        GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
+
 
 
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
@@ -366,18 +299,27 @@ if (1==1) {
      *
      * @param params The parameters
      */
-    private void pullParams(Map<String,Object> params) {
+    private void pullParams(Map<String, Object> params) {
         String pname = null;
 
         try {
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
 
-            pname = "bodyWidth";
-            bodyWidth = ((Double) params.get(pname)).doubleValue();
+            pname = "maxDecimationError";
+            maxDecimationError = ((Double) params.get(pname)).doubleValue();
 
-            pname = "bodyHeight";
-            bodyHeight = ((Double) params.get(pname)).doubleValue();
+            pname = "bodyWidth1";
+            bodyWidth1 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyHeight1";
+            bodyHeight1 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyWidth2";
+            bodyWidth2 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyHeight2";
+            bodyHeight2 = ((Double) params.get(pname)).doubleValue();
 
             pname = "bodyImage";
             filename = (String) params.get(pname);
@@ -385,32 +327,29 @@ if (1==1) {
             pname = "bodyImage2";
             filename2 = (String) params.get(pname);
 
-            pname = "bodyImageInvert";
-            invert = ((Boolean) params.get(pname)).booleanValue();
+            pname = "bodyDepth1";
+            bodyDepth1 = ((Double) params.get(pname)).doubleValue();
 
-            pname = "bodyImageDepth";
-            bodyImageDepth = ((Double) params.get(pname)).doubleValue();
-
-            pname = "bodyImageDepth2";
-            bodyImageDepth2 = ((Double) params.get(pname)).doubleValue();
+            pname = "bodyDepth2";
+            bodyDepth2 = ((Double) params.get(pname)).doubleValue();
 
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
             pname = "regions";
-            regions = Regions.valueOf((String) params.get(pname));
+            regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
 
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
         }
     }
 
     /**
-     return bounds extended by given margin
+     * return bounds extended by given margin
      */
-    static double[] extendBounds(double bounds[], double margin){
+    static double[] extendBounds(double bounds[], double margin) {
         return new double[]{
                 bounds[0] - margin,
                 bounds[1] + margin,
@@ -424,12 +363,12 @@ if (1==1) {
     private void writeDebug(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
         // Output File
 
-        BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
+        BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console, true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
+        colors.put(new Integer(Grid.INTERIOR), new float[]{1, 0, 0});
         colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
-        colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
+        colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
         transparency.put(new Integer(Grid.INTERIOR), new Float(0));
@@ -443,7 +382,7 @@ if (1==1) {
     public static <T extends Enum<T>> String[] enumToStringArray(T[] values) {
         int i = 0;
         String[] result = new String[values.length];
-        for (T value: values) {
+        for (T value : values) {
             result[i++] = value.name();
         }
         return result;

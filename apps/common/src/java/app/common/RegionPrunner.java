@@ -26,6 +26,10 @@ import java.util.List;
  * @author Alan Hudson
  */
 public class RegionPrunner {
+    public enum Regions {
+        ALL, ONE
+    }
+
     /**
      * Reduce a grid down to one largest region.
      *
