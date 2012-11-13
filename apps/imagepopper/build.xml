@@ -106,6 +106,7 @@
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
                 <pathelement path="${abfab3d.classes.dir}"/>
                 <fileset dir="${abfab3d.lib.dir}"/>
