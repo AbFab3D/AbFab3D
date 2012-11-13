@@ -72,6 +72,19 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
      */
     public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
 
+        if(DEBUG){
+            Vector3d p1 = new Vector3d();
+            Vector3d p2 = new Vector3d();
+            Vector3d cp = new Vector3d();
+            p1.sub(v1, v0);
+            p2.sub(v2, v0);
+            cp.cross(p1, p2);
+            if(cp.dot(cp) < 1.e-18){
+                printf("degenerate triangle (%s, %s, %s)\n", v0, v1, v2);            
+                return false;
+            }
+        }
+
         int f0 = getIndex(v0);
         int f1 = getIndex(v1);
         int f2 = getIndex(v2);

@@ -45,6 +45,7 @@ public class MeshDecimator {
 
     static boolean DEBUG = false;
     static boolean m_printStat = true;
+    static final double MM = 1000.; // mm per meter 
 
     // mesjh we are working on 
     WingedEdgeTriangleMesh m_mesh;
@@ -585,13 +586,16 @@ public class MeshDecimator {
             
             Quadric q0 = (Quadric)v0.getUserData();
             Quadric q1 = (Quadric)v1.getUserData();
-            /*
-            if(q0.m00 == Double.NaN || q1.m00 == Double.NaN){
-                printf("nad quadric: \n");
-                printf("   q0: %s\n", q0);
-                printf("   q1: %s\n", q1);
+            
+            if(Double.isNaN(q0.m00) || Double.isNaN(q1.m00)){
+                //printf("bad quadric: \n");
+                // printf("   q0: %s\n", q0);
+                //printf("   q1: %s\n", q1);
+                ed.errorValue = Double.MAX_VALUE;
+                ed.vertexUserData = new Quadric(q0);
+                return;                
             }
-            */
+            
             Quadric.getMidEdgeQuadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight, m_q0);
             m_q0.addSet(q0);
             m_q0.addSet(q1);       
@@ -641,8 +645,11 @@ public class MeshDecimator {
          */
         public Quadric makeVertexQuadric(Vertex v){
             
-            // sum of weigted quadrics for each surrounding face 
+            // sum of weighted quadrics for each surrounding face 
             // weight is area of the corresponding face 
+            // correction. 
+            // We are not using weights. All faces give the same contribution
+            // it seems this works for our voxel based meshes 
             Point3d p0, p1, p2; 
             HalfEdge start = v.getLink();
             HalfEdge he = start;
@@ -653,8 +660,15 @@ public class MeshDecimator {
                 p0 = he.getStart().getPoint();
                 p1 = he.getEnd().getPoint();
                 p2 = he.getNext().getEnd().getPoint();
+                Vector4d plane = Quadric.makePlane(p0, p1, p2, null);
 
-                m_q0.addSet(new Quadric(p0, p1, p2));
+                if(plane != null){
+
+                    m_q0.addSet(new Quadric(plane));
+
+                } else {
+                    printVertex(v);
+                }
 
                 he = he.getTwin().getNext(); 
 
@@ -665,6 +679,30 @@ public class MeshDecimator {
         }
         
     } // ErrorQuadric 
-    
+
+    //static int filecount = 0;
+
+    static void printVertex(Vertex v){
+        
+        Point3d p0, p1, p2; 
+        HalfEdge start = v.getLink();
+        HalfEdge he = start;
+        p0 = he.getStart().getPoint();
+        
+        printf("p0: (%10.7f,%10.7f,%10.7f) \n", 
+               p0.x*MM,p0.y*MM,p0.z*MM);
+        
+        do {
+            p1 = he.getEnd().getPoint();
+            p2 = he.getNext().getEnd().getPoint();
+            
+            printf("  p1: (%10.7f,%10.7f,%10.7f),  p2: (%10.7f,%10.7f,%10.7f), \n", 
+                   (p1.x-p0.x)*MM,(p1.y-p0.y)*MM,(p1.z-p0.z)*MM,
+                   (p2.x-p0.x)*MM,(p2.y-p0.y)*MM,(p2.z-p0.z)*MM);
+            
+            he = he.getTwin().getNext(); 
+            
+        } while(he != start);        
+    }    
 }
 

@@ -263,13 +263,12 @@ public class Quadric {
         normal.cross(v1, v2);
         normal.normalize();
 
-        if(normal.x == Double.NaN || 
-           normal.y == Double.NaN || 
-           normal.z == Double.NaN ){
-            printf("****BAD normal: %s %s %s\n", normal.x,normal.y,normal.z);
-            printf("v0: %s\n", v0);
-            printf("v1: %s\n", v1);
-            printf("v2: %s\n", v2);
+        if(Double.isNaN(normal.x)){
+            printf("****BAD triangle\n");
+            printf("v1: (%18.15g, %18.15g, %18.15g) \n", v1.x,v1.y,v1.z);
+            printf("v2: (%18.15g, %18.15g, %18.15g) \n", v2.x,v2.y,v2.z); 
+            printf("p0: (%18.15g, %18.15g, %18.15g) \n", p0.x,p0.y,p0.z); 
+            return null;
         }
 
         if(plane == null)
