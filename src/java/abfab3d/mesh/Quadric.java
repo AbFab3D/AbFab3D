@@ -262,7 +262,16 @@ public class Quadric {
         Vector3d normal = new Vector3d();
         normal.cross(v1, v2);
         normal.normalize();
-        
+
+        if(normal.x == Double.NaN || 
+           normal.y == Double.NaN || 
+           normal.z == Double.NaN ){
+            printf("****BAD normal: %s %s %s\n", normal.x,normal.y,normal.z);
+            printf("v0: %s\n", v0);
+            printf("v1: %s\n", v1);
+            printf("v2: %s\n", v2);
+        }
+
         if(plane == null)
             plane = new Vector4d();
         

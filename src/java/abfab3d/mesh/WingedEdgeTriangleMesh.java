@@ -43,6 +43,7 @@ public class WingedEdgeTriangleMesh {
 
 
     static boolean DEBUG = false;
+    static boolean USE_LINKEDHASHMAP = false;
 
     private Face faces;
     private Face lastFace;
@@ -80,7 +81,7 @@ public class WingedEdgeTriangleMesh {
     private Vector3d svec2 = new Vector3d();
 
     public WingedEdgeTriangleMesh(Point3d vertCoord[], float[][][] attribs, int[] semantics, int[][] findex) {
-        if (DEBUG) {
+        if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
             edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
         } else {
@@ -161,7 +162,7 @@ public class WingedEdgeTriangleMesh {
 
     public WingedEdgeTriangleMesh(Point3d vertCoord[], int[][] findex) {
 
-        if (DEBUG) {
+        if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
             edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
         } else {
@@ -176,11 +177,13 @@ public class WingedEdgeTriangleMesh {
             V[nv].setID(nv);
         }
 
-        ArrayList eface = new ArrayList(findex.length * 3);
+        ArrayList eface = new ArrayList(3);
+
+        ArrayList<HalfEdge> ahedges = new ArrayList<HalfEdge>(findex.length * 3);
 
         for (int i = 0; i < findex.length; i++) {
 
-            // Create the half edges
+            // Create the half edges for each face 
             int[] face = findex[i];
             if (face == null) {
                 throw new IllegalArgumentException("Face's cannot be null");
@@ -197,6 +200,7 @@ public class WingedEdgeTriangleMesh {
                 Vertex v2 = V[face[(j + 1) % face.length]];
                 HalfEdge he = buildHalfEdge(v1, v2);
                 edgeMap.put(new HalfEdgeKey(he.getStart(), he.getEnd()), he);
+                ahedges.add(he);
                 eface.add(he);
             }
 
@@ -210,7 +214,8 @@ public class WingedEdgeTriangleMesh {
         HalfEdgeKey key = new HalfEdgeKey();
 
         // Find the twins
-        for (HalfEdge he1 : edgeMap.values()) {
+        for (HalfEdge he1 : ahedges) {
+            //for (HalfEdge he1 : edgeMap.values()) {
             if (he1.getTwin() == null) {
                 // get halfedge of _opposite_ direction
                 //key.setStart(he1.getStart());
@@ -647,8 +652,10 @@ public class WingedEdgeTriangleMesh {
         double area = svec1.length();
 
         if (DEBUG)
-            System.out.println("Checking for degenerate: f: " + f.hashCode() + " v: " + p1.getID() + " " + p2.getID() + " " + p3.getID() + " p: " + p1.getPoint() + " p2: " + p2.getPoint() + " p3: " + p3.getPoint() + " area: " + area);
-
+            System.out.println("Checking for degenerate: f: " + f.hashCode() + " v: " + p1.getID() + 
+                               " " + p2.getID() + " " + p3.getID() + " p: " + p1.getPoint() + 
+                               " p2: " + p2.getPoint() + " p3: " + p3.getPoint() + " area: " + area);
+        
         double EPS = 1e-10;
 
         if (area < EPS) {

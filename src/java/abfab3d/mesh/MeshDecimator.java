@@ -585,7 +585,13 @@ public class MeshDecimator {
             
             Quadric q0 = (Quadric)v0.getUserData();
             Quadric q1 = (Quadric)v1.getUserData();
-            
+            /*
+            if(q0.m00 == Double.NaN || q1.m00 == Double.NaN){
+                printf("nad quadric: \n");
+                printf("   q0: %s\n", q0);
+                printf("   q1: %s\n", q1);
+            }
+            */
             Quadric.getMidEdgeQuadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight, m_q0);
             m_q0.addSet(q0);
             m_q0.addSet(q1);       
@@ -611,8 +617,8 @@ public class MeshDecimator {
             } catch (Exception e){
 
                 printf("Quadric inversion exception\n");
-                printf("q0: %s\n", q0);
-                printf("q1: %s\n", q1);
+                printf("Q0: %s\n", q0);
+                printf("Q1: %s\n", q1);
                 printf("m_q0: %s\n", m_q0);
                 //printf("midedge: %s\n", midEdge);
                 ed.errorValue = Double.MAX_VALUE;
