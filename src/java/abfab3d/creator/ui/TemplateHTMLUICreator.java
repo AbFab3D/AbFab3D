@@ -246,7 +246,6 @@ public class TemplateHTMLUICreator {
      * @param p The parameter
      */
     private void addGlobalVar(PrintWriter pw, Parameter p) {
-        pw.print("var p_");
         pw.print(p.getName());
         pw.print(" = \"");
         pw.print(p.getDefaultValue());
@@ -261,11 +260,9 @@ public class TemplateHTMLUICreator {
      * @param p The parameter
      */
     private void addParameterPull(PrintWriter pw, Parameter p) {
-        pw.print("p_");
         pw.print(p.getName());
         pw.print(" = ");
         pw.print("document.getElementById(\"");
-        pw.print("p_");
         pw.print(p.getName());
         pw.println("\").value;");
     }
@@ -277,10 +274,8 @@ public class TemplateHTMLUICreator {
      * @param p The parameter
      */
     private void addSubmit(PrintWriter pw, Parameter p) {
-        pw.print("p_");
         pw.print(p.getName());
         pw.print(" : ");
-        pw.print("p_");
         pw.print(p.getName());
         pw.println(",");
     }
@@ -298,22 +293,21 @@ public class TemplateHTMLUICreator {
             Parameter param = params.next();
 
             if (first) {
-                pw.print("p_");
                 pw.print(param.getName());
                 pw.print("=\"");
                 first = false;
             } else {
-                pw.print("+\"&p_");
+                pw.print("+\"&");
                 pw.print(param.getName());
                 pw.print("=\"");
             }
 
             pw.print("+");
             pw.print("encodeURIComponent(");
-            pw.print("p_");
             pw.print(param.getName());
             pw.print(")");
         }
+        pw.print(";");
     }
 
     /**
@@ -327,13 +321,12 @@ System.out.println("Adding param: " + p.getName());
 
         switch(getEditor(p)) {
             case COMBOBOX:
-                pw.print("<TR><TD>");
+                pw.print("<TR><TD align=\"left\">");
                 pw.print(p.getNameDesc());
-                pw.print("</TD><TD>");
+                pw.print("</TD><TD align=\"left\">");
                 pw.print("<SELECT name=\"");
-                pw.print("p_");
                 pw.print(p.getName());
-                pw.print("\" id=\"p_");
+                pw.print("\" id=\"");
                 pw.print(p.getName());
                 pw.print("\" selected=\"");
                 pw.print(p.getDefaultValue());
@@ -355,48 +348,45 @@ System.out.println("Adding param: " + p.getName());
                     pw.println("</OPTION>");
                 }
 
-                pw.println("</SELECT><TD/></TR>");
+                pw.println("</SELECT></TD></TR>");
                 break;
             case FILE_DIALOG:
-                pw.print("<TR><TD>");
+                pw.print("<TR><TD align=\"left\">");
                 pw.print(p.getNameDesc());
-                pw.print("</TD><TD>");
+                pw.print("</TD><TD align=\"left\">");
                 pw.print("<INPUT type=\"file\" name=\"");
-                pw.print("p_");
                 pw.print(p.getName());
-                pw.print("\" id=\"p_");
+                pw.print("\" id=\"");
                 pw.print(p.getName());
                 pw.print("\">");
-                pw.println("<TD/></TR>");
+                pw.println("</TD></TR>");
                 
                 break;
             case TEXTAREA:
-                pw.print("<TR><TD>");
+                pw.print("<TR><TD align=\"left\">");
                 pw.print(p.getNameDesc());
-                pw.print("</TD><TD>");
+                pw.print("</TD><TD align=\"left\">");
                 pw.print("<TEXTAREA cols=\"20\" rows=\"2\" name=\"");
-                pw.print("p_");
                 pw.print(p.getName());
-                pw.print("\" id=\"p_");
+                pw.print("\" id=\"");
                 pw.print(p.getName());
                 pw.print("\">");
                 pw.print(p.getDefaultValue());
                 pw.println("</TEXTAREA>");
-                pw.println("<TD/></TR>");
+                pw.println("</TD></TR>");
                 break;
             default:
-                pw.print("<TR><TD>");
+                pw.print("<TR><TD align=\"left\">");
                 pw.print(p.getNameDesc());
-                pw.print("</TD><TD>");
+                pw.print("</TD><TD align=\"left\">");
                 pw.print("<INPUT type=\"text\" name=\"");
-                pw.print("p_");
                 pw.print(p.getName());
-                pw.print("\" id=\"p_");
+                pw.print("\" id=\"");
                 pw.print(p.getName());
                 pw.print("\" value=\"");
                 pw.print(p.getDefaultValue());
                 pw.println("\" />");
-                pw.println("<TD/></TR>");
+                pw.println("</TD></TR>");
         }
 
 /*
