@@ -1513,7 +1513,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
             double dot = m_n0.dot(m_n1);
 
-            if (dot < 0.) // face flip
+            if (dot < FACE_FLIP_EPSILON) // face flip
                 return true;
             else
                 return false;
@@ -1521,5 +1521,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
     }// class FaceFlipChecker 
 
+    // area of small trinagle to be rejected as face flip  (in m^2) 
+    static final double FACE_FLIP_EPSILON = 1.e-20;
 
 }

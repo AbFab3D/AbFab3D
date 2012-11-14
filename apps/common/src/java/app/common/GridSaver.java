@@ -71,17 +71,12 @@ public class GridSaver {
         double centerWeight = 1.0; // any non negative value is OK
 
         LaplasianSmooth ls = new LaplasianSmooth();
-
         ls.setCenterWeight(centerWeight);
-
-        System.out.println("***Smoothing mesh");
         long t0 = currentTimeMillis();
-        //for(int i = 0; i < smoothSteps; i++){
-        printf("smoothMesh()\n");
+        printf("smoothMesh(%d)\n", smoothSteps);
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);
-        printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
-        //}
+        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
 
         int fcount = faces.length;
 
@@ -157,14 +152,11 @@ public class GridSaver {
 
         ls.setCenterWeight(centerWeight);
 
-        System.out.println("***Smoothing mesh");
         long t0 = currentTimeMillis();
-        //for(int i = 0; i < smoothSteps; i++){
-        printf("smoothMesh()\n");
+        printf("smoothMesh(%d)\n",smoothSteps);
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);
-        printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
-        //}
+        printf("mesh smoohed in %d ms\n",(currentTimeMillis() - t0));
 
         int fcount = faces.length;
 
@@ -247,14 +239,11 @@ public class GridSaver {
 
         ls.setCenterWeight(centerWeight);
 
-        System.out.println("***Smoothing mesh");
         long t0 = currentTimeMillis();
-        //for(int i = 0; i < smoothSteps; i++){
-        printf("smoothMesh()\n");
+        printf("smoothMesh(%d)\n", smoothSteps);
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);
-        printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
-        //}
+        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
 
         int fcount = faces.length;
 
@@ -328,14 +317,11 @@ public class GridSaver {
 
         ls.setCenterWeight(centerWeight);
 
-        System.out.println("***Smoothing mesh");
         long t0 = currentTimeMillis();
-        //for(int i = 0; i < smoothSteps; i++){
-        printf("smoothMesh()\n");
+        printf("smoothMesh(%d)\n",smoothSteps);
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);
-        printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
-        //}
+        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
 
 
         return mesh;
@@ -377,14 +363,11 @@ public class GridSaver {
 
         ls.setCenterWeight(centerWeight);
 
-        System.out.println("***Smoothing mesh");
         long t0 = currentTimeMillis();
-        //for(int i = 0; i < smoothSteps; i++){
-        printf("smoothMesh()\n");
+        printf("smoothMesh(%d)\n", smoothSteps);
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);
         printf("mesh processed: %d ms\n",(currentTimeMillis() - t0));
-        //}
 
         // We could release the grid at this point
         int fcount = faces.length;
