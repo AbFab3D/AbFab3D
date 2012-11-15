@@ -26,14 +26,14 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.7"
      inkscape:cx="326.00948"
-     inkscape:cy="611.3624"
+     inkscape:cy="554.21954"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
      inkscape:window-width="1431"
      inkscape:window-height="976"
-     inkscape:window-x="121"
-     inkscape:window-y="27"
+     inkscape:window-x="128"
+     inkscape:window-y="6"
      inkscape:window-maximized="0" />
   <metadata
      id="metadata7">
@@ -52,9 +52,13 @@
      inkscape:groupmode="layer"
      id="layer1">
     <path
-       style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:1.22600234px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 112.51641,112.47518 504.96716,0 c 30.61435,0 55.26055,20.82102 55.26055,46.68391 l 0,94.97761 c 0,25.86288 -24.6462,46.6839 -55.26055,46.6839 l -504.96716,0 c -30.614355,0 -55.260556,-20.82102 -55.260556,-46.6839 l 0,-94.97761 c 0,-25.86289 24.646201,-46.68391 55.260556,-46.68391 z"
+       style="fill:#000000;fill-rule:evenodd;stroke:#000000;stroke-width:1.14169812px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 116.80212,166.76089 504.96717,0 c 30.61435,0 55.26055,18.05602 55.26055,40.48436 l 0,82.36472 c 0,22.42832 -24.77814,38.02218 -55.26055,40.48434 -155.63796,12.57138 -322.67538,13.8449 -504.96717,0 -30.497612,-2.31627 -55.260552,-18.05602 -55.260552,-40.48434 l 0,-82.36472 c 0,-22.42834 24.646202,-40.48436 55.260552,-40.48436 z"
        id="rect2988"
-       inkscape:connector-curvature="0" />
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="sssssssss"
+       inkscape:export-filename="C:\home\00_shapeways\projects\abfab3d\code\trunk\apps\ringpopper\images\crosssection_01.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
   </g>
 </svg>

@@ -65,6 +65,7 @@ import static java.lang.Math.PI;
 public class TestGridMaker extends TestCase {
 
     static final double CM = 0.01; // cm -> meters
+    static final double MM = 0.001; // mm -> meters
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -250,17 +251,17 @@ public class TestGridMaker extends TestCase {
         
     }
 
-    public void testRoudedRing() {
+    public void testRoundedRing() {
         
         printf("testImageRing1()\n");
-        double voxelSize = 1.e-4;
+        double voxelSize = 0.1*MM;
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
         int smoothSteps = 0;
-        double margin = 4*voxelSize;
+        double margin = 1*voxelSize;
 
-        double ringDiameter = 0.05; // 5cm 
-        double ringWidth = 0.01; // 1cm 
-        double ringThickness = 0.002; // 2mm 
+        double ringDiameter = 20*MM; 
+        double ringWidth = 5*MM;  
+        double ringThickness = 1.5*MM;  
         double bandLength = ringDiameter*Math.PI;
 
         double gridWidth = ringDiameter + 2*Math.hypot(ringThickness,ringWidth) + 2*margin;
@@ -278,15 +279,17 @@ public class TestGridMaker extends TestCase {
         
         image.setSize(bandLength, ringWidth, ringThickness);
         image.setLocation(0,0,ringThickness/2);
-        image.setBaseThickness(0.4);
-        image.setImagePath("docs/images/numbers_1.png");
+        image.setBaseThickness(0.);
+        image.setTiles(12,1);
+        image.setUseGrayscale(false);        
+        image.setImagePath("apps/ringpopper/images/tile_01.png");
         
         DataSources.ImageBitmap crossSect = new DataSources.ImageBitmap();
         crossSect.setSize(ringWidth, ringThickness,bandLength);
         crossSect.setLocation(0,ringThickness/2,0);
         crossSect.setBaseThickness(0.);
         crossSect.setUseGrayscale(false);        
-        crossSect.setImagePath("docs/images/crossection_03.png");
+        crossSect.setImagePath("apps/ringpopper/images/crosssection_01.png");
 
         VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
         VecTransforms.Rotation crot1 = new VecTransforms.Rotation();
