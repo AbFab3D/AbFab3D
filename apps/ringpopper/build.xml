@@ -33,7 +33,7 @@
 
     <target name="build"
             description="Complete clean, setup, compilation, run"
-            depends="clean,init,compile"/>
+            depends="clean,init,compile,jar"/>
 
     <!-- Create destination directories -->
     <target name="init" description="Create destination directories">
@@ -69,6 +69,13 @@
 
     </target>
 
+    <target name="jar" depends="compile">
+        <createjar name="abfab3d_apps_ringpopper" 
+            version="${version}"
+            manifest="abfab3d_apps_ringpopper.mf"
+            includes="ringpopper/RingPopperKernel*"
+        />
+    </target>
 
     <target name="generate" depends="compile" description="Run the application command line">
         <echo message="jvmargs: ${jvmrunargs}"/>
@@ -122,6 +129,7 @@
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
                 <pathelement path="${abfab3d.classes.dir}"/>
                 <fileset dir="${abfab3d.lib.dir}"/>
