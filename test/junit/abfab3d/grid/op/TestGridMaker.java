@@ -216,21 +216,18 @@ public class TestGridMaker extends TestCase {
 
         DataSources.ImageBitmap image = new DataSources.ImageBitmap();
         
-        image.m_sizeX = ringDiameter*Math.PI;
-        image.m_sizeY = ringWidth;
-        image.m_sizeZ = ringThickness;
-        image.m_centerZ = ringThickness/2;
-        image.m_baseThickness = 0.4;
-        image.m_imagePath = "docs/images/numbers_1.png";
+        image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
+        image.setLocation(0,0,ringThickness/2);
+        image.setBaseThickness(0.4);
+        image.setImagePath("docs/images/numbers_1.png");
         
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
-        rw.m_radius = ringDiameter/2;
+        rw.setRadius(ringDiameter/2);
 
         VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(1,0,0);
-        rot.m_angle = 90*TORAD;
+        rot.setRotation(new Vector3d(1,0,0),0*TORAD);
         
         compTrans.add(rot);
         compTrans.add(rw);
@@ -249,6 +246,89 @@ public class TestGridMaker extends TestCase {
         
         printf("writeIsosurface()\n");
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_numbers.stl");
+        printf("writeIsosurface() done\n");
+        
+    }
+
+    public void testRoudedRing() {
+        
+        printf("testImageRing1()\n");
+        double voxelSize = 1.e-4;
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab 
+        int smoothSteps = 0;
+        double margin = 4*voxelSize;
+
+        double ringDiameter = 0.05; // 5cm 
+        double ringWidth = 0.01; // 1cm 
+        double ringThickness = 0.002; // 2mm 
+        double bandLength = ringDiameter*Math.PI;
+
+        double gridWidth = ringDiameter + 2*Math.hypot(ringThickness,ringWidth) + 2*margin;
+        double gridHeight  = Math.hypot(ringThickness,ringWidth) + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(bandLength, ringWidth, ringThickness);
+        image.setLocation(0,0,ringThickness/2);
+        image.setBaseThickness(0.4);
+        image.setImagePath("docs/images/numbers_1.png");
+        
+        DataSources.ImageBitmap crossSect = new DataSources.ImageBitmap();
+        crossSect.setSize(ringWidth, ringThickness,bandLength);
+        crossSect.setLocation(0,ringThickness/2,0);
+        crossSect.setBaseThickness(0.);
+        crossSect.setUseGrayscale(false);        
+        crossSect.setImagePath("docs/images/crossection_03.png");
+
+        VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
+        VecTransforms.Rotation crot1 = new VecTransforms.Rotation();
+        crot1.setRotation(new Vector3d(0,0,1),-90*TORAD);
+        VecTransforms.Rotation crot2 = new VecTransforms.Rotation();
+        crot2.setRotation(new Vector3d(0,1,0),-90*TORAD);
+        crossTrans.add(crot1);
+        crossTrans.add(crot2);
+
+        DataSources.DataTransformer transCross = new DataSources.DataTransformer();
+        transCross.setDataSource(crossSect);
+        transCross.setTransform(crossTrans);
+        
+        DataSources.Intersection inter = new DataSources.Intersection();
+        inter.addDataSource(transCross);
+        inter.addDataSource(image);
+
+        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.setRadius(ringDiameter/2);
+
+        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        rot.setRotation(new Vector3d(1,0,0),0*TORAD);
+        
+        compTrans.add(rot);
+        compTrans.add(rw);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(compTrans);
+        gm.setDataSource(inter);
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_rounded.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -324,7 +404,7 @@ public class TestGridMaker extends TestCase {
     /**
 
      */
-    public void testTorusRing() {
+    public void _testTorusRing() {
         
         printf("testTorusRing()\n");
         double voxelSize = 2.e-4;
@@ -1290,6 +1370,8 @@ public class TestGridMaker extends TestCase {
        
      */
     void writeIsosurface(Grid grid, double bounds[], double voxelSize, int smoothSteps, String fpath){
+
+        printf("writeIsosurface(%s)\n",fpath);
 
         IsosurfaceMaker im = new IsosurfaceMaker();
 
