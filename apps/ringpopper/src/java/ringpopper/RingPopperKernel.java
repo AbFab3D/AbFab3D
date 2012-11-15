@@ -63,6 +63,21 @@ public class RingPopperKernel extends HostedKernel {
     private static final int DEBUG_LEVEL = 0;
 
     enum EdgeStyle {NONE, TOP, BOTTOM, BOTH};
+
+    // High = print resolution.  Medium = print * 1.5, LOW = print * 2
+    enum PreviewQuality {LOW(2.0), MEDIUM(1.5), HIGH(1.0);
+
+        private double factor;
+
+        PreviewQuality(double f) {
+            factor = f;
+        }
+
+        public double getFactor() {
+            return factor;
+        }
+    };
+
     enum SymmetryStyle {
         NONE(-1),
         FRIEZE_II(0),   // oo oo
@@ -99,6 +114,7 @@ public class RingPopperKernel extends HostedKernel {
 
     /** The horizontal and vertical resolution */
     private double resolution;
+    private PreviewQuality previewQuality;
     private int smoothSteps;
     private double maxDecimationError;
 
@@ -207,9 +223,15 @@ public class RingPopperKernel extends HostedKernel {
         seq = 0;
 
         // Advanced Params
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
+
+        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.0001", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.MEDIUM.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(PreviewQuality.values()))
         );
 
         params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "1e-10", 1,
@@ -242,11 +264,12 @@ public class RingPopperKernel extends HostedKernel {
         pullParams(params);
 
         if (acc == Accuracy.VISUAL) {
-            // TODO: not sure I like this, could have two params:  visualResolution, printResolution
-            resolution = resolution * 1.5;
+            resolution = resolution * previewQuality.getFactor();
         }
-        //resolution = 5.e-5;
-        //double voxelSize = 5.e-5;
+        maxDecimationError = resolution / 100000.0;
+
+        System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
+
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
         double margin = 4*resolution;
 
@@ -458,6 +481,9 @@ if (1==1) {
         try {
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
+
+            pname = "previewQuality";
+            previewQuality = PreviewQuality.valueOf((String) params.get(pname));
 
             pname = "maxDecimationError";
             maxDecimationError = ((Double) params.get(pname)).doubleValue();
