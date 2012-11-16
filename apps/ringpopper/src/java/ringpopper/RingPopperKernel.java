@@ -120,6 +120,7 @@ public class RingPopperKernel extends HostedKernel {
 
     /** The image filename */
     private String image;
+    private String crossSectionPath;
 
     private int tilingX;
     private int tilingY;
@@ -145,7 +146,11 @@ public class RingPopperKernel extends HostedKernel {
         int step = 0;
 
         // Image based params
-        params.put("image", new Parameter("image", "Image", "The image to use", "images/Tile_dilate8_unedged.png", 1,
+        params.put("image", new Parameter("image", "Image", "The image to use", "images/tile_01.png", 1,
+            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+            step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
             Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
@@ -271,10 +276,11 @@ public class RingPopperKernel extends HostedKernel {
         System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
 
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
-        double margin = 4*resolution;
 
-        double gridWidth = 1.5 * (innerDiameter + 2*ringThickness + 2*margin);
-        double gridHeight  = 1.5 * (ringWidth + 2*edgeWidth + 2*margin);
+        double margin = 1*resolution;
+
+        double gridWidth = (innerDiameter + 2*ringThickness + 2*margin);
+        double gridHeight  = (ringWidth + 2*edgeWidth + 2*margin);
         double gridDepth = gridWidth;
 
         double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
@@ -355,8 +361,9 @@ public class RingPopperKernel extends HostedKernel {
 
         double textDepth = 0.0003; // 1mm
 
-        DataSource complete_band = image_with_edges;
-
+        DataSources.Intersection complete_band = new DataSources.Intersection();
+        complete_band.addDataSource(image_with_edges);
+        
         if (text != null && text.length() > 0) {
 
             textBand = new DataSources.ImageBitmap();
@@ -375,14 +382,17 @@ public class RingPopperKernel extends HostedKernel {
             rotatedText = new DataSources.DataTransformer();
             rotatedText.setDataSource(textBand);
             rotatedText.setTransform(textRotation);
+            
+            DataSources.Complement textComplement = new DataSources.Complement();
+            textComplement.setDataSource(rotatedText);
 
-            ringMinusText = new DataSources.Subtraction();
-
-            ringMinusText.setSources(image_with_edges, rotatedText); //
-
-            complete_band = ringMinusText;
+            complete_band.addDataSource(textComplement);
             
         } 
+        
+        // TODO add crossSectionImage to complete_band 
+
+
 
 
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
@@ -422,18 +432,6 @@ public class RingPopperKernel extends HostedKernel {
         if (regions != RegionPrunner.Regions.ALL) {
             RegionPrunner.reduceToOneRegion(grid);
         }
-/*
-if (1==1) {
-        BufferedImage image = createImage(bodyWidthPixels, bodyHeightPixels, "AbFab3D", "Pump Demi Bold LET", Font.BOLD, -1);
-
-        Operation op = new ApplyImage(image,0,0,0,bodyImageWidthPixels, bodyImageHeightPixels, threshold, invert, bodyImageDepth, removeStray, mat);
-        op.execute(grid);
-
-        op = new Union(grid, 0, 0, 0, 1);
-
-        op.execute(grid);
-}
-*/
 
         System.out.println("Writing grid");
 
@@ -505,6 +503,9 @@ if (1==1) {
 
             pname = "image";
             image = (String) params.get(pname);
+
+            pname = "crosSection";
+            crossSectionPath = (String) params.get(pname);
 
             pname = "tilingX";
             tilingX = ((Integer) params.get(pname)).intValue();

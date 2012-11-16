@@ -456,6 +456,57 @@ public class DataSources {
 
     } // class Union
 
+
+    /**
+       does boolean complement 
+     */
+    public static class Complement implements DataSource, Initializable {
+
+        DataSource dataSource = null;
+        
+        public Complement(){  
+
+        }
+
+        /**
+           add items to set of data sources 
+         */
+        public void setDataSource(DataSource ds){
+
+            dataSource = ds;
+
+        }
+
+        public int initialize(){
+            
+            if(dataSource instanceof Initializable){
+                ((Initializable)dataSource).initialize();
+            }
+            
+            return RESULT_OK;
+            
+        }
+        
+
+        /**
+         * calculates complement of given data 
+           replaces 1 to 0 and 0 to 1
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            int res = dataSource.getDataValue(pnt, data);
+            if(res != RESULT_OK){
+                data.v[0] = 1;
+                return res;
+            } else {
+                // we have good result
+                // do complement 
+                data.v[0] = 1-data.v[0];            
+                return RESULT_OK;
+            }        
+        }
+    } // class Complement
+
     
     /**
        Intersection of multiple data sourrces 
