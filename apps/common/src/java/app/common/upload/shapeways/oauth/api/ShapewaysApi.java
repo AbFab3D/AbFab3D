@@ -15,13 +15,13 @@ public class ShapewaysApi extends DefaultApi10a
 	@Override
 	public String getRequestTokenEndpoint()
 	{
-	    return BASE_URL + "/oauth1/request_token";
+	    return BASE_URL + "/oauth1/request_token/v1";
 	}
 
 	@Override
 	public String getAccessTokenEndpoint()
 	{
-	    return BASE_URL + "/oauth1/access_token";
+	    return BASE_URL + "/oauth1/access_token/v1";
 	}
 
 	@Override
