@@ -103,8 +103,8 @@ public class RingTorusKernel extends HostedKernel {
     private double ringThickness;
     private double ringWidth;
 
-    /** Percentage of the ringThickness to use as a base */
-    private double baseThickness;
+    /** How much to scale in the z direction to flatten the ring  */
+    private double flatten;
 
     /** The horizontal and vertical resolution */
     private double resolution;
@@ -140,12 +140,12 @@ public class RingTorusKernel extends HostedKernel {
             step, seq++, false, 0, 0.1, null, null)
         );
 
-        params.put("tilingX", new Parameter("tilingX", "Tiling X", "The tiling along left/right of the ring", "8", 1,
+        params.put("tilingX", new Parameter("tilingX", "Tiling X", "The tiling along left/right of the ring", "20", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 50, null, null)
         );
 
-        params.put("tilingY", new Parameter("tilingY", "Tiling Y", "The tiling along up/down of the ring", "1", 1,
+        params.put("tilingY", new Parameter("tilingY", "Tiling Y", "The tiling along up/down of the ring", "3", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 50, null, null)
         );
@@ -174,7 +174,7 @@ public class RingTorusKernel extends HostedKernel {
                 step, seq++, false, 0, 1, null, null)
         );
 
-        params.put("baseThickness", new Parameter("baseThickness", "Base Thickness", "The thickness percent of the ring base", "0", 1,
+        params.put("flatten", new Parameter("flatten", "Flatten", "How much to flatten the ring", "0.5", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
@@ -191,12 +191,12 @@ public class RingTorusKernel extends HostedKernel {
         seq = 0;
 
         // Advanced Params
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
+        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.0001", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
         );
 
-        params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "1e-10", 1,
+        params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "5e-10", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 1, null, null)
         );
@@ -242,8 +242,8 @@ public class RingTorusKernel extends HostedKernel {
         double ringr = 0.5*CM;
         double ringThickness = 0.2*CM;
 
-        int tilesR = 20;
-        int tilesr = 3;
+        int tilesR = tilingX;
+        int tilesr = tilingY;
 
         double gridWidth =2*(ringR + ringr) + 2*margin;
         double gridHeight  = 2*(ringr) + 2*margin;
@@ -284,7 +284,7 @@ public class RingTorusKernel extends HostedKernel {
         rot.setRotation(new Vector3d(0,0,1), 90*TORAD);
 
         VecTransforms.Scale scale = new VecTransforms.Scale();
-        scale.setScale(1, 1, 0.5);
+        scale.setScale(1, 1, flatten);
 
         VecTransforms.RingWrap rw2 = new VecTransforms.RingWrap();
         rw2.setRadius(ringR);
@@ -292,7 +292,9 @@ public class RingTorusKernel extends HostedKernel {
         compTrans.add(wps);
         compTrans.add(rw1);
         compTrans.add(rot);
-        compTrans.add(scale);
+        if (Math.abs(flatten - 1.0) > 0.0001) {
+            compTrans.add(scale);
+        }
         compTrans.add(rw2);
 
 
@@ -313,18 +315,6 @@ public class RingTorusKernel extends HostedKernel {
         if (regions != RegionPrunner.Regions.ALL) {
             RegionPrunner.reduceToOneRegion(grid);
         }
-/*
-if (1==1) {
-        BufferedImage image = createImage(bodyWidthPixels, bodyHeightPixels, "AbFab3D", "Pump Demi Bold LET", Font.BOLD, -1);
-
-        Operation op = new ApplyImage(image,0,0,0,bodyImageWidthPixels, bodyImageHeightPixels, threshold, invert, bodyImageDepth, removeStray, mat);
-        op.execute(grid);
-
-        op = new Union(grid, 0, 0, 0, 1);
-
-        op.execute(grid);
-}
-*/
 
         System.out.println("Writing grid");
 
@@ -385,8 +375,8 @@ if (1==1) {
             pname = "ringWidth";
             ringWidth = ((Double) params.get(pname)).doubleValue();
 
-            pname = "baseThickness";
-            baseThickness = ((Double) params.get(pname)).doubleValue();
+            pname = "flatten";
+            flatten = ((Double) params.get(pname)).doubleValue();
 
             pname = "image";
             image = (String) params.get(pname);

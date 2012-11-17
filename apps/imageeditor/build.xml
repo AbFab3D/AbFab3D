@@ -1,6 +1,6 @@
 <?xml version="1.0" standalone="yes"?>
 
-<project basedir="." default="compile" name="ImageEditor Example">
+<project basedir="." default="compile" name="ImageEditor Example(old)">
     <import file="build_common.xml"/>
 
     <description></description>

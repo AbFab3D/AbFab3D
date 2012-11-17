@@ -8,7 +8,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f04bb5c-7506-4cf3-9abc-4d7d3757dec3" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/images/shape_01.png" afterPath="$PROJECT_DIR$/docs/images/shape_01.png" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/ant.xml" afterPath="$PROJECT_DIR$/.idea/ant.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/common/build.xml" afterPath="$PROJECT_DIR$/apps/common/build.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/imageeditor/build.xml" afterPath="$PROJECT_DIR$/apps/imageeditor/build.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/imagepopper/build.xml" afterPath="$PROJECT_DIR$/apps/imagepopper/build.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java" afterPath="$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" afterPath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/RingPopperKernel.java" afterPath="$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/RingPopperKernel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/ringtorus/src/html/ringtorus/Editor.html" afterPath="$PROJECT_DIR$/apps/ringtorus/src/html/ringtorus/Editor.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/ringtorus/src/java/ringtorus/RingTorusKernel.java" afterPath="$PROJECT_DIR$/apps/ringtorus/src/java/ringtorus/RingTorusKernel.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/html/svg/group_wp.svg" afterPath="$PROJECT_DIR$/docs/html/svg/group_wp.svg" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/docs/images/shape_01.svg" afterPath="$PROJECT_DIR$/docs/images/shape_01.svg" />
     </list>
     <ignored path="AbFab3D.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,10 +46,6 @@
   </component>
   <component name="DaemonCodeAnalyzer">
     <disable_hints />
-  </component>
-  <component name="DatabaseView">
-    <flatten value="false" />
-    <groupTables value="false" />
   </component>
   <component name="DebuggerManager">
     <line_breakpoints>
@@ -140,7 +150,7 @@
       <file leaf-file-name="RingPopperKernel.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/RingPopperKernel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="216" column="39" selection-start="7709" selection-end="7709" vertical-scroll-proportion="0.4653846">
+            <state line="217" column="39" selection-start="7710" selection-end="7710" vertical-scroll-proportion="0.03269231">
               <folding />
             </state>
           </provider>
@@ -203,7 +213,7 @@
       <file leaf-file-name="ImagePopperKernel.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="157" column="58" selection-start="5660" selection-end="5669" vertical-scroll-proportion="-10.28">
+            <state line="158" column="58" selection-start="5660" selection-end="5669" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -246,25 +256,6 @@
     <option name="y" value="72" />
     <option name="width" value="1773" />
     <option name="height" value="1001" />
-  </component>
-  <component name="ProjectInspectionProfilesVisibleTreeState">
-    <entry key="Project Default">
-      <profile-state>
-        <expanded-state>
-          <State>
-            <id />
-          </State>
-          <State>
-            <id>Spelling</id>
-          </State>
-        </expanded-state>
-        <selected-state>
-          <State>
-            <id>SpellCheckingInspection</id>
-          </State>
-        </selected-state>
-      </profile-state>
-    </entry>
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -457,14 +448,14 @@
   <component name="PropertiesComponent">
     <property name="project.structure.last.edited" value="Modules" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="248" />
-    <property name="project.structure.proportion" value="0.15" />
-    <property name="OverrideImplement.combined" value="true" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="248" />
+    <property name="OverrideImplement.combined" value="true" />
+    <property name="project.structure.proportion" value="0.15" />
     <property name="options.splitter.main.proportions" value="0.3" />
-    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="248" />
-    <property name="MemberChooser.sorted" value="false" />
-    <property name="recentsLimit" value="5" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="recentsLimit" value="5" />
+    <property name="MemberChooser.sorted" value="false" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="248" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="248" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="923" />
@@ -486,27 +477,8 @@
     <property name="options.lastSelected" value="Errors" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="MemberChooser.copyJavadoc" value="false" />
-    <property name="dynamic.classpath" value="false" />
     <property name="options.searchVisible" value="true" />
-  </component>
-  <component name="RecentsManager">
-    <key name="CopyClassDialog.RECENTS_KEY">
-      <recent name="abfab3d.mesh" />
-      <recent name="app.common" />
-      <recent name="abfab3d.grid.op" />
-      <recent name="abfab3d.grid" />
-      <recent name="abfab3d.geom" />
-    </key>
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\cygwin\home\giles\projs\abfab3d\code\test\japex" />
-    </key>
-    <key name="ExtractSuperBase.RECENT_KEYS">
-      <recent name="abfab3d.mesh" />
-    </key>
-    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
-      <recent name="abfab3d.io.output" />
-      <recent name="abfab3d.grid" />
-    </key>
+    <property name="dynamic.classpath" value="false" />
   </component>
   <component name="RunManager" selected="Application.RingTorus">
     <configuration default="false" name="TestMultiThreaded" type="JUnit" factoryName="JUnit" temporary="true">
@@ -900,11 +872,6 @@
     </configuration>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
-  <component name="SliceManager">
-    <option name="analysisUIOptions">
-      <AnalysisUIOptions />
-    </option>
-  </component>
   <component name="StructureViewFactory">
     <option name="ACTIVE_ACTIONS" value="ALPHA_COMPARATOR" />
   </component>
@@ -935,47 +902,27 @@
     </task>
     <servers />
   </component>
-  <component name="TodoView" selected-index="0">
-    <todo-panel id="selected-file">
-      <are-packages-shown value="false" />
-      <are-modules-shown value="false" />
-      <flatten-packages value="false" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="all">
-      <are-packages-shown value="true" />
-      <are-modules-shown value="false" />
-      <flatten-packages value="false" />
-      <is-autoscroll-to-source value="true" />
-    </todo-panel>
-    <todo-panel id="default-changelist">
-      <are-packages-shown value="false" />
-      <are-modules-shown value="false" />
-      <flatten-packages value="false" />
-      <is-autoscroll-to-source value="false" />
-    </todo-panel>
-  </component>
   <component name="ToolWindowManager">
     <frame x="78" y="72" width="1773" height="1001" extended-state="0" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32818073" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3234245" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19485079" sideWeight="0.667063" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.56220096" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33373207" sideWeight="0.51418644" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32936978" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32897604" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2545348" sideWeight="0.38763377" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2545348" sideWeight="0.48156956" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2545348" sideWeight="0.27586207" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2545348" sideWeight="0.18192628" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33293697" sideWeight="0.48176026" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977527" sideWeight="0.66230935" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3234245" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977527" sideWeight="0.66230935" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32223544" sideWeight="0.48870873" order="7" side_tool="false" content_ui="tabs" />
@@ -1103,6 +1050,28 @@
       <viewClosedWhenNoErrors value="false" />
       <expanded value="true" />
     </buildFile>
+    <buildFile url="file://$PROJECT_DIR$/apps/ringtorus/build.xml">
+      <antCommandLine value="" />
+      <runInBackground value="true" />
+      <targetFilters>
+        <filter targetName="runStandalone" isVisible="true" />
+        <filter targetName="clean" isVisible="true" />
+        <filter targetName="generate" isVisible="true" />
+        <filter targetName="jar" isVisible="false" />
+        <filter targetName="compile" isVisible="true" />
+        <filter targetName="compileCommon" isVisible="false" />
+        <filter targetName="init" isVisible="true" />
+        <filter targetName="javadoc" isVisible="true" />
+        <filter targetName="run" isVisible="true" />
+        <filter targetName="build" isVisible="true" />
+        <filter targetName="updateXj3D" isVisible="false" />
+        <filter targetName="createUI" isVisible="true" />
+      </targetFilters>
+      <treeView value="true" />
+      <verbose value="true" />
+      <viewClosedWhenNoErrors value="false" />
+      <expanded value="true" />
+    </buildFile>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/test/junit/abfab3d/grid/op/TestGridMaker.java">
@@ -1133,6 +1102,20 @@
     <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/RegionPrunner.java">
       <provider selected="true" editor-type-id="text-editor">
         <state line="21" column="46" selection-start="724" selection-end="724" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/imagepopper/build.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="98" column="49" selection-start="4247" selection-end="4247" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessRunner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="68" column="59" selection-start="2965" selection-end="2965" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/java/abfab3d/creator/ui/JavaStandaloneUICreator.java">
@@ -1167,120 +1150,20 @@
         <state line="1393" column="0" selection-start="38482" selection-end="38482" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/imagepopper/build.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="98" column="49" selection-start="4247" selection-end="4247" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="157" column="58" selection-start="5660" selection-end="5669" vertical-scroll-proportion="-10.28">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessRunner.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="68" column="59" selection-start="2965" selection-end="2965" vertical-scroll-proportion="0.0">
+        <state line="158" column="58" selection-start="5660" selection-end="5669" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/RingPopperKernel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="216" column="39" selection-start="7709" selection-end="7709" vertical-scroll-proportion="0.4653846">
+        <state line="217" column="39" selection-start="7710" selection-end="7710" vertical-scroll-proportion="0.03269231">
           <folding />
         </state>
       </provider>
     </entry>
-  </component>
-  <component name="masterDetails">
-    <states>
-      <state key="ArtifactsStructureConfigurable.UI">
-        <settings>
-          <artifact-editor />
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="FacetStructureConfigurable.UI">
-        <settings>
-          <last-edited>No facets are configured</last-edited>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="GlobalLibrariesConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="JdkListConfigurable.UI">
-        <settings>
-          <last-edited>1.6</last-edited>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="ModuleStructureConfigurable.UI">
-        <settings>
-          <last-edited>Ringtorus</last-edited>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="ProjectJDKs.UI">
-        <settings>
-          <last-edited>1.6</last-edited>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.20000002" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-      <state key="ProjectLibrariesConfigurable.UI">
-        <settings>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.2" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-    </states>
   </component>
 </project>
 

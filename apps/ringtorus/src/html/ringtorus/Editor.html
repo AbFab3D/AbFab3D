@@ -1,9 +1,9 @@
 <HTML><BODY><FORM name=Editor" method="GET" action="http://localhost:8080/hosted_creator/CreatorHost" target = "Right frame">
 <input type="hidden" name="creatorID" value="ImageEditor">
 <TABLE>
-<TR><TD>Tiling X</TD><TD><INPUT type="text" name="tilingX" value="8" />
+<TR><TD>Tiling X</TD><TD><INPUT type="text" name="tilingX" value="20" />
 <TD/></TR>
-<TR><TD>Tiling Y</TD><TD><INPUT type="text" name="tilingY" value="1" />
+<TR><TD>Tiling Y</TD><TD><INPUT type="text" name="tilingY" value="3" />
 <TD/></TR>
 <TR><TD>Symmetry Style</TD><TD><SELECT name="symmetryStyle" selected="WP_O" "><OPTION value="NONE">NONE</OPTION>
 <OPTION value="WP_O">WP_O</OPTION>
@@ -30,7 +30,7 @@
 <TD/></TR>
 <TR><TD>Ring Thickness</TD><TD><INPUT type="text" name="ringThickness" value="0.001" />
 <TD/></TR>
-<TR><TD>Base Thickness</TD><TD><INPUT type="text" name="baseThickness" value="0" />
+<TR><TD>Flatten</TD><TD><INPUT type="text" name="flatten" value="0.5" />
 <TD/></TR>
 <TR><TD>Material</TD><TD><SELECT name="material" selected="Silver Glossy" "><OPTION value="White Strong & Flexible">White Strong & Flexible</OPTION>
 <OPTION value="White Strong & Flexible Polished">White Strong & Flexible Polished</OPTION>
@@ -44,9 +44,9 @@
 <OPTION value="Alumide">Alumide</OPTION>
 <OPTION value="Polished Alumide">Polished Alumide</OPTION>
 </SELECT><TD/></TR>
-<TR><TD>Resolution</TD><TD><INPUT type="text" name="resolution" value="0.00006" />
+<TR><TD>Resolution</TD><TD><INPUT type="text" name="resolution" value="0.0001" />
 <TD/></TR>
-<TR><TD>MaxDecimationError</TD><TD><INPUT type="text" name="maxDecimationError" value="1e-10" />
+<TR><TD>MaxDecimationError</TD><TD><INPUT type="text" name="maxDecimationError" value="5e-10" />
 <TD/></TR>
 <TR><TD>Regions</TD><TD><SELECT name="regions" selected="ALL" "><OPTION value="ALL">ALL</OPTION>
 <OPTION value="ONE">ONE</OPTION>

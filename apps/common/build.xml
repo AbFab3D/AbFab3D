@@ -69,7 +69,11 @@
         <createjar name="abfab3d_apps_common" 
             version="${version}"
             manifest="abfab3d_apps_common.mf"
-            includes="app/common/* app/common/upload/shapeways/oauth/* app/common/upload/shapeways/oauth/api/*"
+            includes="app/common/*
+                app/common/upload/*
+                app/common/upload/shapeways/oauth/*
+                app/common/upload/shapeways/oauth/api/*
+                "
         />
     </target>
 
