@@ -63,6 +63,21 @@ public class RingPopperKernel extends HostedKernel {
     private static final int DEBUG_LEVEL = 0;
 
     enum EdgeStyle {NONE, TOP, BOTTOM, BOTH};
+
+    // High = print resolution.  Medium = print * 1.5, LOW = print * 2
+    enum PreviewQuality {LOW(2.0), MEDIUM(1.5), HIGH(1.0);
+
+        private double factor;
+
+        PreviewQuality(double f) {
+            factor = f;
+        }
+
+        public double getFactor() {
+            return factor;
+        }
+    };
+
     enum SymmetryStyle {
         NONE(-1),
         FRIEZE_II(0),   // oo oo
@@ -99,11 +114,13 @@ public class RingPopperKernel extends HostedKernel {
 
     /** The horizontal and vertical resolution */
     private double resolution;
+    private PreviewQuality previewQuality;
     private int smoothSteps;
     private double maxDecimationError;
 
     /** The image filename */
     private String image;
+    private String crossSectionPath;
 
     private int tilingX;
     private int tilingY;
@@ -129,7 +146,11 @@ public class RingPopperKernel extends HostedKernel {
         int step = 0;
 
         // Image based params
-        params.put("image", new Parameter("image", "Image", "The image to use", "images/Tile_dilate8_unedged.png", 1,
+        params.put("image", new Parameter("image", "Image", "The image to use", "images/tile_01.png", 1,
+            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+            step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
             Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
@@ -207,9 +228,15 @@ public class RingPopperKernel extends HostedKernel {
         seq = 0;
 
         // Advanced Params
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
+
+        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.0001", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.MEDIUM.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(PreviewQuality.values()))
         );
 
         params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "1e-10", 1,
@@ -242,16 +269,18 @@ public class RingPopperKernel extends HostedKernel {
         pullParams(params);
 
         if (acc == Accuracy.VISUAL) {
-            // TODO: not sure I like this, could have two params:  visualResolution, printResolution
-            resolution = resolution * 1.5;
+            resolution = resolution * previewQuality.getFactor();
         }
-        //resolution = 5.e-5;
-        //double voxelSize = 5.e-5;
-        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
-        double margin = 4*resolution;
+        maxDecimationError = resolution / 100000.0;
 
-        double gridWidth = 1.5 * (innerDiameter + 2*ringThickness + 2*margin);
-        double gridHeight  = 1.5 * (ringWidth + 2*edgeWidth + 2*margin);
+        System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
+
+        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
+
+        double margin = 1*resolution;
+
+        double gridWidth = (innerDiameter + 2*ringThickness + 2*margin);
+        double gridHeight  = (ringWidth + 2*edgeWidth + 2*margin);
         double gridDepth = gridWidth;
 
         double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
@@ -332,8 +361,9 @@ public class RingPopperKernel extends HostedKernel {
 
         double textDepth = 0.0003; // 1mm
 
-        DataSource complete_band = image_with_edges;
-
+        DataSources.Intersection complete_band = new DataSources.Intersection();
+        complete_band.addDataSource(image_with_edges);
+        
         if (text != null && text.length() > 0) {
 
             textBand = new DataSources.ImageBitmap();
@@ -352,14 +382,17 @@ public class RingPopperKernel extends HostedKernel {
             rotatedText = new DataSources.DataTransformer();
             rotatedText.setDataSource(textBand);
             rotatedText.setTransform(textRotation);
+            
+            DataSources.Complement textComplement = new DataSources.Complement();
+            textComplement.setDataSource(rotatedText);
 
-            ringMinusText = new DataSources.Subtraction();
-
-            ringMinusText.setSources(image_with_edges, rotatedText); //
-
-            complete_band = ringMinusText;
+            complete_band.addDataSource(textComplement);
             
         } 
+        
+        // TODO add crossSectionImage to complete_band 
+
+
 
 
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
@@ -399,18 +432,6 @@ public class RingPopperKernel extends HostedKernel {
         if (regions != RegionPrunner.Regions.ALL) {
             RegionPrunner.reduceToOneRegion(grid);
         }
-/*
-if (1==1) {
-        BufferedImage image = createImage(bodyWidthPixels, bodyHeightPixels, "AbFab3D", "Pump Demi Bold LET", Font.BOLD, -1);
-
-        Operation op = new ApplyImage(image,0,0,0,bodyImageWidthPixels, bodyImageHeightPixels, threshold, invert, bodyImageDepth, removeStray, mat);
-        op.execute(grid);
-
-        op = new Union(grid, 0, 0, 0, 1);
-
-        op.execute(grid);
-}
-*/
 
         System.out.println("Writing grid");
 
@@ -459,6 +480,9 @@ if (1==1) {
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
 
+            pname = "previewQuality";
+            previewQuality = PreviewQuality.valueOf((String) params.get(pname));
+
             pname = "maxDecimationError";
             maxDecimationError = ((Double) params.get(pname)).doubleValue();
 
@@ -479,6 +503,9 @@ if (1==1) {
 
             pname = "image";
             image = (String) params.get(pname);
+
+            pname = "crosSection";
+            crossSectionPath = (String) params.get(pname);
 
             pname = "tilingX";
             tilingX = ((Integer) params.get(pname)).intValue();

@@ -27,7 +27,9 @@ import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
+import abfab3d.util.ImageMipMap;
 
+import static abfab3d.util.Output.printf;
 
 import static abfab3d.util.ImageUtil.getRed;
 import static abfab3d.util.ImageUtil.getGreen;
@@ -127,22 +129,29 @@ public class DataSources {
         
         public double m_baseThickness = 0.5; // relative thickness of solid base 
         public String m_imagePath; 
-
-        public int m_imageType = IMAGE_POSITIVE;
-
-        public static final int IMAGE_POSITIVE = 0, IMAGE_NEGATIVE = 1;
         
+        public int m_imageType = IMAGE_POSITIVE;
+        
+        public static final int IMAGE_POSITIVE = 0, IMAGE_NEGATIVE = 1;
+        public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
+
                 
         public int m_xTilesCount = 1; // number of image tiles in x-direction 
         public int m_yTilesCount = 1; // number of image tiles in y-direction 
         
-        protected BufferedImage m_image;
-
+        private BufferedImage m_image;
+        private int m_interpolationType = INTERPOLATION_BOX;
+        private double m_probeSize = 1.e-4; // 0.1mm
+        
         private double xmin, xmax, ymin, ymax, zmin, zmax, zbase;
+        private double xscale, yscale;
+        private double probeScale; // scaling to convert probe size into pixels of image 
         private boolean useGrayscale = true;
         private int imageWidth, imageHeight;
         private int imageData[]; 
-        
+        private ImageMipMap m_mipMap;
+        double m_imageThreshold = 0.0; // beow threshold we have solid voxel, above - empty voxel  
+
         /**
            
          */
@@ -196,13 +205,28 @@ public class DataSources {
             useGrayscale = value;
         }
 
+        public void setInterpolationType(int type){
+
+            m_interpolationType = type;
+
+        }
+
+        public void setProbeSize(double size){
+
+            m_probeSize = size;
+
+        }
+
         public int initialize(){
             
             xmin = m_centerX - m_sizeX/2;
             xmax = m_centerX + m_sizeX/2;
+            xscale = 1./(xmax-xmin);
+            
 
             ymin = m_centerY - m_sizeY/2;
             ymax = m_centerY + m_sizeY/2;
+            yscale = 1./(ymax-ymin);
 
             zmin = m_centerZ - m_sizeZ/2;
             zmax = m_centerZ + m_sizeZ/2;
@@ -224,8 +248,17 @@ public class DataSources {
                 }
             }
 
+            if(m_interpolationType == INTERPOLATION_MIPMAP){
+                m_mipMap = new ImageMipMap(image);
+            }else {
+                m_mipMap = null;
+            }
+
             imageWidth = image.getWidth();
             imageHeight = image.getHeight();
+
+            // convert probe size in meters into image units 
+            probeScale = xscale*imageWidth;
             
             DataBuffer dataBuffer = image.getRaster().getDataBuffer();          
             imageData = new int[imageWidth * imageHeight];
@@ -234,20 +267,30 @@ public class DataSources {
             return RESULT_OK;
         }
 
+        int debugCount = 100;
         /**
          * returns 1 if pnt is inside of image
          * returns 0 otherwise
          */
         public int getDataValue(Vec pnt, Vec data) {
                         
+            // TODO get proper pointer size from chain of transforms
+            double probeSize = m_probeSize*probeScale; 
+            //double probeSize = pnt.probeSize*probeScale; 
+            if(m_interpolationType == INTERPOLATION_MIPMAP){
+                if(debugCount-- > 0){
+                    //printf("probeSize: %7.2f probeScale: %7.2e, m_probeSize: %7.2e\n", probeSize, probeScale, m_probeSize);
+                }
+            }
+
             double res = 1.;
             double 
                 x = pnt.v[0],
                 y = pnt.v[1],
                 z = pnt.v[2];
 
-            x = (x-xmin)/(xmax-xmin);
-            y = (y-ymin)/(ymax-ymin);
+            x = (x-xmin)*xscale;
+            y = (y-ymin)*yscale;
             
             if(x < 0 || x > 1 ||
                y < 0 || y > 1 ||
@@ -273,34 +316,64 @@ public class DataSources {
             double imageX = imageWidth*x;
             double imageY = imageHeight*(1-y);// reverse Y-direction 
 
-            double pixelValue = getPixelBox(imageX,imageY);
+            double pixelValue = getPixelValue(imageX, imageY, probeSize);
             
-            // pixel value for black is 0 for white is 255;
-            // we may need to reverse it
-            switch(m_imageType){
-            default: 
-            case IMAGE_POSITIVE: 
-                pixelValue = 1 - pixelValue/255.;
-                break;
-            case IMAGE_NEGATIVE:
-                pixelValue = pixelValue/255.;
-                break;
-            }
-            double d;
+            double d = 0;
+
             if(useGrayscale){                
                 d = (zbase  + (zmax - zbase)*pixelValue - z);                
             } else {
                 d = pixelValue;
             }
 
-            if(d > 0)
+            if(d > m_imageThreshold)
                 data.v[0] = 1;
             else 
                 data.v[0] = 0;
         
             return RESULT_OK;
         }                
+
+        double getPixelValue(double x, double y, double probeSize){
+            
+            double grayLevel = 0;
+            switch(m_interpolationType){
+            case INTERPOLATION_MIPMAP:
+                double color[] = new double[4];
+                m_mipMap.getPixel(x, y, probeSize, color);
+                grayLevel = (color[0] + color[1] + color[2])/3.;
+                break;
+            default: 
+            case INTERPOLATION_BOX:
+                grayLevel = getPixelBox(x,y);
+                break;
+            case INTERPOLATION_LINEAR:
+                grayLevel = getPixelLinear(x,y);
+                break;
+            }
+                        
+
+            // pixel value for black is 0 for white is 255;
+            // we may need to reverse it
+            double pv = 0.;
+            switch(m_imageType){
+            default: 
+            case IMAGE_POSITIVE: 
+                pv = 1 - grayLevel/255.;
+                break;
+            case IMAGE_NEGATIVE:
+                pv = grayLevel/255.;
+                break;
+            }
+            return pv;
+        }
         
+        // linear aproximation 
+        double getPixelLinear(double x, double y){
+            //TODO 
+            return getPixelBox(x,y);
+        }
+        // BOX approximation 
         double getPixelBox(double x, double y){
 
             int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
@@ -312,6 +385,7 @@ public class DataSources {
             int green = getGreen(rgb00);
             int blue  = getBlue(rgb00);
 
+            // ignore alpha? 
             double alpha = getAlpha(rgb00);
             
             return (red + green + blue)/3.;
@@ -381,6 +455,57 @@ public class DataSources {
         }        
 
     } // class Union
+
+
+    /**
+       does boolean complement 
+     */
+    public static class Complement implements DataSource, Initializable {
+
+        DataSource dataSource = null;
+        
+        public Complement(){  
+
+        }
+
+        /**
+           add items to set of data sources 
+         */
+        public void setDataSource(DataSource ds){
+
+            dataSource = ds;
+
+        }
+
+        public int initialize(){
+            
+            if(dataSource instanceof Initializable){
+                ((Initializable)dataSource).initialize();
+            }
+            
+            return RESULT_OK;
+            
+        }
+        
+
+        /**
+         * calculates complement of given data 
+           replaces 1 to 0 and 0 to 1
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            int res = dataSource.getDataValue(pnt, data);
+            if(res != RESULT_OK){
+                data.v[0] = 1;
+                return res;
+            } else {
+                // we have good result
+                // do complement 
+                data.v[0] = 1-data.v[0];            
+                return RESULT_OK;
+            }        
+        }
+    } // class Complement
 
     
     /**

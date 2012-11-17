@@ -17,8 +17,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+
 import java.awt.Font;
 import java.awt.Insets;
+
+
+import java.io.File;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
@@ -47,6 +54,8 @@ import abfab3d.util.Symmetry;
 
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
+
+import abfab3d.util.ImageMipMap;
 
 
 import static abfab3d.util.Output.printf;
@@ -261,10 +270,10 @@ public class TestGridMaker extends TestCase {
 
         double ringDiameter = 20*MM; 
         double ringWidth = 5*MM;  
-        double ringThickness = 1.5*MM;  
+        double ringThickness = 1.4*MM;  
         double bandLength = ringDiameter*Math.PI;
 
-        double gridWidth = ringDiameter + 2*Math.hypot(ringThickness,ringWidth) + 2*margin;
+        double gridWidth = ringDiameter + 2*ringThickness + 2*margin;
         double gridHeight  = Math.hypot(ringThickness,ringWidth) + 2*margin;
         double gridDepth = gridWidth;
 
@@ -282,8 +291,10 @@ public class TestGridMaker extends TestCase {
         image.setBaseThickness(0.);
         image.setTiles(12,1);
         image.setUseGrayscale(false);        
-        image.setImagePath("apps/ringpopper/images/tile_01.png");
-        
+        image.setImagePath("apps/ringpopper/images/tile_02.png");
+        image.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+        image.setProbeSize(1.*MM);
+
         DataSources.ImageBitmap crossSect = new DataSources.ImageBitmap();
         crossSect.setSize(ringWidth, ringThickness,bandLength);
         crossSect.setLocation(0,ringThickness/2,0);
@@ -1368,6 +1379,30 @@ public class TestGridMaker extends TestCase {
 
     }
 
+
+    public void _testImageMipMap(){
+        
+        try {
+            
+            String fileName = "apps/ringpopper/images/tile_01.png";
+            BufferedImage image = ImageIO.read(new File(fileName));
+            ImageMipMap mm = new ImageMipMap(image);
+            
+            double color[] = new double[4];
+            
+            for(int i = 0; i < 50; i++){
+                double size = 10;
+                mm.getPixel(i*20, 300, size, color);
+                //mm.printData(0, 0, 50);
+                //mm.getPixel(1500+1*i, 1400, 0, color);
+                printf("%5.1f: (%8.1f,%8.1f,%8.1f,%8.1f)\n",size, color[0],color[1],color[2],color[3]);
+            }
+        } catch (Exception e){
+            
+            e.printStackTrace();
+        }    
+    }
+    
 
     /**
        
