@@ -4,14 +4,11 @@
     <bookmark url="file://$PROJECT_DIR$/src/java/abfab3d/io/output/BoxBatcherX3DExporter.java" line="575" mnemonic="8" />
     <bookmark url="file://$PROJECT_DIR$/src/java/abfab3d/io/output/BoxBatcherX3DExporter.java" line="352" mnemonic="7" />
     <bookmark url="file://$PROJECT_DIR$/test/junit/abfab3d/geom/TestTriangleModelCreator.java" line="364" mnemonic="9" />
+    <bookmark url="file://$PROJECT_DIR$/src/java/abfab3d/creator/ui/JavaStandaloneUICreator.java" line="319" mnemonic="1" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9f04bb5c-7506-4cf3-9abc-4d7d3757dec3" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/imageeditor/build.xml" afterPath="$PROJECT_DIR$/apps/imageeditor/build.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/imagepopper/build.xml" afterPath="$PROJECT_DIR$/apps/imagepopper/build.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/imagepopper/src/html/imageeditor/Editor.html" afterPath="$PROJECT_DIR$/apps/imagepopper/src/html/imageeditor/Editor.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/apps/ringpopper/build.xml" afterPath="$PROJECT_DIR$/apps/ringpopper/build.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/AbFab3D Lib.iml" afterPath="$PROJECT_DIR$/src/AbFab3D Lib.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="AbFab3D.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -122,10 +119,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="JavaStandaloneUICreator.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/creator/ui/JavaStandaloneUICreator.java">
+      <file leaf-file-name="build.xml" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/apps/imagepopper/build.xml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="127" column="0" selection-start="4820" selection-end="4820" vertical-scroll-proportion="0.0">
+            <state line="98" column="49" selection-start="4247" selection-end="4247" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -134,16 +131,7 @@
       <file leaf-file-name="WallThicknessRunner.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessRunner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="100" column="61" selection-start="4403" selection-end="4403" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="LaplasianSmooth.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/mesh/LaplasianSmooth.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="111" column="30" selection-start="2899" selection-end="2899" vertical-scroll-proportion="0.0">
+            <state line="68" column="59" selection-start="2965" selection-end="2965" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -152,18 +140,61 @@
       <file leaf-file-name="RingPopperKernel.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/RingPopperKernel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="124" column="108" selection-start="3692" selection-end="3692" vertical-scroll-proportion="0.60714287">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
+            <state line="216" column="39" selection-start="7709" selection-end="7709" vertical-scroll-proportion="0.4653846">
+              <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="UICreator.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/UICreator.java">
+      <file leaf-file-name="JavaStandaloneUICreator.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/creator/ui/JavaStandaloneUICreator.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="33" column="28" selection-start="1293" selection-end="1293" vertical-scroll-proportion="0.0">
+            <state line="920" column="5" selection-start="43932" selection-end="43932" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MeshExporter.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/io/output/MeshExporter.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="133" column="0" selection-start="4297" selection-end="4804" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="VecTransforms.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/grid/op/VecTransforms.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="233" column="56" selection-start="5722" selection-end="5722" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Symmetry.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/util/Symmetry.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="639" column="22" selection-start="17996" selection-end="17996" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="EdgeCollapseSimplifier.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/io/output/EdgeCollapseSimplifier.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="1685" column="53" selection-start="61237" selection-end="61237" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="WingedEdgeTriangleMesh.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/java/abfab3d/mesh/WingedEdgeTriangleMesh.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="1393" column="0" selection-start="38482" selection-end="38482" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -172,25 +203,7 @@
       <file leaf-file-name="ImagePopperKernel.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="100" column="68" selection-start="3088" selection-end="3088" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Editor.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ui/Editor.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="86" column="36" selection-start="2866" selection-end="2866" vertical-scroll-proportion="0.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="UICreator.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/UICreator.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="32" column="28" selection-start="1231" selection-end="1231" vertical-scroll-proportion="0.0">
+            <state line="157" column="58" selection-start="5660" selection-end="5669" vertical-scroll-proportion="-10.28">
               <folding />
             </state>
           </provider>
@@ -209,30 +222,30 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/src/java/abfab3d/io/output/IsosurfaceMaker.java" />
-        <option value="$PROJECT_DIR$/test/junit/abfab3d/mesh/TestWingedEdgeTriangleMesh.java" />
-        <option value="$PROJECT_DIR$/apps/imageeditor/build.xml" />
-        <option value="$PROJECT_DIR$/src/java/abfab3d/io/output/MeshExporter.java" />
-        <option value="$PROJECT_DIR$/src/java/abfab3d/io/output/SAVExporter.java" />
-        <option value="$PROJECT_DIR$/src/java/abfab3d/io/output/MaterialMapper.java" />
-        <option value="$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessResult.java" />
-        <option value="$PROJECT_DIR$/apps/common/src/java/app/common/X3DViewer.java" />
-        <option value="$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessRunner.java" />
-        <option value="$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ui/Editor.java" />
-        <option value="$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java" />
-        <option value="$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/UICreator.java" />
-        <option value="$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/UICreator.java" />
         <option value="$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/ui/Editor.java" />
+        <option value="$PROJECT_DIR$/apps/common/src/java/app/common/RegionPrunner.java" />
+        <option value="$PROJECT_DIR$/src/java/abfab3d/grid/op/DataSources.java" />
+        <option value="$PROJECT_DIR$/src/java/abfab3d/grid/GridBitIntervalsBlocks.java" />
+        <option value="$PROJECT_DIR$/apps/common/src/java/app/common/GridSaver.java" />
         <option value="$PROJECT_DIR$/src/java/abfab3d/creator/ui/JavaStandaloneUICreator.java" />
+        <option value="$PROJECT_DIR$/apps/ringtorus/src/java/ringtorus/UICreator.java" />
+        <option value="$PROJECT_DIR$/src/java/abfab3d/grid/op/VecTransforms.java" />
+        <option value="$PROJECT_DIR$/apps/ringpopper/build.xml" />
+        <option value="$PROJECT_DIR$/apps/imagepopper/build.xml" />
+        <option value="$PROJECT_DIR$/test/junit/abfab3d/grid/op/TestGridMaker.java" />
+        <option value="$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java" />
+        <option value="$PROJECT_DIR$/apps/ringtorus/src/java/ringtorus/ui/Editor.java" />
+        <option value="$PROJECT_DIR$/apps/ringtorus/src/java/ringtorus/RingTorusKernel.java" />
+        <option value="$PROJECT_DIR$/src/java/abfab3d/mesh/WingedEdgeTriangleMesh.java" />
         <option value="$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/RingPopperKernel.java" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="119" />
-    <option name="y" value="51" />
-    <option name="width" value="1791" />
-    <option name="height" value="996" />
+    <option name="x" value="78" />
+    <option name="y" value="72" />
+    <option name="width" value="1773" />
+    <option name="height" value="1001" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -335,7 +348,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
+              <option name="myItemId" value="ringtorus" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -353,17 +366,13 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
+              <option name="myItemId" value="ringtorus" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="src" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -379,37 +388,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
+              <option name="myItemId" value="ringtorus" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
@@ -421,45 +400,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="RingPopperKernel.java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.ClassesTreeStructureProvider$PsiClassOwnerTreeNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ringpopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ui" />
+              <option name="myItemId" value="ringtorus" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -480,10 +421,6 @@
               <option name="myItemId" value="ringpopper" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
@@ -500,162 +437,6 @@
             </PATH_ELEMENT>
             <PATH_ELEMENT>
               <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ImagePopperKernel.java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.ClassesTreeStructureProvider$PsiClassOwnerTreeNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="java" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imagepopper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="ui" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="imageeditor" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="AbFab3D" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="trunk" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="apps" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="common" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -674,23 +455,39 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="GoToFile.includeJavaFiles" value="false" />
     <property name="project.structure.last.edited" value="Modules" />
-    <property name="OverrideImplement.combined" value="true" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="248" />
     <property name="project.structure.proportion" value="0.15" />
+    <property name="OverrideImplement.combined" value="true" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="248" />
     <property name="options.splitter.main.proportions" value="0.3" />
-    <property name="recentsLimit" value="5" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="248" />
     <property name="MemberChooser.sorted" value="false" />
-    <property name="options.lastSelected" value="Errors" />
-    <property name="project.structure.side.proportion" value="0.2" />
-    <property name="MemberChooser.copyJavadoc" value="false" />
+    <property name="recentsLimit" value="5" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="248" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="923" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="922" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="248" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="247" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
     <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
     <property name="options.splitter.details.proportions" value="0.2" />
-    <property name="options.searchVisible" value="true" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="GoToFile.includeJavaFiles" value="false" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="options.lastSelected" value="Errors" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="dynamic.classpath" value="false" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
@@ -711,7 +508,7 @@
       <recent name="abfab3d.grid" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.RingPopper">
+  <component name="RunManager" selected="Application.RingTorus">
     <configuration default="false" name="TestMultiThreaded" type="JUnit" factoryName="JUnit" temporary="true">
       <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
         <pattern>
@@ -1055,16 +852,41 @@
         <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/apps/ringpopper/build.xml" target="createUI" />
       </method>
     </configuration>
-    <list size="9">
-      <item index="0" class="java.lang.String" itemvalue="Application.BooleanOps" />
-      <item index="1" class="java.lang.String" itemvalue="Application.Julia" />
-      <item index="2" class="java.lang.String" itemvalue="Application.ImagePopperEditor" />
-      <item index="3" class="java.lang.String" itemvalue="Application.RingPopper" />
-      <item index="4" class="java.lang.String" itemvalue="JUnit.TestMultiThreaded" />
-      <item index="5" class="java.lang.String" itemvalue="JUnit.TestMultiThreaded.testSetGetByVoxelCoordsThreaded" />
-      <item index="6" class="java.lang.String" itemvalue="JUnit.TestWingedEdgeTriangleMesh.testManifoldSpeedKnot" />
-      <item index="7" class="java.lang.String" itemvalue="JUnit.TestMeshDecimator.testFile" />
-      <item index="8" class="java.lang.String" itemvalue="JUnit.TestRingSpaceWarp.testForward" />
+    <configuration default="false" name="RingTorus" type="Application" factoryName="Application">
+      <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea">
+        <pattern>
+          <option name="PATTERN" value="ringtorus.ui.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="MAIN_CLASS_NAME" value="ringtorus.ui.Editor" />
+      <option name="VM_PARAMETERS" value="-Xmx4300M" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$/apps/ringtorus" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="Ringtorus" />
+      <envs />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method>
+        <option name="AntTarget" enabled="true" antfile="file://$PROJECT_DIR$/apps/ringtorus/build.xml" target="createUI" />
+      </method>
+    </configuration>
+    <list size="10">
+      <item index="0" class="java.lang.String" itemvalue="JUnit.TestMultiThreaded" />
+      <item index="1" class="java.lang.String" itemvalue="JUnit.TestMultiThreaded.testSetGetByVoxelCoordsThreaded" />
+      <item index="2" class="java.lang.String" itemvalue="JUnit.TestWingedEdgeTriangleMesh.testManifoldSpeedKnot" />
+      <item index="3" class="java.lang.String" itemvalue="JUnit.TestMeshDecimator.testFile" />
+      <item index="4" class="java.lang.String" itemvalue="JUnit.TestRingSpaceWarp.testForward" />
+      <item index="5" class="java.lang.String" itemvalue="Application.BooleanOps" />
+      <item index="6" class="java.lang.String" itemvalue="Application.Julia" />
+      <item index="7" class="java.lang.String" itemvalue="Application.ImagePopperEditor" />
+      <item index="8" class="java.lang.String" itemvalue="Application.RingPopper" />
+      <item index="9" class="java.lang.String" itemvalue="Application.RingTorus" />
     </list>
     <configuration name="&lt;template&gt;" type="TestNG" default="true" selected="false">
       <option name="MAIN_CLASS_NAME" />
@@ -1134,29 +956,29 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="119" y="51" width="1791" height="996" extended-state="0" />
+    <frame x="78" y="72" width="1773" height="1001" extended-state="0" />
     <editor active="false" />
     <layout>
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32897604" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32818073" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.21910113" sideWeight="0.6724891" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3234245" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19485079" sideWeight="0.667063" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.56220096" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.33373207" sideWeight="0.5118703" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33373207" sideWeight="0.51418644" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32296652" sideWeight="0.4910249" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32936978" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32897604" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25188187" sideWeight="0.52392346" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2545348" sideWeight="0.38763377" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.25188187" sideWeight="0.13397129" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33373207" sideWeight="0.48407644" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2545348" sideWeight="0.27586207" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33293697" sideWeight="0.48176026" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977527" sideWeight="0.66230935" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3241627" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="IDEtalk" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977527" sideWeight="0.66230935" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32223544" sideWeight="0.48870873" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Coverage" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32977527" sideWeight="0.4954955" order="3" side_tool="true" content_ui="tabs" />
       <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32897604" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="combo" />
@@ -1223,7 +1045,37 @@
     <buildFile url="file://$PROJECT_DIR$/build.xml">
       <antCommandLine value="" />
       <runInBackground value="true" />
-      <targetFilters />
+      <targetFilters>
+        <filter targetName="compileTest" isVisible="true" />
+        <filter targetName="test" isVisible="false" />
+        <filter targetName="javadoc" isVisible="true" />
+        <filter targetName="run" isVisible="true" />
+        <filter targetName="build" isVisible="true" />
+        <filter targetName="emma" isVisible="false" />
+        <filter targetName="compileJapex" isVisible="true" />
+        <filter targetName="clean" isVisible="true" />
+        <filter targetName="jar" isVisible="false" />
+        <filter targetName="compile" isVisible="true" />
+        <filter targetName="testSpecific" isVisible="false" />
+        <filter targetName="runSpeed" isVisible="true" />
+        <filter targetName="stageLib" isVisible="false" />
+        <filter targetName="runJapexMemory" isVisible="false" />
+        <filter targetName="runCobertura" isVisible="false" />
+        <filter targetName="init" isVisible="true" />
+        <filter targetName="coverage-check" isVisible="false" />
+        <filter targetName="-xmlCoverage" isVisible="false" />
+        <filter targetName="runJapex" isVisible="false" />
+        <filter targetName="-cobertura" isVisible="false" />
+        <filter targetName="-coverage" isVisible="false" />
+        <filter targetName="stageApps" isVisible="false" />
+        <filter targetName="compileApps" isVisible="true" />
+        <filter targetName="release" isVisible="false" />
+        <filter targetName="updateXj3D" isVisible="false" />
+        <filter targetName="-coberturaInstr" isVisible="false" />
+        <filter targetName="runEmma" isVisible="false" />
+        <filter targetName="-xmlSummaryCoverage" isVisible="false" />
+        <filter targetName="stageSource" isVisible="false" />
+      </targetFilters>
       <treeView value="true" />
       <verbose value="true" />
       <viewClosedWhenNoErrors value="false" />
@@ -1235,7 +1087,10 @@
       <targetFilters>
         <filter targetName="runStandalone" isVisible="true" />
         <filter targetName="clean" isVisible="true" />
+        <filter targetName="generate" isVisible="true" />
+        <filter targetName="jar" isVisible="false" />
         <filter targetName="compile" isVisible="true" />
+        <filter targetName="compileCommon" isVisible="false" />
         <filter targetName="init" isVisible="true" />
         <filter targetName="javadoc" isVisible="true" />
         <filter targetName="run" isVisible="true" />
@@ -1250,89 +1105,93 @@
     </buildFile>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/apps/imageeditor/build.xml">
+    <entry file="file://$PROJECT_DIR$/test/junit/abfab3d/grid/op/TestGridMaker.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="10" column="95" selection-start="400" selection-end="400" vertical-scroll-proportion="0.0" />
+        <state line="369" column="54" selection-start="13673" selection-end="13740" vertical-scroll-proportion="-12.32" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/io/output/MeshExporter.java">
+    <entry file="file://$PROJECT_DIR$/apps/ringtorus/src/java/ringtorus/ui/Editor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="55" column="38" selection-start="1672" selection-end="1672" vertical-scroll-proportion="0.0" />
+        <state line="276" column="96" selection-start="12563" selection-end="12563" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/java/abfab3d/io/output/SAVExporter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="67" column="33" selection-start="2265" selection-end="2265" vertical-scroll-proportion="0.0" />
+        <state line="110" column="50" selection-start="3814" selection-end="3814" vertical-scroll-proportion="-8.04" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/io/output/MaterialMapper.java">
+    <entry file="file://$PROJECT_DIR$/apps/ringtorus/src/java/ringtorus/RingTorusKernel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="176" column="34" selection-start="6912" selection-end="6912" vertical-scroll-proportion="-14.8" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessResult.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="19" selection-start="786" selection-end="786" vertical-scroll-proportion="0.0" />
+        <state line="267" column="89" selection-start="9403" selection-end="9403" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/X3DViewer.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="141" column="56" selection-start="5354" selection-end="5354" vertical-scroll-proportion="0.0" />
+        <state line="104" column="38" selection-start="3848" selection-end="3848" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/ui/Editor.java">
+    <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/RegionPrunner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="625" column="107" selection-start="32196" selection-end="32196" vertical-scroll-proportion="0.8637532" />
+        <state line="21" column="46" selection-start="724" selection-end="724" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/java/abfab3d/creator/ui/JavaStandaloneUICreator.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="127" column="0" selection-start="4820" selection-end="4820" vertical-scroll-proportion="0.0" />
+        <state line="920" column="5" selection-start="43932" selection-end="43932" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessRunner.java">
+    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/io/output/MeshExporter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="100" column="61" selection-start="4403" selection-end="4403" vertical-scroll-proportion="0.0" />
+        <state line="133" column="0" selection-start="4297" selection-end="4804" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/mesh/LaplasianSmooth.java">
+    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/grid/op/VecTransforms.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="111" column="30" selection-start="2899" selection-end="2899" vertical-scroll-proportion="0.0" />
+        <state line="233" column="56" selection-start="5722" selection-end="5722" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/UICreator.java">
+    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/util/Symmetry.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="33" column="28" selection-start="1293" selection-end="1293" vertical-scroll-proportion="0.0" />
+        <state line="639" column="22" selection-start="17996" selection-end="17996" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/io/output/EdgeCollapseSimplifier.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1685" column="53" selection-start="61237" selection-end="61237" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/java/abfab3d/mesh/WingedEdgeTriangleMesh.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="1393" column="0" selection-start="38482" selection-end="38482" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/apps/imagepopper/build.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="98" column="49" selection-start="4247" selection-end="4247" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ImagePopperKernel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="100" column="68" selection-start="3088" selection-end="3088" vertical-scroll-proportion="0.0" />
+        <state line="157" column="58" selection-start="5660" selection-end="5669" vertical-scroll-proportion="-10.28">
+          <folding />
+        </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/ui/Editor.java">
+    <entry file="file://$PROJECT_DIR$/apps/common/src/java/app/common/WallThicknessRunner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="86" column="36" selection-start="2866" selection-end="2866" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/apps/imagepopper/src/java/imagepopper/UICreator.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="28" selection-start="1231" selection-end="1231" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/junit/abfab3d/grid/op/TestGridMaker.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="635" column="0" selection-start="22822" selection-end="22822" vertical-scroll-proportion="0.020961776">
+        <state line="68" column="59" selection-start="2965" selection-end="2965" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/apps/ringpopper/src/java/ringpopper/RingPopperKernel.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="124" column="108" selection-start="3692" selection-end="3692" vertical-scroll-proportion="0.60714287">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
+        <state line="216" column="39" selection-start="7709" selection-end="7709" vertical-scroll-proportion="0.4653846">
+          <folding />
         </state>
       </provider>
     </entry>
@@ -1388,12 +1247,11 @@
       </state>
       <state key="ModuleStructureConfigurable.UI">
         <settings>
-          <last-edited>Ringpopper</last-edited>
+          <last-edited>Ringtorus</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>
                 <option value="0.2" />
-                <option value="0.5" />
               </list>
             </option>
           </splitter-proportions>
