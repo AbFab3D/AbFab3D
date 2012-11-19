@@ -296,7 +296,7 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setLocation(0,0,ringThickness/2);
         image_src.setImagePath(image);
         image_src.setBaseThickness(baseThickness);
-        image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+        //image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
 
         if(symmetryStyle == SymmetryStyle.NONE) {
 
