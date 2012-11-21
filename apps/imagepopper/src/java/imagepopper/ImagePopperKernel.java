@@ -234,7 +234,8 @@ public class ImagePopperKernel extends HostedKernel {
         if (!filename2.equalsIgnoreCase("NONE")) {
             DataSources.ImageBitmap layer2 = new DataSources.ImageBitmap();
             layer2.setSize(image1Width, image1Height, image1Depth);
-            layer2.setLocation(0, 0, image1Depth + voxelSize);
+
+            layer2.setLocation(0, 0, image1Depth);
             layer2.setBaseThickness(0.0);
             layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
             layer2.setTiles(1, 1);
