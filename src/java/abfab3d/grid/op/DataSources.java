@@ -150,8 +150,9 @@ public class DataSources {
         private int imageWidth, imageHeight;
         private int imageData[]; 
         private ImageMipMap m_mipMap;
-        double m_imageThreshold = 0.0; // beow threshold we have solid voxel, above - empty voxel  
-
+        private double m_pixelWeightNonlinearity = 0.;
+        double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
+        
         /**
            
          */
@@ -211,6 +212,15 @@ public class DataSources {
 
         }
 
+        /**
+           value = 0 - linear resampling for mipmap
+           value > 0 - black pixels are givewn heigher weight 
+           value < 0 - white pixels are givewn heigher weight 
+         */
+        public void setPixelWeightNonlinearity(double value){
+            m_pixelWeightNonlinearity = value;        
+        }
+
         public void setProbeSize(double size){
 
             m_probeSize = size;
@@ -249,7 +259,7 @@ public class DataSources {
             }
 
             if(m_interpolationType == INTERPOLATION_MIPMAP){
-                m_mipMap = new ImageMipMap(image);
+                m_mipMap = new ImageMipMap(image, m_pixelWeightNonlinearity);
             }else {
                 m_mipMap = null;
             }
@@ -321,15 +331,20 @@ public class DataSources {
             double d = 0;
 
             if(useGrayscale){                
-                d = (zbase  + (zmax - zbase)*pixelValue - z);                
-            } else {
-                d = pixelValue;
-            }
+                d = (zbase  + (zmax - zbase)*pixelValue - z); 
+                if( d > 0)
+                    data.v[0] = 1;
+                else 
+                    data.v[0] = 0;
 
-            if(d > m_imageThreshold)
-                data.v[0] = 1;
-            else 
-                data.v[0] = 0;
+            } else {  // sharp threshold 
+                
+                d = pixelValue;
+                if(d > m_imageThreshold)
+                    data.v[0] = 1;
+                else 
+                    data.v[0] = 0;
+            }
         
             return RESULT_OK;
         }                
@@ -373,6 +388,7 @@ public class DataSources {
             //TODO 
             return getPixelBox(x,y);
         }
+
         // BOX approximation 
         double getPixelBox(double x, double y){
 

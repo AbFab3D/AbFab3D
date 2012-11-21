@@ -37,83 +37,88 @@ import static abfab3d.util.ImageUtil.getAlpha;
  */
 public class ImageMipMap {
 
+    static final boolean DEBUG = false;
 
 
-
-  MapEntry m_data[];
-  double m_width, m_height;
-
-  //static final int 
-  PixelWeight m_pixelWeight = null;//new LinearPixelWeight(127);
-
-  public ImageMipMap(BufferedImage bi){
-
-    makeMipMap(bi);
-
-  }
-
-  public ImageMipMap(BufferedImage bi, int pixelWeight){
-
-    m_pixelWeight = new LinearPixelWeight(pixelWeight);
-
-    makeMipMap(bi);
-
-  }
-
-  void makeMipMap(BufferedImage image){
-
-      //long t0 = System.currentTimeMillis();
-      printf("start mipmap\n");
-      int width = image.getWidth();
-      int height = image.getHeight();
-      m_width = width;
-      m_height = height;
-      
-      BufferedImage img = image;
-      
-      Vector<MapEntry> data = new Vector<MapEntry>();
-      
-      while(width > 0 && height > 0){
-          
-          DataBuffer db = img.getRaster().getDataBuffer();
-          printf("mipmap [%d x %d]: %s %s\n", width, height, db, getTypeName(img.getType()));
-          int dt = db.getDataType();
-          
-          if(dt == DataBuffer.TYPE_INT ){
-              
-              DataBufferInt  dbi = (DataBufferInt)db;
-              int[] b = dbi.getData();
-              MapEntry me = new MapEntryInt(b, width, height, m_width/width);
-              data.add(me);
-              //printf("INT b.lengt: %d - %d\n", b.length, width*height);
-              
-          } else if(dt == DataBuffer.TYPE_BYTE){
-              
-              DataBufferByte dbb = (DataBufferByte)db;
-              byte[] b = dbb.getData();
-              MapEntry me = new MapEntryByte(b, width, height, m_width/width);
-              data.add(me);
-              //printf("BYTE b.lengt: %d - %d\n", b.length, width*height);
-          }
-          
-          if(width <= 1 || height <= 1)
-              break;
-          
-          width = (width + 1)/2;
-          height = (height + 1)/2;
-          // scale down the image 
-          if(m_pixelWeight != null)
-              img = ImageUtil.getScaledImage(img, width, height, m_pixelWeight); 
-          else 
-              img = ImageUtil.getScaledImage(img, width, height); 
-          
-          //try {ImageIO.write(img, "png", new File(fmt("/tmp/mipmap%02d.png",data.size())));} catch(Exception e){}
-          
-      }
-      
-      m_data = (MapEntry[])data.toArray(new MapEntry[data.size()]);
+    MapEntry m_data[];
+    double m_width, m_height;
+    
+    //static final int 
+    PixelWeight m_pixelWeight = null;//new LinearPixelWeight(127);
+    
+    public ImageMipMap(BufferedImage bi){
+        
+        makeMipMap(bi);
+        
+    }
+    
+    /**
+       makes mipmap with non-linear pixels weight during resampling 
+       nonlinearity = 0 - linear resampling 
+       nonlinearity > 0 (any value is OK, good typical value is 1.) weight of black pixels increased
+       nonlinearity < 0 (any value is OK, good typical value is -1.) weight of white pixels increased       
+     */
+    public ImageMipMap(BufferedImage bi, double nonlinearity){
+        
+        m_pixelWeight = new LinearPixelWeight((int)(128*(1+nonlinearity)));
+        
+        makeMipMap(bi);
+        
+    }
+    
+    void makeMipMap(BufferedImage image){
+        
+        //long t0 = System.currentTimeMillis();
+        if(DEBUG)printf("start mipmap\n");
+        int width = image.getWidth();
+        int height = image.getHeight();
+        m_width = width;
+        m_height = height;
+        
+        BufferedImage img = image;
+        
+        Vector<MapEntry> data = new Vector<MapEntry>();
+        
+        while(width > 0 && height > 0){
             
-  }
+            DataBuffer db = img.getRaster().getDataBuffer();
+            if(DEBUG) printf("mipmap [%d x %d]: %s %s\n", width, height, db, getTypeName(img.getType()));
+            int dt = db.getDataType();
+            
+            if(dt == DataBuffer.TYPE_INT ){
+                
+                DataBufferInt  dbi = (DataBufferInt)db;
+                int[] b = dbi.getData();
+                MapEntry me = new MapEntryInt(b, width, height, m_width/width);
+                data.add(me);
+                //printf("INT b.lengt: %d - %d\n", b.length, width*height);
+                
+            } else if(dt == DataBuffer.TYPE_BYTE){
+                
+                DataBufferByte dbb = (DataBufferByte)db;
+                byte[] b = dbb.getData();
+                MapEntry me = new MapEntryByte(b, width, height, m_width/width);
+                data.add(me);
+                //printf("BYTE b.lengt: %d - %d\n", b.length, width*height);
+            }
+            
+            if(width <= 1 || height <= 1)
+                break;
+            
+            width = (width + 1)/2;
+            height = (height + 1)/2;
+            // scale down the image 
+            if(m_pixelWeight != null)
+                img = ImageUtil.getScaledImage(img, width, height, m_pixelWeight); 
+            else 
+                img = ImageUtil.getScaledImage(img, width, height); 
+            if(DEBUG) try {ImageIO.write(img, "png", new File(fmt("/tmp/mipmap%02d.png",data.size())));} catch(Exception e){}
+          
+        }
+        
+        m_data = (MapEntry[])data.toArray(new MapEntry[data.size()]);
+        
+    }
 
   public void printData(int ind, int start, int count){
 
@@ -180,7 +185,7 @@ public class ImageMipMap {
                 double color0[] = new double[4];
                 double color1[] = new double[4];
                 double w = (probesize-me0.pixelSize)/(me1.pixelSize-me0.pixelSize); // interpolation between maps 
-                if(debugCount-- > 0){
+                if(DEBUG && debugCount-- > 0){
                     printf("probe: %7.2f, w0: %7.2f w1:%7.2f %7.2f\n", probesize, me0.pixelSize, me1.pixelSize, w);
                 }
                 

@@ -290,10 +290,11 @@ public class TestGridMaker extends TestCase {
         image.setLocation(0,0,ringThickness/2);
         image.setBaseThickness(0.);
         image.setTiles(12,1);
-        image.setUseGrayscale(false);        
+        image.setUseGrayscale(true);        
         image.setImagePath("apps/ringpopper/images/tile_02.png");
         image.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-        image.setProbeSize(1.*MM);
+        image.setPixelWeightNonlinearity(-1.);
+        image.setProbeSize(0.5*MM);
 
         DataSources.ImageBitmap crossSect = new DataSources.ImageBitmap();
         crossSect.setSize(ringWidth, ringThickness,bandLength);
@@ -342,7 +343,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_rounded.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_rounded.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -1384,9 +1385,9 @@ public class TestGridMaker extends TestCase {
         
         try {
             
-            String fileName = "apps/ringpopper/images/tile_01.png";
+            String fileName = "apps/ringpopper/images/tile_02.png";
             BufferedImage image = ImageIO.read(new File(fileName));
-            ImageMipMap mm = new ImageMipMap(image);
+            ImageMipMap mm = new ImageMipMap(image, 1);
             
             double color[] = new double[4];
             
