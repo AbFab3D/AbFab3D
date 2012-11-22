@@ -308,6 +308,13 @@ public class DataSources {
                 data.v[0] = 0;
                 return RESULT_OK;
             }
+            
+            if(m_baseThickness != 0.0){
+                if( z < zbase){
+                    data.v[0] = 1;
+                    return RESULT_OK;                    
+                }                    
+            }
 
             if(imageData == null){               
                 data.v[0] = 1;
@@ -338,7 +345,6 @@ public class DataSources {
                     data.v[0] = 0;
 
             } else {  // sharp threshold 
-                
                 d = pixelValue;
                 if(d > m_imageThreshold)
                     data.v[0] = 1;

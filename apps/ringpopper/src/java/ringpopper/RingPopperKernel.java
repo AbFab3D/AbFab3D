@@ -295,33 +295,8 @@ public class RingPopperKernel extends HostedKernel {
         
         DataSource image_band = makeImageBand();
  
-        DataSource image_with_edges = image_band;
-
-        if (edgeStyle != edgeStyle.NONE) {
-
-            DataSources.Union union =  new DataSources.Union();
-            
-            union.addDataSource(image_band);
-            
-            if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
-                DataSources.Block top_band = new DataSources.Block();
-                top_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
-                top_band.setLocation(0, ringWidth/2+edgeWidth/2, ringThickness/2);
-                union.addDataSource(top_band);
-            }
-
-            if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
-                DataSources.Block bottom_band = new DataSources.Block();
-                bottom_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
-                bottom_band.setLocation(0, -ringWidth/2 - edgeWidth/2, ringThickness/2);
-                union.addDataSource(bottom_band);
-            }
-
-            image_with_edges = union;
-        }
-
         DataSources.Intersection complete_band = new DataSources.Intersection();
-        complete_band.addDataSource(image_with_edges);
+        complete_band.addDataSource(image_band);
         
         if (text != null && text.length() > 0) {
             
@@ -330,29 +305,21 @@ public class RingPopperKernel extends HostedKernel {
         } 
         
         // add crossSectionImage to complete_band 
-        printf("crossSection: %s\n", crossSectionPath);
         if(crossSectionPath != null){
-            printf("adding crosssection: %s\n", crossSectionPath);
             complete_band.addDataSource(makeCrossSection());
         }
+       
+        VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
+        ringWrap.setRadius(innerDiameter/2);
 
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
-
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
-        rw.m_radius = innerDiameter/2;
-
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(0,0,1);
-        rot.m_angle = 0*TORAD;
-
-        compTrans.add(rot);
-        compTrans.add(rw);
+        DataSources.DataTransformer ring = new DataSources.DataTransformer();
+        ring.setDataSource(complete_band);
+        ring.setTransform(ringWrap);
 
         GridMaker gm = new GridMaker();
 
         gm.setBounds(bounds);
-        gm.setTransform(compTrans);
-        gm.setDataSource(complete_band);
+        gm.setDataSource(ring);
 
         boolean bigIndex = false;
         
@@ -417,7 +384,7 @@ public class RingPopperKernel extends HostedKernel {
 
         DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
 
-        image_src.setUseGrayscale(false);                
+        image_src.setUseGrayscale(true);                
         image_src.setLocation(0,0,ringThickness/2);
         image_src.setImagePath(imagePath);
         printf("baseThickness: %f\n",baseThickness);
@@ -459,7 +426,30 @@ public class RingPopperKernel extends HostedKernel {
             image_band = image_frieze;
         }
 
-        return image_band;
+        if (edgeStyle == edgeStyle.NONE) {
+            return image_band;
+        }
+
+        
+        DataSources.Union union =  new DataSources.Union();
+        
+        union.addDataSource(image_band);
+        
+        if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
+            DataSources.Block top_band = new DataSources.Block();
+            top_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
+            top_band.setLocation(0, ringWidth/2+edgeWidth/2, ringThickness/2);
+            union.addDataSource(top_band);
+        }
+        
+        if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
+            DataSources.Block bottom_band = new DataSources.Block();
+            bottom_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
+            bottom_band.setLocation(0, -ringWidth/2 - edgeWidth/2, ringThickness/2);
+            union.addDataSource(bottom_band);
+        }
+        
+        return union;
 
     }
 
