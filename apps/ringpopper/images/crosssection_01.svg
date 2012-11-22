@@ -43,7 +43,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -57,7 +57,7 @@
        id="rect2988"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="sssssssss"
-       inkscape:export-filename="C:\home\00_shapeways\projects\abfab3d\code\trunk\apps\ringpopper\images\crosssection_01.png"
+       inkscape:export-filename="d:\home\00_shapeways\projects\abfab3d\code\trunk\apps\ringpopper\images\crosssection_01.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
   </g>
