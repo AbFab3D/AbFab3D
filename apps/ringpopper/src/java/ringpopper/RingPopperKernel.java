@@ -61,6 +61,7 @@ import app.common.GridSaver;
 public class RingPopperKernel extends HostedKernel {
     /** Debugging level.  0-5.  0 is none */
     private static final int DEBUG_LEVEL = 0;
+    static final double MM = 0.001; // millmeters to meters
 
     enum EdgeStyle {NONE, TOP, BOTTOM, BOTH};
 
@@ -119,8 +120,8 @@ public class RingPopperKernel extends HostedKernel {
     private double maxDecimationError;
 
     /** The image filename */
-    private String image;
-    private String crossSectionPath;
+    private String imagePath = null;
+    private String crossSectionPath = null;
 
     private int tilingX;
     private int tilingY;
@@ -271,7 +272,8 @@ public class RingPopperKernel extends HostedKernel {
         if (acc == Accuracy.VISUAL) {
             resolution = resolution * previewQuality.getFactor();
         }
-        maxDecimationError = resolution / 100000.0;
+        maxDecimationError = 0.01*resolution*resolution;
+        //maxDecimationError = resolution / 100000.0;
 
         System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
 
@@ -291,46 +293,8 @@ public class RingPopperKernel extends HostedKernel {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
         
-        DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
-        
-        image_src.setLocation(0,0,ringThickness/2);
-        image_src.setImagePath(image);
-        image_src.setBaseThickness(baseThickness);
-        //image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-
-        if(symmetryStyle == SymmetryStyle.NONE) {
-
-            // image spans the whole ring length
-            image_src.setSize(innerDiameter*Math.PI, ringWidth, ringThickness);
-            image_src.setTiles(tilingX, tilingY);
-
-        } else {
-
-            // image spans only one tile
-            image_src.setSize(innerDiameter*Math.PI/tilingX, ringWidth, ringThickness);
-            image_src.setTiles(1, tilingY);
-
-        }
-        
-        DataSource image_band = image_src;
-
-        System.out.println("SymStyle: " + symmetryStyle);        
-        if(symmetryStyle != SymmetryStyle.NONE){
-            
-            DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();
-            image_frieze.setDataSource(image_src);
-        
-            VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
-            fs.setFriezeType(symmetryStyle.getCode());
-            double tileWidth = innerDiameter*Math.PI/tilingX;
-            fs.setDomainWidth(tileWidth);
-
-            image_frieze.setTransform(fs);
-            image_frieze.setDataSource(image_src);
-
-            image_band = image_frieze;
-        }
-
+        DataSource image_band = makeImageBand();
+ 
         DataSource image_with_edges = image_band;
 
         if (edgeStyle != edgeStyle.NONE) {
@@ -356,45 +320,21 @@ public class RingPopperKernel extends HostedKernel {
             image_with_edges = union;
         }
 
-        DataSources.ImageBitmap textBand = null;
-        DataSources.DataTransformer rotatedText = null;
-        DataSources.Subtraction ringMinusText = null;
-
-        double textDepth = 0.0003; // 1mm
-
         DataSources.Intersection complete_band = new DataSources.Intersection();
         complete_band.addDataSource(image_with_edges);
         
         if (text != null && text.length() > 0) {
-
-            textBand = new DataSources.ImageBitmap();
-            textBand.setSize(Math.PI*innerDiameter, ringWidth, textDepth);
-            textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
-            textBand.setBaseThickness(0.);
-            textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
-            textBand.setTiles(1,1);
-            textBand.setImage(TextUtil.createTextImage(1000, 150, text, new Font("Times New Roman", Font.BOLD, fontSize), new Insets(10, 10, 10, 10)));
-
-            // we want text on the inside. So it should face in opposite direction
-            VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
-            textRotation.setRotation(new Vector3d(0,1,0), 180*TORAD);
-
-            // rotated text
-            rotatedText = new DataSources.DataTransformer();
-            rotatedText.setDataSource(textBand);
-            rotatedText.setTransform(textRotation);
             
-            DataSources.Complement textComplement = new DataSources.Complement();
-            textComplement.setDataSource(rotatedText);
-
-            complete_band.addDataSource(textComplement);
+            complete_band.addDataSource(makeTextComplement());
             
         } 
         
-        // TODO add crossSectionImage to complete_band 
-
-
-
+        // add crossSectionImage to complete_band 
+        printf("crossSection: %s\n", crossSectionPath);
+        if(crossSectionPath != null){
+            printf("adding crosssection: %s\n", crossSectionPath);
+            complete_band.addDataSource(makeCrossSection());
+        }
 
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
 
@@ -469,6 +409,129 @@ public class RingPopperKernel extends HostedKernel {
         return new KernelResults(true, min_bounds, max_bounds);
     }
 
+
+    /**
+       long horizontal unwrapped image 
+     */
+    DataSource makeImageBand(){
+
+        DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
+
+        image_src.setUseGrayscale(false);                
+        image_src.setLocation(0,0,ringThickness/2);
+        image_src.setImagePath(imagePath);
+        printf("baseThickness: %f\n",baseThickness);
+        image_src.setBaseThickness(baseThickness);
+        image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+        image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight       
+        image_src.setProbeSize(resolution * 2.);
+
+        if(symmetryStyle == SymmetryStyle.NONE) {
+
+            // image spans the whole ring length
+            image_src.setSize(innerDiameter*Math.PI, ringWidth, ringThickness);
+            image_src.setTiles(tilingX, tilingY);
+
+        } else {
+
+            // image spans only one tile
+            image_src.setSize(innerDiameter*Math.PI/tilingX, ringWidth, ringThickness);
+            image_src.setTiles(1, tilingY);
+
+        }
+        
+        DataSource image_band = image_src;
+
+        System.out.println("SymStyle: " + symmetryStyle);        
+        if(symmetryStyle != SymmetryStyle.NONE){
+            
+            DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();
+            image_frieze.setDataSource(image_src);
+        
+            VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
+            fs.setFriezeType(symmetryStyle.getCode());
+            double tileWidth = innerDiameter*Math.PI/tilingX;
+            fs.setDomainWidth(tileWidth);
+
+            image_frieze.setTransform(fs);
+            image_frieze.setDataSource(image_src);
+
+            image_band = image_frieze;
+        }
+
+        return image_band;
+
+    }
+
+
+    /**
+       complement of text to make text engraving 
+     */
+    DataSource makeTextComplement(){
+        
+
+        double textDepth = 0.3*MM; // 1mm
+
+        DataSources.ImageBitmap textBand = new DataSources.ImageBitmap();
+
+        textBand.setSize(Math.PI*innerDiameter, ringWidth, textDepth);
+        textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
+        textBand.setBaseThickness(0.);
+        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        textBand.setTiles(1,1);
+        textBand.setImage(TextUtil.createTextImage(1000, 150, text, 
+                                                   new Font("Times New Roman", Font.BOLD, fontSize), new Insets(10, 10, 10, 10)));
+        
+        // we want text on the inside. So it should face in opposite direction
+        VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
+        textRotation.setRotation(new Vector3d(0,1,0), 180*TORAD);
+        
+        // rotated text
+        DataSources.DataTransformer rotatedText = new DataSources.DataTransformer();
+        rotatedText.setDataSource(textBand);
+        rotatedText.setTransform(textRotation);
+        
+        DataSources.Complement textComplement = new DataSources.Complement();
+        textComplement.setDataSource(rotatedText);
+        
+        return textComplement;
+
+    }
+
+    /**
+       cross section of ring 
+     */
+    DataSource makeCrossSection(){
+        
+        DataSources.ImageBitmap crossSect = new DataSources.ImageBitmap();
+        double totalWidth = ringWidth;
+        if (edgeStyle != edgeStyle.NONE) 
+            totalWidth += 2*edgeWidth;
+
+        crossSect.setSize(totalWidth, ringThickness, Math.PI*innerDiameter);
+        crossSect.setLocation(0,ringThickness/2,0);
+        crossSect.setBaseThickness(0.);
+        crossSect.setUseGrayscale(false);        
+        crossSect.setImagePath(crossSectionPath);
+
+        VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
+
+        VecTransforms.Rotation crot1 = new VecTransforms.Rotation();
+        crot1.setRotation(new Vector3d(0,0,1),-90*TORAD);
+        VecTransforms.Rotation crot2 = new VecTransforms.Rotation();
+        crot2.setRotation(new Vector3d(0,1,0),-90*TORAD);
+        crossTrans.add(crot1);
+        crossTrans.add(crot2);
+
+        // transformed cross section 
+        DataSources.DataTransformer transCross = new DataSources.DataTransformer();
+        transCross.setDataSource(crossSect);
+        transCross.setTransform(crossTrans);
+
+        return transCross;
+        
+    }
+
     /**
      * Pull the params into local variables
      *
@@ -503,9 +566,9 @@ public class RingPopperKernel extends HostedKernel {
             baseThickness = ((Double) params.get(pname)).doubleValue();
 
             pname = "image";
-            image = (String) params.get(pname);
+            imagePath = (String) params.get(pname);
 
-            pname = "crosSection";
+            pname = "crossSection";
             crossSectionPath = (String) params.get(pname);
 
             pname = "tilingX";
