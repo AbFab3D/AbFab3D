@@ -51,10 +51,25 @@ public class ImagePopperKernel extends HostedKernel {
      */
     private static final int DEBUG_LEVEL = 0;
 
+    // High = print resolution.  Medium = print * 1.5, LOW = print * 2
+    enum PreviewQuality {LOW(2.0), MEDIUM(1.5), HIGH(1.0);
+
+        private double factor;
+
+        PreviewQuality(double f) {
+            factor = f;
+        }
+
+        public double getFactor() {
+            return factor;
+        }
+    };
+
     /**
      * The horizontal and vertical resolution
      */
     private double resolution;
+    private PreviewQuality previewQuality;
     private int smoothSteps;
     private double maxDecimationError;
 
@@ -163,9 +178,14 @@ public class ImagePopperKernel extends HostedKernel {
         seq = 0;
 
         // Advanced Params
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
+        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.0001", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.MEDIUM.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(PreviewQuality.values()))
         );
 
         params.put("maxDecimationError", new Parameter("maxDecimationError", "MaxDecimationError", "Maximum error during decimation", "1e-9", 1,
@@ -200,19 +220,24 @@ public class ImagePopperKernel extends HostedKernel {
         Grid grid = null;
 
         if (acc == Accuracy.VISUAL) {
-            // TODO: not sure I like this, could have two params:  visualResolution, printResolution
-            resolution = resolution * 1.5;
+            resolution = resolution * previewQuality.getFactor();
         }
-        double image1Width = bodyWidth1;
-        double image1Height = bodyHeight1;
-        double image1Depth = bodyDepth1;
+
+        maxDecimationError = 0.01*resolution*resolution;
+
+        System.out.println("image1: " + bodyWidth1 + " " + bodyHeight1 + " " + bodyDepth1);
+        System.out.println("image2: " + bodyWidth2 + " " + bodyHeight2 + " " + bodyDepth2);
         double voxelSize = resolution;
 
         double margin = 1 * voxelSize;
 
-        double gridWidth = image1Width + 2 * margin;
-        double gridHeight = image1Height + 2 * margin;
-        double gridDepth = 4 * image1Depth + 2 * margin;
+        double gridWidth = Math.max(bodyWidth1,bodyWidth2) + 2 * margin;
+        double gridHeight = Math.max(bodyHeight1,bodyHeight2) + 2 * margin;
+        double gridDepth = 2 * bodyDepth1 + 2 * margin;
+
+        if (!filename2.equalsIgnoreCase("NONE")) {
+            gridDepth += 2 * bodyDepth2;
+        }
 
         double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -gridDepth / 2, gridDepth / 2};
         int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
@@ -223,8 +248,8 @@ public class ImagePopperKernel extends HostedKernel {
         DataSources.Union union = new DataSources.Union();
 
         DataSources.ImageBitmap layer1 = new DataSources.ImageBitmap();
-        layer1.setSize(image1Width, image1Height, image1Depth);
-        layer1.setLocation(0, 0, 0);
+        layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
+        layer1.setLocation(0, 0, bodyDepth2);
         layer1.setBaseThickness(0.0);
         layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
@@ -233,14 +258,15 @@ public class ImagePopperKernel extends HostedKernel {
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             DataSources.ImageBitmap layer2 = new DataSources.ImageBitmap();
-            layer2.setSize(image1Width, image1Height, image1Depth);
+            layer2.setSize(bodyWidth2, bodyHeight2, bodyDepth2);
 
-            layer2.setLocation(0, 0, image1Depth);
+            layer2.setLocation(0, 0, 0);
             layer2.setBaseThickness(0.0);
             layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             union.addDataSource(layer2);
+
         }
 
 
@@ -306,6 +332,9 @@ public class ImagePopperKernel extends HostedKernel {
         try {
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
+
+            pname = "previewQuality";
+            previewQuality = PreviewQuality.valueOf((String) params.get(pname));
 
             pname = "maxDecimationError";
             maxDecimationError = ((Double) params.get(pname)).doubleValue();
