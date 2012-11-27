@@ -237,6 +237,10 @@ public class ImagePopperKernel extends HostedKernel {
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             gridDepth += 2 * bodyDepth2;
+        } else {
+
+            // TODO: Not sure why this is necessary
+            gridDepth += 2 * bodyDepth1;
         }
 
         double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -gridDepth / 2, gridDepth / 2};
@@ -254,10 +258,11 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename);
+/*
         layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
         layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
         layer1.setProbeSize(resolution * 2.);
-
+*/
         union.addDataSource(layer1);
 
         if (!filename2.equalsIgnoreCase("NONE")) {
@@ -269,9 +274,11 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
+/*
             layer2.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
             layer2.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
             layer2.setProbeSize(resolution * 2.);
+*/
             union.addDataSource(layer2);
 
         }
