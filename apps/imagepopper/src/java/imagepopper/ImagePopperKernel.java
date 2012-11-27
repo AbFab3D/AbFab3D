@@ -46,6 +46,8 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class ImagePopperKernel extends HostedKernel {
+    private static final boolean USE_MIP_MAPPING = false;
+
     /**
      * Debugging level.  0-5.  0 is none
      */
@@ -225,8 +227,6 @@ public class ImagePopperKernel extends HostedKernel {
 
         maxDecimationError = 0.01*resolution*resolution;
 
-        System.out.println("image1: " + bodyWidth1 + " " + bodyHeight1 + " " + bodyDepth1);
-        System.out.println("image2: " + bodyWidth2 + " " + bodyHeight2 + " " + bodyDepth2);
         double voxelSize = resolution;
 
         double margin = 1 * voxelSize;
@@ -258,11 +258,13 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename);
-/*
-        layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-        layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-        layer1.setProbeSize(resolution * 2.);
-*/
+
+        if (USE_MIP_MAPPING) {
+            layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+            layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
+            layer1.setProbeSize(resolution * 2.);
+        }
+
         union.addDataSource(layer1);
 
         if (!filename2.equalsIgnoreCase("NONE")) {
@@ -274,11 +276,13 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
-/*
-            layer2.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-            layer2.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            layer2.setProbeSize(resolution * 2.);
-*/
+
+            if (USE_MIP_MAPPING) {
+                layer2.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+                layer2.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
+                layer2.setProbeSize(resolution * 2.);
+            }
+
             union.addDataSource(layer2);
 
         }
