@@ -38,6 +38,16 @@ public class MeshExporter {
      * @throws IOException
      */
     public static void writeMesh(WingedEdgeTriangleMesh we, String filename, HashMap<String, Object> params) throws IOException {
+        writeMesh(we,filename, -1, params);
+    }
+        /**
+        * Write a mesh to an X3D file
+        *
+        * @param we
+        * @param filename
+        * @throws IOException
+        */
+    public static void writeMesh(WingedEdgeTriangleMesh we, String filename, int sigDigits, HashMap<String, Object> params) throws IOException {
 
         SAVExporter se = new SAVExporter();
 
@@ -60,9 +70,17 @@ public class MeshExporter {
                         X3DBinarySerializer.METHOD_FASTEST_PARSING,
                         0.001f, true);
             } else if (encoding.equals("x3dv")) {
-                writer = new X3DClassicRetainedExporter(fos, 3, 0, console);
+                if (sigDigits > -1) {
+                    writer = new X3DClassicRetainedExporter(fos, 3, 0, console, sigDigits);
+                } else {
+                    writer = new X3DClassicRetainedExporter(fos, 3, 0, console);
+                }
             } else if (encoding.equals("x3d")) {
-                writer = new X3DXMLRetainedExporter(fos, 3, 0, console);
+                if (sigDigits > -1) {
+                    writer = new X3DXMLRetainedExporter(fos, 3, 0, console, sigDigits);
+                } else {
+                    writer = new X3DXMLRetainedExporter(fos, 3, 0, console);
+                }
             } else {
                 throw new IllegalArgumentException("Unhandled file format: " + encoding);
             }
@@ -91,7 +109,6 @@ public class MeshExporter {
      * @throws IOException
      */
     public static void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
-
         writeMesh(we, filename, null);
     }
 
