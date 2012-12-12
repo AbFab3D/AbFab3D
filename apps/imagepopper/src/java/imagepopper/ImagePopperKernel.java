@@ -228,32 +228,32 @@ public class ImagePopperKernel extends HostedKernel {
         maxDecimationError = 0.01*resolution*resolution;
 
         double voxelSize = resolution;
-
-        double margin = 1 * voxelSize;
+        double margin = 5 * voxelSize;
 
         double gridWidth = Math.max(bodyWidth1,bodyWidth2) + 2 * margin;
         double gridHeight = Math.max(bodyHeight1,bodyHeight2) + 2 * margin;
-        double gridDepth = 2 * bodyDepth1 + 2 * margin;
-
+        double bodyDepth = bodyDepth1;
+        double layer1z = bodyDepth1/2; // z-center
+        double layer2z = 0;            // z-center of bottom layer
+        
         if (!filename2.equalsIgnoreCase("NONE")) {
-            gridDepth += 2 * bodyDepth2;
-        } else {
+            bodyDepth += bodyDepth2;
+            layer1z += bodyDepth2;
+            layer2z = bodyDepth2/2;
+        } 
 
-            // TODO: Not sure why this is necessary
-            gridDepth += 2 * bodyDepth1;
-        }
-
-        double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -gridDepth / 2, gridDepth / 2};
+        double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -margin, bodyDepth + margin};
         int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
         int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
         int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        printf("bodyDepth: %f mm\n", bodyDepth*1000);
 
         DataSources.Union union = new DataSources.Union();
 
         DataSources.ImageBitmap layer1 = new DataSources.ImageBitmap();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
-        layer1.setLocation(0, 0, bodyDepth2);
+        layer1.setLocation(0, 0, layer1z);
         layer1.setBaseThickness(0.0);
         layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
@@ -271,7 +271,7 @@ public class ImagePopperKernel extends HostedKernel {
             DataSources.ImageBitmap layer2 = new DataSources.ImageBitmap();
             layer2.setSize(bodyWidth2, bodyHeight2, bodyDepth2);
 
-            layer2.setLocation(0, 0, 0);
+            layer2.setLocation(0, 0, layer2z);
             layer2.setBaseThickness(0.0);
             layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
             layer2.setTiles(1, 1);
@@ -331,8 +331,6 @@ public class ImagePopperKernel extends HostedKernel {
         System.gc();
 
         GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
-
-
 
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");

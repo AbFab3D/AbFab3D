@@ -123,7 +123,7 @@ public class TestGridMaker extends TestCase {
         double tileWidth = 1*CM;
         double tileHeight = 1*CM;
         double tileSkew = 0.2;//0.3333;
-        double baseThichness = 0.0; 
+        double baseThichness = 0.1*CM; 
 
         //String imagePath = "docs/images/shape_01.png";
 
@@ -260,7 +260,7 @@ public class TestGridMaker extends TestCase {
         
     }
 
-    public void testRoundedRing() {
+    public void _testRoundedRing() {
         
         printf("testImageRing1()\n");
         double voxelSize = 0.1*MM;
@@ -908,6 +908,54 @@ public class TestGridMaker extends TestCase {
         printf("writeIsosurface() done\n");        
         
     }
+
+    public void testHoledWedge() {
+        
+        double blockWidth = 50*MM;
+        double blockHeight = 10*MM;
+        double blockDepth = 2*MM;
+        double voxelSize = 0.05*MM;
+        double margin = 1*voxelSize;
+
+        int smoothSteps = 0;
+        
+        double gridWidth = blockWidth + 2*margin;
+        double gridHeight  = blockHeight + 2*margin;
+        double gridDepth = 2*blockDepth + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};        
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap block = new DataSources.ImageBitmap();        
+        block.setSize(blockWidth, blockHeight, blockDepth);
+        block.setImagePath("docs/images/circles.png");                
+        block.setLocation(0,0,0); 
+        block.setBaseThickness(0.);
+        //block.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        block.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+        block.setUseGrayscale(false);        
+        block.setTiles(1,1);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setDataSource(block);        
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/holed_block.stl");
+        printf("writeIsosurface() done\n");        
+        
+    }
+
 
     static class Ripples implements VecTransform {
         
