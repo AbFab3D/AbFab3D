@@ -762,4 +762,147 @@ public class IsosurfaceMaker {
             }
         }
     } // class SliceGrid 
+
+
+
+    /**
+       class calculates slice of data from a Grid doing averaginv over neighbours 
+       
+     */
+    public static class SliceGrid2 implements SliceCalculator {
+        
+        // minimal value of distance from zero 
+
+        Grid grid;
+        double bounds[];
+        int gnx, gny, gnz; // size of grid 
+        double gdx, gdy, gdz; // pixel size of grid 
+        double gxmin, gymin, gzmin; // origin of the grid 
+
+        int m_neighborsCount = 0; // allowed values are 0, 6, 18, 26 - 
+
+        public SliceGrid2(Grid grid, double bounds[], int neighborsCount){
+
+            this.grid = grid;
+            this.bounds = bounds.clone();
+            m_neighborsCount = neighborsCount;
+            gnx = grid.getWidth();
+            gny = grid.getHeight();
+            gnz = grid.getDepth();
+            
+            gdx = (bounds[1] - bounds[0])/(gnx-1);
+            gdy = (bounds[3] - bounds[2])/(gny-1);
+            gdz = (bounds[5] - bounds[4])/(gnz-1);
+
+            gxmin = bounds[0];
+            gymin = bounds[2];
+            gzmin = bounds[4];
+
+        }
+
+        static int round(double x){
+            return (int)Math.floor(x + 0.5);
+        }
+
+        public void getSlice(SliceData sliceData){
+
+            int nx = sliceData.nx;
+            int ny = sliceData.ny;
+
+            double xmin = sliceData.xmin;
+            double ymin = sliceData.ymin;
+
+            double dx = (sliceData.xmax - xmin)/(nx-1);
+            double dy = (sliceData.ymax - ymin)/(ny-1);            
+
+            double z = sliceData.z;
+
+            int gz = round((z - gzmin)/gdz);
+            
+            double data[] = sliceData.data;
+           
+            for(int iy = 0; iy < ny; iy++){
+
+                double y = ymin + iy*dy;
+                int gy = round((y - gymin)/gdy);
+
+                int offset = iy * nx;
+
+                for(int ix = 0; ix < nx; ix++){
+
+                    double x = xmin + ix*dx;
+
+                    int gx = round((x - gxmin)/gdx);
+                    data[offset + ix] = getGridData(gx,gy,gz, m_neighborsCount);
+                }
+            }            
+        }
+
+        /**
+           return data at the grid point 
+           does recursive averaging
+         */
+        double getGridData(int gx, int gy, int gz, int neighboursCount){
+
+            int sum=0;
+            
+            switch(neighboursCount){
+                
+            case 26:               
+                sum += getGridState(gx+1, gy+1, gz+1);
+                sum += getGridState(gx-1, gy+1, gz+1);
+                sum += getGridState(gx+1, gy-1, gz+1);
+                sum += getGridState(gx-1, gy-1, gz+1);
+                sum += getGridState(gx+1, gy+1, gz-1);
+                sum += getGridState(gx-1, gy+1, gz-1);
+                sum += getGridState(gx+1, gy-1, gz-1);
+                sum += getGridState(gx-1, gy-1, gz-1);
+                // no break to add the rest 
+            case 18:               
+                sum += getGridState(gx+1, gy+1, gz);
+                sum += getGridState(gx-1, gy+1, gz);
+                sum += getGridState(gx+1, gy-1, gz);
+                sum += getGridState(gx-1, gy-1, gz);
+
+                sum += getGridState(gx+1, gy, gz+1);
+                sum += getGridState(gx-1, gy, gz+1);
+                sum += getGridState(gx+1, gy, gz-1);
+                sum += getGridState(gx-1, gy, gz-1);
+
+                sum += getGridState(gx, gy+1, gz+1);
+                sum += getGridState(gx, gy-1, gz+1);
+                sum += getGridState(gx, gy+1, gz-1);
+                sum += getGridState(gx, gy-1, gz-1);
+                // no break to add the rest 
+            case 6:               
+                sum += getGridState(gx+1, gy, gz);
+                sum += getGridState(gx-1, gy, gz);
+                sum += getGridState(gx, gy+1, gz);
+                sum += getGridState(gx, gy-1, gz);
+                sum += getGridState(gx, gy, gz+1);
+                sum += getGridState(gx, gy, gz-1);
+                // no break yto add the rest 
+            default: 
+            case 0:               
+                sum += getGridState(gx, gy, gz);
+            } 
+            
+            return (sum / (1.0 + neighboursCount)); 
+
+        }
+
+        int getGridState(int gx, int gy, int gz){
+
+            if(gx <  0 || gy < 0 || gz < 0 || gx >= gnx || gy >= gny || gz >= gnz){
+                return 1;
+            } else {
+                byte state = grid.getState(gx,gy,gz);
+                if(state == Grid.OUTSIDE)
+                    return 1;
+                else 
+                    return -1;
+            }            
+        }
+    } // class SliceGrid2
+
 }
