@@ -378,9 +378,9 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
     public String toStringSlice(int y) {
         StringBuilder sb = new StringBuilder();
 
-        for(int i=0; i < depth; i++) {
-            for(int j=0; j < width; j++) {
-                sb.append(getState(i,y,j));
+        for(int z=depth-1; z >= 0; z--) {
+            for(int x=0; x < width; x++) {
+                sb.append(getState(x,y,z));
                 sb.append(" ");
             }
 
