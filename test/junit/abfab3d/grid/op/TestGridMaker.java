@@ -59,6 +59,7 @@ import abfab3d.util.ImageMipMap;
 
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.TORAD;
 
 import static java.lang.System.currentTimeMillis;
@@ -916,7 +917,7 @@ public class TestGridMaker extends TestCase {
         double blockHeight = 10*MM;
         double blockDepth = 2*MM;
         double voxelSize = 0.1*MM;
-        double margin = 1*voxelSize;
+        double margin = 5*voxelSize;
 
         int smoothSteps = 0;
         
@@ -955,20 +956,14 @@ public class TestGridMaker extends TestCase {
         long t0 = currentTimeMillis();
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/holed_block.stl");
         printf("TIME_ORIG: %d ms\n", (currentTimeMillis()-t0));
-        t0 = currentTimeMillis();
-        writeIsosurface2(grid, bounds, voxelSize, 0, "/tmp/holed_block2_0.stl");
-        printf("TIME_0: %d ms\n", (currentTimeMillis()-t0));
-        t0 = currentTimeMillis();
-        writeIsosurface2(grid, bounds, voxelSize, 6, "/tmp/holed_block2_6.stl");
-        printf("TIME_6: %d ms\n", (currentTimeMillis()-t0));
-        t0 = currentTimeMillis();
-        writeIsosurface2(grid, bounds, voxelSize, 18, "/tmp/holed_block2_18.stl");
-        printf("TIME_18: %d ms\n", (currentTimeMillis()-t0));
-        t0 = currentTimeMillis();
-        writeIsosurface2(grid, bounds, voxelSize, 26, "/tmp/holed_block2_26.stl");
-        printf("TIME_26: %d ms\n", (currentTimeMillis()-t0));
-        t0 = currentTimeMillis();
-        printf("writeIsosurface() done\n");        
+
+        for(int i = 1; i < 10; i++){
+            t0 = currentTimeMillis();
+            writeIsosurface2(grid, bounds, voxelSize, i, fmt("/tmp/holed_block_%d.stl", i));
+            printf("TIME(%d): %d ms\n", i, (currentTimeMillis()-t0));
+        }
+
+        printf("done\n");        
         
     }
 
@@ -1501,7 +1496,7 @@ public class TestGridMaker extends TestCase {
        generates isosurface at half resolution 
        neigboursCount can be 0, 6, 18, 26
      */
-    void writeIsosurface2(Grid grid, double bounds[], double voxelSize, int neighborsCount, String fpath){
+    void writeIsosurface2(Grid grid, double bounds[], double voxelSize, int resamplingFactor, String fpath){
 
         printf("writeIsosurface2(%s)\n",fpath);
 
@@ -1510,14 +1505,14 @@ public class TestGridMaker extends TestCase {
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
-        double dx2 = 2*(bounds[1] - bounds[0])/nx;
-        double dy2 = 2*(bounds[3] - bounds[2])/ny;
-        double dz2 = 2*(bounds[5] - bounds[4])/nz;
+        double dx2 = resamplingFactor*(bounds[1] - bounds[0])/nx;
+        double dy2 = resamplingFactor*(bounds[3] - bounds[2])/ny;
+        double dz2 = resamplingFactor*(bounds[5] - bounds[4])/nz;
         printf("dx2:[%7.3f,%7.3f,%7.3f]mm\n",dx2/MM,dy2/MM,dz2/MM);
         
-        int nx2 = (nx+1)/2;
-        int ny2 = (ny+1)/2;
-        int nz2 = (nz+1)/2;
+        int nx2 = (nx+resamplingFactor-1)/resamplingFactor;
+        int ny2 = (ny+resamplingFactor-1)/resamplingFactor;
+        int nz2 = (nz+resamplingFactor-1)/resamplingFactor;
         printf("nx2:[%d,%d,%d]\n",nx2, ny2, nz2);
 
         double bounds2[] = new double[]{
@@ -1532,7 +1527,7 @@ public class TestGridMaker extends TestCase {
         im.setBounds(MathUtil.extendBounds(bounds2, -voxelSize/2));
         im.setGridSize(nx2, ny2, nz2);
 
-        IsosurfaceMaker.SliceGrid2 fdata = new IsosurfaceMaker.SliceGrid2(grid, bounds, neighborsCount);
+        IsosurfaceMaker.SliceGrid2 fdata = new IsosurfaceMaker.SliceGrid2(grid, bounds, resamplingFactor, 2.9);
         
         try {
             STLWriter stlwriter = new STLWriter(fpath);

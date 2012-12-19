@@ -21,6 +21,7 @@ import abfab3d.grid.Grid;
 import abfab3d.util.TriangleCollector;
 
 import static java.lang.Math.abs;
+import static abfab3d.util.Output.printf;
 
 
 /**
@@ -766,7 +767,7 @@ public class IsosurfaceMaker {
 
 
     /**
-       class calculates slice of data from a Grid doing averaginv over neighbours 
+       class calculates slice of data from a Grid doing averaging over neighbors 
        
      */
     public static class SliceGrid2 implements SliceCalculator {
@@ -779,13 +780,23 @@ public class IsosurfaceMaker {
         double gdx, gdy, gdz; // pixel size of grid 
         double gxmin, gymin, gzmin; // origin of the grid 
 
-        int m_neighborsCount = 0; // allowed values are 0, 6, 18, 26 - 
+        int m_cubeHalfSize = 0; // allowed values are 0, 1, 2, ...
+        double m_bodyVoxelWeight = 1.0;
 
-        public SliceGrid2(Grid grid, double bounds[], int neighborsCount){
+        public SliceGrid2(Grid grid, double bounds[], int resamplingFactor){
+            this(grid,bounds, resamplingFactor, 1.0);
+        }
+
+        /**
+           body voxels may have larger weight ( > 1. ) or smaller weight ( < 1.)  
+         */
+        public SliceGrid2(Grid grid, double bounds[], int resamplingFactor, double bodyVoxelWeight){
 
             this.grid = grid;
             this.bounds = bounds.clone();
-            m_neighborsCount = neighborsCount;
+            m_cubeHalfSize = resamplingFactor / 2;
+            m_bodyVoxelWeight = bodyVoxelWeight;
+
             gnx = grid.getWidth();
             gny = grid.getHeight();
             gnz = grid.getDepth();
@@ -833,7 +844,7 @@ public class IsosurfaceMaker {
                     double x = xmin + ix*dx;
 
                     int gx = round((x - gxmin)/gdx);
-                    data[offset + ix] = getGridData(gx,gy,gz, m_neighborsCount);
+                    data[offset + ix] = getGridData(gx,gy,gz);
                 }
             }            
         }
@@ -842,10 +853,30 @@ public class IsosurfaceMaker {
            return data at the grid point 
            does recursive averaging
          */
-        double getGridData(int gx, int gy, int gz, int neighboursCount){
+        double getGridData(int gx, int gy, int gz){
 
-            int sum=0;
-            
+            double sum =0; 
+            double norm = 0;
+            for(int dx = -m_cubeHalfSize; dx <= m_cubeHalfSize; dx++){
+                for(int dy = -m_cubeHalfSize; dy <= m_cubeHalfSize; dy++){
+                    for(int dz = -m_cubeHalfSize; dz <= m_cubeHalfSize; dz++){
+                        double v = getGridState(gx+dx, gy+dy, gz+dz);
+                        if( v < 0.0){// body voxel 
+                            sum += v * m_bodyVoxelWeight; 
+                            norm += m_bodyVoxelWeight;
+                        } else {
+                            sum += v; 
+                            norm += 1;
+                        }
+                    }
+                }
+            }
+            if(abs(sum) < 1.e-5){
+                printf("zero sum in getGridData: %g\n", sum);
+            }
+            return sum * norm;
+
+            /*
             switch(neighboursCount){
                 
             case 26:               
@@ -888,13 +919,13 @@ public class IsosurfaceMaker {
             } 
             
             return (sum / (1.0 + neighboursCount)); 
-
+            */
         }
 
         int getGridState(int gx, int gy, int gz){
 
             if(gx <  0 || gy < 0 || gz < 0 || gx >= gnx || gy >= gny || gz >= gnz){
-                return 1;
+                return 1; // outside
             } else {
                 byte state = grid.getState(gx,gy,gz);
                 if(state == Grid.OUTSIDE)
