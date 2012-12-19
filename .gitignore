@@ -11,3 +11,4 @@ jars/
 *.orig
 reports/
 *.class
+apps/*/src/java/*/ui

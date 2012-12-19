@@ -36,8 +36,8 @@ public class WallThicknessRunner {
     public static final String VISUALIZATION = "visualization";
 
     private static final String SCRIPT_FILE = "wallthickness_ribt.sh";
-    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server";
-    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server";
+    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.7";
+    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server_v1.5.7";
 
     private static final String RESULT_MARKER = "WT_PROCESSING_RESULT:";
     private static final String PARTS_COUNT_ORIGINAL_MARKER = "PARTS_COUNT_ORIGINAL:";
@@ -126,18 +126,18 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         MaterialProperties props = wtProps.get(material);
 
         double wt = props.getMinWallthickness();
-        double bir = 2.7;
-//        double minSuspectVol = 0.05;
-//        double minUnsafeVol = 0.5;
+        double bir_suspect = 1.5;
+        double bir_unsafe = 2.7;
 
         //if we want to filter out only 5 voxels size, we use 5 * 0.1*0.1*0.1 mm = 0.005 mm^3
-        double minSuspectVol = 0.005;
-        double minUnsafeVol = 0.05;
+        double min_suspect_vol = 0.005;
+        double min_unsafe_vol = 0.05;
 
         // TODO: Stop hardcoding params
         String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
-                "-visDir","/tmp", "-maxReg", "1000", "-debug","4", "-bir", Double.toString(bir),
-                "-minSuspectVol",Double.toString(minSuspectVol),"-minUnsafeVol",Double.toString(minUnsafeVol)};
+                "-visDir","/tmp", "-maxReg", "1000", "-debug","4", "-birSuspect", Double.toString(bir_suspect),
+                "-birUnsafe", Double.toString(bir_unsafe),
+                "-minSuspectVol",Double.toString(min_suspect_vol),"-minUnsafeVol",Double.toString(min_unsafe_vol)};
         String workingDirPath = "/tmp";
 
         WallThicknessResult ret_val = null;

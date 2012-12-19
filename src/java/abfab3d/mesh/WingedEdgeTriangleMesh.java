@@ -89,14 +89,19 @@ public class WingedEdgeTriangleMesh {
         }
         VertexAttribs V[] = new VertexAttribs[vertCoord.length];
         this.semantics = semantics.clone();
-
+        long t0 = System.currentTimeMillis();
+        printf("creating vertex array\n");
         for (int nv = 0; nv < V.length; nv++) {
 
-            V[nv] = new VertexAttribs(attribs.length);
+            V[nv] = new VertexAttribs(attribs[nv].length);
             V[nv].setPoint(new Point3d(vertCoord[nv]));
             V[nv].setAttribs(attribs[nv]);
             V[nv].setID(nv);
         }
+        
+        long t1 = System.currentTimeMillis();
+        printf("done creating vertex array: %d ms\n", (t1-t0));
+        t0 = t1;
 
         ArrayList eface = new ArrayList(findex.length * 3);
 
@@ -127,6 +132,10 @@ public class WingedEdgeTriangleMesh {
 
         }
 
+        t1 = System.currentTimeMillis();
+        printf("done creating faces: %d ms\n", (t1-t0));
+        t0 = t1;
+
         boolean notifyNonManifold = true;
 
         HalfEdgeKey key = new HalfEdgeKey();
@@ -154,10 +163,19 @@ public class WingedEdgeTriangleMesh {
             }
         }
 
+        t1 = System.currentTimeMillis();
+        printf("done creating HalfEdges: %d ms\n", (t1-t0));
+        t0 = t1;
+
         /* Add the vertices to the list */
         for (int i = 0; i < V.length; i++) {
             addVertex(V[i]);
         }
+
+        t1 = System.currentTimeMillis();
+        printf("done adding vertices list: %d ms\n", (t1-t0));
+        t0 = t1;
+
     }
 
     public WingedEdgeTriangleMesh(Point3d vertCoord[], int[][] findex) {

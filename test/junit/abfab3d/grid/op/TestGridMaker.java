@@ -61,6 +61,7 @@ import abfab3d.util.ImageMipMap;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.MathUtil.TORAD;
 
+import static java.lang.System.currentTimeMillis;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.sqrt;
@@ -123,7 +124,7 @@ public class TestGridMaker extends TestCase {
         double tileWidth = 1*CM;
         double tileHeight = 1*CM;
         double tileSkew = 0.2;//0.3333;
-        double baseThichness = 0.0; 
+        double baseThichness = 0.1*CM; 
 
         //String imagePath = "docs/images/shape_01.png";
 
@@ -260,7 +261,7 @@ public class TestGridMaker extends TestCase {
         
     }
 
-    public void testRoundedRing() {
+    public void _testRoundedRing() {
         
         printf("testImageRing1()\n");
         double voxelSize = 0.1*MM;
@@ -909,6 +910,69 @@ public class TestGridMaker extends TestCase {
         
     }
 
+    public void testHoledWedge() {
+        
+        double blockWidth = 50*MM;
+        double blockHeight = 10*MM;
+        double blockDepth = 2*MM;
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
+
+        int smoothSteps = 0;
+        
+        double gridWidth = blockWidth + 2*margin;
+        double gridHeight  = blockHeight + 2*margin;
+        double gridDepth = 2*blockDepth + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};        
+        int nx = (int)Math.round((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)Math.round((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)Math.round((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.ImageBitmap block = new DataSources.ImageBitmap();        
+        block.setSize(blockWidth, blockHeight, blockDepth);
+        block.setImagePath("docs/images/circles.png");                
+        block.setLocation(0,0,0); 
+        block.setBaseThickness(0.);
+        //block.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        block.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+        block.setUseGrayscale(false);        
+        block.setTiles(1,1);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setDataSource(block);        
+        
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        
+        printf("writeIsosurface()\n");
+        long t0 = currentTimeMillis();
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/holed_block.stl");
+        printf("TIME_ORIG: %d ms\n", (currentTimeMillis()-t0));
+        t0 = currentTimeMillis();
+        writeIsosurface2(grid, bounds, voxelSize, 0, "/tmp/holed_block2_0.stl");
+        printf("TIME_0: %d ms\n", (currentTimeMillis()-t0));
+        t0 = currentTimeMillis();
+        writeIsosurface2(grid, bounds, voxelSize, 6, "/tmp/holed_block2_6.stl");
+        printf("TIME_6: %d ms\n", (currentTimeMillis()-t0));
+        t0 = currentTimeMillis();
+        writeIsosurface2(grid, bounds, voxelSize, 18, "/tmp/holed_block2_18.stl");
+        printf("TIME_18: %d ms\n", (currentTimeMillis()-t0));
+        t0 = currentTimeMillis();
+        writeIsosurface2(grid, bounds, voxelSize, 26, "/tmp/holed_block2_26.stl");
+        printf("TIME_26: %d ms\n", (currentTimeMillis()-t0));
+        t0 = currentTimeMillis();
+        printf("writeIsosurface() done\n");        
+        
+    }
+
+
     static class Ripples implements VecTransform {
         
         double m_periodX, m_periodY, m_periodZ, m_ampX, m_ampY, m_ampZ;
@@ -1423,6 +1487,52 @@ public class TestGridMaker extends TestCase {
         im.setGridSize(nx, ny, nz);
 
         IsosurfaceMaker.SliceGrid fdata = new IsosurfaceMaker.SliceGrid(grid, bounds, smoothSteps);
+        
+        try {
+            STLWriter stlwriter = new STLWriter(fpath);
+            im.makeIsosurface(fdata, stlwriter);
+            stlwriter.close();
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    /**
+       generates isosurface at half resolution 
+       neigboursCount can be 0, 6, 18, 26
+     */
+    void writeIsosurface2(Grid grid, double bounds[], double voxelSize, int neighborsCount, String fpath){
+
+        printf("writeIsosurface2(%s)\n",fpath);
+
+        IsosurfaceMaker im = new IsosurfaceMaker();
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        double dx2 = 2*(bounds[1] - bounds[0])/nx;
+        double dy2 = 2*(bounds[3] - bounds[2])/ny;
+        double dz2 = 2*(bounds[5] - bounds[4])/nz;
+        printf("dx2:[%7.3f,%7.3f,%7.3f]mm\n",dx2/MM,dy2/MM,dz2/MM);
+        
+        int nx2 = (nx+1)/2;
+        int ny2 = (ny+1)/2;
+        int nz2 = (nz+1)/2;
+        printf("nx2:[%d,%d,%d]\n",nx2, ny2, nz2);
+
+        double bounds2[] = new double[]{
+            bounds[0], bounds[0] + dx2*nx2, 
+            bounds[2], bounds[2] + dy2*ny2, 
+            bounds[4], bounds[4] + dz2*nz2
+        };
+        
+        printf("bounds:[%7.3f,%7.3f,%7.3f,%7.3f,%7.3f,%7.3f]mm\n",bounds[0]/MM,bounds[1]/MM,bounds[2]/MM,bounds[3]/MM,bounds[4]/MM,bounds[5]/MM);
+        printf("bounds2:[%7.3f,%7.3f,%7.3f,%7.3f,%7.3f,%7.3f]mm\n",bounds2[0]/MM,bounds2[1]/MM,bounds2[2]/MM,bounds2[3]/MM,bounds2[4]/MM,bounds2[5]/MM);
+        im.setIsovalue(0.);
+        im.setBounds(MathUtil.extendBounds(bounds2, -voxelSize/2));
+        im.setGridSize(nx2, ny2, nz2);
+
+        IsosurfaceMaker.SliceGrid2 fdata = new IsosurfaceMaker.SliceGrid2(grid, bounds, neighborsCount);
         
         try {
             STLWriter stlwriter = new STLWriter(fpath);

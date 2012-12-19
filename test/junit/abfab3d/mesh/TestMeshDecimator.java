@@ -414,6 +414,7 @@ public class TestMeshDecimator extends TestCase {
             //printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
         }
     }
+
     
     public void testFileMaxEdge() throws Exception {
 

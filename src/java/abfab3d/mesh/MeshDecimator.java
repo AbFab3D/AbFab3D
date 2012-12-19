@@ -43,6 +43,7 @@ import static java.lang.System.currentTimeMillis;
  */
 public class MeshDecimator {
 
+
     static boolean DEBUG = false;
     static boolean m_printStat = true;
     static final double MM = 1000.; // mm per meter 
@@ -79,6 +80,9 @@ public class MeshDecimator {
 
     static final int RANDOM_CANDIDATES_COUNT = 10; 
 
+    protected EdgeTester m_edgeTester = null;
+    
+    
     //
     // object, which calculates errors and new vertex placement 
     //
@@ -127,6 +131,13 @@ public class MeshDecimator {
 
         m_maxEdgeLength2 = maxLength*maxLength;
 
+    }
+
+    /**
+       supply external tester for edges 
+     */
+    public void setEdgeTester(EdgeTester edgeTester){
+        m_edgeTester = edgeTester;
     }
 
     /**
@@ -265,6 +276,11 @@ public class MeshDecimator {
         for(int i =0; i < m_candidates.length; i++){
 
             EdgeData ed = m_candidates[i];
+            if(m_edgeTester != null){
+                if(!m_edgeTester.canCollapse(ed.edge)){
+                    continue;
+                }
+            }
             m_errorFunction.calculateError(ed);
             //if(DEBUG)printf("candidate: %d, error: %10.5f\n", ((Integer)ed.edge.getUserData()).intValue(), ed.errorValue );
             if(ed.errorValue < minError){               
@@ -477,7 +493,7 @@ public class MeshDecimator {
     static class EdgeData {
         
         Edge edge; // reference to Edge (to get to Vertices etc.) 
-        int index; // index in array of al edges for random access 
+        int index; // index in array of all edges for random access 
         double errorValue; // error calculated for this edge 
         Point3d point; // place for candidate vertex                 
         Quadric vertexUserData = new Quadric(); // user data for new vertex 
