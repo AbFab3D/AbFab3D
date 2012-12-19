@@ -41,15 +41,23 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
     ArrayList<Point3dW> m_vertices = new ArrayList<Point3dW>();
     
 
-    public IndexedTriangleSetBuilder(){ 
-        
+    public IndexedTriangleSetBuilder(){
+        m_faces = new ArrayList<int[]>();
+        m_tvertices = new HashMap<Point3dW,Integer>();
+        m_vertices = new ArrayList<Point3dW>();
     }
-    
+
+    public IndexedTriangleSetBuilder(int expectedVerts, int expectedFaces) {
+        m_faces = new ArrayList<int[]>(expectedFaces);
+        m_tvertices = new HashMap<Point3dW,Integer>(expectedVerts);
+        m_vertices = new ArrayList<Point3dW>(expectedVerts);
+    }
     /**
 
      */
     public Point3d[] getVertices(){
 
+        System.out.println("***final verts size: " + m_vertices.size());
         return m_vertices.toArray(new Point3d[0]);
 
     }
@@ -59,7 +67,12 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
      */
     public int [][] getFaces(){
 
-        return m_faces.toArray(new int[0][0]); 
+        System.out.println("***final faces size: " + m_faces.size());
+
+        // TODO: This number is about 4X face count?
+        System.out.println("hcCnt: " + Point3dW.hcCnt);
+        System.out.println("ecCnt: " + Point3dW.hcCnt);
+        return m_faces.toArray(new int[0][0]);
 
     }
 
@@ -122,7 +135,6 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
        
      */
     public static class Point3dW extends Point3d {
-
         static final double  // arbitrary constants for hashcode calculations
             CX = 14256.789,
             CY = 26367.891,
@@ -130,18 +142,28 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
             CW = 35556.955;
 
         static double TOLERANCE = 1.e-8; // vectors different less than tolerance are assumed to be equal
-            
+
+        static long hcCnt = 0;
+        static long eqCnt = 0;
+
         public Point3dW(double x, double y, double z){
             super(x,y,z);
+
         }
 
         public int hashCode(){
 
-            return (int)(CX*x + CY * y + CZ * z + CW); 
+//            return (int) (31 * 31 * x + 31 * y + z);
+
+            //hcCnt++;
+
+            return (int)(CX*x + CY * y + CZ * z + CW);
             
         }
 
         public boolean equals(Object obj){
+
+            //eqCnt++;
 
             Point3d p = (Point3d)obj;
             double d = distanceLinf(p);

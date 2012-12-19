@@ -227,6 +227,9 @@ public class ImagePopperKernel extends HostedKernel {
 
         maxDecimationError = 0.01*resolution*resolution;
 
+        // TODO: Need to decide on this based on size of object?    The above formula is too accurate for large models.
+        maxDecimationError = 1e-9;
+
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
 

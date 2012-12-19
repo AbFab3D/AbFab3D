@@ -59,6 +59,8 @@ import app.common.GridSaver;
  * @author Alan Hudson
  */
 public class RingPopperKernel extends HostedKernel {
+    private static final boolean USE_MIP_MAPPING = false;
+
     /** Debugging level.  0-5.  0 is none */
     private static final int DEBUG_LEVEL = 0;
     static final double MM = 0.001; // millmeters to meters
@@ -272,8 +274,10 @@ public class RingPopperKernel extends HostedKernel {
         if (acc == Accuracy.VISUAL) {
             resolution = resolution * previewQuality.getFactor();
         }
-        maxDecimationError = 0.01*resolution*resolution;
-        //maxDecimationError = resolution / 100000.0;
+
+        // TODO: Not sure I like this heuristic
+        //maxDecimationError = 0.01*resolution*resolution;
+        maxDecimationError = resolution / 100000.0;
 
         System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
 
@@ -320,14 +324,6 @@ public class RingPopperKernel extends HostedKernel {
 
         gm.setBounds(bounds);
         gm.setDataSource(ring);
-
-        boolean bigIndex = false;
-        
-        if ((long) nx * ny * nz > Math.pow(2,31)) {
-            bigIndex = true;
-        }
-
-        boolean useBlockBased = true;
 
         Grid grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
 
@@ -389,9 +385,12 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setImagePath(imagePath);
         printf("baseThickness: %f\n",baseThickness);
         image_src.setBaseThickness(baseThickness);
-        image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-        image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight       
-        image_src.setProbeSize(resolution * 2.);
+
+        if (USE_MIP_MAPPING) {
+            image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+            image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
+            image_src.setProbeSize(resolution * 2.);
+        }
 
         if(symmetryStyle == SymmetryStyle.NONE) {
 
@@ -409,7 +408,6 @@ public class RingPopperKernel extends HostedKernel {
         
         DataSource image_band = image_src;
 
-        System.out.println("SymStyle: " + symmetryStyle);        
         if(symmetryStyle != SymmetryStyle.NONE){
             
             DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();

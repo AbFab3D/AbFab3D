@@ -91,7 +91,7 @@ public class WallThicknessRunner {
         wtProps.put(mp.getName(), mp);
         mp = new MaterialProperties(availableMaterials[9], 0.0008);
         wtProps.put(mp.getName(), mp);
-        mp = new MaterialProperties(availableMaterials[9], 0.001);
+        mp = new MaterialProperties(availableMaterials[10], 0.001);
         wtProps.put(mp.getName(), mp);
 
     }
@@ -132,12 +132,15 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         //if we want to filter out only 5 voxels size, we use 5 * 0.1*0.1*0.1 mm = 0.005 mm^3
         double min_suspect_vol = 0.005;
         double min_unsafe_vol = 0.05;
+        int vpwt = 9;
+        int thin_erosion_area = vpwt / 2;
 
         // TODO: Stop hardcoding params
         String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
                 "-visDir","/tmp", "-maxReg", "1000", "-debug","4", "-birSuspect", Double.toString(bir_suspect),
-                "-birUnsafe", Double.toString(bir_unsafe),
-                "-minSuspectVol",Double.toString(min_suspect_vol),"-minUnsafeVol",Double.toString(min_unsafe_vol)};
+                "-birUnsafe", Double.toString(bir_unsafe), "-vpwt", "9",
+                "-minSuspectVol",Double.toString(min_suspect_vol),"-minUnsafeVol",Double.toString(min_unsafe_vol),
+                "-maxRunTime", "60", "-visThin", "true", "-thinErosionArea", Integer.toString(thin_erosion_area)};
         String workingDirPath = "/tmp";
 
         WallThicknessResult ret_val = null;

@@ -178,7 +178,7 @@ public class RegionCounter {
         
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
         ComponentsFinder cf = new ComponentsFinder(grid, mask, material);
-        grid.findInterruptible(Grid.VoxelClasses.INTERIOR, cf);    
+        grid.findInterruptible(Grid.VoxelClasses.MARKED, cf);
         cf.releaseReferences();        
         return cf.getComponents();
         
