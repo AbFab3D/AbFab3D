@@ -33,7 +33,7 @@
 
     <target name="build"
             description="Complete clean, setup, compilation, run"
-            depends="clean,init,compileCommon, compile"/>
+            depends="clean,init,compileCommon, compile, jar"/>
 
     <!-- Create destination directories -->
     <target name="init" description="Create destination directories">
@@ -69,7 +69,14 @@
 
     </target>
 
-
+    <target name="jar" depends="compile">
+        <createjar name="abfab3d_apps_imagepopper" 
+            version="${version}"
+            manifest="abfab3d_apps_imagepopper.mf"
+            includes="imagepopper/ImagePopperKernel*"
+        />
+    </target>
+    
     <target name="run" depends="compile" description="Run the application">
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="imagepopper.ui.Editor" fork="true">
