@@ -133,14 +133,14 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         double min_suspect_vol = 0.005;
         double min_unsafe_vol = 0.05;
         int vpwt = 9;
-        int thin_erosion_area = vpwt / 2;
+        int thin_area_erosion = vpwt / 2;
 
         // TODO: Stop hardcoding params
         String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
                 "-visDir","/tmp", "-maxReg", "1000", "-debug","4", "-birSuspect", Double.toString(bir_suspect),
                 "-birUnsafe", Double.toString(bir_unsafe), "-vpwt", "9",
                 "-minSuspectVol",Double.toString(min_suspect_vol),"-minUnsafeVol",Double.toString(min_unsafe_vol),
-                "-maxRunTime", "60", "-visThin", "true", "-thinErosionArea", Integer.toString(thin_erosion_area)};
+                "-maxRunTime", "60", "-visThin", "true", "-thinAreaErosion", Integer.toString(thin_area_erosion)};
         String workingDirPath = "/tmp";
 
         WallThicknessResult ret_val = null;
