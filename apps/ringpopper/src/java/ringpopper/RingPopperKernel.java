@@ -136,6 +136,7 @@ public class RingPopperKernel extends HostedKernel {
 
     /** How many regions to keep */
     private RegionPrunner.Regions regions;
+    private boolean useGrayscale;
 
     /**
      * Get the parameters for this editor.
@@ -255,6 +256,11 @@ public class RingPopperKernel extends HostedKernel {
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 100, null, null)
+        );
+
+        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
         );
 
         return params;
@@ -385,6 +391,7 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setImagePath(imagePath);
         printf("baseThickness: %f\n",baseThickness);
         image_src.setBaseThickness(baseThickness);
+        image_src.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
             image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
@@ -586,6 +593,8 @@ public class RingPopperKernel extends HostedKernel {
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
+            pname = "useGrayscale";
+            useGrayscale = (Boolean) params.get(pname);
         } catch(Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));

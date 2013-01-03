@@ -105,6 +105,7 @@ public class ImagePopperKernel extends HostedKernel {
     private String filename2;
 
     private String material;
+    private boolean useGrayscale;
 
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
@@ -202,7 +203,12 @@ public class ImagePopperKernel extends HostedKernel {
 
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                step, seq++, true, 0, 100, null, null)
+                step, seq++, false, 0, 100, null, null)
+        );
+
+        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
         );
 
         return params;
@@ -261,6 +267,7 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename);
+        layer1.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
             layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
@@ -279,6 +286,8 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
+            layer2.setUseGrayscale(useGrayscale);
+
 
             if (USE_MIP_MAPPING) {
                 layer2.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
@@ -387,6 +396,9 @@ public class ImagePopperKernel extends HostedKernel {
 
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
+
+            pname = "useGrayscale";
+            useGrayscale = (Boolean) params.get(pname);
 
 
         } catch (Exception e) {
