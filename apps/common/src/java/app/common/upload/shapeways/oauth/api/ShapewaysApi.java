@@ -10,7 +10,7 @@ import org.scribe.model.*;
  */
 public class ShapewaysApi extends DefaultApi10a
 {
-	private static final String BASE_URL = "http://api.test102.ehv.shapeways.net";
+	private static final String BASE_URL = "http://api.shapeways.com";
 
 	@Override
 	public String getRequestTokenEndpoint()

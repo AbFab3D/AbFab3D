@@ -38,7 +38,7 @@ import app.common.upload.shapeways.oauth.api.ShapewaysApi;
  */
 public class ModelUploadOauthRunner {
 	/** The upload url */
-	private static final String UPLOAD_URL = "http://api.test102.ehv.shapeways.net/model/v1";
+	private static final String UPLOAD_URL = "http://api.shapeways.com/model/v1";
 	
 	/** Access token and secret */
 	private String API_KEY = "7830248cd2e086aa97358e3469d94e3b965a7df8";
