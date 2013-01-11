@@ -123,11 +123,11 @@ public class ImagePopperKernel extends HostedKernel {
         int step = 0;
 
         params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5_04_combined.jpg", 1,
-                Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
         params.put("bodyImage2", new Parameter("bodyImage2", "Image Layer 2", "The image to use for the front body", "NONE", 1,
-                Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
 
@@ -230,7 +230,8 @@ public class ImagePopperKernel extends HostedKernel {
         if (acc == Accuracy.VISUAL) {
             resolution = resolution * previewQuality.getFactor();
         }
-
+System.out.println("==> Accuracy:" + acc.toString());
+System.out.println("==> resolution:" + resolution);
         maxDecimationError = 0.01*resolution*resolution;
 
         // TODO: Need to decide on this based on size of object?    The above formula is too accurate for large models.
@@ -306,7 +307,7 @@ public class ImagePopperKernel extends HostedKernel {
         gm.setDataSource(union);
 
         grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
-
+System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight() + " x " + grid.getDepth());
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
         printf("gm.makeGrid() done\n");

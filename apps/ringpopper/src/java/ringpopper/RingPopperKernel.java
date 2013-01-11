@@ -151,11 +151,11 @@ public class RingPopperKernel extends HostedKernel {
 
         // Image based params
         params.put("image", new Parameter("image", "Image", "The image to use", "images/tile_01.png", 1,
-            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+            Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
         params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
-            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+            Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
 
