@@ -219,7 +219,7 @@ public class MeshExporter {
         }
 
         SAVExporter se = new SAVExporter();
-        se.outputX3D(we, params, writer, null);
+        se.outputX3D(we, params, writer, defName);
         
         if (!meshOnly) {
             writer.endDocument();

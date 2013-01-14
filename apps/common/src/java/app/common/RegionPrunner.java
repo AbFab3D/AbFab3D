@@ -131,7 +131,7 @@ public class RegionPrunner {
 
 
             // should isosurface value be 0.9?
-            writeVisFile(vis_grid, 0.9, 3, 1e-9, bounds, handler, "debug", COLOR_REGION);
+            writeVisFile(vis_grid, 0.9, 3, 1e-9, bounds, handler, "debug", COLOR_REGION, "REMOVED_REGIONS");
         }
     }
 
@@ -139,7 +139,7 @@ public class RegionPrunner {
      * writes grid voxels to the visualization file
      */
     static void writeVisFile(Grid grid, double isoValue, int smooth, double maxDecimationError, double[] bounds, BinaryContentHandler handler,
-                      String material, String finish) {
+                      String material, String finish, String defName) {
 
         try {
             // Voxelize and Decimate with fixed edge length = voxels size
@@ -200,7 +200,7 @@ public class RegionPrunner {
                 params.put(SAVExporter.FINISH, finish);
             }
 
-            MeshExporter.writeMesh(mesh, handler, params, new float[3], true, "REMOVED_REGIONS");
+            MeshExporter.writeMesh(mesh, handler, params, new float[3], true, defName);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
