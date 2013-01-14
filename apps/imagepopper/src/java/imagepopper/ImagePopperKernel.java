@@ -255,8 +255,7 @@ public class ImagePopperKernel extends HostedKernel {
         if (acc == Accuracy.VISUAL) {
             resolution = resolution * previewQuality.getFactor();
         }
-System.out.println("==> Accuracy:" + acc.toString());
-System.out.println("==> resolution:" + resolution);
+
         maxDecimationError = 0.01*resolution*resolution;
 
         // TODO: Need to decide on this based on size of object?    The above formula is too accurate for large models.
@@ -333,7 +332,7 @@ System.out.println("==> resolution:" + resolution);
 
         // TODO: Change to use BlockBased for some size
         grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
-System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight() + " x " + grid.getDepth());
+
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
         printf("gm.makeGrid() done\n");
