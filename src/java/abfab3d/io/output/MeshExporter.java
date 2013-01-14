@@ -93,7 +93,7 @@ public class MeshExporter {
             writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
             writer.endNode(); // NavigationInfo
 
-            se.outputX3D(we, params, writer);
+            se.outputX3D(we, params, writer, null);
             writer.endDocument();
         } finally {
             if (fos != null) {
@@ -165,7 +165,7 @@ public class MeshExporter {
         writer.fieldValue(pos, 3);
         writer.endNode(); // Viewpoint
 
-        se.outputX3D(we, params, writer);
+        se.outputX3D(we, params, writer, null);
         writer.endDocument();
     }
 
@@ -192,7 +192,7 @@ public class MeshExporter {
         writer.fieldValue(pos, 3);
         writer.endNode(); // Viewpoint
 
-        se.outputX3D(we, params, writer);
+        se.outputX3D(we, params, writer, null);
         writer.endDocument();
     }
 
@@ -203,9 +203,7 @@ public class MeshExporter {
      * @throws IOException
      */
     public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String,
-    		Object> params, float[] pos, boolean meshOnly) throws IOException {
-
-        ErrorReporter console = new PlainTextErrorReporter();
+    		Object> params, float[] pos, boolean meshOnly, String defName) throws IOException {
 
         if (!meshOnly) {
             writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
@@ -221,7 +219,7 @@ public class MeshExporter {
         }
 
         SAVExporter se = new SAVExporter();
-        se.outputX3D(we, params, writer);
+        se.outputX3D(we, params, writer, null);
         
         if (!meshOnly) {
             writer.endDocument();
