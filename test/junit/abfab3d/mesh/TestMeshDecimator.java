@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.Set;
 
 
+import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
@@ -181,10 +182,29 @@ public class TestMeshDecimator extends TestCase {
         
         int faces[][] = new int[][]{{6,5,2},{5,1,2}, {7,6,2}, {7,3,2}, {4,5,6}, {4,6,7}, {0,4,7}, {0,7,3}, {5,4,1}, {4,0,1}, {3,2,1}, {3,1,0}};
 
-        Vector4d p526 = Quadric.makePlane(p[5], p[2], p[6],null);
-        Vector4d p627 = Quadric.makePlane(p[6], p[2], p[7],null);
-        Vector4d p675 = Quadric.makePlane(p[6], p[7], p[5],null);
-        
+        Vector3d sc0 = new Vector3d();
+        Vector3d sc1 = new Vector3d();
+        Vector3d sc2 = new Vector3d();
+        Vector4d p526 = new Vector4d();
+        Vector4d p627 = new Vector4d();
+        Vector4d p675 = new Vector4d();
+        Vector3d sn = new Vector3d();
+
+        sc0.set(p[5]);
+        sc1.set(p[2]);
+        sc2.set(p[6]);
+        Quadric.makePlane(sc0, sc1, sc2,sn,p526);
+
+        sc0.set(p[6]);
+        sc1.set(p[2]);
+        sc2.set(p[7]);
+        Quadric.makePlane(sc0,sc1,sc2,sn,p627);
+
+        sc0.set(p[6]);
+        sc1.set(p[7]);
+        sc2.set(p[5]);
+        Quadric.makePlane(sc0,sc1,sc2,sn,p675);
+
         Quadric q526 = new Quadric(p[5], p[2], p[6]);
         Quadric q627 = new Quadric(p[6], p[2], p[7]);
         Quadric q675 = new Quadric(p[6], p[7], p[5]);
@@ -259,7 +279,15 @@ public class TestMeshDecimator extends TestCase {
         printf("det 71: %10.7e\n", q71.determinant());
         q713.addSet(q71);
         printf("det 713: %10.7e\n", q713.determinant());
-        Point3d p713 = q713.getMinimum(new Point3d());
+        Point3d p713 = new Point3d();
+        Matrix3d sm3d = new Matrix3d();
+
+        double[] result = new double[9];
+        int[] row_perm = new int[3];
+        double[] row_scale = new double[3];
+        double[] tmp = new double[9];
+        
+        q713.getMinimum(p713,sm3d, result, row_perm, row_scale, tmp);
         printf("p 713: [ %18.15f, %18.15f, %18.15f] \n", p713.x,p713.y,p713.z);
 
 
