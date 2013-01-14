@@ -200,7 +200,7 @@ public class RegionPrunner {
                 params.put(SAVExporter.FINISH, finish);
             }
 
-            MeshExporter.writeMesh(mesh, handler, params, new float[3], true);
+            MeshExporter.writeMesh(mesh, handler, params, new float[3], true, "REMOVED_REGIONS");
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

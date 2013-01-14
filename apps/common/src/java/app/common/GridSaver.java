@@ -412,7 +412,7 @@ public class GridSaver {
         double z = 2 * max_axis / Math.tan(Math.PI / 4);
         float[] pos = new float[] {0,0,(float) z};
 
-        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly);
+        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
     }
 
     /**
@@ -469,7 +469,7 @@ public class GridSaver {
         double z = 2 * max_axis / Math.tan(Math.PI / 4);
         float[] pos = new float[] {0,0,(float) z};
 
-        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly);
+        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
     }
 
     /**

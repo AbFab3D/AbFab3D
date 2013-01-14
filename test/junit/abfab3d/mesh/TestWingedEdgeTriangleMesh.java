@@ -850,7 +850,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
             writer.endNode(); // NavigationInfo
 
-            se.outputX3D(we, params, writer);
+            se.outputX3D(we, params, writer, null);
             writer.endDocument();
         } finally {
             if (fos != null) {

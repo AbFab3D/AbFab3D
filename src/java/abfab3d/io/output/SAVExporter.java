@@ -53,7 +53,7 @@ public class SAVExporter {
      * @param params Output parameters
      * @param stream The SAV stream
      */
-    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream) {
+    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream, String defName) {
         String material = null;
         String finish[] = null;
 
@@ -61,7 +61,7 @@ public class SAVExporter {
             material = (String) params.get(MATERIAL);
             finish = new String[] {(String) params.get(FINISH)};
         }
-        outputX3D(mesh, params, material, finish, stream);
+        outputX3D(mesh, params, material, finish, stream, defName);
     }
 
 
@@ -79,7 +79,8 @@ public class SAVExporter {
      * @param finish The finish.
      * @param stream The SAV stream
      */
-    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish, BinaryContentHandler stream) {
+    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
+                          BinaryContentHandler stream, String defName) {
 
         boolean export_normals = false;
         boolean vertex_normals = false;
@@ -420,7 +421,7 @@ public class SAVExporter {
 //System.out.println("indices: " + java.util.Arrays.toString(indices));
 //System.out.println("coords: " + java.util.Arrays.toString(coords));
 
-        stream.startNode("Shape", null);
+        stream.startNode("Shape", defName);
 
         stream.startField("appearance");
 
