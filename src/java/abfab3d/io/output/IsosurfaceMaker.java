@@ -133,7 +133,6 @@ public class IsosurfaceMaker {
         scalculator.getSlice(slice0); 
 
         for(int iz = 0; iz < nz1; iz++) {
-
             double z = zmin + dz * iz;
             double z1 = z+dz;
 
@@ -177,7 +176,7 @@ public class IsosurfaceMaker {
                     switch(m_algorithm){
                     default:
                     case CUBES:
-                        polygonizeCube(cell, triangles, tcollector);
+                        polygonizeCubeNew(cell, triangles, tcollector);
                         break;
                     case TETRAHEDRA:
                         polygonizeCube_tetra(cell, 0., triangles, tcollector);
@@ -185,8 +184,8 @@ public class IsosurfaceMaker {
                     }                    
                 }// ix
             } // iy 
-            
-            // switch calculated slices 
+
+            // switch calculated slices
             SliceData stmp = slice0;
             slice0 = slice1;
             slice1 = stmp;            
@@ -275,6 +274,75 @@ public class IsosurfaceMaker {
 
         addTri(ggen, triangles, ntriang);        
         
+    }
+
+    public static void polygonizeCubeNew(Cell g, Vector3d triangles[], TriangleCollector ggen){
+
+        int cubeindex = 0;
+        double iso = 0.0;
+
+        if (g.val[0] < 0) cubeindex |= 1;
+        if (g.val[1] < 0) cubeindex |= 2;
+        if (g.val[2] < 0) cubeindex |= 4;
+        if (g.val[3] < 0) cubeindex |= 8;
+        if (g.val[4] < 0) cubeindex |= 16;
+        if (g.val[5] < 0) cubeindex |= 32;
+        if (g.val[6] < 0) cubeindex |= 64;
+        if (g.val[7] < 0) cubeindex |= 128;
+
+        /* Cube is entirely in/out of the surface */
+        if (edgeTable[cubeindex] == 0)
+            return;
+
+        /* Find the vertices where the surface intersects the cube */
+        if ((edgeTable[cubeindex] & 1)  != 0)
+            vertexInterp(iso,g.p[0],g.p[1],g.val[0],g.val[1],g.e[0]);
+
+        if ((edgeTable[cubeindex] & 2) != 0)
+            vertexInterp(iso,g.p[1],g.p[2],g.val[1],g.val[2],g.e[1]);
+
+        if ((edgeTable[cubeindex] & 4) != 0)
+            vertexInterp(iso,g.p[2],g.p[3],g.val[2],g.val[3],g.e[2]);
+
+        if ((edgeTable[cubeindex] & 8) != 0)
+            vertexInterp(iso,g.p[3],g.p[0],g.val[3],g.val[0],g.e[3]);
+
+        if ((edgeTable[cubeindex] & 16) != 0)
+            vertexInterp(iso,g.p[4],g.p[5],g.val[4],g.val[5],g.e[4]);
+
+        if ((edgeTable[cubeindex] & 32) != 0)
+            vertexInterp(iso,g.p[5],g.p[6],g.val[5],g.val[6],g.e[5]);
+
+        if ((edgeTable[cubeindex] & 64) != 0)
+            vertexInterp(iso,g.p[6],g.p[7],g.val[6],g.val[7],g.e[6]);
+
+        if ((edgeTable[cubeindex] & 128) != 0)
+            vertexInterp(iso,g.p[7],g.p[4],g.val[7],g.val[4],g.e[7]);
+
+        if ((edgeTable[cubeindex] & 256) != 0)
+            vertexInterp(iso,g.p[0],g.p[4],g.val[0],g.val[4],g.e[8]);
+
+        if ((edgeTable[cubeindex] & 512) != 0)
+            vertexInterp(iso,g.p[1],g.p[5],g.val[1],g.val[5],g.e[9]);
+
+        if ((edgeTable[cubeindex] & 1024) != 0)
+            vertexInterp(iso,g.p[2],g.p[6],g.val[2],g.val[6],g.e[10]);
+
+        if ((edgeTable[cubeindex] & 2048) != 0)
+            vertexInterp(iso,g.p[3],g.p[7],g.val[3],g.val[7],g.e[11]);
+
+        /* Create the triangles */
+        int ntriang = 0;
+        for (int i=0; i < triTable[cubeindex].length; i+=3) {
+
+            triangles[i]   = g.e[triTable[cubeindex][i  ]];
+            triangles[i+1] = g.e[triTable[cubeindex][i+1]];
+            triangles[i+2] = g.e[triTable[cubeindex][i+2]];
+            ntriang++;
+        }
+
+        addTri(ggen, triangles, ntriang);
+
     }
 
     /*
@@ -523,7 +591,30 @@ public class IsosurfaceMaker {
         return new Vector3d(x,y,z);
                                     
     }
-    
+
+    /*
+      Linearly interpolate the position where an isosurface cuts
+      an edge between two vertices, each with their own scalar value
+    */
+    public static void vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2, Vector3d dest){
+
+        if (abs(isolevel-valp1) < EPS)
+            dest.set(p1);
+        if (abs(isolevel-valp2) < EPS)
+            dest.set(p2);
+        if (abs(valp1-valp2) < EPS)
+            dest.set(p1);
+
+        double mu = (isolevel - valp1) / (valp2 - valp1);
+
+        double x = p1.x + mu * (p2.x - p1.x);
+        double y = p1.y + mu * (p2.y - p1.y);
+        double z = p1.z + mu * (p2.z - p1.z);
+
+        dest.set(x,y,z);
+
+    }
+
 
     public static class Cell {
 

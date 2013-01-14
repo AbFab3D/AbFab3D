@@ -15,6 +15,7 @@ package abfab3d.io.output;
 // External Imports
 import java.util.*;
 
+import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.mesh.VertexAttribs;
 import abfab3d.mesh.VertexSimple;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
@@ -52,7 +53,7 @@ public class SAVExporter {
      * @param params Output parameters
      * @param stream The SAV stream
      */
-    public void outputX3D(WingedEdgeTriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream) {
+    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream) {
         String material = null;
         String finish[] = null;
 
@@ -78,7 +79,7 @@ public class SAVExporter {
      * @param finish The finish.
      * @param stream The SAV stream
      */
-    public void outputX3D(WingedEdgeTriangleMesh mesh, Map<String, Object> params, String material, String[] finish, BinaryContentHandler stream) {
+    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish, BinaryContentHandler stream) {
 
         boolean export_normals = false;
         boolean vertex_normals = false;
@@ -123,6 +124,10 @@ public class SAVExporter {
         int num_coords = mesh.getVertexCount();
         int color_channel = mesh.getColorChannel();
 
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
+
         if (export_normals && !vertex_normals) {
             normals = new float[faces.length * 3];
             int idx = 0;
@@ -155,6 +160,10 @@ public class SAVExporter {
             }
 
             idx = 0;
+
+            if (Thread.currentThread().isInterrupted()) {
+                throw new ExecutionStoppedException();
+            }
 
             if (color_channel == -1) {
                 abfab3d.mesh.Vertex v = mesh.getVertices();
@@ -351,6 +360,10 @@ public class SAVExporter {
 
                 idx = 0;
 
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new ExecutionStoppedException();
+                }
+
                 if (color_channel == -1) {
                     abfab3d.mesh.Vertex v = mesh.getVertices();
 
@@ -435,6 +448,10 @@ public class SAVExporter {
 
         stream.fieldValue(coords, num_coords * 3);
         stream.endNode();   // Coord
+
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
 
         if (colors != null) {
             stream.startField("color");

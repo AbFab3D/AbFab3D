@@ -11,11 +11,19 @@ public class WallThicknessResult {
     private ResultType result;
     private int exitCode;
     private String viz;
+    private String gapViz;
 
     public WallThicknessResult(int exitCode, ResultType result, String viz) {
         this.exitCode = exitCode;
         this.result = result;
         this.viz = viz;
+    }
+
+    public WallThicknessResult(int exitCode, ResultType result, String viz, String gapViz) {
+        this.exitCode = exitCode;
+        this.result = result;
+        this.viz = viz;
+        this.gapViz = gapViz;
     }
 
     public ResultType getResult() {
@@ -36,5 +44,9 @@ public class WallThicknessResult {
 
     public String getVisualization() {
         return viz;
+    }
+
+    public String getGapVisualization() {
+        return gapViz;
     }
 }

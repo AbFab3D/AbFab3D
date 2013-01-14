@@ -11,6 +11,7 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
+import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.*;
@@ -201,7 +202,7 @@ public class MeshExporter {
      * @param we
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh we, BinaryContentHandler writer, Map<String, 
+    public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String,
     		Object> params, float[] pos, boolean meshOnly) throws IOException {
 
         ErrorReporter console = new PlainTextErrorReporter();

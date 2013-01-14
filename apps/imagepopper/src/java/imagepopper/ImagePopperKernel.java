@@ -14,24 +14,35 @@ package imagepopper;
 
 // External Imports
 
+import abfab3d.creator.GeometryKernel;
 import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
+import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.Grid;
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
+import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import app.common.GridSaver;
 import app.common.RegionPrunner;
 import org.web3d.util.ErrorReporter;
+import org.web3d.vrml.export.PlainTextErrorReporter;
+import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static abfab3d.util.Output.printf;
 
@@ -46,6 +57,7 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class ImagePopperKernel extends HostedKernel {
+    private static final boolean DEBUG = true;
     private static final boolean USE_MIP_MAPPING = false;
 
     /**
@@ -106,6 +118,7 @@ public class ImagePopperKernel extends HostedKernel {
 
     private String material;
     private boolean useGrayscale;
+    private boolean visRemovedRegions;
 
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
@@ -139,6 +152,11 @@ public class ImagePopperKernel extends HostedKernel {
         params.put("bodyDepth2", new Parameter("bodyDepth2", "Depth Amount - Layer 2", "The depth of the image", "0.0008", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
+        );
+
+        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
         );
 
         step++;
@@ -206,10 +224,11 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, 0, 100, null, null)
         );
 
-        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+        params.put("visRemovedRegions", new Parameter("visRemovedRegions", "Vis Removed Regions", "Visualize removed regions", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
         );
+
 
         return params;
     }
@@ -220,7 +239,13 @@ public class ImagePopperKernel extends HostedKernel {
      * @param handler The X3D content handler to use
      */
     public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
+//        System.gc();
+//        System.gc();
 
+//        System.out.println("Starting memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));
+//        long startMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
+
+        System.out.println("Generating ImagePopper on thread: " + Thread.currentThread().getName());
         long start = System.currentTimeMillis();
 
         pullParams(params);
@@ -306,6 +331,7 @@ System.out.println("==> resolution:" + resolution);
         gm.setBounds(bounds);
         gm.setDataSource(union);
 
+        // TODO: Change to use BlockBased for some size
         grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight() + " x " + grid.getDepth());
         printf("gm.makeGrid()\n");
@@ -313,7 +339,11 @@ System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight(
         printf("gm.makeGrid() done\n");
 
         if (regions != RegionPrunner.Regions.ALL) {
-            RegionPrunner.reduceToOneRegion(grid);
+            if (visRemovedRegions) {
+                RegionPrunner.reduceToOneRegion(grid, handler, bounds);
+            } else {
+                RegionPrunner.reduceToOneRegion(grid);
+            }
         }
 
         System.out.println("Writing grid");
@@ -332,12 +362,13 @@ System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight(
         grid.getWorldCoords(0, 0, 0, min_bounds);
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
 
-        WingedEdgeTriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
+        TriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
         int gw = grid.getWidth();
         int gh = grid.getHeight();
         int gd = grid.getDepth();
         double sh = grid.getSliceHeight();
         double vs = grid.getVoxelSize();
+
 
         // Release grid to lower total memory requirements
         grid = null;
@@ -347,6 +378,11 @@ System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight(
 
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
+
+//        long endMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
+//    System.out.println("Ending memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));
+
+//System.out.println("Memory used: " + (endMemory - startMemory) + " start: " + startMemory + " end: " + endMemory);
         return new KernelResults(true, min_bounds, max_bounds);
     }
 
@@ -358,6 +394,9 @@ System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight(
     private void pullParams(Map<String, Object> params) {
         String pname = null;
 
+        if (DEBUG) {
+            System.out.println("ImagePopperKernel Params: " + params);
+        }
         try {
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
@@ -401,6 +440,8 @@ System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight(
             pname = "useGrayscale";
             useGrayscale = (Boolean) params.get(pname);
 
+            pname = "visRemovedRegions";
+            visRemovedRegions = (Boolean) params.get(pname);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -449,4 +490,133 @@ System.out.println("==> grid size: " + grid.getWidth() + " x " + grid.getHeight(
         }
         return result;
     }
+
+    public static void main(String[] args) {
+        int threads = 1;
+
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+
+        long stime = System.currentTimeMillis();
+
+        for(int i=0; i < threads; i++) {
+            HostedKernel kernel = new ImagePopperKernel();
+          Runnable runner = new KernelRunner(kernel);
+//            Runnable runner = new FakeRunner(kernel);
+            executor.submit(runner);
+        }
+
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Total Runtime: " + (System.currentTimeMillis() - stime));
+    }
 }
+
+class KernelRunner implements Runnable {
+    private HostedKernel kernel;
+
+    public KernelRunner(HostedKernel kernel) {
+        this.kernel = kernel;
+    }
+
+    @Override
+    public void run() {
+        HashMap<String,String> params = new HashMap<String,String>();
+        params.put("bodyWidth1","0.1016");
+        params.put("bodyHeight1","0.1016");
+        params.put("bodyDepth1","0.012");
+        params.put("regions","ALL");
+        params.put("previewQuality","LOW");
+        params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
+
+        Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
+
+        try {
+            FileOutputStream fos = new FileOutputStream("c:/tmp/thread" + Thread.currentThread().getName() + ".x3d");
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            PlainTextErrorReporter console = new PlainTextErrorReporter();
+
+            BinaryContentHandler writer = new X3DXMLRetainedExporter(bos,3,2,console);
+            writer.startDocument("","","utf8","#X3D", "V3.2", "");
+            writer.profileDecl("Immersive");
+
+
+            kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);
+
+            writer.endDocument();
+            bos.close();
+            fos.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+
+class FakeRunner implements Runnable {
+    private HostedKernel kernel;
+
+    static class EdgeArray {
+
+        Random m_rnd = new Random(101);
+
+        public int nextInt() {
+            return m_rnd.nextInt(10000);
+        }
+    }
+
+    public FakeRunner(HostedKernel kernel) {
+        this.kernel = kernel;
+    }
+
+    @Override
+    public void run() {
+        System.out.println("Running Fake");
+        HashMap<String,String> params = new HashMap<String,String>();
+        params.put("bodyWidth1","0.1016");
+        params.put("bodyHeight1","0.1016");
+        params.put("bodyDepth1","0.03");
+        params.put("regions","ALL");
+        params.put("previewQuality","LOW");
+        params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
+
+        Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
+
+        try {
+            FileOutputStream fos = new FileOutputStream("c:/tmp/thread" + Thread.currentThread().getName());
+            BufferedOutputStream bos = new BufferedOutputStream(fos);
+            PlainTextErrorReporter console = new PlainTextErrorReporter();
+
+            BinaryContentHandler writer = new X3DXMLRetainedExporter(bos,3,2,console);
+            writer.startDocument("","","utf8","#X3D", "V3.2", "");
+            writer.profileDecl("Immersive");
+
+
+            //kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);
+            long TIMES = (long) 2e7;
+            long tot = 0;
+
+            EdgeArray m_edgeArray = new EdgeArray();
+
+            System.out.println("Times: " + TIMES);
+            for(int i=0; i < TIMES; i++) {
+                tot += Math.ceil(Math.sqrt(i) * Math.sin(i) + Math.cos(i));
+                tot -= Math.ceil(Math.sqrt(i) * Math.sin(i) + Math.cos(i) + Math.asin(i));
+
+                tot += m_edgeArray.nextInt();
+            }
+
+            System.out.println("Total Count: " + tot);
+            fos.close();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+}
+
+

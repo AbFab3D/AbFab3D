@@ -13,6 +13,7 @@
 package abfab3d.grid.op;
 
 
+import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.DataSource;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
@@ -61,7 +62,11 @@ public class GridMaker {
     }
 
     public int makeGrid(Grid grid){
-        
+
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
+
         m_grid = grid;
 
         int 
@@ -106,7 +111,11 @@ public class GridMaker {
                         m_grid.setState(ix, iy, iz, Grid.INTERIOR);
                     }
                 }
-            }            
+            }
+
+            if (Thread.currentThread().isInterrupted()) {
+                throw new ExecutionStoppedException();
+            }
         }
 
         return VecTransform.RESULT_OK;

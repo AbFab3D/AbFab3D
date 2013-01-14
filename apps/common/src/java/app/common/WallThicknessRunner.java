@@ -34,6 +34,7 @@ import app.common.WallThicknessResult.ResultType;
 public class WallThicknessRunner {
     public static final String RESULT = "result";
     public static final String VISUALIZATION = "visualization";
+    public static final String HOLE_VISUALIZATION = "hole_visualization";
 
     private static final String SCRIPT_FILE = "wallthickness_ribt.sh";
     private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.7";
@@ -52,6 +53,7 @@ public class WallThicknessRunner {
     private static final String THIN_REGION_MARKER = "REGION:";
     private static final String WT_WARNING_MARKER = "WT_WARNING:";
     private static final String VIZ_MARKER = "VIZ_FILE:";
+    private static final String GAP_VIZ_MARKER = "GAP_VIZ_FILE:";
 
     /** The output stream */
     protected ByteArrayOutputStream outStream;
@@ -69,9 +71,9 @@ public class WallThicknessRunner {
                 "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
 
         wtProps = new HashMap<String, MaterialProperties>();
-        MaterialProperties mp = new MaterialProperties(availableMaterials[0], 0.0007);
+        MaterialProperties mp = new MaterialProperties(availableMaterials[0], 0.0007, 0.0007);
         wtProps.put(mp.getName(), mp);
-        mp = new MaterialProperties(availableMaterials[1], 0.0008);
+        mp = new MaterialProperties(availableMaterials[1], 0.0008, 0.0007);
         wtProps.put(mp.getName(), mp);
         mp = new MaterialProperties(availableMaterials[2], 0.0006);
         wtProps.put(mp.getName(), mp);
@@ -134,13 +136,21 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         double min_unsafe_vol = 0.05;
         int vpwt = 9;
         int thin_area_erosion = vpwt / 2;
+        boolean vis_gap = false;
+        double gap_distance = 0;
+
+        if (props.getMinGapDistance() > 0) {
+            // Gap analysis only verified for WSF, polishing doesn't change it
+            vis_gap = true;
+            gap_distance = props.getMinGapDistance();
+        }
 
         // TODO: Stop hardcoding params
         String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
                 "-visDir","/tmp", "-maxReg", "1000", "-debug","4", "-birSuspect", Double.toString(bir_suspect),
                 "-birUnsafe", Double.toString(bir_unsafe), "-vpwt", "9",
                 "-minSuspectVol",Double.toString(min_suspect_vol),"-minUnsafeVol",Double.toString(min_unsafe_vol),
-                "-maxRunTime", "60", "-visThin", "true", "-thinAreaErosion", Integer.toString(thin_area_erosion)};
+                "-maxRunTime", "60", "-visThin", "true", "-visGap", Boolean.toString(vis_gap), "-gapDistance", Double.toString(gap_distance),"-thinAreaErosion", Integer.toString(thin_area_erosion)};
         String workingDirPath = "/tmp";
 
         WallThicknessResult ret_val = null;
@@ -156,7 +166,7 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
                 System.out.println("err: " + errStream.toString());
                 return new WallThicknessResult(exit_code, ResultType.SUSPECT, null);
             } else {
-                System.out.println("out: " + outStream.toString());
+                System.out.println("out: \n" + outStream.toString());
             }
             HashMap<String,Object> outMap = new HashMap<String,Object>();
 
@@ -164,7 +174,8 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
 
             ResultType res = ResultType.valueOf((String)outMap.get(RESULT));
             String viz = (String) outMap.get(VISUALIZATION);
-            ret_val = new WallThicknessResult(exit_code, res, viz);
+            String hole_viz = (String) outMap.get(HOLE_VISUALIZATION);
+            ret_val = new WallThicknessResult(exit_code, res, viz, hole_viz);
 
             System.out.println("Result: " + res);
             System.out.println("viz:" + viz);
@@ -263,6 +274,9 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
                 } else if (line.startsWith(VIZ_MARKER)) {
                     val = line.replace(VIZ_MARKER, "");
                     outMap.put(VISUALIZATION, val.trim());
+                } else if (line.startsWith(GAP_VIZ_MARKER)) {
+                    val = line.replace(GAP_VIZ_MARKER, "");
+                    outMap.put(HOLE_VISUALIZATION, val.trim());
                 }
             }
 
@@ -417,10 +431,16 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
 class MaterialProperties {
     private String name;
     private double minWallthickness;
+    private double minGapDistance;
 
     MaterialProperties(String name, double minWallthickness) {
+        this(name,minWallthickness,0);
+    }
+
+    MaterialProperties(String name, double minWallthickness, double minGapDistance) {
         this.name = name;
         this.minWallthickness = minWallthickness;
+        this.minGapDistance = minGapDistance;
     }
 
     public String getName() {
@@ -437,5 +457,13 @@ class MaterialProperties {
 
     public void setMinWallthickness(double minWallthickness) {
         this.minWallthickness = minWallthickness;
+    }
+
+    public double getMinGapDistance() {
+        return minGapDistance;
+    }
+
+    public void setMinGapDistance(double minGapDistance) {
+        this.minGapDistance = minGapDistance;
     }
 }

@@ -137,6 +137,7 @@ public class RingPopperKernel extends HostedKernel {
     /** How many regions to keep */
     private RegionPrunner.Regions regions;
     private boolean useGrayscale;
+    private boolean visRemovedRegions;
 
     /**
      * Get the parameters for this editor.
@@ -154,6 +155,12 @@ public class RingPopperKernel extends HostedKernel {
             Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
+
+        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
+        );
+
         params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
             Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
@@ -258,7 +265,7 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, true, 0, 100, null, null)
         );
 
-        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+        params.put("visRemovedRegions", new Parameter("visRemovedRegions", "Vis Removed Regions", "Visualize removed regions", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
         );
@@ -340,7 +347,11 @@ public class RingPopperKernel extends HostedKernel {
 
 
         if (regions != RegionPrunner.Regions.ALL) {
-            RegionPrunner.reduceToOneRegion(grid);
+            if (visRemovedRegions) {
+                RegionPrunner.reduceToOneRegion(grid, handler, bounds);
+            } else {
+                RegionPrunner.reduceToOneRegion(grid);
+            }
         }
 
         System.out.println("Writing grid");
@@ -389,7 +400,6 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setUseGrayscale(true);                
         image_src.setLocation(0,0,ringThickness/2);
         image_src.setImagePath(imagePath);
-        printf("baseThickness: %f\n",baseThickness);
         image_src.setBaseThickness(baseThickness);
         image_src.setUseGrayscale(useGrayscale);
 
@@ -595,6 +605,9 @@ public class RingPopperKernel extends HostedKernel {
 
             pname = "useGrayscale";
             useGrayscale = (Boolean) params.get(pname);
+
+            pname = "visRemovedRegions";
+            visRemovedRegions = (Boolean) params.get(pname);
         } catch(Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));

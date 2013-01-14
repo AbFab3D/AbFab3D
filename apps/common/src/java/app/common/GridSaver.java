@@ -13,12 +13,10 @@
 package app.common;
 
 import abfab3d.grid.Grid;
+import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.LaplasianSmooth;
-import abfab3d.mesh.MeshDecimator;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -306,10 +304,20 @@ public class GridSaver {
         im.setGridSize(nx, ny, nz);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+//        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[][] faces = its.getFaces();
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
+
+        System.out.println("Done with making isosurface");
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
 
         double centerWeight = 1.0; // any non negative value is OK
 
@@ -322,7 +330,6 @@ public class GridSaver {
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);
         printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
-
 
         return mesh;
     }
@@ -414,13 +421,19 @@ public class GridSaver {
      * @param maxCollapseError
      * @throws IOException
      */
-    public static void writeIsosurfaceMaker(WingedEdgeTriangleMesh mesh, int gw, int gh, int gd, double vs, double sh, BinaryContentHandler writer, Map<String,Object> params,
+    public static void writeIsosurfaceMaker(TriangleMesh mesh, int gw, int gh, int gd, double vs, double sh, BinaryContentHandler writer, Map<String,Object> params,
                                             double maxCollapseError, boolean meshOnly) throws IOException {
         // We could release the grid at this point
         int fcount = mesh.getFaceCount();
 
         if (maxCollapseError > 0) {
+
+            MeshDecimatorNew md = new MeshDecimatorNew();
+            System.out.println("*****Using new MeshDecimator*****");
+/*
             MeshDecimator md = new MeshDecimator();
+            System.out.println("*****Using old MeshDecimator*****");
+*/
             md.setMaxCollapseError(maxCollapseError);
             long start_time = System.currentTimeMillis();
 
@@ -429,6 +442,10 @@ public class GridSaver {
             System.out.println("Original face count: " + fcount);
 
             while(true) {
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new ExecutionStoppedException();
+                }
+
                 target = mesh.getTriangleCount() / 2;
                 System.out.println("Target face count : " + target);
                 md.processMesh(mesh, target);
