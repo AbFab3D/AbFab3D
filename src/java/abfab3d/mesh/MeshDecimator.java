@@ -392,7 +392,6 @@ System.out.println("***Iterations: " + count);
 
         if(DEBUG) printf("\n");
 
-        System.out.println("IgnoreCount: " + ignoreCount);
         return true;
 
     }    
