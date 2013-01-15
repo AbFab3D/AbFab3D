@@ -20,6 +20,7 @@ import abfab3d.mesh.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.Map;
 
 import static java.lang.System.currentTimeMillis;
@@ -27,6 +28,8 @@ import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 
 import org.web3d.vrml.sav.BinaryContentHandler;
+
+import javax.vecmath.Point3d;
 
 
 /**
@@ -303,8 +306,8 @@ public class GridSaver {
         im.setBounds(ibounds);
         im.setGridSize(nx, ny, nz);
 
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-//        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
+//        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
 
@@ -314,7 +317,20 @@ public class GridSaver {
         }
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+/*
+        // TODO: debug
+        System.out.println("Processed verts: ");
+        Iterator<Vertex> vi1 = mesh.vertexIterator();
 
+        while(vi1.hasNext()) {
+            Vertex vert1 = vi1.next();
+            Point3d p1 = vert1.getPoint();
+
+            System.out.println(p1);
+        }
+
+        // end debug
+*/
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }

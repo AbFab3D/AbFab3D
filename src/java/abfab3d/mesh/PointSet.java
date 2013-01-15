@@ -145,11 +145,6 @@ System.out.println("Count: " + count);
                 ret_val[id*3] = sd[0];
                 ret_val[id*3+1] = sd[1];
                 ret_val[id*3+2] = sd[2];
-/*
-                ret_val[idx++] = sd[0];
-                ret_val[idx++] = sd[1];
-                ret_val[idx++] = sd[2];
-*/
             }
         }
 

@@ -379,7 +379,6 @@ public class RingPopperKernel extends HostedKernel {
 
         // Release grid to lower total memory requirements
         grid = null;
-        System.gc();
 
         GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
 

@@ -103,10 +103,23 @@ public class IndexedTriangleSetBuilderNew implements TriangleCollector {
             }
         }
 
+/*
+        System.out.println("v0 = new Vector3d(" + v0.x + "," + v0.y + "," + v0.z + ");");
+        System.out.println("v1 = new Vector3d(" + v1.x + "," + v1.y + "," + v1.z + ");");
+        System.out.println("v2 = new Vector3d(" + v2.x + "," + v2.y + "," + v2.z + ");");
+        System.out.println("its1.addTri(v0,v1,v2);");
+        System.out.println("its2.addTri(v0,v1,v2);");
+*/
         int f0 = getIndex(v0);
         int f1 = getIndex(v1);
         int f2 = getIndex(v2);
 
+/*
+        if (add_cnt < 10) {
+            System.out.println("AddTri: " + f0 + " " + f1 + " " + f2);
+            add_cnt++;
+        }
+ */
         if(f0 == f1 ||
            f1 == f2 || 
            f2 == f0) {
@@ -115,13 +128,9 @@ public class IndexedTriangleSetBuilderNew implements TriangleCollector {
             return false;
         } 
 
+//        int[] face = new int[]{f0, f1, f2};
         int[] face = new int[]{f0, f1, f2};
 
-        if (add_cnt < 3) {
-            add_cnt++;
-            System.out.println("Adding v0: " + v0);
-            System.out.println("Adding face: " + java.util.Arrays.toString(face));
-        }
         m_faces.add(face);
         //printf("add face:[%3d, %3d, %3d]\n", f0,f1,f2);
         return true;

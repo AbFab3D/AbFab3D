@@ -356,7 +356,8 @@ public class QuadricStatic extends StructDataDefinition {
         pnt.set(m03, m13, m23);
         m.transform(pnt);
         pnt.scale(-1);
-  */
+        */
+
         double det =
                 m00*(m11*m22 - m12*m12)
                         -m01*(m01*m22 - m12*m02)

@@ -181,14 +181,15 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     public WingedEdgeTriangleMesh(Point3d vertCoord[], int[][] findex) {
 /*
         System.out.println("Verts:" + (vertCoord.length));
-        for(int i=0; i < 12; i++) {
+        for(int i=0; i < 120; i++) {
             System.out.println(vertCoord[i]);
         }
+ */
         System.out.println("Faces:" + findex.length);
-        for(int i=0; i < findex.length / 3; i++) {
+        for(int i=0; i < findex.length; i++) {
             System.out.println(findex[i][0] + " " + findex[i][1] + " " + findex[i][2]);
         }
- */
+
         if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
             edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
@@ -276,14 +277,16 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     public WingedEdgeTriangleMesh(double[] vertCoord, int[] findex) {
 /*
         System.out.println("Verts:" + (vertCoord.length / 3));
-for(int i=0; i < 12; i++) {
+for(int i=0; i < 120; i++) {
     System.out.println(vertCoord[i*3] + " " + vertCoord[i*3+1] + " " + vertCoord[i*3+2]);
 }
-System.out.println("Faces: " + findex.length / 3);
+*/
+        /*
+        System.out.println("Faces: " + findex.length / 3);
 for(int i=0; i < findex.length / 3; i++) {
     System.out.println(findex[i*3] + " " + findex[i*3+1] + " " + findex[i*3+2]);
 }
-*/
+          */
         System.out.println("Creating new WE mesh from new code");
         if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
@@ -298,7 +301,7 @@ for(int i=0; i < findex.length / 3; i++) {
         for (int nv = 0; nv < len; nv++) {
 
             V[nv] = new VertexSimple();
-            V[nv].setPoint(new Point3d(vertCoord[idx],vertCoord[idx++], vertCoord[idx++]));
+            V[nv].setPoint(new Point3d(vertCoord[idx++],vertCoord[idx++], vertCoord[idx++]));
             V[nv].setID(nv);
         }
 

@@ -371,7 +371,6 @@ public class ImagePopperKernel extends HostedKernel {
 
         // Release grid to lower total memory requirements
         grid = null;
-        System.gc();
 
         GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
 
@@ -491,7 +490,10 @@ public class ImagePopperKernel extends HostedKernel {
     }
 
     public static void main(String[] args) {
-        int threads = 1;
+        int loops = 3;
+
+        for(int n=0; n < loops; n++) {
+        int threads = 4;
 
         ExecutorService executor = Executors.newFixedThreadPool(threads);
 
@@ -512,6 +514,7 @@ public class ImagePopperKernel extends HostedKernel {
             e.printStackTrace();
         }
         System.out.println("Total Runtime: " + (System.currentTimeMillis() - stime));
+        }
     }
 }
 
@@ -525,16 +528,16 @@ class KernelRunner implements Runnable {
     @Override
     public void run() {
         HashMap<String,String> params = new HashMap<String,String>();
-
+/*
         params.put("bodyWidth1","0.1016");
         params.put("bodyHeight1","0.1016");
         params.put("bodyDepth1","0.012");
-
-/*
-        params.put("bodyWidth1","0.002");
-        params.put("bodyHeight1","0.002");
-        params.put("bodyDepth1","0.0005");
 */
+
+        params.put("bodyWidth1","0.05");
+        params.put("bodyHeight1","0.05");
+        params.put("bodyDepth1","0.003");
+
         params.put("regions","ALL");
         params.put("previewQuality","LOW");
         params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
