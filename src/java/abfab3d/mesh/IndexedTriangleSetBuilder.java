@@ -107,7 +107,12 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
 
         m_faces.add(face);
 /*
-        if (add_cnt == 100000) {
+        if (add_cnt < 10) {
+            System.out.println("AddTri: " + f0 + " " + f1 + " " + f2);
+        }
+        add_cnt++;
+
+        if (add_cnt == 456) {
             add_cnt++;
             System.out.println("Adding v0: " + v0);
             System.out.println("Adding face: " + java.util.Arrays.toString(face));
@@ -120,7 +125,7 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
 
 
         }
-*/
+  */
         //printf("add face:[%3d, %3d, %3d]\n", f0,f1,f2);
         return true;
     }

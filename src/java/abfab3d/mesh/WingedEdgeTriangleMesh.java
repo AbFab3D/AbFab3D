@@ -186,9 +186,9 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         }
         System.out.println("Faces:" + findex.length);
         for(int i=0; i < findex.length / 3; i++) {
-            System.out.println(findex[i*3][0] + " " + findex[i*3][1] + " " + findex[i*3][2]);
+            System.out.println(findex[i][0] + " " + findex[i][1] + " " + findex[i][2]);
         }
-  */
+ */
         if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
             edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
@@ -225,6 +225,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
                 Vertex v1 = V[face[j]];
                 Vertex v2 = V[face[(j + 1) % face.length]];
+                //System.out.println("Build he: " + v1.getID() + " v2: " + v2.getID());
                 HalfEdge he = buildHalfEdge(v1, v2);
                 edgeMap.put(new HalfEdgeKey(he.getStart(), he.getEnd()), he);
                 ahedges.add(he);
@@ -273,7 +274,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     }
 
     public WingedEdgeTriangleMesh(double[] vertCoord, int[] findex) {
-
+/*
         System.out.println("Verts:" + (vertCoord.length / 3));
 for(int i=0; i < 12; i++) {
     System.out.println(vertCoord[i*3] + " " + vertCoord[i*3+1] + " " + vertCoord[i*3+2]);
@@ -282,8 +283,8 @@ System.out.println("Faces: " + findex.length / 3);
 for(int i=0; i < findex.length / 3; i++) {
     System.out.println(findex[i*3] + " " + findex[i*3+1] + " " + findex[i*3+2]);
 }
-
-System.out.println("Creating new WE mesh from new code");
+*/
+        System.out.println("Creating new WE mesh from new code");
         if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
             edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
@@ -321,6 +322,7 @@ System.out.println("Creating new WE mesh from new code");
 
                 Vertex v1 = V[face[j]];
                 Vertex v2 = V[face[(j + 1) % 3]];
+                //System.out.println("Build he: " + v1.getID() + " v2: " + v2.getID());
                 HalfEdge he = buildHalfEdge(v1, v2);
                 edgeMap.put(new HalfEdgeKey(he.getStart(), he.getEnd()), he);
                 ahedges.add(he);
