@@ -185,11 +185,12 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             System.out.println(vertCoord[i]);
         }
  */
+/*
         System.out.println("Faces:" + findex.length);
         for(int i=0; i < findex.length; i++) {
             System.out.println(findex[i][0] + " " + findex[i][1] + " " + findex[i][2]);
         }
-
+*/
         if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
             edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
