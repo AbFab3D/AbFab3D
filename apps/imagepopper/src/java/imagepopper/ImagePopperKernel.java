@@ -169,12 +169,12 @@ public class ImagePopperKernel extends HostedKernel {
 */
         params.put("bodyWidth1", new Parameter("bodyWidth1", "Body Width", "The width of layer 1", "0.055330948", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0.01, 1, null, null)
+                step, seq++, false, 0.002, 1, null, null)
         );
 
         params.put("bodyHeight1", new Parameter("bodyHeight1", "Body Height", "The height of layer 1", "0.04", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0.01, 1, null, null)
+                step, seq++, false, 0.002, 1, null, null)
         );
 
         params.put("bodyWidth2", new Parameter("bodyWidth2", "Body Width", "The width of layer 2", "0.055330948", 1,
@@ -525,9 +525,16 @@ class KernelRunner implements Runnable {
     @Override
     public void run() {
         HashMap<String,String> params = new HashMap<String,String>();
+
         params.put("bodyWidth1","0.1016");
         params.put("bodyHeight1","0.1016");
         params.put("bodyDepth1","0.012");
+
+/*
+        params.put("bodyWidth1","0.002");
+        params.put("bodyHeight1","0.002");
+        params.put("bodyDepth1","0.0005");
+*/
         params.put("regions","ALL");
         params.put("previewQuality","LOW");
         params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
