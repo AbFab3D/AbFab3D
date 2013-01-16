@@ -88,7 +88,7 @@ public class TestGridMaker extends TestCase {
     /**
        
      */
-    public void _testSymmetricImage() {
+    public void testSymmetricImage() {
         /*
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "c:/tmp/wp01_s442.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "c:/tmp/wp02_442.stl");
@@ -108,6 +108,8 @@ public class TestGridMaker extends TestCase {
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");                
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "c:/tmp/wp17_O.stl");
         */
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "/tmp/Anonymous_alarm_clock.png", "/tmp/alarm_clock.stl");
+        
     }
     
     public void makeSymmetricImage(int symmetryType, String imagePath, String outFileName) {
@@ -911,7 +913,7 @@ public class TestGridMaker extends TestCase {
         
     }
 
-    public void testHoledWedge() {
+    public void _testHoledWedge() {
         
         double blockWidth = 50*MM;
         double blockHeight = 10*MM;
