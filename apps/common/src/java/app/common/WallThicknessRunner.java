@@ -37,8 +37,8 @@ public class WallThicknessRunner {
     public static final String HOLE_VISUALIZATION = "hole_visualization";
 
     private static final String SCRIPT_FILE = "wallthickness_ribt.sh";
-    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.7";
-    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server_v1.5.7";
+    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.8";
+    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server_v1.5.8";
 
     private static final String RESULT_MARKER = "WT_PROCESSING_RESULT:";
     private static final String PARTS_COUNT_ORIGINAL_MARKER = "PARTS_COUNT_ORIGINAL:";

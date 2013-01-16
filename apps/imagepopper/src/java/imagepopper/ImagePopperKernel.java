@@ -490,7 +490,7 @@ public class ImagePopperKernel extends HostedKernel {
     }
 
     public static void main(String[] args) {
-        int loops = 3;
+        int loops = 1;
 
         for(int n=0; n < loops; n++) {
         int threads = 4;
@@ -528,16 +528,16 @@ class KernelRunner implements Runnable {
     @Override
     public void run() {
         HashMap<String,String> params = new HashMap<String,String>();
-/*
+
         params.put("bodyWidth1","0.1016");
         params.put("bodyHeight1","0.1016");
         params.put("bodyDepth1","0.012");
-*/
 
+/*
         params.put("bodyWidth1","0.05");
         params.put("bodyHeight1","0.05");
         params.put("bodyDepth1","0.003");
-
+ */
         params.put("regions","ALL");
         params.put("previewQuality","LOW");
         params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
