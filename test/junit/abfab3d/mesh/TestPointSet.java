@@ -86,7 +86,7 @@ public class TestPointSet extends TestCase {
         assertTrue("Different ID's", id0 != id1);
 
         double[] points = ps.getPoints();
-        assertEquals("Array lengths", points.length, 6);
+        assertEquals("Array lengths", points.length, 2*3);
     }
 
 
@@ -206,7 +206,7 @@ public class TestPointSet extends TestCase {
     public void testGetPoints4() {
         double TOLERANCE = 1.e-8;
 
-        PointSet ps = new PointSet(160, 1.0f,TOLERANCE);
+        PointSet ps = new PointSet(10, 1.0f,TOLERANCE);
 
         ps.add(-0.018500000000000003,-0.0507,-0.0060);
         ps.add(-0.0187,-0.0508,-0.0059);
@@ -590,18 +590,70 @@ public class TestPointSet extends TestCase {
 
     public void testResize() {
         double TOLERANCE = 1.e-8;
-        PointSet ps = new PointSet(3,0.75f,TOLERANCE);
+        PointSet ps = new PointSet(3,1f,TOLERANCE);
 
-        int[] ids = new int[4];
+        int[] ids = new int[13];
 
-        ids[0] = ps.add(1,2,3);
-        ids[1] = ps.add(1,2,4);
-        ids[2] = ps.add(1,2,5);
-        ids[3] = ps.add(1,2,6);
+        for(int i=0; i < ids.length; i++) {
+            ids[i] = ps.add(1,2,i);
+        }
 
         for(int i=0; i < ids.length - 1; i++) {
             assertTrue("UNIQUE" + i, ids[i] != ids[i+1]);
         }
+
+        double[] points = ps.getPoints();
+        int len = points.length / 3;
+        assertEquals("PointCount", ids.length, len);
+
+        for(int i=0; i < len; i++) {
+            System.out.println(points[i*3] + "," + points[i*3+1] + "," + points[i*3+2]);
+            if ((points[i*3] == 0) && (points[i*3+1] == 0) && (points[i*3+2] == 0)) {
+                fail("Zero value in array");
+            }
+
+            if (points[i*3+2] != i) {
+                fail("Incorrect value in array");
+            }
+        }
+
+    }
+
+    public void testResizeSameHash() {
+        double TOLERANCE = 1.e-8;
+        PointSet ps = new PointSet(1,1f,TOLERANCE);
+
+
+        double CX = 14256.789;
+        double CY = 26367.891;
+        double CZ = 57672.981;
+
+        double factorXY = CY / CX;
+        double factorZY = CY / CZ;
+
+        int[] ids = new int[4];
+        ids[0] = ps.add(0,1,0);
+        ids[1] = ps.add(1*factorXY,0,0);
+        ids[2] = ps.add(0,0,1*factorZY);
+        ids[3] = ps.add(-1*factorXY,0,2*factorZY);
+
+        System.out.println("IDS: " + java.util.Arrays.toString(ids));
+        for(int i=0; i < ids.length - 1; i++) {
+            assertTrue("UNIQUE" + i, ids[i] != ids[i+1]);
+        }
+
+        double[] points = ps.getPoints();
+        int len = points.length / 3;
+        assertEquals("PointCount", ids.length, len);
+
+        System.out.println("Points: " + java.util.Arrays.toString(points));
+        for(int i=0; i < len; i++) {
+            System.out.println(points[i*3] + "," + points[i*3+1] + "," + points[i*3+2]);
+            if ((points[i*3] == 0) && (points[i*3+1] == 0) && (points[i*3+2] == 0)) {
+                fail("Zero value in array");
+            }
+        }
+
     }
 
     public void testSameHashDiffWorks() {

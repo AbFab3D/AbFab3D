@@ -306,8 +306,8 @@ public class GridSaver {
         im.setBounds(ibounds);
         im.setGridSize(nx, ny, nz);
 
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-//        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
+//        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
 

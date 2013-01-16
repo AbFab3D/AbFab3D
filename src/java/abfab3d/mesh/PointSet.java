@@ -8,6 +8,9 @@ import java.util.Arrays;
 /**
  * A set like interface for making points unique given some epsilon.
  *
+ * The main datastructure for this class is an array of Entry objects.  Each entry object
+ * has a singly linked list of nodes with the same hash.
+ *
  * @author Alan Hudson
  */
 public class PointSet {
@@ -180,59 +183,54 @@ System.out.println("Count: " + count);
         int[] oldTable = table;
         int oldCapacity = oldTable.length;
 
-
         int newCapacity = oldCapacity * 2;
         System.out.println("*****Rehasing: " + newCapacity);
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);
 
-        // TODO: likely can make logic faster for rehash
-        StructMixedData newEntries = new StructMixedData(Entry.DEFINITION, newCapacity);
-        //entries.resize(newCapacity);
+        entries.resize(newCapacity);
 
-        transfer(newTable, newEntries);
+        transfer(newTable);
         threshold = (int) (newCapacity * loadFactor);
 
         table = newTable;
-        entries = newEntries;
-        System.out.println("Done rehashing");
     }
 
     /**
      * Transfers all entries from current table to newTable.
      */
-    private void transfer(int[] newTable, StructMixedData newEntries) {
+    private void transfer(int[] newTable) {
         for (int j = 0; j < table.length; j++) {
             int e = table[j];
 
+            if (e != -1) {
+
+                int next = e;
+
+                do {
+                    e = next;
+                    int hash = Entry.getHash(entries, e);
+                    int index = (hash & 0x7FFFFFFF) % newTable.length;
+
+                    next = Entry.getNext(entries, e);
+                    Entry.setNext(newTable[index], entries, e);
+                    newTable[index] = e;  // not next
+
+                } while(next != -1);
+            }
+
+/*
             for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
-                Entry.getPosition(entries, e, sd);
-                // copied from add logic
-                double x = sd[0];
-                double y = sd[1];
-                double z = sd[2];
-
-                int hash = calcHash(sd[0],sd[1],sd[2]);
-
+                int hash = Entry.getHash(entries, next);
                 int index = (hash & 0x7FFFFFFF) % newTable.length;
 
-                for(int inext = newTable[index]; inext != -1; inext = Entry.getNext(newEntries, inext)) {
-                    if (Entry.getHash(newEntries, inext) == hash) {
+                  // sets count right, maybe add set call
+                Entry.setNext(newTable[index], entries, next);
+                newTable[index] = next;
 
-                        Entry.getPosition(newEntries, inext, sd);
 
-                        if (calcEquals(x,y,z,sd[0],sd[1],sd[2])) {
-                            continue;
-                        }
-
-                    }
-                }
-
-                // Creates the new entry at head of list
-                int ne = Entry.createEntry(x,y,z,count,hash,table[index], entries);
-
-                newTable[index] = ne;
             }
+*/
         }
     }
 
@@ -316,7 +314,7 @@ class Entry extends StructDataDefinition {
     }
 
     public static void getPosition(StructMixedData src, int srcIdx, double[] pos) {
-        int double_pos = srcIdx * INT_DATA_SIZE;
+        int double_pos = srcIdx * DOUBLE_DATA_SIZE;
         double[] double_data = src.getDoubleData();
 
         pos[0] = double_data[double_pos +  + POS_X];

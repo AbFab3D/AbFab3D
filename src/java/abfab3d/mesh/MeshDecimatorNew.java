@@ -252,7 +252,7 @@ System.out.println("***Iterations: " + count);
         Edge e = m_mesh.getEdges();        
         int count = 0;        
         while(e != null){            
-            e.setUserData(new Integer(count));
+            e.setUserData(count);
             m_edgeArray.set(count++, e);
             e = e.getNext();
         }      
@@ -327,7 +327,7 @@ System.out.println("***Iterations: " + count);
         m_errorFunction.calculateVertex(ed);
 
         if(DEBUG){
-            printf("remove edge: %d error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
+            printf("remove edge: %d error: %10.5f\n", bestCandidate.edge.getUserData(), ed.errorValue );
             //printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
             //printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
             //printf("new vertex: %s\n", formatPoint(ed.point));
@@ -380,10 +380,10 @@ System.out.println("***Iterations: " + count);
 
         if(DEBUG) printf("removed edges: ");
         for(Edge edge : edges) {
-            Integer index = (Integer)edge.getUserData();
-            if(DEBUG) printf(" %d", index.intValue());
+            int index = (Integer)edge.getUserData();
+            if(DEBUG) printf(" %d", index);
             // remove edge from array 
-            m_edgeArray.set(index.intValue(), null);                
+            m_edgeArray.set(index, null);
         }
 
         if(ed.errorValue > m_maxError){
