@@ -20,7 +20,9 @@ import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.ConnectedComponentState;
 import abfab3d.grid.Grid;
+import abfab3d.grid.RegionCounter;
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.BoxesX3DExporter;
@@ -338,6 +340,7 @@ public class ImagePopperKernel extends HostedKernel {
         printf("gm.makeGrid() done\n");
 
         if (regions != RegionPrunner.Regions.ALL) {
+//            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INTERIOR, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
             if (visRemovedRegions) {
                 RegionPrunner.reduceToOneRegion(grid, handler, bounds);
             } else {
@@ -493,7 +496,7 @@ public class ImagePopperKernel extends HostedKernel {
         int loops = 1;
 
         for(int n=0; n < loops; n++) {
-        int threads = 4;
+        int threads = 1;
 
         ExecutorService executor = Executors.newFixedThreadPool(threads);
 
@@ -528,19 +531,25 @@ class KernelRunner implements Runnable {
     @Override
     public void run() {
         HashMap<String,String> params = new HashMap<String,String>();
-
+/*
+        // params for garbage gen, originally 100 million objects
         params.put("bodyWidth1","0.1016");
         params.put("bodyHeight1","0.1016");
         params.put("bodyDepth1","0.012");
 
-/*
-        params.put("bodyWidth1","0.05");
-        params.put("bodyHeight1","0.05");
-        params.put("bodyDepth1","0.003");
- */
         params.put("regions","ALL");
         params.put("previewQuality","LOW");
         params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
+*/
+        // params for regions test
+        params.put("bodyWidth1","0.0216");
+        params.put("bodyHeight1","0.0216");
+        params.put("bodyDepth1","0.012");
+
+        params.put("regions","ONE");
+        params.put("previewQuality","LOW");
+        params.put("visRemovedRegions","true");
+        params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\imagepopper\\images\\leaf\\5_cleaned.png");
 
         Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 

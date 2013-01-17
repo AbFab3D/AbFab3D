@@ -21,10 +21,7 @@ import abfab3d.grid.query.RegionFinder;
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.MeshExporter;
 import abfab3d.io.output.SAVExporter;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.LaplasianSmooth;
-import abfab3d.mesh.MeshDecimator;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.*;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
@@ -42,8 +39,7 @@ import static java.lang.System.currentTimeMillis;
  * @author Alan Hudson
  */
 public class RegionPrunner {
-    static final int VIS_DIGITS = 6;
-    static final String COLOR_REGION = "0 0 0";
+    static final String COLOR_REGION = "1 0 0 0";
 
     public enum Regions {
         ALL, ONE
@@ -131,7 +127,43 @@ public class RegionPrunner {
 
 
             // should isosurface value be 0.9?
-            writeVisFile(vis_grid, 0.9, 3, 1e-9, bounds, handler, "debug", COLOR_REGION, "REMOVED_REGIONS");
+            // This point style is faster to generate(4X) but doesn't look as nice.
+            writePointVisFile(vis_grid, 0.9, bounds, handler, "debug", COLOR_REGION, "REMOVED_REGIONS");
+//            writeVisFile(vis_grid, 0.9, 3, 1e-8, bounds, handler, "debug", COLOR_REGION, "REMOVED_REGIONS");
+        }
+    }
+
+    /**
+     * writes grid voxels to the visualization file
+     */
+    static void writePointVisFile(Grid grid, double isoValue, double[] bounds, BinaryContentHandler handler,
+                             String material, String finish, String defName) {
+
+        double vs = grid.getVoxelSize();
+
+        abfab3d.io.output.IsosurfaceMaker im = new abfab3d.io.output.IsosurfaceMaker();
+        im.setIsovalue(isoValue);
+
+        im.setBounds(extendBounds(bounds, -vs / 2));
+        im.setGridSize(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1);
+
+        PointSetBuilder its = new PointSetBuilder(100);
+
+        im.makeIsosurface(new abfab3d.io.output.IsosurfaceMaker.SliceGrid(grid, bounds, 0), its);
+
+        HashMap<String, Object> params = new HashMap<String, Object>();
+        params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.POINTSET);   // Required now for ITS?
+        if (material != null) {
+            params.put(SAVExporter.MATERIAL, material);
+        }
+        if (finish != null) {
+            params.put(SAVExporter.FINISH, finish);
+        }
+
+        try {
+            MeshExporter.writePointSet(its.getVertices(), handler, params, new float[3], true, defName);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
         }
     }
 
@@ -143,9 +175,9 @@ public class RegionPrunner {
 
         try {
             // Voxelize and Decimate with fixed edge length = voxels size
-            IndexedTriangleSetBuilder its = generateIsosurface(grid, isoValue, bounds);
+            IndexedTriangleSetBuilderNew its = generateIsosurface(grid, isoValue, bounds);
 
-            int[][] faces = its.getFaces();
+            int[] faces = its.getFaces();
             WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
 
             double centerWeight = 1.0; // any non negative value is OK
@@ -161,10 +193,10 @@ public class RegionPrunner {
             ls.processMesh(mesh, smooth);
             printf("mesh processed: %d ms\n", (currentTimeMillis() - t0));
 
-            int fcount = faces.length;
+            int fcount = mesh.getTriangleCount();
 
             if (maxDecimationError > 0 && fcount > 0) {
-                MeshDecimator md = new MeshDecimator();
+                MeshDecimatorNew md = new MeshDecimatorNew();
                 md.setMaxCollapseError(maxDecimationError);
 
                 long start_time = System.currentTimeMillis();
@@ -192,7 +224,7 @@ public class RegionPrunner {
             }
 
             HashMap<String, Object> params = new HashMap<String, Object>();
-            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDFACESET);   // Required now for ITS?
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.POINTSET);   // Required now for ITS?
             if (material != null) {
                 params.put(SAVExporter.MATERIAL, material);
             }
@@ -206,7 +238,7 @@ public class RegionPrunner {
         }
     }
 
-    private static IndexedTriangleSetBuilder generateIsosurface(Grid grid, double isoValue, double[] bounds) {
+    private static IndexedTriangleSetBuilderNew generateIsosurface(Grid grid, double isoValue, double[] bounds) {
 
         // isosurface grid is placed between centers of voxels of orginal grid
         // therefore isosurface grid size is decremented by one voxel
@@ -220,7 +252,7 @@ public class RegionPrunner {
         im.setBounds(extendBounds(bounds, -vs / 2));
         im.setGridSize(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1);
 
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
 
         im.makeIsosurface(new abfab3d.io.output.IsosurfaceMaker.SliceGrid(grid, bounds, 0), its);
 

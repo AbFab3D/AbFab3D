@@ -150,7 +150,7 @@ public class X3DViewer {
             ps.println("<p class='case'>");
             ps.println("<X3D profile='Immersive' showLog='true' showStats='true' version='3.0' height='600px' width='600px' y='0px' x='0px'>");
             ps.println("<Scene>");
-            ps.println("<Background skyColor=\"0 0 0\" />");
+            ps.println("<Background skyColor=\"1 1 1\" />");
 
             if (pos != null) {
                 ps.println("<Viewpoint position='" + pos[0] + " " + pos[1] + " " + pos[2] + "' />");

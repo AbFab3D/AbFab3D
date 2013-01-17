@@ -199,6 +199,36 @@ public class MeshExporter {
     /**
      * Write a mesh to an X3D file
      *
+     * @param verts
+     * @throws IOException
+     */
+    public static void writePointSet(double[] verts, BinaryContentHandler writer, Map<String,
+            Object> params, float[] pos, boolean meshOnly, String defName) throws IOException {
+
+        if (!meshOnly) {
+            writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
+            writer.profileDecl("Immersive");
+            writer.startNode("NavigationInfo", null);
+            writer.startField("avatarSize");
+            writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
+            writer.endNode(); // NavigationInfo
+            writer.startNode("Viewpoint", null);
+            writer.startField("position");
+            writer.fieldValue(pos, 3);
+            writer.endNode(); // Viewpoint
+        }
+
+        SAVExporter se = new SAVExporter();
+        se.outputX3D(verts, params, writer, defName);
+
+        if (!meshOnly) {
+            writer.endDocument();
+        }
+    }
+
+    /**
+     * Write a mesh to an X3D file
+     *
      * @param we
      * @throws IOException
      */

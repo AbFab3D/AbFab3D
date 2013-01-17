@@ -11,6 +11,9 @@ import java.util.Arrays;
  * The main datastructure for this class is an array of Entry objects.  Each entry object
  * has a singly linked list of nodes with the same hash.
  *
+ * TODO:  It's possible that two values will have different hashCodes but be equal with the epsilon test.  We'll
+ * need to test the other boundary bucket for equality as well.  This would cause non-manifold meshes.
+ *
  * @author Alan Hudson
  */
 public class PointSet {
@@ -218,22 +221,8 @@ System.out.println("Count: " + count);
 
                 } while(next != -1);
             }
-
-/*
-            for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
-                int hash = Entry.getHash(entries, next);
-                int index = (hash & 0x7FFFFFFF) % newTable.length;
-
-                  // sets count right, maybe add set call
-                Entry.setNext(newTable[index], entries, next);
-                newTable[index] = next;
-
-
-            }
-*/
         }
     }
-
 }
 
 class Entry extends StructDataDefinition {

@@ -335,28 +335,6 @@ public class QuadricStatic extends StructDataDefinition {
         double m13 = src_double[src_double_pos + POS_M13];
         double m22 = src_double[src_double_pos + POS_M22];
         double m23 = src_double[src_double_pos + POS_M23];
-        double m33 = src_double[src_double_pos + POS_M33];
-
-        m.m00 = m00;
-        m.m01 = m01;
-        m.m02 = m02;
-        m.m10 = m01;
-        m.m11 = m11;
-        m.m12 = m12;
-        m.m20 = m02;
-        m.m21 = m12;
-        m.m22 = m22;
-/*
-        // Non garbage way
-        MathUtil.invertGeneral(m, result, row_perm, row_scale, tmp);
-
-
-        // Old way
-        //m.invert();
-        pnt.set(m03, m13, m23);
-        m.transform(pnt);
-        pnt.scale(-1);
-        */
 
         double det =
                 m00*(m11*m22 - m12*m12)
@@ -376,8 +354,6 @@ public class QuadricStatic extends StructDataDefinition {
         pnt.x = -(r00*p0 + r01*p1 + r02*p2);
         pnt.y = -(r01*p0 + r11*p1 + r12*p2);
         pnt.z = -(r02*p0 + r12*p1 + r22*p2);
-
-        //return pnt;
     }
 
     /**

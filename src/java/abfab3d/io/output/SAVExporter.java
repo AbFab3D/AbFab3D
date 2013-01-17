@@ -39,7 +39,7 @@ public class SAVExporter {
     public static final String MATERIAL = "MATERIAL";
     public static final String FINISH = "FINISH";
 
-    public enum GeometryType {INDEXEDTRIANGLESET,INDEXEDFACESET}
+    public enum GeometryType {INDEXEDTRIANGLESET,INDEXEDFACESET,INDEXEDLINESET, POINTSET}
 
     /**
      * Output a WingedEdgeTriangleMesh to an X3D stream.  By default this exporter exports
@@ -62,6 +62,29 @@ public class SAVExporter {
             finish = new String[] {(String) params.get(FINISH)};
         }
         outputX3D(mesh, params, material, finish, stream, defName);
+    }
+
+    /**
+     * Output a PointSet to an X3D stream.  By default this exporter exports
+     * coordinates and normals.
+     *
+     * Supported params are:
+     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     *
+     * @param verts The mesh
+     * @param params Output parameters
+     * @param stream The SAV stream
+     */
+    public void outputX3D(double[] verts, Map<String, Object> params, BinaryContentHandler stream, String defName) {
+        String material = null;
+        String finish[] = null;
+
+        if (params != null) {
+            material = (String) params.get(MATERIAL);
+            finish = new String[] {(String) params.get(FINISH)};
+        }
+        outputX3D(verts, params, material, finish, stream, defName);
     }
 
 
@@ -116,7 +139,7 @@ public class SAVExporter {
 
         if (gtype == GeometryType.INDEXEDTRIANGLESET) {
             indices = new int[faces.length * 3];
-        } else if (gtype == GeometryType.INDEXEDFACESET) {
+        } else if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
             indices = new int[faces.length * 4];
         }
         float[] coords = new float[mesh.getVertexCount() * 3];
@@ -140,10 +163,13 @@ public class SAVExporter {
                 abfab3d.mesh.Vertex vb = faces[i][1];
                 abfab3d.mesh.Vertex vc = faces[i][2];
 
-                indices[idx++] = va.getID();
-                indices[idx++] = vb.getID();
-                indices[idx++] = vc.getID();
-                if (gtype == GeometryType.INDEXEDFACESET) {
+                if (gtype != GeometryType.POINTSET) {
+                    indices[idx++] = va.getID();
+                    indices[idx++] = vb.getID();
+                    indices[idx++] = vc.getID();
+                }
+
+                if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
                     indices[idx++] = -1;
                 }
 
@@ -239,11 +265,13 @@ public class SAVExporter {
                             reassigned.put(vc, vc_idx);
                         }
 
-                        indices[idx++] = va_idx.intValue();
-                        indices[idx++] = vb_idx.intValue();
-                        indices[idx++] = vc_idx.intValue();
+                        if (gtype != GeometryType.POINTSET) {
+                            indices[idx++] = va_idx.intValue();
+                            indices[idx++] = vb_idx.intValue();
+                            indices[idx++] = vc_idx.intValue();
+                        }
 
-                        if (gtype == GeometryType.INDEXEDFACESET) {
+                        if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
                             indices[idx++] = -1;
                         }
 
@@ -300,11 +328,12 @@ public class SAVExporter {
                             reassigned.put(vc, vc_idx);
                         }
 
-                        indices[idx++] = va_idx.intValue();
-                        indices[idx++] = vb_idx.intValue();
-                        indices[idx++] = vc_idx.intValue();
-
-                        if (gtype == GeometryType.INDEXEDFACESET) {
+                        if (gtype != GeometryType.POINTSET) {
+                            indices[idx++] = va_idx.intValue();
+                            indices[idx++] = vb_idx.intValue();
+                            indices[idx++] = vc_idx.intValue();
+                        }
+                        if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
                             indices[idx++] = -1;
                         }
 
@@ -342,10 +371,14 @@ public class SAVExporter {
                     if (vc.getID() > max_idx) {
                         max_idx = vc.getID();
                     }
-                    indices[idx++] = va.getID();
-                    indices[idx++] = vb.getID();
-                    indices[idx++] = vc.getID();
-                    if (gtype == GeometryType.INDEXEDFACESET) {
+
+                    if (gtype != GeometryType.POINTSET) {
+                        indices[idx++] = va.getID();
+                        indices[idx++] = vb.getID();
+                        indices[idx++] = vc.getID();
+                    }
+
+                    if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
                         indices[idx++] = -1;
                     }
 
@@ -429,20 +462,26 @@ public class SAVExporter {
         mm.createAppearance(material, finish, MaterialMapper.Shading.FIXED, 5, stream);
 
         stream.startField("geometry");
-        stream.startField("geometry");
         if (gtype == GeometryType.INDEXEDTRIANGLESET) {
             stream.startNode("IndexedTriangleSet", null);
-        } else {
+        } else if (gtype == GeometryType.INDEXEDFACESET) {
             stream.startNode("IndexedFaceSet", null);
+        } else if (gtype == GeometryType.INDEXEDLINESET) {
+            stream.startNode("IndexedLineSet", null);
+        } else if (gtype == GeometryType.POINTSET) {
+            stream.startNode("PointSet", null);
         }
-        stream.startField("normalPerVertex");
-        stream.fieldValue(vertex_normals);
+
+        if (gtype != GeometryType.INDEXEDLINESET && gtype != GeometryType.POINTSET) {
+            stream.startField("normalPerVertex");
+            stream.fieldValue(vertex_normals);
+        }
         if (gtype == GeometryType.INDEXEDTRIANGLESET) {
             stream.startField("index");
-        } else {
+        } else if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
             stream.startField("coordIndex");
         }
-        stream.fieldValue(indices, indices.length);
+        if (indices != null) stream.fieldValue(indices, indices.length);
         stream.startField("coord");
         stream.startNode("Coordinate", null);
         stream.startField("point");
@@ -473,6 +512,55 @@ public class SAVExporter {
         stream.endNode();   // IndexedTriangleSet
         stream.endNode();   // Shape
 
+    }
+
+    /**
+     * Output a PointSet to an X3D stream.  By default this exporter exports
+     * coordinates and normals.
+     *
+     * Supported params are:
+     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     *
+     * @param verts The mesh
+     * @param params Output parameters
+     * @param material The material from MaterialMapper for the appearance
+     * @param finish The finish.
+     * @param stream The SAV stream
+     */
+    public void outputX3D(double[] verts, Map<String, Object> params, String material, String[] finish,
+                          BinaryContentHandler stream, String defName) {
+
+        float[] coords = new float[verts.length];
+
+
+        int len = verts.length;
+        for(int i=0; i < len; i++) {
+            coords[i] = (float) verts[i];
+        }
+        stream.startNode("Shape", defName);
+
+        stream.startField("appearance");
+
+        MaterialMapper mm = new MaterialMapper();
+        mm.createAppearance(material, finish, MaterialMapper.Shading.FIXED, 5, stream);
+
+        stream.startField("geometry");
+        stream.startNode("PointSet", null);
+
+        stream.startField("coord");
+        stream.startNode("Coordinate", null);
+        stream.startField("point");
+
+        stream.fieldValue(coords, coords.length);
+        stream.endNode();   // Coord
+
+        stream.endNode();   // IndexedTriangleSet
+        stream.endNode();   // Shape
+
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
     }
 
     /**
@@ -712,7 +800,7 @@ public class SAVExporter {
         stream.startField("geometry");
         if (gtype == GeometryType.INDEXEDTRIANGLESET) {
             stream.startNode("IndexedTriangleSet", null);
-        } else {
+        } else if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
             stream.startNode("IndexedFaceSet", null);
         }
         stream.startField("normalPerVertex");

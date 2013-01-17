@@ -55,14 +55,14 @@ public class MaterialMapper {
             // Do not issue any appearance commands
         } else if (material.equalsIgnoreCase("Debug")) {
             // Finish 0 will be diffuseColor
-            float[] diffuseColor = new float[] {1,1,1};
+            float[] diffuseColor = new float[] {1,1,1,0};
 
             if (finish != null && finish.length > 0) {
                 String[] toks = finish[0].split(" ");
                 int idx = 0;
                 for(int i=0; i < toks.length; i++) {
                     diffuseColor[idx++] = Float.parseFloat(toks[i]);
-                    if (idx >= 3) {
+                    if (idx >= 4) {
                         break;
                     }
                 }
@@ -164,7 +164,7 @@ public class MaterialMapper {
     }
 
     /**
-     * White Strong Flexible with no finishes.
+     * Debug Printing
      *
      * @param handler The X3D content handler to output too
      * @param quality A value from 1-10 indicating how much computation resources to use
@@ -175,6 +175,11 @@ public class MaterialMapper {
         handler.startNode("Material", null);
         handler.startField("diffuseColor");
         handler.fieldValue(diffuseColor,3);
+
+        if (diffuseColor.length > 3) {
+            handler.startField("transparency");
+            handler.fieldValue(diffuseColor[3]);
+        }
         handler.endNode();  // Material
         handler.endNode();  // Appearance
     }

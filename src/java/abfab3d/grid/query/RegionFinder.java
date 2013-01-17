@@ -19,6 +19,8 @@ import java.util.*;
 import abfab3d.grid.*;
 import abfab3d.grid.util.GridVisitedIndexed;
 
+import static abfab3d.util.Output.printf;
+
 /**
  * Find all the regions in a grid.
  *
@@ -31,6 +33,8 @@ import abfab3d.grid.util.GridVisitedIndexed;
 public class RegionFinder {
     /** The max number of regions to find */
     private int maxRegions;
+
+    private int maxRegionSize;
 
     /** The region we are using */
     private SetRegion region;
@@ -58,20 +62,30 @@ public class RegionFinder {
     /**
      * Constructor.
      *
-     * @param max The max number of regions to create.
+     * @param maxRegions The max number of regions to create.
      */
-    public RegionFinder(int max) {
-        this(max,-1);
+    public RegionFinder(int maxRegions) {
+        this(maxRegions, Integer.MAX_VALUE,-1);
     }
 
     /**
      * Constructor.
      *
-     * @param max The max number of regions to create.
+     * @param maxRegions The max number of regions to create.
+     */
+    public RegionFinder(int maxRegions, int maxRegionSize) {
+        this(maxRegions, maxRegionSize,-1);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param maxRegions The max number of regions to create.
      * @param mat The material to restrict finding to or -1 for no restriction
      */
-    public RegionFinder(int max, int mat) {
-        this.maxRegions = max;
+    public RegionFinder(int maxRegions, int maxRegionSize, int mat) {
+        this.maxRegions = maxRegions;
+        this.maxRegionSize = maxRegionSize;
         this.mat = mat;
     }
 
@@ -83,7 +97,7 @@ public class RegionFinder {
      */
     public List<Region> execute(Grid grid) {
         if (mat == -1) {
-            return executeState(grid);
+            return executeStateNew(grid);
         } else {
             return executeMaterial((AttributeGrid)grid);
         }
@@ -118,6 +132,51 @@ public class RegionFinder {
         }
 
         return regions;
+    }
+
+    private List<Region> executeStateNew(Grid grid) {
+        ArrayList<Region> ret_val = new ArrayList<Region>();
+
+        // TODO: Should support MARKED as well
+        byte state = Grid.INTERIOR;
+
+        int nx1 = grid.getWidth()-1;
+        int ny1 = grid.getHeight()-1;
+        int nz1 = grid.getDepth()-1;
+
+        GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
+
+        int compCount = 0;
+        int volume = 0;
+
+        zcycle:
+
+        for(int z = 1; z < nz1; z++){
+
+            for(int x = 1; x < nx1; x++){
+
+                for(int y = 1; y < ny1; y++){
+
+                    if(mask.get(x,y,z) != 0)// already visited
+                        continue;
+
+                    if(ConnectedComponentState.compareState(grid, x,y,z, state)){
+
+                        ConnectedComponentState sc = new  ConnectedComponentState(grid, mask, x,y,z,state, true, ConnectedComponentState.DEFAULT_ALGORITHM);
+
+                        ArrayInt coords = sc.getComponents();
+                        ret_val.add(new ArrayRegion(coords, true));
+                        volume+= sc.getVolume();
+                        if(maxRegionSize > 0 && compCount > maxRegionSize)
+                            break zcycle;
+                    }
+                }
+            }
+        }
+
+        mask.release();
+
+        return ret_val;
     }
 
     /**
