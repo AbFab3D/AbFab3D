@@ -267,8 +267,6 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             }
         }
 
-        System.out.println("Vertices added: " + V.length);
-
         /* Add the vertices to the list */
         for (int i = 0; i < V.length; i++) {
             addVertex(V[i]);
@@ -366,7 +364,6 @@ for(int i=0; i < findex.length / 3; i++) {
             }
         }
 
-        System.out.println("Vertices added: " + V.length + " edges: " + getEdgeCount());
         /* Add the vertices to the list */
         for (int i = 0; i < V.length; i++) {
             addVertex(V[i]);
@@ -1006,28 +1003,6 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
      *
      *
      */
-    @Override
-    public Face addNewFace(Point3d coord[]) {
-
-        Vertex vert[] = new Vertex[coord.length];
-
-        for (int i = 0; i < vert.length; i++) {
-
-            vert[i] = findVertex(coord[i]);
-            if (vert[i] == null)
-                vert[i] = buildVertex(coord[i]);
-        }
-
-        return addNewFace(vert);
-
-    }
-
-
-    /**
-     *
-     *
-     *
-     */
     public Face addNewFace(Vertex vert[]) {
 
         Face face = buildFaceV(vert);
@@ -1362,17 +1337,6 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
             v = v.getNext();
         }
         return null;
-    }
-
-    /**
-     * Find a vertex using a point3d reference.
-     *
-     * @param v
-     * @return
-     */
-    @Override
-    public Vertex findVertex(Point3d v) {
-        return (Vertex) tvertices.get(v);
     }
 
     /**

@@ -16,13 +16,9 @@ public interface TriangleMesh {
 
     int getEdgeCount();
 
-    Face addNewFace(Point3d coord[]);
-
     int getFaceCount();
 
     Vertex findVertex(Point3d p, double eps);
-
-    Vertex findVertex(Point3d v);
 
     double[] getBounds();
 
