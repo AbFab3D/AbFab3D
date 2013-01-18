@@ -432,6 +432,7 @@ System.out.println("Adding param: " + p.getName());
         // TODO: Have to output twice, once for viz with IndexedFaceSet and once for wallthickness as indexedtrianglesets
         String tmp_dir = "/tmp/";
         ps.println(indent(12) + "try {");
+        ps.println(indent(16) + "parsed_params.put(\"visRemovedRegions\",new Boolean(false));");
         ps.println(indent(16) + "String filename = \"" + tmp_dir + "out.x3db\";");
         ps.println(indent(16) + "System.out.println(\"Outputing analytical file:\" + filename);");
         ps.println(indent(16) + "FileOutputStream fos = new FileOutputStream(filename);");
@@ -477,10 +478,19 @@ System.out.println("Adding param: " + p.getName());
         // Make the fully qualified path be relative
         ps.println(indent(16) + "String viz = res.getVisualization();");
         ps.println(indent(16) + "if (viz != null) viz = viz.replace(\"" + tmp_dir + "\",\"\");");
+        ps.println(indent(16) + "String gap_viz = res.getGapVisualization();");
+        ps.println(indent(16) + "if (gap_viz != null) gap_viz = gap_viz.replace(\"" + tmp_dir + "\",\"\");");
 //        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out_viz.x3d\",viz},pos);");
-        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {viz},pos);");
+        ps.println(indent(16) + "int cnt = 0;");
+        ps.println(indent(16) + "if (viz != null) cnt++;");
+        ps.println(indent(16) + "if (gap_viz != null) cnt++;");
+        ps.println(indent(16) + "if (cnt > 0) {String[] files = new String[cnt];");
+        ps.println(indent(16) + "int idx = 0;");
+        ps.println(indent(16) + "if (viz != null) files[idx++] = viz;");
+        ps.println(indent(16) + "if (gap_viz != null) files[idx++] = gap_viz;");
+        ps.println(indent(16) + "X3DViewer.viewX3DOM(files,pos);");
 
-        ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
+        ps.println(indent(12) + "}} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Printability Done\");");
 
         // Upload model

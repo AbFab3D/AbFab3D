@@ -59,6 +59,8 @@ import app.common.GridSaver;
  * @author Alan Hudson
  */
 public class RingPopperKernel extends HostedKernel {
+    private static final boolean USE_MIP_MAPPING = false;
+
     /** Debugging level.  0-5.  0 is none */
     private static final int DEBUG_LEVEL = 0;
     static final double MM = 0.001; // millmeters to meters
@@ -134,6 +136,8 @@ public class RingPopperKernel extends HostedKernel {
 
     /** How many regions to keep */
     private RegionPrunner.Regions regions;
+    private boolean useGrayscale;
+    private boolean visRemovedRegions;
 
     /**
      * Get the parameters for this editor.
@@ -148,11 +152,17 @@ public class RingPopperKernel extends HostedKernel {
 
         // Image based params
         params.put("image", new Parameter("image", "Image", "The image to use", "images/tile_01.png", 1,
-            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+            Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
+
+        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
+        );
+
         params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
-            Parameter.DataType.STRING, Parameter.EditorType.FILE_DIALOG,
+            Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
         );
 
@@ -255,6 +265,11 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, true, 0, 100, null, null)
         );
 
+        params.put("visRemovedRegions", new Parameter("visRemovedRegions", "Vis Removed Regions", "Visualize removed regions", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
+        );
+
         return params;
     }
 
@@ -272,8 +287,10 @@ public class RingPopperKernel extends HostedKernel {
         if (acc == Accuracy.VISUAL) {
             resolution = resolution * previewQuality.getFactor();
         }
-        maxDecimationError = 0.01*resolution*resolution;
-        //maxDecimationError = resolution / 100000.0;
+
+        // TODO: Not sure I like this heuristic
+        //maxDecimationError = 0.01*resolution*resolution;
+        maxDecimationError = resolution / 100000.0;
 
         System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
 
@@ -321,14 +338,6 @@ public class RingPopperKernel extends HostedKernel {
         gm.setBounds(bounds);
         gm.setDataSource(ring);
 
-        boolean bigIndex = false;
-        
-        if ((long) nx * ny * nz > Math.pow(2,31)) {
-            bigIndex = true;
-        }
-
-        boolean useBlockBased = true;
-
         Grid grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
 
 
@@ -338,7 +347,11 @@ public class RingPopperKernel extends HostedKernel {
 
 
         if (regions != RegionPrunner.Regions.ALL) {
-            RegionPrunner.reduceToOneRegion(grid);
+            if (visRemovedRegions) {
+                RegionPrunner.reduceToOneRegion(grid, handler, bounds);
+            } else {
+                RegionPrunner.reduceToOneRegion(grid);
+            }
         }
 
         System.out.println("Writing grid");
@@ -366,7 +379,6 @@ public class RingPopperKernel extends HostedKernel {
 
         // Release grid to lower total memory requirements
         grid = null;
-        System.gc();
 
         GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
 
@@ -387,11 +399,14 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setUseGrayscale(true);                
         image_src.setLocation(0,0,ringThickness/2);
         image_src.setImagePath(imagePath);
-        printf("baseThickness: %f\n",baseThickness);
         image_src.setBaseThickness(baseThickness);
-        image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-        image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight       
-        image_src.setProbeSize(resolution * 2.);
+        image_src.setUseGrayscale(useGrayscale);
+
+        if (USE_MIP_MAPPING) {
+            image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+            image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
+            image_src.setProbeSize(resolution * 2.);
+        }
 
         if(symmetryStyle == SymmetryStyle.NONE) {
 
@@ -409,7 +424,6 @@ public class RingPopperKernel extends HostedKernel {
         
         DataSource image_band = image_src;
 
-        System.out.println("SymStyle: " + symmetryStyle);        
         if(symmetryStyle != SymmetryStyle.NONE){
             
             DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();
@@ -588,6 +602,11 @@ public class RingPopperKernel extends HostedKernel {
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
+            pname = "useGrayscale";
+            useGrayscale = (Boolean) params.get(pname);
+
+            pname = "visRemovedRegions";
+            visRemovedRegions = (Boolean) params.get(pname);
         } catch(Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));

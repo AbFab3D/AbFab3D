@@ -75,8 +75,6 @@ public class VertexVertexIterator implements Iterator<Vertex> {
                 break;
             }
         }
-
-        System.out.println("FindVertex: " + f + " v: " + v);
     }
 
     @Override

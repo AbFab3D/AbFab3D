@@ -13,52 +13,33 @@
 package abfab3d.mesh;
 
 // External Imports
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
 
+import abfab3d.grid.ClassTraverser;
+import abfab3d.grid.Grid;
+import abfab3d.grid.GridShortIntervals;
+import abfab3d.io.input.IndexedTriangleSetLoader;
+import abfab3d.io.input.MeshRasterizer;
+import abfab3d.io.input.STLRasterizer;
+import abfab3d.io.input.STLReader;
+import abfab3d.io.output.IsosurfaceMaker;
+import abfab3d.io.output.MeshExporter;
+import abfab3d.io.output.STLWriter;
+import abfab3d.util.StructMixedData;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+import org.j3d.geom.GeometryData;
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Random;
 
-
-import org.web3d.vrml.sav.BinaryContentHandler;
-
-import abfab3d.io.input.IndexedTriangleSetLoader;
-import abfab3d.io.input.STLReader;
-import abfab3d.io.input.STLRasterizer;
-import abfab3d.io.input.MeshRasterizer;
-import abfab3d.io.output.SAVExporter;
-import abfab3d.io.output.MeshExporter;
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.STLWriter;
-
-
-import abfab3d.grid.Grid;
-import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.op.ErosionMask;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-import org.j3d.geom.*;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.*;
-
-
-import static abfab3d.util.Output.printf; 
-import static abfab3d.util.Output.fmt; 
-
+import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -67,7 +48,7 @@ import static java.lang.System.currentTimeMillis;
  * @author Vladimir Bulatov
  * @version
  */
-public class TestMeshDecimator extends TestCase {
+public class TestMeshDecimatorNew extends TestCase {
     
     static final double MM = 1000; // m -> mm conversion 
     static final double MM3 = 1.e9; // m^3 -> mm^3 conversion 
@@ -76,7 +57,7 @@ public class TestMeshDecimator extends TestCase {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestMeshDecimator.class);
+        return new TestSuite(TestMeshDecimatorNew.class);
     }
 
     /**
@@ -168,7 +149,7 @@ public class TestMeshDecimator extends TestCase {
     }
 
     
-    public void _testQuadric(){
+    public void testQuadric(){
         
         Point3d p[] = new Point3d[]{
             new Point3d(0,0,0), // 0
@@ -193,33 +174,39 @@ public class TestMeshDecimator extends TestCase {
         sc0.set(p[5]);
         sc1.set(p[2]);
         sc2.set(p[6]);
-        Quadric.makePlane(sc0, sc1, sc2,sn,p526);
+        QuadricStatic.makePlane(sc0, sc1, sc2,sn,p526);
 
         sc0.set(p[6]);
         sc1.set(p[2]);
         sc2.set(p[7]);
-        Quadric.makePlane(sc0,sc1,sc2,sn,p627);
+        QuadricStatic.makePlane(sc0,sc1,sc2,sn,p627);
 
         sc0.set(p[6]);
         sc1.set(p[7]);
         sc2.set(p[5]);
-        Quadric.makePlane(sc0,sc1,sc2,sn,p675);
+        QuadricStatic.makePlane(sc0,sc1,sc2,sn,p675);
 
-        Quadric q526 = new Quadric(p[5], p[2], p[6]);
-        Quadric q627 = new Quadric(p[6], p[2], p[7]);
-        Quadric q675 = new Quadric(p[6], p[7], p[5]);
-        Quadric q734 = new Quadric(p[7], p[3], p[4]);
+        StructMixedData quadrics = new StructMixedData(new QuadricStatic(), 10);
+
+        int q526 = QuadricStatic.createQuadric(p[5], p[2], p[6], quadrics);
+        int q627 = QuadricStatic.createQuadric(p[6], p[2], p[7], quadrics);
+        int q675 = QuadricStatic.createQuadric(p[6], p[7], p[5], quadrics);
+        int q734 = QuadricStatic.createQuadric(p[7], p[3], p[4], quadrics);
         double eps = 1.0e-5;
-        Quadric q56s = new Quadric(p[5],p[6], eps);
+        int q56s = QuadricStatic.createQuadric(p[5],p[6], eps, quadrics);
 
-        Quadric q6 = new Quadric(q526);
-        q6.addSet(q627).addSet(q675);
-        Quadric q7 = new Quadric(q734);
-        q7.addSet(q627).addSet(q675);
-        
-        Quadric q67 = new Quadric(q6);
-        q67.addSet(q7);
-        
+        int q6 = QuadricStatic.createQuadric(quadrics, q526, quadrics);
+
+        QuadricStatic.addSet(quadrics,q627,quadrics,q6);
+        QuadricStatic.addSet(quadrics,q675,quadrics,q6);
+
+        int q7 = QuadricStatic.createQuadric(quadrics,q734,quadrics);
+        QuadricStatic.addSet(quadrics, q627, quadrics,q7);
+        QuadricStatic.addSet(quadrics, q675, quadrics,q7);
+
+        int q67 = QuadricStatic.createQuadric(quadrics,q6,quadrics);
+        QuadricStatic.addSet(quadrics, q67, quadrics, q7);
+
         /*
         for(int i = 0; i < p.length ; i++){
             
@@ -273,12 +260,13 @@ public class TestMeshDecimator extends TestCase {
         printf("p57: [%18.15f,%18.15f,%18.15f]\n", p57.x,p57.y,p57.z);
         */
 
-        Quadric q713 = new Quadric(p[7], p[1], p[3]);
-        printf("det713: %10.7e\n", q713.determinant());
-        Quadric q71 = new Quadric(p[7], p[1], 1.e-05);
-        printf("det 71: %10.7e\n", q71.determinant());
-        q713.addSet(q71);
-        printf("det 713: %10.7e\n", q713.determinant());
+        int q713 = QuadricStatic.createQuadric(p[7], p[1], p[3], quadrics);
+        printf("det713: %10.7e\n", QuadricStatic.determinant(quadrics,q713));
+        int q71 = QuadricStatic.createQuadric(p[7], p[1], 1.e-05, quadrics);
+        printf("det 71: %10.7e\n", QuadricStatic.determinant(quadrics,q71));
+
+        QuadricStatic.addSet(quadrics, q71, quadrics,q713);
+        printf("det 713: %10.7e\n", QuadricStatic.determinant(quadrics,q713));
         Point3d p713 = new Point3d();
         Matrix3d sm3d = new Matrix3d();
 
@@ -286,10 +274,10 @@ public class TestMeshDecimator extends TestCase {
         int[] row_perm = new int[3];
         double[] row_scale = new double[3];
         double[] tmp = new double[9];
-        
-        q713.getMinimum(p713,sm3d, result, row_perm, row_scale, tmp);
-        printf("p 713: [ %18.15f, %18.15f, %18.15f] \n", p713.x,p713.y,p713.z);
 
+
+        QuadricStatic.getMinimum(quadrics,q713,p713,sm3d, result, row_perm, row_scale, tmp);
+        printf("p 713: [ %18.15f, %18.15f, %18.15f] \n", p713.x,p713.y,p713.z);
 
     }
 

@@ -161,7 +161,9 @@ public class ArrayInt implements RowOfInt {
      */
     public void setIntervals(int intervals[], int values[], int count){
         //TODO 
-        // we never use it actually 
+        // we never use it actually
+
+        throw new IllegalArgumentException("Not implemented");
     }
 
     public int getDataMemory(){

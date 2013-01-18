@@ -13,9 +13,16 @@ public interface Vertex {
     void setID(int id);
 
     Point3d getPoint();
-
+/*
+    double getX();
+    double getY();
+    double getZ();
+*/
     void setPoint(Point3d p);
 
+/*
+    void setPoint(double x, double y, double z);
+*/
     HalfEdge getLink();
 
     void setLink(HalfEdge link);
@@ -31,6 +38,10 @@ public interface Vertex {
     Object getUserData();
 
     void setUserData(Object userData);
+
+    int getUserDataPos();
+
+    void setUserDataPos(int userData);
 
     boolean isRemoved();
 

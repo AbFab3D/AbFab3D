@@ -33,6 +33,7 @@ public class VertexAttribs implements Vertex {
     private float[][] attribs;
 
     private Object userData;
+    private int userDataPos;
 
     // TODO: Debug var, remove
     private boolean removed;
@@ -115,6 +116,16 @@ public class VertexAttribs implements Vertex {
     @Override
     public void setUserData(Object userData) {
         this.userData = userData;
+    }
+
+    @Override
+    public int getUserDataPos() {
+        return userDataPos;
+    }
+
+    @Override
+    public void setUserDataPos(int userData) {
+        this.userDataPos = userData;
     }
 
     @Override

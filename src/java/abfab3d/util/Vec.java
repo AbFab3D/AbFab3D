@@ -20,13 +20,11 @@ public class Vec {
     public double v[];
 
     public Vec(int size){
-
         v = new double[size];
 
     }
 
     public Vec(Vec in){
-
         v = new double[in.v.length];
         set(in);
 

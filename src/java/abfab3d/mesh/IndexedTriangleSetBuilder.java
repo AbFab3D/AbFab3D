@@ -24,10 +24,10 @@ import abfab3d.util.TriangleCollector;
 
 
 
-import static abfab3d.util.Output.printf; 
+import static abfab3d.util.Output.printf;
 
 /**
-   class to make indexed trainagle set from flat set of triangles 
+   class to make indexed triangle set from flat set of triangles
 
    @author Vladimir Bulatov
 
@@ -36,15 +36,22 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
 
     static final boolean DEBUG = false;
 
-    ArrayList<int[]> m_faces = new ArrayList<int[]>();
-    HashMap<Point3dW,Integer> m_tvertices = new HashMap<Point3dW,Integer>();
-    ArrayList<Point3dW> m_vertices = new ArrayList<Point3dW>();
+    private ArrayList<int[]> m_faces = new ArrayList<int[]>();
+    private HashMap<Point3dW,Integer> m_tvertices = new HashMap<Point3dW,Integer>();
+    private ArrayList<Point3dW> m_vertices = new ArrayList<Point3dW>();
     
 
-    public IndexedTriangleSetBuilder(){ 
-        
+    public IndexedTriangleSetBuilder(){
+        m_faces = new ArrayList<int[]>();
+        m_tvertices = new HashMap<Point3dW,Integer>();
+        m_vertices = new ArrayList<Point3dW>();
     }
-    
+
+    public IndexedTriangleSetBuilder(int expectedVerts, int expectedFaces) {
+        m_faces = new ArrayList<int[]>(expectedFaces);
+        m_tvertices = new HashMap<Point3dW,Integer>(expectedVerts);
+        m_vertices = new ArrayList<Point3dW>(expectedVerts);
+    }
     /**
 
      */
@@ -58,11 +65,10 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
        
      */
     public int [][] getFaces(){
-
-        return m_faces.toArray(new int[0][0]); 
-
+        return m_faces.toArray(new int[0][0]);
     }
 
+    int add_cnt = 0;
     /**
        add triangle 
        vertices are copied into internal structure and can be reused after return       
@@ -98,7 +104,28 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
         } 
 
         int[] face = new int[]{f0, f1, f2};
+
         m_faces.add(face);
+/*
+        if (add_cnt < 10) {
+            System.out.println("AddTri: " + f0 + " " + f1 + " " + f2);
+        }
+        add_cnt++;
+
+        if (add_cnt == 456) {
+            add_cnt++;
+            System.out.println("Adding v0: " + v0);
+            System.out.println("Adding face: " + java.util.Arrays.toString(face));
+
+            int[][] findex = m_faces.toArray(new int[0][0]);
+            System.out.println("Faces:" + findex.length);
+            for(int i=0; i < findex.length; i++) {
+                System.out.println(java.util.Arrays.toString(findex[i]));
+            }
+
+
+        }
+  */
         //printf("add face:[%3d, %3d, %3d]\n", f0,f1,f2);
         return true;
     }
@@ -122,7 +149,6 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
        
      */
     public static class Point3dW extends Point3d {
-
         static final double  // arbitrary constants for hashcode calculations
             CX = 14256.789,
             CY = 26367.891,
@@ -130,18 +156,25 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
             CW = 35556.955;
 
         static double TOLERANCE = 1.e-8; // vectors different less than tolerance are assumed to be equal
-            
+
         public Point3dW(double x, double y, double z){
             super(x,y,z);
+
         }
 
         public int hashCode(){
 
-            return (int)(CX*x + CY * y + CZ * z + CW); 
+//            return (int) (31 * 31 * x + 31 * y + z);
+
+            //hcCnt++;
+
+            return (int)(CX*x + CY * y + CZ * z + CW);
             
         }
 
         public boolean equals(Object obj){
+
+            //eqCnt++;
 
             Point3d p = (Point3d)obj;
             double d = distanceLinf(p);

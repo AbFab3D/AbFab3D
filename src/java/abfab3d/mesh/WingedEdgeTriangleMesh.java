@@ -29,7 +29,7 @@ import static abfab3d.util.Output.printf;
  * @author Vladimir Bulatov
  * @author Alan Hudson
  */
-public class WingedEdgeTriangleMesh {
+public class WingedEdgeTriangleMesh implements TriangleMesh {
     public static final int VA_NORMAL = 0;
     public static final int VA_COLOR = 0;
     public static final int VA_TEXCOORD0 = 0;
@@ -179,7 +179,18 @@ public class WingedEdgeTriangleMesh {
     }
 
     public WingedEdgeTriangleMesh(Point3d vertCoord[], int[][] findex) {
-
+/*
+        System.out.println("Verts:" + (vertCoord.length));
+        for(int i=0; i < 120; i++) {
+            System.out.println(vertCoord[i]);
+        }
+ */
+/*
+        System.out.println("Faces:" + findex.length);
+        for(int i=0; i < findex.length; i++) {
+            System.out.println(findex[i][0] + " " + findex[i][1] + " " + findex[i][2]);
+        }
+*/
         if (USE_LINKEDHASHMAP) {
             //Used a linked hashmap to get a consistent order for debugging
             edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
@@ -216,6 +227,104 @@ public class WingedEdgeTriangleMesh {
 
                 Vertex v1 = V[face[j]];
                 Vertex v2 = V[face[(j + 1) % face.length]];
+                //System.out.println("Build he: " + v1.getID() + " v2: " + v2.getID());
+                HalfEdge he = buildHalfEdge(v1, v2);
+                edgeMap.put(new HalfEdgeKey(he.getStart(), he.getEnd()), he);
+                ahedges.add(he);
+                eface.add(he);
+            }
+
+            // Create the face
+            buildFace(eface);
+
+        }
+
+        boolean notifyNonManifold = true;
+
+        HalfEdgeKey key = new HalfEdgeKey();
+
+        // Find the twins
+        for (HalfEdge he1 : ahedges) {
+            //for (HalfEdge he1 : edgeMap.values()) {
+            if (he1.getTwin() == null) {
+                // get halfedge of _opposite_ direction
+                //key.setStart(he1.getStart());
+                //key.setEnd(he1.getEnd());
+
+                key.setStart(he1.getEnd());
+                key.setEnd(he1.getStart());
+                HalfEdge he2 = edgeMap.get(key);
+                if (he2 != null) {
+                    betwin(he1, he2);
+                    buildEdge(he1); // create the edge!
+                } else {
+                    if (DEBUG && notifyNonManifold) {
+                        System.out.println("NonManifold hedge: " + he1 + " ? " + he1.getStart().getID() + "->" + he1.getEnd().getID());
+                    }
+                    // Null twin means its an outer edge on a non-manifold surface
+                    buildEdge(he1);
+                }
+            }
+        }
+
+        /* Add the vertices to the list */
+        for (int i = 0; i < V.length; i++) {
+            addVertex(V[i]);
+        }
+    }
+
+    public WingedEdgeTriangleMesh(double[] vertCoord, int[] findex) {
+/*
+        System.out.println("Verts:" + (vertCoord.length / 3));
+for(int i=0; i < 120; i++) {
+    System.out.println(vertCoord[i*3] + " " + vertCoord[i*3+1] + " " + vertCoord[i*3+2]);
+}
+*/
+        /*
+        System.out.println("Faces: " + findex.length / 3);
+for(int i=0; i < findex.length / 3; i++) {
+    System.out.println(findex[i*3] + " " + findex[i*3+1] + " " + findex[i*3+2]);
+}
+          */
+        System.out.println("Creating new WE mesh from new code");
+        if (USE_LINKEDHASHMAP) {
+            //Used a linked hashmap to get a consistent order for debugging
+            edgeMap = new LinkedHashMap<HalfEdgeKey, HalfEdge>();
+        } else {
+            edgeMap = new HashMap<HalfEdgeKey, HalfEdge>();
+        }
+        Vertex V[] = new Vertex[vertCoord.length / 3];
+
+        int idx = 0;
+        int len = V.length;
+        for (int nv = 0; nv < len; nv++) {
+
+            V[nv] = new VertexSimple();
+            V[nv].setPoint(new Point3d(vertCoord[idx++],vertCoord[idx++], vertCoord[idx++]));
+            V[nv].setID(nv);
+        }
+
+        ArrayList eface = new ArrayList(3);
+
+        ArrayList<HalfEdge> ahedges = new ArrayList<HalfEdge>(findex.length);
+
+        int[] face = new int[3];
+        idx = 0;
+        len = findex.length / 3;
+        for (int i = 0; i < len; i++) {
+
+            face[0] = findex[idx++];
+            face[1] = findex[idx++];
+            face[2] = findex[idx++];
+
+            // Create the half edges for each face
+            eface.clear();
+
+            for (int j = 0; j < 3; j++) {
+
+                Vertex v1 = V[face[j]];
+                Vertex v2 = V[face[(j + 1) % 3]];
+                //System.out.println("Build he: " + v1.getID() + " v2: " + v2.getID());
                 HalfEdge he = buildHalfEdge(v1, v2);
                 edgeMap.put(new HalfEdgeKey(he.getStart(), he.getEnd()), he);
                 ahedges.add(he);
@@ -347,6 +456,7 @@ public class WingedEdgeTriangleMesh {
      *
      * @return The count
      */
+    @Override
     public int getVertexCount() {
         return vertexCount;
     }
@@ -357,6 +467,7 @@ public class WingedEdgeTriangleMesh {
      *
      * @return The count
      */
+    @Override
     public int getTriangleCount() {
         Face f = faces;
         Face start = f;
@@ -381,6 +492,7 @@ public class WingedEdgeTriangleMesh {
      *
      * @return The count
      */
+    @Override
     public int getEdgeCount() {
         Edge e = edges;
         Edge start = e;
@@ -696,175 +808,6 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
     }
 
 
-    /**
-     * Change a vertex reference from one vertex to another for a face.
-     *
-     * @param f      The face
-     * @param vorig  The original vertex
-     * @param vnew   The new vertex
-     * @param hedges List of half edges involved
-     */
-    private void changeVertex(Face f, Vertex vorig, Vertex vnew, Set<Face> visited, Set<Edge> hedges) {
-        if (visited.contains(f)) {
-            return;
-        }
-
-        visited.add(f);
-
-        if (DEBUG)
-            System.out.println("ChangeVertex on face: " + f + " orig: " + vorig.getID() + " vnew: " + vnew.getID() + " start he: " + f.getHe().hashCode());
-        HalfEdge he = f.getHe();
-        HalfEdge start = he;
-
-        while (he != null) {
-            if (DEBUG) System.out.println("HalfEdge: " + he + " hc: " + he.hashCode());
-
-            if (he.getStart() == vorig) {
-                if (DEBUG) System.out.print("   Update vertex: " + he);
-                hedges.add(he.getEdge());
-
-                // remove old edgeMap entry
-                HalfEdgeKey key = new HalfEdgeKey(he.getStart(), he.getEnd());
-                edgeMap.remove(key);
-
-                he.setStart(vnew);
-                vnew.setLink(he);  // insure linkage is valid
-
-                // readd edgeMap entry
-                key.setStart(he.getStart());
-                key.setEnd(he.getEnd());
-                edgeMap.put(key, he);
-
-                if (DEBUG) System.out.println("   to -->: " + he);
-
-                HalfEdge twin = he.getTwin();
-
-                if (twin != null) {
-                    // Recurse into next face to find other vertex
-                    changeVertex(twin.getLeft(), vorig, vnew, visited, hedges);
-                }
-            } else if (he.getEnd() == vorig) {
-                if (DEBUG) System.out.print("   Update vertex: " + he);
-                hedges.add(he.getEdge());
-
-                // remove old edgeMap entry
-                HalfEdgeKey key = new HalfEdgeKey(he.getStart(), he.getEnd());
-                edgeMap.remove(key);
-
-                he.setEnd(vnew);
-                vnew.setLink(he);  // insure linkage is valid
-
-                // readd edgeMap entry
-                key.setStart(he.getStart());
-                key.setEnd(he.getEnd());
-                edgeMap.put(key, he);
-
-                if (DEBUG) System.out.println("   to -->: " + he);
-
-                HalfEdge twin = he.getTwin();
-
-                if (twin != null) {
-                    // Recurse into next face to find other vertex
-                    changeVertex(twin.getLeft(), vorig, vnew, visited, hedges);
-                }
-            }
-
-            he = he.getNext();
-
-            if (he == start) {
-                break;
-            }
-        }
-    }
-
-    /**
-     * Change a vertex reference from one vertex to another for a face.  This a trial run that only calculates
-     * the resultant faces for analysis.
-     * <p/>
-     *
-     * @param f1    The first face to be deleted
-     * @param f2    The second face to be deleted
-     * @param vorig The original vertex
-     * @param vnew  The new vertex
-     * @param tris  The resultant triangles created
-     */
-    private void changeVertexTrial(Face f1, Face f2, Vertex vorig, Vertex vnew, Set<Triangle> tris) {
-
-        for (Triangle t : tris) {
-            if (t.getV0() == vorig) {
-                t.setV0(vnew);
-            }
-            if (t.getV1() == vorig) {
-                t.setV1(vnew);
-            }
-            if (t.getV2() == vorig) {
-                t.setV2(vnew);
-            }
-        }
-    }
-
-    /**
-     * Change a vertex reference from one vertex to another for a face.  This a trial run that only calculates
-     * the resultant faces for analysis.
-     * <p/>
-     * TODO:  Should use an object pool to reduce garbage generation?
-     *
-     * @param f       The face
-     * @param f1      The first face to be deleted
-     * @param f2      The second face to be deleted
-     * @param vorig   The original vertex
-     * @param vnew    The new vertex
-     * @param visited The faces already visited
-     * @param tris    The resultant triangles created
-     */
-    private void changeVertexTrial(Face f, Face f1, Face f2, Vertex vorig, Vertex vnew, Set<Face> visited, Set<Triangle> tris) {
-        if (visited.contains(f)) {
-            return;
-        }
-
-        visited.add(f);
-
-        if (DEBUG)
-            System.out.println("ChangeVertexTrial on face: " + f + " orig: " + vorig.getID() + " vnew: " + vnew.getID() + " start he: " + f.getHe().hashCode());
-        HalfEdge he = f.getHe();
-        HalfEdge start = he;
-
-        int idx = 0;
-        Vertex[] he_verts = new Vertex[6];
-
-        while (he != null) {
-            he_verts[idx * 2] = he.getStart();
-            he_verts[idx * 2 + 1] = he.getEnd();
-
-            if (DEBUG) System.out.println("HalfEdge: " + he + " hc: " + he.hashCode());
-            if (he.getStart() == vorig) {
-                he_verts[idx * 2] = vnew;
-                // Recurse into next face to find other vertex
-                changeVertexTrial(he.getTwin().getLeft(), f1, f2, vorig, vnew, visited, tris);
-            } else if (he.getEnd() == vorig) {
-                // Recurse into next face to find other vertex
-                he_verts[idx * 2 + 1] = vnew;
-                changeVertexTrial(he.getTwin().getLeft(), f1, f2, vorig, vnew, visited, tris);
-            }
-
-            he = he.getNext();
-            idx++;
-
-            if (he == start) {
-                break;
-            }
-        }
-
-        if (f != f1 && f != f2) {
-            // don't test to be deleted faces
-            Triangle tri = new Triangle(he_verts[0], he_verts[2], he_verts[4]);
-            tris.add(tri);
-
-            if (DEBUG) System.out.println("Adding tri: " + tri);
-        }
-        System.out.println("he_verts: " + java.util.Arrays.toString(he_verts));
-    }
-
     public void writeOBJ(PrintStream out) {
 
         Face f;
@@ -1060,27 +1003,6 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
      *
      *
      */
-    public Face addNewFace(Point3d coord[]) {
-
-        Vertex vert[] = new Vertex[coord.length];
-
-        for (int i = 0; i < vert.length; i++) {
-
-            vert[i] = findVertex(coord[i]);
-            if (vert[i] == null)
-                vert[i] = buildVertex(coord[i]);
-        }
-
-        return addNewFace(vert);
-
-    }
-
-
-    /**
-     *
-     *
-     *
-     */
     public Face addNewFace(Vertex vert[]) {
 
         Face face = buildFaceV(vert);
@@ -1172,26 +1094,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
      *
      * @param f The face to remove
      */
-    public void removeHalfEdges(Face f) {
-
-        if (DEBUG) System.out.println("Removing half edges for face: " + f + " hc: " + f.hashCode());
-        HalfEdge he = f.getHe();
-        do {
-
-            removeHalfEdge(he);
-
-            he.setPrev(null);
-            he = he.getNext();
-
-        } while (he != f.getHe());
-
-    }
-
-    /**
-     * Remove the half edges making up a face.
-     *
-     * @param f The face to remove
-     */
+/*
     public void removeHalfEdges(Face f, Set<Edge> removedEdges) {
 
         if (DEBUG) System.out.println("Removing half edges for face: " + f + " hc: " + f.hashCode());
@@ -1206,7 +1109,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         } while (he != f.getHe());
 
     }
-
+*/
     /**
      * Remove an edge.  Does not remove any vertices or other related structures.
      *
@@ -1241,7 +1144,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
             }
         }
     }
-
+/*
     void removeHalfEdge(HalfEdge he) {
 
         if (DEBUG) System.out.println("removeHalfEdge()" + he);
@@ -1269,7 +1172,9 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         if (DEBUG) System.out.println("***Removing edgeMap: " + he);
         edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
     }
+  */
 
+/*
     void removeHalfEdge(HalfEdge he, Set<Edge> removedEdges) {
 
         if (DEBUG) System.out.println("removeHalfEdge()" + he);
@@ -1298,7 +1203,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
         if (DEBUG) System.out.println("Removing edgeMap: " + he);
         edgeMap.remove(new HalfEdgeKey(he.getStart(), he.getEnd()));
     }
-
+*/
     private void addFace(Face f) {
 
         /* is the list empty? */
@@ -1388,6 +1293,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
 
     }
 
+    @Override
     public int getFaceCount() {
 
         int count = 0;
@@ -1420,6 +1326,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
      * @param p
      * @return
      */
+    @Override
     public Vertex findVertex(Point3d p, double eps) {
 
         Vertex v = vertices;
@@ -1433,19 +1340,10 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
     }
 
     /**
-     * Find a vertex using a point3d reference.
-     *
-     * @param v
-     * @return
-     */
-    public Vertex findVertex(Point3d v) {
-        return (Vertex) tvertices.get(v);
-    }
-
-    /**
      * return bounds of the mesh
      * as double[]{xmin,xmax, ymin, ymax, zmin, zmax}
      */
+    @Override
     public double[] getBounds() {
 
         double
@@ -1476,6 +1374,7 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
     /**
      * feeds all triangular faces into TriangleCollector
      */
+    @Override
     public void getTriangles(TriangleCollector tc) {
         Vector3d
                 p0 = new Vector3d(),
@@ -1498,48 +1397,50 @@ System.out.println("Checking: f: " + f.hashCode() + " v: " + p1.getID() + " " + 
     }
 
 
-    /**
-     * class to check face Flip
-     */
-    public static class FaceFlipChecker {
-
-        Vector3d
-                // p0 = new Vector3d(), // we move origin to p0
-                m_p1 = new Vector3d(),
-                m_v0 = new Vector3d(),
-                m_v1 = new Vector3d(),
-                m_n0 = new Vector3d(),
-                m_n1 = new Vector3d();
-
-        /**
-         * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
-         * return false otherwise
-         */
-        public boolean checkFaceFlip(Point3d p0, Point3d p1, Point3d v0, Point3d v1) {
-
-            m_p1.set(p1);
-            m_v0.set(v0);
-            m_v1.set(v1);
-
-            m_p1.sub(p0);
-            m_v0.sub(p0);
-            m_v1.sub(p0);
-
-            m_n0.cross(m_p1, m_v0);
-
-            m_n1.cross(m_p1, m_v1);
-
-            double dot = m_n0.dot(m_n1);
-
-            if (dot < FACE_FLIP_EPSILON) // face flip
-                return true;
-            else
-                return false;
-        }
-
-    }// class FaceFlipChecker 
 
     // area of small trinagle to be rejected as face flip  (in m^2) 
     static final double FACE_FLIP_EPSILON = 1.e-20;
 
 }
+
+/**
+ * class to check face Flip
+ */
+class FaceFlipChecker {
+    static final double FACE_FLIP_EPSILON = 1.e-20;
+
+    Vector3d
+            // p0 = new Vector3d(), // we move origin to p0
+            m_p1 = new Vector3d(),
+            m_v0 = new Vector3d(),
+            m_v1 = new Vector3d(),
+            m_n0 = new Vector3d(),
+            m_n1 = new Vector3d();
+
+    /**
+     * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
+     * return false otherwise
+     */
+    public boolean checkFaceFlip(Point3d p0, Point3d p1, Point3d v0, Point3d v1) {
+
+        m_p1.set(p1);
+        m_v0.set(v0);
+        m_v1.set(v1);
+
+        m_p1.sub(p0);
+        m_v0.sub(p0);
+        m_v1.sub(p0);
+
+        m_n0.cross(m_p1, m_v0);
+
+        m_n1.cross(m_p1, m_v1);
+
+        double dot = m_n0.dot(m_n1);
+
+        if (dot < FACE_FLIP_EPSILON) // face flip
+            return true;
+        else
+            return false;
+    }
+
+}// class FaceFlipChecker

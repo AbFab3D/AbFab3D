@@ -11,6 +11,7 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
+import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.*;
@@ -92,7 +93,7 @@ public class MeshExporter {
             writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
             writer.endNode(); // NavigationInfo
 
-            se.outputX3D(we, params, writer);
+            se.outputX3D(we, params, writer, null);
             writer.endDocument();
         } finally {
             if (fos != null) {
@@ -164,7 +165,7 @@ public class MeshExporter {
         writer.fieldValue(pos, 3);
         writer.endNode(); // Viewpoint
 
-        se.outputX3D(we, params, writer);
+        se.outputX3D(we, params, writer, null);
         writer.endDocument();
     }
 
@@ -191,20 +192,18 @@ public class MeshExporter {
         writer.fieldValue(pos, 3);
         writer.endNode(); // Viewpoint
 
-        se.outputX3D(we, params, writer);
+        se.outputX3D(we, params, writer, null);
         writer.endDocument();
     }
 
     /**
      * Write a mesh to an X3D file
      *
-     * @param we
+     * @param verts
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh we, BinaryContentHandler writer, Map<String, 
-    		Object> params, float[] pos, boolean meshOnly) throws IOException {
-
-        ErrorReporter console = new PlainTextErrorReporter();
+    public static void writePointSet(double[] verts, BinaryContentHandler writer, Map<String,
+            Object> params, float[] pos, boolean meshOnly, String defName) throws IOException {
 
         if (!meshOnly) {
             writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
@@ -220,7 +219,37 @@ public class MeshExporter {
         }
 
         SAVExporter se = new SAVExporter();
-        se.outputX3D(we, params, writer);
+        se.outputX3D(verts, params, writer, defName);
+
+        if (!meshOnly) {
+            writer.endDocument();
+        }
+    }
+
+    /**
+     * Write a mesh to an X3D file
+     *
+     * @param we
+     * @throws IOException
+     */
+    public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String,
+    		Object> params, float[] pos, boolean meshOnly, String defName) throws IOException {
+
+        if (!meshOnly) {
+            writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
+            writer.profileDecl("Immersive");
+            writer.startNode("NavigationInfo", null);
+            writer.startField("avatarSize");
+            writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
+            writer.endNode(); // NavigationInfo
+            writer.startNode("Viewpoint", null);
+            writer.startField("position");
+            writer.fieldValue(pos, 3);
+            writer.endNode(); // Viewpoint
+        }
+
+        SAVExporter se = new SAVExporter();
+        se.outputX3D(we, params, writer, defName);
         
         if (!meshOnly) {
             writer.endDocument();

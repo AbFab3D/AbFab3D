@@ -29,12 +29,19 @@ import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 import abfab3d.util.ImageMipMap;
 
+import abfab3d.util.ImageUtil;
+
 import static abfab3d.util.Output.printf;
 
 import static abfab3d.util.ImageUtil.getRed;
 import static abfab3d.util.ImageUtil.getGreen;
 import static abfab3d.util.ImageUtil.getBlue;
 import static abfab3d.util.ImageUtil.getAlpha;
+import static abfab3d.util.ImageUtil.RED;
+import static abfab3d.util.ImageUtil.GREEN;
+import static abfab3d.util.ImageUtil.BLUE;
+import static abfab3d.util.ImageUtil.ALPHA;
+
 import static abfab3d.util.MathUtil.clamp;
 
 /**
@@ -151,6 +158,9 @@ public class DataSources {
         private int imageData[]; 
         private ImageMipMap m_mipMap;
         private double m_pixelWeightNonlinearity = 0.;
+        // solid white color of background to be used fpr images with transparency
+        private double m_backgroundColor[] = new double[]{255.,255.,255.,255.};
+
         double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
         
         /**
@@ -401,16 +411,12 @@ public class DataSources {
             int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
             int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
             
-            int rgb00 = imageData[ix + iy * imageWidth];
+            int rgb = imageData[ix + iy * imageWidth];
+            double ci[] = ImageUtil.getPremultColor(rgb, new double[4]);
+            double cc[] = new double[4];
+            ImageUtil.combinePremultColors(m_backgroundColor, ci, cc, ci[ALPHA]);
             
-            int red   = getRed(rgb00);
-            int green = getGreen(rgb00);
-            int blue  = getBlue(rgb00);
-
-            // ignore alpha? 
-            double alpha = getAlpha(rgb00);
-            
-            return (red + green + blue)/3.;
+            return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;
 
         }
 

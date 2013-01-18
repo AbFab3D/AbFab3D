@@ -31,6 +31,7 @@ public class VertexSimple implements Vertex {
     private Vertex prev;
 
     private Object userData;
+    private int userDataPos;
 
     // TODO: Debug var, remove
     private boolean removed;
@@ -112,6 +113,16 @@ public class VertexSimple implements Vertex {
     @Override
     public void setUserData(Object userData) {
         this.userData = userData;
+    }
+
+    @Override
+    public int getUserDataPos() {
+        return userDataPos;
+    }
+
+    @Override
+    public void setUserDataPos(int userData) {
+        this.userDataPos = userData;
     }
 
     @Override
