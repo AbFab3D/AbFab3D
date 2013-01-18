@@ -252,18 +252,64 @@ public class TestMeshDecimator extends TestCase {
         printf("det: %10.7e\n", q675.determinant());
         printf("p57: [%18.15f,%18.15f,%18.15f]\n", p57.x,p57.y,p57.z);
         */
-
+        
         Quadric q713 = new Quadric(p[7], p[1], p[3]);
         printf("det713: %10.7e\n", q713.determinant());
-        Quadric q71 = new Quadric(p[7], p[1], 1.e-05);
+        printf("det713_old: %10.7e\n", q713.determinant_old());
+        Quadric q71 = new Quadric(p[7], p[1], 1.e-02);
         printf("det 71: %10.7e\n", q71.determinant());
+        printf("det 71_old: %10.7e\n", q71.determinant_old());
         q713.addSet(q71);
         printf("det 713: %10.7e\n", q713.determinant());
+        printf("det 713_old: %10.7e\n", q713.determinant_old());
         Point3d p713 = q713.getMinimum(new Point3d());
+        Point3d p713_old = q713.getMinimum_old(new Point3d());
         printf("p 713: [ %18.15f, %18.15f, %18.15f] \n", p713.x,p713.y,p713.z);
+        printf("p 713_old: [ %18.15f, %18.15f, %18.15f] \n", p713_old.x,p713_old.y,p713_old.z);
 
 
     }
+
+    public void  testQuadricSpeed() throws Exception {
+        Point3d p[] = new Point3d[]{
+            new Point3d(0,0,0), // 0
+            new Point3d(1,0,0), // 1
+            new Point3d(1,1,0), // 2
+            new Point3d(0,1,0), // 3
+            new Point3d(0,0,1), // 4
+            new Point3d(1,0,1), // 5
+            new Point3d(1,1,1), // 6
+            new Point3d(0.1,1.1,1)};// 7
+        
+        Quadric q713 = new Quadric(p[7], p[1], p[3]);
+        Quadric q71 = new Quadric(p[7], p[1], 1.e-02);
+        q713.addSet(q71);
+        int N = 100000000;
+        long t0 = currentTimeMillis();
+
+        Point3d pnt = new Point3d();
+        
+        for(int i = 0; i < N; i++){
+            
+            pnt = q713.getMinimum(pnt);
+            q713.m00 += 1.e-2;
+        }
+
+        printf("new time: %d ms\n", (currentTimeMillis() - t0));
+        q713 = new Quadric(p[7], p[1], p[3]);
+        q71 = new Quadric(p[7], p[1], 1.e-02);
+        q713.addSet(q71);
+        t0 = currentTimeMillis();
+        for(int i = 0; i < N; i++){
+            pnt = q713.getMinimum_old(pnt);
+            q713.m00 += 1.e-2;
+        }
+
+        printf("old time: %d ms\n", (currentTimeMillis() - t0));
+        
+    }
+    
+
 
     public void  _testArray() throws Exception {
         
@@ -416,7 +462,7 @@ public class TestMeshDecimator extends TestCase {
     }
 
     
-    public void testFileMaxEdge() throws Exception {
+    public void _testFileMaxEdge() throws Exception {
 
         String fpath = "c:/tmp/mesh_text_orig.stl";
         

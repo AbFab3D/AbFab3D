@@ -198,18 +198,16 @@ public class Quadric {
                    m00, m01, m02, m03, m11, m12, m13, m22, m23, m33);
     }
     
-    public double determinant(){
+    public double determinant_old(){
         
         Matrix3d m = new Matrix3d(m00, m01, m02,
                                   m01, m11, m12,
                                   m02, m12, m22
                                   );
-        //printf("m: %s\n", m);
-        
         return m.determinant();
     }
-    
-    public Point3d getMinimum(Point3d pnt){
+
+    public Point3d getMinimum_old(Point3d pnt){
         
         Matrix3d m = new Matrix3d(m00, m01, m02,
                                   m01, m11, m12,
@@ -221,7 +219,42 @@ public class Quadric {
         pnt.scale(-1);
         return pnt;
     }
+
+    public double determinant(){
+        return 
+            +m00*(m11*m22 - m12*m12)
+            -m01*(m01*m22 - m12*m02)
+            +m02*(m01*m12 - m11*m02);
+    }
+
     
+    public Point3d getMinimum(Point3d pnt){
+        // optimized version of calculation 
+        // takes into account fact, that matrices are symmetric 
+        double det =  
+             m00*(m11*m22 - m12*m12)
+            -m01*(m01*m22 - m12*m02)
+            +m02*(m01*m12 - m11*m02);
+
+        double invdet = 1./det;
+        double 
+            r00 =  (m11*m22 - m12*m12)*invdet,            
+            r01 = -(m01*m22 - m02*m12)*invdet,            
+            r02 =  (m01*m12 - m02*m11)*invdet,
+            r11 =  (m00*m22 - m02*m02)*invdet,
+            r12 = -(m00*m12 - m01*m02)*invdet,
+            r22 =  (m00*m11 - m01*m01)*invdet;
+        
+        double p0 = m03, p1 = m13, p2 = m23;
+        pnt.x = -(r00*p0 + r01*p1 + r02*p2);
+        pnt.y = -(r01*p0 + r11*p1 + r12*p2);
+        pnt.z = -(r02*p0 + r12*p1 + r22*p2);
+ 
+        return pnt;
+    }
+    
+
+
     /**
        returns quadric centered in the middle between points p0 and p1
      */

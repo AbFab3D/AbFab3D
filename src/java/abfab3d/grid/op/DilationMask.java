@@ -15,7 +15,14 @@ package abfab3d.grid.op;
 import java.util.HashMap; 
 import java.util.Iterator;
 
-import abfab3d.grid.*;
+import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.Operation;
+import abfab3d.grid.AttributeOperation;
+import abfab3d.grid.GridBitIntervals;
+import abfab3d.grid.ClassTraverser;
+import abfab3d.grid.GridBit;
+import abfab3d.grid.VoxelStateSetter;
 
 import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.printf;
@@ -25,12 +32,10 @@ import static abfab3d.grid.Grid.INTERIOR;
 
 /**
  * Dilate an object one layer per iteration. Repeat given numbers of iterations.
- * For each filled voxel, check 6-neigbours and add whose, which are empty
- *  
- * Iteration after first runs over newly added voxels only. This speeds up the process a lot. 
- * The surface voxels are stored in a binary mask (GridBitIntervals) for memory efficiency 
- *  
- * Works with very large grids. 
+ * For each filled voxel, check neigbours and add whose, which are empty
+ * 
+ *  next iteration runs over newly added voxels only. This speeds up the process a lot. 
+ *  Works with very large grids. 
  * 
  * @author Vladimir Bulatov
  */
@@ -38,18 +43,34 @@ public class DilationMask implements Operation, AttributeOperation {
 
     public static int sm_debug = 0;
 	
+    static long m_gridCallCount = 0;
+    static long m_maskCallCount = 0;
+    static long m_processVoxelCount = 0;
+
     // count of iterations to dilate
     private int m_iterCount;
 
-    GridBitIntervals m_surface; // voxels turned ON on previous step
+    GridBitIntervals m_surface; // voxels turned ON on previus step
     GridBitIntervals m_marked;  // voxels to be turned ON after current scan
 
     AttributeGrid m_grid; // grid we are working on 
-    
+    int m_nnCount = 6; // count of nearest neighbors tpo use in operation 
+    VoxelChecker m_voxelChecker;
+
     int m_nx, m_ny, m_nz; 
 
     public DilationMask(int iterCount) {
         this.m_iterCount = iterCount;
+    }
+    public DilationMask(int iterCount, int nnCount) {
+        this.m_iterCount = iterCount;
+        this.m_nnCount = nnCount;
+    }
+    
+    public void setVoxelChecker(VoxelChecker voxelChecker){
+
+        m_voxelChecker = voxelChecker;
+
     }
 
     /**
@@ -68,50 +89,90 @@ public class DilationMask implements Operation, AttributeOperation {
 
     public AttributeGrid execute(AttributeGrid grid) {
 
+        printf("DilationMask.execute()\n");        
         m_grid = grid;
         m_nx = grid.getWidth();
         m_ny = m_grid.getHeight();
         m_nz = m_grid.getDepth();
 
-        for(int i = 0; i < m_iterCount; i++){
-            makeOneIteration();
-        }
+        m_gridCallCount = 0;
+        m_maskCallCount = 0;
+        m_processVoxelCount = 0;
         
-        m_grid = null;
-        if(m_surface != null){
+        if( m_nnCount == 0){
 
+            // spherical dilation 
+            m_marked =  new GridBitIntervals(m_nx, m_ny, m_nz);
+
+            
+            //m_grid.find(Grid.VoxelClasses.OUTSIDE, new CustomOutsideVoxelProcesser(m_grid, m_marked, makeBall(m_iterCount), m_voxelChecker));
+            m_grid.find(Grid.VoxelClasses.INTERIOR, new CustomInsideVoxelProcesser(m_grid, m_marked, makeBall(m_iterCount), m_voxelChecker));
+            //m_grid.find(Grid.VoxelClasses.INTERIOR, new SphericalVoxelProcesser(m_grid, m_marked, m_iterCount, m_voxelChecker));
+            m_marked.find(Grid.VoxelClasses.INTERIOR, new VoxelStateSetter(m_grid, Grid.INTERIOR));
+           
+        } else {
+            
+            // iterative dilation 
+            for(int i = 0; i < m_iterCount; i++){
+                makeOneIteration(getCount(i));
+            }
+            
+        }
+
+        m_grid = null;
+        
+        if(m_surface != null){
+            
             m_surface.release();
             m_surface = null;
+        }
+        if(m_marked != null){
             m_marked.release();
-            m_marked = null;
-
+            m_marked = null;                
         }
 
+
+        printf("processVoxelCount: %d\n"+ 
+               "gridCalCount:      %d\n"+ 
+               "maskCallCount:     %d\n", m_processVoxelCount, m_gridCallCount, m_maskCallCount);
+        
         return grid;
+    }
+
+    int getCount(int index){
+        switch(m_nnCount){
+        default: 
+            return m_nnCount;
+        case 618:         
+            if( (index & 1) != 0 ) // reduce asymmetry ? 
+                return 6;
+            else 
+                return 18;            
+        }
     }
 
     /**
        adds one layer of surface voxels 
      */
-    public void makeOneIteration() {
+    public void makeOneIteration(int nnCount) {
                 
         if(m_surface != null){
             
             // we have surface voxels calculated on previous step 
             // scan only surface voxels 
             m_marked.clear();
-            m_surface.findInterruptible(Grid.VoxelClasses.INTERIOR, new BodyVoxelProcesser(m_grid, m_marked));
+            m_surface.find(Grid.VoxelClasses.INTERIOR, new BodyVoxelProcesser(m_grid, m_marked, nnCount));
 
         } else {
             
             // no surface calculated yet. Scan the whole grid to find marked voxels 
             m_surface = new GridBitIntervals(m_nx, m_ny, m_nz);
             m_marked =  new GridBitIntervals(m_nx, m_ny, m_nz);
-            m_grid.findInterruptible(Grid.VoxelClasses.INTERIOR, new BodyVoxelProcesser(m_grid, m_marked));
+            m_grid.find(Grid.VoxelClasses.INTERIOR, new BodyVoxelProcesser(m_grid, m_marked, m_nnCount));
             
         }
 
-        m_marked.findInterruptible(Grid.VoxelClasses.INTERIOR, new VoxelStateSetter(m_grid, Grid.INTERIOR));
+        m_marked.find(Grid.VoxelClasses.INTERIOR, new VoxelStateSetter(m_grid, Grid.INTERIOR));
         
         // swap pointers surface <-> marked
         GridBitIntervals t = m_surface;
@@ -119,21 +180,27 @@ public class DilationMask implements Operation, AttributeOperation {
         m_marked = t;
         
     }
-    
-    /**
-       checks 6 neighbours of each incoming voxel 
-       and if neightbour is empty it turns ON the corresponding voxel in the mask 
-       
-    */ 
-    static class BodyVoxelProcesser implements ClassTraverser {
 
+
+    /**
+       dilation based on internal voxles 
+     */
+    static class CustomInsideVoxelProcesser implements ClassTraverser {
+        
         Grid grid;
         GridBit mask; 
+        int neighbors[];
+        VoxelChecker voxelChecker;
 
-        BodyVoxelProcesser(Grid grid, GridBit mask){
+        CustomInsideVoxelProcesser(Grid grid, GridBit mask, int neighbors[], VoxelChecker voxelChecker){
+
             this.grid = grid; 
             this.mask = mask;
+            this.neighbors = neighbors;
+            this.voxelChecker = voxelChecker;
+
         }
+
         public void found(int x, int y, int z, byte state){
             foundInterruptible(x,y,z,state);            
         }
@@ -145,28 +212,314 @@ public class DilationMask implements Operation, AttributeOperation {
 
         }
 
-        void processVoxel(int x,int y,int z){
-            
-            if(grid.getState(x+1,y,z) == OUTSIDE){
-                mask.set(x+1,y,z,1);
+        void processVoxel(int x, int y, int z){
+
+            if(voxelChecker != null){
+                if(!voxelChecker.canProcess(x,y,z))
+                    return;
             }
-            if(grid.getState(x-1,y,z) == OUTSIDE){
-                mask.set(x-1,y,z,1);
+            m_processVoxelCount++;
+            int index = 0;
+            while(index < neighbors.length){
+                int ix = neighbors[index++];
+                int iy = neighbors[index++];
+                int iz = neighbors[index++];
+                m_gridCallCount++;
+                if(grid.getState(x+ix,y+iy,z+iz) == OUTSIDE){
+                    m_maskCallCount++;
+                    mask.set(x+ix,y+iy,z+iz,1);              
+                }                                   
             }
-            if(grid.getState(x,y+1,z) == OUTSIDE){
-                mask.set(x,y+1,z,1);
-            }        
-            if(grid.getState(x,y-1,z) == OUTSIDE){
-                mask.set(x,y-1,z,1);
-            }        
-            if(grid.getState(x,y,z+1) == OUTSIDE){
-                mask.set(x,y,z+1,1);
-            }
-            if(grid.getState(x,y,z-1) == OUTSIDE){
-                mask.set(x,y,z-1,1);
-            }                        
         }        
-    } // class BodyVoxelProcesser              
+    } //class CustomInsideVoxelProcesser
+    
+
+    /**
+       dilation based on outside voxles 
+     */
+    static class CustomOutsideVoxelProcesser implements ClassTraverser {
+        
+        Grid grid;
+        GridBit mask; 
+        int neighbors[];
+        VoxelChecker voxelChecker;
+        int nx, ny, nz;
+
+        CustomOutsideVoxelProcesser(Grid grid, GridBit mask, int neighbors[], VoxelChecker voxelChecker){
+
+            this.grid = grid; 
+            this.mask = mask;
+            this.neighbors = neighbors;
+            this.voxelChecker = voxelChecker;
+
+            nx = grid.getWidth();
+            ny = grid.getHeight();
+            nz = grid.getDepth();
+            
+        }
+
+        public void found(int x, int y, int z, byte state){
+            foundInterruptible(x,y,z,state);            
+        }
+        
+        public boolean foundInterruptible(int x, int y, int z, byte state){
+
+            processVoxel(x,y,z);
+            return true;
+
+        }
+
+        void processVoxel(int x, int y, int z){
+
+            if(voxelChecker != null){
+                if(!voxelChecker.canProcess(x,y,z))
+                    return;
+            }
+
+            m_processVoxelCount++;
+
+            int index = 0;
+
+            while(index < neighbors.length){
+
+                int ix = neighbors[index++];
+                int iy = neighbors[index++];
+                int iz = neighbors[index++];
+                int xx = x + ix;
+                int yy = y + iy;
+                int zz = z + iz;
+                if(xx >= 0 && xx < nx && 
+                   yy >= 0 && yy < ny && 
+                   zz >= 0 && zz < nz 
+                   ){
+                    m_gridCallCount++;
+                    if(grid.getState(xx,yy,zz) == INTERIOR){
+                        // the voxel has filled neighbor 
+                        m_maskCallCount++;
+                        mask.set(x,y,z,1); 
+                        break;
+                    }             
+                }            
+            }
+        }        
+    } //class CustomOutsideVoxelProcesser
+    
+
+    static class SphericalVoxelProcesser implements ClassTraverser {
+        
+        Grid grid;
+        GridBit mask; 
+        int ballSize, ballSize2;
+        VoxelChecker voxelChecker;
+
+        SphericalVoxelProcesser(Grid grid, GridBit mask, int size, VoxelChecker voxelChecker){
+
+            this.grid = grid; 
+            this.mask = mask;
+            this.ballSize = size;
+            this.ballSize2 = size*size;
+            this.voxelChecker = voxelChecker;
+
+        }
+
+        public void found(int x, int y, int z, byte state){
+            foundInterruptible(x,y,z,state);            
+        }
+        
+        public boolean foundInterruptible(int x, int y, int z, byte state){
+
+            processVoxel(x,y,z);
+            return true;
+
+        }
+
+        void processVoxel(int x, int y, int z){
+
+            if(voxelChecker != null){
+                if(!voxelChecker.canProcess(x,y,z))
+                    return;
+            }
+
+            //
+            // for each empty voxel we check if there is filled voxel in the bal neihborhood
+            // and mark that voxel in the grid 
+            //
+            for(int iz = -ballSize; iz <= ballSize; iz++){
+                for(int iy = -ballSize; iy <= ballSize; iy++){
+                    for(int ix = -ballSize; ix <= ballSize; ix++){
+                        int r2 = (ix*ix + iy*iy + iz*iz);
+                        if(r2 <= ballSize2){
+                            //printf("%d \n", r2, );
+                            if(grid.getState(x+ix,y+iy,z+iz) == OUTSIDE){
+                                // this voxel is empty and has grid voxel within distance 
+                                mask.set(x+ix,y+iy,z+iz,1);                                 
+                            }                                             
+                        }
+                    }
+                }
+            }
+        }        
+    } //class SphericalVoxelProcesser
+
+
+    /**
+       checks each of 6-neighbour voxels in gridIn and if it is empty turns ON corresponding voxel in mask
+     */
+    static class BodyVoxelProcesser implements ClassTraverser {
+
+        Grid grid;
+        GridBit mask; 
+        int nnCount;
+        
+        BodyVoxelProcesser(Grid grid, GridBit mask, int nnCount){
+            this.grid = grid; 
+            this.mask = mask;
+            this.nnCount = nnCount;
+        }
+
+        public void found(int x, int y, int z, byte state){
+            foundInterruptible(x,y,z,state);            
+        }
+        
+        public boolean foundInterruptible(int x, int y, int z, byte state){
+
+            processVoxel(x,y,z);
+            return true;
+
+        }
+
+        /**
+           checks 6 neighbours of this model voxel 
+           turn ON empty voxels in mask 
+        */ 
+        void processVoxel(int x,int y,int z){
+            m_processVoxelCount++;
+
+            switch(nnCount){
+            default: 
+            case 18:
+                processVoxel18(x,y,z);
+                break;
+            case 6:
+                processVoxel6(x,y,z);
+                break;
+            case 26:
+                processVoxel26(x,y,z);
+                break;                
+            }
+        }
+        
+        void processVoxel6(int x,int y,int z){
+
+            m_gridCallCount+=6;
+            
+            if(grid.getState(x+1,y,z) == OUTSIDE) { mask.set(x+1,y,z,1); m_maskCallCount++;}           
+            if(grid.getState(x-1,y,z) == OUTSIDE) { mask.set(x-1,y,z,1); m_maskCallCount++;}
+            if(grid.getState(x,y+1,z) == OUTSIDE) { mask.set(x,y+1,z,1); m_maskCallCount++;}
+            if(grid.getState(x,y-1,z) == OUTSIDE) { mask.set(x,y-1,z,1); m_maskCallCount++;}
+            if(grid.getState(x,y,z+1) == OUTSIDE) { mask.set(x,y,z+1,1); m_maskCallCount++;}
+            if(grid.getState(x,y,z-1) == OUTSIDE) { mask.set(x,y,z-1,1); m_maskCallCount++;}
+
+        }        
+
+        void processVoxel18(int x,int y,int z){
+            
+            if(grid.getState(x+1,y,z) == OUTSIDE) mask.set(x+1,y,z,1);            
+            if(grid.getState(x-1,y,z) == OUTSIDE) mask.set(x-1,y,z,1);
+            if(grid.getState(x,y+1,z) == OUTSIDE) mask.set(x,y+1,z,1);
+            if(grid.getState(x,y-1,z) == OUTSIDE) mask.set(x,y-1,z,1);
+            if(grid.getState(x,y,z+1) == OUTSIDE) mask.set(x,y,z+1,1);            
+            if(grid.getState(x,y,z-1) == OUTSIDE) mask.set(x,y,z-1,1);
+
+            if(grid.getState(x+1,y+1,z) == OUTSIDE) mask.set(x+1,y+1,z,1);
+            if(grid.getState(x-1,y+1,z) == OUTSIDE) mask.set(x-1,y+1,z,1);
+            if(grid.getState(x+1,y-1,z) == OUTSIDE) mask.set(x+1,y-1,z,1);
+            if(grid.getState(x-1,y-1,z) == OUTSIDE) mask.set(x-1,y-1,z,1);
+            if(grid.getState(x+1,y,z+1) == OUTSIDE) mask.set(x+1,y,z+1,1);
+            if(grid.getState(x-1,y,z+1) == OUTSIDE) mask.set(x-1,y,z+1,1);
+            if(grid.getState(x+1,y,z-1) == OUTSIDE) mask.set(x+1,y,z-1,1);
+            if(grid.getState(x-1,y,z-1) == OUTSIDE) mask.set(x-1,y,z-1,1);
+            if(grid.getState(x,y+1,z+1) == OUTSIDE) mask.set(x,y+1,z+1,1);
+            if(grid.getState(x,y-1,z+1) == OUTSIDE) mask.set(x,y-1,z+1,1);
+            if(grid.getState(x,y+1,z-1) == OUTSIDE) mask.set(x,y+1,z-1,1);
+            if(grid.getState(x,y-1,z-1) == OUTSIDE) mask.set(x,y-1,z-1,1);
+
+        }        
+
+        void processVoxel26(int x,int y,int z){
+            
+            if(grid.getState(x+1,y,z) == OUTSIDE) mask.set(x+1,y,z,1);            
+            if(grid.getState(x-1,y,z) == OUTSIDE) mask.set(x-1,y,z,1);
+            if(grid.getState(x,y+1,z) == OUTSIDE) mask.set(x,y+1,z,1);
+            if(grid.getState(x,y-1,z) == OUTSIDE) mask.set(x,y-1,z,1);
+            if(grid.getState(x,y,z+1) == OUTSIDE) mask.set(x,y,z+1,1);            
+            if(grid.getState(x,y,z-1) == OUTSIDE) mask.set(x,y,z-1,1);
+
+            if(grid.getState(x+1,y+1,z) == OUTSIDE) mask.set(x+1,y+1,z,1);
+            if(grid.getState(x-1,y+1,z) == OUTSIDE) mask.set(x-1,y+1,z,1);
+            if(grid.getState(x+1,y-1,z) == OUTSIDE) mask.set(x+1,y-1,z,1);
+            if(grid.getState(x-1,y-1,z) == OUTSIDE) mask.set(x-1,y-1,z,1);
+            if(grid.getState(x+1,y,z+1) == OUTSIDE) mask.set(x+1,y,z+1,1);
+            if(grid.getState(x-1,y,z+1) == OUTSIDE) mask.set(x-1,y,z+1,1);
+            if(grid.getState(x+1,y,z-1) == OUTSIDE) mask.set(x+1,y,z-1,1);
+            if(grid.getState(x-1,y,z-1) == OUTSIDE) mask.set(x-1,y,z-1,1);
+            if(grid.getState(x,y+1,z+1) == OUTSIDE) mask.set(x,y+1,z+1,1);
+            if(grid.getState(x,y-1,z+1) == OUTSIDE) mask.set(x,y-1,z+1,1);
+            if(grid.getState(x,y+1,z-1) == OUTSIDE) mask.set(x,y+1,z-1,1);
+            if(grid.getState(x,y-1,z-1) == OUTSIDE) mask.set(x,y-1,z-1,1);
+
+            if(grid.getState(x+1,y+1,z+1) == OUTSIDE) mask.set(x+1,y+1,z+1,1);
+            if(grid.getState(x-1,y+1,z+1) == OUTSIDE) mask.set(x-1,y+1,z+1,1);
+            if(grid.getState(x+1,y-1,z+1) == OUTSIDE) mask.set(x+1,y-1,z+1,1);
+            if(grid.getState(x-1,y-1,z+1) == OUTSIDE) mask.set(x-1,y-1,z+1,1);
+            if(grid.getState(x+1,y+1,z-1) == OUTSIDE) mask.set(x+1,y+1,z-1,1);
+            if(grid.getState(x-1,y+1,z-1) == OUTSIDE) mask.set(x-1,y+1,z-1,1);
+            if(grid.getState(x+1,y-1,z-1) == OUTSIDE) mask.set(x+1,y-1,z-1,1);
+            if(grid.getState(x-1,y-1,z-1) == OUTSIDE) mask.set(x-1,y-1,z-1,1);
+
+        }        
+
+
+    }
+            
+    static int[] reallocArray(int array[], int newsize){
+        if(sm_debug > 1)
+            printf("reallocArray(%d)\n", newsize);
+        int newarray[] = new int[newsize];
+        System.arraycopy(array, 0, newarray, 0, array.length);
+        return newarray;
+    }
+
+
+    /**
+       makes ball of voxel cordinates of given radius 
+     */
+    static final int[] makeBall(int radius){
+
+        int radius2 = radius*radius;
+        int w = (2*radius+1);
+        int a[] = new int[w*w*w*3];
+        int index = 0;
+        for(int iy = -radius; iy <= radius; iy++){
+            for(int ix = -radius; ix <= radius; ix++){
+                for(int iz = -radius; iz <= radius; iz++){
+                    int r2 = (ix*ix + iy*iy + iz*iz);
+                    if(r2 <= radius2){
+                        a[index++] = ix;
+                        a[index++] = iy;
+                        a[index++] = iz;
+                    }
+                }
+            }
+        }
+        
+        int newarray[] = new int[index];
+        // retuhr exact array of data 
+        System.arraycopy(a, 0, newarray, 0, index);
+        return newarray;
+    }        
+    
 }
+
 
 
