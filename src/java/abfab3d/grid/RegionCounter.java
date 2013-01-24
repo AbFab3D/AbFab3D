@@ -44,6 +44,10 @@ public class RegionCounter {
         return countComponents(grid, material, -1, false);
     }
 
+    public static int countComponents(AttributeGrid grid, int material, int minSize) {
+        return countComponents(grid, material, minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
+    }
+
     public static int countComponents(AttributeGrid grid, int material, int maxCount, boolean collectData) {
 
         return countComponents(grid, material, maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
@@ -93,6 +97,49 @@ public class RegionCounter {
         return compCount;
     }
 
+    public static int countComponents(AttributeGrid grid, int material, int minSize, int maxCount, boolean collectData, int algorithm) {
+
+        int nx1 = grid.getWidth()-1;
+        int ny1 = grid.getHeight()-1;
+        int nz1 = grid.getDepth()-1;
+
+        GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
+
+        int compCount = 0;
+
+        printf("countComponents(material: %d, minSize: %d maxCount:%d)\n", material, minSize, maxCount);
+
+        zcycle:
+
+        for(int z = 1; z < nz1; z++){
+
+            for(int x = 1; x < nx1; x++){
+
+                for(int y = 1; y < ny1; y++){
+
+                    if(mask.get(x,y,z) != 0)// already visited
+                        continue;
+
+                    if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
+
+                        ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z,material, collectData, algorithm);
+
+                        //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
+                        if (sc.getVolume() > minSize) {
+                            compCount++;
+                            if(maxCount > 0 && compCount > maxCount)
+                                break zcycle;
+                        }
+                    }
+                }
+            }
+        }
+
+        mask.release();
+
+        return compCount;
+    }
+
     /**
      components counting via various algoritms
 
@@ -100,6 +147,10 @@ public class RegionCounter {
      */
     public static int countComponents(Grid grid, byte state) {
         return countComponents(grid, state, -1, false);
+    }
+
+    public static int countComponents(Grid grid, byte state,int minSize) {
+        return countComponents(grid, state, minSize, -1, false, ConnectedComponentState.DEFAULT_ALGORITHM);
     }
 
     public static int countComponents(Grid grid, byte state, int maxCount, boolean collectData) {
@@ -150,6 +201,47 @@ public class RegionCounter {
         return compCount;
     }
 
+    public static int countComponents(Grid grid, byte state, int minSize, int maxCount, boolean collectData, int algorithm) {
+
+        int nx1 = grid.getWidth()-1;
+        int ny1 = grid.getHeight()-1;
+        int nz1 = grid.getDepth()-1;
+
+        GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
+
+        printf("countComponents(state: %d, minSize: %d macCount:%d)\n", state, minSize, maxCount);
+        int compCount = 0;
+
+        zcycle:
+
+        for(int z = 1; z < nz1; z++){
+
+            for(int x = 1; x < nx1; x++){
+
+                for(int y = 1; y < ny1; y++){
+
+                    if(mask.get(x,y,z) != 0)// already visited
+                        continue;
+
+
+                    if(ConnectedComponentState.compareState(grid, x,y,z, state)){
+
+                        ConnectedComponentState sc = new  ConnectedComponentState(grid, mask, x,y,z,state, collectData, algorithm);
+
+                        if (sc.getVolume() >= minSize) {
+                            compCount++;
+                            if(maxCount > 0 && compCount > maxCount)
+                                break zcycle;
+                        }
+                    }
+                }
+            }
+        }
+
+        mask.release();
+
+        return compCount;
+    }
 
     /**
        removes components from grid of size smaller than minSize
