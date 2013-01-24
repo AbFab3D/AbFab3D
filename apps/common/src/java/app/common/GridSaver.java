@@ -306,17 +306,25 @@ public class GridSaver {
         im.setBounds(ibounds);
         im.setGridSize(nx, ny, nz);
 
+        printf("makeIsosurface()\n");
+        long t0 = currentTimeMillis();
+
 //        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
-
+        //IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
+        int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
+        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount); 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
+        printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
 
-        System.out.println("Done with making isosurface");
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }
-
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+        int faces[] = its.getFaces();
+        printf("estimated face count: %d, actual face count: %d\n", estimatedFaceCount, faces.length/3);
+        t0 = currentTimeMillis();
+        printf("making WingedEdgeTriangleMesh\n");
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
+        printf("making WingedEdgeTriangleMesh done: %d\n", (currentTimeMillis()-t0));
 /*
         // TODO: debug
         System.out.println("Processed verts: ");
@@ -340,8 +348,7 @@ public class GridSaver {
         LaplasianSmooth ls = new LaplasianSmooth();
 
         ls.setCenterWeight(centerWeight);
-
-        long t0 = currentTimeMillis();
+        t0 = currentTimeMillis();
         printf("smoothMesh(%d)\n",smoothSteps);
         t0 = currentTimeMillis();
         ls.processMesh(mesh, smoothSteps);

@@ -43,10 +43,11 @@ public class IndexedTriangleSetBuilderNew implements TriangleCollector {
         ps = new PointSet(INITIAL_SIZE, 0.75f,TOLERANCE);
     }
 
-    public IndexedTriangleSetBuilderNew(int expectedVerts, int expectedFaces) {
+    public IndexedTriangleSetBuilderNew(int expectedFaces) {
         faces = new StructMixedData(FaceList.DEFINITION, expectedFaces);
-
-        ps = new PointSet((int) (expectedVerts * 1.26f), 0.75f,TOLERANCE);
+        // from Euler formula V-E+F=2 for simple surfaces 
+        float loadFactor = 0.75f;
+        ps = new PointSet((int)((expectedFaces/2 + 2)/loadFactor), loadFactor, TOLERANCE);
     }
 
     /**

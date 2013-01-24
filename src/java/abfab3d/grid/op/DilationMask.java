@@ -103,10 +103,9 @@ public class DilationMask implements Operation, AttributeOperation {
 
             // spherical dilation 
             m_marked =  new GridBitIntervals(m_nx, m_ny, m_nz);
-
             
             //m_grid.find(Grid.VoxelClasses.OUTSIDE, new CustomOutsideVoxelProcesser(m_grid, m_marked, makeBall(m_iterCount), m_voxelChecker));
-            m_grid.find(Grid.VoxelClasses.INTERIOR, new CustomInsideVoxelProcesser(m_grid, m_marked, makeBall(m_iterCount), m_voxelChecker));
+            m_grid.find(Grid.VoxelClasses.INTERIOR, new CustomInsideVoxelProcesser(m_grid, m_marked, MaskFactory.makeBall(m_iterCount), m_voxelChecker));
             //m_grid.find(Grid.VoxelClasses.INTERIOR, new SphericalVoxelProcesser(m_grid, m_marked, m_iterCount, m_voxelChecker));
             m_marked.find(Grid.VoxelClasses.INTERIOR, new VoxelStateSetter(m_grid, Grid.INTERIOR));
            
@@ -183,7 +182,7 @@ public class DilationMask implements Operation, AttributeOperation {
 
 
     /**
-       dilation based on internal voxles 
+       dilation based on internal voxels 
      */
     static class CustomInsideVoxelProcesser implements ClassTraverser {
         
@@ -191,13 +190,17 @@ public class DilationMask implements Operation, AttributeOperation {
         GridBit mask; 
         int neighbors[];
         VoxelChecker voxelChecker;
-
+        int nx, ny, nz;
+        
         CustomInsideVoxelProcesser(Grid grid, GridBit mask, int neighbors[], VoxelChecker voxelChecker){
 
             this.grid = grid; 
             this.mask = mask;
             this.neighbors = neighbors;
             this.voxelChecker = voxelChecker;
+            this.nx = grid.getWidth();
+            this.ny = grid.getHeight();
+            this.nz = grid.getDepth();
 
         }
 
@@ -220,22 +223,29 @@ public class DilationMask implements Operation, AttributeOperation {
             }
             m_processVoxelCount++;
             int index = 0;
-            while(index < neighbors.length){
+            int nlength = neighbors.length;
+            
+            while(index < nlength){
                 int ix = neighbors[index++];
                 int iy = neighbors[index++];
                 int iz = neighbors[index++];
-                m_gridCallCount++;
-                if(grid.getState(x+ix,y+iy,z+iz) == OUTSIDE){
-                    m_maskCallCount++;
-                    mask.set(x+ix,y+iy,z+iz,1);              
-                }                                   
+                int xx = x + ix; 
+                int yy = y + iy; 
+                int zz = z + iz; 
+                if(xx >= 0 && xx < nx && yy >= 0 && yy < ny && zz >= 0 && zz < nz ){
+                    m_gridCallCount++;
+                    if(grid.getState(xx,yy,zz) == OUTSIDE){
+                        m_maskCallCount++;
+                        mask.set(xx,yy,zz,1);              
+                    }               
+                }                    
             }
         }        
     } //class CustomInsideVoxelProcesser
     
 
     /**
-       dilation based on outside voxles 
+       dilation based on outside voxels 
      */
     static class CustomOutsideVoxelProcesser implements ClassTraverser {
         
@@ -489,37 +499,5 @@ public class DilationMask implements Operation, AttributeOperation {
         System.arraycopy(array, 0, newarray, 0, array.length);
         return newarray;
     }
-
-
-    /**
-       makes ball of voxel cordinates of given radius 
-     */
-    static final int[] makeBall(int radius){
-
-        int radius2 = radius*radius;
-        int w = (2*radius+1);
-        int a[] = new int[w*w*w*3];
-        int index = 0;
-        for(int iy = -radius; iy <= radius; iy++){
-            for(int ix = -radius; ix <= radius; ix++){
-                for(int iz = -radius; iz <= radius; iz++){
-                    int r2 = (ix*ix + iy*iy + iz*iz);
-                    if(r2 <= radius2){
-                        a[index++] = ix;
-                        a[index++] = iy;
-                        a[index++] = iz;
-                    }
-                }
-            }
-        }
-        
-        int newarray[] = new int[index];
-        // retuhr exact array of data 
-        System.arraycopy(a, 0, newarray, 0, index);
-        return newarray;
-    }        
     
 }
-
-
-
