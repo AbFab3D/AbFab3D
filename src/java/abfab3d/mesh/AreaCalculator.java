@@ -12,12 +12,55 @@
 package abfab3d.mesh;
 
 import javax.vecmath.Vector3d;
+import abfab3d.util.TriangleCollector;
 
 /**
  *
  *
  */
-public class AreaCalculator {
+public class AreaCalculator implements TriangleCollector {
+
+    protected double area = 0.;
+    protected double volume = 0.;
+
+    public AreaCalculator(){  
+
+    }
+
+    public double getArea(){
+        return area/2;
+    }
+
+    public double getVolume(){
+        return volume/6;
+    }
+    
+    Vector3d 
+        v0 = new Vector3d(),
+        v1 = new Vector3d(),
+        v2 = new Vector3d(),
+        normal = new Vector3d();
+        
+
+    public boolean addTri(Vector3d p0,Vector3d p1,Vector3d p2){
+
+        v0.set(p0);
+        v1.set(p1);
+        v2.set(p2);
+
+        v1.sub(v0);
+        v2.sub(v0);
+        
+        normal.cross(v1,v2);
+        
+        volume += v0.dot(normal);
+        area += normal.length();
+        
+        return true;
+
+    }
+
+
     
     /**
        returns area nad volume of triangle mesh as array of two double[]
@@ -63,5 +106,6 @@ public class AreaCalculator {
         return new double[]{area, volume};
 
     }
+
     
 }

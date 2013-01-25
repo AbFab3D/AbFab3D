@@ -309,36 +309,27 @@ public class GridSaver {
         printf("makeIsosurface()\n");
         long t0 = currentTimeMillis();
 
-//        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+        //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+        //printf("using OLD IndexedTriangleSetBuilder\n");
         //IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
         int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
         IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount); 
+        printf("using NEW IndexedTriangleSetBuilder\n");
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
         printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
-
+        //return null;
+        
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }
+        
         int faces[] = its.getFaces();
         printf("estimated face count: %d, actual face count: %d\n", estimatedFaceCount, faces.length/3);
         t0 = currentTimeMillis();
         printf("making WingedEdgeTriangleMesh\n");
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
         printf("making WingedEdgeTriangleMesh done: %d\n", (currentTimeMillis()-t0));
-/*
-        // TODO: debug
-        System.out.println("Processed verts: ");
-        Iterator<Vertex> vi1 = mesh.vertexIterator();
 
-        while(vi1.hasNext()) {
-            Vertex vert1 = vi1.next();
-            Point3d p1 = vert1.getPoint();
-
-            System.out.println(p1);
-        }
-
-        // end debug
-*/
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }
@@ -355,6 +346,7 @@ public class GridSaver {
         printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
 
         return mesh;
+        
     }
 
         /**
@@ -493,6 +485,8 @@ public class GridSaver {
         float[] pos = new float[] {0,0,(float) z};
 
         MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
+
+        return;
     }
 
     /**

@@ -28,6 +28,7 @@ import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.mesh.TriangleMesh;
+import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import app.common.GridSaver;
 import app.common.RegionPrunner;
@@ -47,6 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static abfab3d.util.Output.printf;
+import static java.lang.System.currentTimeMillis;
 
 //import java.awt.*;
 
@@ -248,7 +250,7 @@ public class ImagePopperKernel extends HostedKernel {
 //        long startMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
 
         System.out.println("Generating ImagePopper on thread: " + Thread.currentThread().getName());
-        long start = System.currentTimeMillis();
+        long start = currentTimeMillis();
 
         pullParams(params);
 
@@ -365,6 +367,16 @@ public class ImagePopperKernel extends HostedKernel {
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
 
         TriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
+        
+        AreaCalculator ac = new AreaCalculator();
+        mesh.getTriangles(ac);
+        double volume = ac.getVolume();
+        double surfaceArea = ac.getArea();
+
+        long t0 = System.nanoTime();
+        printf("surface area: %7.3f CM^2\n", surfaceArea*1.e4);
+        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
+
         int gw = grid.getWidth();
         int gh = grid.getHeight();
         int gd = grid.getDepth();
@@ -380,11 +392,22 @@ public class ImagePopperKernel extends HostedKernel {
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
 
-//        long endMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
-//    System.out.println("Ending memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));
+        //        long endMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
+        //    System.out.println("Ending memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));        
+        //System.out.println("Memory used: " + (endMemory - startMemory) + " start: " + startMemory + " end: " + endMemory);
 
-//System.out.println("Memory used: " + (endMemory - startMemory) + " start: " + startMemory + " end: " + endMemory);
-        return new KernelResults(true, min_bounds, max_bounds);
+        ac = new AreaCalculator();
+        mesh.getTriangles(ac);
+        volume = ac.getVolume();
+        surfaceArea = ac.getArea();
+
+        t0 = System.nanoTime();
+        printf("final surface area: %7.3f CM^2\n", surfaceArea*1.e4);
+        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
+
+        return new KernelResults(true, min_bounds, max_bounds, volume, surfaceArea);
+
+        //return new KernelResults(true, min_bounds, max_bounds);
     }
 
     /**

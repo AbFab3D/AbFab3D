@@ -24,6 +24,7 @@ import java.awt.image.BufferedImage;
 import abfab3d.grid.query.RegionFinder;
 import abfab3d.io.output.*;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
@@ -382,10 +383,21 @@ public class RingPopperKernel extends HostedKernel {
 
         GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
 
+        AreaCalculator ac = new AreaCalculator();
+        mesh.getTriangles(ac);
+        double volume = ac.getVolume();
+        double surfaceArea = ac.getArea();
+
+        long t0 = System.nanoTime();
+        printf("final surface area: %7.3f CM^2\n", surfaceArea*1.e4);
+        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
+
+
 
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
-        return new KernelResults(true, min_bounds, max_bounds);
+        return new KernelResults(true, min_bounds, max_bounds, volume, surfaceArea);
+
     }
 
 
