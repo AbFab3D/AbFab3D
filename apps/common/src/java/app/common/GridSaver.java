@@ -17,6 +17,7 @@ import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
 import abfab3d.mesh.*;
+import abfab3d.util.TriangleCounter;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -311,11 +312,18 @@ public class GridSaver {
 
         //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
         //printf("using OLD IndexedTriangleSetBuilder\n");
-        //IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
         int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
         IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount); 
-        printf("using NEW IndexedTriangleSetBuilder\n");
+        printf("using NEW IndexedTriangleSetBuilder\n");        
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
+        //TriangleCounter tc = new TriangleCounter();
+        //im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), tc); 
+        //printf("triCount: %d\n", tc.getCount());
+        //printf("TRI count: %d\n", IndexedTriangleSetBuilder.triCnt);
+        //printf("HC count: %d\n", IndexedTriangleSetBuilder.hcCnt);
+        //printf("EQ count: %d\n", IndexedTriangleSetBuilder.eqCnt);
+        //printf("EQ/HC ratio: %5.2f\n", ((double)IndexedTriangleSetBuilder.eqCnt/IndexedTriangleSetBuilder.hcCnt));
+
         printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
         //return null;
         
@@ -323,11 +331,9 @@ public class GridSaver {
             throw new ExecutionStoppedException();
         }
         
-        int faces[] = its.getFaces();
-        printf("estimated face count: %d, actual face count: %d\n", estimatedFaceCount, faces.length/3);
         t0 = currentTimeMillis();
         printf("making WingedEdgeTriangleMesh\n");
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
         printf("making WingedEdgeTriangleMesh done: %d\n", (currentTimeMillis()-t0));
 
         if (Thread.currentThread().isInterrupted()) {

@@ -91,6 +91,8 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
             }
         }
 
+        triCnt++;
+
         int f0 = getIndex(v0);
         int f1 = getIndex(v1);
         int f2 = getIndex(v2);
@@ -150,10 +152,10 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
      */
     public static class Point3dW extends Point3d {
         static final double  // arbitrary constants for hashcode calculations
-            CX = 14256.789,
-            CY = 26367.891,
-            CZ = 57672.981,
-            CW = 35556.955;
+            CX = 10556796.789,
+            CY = 26556797.891,
+            CZ = 37556792.981,
+            CW = 45556795.955;
 
         static double TOLERANCE = 1.e-8; // vectors different less than tolerance are assumed to be equal
 
@@ -166,7 +168,7 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
 
 //            return (int) (31 * 31 * x + 31 * y + z);
 
-            //hcCnt++;
+            hcCnt++;
 
             return (int)(CX*x + CY * y + CZ * z + CW);
             
@@ -174,7 +176,7 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
 
         public boolean equals(Object obj){
 
-            //eqCnt++;
+            eqCnt++;
 
             Point3d p = (Point3d)obj;
             double d = distanceLinf(p);
@@ -186,6 +188,7 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
         }
 
     }
+    public static long eqCnt = 0, hcCnt = 0, triCnt = 0;
 }
 
 

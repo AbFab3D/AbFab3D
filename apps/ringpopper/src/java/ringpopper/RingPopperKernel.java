@@ -393,7 +393,6 @@ public class RingPopperKernel extends HostedKernel {
         printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
 
 
-
         System.out.println("Total Time: " + (System.currentTimeMillis() - start));
         System.out.println("-------------------------------------------------");
         return new KernelResults(true, min_bounds, max_bounds, volume, surfaceArea);

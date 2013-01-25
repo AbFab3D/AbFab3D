@@ -20,10 +20,10 @@ public class PointSet {
     private boolean COLLECT_STATS = true;
 
     static final double  // arbitrary constants for hashcode calculations
-            CX = 14256.789,
-            CY = 26367.891,
-            CZ = 57672.981,
-            CW = 35556.955;
+            CX = 10556796.789,
+            CY = 26556797.891,
+            CZ = 37556792.981,
+            CW = 45556795.955;
 
     /** References to Entry positions or -1 if not filled */
     private int[] table;
