@@ -40,8 +40,15 @@ public class KernelResults {
     /** The max bounds of the created object */
     private double[] boundsMax;
 
+    /** The volume in m ^ 3 or -1 if not calculated */
+    private double volume;
+
+    /** The surface area in m ^ 3 or -1 if not calculated */
+    private double surfaceArea;
+
+
     public KernelResults(boolean success, int failureCode, String reason,
-        double[] boundsMin, double[] boundsMax) {
+        double[] boundsMin, double[] boundsMax, double volume, double surfaceArea) {
 
         this.success = success;
 
@@ -55,14 +62,21 @@ public class KernelResults {
 
         this.failureCode = failureCode;
         this.reason = reason;
+        this.volume = volume;
+        this.surfaceArea = surfaceArea;
+
     }
 
     public KernelResults(boolean success, double[] boundsMin, double[] boundsMax) {
-        this(success, 0, null, boundsMin, boundsMax);
+        this(success, 0, null, boundsMin, boundsMax,-1,-1);
+    }
+
+    public KernelResults(boolean success, double[] boundsMin, double[] boundsMax, double volume, double surfaceArea) {
+        this(success, 0, null, boundsMin, boundsMax,volume,surfaceArea);
     }
 
     public KernelResults(int failureCode, String reason) {
-        this(false, failureCode, reason, null, null);
+        this(false, failureCode, reason, null, null,-1,-1);
     }
 
     /**
@@ -97,5 +111,13 @@ public class KernelResults {
 
     public String getReason() {
         return reason;
+    }
+
+    public double getVolume() {
+        return volume;
+    }
+
+    public double getSurfaceArea() {
+        return surfaceArea;
     }
 }
