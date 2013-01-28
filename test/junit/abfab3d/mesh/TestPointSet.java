@@ -624,9 +624,10 @@ public class TestPointSet extends TestCase {
         PointSet ps = new PointSet(1,1f,TOLERANCE);
 
 
-        double CX = 14256.789;
-        double CY = 26367.891;
-        double CZ = 57672.981;
+        double CX = 10556796.789,
+                CY = 26556797.891,
+                CZ = 37556792.981,
+                CW = 45556795.955;
 
         double factorXY = CY / CX;
         double factorZY = CY / CZ;
@@ -657,8 +658,10 @@ public class TestPointSet extends TestCase {
     }
 
     public void testSameHashDiffWorks() {
-        double CX = 14256.789;
-        double CY = 26367.891;
+        double CX = 10556796.789,
+                CY = 26556797.891,
+                CZ = 37556792.981,
+                CW = 45556795.955;
 
         double factor = CY / CX;
 
