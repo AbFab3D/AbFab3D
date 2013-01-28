@@ -17,6 +17,7 @@ import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
 import abfab3d.mesh.*;
+import abfab3d.util.MathUtil;
 import abfab3d.util.TriangleCounter;
 
 import java.io.IOException;
@@ -313,9 +314,15 @@ public class GridSaver {
         //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
         //printf("using OLD IndexedTriangleSetBuilder\n");
         int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
-        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount); 
-        printf("using NEW IndexedTriangleSetBuilder\n");        
+        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount);
+
+
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
+        printf("using NEW IsosurfaceMaker");
+
+        // cut in half
+        im.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, gbounds, 3, 2.9), its);
+
         //TriangleCounter tc = new TriangleCounter();
         //im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), tc); 
         //printf("triCount: %d\n", tc.getCount());
@@ -353,6 +360,90 @@ public class GridSaver {
 
         return mesh;
         
+    }
+    /**
+     * Write a grid using the IsoSurfaceMaker to the specified file
+     *
+     * @param grid
+     * @param smoothSteps
+     * @throws IOException
+     */
+    public static WingedEdgeTriangleMesh createIsosurface2(Grid grid, int smoothSteps, int resamplingFactor) throws IOException {
+        double bounds[] = new double[]{-grid.getWidth()/2 * grid.getVoxelSize(),grid.getWidth()/2*grid.getVoxelSize(),
+                -grid.getHeight()/2*grid.getSliceHeight(),grid.getHeight()/2*grid.getSliceHeight(),-grid.getDepth()/2*grid.getVoxelSize(),grid.getDepth()/2*grid.getVoxelSize()};
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        double dx2 = resamplingFactor*(bounds[1] - bounds[0])/nx;
+        double dy2 = resamplingFactor*(bounds[3] - bounds[2])/ny;
+        double dz2 = resamplingFactor*(bounds[5] - bounds[4])/nz;
+
+        int nx2 = (nx+resamplingFactor-1)/resamplingFactor;
+        int ny2 = (ny+resamplingFactor-1)/resamplingFactor;
+        int nz2 = (nz+resamplingFactor-1)/resamplingFactor;
+        printf("nx2:[%d,%d,%d]\n",nx2, ny2, nz2);
+
+        double bounds2[] = new double[]{
+                bounds[0], bounds[0] + dx2*nx2,
+                bounds[2], bounds[2] + dy2*ny2,
+                bounds[4], bounds[4] + dz2*nz2
+        };
+
+        IsosurfaceMaker im = new IsosurfaceMaker();
+        im.setIsovalue(0.);
+        im.setBounds(bounds2);
+        im.setGridSize(nx2, ny2, nz2);
+
+        printf("makeIsosurface()\n");
+        long t0 = currentTimeMillis();
+
+        //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+        //printf("using OLD IndexedTriangleSetBuilder\n");
+        int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
+        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount);
+
+
+        // cut in half
+        im.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, bounds, resamplingFactor, 2.9), its);
+
+        //TriangleCounter tc = new TriangleCounter();
+        //im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), tc);
+        //printf("triCount: %d\n", tc.getCount());
+        //printf("TRI count: %d\n", IndexedTriangleSetBuilder.triCnt);
+        //printf("HC count: %d\n", IndexedTriangleSetBuilder.hcCnt);
+        //printf("EQ count: %d\n", IndexedTriangleSetBuilder.eqCnt);
+        //printf("EQ/HC ratio: %5.2f\n", ((double)IndexedTriangleSetBuilder.eqCnt/IndexedTriangleSetBuilder.hcCnt));
+
+        printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
+        //return null;
+
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
+
+        t0 = currentTimeMillis();
+        printf("making WingedEdgeTriangleMesh\n");
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+        printf("making WingedEdgeTriangleMesh done: %d\n", (currentTimeMillis()-t0));
+
+        if (Thread.currentThread().isInterrupted()) {
+            throw new ExecutionStoppedException();
+        }
+
+        double centerWeight = 1.0; // any non negative value is OK
+
+        LaplasianSmooth ls = new LaplasianSmooth();
+
+        ls.setCenterWeight(centerWeight);
+        t0 = currentTimeMillis();
+        printf("smoothMesh(%d)\n",smoothSteps);
+        t0 = currentTimeMillis();
+        ls.processMesh(mesh, smoothSteps);
+        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
+
+        return mesh;
+
     }
 
         /**

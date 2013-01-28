@@ -366,7 +366,9 @@ public class ImagePopperKernel extends HostedKernel {
         grid.getWorldCoords(0, 0, 0, min_bounds);
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
 
-        TriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
+        System.out.println("**** Resampling, decide if we like");
+        int rescampleFactor = 2;
+        TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,rescampleFactor);
         
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
@@ -406,8 +408,6 @@ public class ImagePopperKernel extends HostedKernel {
         printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
 
         return new KernelResults(true, min_bounds, max_bounds, volume, surfaceArea);
-
-        //return new KernelResults(true, min_bounds, max_bounds);
     }
 
     /**
