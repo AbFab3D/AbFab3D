@@ -422,6 +422,297 @@ public class DataSources {
 
     }  // class ImageBitmap
 
+    public static class ImageBitmapYUP implements DataSource, Initializable {
+
+        public double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0;
+
+        public double m_baseThickness = 0.5; // relative thickness of solid base
+        public String m_imagePath;
+
+        public int m_imageType = IMAGE_POSITIVE;
+
+        public static final int IMAGE_POSITIVE = 0, IMAGE_NEGATIVE = 1;
+        public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
+
+
+        public int m_xTilesCount = 1; // number of image tiles in x-direction
+        public int m_zTilesCount = 1; // number of image tiles in z-direction
+
+        private BufferedImage m_image;
+        private int m_interpolationType = INTERPOLATION_BOX;
+        private double m_probeSize = 1.e-4; // 0.1mm
+
+        private double xmin, xmax, ymin, ymax, zmin, zmax, ybase;
+        private double xscale, zscale;
+        private double probeScale; // scaling to convert probe size into pixels of image
+        private boolean useGrayscale = true;
+        private int imageWidth, imageHeight;
+        private int imageData[];
+        private ImageMipMap m_mipMap;
+        private double m_pixelWeightNonlinearity = 0.;
+        // solid white color of background to be used fpr images with transparency
+        private double m_backgroundColor[] = new double[]{255.,255.,255.,255.};
+
+        double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel
+
+        /**
+
+         */
+        public void setSize(double sx, double sy, double sz){
+            m_sizeX = sx;
+            m_sizeY = sy;
+            m_sizeZ = sz;
+        }
+
+        /**
+
+         */
+        public void setLocation(double x, double y, double z){
+            m_centerX = x;
+            m_centerY = y;
+            m_centerZ = z;
+        }
+
+        public void setTiles(int tx, int tz){
+
+            m_xTilesCount = tx;
+            m_zTilesCount = tz;
+
+        }
+
+        public void setBaseThickness(double baseThickness){
+
+            m_baseThickness = baseThickness;
+
+        }
+
+        public void setImagePath(String path){
+
+            m_imagePath = path;
+
+        }
+
+        public void setImage(BufferedImage image){
+
+            m_image = image;
+
+        }
+
+        public void setImageType(int type){
+
+            m_imageType = type;
+
+        }
+
+        public void setUseGrayscale(boolean value){
+            useGrayscale = value;
+        }
+
+        public void setInterpolationType(int type){
+
+            m_interpolationType = type;
+
+        }
+
+        /**
+         value = 0 - linear resampling for mipmap
+         value > 0 - black pixels are givewn heigher weight
+         value < 0 - white pixels are givewn heigher weight
+         */
+        public void setPixelWeightNonlinearity(double value){
+            m_pixelWeightNonlinearity = value;
+        }
+
+        public void setProbeSize(double size){
+
+            m_probeSize = size;
+
+        }
+
+        public int initialize(){
+
+            xmin = m_centerX - m_sizeX/2;
+            xmax = m_centerX + m_sizeX/2;
+            xscale = 1./(xmax-xmin);
+
+
+            ymin = m_centerY - m_sizeY/2;
+            ymax = m_centerY + m_sizeY/2;
+            ybase = ymin + (ymax - ymin)*m_baseThickness;
+
+            zmin = m_centerZ - m_sizeZ/2;
+            zmax = m_centerZ + m_sizeZ/2;
+            zscale = 1./(zmax-zmin);
+
+            BufferedImage image = null;
+            if(m_image != null){
+                image = m_image;
+            } else if(m_imagePath == null){
+                imageData = null;
+                return RESULT_OK;
+            } else {
+                try {
+                    image = ImageIO.read(new File(m_imagePath));
+                } catch(Exception e){
+                    imageData = null;
+                    e.printStackTrace();
+                    return RESULT_ERROR;
+                }
+            }
+
+            if(m_interpolationType == INTERPOLATION_MIPMAP){
+                m_mipMap = new ImageMipMap(image, m_pixelWeightNonlinearity);
+            }else {
+                m_mipMap = null;
+            }
+
+            imageWidth = image.getWidth();
+            imageHeight = image.getHeight();
+
+            // convert probe size in meters into image units
+            probeScale = xscale*imageWidth;
+
+            DataBuffer dataBuffer = image.getRaster().getDataBuffer();
+            imageData = new int[imageWidth * imageHeight];
+            image.getRGB(0,0,imageWidth, imageHeight, imageData, 0, imageWidth);
+
+            return RESULT_OK;
+        }
+
+        int debugCount = 100;
+        /**
+         * returns 1 if pnt is inside of image
+         * returns 0 otherwise
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            // TODO get proper pointer size from chain of transforms
+            double probeSize = m_probeSize*probeScale;
+            //double probeSize = pnt.probeSize*probeScale;
+            if(m_interpolationType == INTERPOLATION_MIPMAP){
+                if(debugCount-- > 0){
+                    //printf("probeSize: %7.2f probeScale: %7.2e, m_probeSize: %7.2e\n", probeSize, probeScale, m_probeSize);
+                }
+            }
+
+            double res = 1.;
+            double
+                    x = pnt.v[0],
+                    y = pnt.v[1],
+                    z = pnt.v[2];
+
+            x = (x-xmin)*xscale;
+            z = (z-zmin)*zscale;
+
+            if(x < 0 || x > 1 ||
+                    z < 0 || z > 1 ||
+                    y < ymin || y > ymax){
+                data.v[0] = 0;
+                return RESULT_OK;
+            }
+
+            if(m_baseThickness != 0.0){
+                if( y < ybase){
+                    data.v[0] = 1;
+                    return RESULT_OK;
+                }
+            }
+
+            if(imageData == null){
+                data.v[0] = 1;
+                return RESULT_OK;
+            }
+
+            if(m_xTilesCount > 1){
+                x *= m_xTilesCount;
+                x -= Math.floor(x);
+            }
+            if(m_zTilesCount > 1){
+                z *= m_zTilesCount;
+                z -= Math.floor(y);
+            }
+
+            double imageX = imageWidth*x;
+            double imageY = imageHeight*(1-z);// reverse Y-direction
+
+            double pixelValue = getPixelValue(imageX, imageY, probeSize);
+
+            double d = 0;
+
+            if(useGrayscale){
+                d = (ybase  + (ymax - ybase)*pixelValue - z);
+                if( d > 0)
+                    data.v[0] = 1;
+                else
+                    data.v[0] = 0;
+
+            } else {  // sharp threshold
+                d = pixelValue;
+                if(d > m_imageThreshold)
+                    data.v[0] = 1;
+                else
+                    data.v[0] = 0;
+            }
+
+            return RESULT_OK;
+        }
+
+        double getPixelValue(double x, double y, double probeSize){
+
+            double grayLevel = 0;
+            switch(m_interpolationType){
+                case INTERPOLATION_MIPMAP:
+                    double color[] = new double[4];
+                    m_mipMap.getPixel(x, y, probeSize, color);
+                    grayLevel = (color[0] + color[1] + color[2])/3.;
+                    break;
+                default:
+                case INTERPOLATION_BOX:
+                    grayLevel = getPixelBox(x,y);
+                    break;
+                case INTERPOLATION_LINEAR:
+                    grayLevel = getPixelLinear(x,y);
+                    break;
+            }
+
+
+            // pixel value for black is 0 for white is 255;
+            // we may need to reverse it
+            double pv = 0.;
+            switch(m_imageType){
+                default:
+                case IMAGE_POSITIVE:
+                    pv = 1 - grayLevel/255.;
+                    break;
+                case IMAGE_NEGATIVE:
+                    pv = grayLevel/255.;
+                    break;
+            }
+            return pv;
+        }
+
+        // linear aproximation
+        double getPixelLinear(double x, double y){
+            //TODO
+            return getPixelBox(x,y);
+        }
+
+        // BOX approximation
+        double getPixelBox(double x, double y){
+
+            int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
+            int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
+
+            int rgb = imageData[ix + iy * imageWidth];
+            double ci[] = ImageUtil.getPremultColor(rgb, new double[4]);
+            double cc[] = new double[4];
+            ImageUtil.combinePremultColors(m_backgroundColor, ci, cc, ci[ALPHA]);
+
+            return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;
+
+        }
+
+    }  // class ImageBitmap
 
     /**
        return 1 if any of input data sources is 1, return 0 if all data sources are 0 
