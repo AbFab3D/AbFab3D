@@ -66,6 +66,11 @@ public class KernelResults {
         this.surfaceArea = surfaceArea;
 
     }
+    public KernelResults(boolean success, int failureCode, String reason,
+                         double[] boundsMin, double[] boundsMax) {
+
+        this(success, failureCode, reason, null, null, -1,-1);
+    }
 
     public KernelResults(boolean success, double[] boundsMin, double[] boundsMax) {
         this(success, 0, null, boundsMin, boundsMax,-1,-1);

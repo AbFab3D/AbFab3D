@@ -139,11 +139,14 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         boolean vis_gap = false;
         double gap_distance = 0;
 
+        System.out.println("Skipping gap analysis");
+        /*
         if (props.getMinGapDistance() > 0) {
             // Gap analysis only verified for WSF, polishing doesn't change it
             vis_gap = true;
             gap_distance = props.getMinGapDistance();
         }
+        */
 
         // TODO: Stop hardcoding params
         String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
