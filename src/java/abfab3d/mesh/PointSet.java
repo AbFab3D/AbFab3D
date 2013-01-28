@@ -137,7 +137,6 @@ public class PointSet {
      * @return
      */
     public double[] getPoints() {
-System.out.println("Count: " + count);
         double[] ret_val = new double[count * 3];
         int idx = 0;
 
@@ -154,7 +153,6 @@ System.out.println("Count: " + count);
             }
         }
 
-        System.out.println("Idx: " + idx + " cnt: " + (count * 3));
         return ret_val;
     }
 

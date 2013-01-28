@@ -320,9 +320,6 @@ public class GridSaver {
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
         printf("using NEW IsosurfaceMaker");
 
-        // cut in half
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, gbounds, 3, 2.9), its);
-
         //TriangleCounter tc = new TriangleCounter();
         //im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), tc); 
         //printf("triCount: %d\n", tc.getCount());
