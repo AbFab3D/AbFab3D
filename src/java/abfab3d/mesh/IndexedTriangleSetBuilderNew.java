@@ -47,7 +47,9 @@ public class IndexedTriangleSetBuilderNew implements TriangleCollector {
         faces = new StructMixedData(FaceList.DEFINITION, expectedFaces);
         // from Euler formula V-E+F=2 for simple surfaces 
         float loadFactor = 0.75f;
-        ps = new PointSet((int)((expectedFaces/2 + 2)/loadFactor), loadFactor, TOLERANCE);
+        int estimatedFaces = (int)((expectedFaces/2 + 2)/loadFactor);
+        System.out.println("Estimated Faces: " + estimatedFaces);
+        ps = new PointSet(estimatedFaces, loadFactor, TOLERANCE);
     }
 
     /**
