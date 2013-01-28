@@ -262,6 +262,7 @@ public class DataSources {
                 try {
                     image = ImageIO.read(new File(m_imagePath));
                 } catch(Exception e){
+                    System.out.println("Cannot load image: " + m_imagePath);
                     imageData = null;
                     e.printStackTrace();
                     return RESULT_ERROR;

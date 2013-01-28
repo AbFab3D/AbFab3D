@@ -139,7 +139,7 @@ public class ImagePopperKernel extends HostedKernel {
         int seq = 0;
         int step = 0;
 
-        params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5_04_combined.jpg", 1,
+        params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5_cleaned.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -208,7 +208,7 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, true, 0, 0.1, null, null)
         );
 
-        params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.MEDIUM.toString(), 1,
+        params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.HIGH.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, enumToStringArray(PreviewQuality.values()))
         );
@@ -260,10 +260,7 @@ public class ImagePopperKernel extends HostedKernel {
             resolution = resolution * previewQuality.getFactor();
         }
 
-        maxDecimationError = 0.01*resolution*resolution;
-
-        // TODO: Need to decide on this based on size of object?    The above formula is too accurate for large models.
-        maxDecimationError = 1e-9;
+        maxDecimationError = 0.1*resolution*resolution;
 
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
@@ -367,7 +364,7 @@ public class ImagePopperKernel extends HostedKernel {
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
 
         System.out.println("**** Resampling, decide if we like");
-        int resampleFactor = 2;
+        int resampleFactor = 1;
         TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,resampleFactor);
         
         AreaCalculator ac = new AreaCalculator();

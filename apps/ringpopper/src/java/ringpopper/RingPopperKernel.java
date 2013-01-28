@@ -321,9 +321,9 @@ public class RingPopperKernel extends HostedKernel {
             complete_band.addDataSource(makeTextComplement());
             
         } 
-        
-        // add crossSectionImage to complete_band 
-        if(crossSectionPath != null){
+
+        // add crossSectionImage to complete_band
+        if(crossSectionPath != null && crossSectionPath.length() > 0){
             complete_band.addDataSource(makeCrossSection());
         }
        
@@ -339,6 +339,7 @@ public class RingPopperKernel extends HostedKernel {
         gm.setBounds(bounds);
         gm.setDataSource(ring);
 
+        // Seems BlockBased better for this then Array.
         Grid grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
 
 
