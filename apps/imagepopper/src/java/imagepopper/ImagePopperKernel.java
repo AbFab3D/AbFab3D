@@ -273,7 +273,7 @@ public class ImagePopperKernel extends HostedKernel {
         double bodyDepth = bodyDepth1;
         double layer1z = bodyDepth1/2; // z-center
         double layer2z = 0;            // z-center of bottom layer
-        
+
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
             layer1z += bodyDepth2;
@@ -367,8 +367,8 @@ public class ImagePopperKernel extends HostedKernel {
         grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
 
         System.out.println("**** Resampling, decide if we like");
-        int rescampleFactor = 2;
-        TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,rescampleFactor);
+        int resampleFactor = 2;
+        TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,resampleFactor);
         
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
