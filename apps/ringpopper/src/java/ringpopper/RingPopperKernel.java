@@ -66,6 +66,13 @@ public class RingPopperKernel extends HostedKernel {
     private static final int DEBUG_LEVEL = 0;
     static final double MM = 0.001; // millmeters to meters
 
+    // large enough font size to be used to render text 
+    static final int DEFAULT_FONT_SIZE = 50;
+    // point size unit 
+    static final double POINT_SIZE = 25.4 * MM / 72; 
+    static final double TEXT_RENDERING_PIXEL_SIZE = 25.4 * MM / 600; // 600 dpi 
+    int MINIMAL_TEXT_OFFSET = 10; // minimal border around engraved text 
+
     enum EdgeStyle {NONE, TOP, BOTTOM, BOTH};
 
     // High = print resolution.  Medium = print * 1.5, LOW = print * 2
@@ -133,6 +140,7 @@ public class RingPopperKernel extends HostedKernel {
 
     private String material;
     private String text = "Test Image Text gg";
+    private String fontName = "Times New Roman";
     private int fontSize = 20;
 
     /** How many regions to keep */
@@ -219,6 +227,11 @@ public class RingPopperKernel extends HostedKernel {
         seq = 0;
 
         params.put("text", new Parameter("text", "text", "Engraved Text", "MADE IN THE FUTURE", 1,
+                Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, null)
+        );
+
+        params.put("fontName", new Parameter("fontName", "fontName", "Font Name", "Times New Roman", 1,
                 Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, null)
         );
@@ -485,18 +498,42 @@ public class RingPopperKernel extends HostedKernel {
      */
     DataSource makeTextComplement(){
         
+        int maxFontSize = (int) (ringWidth/POINT_SIZE);
+        if(fontSize > maxFontSize){
+            fontSize = maxFontSize;
+            System.err.printf("EXTMSG: Font is too large. Reduced to %d points\n", fontSize);
+            
+        }
 
-        double textDepth = 0.3*MM; // 1mm
+        //we need to have some reasonable number here
+        double textDepth = 0.3*MM; 
+        // we need to create font of specified size
+        // we assume, that the font size is the maximal height of the text string 
+        double textHeightM = (fontSize * POINT_SIZE);
 
+        int textBitmapHeight = (int)(ringWidth / TEXT_RENDERING_PIXEL_SIZE);
+        int textBitmapWidth = (int)(textBitmapHeight * (Math.PI*innerDiameter)/ringWidth);
+        // height of text stirng in pixels
+        int textHeightPixels = (int)(textBitmapHeight * textHeightM / ringWidth);
+        // we use Insets to have empty space around centered text 
+        // it also will make text of specitfied height
+        int textOffsetV = (textBitmapHeight - textHeightPixels)/2;
+        int textOffsetH = 10;
+        printf("text bitmap size: (%d x %d) pixels\n", textBitmapWidth, textBitmapHeight);
+        printf("text height: %d pixels\n", textHeightPixels);
+        printf("vertical text offset: %d pixels\n", textOffsetV);
+        
         DataSources.ImageBitmap textBand = new DataSources.ImageBitmap();
 
         textBand.setSize(Math.PI*innerDiameter, ringWidth, textDepth);
-        textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
+        // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
+        textBand.setLocation(0,0,-textDepth/2); 
         textBand.setBaseThickness(0.);
         textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         textBand.setTiles(1,1);
-        textBand.setImage(TextUtil.createTextImage(1000, 150, text, 
-                                                   new Font("Times New Roman", Font.BOLD, fontSize), new Insets(10, 10, 10, 10)));
+
+        textBand.setImage(TextUtil.createTextImage(textBitmapWidth, textBitmapHeight, text, 
+                                                   new Font(fontName, Font.BOLD, DEFAULT_FONT_SIZE), new Insets(textOffsetV, textOffsetH, textOffsetV, textOffsetH)));
         
         // we want text on the inside. So it should face in opposite direction
         VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
@@ -601,6 +638,9 @@ public class RingPopperKernel extends HostedKernel {
 
             pname = "text";
             text = ((String) params.get(pname));
+
+            pname = "fontName";
+            fontName = ((String) params.get(pname));
 
             pname = "fontSize";
             fontSize = ((Integer) params.get(pname)).intValue();
