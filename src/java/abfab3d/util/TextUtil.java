@@ -39,6 +39,21 @@ public class TextUtil {
      * @param insets margins to leave blank around the text 
      */
     public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets) {
+        return createTextImage(imageWidth, imageHeight, text, font, insets, true);        
+    }
+
+    /**
+     * Create an image from a text string.
+     *
+     * @param imageWidth The width of the image
+     * @param imageHeight The height of the image
+     * @param text The text string
+     * @param font The font to use
+     * @param insets margins to leave blank around the text 
+     * @param shrinkText shrink text (if true) to fit the rectangle
+     */
+    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets, boolean shrinkText) {
+        
         
         TextLayout layout = null;
         double fsize = font.getSize();
@@ -76,7 +91,17 @@ public class TextUtil {
         Rectangle2D labelRect = new Rectangle2D.Double(insets.left,insets.top, w, h);
         //g.draw(labelRect);
         Rectangle2D textRect = new Rectangle2D.Double(x + tx, y + ty, twidth, theight);
-        AffineTransform at = getRectTransform(textRect, labelRect, true, true);
+        AffineTransform at;
+        if(shrinkText) {
+            at = getRectTransform(textRect, labelRect, true, true);
+        } else {
+            
+            if(textRect.getWidth() / textRect.getHeight() > labelRect.getWidth() / labelRect.getHeight()){
+                System.err.printf("EXTMSG: Text is too long. It is being truncated\n");
+            }
+            at = getRectTransform2(textRect, labelRect);
+        }
+
         //printf("at: scale: %7.3f\n", at.getScaleX());
         g.setTransform(at);
 
@@ -131,5 +156,26 @@ public class TextUtil {
         }        
         return at;         
     }    
+
+    /**
+       calculates transform which scales rectIn to fit vertically into rectOut (possible makes it larger in width) 
+     */
+    public static AffineTransform getRectTransform2(Rectangle2D rectIn, 
+                                                   Rectangle2D rectOut
+                                                   ){
+        
+        AffineTransform at = new AffineTransform();
+        
+        double sy = rectOut.getHeight() / rectIn.getHeight();
+        
+        at.translate(rectOut.getX(), rectOut.getY());         
+
+        at.scale(sy,sy);                
+        
+        at.translate(-rectIn.getX(), -rectIn.getY());
+                
+        return at;         
+    }    
+
 
 }

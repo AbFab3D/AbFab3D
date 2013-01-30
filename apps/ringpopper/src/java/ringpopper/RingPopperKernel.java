@@ -141,6 +141,8 @@ public class RingPopperKernel extends HostedKernel {
     private String material;
     private String text = "Test Image Text gg";
     private String fontName = "Times New Roman";
+    private boolean fontBold = false;
+    private boolean fontItalic = false;
     private int fontSize = 20;
 
     /** How many regions to keep */
@@ -236,11 +238,18 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, null)
         );
 
+        params.put("fontBold", new Parameter("fontBold", "Font Bold", "Use Bold Font", "false", 1,
+                                             Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                                             step, seq++, false, -1, 1, null, null));
+        
+        params.put("fontItalic", new Parameter("fontItalic", "Font Italic", "Use Italic Font", "false", 1,
+                                               Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                                               step, seq++, false, -1, 1, null, null));
+        
         params.put("fontSize", new Parameter("fontSize", "fontSize", "The font size", "20", 1,
-                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 3, 50, null, null)
-        );
-
+                                             Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                                             step, seq++, false, 3, 50, null, null));
+        
         step++;
         seq = 0;
 
@@ -501,8 +510,7 @@ public class RingPopperKernel extends HostedKernel {
         int maxFontSize = (int) (ringWidth/POINT_SIZE);
         if(fontSize > maxFontSize){
             fontSize = maxFontSize;
-            System.err.printf("EXTMSG: Font is too large. Reduced to %d points\n", fontSize);
-            
+            System.err.printf("EXTMSG: Font is too large. Reduced to %d points\n", fontSize);            
         }
 
         //we need to have some reasonable number here
@@ -531,9 +539,18 @@ public class RingPopperKernel extends HostedKernel {
         textBand.setBaseThickness(0.);
         textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         textBand.setTiles(1,1);
+        int fontStyle = Font.PLAIN;
+
+        if(fontBold)
+            fontStyle = Font.BOLD;
+
+        if(fontItalic)
+            fontStyle |= Font.ITALIC;
 
         textBand.setImage(TextUtil.createTextImage(textBitmapWidth, textBitmapHeight, text, 
-                                                   new Font(fontName, Font.BOLD, DEFAULT_FONT_SIZE), new Insets(textOffsetV, textOffsetH, textOffsetV, textOffsetH)));
+                                                   new Font(fontName, fontStyle, DEFAULT_FONT_SIZE), 
+                                                   new Insets(textOffsetV, textOffsetH, textOffsetV, textOffsetH),
+                                                   false));
         
         // we want text on the inside. So it should face in opposite direction
         VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
@@ -641,6 +658,12 @@ public class RingPopperKernel extends HostedKernel {
 
             pname = "fontName";
             fontName = ((String) params.get(pname));
+
+            pname = "fontBold";
+            fontBold = (Boolean) params.get(pname);
+
+            pname = "fontItalic";
+            fontItalic = (Boolean) params.get(pname);
 
             pname = "fontSize";
             fontSize = ((Integer) params.get(pname)).intValue();
