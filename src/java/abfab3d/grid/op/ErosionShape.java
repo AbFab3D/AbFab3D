@@ -25,39 +25,29 @@ import abfab3d.grid.GridBit;
 import abfab3d.grid.VoxelStateSetter;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 
 import static abfab3d.grid.Grid.OUTSIDE;
 import static abfab3d.grid.Grid.INTERIOR;
 
 /**
- * Dilate an object with given custom shape
+ * Erode an object with given custom shape
  * 
  * 
- *  1) find surface voxels of the grid 
- *  2) dilate surface voxels with the VoxelShape
+ *  1) find outside surface voxels of the grid 
+ *  2) erode grid with VoxelShape running over surface voxels 
  *
  * @author Vladimir Bulatov
  */
-public class DilationShape implements Operation, AttributeOperation {
+public class ErosionShape implements Operation, AttributeOperation {
 
     public static int sm_debug = 0;
 	
-    //static long m_gridCallCount = 0;
-    //static long m_maskCallCount = 0;
-    //static long m_processVoxelCount = 0;
-
-    //GridBitIntervals m_surface; // voxels turned ON on previus step
-    //GridBitIntervals m_marked;  // voxels to be turned ON after current scan
-
-    //AttributeGrid m_grid; // grid we are working on 
     VoxelChecker m_voxelChecker; // external tester which checks if voxel needs to be processed
-    VoxelShape m_voxelShape;  // shape used to perform dilation 
-
-    int m_nx, m_ny, m_nz; 
+    VoxelShape m_voxelShape;  // shape used to perform dilation     
     
-    
-    public DilationShape() {
+    public ErosionShape() {
         
     }
     
@@ -84,29 +74,24 @@ public class DilationShape implements Operation, AttributeOperation {
      * @return original grid modified
      */
     public Grid execute(Grid grid) {
+
         //TODO - not implemented 
-        printf("DilationShape.execute(Grid) not implemented!\n");        
-        return grid;
+        throw new IllegalArgumentException(fmt("ErosionShape.execute(%d) not implemented!\n", grid));  
+
     }
 
     
     public AttributeGrid execute(AttributeGrid grid) {
 
-        printf("DilationShape.execute()\n"); 
+        printf("ErosionShape.execute(%s)\n", grid); 
         
-        ///m_grid = grid;
-
-        m_nx = grid.getWidth();
-        m_ny = grid.getHeight();
-        m_nz = grid.getDepth();
-
-        GridBitIntervals m_surface = new GridBitIntervals(m_nx, m_ny, m_nz);
+        GridBitIntervals m_surface = new GridBitIntervals(grid.getWidth(), grid.getHeight(), grid.getDepth());
         long t0 = time();
         grid.find(Grid.VoxelClasses.INTERIOR, new SurfaceFinder(grid, m_surface));
         printf("surface: %d ms\n", (time()-t0));
         t0 = time();
-        m_surface.find(Grid.VoxelClasses.INTERIOR, new ShapeDilater(grid, m_voxelShape, m_voxelChecker));
-        printf("dilation: %d ms\n", (time()-t0));
+        m_surface.find(Grid.VoxelClasses.INTERIOR, new ShapeEroder(grid, m_voxelShape, m_voxelChecker));
+        printf("erosion: %d ms\n", (time()-t0));
         
         m_surface.release();
         m_surface = null;
@@ -116,7 +101,7 @@ public class DilationShape implements Operation, AttributeOperation {
     /**
        dilation of surface voxels with given shape
      */
-    static class ShapeDilater implements ClassTraverser {
+    static class ShapeEroder implements ClassTraverser {
         
         Grid grid;
         VoxelShape shape; 
@@ -126,7 +111,7 @@ public class DilationShape implements Operation, AttributeOperation {
         int nx, ny, nz;
         int x1 = -1, y1 = -1, z1 = -1;// coordinate of previous processed voxel 
 
-        ShapeDilater(Grid grid, VoxelShape shape, VoxelChecker checker){
+        ShapeEroder(Grid grid, VoxelShape shape, VoxelChecker checker){
 
             this.grid = grid; 
             this.shape = shape;
@@ -160,13 +145,14 @@ public class DilationShape implements Operation, AttributeOperation {
             
             int neig[];
             if(x == x1 && y == y1 && z == z1+1){
-
+                // we are next to last point 
                 neig = neighborsIncremented;
                 z1 = z;
 
             } else {
 
                 neig = neighbors;
+                // remember last point 
                 x1 = x;
                 y1 = y;
                 z1 = z;
@@ -183,15 +169,15 @@ public class DilationShape implements Operation, AttributeOperation {
                 int yy = y + iy; 
                 int zz = z + iz; 
                 if(xx >= 0 && xx < nx && yy >= 0 && yy < ny && zz >= 0 && zz < nz ){
-                    grid.setState(xx,yy,zz, Grid.INTERIOR);
+                    grid.setState(xx,yy,zz, Grid.OUTSIDE);
                 }                    
             }
         }        
-    } //class ShapeDilater
+    } //class ShapeEroder
 
 
     /**
-       checks each of 6-neighbour voxels in gridIn and if it is empty turns ON corresponding voxel in mask
+       checks each of 6-neighbour voxels in gridIn and if it is empty turn ON that voxel in the mask
      */
     static class SurfaceFinder implements ClassTraverser {
         
@@ -218,13 +204,27 @@ public class DilationShape implements Operation, AttributeOperation {
         */ 
         void processVoxel(int x,int y,int z){
 
-            //TODO add grid bounds checker             
-            if(grid.getState(x+1,y,z) == OUTSIDE) {surface.set(x,y,z,1);return;}
-            if(grid.getState(x-1,y,z) == OUTSIDE) {surface.set(x,y,z,1);return;}
-            if(grid.getState(x,y+1,z) == OUTSIDE) {surface.set(x,y,z,1);return;}
-            if(grid.getState(x,y-1,z) == OUTSIDE) {surface.set(x,y,z,1);return;}
-            if(grid.getState(x,y,z+1) == OUTSIDE) {surface.set(x,y,z,1);return;}
-            if(grid.getState(x,y,z-1) == OUTSIDE) {surface.set(x,y,z,1);return;}
+            //TODO - add grid bounds checker 
+
+            int x1, y1, z1;
+
+            x1 = x+1;
+            if(grid.getState(x1,y,z) == OUTSIDE) surface.set(x1,y,z,1);
+
+            x1 = x-1;
+            if(grid.getState(x1,y,z) == OUTSIDE) surface.set(x1,y,z,1);
+
+            y1 = y+1;
+            if(grid.getState(x,y1,z) == OUTSIDE) surface.set(x,y1,z,1);
+
+            y1 = y-1;
+            if(grid.getState(x,y1,z) == OUTSIDE) surface.set(x,y1,z,1);
+
+            z1 = z+1;
+            if(grid.getState(x,y,z1) == OUTSIDE) surface.set(x,y,z1,1);
+
+            z1 = z-1;
+            if(grid.getState(x,y,z1) == OUTSIDE) surface.set(x,y,z1,1);
 
         }   
     } // class SurfaceFinder
