@@ -61,6 +61,10 @@ public class Output{
         }
     }
 
+    public static long time(){
+        return System.currentTimeMillis();
+    }
+
     public static void printMemory(){
         
         Runtime rt = Runtime.getRuntime();

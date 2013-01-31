@@ -43,10 +43,6 @@ public class DilationMask implements Operation, AttributeOperation {
 
     public static int sm_debug = 0;
 	
-    static long m_gridCallCount = 0;
-    static long m_maskCallCount = 0;
-    static long m_processVoxelCount = 0;
-
     // count of iterations to dilate
     private int m_iterCount;
 
@@ -95,9 +91,9 @@ public class DilationMask implements Operation, AttributeOperation {
         m_ny = m_grid.getHeight();
         m_nz = m_grid.getDepth();
 
-        m_gridCallCount = 0;
-        m_maskCallCount = 0;
-        m_processVoxelCount = 0;
+        //m_gridCallCount = 0;
+        //m_maskCallCount = 0;
+        //m_processVoxelCount = 0;
         
         if( m_nnCount == 0){
 
@@ -130,10 +126,6 @@ public class DilationMask implements Operation, AttributeOperation {
             m_marked = null;                
         }
 
-
-        printf("processVoxelCount: %d\n"+ 
-               "gridCalCount:      %d\n"+ 
-               "maskCallCount:     %d\n", m_processVoxelCount, m_gridCallCount, m_maskCallCount);
         
         return grid;
     }
@@ -221,7 +213,7 @@ public class DilationMask implements Operation, AttributeOperation {
                 if(!voxelChecker.canProcess(x,y,z))
                     return;
             }
-            m_processVoxelCount++;
+            //m_processVoxelCount++;
             int index = 0;
             int nlength = neighbors.length;
             
@@ -233,9 +225,9 @@ public class DilationMask implements Operation, AttributeOperation {
                 int yy = y + iy; 
                 int zz = z + iz; 
                 if(xx >= 0 && xx < nx && yy >= 0 && yy < ny && zz >= 0 && zz < nz ){
-                    m_gridCallCount++;
+                    //m_gridCallCount++;
                     if(grid.getState(xx,yy,zz) == OUTSIDE){
-                        m_maskCallCount++;
+                        //m_maskCallCount++;
                         mask.set(xx,yy,zz,1);              
                     }               
                 }                    
@@ -286,7 +278,7 @@ public class DilationMask implements Operation, AttributeOperation {
                     return;
             }
 
-            m_processVoxelCount++;
+            //m_processVoxelCount++;
 
             int index = 0;
 
@@ -302,10 +294,10 @@ public class DilationMask implements Operation, AttributeOperation {
                    yy >= 0 && yy < ny && 
                    zz >= 0 && zz < nz 
                    ){
-                    m_gridCallCount++;
+                    //m_gridCallCount++;
                     if(grid.getState(xx,yy,zz) == INTERIOR){
                         // the voxel has filled neighbor 
-                        m_maskCallCount++;
+                        //m_maskCallCount++;
                         mask.set(x,y,z,1); 
                         break;
                     }             
@@ -403,7 +395,7 @@ public class DilationMask implements Operation, AttributeOperation {
            turn ON empty voxels in mask 
         */ 
         void processVoxel(int x,int y,int z){
-            m_processVoxelCount++;
+            //m_processVoxelCount++;
 
             switch(nnCount){
             default: 
@@ -421,14 +413,14 @@ public class DilationMask implements Operation, AttributeOperation {
         
         void processVoxel6(int x,int y,int z){
 
-            m_gridCallCount+=6;
+            //m_gridCallCount+=6;
             
-            if(grid.getState(x+1,y,z) == OUTSIDE) { mask.set(x+1,y,z,1); m_maskCallCount++;}           
-            if(grid.getState(x-1,y,z) == OUTSIDE) { mask.set(x-1,y,z,1); m_maskCallCount++;}
-            if(grid.getState(x,y+1,z) == OUTSIDE) { mask.set(x,y+1,z,1); m_maskCallCount++;}
-            if(grid.getState(x,y-1,z) == OUTSIDE) { mask.set(x,y-1,z,1); m_maskCallCount++;}
-            if(grid.getState(x,y,z+1) == OUTSIDE) { mask.set(x,y,z+1,1); m_maskCallCount++;}
-            if(grid.getState(x,y,z-1) == OUTSIDE) { mask.set(x,y,z-1,1); m_maskCallCount++;}
+            if(grid.getState(x+1,y,z) == OUTSIDE) { mask.set(x+1,y,z,1); }           
+            if(grid.getState(x-1,y,z) == OUTSIDE) { mask.set(x-1,y,z,1); }
+            if(grid.getState(x,y+1,z) == OUTSIDE) { mask.set(x,y+1,z,1); }
+            if(grid.getState(x,y-1,z) == OUTSIDE) { mask.set(x,y-1,z,1); }
+            if(grid.getState(x,y,z+1) == OUTSIDE) { mask.set(x,y,z+1,1); }
+            if(grid.getState(x,y,z-1) == OUTSIDE) { mask.set(x,y,z-1,1); }
 
         }        
 
