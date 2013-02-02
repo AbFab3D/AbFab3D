@@ -514,19 +514,13 @@ public class ConnectedComponent implements Comparable, Region {
     }
 
     public int compareTo(Object o){
-        long v1 = this.getVolume();
-        long v2 = ((ConnectedComponent)o).getVolume();
-
-        if (v1 < v2) {
-            return -1;
-        } else if (v1 == v2) {
-            return 0;
-        } else {
-            return 1;
-        }
+        
+        ConnectedComponent r = (ConnectedComponent)o;
+        
+        return (int)(r.getVolume() - getVolume());
         
     }
-    
+
     public void traverse(RegionTraverser t){
         
         int len3 = m_component.size()/3;
@@ -581,5 +575,6 @@ public class ConnectedComponent implements Comparable, Region {
 
         return false;
     }
+
 
 }

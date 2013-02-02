@@ -12,9 +12,6 @@
 
 package abfab3d.grid;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.LinkedList;
 import java.util.ArrayDeque;
@@ -450,107 +447,6 @@ public class RegionCounter {
         return largeComp;
     }
 
-    public static List<int[]> getComponentBoundsByVolume(AttributeGrid grid, int material, int maxCount, int minSize, boolean collectData) {
-    	return getComponentBoundsByVolume(grid, material, maxCount, minSize, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
-    }
-    
-    /**
-     * Get bounds of component regions by material and sorted by largest first.
-     * 
-     * @param grid The grid
-     * @param material The material 
-     * @param maxCount The max number of components to get
-     * @param collectData Whether to get the components
-     * @param algorithm The algorithm to use
-     * @return
-     */
-    public static List<int[]> getComponentBoundsByVolume(AttributeGrid grid, int material, int maxCount, 
-    		int minSize, boolean collectData, int algorithm) {
-       
-        Vector<ConnectedComponent> components = findComponents(grid, material);
-        
-        Collections.sort(components);
-        
-        ArrayList<int[]> boundsList = new ArrayList<int[]>();
-        
-        int[] min = new int[3];
-        int[] max = new int[3];
-        
-        int compSize = components.size();
-        int compCount = maxCount >= compSize ? compSize : maxCount;
-        int lastCompIndex = maxCount >= compSize ? 0 : compSize - compCount;
-        
-        for (int i=compSize-1; i>=lastCompIndex; i--) {
-        	if (minSize > 0 && components.get(i).getVolume() < minSize)
-        		break;
-        	
-        	components.get(i).getExtents(min, max);
-//        	System.out.println("==> mat min: " + java.util.Arrays.toString(min));
-//        	System.out.println("==> mat max: " + java.util.Arrays.toString(max));
-//        	System.out.println("==> mat vol: " + components.get(i).getVolume());
-        	boundsList.add(new int[] {min[0], min[1], min[2], max[0], max[1], max[2]});
-        }
-        
-        return boundsList;
-/*
-        if (maxCount > components.size()) {
-        	return components;
-        } else {
-        	Vector<ConnectedComponent> largest = new Vector<ConnectedComponent>();
-        	
-        	for (int i=0; i<maxCount; i++) {
-        		largest.add(components.get(i));
-        	}
-        	
-        	return largest;
-        }
-*/
-    }
-    
-    public static List<int[]> getComponentBoundsByVolume(Grid grid, byte state, int maxCount, int minSize, boolean collectData) {
-    	return getComponentBoundsByVolume(grid, state, maxCount, minSize, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
-    }
-    
-    /**
-     * Get bounds of component regions by state and sorted by largest first.
-     * 
-     * @param grid The grid
-     * @param material The state 
-     * @param maxCount The max number of components to get
-     * @param collectData Whether to get the components
-     * @param algorithm The algorithm to use
-     * @return
-     */
-    public static List<int[]> getComponentBoundsByVolume(Grid grid, byte state, int maxCount,
-    		int minSize, boolean collectData, int algorithm) {
-       
-    	Vector<ConnectedComponentState> components = findComponents(grid, state);
-        
-    	Collections.sort(components);
-        
-        ArrayList<int[]> boundsList = new ArrayList<int[]>();
-        
-        int[] min = new int[3];
-        int[] max = new int[3];
-        
-        int compSize = components.size();
-        int compCount = maxCount >= compSize ? compSize : maxCount;
-        int lastCompIndex = maxCount >= compSize ? 0 : compSize - compCount;
-        
-        for (int i=compSize-1; i>=lastCompIndex; i--) {
-        	if (minSize > 0 && components.get(i).getVolume() < minSize)
-        		break;
-        	
-        	components.get(i).getExtents(min, max);
-//        	System.out.println("==> state min: " + java.util.Arrays.toString(min));
-//        	System.out.println("==> state max: " + java.util.Arrays.toString(max));
-//        	System.out.println("==> state vol: " + components.get(i).getVolume());
-        	boundsList.add(new int[] {min[0], min[1], min[2], max[0], max[1], max[2]});
-        }
-        
-        return boundsList;
-    }
-    
     static class ComponentsFinder implements ClassTraverser {
 
         AttributeGrid grid;

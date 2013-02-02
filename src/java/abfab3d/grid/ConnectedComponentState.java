@@ -508,16 +508,10 @@ public class ConnectedComponentState implements Comparable, Region {
     }
 
     public int compareTo(Object o){
-        long v1 = this.getVolume();
-        long v2 = ((ConnectedComponentState)o).getVolume();
-
-        if (v1 < v2) {
-            return -1;
-        } else if (v1 == v2) {
-            return 0;
-        } else {
-            return 1;
-        }
+        
+        ConnectedComponentState r = (ConnectedComponentState)o;
+        
+        return (int)(r.getVolume() - getVolume());
         
     }
 

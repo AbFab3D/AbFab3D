@@ -41,14 +41,13 @@ public class MeshExporter {
     public static void writeMesh(WingedEdgeTriangleMesh we, String filename, HashMap<String, Object> params) throws IOException {
         writeMesh(we,filename, -1, params);
     }
-    
-    /**
-    * Write a mesh to an X3D file
-    *
-    * @param we
-    * @param filename
-    * @throws IOException
-    */
+        /**
+        * Write a mesh to an X3D file
+        *
+        * @param we
+        * @param filename
+        * @throws IOException
+        */
     public static void writeMesh(WingedEdgeTriangleMesh we, String filename, int sigDigits, HashMap<String, Object> params) throws IOException {
 
         SAVExporter se = new SAVExporter();
@@ -227,37 +226,6 @@ public class MeshExporter {
         }
     }
 
-    /**
-     * Write a mesh to an X3D file
-     *
-     * @param we
-     * @param filename
-     * @throws IOException
-     */
-     public static void writeMesh(WingedEdgeTriangleMesh we, BinaryContentHandler writer,
-    		 HashMap<String, Object> params, boolean meshOnly) throws IOException {
-
-         if (!meshOnly) {
-             writer.startDocument("", "", "utf8", "#X3D", "V3.0", "");
-             writer.profileDecl("Immersive");
-             writer.startNode("NavigationInfo", null);
-             writer.startField("avatarSize");
-             writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
-             writer.endNode(); // NavigationInfo
-         }
-         
-         if (params == null) {
-             params = new HashMap<String, Object>();
-         }
-         
-         SAVExporter se = new SAVExporter();
-         se.outputX3D(we, params, writer, null);
-         
-         if (!meshOnly) {
-             writer.endDocument();
-         }
-     }
-     
     /**
      * Write a mesh to an X3D file
      *
