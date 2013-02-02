@@ -37,87 +37,40 @@ import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 
 /**
- * Tests the functionality of DilationShape Operation
+ * Tests the functionality of ErosinShape Operation
  *
  * @author Vladimir Bulatov
  * @version
  */
-public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
+public class TestErosionShape extends TestCase {//BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestDilationShape.class);
+        return new TestSuite(TestErosionShape.class);
     }
 
-    /**
-     * Test basic operation
-     */
-    public void testSingleVoxel() {
+    public void testBlockErosion() {
 
-        int size = 31;
+        int nx = 30, ny = 35, nz = 40;
+        int kmax = 4;
+        int offset = 10;
 
-        for(int k = 1; k < 10; k++){
+        for(int k = 1; k <= kmax; k++){
             
-            AttributeGrid grid = makeBlock(size, size, size, size/2);
-            
-            int voxelCount =  grid.findCount(0);
-            //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
-            DilationShape dil = new DilationShape();        
-            dil.setVoxelShape(VoxelShapeFactory.getCross(k));            
-            grid = dil.execute(grid);            
-            writeFile(grid, fmt("/tmp/dilationSingleVoxelDilated_%d.x3d", k));
-            
-            voxelCount =  grid.findCount(0);
-            printf("dilated grid volume: %d\n",voxelCount);
-            assertTrue("dilation of single voxel", voxelCount == (6*k + 1));
-
-        }
-    }
-
-
-    public void testCubeVoxel() {
-
-        int size = 30;
-
-        for(int k = 1; k < 10; k++){
-            
-            AttributeGrid grid = makeBlock(size, size, size, 10);
+            AttributeGrid grid = makeBlock(nx+2*offset, ny+2*offset, nz+2*offset, offset);
             
             int origVolume =  grid.findCount(0);
-            //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
-            DilationShape dil = new DilationShape();        
-            dil.setVoxelShape(VoxelShapeFactory.getCross(k));            
-            grid = dil.execute(grid);            
-            writeFile(grid, fmt("/tmp/dilationBlockDilated_%d.x3d", k));
-            
-            int dilatedVolume =  grid.findCount(0);
-
-            printf("orig volume: %d dilated volume: %d\n",origVolume, dilatedVolume);
-            assertTrue("volume of dilated block ", (dilatedVolume - origVolume) == k * 600);
-
-        }
-    }
-
-    public void testDilationBall() {
-
-        int size = 45;
-
-        for(int k = 1; k < 20; k++){
-            
-            AttributeGrid grid = makeBlock(size, size, size, 20);
-            
-            int origVolume =  grid.findCount(0);
-            DilationShape dil = new DilationShape();        
+            ErosionShape dil = new ErosionShape();        
             dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));            
             grid = dil.execute(grid);            
-            writeFile(grid, fmt("/tmp/dilationBlockDilated_%02d.x3d", k));
+            writeFile(grid, fmt("/tmp/erosionBlockEroded_%d.x3d", k));
             
-            int dilatedVolume =  grid.findCount(0);
-
-            printf("orig volume: %d dilated volume: %d\n",origVolume, dilatedVolume);
-            //assertTrue("volume of dilated block ", (dilatedVolume - origVolume) == k * 600);
+            int erodedVolume =  grid.findCount(0);
+            int exactVolume = (nx-2*k)*(ny-2*k)*(nz-2*k);
+            printf("orig volume: %d eroded volume: %d exactVolume: %d\n",origVolume, erodedVolume, exactVolume);
+            assertTrue("test of volume of eroded block ", (erodedVolume == exactVolume));
 
         }
     }
@@ -133,33 +86,30 @@ public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
         
         AttributeGrid grid = makeBlock(nx, ny, nz, dilationSize+1);
 
-        DilationShape dil = new DilationShape();        
-        dil.setVoxelShape(VoxelShapeFactory.getBall(dilationSize,0,0));            
+        ErosionShape op = new ErosionShape();        
+        op.setVoxelShape(VoxelShapeFactory.getBall(dilationSize,0,0));            
         long t0 = time();
-        grid = dil.execute(grid);            
-        printf("ball dilation time: %d ms\n", (time() - t0));
+        grid = op.execute(grid);            
+        printf("ball erosion time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationShape.x3d"));
-
         
         // test iterative dilation 
         grid = makeBlock(nx, ny, nz, dilationSize+1);
-        DilationMask dilm = new DilationMask(dilationSize);        
+        ErosionMask opm = new ErosionMask(dilationSize);        
         t0 = time();
-        dilm.execute(grid);
-        printf("iterative dilation time: %d ms\n", (time() - t0));
+        opm.execute(grid);
+        printf("iterative erosion time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationIterative.x3d"));
-        
-        /*
+                
         // test old sphere dilation
         grid = makeBlock(nx, ny, nz, dilationSize+1);
-        DilationMask dils = new DilationMask(dilationSize,0);        
+        ErosionMask ops = new ErosionMask(dilationSize,0);        
         t0 = time();
-        dils.execute(grid);
-        printf("old spherical dilation time: %d ms\n", (time() - t0));
-        writeFile(grid, fmt("/tmp/dilationSphere.x3d"));
-        */
+        ops.execute(grid);
+        printf("old spherical erosion time: %d ms\n", (time() - t0));
+        //writeFile(grid, fmt("/tmp/dilationSphere.x3d"));
+        
     }
-
 
     private AttributeGrid makeBlock(int nx, int ny, int nz, int offset) {
         
@@ -212,9 +162,6 @@ public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
 
     public static void main(String[] args) {
 
-        TestDilationShape ec = new TestDilationShape();
-        
-        //ec.dilateCube();
 
     }
 }
