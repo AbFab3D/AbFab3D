@@ -30,10 +30,10 @@ public class EdgeCollapseResult {
         
     
     //edges removed during collapse 
-    public ArrayList<Edge> removedEdges = new ArrayList<Edge>(); 
+    public int[] removedEdges = new int[] {-1,-1,-1};
 
     // new vertex created during collapse 
-    public Vertex insertedVertex;  
+    public int insertedVertex;
 
     // removed faces count
     public int faceCount;  
@@ -46,4 +46,14 @@ public class EdgeCollapseResult {
     
     public int returnCode;
 
+    public void reset() {
+        removedEdges[0] = -1;
+        removedEdges[1] = -1;
+        removedEdges[2] = -1;
+        insertedVertex = -1;
+        edgeCount = 0;
+        faceCount = 0;
+        vertexCount = 0;
+
+    }
 }

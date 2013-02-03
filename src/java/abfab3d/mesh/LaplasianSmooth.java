@@ -11,17 +11,14 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
+import abfab3d.util.StructMixedData;
 
-
-import static abfab3d.util.Output.printf; 
+import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt; 
 import static java.lang.System.currentTimeMillis; 
 
 /**
-   performs smooting operation on WIngedEdgeTriangeMesh
+   performs smoothing operation on WingedEdgeTriangeMesh
 
    
    @author Vladimir Bulatov
@@ -32,13 +29,16 @@ public class LaplasianSmooth {
     static boolean DEBUG = true;
     static boolean m_printStat = true;
 
-    // mesjh we are working on 
+    // mesh we are working on
     WingedEdgeTriangleMesh m_mesh;
 
     // maximal error allowed during smooth
     double m_maxError;
     // relative weight of central vertex contribution to new vertex position 
     double m_centerWeight = 1;
+
+    private StructMixedData points = null;
+    private int sum;    // scratch vertex for sum
 
     /**
        the instance of the LaplasianSmooth can be reused for several meshes  
@@ -70,67 +70,68 @@ public class LaplasianSmooth {
 
         m_mesh = mesh;
 
-        Vertex v = m_mesh.getVertices();
-        // init new vertex storage 
-        while(v != null){
-            v.setUserData(new Point3d());            
-            v = v.getNext();
+        points = new StructMixedData(StructTuple3d.DEFINITION,mesh.getVertexCount() + 1);
+
+        StructMixedData vertices = m_mesh.getVertices();
+
+        // Fast magic, could break if Vertex adds double values
+        if (Vertex.DEFINITION.getDoubleDataSize() != 3) {
+            throw new IllegalArgumentException("Vertex no longer 3 values, assumption broken");
         }
+
+        // Initialize points to current vertex values with a fast arraycopy
+        System.arraycopy(vertices.getDoubleData(), 0, points.getDoubleData(),0, vertices.getDoubleData().length);
+
+        // Add scratch point.  TODO: This is dodgey
+        sum = vertices.getDoubleData().length / 3;
 
         for(int i =0; i < iterationsCount; i++){
             doIteration();
         }
-
-        // clear new vertex storage 
-        v = m_mesh.getVertices();
-        while(v != null){
-            v.setUserData(null);            
-            v = v.getNext();
-        }
     }
-    
+
     protected void doIteration(){
 
-        Vertex v = m_mesh.getVertices();
-        
-        Point3d sum = new Point3d();
+        StructMixedData vertices = m_mesh.getVertices();
+        StructMixedData hedges = m_mesh.getHalfEdges();
 
-        while(v != null){
-            
-            HalfEdge start = v.getLink();
+        int v = m_mesh.getStartVertex();
 
-            HalfEdge he = start;
-            Point3d p0; 
-            sum.set(start.getStart().getPoint());
-            sum.scale(m_centerWeight);
+        StructTuple3d.setPoint(0,0,0,points,sum);
+        while(v != -1){
             
+            int start = Vertex.getLink(vertices, v);
+
+            int he = start;
+
+            int he_start = HalfEdge.getStart(hedges,he);
+            StructTuple3d.setPoint(points,he_start,points,sum);
+
+            StructTuple3d.scale(m_centerWeight,points,sum);
+
             int count = 0;
             do {
-                p0 = he.getEnd().getPoint();
-                sum.add(p0);                
+                int he_end = HalfEdge.getEnd(hedges,he);
+
+                StructTuple3d.add(vertices,he_end,points,sum);
                 count++;
-                he = he.getTwin().getNext(); 
+
+                int twin = HalfEdge.getTwin(hedges,he);
+
+                he = HalfEdge.getNext(hedges,twin);
 
             } while(he != start);
-            
-            sum.scale(1./(m_centerWeight + count));
-            
-            ((Point3d)v.getUserData()).set(sum);
 
-            v = v.getNext();
+            StructTuple3d.scale(1./(m_centerWeight + count), points, sum);
+
+            StructTuple3d.setPoint(points,sum, points, v);
+
+            v = Vertex.getNext(vertices, v);
         }
 
-        // assign calculated values to vertices 
-        v = m_mesh.getVertices();
-        while(v != null){
-            
-            v.getPoint().set((Point3d)v.getUserData());
-
-            v = v.getNext();
-        }
-
-        
+        // Copy point values back using fast array copy
+        System.arraycopy(points.getDoubleData(),0,vertices.getDoubleData(), 0,  vertices.getDoubleData().length);
     }
-    
+
 } // LaplasianSmooth
 

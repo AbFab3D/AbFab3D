@@ -11,22 +11,17 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-import java.util.Random;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.ArrayList;
-
+import abfab3d.util.StructMixedData;
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector4d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
+import java.util.Random;
 
-
-import static abfab3d.util.Output.printf; 
-import static abfab3d.util.Output.fmt; 
-import static java.lang.System.currentTimeMillis; 
+import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
+import static java.lang.System.currentTimeMillis;
 
 /**
    decimator to reduce face count of triangle mesh    
@@ -46,56 +41,59 @@ public class MeshDecimator {
 
     static boolean DEBUG = false;
     static boolean m_printStat = true;
-    static final double MM = 1000.; // mm per meter 
+    static final double MM = 1000.; // mm per meter
 
     // mesh we are working on
     TriangleMesh m_mesh;
 
-    // array of all edges 
+    // array of all edges
     EdgeArray m_edgeArray;
 
-    // cadidate edges to check for collapse 
+    // cadidate edges to check for collapse
     EdgeData m_candidates[];
 
-    // result of individual edge collapse 
+    // result of individual edge collapse
     EdgeCollapseResult m_ecr;
     // parameters of individual edge collapse
-    EdgeCollapseParams m_ecp; 
+    EdgeCollapseParams m_ecp;
 
-    // current count of faces in mesh 
+    // current count of faces in mesh
     int m_faceCount;
     // count of collapseEdge() calls
     int m_collapseCount;
-    // count of surface pinch prevented 
+    // count of surface pinch prevented
     int m_surfacePinchCount;
-    // count of face flip prevented 
+    // count of face flip prevented
     int m_faceFlipCount;
-    // count of long edge creation prevented 
+    // count of long edge creation prevented
     int m_longEdgeCount;
 
-    double m_maxEdgeLength2=0.; // square of maximal allowed edge length (if positive) 
+    int m_ignoreCount;
+
+    double m_maxEdgeLength2=0.; // square of maximal allowed edge length (if positive)
     double m_maxError=0.;
-    // maximal error allowed during collapse 
+    // maximal error allowed during collapse
     double m_maxCollapseError = Double.MAX_VALUE;
 
-    static final int RANDOM_CANDIDATES_COUNT = 10; 
+    static final int RANDOM_CANDIDATES_COUNT = 10;
 
     protected EdgeTester m_edgeTester = null;
-    
-    
+
+    StructMixedData quadrics;
+
+
     //
-    // object, which calculates errors and new vertex placement 
+    // object, which calculates errors and new vertex placement
     //
     ErrorFunction m_errorFunction;
 
-
     /**
-       interface to calculate erors and vertex placement 
+       interface to calculate erors and vertex placement
      */
     interface ErrorFunction {
 
         /**
-           one time initialization with given mesh 
+           one time initialization with given mesh
          */
         public void init(TriangleMesh mesh);
 
@@ -104,20 +102,16 @@ public class MeshDecimator {
         */
         public void calculateError(EdgeData ed);
         /**
-         calculate error and place resulkt in ed.errorValue
-         */
-        public void calculateErrorDebug(EdgeData ed);
-        /**
-           calculate new vertex location and place result in ed.point  
+           calculate new vertex location and place result in ed.point
         */
         public void calculateVertex(EdgeData ed);
 
-        
+
 
     }
 
     /**
-       the instance of the MeshDecimator can be reused for several meshes  
+       the instance of the MeshDecimator can be reused for several meshes
      */
     public MeshDecimator(){
         
@@ -150,9 +144,10 @@ public class MeshDecimator {
        
      */
     public int processMesh(TriangleMesh mesh, int targetFaceCount){
-                
+        quadrics = new StructMixedData(new Quadric(), mesh.getVertexCount() + RANDOM_CANDIDATES_COUNT);
+
         printf("MeshDecimator.processMesh(%s, %d)\n", mesh, targetFaceCount);
-                
+
         this.m_mesh = mesh;
                         
         m_faceCount = m_mesh.getFaceCount();
@@ -160,10 +155,13 @@ public class MeshDecimator {
         m_surfacePinchCount = 0;
         m_faceFlipCount = 0;
         m_longEdgeCount = 0;
+        m_ignoreCount = 0;
 
 
         long ts = currentTimeMillis();
-        doInitialization();        
+        doInitialization();
+
+
         long ts1 = currentTimeMillis();
         printf("MeshDecimator.doInitialization() %d ms\n", (ts1-ts));
         ts = ts1;
@@ -195,11 +193,9 @@ public class MeshDecimator {
                 f0 = f1;
                 time0 = t1;
             }
-        }
-
+        } 
 
 System.out.println("***Iterations: " + count);
-
         ts1 = currentTimeMillis();
         printf("MeshDecimator.doIterations() %d ms\n", (ts1-ts));
         ts = ts1;
@@ -212,14 +208,21 @@ System.out.println("***Iterations: " + count);
             printf("face flip count: %d\n", m_faceFlipCount);
             printf("long edge count: %d\n", m_longEdgeCount);
             printf("edges collapsed: %d\n", m_collapseCount);
+            printf("Ignored Count: %d\n", m_ignoreCount);
             printf("MAX_COLLAPSE_ERROR: %10.5e\n", m_maxError);
         }
+
+        // Release variables for faster garbage collection
+
+        m_errorFunction = null;
+        m_mesh = null;
+
         return actuallFaceCount;
 
     }
 
     /**
-       init vertices with initial quadric s
+       init vertices with initial quadrics
      */
     protected void doInitialization(){
 
@@ -232,13 +235,13 @@ System.out.println("***Iterations: " + count);
         m_candidates = new EdgeData[RANDOM_CANDIDATES_COUNT];
         // 
         //m_errorFunction = new ErrorMidEdge();
-        m_errorFunction = new ErrorQuadric();
+        m_errorFunction = new ErrorQuadric(quadrics);
 
         m_collapseCount = 0;
 
 
         for(int i = 0; i < m_candidates.length; i++){
-            m_candidates[i] = new EdgeData();
+            m_candidates[i] = new EdgeData(quadrics);
         }
          
         int ecount = m_mesh.getEdgeCount();
@@ -248,22 +251,23 @@ System.out.println("***Iterations: " + count);
         m_edgeArray = new EdgeArray(ecount);
         
         // fill edges array 
-        Edge e = m_mesh.getEdges();        
-        int count = 0;        
-        while(e != null){            
-            e.setUserData(new Integer(count));
+        StructMixedData edges = m_mesh.getEdges();
+        int e = m_mesh.getStartEdge();
+        int count = 0;
+
+        // TODO: I don't think edgeArray is needed now
+        while(e != -1){
+            Edge.setUserData(count,edges, e);
             m_edgeArray.set(count++, e);
-            e = e.getNext();
-        }      
+
+            e = Edge.getNext(edges, e);
+        }
 
         m_errorFunction.init(m_mesh);
         
         printf("edgesArray done\n");
     }
 
-
-
-    int ignoreCount = 0;
 
     /**
        do one iteration 
@@ -281,20 +285,21 @@ System.out.println("***Iterations: " + count);
 
         double minError = Double.MAX_VALUE;
 
-        // calculate errorFunction for
         final int len = m_candidates.length;
+        StructMixedData edges = m_mesh.getEdges();
 
+        // calculate errorFunction for
         for(int i =0; i < len; i++){
 
             EdgeData ed = m_candidates[i];
             if(m_edgeTester != null){
-                if(!m_edgeTester.canCollapse(ed.edge)){
+                if(!m_edgeTester.canCollapse(edges,ed.edge)){
                     continue;
                 }
             }
             m_errorFunction.calculateError(ed);
 
-            //if(DEBUG)printf("candidate: %d, error: %10.5f\n", ((Integer)ed.edge.getUserData()).intValue(), ed.errorValue );
+            if(DEBUG)printf("candidate: %d, error: %10.5f\n", Edge.getUserData(edges,ed.edge), ed.errorValue );
             if(ed.errorValue < minError){               
                 bestCandidate = ed;
                 minError = ed.errorValue;
@@ -302,7 +307,7 @@ System.out.println("***Iterations: " + count);
         }
 
         if(bestCandidate == null ||
-           bestCandidate.edge.getHe() == null) {
+           Edge.getHe(edges,bestCandidate.edge) == -1) {
             printf("!!!ERROR!!! no edge candidate was found\n");
             //Thread.currenThread().dumpStack();
             // should not happens 
@@ -319,29 +324,26 @@ System.out.println("***Iterations: " + count);
                 m_errorFunction.calculateErrorDebug(ed);
 
             }
-  */
-            ignoreCount++;
+ */
+            m_ignoreCount++;
+
             return false;
-            
+
         }
 
         m_errorFunction.calculateVertex(ed);
 
-        if(DEBUG){                
-            printf("remove edge: %d error: %10.5f\n", ((Integer)bestCandidate.edge.getUserData()).intValue(), ed.errorValue );
+        if(DEBUG){
+            printf("remove edge: %d error: %10.5f\n", Edge.getUserData(edges, bestCandidate.edge), ed.errorValue );
             //printf("v0: %s\n", formatPoint(ed.edge.getHe().getStart().getPoint()));
             //printf("v0: %s\n", formatPoint(ed.edge.getHe().getEnd().getPoint()));
             //printf("new vertex: %s\n", formatPoint(ed.point));
         }
 
         
-        // do collapse 
-        m_ecr.removedEdges.clear();
-        m_ecr.insertedVertex = null;
-        m_ecr.edgeCount = 0;
-        m_ecr.faceCount = 0;
-        m_ecr.vertexCount = 0;
-        
+        // do collapse
+        m_ecr.reset();
+
         m_ecp.maxEdgeLength2 = m_maxEdgeLength2;
 
         if(DEBUG) printf("collapseCount: %d, edge before: %d\n", m_collapseCount, m_mesh.getEdgeCount());    
@@ -370,20 +372,21 @@ System.out.println("***Iterations: " + count);
         if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
         m_faceCount -= m_ecr.faceCount;  //
         if(DEBUG) printf("moved vertex: %s\n", m_ecr.insertedVertex);  
-        // asign new quadric to moved vertex 
-        ((Quadric)(m_ecr.insertedVertex.getUserData())).set(ed.vertexUserData);
-        //m_ecr.insertedVertex.setUserData(ed.vertexUserData.clone());
+        // assign new quadric to moved vertex
+        int srcIdx = ed.vertexUserData;
+        int destIdx = Vertex.getUserData(m_mesh.getVertices(), m_ecr.insertedVertex);
+        Quadric.set(quadrics, srcIdx, quadrics, destIdx);
 
-        ArrayList<Edge> edges = m_ecr.removedEdges;
+        int[] edges_removed = m_ecr.removedEdges;
 
-        m_collapseCount += edges.size();
+        m_collapseCount += edges_removed.length;
 
         if(DEBUG) printf("removed edges: ");
-        for(Edge edge : edges) {
-            Integer index = (Integer)edge.getUserData();
-            if(DEBUG) printf(" %d", index.intValue());
+        for(int i=0; i < edges_removed.length; i++) {
+            int index = Edge.getUserData(edges,edges_removed[i]);
+            if(DEBUG) printf(" %d", index);
             // remove edge from array 
-            m_edgeArray.set(index.intValue(), null);                
+            m_edgeArray.set(index, -1);
         }
 
         if(ed.errorValue > m_maxError){
@@ -410,26 +413,6 @@ System.out.println("***Iterations: " + count);
 
     }
 
-    /**       
-       
-     */
-    static double getLength(Edge e){
-
-        return getLength(e.getHe());
-    }
-    
-    /**
-       
-     */
-    static double getLength(HalfEdge he){
-        
-        Vertex v0 = he.getStart();
-        Vertex v1 = he.getEnd();
-        
-        return v0.getPoint().distance(v1.getPoint());
-        
-    }
-
     /**
 
        array of edges 
@@ -440,7 +423,7 @@ System.out.println("***Iterations: " + count);
      */
     public static class EdgeArray {
         
-        Edge array[];
+        int array[];
         int asize = 0; //
         int count = 0; // count of non nul elements 
 
@@ -452,38 +435,41 @@ System.out.println("***Iterations: " + count);
         public EdgeArray(int _asize){
 
             asize = _asize;
-            array = new Edge[asize];
+            array = new int[asize];
+
+            // TODO: a bit more expensive null handling, rethink to 0 as null?
+            java.util.Arrays.fill(array, -1);
             count = 0;
             
         }
         
-        public Edge get(int i){
+        public int get(int i){
             return array[i];
         }
 
-        public void set(int i, Edge value){
+        public void set(int i, int value){
 
-            Object oldValue = array[i];
+            int oldValue = array[i];
             array[i] = value;
 
             //printf("edgesArray.set(%d, %s)\n", i, value);
 
-            if(value == null && oldValue != null){
+            if(value == -1 && oldValue != -1){
                 count--;
-            } else if(value != null && oldValue == null){
+            } else if(value != -1 && oldValue == -1){
                 count++;
             }
         }
 
         public void getRandomEdge(EdgeData ed){
 
-            ed.edge = null;
+            ed.edge = -1;
 
             int count = 100;
             
             while(count-- > 0){
                 int i = m_rnd.nextInt(asize);            
-                if(array[i] != null){
+                if(array[i] != -1){
                     ed.edge = array[i];
                     ed.index = i;
 
@@ -500,26 +486,20 @@ System.out.println("***Iterations: " + count);
 
     }
     
-    static void exportEdge(String fpath, EdgeData ed){
-        HashSet vertices = new HashSet();
-        HalfEdge he = ed.edge.getHe();
-        vertices.add(he.getStart());
-        vertices.add(he.getEnd());
-
-        //VertexExporter.exportVertexSTL(vertices, fpath);
-
-    }
-    
     /**
        class to keep info about an Edge 
     */    
     static class EdgeData {
         
-        Edge edge; // reference to Edge (to get to Vertices etc.) 
+        int edge; // reference to Edge (to get to Vertices etc.)
         int index; // index in array of all edges for random access 
         double errorValue; // error calculated for this edge 
-        Point3d point; // place for candidate vertex                 
-        Quadric vertexUserData = new Quadric(); // user data for new vertex 
+        Point3d point; // place for candidate vertex
+        int vertexUserData;
+
+        public EdgeData(StructMixedData quadrics) {
+            vertexUserData = Quadric.create(quadrics);
+        }
     }
 
 
@@ -527,32 +507,32 @@ System.out.println("***Iterations: " + count);
        mid edge vertex placement 
      */
     static class ErrorMidEdge implements ErrorFunction {
-        
+        private TriangleMesh m_mesh;
+        private Point3d p0 = new Point3d();
+        private Point3d p1 = new Point3d();
         
         public void init(TriangleMesh mesh){
-            // do nothing 
-        }
-
-        public void calculateErrorDebug(EdgeData ed){
+            // do nothing
+            m_mesh = mesh;
         }
 
         public void calculateError(EdgeData ed){
             
-            Edge edge = ed.edge;
-            HalfEdge he = edge.getHe();
-            if(he == null){
+            int edge = ed.edge;
+            int he = Edge.getHe(m_mesh.getEdges(), edge);
+            if(he == -1){
                 printf("error: he null in calculateErrorFunction()\n");
-                printf("bad edge index: %s\n", edge.getUserData());            
+                printf("bad edge index: %s\n", Edge.getUserData(m_mesh.getEdges(), edge));
                 //Thread.currentThread().dumpStack();
                 ed.errorValue = Double.MAX_VALUE;
                 return;
             }
             
-            Vertex v0 = he.getStart();
-            Vertex v1 = he.getEnd();
-            Point3d p0 = v0.getPoint();
-            Point3d p1 = v1.getPoint();
-            
+            int v0 = HalfEdge.getStart(m_mesh.getHalfEdges(), he);
+            int v1 = HalfEdge.getEnd(m_mesh.getHalfEdges(), he);
+            Vertex.getPoint(m_mesh.getVertices(), v0, p0);
+            Vertex.getPoint(m_mesh.getVertices(), v1, p1);
+
             ed.errorValue = p0.distanceSquared(p1);
             
             return;
@@ -565,16 +545,19 @@ System.out.println("***Iterations: " + count);
         public void calculateVertex(EdgeData ed){
 
             
-            Edge edge = ed.edge;
-            HalfEdge he = edge.getHe();
+            int edge = ed.edge;
+            int he = Edge.getHe(m_mesh.getEdges(), edge);
 
             if(ed.point == null)
                 ed.point = new Point3d();
-            
+
             Point3d point = ed.point; 
-            
-            point.set(he.getStart().getPoint());
-            point.add(he.getEnd().getPoint());
+
+            int start = HalfEdge.getStart(m_mesh.getHalfEdges(), he);
+            int end = HalfEdge.getEnd(m_mesh.getHalfEdges(), he);
+            Vertex.getPoint(m_mesh.getVertices(), start, point);
+            Vertex.getPoint(m_mesh.getVertices(), end, p1);
+            point.add(p1);
             point.scale(0.5);
             
         }            
@@ -589,9 +572,10 @@ System.out.println("***Iterations: " + count);
        Quadric error calculation based on ideas of M.Garland PhD thesis (1999) 
      */
     static class ErrorQuadric implements ErrorFunction {
-        
-        Quadric  // scratch quadric for calculations 
-            m_q0 = new Quadric();
+
+        StructMixedData sq = new StructMixedData(new Quadric(), 1);
+        int  // scratch quadric for calculations
+            m_q0 = Quadric.create(sq);
 
         double m_midEdgeQuadricWeight = 1.e-3; // weight of quadric centered at mid edge 
         double m_edgeLengthWeight = 1.e-2;
@@ -602,23 +586,35 @@ System.out.println("***Iterations: " + count);
         private Vector3d sv0 = new Vector3d();
         private Vector3d sv1 = new Vector3d();
         private Vector3d sv2 = new Vector3d();
+        private Point3d sp0 = new Point3d();
+        private Point3d sp1 = new Point3d();
         private Vector3d sn = new Vector3d();
 
         private double[] result = new double[9];
         private int[] row_perm = new int[3];
         private double[] row_scale = new double[3];
         private double[] tmp = new double[9];
+        StructMixedData quadrics;
+        private TriangleMesh m_mesh;
+
+        public ErrorQuadric(StructMixedData quadrics) {
+            this.quadrics = quadrics;
+        }
 
         public void init(TriangleMesh mesh){
+            m_mesh = mesh;
+
             Vector4d plane = new Vector4d();
 
             //
             // init vertices data 
             //
-            Vertex v = mesh.getVertices();
-            while(v != null){
-                v.setUserData(makeVertexQuadric(v,plane));
-                v = v.getNext();
+            int v = mesh.getStartVertex();
+            StructMixedData vertices = mesh.getVertices();
+
+            while(v != -1){
+                Vertex.setUserData(makeVertexQuadric(v,plane), vertices, v);
+                v = Vertex.getNext(vertices, v);
             }
         }
 
@@ -627,33 +623,36 @@ System.out.println("***Iterations: " + count);
          */
         public void calculateError(EdgeData ed){
             
-            Edge edge = ed.edge;
-            HalfEdge he = edge.getHe();
-            if(he == null){
+            int edge = ed.edge;
+            int he = Edge.getHe(m_mesh.getEdges(), edge);
+            if(he == -1){
                 printf("error: he null in calculateError()\n");
-                printf("bad edge index: %s\n", edge.getUserData());            
+                printf("bad edge index: %s\n", Edge.getUserData(m_mesh.getEdges(), edge));
                 ed.errorValue = Double.MAX_VALUE;                
                 return;
             }
-            Vertex 
-                v0 = he.getStart(),
-                v1 = he.getEnd();
+            int
+                v0 = HalfEdge.getStart(m_mesh.getHalfEdges(), he),
+                v1 = HalfEdge.getEnd(m_mesh.getHalfEdges(), he);
             
-            Quadric q0 = (Quadric)v0.getUserData();
-            Quadric q1 = (Quadric)v1.getUserData();
-            
-            if(Double.isNaN(q0.m00) || Double.isNaN(q1.m00)){
-                //printf("bad quadric: \n");
-                // printf("   q0: %s\n", q0);
-                //printf("   q1: %s\n", q1);
+            int q0 = Vertex.getUserData(m_mesh.getVertices(),v0);
+            int q1 = Vertex.getUserData(m_mesh.getVertices(),v1);
+
+            //System.out.println("q0: " + q0 + " q1: " + q1);
+            if(Double.isNaN(Quadric.getM00(quadrics,q0)) || Double.isNaN(Quadric.getM00(quadrics,q1))){
+                printf("bad quadric: \n");
+                 printf("   q0: %s\n", q0);
+                printf("   q1: %s\n", q1);
                 ed.errorValue = Double.MAX_VALUE;
-                ed.vertexUserData = new Quadric(q0);
-                return;                
+                Quadric.set(quadrics, q0, quadrics, ed.vertexUserData);
+                return;
             }
-            
-            Quadric.getMidEdgeQuadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight, m_q0);
-            m_q0.addSet(q0);
-            m_q0.addSet(q1);
+
+            Vertex.getPoint(m_mesh.getVertices(), v0, sp0);
+            Vertex.getPoint(m_mesh.getVertices(), v1, sp1);
+            Quadric.getMidEdgeQuadric(sp0, sp1, m_midEdgeQuadricWeight, sq, m_q0);
+            Quadric.addSet(quadrics,q0, sq, m_q0);
+            Quadric.addSet(quadrics,q1, sq, m_q0);
 
             //Quadric midEdge = new Quadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight);
             //m_q0.addSet(midEdge);
@@ -665,15 +664,15 @@ System.out.println("***Iterations: " + count);
                 ed.point = new Point3d();
 
             try {
-                m_q0.getMinimum(ed.point,sm3d, result, row_perm, row_scale, tmp);
-                double quadricError = m_quadricWeight * m_q0.evaluate(ed.point);
+                Quadric.getMinimum(sq, m_q0, ed.point,sm3d, result, row_perm, row_scale, tmp);
 
-                double edgeError = m_edgeLengthWeight * v0.getPoint().distanceSquared(v1.getPoint());
+                double quadricError = m_quadricWeight * Quadric.evaluate(ed.point,sq,m_q0);
+                double edgeError = m_edgeLengthWeight * sp0.distanceSquared(sp1);
 
                 ed.errorValue = quadricError + edgeError;
 
-                ed.vertexUserData.set(m_q0);
-                
+                int destIdx = ed.vertexUserData;
+                Quadric.set(sq,m_q0,quadrics,destIdx);
             } catch (Exception e){
 
                 printf("Quadric inversion exception\n");
@@ -682,81 +681,11 @@ System.out.println("***Iterations: " + count);
                 printf("m_q0: %s\n", m_q0);
                 //printf("midedge: %s\n", midEdge);
                 ed.errorValue = Double.MAX_VALUE;
-                ed.vertexUserData = new Quadric(q0);
-                
+                Quadric.set(quadrics, q0, quadrics, ed.vertexUserData);
             }
 
             return;
             
-        }
-
-        public void calculateErrorDebug(EdgeData ed){
-
-            Edge edge = ed.edge;
-            HalfEdge he = edge.getHe();
-            if(he == null){
-                printf("error: he null in calculateError()\n");
-                printf("bad edge index: %s\n", edge.getUserData());
-                ed.errorValue = Double.MAX_VALUE;
-                return;
-            }
-            Vertex
-                    v0 = he.getStart(),
-                    v1 = he.getEnd();
-
-            Quadric q0 = (Quadric)v0.getUserData();
-            Quadric q1 = (Quadric)v1.getUserData();
-
-            System.out.println("Q0: " + q0);
-            System.out.println("Q1: " + q1);
-            if(Double.isNaN(q0.m00) || Double.isNaN(q1.m00)){
-                //printf("bad quadric: \n");
-                // printf("   q0: %s\n", q0);
-                //printf("   q1: %s\n", q1);
-                ed.errorValue = Double.MAX_VALUE;
-                ed.vertexUserData = new Quadric(q0);
-                return;
-            }
-
-            Quadric.getMidEdgeQuadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight, m_q0);
-            m_q0.addSet(q0);
-            m_q0.addSet(q1);
-            System.out.println("midEdge: " + m_q0);
-
-            //Quadric midEdge = new Quadric(v0.getPoint(), v1.getPoint(), m_midEdgeQuadricWeight);
-            //m_q0.addSet(midEdge);
-
-            // add small quadric centered at mid edge
-            //m_q.add(q1);
-
-            if(ed.point == null)
-                ed.point = new Point3d();
-
-            try {
-                m_q0.getMinimum(ed.point,sm3d, result, row_perm, row_scale, tmp);
-                double quadricError = m_quadricWeight * m_q0.evaluate(ed.point);
-                System.out.println("error: " + quadricError);
-
-                double edgeError = m_edgeLengthWeight * v0.getPoint().distanceSquared(v1.getPoint());
-
-                ed.errorValue = quadricError + edgeError;
-
-                ed.vertexUserData.set(m_q0);
-
-            } catch (Exception e){
-
-                printf("Quadric inversion exception\n");
-                printf("Q0: %s\n", q0);
-                printf("Q1: %s\n", q1);
-                printf("m_q0: %s\n", m_q0);
-                //printf("midedge: %s\n", midEdge);
-                ed.errorValue = Double.MAX_VALUE;
-                ed.vertexUserData = new Quadric(q0);
-
-            }
-
-            return;
-
         }
 
         public void calculateVertex(EdgeData ed){
@@ -768,7 +697,7 @@ System.out.println("***Iterations: " + count);
         /**
          creates vertex quadric from surrounding faces
          */
-        public Quadric makeVertexQuadric(Vertex v, Vector4d plane){
+        public int makeVertexQuadric(int v, Vector4d plane){
 
             // sum of weighted quadrics for each surrounding face
             // weight is area of the corresponding face
@@ -776,35 +705,33 @@ System.out.println("***Iterations: " + count);
             // We are not using weights. All faces give the same contribution
             // it seems this works for our voxel based meshes
             Point3d p0, p1, p2;
-            HalfEdge start = v.getLink();
-            HalfEdge he = start;
+            int start = Vertex.getLink(m_mesh.getVertices(), v);
+            int he = start;
 
-            m_q0.setZero();
+            Quadric.setZero(sq,m_q0);
 
             do {
-                p0 = he.getStart().getPoint();
-                p1 = he.getEnd().getPoint();
-                p2 = he.getNext().getEnd().getPoint();
-
-                sv0.set(p0);
-                sv1.set(p1);
-                sv2.set(p2);
+                int he_start = HalfEdge.getStart(m_mesh.getHalfEdges(), he);
+                int he_end = HalfEdge.getEnd(m_mesh.getHalfEdges(), he);
+                int he_next = HalfEdge.getNext(m_mesh.getHalfEdges(), he);
+                int he_next_end = HalfEdge.getEnd(m_mesh.getHalfEdges(), he_next);
+                Vertex.getPoint(m_mesh.getVertices(), he_start, sv0);
+                Vertex.getPoint(m_mesh.getVertices(), he_end, sv1);
+                Vertex.getPoint(m_mesh.getVertices(), he_next_end, sv2);
 
                 boolean good = Quadric.makePlane(sv0, sv1, sv2, sn, plane);
 
                 if(good){
 
-                    m_q0.addSet(new Quadric(plane));
-
+                    Quadric.addSet(plane,sq,m_q0);
                 } else {
-                    printVertex(v);
+                    printVertex(m_mesh, v);
                 }
 
-                he = he.getTwin().getNext();
-
+                he = HalfEdge.getNext(m_mesh.getHalfEdges(), HalfEdge.getTwin(m_mesh.getHalfEdges(), he));
             } while(he != start);
 
-            return new Quadric(m_q0);
+            return Quadric.create(sq,m_q0,quadrics);
 
         }
 
@@ -812,26 +739,29 @@ System.out.println("***Iterations: " + count);
 
     //static int filecount = 0;
 
-    static void printVertex(Vertex v){
+    static void printVertex(TriangleMesh mesh, int v){
         
-        Point3d p0, p1, p2; 
-        HalfEdge start = v.getLink();
-        HalfEdge he = start;
-        p0 = he.getStart().getPoint();
-        
+        Point3d p0 = new Point3d(), p1 = new Point3d(), p2 = new Point3d();
+        int start = Vertex.getLink(mesh.getVertices(), v);
+        int he = start;
+        Vertex.getPoint(mesh.getVertices(), HalfEdge.getStart(mesh.getHalfEdges(), he), p0);
+
         printf("p0: (%10.7f,%10.7f,%10.7f) \n", 
                p0.x*MM,p0.y*MM,p0.z*MM);
         
         do {
-            p1 = he.getEnd().getPoint();
-            p2 = he.getNext().getEnd().getPoint();
-            
+            int end = HalfEdge.getEnd(mesh.getHalfEdges(), he);
+            int next = HalfEdge.getNext(mesh.getHalfEdges(), he);
+            int next_end = HalfEdge.getEnd(mesh.getHalfEdges(), next);
+            Vertex.getPoint(mesh.getVertices(), end, p1);
+            Vertex.getPoint(mesh.getVertices(), next_end, p2);
+
             printf("  p1: (%10.7f,%10.7f,%10.7f),  p2: (%10.7f,%10.7f,%10.7f), \n", 
                    (p1.x-p0.x)*MM,(p1.y-p0.y)*MM,(p1.z-p0.z)*MM,
                    (p2.x-p0.x)*MM,(p2.y-p0.y)*MM,(p2.z-p0.z)*MM);
-            
-            he = he.getTwin().getNext(); 
-            
+
+            he = HalfEdge.getNext(mesh.getHalfEdges(), HalfEdge.getTwin(mesh.getHalfEdges(), he));
+
         } while(he != start);        
     }    
 }

@@ -35,6 +35,7 @@ public class VertexExporter {
     /**
        writes triangles surrounding the given set of vertices into STL file 
      */
+/*
     public static void exportVertexSTL(Set<Vertex> vset, String fpath){
         
         try {
@@ -68,7 +69,8 @@ public class VertexExporter {
             
         }        
     }
-
+  */
+    /*
     static void writeTriangle(TriangleCollector tc, HalfEdge he){
                
         Point3d p0 = he.getStart().getPoint();
@@ -82,7 +84,7 @@ public class VertexExporter {
         tc.addTri(new Vector3d(p0),new Vector3d(p1),new Vector3d(p2));
 
     }
-
+   */
     public static String fp(Point3d p){
 
         return fmt("(%8.5f,%8.5f,%8.5f)", p.x, p.y, p.z);

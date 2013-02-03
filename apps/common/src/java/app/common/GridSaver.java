@@ -68,7 +68,7 @@ public class GridSaver {
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[][] faces = its.getFaces();
+        int[] faces = its.getFaces();
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
 
         double centerWeight = 1.0; // any non negative value is OK
@@ -146,7 +146,7 @@ public class GridSaver {
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[][] faces = its.getFaces();
+        int[] faces = its.getFaces();
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
 
         double centerWeight = 1.0; // any non negative value is OK
@@ -233,7 +233,7 @@ public class GridSaver {
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[][] faces = its.getFaces();
+        int[] faces = its.getFaces();
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
 
         double centerWeight = 1.0; // any non negative value is OK
@@ -314,7 +314,7 @@ public class GridSaver {
         //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
         //printf("using OLD IndexedTriangleSetBuilder\n");
         int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
-        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount);
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(estimatedFaceCount);
 
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
@@ -358,6 +358,7 @@ public class GridSaver {
         return mesh;
         
     }
+
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file
      *
@@ -365,7 +366,7 @@ public class GridSaver {
      * @param smoothSteps
      * @throws IOException
      */
-    public static WingedEdgeTriangleMesh createIsosurface2(Grid grid, int smoothSteps, int resamplingFactor) throws IOException {
+    public static abfab3d.mesh.WingedEdgeTriangleMesh createIsosurface2(Grid grid, int smoothSteps, int resamplingFactor) throws IOException {
         double bounds[] = new double[]{-grid.getWidth()/2 * grid.getVoxelSize(),grid.getWidth()/2*grid.getVoxelSize(),
                 -grid.getHeight()/2*grid.getSliceHeight(),grid.getHeight()/2*grid.getSliceHeight(),-grid.getDepth()/2*grid.getVoxelSize(),grid.getDepth()/2*grid.getVoxelSize()};
 
@@ -398,7 +399,7 @@ public class GridSaver {
         //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
         //printf("using OLD IndexedTriangleSetBuilder\n");
         int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
-        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew(estimatedFaceCount);
+        abfab3d.mesh.IndexedTriangleSetBuilder its = new abfab3d.mesh.IndexedTriangleSetBuilder(estimatedFaceCount);
 
 
         // cut in half
@@ -421,7 +422,7 @@ public class GridSaver {
 
         t0 = currentTimeMillis();
         printf("making WingedEdgeTriangleMesh\n");
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+        abfab3d.mesh.WingedEdgeTriangleMesh mesh = new abfab3d.mesh.WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
         printf("making WingedEdgeTriangleMesh done: %d\n", (currentTimeMillis()-t0));
 
         if (Thread.currentThread().isInterrupted()) {
@@ -430,7 +431,7 @@ public class GridSaver {
 
         double centerWeight = 1.0; // any non negative value is OK
 
-        LaplasianSmooth ls = new LaplasianSmooth();
+        abfab3d.mesh.LaplasianSmooth ls = new abfab3d.mesh.LaplasianSmooth();
 
         ls.setCenterWeight(centerWeight);
         t0 = currentTimeMillis();
@@ -470,7 +471,7 @@ public class GridSaver {
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
-        int[][] faces = its.getFaces();
+        int[] faces = its.getFaces();
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
 
         double centerWeight = 1.0; // any non negative value is OK
@@ -530,15 +531,15 @@ public class GridSaver {
      * @param maxCollapseError
      * @throws IOException
      */
-    public static void writeIsosurfaceMaker(TriangleMesh mesh, int gw, int gh, int gd, double vs, double sh, BinaryContentHandler writer, Map<String,Object> params,
+    public static void writeIsosurfaceMaker(abfab3d.mesh.TriangleMesh mesh, int gw, int gh, int gd, double vs, double sh, BinaryContentHandler writer, Map<String,Object> params,
                                             double maxCollapseError, boolean meshOnly) throws IOException {
         // We could release the grid at this point
         int fcount = mesh.getFaceCount();
 
         if (maxCollapseError > 0) {
 
-            MeshDecimatorNew md = new MeshDecimatorNew();
-            System.out.println("*****Using new MeshDecimator*****");
+            abfab3d.mesh.MeshDecimator md = new abfab3d.mesh.MeshDecimator();
+            System.out.println("*****Using new MeshDecimator*****: " + maxCollapseError);
 /*
             MeshDecimator md = new MeshDecimator();
             System.out.println("*****Using old MeshDecimator*****");

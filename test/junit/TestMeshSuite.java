@@ -11,28 +11,29 @@
  ****************************************************************************/
 
 // External Imports
-import junit.framework.TestSuite;
+
+import abfab3d.mesh.TestLaplasianSmooth;
+import abfab3d.mesh.TestMeshDecimator;
+import abfab3d.mesh.TestWingedEdgeTriangleMesh;
 import junit.framework.Test;
+import junit.framework.TestSuite;
 
 // Internal Imports
-import abfab3d.grid.query.*;
 
 /**
- * Grid Query Tests
+ * Mehs Tests
  *
  * @author Alan Hudson
  * @version
  */
-public class TestQuerySuite extends TestSuite {
+public class TestMeshSuite extends TestSuite {
     public static Test suite() {
-        TestSuite suite = new TestSuite("Grid Query Test Suite");
+        TestSuite suite = new TestSuite("Mesh Test Suite");
 
-        suite.addTest(TestCanMoveMaterial.suite());
-        suite.addTest(TestCanMoveMaterialTargeted.suite());
-        suite.addTest(TestCanMoveMaterialOctree.suite());
+        suite.addTest(TestWingedEdgeTriangleMesh.suite());
+        suite.addTest(TestMeshDecimator.suite());
+        suite.addTest(TestLaplasianSmooth.suite());
 
-        // TODO: Not working, need to replace with RegionCounter anyway
-        //suite.addTest(TestRegionFinder.suite());
         return suite;
     }
 }

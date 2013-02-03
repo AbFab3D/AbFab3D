@@ -162,7 +162,13 @@ public class DataSources {
         private double m_backgroundColor[] = new double[]{255.,255.,255.,255.};
 
         double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
-        
+        double probeSize;
+
+        // scratch vars
+        double[] ci = new double[4];
+        double[] cc = new double[4];
+        double color[] = new double[4];
+
         /**
            
          */
@@ -234,7 +240,7 @@ public class DataSources {
         public void setProbeSize(double size){
 
             m_probeSize = size;
-
+            probeSize = m_probeSize*probeScale;
         }
 
         public int initialize(){
@@ -280,7 +286,8 @@ public class DataSources {
 
             // convert probe size in meters into image units 
             probeScale = xscale*imageWidth;
-            
+            probeSize = m_probeSize*probeScale;
+
             DataBuffer dataBuffer = image.getRaster().getDataBuffer();          
             imageData = new int[imageWidth * imageHeight];
             image.getRGB(0,0,imageWidth, imageHeight, imageData, 0, imageWidth);
@@ -288,7 +295,6 @@ public class DataSources {
             return RESULT_OK;
         }
 
-        int debugCount = 100;
         /**
          * returns 1 if pnt is inside of image
          * returns 0 otherwise
@@ -296,16 +302,10 @@ public class DataSources {
         public int getDataValue(Vec pnt, Vec data) {
                         
             // TODO get proper pointer size from chain of transforms
-            double probeSize = m_probeSize*probeScale; 
-            //double probeSize = pnt.probeSize*probeScale; 
-            if(m_interpolationType == INTERPOLATION_MIPMAP){
-                if(debugCount-- > 0){
-                    //printf("probeSize: %7.2f probeScale: %7.2e, m_probeSize: %7.2e\n", probeSize, probeScale, m_probeSize);
-                }
-            }
 
-            double res = 1.;
-            double 
+            //double probeSize = pnt.probeSize*probeScale;
+
+            double
                 x = pnt.v[0],
                 y = pnt.v[1],
                 z = pnt.v[2];
@@ -368,10 +368,10 @@ public class DataSources {
 
         double getPixelValue(double x, double y, double probeSize){
             
-            double grayLevel = 0;
+            double grayLevel;
+
             switch(m_interpolationType){
             case INTERPOLATION_MIPMAP:
-                double color[] = new double[4];
                 m_mipMap.getPixel(x, y, probeSize, color);
                 grayLevel = (color[0] + color[1] + color[2])/3.;
                 break;
@@ -400,7 +400,7 @@ public class DataSources {
             return pv;
         }
         
-        // linear aproximation 
+        // linear approximation
         double getPixelLinear(double x, double y){
             //TODO 
             return getPixelBox(x,y);
@@ -413,8 +413,7 @@ public class DataSources {
             int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
             
             int rgb = imageData[ix + iy * imageWidth];
-            double ci[] = ImageUtil.getPremultColor(rgb, new double[4]);
-            double cc[] = new double[4];
+            ImageUtil.getPremultColor(rgb, ci);
             ImageUtil.combinePremultColors(m_backgroundColor, ci, cc, ci[ALPHA]);
             
             return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;
@@ -455,6 +454,12 @@ public class DataSources {
         private double m_backgroundColor[] = new double[]{255.,255.,255.,255.};
 
         double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel
+        double probeSize;
+
+        // Scratch vars
+        double cc[] = new double[4];
+        double ci[] = new double[4];
+        double color[] = new double[4];
 
         /**
 
@@ -527,7 +532,7 @@ public class DataSources {
         public void setProbeSize(double size){
 
             m_probeSize = size;
-
+            probeSize = m_probeSize*probeScale;
         }
 
         public int initialize(){
@@ -572,6 +577,7 @@ public class DataSources {
 
             // convert probe size in meters into image units
             probeScale = xscale*imageWidth;
+            probeSize = m_probeSize*probeScale;
 
             DataBuffer dataBuffer = image.getRaster().getDataBuffer();
             imageData = new int[imageWidth * imageHeight];
@@ -580,7 +586,6 @@ public class DataSources {
             return RESULT_OK;
         }
 
-        int debugCount = 100;
         /**
          * returns 1 if pnt is inside of image
          * returns 0 otherwise
@@ -588,15 +593,8 @@ public class DataSources {
         public int getDataValue(Vec pnt, Vec data) {
 
             // TODO get proper pointer size from chain of transforms
-            double probeSize = m_probeSize*probeScale;
             //double probeSize = pnt.probeSize*probeScale;
-            if(m_interpolationType == INTERPOLATION_MIPMAP){
-                if(debugCount-- > 0){
-                    //printf("probeSize: %7.2f probeScale: %7.2e, m_probeSize: %7.2e\n", probeSize, probeScale, m_probeSize);
-                }
-            }
 
-            double res = 1.;
             double
                     x = pnt.v[0],
                     y = pnt.v[1],
@@ -638,7 +636,7 @@ public class DataSources {
 
             double pixelValue = getPixelValue(imageX, imageY, probeSize);
 
-            double d = 0;
+            double d;
 
             if(useGrayscale){
                 d = (ybase  + (ymax - ybase)*pixelValue - z);
@@ -660,10 +658,9 @@ public class DataSources {
 
         double getPixelValue(double x, double y, double probeSize){
 
-            double grayLevel = 0;
+            double grayLevel;
             switch(m_interpolationType){
                 case INTERPOLATION_MIPMAP:
-                    double color[] = new double[4];
                     m_mipMap.getPixel(x, y, probeSize, color);
                     grayLevel = (color[0] + color[1] + color[2])/3.;
                     break;
@@ -692,7 +689,7 @@ public class DataSources {
             return pv;
         }
 
-        // linear aproximation
+        // linear approximation
         double getPixelLinear(double x, double y){
             //TODO
             return getPixelBox(x,y);
@@ -705,8 +702,9 @@ public class DataSources {
             int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
 
             int rgb = imageData[ix + iy * imageWidth];
-            double ci[] = ImageUtil.getPremultColor(rgb, new double[4]);
-            double cc[] = new double[4];
+
+            // ci and cc does not need to be initialized as all values are assigned.
+            ImageUtil.getPremultColor(rgb, ci);
             ImageUtil.combinePremultColors(m_backgroundColor, ci, cc, ci[ALPHA]);
 
             return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;

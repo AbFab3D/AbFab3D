@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2012
+ *                        Shapeways, Inc Copyright (c) 2013
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -13,52 +13,33 @@
 package abfab3d.mesh;
 
 // External Imports
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Set;
 
+import abfab3d.grid.ClassTraverser;
+import abfab3d.grid.Grid;
+import abfab3d.grid.GridShortIntervals;
+import abfab3d.io.input.IndexedTriangleSetLoader;
+import abfab3d.io.input.MeshRasterizer;
+import abfab3d.io.input.STLRasterizer;
+import abfab3d.io.input.STLReader;
+import abfab3d.io.output.IsosurfaceMaker;
+import abfab3d.io.output.MeshExporter;
+import abfab3d.io.output.STLWriter;
+import abfab3d.util.StructMixedData;
+import junit.framework.Test;
+import junit.framework.TestCase;
+import junit.framework.TestSuite;
+import org.j3d.geom.GeometryData;
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Random;
 
-
-import org.web3d.vrml.sav.BinaryContentHandler;
-
-import abfab3d.io.input.IndexedTriangleSetLoader;
-import abfab3d.io.input.STLReader;
-import abfab3d.io.input.STLRasterizer;
-import abfab3d.io.input.MeshRasterizer;
-import abfab3d.io.output.SAVExporter;
-import abfab3d.io.output.MeshExporter;
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.STLWriter;
-
-
-import abfab3d.grid.Grid;
-import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.op.ErosionMask;
-
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-import org.j3d.geom.*;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.*;
-
-
-import static abfab3d.util.Output.printf; 
-import static abfab3d.util.Output.fmt; 
-
+import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
 import static java.lang.System.currentTimeMillis;
 
 /**
@@ -79,96 +60,7 @@ public class TestMeshDecimator extends TestCase {
         return new TestSuite(TestMeshDecimator.class);
     }
 
-    /**
-     * Test that we can create a simple object without crashing.
-     *
-     * @throws Exception
-     */
-    public void _testPyramid() throws Exception {
-
-        Point3d[] pyr_vert = new Point3d[] {
-            new Point3d(-1., -1., -1.), 
-            new Point3d( 1., -1., -1.),
-            new Point3d( 1.,  1., -1.), 
-            new Point3d(-1.,  1., -1.),
-            new Point3d( 0.,  0.,  1.), 
-        };
-        int pyr_faces[][] = new int[][]{{3, 2, 0}, {2,1,0}, {0, 1, 4}, {1, 2, 4}, {2, 3, 4}, {3, 0, 4}};
-
-        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(pyr_vert, pyr_faces);
-
-        //we.writeOBJ(System.out);
-
-        Vertex[][] findex = we.getFaceIndexes();
-        Vertex v = we.getVertices();
-        while (v != null) {
-            System.out.println(v);
-            v = v.getNext();
-        }
-        
-        Edge e1 = we.getEdges();
-        int ecount = 0;
-        while(e1 != null){
-            e1.setUserData(new Integer(ecount++));
-            e1 = e1.getNext();
-        }
-
-
-        /*
-        for (int i = 0; i < findex.length; i++) {
-
-            Vertex face[] = findex[i];
-
-            System.out.print("[");
-            for (int j = 0; j < face.length; j++) {
-                System.out.print(" " + face[j]);
-            }
-            System.out.println(" ]");
-        }
-        */
-        //MeshExporter.writeMesh(we,"c:/tmp/pyramid.x3d");
-
-        //MeshDecimator md = new MeshDecimator();
-
-        //printf("startng decimations\n");
-
-        //int count = md.processMesh(we, 100);
-        
-
-        verifyVertices(we);
-
-        Edge edge = findEdge(we, 4, 1);
-
-        printf("\nedge to collapse: %s\n" ,edge);
-        HalfEdge he = edge.getHe();
-        
-        Point3d pnt = new Point3d();
-        
-        pnt.set(he.getStart().getPoint());
-        pnt.add(he.getStart().getPoint());
-        pnt.scale(0.5);
-        EdgeCollapseResult ecr = new EdgeCollapseResult();
-        EdgeCollapseParams ecp = new EdgeCollapseParams();
-        
-        we.collapseEdge(edge, pnt, ecp, ecr);
-        
-        printf("moved vertex: %s\n", ecr.insertedVertex);          
-        printf("edge coount after collapse: %d\n", we.getEdgeCount());  
-        ArrayList<Edge> redges = ecr.removedEdges;
-        printf("removed edges:(count %d) ", redges.size());
-        for(Edge re : redges) {
-            printf(" %s", re);
-            // remove edge from array         
-        }
-        printf("\n");
-
-        verifyVertices(we);
-        
-        
-    }
-
-    
-    public void _testQuadric(){
+    public void testQuadric(){
         
         Point3d p[] = new Point3d[]{
             new Point3d(0,0,0), // 0
@@ -205,21 +97,27 @@ public class TestMeshDecimator extends TestCase {
         sc2.set(p[5]);
         Quadric.makePlane(sc0,sc1,sc2,sn,p675);
 
-        Quadric q526 = new Quadric(p[5], p[2], p[6]);
-        Quadric q627 = new Quadric(p[6], p[2], p[7]);
-        Quadric q675 = new Quadric(p[6], p[7], p[5]);
-        Quadric q734 = new Quadric(p[7], p[3], p[4]);
-        double eps = 1.0e-5;
-        Quadric q56s = new Quadric(p[5],p[6], eps);
+        StructMixedData quadrics = new StructMixedData(new Quadric(), 10);
 
-        Quadric q6 = new Quadric(q526);
-        q6.addSet(q627).addSet(q675);
-        Quadric q7 = new Quadric(q734);
-        q7.addSet(q627).addSet(q675);
-        
-        Quadric q67 = new Quadric(q6);
-        q67.addSet(q7);
-        
+        int q526 = Quadric.create(p[5], p[2], p[6], quadrics);
+        int q627 = Quadric.create(p[6], p[2], p[7], quadrics);
+        int q675 = Quadric.create(p[6], p[7], p[5], quadrics);
+        int q734 = Quadric.create(p[7], p[3], p[4], quadrics);
+        double eps = 1.0e-5;
+        int q56s = Quadric.create(p[5],p[6], eps, quadrics);
+
+        int q6 = Quadric.create(quadrics, q526, quadrics);
+
+        Quadric.addSet(quadrics,q627,quadrics,q6);
+        Quadric.addSet(quadrics,q675,quadrics,q6);
+
+        int q7 = Quadric.create(quadrics,q734,quadrics);
+        Quadric.addSet(quadrics, q627, quadrics,q7);
+        Quadric.addSet(quadrics, q675, quadrics,q7);
+
+        int q67 = Quadric.create(quadrics,q6,quadrics);
+        Quadric.addSet(quadrics, q67, quadrics, q7);
+
         /*
         for(int i = 0; i < p.length ; i++){
             
@@ -273,12 +171,13 @@ public class TestMeshDecimator extends TestCase {
         printf("p57: [%18.15f,%18.15f,%18.15f]\n", p57.x,p57.y,p57.z);
         */
 
-        Quadric q713 = new Quadric(p[7], p[1], p[3]);
-        printf("det713: %10.7e\n", q713.determinant());
-        Quadric q71 = new Quadric(p[7], p[1], 1.e-05);
-        printf("det 71: %10.7e\n", q71.determinant());
-        q713.addSet(q71);
-        printf("det 713: %10.7e\n", q713.determinant());
+        int q713 = Quadric.create(p[7], p[1], p[3], quadrics);
+        printf("det713: %10.7e\n", Quadric.determinant(quadrics,q713));
+        int q71 = Quadric.create(p[7], p[1], 1.e-05, quadrics);
+        printf("det 71: %10.7e\n", Quadric.determinant(quadrics,q71));
+
+        Quadric.addSet(quadrics, q71, quadrics,q713);
+        printf("det 713: %10.7e\n", Quadric.determinant(quadrics,q713));
         Point3d p713 = new Point3d();
         Matrix3d sm3d = new Matrix3d();
 
@@ -286,10 +185,10 @@ public class TestMeshDecimator extends TestCase {
         int[] row_perm = new int[3];
         double[] row_scale = new double[3];
         double[] tmp = new double[9];
-        
-        q713.getMinimum(p713,sm3d, result, row_perm, row_scale, tmp);
-        printf("p 713: [ %18.15f, %18.15f, %18.15f] \n", p713.x,p713.y,p713.z);
 
+
+        Quadric.getMinimum(quadrics,q713,p713,sm3d, result, row_perm, row_scale, tmp);
+        printf("p 713: [ %18.15f, %18.15f, %18.15f] \n", p713.x,p713.y,p713.z);
 
     }
 
@@ -388,6 +287,81 @@ public class TestMeshDecimator extends TestCase {
         
     }
 
+    public void processFile(String fpath, double maxDecimationError, double reduceFactor) throws Exception {
+
+        long t0 = currentTimeMillis();
+        WingedEdgeTriangleMesh mesh = loadMesh(fpath);
+        printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
+        t0 = currentTimeMillis();
+
+        int orig_fcount = mesh.getFaceCount();
+        int fcount = orig_fcount;
+        System.out.println("Initial Face Count: " + fcount);
+        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
+
+        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());
+        printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
+
+        assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+
+
+        MeshDecimator md = new MeshDecimator();
+        md.setMaxCollapseError(maxDecimationError);
+
+        int target;
+        int current;
+
+        while(true) {
+
+            target = mesh.getTriangleCount() / 2;
+            System.out.println("Target face count : " + target);
+            t0 = currentTimeMillis();
+            printf("processMesh() start\n");
+            md.processMesh(mesh, target);
+            //md.DEBUG = true;
+            printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
+            fcount = mesh.getFaceCount();
+
+            // these things hang on large file - TODO - check this
+            //assertTrue("verifyVertices", verifyVertices(mesh));
+            //assertTrue("Structural Check", TestWingedEdgeTriangleMesh2.verifyStructure(mesh, true));
+            //assertTrue("Final Manifold", TestWingedEdgeTriangleMesh2.isManifold(mesh));
+            //printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
+
+            current = mesh.getFaceCount();
+            System.out.println("Current face count: " + current);
+            if (current >= target * 1.25) {
+                System.out.println("Leaving loop");
+                // not worth continuing
+                break;
+            }
+
+        }
+        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
+
+
+        assertTrue("Not Reduced enough", mesh.getFaceCount() < reduceFactor * orig_fcount);
+    }
+
+    public void testSpeedKnot() throws Exception {
+
+        String fpath = "test/models/speed-knot.x3db";
+
+        processFile(fpath, 2e-1, 0.3);
+    }
+
+    public void testSphere() throws Exception {
+
+        long stime = System.currentTimeMillis();
+
+        for(int i=0; i < 200; i++) {
+        String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
+
+        processFile(fpath, 1e-6, 0.7);
+        }
+        System.out.println("Total Time: " + (System.currentTimeMillis() - stime));
+    }
+
     public void _testFile() throws Exception {
 
         //String fpath = "test/models/speed-knot.x3db";
@@ -418,73 +392,43 @@ public class TestMeshDecimator extends TestCase {
 
 
         MeshDecimator md = new MeshDecimator();
-        md.setMaxCollapseError(1.e-9);        
+        md.setMaxCollapseError(1.e-9);
 
-        md.DEBUG = false;
-        mesh.DEBUG = false; 
+        int target;
+        int current;
 
-        for(int i = 0; i < 2; i++){
-            
-            fcount = fcount/8;
+        while(true) {
+
+            target = mesh.getTriangleCount() / 2;
+            System.out.println("Target face count : " + target);
             t0 = currentTimeMillis();
             printf("processMesh() start\n");
-            md.processMesh(mesh, fcount);
+            md.processMesh(mesh, target);
             //md.DEBUG = true;
             printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
             fcount = mesh.getFaceCount();
 
-            MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
-            
-            // these things hang on large file - TODO - check this 
-            //assertTrue("verifyVertices", verifyVertices(mesh));        
+            //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
+
+            // these things hang on large file - TODO - check this
+            //assertTrue("verifyVertices", verifyVertices(mesh));
             //assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
             //assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
             //printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
+
+            current = mesh.getFaceCount();
+            System.out.println("Current face count: " + current);
+            if (current >= target * 1.25) {
+                System.out.println("Leaving loop");
+                // not worth continuing
+                break;
+            }
+
         }
+
     }
 
     
-    public void testFileMaxEdge() throws Exception {
-
-        String fpath = "c:/tmp/mesh_text_orig.stl";
-        
-        long t0 = currentTimeMillis();
-        WingedEdgeTriangleMesh mesh = loadMesh(fpath);
-        printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
-        t0 = currentTimeMillis();
-
-        int fcount = mesh.getFaceCount();
-
-        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
-
-        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());        
-        printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
-
-        assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
-
-        MeshDecimator md = new MeshDecimator();
-        md.setMaxCollapseError(1.e-8);        
-        md.setMaxEdgeLength(0.5e-3);        
-
-        md.DEBUG = false;
-        mesh.DEBUG = false; 
-
-        for(int i = 0; i < 10; i++){
-            
-            fcount = fcount/2;
-            t0 = currentTimeMillis();
-            printf("processMesh() start\n");
-            md.processMesh(mesh, fcount);
-            //md.DEBUG = true;
-            printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
-            fcount = mesh.getFaceCount();
-
-            MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
-            
-        }
-    }
-    
-
     public void _testDecimatorQuality() throws Exception {
     
         //String fpath = "c:/tmp/pen_v6.stl"; // strange rasterization errors 
@@ -797,11 +741,12 @@ public class TestMeshDecimator extends TestCase {
     static void setVerticesUserData(WingedEdgeTriangleMesh mesh){
         
         int vcount = 0;
-        Vertex v = mesh.getVertices();
-        while( v != null){
-            v.setUserData(new Integer(vcount));
+        StructMixedData vertices = mesh.getVertices();
+        int v = mesh.getStartVertex();
+        while( v != -1){
+            Vertex.setUserData(vcount,vertices,v);
             vcount++;
-            v = v.getNext();
+            v = Vertex.getNext(vertices, v);
         }
     }
 
@@ -811,13 +756,15 @@ public class TestMeshDecimator extends TestCase {
     static boolean verifyVertices(WingedEdgeTriangleMesh mesh){
 
         //printf("verifyVertices()\n");
-        Vertex v = mesh.getVertices();
+        StructMixedData vertices = mesh.getVertices();
+        StructMixedData hedges = mesh.getHalfEdges();
+        int v = mesh.getStartVertex();
         int vcount = 0;
-        while( v != null){
+        while( v != -1){
             //printf("v:%s: ", v);
             vcount++;
-            HalfEdge start = v.getLink();
-            HalfEdge he = start;
+            int start = Vertex.getLink(vertices,v);
+            int he = start;
             int tricount = 0;
             
             do{                 
@@ -830,13 +777,13 @@ public class TestMeshDecimator extends TestCase {
                     return false;
                 }
 
-                HalfEdge twin = he.getTwin();
-                he = twin.getNext(); 
+                int twin = HalfEdge.getTwin(hedges,he);
+                he = HalfEdge.getNext(hedges,twin);
                 
             } while(he != start);
             //printf("\n");
-            
-            v = v.getNext();
+
+            v = Vertex.getNext(vertices, v);
         }
         printf("vcount: %3d\n:", vcount);
 
@@ -844,49 +791,5 @@ public class TestMeshDecimator extends TestCase {
 
     }
 
-    static Edge findEdge(WingedEdgeTriangleMesh mesh, int v0, int v1){
-
-        printf("findEdge()\n");
-
-        Vertex v = mesh.getVertices();
-        Vertex vert0 = null;
-        
-        while(v != null){
-            int id = v.getID();
-            if(id == v0){
-                vert0 = v;
-                break;
-            }
-            v = v.getNext();
-        }
-        
-        printf("vert0: %s\n", vert0);
-        
-        
-        HalfEdge start = vert0.getLink();
-        HalfEdge he = start;
-        int tricount = 0;
-
-        do{                 
-            //printf("he: %s; %s; %s;\n", he, he.getNext(),  he.getNext().getNext()); 
-            if(he.getEnd().getID() == v1){ 
-                
-                printf("vert1: %s\n", he.getEnd());
-                return he.getEdge();
-                
-            }
-                
-            if(tricount++ > 20){
-                printf("error: tricount exceded\n");
-                break;
-            }
-            
-            HalfEdge twin = he.getTwin();
-            he = twin.getNext(); 
-            
-        } while(he != start);
-
-        return null;        
-    }
 }
 

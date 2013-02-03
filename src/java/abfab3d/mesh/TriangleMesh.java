@@ -1,5 +1,6 @@
 package abfab3d.mesh;
 
+import abfab3d.util.StructMixedData;
 import abfab3d.util.TriangleCollector;
 
 import javax.vecmath.Point3d;
@@ -18,7 +19,7 @@ public interface TriangleMesh {
 
     int getFaceCount();
 
-    Vertex findVertex(Point3d p, double eps);
+    int findVertex(double[] pnt, double eps);
 
     double[] getBounds();
 
@@ -29,7 +30,14 @@ public interface TriangleMesh {
      *
      * @return A linked list of edges
      */
-    public Edge getEdges();
+    public StructMixedData getEdges();
+
+    /**
+     * Get the half edges
+     *
+     * @return A linked list of edges
+     */
+    public StructMixedData getHalfEdges();
 
     /**
      * Collapse an edge.
@@ -37,16 +45,22 @@ public interface TriangleMesh {
      * @param e   The edge to collapse
      * @param pos The position of the new common vertex
      */
-    public boolean collapseEdge(Edge e, Point3d pos, EdgeCollapseParams ecp, EdgeCollapseResult ecr);
+    public boolean collapseEdge(int e, Point3d pos, EdgeCollapseParams ecp, EdgeCollapseResult ecr);
 
-    public Vertex getVertices();
+    public StructMixedData getVertices();
 
-    public Vertex[][] getFaceIndexes();
+    public int[] getFaceIndexes();
+
+    public int getStartEdge();
+
+    public int getStartVertex();
+
+    public int getStartFace();
 
     /**
      * Get the color attrib channel.
      *
      * @return The channelID or -1 if not available
      */
-    public int getColorChannel();
+   // public int getColorChannel();
 }

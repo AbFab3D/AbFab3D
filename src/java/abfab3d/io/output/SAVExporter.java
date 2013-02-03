@@ -16,9 +16,7 @@ package abfab3d.io.output;
 import java.util.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
-import abfab3d.mesh.VertexAttribs;
-import abfab3d.mesh.VertexSimple;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.util.StructMixedData;
 import toxi.geom.mesh.*;
 
 import org.web3d.vrml.sav.*;
@@ -133,40 +131,49 @@ public class SAVExporter {
             }
         }
 
-        abfab3d.mesh.Vertex[][] faces = mesh.getFaceIndexes();
+        int[] faces = mesh.getFaceIndexes();
 
         int[] indices = null;
 
         if (gtype == GeometryType.INDEXEDTRIANGLESET) {
-            indices = new int[faces.length * 3];
+            indices = new int[faces.length];
         } else if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
-            indices = new int[faces.length * 4];
+            indices = new int[faces.length / 3 * 4];
         }
         float[] coords = new float[mesh.getVertexCount() * 3];
         float[] normals = null;
         float[] colors = null;
         int num_coords = mesh.getVertexCount();
-        int color_channel = mesh.getColorChannel();
+        int color_channel = -1; // TODO need to implement
 
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }
 
+        StructMixedData vertices = mesh.getVertices();
+
         if (export_normals && !vertex_normals) {
-            normals = new float[faces.length * 3];
+            normals = new float[faces.length];
             int idx = 0;
             int n_idx = 0;
             int color_idx = 0;
 
-            for(int i=0; i < faces.length; i++) {
-                abfab3d.mesh.Vertex va = faces[i][0];
-                abfab3d.mesh.Vertex vb = faces[i][1];
-                abfab3d.mesh.Vertex vc = faces[i][2];
+            int len = faces.length / 3;
+            int f_idx = 0;
+            Vector3d ac = new Vector3d();
+            Vector3d ab = new Vector3d();
+            double[] pnt = new double[3];
+            double[] pnt2 = new double[3];
+
+            for(int i=0; i < len; i++) {
+                int va = faces[f_idx++];
+                int vb = faces[f_idx++];
+                int vc = faces[f_idx++];
 
                 if (gtype != GeometryType.POINTSET) {
-                    indices[idx++] = va.getID();
-                    indices[idx++] = vb.getID();
-                    indices[idx++] = vc.getID();
+                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices,va);
+                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices,vb);
+                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices,vc);
                 }
 
                 if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
@@ -174,10 +181,14 @@ public class SAVExporter {
                 }
 
                 // TODO: These don't look right
-                Vector3d ac = new Vector3d(va.getPoint());
-                ac.sub(vc.getPoint());
-                Vector3d ab = new Vector3d(va.getPoint());
-                ab.sub(vb.getPoint());
+                abfab3d.mesh.Vertex.getPoint(vertices, va, pnt);
+                abfab3d.mesh.Vertex.getPoint(vertices, vc, pnt2);
+                ac.set(pnt[0] - pnt2[0],pnt[1] - pnt2[1],pnt[2] - pnt2[2]);
+
+                abfab3d.mesh.Vertex.getPoint(vertices, va, pnt);
+                abfab3d.mesh.Vertex.getPoint(vertices, vb, pnt2);
+                ac.set(pnt[0] - pnt2[0],pnt[1] - pnt2[1],pnt[2] - pnt2[2]);
+
                 ac.cross(ac,ab);
                 ac.normalize();
 
@@ -193,262 +204,164 @@ public class SAVExporter {
             }
 
             if (color_channel == -1) {
-                abfab3d.mesh.Vertex v = mesh.getVertices();
-                while (v != null) {
+                int v = mesh.getStartVertex();
 
-                    coords[idx++] = (float) v.getPoint().x;
-                    coords[idx++] = (float) v.getPoint().y;
-                    coords[idx++] = (float) v.getPoint().z;
+                while (v != -1) {
+                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                    coords[idx++] = (float) pnt[0];
+                    coords[idx++] = (float) pnt[1];
+                    coords[idx++] = (float) pnt[2];
 
-                    v = v.getNext();
+                    v = abfab3d.mesh.Vertex.getNext(vertices, v);
                 }
             } else {
-                VertexAttribs v = (VertexAttribs) mesh.getVertices();
+                int v = mesh.getStartVertex();
                 colors = new float[mesh.getVertexCount() * 3];
                 float[] color;
 
-                while (v != null) {
+                System.out.println("***Need to implement color mapping");
+                while (v != -1) {
 
-                    coords[idx++] = (float) v.getPoint().x;
-                    coords[idx++] = (float) v.getPoint().y;
-                    coords[idx++] = (float) v.getPoint().z;
+                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                    coords[idx++] = (float) pnt[0];
+                    coords[idx++] = (float) pnt[1];
+                    coords[idx++] = (float) pnt[2];
 
+/*
+                    TODO: Need to implement
                     color = v.getAttribs(color_channel);
                     colors[color_idx++] = color[0];
                     colors[color_idx++] = color[1];
                     colors[color_idx++] = color[2];
-
-                    v = (VertexAttribs) v.getNext();
+ */
+                    v = abfab3d.mesh.Vertex.getNext(vertices, v);
                 }
             }
 
         } else {
 
-            if (compact_vertices) {
-                HashMap<abfab3d.mesh.Vertex, Integer> reassigned = new HashMap<abfab3d.mesh.Vertex, Integer>(mesh.getVertexCount());
+            int len = faces.length / 3;
+            int f_idx = 0;
 
-                int idx = 0;
-                int last_vertex = 0;
-                int c_idx = 0;
-                int color_idx = 0;
+            int idx = 0;
+            int max_coord = coords.length / 3 - 1;
+            int max_idx = 0;
+            int display_max = 10;
+            int bad_cnt = 0;
 
-                if (color_channel == -1) {
-                    for(int i=0; i < faces.length; i++) {
-                        abfab3d.mesh.Vertex va = faces[i][0];
-                        abfab3d.mesh.Vertex vb = faces[i][1];
-                        abfab3d.mesh.Vertex vc = faces[i][2];
+            for(int i=0; i < len; i++) {
+                int va = faces[f_idx++];
+                int vb = faces[f_idx++];
+                int vc = faces[f_idx++];
 
-                        Integer va_idx = reassigned.get(va);
-                        Integer vb_idx = reassigned.get(vb);
-                        Integer vc_idx = reassigned.get(vc);
+                int va_id = abfab3d.mesh.Vertex.getID(vertices,va);
+                int vb_id = abfab3d.mesh.Vertex.getID(vertices,vb);
+                int vc_id = abfab3d.mesh.Vertex.getID(vertices,vc);
 
-                        if (va_idx == null) {
-                            va_idx = new Integer(last_vertex++);
-                            coords[c_idx++] = (float) va.getPoint().x;
-                            coords[c_idx++] = (float) va.getPoint().y;
-                            coords[c_idx++] = (float) va.getPoint().z;
-
-                            reassigned.put(va, va_idx);
-                        }
-                        if (vb_idx == null) {
-                            vb_idx = new Integer(last_vertex++);
-                            coords[c_idx++] = (float) vb.getPoint().x;
-                            coords[c_idx++] = (float) vb.getPoint().y;
-                            coords[c_idx++] = (float) vb.getPoint().z;
-                            reassigned.put(vb, vb_idx);
-                        }
-                        if (vc_idx == null) {
-                            vc_idx = new Integer(last_vertex++);
-                            coords[c_idx++] = (float) vc.getPoint().x;
-                            coords[c_idx++] = (float) vc.getPoint().y;
-                            coords[c_idx++] = (float) vc.getPoint().z;
-                            reassigned.put(vc, vc_idx);
-                        }
-
-                        if (gtype != GeometryType.POINTSET) {
-                            indices[idx++] = va_idx.intValue();
-                            indices[idx++] = vb_idx.intValue();
-                            indices[idx++] = vc_idx.intValue();
-                        }
-
-                        if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
-                            indices[idx++] = -1;
-                        }
-
-                    }
-                } else {
-                    colors = new float[mesh.getVertexCount() * 3];
-
-                    for(int i=0; i < faces.length; i++) {
-                        VertexAttribs va = (VertexAttribs) faces[i][0];
-                        VertexAttribs vb = (VertexAttribs) faces[i][1];
-                        VertexAttribs vc = (VertexAttribs) faces[i][2];
-
-                        Integer va_idx = reassigned.get(va);
-                        Integer vb_idx = reassigned.get(vb);
-                        Integer vc_idx = reassigned.get(vc);
-
-                        if (va_idx == null) {
-                            va_idx = new Integer(last_vertex++);
-                            coords[c_idx++] = (float) va.getPoint().x;
-                            coords[c_idx++] = (float) va.getPoint().y;
-                            coords[c_idx++] = (float) va.getPoint().z;
-
-                            float[] color = va.getAttribs(color_channel);
-                            colors[color_idx++] = color[0];
-                            colors[color_idx++] = color[1];
-                            colors[color_idx++] = color[2];
-
-                            reassigned.put(va, va_idx);
-                        }
-                        if (vb_idx == null) {
-                            vb_idx = new Integer(last_vertex++);
-                            coords[c_idx++] = (float) vb.getPoint().x;
-                            coords[c_idx++] = (float) vb.getPoint().y;
-                            coords[c_idx++] = (float) vb.getPoint().z;
-
-                            float[] color = vb.getAttribs(color_channel);
-                            colors[color_idx++] = color[0];
-                            colors[color_idx++] = color[1];
-                            colors[color_idx++] = color[2];
-
-                            reassigned.put(vb, vb_idx);
-                        }
-                        if (vc_idx == null) {
-                            vc_idx = new Integer(last_vertex++);
-                            coords[c_idx++] = (float) vc.getPoint().x;
-                            coords[c_idx++] = (float) vc.getPoint().y;
-                            coords[c_idx++] = (float) vc.getPoint().z;
-
-                            float[] color = vc.getAttribs(color_channel);
-                            colors[color_idx++] = color[0];
-                            colors[color_idx++] = color[1];
-                            colors[color_idx++] = color[2];
-
-                            reassigned.put(vc, vc_idx);
-                        }
-
-                        if (gtype != GeometryType.POINTSET) {
-                            indices[idx++] = va_idx.intValue();
-                            indices[idx++] = vb_idx.intValue();
-                            indices[idx++] = vc_idx.intValue();
-                        }
-                        if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
-                            indices[idx++] = -1;
-                        }
-
+                if (va_id > max_coord ||  vb_id > max_coord || vc_id > max_coord) {
+                    if (bad_cnt < display_max) {
+                        System.out.println("Invalid face: " + faces[i]);
                     }
 
-                }
-                num_coords = reassigned.size();
-            } else {
-                int idx = 0;
-                int max_coord = coords.length / 3 - 1;
-                int max_idx = 0;
-                int display_max = 10;
-                int bad_cnt = 0;
-
-                for(int i=0; i < faces.length; i++) {
-                    abfab3d.mesh.Vertex va = faces[i][0];
-                    abfab3d.mesh.Vertex vb = faces[i][1];
-                    abfab3d.mesh.Vertex vc = faces[i][2];
-
-                    if (va.getID() > max_coord || vb.getID() > max_coord || vc.getID() > max_coord) {
-                        if (bad_cnt < display_max) {
-                            System.out.println("Invalid face: " + faces[i]);
-                        }
-
-                        bad_cnt++;
-                        continue;
-                    }
-
-                    if (va.getID() > max_idx) {
-                        max_idx = va.getID();
-                    }
-                    if (vb.getID() > max_idx) {
-                        max_idx = vb.getID();
-                    }
-                    if (vc.getID() > max_idx) {
-                        max_idx = vc.getID();
-                    }
-
-                    if (gtype != GeometryType.POINTSET) {
-                        indices[idx++] = va.getID();
-                        indices[idx++] = vb.getID();
-                        indices[idx++] = vc.getID();
-                    }
-
-                    if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
-                        indices[idx++] = -1;
-                    }
-
+                    bad_cnt++;
+                    continue;
                 }
 
-                if (bad_cnt > 0) {
-                    System.out.println("Bad faces.  Removed: " + bad_cnt + " left: " + (idx -1));
-                    int[] new_indices = new int[idx-1];
-                    System.arraycopy(indices,0,new_indices,0,idx-1);
-
-                    indices = new_indices;
+                if (va_id > max_idx) {
+                    max_idx = va_id;
+                }
+                if (vb_id > max_idx) {
+                    max_idx = vb_id;
+                }
+                if (vc_id > max_idx) {
+                    max_idx = vc_id;
                 }
 
-                idx = 0;
-
-                if (Thread.currentThread().isInterrupted()) {
-                    throw new ExecutionStoppedException();
+                if (gtype != GeometryType.POINTSET) {
+                    indices[idx++] = va_id;
+                    indices[idx++] = vb_id;
+                    indices[idx++] = vc_id;
                 }
 
-                if (color_channel == -1) {
-                    abfab3d.mesh.Vertex v = mesh.getVertices();
-
-                    while (v != null) {
-
-                        coords[idx++] = (float) v.getPoint().x;
-                        coords[idx++] = (float) v.getPoint().y;
-                        coords[idx++] = (float) v.getPoint().z;
-
-                        v = v.getNext();
-                    }
-                } else {
-                    colors = new float[mesh.getVertexCount() * 3];
-
-                    VertexAttribs v = (VertexAttribs) mesh.getVertices();
-                    float[] color;
-                    int color_idx = 0;
-
-                    while (v != null) {
-
-                        coords[idx++] = (float) v.getPoint().x;
-                        coords[idx++] = (float) v.getPoint().y;
-                        coords[idx++] = (float) v.getPoint().z;
-
-                        color = v.getAttribs(color_channel);
-                        colors[color_idx++] = color[0];
-                        colors[color_idx++] = color[1];
-                        colors[color_idx++] = color[2];
-
-                        v = (VertexAttribs) v.getNext();
-                    }
-
-                }
-                if (export_normals && vertex_normals) {
-                    normals = new float[mesh.getVertexCount() * 3];
-                    idx = 0;
-
-                    abfab3d.mesh.Vertex v = mesh.getVertices();
-
-                    // TODO: need to calculate per vertex normals
-                    while (v != null) {
-                        v = v.getNext();
-/*
-                        normals[idx++] = vert.normal.x;
-                        normals[idx++] = vert.normal.y;
-                        normals[idx++] = vert.normal.z;
-*/
-                    }
+                if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
+                    indices[idx++] = -1;
                 }
 
             }
+
+            if (bad_cnt > 0) {
+                System.out.println("Bad faces.  Removed: " + bad_cnt + " left: " + (idx -1));
+                int[] new_indices = new int[idx-1];
+                System.arraycopy(indices,0,new_indices,0,idx-1);
+
+                indices = new_indices;
+            }
+
+            idx = 0;
+
+            if (Thread.currentThread().isInterrupted()) {
+                throw new ExecutionStoppedException();
+            }
+
+            double[] pnt = new double[3];
+
+            if (color_channel == -1) {
+                int v = mesh.getStartVertex();
+
+                while (v != -1) {
+                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                    coords[idx++] = (float) pnt[0];
+                    coords[idx++] = (float) pnt[1];
+                    coords[idx++] = (float) pnt[2];
+
+                    v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                }
+            } else {
+
+                colors = new float[mesh.getVertexCount() * 3];
+
+                int v = mesh.getStartVertex();
+
+                float[] color;
+                int color_idx = 0;
+
+                System.out.println("*** Need to implement color");
+                while (v != -1) {
+
+                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                    coords[idx++] = (float) pnt[0];
+                    coords[idx++] = (float) pnt[1];
+                    coords[idx++] = (float) pnt[2];
+                           /*
+                    color = v.getAttribs(color_channel);
+                    colors[color_idx++] = color[0];
+                    colors[color_idx++] = color[1];
+                    colors[color_idx++] = color[2];
+                             */
+                    v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                }
+
+            }
+            if (export_normals && vertex_normals) {
+                System.out.println("***Need to implement normal export");
+                /*
+                normals = new float[mesh.getVertexCount() * 3];
+                idx = 0;
+
+                abfab3d.mesh.Vertex v = mesh.getVertices();
+
+                // TODO: need to calculate per vertex normals
+                while (v != null) {
+                    v = v.getNext();
+
+                    normals[idx++] = vert.normal.x;
+                    normals[idx++] = vert.normal.y;
+                    normals[idx++] = vert.normal.z;
+
+                }
+            */
+            }
+
         }
 
 //System.out.println("indices: " + java.util.Arrays.toString(indices));

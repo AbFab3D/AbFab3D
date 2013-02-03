@@ -11,6 +11,8 @@
  ****************************************************************************/
 package abfab3d.util;
 
+import java.util.Arrays;
+
 /**
  * Struct like data structure for reducing garbage collection.  A mixed collection which contains
  * all primitive data types for convenience.
@@ -21,6 +23,7 @@ public class StructMixedData {
     private byte[] byteData;
     private short[] shortData;
     private int[] intData;
+    private int[] pointerData;
     private long[] longData;
     private char[] charData;
     private double[] doubleData;
@@ -43,9 +46,12 @@ public class StructMixedData {
         if (def.getByteDataSize() != 0) byteData = new byte[items * def.getByteDataSize()];
         if (def.getShortDataSize() != 0) shortData = new short[items * def.getShortDataSize()];
         if (def.getIntDataSize() != 0) intData = new int[items * def.getIntDataSize()];
+        if (def.getPointerDataSize() != 0) {
+            pointerData = new int[items * def.getPointerDataSize()];
+            Arrays.fill(pointerData, -1);
+        }
         if (def.getLongDataSize() != 0) longData = new long[items * def.getLongDataSize()];
         if (def.getCharDataSize() != 0) charData = new char[items * def.getCharDataSize()];
-
     }
 
     /**
@@ -73,6 +79,7 @@ public class StructMixedData {
         byte[] oldByteData = byteData;
         short[] oldShortData = shortData;
         int[] oldIntData = intData;
+        int[] oldPointerData = pointerData;
         long[] oldLongData = longData;
         char[] oldCharData = charData;
         double[] oldDoubleData = doubleData;
@@ -92,6 +99,13 @@ public class StructMixedData {
         if (oldIntData != null) {
             intData = new int[newSize * def.getIntDataSize()];
             System.arraycopy(oldIntData, 0, intData, 0, oldIntData.length);
+        }
+        if (oldPointerData != null) {
+            pointerData = new int[newSize * def.getPointerDataSize()];
+            System.arraycopy(oldPointerData, 0, pointerData, 0, oldPointerData.length);
+            
+            // Clear pointers to -1
+            Arrays.fill(pointerData,oldPointerData.length, pointerData.length-1,-1);
         }
         if (oldLongData != null) {
             longData = new long[newSize * def.getLongDataSize()];
@@ -119,6 +133,41 @@ public class StructMixedData {
         }
 
         items = newSize;
+    }
+
+    public void clear() {
+        size = 0;
+
+        if (byteData != null) {
+            Arrays.fill(byteData,(byte)0);
+        }
+        if (shortData != null) {
+            Arrays.fill(shortData,(short)0);
+        }
+        if (intData != null) {
+            Arrays.fill(intData,(int)0);
+        }
+        if (pointerData != null) {
+            Arrays.fill(pointerData,-1);
+        }
+        if (longData != null) {
+            Arrays.fill(longData,(long)0);
+        }
+        if (charData != null) {
+            Arrays.fill(charData,(char) 0);
+        }
+        if (doubleData != null) {
+            Arrays.fill(doubleData,0.0);
+        }
+        if (floatData != null) {
+            Arrays.fill(floatData,0.0f);
+        }
+        if (booleanData != null) {
+            Arrays.fill(booleanData,false);
+        }
+        if (objectData != null) {
+            Arrays.fill(objectData,null);
+        }
     }
 
     public double[] getDoubleData() {
@@ -149,6 +198,10 @@ public class StructMixedData {
         return intData;
     }
 
+    public int[] getPointerData() {
+        return pointerData;
+    }
+    
     public long[] getLongData() {
         return longData;
     }

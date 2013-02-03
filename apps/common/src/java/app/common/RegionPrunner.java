@@ -175,7 +175,7 @@ public class RegionPrunner {
 
         try {
             // Voxelize and Decimate with fixed edge length = voxels size
-            IndexedTriangleSetBuilderNew its = generateIsosurface(grid, isoValue, bounds);
+            IndexedTriangleSetBuilder its = generateIsosurface(grid, isoValue, bounds);
 
             int[] faces = its.getFaces();
             WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
@@ -196,7 +196,7 @@ public class RegionPrunner {
             int fcount = mesh.getTriangleCount();
 
             if (maxDecimationError > 0 && fcount > 0) {
-                MeshDecimatorNew md = new MeshDecimatorNew();
+                MeshDecimator md = new MeshDecimator();
                 md.setMaxCollapseError(maxDecimationError);
 
                 long start_time = System.currentTimeMillis();
@@ -238,7 +238,7 @@ public class RegionPrunner {
         }
     }
 
-    private static IndexedTriangleSetBuilderNew generateIsosurface(Grid grid, double isoValue, double[] bounds) {
+    private static IndexedTriangleSetBuilder generateIsosurface(Grid grid, double isoValue, double[] bounds) {
 
         // isosurface grid is placed between centers of voxels of orginal grid
         // therefore isosurface grid size is decremented by one voxel
@@ -252,7 +252,7 @@ public class RegionPrunner {
         im.setBounds(extendBounds(bounds, -vs / 2));
         im.setGridSize(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1);
 
-        IndexedTriangleSetBuilderNew its = new IndexedTriangleSetBuilderNew();
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
         im.makeIsosurface(new abfab3d.io.output.IsosurfaceMaker.SliceGrid(grid, bounds, 0), its);
 

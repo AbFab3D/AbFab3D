@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2012
+ *                        Shapeways, Inc Copyright (c) 2013
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1

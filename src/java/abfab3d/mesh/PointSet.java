@@ -1,3 +1,14 @@
+/*****************************************************************************
+ *                        Shapeways, Inc Copyright (c) 2013
+ *                               Java Source
+ *
+ * This source is licensed under the GNU LGPL v2.1
+ * Please read http://www.gnu.org/copyleft/lgpl.html for more information
+ *
+ * This software comes with the standard NO WARRANTY disclaimer for any
+ * purpose. Use it at your own risk. If there's a problem you get to fix it.
+ *
+ ****************************************************************************/
 package abfab3d.mesh;
 
 import abfab3d.util.StructDataDefinition;
@@ -63,8 +74,6 @@ public class PointSet {
         entries = new StructMixedData(Entry.DEFINITION,threshold);
     }
 
-    int add_cnt = 0;
-
     /**
      * Add a new position.
      *
@@ -74,11 +83,6 @@ public class PointSet {
      * @return The positions old ID or a newly created ID
      */
     public int add(double x, double y, double z) {
-        if (false && add_cnt < 1000) {
-            System.out.println("ps.add(" + x + "," + y + "," + z + ");");
-            add_cnt++;
-        }
-
         int hash = calcHash(x,y,z);
 
         int index = (hash & 0x7FFFFFFF) % table.length;
@@ -138,7 +142,6 @@ public class PointSet {
      */
     public double[] getPoints() {
         double[] ret_val = new double[count * 3];
-        int idx = 0;
 
         for (int j = 0; j < table.length; j++) {
             int e = table[j];
@@ -227,7 +230,8 @@ class Entry extends StructDataDefinition {
     public static final StructDataDefinition DEFINITION = new Entry();
 
     public static final int DOUBLE_DATA_SIZE = 3;
-    public static final int INT_DATA_SIZE = 3;
+    public static final int INT_DATA_SIZE = 2;
+    public static final int POINTER_DATA_SIZE = 1;
 
     // double positions
     public static final int POS_X = 0;
@@ -236,9 +240,10 @@ class Entry extends StructDataDefinition {
 
     // int positions
     public static final int POS_ID = 0;
-    public static final int POS_NEXT = 1;
-    public static final int POS_HASH = 2;
+    public static final int POS_HASH = 1;
 
+    // Pointer positions
+    public static final int POS_NEXT = 0;
 
     public static int createEntry(StructMixedData dest) {
         int destIdx = dest.addItem();
@@ -260,14 +265,17 @@ class Entry extends StructDataDefinition {
         int[] int_data = dest.getIntData();
         int double_pos = destIdx * DOUBLE_DATA_SIZE;
         double[] double_data = dest.getDoubleData();
+        int pointer_pos = destIdx * POINTER_DATA_SIZE;
+        int[] pointer_data = dest.getPointerData();
 
         double_data[double_pos + POS_X] = x;
         double_data[double_pos + POS_Y] = y;
         double_data[double_pos + POS_Z] = z;
 
         int_data[int_pos + POS_ID] = id;
-        int_data[int_pos + POS_NEXT] = next;
         int_data[int_pos + POS_HASH] = hash;
+        
+        pointer_data[pointer_pos + POS_NEXT] = next;
     }
 
     public static void setHash(int hash, StructMixedData dest, int destIdx) {
@@ -317,17 +325,17 @@ class Entry extends StructDataDefinition {
      * @return The position or -1 if none
      */
     public static int getNext(StructMixedData src, int srcIdx) {
-        int int_pos = srcIdx * INT_DATA_SIZE + POS_NEXT;
-        int[] int_data = src.getIntData();
+        int pointer_pos = srcIdx * POINTER_DATA_SIZE + POS_NEXT;
+        int[] pointer_data = src.getPointerData();
 
-        return int_data[int_pos];
+        return pointer_data[pointer_pos];
     }
 
     public static void setNext(int next, StructMixedData dest, int destIdx) {
-        int int_pos = destIdx * INT_DATA_SIZE + POS_NEXT;
-        int[] int_data = dest.getIntData();
+        int pointer_pos = destIdx * POINTER_DATA_SIZE + POS_NEXT;
+        int[] pointer_data = dest.getPointerData();
 
-        int_data[int_pos] = next;
+        pointer_data[pointer_pos] = next;
     }
 
     public int getDoubleDataSize() {
@@ -336,5 +344,9 @@ class Entry extends StructDataDefinition {
 
     public int getIntDataSize() {
         return INT_DATA_SIZE;
+    }
+
+    public int getPointerDataSize() {
+        return POINTER_DATA_SIZE;
     }
 }

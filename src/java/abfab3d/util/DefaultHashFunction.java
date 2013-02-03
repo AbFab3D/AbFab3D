@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2012
+ *                        Shapeways, Inc Copyright (c) 2013
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -10,17 +10,19 @@
  *
  ****************************************************************************/
 
-package abfab3d.mesh;
-
-
-import abfab3d.util.StructMixedData;
+package abfab3d.util;
 
 /**
-   interface return true if it is OK to collapse the Edge
+ *  External hashing function.
+ *
+ * @author Alan Hudson
  */
-public interface EdgeTester {
+public class DefaultHashFunction implements HashFunction {
+    public final int calcHashCode(final StructMixedData src, int srcIdx) {
+        return srcIdx;
+    }
 
-    public boolean canCollapse(StructMixedData src, int srcIdx);
-
+    public final boolean calcEquals(final StructMixedData src, int a, int b) {
+        return (a == b);
+    }
 }
-

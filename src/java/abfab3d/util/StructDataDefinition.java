@@ -37,6 +37,14 @@ public class StructDataDefinition {
         return 0;
     }
 
+    /**
+     * Pointers are ints.  Treat them special as null is a negative -1 value not 0.
+     * @return
+     */
+    public int getPointerDataSize() {
+        return 0;
+    }
+
     public int getIntDataSize() {
         return 0;
     }

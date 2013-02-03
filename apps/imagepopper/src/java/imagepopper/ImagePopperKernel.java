@@ -260,7 +260,9 @@ public class ImagePopperKernel extends HostedKernel {
             resolution = resolution * previewQuality.getFactor();
         }
 
-        maxDecimationError = 0.1*resolution*resolution;
+        if (maxDecimationError > 0) {
+            maxDecimationError = 0.1*resolution*resolution;
+        }
 
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
@@ -365,8 +367,8 @@ public class ImagePopperKernel extends HostedKernel {
 
         System.out.println("**** Resampling, decide if we like");
         int resampleFactor = 1;
-        TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,resampleFactor);
-        
+        abfab3d.mesh.TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,resampleFactor);
+
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
         double volume = ac.getVolume();
@@ -513,7 +515,7 @@ public class ImagePopperKernel extends HostedKernel {
     }
 
     public static void main(String[] args) {
-        int loops = 1;
+        int loops = 3;
 
         for(int n=0; n < loops; n++) {
         int threads = 1;
@@ -551,7 +553,7 @@ class KernelRunner implements Runnable {
     @Override
     public void run() {
         HashMap<String,String> params = new HashMap<String,String>();
-/*
+
         // params for garbage gen, originally 100 million objects
         params.put("bodyWidth1","0.1016");
         params.put("bodyHeight1","0.1016");
@@ -560,7 +562,7 @@ class KernelRunner implements Runnable {
         params.put("regions","ALL");
         params.put("previewQuality","LOW");
         params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
-*/
+/*
         // params for regions test
         params.put("bodyWidth1","0.0216");
         params.put("bodyHeight1","0.0216");
@@ -570,7 +572,7 @@ class KernelRunner implements Runnable {
         params.put("previewQuality","LOW");
         params.put("visRemovedRegions","true");
         params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\imagepopper\\images\\leaf\\5_cleaned.png");
-
+*/
         Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
         try {

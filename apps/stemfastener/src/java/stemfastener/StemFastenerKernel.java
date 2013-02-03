@@ -377,7 +377,7 @@ System.out.println("Creating Regions Exporter");
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, smoothSteps), its);
-        int[][] faces = its.getFaces();
+        int[] faces = its.getFaces();
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
 
         int fcount = faces.length;
