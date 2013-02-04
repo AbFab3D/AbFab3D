@@ -286,13 +286,9 @@ public class RectSidedPopperKernel extends HostedKernel {
             resolution = resolution * previewQuality.getFactor();
         }
 
-        maxDecimationError = 0.01*resolution*resolution;
-        
-        System.out.println("maxDecimate calc: " + maxDecimationError);
-        // TODO: Need to decide on this based on size of object?    The above formula is too accurate for large models.
-        maxDecimationError = 1e-9;
-        System.out.println("maxDecimate set: " + maxDecimationError);
-
+        if (maxDecimationError > 0) {
+            maxDecimationError = 0.1*resolution*resolution;
+        }
 
         double voxelSize = resolution;
         double margin = 5 * voxelSize;

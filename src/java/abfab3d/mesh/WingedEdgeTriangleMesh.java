@@ -829,6 +829,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             // its possible an edge can get removed twice, this would crash.
             if (next != -1) {
                 Edge.setPrev(prev, edges, next);
+                return; // Do not alter edgeCount
             }
         }
 
@@ -1054,6 +1055,67 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         }
     }
 
+
+    /**
+     * Verify that the mesh structure is correct.  Chase as many pointers and references as we can to confirm that
+     * nothing is messed up.
+     *
+     * @param mesh
+     * @return
+     */
+    public static boolean verifyCounts(TriangleMesh mesh) {
+        // Walk edges and make sure no referenced head or twin values are null
+        // Make sure twin references same vertices
+
+        StructMixedData edges = mesh.getEdges();
+        int startEdge = mesh.getStartEdge();
+
+        StructMixedData faces = mesh.getFaces();
+        int startFace = mesh.getStartFace();
+
+        StructMixedData vertices = mesh.getVertices();
+        int startVertex = mesh.getStartVertex();
+
+        StructMixedData hedges = mesh.getHalfEdges();
+
+        int e = startEdge;
+
+        int edgeCount = 0;
+
+        while(e != -1) {
+            edgeCount++;
+            int he = Edge.getHe(edges,e);
+
+            e = Edge.getNext(edges,e);
+        }
+
+        System.out.println("Edges:  class: " + mesh.getEdgeCount() + " cnt: " + edgeCount);
+
+        // Make sure all faces have three half edges
+        // Make sure all edge and face references in halfedge are valid
+        // Make sure forward traversal(next) around face is same as backwards(prev)
+
+        int f = startFace;
+        int faceCount = 0;
+        while(f != -1) {
+            faceCount++;
+
+            f = Face.getNext(faces,f);
+        }
+
+        System.out.println("Faces:  class: " + mesh.getFaceCount() + " cnt: " + faceCount);
+
+        int v = startVertex;
+        int vertexCount = 0;
+        while(v != -1) {
+            vertexCount++;
+            v = Vertex.getNext(vertices,v);
+        }
+        System.out.println("Vertices:  class: " + mesh.getVertexCount() + " cnt: " + vertexCount);
+
+
+        return true;
+    }
 
 
     // area of small trinagle to be rejected as face flip  (in m^2)

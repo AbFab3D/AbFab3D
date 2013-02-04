@@ -224,7 +224,7 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
         } catch(Exception e) {
             e.printStackTrace();
 
-            return new KernelResults(false, KernelResults.INTERNAL_ERROR, "Failed Writing Grid", null, null,-1,-1);
+            return new KernelResults(false, KernelResults.INTERNAL_ERROR, "Failed Writing Grid", null, null,-1,-1,0);
         }
 
         double[] min_bounds = new double[3];

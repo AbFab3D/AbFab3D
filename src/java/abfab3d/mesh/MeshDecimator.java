@@ -255,9 +255,14 @@ System.out.println("***Iterations: " + count);
         int e = m_mesh.getStartEdge();
         int count = 0;
 
+        System.out.println("Starting edge: " + e);
         // TODO: I don't think edgeArray is needed now
         while(e != -1){
             Edge.setUserData(count,edges, e);
+            if (count +1 > ecount) {
+                System.out.println("More edges then count!");
+                WingedEdgeTriangleMesh.verifyCounts(m_mesh);
+            }
             m_edgeArray.set(count++, e);
 
             e = Edge.getNext(edges, e);
@@ -413,6 +418,16 @@ System.out.println("***Iterations: " + count);
 
     }
 
+    void getCandidateEdges(StructMixedData edges, int start, EdgeData ed[]){
+
+        for(int i = 0; i < ed.length; i++){
+
+            m_edgeArray.getRandomEdge(ed[i]);
+
+        }
+
+    }
+
     /**
 
        array of edges 
@@ -478,6 +493,7 @@ System.out.println("***Iterations: " + count);
             }
             printf("!!!failed to find new random edge in getRandomEdge()\n");
         }
+
     }
 
     public static String formatPoint(Point3d p){

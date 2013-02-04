@@ -804,7 +804,10 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         int e = startEdge;
 
+        int edgeCount = 0;
+
         while(e != -1) {
+            edgeCount++;
             int he = Edge.getHe(edges,e);
             if (he == -1) {
                 System.out.println("Edge found with null Head: " + e);
@@ -832,12 +835,17 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             e = Edge.getNext(edges,e);
         }
 
+        assertEquals("Edge count", mesh.getEdgeCount(), edgeCount);
+
         // Make sure all faces have three half edges
         // Make sure all edge and face references in halfedge are valid
         // Make sure forward traversal(next) around face is same as backwards(prev)
 
         int f = startFace;
+        int faceCount = 0;
         while(f != -1) {
+            faceCount++;
+
             int he = Face.getHe(faces,f);
 
             int start = he;
@@ -891,10 +899,14 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             f = Face.getNext(faces,f);
         }
 
+        assertEquals("Face count", mesh.getFaceCount(), faceCount);
+
         // verify vertex link is bidirectional, ie edge thinks its connected to vertex
 
         int v = startVertex;
+        int vertexCount = 0;
         while(v != -1) {
+            vertexCount++;
             int he = Vertex.getLink(vertices,v);
 
             if (he == -1) {
@@ -912,6 +924,8 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
             v = Vertex.getNext(vertices,v);
         }
+        assertEquals("Vertex count", mesh.getVertexCount(), vertexCount);
+
 
         // Check for any edges that are duplicated
         int e1 = startEdge;

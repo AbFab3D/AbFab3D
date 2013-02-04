@@ -188,7 +188,7 @@ public class PointSet {
         int oldCapacity = oldTable.length;
 
         int newCapacity = oldCapacity * 2;
-        System.out.println("*****Rehasing: " + newCapacity);
+        System.out.println("*****Rehashing PointSet: " + newCapacity);
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);
 
