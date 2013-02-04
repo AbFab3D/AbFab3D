@@ -30,12 +30,14 @@ import abfab3d.grid.Grid;
 public class GridMaker {
     
     
-    public VecTransform m_transform;
-    public DataSource m_dataSource;
+    protected VecTransform m_transform;
+    protected DataSource m_dataSource;
 
-    public double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1; 
-    public double m_centerX = 0, m_centerY = 0, m_centerZ = 0;  
-    
+    protected double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1; 
+    protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;  
+
+    // margin around the grid boundary to be kept empty
+    protected int m_margin = 1; 
 
     private double voxelX, voxelY, voxelZ, offsetX, offsetY, offsetZ;
 
@@ -47,6 +49,12 @@ public class GridMaker {
 
     public void setTransform(VecTransform transform){
         m_transform = transform;
+    }
+
+    public void setMargin(int margin){
+
+        m_margin = margin;
+
     }
 
     public void setBounds(double bounds[]){
@@ -92,11 +100,17 @@ public class GridMaker {
             pntData = new Vec(3),
             dataValue = new Vec(2);
         
-        for(int iy = 0; iy < ny; iy++){
+        int margin = m_margin; 
 
-            for(int ix = 0; ix < nx; ix++){
+        int nx1 = nx-margin;
+        int ny1 = ny-margin;
+        int nz1 = nz-margin;
 
-                for(int iz = nz-1; iz >= 0; iz--){ // z-order to speed up creation of GridIntervals
+        for(int iy = margin; iy < ny1; iy++){
+
+            for(int ix = margin; ix < nx1; ix++){
+
+                for(int iz = nz1-1; iz >= margin; iz--){ // z-order to speed up creation of GridIntervals
                     
                     pntGrid.set(ix, iy, iz);
                     transformToWorldSpace(pntGrid, pntWorld);

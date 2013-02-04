@@ -159,19 +159,19 @@ public class RectSidedPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 1, null, null)
         );
 
-        params.put("sideImage1", new Parameter("sideImage1", "Side Image 1", "The image to use for side 1", "images/yside.png", 1,
+        params.put("sideImage1", new Parameter("sideImage1", "Side Image 1", "The image to use for side 1", "images/bside1.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
-        params.put("sideImage2", new Parameter("sideImage2", "Side Image 2", "The image to use for side 2", "NONE", 1,
+        params.put("sideImage2", new Parameter("sideImage2", "Side Image 2", "The image to use for side 2", "images/bside2.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
-        params.put("sideImage3", new Parameter("sideImage3", "Side Image 3", "The image to use for side 3", "NONE", 1,
+        params.put("sideImage3", new Parameter("sideImage3", "Side Image 3", "The image to use for side 3", "images/bside3.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
-        params.put("sideImage4", new Parameter("sideImage4", "Side Image 4", "The image to use for side 4", "NONE", 1,
+        params.put("sideImage4", new Parameter("sideImage4", "Side Image 4", "The image to use for side 4", "images/bside4.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -287,86 +287,46 @@ public class RectSidedPopperKernel extends HostedKernel {
         }
 
         maxDecimationError = 0.01*resolution*resolution;
-
+        
         System.out.println("maxDecimate calc: " + maxDecimationError);
         // TODO: Need to decide on this based on size of object?    The above formula is too accurate for large models.
         maxDecimationError = 1e-9;
         System.out.println("maxDecimate set: " + maxDecimationError);
-/*
+
+
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
-
-        double gridWidth = 0;
-        double gridHeight = 0;
-        double gridDepth = 0;
-
-        switch(shape) {
-            case CUBE:
-                gridWidth = radius + 2 * sideThickness + 2 * margin;
-                gridHeight = gridWidth;
-                gridDepth = sideHeight + topThickness + bottomThickness;
-                break;
-        }
         
-        double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -margin, gridDepth + margin};
+        double baseWidth = radius; 
+        double shapeCenter[] = new double[]{0,0,sideHeight/2}; // center of the shape 
+
+        double gridWidth = baseWidth + 2 * margin;
+        double gridHeight = baseWidth + 2 * margin;
+        double gridDepth = sideHeight + 2 * margin;
+
+        double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -margin, sideHeight + margin};
+
         int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
         int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
         int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
+
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
-
-        DataSources.Union union = new DataSources.Union();
-
-        DataSources.ImageBitmap layer1 = new DataSources.ImageBitmap();
-        layer1.setSize(radius, radius, sideHeight);
-        layer1.setLocation(0, 0, 0);
-        layer1.setBaseThickness(0.0);
-        layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
-        layer1.setTiles(1, 1);
-        layer1.setImagePath(sideImage1);
-        layer1.setUseGrayscale(useGrayscale);
-
-        if (USE_MIP_MAPPING) {
-            layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-            layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            layer1.setProbeSize(resolution * 2.);
-        }
-
-        union.addDataSource(layer1);
-  */
-        double voxelSize = resolution;
-        double margin = 5 * voxelSize;
-
-        double bodyWidth1 = radius + 2 * sideThickness;
-
-        double bodyHeight1 = radius + 2 * sideThickness;
-        double bodyDepth1 = bottomThickness;
-
-
-        double gridWidth = bodyWidth1 + 2 * margin;
-        double gridHeight = bodyHeight1 + 2 * margin;
-        double bodyDepth = bottomThickness + sideHeight + topThickness;
-
-        double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -margin, bodyDepth + margin};
-        int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
-        int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
-        int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
-        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
-        printf("bodyDepth: %f mm\n", bodyDepth*1000);
+        //printf("bodyDepth: %f mm\n", bodyDepth*1000);
+        //printf("sideThickness: %fmm, sideHeight: %f mm\n", sideThickness*1000, sideHeight*1000);
 
         // TODO: Change to use BlockBased for some size
         grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
+        popImage(grid, baseWidth, baseWidth, bottomThickness, bottomImage, bounds, null,null,null);
+        popImage(grid, baseWidth, baseWidth, topThickness, topImage, bounds, null,null, new double[] {0,0,topLocation * sideHeight-topThickness});
 
-        popImage(grid, radius, bottomThickness, radius, margin, bottomImage, new double[] {0,0,bottomThickness},null,bounds);
-        popImage(grid, radius, topThickness, radius, margin, topImage, new double[] {0,0,topLocation * sideHeight},null,bounds);
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage1, bounds, new double[]{1,0,0,90*TORAD}, null, new double[] {0,baseWidth/2,sideHeight/2});        
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage2, bounds, new double[]{1,0,0,-90*TORAD}, null, new double[] {0,-baseWidth/2,sideHeight/2});    
 
-        // rotate image to be up.  Doesn't seem to be working, clears whole grid
-        // Looking for the equivalent rotation as the popImageYUP which I think should be a rotation around x axis
-        popImage(grid, radius, sideThickness, sideHeight, margin, sideImage1, null, new double[] {1,0,0,-90 * TORAD},bounds);
+        popImage(grid, sideHeight, baseWidth, sideThickness, sideImage3, bounds, new double[]{0,1,0,90*TORAD}, null, new double[] {-baseWidth/2,0,sideHeight/2});
+        popImage(grid, sideHeight, baseWidth, sideThickness, sideImage4, bounds, new double[]{0,1,0,-90*TORAD}, null, new double[] {baseWidth/2,0,sideHeight/2});
 
-        // workkng hack
-//        popImageYUP(grid, radius, sideHeight, sideThickness, margin, sideImage1, new double[] {0,-radius/2,bottomThickness}, null,bounds);
-//        popImageYUP(grid, radius, sideHeight, sideThickness, margin, sideImage1, new double[] {0,radius/2,bottomThickness}, null,bounds);
+
         if (regions != RegionPrunner.Regions.ALL) {
 //            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INTERIOR, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
             if (visRemovedRegions) {
@@ -441,41 +401,56 @@ public class RectSidedPopperKernel extends HostedKernel {
         return new KernelResults(true, min_bounds, max_bounds, volume, surfaceArea);
     }
 
-    private void popImage(Grid grid, double bodyWidth1, double bodyDepth1, double bodyHeight1, double margin, String filename, double[] trans, double[] rot, double[] bounds) {
-        DataSources.ImageBitmap layer1 = new DataSources.ImageBitmap();
-        layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
-        layer1.setLocation(0, 0, bodyDepth1/2);
-        layer1.setBaseThickness(0.0);
-        layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
-        layer1.setTiles(1, 1);
-        layer1.setImagePath(filename);
-        layer1.setUseGrayscale(useGrayscale);
+    private void popImage(Grid grid, double bodyWidth, double bodyHeight, double bodyDepth, 
+                          String filename, double[] bounds, 
+                          double rot[], double rotCenter[], double translation[]) {
+
+        DataSources.ImageBitmap layer = new DataSources.ImageBitmap();
+        layer.setSize(bodyWidth, bodyHeight, bodyDepth);
+        layer.setLocation(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane 
+        layer.setBaseThickness(0.0);
+        layer.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        layer.setTiles(1, 1);
+        layer.setImagePath(filename);
+        layer.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
-            layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-            layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            layer1.setProbeSize(resolution * 2.);
+            layer.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+            layer.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
+            layer.setProbeSize(resolution * 2.);
         }
 
         GridMaker gm = new GridMaker();
-        if (trans != null && rot != null) {
-            System.out.println("**Need to implement combined");
-        } else if (trans != null) {
-            /*
-            VecTransforms.Translation translation = new VecTransforms.Translation();
-            translation.setTranslation(trans[0], trans[1], trans[2]);
-            gm.setTransform(translation);
-            */
-            layer1.setLocation(trans[0],trans[1],bodyDepth1/2 + trans[2]);
-        } else if (rot != null) {
-            VecTransforms.Rotation rotation = new VecTransforms.Rotation();
-            rotation.m_axis = new Vector3d(rot[0],rot[1],rot[2]);
-            rotation.m_angle = rot[3];
-            gm.setTransform(rotation);
+
+        VecTransforms.CompositeTransform transform = new VecTransforms.CompositeTransform();
+
+        // do rotation if needed 
+        if(rot != null){
+            if(rotCenter != null){
+                VecTransforms.Translation tr1 = new VecTransforms.Translation();                
+                tr1.setTranslation(-rotCenter[0],-rotCenter[1],-rotCenter[2]);
+                transform.add(tr1);
+            }
+            VecTransforms.Rotation r = new VecTransforms.Rotation();                
+            r.setRotation(new Vector3d(rot[0],rot[1],rot[2]), rot[3]);
+            transform.add(r);
+            if(rotCenter != null){
+                VecTransforms.Translation tr1 = new VecTransforms.Translation();                
+                tr1.setTranslation(rotCenter[0],rotCenter[1],rotCenter[2]);
+                transform.add(tr1);
+            }
         }
 
+        // do translation 
+        if(translation != null){
+            VecTransforms.Translation tr = new VecTransforms.Translation();                
+            tr.setTranslation(translation[0],translation[1],translation[2]);
+            transform.add(tr);
+        }
+
+        gm.setTransform(transform);        
         gm.setBounds(bounds);
-        gm.setDataSource(layer1);
+        gm.setDataSource(layer);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
