@@ -361,11 +361,12 @@ public class RectSidedPopperKernel extends HostedKernel {
         popImage(grid, radius, topThickness, radius, margin, topImage, new double[] {0,0,topLocation * sideHeight},null,bounds);
 
         // rotate image to be up.  Doesn't seem to be working, clears whole grid
-        //popImage(grid, radius, sideThickness, sideHeight, margin, sideImage1, null, new double[] {1,0,0,-90 * TORAD},bounds);
+        // Looking for the equivalent rotation as the popImageYUP which I think should be a rotation around x axis
+        popImage(grid, radius, sideThickness, sideHeight, margin, sideImage1, null, new double[] {1,0,0,-90 * TORAD},bounds);
 
-        // workikng hack
-        popImageYUP(grid, radius, sideHeight, sideThickness, margin, sideImage1, new double[] {0,-radius/2,bottomThickness}, null,bounds);
-        popImageYUP(grid, radius, sideHeight, sideThickness, margin, sideImage1, new double[] {0,radius/2,bottomThickness}, null,bounds);
+        // workkng hack
+//        popImageYUP(grid, radius, sideHeight, sideThickness, margin, sideImage1, new double[] {0,-radius/2,bottomThickness}, null,bounds);
+//        popImageYUP(grid, radius, sideHeight, sideThickness, margin, sideImage1, new double[] {0,radius/2,bottomThickness}, null,bounds);
         if (regions != RegionPrunner.Regions.ALL) {
 //            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INTERIOR, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
             if (visRemovedRegions) {
