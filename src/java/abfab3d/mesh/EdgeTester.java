@@ -20,7 +20,7 @@ import abfab3d.util.StructMixedData;
  */
 public interface EdgeTester {
 
-    public boolean canCollapse(StructMixedData src, int srcIdx);
+    public boolean canCollapse(int srcIdx);
 
 }
 

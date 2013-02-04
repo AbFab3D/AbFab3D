@@ -340,12 +340,13 @@ public class ImagePopperKernel extends HostedKernel {
         gm.makeGrid(grid);
         printf("gm.makeGrid() done\n");
 
+        int regions_removed = 0;
         if (regions != RegionPrunner.Regions.ALL) {
 //            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INTERIOR, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
             if (visRemovedRegions) {
-                RegionPrunner.reduceToOneRegion(grid, handler, bounds);
+                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds);
             } else {
-                RegionPrunner.reduceToOneRegion(grid);
+                regions_removed = RegionPrunner.reduceToOneRegion(grid);
             }
         }
 
@@ -367,15 +368,15 @@ public class ImagePopperKernel extends HostedKernel {
 
         System.out.println("**** Resampling, decide if we like");
         int resampleFactor = 1;
-        abfab3d.mesh.TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,resampleFactor);
+        abfab3d.mesh.TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps, resampleFactor);
 
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
         double volume = ac.getVolume();
-        double surfaceArea = ac.getArea();
+        double surface_area = ac.getArea();
 
         long t0 = System.nanoTime();
-        printf("surface area: %7.3f CM^2\n", surfaceArea*1.e4);
+        printf("surface area: %7.3f CM^2\n", surface_area*1.e4);
         printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
 
         int gw = grid.getWidth();
@@ -400,13 +401,13 @@ public class ImagePopperKernel extends HostedKernel {
         ac = new AreaCalculator();
         mesh.getTriangles(ac);
         volume = ac.getVolume();
-        surfaceArea = ac.getArea();
+        surface_area = ac.getArea();
 
         t0 = System.nanoTime();
-        printf("final surface area: %7.3f CM^2\n", surfaceArea*1.e4);
+        printf("final surface area: %7.3f CM^2\n", surface_area*1.e4);
         printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
 
-        return new KernelResults(true, min_bounds, max_bounds, volume, surfaceArea);
+        return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
     }
 
     /**

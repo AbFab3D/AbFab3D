@@ -58,9 +58,15 @@ public interface TriangleMesh {
     public int getStartFace();
 
     /**
+     * Get the semantic definitions of the vertices
+     * @return The definitions or null if none
+     */
+    public int[] getSemantics();
+
+    /**
      * Get the color attrib channel.
      *
      * @return The channelID or -1 if not available
      */
-   // public int getColorChannel();
+    public int getColorChannel();
 }

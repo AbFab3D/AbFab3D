@@ -28,6 +28,17 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh implements TriangleMesh {
+    public static final int VA_NORMAL = 0;
+    public static final int VA_COLOR = 1;
+    public static final int VA_TEXCOORD0 = 2;
+    public static final int VA_TEXCOORD1 = 3;
+    public static final int VA_TEXCOORD2 = 4;
+    public static final int VA_TEXCOORD3 = 5;
+    public static final int VA_TEXCOORD4 = 6;
+    public static final int VA_TEXCOORD5 = 7;
+    public static final int VA_TEXCOORD6 = 8;
+    public static final int VA_TEXCOORD7 = 9;
+
     static boolean DEBUG = false;
 
     private final StructMixedData vertices;  // of Vertex
@@ -53,20 +64,109 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     private int faceCount = 0;
     private int edgeCount = 0;
 
+    /** The semantic definition of the attribute, 0-15 reserved for internal usage */
+    private int[] semantics;
+
+    public WingedEdgeTriangleMesh(double[] vertCoord, float[][] attribs, int[] semantics, int[] findex) {
+        if (semantics != null) {
+            this.semantics = semantics.clone();
+        }
+
+        int len = vertCoord.length / 3;
+
+        edges = new StructMixedData(Edge.DEFINITION, findex.length);
+        hedges = new StructMixedData(HalfEdge.DEFINITION, findex.length * 2 + 1);
+        edgeMap = new StructMap((int) ((findex.length * 2 + 1) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
+        faces = new StructMixedData(Face.DEFINITION, findex.length / 3);
+        int idx = 0;
+
+        if (semantics == null || semantics.length == 0) {
+            vertices = new StructMixedData(Vertex.DEFINITION,len);
+            for (int nv = 0; nv < len; nv++) {
+                int v = Vertex.create(vertCoord[idx++],vertCoord[idx++], vertCoord[idx++], nv, vertices);
+                addVertex(v);
+            }
+        } else if (semantics.length == 1) {
+            vertices = new StructMixedData(VertexAttribs1.DEFINITION,len);
+            for (int nv = 0; nv < len; nv++) {
+                int v = VertexAttribs1.create(vertCoord[idx++],vertCoord[idx++], vertCoord[idx++], nv, attribs[nv], vertices);
+                addVertex(v);
+            }
+        } else if (semantics.length == 3) {
+            vertices = new StructMixedData(VertexAttribs3.DEFINITION,len);
+
+            for (int nv = 0; nv < len; nv++) {
+                int v = VertexAttribs3.create(vertCoord[idx++],vertCoord[idx++], vertCoord[idx++], nv, attribs[nv], vertices);
+                addVertex(v);
+            }
+        } else {
+            throw new IllegalArgumentException("Unsupported number of vertex attributes: " + semantics.length);
+        }
+
+        int[] eface = new int[3];
+
+        int[] ahedges = new int[findex.length];
+        int ahedges_idx = 0;
+
+        int[] face = new int[3];
+
+        idx = 0;
+        len = findex.length / 3;
+        for (int i = 0; i < len; i++) {
+
+            face[0] = findex[idx++];
+            face[1] = findex[idx++];
+            face[2] = findex[idx++];
+
+            // Create the half edges for each face
+            for (int j = 0; j < 3; j++) {
+
+                int v1 = face[j];
+                int v2 = face[(j + 1) % 3];
+                //System.out.println("Build he: " + v1.getID() + " v2: " + v2.getID());
+                int he = buildHalfEdge(v1, v2);
+                edgeMap.put(he, he);
+                ahedges[ahedges_idx++] = he;
+                eface[j] = he;
+            }
+
+            // Create the face
+            buildFace(eface);
+        }
+
+        boolean notifyNonManifold = true;
+
+        int key = HalfEdge.create(hedges);
+
+        len = ahedges.length;
+
+        // Find the twins
+        for (int i=0; i < len; i++) {
+            int he1 = ahedges[i];
+            //for (HalfEdge he1 : edgeMap.values()) {
+            int twin = HalfEdge.getTwin(hedges, he1);
+            if (twin == -1) {
+                // get halfedge of _opposite_ direction
+
+                HalfEdge.setStart(HalfEdge.getEnd(hedges, he1), hedges, key);
+                HalfEdge.setEnd(HalfEdge.getStart(hedges, he1), hedges, key);
+
+                int he2 = edgeMap.get(key);
+                if (he2 != -1) {
+                    betwin(he1, he2);
+                    buildEdge(he1); // create the edge!
+                } else {
+                    if (DEBUG && notifyNonManifold) {
+                        System.out.println("NonManifold hedge: " + he1 + " ? " + Vertex.getID(vertices, HalfEdge.getStart(hedges,he1)) + "->" + Vertex.getID(vertices, HalfEdge.getEnd(hedges,he1)));
+                    }
+                    // Null twin means its an outer edge on a non-manifold surface
+                    buildEdge(he1);
+                }
+            }
+        }
+    }
 
     public WingedEdgeTriangleMesh(double[] vertCoord, int[] findex) {
-/*
-        System.out.println("Verts:" + (vertCoord.length / 3));
-for(int i=0; i < 120; i++) {
-    System.out.println(vertCoord[i*3] + " " + vertCoord[i*3+1] + " " + vertCoord[i*3+2]);
-}
-*/
-        /*
-        System.out.println("Faces: " + findex.length / 3);
-for(int i=0; i < findex.length / 3; i++) {
-    System.out.println(findex[i*3] + " " + findex[i*3+1] + " " + findex[i*3+2]);
-}
-          */
         System.out.println("Creating new WE mesh from new code");
 
         int len = vertCoord.length / 3;
@@ -144,6 +244,32 @@ for(int i=0; i < findex.length / 3; i++) {
                 }
             }
         }
+    }
+
+    /**
+     * Get the semantic definitions of the vertices
+     * @return The definitions or null if none
+     */
+    public int[] getSemantics() {
+        return semantics.clone();
+    }
+
+    /**
+     * Get the color attrib channel.
+     *
+     * @return The channelID or -1 if not available
+     */
+    public int getColorChannel() {
+        if (semantics == null) {
+            return -1;
+        }
+        for(int i=0; i < semantics.length; i++) {
+            if (semantics[i] == VA_COLOR) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     /**

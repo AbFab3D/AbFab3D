@@ -16,6 +16,8 @@ package abfab3d.io.output;
 import java.util.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
+import abfab3d.mesh.VertexAttribs1;
+import abfab3d.mesh.VertexAttribs3;
 import abfab3d.util.StructMixedData;
 import toxi.geom.mesh.*;
 
@@ -144,7 +146,7 @@ public class SAVExporter {
         float[] normals = null;
         float[] colors = null;
         int num_coords = mesh.getVertexCount();
-        int color_channel = -1; // TODO need to implement
+        int color_channel = mesh.getColorChannel();
 
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
@@ -217,24 +219,45 @@ public class SAVExporter {
             } else {
                 int v = mesh.getStartVertex();
                 colors = new float[mesh.getVertexCount() * 3];
-                float[] color;
+                float[] color = new float[3];
+                int numAttribs = mesh.getSemantics().length;
 
-                System.out.println("***Need to implement color mapping");
-                while (v != -1) {
+                if (numAttribs == 1) {
 
-                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
-                    coords[idx++] = (float) pnt[0];
-                    coords[idx++] = (float) pnt[1];
-                    coords[idx++] = (float) pnt[2];
+                    while (v != -1) {
 
-/*
-                    TODO: Need to implement
-                    color = v.getAttribs(color_channel);
-                    colors[color_idx++] = color[0];
-                    colors[color_idx++] = color[1];
-                    colors[color_idx++] = color[2];
- */
-                    v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                        abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                        coords[idx++] = (float) pnt[0];
+                        coords[idx++] = (float) pnt[1];
+                        coords[idx++] = (float) pnt[2];
+
+                        VertexAttribs1.getAttrib(color_channel, vertices, v, color);
+
+                        colors[color_idx++] = color[0];
+                        colors[color_idx++] = color[1];
+                        colors[color_idx++] = color[2];
+
+                        v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                    }
+                } else if (numAttribs == 3) {
+                    while (v != -1) {
+
+                        abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                        coords[idx++] = (float) pnt[0];
+                        coords[idx++] = (float) pnt[1];
+                        coords[idx++] = (float) pnt[2];
+
+                        VertexAttribs3.getAttrib(color_channel, vertices, v, color);
+
+                        colors[color_idx++] = color[0];
+                        colors[color_idx++] = color[1];
+                        colors[color_idx++] = color[2];
+
+                        v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                    }
+
+                } else {
+                    throw new IllegalArgumentException("Unsupported number of colors");
                 }
             }
 
@@ -322,16 +345,33 @@ public class SAVExporter {
 
                 int v = mesh.getStartVertex();
 
-                float[] color;
                 int color_idx = 0;
+                float[] color = new float[3];
+                int numAttribs = mesh.getSemantics().length;
 
-                System.out.println("*** Need to implement color");
                 while (v != -1) {
 
                     abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
                     coords[idx++] = (float) pnt[0];
                     coords[idx++] = (float) pnt[1];
                     coords[idx++] = (float) pnt[2];
+
+                    if (numAttribs == 1) {
+                        VertexAttribs1.getAttrib(color_channel, vertices, v, color);
+
+                        colors[color_idx++] = color[0];
+                        colors[color_idx++] = color[1];
+                        colors[color_idx++] = color[2];
+                    } else if (numAttribs == 3) {
+                        VertexAttribs3.getAttrib(color_channel, vertices, v, color);
+
+                        colors[color_idx++] = color[0];
+                        colors[color_idx++] = color[1];
+                        colors[color_idx++] = color[2];
+                    } else {
+                        throw new IllegalArgumentException("Unsupported number of colors");
+                    }
+
                            /*
                     color = v.getAttribs(color_channel);
                     colors[color_idx++] = color[0];

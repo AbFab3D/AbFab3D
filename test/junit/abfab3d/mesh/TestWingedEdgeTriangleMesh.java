@@ -81,6 +81,39 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         writeMesh(we, "c:/tmp/pyramid.x3dv");
     }
 
+    /**
+     * Test that we can create a simple object with color.
+     *
+     * @throws Exception
+     */
+    public void testColor() throws Exception {
+
+        double[] pyr_vert = new double[]{-1, -1, -1,
+                1, -1, -1,
+                1, 1, -1,
+                -1, 1, -1,
+                0, 0, 1};
+        float[][] pyr_attribs = new float[][]{{1, 1, 1},
+                {1, 0, 0},
+                {0, 1, 0},
+                {0, 0, 1},
+                {1, 0, 1}};
+        int pyr_faces[] = new int[]{
+                3, 2, 0,
+                2, 1, 0,
+                0, 1, 4,
+                1, 2, 4,
+                2, 3, 4,
+                3, 0, 4};
+
+        int[] semantics = new int[] {WingedEdgeTriangleMesh.VA_COLOR};
+        WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(pyr_vert, pyr_attribs, semantics, pyr_faces);
+
+        we.writeOBJ(System.out);
+
+        writeMesh(we, "c:/tmp/pyramid_color.x3dv");
+    }
+
     public void testCollapse() throws Exception {
         double[] verts = new double[] {
                 -0.5, 0, -0.5,

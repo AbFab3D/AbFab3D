@@ -49,8 +49,9 @@ public class RegionPrunner {
      * Reduce a grid down to one largest region.
      *
      * @param grid
+     * @return The number of regions removed
      */
-    public static void reduceToOneRegion(Grid grid) {
+    public static int reduceToOneRegion(Grid grid) {
         System.out.println("Finding Regions: ");
         // Remove all but the largest region
         RegionFinder finder = new RegionFinder();
@@ -82,6 +83,8 @@ public class RegionPrunner {
                 throw new ExecutionStoppedException();
             }
         }
+
+        return regions.size() - 1;
     }
 
     /**
@@ -89,7 +92,7 @@ public class RegionPrunner {
      *
      * @param grid
      */
-    public static void reduceToOneRegion(Grid grid, BinaryContentHandler handler, double[] bounds) {
+    public static int reduceToOneRegion(Grid grid, BinaryContentHandler handler, double[] bounds) {
         System.out.println("Finding Regions: ");
         // Remove all but the largest region
         RegionFinder finder = new RegionFinder();
@@ -131,6 +134,8 @@ public class RegionPrunner {
             writePointVisFile(vis_grid, 0.9, bounds, handler, "debug", COLOR_REGION, "REMOVED_REGIONS");
 //            writeVisFile(vis_grid, 0.9, 3, 1e-8, bounds, handler, "debug", COLOR_REGION, "REMOVED_REGIONS");
         }
+
+        return regions.size() - 1;
     }
 
     /**

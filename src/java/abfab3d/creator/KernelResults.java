@@ -46,9 +46,12 @@ public class KernelResults {
     /** The surface area in m ^ 3 or -1 if not calculated */
     private double surfaceArea;
 
+    /** The number of regions removed from the original design */
+    private int regionsRemoved;
+
 
     public KernelResults(boolean success, int failureCode, String reason,
-        double[] boundsMin, double[] boundsMax, double volume, double surfaceArea) {
+        double[] boundsMin, double[] boundsMax, double volume, double surfaceArea, int regionsRemoved) {
 
         this.success = success;
 
@@ -64,24 +67,29 @@ public class KernelResults {
         this.reason = reason;
         this.volume = volume;
         this.surfaceArea = surfaceArea;
+        this.regionsRemoved = regionsRemoved;
 
     }
     public KernelResults(boolean success, int failureCode, String reason,
                          double[] boundsMin, double[] boundsMax) {
 
-        this(success, failureCode, reason, null, null, -1,-1);
+        this(success, failureCode, reason, null, null, -1,-1,0);
     }
 
     public KernelResults(boolean success, double[] boundsMin, double[] boundsMax) {
-        this(success, 0, null, boundsMin, boundsMax,-1,-1);
+        this(success, 0, null, boundsMin, boundsMax,-1,-1,0);
+    }
+
+    public KernelResults(boolean success, double[] boundsMin, double[] boundsMax, double volume, double surfaceArea, int regionsRemoved) {
+        this(success, 0, null, boundsMin, boundsMax,volume,surfaceArea, regionsRemoved);
     }
 
     public KernelResults(boolean success, double[] boundsMin, double[] boundsMax, double volume, double surfaceArea) {
-        this(success, 0, null, boundsMin, boundsMax,volume,surfaceArea);
+        this(success, 0, null, boundsMin, boundsMax,volume,surfaceArea,0);
     }
 
     public KernelResults(int failureCode, String reason) {
-        this(false, failureCode, reason, null, null,-1,-1);
+        this(false, failureCode, reason, null, null,-1,-1,0);
     }
 
     /**
@@ -124,5 +132,9 @@ public class KernelResults {
 
     public double getSurfaceArea() {
         return surfaceArea;
+    }
+
+    public int getRegionsRemoved() {
+        return regionsRemoved;
     }
 }

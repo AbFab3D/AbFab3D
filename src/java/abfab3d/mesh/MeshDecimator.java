@@ -293,7 +293,7 @@ System.out.println("***Iterations: " + count);
 
             EdgeData ed = m_candidates[i];
             if(m_edgeTester != null){
-                if(!m_edgeTester.canCollapse(edges,ed.edge)){
+                if(!m_edgeTester.canCollapse(ed.edge)){
                     continue;
                 }
             }

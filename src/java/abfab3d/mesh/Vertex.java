@@ -23,7 +23,7 @@ import static abfab3d.util.Output.fmt;
  * Vertex defined by a point in space.
  */
 public class Vertex extends StructDataDefinition {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     public static final StructDataDefinition DEFINITION = new Vertex();
 
@@ -44,20 +44,6 @@ public class Vertex extends StructDataDefinition {
     public static final int POS_NEXT = 1;  // List of all vertices(VertexID)
     public static final int POS_PREV = 2;  // VertexID
     public static final int POS_USER_DATA = 3;
-
-    // float positions
-    public static final int POS_ATTRIB = 0;
-
-    // TODO: need to add support for vertex attribs
-    private int numAttribs;
-
-    public Vertex() {
-        this(0);
-    }
-
-    public Vertex(int numAttrbs) {
-        this.numAttribs = numAttrbs;
-    }
 
     public static int create(double x, double y, double z, int id, StructMixedData dest) {
         int destIdx = dest.addItem();
@@ -229,10 +215,6 @@ public class Vertex extends StructDataDefinition {
 
     public int getPointerDataSize() {
         return POINTER_DATA_SIZE;
-    }
-
-    public int getFloatDataSize() {
-        return numAttribs;
     }
 }
 
