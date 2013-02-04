@@ -184,7 +184,7 @@ public class RectSidedPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 0.1, null, null)
         );
 
-        params.put("topImage", new Parameter("topImage", "Top Image", "Top Image", "images/yside.png", 1,
+        params.put("topImage", new Parameter("topImage", "Top Image", "Top Image", "images/bsidet.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -197,7 +197,7 @@ public class RectSidedPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 1, null, null)
         );
 
-        params.put("bottomImage", new Parameter("bottomImage", "Bottom Image", "Bottom Image", "images/yside.png", 1,
+        params.put("bottomImage", new Parameter("bottomImage", "Bottom Image", "Bottom Image", "images/bsideb.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -317,14 +317,19 @@ public class RectSidedPopperKernel extends HostedKernel {
         // TODO: Change to use BlockBased for some size
         grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
-        popImage(grid, baseWidth, baseWidth, bottomThickness, bottomImage, bounds, null,null,null);
+        popImage(grid, baseWidth, baseWidth, bottomThickness, bottomImage, bounds, new double[]{1,0,0,180*TORAD},null,new double[] {0,0,bottomThickness});
         popImage(grid, baseWidth, baseWidth, topThickness, topImage, bounds, null,null, new double[] {0,0,topLocation * sideHeight-topThickness});
+        
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage1, bounds, new double[]{1,0,0,90*TORAD}, null, new double[] {0,-baseWidth/2+sideThickness,sideHeight/2});        
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage2, bounds, 
+                 new double[]{0,0,1,180*TORAD}, new double[]{1,0,0,-90*TORAD}, new double[] {0,baseWidth/2-sideThickness,sideHeight/2});    
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage3, bounds, 
+                 new double[]{0,0,1,90*TORAD}, new double[]{0,1,0,90*TORAD}, new double[] {baseWidth/2-sideThickness,0,sideHeight/2});    
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage4, bounds, 
+                 new double[]{0,0,1,-90*TORAD}, new double[]{0,1,0,-90*TORAD}, new double[] {-baseWidth/2+sideThickness,0,sideHeight/2});    
 
-        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage1, bounds, new double[]{1,0,0,90*TORAD}, null, new double[] {0,baseWidth/2,sideHeight/2});        
-        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage2, bounds, new double[]{1,0,0,-90*TORAD}, null, new double[] {0,-baseWidth/2,sideHeight/2});    
-
-        popImage(grid, sideHeight, baseWidth, sideThickness, sideImage3, bounds, new double[]{0,1,0,90*TORAD}, null, new double[] {-baseWidth/2,0,sideHeight/2});
-        popImage(grid, sideHeight, baseWidth, sideThickness, sideImage4, bounds, new double[]{0,1,0,-90*TORAD}, null, new double[] {baseWidth/2,0,sideHeight/2});
+        //popImage(grid, sideHeight, baseWidth, sideThickness, sideImage3, bounds, new double[]{0,1,0,90*TORAD}, null, new double[] {-baseWidth/2,0,sideHeight/2});
+        //popImage(grid, sideHeight, baseWidth, sideThickness, sideImage4, bounds, new double[]{0,1,0,-90*TORAD}, null, new double[] {baseWidth/2,0,sideHeight/2});
 
 
         if (regions != RegionPrunner.Regions.ALL) {
@@ -403,7 +408,7 @@ public class RectSidedPopperKernel extends HostedKernel {
 
     private void popImage(Grid grid, double bodyWidth, double bodyHeight, double bodyDepth, 
                           String filename, double[] bounds, 
-                          double rot[], double rotCenter[], double translation[]) {
+                          double rot[], double rot2[], double translation[]) {
 
         DataSources.ImageBitmap layer = new DataSources.ImageBitmap();
         layer.setSize(bodyWidth, bodyHeight, bodyDepth);
@@ -426,19 +431,15 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         // do rotation if needed 
         if(rot != null){
-            if(rotCenter != null){
-                VecTransforms.Translation tr1 = new VecTransforms.Translation();                
-                tr1.setTranslation(-rotCenter[0],-rotCenter[1],-rotCenter[2]);
-                transform.add(tr1);
-            }
             VecTransforms.Rotation r = new VecTransforms.Rotation();                
             r.setRotation(new Vector3d(rot[0],rot[1],rot[2]), rot[3]);
             transform.add(r);
-            if(rotCenter != null){
-                VecTransforms.Translation tr1 = new VecTransforms.Translation();                
-                tr1.setTranslation(rotCenter[0],rotCenter[1],rotCenter[2]);
-                transform.add(tr1);
-            }
+        }
+        // secont rotation if needed 
+        if(rot2 != null){
+            VecTransforms.Rotation r = new VecTransforms.Rotation();                
+            r.setRotation(new Vector3d(rot2[0],rot2[1],rot2[2]), rot2[3]);
+            transform.add(r);
         }
 
         // do translation 
