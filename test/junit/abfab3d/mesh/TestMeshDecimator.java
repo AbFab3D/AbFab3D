@@ -352,14 +352,9 @@ public class TestMeshDecimator extends TestCase {
 
     public void testSphere() throws Exception {
 
-        long stime = System.currentTimeMillis();
-
-        for(int i=0; i < 200; i++) {
         String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
 
         processFile(fpath, 1e-6, 0.7);
-        }
-        System.out.println("Total Time: " + (System.currentTimeMillis() - stime));
     }
 
     public void _testFile() throws Exception {
