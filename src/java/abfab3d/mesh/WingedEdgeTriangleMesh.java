@@ -829,6 +829,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             // its possible an edge can get removed twice, this would crash.
             if (next != -1) {
                 Edge.setPrev(prev, edges, next);
+            } else {
                 return; // Do not alter edgeCount
             }
         }

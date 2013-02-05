@@ -357,6 +357,11 @@ public class TestMeshDecimator extends TestCase {
         processFile(fpath, 1e-6, 0.7);
     }
 
+    /**
+     * Burn the sphere to almost nothing to test edge cases.
+     *
+     * @throws Exception
+     */
     public void testSphereHard() throws Exception {
 
         String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
