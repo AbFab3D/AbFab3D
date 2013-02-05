@@ -260,7 +260,6 @@ System.out.println("***Iterations: " + count);
         // TODO: I don't think edgeArray is needed now
         while(e != -1){
             Edge.setUserData(count,edges, e);
-
             m_edgeArray.set(count++, e);
 
             e = Edge.getNext(edges, e);
