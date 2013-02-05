@@ -30,12 +30,12 @@ public class LaplasianSmooth {
     static boolean m_printStat = true;
 
     // mesh we are working on
-    WingedEdgeTriangleMesh m_mesh;
+    private TriangleMesh m_mesh;
 
     // maximal error allowed during smooth
-    double m_maxError;
+    private double m_maxError;
     // relative weight of central vertex contribution to new vertex position 
-    double m_centerWeight = 1;
+    private double m_centerWeight = 1;
 
     private StructMixedData points = null;
     private int sum;    // scratch vertex for sum
@@ -66,7 +66,7 @@ public class LaplasianSmooth {
        
        
      */
-    public void processMesh(WingedEdgeTriangleMesh mesh, int iterationsCount){
+    public void processMesh(TriangleMesh mesh, int iterationsCount){
 
         m_mesh = mesh;
 
