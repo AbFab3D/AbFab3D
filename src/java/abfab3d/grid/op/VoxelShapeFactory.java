@@ -137,7 +137,7 @@ public class VoxelShapeFactory {
     
     public static int [] findIncrementedCoords(int coords[], int bounds[]){
 
-        printf("findIncrementedCoords()\n");
+        //printf("findIncrementedCoords()\n");
 
         int xmin = bounds[0];
         int ymin = bounds[2];
@@ -147,7 +147,7 @@ public class VoxelShapeFactory {
         int ny = bounds[3] - bounds[2] + 1;
         int nz = bounds[5] - bounds[4] + 1;
         
-        printf("shape: size %d x %d x %d \n", nx, ny, nz);
+        //printf("shape: size %d x %d x %d \n", nx, ny, nz);
         
         GridMask grid = new GridMask(nx, ny, nz);
         // fill lmask with shape 
@@ -203,8 +203,8 @@ public class VoxelShapeFactory {
             bounds = findBounds(coords);
             // TODO - calculate incremented shape  
             coordsIncremeted = findIncrementedCoords(coords, bounds);
-            printf("shape voxel count: %d\n",coords.length/3 );
-            printf("incremented shape voxel count: %d\n",coordsIncremeted.length/3 );
+            //printf("shape voxel count: %d\n",coords.length/3 );
+            //printf("incremented shape voxel count: %d\n",coordsIncremeted.length/3 );
         }
         
         public int[] getCoords(){
