@@ -38,7 +38,7 @@ public class MeshExporter {
      * @param filename
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh we, String filename, HashMap<String, Object> params) throws IOException {
+    public static void writeMesh(TriangleMesh we, String filename, HashMap<String, Object> params) throws IOException {
         writeMesh(we,filename, -1, params);
     }
         /**
@@ -48,7 +48,7 @@ public class MeshExporter {
         * @param filename
         * @throws IOException
         */
-    public static void writeMesh(WingedEdgeTriangleMesh we, String filename, int sigDigits, HashMap<String, Object> params) throws IOException {
+    public static void writeMesh(TriangleMesh we, String filename, int sigDigits, HashMap<String, Object> params) throws IOException {
 
         SAVExporter se = new SAVExporter();
 
@@ -109,7 +109,7 @@ public class MeshExporter {
      * @param filename
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh we, String filename) throws IOException {
+    public static void writeMesh(TriangleMesh we, String filename) throws IOException {
         writeMesh(we, filename, null);
     }
 
@@ -121,7 +121,7 @@ public class MeshExporter {
      * @param encoding The X3D encoding to use.  Supported x3d,x3dv,x3db
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh we, OutputStream fos, String encoding, float[] pos) throws IOException {
+    public static void writeMesh(TriangleMesh we, OutputStream fos, String encoding, float[] pos) throws IOException {
 
         SAVExporter se = new SAVExporter();
         HashMap<String, Object> params = new HashMap<String, Object>();
@@ -175,7 +175,7 @@ public class MeshExporter {
      * @param we
      * @throws IOException
      */
-    public static void writeMesh(WingedEdgeTriangleMesh we, BinaryContentHandler writer, Map<String, Object> params, float[] pos) throws IOException {
+    public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String, Object> params, float[] pos) throws IOException {
 
         SAVExporter se = new SAVExporter();
 
@@ -233,6 +233,31 @@ public class MeshExporter {
      * @throws IOException
      */
     public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String,
+            Object> params, boolean meshOnly) throws IOException {
+
+        writeMesh(we,writer,params,meshOnly,null);
+    }
+
+    /**
+     * Write a mesh to an X3D file
+     *
+     * @param we
+     * @throws IOException
+     */
+    public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String,
+            Object> params, boolean meshOnly, String defName) throws IOException {
+
+        writeMesh(we,writer,params,null,meshOnly,null);
+    }
+
+
+    /**
+     * Write a mesh to an X3D file
+     *
+     * @param we
+     * @throws IOException
+     */
+    public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String,
     		Object> params, float[] pos, boolean meshOnly, String defName) throws IOException {
 
         if (!meshOnly) {
@@ -242,10 +267,12 @@ public class MeshExporter {
             writer.startField("avatarSize");
             writer.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
             writer.endNode(); // NavigationInfo
-            writer.startNode("Viewpoint", null);
-            writer.startField("position");
-            writer.fieldValue(pos, 3);
-            writer.endNode(); // Viewpoint
+            if (pos != null) {
+                writer.startNode("Viewpoint", null);
+                writer.startField("position");
+                writer.fieldValue(pos, 3);
+                writer.endNode(); // Viewpoint
+            }
         }
 
         SAVExporter se = new SAVExporter();
@@ -256,7 +283,7 @@ public class MeshExporter {
         }
     }
     
-    public static void writeMeshSTL(WingedEdgeTriangleMesh we, String filename) throws IOException {
+    public static void writeMeshSTL(TriangleMesh we, String filename) throws IOException {
 
         STLWriter writer = new STLWriter(filename);
         we.getTriangles(writer);

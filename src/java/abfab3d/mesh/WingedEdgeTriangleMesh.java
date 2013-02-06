@@ -67,6 +67,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     /** The semantic definition of the attribute, 0-15 reserved for internal usage */
     private int[] semantics;
 
+
     public WingedEdgeTriangleMesh(double[] vertCoord, float[][] attribs, int[] semantics, int[] findex) {
         if (semantics != null) {
             this.semantics = semantics.clone();
@@ -380,6 +381,9 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     Point3d p1 = new Point3d();
     Point3d pv0 = new Point3d();
 
+    // debug
+    int collapseCnt = 0;
+
     /**
      * Collapse an edge.
      *
@@ -413,6 +417,9 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         // fL- left face
         //
         // 2) link halfedges connected to v0 to v1
+
+        // debug
+        collapseCnt++;
 
         int hR = Edge.getHe(edges, e);
         int v0 = HalfEdge.getEnd(hedges,hR);
@@ -584,7 +591,21 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         removeEdge(e);
         removeEdge(e0R);
         removeEdge(e0L);
-
+/*
+        if (collapseCnt == 514208) {
+            verifyEdgeCount(this,e,collapseCnt);
+        }
+*/
+/*
+        if (collapseCnt > 480000) {
+            verifyEdgeCount(this,e,collapseCnt);
+        }
+        */
+/*
+        if (e % 125 == 0) {
+            verifyEdgeCount(this,e);
+        }
+*/
         if (DEBUG) {
             printf("v0: %s, v1: %s\n", v0, v1);
             printf("vR: %s, vL: %s\n", vL, vR);
@@ -767,6 +788,10 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
      * @param f The face to remove
      */
     public void removeFace(int f) {
+        if (Face.getHe(faces,f) == -1) {
+            // already removed, ignore
+            return;
+        }
 
         if (DEBUG) {
             System.out.println("Removing face: " + f);
@@ -793,6 +818,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             Face.setPrev(prev, faces, next);
         }
 
+        Face.setHe(-1,faces,f);
         faceCount--;
     }
 
@@ -802,6 +828,10 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
      * @param e The edge to remove
      */
     public void removeEdge(int e) {
+        if (Edge.getHe(edges,e) == -1) {
+            // already removed, ignore
+            return;
+        }
 
         if (DEBUG) {
             System.out.println("Removing Edge: " + e);
@@ -829,13 +859,21 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             // its possible an edge can get removed twice, this would crash.
             if (next != -1) {
                 Edge.setPrev(prev, edges, next);
+            } else {
+                return; // Do not alter edgeCount
             }
         }
 
+        Edge.setHe(-1,edges,e);
         edgeCount--;
     }
 
     public void removeVertex(int v) {
+        if (Vertex.getLink(vertices,v) == -1) {
+            // already removed, ignore
+            return;
+        }
+
         if (DEBUG) {
             System.out.println("Removing vertex: " + v);
         }
@@ -884,7 +922,6 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     }
 
     private void addEdge(int e) {
-
         /* is the list empty? */
         if (startEdge == -1) {
             startEdge = e;
@@ -1055,6 +1092,91 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     }
 
 
+    /**
+     * Verify that the mesh structure is correct.  Chase as many pointers and references as we can to confirm that
+     * nothing is messed up.
+     *
+     * @param mesh
+     * @return
+     */
+    public boolean verifyCounts(TriangleMesh mesh) {
+        // Walk edges and make sure no referenced head or twin values are null
+        // Make sure twin references same vertices
+
+        StructMixedData edges = mesh.getEdges();
+        int startEdge = mesh.getStartEdge();
+
+        StructMixedData faces = mesh.getFaces();
+        int startFace = mesh.getStartFace();
+
+        StructMixedData vertices = mesh.getVertices();
+        int startVertex = mesh.getStartVertex();
+
+        StructMixedData hedges = mesh.getHalfEdges();
+
+        int e = startEdge;
+
+        int edgeCount = 0;
+
+        while(e != -1) {
+            edgeCount++;
+
+            e = Edge.getNext(edges,e);
+        }
+
+        System.out.println("Edges:  class: " + mesh.getEdgeCount() + " cnt: " + edgeCount);
+
+        // Make sure all faces have three half edges
+        // Make sure all edge and face references in halfedge are valid
+        // Make sure forward traversal(next) around face is same as backwards(prev)
+
+        int f = startFace;
+        int faceCount = 0;
+        while(f != -1) {
+            faceCount++;
+
+            f = Face.getNext(faces,f);
+        }
+
+        System.out.println("Faces:  class: " + mesh.getFaceCount() + " cnt: " + faceCount);
+
+        int v = startVertex;
+        int vertexCount = 0;
+        while(v != -1) {
+            vertexCount++;
+            v = Vertex.getNext(vertices,v);
+        }
+        System.out.println("Vertices:  class: " + mesh.getVertexCount() + " cnt: " + vertexCount);
+
+
+        return true;
+    }
+
+
+    /**
+     * Verify that the mesh structure is correct.  Chase as many pointers and references as we can to confirm that
+     * nothing is messed up.
+     *
+     * @param mesh
+     */
+    public void verifyEdgeCount(TriangleMesh mesh, int collapse, int collapseCnt) {
+        StructMixedData edges = mesh.getEdges();
+        int startEdge = mesh.getStartEdge();
+
+        int e = startEdge;
+
+        int edgeCount = 0;
+
+        while(e != -1) {
+            edgeCount++;
+            e = Edge.getNext(edges,e);
+        }
+
+        if (mesh.getEdgeCount() != edgeCount) {
+            System.out.println("Collapse: " + collapseCnt + " Bad edge: " + collapse + " count: " + edgeCount + " expected: " + mesh.getEdgeCount());
+            throw new IllegalArgumentException("Counts don't match");
+        }
+    }
 
     // area of small trinagle to be rejected as face flip  (in m^2)
     static final double FACE_FLIP_EPSILON = 1.e-20;

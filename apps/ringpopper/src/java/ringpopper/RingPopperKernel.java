@@ -311,9 +311,9 @@ public class RingPopperKernel extends HostedKernel {
             resolution = resolution * previewQuality.getFactor();
         }
 
-        // TODO: Not sure I like this heuristic
-        //maxDecimationError = 0.01*resolution*resolution;
-        maxDecimationError = resolution / 100000.0;
+        if (maxDecimationError > 0) {
+            maxDecimationError = 0.1*resolution*resolution;
+        }
 
         System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
 

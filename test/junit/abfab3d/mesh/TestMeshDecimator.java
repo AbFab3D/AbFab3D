@@ -323,10 +323,10 @@ public class TestMeshDecimator extends TestCase {
             fcount = mesh.getFaceCount();
 
             // these things hang on large file - TODO - check this
-            //assertTrue("verifyVertices", verifyVertices(mesh));
-            //assertTrue("Structural Check", TestWingedEdgeTriangleMesh2.verifyStructure(mesh, true));
-            //assertTrue("Final Manifold", TestWingedEdgeTriangleMesh2.isManifold(mesh));
-            //printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
+            assertTrue("verifyVertices", verifyVertices(mesh));
+            assertTrue("Structural Check", TestWingedEdgeTriangleMesh.verifyStructure(mesh, true));
+            assertTrue("Final Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
+            printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
 
             current = mesh.getFaceCount();
             System.out.println("Current face count: " + current);
@@ -355,6 +355,18 @@ public class TestMeshDecimator extends TestCase {
         String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
 
         processFile(fpath, 1e-6, 0.7);
+    }
+
+    /**
+     * Burn the sphere to almost nothing to test edge cases.
+     *
+     * @throws Exception
+     */
+    public void testSphereHard() throws Exception {
+
+        String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
+
+        processFile(fpath, 1e-2, 0.3);
     }
 
     public void _testFile() throws Exception {

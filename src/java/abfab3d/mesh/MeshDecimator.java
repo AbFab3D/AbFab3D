@@ -81,7 +81,6 @@ public class MeshDecimator {
 
     StructMixedData quadrics;
 
-
     //
     // object, which calculates errors and new vertex placement
     //
@@ -248,6 +247,8 @@ System.out.println("***Iterations: " + count);
         
         //ecd.edgeCount = count;
         printf("edges count: %d\n", ecount);
+//        System.out.println("Not allocating edgeArray");
+
         m_edgeArray = new EdgeArray(ecount);
         
         // fill edges array 
@@ -255,6 +256,7 @@ System.out.println("***Iterations: " + count);
         int e = m_mesh.getStartEdge();
         int count = 0;
 
+        System.out.println("Starting edge: " + e);
         // TODO: I don't think edgeArray is needed now
         while(e != -1){
             Edge.setUserData(count,edges, e);
@@ -281,6 +283,7 @@ System.out.println("***Iterations: " + count);
             printf("doIteration()\n");
         }
         getCandidateEdges(m_candidates);
+
         EdgeData bestCandidate = null;
 
         double minError = Double.MAX_VALUE;
@@ -292,6 +295,12 @@ System.out.println("***Iterations: " + count);
         for(int i =0; i < len; i++){
 
             EdgeData ed = m_candidates[i];
+
+            if (ed.edge == -1) {
+                //  We might of only gotten a partial list of items back.
+                break;
+            }
+
             if(m_edgeTester != null){
                 if(!m_edgeTester.canCollapse(ed.edge)){
                     continue;
@@ -403,6 +412,7 @@ System.out.println("***Iterations: " + count);
 
        
      */
+
     void getCandidateEdges(EdgeData ed[]){
         
         for(int i = 0; i < ed.length; i++){
@@ -478,6 +488,7 @@ System.out.println("***Iterations: " + count);
             }
             printf("!!!failed to find new random edge in getRandomEdge()\n");
         }
+
     }
 
     public static String formatPoint(Point3d p){
@@ -624,6 +635,7 @@ System.out.println("***Iterations: " + count);
         public void calculateError(EdgeData ed){
             
             int edge = ed.edge;
+
             int he = Edge.getHe(m_mesh.getEdges(), edge);
             if(he == -1){
                 printf("error: he null in calculateError()\n");

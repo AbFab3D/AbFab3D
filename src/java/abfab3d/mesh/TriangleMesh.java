@@ -40,6 +40,13 @@ public interface TriangleMesh {
     public StructMixedData getHalfEdges();
 
     /**
+     * Get the faces
+     *
+     * @return A linked list of faces
+     */
+    public StructMixedData getFaces();
+
+    /**
      * Collapse an edge.
      *
      * @param e   The edge to collapse
