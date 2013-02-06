@@ -138,6 +138,55 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
         }
     }
 
+    /**
+     * Traverse a class of voxels types over given rectangle in xy plane.  
+     * May be much faster then full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     * @param xmin - minimal x - coordinate of voxels 
+     * @param xmax - maximal x - coordinate of voxels 
+     * @param ymin - minimal y - coordinate of voxels 
+     * @param ymax - maximal y - coordinate of voxels 
+     */
+    public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
+
+        for(int y=ymin; y <= ymax; y++) {
+            for(int x=xmin; x <= xmax; x++) {
+                for(int z=0; z < depth; z++) {
+                    byte state = getState(x,y,z);
+
+                    switch(vc) {
+                        case ALL:
+                            t.found(x,y,z,state);
+                            break;
+                        case MARKED:
+                            state = getState(x,y,z);
+                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                                t.found(x,y,z,state);
+                            }
+                            break;
+                        case EXTERIOR:
+                            if (state == Grid.EXTERIOR) {
+                                t.found(x,y,z,state);
+                            }
+                            break;
+                        case INTERIOR:
+                            if (state == Grid.INTERIOR) {
+                                t.found(x,y,z,state);
+                            }
+                            break;
+                        case OUTSIDE:
+                            if (state == Grid.OUTSIDE) {
+                                t.found(x,y,z,state);
+                            }
+                            break;
+                    }
+                }
+            }
+        }        
+    }
+
 
     /**
      * Traverse a class of voxels types.  May be much faster then

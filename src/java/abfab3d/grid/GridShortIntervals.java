@@ -27,7 +27,7 @@ import static abfab3d.util.Output.fmt;
 
    @author Vladimir Bulatov
 */
-public class GridShortIntervals  extends GridBitIntervals{
+public class GridShortIntervals extends GridBitIntervals{
 
     //
     // state is store in 2 most signfican bit 

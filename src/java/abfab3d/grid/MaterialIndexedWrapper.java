@@ -577,6 +577,23 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
     }
 
     /**
+     * Traverse a class of voxels types over given rectangle in xy plane.  
+     * May be much faster then full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     * @param xmin - minimal x - coordinate of voxels 
+     * @param xmax - maximal x - coordinate of voxels 
+     * @param ymin - minimal y - coordinate of voxels 
+     * @param ymax - maximal y - coordinate of voxels 
+     */
+    public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
+        
+        grid.find(vc, t, xmin, xmax, ymin, ymax);
+
+    }
+
+    /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *

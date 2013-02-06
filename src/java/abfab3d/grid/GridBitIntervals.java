@@ -331,12 +331,61 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public void find(VoxelClasses vc, ClassTraverser t){        
-        //TODO
-        super.find(vc, t);
+        RowProcesser rp = new RowProcesser(t);
+        int data;
+        
+        switch(vc){
+        default:             
+            // go to default routine 
+            super.find(vc,  t);
+            return;
+        case EXTERIOR:
+        case INTERIOR:
+        case MARKED:
+            data = 1;
+            break;
+        }
+                
+        for(int y = 0; y < m_ny; y++){
+            for(int x = 0; x < m_nx; x++){
+                RowOfInt row = m_data[x + m_nx*y];
+                if(row == null) continue;
+                rp.setXY(x,y);
+                row.findInterruptible(data, rp );
+            }
+        }  
+    }
+
+    public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){        
+
+        //printf("%s.find([%d,%d,%d,%d])\n",this, xmin, xmax, ymin, ymax);
+
+        RowProcesser rp = new RowProcesser(t);
+        int data;
+        
+        switch(vc){
+        default:             
+            // go to default routine 
+            super.find(vc,  t, xmin, xmax, ymin, ymax);
+            return;
+        case EXTERIOR:
+        case INTERIOR:
+        case MARKED:
+            data = 1;
+            break;
+        }
+        for(int y = ymin; y <= ymax; y++){
+            for(int x = xmin; x <= xmax; x++){
+                RowOfInt row = m_data[x + m_nx*y];
+                if(row == null) continue;
+                rp.setXY(x,y);
+                row.findInterruptible(data, rp );
+            }
+        }  
     }
 
     /**
-     * Traverse a class of voxels types.  May be much faster then
+     * Traverse a class of voxels types.  May be much faster than
      * full grid traversal for some implementations.
      *
      * @param vc The class of voxels to traverse
@@ -350,12 +399,10 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         int data;
         
         switch(vc){
-
         default:             
             // go to default routine 
             super.findInterruptible(vc,  t);
             return;
-
         case EXTERIOR:
         case INTERIOR:
         case MARKED:

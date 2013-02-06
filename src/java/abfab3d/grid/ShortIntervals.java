@@ -120,7 +120,7 @@ public class ShortIntervals implements RowOfInt {
         
     }
 
-    public void set(int x, int material){
+    public synchronized void set(int x, int material){
         //printX(x, material);
 
         if(m_curcount == 0) { // no interval exist (all vaues are 0s)             
