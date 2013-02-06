@@ -131,6 +131,7 @@ public class RingPopperKernel extends HostedKernel {
 
     /** The image filename */
     private String imagePath = null;
+    private boolean imageInvert = false;
     private String crossSectionPath = null;
 
     private int tilingX;
@@ -165,6 +166,11 @@ public class RingPopperKernel extends HostedKernel {
         params.put("image", new Parameter("image", "Image", "The image to use", "images/tile_01.png", 1,
             Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
             step, seq++, false, 0, 0.1, null, null)
+        );
+
+        params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the image", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
         );
 
         params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
@@ -435,6 +441,9 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setImagePath(imagePath);
         image_src.setBaseThickness(baseThickness);
         image_src.setUseGrayscale(useGrayscale);
+        if (imageInvert) {
+            image_src.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+        }
 
         if (USE_MIP_MAPPING) {
             image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
@@ -637,6 +646,9 @@ public class RingPopperKernel extends HostedKernel {
 
             pname = "image";
             imagePath = (String) params.get(pname);
+
+            pname = "imageInvert";
+            imageInvert = (Boolean) params.get(pname);
 
             pname = "crossSection";
             crossSectionPath = (String) params.get(pname);
