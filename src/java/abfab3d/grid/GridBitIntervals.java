@@ -226,7 +226,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     protected RowOfInt newInterval(){
 
         return new BitIntervals();
-
+        //return new BitIntervalInts();
     }
 
 
