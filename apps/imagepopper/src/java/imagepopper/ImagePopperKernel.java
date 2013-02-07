@@ -122,6 +122,7 @@ public class ImagePopperKernel extends HostedKernel {
 
     private String material;
     private boolean useGrayscale;
+    private boolean imageInvert = false;
     private boolean visRemovedRegions;
 
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
@@ -161,6 +162,11 @@ public class ImagePopperKernel extends HostedKernel {
         params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
+        );
+
+        params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the image", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 0.1, null, null)
         );
 
         step++;
@@ -296,6 +302,10 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename);
         layer1.setUseGrayscale(useGrayscale);
+        if (imageInvert) {
+            layer1.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+        }
+
 
         if (USE_MIP_MAPPING) {
             layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
@@ -315,7 +325,9 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale);
-
+            if (imageInvert) {
+                layer2.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+            }
 
             if (USE_MIP_MAPPING) {
                 layer2.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
@@ -467,6 +479,8 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "visRemovedRegions";
             visRemovedRegions = (Boolean) params.get(pname);
 
+            pname = "imageInvert";
+            imageInvert = (Boolean) params.get(pname);
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
