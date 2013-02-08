@@ -419,6 +419,10 @@ public class SAVExporter {
             stream.startNode("IndexedTriangleSet", null);
         } else if (gtype == GeometryType.INDEXEDFACESET) {
             stream.startNode("IndexedFaceSet", null);
+
+            // Makes X3DOM load much faster
+            stream.startField("creaseAngle");
+            stream.fieldValue(0.1f);
         } else if (gtype == GeometryType.INDEXEDLINESET) {
             stream.startNode("IndexedLineSet", null);
         } else if (gtype == GeometryType.POINTSET) {
