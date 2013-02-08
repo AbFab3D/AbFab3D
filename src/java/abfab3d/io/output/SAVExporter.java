@@ -422,7 +422,7 @@ public class SAVExporter {
 
             // Makes X3DOM load much faster
             stream.startField("creaseAngle");
-            stream.fieldValue(0.1f);
+            stream.fieldValue(0.5236f);  // 30 degrees
         } else if (gtype == GeometryType.INDEXEDLINESET) {
             stream.startNode("IndexedLineSet", null);
         } else if (gtype == GeometryType.POINTSET) {

@@ -53,6 +53,7 @@ public class MaterialMapper {
 
         if (material == null || material.equals("None")) {
             // Do not issue any appearance commands
+            applyDefaultMaterial(handler,quality);
         } else if (material.equalsIgnoreCase("Debug")) {
             // Finish 0 will be diffuseColor
             float[] diffuseColor = new float[] {1,1,1,0};
@@ -200,6 +201,20 @@ public class MaterialMapper {
         handler.fieldValue(new float[] {0.9f, 0.9f, 0.9f},3);
         handler.startField("shininess");
         handler.fieldValue(0.7f);
+        handler.endNode();  // Material
+        handler.endNode();  // Appearance
+    }
+
+    /**
+     * Default material for lighting
+     *
+     * @param handler The X3D content handler to output too
+     * @param quality A value from 1-10 indicating how much computation resources to use
+     */
+    public void applyDefaultMaterial(BinaryContentHandler handler, int quality) {
+        handler.startNode("Appearance", null);
+        handler.startField("material");
+        handler.startNode("Material", null);
         handler.endNode();  // Material
         handler.endNode();  // Appearance
     }
