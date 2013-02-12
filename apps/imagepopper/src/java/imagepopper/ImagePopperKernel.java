@@ -367,8 +367,8 @@ public class ImagePopperKernel extends HostedKernel {
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
         if (acc == Accuracy.VISUAL) {
-            // X3DOM requires IFS for normal generation
-            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDFACESET);
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
+            params.put(SAVExporter.VERTEX_NORMALS, true);
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }

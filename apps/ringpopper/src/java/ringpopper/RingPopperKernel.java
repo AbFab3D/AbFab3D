@@ -351,7 +351,7 @@ public class RingPopperKernel extends HostedKernel {
         } 
 
         // add crossSectionImage to complete_band
-        if(crossSectionPath != null && crossSectionPath.length() > 0){
+        if(crossSectionPath != null && crossSectionPath.length() > 0 && !crossSectionPath.equals("NONE")){
             complete_band.addDataSource(makeCrossSection());
         }
        
@@ -389,8 +389,8 @@ public class RingPopperKernel extends HostedKernel {
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
         if (acc == Accuracy.VISUAL) {
-            // X3DOM requires IFS for normal generation
-            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDFACESET);
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
+            params.put(SAVExporter.VERTEX_NORMALS, true);
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
