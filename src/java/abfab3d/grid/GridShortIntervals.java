@@ -126,6 +126,36 @@ public class GridShortIntervals extends GridBitIntervals{
         set(x,y,z, (state << STATE_SHIFT)|attribute);
     }
 
+    /**
+       set raw data at given point 
+     */
+    public void set(int x, int y, int z, int value){
+        
+        int ind = x + m_nx * y;
+        RowOfInt interval = m_data[ind];
+        //RowOfInt interval = null;//m_data[ind];        
+        if(interval == null){
+            m_data[ind] = interval = new ShortIntervals();//newInterval();
+        }
+        interval.set(z, value);
+
+    }
+
+    public int get(int x, int y, int z){
+        
+        int ind = x + m_nx * y;
+        if(x < 0 || x >= m_nx || y < 0 || y >= m_ny) {//ind < 0){
+            throw new IllegalArgumentException(fmt("x: %d, y: %d, ind: %d\n", x,y,ind));
+        }
+        RowOfInt interval = m_data[x + m_nx * y];
+        if(interval == null)
+            return 0;
+        else 
+            return interval.get(z);
+        
+    }
+
+
     public void getData(int x, int y, int z, VoxelData data){  
         int code = get(x,y,z);
         data.setState((byte)((code & STATE_MASK) >> STATE_SHIFT));

@@ -62,7 +62,7 @@ public class ShortIntervals implements RowOfInt {
 
     public ShortIntervals(){
         
-        m_intervals = new int[2];
+        m_intervals = new int[4];
         m_intervals[0] = MIN_VALUE;//0;//makeCode(0, 0);
         m_intervals[1] = MAX_VALUE;//makeCode(Short.MAX_VALUE, 0);
         m_curcount = 2;
@@ -92,13 +92,12 @@ public class ShortIntervals implements RowOfInt {
 
      */
     public int get(int x){
-
         //find interval which contains x 
         //
         //0000000aaabbbbccdddddef000
         //       p  q   r s    vw
         // 
-        if(m_curcount <= 1) // no intervals exist (all bits are 0s) 
+        if(m_curcount <= 2) // no intervals exist (all bits are 0s) 
             return 0;
 
         for(int i = 1; i < m_curcount; i++){
@@ -121,6 +120,7 @@ public class ShortIntervals implements RowOfInt {
     }
 
     public synchronized void set(int x, int material){
+        //if(true) return;
         //printX(x, material);
 
         if(m_curcount == 0) { // no interval exist (all vaues are 0s)             

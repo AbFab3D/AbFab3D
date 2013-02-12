@@ -146,7 +146,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
         }
         
         //grid.find(Grid.VoxelClasses.INTERIOR, new SurfaceFinder(grid, surface));
-        //printf("surface: %d ms\n", (time()-t0));
+        printf("surface: %d ms\n", (time()-t0));
         t0 = time();
 
         m_dilationSlices = new Stack<Slice>();
@@ -178,7 +178,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
 
         //surface.find(Grid.VoxelClasses.INTERIOR, new ShapeDilater(grid, m_voxelShape, m_voxelChecker));
         
-        //printf("dilation: %d ms\n", (time()-t0));
+        printf("dilation: %d ms\n", (time()-t0));
         
         surface.release();
         surface = null;

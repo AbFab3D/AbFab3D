@@ -58,7 +58,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
     /**
      * Test basic operation
      */
-    public void _testSingleVoxel() {
+    public void _testSingleVoxelCross() {
 
         int size = 31;
         int gridType = GRID_ARRAYBYTE;
@@ -71,7 +71,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
             DilationShapeMT dil = new DilationShapeMT();        
             dil.setThreadCount(4);
-            dil.setVoxelShape(VoxelShapeFactory.getCross(k));            
+            dil.setVoxelShape(VoxelShapeFactory.getCross(k)); 
             grid = dil.execute(grid);            
             writeFile(grid, fmt("/tmp/dilationSingleVoxelDilatedMT_%d.x3d", k));
             
@@ -82,6 +82,32 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         }
     }
 
+    public void _testSingleVoxelBall() {
+
+        int size = 301;
+        int gridType = GRID_ARRAYBYTE;
+        //int gridType = GRID_SHORTINTERVALS;
+
+        for(int k = 1; k < 10; k++){
+            
+            AttributeGrid grid = makeBlock(gridType, size, size, size, size/3);
+            
+            int voxelCount =  grid.findCount(0);
+            //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
+            DilationShapeMT dil = new DilationShapeMT();        
+            dil.setThreadCount(1);
+            dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0)); 
+            long t0 = time();
+            grid = dil.execute(grid);            
+            printf("dilation time: %dms\n", (time()-t0));
+            //writeFile(grid, fmt("/tmp/dilationSingleVoxelDilatedMT_%d.x3d", k));
+            
+            voxelCount =  grid.findCount(0);
+            printf("dilated grid volume: %d\n",voxelCount);
+            //assertTrue("dilation of single voxel", voxelCount == (6*k + 1));
+
+        }
+    }
 
     public void _testCubeVoxel() {
 
@@ -108,7 +134,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         }
     }
 
-    public void _testDilationBall() {
+    public void testDilationBall() {
 
         int size = 100;
         //int gridType = GRID_ARRAYBYTE;
@@ -117,7 +143,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
         int maxDilation = 20;
 
-        for(int k = 1; k < maxDilation; k++){
+        for(int k = maxDilation-1; k < maxDilation; k++){
             int s = size+2*(maxDilation+1);
             AttributeGrid grid = makeBlock(gridType,s,s,s, maxDilation);
             printf("dilation size: %d\n",k);
@@ -145,7 +171,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         }
     }
 
-    public void testSpeed() {
+    public void _testSpeed() {
         
         printEnv();
 
@@ -195,6 +221,18 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         
     }
 
+    public void _testSpeedGrid() {
+        
+        int size = 400;
+        //int gridType = GRID_ARRAYBYTE;
+        int gridType = GRID_SHORTINTERVALS;
+
+        for(int k = 1; k < 10; k++){
+            long t0 = time();
+            AttributeGrid grid = makeBlock(gridType, size, size, size, k%2 +1);
+            printf("time: %d\n",(time()-t0)); 
+        }
+    }
 
     private AttributeGrid makeBlock(int gridType, int nx, int ny, int nz, int offset) {
         
@@ -214,7 +252,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
         for (int y = offset; y < ny - offset; y++) {
             for (int x = offset; x < nx - offset; x++) {
-                for (int z = offset; z < nz - offset; z++) {
+                for (int z = nz - offset-1; z >= offset; z--) {
                     //printf("%d %d %d\n",x,y,z);
                     grid.setState(x,y,z, Grid.INTERIOR);
                 }
