@@ -334,7 +334,7 @@ public class ShortIntervals implements RowOfInt {
 
     }
 
-    void dump(){
+    public void dump(){
         // we always have first point 0 
         for(int i = 0; i < m_curcount; i++){
             printf("%d %d, ",getStart( m_intervals[i]),getData( m_intervals[i])); 
@@ -344,7 +344,7 @@ public class ShortIntervals implements RowOfInt {
     }
 
     
-    void print(int start, int end){
+    public void print(int start, int end){
         
         for(int i = start; i < end; i++){
             printf("%d",get(i));
