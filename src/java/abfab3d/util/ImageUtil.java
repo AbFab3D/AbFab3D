@@ -65,17 +65,34 @@ public class ImageUtil {
     /**
        do multiplication of colors normalized to [0, 255]
     */
-    public static double mul255(double a, double b){
+    public static final double mul255(double a, double b){
         return a*b * CNORM1;
+    }
+
+    public static final int mul255(int a, int b){
+        return (a*b)/255;
     }
     
     /*
       combine two premultiplied colors with given alpha
       colors are normalized to [0, 255]
     */
-    public static double combinePremultDouble(double c1, double c2, double alpha){
+    public static final double combinePremultDouble(double c1, double c2, double alpha){
         
         return c1 + c2 - alpha * c1 * CNORM1;
+        
+    }
+
+    public static final int combinePremultInt(int c1, int c2, int alpha){
+        
+        return c1 + c2 - alpha * c1 / 255;
+        
+    }
+
+    // combination of non-premult color components 
+    public static final int combineInt(int c1, int c2, int alpha){
+        
+        return c1 + (c2 - c1)* alpha / 255;
         
     }
     
@@ -87,6 +104,18 @@ public class ImageUtil {
         for(int i = 0; i < 4; i++){
             c3[i] = combinePremultDouble(c1[i], c2[i], alpha);
         }
+    }
+
+    public static int combinePremultColorsInt(int c1, int c2){
+
+        int a = getAlpha(c2);
+        int r = combinePremultInt(getRed(c1),   getRed(c2), a);
+        int g = combinePremultInt(getGreen(c1), getGreen(c2), a);
+        int b = combinePremultInt(getBlue(c1),  getBlue(c2), a);
+        int a1 = combinePremultInt(getAlpha(c1),  a, a);
+
+        return makeRGB(r,g,b,a1);
+
     }
         
     public static double[] getPremultColor(Color c, double outColor[]){
@@ -100,11 +129,50 @@ public class ImageUtil {
 
     public static double[] getPremultColor(int rgba, double outColor[]){
         double alpha = getAlpha(rgba);
-       outColor[ALPHA] = alpha;
+        outColor[ALPHA] = alpha;
         outColor[RED] = mul255(getRed(rgba),alpha);
         outColor[GREEN] = mul255(getGreen(rgba),alpha);
         outColor[BLUE] = mul255(getBlue(rgba),alpha);
         return outColor;
+    }
+
+    public static final int getPremultColorInt(int c){
+        int a = getAlpha(c);
+        int r = mul255(getRed(c),a);
+        int g = mul255(getGreen(c),a);
+        int b = mul255(getBlue(c),a);
+        return makeRGB(r, g, b, a );
+    }
+
+    public static final int getGray(int c){
+        return (getRed(c) + getGreen(c) + getBlue(c))/3;
+    }
+
+    /**
+       calculates gray level intensity of two colors 
+       
+       c1 - background Color  RGBA (completely opaque) 
+       c2 - overlay Color     RGBA (may have transparency) 
+       
+       input colors are not premultiplied. 
+       
+     */
+    public static final int getCombinedGray(int c1, int c2){
+
+        int r1 = getRed(c1);
+        int g1 = getGreen(c1);
+        int b1 = getBlue(c1);
+
+        int r2 = getRed(c2);
+        int g2 = getGreen(c2);
+        int b2 = getBlue(c2);
+        int a2 = getAlpha(c2);
+        
+        int r3 = combineInt(r1,r2,a2);
+        int g3 = combineInt(g1,g2,a2);
+        int b3 = combineInt(b1,b2,a2);
+
+        return (r3 + g3 + b3)/3;
     }
     
     /*

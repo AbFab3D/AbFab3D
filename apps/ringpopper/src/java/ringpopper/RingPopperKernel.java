@@ -136,6 +136,7 @@ public class RingPopperKernel extends HostedKernel {
 
     private int tilingX;
     private int tilingY;
+    private int threadCount;
     private EdgeStyle edgeStyle;
     private SymmetryStyle symmetryStyle;
 
@@ -274,6 +275,11 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, true, 0, 0.1, null, null)
         );
 
+        params.put("threads", new Parameter("threads", "Threads", "Threads to use for operations", "0", 1,
+                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 50, null, null)
+        );
+
         params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.MEDIUM.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, enumToStringArray(PreviewQuality.values()))
@@ -321,7 +327,7 @@ public class RingPopperKernel extends HostedKernel {
             maxDecimationError = 0.1*resolution*resolution;
         }
 
-        System.out.println("Res: " + resolution + " maxDec: " + maxDecimationError);
+        printf("Res: %10.3g  maxDec: %10.3g\n", resolution, maxDecimationError);
 
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
 
@@ -339,13 +345,14 @@ public class RingPopperKernel extends HostedKernel {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
         
-        DataSource image_band = makeImageBand();
- 
-        DataSources.Intersection complete_band = new DataSources.Intersection();
-        complete_band.addDataSource(image_band);
+        DataSource image_band = makeImageBand(); 
+
+        DataSources.Intersection complete_band = new DataSources.Intersection(); 
+        complete_band.addDataSource(image_band); 
         
+        // add Text 
         if (text != null && text.length() > 0) {
-            
+
             complete_band.addDataSource(makeTextComplement());
             
         } 
@@ -354,10 +361,11 @@ public class RingPopperKernel extends HostedKernel {
         if(crossSectionPath != null && crossSectionPath.length() > 0 && !crossSectionPath.equals("NONE")){
             complete_band.addDataSource(makeCrossSection());
         }
-       
+        
+
         VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
         ringWrap.setRadius(innerDiameter/2);
-
+        
         DataSources.DataTransformer ring = new DataSources.DataTransformer();
         ring.setDataSource(complete_band);
         ring.setTransform(ringWrap);
@@ -368,22 +376,29 @@ public class RingPopperKernel extends HostedKernel {
         gm.setDataSource(ring);
 
         // Seems BlockBased better for this then Array.
-        Grid grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
+        // BlockBasedGridByte is not MT safe 
+        //Grid grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
+        Grid grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
+        //Grid grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
 
-
-        printf("gm.makeGrid()\n");
+        printf("gm.makeGrid(), threads: %d\n", threadCount);
+        long t0 = currentTimeMillis(); 
+        gm.setThreadCount(threadCount);
         gm.makeGrid(grid);
-        printf("gm.makeGrid() done\n");
+        printf("gm.makeGrid() done %d ms\n", (currentTimeMillis() - t0));
 
         int regions_removed = 0;
         if (regions != RegionPrunner.Regions.ALL) {
+            t0 = currentTimeMillis(); 
             if (visRemovedRegions) {
                 regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds);
             } else {
                 regions_removed = RegionPrunner.reduceToOneRegion(grid);
             }
-        }
+            printf("regions removal done %d ms\n", (currentTimeMillis() - t0));
 
+        }
+        
         System.out.println("Writing grid");
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
@@ -417,7 +432,7 @@ public class RingPopperKernel extends HostedKernel {
         double volume = ac.getVolume();
         double surface_area = ac.getArea();
 
-        long t0 = System.nanoTime();
+        t0 = System.nanoTime();
         printf("final surface area: %7.3f CM^2\n", surface_area*1.e4);
         printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
 
@@ -685,6 +700,9 @@ public class RingPopperKernel extends HostedKernel {
 
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
+
+            pname = "threads";
+            threadCount = ((Integer) params.get(pname)).intValue();
 
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));

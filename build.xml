@@ -24,8 +24,8 @@
     <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
 
     <property name="entrypoint" value="abfab3d.Creator" />
-<!-- <property name="runarg0" value="-Xmx4000M"/> -->
-    <property name="runarg0" value="-Xmx1200M -Xprof"/> 
+    <property name="runarg0" value="-Xmx4000M"/> 
+<!--     <property name="runarg0" value="-Xmx1200M -Xprof"/> -->
 <!--    
     <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
     <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
