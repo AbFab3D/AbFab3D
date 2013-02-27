@@ -12,7 +12,11 @@
 
 package abfab3d.mesh;
 
-import abfab3d.util.*;
+import abfab3d.util.StructSet;
+import abfab3d.util.StructMixedData;
+import abfab3d.util.StructMap;
+import abfab3d.util.TriangleCollector;
+//import abfab3d.util.DefaultHashFunction;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
@@ -51,12 +55,6 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     private int startFace = -1;
     private int lastFace = -1;
     private final StructMixedData hedges; // of HalfEdge
-
-    // work set for topology check
-    private StructSet m_vset = new StructSet(new DefaultHashFunction());
-
-    // checker of face flip
-    private FaceFlipChecker m_faceFlipChecker = new FaceFlipChecker();
 
     private StructMap edgeMap;
 
@@ -375,14 +373,9 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         return edgeCount;
     }
 
-    // Scratch vars for collapseEdge
-    Point3d pv1 = new Point3d();
-    Point3d p0 = new Point3d();
-    Point3d p1 = new Point3d();
-    Point3d pv0 = new Point3d();
 
     // debug
-    int collapseCnt = 0;
+    //int collapseCnt = 0;
 
     /**
      * Collapse an edge.
@@ -419,7 +412,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         // 2) link halfedges connected to v0 to v1
 
         // debug
-        collapseCnt++;
+        //collapseCnt++;
 
         int hR = Edge.getHe(edges, e);
         int v0 = HalfEdge.getEnd(hedges,hR);
@@ -459,52 +452,47 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         // if edge adjacent to v0 have common vertex with edge adjacent to v1 (except edges, which surround fR and fL )
         // then our collapse will cause surface pinch aong such edge
         //
-        StructSet v1set = m_vset;
-        v1set.clear();
-        he = HalfEdge.getNext(hedges,hLnt);
-
-        while (he != hRpt) {
-/*
-            // TODO: debug remove
-            double[] pnt = new double[3];
-            Vertex.getPoint(vertices,HalfEdge.getEnd(hedges,he),pnt);
-            System.out.println("Adding: " + HalfEdge.getEnd(hedges,he) + " pnt: " + java.util.Arrays.toString(pnt));
-            //----
-*/
-            v1set.add(HalfEdge.getEnd(hedges,he));
-            he = HalfEdge.getNext(hedges, HalfEdge.getTwin(hedges, he));
-        }
-        // v1set has all the vertices conected to v1
-        he = HalfEdge.getNext(hedges,hRnt);
-
-        while (he != hLpt) {
-/*
-            // TODO: debug remove
-            double[] pnt = new double[3];
-            Vertex.getPoint(vertices,HalfEdge.getEnd(hedges,he),pnt);
-
-            System.out.println("Checking: " + HalfEdge.getEnd(hedges,he) + " pnt: " + java.util.Arrays.toString(pnt));
-            //----
-*/
-            if (v1set.contains(HalfEdge.getEnd(hedges,he))) {
-                if (DEBUG) printf("!!!illegal collapse. Surface pinch detected!!!\n");
-                ecr.returnCode = EdgeCollapseResult.FAILURE_SURFACE_PINCH;
-                return false;
+        if(ecp.testSurfacePinch){
+            StructSet v1set = ecr.v1set;
+            v1set.clear();
+            he = HalfEdge.getNext(hedges,hLnt);
+            
+            // make cycle about v1
+            while (he != hRpt) {
+                
+                v1set.add(HalfEdge.getEnd(hedges,he));
+                he = HalfEdge.getNext(hedges, HalfEdge.getTwin(hedges, he));
             }
-
-            he = HalfEdge.getNext(hedges, HalfEdge.getTwin(hedges, he));
+            // v1set has all the vertices connected to v1
+            
+            // make cycle about v0
+            he = HalfEdge.getNext(hedges,hRnt);
+            
+            while (he != hLpt) {
+                
+                if (v1set.contains(HalfEdge.getEnd(hedges,he))) {
+                    if (DEBUG) printf("!!!illegal collapse. Surface pinch detected!!!\n");
+                    ecr.returnCode = EdgeCollapseResult.FAILURE_SURFACE_PINCH;
+                    return false;
+                }
+                
+                he = HalfEdge.getNext(hedges, HalfEdge.getTwin(hedges, he));
+            }
+            //
+            // if we are here - no surface pinch occurs.
         }
 
-        //
-        // if we are here - no surface pinch occurs.
-
+        // get scratch variables 
+        Point3d p0 = ecr.p0, p1 = ecr.p1, pv0 = ecr.pv0, pv1 = ecr.pv1;
 
         // check if face flip occur
         // face flip means, that face normals change direction to opposite after vertex was moved
         // check face flip of faces connected to v1
         he = hLnt;
 
+        FaceFlipChecker faceFlipChecker = ecr.faceFlipChecker;
         Vertex.getPoint(vertices, v1,pv1);
+
         if (ecp.maxEdgeLength2 > 0.) {
             while (he != hRp) {
                 int start = HalfEdge.getStart(hedges, he);
@@ -513,12 +501,12 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                 Vertex.getPoint(vertices,HalfEdge.getEnd(hedges,next),p1);
 
                 // we need to check for max edge
-                if (pos.distanceSquared(p0) > ecp.maxEdgeLength2) {
+                if (pos.distanceSquared(ecr.p0) > ecp.maxEdgeLength2) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_LONG_EDGE;
                     return false;
                 }
 
-                if (m_faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)) {
+                if (faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }
@@ -533,7 +521,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                 Vertex.getPoint(vertices,start,p0);
                 Vertex.getPoint(vertices,HalfEdge.getEnd(hedges,next),p1);
 
-                if (m_faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)) {
+                if (faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }
@@ -559,7 +547,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                     return false;
                 }
 
-                if (m_faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)) {
+                if (faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }
@@ -573,7 +561,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                 Vertex.getPoint(vertices,start,p0);
                 Vertex.getPoint(vertices,HalfEdge.getEnd(hedges,next),p1);
 
-                if (m_faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)) {
+                if (faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }
@@ -591,21 +579,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         removeEdge(e);
         removeEdge(e0R);
         removeEdge(e0L);
-/*
-        if (collapseCnt == 514208) {
-            verifyEdgeCount(this,e,collapseCnt);
-        }
-*/
-/*
-        if (collapseCnt > 480000) {
-            verifyEdgeCount(this,e,collapseCnt);
-        }
-        */
-/*
-        if (e % 125 == 0) {
-            verifyEdgeCount(this,e);
-        }
-*/
+
         if (DEBUG) {
             printf("v0: %s, v1: %s\n", v0, v1);
             printf("vR: %s, vL: %s\n", vL, vR);
@@ -620,7 +594,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         //
         int end = hLp;
         he = hRnt;
-        int maxcount = 30; // to avoid infinite cycle if cycle is broken
+        int maxcount = 100; // to avoid infinite cycle if cycle is broken
         if (DEBUG) printf("moving v0-> v1\n");
         do {
             int next = HalfEdge.getNext(hedges,he);
@@ -677,7 +651,8 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         ecr.returnCode = EdgeCollapseResult.SUCCESS;
 
         return true;
-    }
+
+    } // collapseEdge()
 
 
     public void writeOBJ(PrintStream out) {
@@ -1183,75 +1158,3 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
 }
 
-/**
- * class to check face Flip
- */
-class FaceFlipChecker {
-    static final double FACE_FLIP_EPSILON = 1.e-20;
-
-    Vector3d
-            // p0 = new Vector3d(), // we move origin to p0
-            m_p1 = new Vector3d(),
-            m_v0 = new Vector3d(),
-            m_v1 = new Vector3d(),
-            m_n0 = new Vector3d(),
-            m_n1 = new Vector3d();
-
-    /**
-     * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
-     * return false otherwise
-     */
-    public boolean checkFaceFlip(Point3d p0, Point3d p1, Point3d v0, Point3d v1) {
-
-        m_p1.set(p1);
-        m_v0.set(v0);
-        m_v1.set(v1);
-
-        m_p1.sub(p0);
-        m_v0.sub(p0);
-        m_v1.sub(p0);
-
-        m_n0.cross(m_p1, m_v0);
-
-        m_n1.cross(m_p1, m_v1);
-
-        double dot = m_n0.dot(m_n1);
-
-        if (dot < FACE_FLIP_EPSILON) // face flip
-            return true;
-        else
-            return false;
-    }
-    /**
-     * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
-     * return false otherwise
-     */
-    public boolean checkFaceFlip(double[] p0, double[] p1, double[] v0, double[] v1) {
-
-        m_p1.set(p1);
-        m_v0.set(v0);
-        m_v1.set(v1);
-
-        m_p1.x -= p0[0];
-        m_p1.y -= p0[1];
-        m_p1.z -= p0[2];
-        m_v0.x -= p0[0];
-        m_v0.y -= p0[1];
-        m_v0.z -= p0[2];
-        m_v1.x -= p0[0];
-        m_v1.y -= p0[1];
-        m_v1.z -= p0[2];
-
-        m_n0.cross(m_p1, m_v0);
-
-        m_n1.cross(m_p1, m_v1);
-
-        double dot = m_n0.dot(m_n1);
-
-        if (dot < FACE_FLIP_EPSILON) // face flip
-            return true;
-        else
-            return false;
-    }
-
-}// class FaceFlipChecker
