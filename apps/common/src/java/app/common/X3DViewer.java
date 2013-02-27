@@ -149,7 +149,10 @@ public class X3DViewer {
 
             ps.println("<p class='case'>");
             ps.println("<X3D profile='Immersive' showLog='true' showStats='true' version='3.0' height='600px' width='600px' y='0px' x='0px'>");
-            ps.println("<Scene>");
+            // had to turn of isStaticHierarchy
+//            ps.println("<Scene isStaticHierarchy=\"true\" sortTrans=\"false\" doPickPass=\"false\" frustumCulling=\"false\">");
+            ps.println("<Scene sortTrans=\"false\" doPickPass=\"false\" frustumCulling=\"false\">");
+//            ps.println("<Scene>");
             ps.println("<Background skyColor=\"1 1 1\" />");
 
             if (pos != null) {
