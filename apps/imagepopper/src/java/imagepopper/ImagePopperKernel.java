@@ -352,14 +352,19 @@ public class ImagePopperKernel extends HostedKernel {
         gm.makeGrid(grid);
         printf("gm.makeGrid() done\n");
 
+        int min_volume = 10;
         int regions_removed = 0;
+
         if (regions != RegionPrunner.Regions.ALL) {
-//            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INTERIOR, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
+            long t0 = currentTimeMillis();
             if (visRemovedRegions) {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds);
+                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds, min_volume);
             } else {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid);
+                regions_removed = RegionPrunner.reduceToOneRegion(grid, min_volume);
             }
+            printf("Regions removed: %d\n", regions_removed);
+            printf("regions removal done %d ms\n", (currentTimeMillis() - t0));
+
         }
 
         System.out.println("Writing grid");
@@ -416,8 +421,8 @@ public class ImagePopperKernel extends HostedKernel {
         surface_area = ac.getArea();
 
         t0 = System.nanoTime();
-        printf("final surface area: %7.3f CM^2\n", surface_area*1.e4);
-        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
+        printf("final surface area: %7.8f CM^2\n", surface_area*1.e4);
+        printf("final volume: %7.8f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
 
         return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
     }
