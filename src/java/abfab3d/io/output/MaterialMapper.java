@@ -50,7 +50,6 @@ public class MaterialMapper {
     public void createAppearance(String material, String[] finish, Shading shading,
         int quality, BinaryContentHandler handler) {
 
-
         if (material == null || material.equals("None")) {
             // Do not issue any appearance commands
             applyDefaultMaterial(handler,quality);
