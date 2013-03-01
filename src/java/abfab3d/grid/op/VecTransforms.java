@@ -421,22 +421,24 @@ public class VecTransforms {
      */
     public static class CompositeTransform implements VecTransform, Initializable {
         
-        public Vector<VecTransform> m_transforms = new Vector<VecTransform>();
-
-        // Scratch var to avoid allocations
-        private Vec vin = null;
-
+        private Vector<VecTransform> vTransforms = new Vector<VecTransform>();
+        
+        private VecTransform aTransforms[]; // array used in calculations 
 
         public void add(VecTransform transform){
 
-            m_transforms.add(transform);
+            vTransforms.add(transform);
 
         }
 
         public int initialize(){
             
-            for(int i = 0; i < m_transforms.size(); i++){
-                 VecTransform tr = m_transforms.get(i);
+            int len = vTransforms.size();
+
+            aTransforms = (VecTransform[])vTransforms.toArray(new VecTransform[len]);
+
+            for(int i = 0; i < len; i++){
+                VecTransform tr = aTransforms[i];
                 if(tr instanceof Initializable){
                     int res = ((Initializable)tr).initialize();
                     if(res != RESULT_OK)
@@ -451,16 +453,17 @@ public class VecTransforms {
          *
          */
         public int transform(Vec in, Vec out) {
-            
-            if(m_transforms.size() < 1){
+
+            int len = aTransforms.length;
+            if(len < 1){
                 // copy input to output                 
                 out.set(in);
                 return RESULT_OK;                
             }
 
-            for(int i = 0; i < m_transforms.size(); i++){
+            for(int i = 0; i < len; i++){
 
-                VecTransform tr = m_transforms.get(i);
+                VecTransform tr = aTransforms[i];
                 int res = tr.transform(in, out);
                 if(res != RESULT_OK)
                     return res;
@@ -476,22 +479,21 @@ public class VecTransforms {
          */
         public int inverse_transform(Vec in, Vec out) {
             
-            if(m_transforms.size() < 1){
+            int len = aTransforms.length;
+            if(len < 1){
                 // copy input to output                 
                 out.set(in);
                 return RESULT_OK;                
             }
 
-            if (vin == null || vin.v.length != in.v.length) {
-                vin = new Vec(in);
-            } else {
-                vin.set(in);
-            }
+            //TODO garbage generation 
+            Vec vin = new Vec(in);
 
-            for(int i = m_transforms.size()-1; i >= 0; i--){
+            for(int i = aTransforms.length-1; i >= 0; i--){
 
-                VecTransform tr = m_transforms.get(i);
+                VecTransform tr = aTransforms[i];
                 int res = tr.inverse_transform(vin, out);
+                
                 if(res != RESULT_OK)
                     return res;
                 vin.set(out);
@@ -500,7 +502,7 @@ public class VecTransforms {
             return RESULT_OK;
 
         }
-    }        
+    }  // class CompositeTransform
 
 
     /**
@@ -573,7 +575,7 @@ public class VecTransforms {
          *  composite transform is identical to direct transform
          */
         public int inverse_transform(Vec in, Vec out) {
-            
+            // TODO - garbage generation 
             Vector4d vin = new Vector4d(in.v[0],in.v[1],in.v[2],1);
 
             toFundamentalDomain(vin, m_sym, m_maxCount);
@@ -686,7 +688,7 @@ public class VecTransforms {
          *  composite transform is identical to direct transform
          */
         public int inverse_transform(Vec in, Vec out) {
-            
+            // TODO garbage generation 
             Vector4d vin = new Vector4d(in.v[0],in.v[1],in.v[2],1);
 
             toFundamentalDomain(vin, m_sym, m_maxCount);

@@ -24,8 +24,8 @@
     <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
 
     <property name="entrypoint" value="abfab3d.Creator" />
-<!-- <property name="runarg0" value="-Xmx4000M"/> -->
-    <property name="runarg0" value="-Xmx1200M"/> 
+    <property name="runarg0" value="-Xmx4000M"/> 
+<!--     <property name="runarg0" value="-Xmx1200M -Xprof"/> -->
 <!--    
     <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
     <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
@@ -232,7 +232,6 @@
   <target name="test" depends="compileTest">
     <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
-    
       <formatter type="plain" usefile="false"/>
       <batchtest fork="yes" >
         <fileset dir="${test.dir}">
@@ -475,9 +474,9 @@
   </target>
 
   <target name="testSpecific" depends="compile,compileTest">
+    <echo message="running testSpecific ${test} jvmargs: ${jvmrunargs}" />
     <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="yes">
       <jvmarg line="${jvmrunargs}"/>
-    
       <formatter type="plain" usefile="false"/>
       <batchtest fork="yes" >
         <fileset dir="${test.dir}">

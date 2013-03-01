@@ -40,7 +40,7 @@ public class MeshDecimator {
 
 
     static boolean DEBUG = false;
-    static boolean m_printStat = true;
+    static boolean m_printStat = false;
     static final double MM = 1000.; // mm per meter
 
     // mesh we are working on
@@ -145,7 +145,7 @@ public class MeshDecimator {
     public int processMesh(TriangleMesh mesh, int targetFaceCount){
         quadrics = new StructMixedData(new Quadric(), mesh.getVertexCount() + RANDOM_CANDIDATES_COUNT);
 
-        printf("MeshDecimator.processMesh(%s, %d)\n", mesh, targetFaceCount);
+        //printf("MeshDecimator.processMesh(%s, %d)\n", mesh, targetFaceCount);
 
         this.m_mesh = mesh;
                         
@@ -162,7 +162,7 @@ public class MeshDecimator {
 
 
         long ts1 = currentTimeMillis();
-        printf("MeshDecimator.doInitialization() %d ms\n", (ts1-ts));
+        //printf("MeshDecimator.doInitialization() %d ms\n", (ts1-ts));
         ts = ts1;
         
         //printf("initial face count: %d\n", m_faceCount);
@@ -177,7 +177,7 @@ public class MeshDecimator {
 
         while(m_faceCount > targetFaceCount && count < targetCount ){
             doIteration();
-
+                
             count += 2;
             if(m_faceCount % 100000 == 0){
                 long t1 = System.currentTimeMillis();
@@ -194,21 +194,14 @@ public class MeshDecimator {
             }
         } 
 
-System.out.println("***Iterations: " + count);
+        //printf("***Iterations: %d\n ",count);
         ts1 = currentTimeMillis();
-        printf("MeshDecimator.doIterations() %d ms\n", (ts1-ts));
+        //printf("MeshDecimator.doIterations() %d ms\n", (ts1-ts));
         ts = ts1;
 
         int actuallFaceCount = mesh.getFaceCount();
         if(m_printStat){
-            printf(" final face count: %d\n", m_faceCount);
-            printf("actual face count: %d\n", actuallFaceCount);
-            printf("surface pinch count: %d\n", m_surfacePinchCount);
-            printf("face flip count: %d\n", m_faceFlipCount);
-            printf("long edge count: %d\n", m_longEdgeCount);
-            printf("edges collapsed: %d\n", m_collapseCount);
-            printf("Ignored Count: %d\n", m_ignoreCount);
-            printf("MAX_COLLAPSE_ERROR: %10.5e\n", m_maxError);
+            printStat();
         }
 
         // Release variables for faster garbage collection
@@ -218,6 +211,18 @@ System.out.println("***Iterations: " + count);
 
         return actuallFaceCount;
 
+    }
+    
+    public void printStat() {
+
+        printf(" final face count: %d\n", m_faceCount);
+        printf("surface pinch count: %d\n", m_surfacePinchCount);
+        printf("face flip count: %d\n", m_faceFlipCount);
+        printf("long edge count: %d\n", m_longEdgeCount);
+        printf("edges collapsed: %d\n", m_collapseCount);
+        printf("Ignored Count: %d\n", m_ignoreCount);
+        printf("MAX_COLLAPSE_ERROR: %10.5e\n", m_maxError);
+        
     }
 
     /**
@@ -240,14 +245,14 @@ System.out.println("***Iterations: " + count);
 
 
         for(int i = 0; i < m_candidates.length; i++){
-            m_candidates[i] = new EdgeData(quadrics);
+            m_candidates[i] = new EdgeData(Quadric.create(quadrics));
         }
          
         int ecount = m_mesh.getEdgeCount();
         
         //ecd.edgeCount = count;
-        printf("edges count: %d\n", ecount);
-//        System.out.println("Not allocating edgeArray");
+        //printf("edges count: %d\n", ecount);
+        // printf("Not allocating edgeArray\n");
 
         m_edgeArray = new EdgeArray(ecount);
         
@@ -256,7 +261,7 @@ System.out.println("***Iterations: " + count);
         int e = m_mesh.getStartEdge();
         int count = 0;
 
-        System.out.println("Starting edge: " + e);
+        //printf("Starting edge: %d\n",e);
         // TODO: I don't think edgeArray is needed now
         while(e != -1){
             Edge.setUserData(count,edges, e);
@@ -267,7 +272,7 @@ System.out.println("***Iterations: " + count);
 
         m_errorFunction.init(m_mesh);
         
-        printf("edgesArray done\n");
+        //printf("edgesArray done\n");
     }
 
 
@@ -435,7 +440,7 @@ System.out.println("***Iterations: " + count);
         
         int array[];
         int asize = 0; //
-        int count = 0; // count of non nul elements 
+        //int count = 0; // count of non nul elements 
 
         //
         // random number generator with specified seed 
@@ -449,7 +454,7 @@ System.out.println("***Iterations: " + count);
 
             // TODO: a bit more expensive null handling, rethink to 0 as null?
             java.util.Arrays.fill(array, -1);
-            count = 0;
+            //count = 0;
             
         }
         
@@ -463,12 +468,13 @@ System.out.println("***Iterations: " + count);
             array[i] = value;
 
             //printf("edgesArray.set(%d, %s)\n", i, value);
-
+            /*
             if(value == -1 && oldValue != -1){
                 count--;
             } else if(value != -1 && oldValue == -1){
                 count++;
             }
+            */
         }
 
         public void getRandomEdge(EdgeData ed){
@@ -497,27 +503,12 @@ System.out.println("***Iterations: " + count);
 
     }
     
-    /**
-       class to keep info about an Edge 
-    */    
-    static class EdgeData {
-        
-        int edge; // reference to Edge (to get to Vertices etc.)
-        int index; // index in array of all edges for random access 
-        double errorValue; // error calculated for this edge 
-        Point3d point; // place for candidate vertex
-        int vertexUserData;
-
-        public EdgeData(StructMixedData quadrics) {
-            vertexUserData = Quadric.create(quadrics);
-        }
-    }
-
 
     /**
        mid edge vertex placement 
      */
     static class ErrorMidEdge implements ErrorFunction {
+
         private TriangleMesh m_mesh;
         private Point3d p0 = new Point3d();
         private Point3d p1 = new Point3d();

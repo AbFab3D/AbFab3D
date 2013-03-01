@@ -16,6 +16,7 @@ package abfab3d.grid.op;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
@@ -52,12 +53,12 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         return new TestSuite(TestDilationShapeMT.class);
     }
 
-    static final int GRID_SHORTINTERVALS = 0, GRID_ARRAYBYTE = 1; 
+    static final int GRID_SHORTINTERVALS = 0, GRID_BITINTERVALS = 1, GRID_ARRAYBYTE = 2; 
 
     /**
      * Test basic operation
      */
-    public void _testSingleVoxel() {
+    public void _testSingleVoxelCross() {
 
         int size = 31;
         int gridType = GRID_ARRAYBYTE;
@@ -70,7 +71,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
             DilationShapeMT dil = new DilationShapeMT();        
             dil.setThreadCount(4);
-            dil.setVoxelShape(VoxelShapeFactory.getCross(k));            
+            dil.setVoxelShape(VoxelShapeFactory.getCross(k)); 
             grid = dil.execute(grid);            
             writeFile(grid, fmt("/tmp/dilationSingleVoxelDilatedMT_%d.x3d", k));
             
@@ -81,6 +82,32 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         }
     }
 
+    public void _testSingleVoxelBall() {
+
+        int size = 301;
+        int gridType = GRID_ARRAYBYTE;
+        //int gridType = GRID_SHORTINTERVALS;
+
+        for(int k = 1; k < 10; k++){
+            
+            AttributeGrid grid = makeBlock(gridType, size, size, size, size/3);
+            
+            int voxelCount =  grid.findCount(0);
+            //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
+            DilationShapeMT dil = new DilationShapeMT();        
+            dil.setThreadCount(1);
+            dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0)); 
+            long t0 = time();
+            grid = dil.execute(grid);            
+            printf("dilation time: %dms\n", (time()-t0));
+            //writeFile(grid, fmt("/tmp/dilationSingleVoxelDilatedMT_%d.x3d", k));
+            
+            voxelCount =  grid.findCount(0);
+            printf("dilated grid volume: %d\n",voxelCount);
+            //assertTrue("dilation of single voxel", voxelCount == (6*k + 1));
+
+        }
+    }
 
     public void _testCubeVoxel() {
 
@@ -116,7 +143,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
         int maxDilation = 20;
 
-        for(int k = 1; k < maxDilation; k++){
+        for(int k = maxDilation-1; k < maxDilation; k++){
             int s = size+2*(maxDilation+1);
             AttributeGrid grid = makeBlock(gridType,s,s,s, maxDilation);
             printf("dilation size: %d\n",k);
@@ -145,34 +172,39 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
     }
 
     public void _testSpeed() {
+        
+        printEnv();
 
         int gridType = GRID_ARRAYBYTE;
+        //int gridType = GRID_SHORTINTERVALS;
+        //int gridType = GRID_BITINTERVALS;
 
         int size = 100;
-        int nx = 100, ny = 200, nz = 300;
-        //int nx = 500, ny = 500, nz = 500;
+        //int nx = 100, ny = 200, nz = 300;
+        int nx = 500, ny = 500, nz = 500;
         int dilationSize = 4;
+        int threadCount = 4;
 
         VoxelShape shape = VoxelShapeFactory.getBall(dilationSize,0,0);
 
         printf("grid: %d x %d x %d\n", nx, ny, nz);
         printf("dilation size: %d\n", dilationSize);        
 
-        AttributeGrid grid = makeBlock(gridType, nx, ny, nz, dilationSize+1);
-
+        AttributeGrid grid;
+        //grid = makeBlock(gridType, nx, ny, nz, dilationSize+1);
         DilationShape dil = new DilationShape();        
         dil.setVoxelShape(shape);  
         long t0 = time();
-        grid = dil.execute(grid);            
+        //grid = dil.execute(grid);            
         printf("DilationShape time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationShape.x3d"));
         
-        for(int t = 1; t <= 4; t++){
+        for(int t = 1; t <= 1; t++){
 
             grid = makeBlock(gridType, nx, ny, nz, dilationSize+1);
             DilationShapeMT dilm = new DilationShapeMT();        
-            dilm.setVoxelShape(shape);  
-            dilm.setThreadCount(t);
+            dilm.setVoxelShape(shape);              
+            dilm.setThreadCount(threadCount);
             t0 = time();
             grid = dilm.execute(grid);            
             printf("DilationShapeMT(%d) time: %d ms\n", t, (time() - t0));
@@ -180,20 +212,35 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         }
         
         // test old sphere dilation
-        grid = makeBlock(gridType, nx, ny, nz, dilationSize+1);
-        DilationMask dils = new DilationMask(dilationSize,0);        
-        t0 = time();
-        dils.execute(grid);
-        printf("DilationMask( ball) time: %d ms\n", (time() - t0));
+        //grid = makeBlock(gridType, nx, ny, nz, dilationSize+1);
+        //DilationMask dils = new DilationMask(dilationSize,0);        
+        //t0 = time();
+        //dils.execute(grid);
+        //printf("DilationMask( ball) time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationSphere.x3d"));
         
     }
 
+    public void _testSpeedGrid() {
+        
+        int size = 400;
+        //int gridType = GRID_ARRAYBYTE;
+        int gridType = GRID_SHORTINTERVALS;
+
+        for(int k = 1; k < 10; k++){
+            long t0 = time();
+            AttributeGrid grid = makeBlock(gridType, size, size, size, k%2 +1);
+            printf("time: %d\n",(time()-t0)); 
+        }
+    }
 
     private AttributeGrid makeBlock(int gridType, int nx, int ny, int nz, int offset) {
         
         AttributeGrid grid;
         switch(gridType){
+        case GRID_BITINTERVALS: 
+            grid = new GridBitIntervals(nx, ny, nz, 0.001, 0.001);
+            break;
         case GRID_SHORTINTERVALS: 
             grid = new GridShortIntervals(nx, ny, nz, 0.001, 0.001);
             break;
@@ -205,7 +252,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
         for (int y = offset; y < ny - offset; y++) {
             for (int x = offset; x < nx - offset; x++) {
-                for (int z = offset; z < nz - offset; z++) {
+                for (int z = nz - offset-1; z >= offset; z--) {
                     //printf("%d %d %d\n",x,y,z);
                     grid.setState(x,y,z, Grid.INTERIOR);
                 }
@@ -244,7 +291,22 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         }
     }
 
-    
+
+    static void printEnv(){
+        
+        Map<String, String> env = System.getenv();
+        String envName = "_JAVACMD";
+        printf("%s=%s%n", envName,env.get(envName));
+        
+    }
+
+    static void printFullEnv(){
+
+        Map<String, String> env = System.getenv();
+        for (String envName : env.keySet()) {         
+            printf("%s=%s%n", envName,env.get(envName));
+        }
+    }
 
 
     public static void main(String[] args) {

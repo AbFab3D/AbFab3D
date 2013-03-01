@@ -117,8 +117,8 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             {
                 int ind = x + m_nx * y;
                 if(ind < 0){
-                    printf("x: %d, y: %d, ind: %d\n", x,y,ind);
-                    return 0;
+                    throw new IllegalArgumentException(fmt("x: %d, y: %d, ind: %d\n", x,y,ind));                                        
+                    //return 0;
                 }
                 RowOfInt interval = m_data[x + m_nx * y];
                 if(interval == null)
@@ -158,7 +158,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
        set raw data at given point 
      */
     public void set(int x, int y, int z, int value){
-
+        
         switch(m_orientation){
 
         default:
@@ -226,7 +226,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     protected RowOfInt newInterval(){
 
         return new BitIntervals();
-
+        //return new BitIntervalInts();
     }
 
 
@@ -331,11 +331,15 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public void find(VoxelClasses vc, ClassTraverser t){        
+
+        //printf("%s.find(%s)\n",this, vc);
+
         RowProcesser rp = new RowProcesser(t);
         int data;
         
         switch(vc){
         default:             
+            //printf(" find() default procesing\n");
             // go to default routine 
             super.find(vc,  t);
             return;
@@ -345,6 +349,8 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             data = 1;
             break;
         }
+
+        //printf(" find() custom procesing\n");
                 
         for(int y = 0; y < m_ny; y++){
             for(int x = 0; x < m_nx; x++){
@@ -358,26 +364,34 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
     public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){        
 
-        //printf("%s.find([%d,%d,%d,%d])\n",this, xmin, xmax, ymin, ymax);
-
+        //printf("%s.find(%s,[%d,%d,%d,%d])\n",this, vc, xmin, xmax, ymin, ymax);
+        
+        //printf("vc: %s\n",vc);
+        
         RowProcesser rp = new RowProcesser(t);
         int data;
         
         switch(vc){
         default:             
             // go to default routine 
+            //printf(" find() default processing\n");
             super.find(vc,  t, xmin, xmax, ymin, ymax);
             return;
+
         case EXTERIOR:
         case INTERIOR:
         case MARKED:
             data = 1;
             break;
         }
+
+        //printf(" find() custom procesing\n");
+
         for(int y = ymin; y <= ymax; y++){
             for(int x = xmin; x <= xmax; x++){
                 RowOfInt row = m_data[x + m_nx*y];
-                if(row == null) continue;
+                if(row == null) 
+                    continue;
                 rp.setXY(x,y);
                 row.findInterruptible(data, rp );
             }

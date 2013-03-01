@@ -32,6 +32,7 @@ import abfab3d.util.ImageMipMap;
 import abfab3d.util.ImageUtil;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 
 import static abfab3d.util.ImageUtil.getRed;
 import static abfab3d.util.ImageUtil.getGreen;
@@ -60,7 +61,7 @@ public class DataSources {
      */
     public static class Block implements DataSource, Initializable {
 
-        public double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1, m_centerX=0, m_centerY=0, m_centerZ=0;             
+        private double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1, m_centerX=0, m_centerY=0, m_centerZ=0;             
         
         private double xmin, xmax, ymin, ymax, zmin, zmax;
         
@@ -148,21 +149,26 @@ public class DataSources {
         
         private BufferedImage m_image;
         private int m_interpolationType = INTERPOLATION_BOX;
+        // probe size in world units
         private double m_probeSize = 1.e-4; // 0.1mm
+        // probe size in image pixels, initiliazed in init()
+        private double m_probeSizeImage=0;         
+        // scaling to convert probe size into pixels of image 
+        private double m_probeScale; 
         
         private double xmin, xmax, ymin, ymax, zmin, zmax, zbase;
         private double xscale, yscale;
-        private double probeScale; // scaling to convert probe size into pixels of image 
         private boolean useGrayscale = true;
         private int imageWidth, imageHeight;
-        private int imageData[]; 
+        //private int imageData[]; 
+        private byte imageDataByte[]; 
         private ImageMipMap m_mipMap;
         private double m_pixelWeightNonlinearity = 0.;
         // solid white color of background to be used fpr images with transparency
         private double m_backgroundColor[] = new double[]{255.,255.,255.,255.};
+        private int m_backgroundColorInt = 0xFFFFFFFF;
 
         double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
-        double probeSize;
 
         // scratch vars
         double[] ci = new double[4];
@@ -240,7 +246,7 @@ public class DataSources {
         public void setProbeSize(double size){
 
             m_probeSize = size;
-            probeSize = m_probeSize*probeScale;
+            m_probeSizeImage = m_probeSize*m_probeScale;
         }
 
         public int initialize(){
@@ -258,11 +264,16 @@ public class DataSources {
             zmax = m_centerZ + m_sizeZ/2;
             zbase = zmin + (zmax - zmin)*m_baseThickness;
 
+            int imageData[] = null;
+
+            long t0 = time();
+
             BufferedImage image = null;
             if(m_image != null){
+                // image was supplied via memory 
                 image = m_image;
             } else if(m_imagePath == null){
-                imageData = null; 
+                imageDataByte = null; 
                 return RESULT_OK;                
             } else {
                 try {
@@ -274,23 +285,42 @@ public class DataSources {
                     return RESULT_ERROR;
                 }
             }
-
+            printf("reading image %d ms\n", (time() - t0));
             if(m_interpolationType == INTERPOLATION_MIPMAP){
+                
+                t0 = time();
                 m_mipMap = new ImageMipMap(image, m_pixelWeightNonlinearity);
+                printf("mipmap initialization %d ms\n", (time() - t0));
+
             }else {
                 m_mipMap = null;
             }
-
+            
+            t0 = time();
             imageWidth = image.getWidth();
             imageHeight = image.getHeight();
 
             // convert probe size in meters into image units 
-            probeScale = xscale*imageWidth;
-            probeSize = m_probeSize*probeScale;
+            m_probeScale = xscale*imageWidth;
+            m_probeSizeImage = m_probeSize*m_probeScale;
 
             DataBuffer dataBuffer = image.getRaster().getDataBuffer();          
             imageData = new int[imageWidth * imageHeight];
             image.getRGB(0,0,imageWidth, imageHeight, imageData, 0, imageWidth);
+
+            printf("image.getRGB() %d ms\n", (time() - t0));
+            t0 = time();
+
+            int len = imageData.length; 
+            imageDataByte = new byte[len];
+
+            for(int i = 0; i < len; i++){
+                // convert data into grayscale 
+                imageDataByte[i] = (byte)ImageUtil.getCombinedGray(m_backgroundColorInt, imageData[i]);                
+            }
+            printf("gray scale data initialization %d ms\n", (time() - t0));
+            
+            imageData = null;
             
             return RESULT_OK;
         }
@@ -327,7 +357,7 @@ public class DataSources {
                 }                    
             }
 
-            if(imageData == null){               
+            if(imageDataByte == null){               
                 data.v[0] = 1;
                 return RESULT_OK;
             }
@@ -344,18 +374,20 @@ public class DataSources {
             double imageX = imageWidth*x;
             double imageY = imageHeight*(1-y);// reverse Y-direction 
 
-            double pixelValue = getPixelValue(imageX, imageY, probeSize);
+            double pixelValue = getPixelValue(imageX, imageY, m_probeSizeImage);
             
             double d = 0;
 
-            if(useGrayscale){                
+            if(useGrayscale){ 
+                // smooth transition 
                 d = (zbase  + (zmax - zbase)*pixelValue - z); 
                 if( d > 0)
                     data.v[0] = 1;
                 else 
                     data.v[0] = 0;
 
-            } else {  // sharp threshold 
+            } else {  
+                // sharp transition
                 d = pixelValue;
                 if(d > m_imageThreshold)
                     data.v[0] = 1;
@@ -371,13 +403,16 @@ public class DataSources {
             double grayLevel;
 
             switch(m_interpolationType){
+
             case INTERPOLATION_MIPMAP:
                 m_mipMap.getPixel(x, y, probeSize, color);
                 grayLevel = (color[0] + color[1] + color[2])/3.;
                 break;
             default: 
+
             case INTERPOLATION_BOX:
-                grayLevel = getPixelBox(x,y);
+                grayLevel = (0xFF) & ((int)imageDataByte[(int)x + (int)y * imageWidth]);
+                //grayLevel = ImageUtil.getCombinedGray(m_backgroundColorInt, imageData[(int)x + (int)y * imageWidth]); 
                 break;
             case INTERPOLATION_LINEAR:
                 grayLevel = getPixelLinear(x,y);
@@ -406,23 +441,44 @@ public class DataSources {
             return getPixelBox(x,y);
         }
 
-        // BOX approximation 
         double getPixelBox(double x, double y){
+
+            return getPixelBoxInt(x,y);
+
+        }
+
+        // BOX approximation with double colors 
+        double getPixelBoxDouble(double x, double y){
 
             int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
             int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
             
-            int rgb = imageData[ix + iy * imageWidth];
-            ImageUtil.getPremultColor(rgb, ci);
-            ImageUtil.combinePremultColors(m_backgroundColor, ci, cc, ci[ALPHA]);
-            
-            return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;
+            int rgb = (0xFF) & ((int)imageDataByte[ix + iy * imageWidth]);
+            return rgb;
+            //ImageUtil.getPremultColor(rgb, ci);
+            //ImageUtil.combinePremultColors(m_backgroundColor, ci, cc, ci[ALPHA]);            
+            //return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;
+
+        }
+        // BOX approximation with int colors 
+        int getPixelBoxInt(double x, double y){
+
+            int ix = (int)x;
+            int iy = (int)y;
+
+            //int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
+            //int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
+            //return imageData[ix + iy * imageWidth];
+
+            int rgb = 0xFF & (int)imageDataByte[ix + iy * imageWidth];
+            return ImageUtil.getCombinedGray(m_backgroundColorInt, rgb);
 
         }
 
     }  // class ImageBitmap
 
-    public static class ImageBitmapYUP implements DataSource, Initializable {
+    /*
+    public static class ImageBitmap_YUP implements DataSource, Initializable {
 
         public double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0;
 
@@ -461,18 +517,12 @@ public class DataSources {
         double ci[] = new double[4];
         double color[] = new double[4];
 
-        /**
-
-         */
         public void setSize(double sx, double sy, double sz){
             m_sizeX = sx;
             m_sizeY = sy;
             m_sizeZ = sz;
         }
 
-        /**
-
-         */
         public void setLocation(double x, double y, double z){
             m_centerX = x;
             m_centerY = y;
@@ -520,11 +570,11 @@ public class DataSources {
 
         }
 
-        /**
-         value = 0 - linear resampling for mipmap
-         value > 0 - black pixels are givewn heigher weight
-         value < 0 - white pixels are givewn heigher weight
-         */
+        
+        //   value = 0 - linear resampling for mipmap
+        // value > 0 - black pixels are givewn heigher weight
+        // value < 0 - white pixels are givewn heigher weight
+        // 
         public void setPixelWeightNonlinearity(double value){
             m_pixelWeightNonlinearity = value;
         }
@@ -586,10 +636,10 @@ public class DataSources {
             return RESULT_OK;
         }
 
-        /**
-         * returns 1 if pnt is inside of image
-         * returns 0 otherwise
-         */
+        //
+        //  returns 1 if pnt is inside of image
+        //  returns 0 otherwise
+        //
         public int getDataValue(Vec pnt, Vec data) {
 
             // TODO get proper pointer size from chain of transforms
@@ -603,9 +653,7 @@ public class DataSources {
             x = (x-xmin)*xscale;
             z = (z-zmin)*zscale;
 
-            if(x < 0 || x > 1 ||
-                    z < 0 || z > 1 ||
-                    y < ymin || y > ymax){
+            if(x < 0 || x > 1 || z < 0 || z > 1 ||  y < ymin || y > ymax){
                 data.v[0] = 0;
                 return RESULT_OK;
             }
@@ -711,7 +759,8 @@ public class DataSources {
 
         }
 
-    }  // class ImageBitmap
+    }  // class ImageBitmap_VUP
+    */
 
     /**
        return 1 if any of input data sources is 1, return 0 if all data sources are 0 
@@ -720,7 +769,10 @@ public class DataSources {
     public static class Union implements DataSource, Initializable {
 
         Vector<DataSource> dataSources = new Vector<DataSource>();
-        
+        // fixed vector for calculations 
+        DataSource vDataSources[]; 
+
+
         public Union(){  
 
         }
@@ -735,10 +787,12 @@ public class DataSources {
         }
 
         public int initialize(){
-
-            for(int i = 0; i < dataSources.size(); i++){
+            
+            vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
+           
+            for(int i = 0; i < vDataSources.length; i++){
                 
-                DataSource ds = dataSources.get(i);
+                DataSource ds = vDataSources[i];
                 if(ds instanceof Initializable){
                     ((Initializable)ds).initialize();
                 }
@@ -754,20 +808,26 @@ public class DataSources {
          */
         public int getDataValue(Vec pnt, Vec data) {
 
-            for(int i = 0; i < dataSources.size(); i++){
+            // TODO - garbage generation 
+            Vec workPnt = new Vec(pnt);
+
+            int len = vDataSources.length;
+            DataSource dss[] = vDataSources;
+            
+            for(int i = 0; i < len; i++){
                 
-                DataSource ds = dataSources.get(i);
-                int res = ds.getDataValue(pnt, data);
+                DataSource ds = dss[i];
+                int res = ds.getDataValue(pnt, workPnt);
                 if(res != RESULT_OK)
                     continue;
                 
-                if(data.v[0] > 0){
+                if(workPnt.v[0] > 0){
                     data.v[0] = 1;
                     return RESULT_OK;                    
                 }
                 
             }
-            // we are here if none of dataSources return positive value 
+            // we are here if none of hhe dataSources return positive value 
             data.v[0] = 0;            
             return RESULT_OK;
         }        
@@ -834,7 +894,9 @@ public class DataSources {
     public static class Intersection implements DataSource, Initializable {
 
         Vector<DataSource> dataSources = new Vector<DataSource>();
-        
+        // fixed vector for calculations 
+        DataSource vDataSources[];
+
         public Intersection(){  
 
         }
@@ -850,9 +912,11 @@ public class DataSources {
 
         public int initialize(){
 
-            for(int i = 0; i < dataSources.size(); i++){
+            vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
+           
+            for(int i = 0; i < vDataSources.length; i++){
                 
-                DataSource ds = dataSources.get(i);
+                DataSource ds = vDataSources[i];
                 if(ds instanceof Initializable){
                     ((Initializable)ds).initialize();
                 }
@@ -863,21 +927,26 @@ public class DataSources {
         
 
         /**
-         * calculates values of all data sources and return maximal value
-         * can be used to make union of few shapes 
+         * calculates intersection of all values
+         * 
          */
         public int getDataValue(Vec pnt, Vec data) {
 
-            for(int i = 0; i < dataSources.size(); i++){
+            // TODO - garbage generation 
+            Vec workPnt = new Vec(pnt);
+            
+            DataSource dss[] = vDataSources;
+            int len = dss.length;
+            for(int i = 0; i < len; i++){
                 
-                DataSource ds = dataSources.get(i);
-                int res = ds.getDataValue(pnt, data);
+                DataSource ds = dss[i];
+                int res = ds.getDataValue(pnt, workPnt);
                 if(res != RESULT_OK){
                     data.v[0] = 0;
                     return res;
                 }
                 
-                if(data.v[0] <= 0.){
+                if(workPnt.v[0] <= 0.){
                     data.v[0] = 0;
                     return RESULT_OK;                    
                 }
@@ -996,7 +1065,7 @@ public class DataSources {
          * can be used to make union of few shapes 
          */
         public int getDataValue(Vec pnt, Vec data) {
-
+            // TODO - garbage generation 
             Vec workPnt = new Vec(pnt);
 
             if(transform != null){
@@ -1016,7 +1085,6 @@ public class DataSources {
         }        
 
     } // class DataTransformer
- 
-   
+    
 }
 

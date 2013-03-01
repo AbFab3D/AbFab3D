@@ -45,6 +45,8 @@ import junit.framework.TestSuite;
 // Internal Imports
 import abfab3d.grid.Grid;
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.BlockBasedGridByte;
+import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
@@ -60,6 +62,7 @@ import abfab3d.util.ImageMipMap;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.time;
 import static abfab3d.util.MathUtil.TORAD;
 
 import static java.lang.System.currentTimeMillis;
@@ -85,10 +88,77 @@ public class TestGridMaker extends TestCase {
         return new TestSuite(TestGridMaker.class);
     }
 
+    public void testGridMakerMT() {
+
+        printf("testGridMakerMT()\n");
+
+        double voxelSize = 1.e-4;
+        int smoothSteps = 0;
+        double margin = 2*voxelSize;
+
+        double ringDiameter =20*MM;
+        double ringWidth =7*MM;
+        double ringThickness = 3*MM;
+
+        double gridWidth = ringDiameter + 2*ringThickness + 2*margin;
+        double gridHeight  = ringWidth + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.Block box = new DataSources.Block();
+        box.setSize(ringDiameter*Math.PI,ringWidth, ringThickness);
+        box.setLocation(0,0, ringThickness/2);
+        
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap();
+        
+        image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
+        image.setLocation(0,0,0);
+
+        image.setBaseThickness(0.1);
+        image.setImagePath("docs/images/numbers_1.png");
+        image.setUseGrayscale(true);
+        image.setTiles(2, 1);
+        image.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+
+
+        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        rw.setRadius(ringDiameter/2);
+        
+        GridMaker gm = new GridMaker();
+                
+        gm.setBounds(bounds);
+        gm.setTransform(rw);
+        gm.setDataSource(image);
+
+
+        for(int i = 0; i <= 4; i++){
+            int tcount = i;
+            gm.setThreadCount(tcount);                
+            long t0 = time();
+            //Grid grid = new BlockBasedGridByte(nx, ny, nz, voxelSize, voxelSize, 5);
+            //Grid grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+            Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);            
+            printf("gm.makeGrid() threads: %d\n", tcount);
+            gm.makeGrid(grid); 
+            printf("gm.makeGrid() done %d ms\n", (time() - t0));
+            //printf("writeIsosurface()\n");
+            //t0 = time();
+            //writeIsosurface(grid, bounds, voxelSize, smoothSteps, fmt("/tmp/ring_plain_%d.stl", tcount));
+            //printf("writeIsosurface() done %d ms\n", (time() - t0));
+
+        }        
+    }
+
     /**
        
      */
-    public void testSymmetricImage() {
+    public void _testSymmetricImage() {
         /*
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "c:/tmp/wp01_s442.stl");
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "c:/tmp/wp02_442.stl");
@@ -1235,7 +1305,7 @@ public class TestGridMaker extends TestCase {
      */
     public void _testPlainRing() {
         
-        printf("testBasic()\n");
+        printf("testPlainRing()\n");
         double voxelSize = 2.e-4;
         int smoothSteps = 0;
         double margin = 2*voxelSize;
@@ -1256,10 +1326,8 @@ public class TestGridMaker extends TestCase {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
         DataSources.Block box = new DataSources.Block();
-        box.m_sizeX = ringDiameter*Math.PI;
-        box.m_sizeY = ringWidth;
-        box.m_sizeZ = ringThickness;
-        box.m_centerZ = ringThickness/2;
+        box.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
+        box.setLocation(0,0,ringThickness/2);
         
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.m_radius = ringDiameter/2;

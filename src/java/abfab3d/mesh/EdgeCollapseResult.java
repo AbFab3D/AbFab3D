@@ -11,8 +11,9 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-//import java.util.Set;
-//import java.util.HashSet;
+import abfab3d.util.StructSet;
+import abfab3d.util.DefaultHashFunction;
+
 import java.util.ArrayList;
 import javax.vecmath.Point3d;
 
@@ -27,7 +28,17 @@ public class EdgeCollapseResult {
         FAILURE_FACE_FLIP = 2,
         FAILURE_LONG_EDGE = 3;
 
-        
+
+    // Scratch vars for collapseEdge
+    Point3d p0 = new Point3d();
+    Point3d p1 = new Point3d();
+    Point3d pv1 = new Point3d();
+    Point3d pv0 = new Point3d();
+
+    FaceFlipChecker faceFlipChecker = new FaceFlipChecker();
+
+    // work set for topology check 
+    StructSet v1set = new StructSet(new DefaultHashFunction());
     
     //edges removed during collapse 
     public int[] removedEdges = new int[] {-1,-1,-1};
@@ -56,4 +67,6 @@ public class EdgeCollapseResult {
         vertexCount = 0;
 
     }
+
+    
 }

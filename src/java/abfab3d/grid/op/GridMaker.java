@@ -12,6 +12,14 @@
 
 package abfab3d.grid.op;
 
+import java.util.Stack;
+
+
+import java.util.concurrent.ExecutorService; 
+import java.util.concurrent.Executors; 
+import java.util.concurrent.TimeUnit;
+
+import abfab3d.grid.Grid;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.DataSource;
@@ -20,9 +28,8 @@ import abfab3d.util.VecTransform;
 import abfab3d.util.Initializable;
 
 
-import abfab3d.grid.Grid;
-
-
+import static abfab3d.util.Output.time;
+import static abfab3d.util.Output.printf;
 
 /**
    class takes premade grid, transfromation and data source and fills the grid's voxel if data according to value of data source 
@@ -38,10 +45,14 @@ public class GridMaker {
 
     // margin around the grid boundary to be kept empty
     protected int m_margin = 1; 
+    // threads count to use 
+    protected int m_threadCount = 0;
 
     private double voxelX, voxelY, voxelZ, offsetX, offsetY, offsetZ;
+    private int m_slizeSize = 2;
 
     Grid m_grid; 
+    int m_nx, m_ny, m_nz;
 
     public void setDataSource(DataSource dataSource){
         m_dataSource = dataSource;
@@ -57,6 +68,12 @@ public class GridMaker {
 
     }
 
+    public void setThreadCount(int count){
+
+        m_threadCount = count;
+
+    }
+
     public void setBounds(double bounds[]){
 
         m_centerX = (bounds[0] + bounds[1])/2;
@@ -69,18 +86,19 @@ public class GridMaker {
 
     }
 
-    public int makeGrid(Grid grid){
+    public void makeGrid(Grid grid){
 
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }
 
         m_grid = grid;
+         
+        m_nx = grid.getWidth();
+        m_ny = grid.getHeight();
+        m_nz = grid.getDepth();
 
-        int 
-            nx = grid.getWidth(),
-            ny = grid.getHeight(),
-            nz = grid.getDepth();
+        long t0 = time();
 
         makeTransform();
         if(m_transform == null)
@@ -92,8 +110,37 @@ public class GridMaker {
         if(m_dataSource instanceof Initializable){
             ((Initializable)m_dataSource).initialize();
         }
-       
 
+        printf("data initialization %d ms\n", (time() - t0));
+        
+        t0 = time();
+        if(m_threadCount > 0)
+            makeGridMT();
+        else 
+            makeGridST();
+        printf("grid rendering: %d ms\n", (time() - t0));
+    } 
+
+    void makeGridMT(){
+
+        SliceSet slices = new SliceSet(m_margin, m_grid.getHeight()-m_margin, m_slizeSize);
+
+        ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
+        for(int i = 0; i < m_threadCount; i++){
+            executor.submit(new SliceMaker(slices));
+        }
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        
+    }
+
+    void makeGridST(){
+        
         Vec 
             pntGrid = new Vec(3),
             pntWorld = new Vec(3),            
@@ -101,7 +148,8 @@ public class GridMaker {
             dataValue = new Vec(2);
         
         int margin = m_margin; 
-
+        int nx = m_nx, ny = m_ny, nz = m_nz;
+        
         int nx1 = nx-margin;
         int ny1 = ny-margin;
         int nz1 = nz-margin;
@@ -110,7 +158,7 @@ public class GridMaker {
 
             for(int ix = margin; ix < nx1; ix++){
 
-                for(int iz = nz1-1; iz >= margin; iz--){ // z-order to speed up creation of GridIntervals
+                for(int iz = nz1-1; iz >= margin; iz--){ // this z-order to speed up creation of GridIntervals
                     
                     pntGrid.set(ix, iy, iz);
                     transformToWorldSpace(pntGrid, pntWorld);
@@ -132,9 +180,72 @@ public class GridMaker {
             }
         }
 
-        return VecTransform.RESULT_OK;
-
     }
+    
+
+    class SliceMaker implements Runnable{
+        
+        SliceSet slices;
+
+        Vec // storage for calculations 
+            pntGrid = new Vec(3),
+            pntWorld = new Vec(3),            
+            pntData = new Vec(3),
+            dataValue = new Vec(2);
+
+        SliceMaker(SliceSet slices ){
+
+            this.slices = slices; 
+
+        }
+        
+        public void run(){
+
+            while(true){
+
+                Slice slice = slices.getNextSlice();
+                if(slice == null)
+                    break;
+                makeSlice(slice);
+                
+            }
+        }
+
+        void makeSlice(Slice slice){
+            
+            int margin = m_margin; 
+            int nx = m_nx, ny = m_ny, nz = m_nz;
+            
+            int nx1 = nx-margin;
+            int ny1 = ny-margin;
+            int nz1 = nz-margin;
+            int ymin = slice.ymin;
+            int ymax = slice.ymax;
+
+            for(int iy = ymin; iy <= ymax; iy++){
+                
+                for(int ix = margin; ix < nx1; ix++){
+                    
+                    for(int iz = nz1-1; iz >= margin; iz--){ // this z-order to speed up creation of GridIntervals
+                        
+                        pntGrid.set(ix, iy, iz);
+                        transformToWorldSpace(pntGrid, pntWorld);
+                        int res = m_transform.inverse_transform(pntWorld, pntData);
+                        if(res != VecTransform.RESULT_OK)
+                            continue;
+                        res = m_dataSource.getDataValue(pntData, dataValue);
+                        if(res != VecTransform.RESULT_OK)
+                            continue;
+                        
+                        if(dataValue.v[0] > 0.5){
+                            m_grid.setState(ix, iy, iz, Grid.INTERIOR);
+                        }
+                    }
+                }
+            }              
+        }
+    }
+
 
     void transformToWorldSpace(Vec gridPnt, Vec worldPnt){
 
@@ -160,4 +271,48 @@ public class GridMaker {
 
     }
 
+    
+    static class SliceSet {
+
+        Stack<Slice> slices;
+        
+        SliceSet(int start, int end, int size){
+
+            slices = new Stack<Slice>();
+            
+            for(int y = start; y < end; y+= size){
+                int ymax = y + size;
+                if(ymax > end)
+                    ymax = end;
+                if(ymax > y){
+                    // non zero slice 
+                    slices.push(new Slice(y, ymax-1));
+                }
+            }                
+        }
+
+        public synchronized Slice getNextSlice(){
+            if(slices.empty())
+                return null;            
+            return slices.pop();
+            
+        }
+    }
+
+    static class Slice {
+
+        int ymin;
+        int ymax;
+        Slice(){
+            ymin = 0;
+            ymax = -1;
+
+        }
+        Slice(int ymin, int ymax){
+
+            this.ymin = ymin;
+            this.ymax = ymax;
+            
+        }        
+    }
 }
