@@ -166,7 +166,8 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     }
 
     public WingedEdgeTriangleMesh(double[] vertCoord, int[] findex) {
-        System.out.println("Creating new WE mesh from new code");
+
+        //printf("Creating new WE mesh from new code\n");
 
         int len = vertCoord.length / 3;
 

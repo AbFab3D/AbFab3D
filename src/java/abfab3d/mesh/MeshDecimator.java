@@ -40,7 +40,7 @@ public class MeshDecimator {
 
 
     static boolean DEBUG = false;
-    static boolean m_printStat = true;
+    static boolean m_printStat = false;
     static final double MM = 1000.; // mm per meter
 
     // mesh we are working on
@@ -145,7 +145,7 @@ public class MeshDecimator {
     public int processMesh(TriangleMesh mesh, int targetFaceCount){
         quadrics = new StructMixedData(new Quadric(), mesh.getVertexCount() + RANDOM_CANDIDATES_COUNT);
 
-        printf("MeshDecimator.processMesh(%s, %d)\n", mesh, targetFaceCount);
+        //printf("MeshDecimator.processMesh(%s, %d)\n", mesh, targetFaceCount);
 
         this.m_mesh = mesh;
                         
@@ -162,7 +162,7 @@ public class MeshDecimator {
 
 
         long ts1 = currentTimeMillis();
-        printf("MeshDecimator.doInitialization() %d ms\n", (ts1-ts));
+        //printf("MeshDecimator.doInitialization() %d ms\n", (ts1-ts));
         ts = ts1;
         
         //printf("initial face count: %d\n", m_faceCount);
@@ -194,9 +194,9 @@ public class MeshDecimator {
             }
         } 
 
-System.out.println("***Iterations: " + count);
+        //printf("***Iterations: %d\n ",count);
         ts1 = currentTimeMillis();
-        printf("MeshDecimator.doIterations() %d ms\n", (ts1-ts));
+        //printf("MeshDecimator.doIterations() %d ms\n", (ts1-ts));
         ts = ts1;
 
         int actuallFaceCount = mesh.getFaceCount();
@@ -251,8 +251,8 @@ System.out.println("***Iterations: " + count);
         int ecount = m_mesh.getEdgeCount();
         
         //ecd.edgeCount = count;
-        printf("edges count: %d\n", ecount);
-//        System.out.println("Not allocating edgeArray");
+        //printf("edges count: %d\n", ecount);
+        // printf("Not allocating edgeArray\n");
 
         m_edgeArray = new EdgeArray(ecount);
         
@@ -261,7 +261,7 @@ System.out.println("***Iterations: " + count);
         int e = m_mesh.getStartEdge();
         int count = 0;
 
-        System.out.println("Starting edge: " + e);
+        //printf("Starting edge: %d\n",e);
         // TODO: I don't think edgeArray is needed now
         while(e != -1){
             Edge.setUserData(count,edges, e);
@@ -272,7 +272,7 @@ System.out.println("***Iterations: " + count);
 
         m_errorFunction.init(m_mesh);
         
-        printf("edgesArray done\n");
+        //printf("edgesArray done\n");
     }
 
 

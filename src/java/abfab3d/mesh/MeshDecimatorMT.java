@@ -61,6 +61,9 @@ public class MeshDecimatorMT extends MeshDecimator {
     // array for selection of edges
     protected int m_edgeSelectorArray[];
     
+    //protected AtomicInteger m_iterationCount;
+    protected int m_iterationCount;
+
     /**
        the instance of the MeshDecimator can be reused for several meshes
      */
@@ -108,7 +111,9 @@ public class MeshDecimatorMT extends MeshDecimator {
         int faceCount = m_mesh.getFaceCount();        
         int facesToCollapse = faceCount - targetFaceCount;
         
-        int iterationsCount = (facesToCollapse/2)/m_threadCount;
+        //m_iterationCount = new AtomicInteger(facesToCollapse/2);
+
+        m_iterationCount = facesToCollapse/2;
 
         printf("processMeshMT() common code: %d ms\n", (time() - t0));         
 
@@ -120,7 +125,7 @@ public class MeshDecimatorMT extends MeshDecimator {
         for(int i = 0; i < m_threadCount; i++){
             
             long seed = rnd.nextLong();
-            threads[i] = new DecimatorRunner(iterationsCount, seed);
+            threads[i] = new DecimatorRunner(seed);
             executor.submit(threads[i]);
 
         }
@@ -134,8 +139,12 @@ public class MeshDecimatorMT extends MeshDecimator {
         }
         
         for(int i = 0; i < threads.length; i++){
-            faceCount -= threads[i].collapsedFaces;
+            faceCount -= threads[i].collapsedFaces;           
         }
+
+        printf("calculated face count: %d\n", faceCount);
+
+        printf("actual face count: %d\n", m_mesh.getFaceCount());
 
         printStat(threads);
         
@@ -206,10 +215,14 @@ public class MeshDecimatorMT extends MeshDecimator {
         // count of total successfully locked edges 
         int lockedEdgesCount = 0;
         // count of total successfull locks
-        int lockCount = 0;        
+        int lockCount = 0;    
+        // count of time spend in collapseEdge 
+        long collapseTime = 0;
+        // count of collapse calls 
+        int collapseCount = 0;
+        long maxCollapseTime = 0;
+        long minCollapseTime = Long.MAX_VALUE;
 
-        // how many collapse iterations to perform 
-        int iterationCount;
         // maximal actual collapse error
         double maxError; 
         
@@ -234,12 +247,10 @@ public class MeshDecimatorMT extends MeshDecimator {
 
 
          */
-        DecimatorRunner(int count, long seed){
+        DecimatorRunner(long seed){
 
             //printf("new DecimatorRunner(%d): %s \n", count, this); 
             this.seed = seed;
-
-            this.iterationCount = count;
 
         }
 
@@ -255,14 +266,12 @@ public class MeshDecimatorMT extends MeshDecimator {
 
             int count = 0;
 
-            while(count++ < iterationCount){
-
-                //printf("count: %d\n", count); 
-
+            while(true){
                 doIterationMT();
-            }            
+                if( --m_iterationCount <= 0)
+                    break;                
+            }                        
 
-            //printf("end count: %d\n", count); 
         }
         
         /**
@@ -314,6 +323,8 @@ public class MeshDecimatorMT extends MeshDecimator {
             printf(" largeErrorCount: %d\n", largeErrorCount);
             printf(" failedToLockCount: %d\n", failedToLockCount);
             printf(" average edge lock size: %5.1f\n", ((double)lockedEdgesCount/lockCount));
+            printf(" time per collapse: %d ns\n", collapseTime / collapseCount);
+            printf(" collapseTime: %d ms\n", collapseTime/1000000);
             
             edgeSelector.printStat();
             
@@ -382,7 +393,18 @@ public class MeshDecimatorMT extends MeshDecimator {
             //}
 
             // try to collapse the edge
-            if(!m_mesh.collapseEdge(edgeCandidate.edge, edgeCandidate.point, ecparam, ecresult)){                
+            long t0 = System.nanoTime();
+            boolean res = m_mesh.collapseEdge(edgeCandidate.edge, edgeCandidate.point, ecparam, ecresult);
+            long ct = System.nanoTime() - t0;
+            collapseTime += ct;
+            if(ct > maxCollapseTime) 
+                maxCollapseTime = ct;
+            if(ct < minCollapseTime)
+                minCollapseTime = ct;
+
+            collapseCount++;
+            
+            if(!res){                
                 //printf("failed to collapse\n");
                 switch(ecresult.returnCode){
                 case EdgeCollapseResult.FAILURE_SURFACE_PINCH:

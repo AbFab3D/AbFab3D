@@ -118,10 +118,10 @@ public class IsosurfaceMaker {
         double dx = (xmax - xmin)/nx1;
         double dy = (ymax - ymin)/ny1;
         double dz = (zmax - zmin)/nz1;
-
-        System.out.println("x0: " + xmin + " " + ymin + " " + zmin);
-        System.out.println("dx: " + dx + " " + dy + " " + dz);
-        System.out.println("bounds: " + java.util.Arrays.toString(m_bounds));
+        
+        //printf("x0: %12.10f %12.10f %12.10f\n",xmin,ymin, zmin);
+        //printf("dx: %12.10f %12.10f %12.10f \n", dx, dy, dz);
+        //printf("bounds: %12.10f %12.10f %12.10f %12.10f %12.10f %12.10f \n", m_bounds[0],m_bounds[1],m_bounds[2],m_bounds[3],m_bounds[4],m_bounds[5]);
 
         SliceData slice0 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
         SliceData slice1 = new SliceData(m_nx, m_ny, xmin, xmax, ymin, ymax);
