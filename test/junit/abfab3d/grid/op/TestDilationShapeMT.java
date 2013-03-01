@@ -110,8 +110,8 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
     public void testDilationBall() {
 
         int size = 100;
-        //int gridType = GRID_ARRAYBYTE;
-        int gridType = GRID_SHORTINTERVALS;
+        int gridType = GRID_ARRAYBYTE;
+        //int gridType = GRID_SHORTINTERVALS;
         printf("testing block shape dilated by different size balls\n");
 
         int maxDilation = 20;
@@ -122,7 +122,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             printf("dilation size: %d\n",k);
             DilationShapeMT dilm = new DilationShapeMT();        
             dilm.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));            
-            dilm.setThreadCount(4);
+            dilm.setThreadCount(1);
             dilm.setSliceSize(2);
             long t0 = time();
             grid = dilm.execute(grid);   
