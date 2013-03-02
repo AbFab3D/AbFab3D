@@ -166,16 +166,55 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     }
 
     public WingedEdgeTriangleMesh(double[] vertCoord, int[] findex) {
+        this(vertCoord, vertCoord.length/3, findex, findex.length/3);
+    }
 
+    public WingedEdgeTriangleMesh(double[] vertCoord, int vertCount, int[] findex, int faceCount) {
         //printf("Creating new WE mesh from new code\n");
-
-        int len = vertCoord.length / 3;
+        
+        int len = vertCount;
 
         vertices = new StructMixedData(Vertex.DEFINITION,len);
-        edges = new StructMixedData(Edge.DEFINITION, findex.length);
-        hedges = new StructMixedData(HalfEdge.DEFINITION, findex.length * 2 + 1);
-        edgeMap = new StructMap((int) ((findex.length * 2 + 1) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
-        faces = new StructMixedData(Face.DEFINITION, findex.length / 3);
+        edges = new StructMixedData(Edge.DEFINITION, faceCount * 3 / 2 + 1);
+        hedges = new StructMixedData(HalfEdge.DEFINITION, faceCount * 3 );
+        edgeMap = new StructMap((int) ((faceCount * 6 + 1 ) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
+        faces = new StructMixedData(Face.DEFINITION, faceCount);
+        
+        setFaces(vertCoord, vertCount, findex, faceCount);
+
+    }
+
+    public void clear(){
+        
+        // clear memory 
+        vertices.clear();
+        edges.clear();
+        hedges.clear();
+        edgeMap.clear();
+        faces.clear();
+
+        // init lists 
+        startVertex = -1;
+        lastVertex = -1;
+        startEdge = -1;
+        lastEdge = -1;
+        startFace = -1;
+        lastFace = -1;
+        // init counts 
+        vertexCount = 0;
+        faceCount = 0;
+        edgeCount = 0;
+
+    }
+
+    /**
+
+       sets face data for this mesh. 
+
+     */
+    public void setFaces( double[] vertCoord, int vertCount, int[] findex, int faceCount){
+        
+        int len = vertCount;
         int idx = 0;
 
         for (int nv = 0; nv < len; nv++) {
@@ -185,13 +224,13 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
         int[] eface = new int[3];
 
-        int[] ahedges = new int[findex.length];
+        int[] ahedges = new int[faceCount*3];
         int ahedges_idx = 0;
 
         int[] face = new int[3];
 
         idx = 0;
-        len = findex.length / 3;
+        len = faceCount;
         for (int i = 0; i < len; i++) {
 
             face[0] = findex[idx++];
