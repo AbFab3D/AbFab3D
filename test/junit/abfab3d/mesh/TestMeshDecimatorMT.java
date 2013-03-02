@@ -164,7 +164,7 @@ public class TestMeshDecimatorMT extends TestCase {
 
     public void runMeshPartitioningMT()  throws Exception {
         
-        int threadCount = 2;
+        int threadCount = 8;
 
         long t00 = time();
         int cellGrid = 60; // grid dimension of one cell 
