@@ -24,5 +24,7 @@ public class EdgeCollapseParams {
     // if this is greater than zero, it is square of maximal length of edges 
     // allowed as result of edge collapse    
     public double maxEdgeLength2 = 0.; 
+    public boolean testSurfacePinch = true;
+    
 
 }

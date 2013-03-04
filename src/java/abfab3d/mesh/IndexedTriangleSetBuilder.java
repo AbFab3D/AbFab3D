@@ -30,7 +30,8 @@ import static abfab3d.util.Output.printf;
 
  */
 public class IndexedTriangleSetBuilder implements TriangleCollector {
-    private int INITIAL_SIZE = 1000000;
+
+    private int INITIAL_SIZE = 10000;
     static final boolean DEBUG = false;
     static double TOLERANCE = 1.e-8; // vectors different less than tolerance are assumed to be equal
 
@@ -52,22 +53,65 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
         ps = new PointSet(estimatedFaces, loadFactor, TOLERANCE);
     }
 
+    public void clear(){
+
+        if(faces != null)
+            faces.clear();
+
+        if(ps != null)
+            ps.clear();
+    }
+
     /**
      * Get the vertices.
      *
      * @return array x,y,z vertices
      */
     public double[] getVertices(){
-        double[] ret_val = ps.getPoints();
 
-        return ret_val;
+        return ps.getPoints();
+
     }
+
+    /**
+       return vertices in the given array of x,y,z values or allocates new array if not enough space 
+     */
+    public double[] getVertices(double vert[]){
+
+        return ps.getPoints(vert);
+
+    }
+
+    /**
+       returns count of vertices 
+     */
+    public int getVertexCount(){
+
+        return ps.getPointCount();
+
+    }
+
 
     /**
        
      */
     public int[] getFaces(){
         return FaceList.toArray(faces);
+    }
+
+    public int[] getFaces(int farray[]){
+
+        return FaceList.toArray(faces, farray);
+
+    }
+
+    /**
+       
+     */
+    public int getFaceCount(){
+
+        return FaceList.getCount(faces);
+
     }
 
     /**
@@ -119,60 +163,5 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
         return ps.add(t.x,t.y,t.z);
     }
 
-}
-
-class FaceList extends StructDataDefinition {
-    public static final StructDataDefinition DEFINITION = new FaceList();
-
-    public static final int INT_DATA_SIZE = 3;
-
-    // int positions
-    public static final int POS_X = 0;
-    public static final int POS_Y = 1;
-    public static final int POS_Z = 2;
-
-    public static int createEntry(int x, int y, int z, StructMixedData dest) {
-        int destIdx = dest.addItem();
-        set(x,y,z, dest, destIdx);
-
-        return destIdx;
-    }
-
-    public static void set(int x, int y, int z, StructMixedData dest, int destIdx) {
-        int int_pos = destIdx * INT_DATA_SIZE;
-        int[] int_data = dest.getIntData();
-
-        int_data[int_pos + POS_X] = x;
-        int_data[int_pos + POS_Y] = y;
-        int_data[int_pos + POS_Z] = z;
-    }
-
-    public static void get(StructMixedData src, int srcIdx, int[] face) {
-        int int_pos = srcIdx * INT_DATA_SIZE;
-        int[] int_data = src.getIntData();
-
-        face[0] = int_data[int_pos +  + POS_X];
-        face[1] = int_data[int_pos +  + POS_Y];
-        face[2] = int_data[int_pos +  + POS_Z];
-    }
-
-    public static int[] toArray(StructMixedData src) {
-        int[] ret_val = src.getIntData();
-
-        // need to trim to count
-        int len = src.getLength() * INT_DATA_SIZE;
-        if (ret_val.length != len) {
-            int[] vals = ret_val;
-            ret_val = new int[len];
-
-            System.arraycopy(vals,0,ret_val,0,len);
-        }
-
-        return ret_val;
-    }
-
-    public int getIntDataSize() {
-        return INT_DATA_SIZE;
-    }
 }
 
