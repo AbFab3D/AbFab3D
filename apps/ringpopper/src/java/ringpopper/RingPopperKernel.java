@@ -154,6 +154,7 @@ public class RingPopperKernel extends HostedKernel {
 
     private String material;
     private String text = "MADE IN THE FUTURE";
+    private double textDepth;
     private String fontName = "Times New Roman";
     private boolean fontBold = false;
     private boolean fontItalic = false;
@@ -254,6 +255,11 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, null)
         );
 
+        params.put("textDepth", new Parameter("textDepth", "Text Depth", "The depth of the text engraving", "0.0003", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
+        );
+
         params.put("fontName", new Parameter("fontName", "fontName", "Font Name", "Times New Roman", 1,
                 Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, null)
@@ -309,7 +315,7 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, enumToStringArray(RegionPrunner.Regions.values()))
         );
 
-        params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
+        params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "5", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 100, null, null)
         );
@@ -338,7 +344,12 @@ public class RingPopperKernel extends HostedKernel {
         }
 
         if (maxDecimationError > 0) {
-            maxDecimationError = 0.1 * resolution * resolution;
+            if (acc == Accuracy.VISUAL) {
+                maxDecimationError = 0.1 * resolution * resolution;
+            } else {
+                // Models looked too blocky with .1
+                maxDecimationError = 0.025 * resolution * resolution;
+            }
         }
 
         printf("Res: %10.3g  maxDec: %10.3g\n", resolution, maxDecimationError);
@@ -561,16 +572,13 @@ public class RingPopperKernel extends HostedKernel {
             System.err.printf("EXTMSG: Font is too large. Reduced to %d points\n", fontSize);
         }
 
-        //we need to have some reasonable number here
-        double textDepth = 0.3 * MM;
-        System.out.println("TextDepth: " + textDepth);
         // we need to create font of specified size
         // we assume, that the font size is the maximal height of the text string 
         double textHeightM = (fontSize * POINT_SIZE);
 
         int textBitmapHeight = (int) (ringWidth / TEXT_RENDERING_PIXEL_SIZE);
         int textBitmapWidth = (int) (textBitmapHeight * (Math.PI * innerDiameter) / ringWidth);
-        // height of text stirng in pixels
+        // height of text string in pixels
         int textHeightPixels = (int) (textBitmapHeight * textHeightM / ringWidth);
         // we use Insets to have empty space around centered text 
         // it also will make text of specitfied height
@@ -598,7 +606,6 @@ public class RingPopperKernel extends HostedKernel {
 
         boolean font_found = false;
 
-        long start_time = System.currentTimeMillis();
         GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
         for (String ffname : genv.getAvailableFontFamilyNames()) {
             if (ffname.equals(fontName)) {
@@ -724,6 +731,9 @@ public class RingPopperKernel extends HostedKernel {
 
             pname = "text";
             text = ((String) params.get(pname));
+
+            pname = "textDepth";
+            textDepth = ((Double) params.get(pname));
 
             pname = "fontName";
             fontName = ((String) params.get(pname));
