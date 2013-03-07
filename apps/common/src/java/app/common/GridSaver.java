@@ -108,7 +108,7 @@ public class GridSaver {
 
             fcount = mesh.getFaceCount();
             System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time)  + " ms");
         }
 
         if (encoding.equals("stl")) {
@@ -187,7 +187,7 @@ public class GridSaver {
 
             fcount = mesh.getFaceCount();
             System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time)  + " ms");
         }
 
         double max_axis = Math.max(grid.getHeight() * grid.getSliceHeight(), grid.getWidth() * grid.getVoxelSize());
@@ -274,7 +274,7 @@ public class GridSaver {
 
             fcount = mesh.getFaceCount();
             System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time) + " ms");
         }
 
         double max_axis = Math.max(grid.getHeight() * grid.getSliceHeight(), grid.getWidth() * grid.getVoxelSize());
@@ -513,7 +513,7 @@ public class GridSaver {
 
             fcount = mesh.getFaceCount();
             System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time) + " ms");
         }
 
         double max_axis = Math.max(grid.getHeight() * grid.getSliceHeight(), grid.getWidth() * grid.getVoxelSize());
@@ -570,7 +570,7 @@ public class GridSaver {
 
             fcount = mesh.getFaceCount();
             System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time)  + " ms");
         }
 
         double max_axis = Math.max(gh * sh, gw * vs);
