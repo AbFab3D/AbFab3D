@@ -360,6 +360,29 @@ public class DualWrapper implements AttributeGridWrapper {
     }
 
     /**
+     * Get the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void getGridBounds(double[] bounds){
+
+        verifyGrid();        
+        grid.getGridBounds(bounds);
+
+    }
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void setGridBounds(double[] bounds){
+
+        verifyGrid();        
+        grid.setGridBounds(bounds);
+
+    }
+
+
+    /**
      * Count a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *

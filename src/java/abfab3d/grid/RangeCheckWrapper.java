@@ -270,6 +270,27 @@ public class RangeCheckWrapper implements GridWrapper {
         grid.getGridBounds(min,max);
     }
 
+
+    /**
+     * Get the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void getGridBounds(double[] bounds){
+
+        grid.getGridBounds(bounds);
+
+    }
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void setGridBounds(double[] bounds){
+
+        grid.setGridBounds(bounds);
+
+    }
+
     /**
      * Count a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.

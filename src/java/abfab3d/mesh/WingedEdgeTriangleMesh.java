@@ -177,7 +177,10 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         vertices = new StructMixedData(Vertex.DEFINITION,len);
         edges = new StructMixedData(Edge.DEFINITION, faceCount * 3 / 2 + 1);
         hedges = new StructMixedData(HalfEdge.DEFINITION, faceCount * 3 );
-        edgeMap = new StructMap((int) ((faceCount * 6 + 1 ) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
+        
+        edgeMap = new StructMap(faceCount * 2 , 0.75f, hedges,new HalfEdgeHashFunction());
+        //edgeMap = new StructMap((int) ((faceCount * 6 + 1 ) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
+        
         faces = new StructMixedData(Face.DEFINITION, faceCount);
         
         setFaces(vertCoord, vertCount, findex, faceCount);

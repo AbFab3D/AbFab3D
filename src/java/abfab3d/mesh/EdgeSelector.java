@@ -14,6 +14,8 @@ package abfab3d.mesh;
 import java.util.Random;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
+
 
 /**
    
@@ -34,29 +36,40 @@ public class EdgeSelector {
     //
     // random number generator with specified seed 
     //
-    Random m_rnd;
-    long seed;
+    protected Random m_rnd;
+    protected long seed;
 
+    // count of no empty edges 
+    protected int dataCount = 0;
     // count of calls rnd.nextInt();
-    int countCount = 0;
+    protected int countCount = 0;
     // count of calls getRandomEdge
-    int callCount = 0;
-
-
-    public EdgeSelector(int array[], long seed){
+    protected int callCount = 0;
+    
+    public EdgeSelector(int array[], long seed){        
         
+        this(array, array.length,seed);         
+    }
+
+    public EdgeSelector(int array[], int count, long seed){        
         
         this.array = array;
         
         this.seed = seed;
         
-        asize = array.length;
-        m_rnd = new Random(seed);
-        printf("new %s (seed: 0x%x)\n", this, seed);
-        //count = 0;
+        asize = count;
+        dataCount = count;
         
+        m_rnd = new Random(seed);
+        
+        //printf("new %s (seed: 0x%x)\n", this, seed);
+        //count = 0;        
     }
-    
+
+    public int getDataCount(){
+        return dataCount;
+    }
+
     public int get(int i){
         return array[i];
     }
@@ -64,16 +77,14 @@ public class EdgeSelector {
     public void set(int i, int value){
         
         int oldValue = array[i];
-        array[i] = value;
+        array[i] = value;        
+        //printf("edgesArray.set(%d, %s)\n", i, value);        
+        if(value == NO_DATA && oldValue != NO_DATA){
+            dataCount--;
+        } else if(value != NO_DATA && oldValue == NO_DATA){
+            dataCount++;
+        }
         
-        //printf("edgesArray.set(%d, %s)\n", i, value);
-        /*
-          if(value == NO_DATA && oldValue != NO_DATA){
-          count--;
-          } else if(value != NO_DATA && oldValue == NO_DATA){
-          count++;
-          }
-        */
     }
     
     public boolean getRandomEdge(EdgeData ed){

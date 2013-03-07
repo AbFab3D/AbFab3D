@@ -104,8 +104,7 @@ public class IsosurfaceMaker {
        
      */
     public void makeIsosurface(SliceCalculator scalculator, TriangleCollector tcollector){
-        double xmin = m_bounds[0];
-        double xmax = m_bounds[1];
+        double xmin = m_bounds[0];        double xmax = m_bounds[1];
         double ymin = m_bounds[2];
         double ymax = m_bounds[3];
         double zmin = m_bounds[4];
@@ -862,9 +861,9 @@ public class IsosurfaceMaker {
        
      */
     public static class SliceGrid2 implements SliceCalculator {
-        
-        // minimal value of distance from zero 
 
+        static final double TINY_VALUE = 1.e-2;
+        
         Grid grid;
         double bounds[];
         int gnx, gny, gnz; // size of grid 
@@ -942,7 +941,7 @@ public class IsosurfaceMaker {
 
         /**
            return data at the grid point 
-           does recursive averaging
+           does averaging
          */
         double getGridData(int gx, int gy, int gz){
 
@@ -962,55 +961,12 @@ public class IsosurfaceMaker {
                     }
                 }
             }
-            if(abs(sum) < 1.e-5){
-                printf("zero sum in getGridData: %g\n", sum);
+            if(abs(sum) < TINY_VALUE){
+                sum = (sum > 0.)? TINY_VALUE: -TINY_VALUE;
+                //printf("zero sum in getGridData: %g\n", sum);
             }
             return sum * norm;
 
-            /*
-            switch(neighboursCount){
-                
-            case 26:               
-                sum += getGridState(gx+1, gy+1, gz+1);
-                sum += getGridState(gx-1, gy+1, gz+1);
-                sum += getGridState(gx+1, gy-1, gz+1);
-                sum += getGridState(gx-1, gy-1, gz+1);
-                sum += getGridState(gx+1, gy+1, gz-1);
-                sum += getGridState(gx-1, gy+1, gz-1);
-                sum += getGridState(gx+1, gy-1, gz-1);
-                sum += getGridState(gx-1, gy-1, gz-1);
-                // no break to add the rest 
-            case 18:               
-                sum += getGridState(gx+1, gy+1, gz);
-                sum += getGridState(gx-1, gy+1, gz);
-                sum += getGridState(gx+1, gy-1, gz);
-                sum += getGridState(gx-1, gy-1, gz);
-
-                sum += getGridState(gx+1, gy, gz+1);
-                sum += getGridState(gx-1, gy, gz+1);
-                sum += getGridState(gx+1, gy, gz-1);
-                sum += getGridState(gx-1, gy, gz-1);
-
-                sum += getGridState(gx, gy+1, gz+1);
-                sum += getGridState(gx, gy-1, gz+1);
-                sum += getGridState(gx, gy+1, gz-1);
-                sum += getGridState(gx, gy-1, gz-1);
-                // no break to add the rest 
-            case 6:               
-                sum += getGridState(gx+1, gy, gz);
-                sum += getGridState(gx-1, gy, gz);
-                sum += getGridState(gx, gy+1, gz);
-                sum += getGridState(gx, gy-1, gz);
-                sum += getGridState(gx, gy, gz+1);
-                sum += getGridState(gx, gy, gz-1);
-                // no break yto add the rest 
-            default: 
-            case 0:               
-                sum += getGridState(gx, gy, gz);
-            } 
-            
-            return (sum / (1.0 + neighboursCount)); 
-            */
         }
 
         int getGridState(int gx, int gy, int gz){
@@ -1026,5 +982,197 @@ public class IsosurfaceMaker {
             }            
         }
     } // class SliceGrid2
+
+
+    /**
+       
+       allocates copy of block of grid and does convolution over that block using 
+       given kernel 
+
+     */
+    public static class BlockSmoothingSlices implements SliceCalculator {
+
+        static final double TINY_VALUE = 1.e-2;
+        
+        Grid grid;
+        double bounds[] = new double[6];
+
+
+        int gnx, gny, gnz; // size of grid 
+        double gdx, gdy, gdz; // pixel size of grid 
+        double gxmin, gymin, gzmin; // origin of the grid 
+
+        int m_cubeHalfSize = 0; // allowed values are 0, 1, 2, ...
+        double m_bodyVoxelWeight = 1.0;
+        
+        double blockData[]; // data of the block 
+        
+        // bondary of 3D block of grid 
+        // it is larger than actual block of data due to increase by size of the kernel
+        // the data along the boundary of the block should not be used
+        int bxmin, bymin, bzmin;
+        int bsizex, bsizey,bsizez;  
+        
+        boolean containsIsosurface = false;
+        /**
+           
+         */
+        public BlockSmoothingSlices(Grid grid){
+            
+            this.grid = grid;
+            grid.getGridBounds(this.bounds);
+
+            gnx = grid.getWidth();
+            gny = grid.getHeight();
+            gnz = grid.getDepth();
+            
+        }
+
+        /**
+           
+           block bounds are given in integer cordinates of voxels 
+           block bounds are inclusive 
+           
+         */
+        public void initBlock(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax, double kernel[]){ 
+            
+            int kernelSize = kernel.length/2;
+            
+            bxmin = xmin - kernelSize;
+            bymin = ymin - kernelSize;
+            bzmin = zmin - kernelSize;
+
+            bsizex = (xmax - xmin + 1) + 2*kernelSize;
+            bsizey = (ymax - ymin + 1) + 2*kernelSize;
+            bsizez = (zmax - zmin + 1) + 2*kernelSize;
+            
+            
+            int dataSize = bsizex * bsizey * bsizez;
+            
+            if(blockData == null || dataSize > blockData.length)
+                blockData = new double[dataSize];
+            
+            boolean hasPlus = false, hasMinus = false;
+            
+            // fill block with data from grid 
+            for(int y = 0; y < bsizey; y++){
+                int y0 = y + bymin;
+                int xoffset  = y*bsizez*bsizex;
+
+                for(int x = 0; x < bsizex; x++){
+                    int x0 = x + bxmin;
+                    int zoffset  = xoffset + x*bsizez;
+
+                    for(int z = 0; z < bsizez; z++){
+                        double v = getGridData(x0, y0, z + bzmin);
+                        if(v > 0)
+                            hasPlus = true;
+                        else if(v < 0)
+                            hasMinus = true;
+                        blockData[zoffset + z] = v;
+                        
+                    }
+                }
+            } 
+            
+            if(hasPlus && hasMinus){
+                containsIsosurface = true;
+                convoluteX(blockData, kernel);
+                convoluteY(blockData, kernel);
+                convoluteZ(blockData, kernel);              
+            } else {
+                containsIsosurface = false;
+            }
+
+        }
+
+        void convoluteX(double data[], double kernel[]){
+        }
+        void convoluteY(double data[], double kernel[]){
+        }
+        void convoluteZ(double data[], double kernel[]){
+        }
+        
+        /**
+           
+         */
+        public boolean containsIsosurface(){
+            return containsIsosurface; 
+        }
+
+        static final int round(double x){
+            return (int)Math.floor(x + 0.5);
+        }
+
+        public void getSlice(SliceData sliceData){
+
+            int nx = sliceData.nx;
+            int ny = sliceData.ny;
+
+            double xmin = sliceData.xmin;
+            double ymin = sliceData.ymin;
+
+            double dx = (sliceData.xmax - xmin)/(nx-1);
+            double dy = (sliceData.ymax - ymin)/(ny-1);            
+
+            double z = sliceData.z;
+
+            int gz = round((z - gzmin)/gdz);
+            
+            double data[] = sliceData.data;
+           
+            for(int iy = 0; iy < ny; iy++){
+
+                double y = ymin + iy*dy;
+                int gy = round((y - gymin)/gdy);
+
+                int offset = iy * nx;
+
+                for(int ix = 0; ix < nx; ix++){
+
+                    double x = xmin + ix*dx;
+
+                    int gx = round((x - gxmin)/gdx);
+                    data[offset + ix] = getBlockData(gx,gy,gz);
+                }
+            }            
+        }
+
+        /**
+           return data at the grid point 
+           does averaging
+         */
+        double getBlockData(int gx, int gy, int gz){
+
+            gx -= bxmin;
+            gy -= bymin;
+            gz -= bzmin;
+            
+            if(gx < 0 || gx >= bsizex || gy < 0 || gy >= bsizey || gz < 0 || gz >= bsizez )
+                return 1.;
+            
+            gx -= bxmin;
+            gy -= bymin;
+            gz -= bzmin;
+            
+            return blockData[(gy*bsizex + gx) * bsizez + gz];
+            
+        }
+
+
+        int getGridData(int gx, int gy, int gz){
+
+            if(gx <  0 || gy < 0 || gz < 0 || gx >= gnx || gy >= gny || gz >= gnz){
+                return 1; // outside
+            } else {
+                byte state = grid.getState(gx,gy,gz);
+                if(state == Grid.OUTSIDE)
+                    return 1;
+                else 
+                    return -1;
+            }            
+        }
+    } // class SliceGrid2
+    
 
 }

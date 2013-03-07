@@ -55,6 +55,11 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
     /** The number of voxels in a slice */
     protected int sliceSize;
 
+    /** location of the grid corner */
+    protected double xorig=0.;
+    protected double yorig=0.;
+    protected double zorig=0.;
+
     static {
         EMPTY_VOXEL = new VoxelDataByte(Grid.OUTSIDE, NO_MATERIAL);
     }
@@ -332,6 +337,41 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
         max[1] = height * sheight;
         max[2] = depth * pixelSize;
     }
+
+    /**
+     * Get the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void getGridBounds(double[] bounds){
+
+        bounds[0] = xorig;
+        bounds[2] = yorig;
+        bounds[4] = zorig;
+        
+        bounds[1] = bounds[0] + width * pixelSize;
+        bounds[3] = bounds[2] + height * sheight;
+        bounds[5] = bounds[4] + depth * pixelSize;
+    }
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void setGridBounds(double[] bounds){
+        
+        xorig = bounds[0];
+        yorig = bounds[2];
+        zorig = bounds[4];
+        
+        pixelSize = (bounds[1] - bounds[0])/width;
+        sheight = (bounds[3] - bounds[2])/height;
+        // need zpixelsize ? 
+        
+        
+        
+        
+    }
+
 
     /**
      * Determine if a voxel coordinate is inside the grid space.

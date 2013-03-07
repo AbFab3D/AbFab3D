@@ -16,6 +16,8 @@ import abfab3d.util.StructMixedData;
 
 import java.util.Arrays;
 
+import static abfab3d.util.Output.printf;
+
 /**
  * A set like interface for making points unique given some epsilon.
  *
@@ -222,7 +224,7 @@ public class PointSet {
         int oldCapacity = oldTable.length;
 
         int newCapacity = oldCapacity * 2;
-        System.out.println("*****Rehashing PointSet: " + newCapacity);
+        printf("*****Rehashing PointSet: %d\n",newCapacity);
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);
 

@@ -170,6 +170,18 @@ public interface Grid extends Cloneable {
      * @param max The max coordinate
      */
     public void getGridBounds(double[] min, double[] max);
+    
+    /**
+     * Get the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void getGridBounds(double[] bounds);
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void setGridBounds(double[] bounds);
 
     /**
      * Count a class of voxels types.  May be much faster then

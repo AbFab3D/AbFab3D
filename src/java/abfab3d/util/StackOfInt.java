@@ -14,7 +14,7 @@ package abfab3d.util;
 
 
 /**
-   implemenation nof stack storage of integers 
+   implemenation of stack storage of integers 
    data values can be any integer except NO_DATA = Integer.MIN_VALUE 
    
 */

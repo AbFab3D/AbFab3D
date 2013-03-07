@@ -32,10 +32,13 @@ import abfab3d.grid.op.GridMaker;
 
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
+import abfab3d.io.output.STLWriter;
+import abfab3d.io.output.MeshMakerMT;
 
 import abfab3d.util.DataSource;
 import abfab3d.util.Vec;
 import abfab3d.util.MathUtil;
+import abfab3d.util.TriangleCounter;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -94,7 +97,7 @@ public class TestMeshDecimatorMT extends TestCase {
             runFile(fpath);
         }
 
-    }
+    }    
 
     public void runFile(String fpath) throws Exception {
 
@@ -150,27 +153,77 @@ public class TestMeshDecimatorMT extends TestCase {
         
     }
 
+    public void _testOpenBox() throws Exception {
 
-    /**
-       checking idea of partioning a mesh into many fragmrents and decimate each 
-       fragment seperatelly 
-     */
+        double vert[] = new double[]{
+                1, -1, 1,
+                1, 1, 1,
+                -1, 1, 1,
+                -1, -1, 1,
+                1, -1, -1,
+                1, 1, -1,
+                -1, 1, -1,
+                -1, -1, -1
+        };
+        int indexes[] = new int[]{
+                2, 3, 0,
+                1, 2, 0,
 
-    public void testMeshPartitioningMT()  throws Exception {
-        for(int i = 0; i < 5; i++){
-            runMeshPartitioningMT();
+                5, 1, 0,
+                4, 5, 0,
+
+                5, 6, 2,
+                5, 2, 1,
+
+                2, 6, 7,
+                2, 7, 3,
+
+                6, 5, 4,
+                7, 6, 4,
+
+                //3, 7, 4,
+                //3, 4, 0
+        };
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(vert, indexes);
+     
+        STLWriter stl = new STLWriter("/tmp/00_box.stl");
+        mesh.getTriangles(stl);
+        stl.close();
+   
+
+        MeshDecimator md = new MeshDecimator();
+        
+        //md.setMaxCollapseError(1.e-8);
+        //md.setMaxEdgeLength(0.3*MM);
+        
+        int count = 1;
+        
+        int fcount = mesh.getTriangleCount();
+        
+        while(count-- > 0){
+            
+            int target = fcount/2;
+            md.processMesh(mesh, target);        
+            fcount = mesh.getTriangleCount();
+            
+            stl = new STLWriter(fmt("/tmp/00_boundary_%d.stl", count));
+            mesh.getTriangles(stl);
+            stl.close();
+            
         }
+
+   
+        
     }
 
-    public void runMeshPartitioningMT()  throws Exception {
-        
-        int threadCount = 4;
-
+    public void _testMeshWithBoundary() throws Exception {
+     
         long t00 = time();
-        int cellGrid = 20; // grid dimension of one cell 
-        int cellsCount = 20; // count of part along each dimension 
-        double voxelSize = 0.1*MM; 
-        double sphereSize = 2*MM;
+        int cellGrid = 200; // grid dimension of one cell 
+        int cellsCount = 1; // count of part along each dimension 
+        double sphereSize = 10*MM;
+        double voxelSize = sphereSize / cellGrid; 
 
         double cellSize = cellGrid * voxelSize;
         double bodySize = cellSize * cellsCount; 
@@ -180,9 +233,9 @@ public class TestMeshDecimatorMT extends TestCase {
         printf("grid: [%d x %d x %d]\n", nx, nx, nx);
         printf("cell: [%d x %d x %d]\n", cellGrid, cellGrid, cellGrid);
         printf("cells: [%d x %d x %d]\n", cellsCount, cellsCount, cellsCount);
-        printf("threads: %d\n", threadCount);
+        //printf("threads: %d\n", threadCount);
         
-        ArrayOfSpheres spheres = new ArrayOfSpheres(cellSize);
+        ArrayOfSpheres spheres = new ArrayOfSpheres(cellSize, 0.97);
 
         long t0 = time();
 
@@ -192,239 +245,110 @@ public class TestMeshDecimatorMT extends TestCase {
         GridMaker gridMaker = new GridMaker();
         
         double gridBounds[] = new double[]{0,bodySize, 0,bodySize,0,bodySize};
+        int goffset = 10;
+        double offset = goffset*voxelSize;
+        double padding = 0.5*voxelSize;
+
+        double ibounds[] = new double[]{padding+offset,bodySize-padding-offset, 
+                                        padding+offset,bodySize-padding-offset,
+                                        padding+offset,bodySize-padding-offset};
 
         gridMaker.setBounds(gridBounds);
-        gridMaker.setDataSource(new ArrayOfSpheres(sphereSize));
-        
+        gridMaker.setDataSource(new ArrayOfSpheres(sphereSize, 0.97));        
         gridMaker.makeGrid(grid); 
-        printf("grid made: %d ms\n", (time() - t0));        
+        printf("grid made: %d ms\n", (time() - t0));   
         
+        IsosurfaceMaker im = new IsosurfaceMaker();
+        im.setIsovalue(0.);
         
-        t0 = time();
-
-        printf("starting mesh building\n"); 
-
-        GridBlockSet blocks = new GridBlockSet();
+        im.setBounds(ibounds);
+        im.setGridSize(nx-2*goffset, nx-2*goffset, nx-2*goffset);
         
-        for(int y = 0; y < cellsCount; y++){
-            //TODO - better cells size handling for seamless mesh
-            double ymin = y*cellSize;
-            double ymax = ymin + cellSize;
-            for(int x = 0; x < cellsCount; x++){
-                double xmin = x*cellSize;
-                double xmax = xmin + cellSize;
-                for(int z = 0; z < cellsCount; z++){
-                    double zmin = z*cellSize;
-                    double zmax = zmin + cellSize;
-                    GridBlock block = new GridBlock();
-                    block.bounds = new double[]{xmin, xmax, ymin, ymax, zmin, zmax};
-                    block.nx = cellGrid;
-                    block.ny = cellGrid;
-                    block.nz = cellGrid;
-                    blocks.add(block);
-                }
-            }
-        }
-                
-
-        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-
-        MeshBuilder threads[] = new MeshBuilder[threadCount];
-
-        for(int i = 0; i < threadCount; i++){
-
-            threads[i] = new MeshBuilder(grid, gridBounds, blocks);
-            executor.submit(threads[i]);
-
-        }
-
-        executor.shutdown();
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
         
-        try {
-            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);            
-        } catch (Exception e) {
-            e.printStackTrace();
+        im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gridBounds, 0), its);
+        
+        printf("isosurface made: %d ms\n", (time() - t0));   
+        
+        STLWriter stl = new STLWriter("/tmp/00_boundary.stl");
+        its.getTriangles(stl);
+        stl.close();
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getVertexCount(), its.getFaces(), its.getFaceCount());
+        
+        MeshDecimator md = new MeshDecimator();
+        
+        md.setMaxCollapseError(1.e-8);
+        md.setMaxEdgeLength(0.3*MM);
+        
+        int count = 8;
+        
+        int fcount = mesh.getTriangleCount();
+        
+        while(count-- > 0){
+            
+            int target = fcount/2;
+            md.processMesh(mesh, target);        
+            fcount = mesh.getTriangleCount();
+            
+            stl = new STLWriter(fmt("/tmp/00_boundary_%d.stl", count));
+            mesh.getTriangles(stl);
+            stl.close();
+            
         }
         
-        printf("MESH_EXTRACTION_TIME: %d ms\n", (time()-t0));
-
-        blocks.rewind();
-        GridBlock block;
-        int origFaceCount = 0, finalFaceCount = 0;
-
-        while((block = blocks.getNext()) != null){
-            //printf(" isosurface: %d ms, decimation: %d ms  faces: %d -> : %d\n",
-            //       block.timeIsosurface, block.timeDecimation, block.origFaceCount,block.finalFaceCount);
-            origFaceCount += block.origFaceCount;
-            finalFaceCount += block.finalFaceCount;
-        }
-        printf("ORIGINAL_FACE_COUNT: %d\n", origFaceCount);
-        printf("FINAL_FACE_COUNT: %d\n", finalFaceCount);
+        
 
     }
 
 
-    
-    /**
-       block of grid
-     */
-    static class GridBlock {
+    public void testMeshMakerMT()  throws Exception {
 
-        // mesh generated 
-        //WingedEdgeTriangleMesh mesh; 
-        // bounds of the grid fragment 
-        double bounds[];
-        // grid dimensions of the grid fragment 
-        int nx, ny, nz;
+        for(int i = 0; i < 1; i++){
+            runMeshMakerMT();
+        }
+    }
+
+    public void runMeshMakerMT()  throws Exception {
+
+        double voxelSize = 0.1*MM;
+
+        int nx = 100, ny = 100, nz = 100;
+        int threadCount = 1;
+        int blockSize = 20;
+        double radius = 0.97;
+
+        printf("gridSize: %d x %d x %d\n", nx, ny, nz);
+        printf("threadCount: %d\n", threadCount);
+        printf("blockSize: %d\n", blockSize);
         
-        int origFaceCount;
-        int finalFaceCount;
-        long timeIsosurface;
-        long timeDecimation;
+        double gridBounds[] = new double[]{0,nx * voxelSize, 0,ny * voxelSize, 0, nz * voxelSize};
+        double sphereSize = (gridBounds[1] - gridBounds[0]);
+
+        Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize,voxelSize);
+        //Grid grid = new GridShortIntervals(nx, ny, nz, voxelSize,voxelSize);
+        grid.setGridBounds(gridBounds);
+        
+        long t0 = time();       
+        GridMaker gridMaker = new GridMaker();       
+        gridMaker.setBounds(gridBounds);
+        gridMaker.setDataSource(new ArrayOfSpheres(sphereSize, radius));
+        gridMaker.setThreadCount(threadCount);
+        gridMaker.makeGrid(grid); 
+        printf("GRID_RENDERING_TIME: %d ms\n", (time() - t0));        
+
+        MeshMakerMT meshmaker = new MeshMakerMT();        
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(threadCount);
+        //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+
+        STLWriter stl = new STLWriter("/tmp/00_meshMaker.stl");
+        //TriangleCounter tc = new TriangleCounter();
+        meshmaker.makeMesh(grid, stl);
+        //printf("total triangles: %d\n", tc.getCount());
+        stl.close();
         
     }
-    
-    /**
-       collection of grid blocks 
-     */
-    static class GridBlockSet {
-        
-        Vector<GridBlock> gridBlocks; 
-        AtomicInteger currentBlock = new AtomicInteger(0); 
-        
-        GridBlockSet(){
-            gridBlocks = new Vector<GridBlock>();
-        }
-        
-        public void rewind(){
-            currentBlock.set(0);
-        }
-
-        public GridBlock getNext(){
-
-            int next = currentBlock.getAndIncrement();
-            if(next >= gridBlocks.size())
-                return null;
-            else 
-                return gridBlocks.get(next);
-        }
-
-        public void add(GridBlock block){
-            gridBlocks.add(block);
-        }
-    } // class GridBlockSet
-
-    /**
-       extract mesh from a part of the grid 
-     */
-    static class MeshBuilder implements Runnable {
-        
-        Grid grid;
-        // bounds of the grid 
-        double gridBounds[]; 
-
-        GridBlockSet blocks;
-
-        WingedEdgeTriangleMesh mesh; 
-        IndexedTriangleSetBuilder its;
-        double vertices[]; // intermediate memory for vertices 
-        int faces[];  // intermediate memory for face indexes 
-
-
-        MeshBuilder(Grid grid, double gridBounds[], GridBlockSet blocks){
-            
-            this.grid = grid;
-            this.blocks = blocks;
-            this.gridBounds = gridBounds;
-        }
-        
-        public void run(){
-            
-            // make isosurface extrator
-            
-            while(true){
-
-                GridBlock block = blocks.getNext();
-                if(block == null)
-                    break;
-                try {
-                    processBlock(block);
-                } catch(Exception e){
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        void processBlock(GridBlock block){
-            
-            double ibounds[] = MathUtil.extendBounds(block.bounds, -grid.getVoxelSize()/2);
-            
-            IsosurfaceMaker im = new IsosurfaceMaker();
-            im.setIsovalue(0.);
-            
-            im.setBounds(ibounds);
-            im.setGridSize(block.nx, block.ny, block.nz);
-
-            if(its == null){
-                its = new IndexedTriangleSetBuilder();
-            } else {
-                its.clear();
-            }
-            
-            long t0 = nanoTime();
-            im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gridBounds, 0), its);
-            
-            //printf("isosurface done %d ms\n", (time() - t0));  
-            long t1 = nanoTime();
-            block.timeIsosurface = (t1 - t0);
-            
-            vertices = its.getVertices(vertices);
-            faces = its.getFaces(faces);
-            int vertexCount = its.getVertexCount();
-            int faceCount = its.getFaceCount();
-            
-            //printf("vertCount: %d faceCont: %d\n", vertexCount, faceCount);        
-            
-            if(mesh == null){
-                mesh = new WingedEdgeTriangleMesh(vertices, vertexCount, faces, faceCount);
-            } else {
-                mesh.setFaces(vertices, vertexCount, faces, faceCount);
-            }
-            //block.mesh = 
-            //intf("mesh created: %d ms\n", (time() - t0));
-            
-            MeshDecimator md = new MeshDecimator();
-            
-            //md.setThreadCount(1); 
-                        
-            md.setMaxCollapseError(1.e-8);
-
-            int count = 5;
-
-            int fcount = mesh.getTriangleCount();
-            block.origFaceCount = mesh.getTriangleCount();
-            
-            while(count-- > 0){
-                
-                int target = fcount/2;
-                md.processMesh(mesh, target);        
-                fcount = mesh.getTriangleCount();
-            }
-
-            block.timeDecimation = (nanoTime() - t1);
-
-            //TODO - store reduced mesh somewhere 
-            mesh.clear();
-
-            block.finalFaceCount = fcount;
-
-            //printf("mesh faces: %d\n", fcount);
-            
-            // = time();
-            
-        }
-
-    } // class MeshBuilder
 
     /**
        checking idea of partioning a mesh into many fragmrents and decimate each 
@@ -454,7 +378,7 @@ public class TestMeshDecimatorMT extends TestCase {
         printf("cell: [%d x %d x %d]\n", cellGrid, cellGrid, cellGrid);
         printf("cells: [%d x %d x %d]\n", cellsCount, cellsCount, cellsCount);
         
-        ArrayOfSpheres spheres = new ArrayOfSpheres(cellSize);
+        ArrayOfSpheres spheres = new ArrayOfSpheres(cellSize, 0.97);
 
         long t0 = time();
 
@@ -465,7 +389,7 @@ public class TestMeshDecimatorMT extends TestCase {
         double gridBounds[] = new double[]{0,bodySize, 0,bodySize,0,bodySize};
 
         gridMaker.setBounds(gridBounds);
-        gridMaker.setDataSource(new ArrayOfSpheres(cellSize));
+        gridMaker.setDataSource(new ArrayOfSpheres(cellSize, 0.97));
         
         gridMaker.makeGrid(grid); 
         printf("grid made: %d ms\n", (time() - t0));        
@@ -515,8 +439,10 @@ public class TestMeshDecimatorMT extends TestCase {
         double r2 = r*r;
         double period;
 
-        ArrayOfSpheres(double period){
+        ArrayOfSpheres(double period, double radius){
             this.period = period; 
+            this.r = radius;
+            r2 = r*r;
         }
         
         public int getDataValue(Vec pnt, Vec data) {
@@ -537,19 +463,15 @@ public class TestMeshDecimatorMT extends TestCase {
         
     } // class ArrayOfSpheres
 
-
-    public void  _testEdgeArrayMT() throws Exception {
-
-        printf("testEdgeArrayMT()\n");
-
-        int arraySize = 40000000;
-        long t0 = nanoTime();
-
-        MeshDecimator.EdgeArray array  = new MeshDecimator.EdgeArray(arraySize);
-
-        printf("array created int %7.3f ms\n", (nanoTime() - t0)/1000000.);
-
+    
+    public void _testGaussianKernel(){
+        double kernel[] = MathUtil.getGaussianKernel(1.);
+        for(int i = 0; i < kernel.length; i++){
+            printf("%7.3f\n", kernel[i]);
+        }
     }
+
+    
 
     public void  _testAtomicArray() throws Exception {
         

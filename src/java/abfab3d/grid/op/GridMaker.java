@@ -111,14 +111,14 @@ public class GridMaker {
             ((Initializable)m_dataSource).initialize();
         }
 
-        printf("data initialization %d ms\n", (time() - t0));
+        //printf("data initialization %d ms\n", (time() - t0));
         
         t0 = time();
         if(m_threadCount > 0)
             makeGridMT();
         else 
             makeGridST();
-        printf("grid rendering: %d ms\n", (time() - t0));
+        //printf("grid rendering: %d ms\n", (time() - t0));
     } 
 
     void makeGridMT(){

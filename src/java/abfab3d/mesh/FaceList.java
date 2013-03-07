@@ -45,9 +45,9 @@ public class FaceList extends StructDataDefinition {
         int int_pos = srcIdx * INT_DATA_SIZE;
         int[] int_data = src.getIntData();
 
-        face[0] = int_data[int_pos +  + POS_X];
-        face[1] = int_data[int_pos +  + POS_Y];
-        face[2] = int_data[int_pos +  + POS_Z];
+        face[0] = int_data[int_pos + POS_X];
+        face[1] = int_data[int_pos + POS_Y];
+        face[2] = int_data[int_pos + POS_Z];
     }
 
     public static int[] toArray(StructMixedData src) {
