@@ -373,7 +373,7 @@ public class RingPopperKernel extends HostedKernel {
         double gridDepth = gridWidth;
 
         double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2 + EPS, -gridHeight / 2, gridHeight / 2 + EPS, -gridDepth / 2, gridDepth / 2 + EPS};
-
+        
         int nx = (int) ((bounds[1] - bounds[0]) / resolution);
         int ny = (int) ((bounds[3] - bounds[2]) / resolution);
         int nz = (int) ((bounds[5] - bounds[4]) / resolution);
@@ -404,7 +404,7 @@ public class RingPopperKernel extends HostedKernel {
         ring.setTransform(ringWrap);
 
         GridMaker gm = new GridMaker();
-
+        
         gm.setBounds(bounds);
         gm.setDataSource(ring);
 
@@ -422,6 +422,7 @@ public class RingPopperKernel extends HostedKernel {
         grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
 
         //  grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
+        grid.setGridBounds(bounds);
 
         printf("gm.makeGrid(), threads: %d\n", threadCount);
         long t0 = time();
@@ -461,15 +462,15 @@ public class RingPopperKernel extends HostedKernel {
         
         double gbounds[] = new double[6];
         grid.getGridBounds(gbounds);
-
+        
         // place of default viewpoint 
         double viewDistance = GridSaver.getViewDistance(grid);
 
         if(USE_MESH_MAKER_MT){
 
-            double smoothingWidth = 1.5;
+            double smoothingWidth = 1.;
             int blockSize = 30;
-
+            
             MeshMakerMT meshmaker = new MeshMakerMT();        
             
             t0 = time();
@@ -510,10 +511,10 @@ public class RingPopperKernel extends HostedKernel {
         double volume = ac.getVolume();
         double surface_area = ac.getArea();
 
-        printf("final surface area: %7.8f CM^2\n", surface_area * 1.e4);
-        printf("final volume: %7.8f CM^3 (%5.3f ms)\n", volume * 1.e6, (System.nanoTime() - t0) * 1.e-6);
+        printf("final surface area: %7.3f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %7.3f cm^3\n", volume * 1.e6);
         
-        printf("Total Time: %d ms\n", (time() - start));
+        printf("Total time: %d ms\n", (time() - start));
         printf("-------------------------------------------------\n");
 
         double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
