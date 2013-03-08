@@ -358,7 +358,7 @@ public class RingPopperKernel extends HostedKernel {
                 maxDecimationError = 0.1 * resolution * resolution;
             } else {
                 // Models looked too blocky with .1
-                maxDecimationError = 0.025 * resolution * resolution;
+                maxDecimationError = 0.05 * resolution * resolution;
             }
         }
 
@@ -511,8 +511,9 @@ public class RingPopperKernel extends HostedKernel {
         double volume = ac.getVolume();
         double surface_area = ac.getArea();
 
-        printf("final surface area: %7.3f cm^2\n", surface_area * 1.e4);
-        printf("final volume: %7.3f cm^3\n", volume * 1.e6);
+        // Do not shorten the accuracy of these prints they need to be high
+        printf("final surface area: %7.8f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %7.8f cm^3\n", volume * 1.e6);
         
         printf("Total time: %d ms\n", (time() - start));
         printf("-------------------------------------------------\n");
@@ -866,7 +867,7 @@ public class RingPopperKernel extends HostedKernel {
             HostedKernel kernel = new RingPopperKernel();
 
             params.put("innerDiameter","0.06");
-            params.put("threadCount","1");
+            params.put("threads","4");
 
             Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
