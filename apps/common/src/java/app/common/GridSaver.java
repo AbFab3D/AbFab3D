@@ -16,7 +16,13 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
-import abfab3d.mesh.*;
+
+import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.LaplasianSmooth;
+import abfab3d.mesh.MeshDecimator;
+import abfab3d.mesh.ShellFinder;
+
 import abfab3d.util.MathUtil;
 import abfab3d.util.TriangleCounter;
 
@@ -28,6 +34,7 @@ import java.util.Map;
 import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 
 import org.web3d.vrml.sav.BinaryContentHandler;
 
@@ -526,28 +533,28 @@ public class GridSaver {
     }
 
     /**
-     * Write a grid using the IsoSurfaceMaker to the specified file
+     * Write a grid mesh into output
      *
      * @param maxCollapseError
      * @throws IOException
      */
-    public static void writeIsosurfaceMaker(abfab3d.mesh.TriangleMesh mesh, int gw, int gh, int gd, double vs, double sh, BinaryContentHandler writer, Map<String,Object> params,
-                                            double maxCollapseError, boolean meshOnly) throws IOException {
+    public static void writeIsosurfaceMaker(WingedEdgeTriangleMesh mesh, 
+                                            int gw, int gh, int gd, double vs, double sh, 
+                                            BinaryContentHandler writer, Map<String,Object> params,
+                                            double maxCollapseError, boolean meshOnly,
+                                            boolean writeLargestShellOnly) throws IOException {
+
         // We could release the grid at this point
         int fcount = mesh.getFaceCount();
 
         if (maxCollapseError > 0) {
 
-            abfab3d.mesh.MeshDecimator md = new abfab3d.mesh.MeshDecimator();
-            System.out.println("*****Using new MeshDecimator*****: " + maxCollapseError);
-/*
             MeshDecimator md = new MeshDecimator();
-            System.out.println("*****Using old MeshDecimator*****");
-*/
+
             md.setMaxCollapseError(maxCollapseError);
             long start_time = System.currentTimeMillis();
 
-            int target = mesh.getTriangleCount() / 4;
+            int target = mesh.getTriangleCount() / 2;
             int current = fcount;
             System.out.println("Original face count: " + fcount);
 
@@ -567,17 +574,47 @@ public class GridSaver {
                     break;
                 }
             }
-
-            fcount = mesh.getFaceCount();
+            
+            fcount = mesh.getFaceCount();            
             System.out.println("Final face count: " + fcount);
+            
+            
             System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time)  + " ms");
+            
+        }
+        
+        if(writeLargestShellOnly) {
+            ShellFinder shellFinder = new ShellFinder();
+            long t0 = time();
+            ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
+
+            printf("shellsCount: %d\n",shells.length);
+
+            if(shells.length > 1){
+                
+                ShellFinder.ShellInfo maxShell = shells[0];
+
+                for(int i = 0; i < shells.length; i++){
+
+                    printf("shell: %d faces\n",shells[i].faceCount);
+                    if(shells[i].faceCount > maxShell.faceCount){
+                        maxShell = shells[i];
+                    }                        
+                }
+                
+                printf("extracting largest shell: %d\n",maxShell.faceCount);               
+                IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(maxShell.faceCount);
+                shellFinder.getShell(mesh, maxShell.startFace, its);
+                mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+            }
+            printf("shell extraction: %d ms\n", (time() - t0));
         }
 
         double max_axis = Math.max(gh * sh, gw * vs);
         max_axis = Math.max(max_axis, gd * vs);
-
         double z = 2 * max_axis / Math.tan(Math.PI / 4);
         float[] pos = new float[] {0,0,(float) z};
+
 
         MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
 

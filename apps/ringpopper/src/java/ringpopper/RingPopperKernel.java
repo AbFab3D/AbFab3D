@@ -422,7 +422,8 @@ public class RingPopperKernel extends HostedKernel {
         int regions_removed = 0;
         int min_volume = 10;
 
-        if (regions != RegionPrunner.Regions.ALL) {
+        if (false) {
+        //if (regions != RegionPrunner.Regions.ALL) {
             t0 = currentTimeMillis();
             if (visRemovedRegions) {
                 regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds, min_volume);
@@ -460,7 +461,7 @@ public class RingPopperKernel extends HostedKernel {
         // Release grid to lower total memory requirements
         grid = null;
 
-        GridSaver.writeIsosurfaceMaker(mesh, gw, gh, gd, vs, sh, handler, params, maxDecimationError, true);
+        GridSaver.writeIsosurfaceMaker(mesh, gw, gh, gd, vs, sh, handler, params, maxDecimationError, true, (regions != RegionPrunner.Regions.ALL));
 
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);

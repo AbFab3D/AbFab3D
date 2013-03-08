@@ -62,6 +62,55 @@ public class ShellFinder {
         
     }
 
+
+    /**
+
+       collect triangles from the shell starting from startFace to TriangleCollector 
+
+     */
+    public void getShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc){
+        
+        Hashtable<Integer,Integer> unmarkedFaces = makeUnmarkedFaces(mesh);
+        StackOfInt facesToCheck = new StackOfInt(100000);                
+
+        StructMixedData faces = mesh.getFaces();
+        StructMixedData halfEdges = mesh.getHalfEdges();
+        int currentFace = startFace;
+
+        while(currentFace != -1){
+            
+            unmarkedFaces.remove(new Integer(currentFace));
+            sendFace(currentFace, mesh, tc);
+            
+            
+            int he = Face.getHe(faces, currentFace);
+
+            // face as 3 adjacent faces linked via HalfEdges
+            int twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {            
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+            if(twin != -1) {            
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+
+            he = HalfEdge.getNext(halfEdges, he);
+            twin = HalfEdge.getTwin(halfEdges, he);
+
+            if(twin != -1) {  
+                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
+            }
+            
+            currentFace = findNextFace(unmarkedFaces,facesToCheck);
+            
+        }    
+        
+        return;
+    }
+
     Hashtable<Integer,Integer> makeUnmarkedFaces(WingedEdgeTriangleMesh mesh){
         
         StructMixedData faces = mesh.getFaces();
@@ -165,53 +214,6 @@ public class ShellFinder {
         return -1;
     }
 
-    /**
-
-       sends triangles from the shell starting from startFace to TriangleCollector 
-
-     */
-    void getShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc){
-        
-        Hashtable<Integer,Integer> unmarkedFaces = makeUnmarkedFaces(mesh);
-        StackOfInt facesToCheck = new StackOfInt(100000);                
-
-        StructMixedData faces = mesh.getFaces();
-        StructMixedData halfEdges = mesh.getHalfEdges();
-        int currentFace = startFace;
-
-        while(currentFace != -1){
-            
-            unmarkedFaces.remove(new Integer(currentFace));
-            sendFace(currentFace, mesh, tc);
-            
-            
-            int he = Face.getHe(faces, currentFace);
-
-            // face as 3 adjacent faces linked via HalfEdges
-            int twin = HalfEdge.getTwin(halfEdges, he);
-            if(twin != -1) {            
-                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
-            }
-
-            he = HalfEdge.getNext(halfEdges, he);
-            twin = HalfEdge.getTwin(halfEdges, he);
-            if(twin != -1) {            
-                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
-            }
-
-            he = HalfEdge.getNext(halfEdges, he);
-            twin = HalfEdge.getTwin(halfEdges, he);
-
-            if(twin != -1) {  
-                processFace(HalfEdge.getLeft(halfEdges, twin), unmarkedFaces, facesToCheck);
-            }
-            
-            currentFace = findNextFace(unmarkedFaces,facesToCheck);
-            
-        }    
-        
-        return;
-    }
 
     Vector3d 
         p0 = new Vector3d(),
@@ -250,9 +252,9 @@ public class ShellFinder {
     /**
        represents one shell of given WETriangleMesh
      */
-    static class ShellInfo {
-        int startFace; 
-        int faceCount;
+    public static class ShellInfo {
+        public int startFace; 
+        public int faceCount;
     }
 
 }
