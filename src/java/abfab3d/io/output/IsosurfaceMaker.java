@@ -13,6 +13,7 @@
 package abfab3d.io.output;
 
 import java.util.Vector;
+import java.util.Arrays;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 
@@ -1001,12 +1002,10 @@ public class IsosurfaceMaker {
         int gnx, gny, gnz; // size of grid 
         double gdx, gdy, gdz; // pixel size of grid 
         double gxmin, gymin, gzmin; // origin of the grid 
-
-        int m_cubeHalfSize = 0; // allowed values are 0, 1, 2, ...
-        double m_bodyVoxelWeight = 1.0;
         
         double blockData[]; // data of the block 
-        
+        double rowData[];// data for one row for convolution 
+
         // bondary of 3D block of grid 
         // it is larger than actual block of data due to increase by size of the kernel
         // the data along the boundary of the block should not be used
@@ -1026,6 +1025,14 @@ public class IsosurfaceMaker {
             gny = grid.getHeight();
             gnz = grid.getDepth();
             
+            gdx = (bounds[1] - bounds[0])/(gnx-1);
+            gdy = (bounds[3] - bounds[2])/(gny-1);
+            gdz = (bounds[5] - bounds[4])/(gnz-1);
+
+            gxmin = bounds[0];
+            gymin = bounds[2];
+            gzmin = bounds[4];
+
         }
 
         /**
@@ -1036,6 +1043,8 @@ public class IsosurfaceMaker {
          */
         public void initBlock(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax, double kernel[]){ 
             
+            //printf("initBloc(%d %d %d %d %d %d)\n",xmin, xmax, ymin, ymax, zmin, zmax);
+
             int kernelSize = kernel.length/2;
             
             bxmin = xmin - kernelSize;
@@ -1049,8 +1058,16 @@ public class IsosurfaceMaker {
             
             int dataSize = bsizex * bsizey * bsizez;
             
-            if(blockData == null || dataSize > blockData.length)
+            if(blockData == null || dataSize > blockData.length){
                 blockData = new double[dataSize];
+            }
+            
+            int maxSize = bsizex;
+            if(bsizey > maxSize)maxSize = bsizey;
+            if(bsizez > maxSize)maxSize = bsizez;
+            
+            if(rowData == null || rowData.length < maxSize)
+                rowData = new double[maxSize];
             
             boolean hasPlus = false, hasMinus = false;
             
@@ -1065,9 +1082,9 @@ public class IsosurfaceMaker {
 
                     for(int z = 0; z < bsizez; z++){
                         double v = getGridData(x0, y0, z + bzmin);
-                        if(v > 0)
+                        if(v > 0.)
                             hasPlus = true;
-                        else if(v < 0)
+                        else if(v < 0.)
                             hasMinus = true;
                         blockData[zoffset + z] = v;
                         
@@ -1076,21 +1093,113 @@ public class IsosurfaceMaker {
             } 
             
             if(hasPlus && hasMinus){
+
                 containsIsosurface = true;
+                
                 convoluteX(blockData, kernel);
                 convoluteY(blockData, kernel);
                 convoluteZ(blockData, kernel);              
+                
             } else {
                 containsIsosurface = false;
             }
+            //printf("containsIsosurface:%s\n", containsIsosurface);
 
         }
 
         void convoluteX(double data[], double kernel[]){
+            
+            int ksize = kernel.length/2;
+            int bsizexz = bsizex*bsizez;
+            
+            for(int y = 0; y < bsizey; y++){
+
+                int offsetx = y * bsizexz;
+                
+                for(int z = 0; z < bsizez; z++){
+
+                    // init accumulator array 
+                    Arrays.fill(rowData, 0, bsizex, 0.);
+
+                    for(int x = 0; x < bsizex; x++){
+                        
+                        int offsetz = offsetx + x * bsizez;
+                        double v = blockData[offsetz + z];
+                        // add this value to accumulator
+                        for(int k = 0; k < kernel.length; k++){
+                            int kx = x + k - ksize;
+                            if(kx >= 0 && kx < bsizex)
+                                rowData[kx] += kernel[k] * v;                            
+                        }
+                    } 
+                    
+                    for(int x = 0; x < bsizex; x++){
+                        int offsetz = offsetx + x * bsizez;
+                        blockData[offsetz + z] = rowData[x];
+                    }                    
+                }
+            }
         }
+
         void convoluteY(double data[], double kernel[]){
+
+            int ksize = kernel.length/2;
+            int bsizexz = bsizex*bsizez;
+            
+            for(int x = 0; x < bsizex; x++){
+                for(int z = 0; z < bsizez; z++){
+                    // init accumulator array 
+                    Arrays.fill(rowData, 0, bsizey, 0.);
+                    for(int y = 0; y < bsizey; y++){
+                        
+                        int offsetz = y * bsizexz + x * bsizez;
+                        double v = blockData[offsetz + z];
+                        // add this value to accumulator
+                        for(int k = 0; k < kernel.length; k++){
+                            int ky = y + k - ksize;
+                            if(ky >= 0 && ky < bsizey)
+                                rowData[ky] += kernel[k] * v;                            
+                        }
+                    } 
+
+                    for(int y = 0; y < bsizey; y++){
+                        int offsetz = y * bsizexz + x * bsizez;
+                        blockData[offsetz + z] = rowData[y];
+                    }                    
+                }
+            }
+
         }
+
         void convoluteZ(double data[], double kernel[]){
+            
+            int ksize = kernel.length/2;
+            int bsizexz = bsizex*bsizez;
+            for(int y = 0; y < bsizey; y++){
+
+                int offsetx = y * bsizexz;
+                
+                for(int x = 0; x < bsizex; x++){
+
+                    int offsetz = offsetx + x * bsizez;
+                    // init accumulator array 
+                    Arrays.fill(rowData, 0, bsizez, 0.);
+
+                    for(int z = 0; z < bsizez; z++){
+                        
+                        double v = blockData[offsetz + z];
+                        // add this value to accumulator
+                        for(int k = 0; k < kernel.length; k++){
+                            int kz = z + k - ksize;
+                            if(kz >= 0 && kz < bsizez)
+                                rowData[kz] += kernel[k] * v;                            
+                        }
+                    } 
+                    for(int z = 0; z < bsizez; z++){
+                        blockData[offsetz + z] = rowData[z];
+                    }                    
+                }
+            }
         }
         
         /**
@@ -1150,11 +1259,7 @@ public class IsosurfaceMaker {
             
             if(gx < 0 || gx >= bsizex || gy < 0 || gy >= bsizey || gz < 0 || gz >= bsizez )
                 return 1.;
-            
-            gx -= bxmin;
-            gy -= bymin;
-            gz -= bzmin;
-            
+                        
             return blockData[(gy*bsizex + gx) * bsizez + gz];
             
         }

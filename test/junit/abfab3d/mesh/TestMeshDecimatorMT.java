@@ -304,7 +304,7 @@ public class TestMeshDecimatorMT extends TestCase {
 
     public void testMeshMakerMT()  throws Exception {
 
-        for(int i = 0; i < 1; i++){
+        for(int i = 0; i < 3;i++){
             runMeshMakerMT();
         }
     }
@@ -313,17 +313,17 @@ public class TestMeshDecimatorMT extends TestCase {
 
         double voxelSize = 0.1*MM;
 
-        int nx = 100, ny = 100, nz = 100;
-        int threadCount = 1;
-        int blockSize = 20;
-        double radius = 0.97;
+        int nx = 230, ny = 230, nz = 70;
+        int threadCount = 4;
+        int blockSize = 30;
+        double radius = 1.05;
 
         printf("gridSize: %d x %d x %d\n", nx, ny, nz);
         printf("threadCount: %d\n", threadCount);
         printf("blockSize: %d\n", blockSize);
         
         double gridBounds[] = new double[]{0,nx * voxelSize, 0,ny * voxelSize, 0, nz * voxelSize};
-        double sphereSize = (gridBounds[1] - gridBounds[0]);
+        double sphereSize = (gridBounds[1] - gridBounds[0])/1.5;
 
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize,voxelSize);
         //Grid grid = new GridShortIntervals(nx, ny, nz, voxelSize,voxelSize);
@@ -360,7 +360,6 @@ public class TestMeshDecimatorMT extends TestCase {
             runMeshPartitioning();
         }
     }
-
 
     public void runMeshPartitioning()  throws Exception {
         

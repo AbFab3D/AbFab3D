@@ -19,19 +19,27 @@ import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
+
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.BlockBasedGridByte;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
+
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.VecTransforms;
+
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
+import abfab3d.io.output.MeshMakerMT;
+
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+
 import abfab3d.util.DataSource;
 import abfab3d.util.TextUtil;
+
 import app.common.GridSaver;
 import app.common.RegionPrunner;
 import org.web3d.util.ErrorReporter;
@@ -49,7 +57,7 @@ import java.util.Map;
 
 import static abfab3d.util.MathUtil.TORAD;
 import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
+import static abfab3d.util.Output.time;
 
 //import java.awt.*;
 
@@ -66,6 +74,8 @@ public class RingPopperKernel extends HostedKernel {
      */
     private static final int DEBUG_LEVEL = 0;
     static final double MM = 0.001; // millmeters to meters
+
+    private final boolean USE_MESH_MAKER_MT = true;
 
     // large enough font size to be used to render text 
     static final int DEFAULT_FONT_SIZE = 50;
@@ -335,7 +345,7 @@ public class RingPopperKernel extends HostedKernel {
      */
     public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
 
-        long start = System.currentTimeMillis();
+        long start = time();
 
         pullParams(params);
 
@@ -409,33 +419,34 @@ public class RingPopperKernel extends HostedKernel {
             grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
         }
 */
-//        grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
+        grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
 
-        grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
+        //  grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
 
         printf("gm.makeGrid(), threads: %d\n", threadCount);
-        long t0 = currentTimeMillis();
+        long t0 = time();
         gm.setThreadCount(threadCount);
         gm.makeGrid(grid);
-        printf("gm.makeGrid() done %d ms\n", (currentTimeMillis() - t0));
+        printf("gm.makeGrid() done %d ms\n", (time() - t0));
 
         int regions_removed = 0;
         int min_volume = 10;
 
         if (false) {
         //if (regions != RegionPrunner.Regions.ALL) {
-            t0 = currentTimeMillis();
+            t0 = time();
             if (visRemovedRegions) {
                 regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds, min_volume);
             } else {
                 regions_removed = RegionPrunner.reduceToOneRegion(grid, min_volume);
             }
             printf("Regions removed: %d\n", regions_removed);
-            printf("regions removal done %d ms\n", (currentTimeMillis() - t0));
+            printf("regions removal done %d ms\n", (time() - t0));
 
         }
 
         System.out.println("Writing grid");
+        t0 = time();
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
@@ -446,35 +457,67 @@ public class RingPopperKernel extends HostedKernel {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
 
-        double[] min_bounds = new double[3];
-        double[] max_bounds = new double[3];
-        grid.getWorldCoords(0, 0, 0, min_bounds);
-        grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
+        WingedEdgeTriangleMesh mesh;
+        
+        double gbounds[] = new double[6];
+        grid.getGridBounds(gbounds);
 
-        WingedEdgeTriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
-        int gw = grid.getWidth();
-        int gh = grid.getHeight();
-        int gd = grid.getDepth();
-        double sh = grid.getSliceHeight();
-        double vs = grid.getVoxelSize();
+        // place of default viewpoint 
+        double viewDistance = GridSaver.getViewDistance(grid);
 
-        // Release grid to lower total memory requirements
-        grid = null;
+        if(USE_MESH_MAKER_MT){
 
-        GridSaver.writeIsosurfaceMaker(mesh, gw, gh, gd, vs, sh, handler, params, maxDecimationError, true, (regions != RegionPrunner.Regions.ALL));
+            double smoothingWidth = 1.5;
+            int blockSize = 30;
 
+            MeshMakerMT meshmaker = new MeshMakerMT();        
+            
+            t0 = time();
+            meshmaker.setBlockSize(30);
+            meshmaker.setThreadCount(threadCount);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setSmoothingWidth(smoothingWidth);
+            
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+            meshmaker.makeMesh(grid, its);
+            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+            printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
+
+            // extra decimation to get rid of seams
+            if(maxDecimationError > 0){
+                t0 = time();
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+                printf("final decimation: %d ms\n", (time()-t0));
+            }
+            
+        } else {
+            
+            mesh = GridSaver.createIsosurface(grid, smoothSteps);            
+            // Release grid to lower total memory requirements
+            grid = null;        
+            if(maxDecimationError > 0)
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+        }
+        
+        if(regions != RegionPrunner.Regions.ALL)
+            mesh = GridSaver.getLargestShell(mesh);
+        
+        GridSaver.writeMesh(mesh, viewDistance, handler, params, true);        
+        
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
         double volume = ac.getVolume();
         double surface_area = ac.getArea();
 
-        t0 = System.nanoTime();
         printf("final surface area: %7.8f CM^2\n", surface_area * 1.e4);
         printf("final volume: %7.8f CM^3 (%5.3f ms)\n", volume * 1.e6, (System.nanoTime() - t0) * 1.e-6);
+        
+        printf("Total Time: %d ms\n", (time() - start));
+        printf("-------------------------------------------------\n");
 
-
-        System.out.println("Total Time: " + (System.currentTimeMillis() - start));
-        System.out.println("-------------------------------------------------");
+        double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
+        double max_bounds[] = new double[]{gbounds[1],gbounds[3],gbounds[5]};
         return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
 
     }

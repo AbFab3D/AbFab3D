@@ -66,8 +66,9 @@ public class MeshMakerMT {
     protected int m_blockSize = 20; 
 
     //max error of decimation
-    protected double m_maxDecimationError = 1.e-9; 
-        
+    protected double m_maxDecimationError = 1.e-9;         
+    
+    protected double m_smoothingWidth = 1.;
 
     public MeshMakerMT(){
         
@@ -75,9 +76,25 @@ public class MeshMakerMT {
 
     public void setThreadCount(int count){
 
+        if(count < 1)
+            count = 1;
+        
         this.m_threadCount = count;
 
     }
+    
+    public void setMaxDecimationError(double value){
+
+        m_maxDecimationError = value;
+
+    }
+
+    public void setSmoothingWidth(double value){
+
+        m_smoothingWidth = value;
+
+    }
+
 
     public void setBlockSize(int size){
         m_blockSize = size;
@@ -96,10 +113,12 @@ public class MeshMakerMT {
         ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
 
         BlockProcessor threads[] = new BlockProcessor[m_threadCount];
-        
+
+        double smoothKernel[] = MathUtil.getGaussianKernel(m_smoothingWidth);
+
         for(int i = 0; i < m_threadCount; i++){
 
-            threads[i] = new BlockProcessor(grid, blocks, m_maxDecimationError);
+            threads[i] = new BlockProcessor(grid, blocks, m_maxDecimationError, smoothKernel);
             executor.submit(threads[i]);
 
         }
@@ -119,11 +138,13 @@ public class MeshMakerMT {
         int origFaceCount = 0, finalFaceCount = 0;
 
         while((block = blocks.getNext()) != null){
+            
             //printf(" isosurface: %d ms, decimation: %d ms  faces: %d -> : %d\n",
             //       block.timeIsosurface, block.timeDecimation, block.origFaceCount,block.finalFaceCount);
             origFaceCount += block.origFaceCount;
             finalFaceCount += block.finalFaceCount;
             block.writeTriangles(tc);
+            
         }
 
         printf("originalFaceCount: %d\n", origFaceCount);
@@ -316,7 +337,7 @@ public class MeshMakerMT {
         IsosurfaceMaker.BlockSmoothingSlices slicer; 
         double smoothKernel[];
 
-        BlockProcessor(Grid grid, GridBlockSet blocks, double maxDecimationError){
+        BlockProcessor(Grid grid, GridBlockSet blocks, double maxDecimationError, double smoothKernel[]){
             
             this.grid = grid;
             this.blocks = blocks;
@@ -335,7 +356,10 @@ public class MeshMakerMT {
             gdz = (gridBounds[5] - gridBounds[4])/gnz;
 
             slicer = new IsosurfaceMaker.BlockSmoothingSlices(grid);
-            smoothKernel = MathUtil.getGaussianKernel(1.);
+
+            this.smoothKernel = smoothKernel;
+
+            //smoothKernel = MathUtil.getBoxKernel(0);
 
         }
         
@@ -387,10 +411,11 @@ public class MeshMakerMT {
             
             long t0 = nanoTime();
 
-            //imaker.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gridBounds, 0), its);
             slicer.initBlock(block.xmin, block.xmax, block.ymin,block.ymax, block.zmin,block.zmax, smoothKernel);
+            if(!slicer.containsIsosurface()) return;
             imaker.makeIsosurface(slicer, its);
-            //imaker.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, gridBounds, 0), its);
+            
+            //imaker.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, gridBounds, 2), its);
             
 
             //printf("isosurface done %d ms\n", (nanoTime() - t0));  
@@ -440,7 +465,7 @@ public class MeshMakerMT {
             
             //printf("start decimation\n");
 
-            int count = 5;
+            int count = 7;
 
             int fcount = mesh.getTriangleCount();
             

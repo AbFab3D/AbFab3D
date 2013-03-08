@@ -489,4 +489,19 @@ public class MathUtil {
         }
         return kernel;
     }
+
+
+    
+    /**
+       return kernel for box smoothing
+     */
+    public static double[] getBoxKernel(int width){
+        double kernel[] = new double[2*width+1];
+        double w = 1./(kernel.length);
+        for(int i =0; i < kernel.length; i++){
+            kernel[i] = w;
+        }
+        return kernel;
+    }
+
 }
