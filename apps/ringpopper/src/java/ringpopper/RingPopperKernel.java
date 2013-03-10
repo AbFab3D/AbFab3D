@@ -447,7 +447,6 @@ public class RingPopperKernel extends HostedKernel {
         }
 
         System.out.println("Writing grid");
-        t0 = time();
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
@@ -472,14 +471,15 @@ public class RingPopperKernel extends HostedKernel {
             int blockSize = 30;
             
             MeshMakerMT meshmaker = new MeshMakerMT();        
-            
+
             t0 = time();
-            meshmaker.setBlockSize(30);
+            meshmaker.setBlockSize(blockSize);
             meshmaker.setThreadCount(threadCount);
             meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setSmoothingWidth(smoothingWidth);
-            
-            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+
+            // TODO: Need to get a better way to estimate this number
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
             meshmaker.makeMesh(grid, its);
             mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
@@ -496,16 +496,23 @@ public class RingPopperKernel extends HostedKernel {
             
             mesh = GridSaver.createIsosurface(grid, smoothSteps);            
             // Release grid to lower total memory requirements
-            grid = null;        
             if(maxDecimationError > 0)
                 mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
         }
-        
-        if(regions != RegionPrunner.Regions.ALL)
+
+        // Release grid to save memory
+        grid = null;
+
+        if(regions != RegionPrunner.Regions.ALL) {
+            t0 = time();
             mesh = GridSaver.getLargestShell(mesh);
-        
+            printf("GridSaver.getLargestShell(): %d ms\n", (time()-t0));
+
+            System.out.println("TODO: Need to print the number of regions removed!!!!");
+        }
+
         GridSaver.writeMesh(mesh, viewDistance, handler, params, true);        
-        
+
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
         double volume = ac.getVolume();
@@ -802,6 +809,19 @@ public class RingPopperKernel extends HostedKernel {
             pname = "threads";
             threadCount = ((Integer) params.get(pname)).intValue();
 
+            if (threadCount == 0) {
+                int cores = Runtime.getRuntime().availableProcessors();
+
+                threadCount = cores;
+
+                // scales well to 4 threads, stop there.
+                if (threadCount > 4) {
+                    threadCount = 4;
+                }
+
+                System.out.println("Number of cores:" + threadCount);
+            }
+
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
@@ -861,13 +881,16 @@ public class RingPopperKernel extends HostedKernel {
     public static void main(String[] args) {
         HashMap<String,String> params = new HashMap<String,String>();
 
-        int LOOPS = 3;
+        int LOOPS = 1;
 
         for(int i=0; i < LOOPS; i++) {
             HostedKernel kernel = new RingPopperKernel();
 
-            params.put("innerDiameter","0.06");
-            params.put("threads","4");
+            System.out.println("***High Resolution");
+            params.put("resolution","0.00002");
+            params.put("text","");
+            params.put("previewQuality","HIGH");
+            params.put("threads","1");
 
             Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
