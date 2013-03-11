@@ -67,6 +67,7 @@ public class ImagePopperKernel extends HostedKernel {
     private static final boolean DEBUG = true;
     private static final boolean USE_MIP_MAPPING = false;
     private final boolean USE_MESH_MAKER_MT = true;
+    private static final boolean USE_FAST_MATH = true;
 
     /**
      * Debugging level.  0-5.  0 is none
@@ -259,13 +260,12 @@ public class ImagePopperKernel extends HostedKernel {
      * @param handler The X3D content handler to use
      */
     public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
-//        System.gc();
-//        System.gc();
+        if (USE_FAST_MATH) {
+            System.setProperty("jodk.fastmath.usejdk", "false");
+        } else {
+            System.setProperty("jodk.fastmath.usejdk", "true");
+        }
 
-//        System.out.println("Starting memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));
-//        long startMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
-
-        System.out.println("Generating ImagePopper on thread: " + Thread.currentThread().getName());
         long start = currentTimeMillis();
 
         pullParams(params);

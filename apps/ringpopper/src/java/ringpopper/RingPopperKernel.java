@@ -68,6 +68,7 @@ import static abfab3d.util.Output.time;
  */
 public class RingPopperKernel extends HostedKernel {
     private static final boolean USE_MIP_MAPPING = false;
+    private static final boolean USE_FAST_MATH = true;
 
     /**
      * Debugging level.  0-5.  0 is none
@@ -344,6 +345,12 @@ public class RingPopperKernel extends HostedKernel {
      * @param handler The X3D content handler to use
      */
     public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
+
+        if (USE_FAST_MATH) {
+            System.setProperty("jodk.fastmath.usejdk", "false");
+        } else {
+            System.setProperty("jodk.fastmath.usejdk", "true");
+        }
 
         long start = time();
 

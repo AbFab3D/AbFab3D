@@ -89,6 +89,11 @@
         <compilejava package="abfab3d/util"
             jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar"
         />
+<!--
+        <compilejava package="abfab3d/math"
+                     jars=""
+                />
+-->
         <compilejava package="abfab3d/intersect"
                      jars=""
                 />
@@ -102,7 +107,7 @@
             jars=""
         />
         <compilejava package="abfab3d/grid/op"
-            jars=""
+            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_1.0.0.jar vecmath.jar"
         />
         <compilejava package="abfab3d/grid/query"
             jars=""
@@ -183,7 +188,9 @@
         <createjar name="abfab3d_core" 
             version="${version}"
             manifest="abfab3d_core.mf"
-            includes="abfab3d/geom/*
+            includes="
+                abfab3d/math/*
+                abfab3d/geom/*
                 abfab3d/grid/*
                 abfab3d/grid/op/*
                 abfab3d/grid/query/*
