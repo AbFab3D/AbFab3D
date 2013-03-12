@@ -133,19 +133,23 @@ public class DataSources {
      */
     public static class ImageBitmap implements DataSource, Initializable {
         
-        public double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
-        
-        public double m_baseThickness = 0.5; // relative thickness of solid base 
-        public String m_imagePath; 
-        
-        public int m_imageType = IMAGE_POSITIVE;
-        
-        public static final int IMAGE_POSITIVE = 0, IMAGE_NEGATIVE = 1;
+        public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
+        public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2; 
         public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
 
                 
-        public int m_xTilesCount = 1; // number of image tiles in x-direction 
-        public int m_yTilesCount = 1; // number of image tiles in y-direction 
+        protected double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
+        
+        protected double m_baseThickness = 0.5; // relative thickness of solid base 
+        protected String m_imagePath; 
+        
+        protected int m_imageType = IMAGE_TYPE_EMBOSSED;
+        protected int m_imagePlace = IMAGE_PLACE_TOP; 
+        
+
+        protected int m_xTilesCount = 1; // number of image tiles in x-direction 
+        protected int m_yTilesCount = 1; // number of image tiles in y-direction 
+
         
         private BufferedImage m_image;
         private int m_interpolationType = INTERPOLATION_BOX;
@@ -164,15 +168,15 @@ public class DataSources {
         private byte imageDataByte[]; 
         private ImageMipMap m_mipMap;
         private double m_pixelWeightNonlinearity = 0.;
-        // solid white color of background to be used fpr images with transparency
+        // solid white color of background to be used for images with transparency
         private double m_backgroundColor[] = new double[]{255.,255.,255.,255.};
         private int m_backgroundColorInt = 0xFFFFFFFF;
 
         double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
 
         // scratch vars
-        double[] ci = new double[4];
-        double[] cc = new double[4];
+        //double[] ci = new double[4];
+        //double[] cc = new double[4];
         double color[] = new double[4];
 
         /**
@@ -218,9 +222,22 @@ public class DataSources {
 
         }
 
+        /**
+
+           possible values IMAGE_TYPE_EMBOSS, MAE_TYPE_ENGRAVE
+         */
         public void setImageType(int type){
 
             m_imageType = type; 
+
+        }
+
+        /**
+           possible values: IMAGE_PLACE_TOP, IMAGE_PLACE_BOTTOM, IMAGE_PLACE_BOTH
+         */
+        public void setImagePlace(int place){
+
+            m_imagePlace = place; 
 
         }
 
@@ -425,10 +442,10 @@ public class DataSources {
             double pv = 0.;
             switch(m_imageType){
             default: 
-            case IMAGE_POSITIVE: 
+            case IMAGE_TYPE_EMBOSSED: 
                 pv = 1 - grayLevel/255.;
                 break;
-            case IMAGE_NEGATIVE:
+            case IMAGE_TYPE_ENGRAVED:
                 pv = grayLevel/255.;
                 break;
             }
