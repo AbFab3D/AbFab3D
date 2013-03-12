@@ -933,27 +933,28 @@ public class DataSources {
         public int getDataValue(Vec pnt, Vec data) {
 
             // TODO - garbage generation 
-            Vec workPnt = new Vec(pnt);
+            //Vec workPnt = new Vec(pnt);
             
             DataSource dss[] = vDataSources;
             int len = dss.length;
             for(int i = 0; i < len; i++){
                 
                 DataSource ds = dss[i];
-                int res = ds.getDataValue(pnt, workPnt);
+                //int res = ds.getDataValue(pnt, workPnt);
+                int res = ds.getDataValue(pnt, data);
                 if(res != RESULT_OK){
                     data.v[0] = 0;
                     return res;
                 }
                 
-                if(workPnt.v[0] <= 0.){
+                if(data.v[0] <= 0.){
                     data.v[0] = 0;
                     return RESULT_OK;                    
                 }
                 
             }
             // we are here if none of dataSources return 0
-            data.v[0] = 2;            
+            data.v[0] = 1; 
             return RESULT_OK;
         }        
 
@@ -1085,6 +1086,61 @@ public class DataSources {
         }        
 
     } // class DataTransformer
+
+
+    /**
+       ring in XZ plane of given radius, width and thickness 
+       
+     */
+    public static class Ring implements DataSource{
+
+        double width2;
+        double innerRadius2;
+        double exteriorRadius2;
+        
+        public Ring(double innerRadius, double thickeness, double width){  
+
+            width2 = width/2;
+            innerRadius2 = innerRadius*innerRadius;
+
+            exteriorRadius2 = innerRadius + thickeness;
+            
+            exteriorRadius2 *= exteriorRadius2;
+            
+        }
+
+
+        /**
+         * calculates values of all data sources and return maximal value
+         * can be used to make union of few shapes 
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+            //if(true){
+            //    data.v[0] = 1;
+            //    return RESULT_OK;             
+            //}
+            double y = pnt.v[1];
+            if(y < -width2 || y > width2){
+                data.v[0] = 0;
+                return RESULT_OK;
+            }
+                
+            double x = pnt.v[0];
+            double z = pnt.v[2];
+            double r2 = x*x + z*z;
+
+            if(r2 < innerRadius2 || r2 > exteriorRadius2){
+                data.v[0] = 0;
+                return RESULT_OK;                
+            }
+            // we are inside 
+            data.v[0] = 1;
+            return RESULT_OK;             
+        }        
+
+    } // class Ring
+
+
     
 }
 

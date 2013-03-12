@@ -399,14 +399,23 @@ public class RingPopperKernel extends HostedKernel {
         VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
         ringWrap.setRadius(innerDiameter / 2);
 
-        DataSources.DataTransformer ring = new DataSources.DataTransformer();
-        ring.setDataSource(complete_band);
-        ring.setTransform(ringWrap);
+        DataSources.DataTransformer completeRing = new DataSources.DataTransformer();
+        completeRing.setDataSource(complete_band);
+        completeRing.setTransform(ringWrap);
+                
+        DataSources.Intersection clippedRing = new DataSources.Intersection();
+        clippedRing.addDataSource(new DataSources.Ring(innerDiameter/2, ringThickness, ringWidth + 2 * edgeWidth));
+        clippedRing.addDataSource(completeRing);
+        
+        //DataSources.DataTransformer ring = new DataSources.DataTransformer();
+        //ring.setDataSource(completeRing);
+        //ring.setDataSource(clippedRing);
+        //ring.setTransform(ringWrap);
 
         GridMaker gm = new GridMaker();
         
         gm.setBounds(bounds);
-        gm.setDataSource(ring);
+        gm.setDataSource(clippedRing);
 
         // Seems BlockBased better for this then Array.
         // BlockBasedGridByte is not MT safe
