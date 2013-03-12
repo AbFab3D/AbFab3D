@@ -24,8 +24,7 @@ import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
-
-import static java.lang.Math.sqrt;
+import net.jafama.FastMath;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Symmetry.getReflection;
@@ -65,7 +64,7 @@ public class VecTransforms {
     public static class RingWrap implements VecTransform, Initializable {
 
         public double m_radius = 0.035; // units are meters       
-        
+
         public void setRadius(double r){
             m_radius = r;
         }
@@ -84,8 +83,8 @@ public class VecTransforms {
             
             double angle = in.v[0] / m_radius;
             double r = m_radius + in.v[2];
-            double sina = Math.sin(angle);
-            double cosa = Math.cos(angle);
+            double sina = FastMath.sin(angle);
+            double cosa = FastMath.cos(angle);
 
             out.v[0] = r * sina;
             out.v[1] = in.v[1];
@@ -105,9 +104,10 @@ public class VecTransforms {
             double wy = in.v[1];
             double wz = in.v[2] / m_radius;
             
-            double dist = Math.sqrt(wx * wx + wz * wz);
-            double angle = Math.atan2(wx, wz);
-            
+            double dist = FastMath.sqrt(wx * wx + wz * wz);
+            double angle = FastMath.atan2(wx, wz);
+
+
             wx = angle * m_radius;
             wz = (dist-1) * m_radius;
             
@@ -287,7 +287,7 @@ public class VecTransforms {
     public static class SphereInversion  implements VecTransform, Initializable  {
 
         public Vector3d m_center = new Vector3d(0,0,1); 
-        public double m_radius = sqrt(2.); 
+        public double m_radius = FastMath.sqrt(2.);
 
         private double radius2; 
         static double EPS = 1.e-20;
@@ -704,7 +704,7 @@ public class VecTransforms {
     } // class WallpaperSymmetry
    
     static public void normalizePlane(Vector4d p){
-        double norm = Math.sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+        double norm = FastMath.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
         p.scale(1./norm);
         
     }

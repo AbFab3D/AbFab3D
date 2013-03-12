@@ -24,9 +24,12 @@ import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.VecTransforms;
 import abfab3d.io.output.BoxesX3DExporter;
+import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SAVExporter;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.AreaCalculator;
+import abfab3d.mesh.WingedEdgeTriangleMesh;
 import app.common.GridSaver;
 import app.common.RegionPrunner;
 import org.web3d.util.ErrorReporter;
@@ -47,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 
 import static abfab3d.util.MathUtil.TORAD;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 import static java.lang.System.currentTimeMillis;
 
 //import java.awt.*;
@@ -61,6 +65,7 @@ public class RectSidedPopperKernel extends HostedKernel {
     public enum Shape {CUBE}
     private static final boolean DEBUG = true;
     private static final boolean USE_MIP_MAPPING = false;
+    private final boolean USE_MESH_MAKER_MT = true;
 
     /**
      * Debugging level.  0-5.  0 is none
@@ -128,6 +133,7 @@ public class RectSidedPopperKernel extends HostedKernel {
     private String material;
     private boolean useGrayscale;
     private boolean visRemovedRegions;
+    private int threads;
 
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
@@ -239,6 +245,11 @@ public class RectSidedPopperKernel extends HostedKernel {
                 step, seq++, true, 0, 0.1, null, null)
         );
 
+        params.put("threads", new Parameter("threads", "Threads", "Threads to use for operations", "0", 1,
+                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 50, null, null)
+        );
+        
         params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.MEDIUM.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, enumToStringArray(PreviewQuality.values()))
@@ -342,64 +353,88 @@ public class RectSidedPopperKernel extends HostedKernel {
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
         if (acc == Accuracy.VISUAL) {
-            // X3DOM requires IFS for normal generation
-            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDFACESET);
+            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
+            params.put(SAVExporter.VERTEX_NORMALS, true);
         } else {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
 
-        double[] min_bounds = new double[3];
-        double[] max_bounds = new double[3];
-        grid.getWorldCoords(0, 0, 0, min_bounds);
-        grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
+        WingedEdgeTriangleMesh mesh;
 
-        //System.out.println("***turn off smoothing");
-        //smoothSteps = 0;
+        double gbounds[] = new double[6];
+        grid.getGridBounds(gbounds);
 
-        int rescampleFactor = 1;
-        TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps,rescampleFactor);
+        // place of default viewpoint 
+        double viewDistance = GridSaver.getViewDistance(grid);
+
+        long t0;
         
+        if(USE_MESH_MAKER_MT){
+
+            double smoothingWidth = 1.;
+            int blockSize = 30;
+
+            MeshMakerMT meshmaker = new MeshMakerMT();
+
+            t0 = time();
+            meshmaker.setBlockSize(blockSize);
+            meshmaker.setThreadCount(threads);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setSmoothingWidth(smoothingWidth);
+
+            // TODO: Need to get a better way to estimate this number
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+            meshmaker.makeMesh(grid, its);
+            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+            printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
+
+            // extra decimation to get rid of seams
+            if(maxDecimationError > 0){
+                t0 = time();
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+                printf("final decimation: %d ms\n", (time()-t0));
+            }
+
+        } else {
+
+            mesh = GridSaver.createIsosurface(grid, smoothSteps);
+            // Release grid to lower total memory requirements
+            if(maxDecimationError > 0)
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+        }
+
+        // Release grid to save memory
+        grid = null;
+        int regions_removed = 0;
+
+
+        if(regions != RegionPrunner.Regions.ALL) {
+            t0 = time();
+            mesh = GridSaver.getLargestShell(mesh);
+            printf("GridSaver.getLargestShell(): %d ms\n", (time()-t0));
+
+            System.out.println("TODO: Need to print the number of regions removed!!!!");
+        }
+
+        GridSaver.writeMesh(mesh, viewDistance, handler, params, true);
+
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
         double volume = ac.getVolume();
-        double surfaceArea = ac.getArea();
+        double surface_area = ac.getArea();
 
-        long t0 = System.nanoTime();
-        printf("surface area: %7.3f CM^2\n", surfaceArea*1.e4);
-        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
+        // Do not shorten the accuracy of these prints they need to be high
+        printf("final surface area: %7.8f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %7.8f cm^3\n", volume * 1.e6);
 
-        int gw = grid.getWidth();
-        int gh = grid.getHeight();
-        int gd = grid.getDepth();
-        double sh = grid.getSliceHeight();
-        double vs = grid.getVoxelSize();
+        printf("Total time: %d ms\n", (time() - start));
+        printf("-------------------------------------------------\n");
 
+        double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
+        double max_bounds[] = new double[]{gbounds[1],gbounds[3],gbounds[5]};
+        return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
 
-        // Release grid to lower total memory requirements
-        grid = null;
-
-        //System.out.println("*** turn off decimation");
-        //maxDecimationError = 0;
-
-        GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
-
-        System.out.println("Total Time: " + (System.currentTimeMillis() - start));
-        System.out.println("-------------------------------------------------");
-
-        //        long endMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
-        //    System.out.println("Ending memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));        
-        //System.out.println("Memory used: " + (endMemory - startMemory) + " start: " + startMemory + " end: " + endMemory);
-
-        ac = new AreaCalculator();
-        mesh.getTriangles(ac);
-        volume = ac.getVolume();
-        surfaceArea = ac.getArea();
-
-        t0 = System.nanoTime();
-        printf("final surface area: %7.3f CM^2\n", surfaceArea*1.e4);
-        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
-
-        return new KernelResults(true, min_bounds, max_bounds, volume, surfaceArea);
     }
 
     private void popImage(Grid grid, double bodyWidth, double bodyHeight, double bodyDepth, 
@@ -454,7 +489,7 @@ public class RectSidedPopperKernel extends HostedKernel {
         printf("gm.makeGrid() done\n");
 
     }
-
+/*
     private void popImageYUP(Grid grid, double bodyWidth1, double bodyDepth1, double bodyHeight1, double margin, String filename, double[] trans, double[] rot, double[] bounds) {
         DataSources.ImageBitmapYUP layer1 = new DataSources.ImageBitmapYUP();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
@@ -475,11 +510,6 @@ public class RectSidedPopperKernel extends HostedKernel {
         if (trans != null && rot != null) {
             System.out.println("**Need to implement combined");
         } else if (trans != null) {
-            /*
-            VecTransforms.Translation translation = new VecTransforms.Translation();
-            translation.setTranslation(trans[0], trans[1], trans[2]);
-            gm.setTransform(translation);
-            */
             layer1.setLocation(trans[0],trans[1],bodyDepth1/2 + trans[2]);
         } else if (rot != null) {
             VecTransforms.Rotation rotation = new VecTransforms.Rotation();
@@ -496,7 +526,7 @@ public class RectSidedPopperKernel extends HostedKernel {
         printf("gm.makeGrid() done\n");
 
     }
-
+  */
     /**
      * Pull the params into local variables
      *
@@ -578,6 +608,22 @@ public class RectSidedPopperKernel extends HostedKernel {
             pname = "shape";
             shape = Shape.valueOf((String) params.get(pname));
 
+            pname = "threads";
+            threads = ((Integer) params.get(pname)).intValue();
+
+            if (threads == 0) {
+                int cores = Runtime.getRuntime().availableProcessors();
+
+                threads = cores;
+
+                // scales well to 4 threads, stop there.
+                if (threads > 4) {
+                    threads = 4;
+                }
+
+                System.out.println("Number of cores:" + threads);
+            }
+            
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
