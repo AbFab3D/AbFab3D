@@ -19,21 +19,18 @@ import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ConnectedComponentState;
-import abfab3d.grid.Grid;
-import abfab3d.grid.RegionCounter;
+import abfab3d.grid.*;
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import app.common.GridSaver;
 import app.common.RegionPrunner;
+import app.common.ShellResults;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -106,24 +103,28 @@ public class ImagePopperKernel extends HostedKernel {
      */
     private double bodyWidth1;
     private double bodyWidth2;
+    private double bodyWidth3;
 
     /**
      * The height of the body geometry
      */
     private double bodyHeight1;
     private double bodyHeight2;
+    private double bodyHeight3;
 
     /**
      * The depth of the body geometry
      */
     private double bodyDepth1;
     private double bodyDepth2;
+    private double bodyDepth3;
 
     /**
      * The image filename
      */
-    private String filename;
+    private String filename1;
     private String filename2;
+    private String filename3;
 
     private String material;
     private boolean useGrayscale;
@@ -146,11 +147,15 @@ public class ImagePopperKernel extends HostedKernel {
         int seq = 0;
         int step = 0;
 
-        params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5_cleaned.png", 1,
+        params.put("bodyImage1", new Parameter("bodyImage1", "Image Layer 1", "The image to use for layer1", "images/leaf/5_cleaned.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
-        params.put("bodyImage2", new Parameter("bodyImage2", "Image Layer 2", "The image to use for the front body", "NONE", 1,
+        params.put("bodyImage2", new Parameter("bodyImage2", "Image Layer 2", "The image to use for layer2", "NONE", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("bodyImage3", new Parameter("bodyImage3", "Image Layer 3", "The image to use for layer3", "NONE", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -165,24 +170,24 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, 0, 1, null, null)
         );
 
+        params.put("bodyDepth3", new Parameter("bodyDepth3", "Depth Amount - Layer 3", "The depth of the image", "0.0008", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
+        );
+
         params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
         );
 
-        params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the image", "false", 1,
+        params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the images", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 0.1, null, null)
         );
 
         step++;
         seq = 0;
-/*
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
-            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, true, 0, 0.1, null, null)
-        );
-*/
+
         params.put("bodyWidth1", new Parameter("bodyWidth1", "Body Width", "The width of layer 1", "0.055330948", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.002, 1, null, null)
@@ -199,6 +204,16 @@ public class ImagePopperKernel extends HostedKernel {
         );
 
         params.put("bodyHeight2", new Parameter("bodyHeight2", "Body Height", "The height of layer 2", "0.04", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
+        );
+
+        params.put("bodyWidth3", new Parameter("bodyWidth3", "Body Width", "The width of layer 3", "0.055330948", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
+        );
+
+        params.put("bodyHeight3", new Parameter("bodyHeight3", "Body Height", "The height of layer 3", "0.04", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.01, 1, null, null)
         );
@@ -283,17 +298,24 @@ public class ImagePopperKernel extends HostedKernel {
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
 
-        double gridWidth = Math.max(bodyWidth1,bodyWidth2) + 2 * margin;
-        double gridHeight = Math.max(bodyHeight1,bodyHeight2) + 2 * margin;
+        double gridWidth = Math.max(Math.max(bodyWidth1,bodyWidth2),bodyWidth3) + 2 * margin;
+        double gridHeight = Math.max(Math.max(bodyHeight1,bodyHeight2),bodyHeight3) + 2 * margin;
         double bodyDepth = bodyDepth1;
         double layer1z = bodyDepth1/2; // z-center
-        double layer2z = 0;            // z-center of bottom layer
+        double layer2z = 0;            // z-center of middle layer
+        double layer3z = 0;            // z-center of bottom layer
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
             layer1z += bodyDepth2;
             layer2z = bodyDepth2/2;
-        } 
+        }
+        if (!filename3.equalsIgnoreCase("NONE")) {
+            bodyDepth += bodyDepth3;
+            layer1z += bodyDepth3;
+            layer2z += bodyDepth3;
+            layer3z = bodyDepth3/2;
+        }
 
         double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -margin, bodyDepth + margin};
         int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
@@ -310,7 +332,7 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setBaseThickness(0.0);
         layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
-        layer1.setImagePath(filename);
+        layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale);
         if (imageInvert) {
             layer1.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
@@ -349,6 +371,29 @@ public class ImagePopperKernel extends HostedKernel {
 
         }
 
+        if (!filename3.equalsIgnoreCase("NONE")) {
+            DataSources.ImageBitmap layer3 = new DataSources.ImageBitmap();
+            layer3.setSize(bodyWidth3, bodyHeight3, bodyDepth3);
+
+            layer3.setLocation(0, 0, layer3z);
+            layer3.setBaseThickness(0.0);
+            layer3.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+            layer3.setTiles(1, 1);
+            layer3.setImagePath(filename3);
+            layer3.setUseGrayscale(useGrayscale);
+            if (imageInvert) {
+                layer3.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+            }
+
+            if (USE_MIP_MAPPING) {
+                layer3.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+                layer3.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
+                layer3.setProbeSize(resolution * 2.);
+            }
+
+            union.addDataSource(layer3);
+
+        }
 
         GridMaker gm = new GridMaker();
 
@@ -358,7 +403,8 @@ public class ImagePopperKernel extends HostedKernel {
         
 
         // TODO: Change to use BlockBased for some size
-        grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        //grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
@@ -441,7 +487,9 @@ public class ImagePopperKernel extends HostedKernel {
 
         if(regions != RegionPrunner.Regions.ALL) {
             t0 = time();
-            mesh = GridSaver.getLargestShell(mesh);
+            ShellResults sr = GridSaver.getLargestShell(mesh, min_volume);
+            mesh = sr.getLargestShell();
+            regions_removed = sr.getShellsRemoved();
             printf("GridSaver.getLargestShell(): %d ms\n", (time()-t0));
         }
 
@@ -497,17 +545,29 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "bodyHeight2";
             bodyHeight2 = ((Double) params.get(pname)).doubleValue();
 
-            pname = "bodyImage";
-            filename = (String) params.get(pname);
+            pname = "bodyWidth3";
+            bodyWidth3 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyHeight3";
+            bodyHeight3 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyImage1";
+            filename1 = (String) params.get(pname);
 
             pname = "bodyImage2";
             filename2 = (String) params.get(pname);
+
+            pname = "bodyImage3";
+            filename3 = (String) params.get(pname);
 
             pname = "bodyDepth1";
             bodyDepth1 = ((Double) params.get(pname)).doubleValue();
 
             pname = "bodyDepth2";
             bodyDepth2 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyDepth3";
+            bodyDepth3 = ((Double) params.get(pname)).doubleValue();
 
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
@@ -696,7 +756,7 @@ class FakeRunner implements Runnable {
         params.put("bodyDepth1","0.03");
         params.put("regions","ALL");
         params.put("previewQuality","LOW");
-        params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
+        params.put("bodyImage1","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
 
         Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
