@@ -21,9 +21,7 @@ import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.BlockBasedGridByte;
 import abfab3d.grid.Grid;
-import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
@@ -42,6 +40,7 @@ import abfab3d.util.TextUtil;
 
 import app.common.GridSaver;
 import app.common.RegionPrunner;
+import app.common.ShellResults;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -69,6 +68,7 @@ import static abfab3d.util.Output.time;
 public class RingPopperKernel extends HostedKernel {
     private static final boolean USE_MIP_MAPPING = false;
     private static final boolean USE_FAST_MATH = true;
+    private final boolean USE_MESH_MAKER_MT = true;
 
     /**
      * Debugging level.  0-5.  0 is none
@@ -76,7 +76,6 @@ public class RingPopperKernel extends HostedKernel {
     private static final int DEBUG_LEVEL = 0;
     static final double MM = 0.001; // millmeters to meters
 
-    private final boolean USE_MESH_MAKER_MT = true;
 
     // large enough font size to be used to render text 
     static final int DEFAULT_FONT_SIZE = 50;
@@ -148,6 +147,7 @@ public class RingPopperKernel extends HostedKernel {
     private double resolution;
     private PreviewQuality previewQuality;
     private int smoothSteps;
+    private double smoothingWidth;
     private double maxDecimationError;
 
     /**
@@ -326,8 +326,14 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, enumToStringArray(RegionPrunner.Regions.values()))
         );
 
+        // Deprecate this param
         params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "5", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0, 100, null, null)
+        );
+
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxels to smooth", "1.5", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 100, null, null)
         );
 
@@ -483,7 +489,6 @@ public class RingPopperKernel extends HostedKernel {
 
         if(USE_MESH_MAKER_MT){
 
-            double smoothingWidth = 1.;
             int blockSize = 30;
             
             MeshMakerMT meshmaker = new MeshMakerMT();        
@@ -501,6 +506,8 @@ public class RingPopperKernel extends HostedKernel {
 
             printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
 
+            // Release grid to lower total memory requirements
+            grid = null;
             // extra decimation to get rid of seams
             if(maxDecimationError > 0){
                 t0 = time();
@@ -510,24 +517,23 @@ public class RingPopperKernel extends HostedKernel {
             
         } else {
             
-            mesh = GridSaver.createIsosurface(grid, smoothSteps);            
+            mesh = GridSaver.createIsosurface(grid, smoothSteps);
+
             // Release grid to lower total memory requirements
+            grid = null;
             if(maxDecimationError > 0)
                 mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
         }
 
-        // Release grid to save memory
-        grid = null;
-
         if(regions != RegionPrunner.Regions.ALL) {
             t0 = time();
-            mesh = GridSaver.getLargestShell(mesh);
-            printf("GridSaver.getLargestShell(): %d ms\n", (time()-t0));
-
-            System.out.println("TODO: Need to print the number of regions removed!!!!");
+            ShellResults sr = GridSaver.getLargestShell(mesh, min_volume);
+            mesh = sr.getLargestShell();
+            regions_removed = sr.getShellsRemoved();
+            printf("GridSaver.getLargestShell(): %d ms\n", (time() - t0));
         }
 
-        GridSaver.writeMesh(mesh, viewDistance, handler, params, true);        
+        GridSaver.writeMesh(mesh, viewDistance, handler, params, true);
 
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
@@ -543,6 +549,8 @@ public class RingPopperKernel extends HostedKernel {
 
         double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
         double max_bounds[] = new double[]{gbounds[1],gbounds[3],gbounds[5]};
+
+        System.out.println("Regions Removed: " + regions_removed);
         return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
 
     }
@@ -822,6 +830,9 @@ public class RingPopperKernel extends HostedKernel {
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
+            pname = "smoothingWidth";
+            smoothingWidth = ((Number) params.get(pname)).doubleValue();
+
             pname = "threads";
             threadCount = ((Integer) params.get(pname)).intValue();
 
@@ -906,7 +917,7 @@ public class RingPopperKernel extends HostedKernel {
             params.put("resolution","0.00002");
             params.put("text","");
             params.put("previewQuality","HIGH");
-            params.put("threads","1");
+            params.put("threads","4");
 
             Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 

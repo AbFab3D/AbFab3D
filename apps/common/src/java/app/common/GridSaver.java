@@ -421,7 +421,6 @@ public class GridSaver {
     /**
      * Write a grid mesh into output
      *
-     * @param maxCollapseError
      * @throws IOException
      */
     public static void writeMesh(WingedEdgeTriangleMesh mesh, 
@@ -461,12 +460,14 @@ public class GridSaver {
     /**
        returns mesh with largest shell 
      */
-    public static WingedEdgeTriangleMesh getLargestShell(WingedEdgeTriangleMesh mesh){
+    public static ShellResults getLargestShell(WingedEdgeTriangleMesh mesh, int minVolume){
     
         ShellFinder shellFinder = new ShellFinder();
         ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);        
         printf("shellsCount: %d\n",shells.length);
-        
+
+        int regions_removed = 0;
+
         if(shells.length > 1){
             
             ShellFinder.ShellInfo maxShell = shells[0];
@@ -476,19 +477,18 @@ public class GridSaver {
                 printf("shell: %d faces\n",shells[i].faceCount);
                 if(shells[i].faceCount > maxShell.faceCount){
                     maxShell = shells[i];
-                }                        
-            }            
+                }
+            }
             printf("extracting largest shell: %d\n",maxShell.faceCount); 
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(maxShell.faceCount);
             shellFinder.getShell(mesh, maxShell.startFace, its);
             mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
-            return mesh;
+            return new ShellResults(mesh, shells.length - 1);
 
         } else {
 
-            return mesh;
+            return new ShellResults(mesh,0);
         }
-        
     }        
 
     public static WingedEdgeTriangleMesh decimateMesh(WingedEdgeTriangleMesh mesh, double maxCollapseError ){
