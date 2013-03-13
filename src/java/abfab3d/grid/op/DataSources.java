@@ -137,6 +137,7 @@ public class DataSources {
         public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2; 
         public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
 
+       static final double PIXEL_NORM = 1./255.;
                 
         protected double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
         
@@ -160,8 +161,8 @@ public class DataSources {
         // scaling to convert probe size into pixels of image 
         private double m_probeScale; 
         
-        private double xmin, xmax, ymin, ymax, zmin, zmax, zbase;
-        private double xscale, yscale;
+        private double xmin, xmax, ymin, ymax, zmin, zmax;
+        private double xscale, yscale, zscale;
         private boolean useGrayscale = true;
         private int imageWidth, imageHeight;
         //private int imageData[]; 
@@ -171,8 +172,10 @@ public class DataSources {
         // solid white color of background to be used for images with transparency
         private double m_backgroundColor[] = new double[]{255.,255.,255.,255.};
         private int m_backgroundColorInt = 0xFFFFFFFF;
+        
+        private double imageThickness;
 
-        double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
+        private double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
 
         // scratch vars
         //double[] ci = new double[4];
@@ -268,18 +271,20 @@ public class DataSources {
 
         public int initialize(){
             
-            xmin = m_centerX - m_sizeX/2;
-            xmax = m_centerX + m_sizeX/2;
+            xmin = m_centerX - m_sizeX/2.;
+            xmax = m_centerX + m_sizeX/2.;
             xscale = 1./(xmax-xmin);
             
 
-            ymin = m_centerY - m_sizeY/2;
-            ymax = m_centerY + m_sizeY/2;
+            ymin = m_centerY - m_sizeY/2.;
+            ymax = m_centerY + m_sizeY/2.;
             yscale = 1./(ymax-ymin);
 
-            zmin = m_centerZ - m_sizeZ/2;
-            zmax = m_centerZ + m_sizeZ/2;
-            zbase = zmin + (zmax - zmin)*m_baseThickness;
+            zmin = m_centerZ - m_sizeZ/2.;
+            zmax = m_centerZ + m_sizeZ/2.;
+            zscale = 1./(zmax-zmin);            
+
+            imageThickness = 1. - m_baseThickness;
 
             int imageData[] = null;
 
@@ -359,19 +364,34 @@ public class DataSources {
 
             x = (x-xmin)*xscale;
             y = (y-ymin)*yscale;
+            z = (z-zmin)*zscale;
             
-            if(x < 0 || x > 1 ||
-               y < 0 || y > 1 ||
-               z < zmin || z > zmax){
+            if(x < 0. || x > 1. ||
+               y < 0. || y > 1. ||
+               z < 0. || z > 1.){
                 data.v[0] = 0;
                 return RESULT_OK;
             }
-            
-            if(m_baseThickness != 0.0){
-                if( z < zbase){
-                    data.v[0] = 1;
-                    return RESULT_OK;                    
-                }                    
+            // z is in range [0, 1]
+            switch(m_imagePlace){
+            default:
+            case IMAGE_PLACE_TOP:
+                z = (z - m_baseThickness)/imageThickness;
+                break;
+            case IMAGE_PLACE_BOTTOM:
+                z = ((1-z) - m_baseThickness)/imageThickness;
+                break;
+            case IMAGE_PLACE_BOTH:
+                //scale and make symmetrical
+                z = (2*z-1); 
+                if( z < 0.) z = -z;
+                z = (z-m_baseThickness)/imageThickness;
+                break;
+            }
+
+            if(z < 0.0){
+                data.v[0] = 1;
+                return RESULT_OK;                                  
             }
 
             if(imageDataByte == null){               
@@ -389,21 +409,23 @@ public class DataSources {
             }
                 
             double imageX = imageWidth*x;
-            double imageY = imageHeight*(1-y);// reverse Y-direction 
+            double imageY = imageHeight*(1.-y);// reverse Y-direction 
 
             double pixelValue = getPixelValue(imageX, imageY, m_probeSizeImage);
             
             double d = 0;
 
             if(useGrayscale){ 
+                
                 // smooth transition 
-                d = (zbase  + (zmax - zbase)*pixelValue - z); 
-                if( d > 0)
+                d = z - pixelValue; 
+                if( d < 0) // we are inside 
                     data.v[0] = 1;
-                else 
+                else   // we are outside 
                     data.v[0] = 0;
 
             } else {  
+
                 // sharp transition
                 d = pixelValue;
                 if(d > m_imageThreshold)
@@ -414,7 +436,10 @@ public class DataSources {
         
             return RESULT_OK;
         }                
-
+        
+        /**
+           returns value of pixel at given x,y location normalized to (0,1)
+         */
         double getPixelValue(double x, double y, double probeSize){
             
             double grayLevel;
@@ -443,10 +468,10 @@ public class DataSources {
             switch(m_imageType){
             default: 
             case IMAGE_TYPE_EMBOSSED: 
-                pv = 1 - grayLevel/255.;
+                pv = 1. - grayLevel*PIXEL_NORM;
                 break;
             case IMAGE_TYPE_ENGRAVED:
-                pv = grayLevel/255.;
+                pv = grayLevel*PIXEL_NORM;
                 break;
             }
             return pv;

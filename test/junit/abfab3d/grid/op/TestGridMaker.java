@@ -88,7 +88,7 @@ public class TestGridMaker extends TestCase {
         return new TestSuite(TestGridMaker.class);
     }
 
-    public void testGridMakerMT() {
+    public void _testGridMakerMT() {
 
         printf("testGridMakerMT()\n");
 
@@ -124,7 +124,7 @@ public class TestGridMaker extends TestCase {
         image.setImagePath("docs/images/numbers_1.png");
         image.setUseGrayscale(true);
         image.setTiles(2, 1);
-        image.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        image.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
 
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
@@ -160,23 +160,23 @@ public class TestGridMaker extends TestCase {
      */
     public void _testSymmetricImage() {
         /*
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "c:/tmp/wp01_s442.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "c:/tmp/wp02_442.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_4S2, "docs/images/wp_fd.png", "c:/tmp/wp03_4S2.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S632, "docs/images/wp_fd.png", "c:/tmp/wp04_S632.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_632, "docs/images/wp_fd.png", "c:/tmp/wp05_632.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_3S3, "docs/images/wp_fd.png", "c:/tmp/wp06_3S3.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S333, "docs/images/wp_fd.png", "c:/tmp/wp07_S333.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_333, "docs/images/wp_fd.png", "c:/tmp/wp08_333.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S2222, "docs/images/wp_fd_01.png", "c:/tmp/wp09_S2222.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2222, "docs/images/wp_fd_01.png", "c:/tmp/wp10_2222.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2S22, "docs/images/wp_fd_01.png", "c:/tmp/wp11_2S22.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22S, "docs/images/wp_fd_01.png", "c:/tmp/wp12_22S.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SS, "docs/images/wp_fd_01.png", "c:/tmp/wp13_SS.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "c:/tmp/wp14_SX.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "c:/tmp/wp15_22X.stl"); 
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "c:/tmp/wp16_XX.stl");                
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "c:/tmp/wp17_O.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "/tmp/wp01_s442.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "/tmp/wp02_442.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_4S2, "docs/images/wp_fd.png", "/tmp/wp03_4S2.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S632, "docs/images/wp_fd.png", "/tmp/wp04_S632.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_632, "docs/images/wp_fd.png", "/tmp/wp05_632.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_3S3, "docs/images/wp_fd.png", "/tmp/wp06_3S3.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S333, "docs/images/wp_fd.png", "/tmp/wp07_S333.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_333, "docs/images/wp_fd.png", "/tmp/wp08_333.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S2222, "docs/images/wp_fd_01.png", "/tmp/wp09_S2222.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2222, "docs/images/wp_fd_01.png", "/tmp/wp10_2222.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2S22, "docs/images/wp_fd_01.png", "/tmp/wp11_2S22.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22S, "docs/images/wp_fd_01.png", "/tmp/wp12_22S.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SS, "docs/images/wp_fd_01.png", "/tmp/wp13_SS.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "/tmp/wp14_SX.stl");
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "/tmp/wp15_22X.stl"); 
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "/tmp/wp16_XX.stl");                
+        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "/tmp/wp17_O.stl");
         */
         makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "/tmp/Anonymous_alarm_clock.png", "/tmp/alarm_clock.stl");
         
@@ -204,7 +204,7 @@ public class TestGridMaker extends TestCase {
         double tileRotationAngle = 0*TORAD;
         Vector3d tileRotationAxis = new Vector3d(1,1,1);
         boolean useGrayscale = true;
-        int imageType = DataSources.ImageBitmap.IMAGE_POSITIVE;
+        int imageType = DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED;
 
         double gridWidth = rectWidth + 2*margin;
         double gridHeight  = rectHeight + 2*margin;
@@ -267,7 +267,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/symmetry_test.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/symmetry_test.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -528,7 +528,7 @@ public class TestGridMaker extends TestCase {
         image.setLocation(0,0,-ringThickness);
         image.setBaseThickness(0.);
         image.setTiles(1,1);
-        image.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        image.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
         image.setImagePath("docs/images/tile_01.png");
         
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
@@ -958,7 +958,7 @@ public class TestGridMaker extends TestCase {
         textBand.setSize(textWidth, textHeight, textDepth);
         textBand.setLocation(0,0,0); 
         textBand.setBaseThickness(0.0);
-        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        textBand.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
         textBand.setImage(TextUtil.createTextImage(1000, 200, "Test Image Text gg", 
                                                    new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
@@ -1009,7 +1009,7 @@ public class TestGridMaker extends TestCase {
         block.setLocation(0,0,0); 
         block.setBaseThickness(0.);
         //block.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
-        block.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+        block.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
         block.setUseGrayscale(false);        
         block.setTiles(1,1);
         
@@ -1100,7 +1100,7 @@ public class TestGridMaker extends TestCase {
         ringBand.setSize(Math.PI*ringDiameter, ringWidth, ringThickness);
         ringBand.setLocation(0,0,ringThickness/2); // make z-offset to have band in positive z halfspace 
         ringBand.setBaseThickness(0.5);
-        ringBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        ringBand.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
         ringBand.setTiles(20,1); 
         ringBand.setImagePath("docs/images/star_4_arms_1.png");
 
@@ -1109,7 +1109,7 @@ public class TestGridMaker extends TestCase {
         textBand.setSize(Math.PI*ringDiameter, ringWidth, textDepth);
         textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
         textBand.setBaseThickness(0.);
-        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        textBand.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
         textBand.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", 
                                                    new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
@@ -1348,6 +1348,62 @@ public class TestGridMaker extends TestCase {
         writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_plain.stl");
         printf("writeIsosurface() done\n");
         
+    }
+
+    /**
+
+     */
+    public void testImageBitmapPlace() {
+        
+        printf("testImageBitmapPlace()\n");
+
+        double voxelSize = 0.1 *MM;
+        double margin = 2*voxelSize;
+
+        double width = 2*CM; 
+        double height = 2*CM; 
+        double thickness = 1*CM;
+
+        double gridWidth = width + 2*margin;
+        double gridHeight  = height + 2*margin;
+        double gridDepth = gridWidth;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        int type[] = new int[]{DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED,DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED};
+        int place[] = new int[]{DataSources.ImageBitmap.IMAGE_PLACE_TOP,DataSources.ImageBitmap.IMAGE_PLACE_BOTTOM, DataSources.ImageBitmap.IMAGE_PLACE_BOTH};
+        double baseThickness = 0.0;
+
+        for(int i= 0; i < type.length; i++){
+            for(int k = 0; k < place.length; k++){
+                
+                DataSources.ImageBitmap image = new DataSources.ImageBitmap();       
+                image.setSize(width,height,thickness);
+                image.setLocation(0,0,0);
+                image.setBaseThickness(baseThickness);
+                image.setImageType(type[i]);
+                image.setImagePlace(place[k]);
+                image.setImagePath("docs/images/circle.png");
+                GridMaker gm = new GridMaker();                
+                gm.setBounds(bounds);
+                gm.setThreadCount(4);
+                gm.setDataSource(image);
+
+                Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+                printf("gm.makeGrid()\n");
+                gm.makeGrid(grid);               
+                printf("gm.makeGrid() done\n");
+
+                printf("writeIsosurface()\n");
+                writeIsosurface(grid, bounds, voxelSize, 0, fmt("/tmp/ring_%d_%d.stl", i, k));
+                printf("writeIsosurface() done\n");                
+            }
+        }                
     }
 
         

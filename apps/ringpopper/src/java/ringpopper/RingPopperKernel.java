@@ -561,7 +561,7 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setBaseThickness(baseThickness);
         image_src.setUseGrayscale(useGrayscale);
         if (imageInvert) {
-            image_src.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+            image_src.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
 
         if (USE_MIP_MAPPING) {
@@ -663,7 +663,7 @@ public class RingPopperKernel extends HostedKernel {
         // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
         textBand.setLocation(0, 0, -textDepth / 2);
         textBand.setBaseThickness(0.);
-        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        textBand.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1, 1);
         int fontStyle = Font.PLAIN;
 
