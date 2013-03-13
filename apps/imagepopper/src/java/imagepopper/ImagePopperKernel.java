@@ -330,12 +330,12 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
         layer1.setLocation(0, 0, layer1z);
         layer1.setBaseThickness(0.0);
-        layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        layer1.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale);
         if (imageInvert) {
-            layer1.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+            layer1.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
 
 
@@ -353,12 +353,12 @@ public class ImagePopperKernel extends HostedKernel {
 
             layer2.setLocation(0, 0, layer2z);
             layer2.setBaseThickness(0.0);
-            layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+            layer2.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale);
             if (imageInvert) {
-                layer2.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+                layer2.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
             if (USE_MIP_MAPPING) {
@@ -377,12 +377,12 @@ public class ImagePopperKernel extends HostedKernel {
 
             layer3.setLocation(0, 0, layer3z);
             layer3.setBaseThickness(0.0);
-            layer3.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+            layer3.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale);
             if (imageInvert) {
-                layer3.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+                layer3.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
             if (USE_MIP_MAPPING) {
