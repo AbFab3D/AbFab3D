@@ -33,6 +33,7 @@ import abfab3d.io.output.MeshMakerMT;
 
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 
 import abfab3d.util.DataSource;
@@ -502,12 +503,17 @@ public class RingPopperKernel extends HostedKernel {
             // TODO: Need to get a better way to estimate this number
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
             meshmaker.makeMesh(grid, its);
-            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-
-            printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
 
             // Release grid to lower total memory requirements
             grid = null;
+
+            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+            printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
+            if(smoothSteps > 0){
+                LaplasianSmooth ls = new LaplasianSmooth();
+                ls.processMesh(mesh, smoothSteps);
+            }
             // extra decimation to get rid of seams
             if(maxDecimationError > 0){
                 t0 = time();
