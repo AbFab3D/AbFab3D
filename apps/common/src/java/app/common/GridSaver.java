@@ -479,15 +479,24 @@ public class GridSaver {
                     maxShell = shells[i];
                 }
             }
-            printf("extracting largest shell: %d\n",maxShell.faceCount); 
+
+            for(int i = 0; i < shells.length; i++){
+
+                if (shells[i] != maxShell) {
+                    if (shells[i].faceCount >= minVolume) {
+                        regions_removed++;
+                    }
+                }
+            }
+            printf("extracting largest shell: %d\n",maxShell.faceCount);
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(maxShell.faceCount);
             shellFinder.getShell(mesh, maxShell.startFace, its);
             mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
-            return new ShellResults(mesh, shells.length - 1);
+            return new ShellResults(mesh, regions_removed);
 
         } else {
 
-            return new ShellResults(mesh,0);
+            return new ShellResults(mesh,regions_removed);
         }
     }        
 

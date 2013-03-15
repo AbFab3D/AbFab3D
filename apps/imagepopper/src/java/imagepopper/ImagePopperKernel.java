@@ -61,6 +61,8 @@ import static java.lang.System.currentTimeMillis;
  * @author Alan Hudson
  */
 public class ImagePopperKernel extends HostedKernel {
+    public enum ImagePlace {TOP, BOTTOM, BOTH};
+
     private static final boolean DEBUG = true;
     private static final boolean USE_MIP_MAPPING = false;
     private final boolean USE_MESH_MAKER_MT = true;
@@ -120,6 +122,13 @@ public class ImagePopperKernel extends HostedKernel {
     private double bodyDepth3;
 
     /**
+     * Where to start placing the image, determines direction of grayscale height
+     */
+    private ImagePlace bodyImagePlacement1;
+    private ImagePlace bodyImagePlacement2;
+    private ImagePlace bodyImagePlacement3;
+
+    /**
      * The image filename
      */
     private String filename1;
@@ -173,6 +182,21 @@ public class ImagePopperKernel extends HostedKernel {
         params.put("bodyDepth3", new Parameter("bodyDepth3", "Depth Amount - Layer 3", "The depth of the image", "0.0008", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
+        );
+
+        params.put("bodyImagePlacement1", new Parameter("bodyImagePlacement1", "Body Image Placement - Layer 1", "Where to start the image", ImagePlace.TOP.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(ImagePlace.values()))
+        );
+
+        params.put("bodyImagePlacement2", new Parameter("bodyImagePlacement2", "Body Image Placement - Layer 2", "Where to start the image", ImagePlace.TOP.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(ImagePlace.values()))
+        );
+
+        params.put("bodyImagePlacement3", new Parameter("bodyImagePlacement3", "Body Image Placement - Layer 3", "Where to start the image", ImagePlace.TOP.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(ImagePlace.values()))
         );
 
         params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
@@ -334,6 +358,7 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale);
+        layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert) {
             layer1.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
@@ -357,6 +382,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale);
+            layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert) {
                 layer2.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
@@ -381,6 +407,8 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale);
+
+            layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert) {
                 layer3.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
@@ -569,6 +597,15 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "bodyDepth3";
             bodyDepth3 = ((Double) params.get(pname)).doubleValue();
 
+            pname = "bodyImagePlacement1";
+            bodyImagePlacement1 = ImagePlace.valueOf((String) params.get(pname));
+
+            pname = "bodyImagePlacement2";
+            bodyImagePlacement2 = ImagePlace.valueOf((String) params.get(pname));
+
+            pname = "bodyImagePlacement3";
+            bodyImagePlacement3 = ImagePlace.valueOf((String) params.get(pname));
+
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
@@ -605,6 +642,19 @@ public class ImagePopperKernel extends HostedKernel {
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
         }
     }
+
+    private int getPlacementValue(ImagePlace place) {
+        switch(place) {
+            case TOP: return DataSources.ImageBitmap.IMAGE_PLACE_TOP;
+            case BOTTOM: return DataSources.ImageBitmap.IMAGE_PLACE_BOTTOM;
+            case BOTH: return DataSources.ImageBitmap.IMAGE_PLACE_BOTH;
+            default :
+                System.out.println("Unhandled place: " + place);
+                new Exception().printStackTrace();
+                return DataSources.ImageBitmap.IMAGE_PLACE_TOP;
+        }
+    }
+
 
     /**
      * return bounds extended by given margin
