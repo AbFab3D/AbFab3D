@@ -147,6 +147,7 @@ public class ImagePopperKernel extends HostedKernel {
     private boolean visRemovedRegions;
     private int threads;
     
+    
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
             "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
@@ -446,6 +447,18 @@ public class ImagePopperKernel extends HostedKernel {
 
         }
 
+        // HARD CODED params to play with 
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
+        double smoothingWidth = 1.; 
+        // size of grid block for MT calculatins 
+        // (larger values reduce processor cache performance)
+        int blockSize = 50;
+        // max number to use for surface transitions. Should be ODD number 
+        int maxGridAttributeValue = 63;
+        // width of surface transition area relative to voxel size
+        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+
         GridMaker gm = new GridMaker();
 
 
@@ -453,6 +466,8 @@ public class ImagePopperKernel extends HostedKernel {
         gm.setDataSource(union);
         gm.setThreadCount(threads);
         
+        gm.setMaxAttributeValue(maxGridAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
 
         // TODO: Change to use BlockBased for some size
         //grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
@@ -502,16 +517,15 @@ public class ImagePopperKernel extends HostedKernel {
 
         if(USE_MESH_MAKER_MT){
 
-            double smoothingWidth = 1.;
-            int blockSize = 50;
-
             MeshMakerMT meshmaker = new MeshMakerMT();
 
             t0 = time();
             meshmaker.setBlockSize(blockSize);
             meshmaker.setThreadCount(threads);
+            meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setSmoothingWidth(smoothingWidth);
+            meshmaker.setGridMaxAttributeValue(maxGridAttributeValue);            
 
             // TODO: Need to get a better way to estimate this number
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
