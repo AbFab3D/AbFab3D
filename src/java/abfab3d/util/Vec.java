@@ -17,11 +17,14 @@ package abfab3d.util;
  */
 public class Vec {
     
+    // hlder for data 
     public double v[];
+
+    public double voxelSize;
 
     public Vec(int size){
         v = new double[size];
-
+        voxelSize = 0.;
     }
 
     public Vec(Vec in){
@@ -34,14 +37,23 @@ public class Vec {
 
         v[0] = x;
         v[1] = y;
-        v[2] = z;
-
+        v[2] = z;       
+    }
+    
+    public void setVoxelSize(double vs){
+        voxelSize = vs;
+    }
+    
+    public void scaleVoxelSize(double scale){
+        voxelSize *= scale;
     }
 
     public void set(Vec in){
-        for(int i=0; i < v.length; i++)
+        for(int i=0; i < v.length; i++){
             v[i] = in.v[i];
-
+        }
+        voxelSize = in.voxelSize;
+        
     }
     
 }

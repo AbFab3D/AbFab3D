@@ -56,6 +56,7 @@ import abfab3d.util.Symmetry;
 
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.output.MeshMakerMT;
 
 import abfab3d.util.ImageMipMap;
 
@@ -229,10 +230,7 @@ public class TestGridMaker extends TestCase {
 
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-
-        rot.m_axis = tileRotationAxis;
-        rot.m_angle = tileRotationAngle;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(tileRotationAxis,tileRotationAngle);
 
         VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
         wps.setSymmetryType(symmetryType);
@@ -464,9 +462,7 @@ public class TestGridMaker extends TestCase {
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.m_radius = ringDiameter/2;
 
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(1,0,0);
-        rot.m_angle = 0*TORAD;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(1,0,0),0*TORAD);
         
         compTrans.add(rot);
         compTrans.add(rw);
@@ -632,9 +628,7 @@ public class TestGridMaker extends TestCase {
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.m_radius = ringDiameter/2;
 
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(1,0,0);
-        rot.m_angle = 0*TORAD;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(1,0,0),0*TORAD);
         
         compTrans.add(rot);
         compTrans.add(rw);
@@ -697,9 +691,7 @@ public class TestGridMaker extends TestCase {
         
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(0,1,0);
-        rot.m_angle = 90*TORAD;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),90*TORAD);
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.m_radius = ringDiameter/2;
@@ -763,9 +755,7 @@ public class TestGridMaker extends TestCase {
         
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(0,1,0);
-        rot.m_angle = 0*TORAD;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),0*TORAD);
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.setRadius(ringDiameter/2);
@@ -844,9 +834,7 @@ public class TestGridMaker extends TestCase {
         
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(0,1,0);
-        rot.m_angle = -90*TORAD;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),-90*TORAD);
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.setRadius(cupDiameter/2);
@@ -907,9 +895,7 @@ public class TestGridMaker extends TestCase {
         
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(0,1,0);
-        rot.m_angle = -90*TORAD;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),-90*TORAD);
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.setRadius(cupDiameter/2);
@@ -1124,7 +1110,7 @@ public class TestGridMaker extends TestCase {
         rotatedText.setTransform(textRotation);
         
         DataSources.Subtraction ringMinusText = new DataSources.Subtraction();
-        ringMinusText.setSources(ringBand, rotatedText); // 
+        ringMinusText.setDataSources(ringBand, rotatedText); // 
 
         VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
         ringWrap.setRadius(ringDiameter/2);
@@ -1190,9 +1176,7 @@ public class TestGridMaker extends TestCase {
         //
         // this may independently rotate each image fragmnent 
         //
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
-        rot.m_axis = new Vector3d(0,0,1);
-        rot.m_angle = 0*TORAD;
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,0,1),0*TORAD);
 
         VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
         rw.m_radius = ringDiameter/2;
@@ -1353,7 +1337,7 @@ public class TestGridMaker extends TestCase {
     /**
 
      */
-    public void testImageBitmapPlace() {
+    public void _testImageBitmapPlace() {
         
         printf("testImageBitmapPlace()\n");
 
@@ -1406,7 +1390,579 @@ public class TestGridMaker extends TestCase {
         }                
     }
 
+
+    public void _testAttributeGridGeneration() {
         
+        printf("testAttributeGridGeneration()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 1*CM; 
+        double sizey = 1*CM; 
+        double sizez = 1*CM;
+        double ballRadius = 4*MM;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.Ball ball = new DataSources.Ball(0,0,0,ballRadius);  
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(ball);
+        gm.setMaxAttributeValue(25);
+        gm.setVoxelSize(0.09*MM);
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        printf("%s",grid.toStringAttrubutesSectionZ(nz/2));
+    }
+
+    public void _testSmoohRing() throws Exception {
+        
+        printf("testSmoohRing()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double ballRadius = 9.87*MM;
+        double thickness = 1.3*MM;
+        double width = 6*MM;
+
+        int gridMaxAttributeValue = 255;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        //DataSources.Ball shape = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Ring shape = new DataSources.Ring(ballRadius - thickness, thickness, width);  
+        VecTransforms.Rotation trans = new VecTransforms.Rotation(new Vector3d(1,0,0), Math.PI/6);
+
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(shape);
+        gm.setTransform(trans);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        gm.setVoxelSize(0.7*voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        //ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_smooth_ring.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
+    public void _testUnion() throws Exception {
+        
+        printf("testUnion()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double ballRadius = 9.*MM;
+        double thickness = 2*MM;
+        double width = 6*MM;
+
+        int gridMaxAttributeValue = 255;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.Ball shape1 = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness/2, thickness, width);  
+        DataSources.Union union = new DataSources.Union();  
+        union.addDataSource(shape1);
+        union.addDataSource(shape2);
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(union);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        gm.setVoxelSize(0.7*voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        //ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_union.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
+    public void _testSubtraction() throws Exception {
+        
+        printf("testDifference()\n");
+
+        double voxelSize = 0.05*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double ballRadius = 9.*MM;
+        double thickness = 2*MM;
+        double width = 6*MM;
+
+        int gridMaxAttributeValue = 255;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.Ball shape1 = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness, thickness, width);  
+        DataSources.Subtraction subtraction = new DataSources.Subtraction();  
+        subtraction.setDataSources(shape1, shape2);
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(subtraction);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        //ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_subtraction.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
+    public void _testIntersection() throws Exception {
+        
+        printf("testIntersection()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double ballRadius = 9.*MM;
+        double thickness = 2*MM;
+        double width = 6*MM;
+
+        int gridMaxAttributeValue = 63;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.Ball shape1 = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness/2, thickness, width);  
+        DataSources.Intersection intersection = new DataSources.Intersection(); 
+        intersection.addDataSource(shape1);
+        intersection.addDataSource(shape2);
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(intersection);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        gm.setVoxelSize(voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        //GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_intersection.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+        
+
+    public void _testScale() throws Exception {
+        
+        printf("testScale()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double ballRadius = 9.*MM;
+        double thickness = 2*MM;
+        double width = 6*MM;
+
+        int gridMaxAttributeValue = 255;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.Ring shape = new DataSources.Ring(ballRadius-thickness, thickness, width);  
+        
+        DataSources.Union union = new DataSources.Union();  
+        //union.addDataSource(shape);
+        double s = 1;
+        for(int i = 0; i < 10; i++){
+            DataSources.Ring shape1 = new DataSources.Ring(ballRadius-thickness, thickness/2, width);  
+            DataSources.DataTransformer shape1t = new DataSources.DataTransformer();
+            VecTransforms.Scale trans1 = new VecTransforms.Scale(s);
+            shape1t.setDataSource(shape1);
+            shape1t.setTransform(trans1);
+            union.addDataSource(shape1t);
+
+            s*= 0.8;
+        }
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(union);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        gm.setVoxelSize(voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        //ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_scale.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
+    public void _testBlock() throws Exception {
+        
+        printf("testBlock()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double ballRadius = 4.*MM;
+        double thickness = 0.3*MM;
+        double width = 6*MM;
+
+        int gridMaxAttributeValue = 1025;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        
+        DataSources.Union union = new DataSources.Union();  
+
+        for(int i = 0; i < 5; i++){
+
+            DataSources.Block shape1 = new DataSources.Block(0,0,0, 2*ballRadius, thickness, width);  
+            DataSources.DataTransformer shape1t = new DataSources.DataTransformer();
+            VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,0,1), i*Math.PI/5);
+            shape1t.setDataSource(shape1);
+            shape1t.setTransform(rot);
+
+            union.addDataSource(shape1t);
+
+        }
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(union);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        gm.setVoxelSize(voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        //ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_block.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
+    public void testImage() throws Exception {
+        
+        printf("testImage()\n");
+
+        double voxelSize = 0.05*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double img_width = 18.*MM;
+        double img_height = 18.*MM;
+        double img_thickness = 2*MM;
+        //String imagePath = "docs/images/tile_01_blur.png";
+        //String imagePath = "docs/images/circle.png";
+        //String imagePath = "docs/images/gradient.png";
+        String imagePath = "/tmp/r4-unicorn.png";
+
+
+        int gridMaxAttributeValue = 63;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        
+        DataSources.ImageBitmap image = new DataSources.ImageBitmap(imagePath,img_width,img_height, img_thickness);          
+        image.setUseGrayscale(false);
+        image.setBaseThickness(0.1);
+        
+
+        DataSources.DataTransformer shape = new DataSources.DataTransformer();
+        shape.setDataSource(image);
+        //shape.setTransform(new VecTransforms.Rotation(new Vector3d(1.,0,0), 0.0));
+        shape.setTransform(new VecTransforms.RingWrap(4*MM));
+
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(shape);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        //ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_image.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
+    public void _testDataTransformer() throws Exception {
+        
+        printf("testDataTransformer()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 2*voxelSize;
+
+        double sizex = 20.1*MM; 
+        double sizey = 20.1*MM; 
+        double sizez = 20.1*MM;
+        double ballRadius = 9.*MM;
+        double thickness = 2*MM;
+        double width = 6*MM;
+
+        int gridMaxAttributeValue = 255;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+        double ibounds[] = MathUtil.extendBounds(bounds, -voxelSize/2);
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        DataSources.Ring shape1 = new DataSources.Ring(ballRadius-thickness, thickness, width);  
+
+        DataSources.DataTransformer shape1t = new DataSources.DataTransformer();
+        VecTransforms.Rotation trans1 = new VecTransforms.Rotation(new Vector3d(1,0,0), Math.PI/4);
+        shape1t.setDataSource(shape1);
+        shape1t.setTransform(trans1);
+
+        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness, thickness, width);  
+        
+        //DataSources.Union union = new DataSources.Union();  
+        //union.addDataSource(shape1t);
+        //union.addDataSource(shape2);
+
+        DataSources.Subtraction subtract = new DataSources.Subtraction();  
+        subtract.setDataSources(shape2, shape1t);
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setDataSource(subtract);
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
+        //gm.setVoxelSize(voxelSize*Math.sqrt(3));
+        //gm.setVoxelSize(0.);
+        
+        //ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setGridMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(fmt("/tmp/00_data_transformer.stl"));
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
+
     public void _testTransform() {
 
         double r = 0.1;

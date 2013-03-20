@@ -410,6 +410,26 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
         return sb.toString();
     }
 
+    /**
+       print given crossection of attributes
+     */
+    public String toStringAttrubutesSectionZ(int z) {
+
+        StringBuilder sb = new StringBuilder();
+
+        for(int y=0; y < height; y++) {
+            for(int x=0; x < width; x++) {
+                int att = getAttribute(x, y, z);
+                sb.append((char)('A' + att));
+            }
+            sb.append('\n');
+        }
+
+        return sb.toString();
+    }
+
+    
     public abstract Object clone();
+
 }
 

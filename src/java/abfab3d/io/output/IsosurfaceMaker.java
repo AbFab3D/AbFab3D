@@ -37,6 +37,8 @@ public class IsosurfaceMaker {
 
     static final int edgeTable[] = IsosurfaceTables.edgeTable;
     static final int triTable[][] = IsosurfaceTables.triTable;
+    // value to offset from 0.
+    static final double TINY_VALUE = 1.e-4;
 
 
     public static final int CUBES = 0; 
@@ -863,7 +865,6 @@ public class IsosurfaceMaker {
      */
     public static class SliceGrid2 implements SliceCalculator {
 
-        static final double TINY_VALUE = 1.e-2;
         
         Grid grid;
         double bounds[];
@@ -987,15 +988,14 @@ public class IsosurfaceMaker {
 
     /**
        
-       allocates copy of block of grid and does convolution over that block using 
+       allocates copy of block of grid and does optional convolution over that block using 
        given kernel 
 
      */
     public static class BlockSmoothingSlices implements SliceCalculator {
 
-        static final double TINY_VALUE = 1.e-2;
         
-        Grid grid;
+        AttributeGrid grid;
         double bounds[] = new double[6];
 
 
@@ -1011,6 +1011,12 @@ public class IsosurfaceMaker {
         // the data along the boundary of the block should not be used
         int bxmin, bymin, bzmin;
         int bsizex, bsizey,bsizez;  
+        // if this is positive - the class will use attribute instead of state
+        // and will assume, that 
+        //  inside voxels have attribute value gridMaxAttributeValue an 
+        //  outside voxles have attribute value 0  
+        //  and linear interpolation on the boundary 
+        int gridMaxAttributeValue = 0;
         
         boolean containsIsosurface = false;
         /**
@@ -1018,7 +1024,7 @@ public class IsosurfaceMaker {
          */
         public BlockSmoothingSlices(Grid grid){
             
-            this.grid = grid;
+            this.grid = (AttributeGrid)grid;
             grid.getGridBounds(this.bounds);
 
             gnx = grid.getWidth();
@@ -1035,26 +1041,33 @@ public class IsosurfaceMaker {
 
         }
 
+        public void setGridMaxAttributeValue(int value){
+
+            gridMaxAttributeValue = value;
+            
+        }
         /**
            
            block bounds are given in integer cordinates of voxels 
            block bounds are inclusive 
-           
+           if kernel is null - no convolution is performed 
          */
         public void initBlock(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax, double kernel[]){ 
             
             //printf("initBloc(%d %d %d %d %d %d)\n",xmin, xmax, ymin, ymax, zmin, zmax);
-
-            int kernelSize = kernel.length/2;
             
+            int kernelSize = 0; 
+            if(kernel != null){
+                kernelSize = kernel.length/2;
+            }
+
             bxmin = xmin - kernelSize;
             bymin = ymin - kernelSize;
             bzmin = zmin - kernelSize;
 
             bsizex = (xmax - xmin + 1) + 2*kernelSize;
             bsizey = (ymax - ymin + 1) + 2*kernelSize;
-            bsizez = (zmax - zmin + 1) + 2*kernelSize;
-            
+            bsizez = (zmax - zmin + 1) + 2*kernelSize;            
             
             int dataSize = bsizex * bsizey * bsizez;
             
@@ -1081,6 +1094,7 @@ public class IsosurfaceMaker {
                     int zoffset  = xoffset + x*bsizez;
 
                     for(int z = 0; z < bsizez; z++){
+                        // TODO et data for z row in one call 
                         double v = getGridData(x0, y0, z + bzmin);
                         if(v > 0.)
                             hasPlus = true;
@@ -1095,11 +1109,11 @@ public class IsosurfaceMaker {
             if(hasPlus && hasMinus){
 
                 containsIsosurface = true;
-                
-                convoluteX(blockData, kernel);
-                convoluteY(blockData, kernel);
-                convoluteZ(blockData, kernel);              
-                
+                if(kernelSize > 0){
+                    convoluteX(blockData, kernel);
+                    convoluteY(blockData, kernel);
+                    convoluteZ(blockData, kernel);              
+                }
             } else {
                 containsIsosurface = false;
             }
@@ -1265,19 +1279,29 @@ public class IsosurfaceMaker {
         }
 
 
-        int getGridData(int gx, int gy, int gz){
+        double getGridData(int gx, int gy, int gz){
 
             if(gx <  0 || gy < 0 || gz < 0 || gx >= gnx || gy >= gny || gz >= gnz){
-                return 1; // outside
+                return 1.; // outside
             } else {
-                byte state = grid.getState(gx,gy,gz);
-                if(state == Grid.OUTSIDE)
-                    return 1;
-                else 
-                    return -1;
-            }            
+                switch(gridMaxAttributeValue){
+                case 0: 
+                    {
+                        byte state = grid.getState(gx,gy,gz);
+                        if(state == Grid.OUTSIDE)
+                            return 1.; // outside 
+                        else 
+                            return -1.; // inside
+                    }
+                default: 
+                    {
+                        int att = grid.getAttribute(gx,gy,gz);
+                        return 1. - (2.*att / gridMaxAttributeValue);
+                    }
+                    
+                }            
+            }
         }
-    } // class SliceGrid2
+    } // class BlockSmoothingSlices
     
-
 }

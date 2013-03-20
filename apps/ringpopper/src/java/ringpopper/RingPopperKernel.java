@@ -490,7 +490,7 @@ public class RingPopperKernel extends HostedKernel {
 
         if(USE_MESH_MAKER_MT){
 
-            int blockSize = 30;
+            int blockSize = 50;
             
             MeshMakerMT meshmaker = new MeshMakerMT();        
 

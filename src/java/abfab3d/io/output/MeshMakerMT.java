@@ -69,6 +69,7 @@ public class MeshMakerMT {
     protected double m_maxDecimationError = 1.e-9;         
     
     protected double m_smoothingWidth = 1.;
+    protected int m_gridMaxAttributeValue = 0;
 
     public MeshMakerMT(){
         
@@ -83,6 +84,12 @@ public class MeshMakerMT {
 
     }
     
+    public void setGridMaxAttributeValue(int gridMaxAttributeValue){
+
+        m_gridMaxAttributeValue = gridMaxAttributeValue;
+
+    }
+
     public void setMaxDecimationError(double value){
 
         m_maxDecimationError = value;
@@ -113,12 +120,14 @@ public class MeshMakerMT {
         ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
 
         BlockProcessor threads[] = new BlockProcessor[m_threadCount];
-
-        double smoothKernel[] = MathUtil.getGaussianKernel(m_smoothingWidth);
-
+        double smoothKernel[] = null;
+        if(m_smoothingWidth > 0.){
+            smoothKernel = MathUtil.getGaussianKernel(m_smoothingWidth);
+        }
+        
         for(int i = 0; i < m_threadCount; i++){
 
-            threads[i] = new BlockProcessor(grid, blocks, m_maxDecimationError, smoothKernel);
+            threads[i] = new BlockProcessor(grid, blocks, m_maxDecimationError, smoothKernel, m_gridMaxAttributeValue);
             executor.submit(threads[i]);
 
         }
@@ -337,7 +346,7 @@ public class MeshMakerMT {
         IsosurfaceMaker.BlockSmoothingSlices slicer; 
         double smoothKernel[];
 
-        BlockProcessor(Grid grid, GridBlockSet blocks, double maxDecimationError, double smoothKernel[]){
+        BlockProcessor(Grid grid, GridBlockSet blocks, double maxDecimationError, double smoothKernel[], int gridMaxAttributeValue){
             
             this.grid = grid;
             this.blocks = blocks;
@@ -356,6 +365,7 @@ public class MeshMakerMT {
             gdz = (gridBounds[5] - gridBounds[4])/gnz;
 
             slicer = new IsosurfaceMaker.BlockSmoothingSlices(grid);
+            slicer.setGridMaxAttributeValue(gridMaxAttributeValue);
 
             this.smoothKernel = smoothKernel;
 
@@ -402,7 +412,7 @@ public class MeshMakerMT {
             imaker.setIsovalue(0.);            
             imaker.setBounds(blockBounds);
             imaker.setGridSize(block.xmax-block.xmin+1,block.ymax-block.ymin+1, block.zmax-block.zmin+1);
-
+            
             if(its == null){
                 its = new IndexedTriangleSetBuilder();
             } else {
@@ -410,7 +420,7 @@ public class MeshMakerMT {
             }
             
             long t0 = nanoTime();
-
+            
             slicer.initBlock(block.xmin, block.xmax, block.ymin,block.ymax, block.zmin,block.zmax, smoothKernel);
             if(!slicer.containsIsosurface()) return;
             imaker.makeIsosurface(slicer, its);
