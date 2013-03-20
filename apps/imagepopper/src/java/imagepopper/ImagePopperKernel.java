@@ -136,8 +136,14 @@ public class ImagePopperKernel extends HostedKernel {
     private String filename3;
 
     private String material;
-    private boolean useGrayscale;
-    private boolean imageInvert = false;
+    private boolean useGrayscale1;
+    private boolean useGrayscale2;
+    private boolean useGrayscale3;
+
+    private boolean imageInvert1 = false;
+    private boolean imageInvert2 = false;
+    private boolean imageInvert3 = false;
+
     private boolean visRemovedRegions;
     private int threads;
     
@@ -199,12 +205,28 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, enumToStringArray(ImagePlace.values()))
         );
 
-        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+        params.put("useGrayscale1", new Parameter("useGrayscale1", "Use Grayscale1", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
+        );
+        params.put("useGrayscale2", new Parameter("useGrayscale2", "Use Grayscale2", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
+        );
+        params.put("useGrayscale3", new Parameter("useGrayscale3", "Use Grayscale3", "Should we use grayscale", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
         );
 
-        params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the images", "false", 1,
+        params.put("imageInvert1", new Parameter("imageInvert1", "ImageInvert1", "Invert the images", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("imageInvert2", new Parameter("imageInvert2", "ImageInvert2", "Invert the images", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("imageInvert3", new Parameter("imageInvert3", "ImageInvert3", "Invert the images", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -212,33 +234,34 @@ public class ImagePopperKernel extends HostedKernel {
         step++;
         seq = 0;
 
-        params.put("bodyWidth1", new Parameter("bodyWidth1", "Body Width", "The width of layer 1", "0.055330948", 1,
+        params.put("bodyWidth1", new Parameter("bodyWidth1", "Body Width1", "The width of layer 1", "0.055330948", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.002, 1, null, null)
         );
 
-        params.put("bodyHeight1", new Parameter("bodyHeight1", "Body Height", "The height of layer 1", "0.04", 1,
+        params.put("bodyHeight1", new Parameter("bodyHeight1", "Body Height1", "The height of layer 1", "0.04", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.002, 1, null, null)
         );
 
-        params.put("bodyWidth2", new Parameter("bodyWidth2", "Body Width", "The width of layer 2", "0.055330948", 1,
+        params.put("bodyWidth2", new Parameter("bodyWidth2", "Body Width2", "The width of layer 2", "0.055330948", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.01, 1, null, null)
         );
 
-        params.put("bodyHeight2", new Parameter("bodyHeight2", "Body Height", "The height of layer 2", "0.04", 1,
+        params.put("bodyHeight2", new Parameter("bodyHeight2", "Body Height2", "The height of layer 2", "0.04", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.01, 1, null, null)
         );
 
-        params.put("bodyWidth3", new Parameter("bodyWidth3", "Body Width", "The width of layer 3", "0.055330948", 1,
+        params.put("bodyWidth3", new Parameter("bodyWidth3", "Body Width3", "The width of layer 3", "0.055330948", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.01, 1, null, null)
         );
 
-        params.put("bodyHeight3", new Parameter("bodyHeight3", "Body Height", "The height of layer 3", "0.04", 1,
+        params.put("bodyHeight3", new Parameter("bodyHeight3", "Body Height3", "The height of layer 3", "0.04", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+
                 step, seq++, false, 0.01, 1, null, null)
         );
 
@@ -357,9 +380,9 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
-        layer1.setUseGrayscale(useGrayscale);
+        layer1.setUseGrayscale(useGrayscale1);
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
-        if (imageInvert) {
+        if (imageInvert1) {
             layer1.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
 
@@ -381,9 +404,9 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
-            layer2.setUseGrayscale(useGrayscale);
+            layer2.setUseGrayscale(useGrayscale2);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
-            if (imageInvert) {
+            if (imageInvert2) {
                 layer2.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
@@ -406,10 +429,10 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
-            layer3.setUseGrayscale(useGrayscale);
+            layer3.setUseGrayscale(useGrayscale3);
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
-            if (imageInvert) {
+            if (imageInvert3) {
                 layer3.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
@@ -425,6 +448,7 @@ public class ImagePopperKernel extends HostedKernel {
 
         GridMaker gm = new GridMaker();
 
+
         gm.setBounds(bounds);
         gm.setDataSource(union);
         gm.setThreadCount(threads);
@@ -433,6 +457,7 @@ public class ImagePopperKernel extends HostedKernel {
         // TODO: Change to use BlockBased for some size
         //grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
         grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
+        grid.setGridBounds(bounds);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
@@ -478,7 +503,7 @@ public class ImagePopperKernel extends HostedKernel {
         if(USE_MESH_MAKER_MT){
 
             double smoothingWidth = 1.;
-            int blockSize = 30;
+            int blockSize = 50;
 
             MeshMakerMT meshmaker = new MeshMakerMT();
 
@@ -612,14 +637,26 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
-            pname = "useGrayscale";
-            useGrayscale = (Boolean) params.get(pname);
+            pname = "useGrayscale1";
+            useGrayscale2 = (Boolean) params.get(pname);
+
+            pname = "useGrayscale2";
+            useGrayscale2 = (Boolean) params.get(pname);
+
+            pname = "useGrayscale3";
+            useGrayscale3 = (Boolean) params.get(pname);
 
             pname = "visRemovedRegions";
             visRemovedRegions = (Boolean) params.get(pname);
 
-            pname = "imageInvert";
-            imageInvert = (Boolean) params.get(pname);
+            pname = "imageInvert1";
+            imageInvert1 = (Boolean) params.get(pname);
+
+            pname = "imageInvert2";
+            imageInvert2 = (Boolean) params.get(pname);
+
+            pname = "imageInvert3";
+            imageInvert3 = (Boolean) params.get(pname);
 
             pname = "threads";
             threads = ((Integer) params.get(pname)).intValue();
