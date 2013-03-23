@@ -14,7 +14,14 @@ package abfab3d.util;
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.Graphics2D;
+
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferUShort;
+import java.awt.image.DataBufferByte;
+
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 
 /**
@@ -89,7 +96,8 @@ public class ImageUtil {
         
     }
 
-    // combination of non-premult color components 
+    
+    // overlay of non-premult color components c1 over c2 
     public static final int combineInt(int c1, int c2, int alpha){
         
         return c1 + (c2 - c1)* alpha / 255;
@@ -259,5 +267,165 @@ public class ImageUtil {
         }
         return null;
     }  
+
+    public static String getImageTypeName(int type){
+        switch(type){
+        default: return "UNKNOWN";
+        case BufferedImage.TYPE_3BYTE_BGR: return "3BYTE_BGR";
+        case BufferedImage.TYPE_4BYTE_ABGR: return "4BYTE_ABGR";
+        case BufferedImage.TYPE_4BYTE_ABGR_PRE: return "4BYTE_ABGR_PRE";
+        case BufferedImage.TYPE_BYTE_BINARY: return "BYTE_BINARY";
+        case BufferedImage.TYPE_BYTE_GRAY: return "BYTE_GRAY";
+        case BufferedImage.TYPE_BYTE_INDEXED: return "BYTE_INDEXED";
+        case BufferedImage.TYPE_CUSTOM: return "CUSTOM";
+        case BufferedImage.TYPE_INT_ARGB: return "INT_ARGB";
+        case BufferedImage.TYPE_INT_ARGB_PRE: return "INT_ARGB_PRE";
+        case BufferedImage.TYPE_INT_BGR: return "INT_BGR";
+        case BufferedImage.TYPE_INT_RGB: return "INT_RGB";
+        case BufferedImage.TYPE_USHORT_555_RGB: return "USHORT_555_RGB";
+        case BufferedImage.TYPE_USHORT_565_RGB: return "USHORT_565_RGB";
+        case BufferedImage.TYPE_USHORT_GRAY: return "USHORT_GRAY";            
+        }
+    }
+
+    public static String getDataTypeName(int type){
+        switch(type){
+        default: return "Unknown";
+        case DataBuffer.TYPE_BYTE: return "BYTE";
+        case DataBuffer.TYPE_DOUBLE: return "DOUBLE";
+        case DataBuffer.TYPE_FLOAT: return "DOUBLE";
+        case DataBuffer.TYPE_INT: return "INT";
+        case DataBuffer.TYPE_SHORT: return "SHORT";
+        case DataBuffer.TYPE_UNDEFINED: return "UNDEFINED";
+        case DataBuffer.TYPE_USHORT: return "USHORT";
+        }
+    }
+
+    public static short[] getGray16Data(BufferedImage image){
+
+        printf("image type: %s\n",ImageUtil.getImageTypeName(image.getType()));
+
+        DataBuffer dataBuffer = image.getRaster().getDataBuffer();
+
+        printf("image data type: %s\n", ImageUtil.getDataTypeName(dataBuffer.getDataType()));
+
+        printf("buffer: %s\n", dataBuffer);
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
+        
+        int grayDataSize = imageWidth*imageHeight;
+
+        short grayData[] = new short[grayDataSize];
+        
+        switch(image.getType()){
+        case BufferedImage.TYPE_CUSTOM: 
+            {
+                switch(dataBuffer.getDataType()){
+                default:
+                    throw new IllegalArgumentException(fmt("unhandled image data format: %s \n",getDataTypeName(dataBuffer.getDataType())));
+                case DataBuffer.TYPE_USHORT: 
+                    ushort2gray16(((DataBufferUShort)dataBuffer).getData(), grayData);
+                    break;
+                }
+                break;
+            }
+            
+        case BufferedImage.TYPE_4BYTE_ABGR:
+            {                
+                byteABGR2gray16(((DataBufferByte)dataBuffer).getData(), grayData);            
+                break;
+                
+            }
+        case BufferedImage.TYPE_3BYTE_BGR:
+            {
+                byteBGR2gray16(((DataBufferByte)dataBuffer).getData(), grayData);            
+                break;
+            }
+        default:
+            {
+                int imageData[] = new int[imageWidth * imageHeight];
+                image.getRGB(0,0,imageWidth, imageHeight, imageData, 0, imageWidth);            
+                int len = imageData.length; 
+                for(int i = 0; i < grayDataSize; i++){
+                    // convert data into grayscale short  
+                    grayData[i] = (short)(0xFFFF & (getCombinedGray(SOLID_WHITE, imageData[i]) << 8)); 
+                }
+            }            
+        }
+        
+        return grayData;
+        
+    }
+
+    static void byteABGR2gray16(byte imageData[], short grayData[]){
+
+        int len = grayData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 4){
+            
+            int a = ub2i(imageData[k]);
+            int b = ub2i(imageData[k+1]);
+            int g = ub2i(imageData[k+2]);
+            int r = ub2i(imageData[k+3]);
+            // overlay over solid white
+            int gray = combineInt(0xFF, (r + g + b)/3,a);
+            
+            //r = combineInt(0xFF, r, a);
+            //g = combineInt(0xFF, g, a);
+            //b = combineInt(0xFF, b, a);
+        
+            grayData[i] = (short)(0xFFFF & (gray << 8));
+            //grayData[i] = (short)((0xFFFF & (r + g + b)/3) << 8);
     
-}
+        }        
+    }
+
+    // array of BGR bytes to gray16 conversion 
+    static void byteBGR2gray16(byte imageData[], short grayData[]){
+
+        int len = grayData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 3){
+            grayData[i] = (short)(0xFFFF & (((ub2i(imageData[k]) + ub2i(imageData[k+1]) + ub2i(imageData[k+2]))/3) << 8));
+        }
+        
+    }
+        
+    static void ushort2gray16(short imageData[], short grayData[]){
+        
+        int len = grayData.length;
+        int count = imageData.length/len;
+        
+        switch(count){
+        default:
+            throw new IllegalArgumentException(fmt("unknown image data component count: %d\n",count));            
+        case 3: //RGB data 
+            for(int i = 0, k = 0; i < len; i++, k += 3){
+                grayData[i] = (short)((us2i(imageData[k]) + us2i(imageData[k+1]) + us2i(imageData[k+2]))/3);
+            }
+            break;            
+        case 4: // RGBA data
+            for(int i = 0, k = 0; i < len; i++, k += 4){
+                //TODO take alpha into account 
+                //return c1 + (c2 - c1)* alpha / 255;
+                int gray = ((us2i(imageData[k]) + us2i(imageData[k+1]) + us2i(imageData[k+2]))/3);
+                int alpha = us2i(imageData[k+3]);
+                grayData[i] = (short)(MAX_USHORT + ((gray - MAX_USHORT)*alpha)/MAX_USHORT);
+            }            
+            break;
+        }
+    }
+
+    // unsigned short to signed int conversion 
+    public static final int us2i(short s){
+        return (0xFFFF & (int)s);        
+    }
+
+    // unsigned byte to signed int conversion 
+    public static final int ub2i(byte s){
+        return (0xFF & (int)s);        
+    }
+
+    static final int SOLID_WHITE = 0xFFFFFFFF;
+    static final int MAX_USHORT = 0xFFFF;
+    
+} // class ImageUtil 
+

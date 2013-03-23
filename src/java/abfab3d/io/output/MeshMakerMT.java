@@ -84,7 +84,7 @@ public class MeshMakerMT {
 
     }
     
-    public void setGridMaxAttributeValue(int gridMaxAttributeValue){
+    public void setMaxAttributeValue(int gridMaxAttributeValue){
 
         m_gridMaxAttributeValue = gridMaxAttributeValue;
 
