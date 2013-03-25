@@ -24,6 +24,7 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.Grid;
 
 import abfab3d.grid.op.DataSources;
+import abfab3d.grid.op.DataSourceImageBitmap;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.VecTransforms;
 
@@ -567,7 +568,7 @@ public class RingPopperKernel extends HostedKernel {
      */
     DataSource makeImageBand() {
 
-        DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
+        DataSourceImageBitmap image_src = new DataSourceImageBitmap();
 
         image_src.setUseGrayscale(true);
         image_src.setLocation(0, 0, ringThickness / 2);
@@ -575,11 +576,11 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setBaseThickness(baseThickness);
         image_src.setUseGrayscale(useGrayscale);
         if (imageInvert) {
-            image_src.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_ENGRAVED);
+            image_src.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
 
         if (USE_MIP_MAPPING) {
-            image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+            image_src.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
             image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
             image_src.setProbeSize(resolution * 2.);
         }
@@ -671,13 +672,13 @@ public class RingPopperKernel extends HostedKernel {
         printf("text height: %d pixels\n", textHeightPixels);
         printf("vertical text offset: %d pixels\n", textOffsetV);
 
-        DataSources.ImageBitmap textBand = new DataSources.ImageBitmap();
+        DataSourceImageBitmap textBand = new DataSourceImageBitmap();
 
         textBand.setSize(Math.PI * innerDiameter, ringWidth, textDepth);
         // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
         textBand.setLocation(0, 0, -textDepth / 2);
         textBand.setBaseThickness(0.);
-        textBand.setImageType(DataSources.ImageBitmap.IMAGE_TYPE_EMBOSSED);
+        textBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1, 1);
         int fontStyle = Font.PLAIN;
 
@@ -729,7 +730,7 @@ public class RingPopperKernel extends HostedKernel {
      */
     DataSource makeCrossSection() {
 
-        DataSources.ImageBitmap crossSect = new DataSources.ImageBitmap();
+        DataSourceImageBitmap crossSect = new DataSourceImageBitmap();
         double totalWidth = ringWidth;
         if (edgeStyle != edgeStyle.NONE)
             totalWidth += 2 * edgeWidth;
