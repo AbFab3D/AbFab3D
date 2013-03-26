@@ -354,6 +354,21 @@ public class ImagePopperKernel extends HostedKernel {
         double layer2z = 0;            // z-center of middle layer
         double layer3z = 0;            // z-center of bottom layer
 
+        // HARD CODED params to play with 
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
+        double smoothingWidth = 0.0; 
+        // size of grid block for MT calculatins 
+        // (larger values reduce processor cache performance)
+        int blockSize = 50;
+        // max number to use for surface transitions. Should be ODD number 
+        // set it to 1 to have binary grid 
+        int maxGridAttributeValue = 63;
+        // width of surface transition area relative to voxel size
+        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
+        // sreyt it to 0. to make no surface transitions
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+        double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
+
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
             layer1z += bodyDepth2;
@@ -383,16 +398,16 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale1);
+        if(!useGrayscale1)layer1.setBlurWidth(imagesBlurWidth);
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
             layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
-
-
+        
         if (USE_MIP_MAPPING) {
             layer1.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-            layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            layer1.setProbeSize(resolution * 2.);
+        } else {
+            layer1.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);            
         }
 
         union.addDataSource(layer1);
@@ -407,6 +422,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale2);
+            if(!useGrayscale2)layer2.setBlurWidth(imagesBlurWidth);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert2) {
                 layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
@@ -414,8 +430,8 @@ public class ImagePopperKernel extends HostedKernel {
 
             if (USE_MIP_MAPPING) {
                 layer2.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-                layer2.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-                layer2.setProbeSize(resolution * 2.);
+            } else {
+                layer2.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
             }
 
             union.addDataSource(layer2);
@@ -432,6 +448,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale3);
+            if(!useGrayscale3)layer3.setBlurWidth(imagesBlurWidth);
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert3) {
@@ -440,30 +457,16 @@ public class ImagePopperKernel extends HostedKernel {
 
             if (USE_MIP_MAPPING) {
                 layer3.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-                layer3.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-                layer3.setProbeSize(resolution * 2.);
+            } else {
+                layer3.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
             }
 
             union.addDataSource(layer3);
 
         }
 
-        // HARD CODED params to play with 
-        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
-        double smoothingWidth = 0.0; 
-        // size of grid block for MT calculatins 
-        // (larger values reduce processor cache performance)
-        int blockSize = 50;
-        // max number to use for surface transitions. Should be ODD number 
-        // set it to 1 to have binary grid 
-        int maxGridAttributeValue = 63;
-        // width of surface transition area relative to voxel size
-        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
-        // sreyt it to 0. to make no surface transitions
-        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
 
         GridMaker gm = new GridMaker();
-
 
         gm.setBounds(bounds);
         gm.setDataSource(union);
@@ -528,7 +531,7 @@ public class ImagePopperKernel extends HostedKernel {
             meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setSmoothingWidth(smoothingWidth);
-            meshmaker.setGridMaxAttributeValue(maxGridAttributeValue);            
+            meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
 
             // TODO: Need to get a better way to estimate this number
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);

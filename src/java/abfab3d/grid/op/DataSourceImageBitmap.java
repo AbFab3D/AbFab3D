@@ -92,7 +92,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     
     
     private BufferedImage m_image;
-    private int m_interpolationType = INTERPOLATION_BOX;//INTERPOLATION_MIPMAP;//INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
+    private int m_interpolationType = INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
     // probe size in world units
     private double m_probeSize = 1.e-4; // 0.1mm
     // probe size in image pixels, initiliazed in init()
