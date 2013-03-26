@@ -82,7 +82,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     
     protected double m_baseThickness = 0.5; // relative thickness of solid base 
     protected String m_imagePath; 
-    
+    protected double m_baseThreshold = 0.01; 
+
     protected int m_imageType = IMAGE_TYPE_EMBOSSED;
     protected int m_imagePlace = IMAGE_PLACE_TOP; 
     
@@ -178,6 +179,12 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     public void setBlurWidth(double blurWidth){
         
         m_blurWidth = blurWidth;
+        
+    }
+
+    public void setBaseThreshold(double baseThreshold){
+        
+        m_baseThreshold = baseThreshold;
         
     }
     
@@ -473,8 +480,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 imageValue = stepValue;               
             
         } else {
-
-            if(h0 < EPSILON){
+            if(h0 < m_baseThreshold){
                 // transparent background 
                 imageValue = 0.;
             } else {

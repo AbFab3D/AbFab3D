@@ -370,6 +370,8 @@ public class ImagePopperKernel extends HostedKernel {
         double imagesBlurWidth1 = 2*surfaceTransitionWidth*voxelSize;
         double imagesBlurWidth2 = 2*surfaceTransitionWidth*voxelSize;
         double imagesBlurWidth3 = 2*surfaceTransitionWidth*voxelSize;
+        double baseThreshold = 0.1;
+        
 
         int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
 
@@ -407,7 +409,7 @@ public class ImagePopperKernel extends HostedKernel {
         if (imageInvert1) {
             layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
-        
+        layer1.setBaseThreshold(baseThreshold);
         layer1.setInterpolationType(interpolationType);
 
         union.addDataSource(layer1);
@@ -429,6 +431,7 @@ public class ImagePopperKernel extends HostedKernel {
             }
 
             layer2.setInterpolationType(interpolationType);
+            layer2.setBaseThreshold(baseThreshold);
 
             union.addDataSource(layer2);
 
@@ -452,6 +455,7 @@ public class ImagePopperKernel extends HostedKernel {
             }
 
             layer3.setInterpolationType(interpolationType);
+            layer3.setBaseThreshold(baseThreshold);
 
             union.addDataSource(layer3);
 
