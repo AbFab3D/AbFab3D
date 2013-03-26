@@ -367,7 +367,7 @@ public class ImagePopperKernel extends HostedKernel {
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // sreyt it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
-        double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
+        double imagesBlurWidth = 2*surfaceTransitionWidth*voxelSize;
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
@@ -397,8 +397,8 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
-        layer1.setUseGrayscale(useGrayscale1);
-        if(!useGrayscale1)layer1.setBlurWidth(imagesBlurWidth);
+        layer1.setUseGrayscale(useGrayscale1);        
+        layer1.setBlurWidth(imagesBlurWidth);
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
             layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
@@ -422,7 +422,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale2);
-            if(!useGrayscale2)layer2.setBlurWidth(imagesBlurWidth);
+            layer2.setBlurWidth(imagesBlurWidth);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert2) {
                 layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
@@ -448,7 +448,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale3);
-            if(!useGrayscale3)layer3.setBlurWidth(imagesBlurWidth);
+            layer3.setBlurWidth(imagesBlurWidth);
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert3) {
@@ -658,7 +658,7 @@ public class ImagePopperKernel extends HostedKernel {
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
             pname = "useGrayscale1";
-            useGrayscale2 = (Boolean) params.get(pname);
+            useGrayscale1 = (Boolean) params.get(pname);
 
             pname = "useGrayscale2";
             useGrayscale2 = (Boolean) params.get(pname);

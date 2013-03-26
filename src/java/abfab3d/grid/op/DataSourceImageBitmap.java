@@ -308,7 +308,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         if(m_blurWidth >  0.0){ 
             
             double pixelSize = (m_sizeX/ imageWidth);
-            printf("pixelSize: %7.2f\n",pixelSize);
+            printf("pixelSize: %8.6f\n",pixelSize);
             
             double blurSizePixels = m_blurWidth/pixelSize;
 
