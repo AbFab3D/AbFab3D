@@ -11,7 +11,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid;
+package abfab3d.util;
 
 import static abfab3d.util.Output.printf;
 
