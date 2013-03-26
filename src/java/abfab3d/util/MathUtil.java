@@ -89,7 +89,7 @@ public class MathUtil {
         };
     }
 
-    public static int clamp(int x, int xmin, int xmax){
+    public static final int clamp(int x, int xmin, int xmax){
         if(x <= xmin)
             return xmin;
         if(x >= xmax)

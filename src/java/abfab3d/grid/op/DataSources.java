@@ -670,9 +670,9 @@ public class DataSources {
         else 
             return x;
     }
-
+    
     /**
-       return 1 inside of interval and 0 outside of intervale with linerar transitrion in the boundaries
+       return 1 inside of interval and 0 outside of intervale with linear transitrion in the boundaries
      */
     public static final double intervalCap(double x, double xmin, double xmax, double vs){
 

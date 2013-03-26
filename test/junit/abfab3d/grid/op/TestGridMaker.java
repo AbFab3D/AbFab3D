@@ -1834,26 +1834,32 @@ public class TestGridMaker extends TestCase {
         double sizex = 20.1*MM; 
         double sizey = 20.1*MM; 
         double sizez = 20.1*MM;
-        double img_width = 18.*MM;
-        double img_height = 18.*MM;
-        double img_thickness = 2*MM;
+        double img_width = 30.*MM;
+        double img_height = 30.*MM;
+        double img_thickness = 5*MM;
+        
         int threadCount = 4;
         double transitionWidth = Math.sqrt(3)/2;
         int gridMaxAttributeValue = 63;
         int tilesX = 1;
         int tilesY = 1;
         int imagePlace = DataSourceImageBitmap.IMAGE_PLACE_BOTH;
-        int imageType = DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED;
+        int imageType = DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED;//ENGRAVED;
+        boolean greyScale = false;
+        double gridSmooth = 1.;
+        double baseThickness = 0.;
 
         //String imagePath = "docs/images/tile_01_blur.png";
         //String imagePath = "docs/images/circle.png";
         //String imagePath = "docs/images/gradient.png";
         String imagePath = "/tmp/r4-unicorn.png";
         //String imagePath = "/tmp/r4-unicorn_blur.png";
-        //String imagePath = "/tmp/circular_gradient_16bit_a.png";
+        //String imagePath = "/tmp/circular_gradient_16bit_b.png";
         //String imagePath = "/tmp/circular_gradient_16bit.png";
         //String imagePath = "/tmp/box_gray.png";
         //String imagePath = "/tmp/box_white.png";
+        //String imagePath = "docs/images/feet_1024.png";
+        //String imagePath = "docs/images/feet_blur.png";
 
         double gridWidth = sizex + 2*margin;
         double gridHeight = sizey + 2*margin;
@@ -1868,19 +1874,23 @@ public class TestGridMaker extends TestCase {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
         DataSourceImageBitmap image = new DataSourceImageBitmap(imagePath,img_width,img_height, img_thickness);          
-        image.setUseGrayscale(true);
+        image.setUseGrayscale(greyScale);
+        image.setBlurWidth(transitionWidth*voxelSize);        
         image.setTiles(tilesX, tilesY);
-        image.setBaseThickness(0.);
+        image.setBaseThickness(baseThickness);
         image.setImagePlace(imagePlace);
         image.setImageType(imageType);
+        
         //image.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);        
         image.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);        
         //image.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_BOX);        
+
         
         DataSources.DataTransformer shape = new DataSources.DataTransformer();
         shape.setDataSource(image);
-        //shape.setTransform(new VecTransforms.Rotation(new Vector3d(1.,0,0), -Math.PI/6));
-        //shape.setTransform(new VecTransforms.RingWrap(4*MM));
+        //shape.setTransform(new VecTransforms.Scale(3,3,3));
+        shape.setTransform(new VecTransforms.Rotation(new Vector3d(1.,0,0), -Math.PI/6));
+        //shape.setTransform(new VecTransforms.RingWrap(img_width/(2*Math.PI)));
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
@@ -1900,7 +1910,7 @@ public class TestGridMaker extends TestCase {
 
         MeshMakerMT mmaker = new MeshMakerMT();
         mmaker.setMaxAttributeValue(gridMaxAttributeValue);
-        mmaker.setSmoothingWidth(0.);
+        mmaker.setSmoothingWidth(gridSmooth);
         mmaker.setThreadCount(threadCount);
         mmaker.setBlockSize(50);
         mmaker.setMaxDecimationError(3.e-10);

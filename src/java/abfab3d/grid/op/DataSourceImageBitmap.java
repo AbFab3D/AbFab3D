@@ -30,6 +30,7 @@ import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 import abfab3d.util.ImageMipMapGray16;
+import abfab3d.util.ImageGray16;
 
 import abfab3d.util.ImageUtil;
 import abfab3d.util.Output;
@@ -48,6 +49,7 @@ import static abfab3d.util.ImageUtil.ALPHA;
 
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.ImageUtil.us2i;
+import static abfab3d.grid.op.DataSources.step;
 import static abfab3d.grid.op.DataSources.getBox;
 import static abfab3d.grid.op.DataSources.intervalCap;
 
@@ -66,7 +68,7 @@ import static abfab3d.grid.op.DataSources.intervalCap;
 */
 public class DataSourceImageBitmap implements DataSource, Initializable {
 
-    static int debugCount = 0;
+    static int debugCount = 1000;
     
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2; 
@@ -74,7 +76,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     
     static final double PIXEL_NORM = 1./255.;
     static final double SHORT_NORM = 1./0xFFFF;
-    static double EPSILON = 1.e-5;
+    static double EPSILON = 1.e-3;
     
     protected double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
     
@@ -97,6 +99,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     private double m_probeSizeImage=0;         
     // scaling to convert probe size into pixels of image 
     private double m_probeScale; 
+    // width of optional blur of the the image 
+    private double m_blurWidth = 0.;
     
     private double xmin, xmax, ymin, ymax, zmin, zmax;    
     private double imageZmin;// location of lowest poiunt of thge image 
@@ -105,10 +109,12 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     
     private double xscale, yscale, zscale;
     private boolean useGrayscale = true;
-    private int imageWidth, imageHeight;
+    private int imageWidth, imageHeight, imageWidth1, imageHeight1;
     //private int imageData[]; 
-    private byte imageDataByte[]; 
-    private short imageDataShort[];
+    //private byte imageDataByte[]; 
+    //private short imageDataShort[];
+    private ImageGray16 imageData;
+
     
     //private ImageMipMap m_mipMap;
     
@@ -166,6 +172,12 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     public void setBaseThickness(double baseThickness){
         
         m_baseThickness = baseThickness;
+        
+    }
+
+    public void setBlurWidth(double blurWidth){
+        
+        m_blurWidth = blurWidth;
         
     }
     
@@ -252,7 +264,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
 
         imageZScale = (zmax - imageZmin);            
 
-        int imageData[] = null;
+        //int imageData[] = null;
         
         long t0 = time();
         
@@ -261,7 +273,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             // image was supplied via memory 
             image = m_image;
         } else if(m_imagePath == null){
-            imageDataByte = null; 
+            //imageDataByte = null; 
+            
             return RESULT_OK;                
         } else {
             try {
@@ -278,12 +291,36 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         
         imageWidth = image.getWidth();
         imageHeight = image.getHeight();
+        imageWidth1 = imageWidth-1;
+        imageHeight1 = imageHeight-1;
         
         printf("image [%d x %d ] reading done in %d ms\n", imageWidth, imageHeight, (time() - t0));
         t0 = time();
-        imageDataShort = ImageUtil.getGray16Data(image);
-        printf("image data size: %d done in %d ms\n", imageDataShort.length, (time() - t0));
+        short imageDataShort[] = ImageUtil.getGray16Data(image);
+        imageData = new ImageGray16(imageDataShort, imageWidth, imageHeight);
         
+        printf("image data size: done in %d ms\n", (time() - t0));
+        
+        if(!useGrayscale){
+            imageData.makeBlackWhite(m_imageThreshold);
+        }
+
+        if(m_blurWidth >  0.0){ 
+            
+            double pixelSize = (m_sizeX/ imageWidth);
+            printf("pixelSize: %7.2f\n",pixelSize);
+            
+            double blurSizePixels = m_blurWidth/pixelSize;
+
+            printf("gaussian blur: %7.2f\n",blurSizePixels/2);
+            t0 = time();
+
+            imageData.gaussianBlur(blurSizePixels/2);
+            
+            printf("gaussian blur done: %d ms\n",time() - t0);
+
+
+        }
         //char data[] = getBufferData(databuffer);
         
         if(m_interpolationType == INTERPOLATION_MIPMAP){
@@ -291,12 +328,14 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             t0 = time();
             m_mipMap = new ImageMipMapGray16(imageDataShort, imageWidth, imageHeight);
             // release out pointer 
-            imageDataShort = null;
+            imageData = null;
             
             printf("mipmap ready in %d ms\n", (time() - t0));
             
         }else {
+
             m_mipMap = null;
+
         }
         
         /*
@@ -366,8 +405,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             data.v[0] = 0.;
             return RESULT_OK;             
         }
-        
-
+                
         switch(m_imagePlace){            
             // do nothing 
         default:
@@ -386,64 +424,147 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         }
 
         double baseValue = getBox(x,y,z, xmin, xmax, ymin, ymax, baseBottom, imageZmin, vs);
+        double finalValue = baseValue;
         
-        double dx = vs;
+        double dd = vs;
         
-        double h0 = getHeightFieldValue(x,y,vs);
-        
-        if(h0 < imageZmin+EPSILON){
+        double imageX = (x-xmin)*xscale; // x and y are now in (0,1) 
+        double imageY = 1. - (y-ymin)*yscale;
 
-            data.v[0] = baseValue;   
-            return RESULT_OK; 
-
+        if(m_xTilesCount > 1){
+            imageX *= m_xTilesCount;
+            imageX -= Math.floor(imageX);
         }
-
-        double hx = getHeightFieldValue(x+dx,y,    vs);
-        double hy = getHeightFieldValue(x,   y+dx, vs);
-        
-        // normal to the plane via 3 points:  (-(hx-h0), -(hy-h0), vs)
-        double nx = -(hx-h0);
-        double ny = -(hy-h0);
-        double nz = dx;
-
-        if(!(nx == 0. && ny == 0.)){
-            // grayscale OFF 
-            //nz = 0.;
+        if(m_yTilesCount > 1){
+            imageY *= m_yTilesCount;
+            imageY -= Math.floor(imageY);            
         }
         
-        double nn = Math.sqrt(nx*nx + ny*ny + nz*nz);
-        
-        // point on the surface p: (x,y,h0)
-        // distance from point to surface  ((p-p0), n)                
-        double dist = ((z - h0)*vs)/nn;
-        double hfValue = 0;
+        imageX *= imageWidth;
+        imageY *= imageHeight;   
+             
+        // image x and imageY are in image units now 
+        int ix = clamp((int)Math.floor(imageX), 0, imageWidth1);
+        int iy = clamp((int)Math.floor(imageY), 0, imageHeight1);
+        int ix1 = clamp(ix+1, 0, imageWidth1);
+        int iy1 = clamp(iy+1, 0, imageHeight1);        
+        double dx = imageX - ix;
+        double dy = imageY - iy;
+        double dx1 = 1. - dx;
+        double dy1 = 1. - dy;
+        double v00 = getImageHeight(ix, iy);
+        double v10 = getImageHeight(ix1,iy);
+        double v01 = getImageHeight(ix, iy1);
+        double v11 = getImageHeight(ix1,iy1);
+            
+        double h0 = (dx1*(v00 * dy1 + v01 * dy) + dx * (v11 * dy + v10 * dy1)); 
 
-        if(dist <= -vs) 
-            hfValue = 1;
-        else if(dist >= vs)    
-            hfValue = 0;
-        else 
-            hfValue = (1. - (dist/vs))/2;            
-                
-        hfValue *= intervalCap(z, imageZmin, zmax, vs) * intervalCap(x, xmin, xmax, vs) * intervalCap(y, ymin, ymax, vs);
-        
-        if(baseValue > hfValue){
-            data.v[0] = baseValue;
+        double imageValue = 0.; // distance to the image 
+
+        if(!useGrayscale){
+            
+            // image is precalculated to return normalized value of distance
+            imageValue = h0;
+            
+            double stepValue = step(((zmax+vs)-z)/(vs*2));
+            if(imageValue > stepValue)
+                imageValue = stepValue;               
+            
         } else {
-            data.v[0] = hfValue; 
+            
+            h0 = imageZmin + imageZScale*h0;
+            //hy = imageZmin + imageZScale*h0;
+
+            //TODO - better calculation of normal 
+            double pixelSize = (m_sizeX/ imageWidth);            
+            double nx = -(v10 - v00)*imageZScale;
+            double ny = -(v01 - v00)*imageZScale;
+            double nz = pixelSize; 
+            
+            /*
+              double h0 = getHeightFieldValue(x,y,vs);
+              
+              if(h0 < imageZmin+EPSILON){
+              
+              data.v[0] = baseValue;   
+              return RESULT_OK; 
+              
+              }
+              
+              double hx = getHeightFieldValue(x+dd,y,    vs);
+              double hy = getHeightFieldValue(x,   y+dd, vs);            
+              
+              // normal to the plane via 3 points:  (-(hx-h0), -(hy-h0), vs)
+              double nx = -(hx-h0);
+              double ny = -(hy-h0);
+              double nz = dx;        
+              
+              if(!(nx == 0. && ny == 0.)){
+              // grayscale OFF 
+              //nz = 0.;
+              }
+            */
+            
+            double nn = Math.sqrt(nx*nx + ny*ny + nz*nz);
+            
+            // point on the surface p: (x,y,h0)
+            // distance from point to surface  ((p-p0), n)                
+            //double dist = ((z - h0)*vs)/nn;
+            // distance to that plane passing via 3 points (v00, v10, v01)
+            double dist = ((z - h0)*pixelSize)/nn;
+            
+            if(dist <= -vs) 
+                imageValue = 1.;
+            else if(dist >= vs)    
+                imageValue = 0.;
+            else 
+                imageValue = (1. - (dist/vs))/2;
+            
         }
         
+        
+        //hfValue *= intervalCap(z, imageZmin, zmax, vs) * intervalCap(x, xmin, xmax, vs) * intervalCap(y, ymin, ymax, vs);
+        if(imageValue > finalValue)
+            finalValue = imageValue;
+
+        
+        data.v[0] = finalValue;
+
         return RESULT_OK; 
         
     }
     
+   
+    final double getImageHeight(int ix, int iy){
+
+        double v = 0.;
+
+        try {
+            v = imageData.getDataD(ix, iy);
+        } catch(Exception e){
+            e.printStackTrace(Output.out);
+        }
+
+        switch(m_imageType){
+        case IMAGE_TYPE_EMBOSSED: 
+            v = 1. - v;
+            break;
+
+        default: 
+        case IMAGE_TYPE_ENGRAVED:
+            break;
+        }
+
+        return v;
+        
+    }
     
     double getHeightFieldValue(double x,double y, double probeSize){
         
         //if(debugCount-- > 0)
         //    printf("ImageBitmap.getHeightFieldValue(%10.5f, %10.5f, %10.5f)\n", x,y,probeSize);
         
-        x = (x-xmin)*xscale; // x and y are now is in (0,1) 
+        x = (x-xmin)*xscale; // x and y are now in (0,1) 
         y = 1. - (y-ymin)*yscale;
 
         if(m_xTilesCount > 1){
@@ -461,7 +582,6 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         probeSize *= xscale*imageWidth;
 
         double v = getPixelValue(x,y,probeSize); 
-
 
         v = imageZmin + imageZScale*v;
         
@@ -630,13 +750,20 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         int yoffset0 = y0 * imageWidth;
         int yoffset1 = y1 * imageWidth;
 
+        double d00 = imageData.getDataD(x0, y0);
+        double d10 = imageData.getDataD(x1, y0);
+        double d01 = imageData.getDataD(x0, y1);
+        double d11 = imageData.getDataD(x1, y1);
+        return (dx1*(d00 * dy1 + d01 * dy) + dx * (d11 * dy + d10 * dy1));            
+        
+        /*
         int v00 = us2i(imageDataShort[yoffset0 + x0]);
         int v10 = us2i(imageDataShort[yoffset0 + x1]);
         int v01 = us2i(imageDataShort[yoffset1 + x0]);
         int v11 = us2i(imageDataShort[yoffset1 + x1]);
         
         return SHORT_NORM*(dx1*(v00 * dy1 + v01 * dy) + dx * (v11 * dy + v10 * dy1));            
-        
+        */
         //x = x - imageWidth * Math.floor(x/imageWidth);
         //y = y - imageHeight * Math.floor(y/imageHeight); 
 
@@ -659,7 +786,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         
         int i0 = ix  + iy * imageWidth;
         double v00 = 0., v10 = 0., v01 = 0., v11 = 0.;
-        
+        /*
         try {
             v00 = (0xFF) & ((int)imageDataByte[i0]);
             v10 = (0xFF) & ((int)imageDataByte[i0 + 1]);
@@ -668,19 +795,23 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         } catch (Exception e){}
 
         return SHORT_NORM*(dx1*(v00 * dy1 + v01 * dy) + dx * (v11 * dy + v10 * dy1));            
-        
+        */
+        return 0.;
     }
     
     final double getPixelBoxShort(double x, double y){
         
         int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
         int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
+
+        return imageData.getDataD(ix,iy);
         
-        return SHORT_NORM*us2i(imageDataShort[ix + imageWidth * iy]);
+        //return SHORT_NORM*us2i(imageDataShort[ix + imageWidth * iy]);
                 
     }
     
     // BOX approximation with double colors 
+    /*
     double getPixelBoxDouble(double x, double y){
         
         int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
@@ -693,7 +824,9 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         //return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;
         
     }
+    */
     // BOX approximation with int colors 
+    /*
     int getPixelBoxInt(double x, double y){
         
         int ix = (int)x;
@@ -707,7 +840,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         return ImageUtil.getCombinedGray(m_backgroundColorInt, rgb);
         
     }
-    
+    */
 }  // class DataSourceImageBitmap
 
 /*
