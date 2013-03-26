@@ -68,7 +68,7 @@ import static abfab3d.grid.op.DataSources.intervalCap;
 */
 public class DataSourceImageBitmap implements DataSource, Initializable {
 
-    static int debugCount = 1000;
+    static int debugCount = 3000;
     
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2; 
@@ -425,7 +425,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
 
         double baseValue = getBox(x,y,z, xmin, xmax, ymin, ymax, baseBottom, imageZmin, vs);
         double finalValue = baseValue;
-        
+
         double dd = vs;
         
         double imageX = (x-xmin)*xscale; // x and y are now in (0,1) 
@@ -456,7 +456,9 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         double v10 = getImageHeight(ix1,iy);
         double v01 = getImageHeight(ix, iy1);
         double v11 = getImageHeight(ix1,iy1);
-            
+
+        //if(debugCount-- > 0) printf("xyz: (%7.5f, %7.5f,%7.5f) ixy[%4d, %4d ] -> v00:%18.15f\n", x,y,z, ix, iy, v00);
+
         double h0 = (dx1*(v00 * dy1 + v01 * dy) + dx * (v11 * dy + v10 * dy1)); 
 
         double imageValue = 0.; // distance to the image 
@@ -471,55 +473,60 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 imageValue = stepValue;               
             
         } else {
-            
-            h0 = imageZmin + imageZScale*h0;
-            //hy = imageZmin + imageZScale*h0;
 
-            //TODO - better calculation of normal 
-            double pixelSize = (m_sizeX/ imageWidth);            
-            double nx = -(v10 - v00)*imageZScale;
-            double ny = -(v01 - v00)*imageZScale;
-            double nz = pixelSize; 
-            
-            /*
-              double h0 = getHeightFieldValue(x,y,vs);
-              
-              if(h0 < imageZmin+EPSILON){
-              
-              data.v[0] = baseValue;   
-              return RESULT_OK; 
-              
-              }
-              
-              double hx = getHeightFieldValue(x+dd,y,    vs);
-              double hy = getHeightFieldValue(x,   y+dd, vs);            
-              
-              // normal to the plane via 3 points:  (-(hx-h0), -(hy-h0), vs)
-              double nx = -(hx-h0);
-              double ny = -(hy-h0);
-              double nz = dx;        
-              
-              if(!(nx == 0. && ny == 0.)){
-              // grayscale OFF 
-              //nz = 0.;
-              }
-            */
-            
-            double nn = Math.sqrt(nx*nx + ny*ny + nz*nz);
-            
-            // point on the surface p: (x,y,h0)
-            // distance from point to surface  ((p-p0), n)                
-            //double dist = ((z - h0)*vs)/nn;
-            // distance to that plane passing via 3 points (v00, v10, v01)
-            double dist = ((z - h0)*pixelSize)/nn;
-            
-            if(dist <= -vs) 
-                imageValue = 1.;
-            else if(dist >= vs)    
+            if(h0 < EPSILON){
+                // transparent background 
                 imageValue = 0.;
-            else 
-                imageValue = (1. - (dist/vs))/2;
+            } else {
+                double z0 = imageZmin + imageZScale*h0;
+                //hy = imageZmin + imageZScale*h0;
+                
+                //TODO - better calculation of normal in case of tiles
+                double pixelSize = (m_sizeX/ imageWidth);            
+                double nx = -(v10 - v00)*imageZScale;
+                double ny = -(v01 - v00)*imageZScale;
+                double nz = pixelSize; 
             
+            
+                /*
+                  double h0 = getHeightFieldValue(x,y,vs);
+                  
+                  if(h0 < imageZmin+EPSILON){
+                  
+                  data.v[0] = baseValue;   
+                  return RESULT_OK; 
+                  
+                  }
+                  
+                  double hx = getHeightFieldValue(x+dd,y,    vs);
+                  double hy = getHeightFieldValue(x,   y+dd, vs);            
+                  
+                  // normal to the plane via 3 points:  (-(hx-h0), -(hy-h0), vs)
+                  double nx = -(hx-h0);
+                  double ny = -(hy-h0);
+                  double nz = dx;        
+                  
+                  if(!(nx == 0. && ny == 0.)){
+                  // grayscale OFF 
+                  //nz = 0.;
+                  }
+                */
+                
+                double nn = Math.sqrt(nx*nx + ny*ny + nz*nz);
+                
+                // point on the surface p: (x,y,h0)
+                // distance from point to surface  ((p-p0), n)                
+                //double dist = ((z - h0)*vs)/nn;
+                // distance to that plane passing via 3 points (v00, v10, v01)
+                double dist = ((z - z0)*pixelSize)/nn;
+                
+                if(dist <= -vs) 
+                    imageValue = 1.;
+                else if(dist >= vs)    
+                    imageValue = 0.;
+                else 
+                    imageValue = (1. - (dist/vs))/2;
+            }  // if(h0 < EPSILON            
         }
         
         
@@ -527,7 +534,6 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         if(imageValue > finalValue)
             finalValue = imageValue;
 
-        
         data.v[0] = finalValue;
 
         return RESULT_OK; 
@@ -548,6 +554,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         switch(m_imageType){
         case IMAGE_TYPE_EMBOSSED: 
             v = 1. - v;
+            if( v < EPSILON)
+                v = 0;
             break;
 
         default: 

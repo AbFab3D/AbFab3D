@@ -1828,31 +1828,32 @@ public class TestGridMaker extends TestCase {
         
         printf("testImage()\n");
 
-        double voxelSize = 0.05*MM;
+        double voxelSize = 0.07*MM;
         double margin = 2*voxelSize;
 
-        double sizex = 20.1*MM; 
-        double sizey = 20.1*MM; 
-        double sizez = 20.1*MM;
+        double sizex = 30.1*MM; 
+        double sizey = 30.1*MM; 
+        double sizez = 5.1*MM;
         double img_width = 30.*MM;
         double img_height = 30.*MM;
-        double img_thickness = 5*MM;
+        double img_thickness = 1*MM;
         
         int threadCount = 4;
         double transitionWidth = Math.sqrt(3)/2;
         int gridMaxAttributeValue = 63;
         int tilesX = 1;
         int tilesY = 1;
-        int imagePlace = DataSourceImageBitmap.IMAGE_PLACE_BOTH;
+        int imagePlace = DataSourceImageBitmap.IMAGE_PLACE_TOP;
         int imageType = DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED;//ENGRAVED;
-        boolean greyScale = false;
+        boolean greyScale = true;
         double gridSmooth = 1.;
-        double baseThickness = 0.;
+        double baseThickness = 0.1;
 
         //String imagePath = "docs/images/tile_01_blur.png";
         //String imagePath = "docs/images/circle.png";
         //String imagePath = "docs/images/gradient.png";
-        String imagePath = "/tmp/r4-unicorn.png";
+        //String imagePath = "/tmp/r4-unicorn.png";
+        String imagePath = "/tmp/r5-bird.png";
         //String imagePath = "/tmp/r4-unicorn_blur.png";
         //String imagePath = "/tmp/circular_gradient_16bit_b.png";
         //String imagePath = "/tmp/circular_gradient_16bit.png";
@@ -1889,7 +1890,7 @@ public class TestGridMaker extends TestCase {
         DataSources.DataTransformer shape = new DataSources.DataTransformer();
         shape.setDataSource(image);
         //shape.setTransform(new VecTransforms.Scale(3,3,3));
-        shape.setTransform(new VecTransforms.Rotation(new Vector3d(1.,0,0), -Math.PI/6));
+        //shape.setTransform(new VecTransforms.Rotation(new Vector3d(1.,0,0), -Math.PI/6));
         //shape.setTransform(new VecTransforms.RingWrap(img_width/(2*Math.PI)));
 
         GridMaker gm = new GridMaker();  

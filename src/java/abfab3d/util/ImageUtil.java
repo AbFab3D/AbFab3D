@@ -348,7 +348,7 @@ public class ImageUtil {
                 int len = imageData.length; 
                 for(int i = 0; i < grayDataSize; i++){
                     // convert data into grayscale short  
-                    grayData[i] = (short)(0xFFFF & (getCombinedGray(SOLID_WHITE, imageData[i]) << 8)); 
+                    grayData[i] = ub2us(getCombinedGray(SOLID_WHITE, imageData[i])); 
                 }
             }            
         }
@@ -373,7 +373,7 @@ public class ImageUtil {
             //g = combineInt(0xFF, g, a);
             //b = combineInt(0xFF, b, a);
         
-            grayData[i] = (short)(0xFFFF & (gray << 8));
+            grayData[i] = ub2us(gray);
             //grayData[i] = (short)((0xFFFF & (r + g + b)/3) << 8);
     
         }        
@@ -384,7 +384,7 @@ public class ImageUtil {
 
         int len = grayData.length;
         for(int i = 0, k = 0; i < len; i++, k += 3){
-            grayData[i] = (short)(0xFFFF & (((ub2i(imageData[k]) + ub2i(imageData[k+1]) + ub2i(imageData[k+2]))/3) << 8));
+            grayData[i] = ub2us((ub2i(imageData[k]) + ub2i(imageData[k+1]) + ub2i(imageData[k+2]))/3);
         }
         
     }
@@ -414,6 +414,12 @@ public class ImageUtil {
         }
     }
 
+    // unsigned byte to unsignes short conversion 
+    // with scaling to map 0xFF to 0xFFFF 
+    final static short ub2us(int ub){
+        return (short)(0xFFFF & (( (0xFF & ub) * MAX_USHORT)/MAX_UBYTE));
+    }
+
     // unsigned short to signed int conversion 
     public static final int us2i(short s){
         return (0xFFFF & (int)s);        
@@ -426,6 +432,7 @@ public class ImageUtil {
 
     static final int SOLID_WHITE = 0xFFFFFFFF;
     static final int MAX_USHORT = 0xFFFF;
+    static final int MAX_UBYTE = 0xFF;
     
 } // class ImageUtil 
 

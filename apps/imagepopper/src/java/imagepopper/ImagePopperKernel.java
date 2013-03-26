@@ -367,7 +367,11 @@ public class ImagePopperKernel extends HostedKernel {
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // sreyt it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
-        double imagesBlurWidth = 2*surfaceTransitionWidth*voxelSize;
+        double imagesBlurWidth1 = 2*surfaceTransitionWidth*voxelSize;
+        double imagesBlurWidth2 = 2*surfaceTransitionWidth*voxelSize;
+        double imagesBlurWidth3 = 2*surfaceTransitionWidth*voxelSize;
+
+        int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
@@ -398,17 +402,13 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale1);        
-        layer1.setBlurWidth(imagesBlurWidth);
+        layer1.setBlurWidth(imagesBlurWidth1);
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
             layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
         
-        if (USE_MIP_MAPPING) {
-            layer1.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-        } else {
-            layer1.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);            
-        }
+        layer1.setInterpolationType(interpolationType);
 
         union.addDataSource(layer1);
 
@@ -422,17 +422,13 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale2);
-            layer2.setBlurWidth(imagesBlurWidth);
+            layer2.setBlurWidth(imagesBlurWidth2);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert2) {
                 layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
-            if (USE_MIP_MAPPING) {
-                layer2.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-            } else {
-                layer2.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
-            }
+            layer2.setInterpolationType(interpolationType);
 
             union.addDataSource(layer2);
 
@@ -448,18 +444,14 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale3);
-            layer3.setBlurWidth(imagesBlurWidth);
+            layer3.setBlurWidth(imagesBlurWidth3);
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert3) {
                 layer3.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
-            if (USE_MIP_MAPPING) {
-                layer3.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-            } else {
-                layer3.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
-            }
+            layer3.setInterpolationType(interpolationType);
 
             union.addDataSource(layer3);
 
