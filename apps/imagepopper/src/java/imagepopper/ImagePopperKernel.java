@@ -658,7 +658,7 @@ public class ImagePopperKernel extends HostedKernel {
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
             pname = "useGrayscale1";
-            useGrayscale2 = (Boolean) params.get(pname);
+            useGrayscale1 = (Boolean) params.get(pname);
 
             pname = "useGrayscale2";
             useGrayscale2 = (Boolean) params.get(pname);
