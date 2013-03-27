@@ -489,8 +489,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 
                 //TODO - better calculation of normal in case of tiles
                 double pixelSize = (m_sizeX/ imageWidth);            
-                double nx = -(v10 - v00)*imageZScale;
-                double ny = -(v01 - v00)*imageZScale;
+                double nx = -(v10 - v00)*imageZScale*m_xTilesCount;
+                double ny = -(v01 - v00)*imageZScale*m_yTilesCount;
                 double nz = pixelSize; 
             
             

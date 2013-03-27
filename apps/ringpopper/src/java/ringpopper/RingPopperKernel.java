@@ -173,6 +173,10 @@ public class RingPopperKernel extends HostedKernel {
     private boolean fontItalic = false;
     private int fontSize = 20;
 
+    private double imageBlurWidth = 0.;
+    private int imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
+    private double imageBaseThreshold = 0.1;
+
     /**
      * How many regions to keep
      */
@@ -334,7 +338,7 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, true, 0, 100, null, null)
         );
 
-        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxels to smooth", "1.5", 1,
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxels to smooth", "0.5", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 100, null, null)
         );
@@ -382,6 +386,7 @@ public class RingPopperKernel extends HostedKernel {
         double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
 
         double margin = 1 * resolution;
+        double voxelSize = resolution;
 
         double gridWidth = (innerDiameter + 2 * ringThickness + 2 * margin);
         double gridHeight = (ringWidth + 2 * edgeWidth + 2 * margin);
@@ -394,6 +399,22 @@ public class RingPopperKernel extends HostedKernel {
         int nz = (int) ((bounds[5] - bounds[4]) / resolution);
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
+        // HARD CODED params to play with 
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
+        //double smoothingWidth = 0.0; 
+        // size of grid block for MT calculatins 
+        // (larger values reduce processor cache performance)
+        int blockSize = 50;
+        // max number to use for surface transitions. Should be ODD number 
+        // set it to 1 to have binary grid 
+        int maxGridAttributeValue = 63;
+        // width of surface transition area relative to voxel size
+        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
+        // set it to 0. to make no surface transitions
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+        imageBlurWidth = 2*surfaceTransitionWidth*voxelSize;
+        imageBaseThreshold = 0.1;            
+        imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
 
         DataSource image_band = makeImageBand();
 
@@ -431,9 +452,11 @@ public class RingPopperKernel extends HostedKernel {
         
         gm.setBounds(bounds);
         gm.setDataSource(clippedRing);
+        gm.setMaxAttributeValue(maxGridAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
 
         // Seems BlockBased better for this then Array.
-        // BlockBasedGridByte is not MT safe
+        // BlockBasedGridByte is not MT safe (VB)
 
         Grid grid = null;
 /*
@@ -444,7 +467,6 @@ public class RingPopperKernel extends HostedKernel {
         }
 */
         grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
-
         //  grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
         grid.setGridBounds(bounds);
 
@@ -491,15 +513,14 @@ public class RingPopperKernel extends HostedKernel {
 
         if(USE_MESH_MAKER_MT){
 
-            int blockSize = 50;
-            
             MeshMakerMT meshmaker = new MeshMakerMT();        
 
             t0 = time();
             meshmaker.setBlockSize(blockSize);
             meshmaker.setThreadCount(threadCount);
-            meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setSmoothingWidth(smoothingWidth);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
 
             // TODO: Need to get a better way to estimate this number
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
@@ -511,11 +532,14 @@ public class RingPopperKernel extends HostedKernel {
             mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
             printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
-            if(smoothSteps > 0){
-                LaplasianSmooth ls = new LaplasianSmooth();
-                ls.processMesh(mesh, smoothSteps);
+            if(false){ // this should not be used here
+                if(smoothSteps > 0){
+                    LaplasianSmooth ls = new LaplasianSmooth();
+                    ls.processMesh(mesh, smoothSteps);
+                }
             }
             // extra decimation to get rid of seams
+            //TODO - better targeting of seams
             if(maxDecimationError > 0){
                 t0 = time();
                 mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
@@ -523,7 +547,7 @@ public class RingPopperKernel extends HostedKernel {
             }
             
         } else {
-            
+            // old ST style 
             mesh = GridSaver.createIsosurface(grid, smoothSteps);
 
             // Release grid to lower total memory requirements
@@ -548,8 +572,8 @@ public class RingPopperKernel extends HostedKernel {
         double surface_area = ac.getArea();
 
         // Do not shorten the accuracy of these prints they need to be high
-        printf("final surface area: %7.8f cm^2\n", surface_area * 1.e4);
-        printf("final volume: %7.8f cm^3\n", volume * 1.e6);
+        printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %12.8f cm^3\n", volume * 1.e6);
         
         printf("Total time: %d ms\n", (time() - start));
         printf("-------------------------------------------------\n");
@@ -570,20 +594,20 @@ public class RingPopperKernel extends HostedKernel {
 
         DataSourceImageBitmap image_src = new DataSourceImageBitmap();
 
-        image_src.setUseGrayscale(true);
         image_src.setLocation(0, 0, ringThickness / 2);
         image_src.setImagePath(imagePath);
         image_src.setBaseThickness(baseThickness);
         image_src.setUseGrayscale(useGrayscale);
+        image_src.setBlurWidth((useGrayscale)? 0.: imageBlurWidth);
+        image_src.setBaseThreshold(imageBaseThreshold);
+        image_src.setInterpolationType(imageInterpolationType);
+        
         if (imageInvert) {
             image_src.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
 
-        if (USE_MIP_MAPPING) {
-            image_src.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-            image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            image_src.setProbeSize(resolution * 2.);
-        }
+        image_src.setInterpolationType(imageInterpolationType);
+        
 
         if (symmetryStyle == SymmetryStyle.NONE) {
 
@@ -628,14 +652,14 @@ public class RingPopperKernel extends HostedKernel {
 
         if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
             DataSources.Block top_band = new DataSources.Block();
-            top_band.setSize(innerDiameter * Math.PI, edgeWidth, ringThickness);
+            top_band.setSize(innerDiameter * Math.PI*1.1, edgeWidth, ringThickness);
             top_band.setLocation(0, ringWidth / 2 + edgeWidth / 2, ringThickness / 2);
             union.addDataSource(top_band);
         }
 
         if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
             DataSources.Block bottom_band = new DataSources.Block();
-            bottom_band.setSize(innerDiameter * Math.PI, edgeWidth, ringThickness);
+            bottom_band.setSize(innerDiameter * Math.PI*1.1, edgeWidth, ringThickness);
             bottom_band.setLocation(0, -ringWidth / 2 - edgeWidth / 2, ringThickness / 2);
             union.addDataSource(bottom_band);
         }
@@ -680,6 +704,11 @@ public class RingPopperKernel extends HostedKernel {
         textBand.setBaseThickness(0.);
         textBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1, 1);
+        textBand.setBlurWidth(imageBlurWidth);
+        textBand.setUseGrayscale(false);
+        textBand.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
+
+
         int fontStyle = Font.PLAIN;
 
         if (fontBold)
@@ -740,6 +769,8 @@ public class RingPopperKernel extends HostedKernel {
         crossSect.setBaseThickness(0.);
         crossSect.setUseGrayscale(false);
         crossSect.setImagePath(crossSectionPath);
+        crossSect.setBlurWidth(imageBlurWidth);
+        crossSect.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
 
         VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
 

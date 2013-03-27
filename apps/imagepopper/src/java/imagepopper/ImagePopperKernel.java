@@ -94,7 +94,7 @@ public class ImagePopperKernel extends HostedKernel {
     private double resolution;
     private PreviewQuality previewQuality;
     private int smoothSteps;
-    private double smoothWidth;
+    private double smoothingWidth;
     private double maxDecimationError;
 
     /**
@@ -310,7 +310,7 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, 0, 100, null, null)
         );
 
-        params.put("smoothWidth", new Parameter("smoothWidth", "Smooth Width", "How much smooth the grid", "0.", 1,
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxles to smooth", "0.", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0., 5., null, null)
         );
@@ -376,9 +376,8 @@ public class ImagePopperKernel extends HostedKernel {
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
         double imagesBlurWidth = 2*surfaceTransitionWidth*voxelSize;
         double baseThreshold = 0.1;
-        
-
         int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
+        
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
@@ -530,7 +529,7 @@ public class ImagePopperKernel extends HostedKernel {
             t0 = time();
             meshmaker.setBlockSize(blockSize);
             meshmaker.setThreadCount(threads);
-            meshmaker.setSmoothingWidth(smoothWidth);
+            meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
 
@@ -575,8 +574,8 @@ public class ImagePopperKernel extends HostedKernel {
         double surface_area = ac.getArea();
 
         // Do not shorten the accuracy of these prints they need to be high
-        printf("final surface area: %7.8f cm^2\n", surface_area * 1.e4);
-        printf("final volume: %7.8f cm^3\n", volume * 1.e6);
+        printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %12.8f cm^3\n", volume * 1.e6);
 
         printf("Total time: %d ms\n", (time() - start));
         printf("-------------------------------------------------\n");
@@ -655,8 +654,8 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
-            pname = "smoothWidth";
-            smoothWidth = ((Double) params.get(pname)).doubleValue();
+            pname = "smoothingWidth";
+            smoothingWidth = ((Double) params.get(pname)).doubleValue();
 
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
