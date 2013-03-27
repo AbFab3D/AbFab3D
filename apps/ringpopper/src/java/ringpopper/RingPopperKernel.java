@@ -412,7 +412,7 @@ public class RingPopperKernel extends HostedKernel {
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // set it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
-        imageBlurWidth = 2*surfaceTransitionWidth*voxelSize;
+        imageBlurWidth = surfaceTransitionWidth*voxelSize;
         imageBaseThreshold = 0.1;            
         imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
 
