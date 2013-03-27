@@ -78,6 +78,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     static final double PIXEL_NORM = 1./255.;
     static final double SHORT_NORM = 1./0xFFFF;
     static double EPSILON = 1.e-3;
+    static final int MAX_PIXELS_PER_VOXEL = 3;
     
     protected double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
     
@@ -103,7 +104,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     private double m_probeScale; 
     // width of optional blur of the the image 
     private double m_blurWidth = 0.;
-    
+    private double m_voxelSize = 0.;
+
     private double xmin, xmax, ymin, ymax, zmin, zmax;    
     private double imageZmin;// location of lowest poiunt of thge image 
     private double baseBottom;
@@ -188,6 +190,13 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         m_baseThreshold = baseThreshold;
         
     }
+
+    public void setVoxelSize(double vs){
+
+        m_voxelSize = vs;
+
+    }
+
     
     public void setImagePath(String path){
         
@@ -297,21 +306,44 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             }
         }            
         
-        imageWidth = image.getWidth();
-        imageHeight = image.getHeight();
-        imageWidth1 = imageWidth-1;
-        imageHeight1 = imageHeight-1;
+        printf("image [%d x %d ] reading done in %d ms\n", image.getWidth(), image.getHeight(), (time() - t0));
         
-        printf("image [%d x %d ] reading done in %d ms\n", imageWidth, imageHeight, (time() - t0));
         t0 = time();
         short imageDataShort[] = ImageUtil.getGray16Data(image);
-        imageData = new ImageGray16(imageDataShort, imageWidth, imageHeight);
+        imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
         
         printf("image data size: done in %d ms\n", (time() - t0));
         
         if(!useGrayscale){
             imageData.makeBlackWhite(m_imageThreshold);
         }
+
+        if(m_voxelSize >  0.0){ 
+            // we have finite voxel size, try to scale the image down to reasonable size 
+            double pixelSize = (m_sizeX/(imageData.getWidth()*m_xTilesCount));
+            double pixelsPerVoxel = m_voxelSize / pixelSize;
+            printf("pixelsPerVoxel: %f\n", pixelsPerVoxel);
+
+            if(pixelsPerVoxel > MAX_PIXELS_PER_VOXEL){
+                
+                double newPixelSize = m_voxelSize / MAX_PIXELS_PER_VOXEL;
+                int newWidth =  (int)Math.ceil((m_sizeX/m_xTilesCount)/newPixelSize);
+                int newHeight = (imageData.getHeight() * newWidth) / imageData.getWidth();
+                printf("resampling image[%d x %d] -> [%d x %d]\n", 
+                       imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                t0 = time();
+                short[] newData = ImageMipMapGray16.getScaledDownData(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                
+                printf("resampling image[%d x %d] -> [%d x %d]  done in %d ms\n", 
+                       imageData.getWidth(), imageData.getHeight(), newWidth, newHeight, (time() - t0));
+                imageData = new ImageGray16(newData, newWidth, newHeight);
+            }
+        }
+        
+        imageWidth = imageData.getWidth();
+        imageHeight = imageData.getHeight();
+        imageWidth1 = imageWidth-1;
+        imageHeight1 = imageHeight-1;
 
         if(m_blurWidth >  0.0){ 
             
@@ -346,6 +378,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             m_mipMap = null;
 
         }
+
         
         /*
           

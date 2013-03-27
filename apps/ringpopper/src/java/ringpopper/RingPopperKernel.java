@@ -604,7 +604,8 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setBlurWidth((useGrayscale)? 0.: imageBlurWidth);
         image_src.setBaseThreshold(imageBaseThreshold);
         image_src.setInterpolationType(imageInterpolationType);
-        
+        image_src.setVoxelSize(resolution);
+
         if (imageInvert) {
             image_src.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }

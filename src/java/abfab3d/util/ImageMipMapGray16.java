@@ -166,9 +166,9 @@ public class ImageMipMapGray16 {
     }
 
     /**
-       scaled down image form input image
+       scaled down image from input image
      */
-    static short[] getScaledDownData(short indata[], int inwidth, int inheight, int width, int height){
+    public static short[] getScaledDownData(short indata[], int inwidth, int inheight, int width, int height){
 
         
         short outData[] = new short[width * height];
