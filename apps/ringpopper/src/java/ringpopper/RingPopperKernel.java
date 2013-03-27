@@ -176,6 +176,7 @@ public class RingPopperKernel extends HostedKernel {
     private double imageBlurWidth = 0.;
     private int imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
     private double imageBaseThreshold = 0.1;
+    private double bandLength; // length of ring perimeter
 
     /**
      * How many regions to keep
@@ -383,20 +384,19 @@ public class RingPopperKernel extends HostedKernel {
 
         printf("Res: %10.3g  maxDec: %10.3g\n", resolution, maxDecimationError);
 
-        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
-
         double margin = 1 * resolution;
         double voxelSize = resolution;
-
+        
         double gridWidth = (innerDiameter + 2 * ringThickness + 2 * margin);
         double gridHeight = (ringWidth + 2 * edgeWidth + 2 * margin);
         double gridDepth = gridWidth;
-
-        double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2 + EPS, -gridHeight / 2, gridHeight / 2 + EPS, -gridDepth / 2, gridDepth / 2 + EPS};
+        double offset = voxelSize*0.3;
+        double bounds[] = new double[]{-gridWidth / 2 + offset, gridWidth / 2 + offset, -gridHeight / 2, gridHeight / 2 , -gridDepth / 2, gridDepth / 2};
         
-        int nx = (int) ((bounds[1] - bounds[0]) / resolution);
-        int ny = (int) ((bounds[3] - bounds[2]) / resolution);
-        int nz = (int) ((bounds[5] - bounds[4]) / resolution);
+        int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
+        int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
+        int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
+
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
         // HARD CODED params to play with 
@@ -415,6 +415,9 @@ public class RingPopperKernel extends HostedKernel {
         imageBlurWidth = 2*surfaceTransitionWidth*voxelSize;
         imageBaseThreshold = 0.1;            
         imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
+
+
+        bandLength = innerDiameter * Math.PI;
 
         DataSource image_band = makeImageBand();
 
@@ -612,13 +615,13 @@ public class RingPopperKernel extends HostedKernel {
         if (symmetryStyle == SymmetryStyle.NONE) {
 
             // image spans the whole ring length
-            image_src.setSize(innerDiameter * Math.PI, ringWidth, ringThickness);
+            image_src.setSize(bandLength, ringWidth, ringThickness);
             image_src.setTiles(tilingX, tilingY);
 
         } else {
 
             // image spans only one tile
-            image_src.setSize(innerDiameter * Math.PI / tilingX, ringWidth, ringThickness);
+            image_src.setSize(bandLength / tilingX, ringWidth, ringThickness);
             image_src.setTiles(1, tilingY);
 
         }
@@ -632,7 +635,7 @@ public class RingPopperKernel extends HostedKernel {
 
             VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
             fs.setFriezeType(symmetryStyle.getCode());
-            double tileWidth = innerDiameter * Math.PI / tilingX;
+            double tileWidth = bandLength / tilingX;
             fs.setDomainWidth(tileWidth);
 
             image_frieze.setTransform(fs);
@@ -652,14 +655,14 @@ public class RingPopperKernel extends HostedKernel {
 
         if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
             DataSources.Block top_band = new DataSources.Block();
-            top_band.setSize(innerDiameter * Math.PI*1.1, edgeWidth, ringThickness);
+            top_band.setSize(bandLength, edgeWidth, ringThickness);
             top_band.setLocation(0, ringWidth / 2 + edgeWidth / 2, ringThickness / 2);
             union.addDataSource(top_band);
         }
 
         if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
             DataSources.Block bottom_band = new DataSources.Block();
-            bottom_band.setSize(innerDiameter * Math.PI*1.1, edgeWidth, ringThickness);
+            bottom_band.setSize(bandLength, edgeWidth, ringThickness);
             bottom_band.setLocation(0, -ringWidth / 2 - edgeWidth / 2, ringThickness / 2);
             union.addDataSource(bottom_band);
         }
@@ -685,7 +688,7 @@ public class RingPopperKernel extends HostedKernel {
         double textHeightM = (fontSize * POINT_SIZE);
 
         int textBitmapHeight = (int) (ringWidth / TEXT_RENDERING_PIXEL_SIZE);
-        int textBitmapWidth = (int) (textBitmapHeight * (Math.PI * innerDiameter) / ringWidth);
+        int textBitmapWidth = (int) (textBitmapHeight * bandLength / ringWidth);
         // height of text string in pixels
         int textHeightPixels = (int) (textBitmapHeight * textHeightM / ringWidth);
         // we use Insets to have empty space around centered text 

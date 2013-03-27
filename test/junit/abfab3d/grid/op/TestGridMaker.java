@@ -1828,32 +1828,42 @@ public class TestGridMaker extends TestCase {
         
         printf("testImage()\n");
 
-        double voxelSize = 0.07*MM;
-        double margin = 2*voxelSize;
+        double voxelSize = 0.1*MM;
+        double margin = 5*voxelSize;
 
         double sizex = 30.1*MM; 
         double sizey = 30.1*MM; 
         double sizez = 5.1*MM;
-        double img_width = 30.*MM;
-        double img_height = 30.*MM;
-        double img_thickness = 1*MM;
+        double img_thickness = 2*MM;
+        double tileWidth = 5.*MM;
+        double tileHeight = 5.*MM;
+        int tilesX = 3;
+        int tilesY = 3;
         
         int threadCount = 4;
         double transitionWidth = Math.sqrt(3)/2;
         int gridMaxAttributeValue = 63;
-        int tilesX = 1;
-        int tilesY = 1;
+
+        double img_width = tileWidth*tilesX;
+        double img_height = tileHeight*tilesY;
+
         int imagePlace = DataSourceImageBitmap.IMAGE_PLACE_TOP;
-        int imageType = DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED;//ENGRAVED;
-        boolean greyScale = true;
-        double gridSmooth = 1.;
-        double baseThickness = 0.1;
+        int imageType = DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED;//ENGRAVED;//ENGRAVED;
+        boolean grayScale = false;
+        double gridSmooth = 0.;
+        double baseThickness = 0.2;
+        double imageBlur = 0.5*transitionWidth*voxelSize;
+        int imageInterpolation = DataSourceImageBitmap.INTERPOLATION_LINEAR; //MIPMAP or BOX;        
+        double maxDecimationError = 3.e-10;
+        double imageBaseThreshold = 0.01;
+        
 
         //String imagePath = "docs/images/tile_01_blur.png";
         //String imagePath = "docs/images/circle.png";
         //String imagePath = "docs/images/gradient.png";
         //String imagePath = "/tmp/r4-unicorn.png";
-        String imagePath = "/tmp/r5-bird.png";
+        //String imagePath = "/tmp/r5-bird.png";
+        String imagePath = "/tmp/tile_01_512.png";
         //String imagePath = "/tmp/r4-unicorn_blur.png";
         //String imagePath = "/tmp/circular_gradient_16bit_b.png";
         //String imagePath = "/tmp/circular_gradient_16bit.png";
@@ -1875,16 +1885,14 @@ public class TestGridMaker extends TestCase {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
         DataSourceImageBitmap image = new DataSourceImageBitmap(imagePath,img_width,img_height, img_thickness);          
-        image.setUseGrayscale(greyScale);
-        image.setBlurWidth(transitionWidth*voxelSize);        
+        image.setUseGrayscale(grayScale);
+        image.setBlurWidth(imageBlur);        
         image.setTiles(tilesX, tilesY);
         image.setBaseThickness(baseThickness);
         image.setImagePlace(imagePlace);
         image.setImageType(imageType);
-        
-        //image.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);        
-        image.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);        
-        //image.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_BOX);        
+        image.setBaseThreshold(imageBaseThreshold);
+        image.setInterpolationType(imageInterpolation);        
 
         
         DataSources.DataTransformer shape = new DataSources.DataTransformer();
@@ -1913,8 +1921,10 @@ public class TestGridMaker extends TestCase {
         mmaker.setMaxAttributeValue(gridMaxAttributeValue);
         mmaker.setSmoothingWidth(gridSmooth);
         mmaker.setThreadCount(threadCount);
-        mmaker.setBlockSize(50);
-        mmaker.setMaxDecimationError(3.e-10);
+        mmaker.setBlockSize(50);        
+        mmaker.setMaxDecimationError(maxDecimationError);
+        mmaker.setMaxDecimationCount(10);
+        
 
         STLWriter stl = new STLWriter(fmt("/tmp/00_image.stl"));
         mmaker.makeMesh(grid, stl);

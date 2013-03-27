@@ -70,6 +70,7 @@ public class MeshMakerMT {
     
     protected double m_smoothingWidth = 1.;
     protected int m_gridMaxAttributeValue = 0;
+    protected int m_maxDecimationCount = 7;
 
     public MeshMakerMT(){
         
@@ -105,6 +106,12 @@ public class MeshMakerMT {
 
     public void setBlockSize(int size){
         m_blockSize = size;
+    }
+
+    public void setMaxDecimationCount(int count){
+
+        m_maxDecimationCount = count;
+
     }
 
     /**
@@ -322,7 +329,7 @@ public class MeshMakerMT {
     /**
        extract mesh from a block of the grid 
      */
-    static class BlockProcessor implements Runnable {
+    class BlockProcessor implements Runnable {
         
         Grid grid;
         // physical bounds of the grid 
@@ -475,7 +482,7 @@ public class MeshMakerMT {
             
             //printf("start decimation\n");
 
-            int count = 7;
+            int count = m_maxDecimationCount;
 
             int fcount = mesh.getTriangleCount();
             

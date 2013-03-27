@@ -282,8 +282,11 @@ public class DataSources {
                     return RESULT_OK;                                        
                 }
 
-                value += v *(1 - value); //1-(1-value)*(1-v);
-                
+                //value += v *(1 - value); //1-(1-value)*(1-v);
+                value += v;
+                if(value > 1) value = 1;
+
+                //if( v > value) value = v;
             }
 
             data.v[0] = value; 
@@ -412,8 +415,11 @@ public class DataSources {
                     data.v[0] = 0;
                     return RESULT_OK;                    
                 }
+                //value *= v;
 
-                value *= v;
+                if(v < value)
+                    value = v;
+                    
             }
 
             data.v[0] = value; 
@@ -490,7 +496,8 @@ public class DataSources {
             if(v2 >= 1.){
                 data.v[0] = 0.;
                 return RESULT_OK;
-            }            
+            } 
+            //TODO better calculation 
             data.v[0] = v1*(1-v2);
 
             return RESULT_OK;
@@ -661,6 +668,15 @@ public class DataSources {
        x < 0 return 0
        x > 1 return 1
        return x inside (0.,1.)
+
+    1                          _____________________
+                              /
+                             /
+                            /
+                           /
+     0 ___________________/
+
+                         0     1
      */
     public static final double step(double x){
         if(x < 0.)    
