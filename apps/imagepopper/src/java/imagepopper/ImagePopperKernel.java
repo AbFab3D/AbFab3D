@@ -94,6 +94,7 @@ public class ImagePopperKernel extends HostedKernel {
     private double resolution;
     private PreviewQuality previewQuality;
     private int smoothSteps;
+    private double smoothWidth;
     private double maxDecimationError;
 
     /**
@@ -309,6 +310,12 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, 0, 100, null, null)
         );
 
+        params.put("smoothWidth", new Parameter("smoothWidth", "Smooth Width", "How much smooth the grid", "0.", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0., 5., null, null)
+        );
+
+
         params.put("visRemovedRegions", new Parameter("visRemovedRegions", "Vis Removed Regions", "Visualize removed regions", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
@@ -356,7 +363,7 @@ public class ImagePopperKernel extends HostedKernel {
 
         // HARD CODED params to play with 
         // width of Gaussian smoothing of grid, may be 0. - no smoothing 
-        double smoothingWidth = 0.0; 
+        //double smoothingWidth = 0.0; 
         // size of grid block for MT calculatins 
         // (larger values reduce processor cache performance)
         int blockSize = 50;
@@ -367,9 +374,7 @@ public class ImagePopperKernel extends HostedKernel {
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // sreyt it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
-        double imagesBlurWidth1 = 2*surfaceTransitionWidth*voxelSize;
-        double imagesBlurWidth2 = 2*surfaceTransitionWidth*voxelSize;
-        double imagesBlurWidth3 = 2*surfaceTransitionWidth*voxelSize;
+        double imagesBlurWidth = 2*surfaceTransitionWidth*voxelSize;
         double baseThreshold = 0.1;
         
 
@@ -404,7 +409,8 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale1);        
-        layer1.setBlurWidth(imagesBlurWidth1);
+        layer1.setBlurWidth((useGrayscale1)? 0: imagesBlurWidth);
+
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
             layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
@@ -424,7 +430,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale2);
-            layer2.setBlurWidth(imagesBlurWidth2);
+            layer2.setBlurWidth((useGrayscale2)? 0: imagesBlurWidth);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert2) {
                 layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
@@ -447,7 +453,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale3);
-            layer3.setBlurWidth(imagesBlurWidth3);
+            layer3.setBlurWidth((useGrayscale3)? 0: imagesBlurWidth);
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert3) {
@@ -524,9 +530,8 @@ public class ImagePopperKernel extends HostedKernel {
             t0 = time();
             meshmaker.setBlockSize(blockSize);
             meshmaker.setThreadCount(threads);
-            meshmaker.setSmoothingWidth(smoothingWidth);
+            meshmaker.setSmoothingWidth(smoothWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
-            meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
 
             // TODO: Need to get a better way to estimate this number
@@ -649,6 +654,9 @@ public class ImagePopperKernel extends HostedKernel {
 
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
+
+            pname = "smoothWidth";
+            smoothWidth = ((Double) params.get(pname)).doubleValue();
 
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
