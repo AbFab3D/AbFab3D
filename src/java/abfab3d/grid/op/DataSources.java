@@ -686,12 +686,73 @@ public class DataSources {
         else 
             return x;
     }
+
+    /*
+      step from 0 to 1
+      
+    1                          _____________________
+                              /
+                             /
+                            .
+                           /.
+     0 ___________________/ .
+
+                            x0
+     */
+    public static final double step01(double x, double x0, double vs){
+        
+        if(x <= x0 - vs)
+            return 0.;
+
+        if(x >= x0 + vs)
+            return 1.;
+        
+        return (x-(x0-vs))/(2*vs);
+
+    }
+
+    /*
+      step from 1 to 0
+      
+    1     _________
+                   \
+                    \
+                     .
+                      \
+     0               . \_______________
+
+                     x0
+    */
+    public static final double step10(double x, double x0, double vs){
+        
+        if(x <= x0 - vs)
+            return 1.;
+
+        if(x >= x0 + vs)
+            return 0.;
+        
+        return ((x0+vs)-x)/(2*vs);
+
+    }
+
+    /*
+    1                          _________
+                              /         \
+                             /           \
+                            .             .
+                           /               \
+     0 ___________________/ .             . \_______________
+
+                           xmin          xmax
     
-    /**
-       return 1 inside of interval and 0 outside of intervale with linear transitrion in the boundaries
+    
+       return 1 inside of interval and 0 outside of intervale with linear transition at the boundaries
      */
     public static final double intervalCap(double x, double xmin, double xmax, double vs){
-
+        
+        if(xmin >= xmax-vs)
+            return 0;
+        
         double vs2 = vs*2;
         double vxi = step((x-(xmin-vs))/(vs2));
         double vxa = step(((xmax+vs)-x)/(vs2));

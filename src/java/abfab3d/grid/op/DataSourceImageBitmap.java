@@ -46,10 +46,15 @@ import static abfab3d.util.ImageUtil.RED;
 import static abfab3d.util.ImageUtil.GREEN;
 import static abfab3d.util.ImageUtil.BLUE;
 import static abfab3d.util.ImageUtil.ALPHA;
+import static abfab3d.util.ImageMipMapGray16.getScaledDownData;
+import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
+
 
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.ImageUtil.us2i;
 import static abfab3d.grid.op.DataSources.step;
+import static abfab3d.grid.op.DataSources.step01;
+import static abfab3d.grid.op.DataSources.step10;
 import static abfab3d.grid.op.DataSources.getBox;
 import static abfab3d.grid.op.DataSources.intervalCap;
 
@@ -78,7 +83,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     static final double PIXEL_NORM = 1./255.;
     static final double SHORT_NORM = 1./0xFFFF;
     static double EPSILON = 1.e-3;
-    static final int MAX_PIXELS_PER_VOXEL = 3;
+    static final double MAX_PIXELS_PER_VOXEL = 3.;
     
     protected double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
     
@@ -332,7 +337,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 printf("resampling image[%d x %d] -> [%d x %d]\n", 
                        imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
                 t0 = time();
-                short[] newData = ImageMipMapGray16.getScaledDownData(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                //short[] newData = getScaledDownData(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                short[] newData = getScaledDownDataBlack(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
                 
                 printf("resampling image[%d x %d] -> [%d x %d]  done in %d ms\n", 
                        imageData.getWidth(), imageData.getHeight(), newWidth, newHeight, (time() - t0));
@@ -510,8 +516,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
 
             // black and white image 
             // image is precalculated to return normalized value of distance
-            double bottomStep = step((z - (imageZmin - vs))/(2*vs));            
-            double topStep = step(((zmax + vs)-z)/(2*vs));
+            double bottomStep = step01(z, imageZmin, vs);            
+            double topStep = step10(z, zmax, vs);
 
             imageValue = 1;
 

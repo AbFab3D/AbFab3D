@@ -202,6 +202,45 @@ public class ImageMipMapGray16 {
 
     } //getScaledDownData
 
+    /**
+       scaled down image from input image
+       each destination pixel is set to darkest pixel of the input image
+     */
+    public static short[] getScaledDownDataBlack(short indata[], int inwidth, int inheight, int width, int height){
+
+        
+        short outData[] = new short[width * height];
+        
+        for(int y = 0; y < height; y++){
+            
+            int y0 = (y * inheight)/height;
+            int y1 = ((y + 1) * inheight)/height;
+            
+            for(int x = 0; x < width; x++){
+                
+                int x0 = (x * inwidth)/width;
+                int x1 = ((x + 1) * inwidth)/width;
+                                
+                int pv = 0xFFFF; // pixel value 
+                int count = (y1 - y0) * (x1-x0);
+
+                for(int yy = y0; yy < y1; yy++){ 
+                    for(int xx = x0; xx < x1; xx++){ 
+                        int v = us2i(indata[xx + yy * inwidth]);
+                        if(v < pv)
+                            pv = v;
+                    }
+                }
+                
+                outData[x + y*width] = (short)(pv);
+                
+            }
+        }
+
+        return outData;
+
+    } //getScaledDownDataBlack
+
     
     /**
        represents one mipmap entry 

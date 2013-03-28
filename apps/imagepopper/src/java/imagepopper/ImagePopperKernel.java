@@ -374,7 +374,7 @@ public class ImagePopperKernel extends HostedKernel {
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // sreyt it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
-        double imagesBlurWidth = 2*surfaceTransitionWidth*voxelSize;
+        double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
         double baseThreshold = 0.1;
         int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
         
@@ -408,7 +408,9 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale1);        
-        layer1.setBlurWidth((useGrayscale1)? 0: imagesBlurWidth);
+        layer1.setBlurWidth((useGrayscale1)? 0.: imagesBlurWidth);
+        layer1.setVoxelSize(resolution);
+
 
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
@@ -437,6 +439,7 @@ public class ImagePopperKernel extends HostedKernel {
 
             layer2.setInterpolationType(interpolationType);
             layer2.setBaseThreshold(baseThreshold);
+            layer2.setVoxelSize(resolution);
 
             union.addDataSource(layer2);
 
@@ -461,6 +464,7 @@ public class ImagePopperKernel extends HostedKernel {
 
             layer3.setInterpolationType(interpolationType);
             layer3.setBaseThreshold(baseThreshold);
+            layer3.setVoxelSize(resolution);
 
             union.addDataSource(layer3);
 
