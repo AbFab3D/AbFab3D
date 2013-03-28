@@ -464,8 +464,9 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 z = 2.*m_centerZ - z;
             break;
         }
-
-        double baseValue = getBox(x,y,z, xmin, xmax, ymin, ymax, baseBottom, imageZmin, vs);
+        
+        //  getBox(x,y,z, xmin, xmax, ymin, ymax, baseBottom, imageZmin, vs);
+        double baseValue = intervalCap(z,baseBottom, imageZmin, vs);
         double finalValue = baseValue;
 
         double dd = vs;
@@ -527,7 +528,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             // using grayscale 
 
             if(h0 < m_baseThreshold){
-                // TODO - beter tratment of threshold 
+                // TODO - better treatment of threshold 
                 // transparent background 
                 imageValue = 0.;
 
@@ -569,8 +570,12 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         
         //hfValue *= intervalCap(z, imageZmin, zmax, vs) * intervalCap(x, xmin, xmax, vs) * intervalCap(y, ymin, ymax, vs);
         // union of base and image layer 
-        if(imageValue > finalValue) finalValue = imageValue;
+        finalValue += imageValue;
+        if(finalValue > 1) finalValue = 1;
 
+        finalValue = Math.min(finalValue, intervalCap(x, xmin, xmax, vs));
+        finalValue = Math.min(finalValue, intervalCap(y, ymin, ymax, vs));
+        
         data.v[0] = finalValue;
 
         return RESULT_OK; 

@@ -322,7 +322,10 @@ public class ImageUtil {
             {
                 switch(dataBuffer.getDataType()){
                 default:
-                    throw new IllegalArgumentException(fmt("unhandled image data format: %s \n",getDataTypeName(dataBuffer.getDataType())));
+                    //throw new IllegalArgumentException(fmt("unhandled image data format: %s \n",getDataTypeName(dataBuffer.getDataType())));
+                    getGray16DataGeneric(image, grayData);
+                    break;
+
                 case DataBuffer.TYPE_USHORT: 
                     ushort2gray16(((DataBufferUShort)dataBuffer).getData(), grayData);
                     break;
@@ -343,19 +346,31 @@ public class ImageUtil {
             }
         default:
             {
-                int imageData[] = new int[imageWidth * imageHeight];
-                image.getRGB(0,0,imageWidth, imageHeight, imageData, 0, imageWidth);            
-                int len = imageData.length; 
-                for(int i = 0; i < grayDataSize; i++){
-                    // convert data into grayscale short  
-                    grayData[i] = ub2us(getCombinedGray(SOLID_WHITE, imageData[i])); 
-                }
+                getGray16DataGeneric(image, grayData);
+                break;
             }            
         }
         
         return grayData;
         
     }
+
+    public static void getGray16DataGeneric(BufferedImage image, short grayData[]){
+
+        int imageWidth = image.getWidth();
+        int imageHeight = image.getHeight();
+
+        int grayDataSize = imageWidth * imageHeight;
+
+        int imageData[] = new int[grayDataSize];
+
+        image.getRGB(0,0,imageWidth, imageHeight, imageData, 0, imageWidth);            
+        int len = imageData.length; 
+        for(int i = 0; i < grayDataSize; i++){
+            // convert data into grayscale short  
+            grayData[i] = ub2us(getCombinedGray(SOLID_WHITE, imageData[i])); 
+        }
+    }        
 
     static void byteABGR2gray16(byte imageData[], short grayData[]){
 
