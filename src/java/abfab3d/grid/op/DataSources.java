@@ -575,15 +575,17 @@ public class DataSources {
      */
     public static class Ring implements DataSource{
 
-        double width2;
+        double ymin, ymax;
         double innerRadius2;
         double innerRadius;
         double exteriorRadius;        
         double exteriorRadius2;
         
-        public Ring(double innerRadius, double thickeness, double width){  
-
-            width2 = width/2;
+        public Ring(double innerRadius, double thickeness, double ymin, double ymax){  
+            
+            this.ymin = ymin; 
+            this.ymax = ymax; 
+            
             this.innerRadius = innerRadius;
             this.exteriorRadius = innerRadius + thickeness;
 
@@ -591,8 +593,11 @@ public class DataSources {
 
             this.exteriorRadius2 = exteriorRadius*exteriorRadius;
             
-            //exteriorRadius2 *= exteriorRadius2;
-            
+        }
+
+        public Ring(double innerRadius, double thickeness, double width){  
+
+            this(innerRadius, thickeness, -width/2, width/2);            
         }
 
 
@@ -604,24 +609,24 @@ public class DataSources {
 
             double y = pnt.v[1];
             double vs = pnt.voxelSize;
-            double w2 = width2 + vs;
+            //double w2 = width2 + vs;
 
             double yvalue = 1.;
 
-            if(y < -w2 || y > w2){
+            if(y < ymin-vs || y > ymax+vs){
 
                 data.v[0] = 0;
                 return RESULT_OK;
 
-            } else if(y < (-width2 + vs)){
+            } else if(y < (ymin + vs)){
                 // interpolate lower rim 
                 
-                yvalue = (y - (-width2 - vs))/(2*vs);
+                yvalue = (y - (ymin - vs))/(2*vs);
 
-            } else if(y > (width2 - vs)){
+            } else if(y > (ymax - vs)){
 
                 // interpolate upper rim 
-                yvalue = ((width2 + vs)-y)/(2*vs);                
+                yvalue = ((ymax + vs)-y)/(2*vs);                
 
             } 
                         
@@ -647,7 +652,10 @@ public class DataSources {
             } 
             
             //data.v[0] = (rvalue < yvalue)? rvalue : yvalue;
-            data.v[0] = rvalue * yvalue;
+            if(rvalue < yvalue)
+                data.v[0] = rvalue;
+            else 
+                data.v[0] = yvalue;
             
             return RESULT_OK;             
         }        
