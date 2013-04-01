@@ -163,7 +163,7 @@ public class RingPopperKernel extends HostedKernel {
     private int tilingX;
     private int tilingY;
     private int threadCount;
-    private EdgeStyle edgeStyle;
+    //private EdgeStyle edgeStyle;
     private SymmetryStyle symmetryStyle;
 
     private String material;
@@ -233,10 +233,10 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, enumToStringArray(symmetryStyle.values()))
         );
 
-        params.put("edgeStyle", new Parameter("edgeStyle", "Edge Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
-                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, enumToStringArray(edgeStyle.values()))
-        );
+        //params.put("edgeStyle", new Parameter("edgeStyle", "Edge Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
+        //        Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+        //        step, seq++, false, -1, 1, null, enumToStringArray(edgeStyle.values()))
+        //);
 
         step++;
         seq = 0;
@@ -605,11 +605,11 @@ public class RingPopperKernel extends HostedKernel {
     }
 
     boolean hasTopBorder(){
-        return edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH;
+        return (topBorderWidth > 0.);
     }
 
     boolean hasBottomBorder(){
-        return edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH;
+        return (bottomBorderWidth > 0.);
     }
 
     /**
@@ -667,7 +667,7 @@ public class RingPopperKernel extends HostedKernel {
             image_band = image_frieze;
         }
 
-        if (edgeStyle == edgeStyle.NONE) {
+        if (!(hasTopBorder() || hasBottomBorder() )) {
             return image_band;
         }
 
@@ -873,8 +873,8 @@ public class RingPopperKernel extends HostedKernel {
             pname = "tilingY";
             tilingY = ((Integer) params.get(pname)).intValue();
 
-            pname = "edgeStyle";
-            edgeStyle = edgeStyle.valueOf((String) params.get(pname));
+            //pname = "edgeStyle";
+            //edgeStyle = edgeStyle.valueOf((String) params.get(pname));
 
             pname = "symmetryStyle";
             symmetryStyle = symmetryStyle.valueOf((String) params.get(pname));
