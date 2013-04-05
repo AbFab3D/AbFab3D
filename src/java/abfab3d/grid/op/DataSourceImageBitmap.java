@@ -305,7 +305,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             } catch(Exception e){
                 
                 System.out.println("Can't load image: " + m_imagePath);
-                imageData = null;
+                imageData = new ImageGray16(); // default black 1x1 image 
                 e.printStackTrace();
                 return RESULT_ERROR;
             }
