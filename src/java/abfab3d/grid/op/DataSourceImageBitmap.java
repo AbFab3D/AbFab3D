@@ -79,7 +79,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2; 
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
-    
+    static final String MEMORY_IMAGE = "[memory image]";
+
     static final double PIXEL_NORM = 1./255.;
     static final double SHORT_NORM = 1./0xFFFF;
     static double EPSILON = 1.e-3;
@@ -294,6 +295,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         if(m_image != null){
             // image was supplied via memory 
             image = m_image;
+            m_imagePath = MEMORY_IMAGE;
         } else if(m_imagePath == null){
             //imageDataByte = null; 
             
@@ -304,14 +306,17 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 
             } catch(Exception e){
                 
-                System.out.println("Can't load image: " + m_imagePath);
+                printf("ERROR READING IMAGE: '%s' \n",m_imagePath);
+                StackTraceElement[] st = Thread.currentThread().getStackTrace();
+                int len = Math.min(10, st.length);
+                for(int i = 1; i < len; i++) printf("\t\t %s\n",st[i]);                
                 imageData = new ImageGray16(); // default black 1x1 image 
-                e.printStackTrace();
+                //e.printStackTrace();
                 return RESULT_ERROR;
             }
         }            
         
-        printf("image [%d x %d ] reading done in %d ms\n", image.getWidth(), image.getHeight(), (time() - t0));
+        printf("image %s [%d x %d ] reading done in %d ms\n", m_imagePath, image.getWidth(), image.getHeight(), (time() - t0));
         
         t0 = time();
         short imageDataShort[] = ImageUtil.getGray16Data(image);
