@@ -20,7 +20,13 @@ import abfab3d.util.StructMixedData;
  */
 public interface EdgeTester {
 
+    // method to initilize tester for given mesh 
+    public void initialize(TriangleMesh mesh);
+
+    // return false if edge can't be collapsed 
     public boolean canCollapse(int srcIdx);
+
+    public Object clone();
 
 }
 

@@ -32,14 +32,27 @@ public class ImageGray16 {
     int m_width;
     int m_height;
     
+    public ImageGray16(){
+        data = new short[]{0};
+        m_width = 1;
+        m_height = 1;
+    }
+
     public ImageGray16(short data[], int width, int height){
 
         this.data = data;
         m_width = width; 
         m_height = height;
-        
+            
     }
 
+    public int getWidth(){
+        return m_width;
+    }
+
+    public int getHeight(){
+        return m_height;
+    }
 
     public final double getDataD(int x, int y){
 

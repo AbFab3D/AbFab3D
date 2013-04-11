@@ -94,6 +94,7 @@ public class ImagePopperKernel extends HostedKernel {
     private double resolution;
     private PreviewQuality previewQuality;
     private int smoothSteps;
+    private double smoothingWidth;
     private double maxDecimationError;
 
     /**
@@ -309,6 +310,12 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, 0, 100, null, null)
         );
 
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxles to smooth", "0.", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0., 5., null, null)
+        );
+
+
         params.put("visRemovedRegions", new Parameter("visRemovedRegions", "Vis Removed Regions", "Visualize removed regions", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
@@ -356,7 +363,7 @@ public class ImagePopperKernel extends HostedKernel {
 
         // HARD CODED params to play with 
         // width of Gaussian smoothing of grid, may be 0. - no smoothing 
-        double smoothingWidth = 0.0; 
+        //double smoothingWidth = 0.0; 
         // size of grid block for MT calculatins 
         // (larger values reduce processor cache performance)
         int blockSize = 50;
@@ -368,6 +375,9 @@ public class ImagePopperKernel extends HostedKernel {
         // sreyt it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
         double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
+        double baseThreshold = 0.1;
+        int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
+        
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
@@ -397,18 +407,17 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
-        layer1.setUseGrayscale(useGrayscale1);
-        if(!useGrayscale1)layer1.setBlurWidth(imagesBlurWidth);
+        layer1.setUseGrayscale(useGrayscale1);        
+        layer1.setBlurWidth((useGrayscale1)? 0.: imagesBlurWidth);
+        layer1.setVoxelSize(resolution);
+
+
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
             layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
-        
-        if (USE_MIP_MAPPING) {
-            layer1.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-        } else {
-            layer1.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);            
-        }
+        layer1.setBaseThreshold(baseThreshold);
+        layer1.setInterpolationType(interpolationType);
 
         union.addDataSource(layer1);
 
@@ -422,17 +431,15 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale2);
-            if(!useGrayscale2)layer2.setBlurWidth(imagesBlurWidth);
+            layer2.setBlurWidth((useGrayscale2)? 0: imagesBlurWidth);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert2) {
                 layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
-            if (USE_MIP_MAPPING) {
-                layer2.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-            } else {
-                layer2.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
-            }
+            layer2.setInterpolationType(interpolationType);
+            layer2.setBaseThreshold(baseThreshold);
+            layer2.setVoxelSize(resolution);
 
             union.addDataSource(layer2);
 
@@ -448,18 +455,16 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale3);
-            if(!useGrayscale3)layer3.setBlurWidth(imagesBlurWidth);
+            layer3.setBlurWidth((useGrayscale3)? 0: imagesBlurWidth);
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert3) {
                 layer3.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
-            if (USE_MIP_MAPPING) {
-                layer3.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
-            } else {
-                layer3.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
-            }
+            layer3.setInterpolationType(interpolationType);
+            layer3.setBaseThreshold(baseThreshold);
+            layer3.setVoxelSize(resolution);
 
             union.addDataSource(layer3);
 
@@ -530,7 +535,6 @@ public class ImagePopperKernel extends HostedKernel {
             meshmaker.setThreadCount(threads);
             meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
-            meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
 
             // TODO: Need to get a better way to estimate this number
@@ -574,8 +578,8 @@ public class ImagePopperKernel extends HostedKernel {
         double surface_area = ac.getArea();
 
         // Do not shorten the accuracy of these prints they need to be high
-        printf("final surface area: %7.8f cm^2\n", surface_area * 1.e4);
-        printf("final volume: %7.8f cm^3\n", volume * 1.e6);
+        printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %12.8f cm^3\n", volume * 1.e6);
 
         printf("Total time: %d ms\n", (time() - start));
         printf("-------------------------------------------------\n");
@@ -654,11 +658,14 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
+            pname = "smoothingWidth";
+            smoothingWidth = ((Double) params.get(pname)).doubleValue();
+
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
             pname = "useGrayscale1";
-            useGrayscale2 = (Boolean) params.get(pname);
+            useGrayscale1 = (Boolean) params.get(pname);
 
             pname = "useGrayscale2";
             useGrayscale2 = (Boolean) params.get(pname);

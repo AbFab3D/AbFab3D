@@ -46,10 +46,15 @@ import static abfab3d.util.ImageUtil.RED;
 import static abfab3d.util.ImageUtil.GREEN;
 import static abfab3d.util.ImageUtil.BLUE;
 import static abfab3d.util.ImageUtil.ALPHA;
+import static abfab3d.util.ImageMipMapGray16.getScaledDownData;
+import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
+
 
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.ImageUtil.us2i;
 import static abfab3d.grid.op.DataSources.step;
+import static abfab3d.grid.op.DataSources.step01;
+import static abfab3d.grid.op.DataSources.step10;
 import static abfab3d.grid.op.DataSources.getBox;
 import static abfab3d.grid.op.DataSources.intervalCap;
 
@@ -68,21 +73,25 @@ import static abfab3d.grid.op.DataSources.intervalCap;
 */
 public class DataSourceImageBitmap implements DataSource, Initializable {
 
-    static int debugCount = 1000;
+    static int debugCount = 3000;
+    double MM = 0.001; // 
     
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2; 
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
-    
+    static final String MEMORY_IMAGE = "[memory image]";
+
     static final double PIXEL_NORM = 1./255.;
     static final double SHORT_NORM = 1./0xFFFF;
     static double EPSILON = 1.e-3;
+    static final double MAX_PIXELS_PER_VOXEL = 3.;
     
     protected double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.001, m_centerX=0, m_centerY=0, m_centerZ=0; 
     
     protected double m_baseThickness = 0.5; // relative thickness of solid base 
     protected String m_imagePath; 
-    
+    protected double m_baseThreshold = 0.01; 
+
     protected int m_imageType = IMAGE_TYPE_EMBOSSED;
     protected int m_imagePlace = IMAGE_PLACE_TOP; 
     
@@ -101,7 +110,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     private double m_probeScale; 
     // width of optional blur of the the image 
     private double m_blurWidth = 0.;
-    
+    private double m_voxelSize = 0.;
+
     private double xmin, xmax, ymin, ymax, zmin, zmax;    
     private double imageZmin;// location of lowest poiunt of thge image 
     private double baseBottom;
@@ -180,6 +190,19 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         m_blurWidth = blurWidth;
         
     }
+
+    public void setBaseThreshold(double baseThreshold){
+        
+        m_baseThreshold = baseThreshold;
+        
+    }
+
+    public void setVoxelSize(double vs){
+
+        m_voxelSize = vs;
+
+    }
+
     
     public void setImagePath(String path){
         
@@ -272,6 +295,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         if(m_image != null){
             // image was supplied via memory 
             image = m_image;
+            m_imagePath = MEMORY_IMAGE;
         } else if(m_imagePath == null){
             //imageDataByte = null; 
             
@@ -282,22 +306,21 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 
             } catch(Exception e){
                 
-                System.out.println("Cannot load image: " + m_imagePath);
-                imageData = null;
-                e.printStackTrace();
+                printf("ERROR READING IMAGE: '%s' \n",m_imagePath);
+                StackTraceElement[] st = Thread.currentThread().getStackTrace();
+                int len = Math.min(10, st.length);
+                for(int i = 1; i < len; i++) printf("\t\t %s\n",st[i]);                
+                imageData = new ImageGray16(); // default black 1x1 image 
+                //e.printStackTrace();
                 return RESULT_ERROR;
             }
         }            
         
-        imageWidth = image.getWidth();
-        imageHeight = image.getHeight();
-        imageWidth1 = imageWidth-1;
-        imageHeight1 = imageHeight-1;
+        printf("image %s [%d x %d ] reading done in %d ms\n", m_imagePath, image.getWidth(), image.getHeight(), (time() - t0));
         
-        printf("image [%d x %d ] reading done in %d ms\n", imageWidth, imageHeight, (time() - t0));
         t0 = time();
         short imageDataShort[] = ImageUtil.getGray16Data(image);
-        imageData = new ImageGray16(imageDataShort, imageWidth, imageHeight);
+        imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
         
         printf("image data size: done in %d ms\n", (time() - t0));
         
@@ -305,17 +328,46 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             imageData.makeBlackWhite(m_imageThreshold);
         }
 
+        if(m_voxelSize >  0.0){ 
+            // we have finite voxel size, try to scale the image down to reasonable size 
+            double pixelSize = (m_sizeX/(imageData.getWidth()*m_xTilesCount));
+            double pixelsPerVoxel = m_voxelSize / pixelSize;
+            printf("pixelsPerVoxel: %f\n", pixelsPerVoxel);
+
+            if(pixelsPerVoxel > MAX_PIXELS_PER_VOXEL){
+                
+                double newPixelSize = m_voxelSize / MAX_PIXELS_PER_VOXEL;
+                int newWidth =  (int)Math.ceil((m_sizeX/m_xTilesCount)/newPixelSize);
+                int newHeight = (imageData.getHeight() * newWidth) / imageData.getWidth();
+                printf("resampling image[%d x %d] -> [%d x %d]\n", 
+                       imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                t0 = time();
+                //short[] newData = getScaledDownData(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                short[] newData = getScaledDownDataBlack(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                
+                printf("resampling image[%d x %d] -> [%d x %d]  done in %d ms\n", 
+                       imageData.getWidth(), imageData.getHeight(), newWidth, newHeight, (time() - t0));
+                imageData = new ImageGray16(newData, newWidth, newHeight);
+            }
+        }
+        
+        imageWidth = imageData.getWidth();
+        imageHeight = imageData.getHeight();
+        imageWidth1 = imageWidth-1;
+        imageHeight1 = imageHeight-1;
+
         if(m_blurWidth >  0.0){ 
             
-            double pixelSize = (m_sizeX/ imageWidth);
-            printf("pixelSize: %7.2f\n",pixelSize);
+            double pixelSize = (m_sizeX/(imageWidth*m_xTilesCount));
+
+            printf("pixelSize: %8.6f MM \n",pixelSize/MM);
             
             double blurSizePixels = m_blurWidth/pixelSize;
 
-            printf("gaussian blur: %7.2f\n",blurSizePixels/2);
+            printf("gaussian blur: %7.2f\n",blurSizePixels);
             t0 = time();
 
-            imageData.gaussianBlur(blurSizePixels/2);
+            imageData.gaussianBlur(blurSizePixels);
             
             printf("gaussian blur done: %d ms\n",time() - t0);
 
@@ -337,6 +389,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             m_mipMap = null;
 
         }
+
         
         /*
           
@@ -422,10 +475,11 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
                 z = 2.*m_centerZ - z;
             break;
         }
-
-        double baseValue = getBox(x,y,z, xmin, xmax, ymin, ymax, baseBottom, imageZmin, vs);
-        double finalValue = baseValue;
         
+        //  getBox(x,y,z, xmin, xmax, ymin, ymax, baseBottom, imageZmin, vs);
+        double baseValue = intervalCap(z,baseBottom, imageZmin, vs);
+        double finalValue = baseValue;
+
         double dd = vs;
         
         double imageX = (x-xmin)*xscale; // x and y are now in (0,1) 
@@ -456,77 +510,82 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         double v10 = getImageHeight(ix1,iy);
         double v01 = getImageHeight(ix, iy1);
         double v11 = getImageHeight(ix1,iy1);
-            
+
+        //if(debugCount-- > 0) printf("xyz: (%7.5f, %7.5f,%7.5f) ixy[%4d, %4d ] -> v00:%18.15f\n", x,y,z, ix, iy, v00);
+
         double h0 = (dx1*(v00 * dy1 + v01 * dy) + dx * (v11 * dy + v10 * dy1)); 
 
         double imageValue = 0.; // distance to the image 
 
         if(!useGrayscale){
-            
+
+            // black and white image 
             // image is precalculated to return normalized value of distance
-            imageValue = h0;
-            
-            double stepValue = step(((zmax+vs)-z)/(vs*2));
-            if(imageValue > stepValue)
-                imageValue = stepValue;               
+            double bottomStep = step01(z, imageZmin, vs);            
+            double topStep = step10(z, zmax, vs);
+
+            imageValue = 1;
+
+            imageValue = Math.min(bottomStep,imageValue);
+
+            imageValue = Math.min(topStep,imageValue);
+
+            double sideStep = h0;
+
+            imageValue = Math.min(imageValue, sideStep);
             
         } else {
-            
-            h0 = imageZmin + imageZScale*h0;
-            //hy = imageZmin + imageZScale*h0;
 
-            //TODO - better calculation of normal 
-            double pixelSize = (m_sizeX/ imageWidth);            
-            double nx = -(v10 - v00)*imageZScale;
-            double ny = -(v01 - v00)*imageZScale;
-            double nz = pixelSize; 
-            
-            /*
-              double h0 = getHeightFieldValue(x,y,vs);
-              
-              if(h0 < imageZmin+EPSILON){
-              
-              data.v[0] = baseValue;   
-              return RESULT_OK; 
-              
-              }
-              
-              double hx = getHeightFieldValue(x+dd,y,    vs);
-              double hy = getHeightFieldValue(x,   y+dd, vs);            
-              
-              // normal to the plane via 3 points:  (-(hx-h0), -(hy-h0), vs)
-              double nx = -(hx-h0);
-              double ny = -(hy-h0);
-              double nz = dx;        
-              
-              if(!(nx == 0. && ny == 0.)){
-              // grayscale OFF 
-              //nz = 0.;
-              }
-            */
-            
-            double nn = Math.sqrt(nx*nx + ny*ny + nz*nz);
-            
-            // point on the surface p: (x,y,h0)
-            // distance from point to surface  ((p-p0), n)                
-            //double dist = ((z - h0)*vs)/nn;
-            // distance to that plane passing via 3 points (v00, v10, v01)
-            double dist = ((z - h0)*pixelSize)/nn;
-            
-            if(dist <= -vs) 
-                imageValue = 1.;
-            else if(dist >= vs)    
+            // using grayscale 
+
+            if(h0 < m_baseThreshold){
+                // TODO - better treatment of threshold 
+                // transparent background 
                 imageValue = 0.;
-            else 
-                imageValue = (1. - (dist/vs))/2;
-            
+
+            } else {
+                
+                double z0 = imageZmin + imageZScale*h0;
+                double bottomStep = step((z - (imageZmin - vs))/(2*vs));
+
+                //hy = imageZmin + imageZScale*h0;
+                
+                //TODO - better calculation of normal in case of tiles
+                double pixelSize = (m_sizeX/ (imageWidth * m_xTilesCount)); 
+                double nx = -(v10 - v00)*imageZScale;
+                double ny = -(v01 - v00)*imageZScale;
+                double nz = pixelSize; 
+                                
+                double nn = Math.sqrt(nx*nx + ny*ny + nz*nz);
+                
+                // point on the surface p: (x,y,h0)
+                // distance from point to surface  ((p-p0), n)                
+                //double dist = ((z - h0)*vs)/nn;
+                // signed distance to the plane via 3 points (v00, v10, v01)
+                // outside distance is positive
+                // inside distance is negative 
+                double dist = ((z - z0)*pixelSize)/nn;
+                
+                if(dist <= -vs) 
+                    imageValue = 1.;
+                else if(dist >= vs)    
+                    imageValue = 0.;
+                else 
+                    imageValue = (1. - (dist/vs))/2;
+
+                if(bottomStep < imageValue) 
+                    imageValue = bottomStep;                
+            }  
         }
         
         
         //hfValue *= intervalCap(z, imageZmin, zmax, vs) * intervalCap(x, xmin, xmax, vs) * intervalCap(y, ymin, ymax, vs);
-        if(imageValue > finalValue)
-            finalValue = imageValue;
+        // union of base and image layer 
+        finalValue += imageValue;
+        if(finalValue > 1) finalValue = 1;
 
+        finalValue = Math.min(finalValue, intervalCap(x, xmin, xmax, vs));
+        finalValue = Math.min(finalValue, intervalCap(y, ymin, ymax, vs));
         
         data.v[0] = finalValue;
 
@@ -548,6 +607,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         switch(m_imageType){
         case IMAGE_TYPE_EMBOSSED: 
             v = 1. - v;
+            if( v < EPSILON)
+                v = 0;
             break;
 
         default: 

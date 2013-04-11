@@ -189,7 +189,7 @@ public class SAVExporter {
 
                 abfab3d.mesh.Vertex.getPoint(vertices, va, pnt);
                 abfab3d.mesh.Vertex.getPoint(vertices, vb, pnt2);
-                ac.set(pnt[0] - pnt2[0],pnt[1] - pnt2[1],pnt[2] - pnt2[2]);
+                ab.set(pnt[0] - pnt2[0],pnt[1] - pnt2[1],pnt[2] - pnt2[2]);
 
                 ac.cross(ac,ab);
                 ac.normalize();

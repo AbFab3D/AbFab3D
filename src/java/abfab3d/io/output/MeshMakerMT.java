@@ -37,6 +37,7 @@ import abfab3d.grid.Grid;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.EdgeTester;
 
 
 
@@ -70,7 +71,9 @@ public class MeshMakerMT {
     
     protected double m_smoothingWidth = 1.;
     protected int m_gridMaxAttributeValue = 0;
-
+    protected int m_maxDecimationCount = 7;
+    protected EdgeTester m_edgeTester; 
+    
     public MeshMakerMT(){
         
     }
@@ -107,6 +110,24 @@ public class MeshMakerMT {
         m_blockSize = size;
     }
 
+    public void setMaxDecimationCount(int count){
+
+        m_maxDecimationCount = count;
+
+    }
+
+    /**
+
+       set tester to test edge collapses
+       edge can be collapsed only if tester return true
+
+     */
+    public void setEdgeTester(EdgeTester tester){
+
+        m_edgeTester = tester;
+
+    }
+
     /**
        creates mesh and feeds it into triangle collector 
     */
@@ -126,8 +147,10 @@ public class MeshMakerMT {
         }
         
         for(int i = 0; i < m_threadCount; i++){
-
             threads[i] = new BlockProcessor(grid, blocks, m_maxDecimationError, smoothKernel, m_gridMaxAttributeValue);
+            if(m_edgeTester != null){
+                threads[i].setEdgeTester((EdgeTester)(m_edgeTester.clone()));
+            }
             executor.submit(threads[i]);
 
         }
@@ -322,7 +345,7 @@ public class MeshMakerMT {
     /**
        extract mesh from a block of the grid 
      */
-    static class BlockProcessor implements Runnable {
+    class BlockProcessor implements Runnable {
         
         Grid grid;
         // physical bounds of the grid 
@@ -345,8 +368,15 @@ public class MeshMakerMT {
         MeshDecimator decimator;
         IsosurfaceMaker.BlockSmoothingSlices slicer; 
         double smoothKernel[];
+        
+        EdgeTester edgeTester;
 
-        BlockProcessor(Grid grid, GridBlockSet blocks, double maxDecimationError, double smoothKernel[], int gridMaxAttributeValue){
+        BlockProcessor(Grid grid, 
+                       GridBlockSet blocks, 
+                       double maxDecimationError, 
+                       double smoothKernel[], 
+                       int gridMaxAttributeValue
+                       ){
             
             this.grid = grid;
             this.blocks = blocks;
@@ -368,11 +398,18 @@ public class MeshMakerMT {
             slicer.setGridMaxAttributeValue(gridMaxAttributeValue);
 
             this.smoothKernel = smoothKernel;
+            this.edgeTester = edgeTester;
 
             //smoothKernel = MathUtil.getBoxKernel(0);
 
         }
         
+        void setEdgeTester(EdgeTester edgeTester){
+
+            this.edgeTester = edgeTester;
+
+        }
+
         public void run(){
 
             // make isosurface extrator
@@ -476,11 +513,18 @@ public class MeshMakerMT {
             if(decimator == null){
                 decimator = new MeshDecimator();
                 decimator.setMaxCollapseError(maxDecimationError);
+                if(edgeTester != null){
+                    decimator.setEdgeTester(edgeTester);
+                }
+            }
+            
+            if(edgeTester != null){
+                edgeTester.initialize(mesh);                                
             }
             
             //printf("start decimation\n");
 
-            int count = 7;
+            int count = m_maxDecimationCount;
 
             int fcount = mesh.getTriangleCount();
             

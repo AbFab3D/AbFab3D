@@ -282,8 +282,11 @@ public class DataSources {
                     return RESULT_OK;                                        
                 }
 
-                value += v *(1 - value); //1-(1-value)*(1-v);
-                
+                //value += v *(1 - value); //1-(1-value)*(1-v);
+                value += v;
+                if(value > 1) value = 1;
+
+                //if( v > value) value = v;
             }
 
             data.v[0] = value; 
@@ -412,8 +415,11 @@ public class DataSources {
                     data.v[0] = 0;
                     return RESULT_OK;                    
                 }
+                //value *= v;
 
-                value *= v;
+                if(v < value)
+                    value = v;
+                    
             }
 
             data.v[0] = value; 
@@ -490,7 +496,8 @@ public class DataSources {
             if(v2 >= 1.){
                 data.v[0] = 0.;
                 return RESULT_OK;
-            }            
+            } 
+            //TODO better calculation 
             data.v[0] = v1*(1-v2);
 
             return RESULT_OK;
@@ -568,15 +575,17 @@ public class DataSources {
      */
     public static class Ring implements DataSource{
 
-        double width2;
+        double ymin, ymax;
         double innerRadius2;
         double innerRadius;
         double exteriorRadius;        
         double exteriorRadius2;
         
-        public Ring(double innerRadius, double thickeness, double width){  
-
-            width2 = width/2;
+        public Ring(double innerRadius, double thickeness, double ymin, double ymax){  
+            
+            this.ymin = ymin; 
+            this.ymax = ymax; 
+            
             this.innerRadius = innerRadius;
             this.exteriorRadius = innerRadius + thickeness;
 
@@ -584,8 +593,11 @@ public class DataSources {
 
             this.exteriorRadius2 = exteriorRadius*exteriorRadius;
             
-            //exteriorRadius2 *= exteriorRadius2;
-            
+        }
+
+        public Ring(double innerRadius, double thickeness, double width){  
+
+            this(innerRadius, thickeness, -width/2, width/2);            
         }
 
 
@@ -597,24 +609,24 @@ public class DataSources {
 
             double y = pnt.v[1];
             double vs = pnt.voxelSize;
-            double w2 = width2 + vs;
+            //double w2 = width2 + vs;
 
             double yvalue = 1.;
 
-            if(y < -w2 || y > w2){
+            if(y < ymin-vs || y > ymax+vs){
 
                 data.v[0] = 0;
                 return RESULT_OK;
 
-            } else if(y < (-width2 + vs)){
+            } else if(y < (ymin + vs)){
                 // interpolate lower rim 
                 
-                yvalue = (y - (-width2 - vs))/(2*vs);
+                yvalue = (y - (ymin - vs))/(2*vs);
 
-            } else if(y > (width2 - vs)){
+            } else if(y > (ymax - vs)){
 
                 // interpolate upper rim 
-                yvalue = ((width2 + vs)-y)/(2*vs);                
+                yvalue = ((ymax + vs)-y)/(2*vs);                
 
             } 
                         
@@ -640,7 +652,10 @@ public class DataSources {
             } 
             
             //data.v[0] = (rvalue < yvalue)? rvalue : yvalue;
-            data.v[0] = rvalue * yvalue;
+            if(rvalue < yvalue)
+                data.v[0] = rvalue;
+            else 
+                data.v[0] = yvalue;
             
             return RESULT_OK;             
         }        
@@ -661,6 +676,15 @@ public class DataSources {
        x < 0 return 0
        x > 1 return 1
        return x inside (0.,1.)
+
+    1                          _____________________
+                              /
+                             /
+                            /
+                           /
+     0 ___________________/
+
+                         0     1
      */
     public static final double step(double x){
         if(x < 0.)    
@@ -670,12 +694,73 @@ public class DataSources {
         else 
             return x;
     }
+
+    /*
+      step from 0 to 1
+      
+    1                          _____________________
+                              /
+                             /
+                            .
+                           /.
+     0 ___________________/ .
+
+                            x0
+     */
+    public static final double step01(double x, double x0, double vs){
+        
+        if(x <= x0 - vs)
+            return 0.;
+
+        if(x >= x0 + vs)
+            return 1.;
+        
+        return (x-(x0-vs))/(2*vs);
+
+    }
+
+    /*
+      step from 1 to 0
+      
+    1     _________
+                   \
+                    \
+                     .
+                      \
+     0               . \_______________
+
+                     x0
+    */
+    public static final double step10(double x, double x0, double vs){
+        
+        if(x <= x0 - vs)
+            return 1.;
+
+        if(x >= x0 + vs)
+            return 0.;
+        
+        return ((x0+vs)-x)/(2*vs);
+
+    }
+
+    /*
+    1                          _________
+                              /         \
+                             /           \
+                            .             .
+                           /               \
+     0 ___________________/ .             . \_______________
+
+                           xmin          xmax
     
-    /**
-       return 1 inside of interval and 0 outside of intervale with linear transitrion in the boundaries
+    
+       return 1 inside of interval and 0 outside of intervale with linear transition at the boundaries
      */
     public static final double intervalCap(double x, double xmin, double xmax, double vs){
-
+        
+        if(xmin >= xmax-vs)
+            return 0;
+        
         double vs2 = vs*2;
         double vxi = step((x-(xmin-vs))/(vs2));
         double vxa = step(((xmax+vs)-x)/(vs2));
