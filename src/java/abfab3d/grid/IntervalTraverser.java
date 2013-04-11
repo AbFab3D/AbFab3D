@@ -26,5 +26,6 @@ public interface IntervalTraverser {
        
      */
     public boolean foundInterruptible(int x, int data);
-    
+    public void found(int x, int data);
+
 }

@@ -416,7 +416,21 @@ public class GridSaver {
     }
 
 
-    
+
+
+    /**
+     * Write a grid mesh into output
+     *
+     * @throws IOException
+     */
+    public static void writeMesh(WingedEdgeTriangleMesh mesh,
+                                 String filename
+                                 ) throws IOException {
+
+        MeshExporter.writeMesh(mesh, filename);
+
+        return;
+    }
 
     /**
      * Write a grid mesh into output

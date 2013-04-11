@@ -64,6 +64,10 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
 
+    public GridBitIntervals(double width, double height, double depth, int orientation, double pixelSize, double sliceHeight){
+        this((int) (width/pixelSize) + 1, (int) (height / sliceHeight) + 1, (int) (depth / pixelSize) + 1, orientation, pixelSize, sliceHeight);
+    }
+
     public GridBitIntervals(int nx, int ny, int nz, int orientation, double pixelSize, double sliceHeight){
 
         super(nx, ny, nz,  pixelSize, sliceHeight);
@@ -140,9 +144,8 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     public void setIntervals(int x, int y, int intervals[], int values[], int count){
         
         if(m_orientation != ORIENTATION_Z){
-            // do per pixel set 
-            // TODO 
-            return;
+            // TODO
+            throw new IllegalArgumentException("Not implemented");
         } else {
             int ind = x + m_nx * y;
             RowOfInt interval = m_data[ind];
@@ -257,7 +260,9 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             data.setState(Grid.INTERIOR);
             data.setMaterial((byte)0);
         } else {
-            data.setState(Grid.INTERIOR);
+            // TODO: This was INTERIOR I think it should be OUTSIDE
+//            data.setState(Grid.INTERIOR);
+            data.setState(Grid.OUTSIDE);
             data.setMaterial((byte)0);
         }        
     }
@@ -357,7 +362,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 RowOfInt row = m_data[x + m_nx*y];
                 if(row == null) continue;
                 rp.setXY(x,y);
-                row.findInterruptible(data, rp );
+                row.find(data, rp );
             }
         }  
     }
@@ -393,7 +398,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 if(row == null) 
                     continue;
                 rp.setXY(x,y);
-                row.findInterruptible(data, rp );
+                row.find(data, rp );
             }
         }  
     }
@@ -457,7 +462,12 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             return m_t.foundInterruptible(x,y,z, (byte)data);
 
         }
-        
+        public void found(int z, int data){
+
+            m_t.found(x,y,z, (byte)data);
+
+        }
+
     }
 
     /**
