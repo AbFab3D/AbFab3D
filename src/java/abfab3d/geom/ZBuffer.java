@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.io.input;
+package abfab3d.geom;
 
 import javax.vecmath.Vector3d;
 
@@ -53,10 +53,6 @@ public class ZBuffer {
         Nz = nz;
         Nxy = Nx*Ny;
 
-        if (Nxy < 5) {
-            new Exception().printStackTrace();
-            System.out.println("Small zbuffer?");
-        }
         zdata = new float[Nxy][];
         zcount = new int[Nxy];
 

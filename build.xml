@@ -136,10 +136,19 @@
             jars="" />
         <compilejava package="abfab3d/io/soap/envelope"
             jars="" />
-        
+        <compilejava package="shapeways/api"
+                     jars="" />
+        <compilejava package="shapeways/api/models"
+                     jars="" />
+        <compilejava package="shapeways/api/models/reservation"
+                     jars="" />
+        <compilejava package="shapeways/api/price"
+                     jars="" />
+
         <compilejava package="abfab3d/io/shapeways"
             jars="vecmath.jar xj3d-core_2.0.0.jar j3d-org-all_1.0.0.jar"
         />
+
         <compilejava package="abfab3d/validate"
             jars=""
         />
@@ -233,6 +242,16 @@
                 "
             excludes="abfab3d/creator/shapeways/HostedKernel.class"
         />
+        <createjar name="abfab3d_shapeways_api"
+                   version="${version}"
+                   manifest="abfab3d_shapeways_api.mf"
+                   includes="shapeways/api/*
+                shapeways/api/models/*
+                shapeways/api/models/reservation/*
+                shapeways/api/price/*
+                "
+                />
+
     </target>
 
 <!-- Normal test without any code coverage -->

@@ -3,7 +3,7 @@ package abfab3d.geom;
 import abfab3d.grid.ArrayInt;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridIntervals;
-import abfab3d.io.input.ZBuffer;
+import abfab3d.geom.ZBuffer;
 import abfab3d.util.BoundingBoxUtilsFloat;
 import abfab3d.util.MatrixUtil;
 import org.j3d.geom.GeometryData;

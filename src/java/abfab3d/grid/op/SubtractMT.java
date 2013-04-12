@@ -1,8 +1,18 @@
+/*****************************************************************************
+ *                        Shapeways, Inc Copyright (c) 2013
+ *                               Java Source
+ *
+ * This source is licensed under the GNU LGPL v2.1
+ * Please read http://www.gnu.org/copyleft/lgpl.html for more information
+ *
+ * This software comes with the standard NO WARRANTY disclaimer for any
+ * purpose. Use it at your own risk. If there's a problem you get to fix it.
+ *
+ ****************************************************************************/
 package abfab3d.grid.op;
 
 import abfab3d.grid.*;
 
-import java.util.Stack;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,26 +38,43 @@ public class SubtractMT implements Operation {
     /** The dest grid */
     private Grid dest;
 
-    int m_threadCount = 1;
-    int m_sliceSize = 1;
-    int m_nx, m_ny, m_nz;
-    //Stack<Slice> m_slices;
-    ConcurrentLinkedQueue<Slice> m_slices;
+    /** The number of threads to use */
+    private int threadCount = 1;
+
+    /** The size of slizes in y direction */
+    private int sliceSize = 1;
+
+    /** The number of voxels of the grid in x an y */
+    private int nx, ny;
+
+    /** Slices of work */
+    private ConcurrentLinkedQueue<Slice> slices;
 
     public SubtractMT(Grid src) {
         this.src = src;
     }
 
+    public SubtractMT(Grid src, int threads) {
+        this.src = src;
+
+        setThreadCount(threads);
+    }
+    
     public void setThreadCount(int count) {
+        threadCount = count;
 
-        m_threadCount = count;
-
+        if (threadCount < 1) {
+            threadCount = 1;
+        }
     }
 
+    /**
+     * Set the size of y slices used for multithreading.  Changes the chunk size of jobs used in threading.  Has a fair
+     * bit of interaction with cache sizes.  Not sure of a good guidance right now for setting this.
+     * @param size
+     */
     public void setSliceSize(int size) {
-
-        m_sliceSize = size;
-
+        sliceSize = size;
     }
 
 
@@ -63,30 +90,26 @@ public class SubtractMT implements Operation {
 
         this.dest = dest;
 
-        m_nx = dest.getWidth();
-        m_ny = dest.getHeight();
-        m_nz = dest.getDepth();
+        nx = dest.getWidth();
+        ny = dest.getHeight();
 
+        slices = new ConcurrentLinkedQueue<Slice>();
 
-//        m_slices = new Stack<Slice>();
-        m_slices = new ConcurrentLinkedQueue<Slice>();
+        int sliceHeight = sliceSize;
 
-        int sliceHeight = m_sliceSize;
-
-        for (int y = 0; y < m_ny; y += sliceHeight) {
+        for (int y = 0; y < ny; y += sliceHeight) {
             int ymax = y + sliceHeight;
-            if (ymax > m_ny)
-                ymax = m_ny;
+            if (ymax > ny)
+                ymax = ny;
 
             if (ymax > y) {
                 // non zero slice
-//                m_slices.push(new Slice(y, ymax - 1));
-                m_slices.add(new Slice(y, ymax - 1));
+                slices.add(new Slice(y, ymax - 1));
             }
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
-        for (int i = 0; i < m_threadCount; i++) {
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
 
             Runnable runner = new SubtractRunner(src,dest);
             executor.submit(runner);
@@ -110,29 +133,26 @@ public class SubtractMT implements Operation {
 
         this.dest = dest;
 
-        m_nx = dest.getWidth();
-        m_ny = dest.getHeight();
-        m_nz = dest.getDepth();
+        nx = dest.getWidth();
+        ny = dest.getHeight();
 
-//        m_slices = new Stack<Slice>();
-        m_slices = new ConcurrentLinkedQueue<Slice>();
+        slices = new ConcurrentLinkedQueue<Slice>();
 
-        int sliceHeight = m_sliceSize;
+        int sliceHeight = sliceSize;
 
-        for (int y = 0; y < m_ny; y += sliceHeight) {
+        for (int y = 0; y < ny; y += sliceHeight) {
             int ymax = y + sliceHeight;
-            if (ymax > m_ny)
-                ymax = m_ny;
+            if (ymax > ny)
+                ymax = ny;
 
             if (ymax > y) {
                 // non zero slice
-//                m_slices.push(new Slice(y, ymax - 1));
-                m_slices.add(new Slice(y, ymax - 1));
+                slices.add(new Slice(y, ymax - 1));
             }
         }
 
-        ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
-        for (int i = 0; i < m_threadCount; i++) {
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
 
             Runnable runner = new SubtractRunner(src,dest);
             executor.submit(runner);
@@ -150,20 +170,9 @@ public class SubtractMT implements Operation {
         return dest;
     }
 
-/*
-    synchronized Slice getNextSlice() {
-
-        if (m_slices.empty())
-            return null;
-
-        return m_slices.pop();
-
-    }
-*/
     private Slice getNextSlice() {
-        return m_slices.poll();
+        return slices.poll();
     }
-
 
     /**
      * class processes one slice of grid from the array of slices
@@ -186,7 +195,7 @@ public class SubtractMT implements Operation {
                     // end of processing
                     break;
                 }
-                src.find(Grid.VoxelClasses.MARKED, this, 0, m_nx - 1, slice.ymin, slice.ymax);
+                src.find(Grid.VoxelClasses.MARKED, this, 0, nx - 1, slice.ymin, slice.ymax);
             }
         }
 
@@ -236,6 +245,4 @@ public class SubtractMT implements Operation {
         }
 
     }
-
-
 }

@@ -14,15 +14,12 @@ package booleanops;
 
 // External Imports
 
-import abfab3d.geom.TriangleModelCreator;
-import abfab3d.geom.TriangleModelCreator2;
-import abfab3d.geom.TriangleModelCreatorMT;
-import abfab3d.grid.*;
-import abfab3d.grid.op.InteriorFinderTriangleBased;
-import abfab3d.grid.op.Subtract;
+import abfab3d.geom.MeshVoxelizer;
+import abfab3d.grid.ArrayGridByte;
+import abfab3d.grid.Grid;
+import abfab3d.grid.GridBitIntervals;
+import abfab3d.grid.Operation;
 import abfab3d.grid.op.SubtractMT;
-import abfab3d.grid.op.Union;
-import abfab3d.grid.query.CountStates;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SAVExporter;
@@ -40,7 +37,6 @@ import org.web3d.vrml.export.PlainTextErrorReporter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -65,7 +61,7 @@ public class BooleanOps {
      * Resolution of the printer in meters.
      */
 //    public static final double RESOLUTION = 0.00015;
-    public static final double RESOLUTION = 0.00001;
+    public static final double RESOLUTION = 0.00015;
 
     public void generate(String filename) throws IOException {
         long start = System.currentTimeMillis();
@@ -99,12 +95,12 @@ public class BooleanOps {
         Grid grid = getGrid(maxsize[0], maxsize[1], maxsize[2], RESOLUTION, RESOLUTION, maxRamUsage);
 
         System.out.println("Grid size: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
-        TriangleModelCreator2 tmc2 = null;
+        MeshVoxelizer tmc2 = null;
 
         double rx = 0, ry = 1, rz = 0, rangle = 0;
 
         float[] minmax = new float[6];
-        bc.computeMinMax(geom.coordinates, geom.coordinates.length / 3,minmax);
+        bc.computeMinMax(geom.coordinates, geom.coordinates.length / 3, minmax);
 
         double
                 min_x = minmax[0],
@@ -120,15 +116,15 @@ public class BooleanOps {
         //  sx * xmax + tx = nx - pad;
         //  sx*(xmax-xmin) = nx-2*pad;
         double
-                sx = ((max_x - min_x)/grid.getVoxelSize() - 2*padding)/ (max_x - min_x), // scale to transform from model space into grid space
-                sy = ((max_y - min_y)/grid.getSliceHeight() - 2*padding)/ (max_y - min_y),
-                sz = ((max_z - min_z)/grid.getVoxelSize() - 2*padding)/ (max_z - min_z),
-                tx = padding-sx*min_x,
-                ty = padding-sy*min_y,
-                tz = padding-sz*min_z -0.5;
+                sx = ((max_x - min_x) / grid.getVoxelSize() - 2 * padding) / (max_x - min_x), // scale to transform from model space into grid space
+                sy = ((max_y - min_y) / grid.getSliceHeight() - 2 * padding) / (max_y - min_y),
+                sz = ((max_z - min_z) / grid.getVoxelSize() - 2 * padding) / (max_z - min_z),
+                tx = padding - sx * min_x,
+                ty = padding - sy * min_y,
+                tz = padding - sz * min_z - 0.5;
 
-        tmc2 = new TriangleModelCreator2(grid.getWidth(), grid.getHeight(), grid.getDepth(),grid.getVoxelSize(),
-                grid.getSliceHeight(),tx,ty,tz);
+        tmc2 = new MeshVoxelizer(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getVoxelSize(),
+                grid.getSliceHeight(), tx, ty, tz);
 /*
         tmc2 = new TriangleModelCreatorMT(grid.getWidth(), grid.getHeight(), grid.getDepth(),grid.getVoxelSize(),
                 grid.getSliceHeight(),tx,ty,tz);
@@ -140,8 +136,6 @@ public class BooleanOps {
         System.out.println("Generated Box: " + (System.currentTimeMillis() - start) + " ms");
         start = System.currentTimeMillis();
 
-        if (1==1) return;
-/*
         double height = bsize * 1.1;
         double radius = bsize / 2.5f;
         int facets = 64;
@@ -153,16 +147,15 @@ public class BooleanOps {
 
         Grid grid2 = getGrid(maxsize[0], maxsize[1], maxsize[2], RESOLUTION, RESOLUTION, maxRamUsage);
 
-        tmc2 = new TriangleModelCreator2(grid.getWidth(), grid.getHeight(), grid.getDepth(),grid.getVoxelSize(),
-                grid.getSliceHeight(),tx,ty,tz);
+        tmc2 = new MeshVoxelizer(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getVoxelSize(),
+                grid.getSliceHeight(), tx, ty, tz);
         tmc2.rasterize(geom, grid2);
 
         System.out.println("Generated Cylinder1: " + (System.currentTimeMillis() - start) + " ms");
         start = System.currentTimeMillis();
 
 
-        Operation op = new SubtractMT(grid2);
-        ((SubtractMT)op).setThreadCount(threads);
+        Operation op = new SubtractMT(grid2,threads);
 
 //        Operation op = new Union(grid2, 0, 0, 0, 1);
         grid = op.execute(grid);
@@ -177,16 +170,15 @@ public class BooleanOps {
 
         grid2 = getGrid(maxsize[0], maxsize[1], maxsize[2], RESOLUTION, RESOLUTION, maxRamUsage);
 
-        tmc2 = new TriangleModelCreator2(grid.getWidth(), grid.getHeight(), grid.getDepth(),grid.getVoxelSize(),
-                grid.getSliceHeight(),tx,ty,tz,rx,ry,rz,rangle);
+        tmc2 = new MeshVoxelizer(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getVoxelSize(),
+                grid.getSliceHeight(), tx, ty, tz, rx, ry, rz, rangle);
         tmc2.rasterize(geom, grid2);
 
 
         System.out.println("Generated Cylinder2: " + (System.currentTimeMillis() - start) + " ms");
         start = System.currentTimeMillis();
 
-        op = new SubtractMT(grid2);
-        ((SubtractMT)op).setThreadCount(threads);
+        op = new SubtractMT(grid2,threads);
 //        op = new Union(grid2, 0, 0, 0, 1);
         grid = op.execute(grid);
         System.out.println("Subtract Cylinder2: " + (System.currentTimeMillis() - start) + " ms");
@@ -199,15 +191,14 @@ public class BooleanOps {
 
         grid2 = getGrid(maxsize[0], maxsize[1], maxsize[2], RESOLUTION, RESOLUTION, maxRamUsage);
 
-        tmc2 = new TriangleModelCreator2(grid.getWidth(), grid.getHeight(), grid.getDepth(),grid.getVoxelSize(),
-                grid.getSliceHeight(),tx,ty,tz,rx,ry,rz,rangle);
+        tmc2 = new MeshVoxelizer(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getVoxelSize(),
+                grid.getSliceHeight(), tx, ty, tz, rx, ry, rz, rangle);
         tmc2.rasterize(geom, grid2);
 
         System.out.println("Generated Cylinder3: " + (System.currentTimeMillis() - start) + " ms");
         start = System.currentTimeMillis();
 
-        op = new SubtractMT(grid2);
-        ((SubtractMT)op).setThreadCount(threads);
+        op = new SubtractMT(grid2,threads);
 //        op = new Union(grid2, 0, 0, 0, 1);
         grid = op.execute(grid);
         System.out.println("Subtract Cylinder2: " + (System.currentTimeMillis() - start) + " ms");
@@ -215,7 +206,7 @@ public class BooleanOps {
 
 
         grid2 = null;  // Free this to save memory before export
-*/
+
         boolean oldway = false;
         if (DEBUG || oldway) {
             if (DEBUG) {
@@ -421,12 +412,12 @@ public class BooleanOps {
     }
 
     /**
-     return bounds from indexed data
+     * return bounds from indexed data
      */
-    static double[] getBounds(double minmax[], float coords[], int coordIndex[]){
+    static double[] getBounds(double minmax[], float coords[], int coordIndex[]) {
 
-        if(minmax == null){
-            minmax = new double[] {
+        if (minmax == null) {
+            minmax = new double[]{
                     Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                     Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                     Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
@@ -437,8 +428,8 @@ public class BooleanOps {
 
         int len = coordIndex.length;
         // gets max and min bounds
-        for(int i=0; i < len; i++) {
-            int index = 3*coordIndex[i];
+        for (int i = 0; i < len; i++) {
+            int index = 3 * coordIndex[i];
             // get coords
             cx = coords[index++];
             cy = coords[index++];
@@ -465,12 +456,12 @@ public class BooleanOps {
     }
 
     /**
-     return bounds from indexed data
+     * return bounds from indexed data
      */
-    static double[] getBounds(double minmax[], float coords[]){
+    static double[] getBounds(double minmax[], float coords[]) {
 
-        if(minmax == null){
-            minmax = new double[] {
+        if (minmax == null) {
+            minmax = new double[]{
                     Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                     Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
                     Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY,
@@ -481,8 +472,8 @@ public class BooleanOps {
 
         int len = coords.length / 3;
         // gets max and min bounds
-        for(int i=0; i < len; i++) {
-            int index = 3*i;
+        for (int i = 0; i < len; i++) {
+            int index = 3 * i;
             // get coords
             cx = coords[index++];
             cy = coords[index++];
@@ -521,7 +512,7 @@ public class BooleanOps {
             return new ArrayGridByte(width, height, depth, RESOLUTION, RESOLUTION);
         }
 */
-        long voxels = (long) (width/pixelSize * height/sliceHeight * depth/pixelSize);
+        long voxels = (long) (width / pixelSize * height / sliceHeight * depth / pixelSize);
 
         // assume ArrayGridByte uses 1 byte per voxel.
 
@@ -541,8 +532,7 @@ public class BooleanOps {
             c.generate("out.x3db");
             c.generate("out.x3db");
             c.generate("out.x3db");
-            c.generate("out.x3db");
-*/
+            */
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
