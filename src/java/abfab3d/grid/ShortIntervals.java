@@ -406,7 +406,7 @@ public class ShortIntervals implements RowOfInt {
     /**
      * Traverse a class of voxels types.  May be much faster then scanning all voxels
      *
-     * @param vc The class of voxels to traverse
+     * @param data The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */    
     public boolean findInterruptible(int data, IntervalTraverser t) {  
@@ -439,6 +439,40 @@ public class ShortIntervals implements RowOfInt {
             // scan interval of 0s 
             // TODO  do we need this ? 
             return false;
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then scanning all voxels
+     *
+     * @param data The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(int data, IntervalTraverser t) {
+
+        if(data != 0){
+
+            // scan interval of data
+            for(int i = 1; i < m_curcount-1; i++){
+
+                int code = m_intervals[i];
+                int curData = getData(code);
+
+                if(curData != 0){
+                    //if(data == curData){
+
+                    int start = getStart(code);
+                    int end = getStart(m_intervals[i+1]);
+                    for(int x = start; x < end; x++){
+                        t.found(x,data);
+                    }
+                }
+            }
+        } else {
+
+            throw new IllegalArgumentException("Not Implemented");
+            // scan interval of 0s
+            // TODO  do we need this ?
         }
     }
 

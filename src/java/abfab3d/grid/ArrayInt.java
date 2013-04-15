@@ -147,7 +147,16 @@ public class ArrayInt implements RowOfInt {
             }                       
         return true;
     }
-    
+
+    public void find(int value, IntervalTraverser traverser){
+
+        for(int i =0; i < size; i++) {
+            if(data[i] == value){
+                traverser.found(i,value);
+            }
+        }
+    }
+
     public int[] toArray(int array[]){
         if(array == null || array.length < size){
             array = new int[size];

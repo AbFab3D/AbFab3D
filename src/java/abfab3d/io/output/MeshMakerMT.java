@@ -56,7 +56,7 @@ import static java.lang.System.nanoTime;
  */
 public class MeshMakerMT {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final double MM = 0.001;
 
     public static final int RESULT_OK = 0;
@@ -411,7 +411,7 @@ public class MeshMakerMT {
         }
 
         public void run(){
-            
+
             // make isosurface extrator
             
             while(true){
@@ -440,9 +440,11 @@ public class MeshMakerMT {
             blockBounds[3] = blockBounds[2] + (block.ymax - block.ymin) * gdy;
             blockBounds[4] = gzmin + block.zmin * gdz + gdz /2;
             blockBounds[5] = blockBounds[4] + (block.zmax - block.zmin) * gdz;
-            //printf("processBlock() [%6.2f,%6.2f,%6.2f,%6.2f,%6.2f,%6.2f]\n", 
-            //       blockBounds[0]/MM,blockBounds[1]/MM,blockBounds[2]/MM,blockBounds[3]/MM,blockBounds[4]/MM,blockBounds[5]/MM);
-            
+            if (DEBUG) {
+                printf("processBlock() [%6.2f,%6.2f,%6.2f,%6.2f,%6.2f,%6.2f]\n",
+                   blockBounds[0]/MM,blockBounds[1]/MM,blockBounds[2]/MM,blockBounds[3]/MM,blockBounds[4]/MM,blockBounds[5]/MM);
+            }
+
             if(imaker == null)
                 imaker = new IsosurfaceMaker();
 
@@ -459,13 +461,16 @@ public class MeshMakerMT {
             long t0 = nanoTime();
             
             slicer.initBlock(block.xmin, block.xmax, block.ymin,block.ymax, block.zmin,block.zmax, smoothKernel);
-            if(!slicer.containsIsosurface()) return;
+            if(!slicer.containsIsosurface()) {
+                if (DEBUG) System.out.println("Nothing here");
+                return;
+            }
             imaker.makeIsosurface(slicer, its);
             
             //imaker.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, gridBounds, 2), its);
             
 
-            //printf("isosurface done %d ms\n", (nanoTime() - t0));  
+            //printf("isosurface done %d ms\n", (nanoTime() - t0));
 
             long t1 = nanoTime();
 

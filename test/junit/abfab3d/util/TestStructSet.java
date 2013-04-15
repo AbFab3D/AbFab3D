@@ -13,55 +13,15 @@
 package abfab3d.util;
 
 // External Imports
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.*;
-
-
-import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
-
-
-import abfab3d.mesh.PointSet;
-import org.web3d.vrml.sav.BinaryContentHandler;
-
-import abfab3d.io.input.IndexedTriangleSetLoader;
-import abfab3d.io.input.STLReader;
-import abfab3d.io.input.STLRasterizer;
-import abfab3d.io.input.MeshRasterizer;
-import abfab3d.io.output.SAVExporter;
-import abfab3d.io.output.MeshExporter;
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.STLWriter;
-
-
-import abfab3d.grid.Grid;
-import abfab3d.grid.GridShortIntervals;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.op.ErosionMask;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.j3d.geom.*;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.*;
-
-
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt;
-
-import static java.lang.System.currentTimeMillis;
-
 /**
  * Tests the functionality of a StructSet
  *
  * @author Alan Hudson
- * @version
  */
 public class TestStructSet extends TestCase {
 
@@ -74,24 +34,24 @@ public class TestStructSet extends TestCase {
 
     public void testRegularHash() {
         DefaultHashFunction hasher = new DefaultHashFunction();
-        StructSet ps = new StructSet(null,hasher);
+        StructSet ps = new StructSet(null, hasher);
 
         int maxID = 15;
-        int[] ids = new int[] {
-            13,14,15,2,0
+        int[] ids = new int[]{
+                13, 14, 15, 2, 0
         };
 
-        for(int i=0; i < ids.length; i++) {
+        for (int i = 0; i < ids.length; i++) {
             ps.add(ids[i]);
         }
 
-        for(int i=0; i < ids.length; i++) {
+        for (int i = 0; i < ids.length; i++) {
             assertTrue("Found: " + i, ps.contains(ids[i]));
         }
 
-        for(int i=0; i < maxID * 2; i++) {
+        for (int i = 0; i < maxID * 2; i++) {
             boolean found = false;
-            for(int j=0; j < ids.length; j++) {
+            for (int j = 0; j < ids.length; j++) {
                 if (ids[j] == i) {
                     found = true;
                     break;
@@ -106,7 +66,7 @@ public class TestStructSet extends TestCase {
 
     public void testDifferent() {
         DefaultHashFunction hasher = new DefaultHashFunction();
-        StructSet ps = new StructSet(null,hasher);
+        StructSet ps = new StructSet(null, hasher);
 
         boolean id0 = ps.add(0);
         boolean id1 = ps.add(1);
@@ -123,15 +83,15 @@ public class TestStructSet extends TestCase {
 
         PointStruct hasher = new PointStruct(TOLERANCE);
         StructMixedData data = new StructMixedData(PointStruct.DEFINITION, 2);
-        StructSet ps = new StructSet(data,hasher);
+        StructSet ps = new StructSet(data, hasher);
 
-        double[] pos = new double[] {
-                1,2,3,
-                3,2,1
+        double[] pos = new double[]{
+                1, 2, 3,
+                3, 2, 1
         };
 
-        int pnt0 = PointStruct.create(pos[0],pos[1],pos[2], data);
-        int pnt1 = PointStruct.create(pos[3],pos[4],pos[5], data);
+        int pnt0 = PointStruct.create(pos[0], pos[1], pos[2], data);
+        int pnt1 = PointStruct.create(pos[3], pos[4], pos[5], data);
 
         boolean id0 = ps.add(pnt0);
         boolean id1 = ps.add(pnt1);
@@ -149,13 +109,13 @@ public class TestStructSet extends TestCase {
 
         PointStruct hasher = new PointStruct(TOLERANCE);
         StructMixedData data = new StructMixedData(PointStruct.DEFINITION, 2);
-        StructSet ps = new StructSet(data,hasher);
+        StructSet ps = new StructSet(data, hasher);
 
-        double[] pos = new double[] {
-                1,2,3,
+        double[] pos = new double[]{
+                1, 2, 3,
         };
 
-        int pnt0 = PointStruct.create(pos[0],pos[1],pos[2], data);
+        int pnt0 = PointStruct.create(pos[0], pos[1], pos[2], data);
 
         boolean id0 = ps.add(pnt0);
         boolean id1 = ps.add(pnt0);
@@ -168,7 +128,7 @@ public class TestStructSet extends TestCase {
         assertEquals("Array lengths", points.length, 3);
 
         System.out.println("Values: " + java.util.Arrays.toString(points));
-        for(int i=0; i < points.length; i++) {
+        for (int i = 0; i < points.length; i++) {
             assertEquals("val: " + i, pos[i], points[i]);
         }
     }
@@ -178,12 +138,12 @@ public class TestStructSet extends TestCase {
 
         PointStruct hasher = new PointStruct(TOLERANCE);
         StructMixedData data = new StructMixedData(PointStruct.DEFINITION, 2);
-        StructSet ps = new StructSet(data,hasher);
+        StructSet ps = new StructSet(data, hasher);
 
         int cnt = 13;
-        for(int i=0; i < cnt; i++) {
-            int pnt0 = PointStruct.create(1,2,i, data);
-            assertTrue("Unique",ps.add(pnt0));
+        for (int i = 0; i < cnt; i++) {
+            int pnt0 = PointStruct.create(1, 2, i, data);
+            assertTrue("Unique", ps.add(pnt0));
         }
 
         double[] points = getPoints(ps, data);
@@ -192,15 +152,15 @@ public class TestStructSet extends TestCase {
 
         boolean[] found = new boolean[cnt];
 
-        for(int i=0; i < len; i++) {
-            if ((points[i*3] == 0) && (points[i*3+1] == 0) && (points[i*3+2] == 0)) {
+        for (int i = 0; i < len; i++) {
+            if ((points[i * 3] == 0) && (points[i * 3 + 1] == 0) && (points[i * 3 + 2] == 0)) {
                 fail("Zero value in array");
             }
 
-            found[(int) points[i*3+2]] = true;
+            found[(int) points[i * 3 + 2]] = true;
         }
 
-        for(int i=0; i < len; i++) {
+        for (int i = 0; i < len; i++) {
             if (!found[i]) {
                 fail("Could not find point: " + i);
             }
@@ -221,7 +181,7 @@ public class TestStructSet extends TestCase {
         int idx = 0;
 
         for (int j = 0; j < keys.length; j++) {
-            PointStruct.getPosition(data, keys[j],pnt);
+            PointStruct.getPosition(data, keys[j], pnt);
 
             ret_val[idx++] = pnt[0];
             ret_val[idx++] = pnt[1];
@@ -267,7 +227,7 @@ class PointStruct extends StructDataDefinition implements HashFunction {
 
     public static int create(double x, double y, double z, StructMixedData dest) {
         int destIdx = dest.addItem();
-        set(x,y,z,dest, destIdx);
+        set(x, y, z, dest, destIdx);
 
         return destIdx;
     }
@@ -285,9 +245,9 @@ class PointStruct extends StructDataDefinition implements HashFunction {
         int double_pos = srcIdx * DOUBLE_DATA_SIZE;
         double[] double_data = src.getDoubleData();
 
-        pos[0] = double_data[double_pos +  + POS_X];
-        pos[1] = double_data[double_pos +  + POS_Y];
-        pos[2] = double_data[double_pos +  + POS_Z];
+        pos[0] = double_data[double_pos + +POS_X];
+        pos[1] = double_data[double_pos + +POS_Y];
+        pos[2] = double_data[double_pos + +POS_Z];
     }
 
     @Override
@@ -299,7 +259,7 @@ class PointStruct extends StructDataDefinition implements HashFunction {
         double y = double_data[double_pos + POS_Y];
         double z = double_data[double_pos + POS_Z];
 
-        return (int)(CX*x + CY * y + CZ * z + CW);
+        return (int) (CX * x + CY * y + CZ * z + CW);
     }
 
     @Override
@@ -317,10 +277,10 @@ class PointStruct extends StructDataDefinition implements HashFunction {
         double by = double_data[double_pos + POS_Y];
         double bz = double_data[double_pos + POS_Z];
 
-        double tmp = Math.max( Math.abs(ax-bx), Math.abs(ay-by));
-        double d = Math.max(tmp,Math.abs(az-bz));
+        double tmp = Math.max(Math.abs(ax - bx), Math.abs(ay - by));
+        double d = Math.max(tmp, Math.abs(az - bz));
 
-        if(d <= epsilon)
+        if (d <= epsilon)
             return true;
         else
             return false;

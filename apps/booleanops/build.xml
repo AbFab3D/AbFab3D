@@ -8,6 +8,7 @@
     <property name="version" value="1.0.0" />    
     <property name="src.dir" value="${basedir}/src"/>
     <property name="apps.dir" value="${basedir}/apps"/>
+    <property name="app.common.dir" value="../common"/>
     <property name="release.dir" value="${basedir}/release"/>
     <property name="test.dir" value="${basedir}/test/junit"/>
     <property name="abfab3d.classes.dir" value="../../classes" />
@@ -45,7 +46,8 @@
         >
            <classpath-elements>
               <pathelement path="${abfab3d.classes.dir}" />
-              <fileset dir="${abfab3d.lib.dir}" />              
+               <pathelement path="${app.common.dir}/classes"/>
+              <fileset dir="${abfab3d.lib.dir}" />
            </classpath-elements>
 	</compilejava>        
     </target>
@@ -57,9 +59,10 @@
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}" />
-                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />   
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
                 <pathelement path="${abfab3d.classes.dir}" />
-                <fileset dir="${abfab3d.lib.dir}" />              
+                <pathelement path="${app.common.dir}/classes" />
+                <fileset dir="${abfab3d.lib.dir}" />
 <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
             </classpath>
         </java>  

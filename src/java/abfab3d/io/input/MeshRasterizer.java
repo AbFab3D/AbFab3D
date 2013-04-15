@@ -21,6 +21,8 @@ import java.io.FileInputStream;
 
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
+
+import abfab3d.geom.ZBuffer;
 import abfab3d.util.TriangleCollector;
 
 import abfab3d.grid.Grid;
@@ -60,7 +62,7 @@ public class MeshRasterizer implements TriangleCollector {
     // grid size 
     int m_nx, m_ny, m_nz;
     
-    ZBuffer m_zbuffer; // z-buffer to render trianges to 
+    ZBuffer m_zbuffer; // z-buffer to render trianges to
     
 
     /**

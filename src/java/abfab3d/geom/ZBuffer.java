@@ -10,9 +10,11 @@
  *
  ****************************************************************************/
 
-package abfab3d.io.input;
+package abfab3d.geom;
 
 import javax.vecmath.Vector3d;
+
+import java.util.Arrays;
 
 import static java.lang.Math.round;
 import static java.lang.Math.floor;
@@ -54,6 +56,15 @@ public class ZBuffer {
         zdata = new float[Nxy][];
         zcount = new int[Nxy];
 
+    }
+
+    public void clear() {
+        System.out.println("Clearing zdata");
+        int len = zdata.length;
+        for(int i=0; i < len; i++) {
+            zdata[i] = null;
+        }
+        Arrays.fill(zcount, 0);
     }
 
     public void sort(){
@@ -107,17 +118,20 @@ public class ZBuffer {
         float zray[] = zdata[c];
 
         if(zray == null){
-            // new array 
-            zray = new float[2];
+            // new array
+            if (cz < 2) {
+                zray = new float[2];
+            } else {
+                zray = new float[cz+1];
+            }
             zdata[c] = zray;
-
         } else if(cz >= zray.length){
 
             zray = reallocArray(zray, zray.length*2);
             zdata[c] = zray;
         }
 
-        zray[cz] = (float)z; 
+        zray[cz] = (float)z;
 
         zcount[c]++;
 
@@ -281,7 +295,8 @@ public class ZBuffer {
             double e1zdiff = (e1.z2 - e1.z1);
             double e2zdiff = (e2.z2 - e2.z1);
             
-            // we use e2, because it is shorter than e1 and one point is shared 
+            // we use e2, because it is shorter than e1 and one point is shared
+
             int ystart = (int)(e2.y1+0.5);
             int yend = (int)(e2.y2+0.5);
 
@@ -300,7 +315,17 @@ public class ZBuffer {
             double factorStep1 = 1.0 / e1ydiff;
             double factor2 = (ystart + 0.5 - e2.y1) / e2ydiff;
             double factorStep2 = 1.0 / e2ydiff;
-            
+/*
+            // TODO: Decide whether to have this clamping.
+            if (ystart < 0) {
+                System.out.println("Outside grid-, clamping");
+                ystart = 0;
+            }
+            if (yend > m_zb.Ny) {
+                System.out.println("Outside grid+, clamping");
+                yend = m_zb.Ny;
+            }
+*/
             // loop through the lines between ystart and yend
             for(int iy = ystart; iy < yend; iy++) {
                 

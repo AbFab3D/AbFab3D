@@ -994,8 +994,9 @@ public class IsosurfaceMaker {
      */
     public static class BlockSmoothingSlices implements SliceCalculator {
 
-        
-        AttributeGrid grid;
+
+        AttributeGrid agrid;
+        Grid grid;
         double bounds[] = new double[6];
 
 
@@ -1024,7 +1025,10 @@ public class IsosurfaceMaker {
          */
         public BlockSmoothingSlices(Grid grid){
             
-            this.grid = (AttributeGrid)grid;
+            this.grid = (Grid)grid;
+            if (grid instanceof AttributeGrid) {
+                agrid = (AttributeGrid) grid;
+            }
             grid.getGridBounds(this.bounds);
 
             gnx = grid.getWidth();
@@ -1295,7 +1299,7 @@ public class IsosurfaceMaker {
                     }
                 default: 
                     {
-                        int att = grid.getAttribute(gx,gy,gz);
+                        int att = (agrid.getAttribute(gx,gy,gz));
                         return 1. - (2.*att / gridMaxAttributeValue);
                     }
                     

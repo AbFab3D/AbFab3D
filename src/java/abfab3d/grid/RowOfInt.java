@@ -31,6 +31,7 @@ public interface RowOfInt {
        and calling IntervalTraverser for each voxel 
     */
     public boolean findInterruptible(int data, IntervalTraverser t);
+    public void find(int data, IntervalTraverser t);
     public int getDataMemory();
        
 }
