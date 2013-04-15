@@ -72,8 +72,18 @@ public class DataSources {
             ymin,
             ymax,
             zmin, zmax;
+
+        protected boolean
+            m_hasSmoothBoundaryX = false,
+            m_hasSmoothBoundaryY = false,
+            m_hasSmoothBoundaryZ = false;
         
         public Block(){
+        }
+        public void setSmoothBoundaries(boolean boundaryX,boolean boundaryY,boolean boundaryZ){
+            m_hasSmoothBoundaryX = boundaryX;
+            m_hasSmoothBoundaryY = boundaryY;
+            m_hasSmoothBoundaryZ = boundaryZ;
         }
 
         /**
@@ -137,6 +147,7 @@ public class DataSources {
             double vs = pnt.voxelSize;
 
             if(vs == 0.){
+                // zero voxel size 
                 if(x < xmin || x > xmax ||
                    y < ymin || y > ymax ||
                    z < zmin || z > zmax ){
@@ -146,25 +157,30 @@ public class DataSources {
                     data.v[0] = 1.;
                     return RESULT_OK;                                    
                 }                
+            } else {
+                
+                // finite voxel size 
+                
+                if(x <= xmin - vs || x >= xmax + vs || 
+                   y <= ymin - vs || y >= ymax + vs || 
+                   z <= zmin - vs || z >= zmax + vs ){
+                    data.v[0] = 0.;
+                    return RESULT_OK;                      
+                }
+                double finalValue = 1;
+                
+                if(m_hasSmoothBoundaryX)
+                    finalValue = Math.min(finalValue, intervalCap(x, xmin, xmax, vs));
+                if(m_hasSmoothBoundaryY)
+                    finalValue = Math.min(finalValue, intervalCap(y, ymin, ymax, vs));
+                if(m_hasSmoothBoundaryZ)
+                    finalValue = Math.min(finalValue, intervalCap(z, zmin, zmax, vs));
+
+                data.v[0] = finalValue;
+                return RESULT_OK;                      
             }
-
-            double vs2 = 2*vs; 
-            double vxi = step((x-(xmin-vs))/(vs2));
-            double vxa = step(((xmax+vs)-x)/(vs2));
-            double vyi = step((y-(ymin-vs))/(vs2));
-            double vya = step(((ymax+vs)-y)/(vs2));
-            double vzi = step((z-(zmin-vs))/(vs2));
-            double vza = step(((zmax+vs)-z)/(vs2));
-            
-            vxi *= vxa;
-            vyi *= vya;
-            vzi *= vza;
-            
-
-            data.v[0] = vxi*vyi*vzi;
-            
-            return RESULT_OK;
-        }                
+        }  
+        
     }  // class Block 
 
     /**
@@ -764,7 +780,7 @@ public class DataSources {
         double vs2 = vs*2;
         double vxi = step((x-(xmin-vs))/(vs2));
         double vxa = step(((xmax+vs)-x)/(vs2));
-
+        
         return vxi*vxa;
 
     }

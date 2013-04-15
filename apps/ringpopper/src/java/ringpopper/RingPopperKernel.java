@@ -680,6 +680,8 @@ public class RingPopperKernel extends HostedKernel {
             DataSources.Block top_band = new DataSources.Block();
             top_band.setSize(bandLength, topBorderWidth, ringThickness);
             top_band.setLocation(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
+            top_band.setSmoothBoundaries(false, true, true);
+
             union.addDataSource(top_band);
         }
 
@@ -687,6 +689,7 @@ public class RingPopperKernel extends HostedKernel {
             DataSources.Block bottom_band = new DataSources.Block();
             bottom_band.setSize(bandLength, bottomBorderWidth, ringThickness);
             bottom_band.setLocation(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
+            bottom_band.setSmoothBoundaries(false, true, true);
             union.addDataSource(bottom_band);
         }
 
