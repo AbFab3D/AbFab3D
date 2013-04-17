@@ -21,6 +21,7 @@ import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.Grid;
 
 import abfab3d.grid.op.DataSources;
@@ -71,6 +72,11 @@ public class RingPopperKernel extends HostedKernel {
     private static final boolean USE_MIP_MAPPING = false;
     private static final boolean USE_FAST_MATH = true;
     private final boolean USE_MESH_MAKER_MT = true;
+
+    static final int 
+        GRID_SHORT_INTERVALS=1,
+        GRID_BYTE_ARRAY = 2,
+        GRID_AUTO = -1;        
 
     /**
      * Debugging level.  0-5.  0 is none
@@ -389,7 +395,7 @@ public class RingPopperKernel extends HostedKernel {
 
         printf("Res: %10.3g  maxDec: %10.3g\n", resolution, maxDecimationError);
 
-        double margin = 1 * resolution;
+        double margin = 2 * resolution;
         double voxelSize = resolution;
         
         double gridWidth = (innerDiameter + 2 * ringThickness + 2 * margin);
@@ -422,8 +428,11 @@ public class RingPopperKernel extends HostedKernel {
         // (larger values reduce processor cache performance)
         int blockSize = 50;
         // max number to use for surface transitions. Should be ODD number 
-        // set it to 1 to have binary grid 
-        int maxGridAttributeValue = 63;
+        // set it to 0 to have binary grid 
+        int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid 
+        int gridType =  GRID_BYTE_ARRAY;
+        
+        
         // width of surface transition area relative to voxel size
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // set it to 0. to make no surface transitions
@@ -477,15 +486,18 @@ public class RingPopperKernel extends HostedKernel {
         // BlockBasedGridByte is not MT safe (VB)
 
         Grid grid = null;
-/*
-        if (threadCount == 1) {
-            grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
-        } else {
+
+        switch(gridType){
+        default:
+        case GRID_BYTE_ARRAY:
+            grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
+            break;
+
+        case GRID_SHORT_INTERVALS:
             grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
+            break;
+            
         }
-*/
-        grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
-        //  grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
         grid.setGridBounds(bounds);
 
         printf("gm.makeGrid(), threads: %d\n", threadCount);

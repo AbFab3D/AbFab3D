@@ -38,7 +38,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      */
     public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
         this((int) (Math.ceil(w / pixel)) + 1, 
-        	 (int) (Math.ceil(h / sheight)) + 1,
+             (int) (Math.ceil(h / sheight)) + 1,
              (int) (Math.ceil(d / pixel)) + 1, 
              pixel, 
              sheight);
