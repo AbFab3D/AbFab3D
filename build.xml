@@ -6,7 +6,6 @@
     <description></description>
 
     <property name="version" value="1.0.0" />
-    <property name="version.point" value="1" />
 
     <property name="src.dir" value="${basedir}/src"/>
     <property name="apps.dir" value="${basedir}/apps"/>
@@ -570,7 +569,7 @@
         <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
     </tstamp>
     
-      <tar destfile="release/abfab3d_source_${version}.${version.point}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/**"/>      
+      <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/** **/*.war **/wttest/*"/>
   </target>
 
   <target name="stageApps" >
@@ -578,7 +577,7 @@
         <format property="DATE" pattern="yyyy-MM-dd" locale="en,US" />    
     </tstamp>
     
-      <tar destfile="release/abfab3d_source_${version}.${version.point}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/**"/>      
+      <tar destfile="release/abfab3d_source_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${basedir}" includes="**" excludes="release/**"/>
   </target>
     
   <target name="stageLib">
@@ -592,7 +591,7 @@
         <fileset dir="${jar.dir}" includes="**.jar" />
         <fileset dir="${lib.dir}" includes="**.jar" />       
     </copy>  
-    <tar destfile="release/abfab3d_lib_${version}.${version.point}_${DATE}.tar.gz"  compression="gzip" basedir="${release.dir}/bin" includes="**" />    
+    <tar destfile="release/abfab3d_lib_${version}_${DATE}.tar.gz"  compression="gzip" basedir="${release.dir}/bin" includes="**" />
   </target>
     
   <target name="release" depends="build">

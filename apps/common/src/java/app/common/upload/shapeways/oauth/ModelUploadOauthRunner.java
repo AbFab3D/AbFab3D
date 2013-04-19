@@ -15,10 +15,8 @@ package app.common.upload.shapeways.oauth;
 // External imports
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import org.scribe.builder.ServiceBuilder;
 import org.scribe.model.*;
@@ -41,26 +39,26 @@ public class ModelUploadOauthRunner {
 	private static final String UPLOAD_URL = "http://api.shapeways.com/model/v1";
 	
 	/** Access token and secret */
-	private String API_KEY = "7830248cd2e086aa97358e3469d94e3b965a7df8";
-	private String API_SECRET = "6f9e2f3b12d3cb6c1d7b50037dfbad2f56107879";
-	private String ACCESS_TOKEN = "933ce0b75d0a3c335b969bf2dc34e14e273ffac6";
-	private String ACCESS_SECRET = "262ca70394a04534a3c9e3d849c8b51c2e39f4df";
+	private String CONSUMER_KEY = "fcc8983c4e72e553e19583fcfbedf8d55d5dfc24";
+	private String CONSUMER_SECRET = "ae647dffab05dbabaf92f739c766cda3351664d1";
+	private String ACCESS_TOKEN = "22cbc36539f31f8ecf8990a6386ebe76676bef87";
+	private String ACCESS_SECRET = "8dc65aab672eedebeb691eb5bcc52e1b9a969aa9";
 	
 	private OAuthService service;
 	private Token accessToken;
 	
 	public ModelUploadOauthRunner() {
-	    service = new ServiceBuilder().provider(ShapewaysApi.class).apiKey(API_KEY).apiSecret(API_SECRET).build();
+	    service = new ServiceBuilder().provider(ShapewaysApi.class).apiKey(CONSUMER_KEY).apiSecret(CONSUMER_SECRET).build();
 		accessToken = new Token(ACCESS_TOKEN, ACCESS_SECRET);
 	}
 	
 	public ModelUploadOauthRunner(String apiKey, String apiSecret, String accessToken, String accessSecret) {
-		API_KEY = apiKey;
-		API_SECRET = apiSecret;
+		CONSUMER_KEY = apiKey;
+		CONSUMER_SECRET = apiSecret;
 		ACCESS_TOKEN = accessToken;
 		ACCESS_SECRET = accessSecret;
 		
-	    service = new ServiceBuilder().provider(ShapewaysApi.class).apiKey(API_KEY).apiSecret(API_SECRET).build();
+	    service = new ServiceBuilder().provider(ShapewaysApi.class).apiKey(CONSUMER_KEY).apiSecret(CONSUMER_SECRET).build();
 		this.accessToken = new Token(ACCESS_TOKEN, ACCESS_SECRET);
 	}
 /*

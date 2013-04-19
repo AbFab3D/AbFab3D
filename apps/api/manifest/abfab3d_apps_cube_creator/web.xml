@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+     http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <!-- This app is cluster-ready -->
+  <distributable />
+  
+  <context-param>
+    <param-name>org.eclipse.jetty.servlet.SessionPath</param-name>
+    <param-value>/</param-value>
+  </context-param>
+    <filter>
+        <filter-name>GzipFilter</filter-name>
+        <filter-class>org.eclipse.jetty.servlets.GzipFilter</filter-class>
+        <init-param>
+            <param-name>mimeTypes</param-name>
+            <param-value>text/html,text/plain,text/xml,application/xhtml+xml,text/css,application/javascript,image/svg+xml</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>GzipFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <servlet>
+        <servlet-name>CubeServlet</servlet-name>
+        <servlet-class>shapeways.api.robocreator.cube.CubeServlet</servlet-class>
+        <init-param>
+            <param-name>Version</param-name>
+            <param-value>1.0.0</param-value>
+        </init-param>
+        <init-param>
+            <param-name>NumThreads</param-name>
+            <param-value>{"localhost" : 1, "t1.micro" : 1, "m1.small" : 1, "m1.medium" : 1, "m1.large" : 1, "m1.xlarge" : 1, "m3.xlarge" : 1, "m3.2xlarge" : 2,
+                "c1.medium" : 1, "c1.xlarge" : 2}</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ServiceQueue</param-name>
+            <param-value>Cube_v1</param-value>
+        </init-param>
+        <init-param>
+            <param-name>CacheResults</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ShapewaysHost</param-name>
+            <param-value>http://api.beekey.nyc.shapeways.net</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ProxyType</param-name>
+            <param-value>SOCKS</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ProxyHost</param-name>
+            <param-value>127.0.0.1</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ProxyPort</param-name>
+            <param-value>8888</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ShapewaysConsumerKey</param-name>
+            <param-value>c1100bbeeccc7f4f2fe9a0089b052b6a03e8af54</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ShapewaysConsumerSecret</param-name>
+            <param-value>91fbff645d1a7ff539991f08604d5802590b1f71</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ShapewaysAccessToken</param-name>
+            <param-value>ae93af1bd3cad68b37ac05945fdad927daeac6c9</param-value>
+        </init-param>
+        <init-param>
+            <param-name>ShapewaysAccessSecret</param-name>
+            <param-value>a75ff292d277e83a6d8b879f3aebec8ee9c770fb</param-value>
+        </init-param>
+
+        <!-- TODO: Do not check in Shapeways versions of these! -->
+        <init-param>
+            <param-name>AWSAccessKey</param-name>
+            <param-value></param-value>
+        </init-param>
+        <init-param>
+            <param-name>AWSAccessSecret</param-name>
+            <param-value></param-value>
+        </init-param>
+        <init-param>
+            <param-name>AWSRegion</param-name>
+            <param-value>us-east-1</param-value>
+        </init-param>
+        <init-param>
+            <param-name>AWSSQSMessagePollFrequency</param-name>
+            <param-value>5000</param-value>
+        </init-param>
+        <init-param>
+            <param-name>AWSSQSVisibilityTimeout</param-name>
+            <param-value>180</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CubeServlet</servlet-name>
+        <url-pattern>/*</url-pattern>
+  </servlet-mapping>
+</web-app>
