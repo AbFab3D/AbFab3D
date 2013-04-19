@@ -92,8 +92,14 @@ public class TriangleModelCreator extends GeometryCreator {
     private Vector3d e2;
     private Vector3d f;
     private Vector3d vpos;
+    private Vector3d vmin;
+    private Vector3d vmax;
+
+    double[] vcoords = new double[3];
 
     private Operation interiorFinder;
+    double[] minGridWorldCoord = new double[3];
+    double[] maxGridWorldCoord = new double[3];
 
     /**
      * Constructor.
@@ -140,6 +146,8 @@ public class TriangleModelCreator extends GeometryCreator {
         e2 = new Vector3d();
         f = new Vector3d();
         vpos = new Vector3d();
+        vmin = new Vector3d();
+        vmax = new Vector3d();
 
         if (geom.geometryType != GeometryData.TRIANGLES &&
          geom.geometryType != GeometryData.INDEXED_TRIANGLES) {
@@ -240,6 +248,9 @@ public class TriangleModelCreator extends GeometryCreator {
         int idx = 0;
         Triangle tri;
         float[] coords = new float[9];
+
+        grid.getGridBounds(minGridWorldCoord, maxGridWorldCoord);
+
 
         if (geom.geometryType == GeometryData.TRIANGLES) {
             int len = geom.vertexCount / 3;
@@ -471,11 +482,6 @@ public class TriangleModelCreator extends GeometryCreator {
 
         tri.calcBounds(minBounds, maxBounds);
 
-        double[] minGridWorldCoord = new double[3];
-        double[] maxGridWorldCoord = new double[3];
-
-        grid.getGridBounds(minGridWorldCoord, maxGridWorldCoord);
-
 /*
 System.out.println("Grid Min: " + java.util.Arrays.toString(minGridWorldCoord));
 System.out.println("Grid Max: " + java.util.Arrays.toString(maxGridWorldCoord));
@@ -558,11 +564,6 @@ System.out.flush();
     public void insert(Triangle tri, Grid grid) {
 
         tri.calcBounds(minBounds, maxBounds);
-
-        double[] minGridWorldCoord = new double[3];
-        double[] maxGridWorldCoord = new double[3];
-
-        grid.getGridBounds(minGridWorldCoord, maxGridWorldCoord);
 
 /*
 System.out.println("Grid Min: " + java.util.Arrays.toString(minGridWorldCoord));
@@ -656,7 +657,6 @@ System.out.flush();
         Vector3d v1 = new Vector3d(tri.coords[3], tri.coords[4], tri.coords[5]);
         Vector3d v2 = new Vector3d(tri.coords[6], tri.coords[7], tri.coords[8]);
 
-        double[] vcoords = new double[3];
         for(int x = 0; x < len_x; x++) {
             for(int y = 0; y < len_y; y++) {
                 for(int z = 0; z < len_z; z++) {
@@ -693,9 +693,15 @@ System.out.flush();
 
         int i,j,k;
 
-        Vector3d v0 = new Vector3d(tri.coords[0], tri.coords[1], tri.coords[2]);
-        Vector3d v1 = new Vector3d(tri.coords[3], tri.coords[4], tri.coords[5]);
-        Vector3d v2 = new Vector3d(tri.coords[6], tri.coords[7], tri.coords[8]);
+        v0.x =  tri.coords[0];
+        v0.y =  tri.coords[1];
+        v0.z =  tri.coords[2];
+        v1.x = tri.coords[3];
+        v1.y = tri.coords[4];
+        v1.z = tri.coords[5];
+        v2.x = tri.coords[6];
+        v2.y = tri.coords[7];
+        v2.z = tri.coords[8];
 
         double[] vcoords = new double[3];
         for(int x = 0; x < len_x; x++) {
@@ -744,7 +750,10 @@ System.out.flush();
         // this gives 3x3=9 more tests
 
         // move everything so that the boxcenter is in (0,0,0)
-        vpos = new Vector3d(pos[0],pos[1],pos[2]);
+        //vpos = new Vector3d(pos[0],pos[1],pos[2]);
+        vpos.x = pos[0];
+        vpos.y = pos[1];
+        vpos.z = pos[2];
         v0.sub(a,vpos);
         v1.sub(b,vpos);
         v2.sub(c,vpos);
@@ -844,8 +853,8 @@ System.out.flush();
     private boolean planeBoxOverlap(Vector3d normal, double d, double hv) {
 
 // TODO: Need to change to include sheight
-        Vector3d vmin = new Vector3d();
-        Vector3d vmax = new Vector3d();
+        //Vector3d vmin = new Vector3d();
+        //Vector3d vmax = new Vector3d();
 
         if (normal.x > 0.0f) {
             vmin.x = -hv;
