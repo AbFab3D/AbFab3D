@@ -105,6 +105,18 @@ public class SysErrorReporter implements ErrorReporter {
      * @param e The exception that caused this warning. May be null
      */
     public void warningReport(String msg, Exception e) {
+        warningReport(msg, (Throwable) e);
+    }
+
+    /**
+     * Notification of a warning in the way the system is currently operating.
+     * This is a non-fatal, non-serious error. For example you will get an
+     * warning when a value has been set that is out of range.
+     *
+     * @param msg The text of the message to be displayed
+     * @param e The exception that caused this warning. May be null
+     */
+    public void warningReport(String msg, Throwable e) {
         if(logLevel < PRINT_ERRORS) {
             System.err.print("Warning: ");
             System.err.println(msg);
@@ -123,6 +135,18 @@ public class SysErrorReporter implements ErrorReporter {
      * @param e The exception that caused this warning. May be null
      */
     public void errorReport(String msg, Exception e) {
+        errorReport(msg, (Throwable) e);
+    }
+
+    /**
+     * Notification of a recoverable error. This is a serious, but non-fatal
+     * error, for example trying to add a route to a non-existent node or the
+     * use of a node that the system cannot find the definition of.
+     *
+     * @param msg The text of the message to be displayed
+     * @param e The exception that caused this warning. May be null
+     */
+    public void errorReport(String msg, Throwable e) {
         if(logLevel < PRINT_FATAL_ERRORS) {
             System.err.print("Error: ");
             System.err.println(msg);
@@ -142,6 +166,19 @@ public class SysErrorReporter implements ErrorReporter {
      * @param e The exception that caused this warning. May be null
      */
     public void fatalErrorReport(String msg, Exception e) {
+        fatalErrorReport(msg, (Throwable) e);
+    }
+
+    /**
+     * Notification of a non-recoverable error that halts the entire system.
+     * After you recieve this report the runtime system will no longer
+     * function - for example a non-recoverable parsing error. The best way
+     * out is to reload the file or restart the application internals.
+     *
+     * @param msg The text of the message to be displayed
+     * @param e The exception that caused this warning. May be null
+     */
+    public void fatalErrorReport(String msg, Throwable e) {
         if(logLevel < PRINT_NONE) {
             System.err.print("Fatal Error: ");
             System.err.println(msg);
