@@ -1009,10 +1009,17 @@ System.out.println("Finding exterior voxels");
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
+
+                    if (vd.getState() != Grid.OUTSIDE) {
+                        cnt++;
+                    }
                 }
             }
         }
@@ -1023,10 +1030,13 @@ System.out.println("Finding exterior voxels");
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int x=0; x < width; x++) {
             for(int z=0; z < depth; z++) {
                 for(int y=0; y < height; y++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                 }
             }
         }
@@ -1037,10 +1047,13 @@ System.out.println("Finding exterior voxels");
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                 }
             }
         }
@@ -1051,10 +1064,13 @@ System.out.println("Finding exterior voxels");
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int y=0; y < height; y++) {
             for(int z=0; z < depth; z++) {
                 for(int x=0; x < width; x++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                 }
             }
         }
@@ -1065,10 +1081,13 @@ System.out.println("Finding exterior voxels");
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int z=0; z < depth; z++) {
             for(int x=0; x < width; x++) {
                 for(int y=0; y < height; y++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                 }
             }
         }
@@ -1079,10 +1098,13 @@ System.out.println("Finding exterior voxels");
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int z=0; z < depth; z++) {
             for(int y=0; y < height; y++) {
                 for(int x=0; x < width; x++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                 }
             }
         }

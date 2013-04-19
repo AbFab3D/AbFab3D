@@ -140,4 +140,5 @@ public interface AttributeGrid extends Grid {
      * @param matID The new attributeID
      */
     public void reassignAttribute(int[] attributes, int matID);
+
 }

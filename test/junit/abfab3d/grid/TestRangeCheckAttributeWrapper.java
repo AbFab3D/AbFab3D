@@ -116,45 +116,45 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
         //-------------------------------------------------------
         // Invalid getData
         //-------------------------------------------------------
-        VoxelData vd = null;
+        VoxelData vd = wrapper.getVoxelData();
 
         try {
-            vd = wrapper.getData(-1,0,0);
+            wrapper.getData(-1,0,0,vd);
             fail("Negative width voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(width,0,0);
+            wrapper.getData(width,0,0,vd);
             fail("Voxel coord greater than width-1 should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,-1,0);
+            wrapper.getData(0,-1,0,vd);
             fail("Negative height voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,height,0);
+            wrapper.getData(0,height,0,vd);
             fail("Voxel coord greater than height-1 should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,0,-1);
+            wrapper.getData(0,0,-1,vd);
             fail("Negative depth voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,0,depth);
+            wrapper.getData(0,0,depth,vd);
             fail("Voxel coord greater than depth-1 should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
@@ -169,19 +169,19 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
         wrapper.setData(0,0,depth-1, Grid.EXTERIOR, mat);
         wrapper.setData(width-1,height-1,depth-1, Grid.EXTERIOR, mat);
 
-        vd = wrapper.getData(0,0,0);
+        wrapper.getData(0,0,0,vd);
         assertTrue("Voxel [0,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(width-1,0,0);
+        wrapper.getData(width-1,0,0,vd);
         assertTrue("Voxel [width-1,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(0,height-1,0);
+        wrapper.getData(0,height-1,0,vd);
         assertTrue("Voxel [0,height-1,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(0,0,depth-1);
+        wrapper.getData(0,0,depth-1,vd);
         assertTrue("Voxel [0,0,depth-1] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(width-1,height-1,depth-1);
+        wrapper.getData(width-1,height-1,depth-1,vd);
         assertTrue("Voxel [width-1,height-1,width-1] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
     }
 
@@ -247,45 +247,45 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
         //-------------------------------------------------------
         // Invalid getData
         //-------------------------------------------------------
-        VoxelData vd = null;
+        VoxelData vd = wrapper.getVoxelData();
 
         try {
-            vd = wrapper.getData(-hres,0,0);
+            wrapper.getData(-hres,0,0,vd);
             fail("Negative width world coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(width+2*hres,0,0);
+            wrapper.getData(width+2*hres,0,0,vd);
             fail("Voxel coord greater than width+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,-vres,0);
+            wrapper.getData(0,-vres,0,vd);
             fail("Negative height world coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,height+2*vres,0);
+            wrapper.getData(0,height+2*vres,0,vd);
             fail("World coord greater than height+2*vres should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,0,-hres);
+            wrapper.getData(0,0,-hres,vd);
             fail("Negative depth voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
         }
 
         try {
-            vd = wrapper.getData(0,0,depth+2*hres);
+            wrapper.getData(0,0,depth+2*hres,vd);
             fail("World coord greater than depth+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertNull("Voxel data is not null", vd);
@@ -300,19 +300,19 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
         wrapper.setData(0,0,depth, Grid.EXTERIOR, mat);
         wrapper.setData(width,height,depth, Grid.EXTERIOR, mat);
 
-        vd = wrapper.getData(0.0,0.0,0.0);
+        wrapper.getData(0.0,0.0,0.0,vd);
         assertTrue("World coord [0,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(width,0.0,0.0);
+        wrapper.getData(width,0.0,0.0,vd);
         assertTrue("World coord [width,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(0.0,height,0.0);
+        wrapper.getData(0.0,height,0.0,vd);
         assertTrue("World coord [0,height,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(0.0,0.0,depth);
+        wrapper.getData(0.0,0.0,depth,vd);
         assertTrue("World coord [0,0,depth-1] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
 
-        vd = wrapper.getData(width,height,depth);
+        wrapper.getData(width,height,depth,vd);
         assertTrue("World coord [width,height,width] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
     }
 

@@ -18,11 +18,18 @@ package abfab3d.grid;
  * @author Alan Hudson
  */
 public class VoxelDataInt implements VoxelData {
-    /** The voxel state */
+    /**
+     * The voxel state
+     */
     private byte state;
 
-    /** The material */
+    /**
+     * The material
+     */
     private int material;
+
+    public VoxelDataInt() {
+    }
 
     public VoxelDataInt(byte state, int material) {
         this.state = state;
@@ -69,7 +76,7 @@ public class VoxelDataInt implements VoxelData {
      * Set the state and material
      *
      * @param state The state
-     * @param mat The material
+     * @param mat   The material
      */
     public void setData(byte state, int mat) {
         this.state = state;
@@ -92,10 +99,10 @@ public class VoxelDataInt implements VoxelData {
      * @return True if these represent the same values
      */
     public boolean equals(Object o) {
-        if(!(o instanceof VoxelData))
+        if (!(o instanceof VoxelData))
             return false;
         else
-            return equals((VoxelData)o);
+            return equals((VoxelData) o);
     }
 
     /**

@@ -15,7 +15,11 @@ package abfab3d.grid.query;
 // External Imports
 
 // Internal Imports
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import abfab3d.grid.*;
 import abfab3d.path.Path;
@@ -23,7 +27,7 @@ import abfab3d.path.Path;
 /**
  * Determines whether an object specified by a materialID can move in the
  * direction specified.  Only cares about intersections with
- * targteted material.
+ * targeted material.
  *
  * Might be able to optimize by moving the axis most version of
  * of something and then not having to calculate the rest in that
@@ -35,6 +39,9 @@ import abfab3d.path.Path;
  * @author Alan Hudson
  */
 public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
+    private static final boolean CONCURRENT = true;
+    private static final boolean DEBUG = false;
+
     /** The material to remove */
     private int material;
 
@@ -44,7 +51,7 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
     /** Minimum bounds of the target */
     private int[] targetMinBounds;
 
-    /** Maximum bounds of the taget */
+    /** Maximum bounds of the target */
     private int[] targetMaxBounds;
 
     /** The path to use */
@@ -57,7 +64,15 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
     private AttributeGrid gridAtt;
 
     /** Coordinates that can be ignored */
-    HashSet<VoxelCoordinate> ignoreSet;
+    private Set<VoxelCoordinate> ignoreSet;
+
+    // Stats, only collected when DEBUG is true
+    private long calcs;
+
+    // scratch var
+    private int[] pos = new int[3];
+    private VoxelCoordinate vc = new VoxelCoordinate();
+    private VoxelData vd;
 
     public CanMoveMaterialTargetedBounds(int material, int target,
             int[] targetMinBounds, int[] targetMaxBounds, Path path) {
@@ -79,13 +94,24 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
     public boolean execute(Grid grid) {
         allEscaped = true;
         this.gridAtt = (AttributeGrid) grid;
+        vd = grid.getVoxelData();
 
-        this.ignoreSet = new HashSet<VoxelCoordinate>();
+        if (CONCURRENT) {
+            ignoreSet = Collections.newSetFromMap(new ConcurrentHashMap<VoxelCoordinate, Boolean>());
+        } else {
+            ignoreSet = new HashSet<VoxelCoordinate>();
+        }
 
         // TODO: just use material and say class only moves external?
 //        gridAtt.findInterruptible(VoxelClasses.EXTERIOR, material, this);
         gridAtt.findAttributeInterruptible(material, this);
 
+        if (DEBUG) {
+            if (DEBUG) {
+//                System.out.println("CMMTB: " + material + " t: " + target + " min: " + Arrays.toString(targetMinBounds) + " max: " + Arrays.toString(targetMaxBounds) + " path: " + Arrays.toString(path.getDir()));
+                System.out.println("CMMTB: " + material + " t: " + target + " min: " + Arrays.toString(targetMinBounds) + " max: " + Arrays.toString(targetMaxBounds) + " path: " + Arrays.toString(path.getDir()) + " calcs: " + calcs + " ignored: " + ignoreSet.size());
+            }
+        }
         return allEscaped;
     }
 
@@ -122,7 +148,9 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
             return true;
         }
 
-        int[] pos = new int[] {x,y,z};
+        pos[0] = x;
+        pos[1] = y;
+        pos[2] = z;
 
         // Move along path till edge or
         path.init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
@@ -137,8 +165,11 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
                 break;
             }
 
-            VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
+            gridAtt.getData(pos[0], pos[1], pos[2],vd);
 
+            if (DEBUG) {
+                calcs++;
+            }
 //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
             if (vd.getState() != Grid.OUTSIDE && vd.getMaterial() == target) {
 //System.out.println("Collide at: " + java.util.Arrays.toString(pos));
@@ -322,7 +353,9 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
      * @param z The Z coordinate for the starting position
      */
     private void addIgnoredVoxels(int x, int y, int z) {
-        int[] pos = new int[] {x, y, z};
+        pos[0] = x;
+        pos[1] = y;
+        pos[2] = z;
 
         Path invertedPath = path.invertPath();
         invertedPath.init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
@@ -350,9 +383,9 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
      * @return True if the voxel can be ignored.
      */
     private boolean canIgnore(int x, int y, int z) {
-//if (1==1) return false;
+        vc.setValue(x,y,z);
 
-        if (ignoreSet.contains(new VoxelCoordinate(x, y, z))) {
+        if (ignoreSet.contains(vc)) {
 //System.out.println("can ignore: " + x + " " + y + " " + z);
             return true;
         }

@@ -28,6 +28,9 @@ public class OccupiedWrapper implements AttributeGridWrapper {
     /** The wrapper grid */
     private AttributeGrid grid;
 
+    // Scratch Var
+    private VoxelData vd;
+
     /**
      * Constructor.
      *
@@ -35,6 +38,8 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      */
     public OccupiedWrapper(AttributeGrid grid) {
         this.grid = grid;
+
+        vd = grid.getVoxelData();
     }
 
     /**
@@ -51,6 +56,8 @@ public class OccupiedWrapper implements AttributeGridWrapper {
 
         if (wrap.grid != null)
             this.grid = (AttributeGrid) wrap.grid.clone();
+
+        vd = grid.getVoxelData();
     }
 
     /**
@@ -65,6 +72,15 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
         return grid.createEmpty(w,h,d,pixel,sheight);
+    }
+
+    /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return grid.getVoxelData();
     }
 
     /**
@@ -102,30 +118,6 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      */
     public void getData(int x, int y, int z,VoxelData vd) {
         grid.getData(x,y,z,vd);
-    }
-
-    /**
-     * Get the data for a voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel data
-     */
-    public VoxelData getData(double x, double y, double z) {
-        return grid.getData(x,y,z);
-    }
-
-    /**
-     * Get the state of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel state
-     */
-    public VoxelData getData(int x, int y, int z) {
-        return grid.getData(x,y,z);
     }
 
     /**
@@ -186,7 +178,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param material The materialID
      */
     public void setData(double x, double y, double z, byte state, int material) {
-        VoxelData vd = grid.getData(x,y,z);
+        grid.getData(x,y,z,vd);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getMaterial() != material ) {
@@ -205,7 +197,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param material The value.  0 = nothing. > 0 materialID
      */
     public void setData(int x, int y, int z, byte state, int material) {
-        VoxelData vd = grid.getData(x,y,z);
+        grid.getData(x,y,z,vd);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getMaterial() != material ) {

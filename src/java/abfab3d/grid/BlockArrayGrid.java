@@ -216,36 +216,12 @@ public class BlockArrayGrid extends BaseGrid {
         vd.setData(get(coord[0],coord[1],coord[2]),0);
     }
 
-    /**
-	 * Get the data of the voxel
-	 *
-	 * @param x The x grid coordinate
-	 * @param y The y grid coordinate
-	 * @param z The z grid coordinate
-	 * @return The voxel state
-	 */
-	public VoxelData getData(int x, int y, int z) {
-		return getVoxelData(x,y,z);
-	}
-
-	/**
-	 * Get the data of the voxel
-	 *
-	 * @param x The x world coordinate
-	 * @param y The y world coordinate
-	 * @param z The z world coordinate
-	 * @return The voxel state
-	 */
-	public VoxelData getData(double wx, double wy, double wz) {
-		return getVoxelData(wx,wy,wz);
-	}
-
 	/**
 	 * Get the state of the voxel
 	 *
-	 * @param x The x world coordinate
-	 * @param y The y world coordinate
-	 * @param z The z world coordinate
+	 * @param wx The x world coordinate
+	 * @param wy The y world coordinate
+	 * @param wz The z world coordinate
 	 * @return The voxel state
 	 */
 	public byte getState(double wx, double wy, double wz) {

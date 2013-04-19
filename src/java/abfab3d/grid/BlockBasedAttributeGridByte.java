@@ -207,40 +207,6 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param z The z grid coordinate
      * @return The voxel state
      */
-    public VoxelData getData(int x, int y, int z) {
-        // Find block coord
-        getBlockCoord(x, y, z, bcoord);
-
-        // Inline getBlockID call, confirm faster?
-        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
-
-        BlockByte block = data[id];
-
-//System.out.println("gd: " + x + " " + y + " " + z + " id: " + id + " block: " + block);
-        if (block != null) {
-            // Find coord in block
-            getVoxelInBlock(x, y, z, vcoord);
-
-            byte val = block.getValue(vcoord, blockOrder);
-
-            byte state = (byte) ((val & 0xFF) >> 6);
-            byte mat = (byte) (0x3F & val);
-
-            VoxelDataByte vd = new VoxelDataByte(state, mat);
-            return vd;
-        } else {
-            return outside;
-        }
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel state
-     */
     public void getData(int x, int y, int z, VoxelData vd) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
@@ -263,43 +229,6 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             vd.setData(state,mat);
         } else {
             vd.setData(Grid.OUTSIDE, Grid.NO_MATERIAL);
-        }
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public VoxelData getData(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        // Find block coord
-        getBlockCoord(s_x, slice, s_z, bcoord);
-
-        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
-
-        BlockByte block = data[id];
-
-        if (block != null) {
-            // Find coord in block
-            getVoxelInBlock(s_x, slice, s_z, vcoord);
-
-            byte val = block.getValue(vcoord, blockOrder);
-
-            byte state = (byte) ((val & 0xFF) >> 6);
-            byte mat = (byte) (0x3F & val);
-
-            VoxelDataByte vd = new VoxelDataByte(state, mat);
-
-            return vd;
-        } else {
-            return outside;
         }
     }
 
@@ -641,6 +570,15 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
         BlockBasedAttributeGridByte ret_val = new BlockBasedAttributeGridByte(this);
 
         return ret_val;
+    }
+
+    /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
     }
 
     /**

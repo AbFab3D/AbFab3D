@@ -83,6 +83,7 @@ System.out.println("Creating grid for Interior Finding");
 
 System.out.println("Outer material: " + material);
 
+        VoxelData vd = grid.getVoxelData();
         // Find interior voxels using in/out tests
         // March across XAXIS
         for(int y=0; y < height; y++) {
@@ -90,7 +91,7 @@ System.out.println("Outer material: " + material);
                 status = OUTSIDE;
 
                 for(int x=0; x < width; x++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     state = vd.getState();
 
                     if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
@@ -163,7 +164,7 @@ System.out.println("XAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             for(int z=0; z < depth; z++) {
                 status = OUTSIDE;
                 for(int y=0; y < height; y++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     state = vd.getState();
 
                     if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
@@ -246,7 +247,7 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             for(int y=0; y < height; y++) {
                 status = OUTSIDE;
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     state = vd.getState();
 
                     if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
@@ -374,8 +375,9 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
     	boolean zPosInterior = false;
     	boolean zNegInterior = false;
 
+        VoxelData vd = grid.getVoxelData();
 		for (int x=xPos+1; x<width; x++) {
-            VoxelData vd = grid.getData(x, yPos, zPos);
+            grid.getData(x, yPos, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
@@ -389,7 +391,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 		}
 		
 		for (int x=xPos-1; x>=0; x--) {
-            VoxelData vd = grid.getData(x, yPos, zPos);
+            grid.getData(x, yPos, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
@@ -403,7 +405,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 		}
 
 		for (int y=yPos+1; y<height; y++) {
-            VoxelData vd = grid.getData(xPos, y, zPos);
+            grid.getData(xPos, y, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
@@ -417,7 +419,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 		}
 
 		for (int y=yPos-1; y>=0; y--) {
-            VoxelData vd = grid.getData(xPos, y, zPos);
+            grid.getData(xPos, y, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
@@ -431,7 +433,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 		}
 		
 		for (int z=zPos+1; z<depth; z++) {
-            VoxelData vd = grid.getData(xPos, yPos, z);
+            grid.getData(xPos, yPos, z,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
@@ -445,7 +447,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
 		}
     	
 		for (int z=zPos-1; z>=0; z--) {
-            VoxelData vd = grid.getData(xPos, yPos, z);
+            grid.getData(xPos, yPos, z,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
@@ -463,9 +465,10 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
         int depth = grid.getDepth();
         byte state;
 
+        VoxelData vd = grid.getVoxelData();
         if (dir == 'Y') {
             for (int y=yPos+1; y<height; y++) {
-                VoxelData vd = grid.getData(xPos, y, zPos);
+                grid.getData(xPos, y, zPos,vd);
                 state = vd.getState();
 
                 if (state == Grid.EXTERIOR)
@@ -473,7 +476,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             }
         } else if (dir == 'Z') {
             for (int z=zPos+1; z<depth; z++) {
-                VoxelData vd = grid.getData(xPos, yPos, z);
+                grid.getData(xPos, yPos, z,vd);
                 state = vd.getState();
 
                 if (state == Grid.EXTERIOR)
@@ -481,7 +484,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             }
         } else {
             for (int x=xPos+1; x<width; x++) {
-                VoxelData vd = grid.getData(x, yPos, zPos);
+                grid.getData(x, yPos, zPos,vd);
                 state = vd.getState();
 
                 if (state == Grid.EXTERIOR)

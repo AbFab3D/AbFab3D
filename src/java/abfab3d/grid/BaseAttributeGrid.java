@@ -62,13 +62,14 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(int mat, ClassAttributeTraverser t) {
-        
-        
+
+        VoxelData vd = getVoxelData();
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
                     
                     if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                         t.found(x,y,z,vd);
@@ -88,10 +89,12 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      */
     public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
 
+        VoxelData vd = getVoxelData();
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
 
                     if (vd.getMaterial() != mat) {
                         continue;
@@ -132,11 +135,13 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
+        VoxelData vd = getVoxelData();
+
         loop:
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
 
                     if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                         if (!t.foundInterruptible(x,y,z,vd))
@@ -156,11 +161,13 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+        VoxelData vd = getVoxelData();
+
         loop:
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
 
                     if (vd.getMaterial() != mat) {
                         continue;
@@ -206,11 +213,13 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      */
     public int findCount(int mat) {
         int ret_val = 0;
-        
+
+        VoxelData vd = getVoxelData();
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
 
                     byte state;
 
@@ -232,10 +241,13 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param t The traverer to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
+        VoxelData vd = getVoxelData();
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
+
                     byte state;
 
                     switch(vc) {
@@ -280,11 +292,13 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param t The traverer to call for each voxel
      */
     public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t) {
+        VoxelData vd = getVoxelData();
+
         loop:
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
                     byte state = getState(x,y,z);
 
                     switch(vc) {
@@ -327,16 +341,17 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      *
      * @param materials The new list of materials
      */
-    public void reassignAttribute(int[] materials, int matID) {
+    public void reassignAttribute(final int[] materials, int matID) {
         // assume unindexed if we got here.  Best to traverse
         // whole structure
 
-        int len = materials.length;
+        final int len = materials.length;
+        VoxelData vd = getVoxelData();
 
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
+                    getData(x,y,z,vd);
 
                     int mat;
                     byte state = vd.getState();
@@ -361,12 +376,12 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param mat The aterialID
      */
     public void removeAttribute(int mat) {
+        VoxelData vd = getVoxelData();
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
-                    byte state;
+                    getData(x,y,z,vd);
 
                     if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                         setData(x,y,z, Grid.OUTSIDE, 0);

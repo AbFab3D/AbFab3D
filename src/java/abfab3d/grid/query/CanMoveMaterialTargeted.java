@@ -120,8 +120,9 @@ public class CanMoveMaterialTargeted implements ClassAttributeTraverser {
 
         boolean escaped = true;
 
+        VoxelData vd = gridAtt.getVoxelData();
         while(path.next(pos)) {
-            VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
+            gridAtt.getData(pos[0], pos[1], pos[2],vd);
 
 //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
             if (vd.getState() != Grid.OUTSIDE && vd.getMaterial() == target) {

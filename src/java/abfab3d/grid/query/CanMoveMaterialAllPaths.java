@@ -43,10 +43,12 @@ public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
     private AttributeGrid gridAtt;
 
     /** Coordinates that can be ignored */
-    HashSet<VoxelCoordinate>[] ignoreSet;
+    private HashSet<VoxelCoordinate>[] ignoreSet;
 
     /** The number bad paths **/
-    int badPathCount;
+    private int badPathCount;
+
+    private VoxelData vd;
 
     public CanMoveMaterialAllPaths(int material, Path[] paths) {
         this.material = material;
@@ -65,6 +67,7 @@ public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
     public boolean execute(AttributeGrid grid) {
 //        allEscaped = true;
         this.gridAtt = grid;
+        vd = grid.getVoxelData();
 
         for (int i=0; i<ignoreSet.length; i++) {
             ignoreSet[i] = new HashSet<VoxelCoordinate>();
@@ -105,7 +108,7 @@ public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
             paths[i].init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
             while(paths[i].next(pos)) {
-                VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
+                gridAtt.getData(pos[0], pos[1], pos[2],vd);
 
 //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
                 if (vd.getState() != Grid.OUTSIDE &&
@@ -160,7 +163,7 @@ public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
             paths[i].init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
             while(paths[i].next(pos)) {
-                VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
+                gridAtt.getData(pos[0], pos[1], pos[2],vd);
 
 //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
                 if (vd.getState() != Grid.OUTSIDE &&
@@ -198,7 +201,7 @@ public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
         invertedPath.init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
         while(invertedPath.next(pos)) {
-            VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
+            gridAtt.getData(pos[0], pos[1], pos[2],vd);
 
             // can optimize by ignoring interior voxels and only checking for exterior voxels
             if (vd.getState() == Grid.OUTSIDE)

@@ -61,13 +61,13 @@ public class Copy implements Operation, AttributeOperation {
         int origin_x = x;
         int origin_y = y;
         int origin_z = z;
-        VoxelData vd;
+        VoxelData vd = dest.getVoxelData();
 
 
         for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
-                    vd = dest.getData(x,y,z);
+                    dest.getData(x,y,z,vd);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         // TODO: really only works on empty

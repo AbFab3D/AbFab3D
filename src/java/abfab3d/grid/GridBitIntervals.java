@@ -234,27 +234,27 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
+    }
+
+    /**
        implementaion of interface Grid 
      */
-    public VoxelData getData(double x, double y, double z){
 
+    public void getData(double x, double y, double z, VoxelData data){
         int iy = (int) (y / sheight);
         int ix = (int) (x / pixelSize);
         int iz = (int) (z / pixelSize);
-        return getData(ix,iy,iz);
+
+        getData(ix,iy,iz,data);
     }
 
-    public void getData(double x, double y, double z, VoxelData data){  
-        getData(x,y,z,data);
-    }
-
-    public VoxelData getData(int x, int y, int z){        
-        VoxelDataByte data = new VoxelDataByte((byte)0,(byte)0);
-        getData( x,  y,  z, data);
-        return data;
-    }
-
-    public void getData(int x, int y, int z, VoxelData data){        
+    public void getData(int x, int y, int z, VoxelData data){
 
         if(get(x,y,z) != 0){
             data.setState(Grid.INTERIOR);

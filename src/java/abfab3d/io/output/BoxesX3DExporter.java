@@ -150,6 +150,8 @@ public class BoxesX3DExporter implements Exporter {
 
         writer.startField("children");
 
+        VoxelData vd = grid.getVoxelData();
+
         for(int i=0; i < height; i++) {
             y = i * sheight;
 
@@ -161,7 +163,7 @@ public class BoxesX3DExporter implements Exporter {
                 for(int k=0; k < depth; k++) {
                     z = k * pixelSize;
 
-                    VoxelData vd = grid.getData(j,i,k);
+                    grid.getData(j,i,k,vd);
 
                     byte state = vd.getState();
                     int mat = vd.getMaterial();

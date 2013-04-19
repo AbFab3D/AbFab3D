@@ -101,6 +101,15 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
     }
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
+    }
+
+    /**
      * Remove all voxels associated with the Material.
      *
      * @param mat The aterialID
@@ -114,82 +123,6 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
     //----------------------------------------------------------
     // Grid methods
     //----------------------------------------------------------
-
-    /**
-     * Get the data for a voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public VoxelData getData(double x, double y, double z) {
-        // Slow method, must traverse all lists
-
-        Iterator<HashSet<Voxel>> itr = data.values().iterator();
-
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        VoxelCoordinate vc = new VoxelCoordinate(s_x,slice,s_z);
-        Voxel tv = new Voxel(vc, null);
-
-        while(itr.hasNext()) {
-            HashSet<Voxel> set = itr.next();
-            Iterator<Voxel> itr2 = set.iterator();
-
-            // TODO: Does contains call make it faster?
-            if (set.contains(tv)) {
-                while(itr2.hasNext()) {
-                    Voxel v = itr2.next();
-                    VoxelCoordinate vc2 = v.getCoordinate();
-
-                    if (vc.equals(vc2)) {
-                        return v.getData();
-                    }
-                }
-            }
-        }
-
-        // Not found, that's OUTSIDE, material 0
-        return EMPTY_VOXEL;
-    }
-
-    /**
-     * Get the state of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     */
-    public VoxelData getData(int x, int y, int z) {
-        // Slow method, must traverse all lists
-
-        Iterator<HashSet<Voxel>> itr = data.values().iterator();
-
-        VoxelCoordinate vc = new VoxelCoordinate(x,y,z);
-        Voxel tv = new Voxel(vc, null);
-
-        while(itr.hasNext()) {
-            HashSet<Voxel> set = itr.next();
-            Iterator<Voxel> itr2 = set.iterator();
-
-            // TODO: Does contains call make it faster?
-            if (set.contains(tv)) {
-                while(itr2.hasNext()) {
-                    Voxel v = itr2.next();
-                    VoxelCoordinate vc2 = v.getCoordinate();
-
-                    if (vc.equals(vc2)) {
-                        return v.getData();
-                    }
-                }
-            }
-        }
-
-        // Not found, that's OUTSIDE, material 0
-        return EMPTY_VOXEL;
-    }
 
     /**
      * Get the data for a voxel
@@ -603,10 +536,12 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      */
     public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
         if (vc == VoxelClasses.ALL) {
+            VoxelData vd = getVoxelData();
+
             for(int x=0; x < width; x++) {
                 for(int y=0; y < height; y++) {
                     for(int z=0; z < depth; z++) {
-                        VoxelData vd = getData(x,y,z);
+                        getData(x,y,z,vd);
                         if (mat == vd.getMaterial()) {
                             t.found(x,y,z,vd);
                         }
@@ -804,10 +739,12 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t) {
         // Slow method, must traverse all lists
         if (vc == VoxelClasses.ALL) {
+            VoxelData vd = getVoxelData();
+
             for(int x=0; x < width; x++) {
                 for(int y=0; y < height; y++) {
                     for(int z=0; z < depth; z++) {
-                        VoxelData vd = getData(x,y,z);
+                        getData(x,y,z,vd);
                         t.found(x,y,z,vd);
                     }
                 }
@@ -815,10 +752,11 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
 
             return;
         } else if (vc == VoxelClasses.OUTSIDE) {
+            VoxelData vd = getVoxelData();
             for(int x=0; x < width; x++) {
                 for(int y=0; y < height; y++) {
                     for(int z=0; z < depth; z++) {
-                        VoxelData vd = getData(x,y,z);
+                        getData(x,y,z,vd);
                         if (vd.getState() == Grid.OUTSIDE) {
                             t.found(x,y,z,vd);
                         }
@@ -966,8 +904,6 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
             if (vd.getAttribute() != mat)
                 continue;
 */
-
-            byte state;
 
             VoxelCoordinate vcoord = v.getCoordinate();
             int x = vcoord.getX();

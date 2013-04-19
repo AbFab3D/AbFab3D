@@ -13,15 +13,13 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.util.*;
-import java.io.*;
-import org.web3d.vrml.sav.ContentHandler;
-import org.j3d.geom.*;
-import org.web3d.util.spatial.Triangle;
-import javax.vecmath.*;
+
+import abfab3d.grid.*;
+
+import java.util.HashSet;
+import java.util.Iterator;
 
 // Internal Imports
-import abfab3d.grid.*;
 
 /**
  * Thicken an objects exterior by expanding each exterior voxel
@@ -31,7 +29,9 @@ import abfab3d.grid.*;
  * @author Alan Hudson
  */
 public class ThickenUniform implements Operation, AttributeOperation {
-    /** The material to use for new voxels */
+    /**
+     * The material to use for new voxels
+     */
     private int material;
 
     public ThickenUniform(int material) {
@@ -50,8 +50,8 @@ public class ThickenUniform implements Operation, AttributeOperation {
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
-        Grid ret_val = grid.createEmpty(width + 1,height + 1,depth + 1,
-            grid.getVoxelSize(), grid.getSliceHeight());
+        Grid ret_val = grid.createEmpty(width + 1, height + 1, depth + 1,
+                grid.getVoxelSize(), grid.getSliceHeight());
 
         //Copy
         // Guess that 1% of all voxels will be exterior
@@ -61,24 +61,26 @@ public class ThickenUniform implements Operation, AttributeOperation {
 
         // Generate set of voxels to thicken
 
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+        VoxelData vd = grid.getVoxelData();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                for (int z = 0; z < depth; z++) {
+                    grid.getData(x, y, z, vd);
 
                     byte state = vd.getState();
 
                     if (state == Grid.EXTERIOR) {
-                        ext_voxels.add(new VoxelCoordinate(x,y,z));
+                        ext_voxels.add(new VoxelCoordinate(x, y, z));
                     }
                 }
             }
         }
 
         Iterator<VoxelCoordinate> itr = ext_voxels.iterator();
-        int x,y,z;
+        int x, y, z;
 
-        while(itr.hasNext()) {
+        while (itr.hasNext()) {
             VoxelCoordinate vc = itr.next();
 
             x = vc.getX();
@@ -86,10 +88,10 @@ public class ThickenUniform implements Operation, AttributeOperation {
             z = vc.getZ();
 
             // Vist all 27 neigbors and make them exterior voxels
-            for(int i=-1; i < 2; i++) {
-                for(int j=-1; j < 2; j++) {
-                    for(int k=-1; k < 2; k++) {
-                        grid.setState(x + i,y + j,z + k, Grid.EXTERIOR);
+            for (int i = -1; i < 2; i++) {
+                for (int j = -1; j < 2; j++) {
+                    for (int k = -1; k < 2; k++) {
+                        grid.setState(x + i, y + j, z + k, Grid.EXTERIOR);
                     }
                 }
             }
@@ -110,7 +112,7 @@ public class ThickenUniform implements Operation, AttributeOperation {
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
-        Grid ret_val = grid.createEmpty(width + 1,height + 1,depth + 1,
+        Grid ret_val = grid.createEmpty(width + 1, height + 1, depth + 1,
                 grid.getVoxelSize(), grid.getSliceHeight());
 
         //Copy
@@ -121,24 +123,26 @@ public class ThickenUniform implements Operation, AttributeOperation {
 
         // Generate set of voxels to thicken
 
-        for(int y=0; y < height; y++) {
-            for(int x=0; x < width; x++) {
-                for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+        VoxelData vd = grid.getVoxelData();
+
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                for (int z = 0; z < depth; z++) {
+                    grid.getData(x, y, z, vd);
 
                     byte state = vd.getState();
 
                     if (state == Grid.EXTERIOR) {
-                        ext_voxels.add(new VoxelCoordinate(x,y,z));
+                        ext_voxels.add(new VoxelCoordinate(x, y, z));
                     }
                 }
             }
         }
 
         Iterator<VoxelCoordinate> itr = ext_voxels.iterator();
-        int x,y,z;
+        int x, y, z;
 
-        while(itr.hasNext()) {
+        while (itr.hasNext()) {
             VoxelCoordinate vc = itr.next();
 
             x = vc.getX();
@@ -146,10 +150,10 @@ public class ThickenUniform implements Operation, AttributeOperation {
             z = vc.getZ();
 
             // Vist all 27 neigbors and make them exterior voxels
-            for(int i=-1; i < 2; i++) {
-                for(int j=-1; j < 2; j++) {
-                    for(int k=-1; k < 2; k++) {
-                        grid.setData(x + i,y + j,z + k, Grid.EXTERIOR, material);
+            for (int i = -1; i < 2; i++) {
+                for (int j = -1; j < 2; j++) {
+                    for (int k = -1; k < 2; k++) {
+                        grid.setData(x + i, y + j, z + k, Grid.EXTERIOR, material);
                     }
                 }
             }

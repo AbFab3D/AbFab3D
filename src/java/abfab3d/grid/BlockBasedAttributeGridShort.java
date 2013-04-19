@@ -183,71 +183,12 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
     }
 
     /**
-     * Get the data of the voxel
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
      *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
+     * @return The voxel data
      */
-    public VoxelData getData(int x, int y, int z) {
-        // Find block coord
-        getBlockCoord(x, y, z, bcoord);
-
-        // Inline getBlockID call, confirm faster?
-        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
-
-        BlockShort block = data[id];
-
-//System.out.println("gd: " + x + " " + y + " " + z + " id: " + id + " block: " + block);
-        if (block != null) {
-            // Find coord in block
-            getVoxelInBlock(x, y, z, vcoord);
-
-            short val = block.getValue(vcoord, blockOrder);
-
-            byte state = (byte) ((val & 0xFFFF) >> 14);
-            short mat = (short) (0x3FFF & val);
-
-            VoxelDataByte vd = new VoxelDataByte(state, mat);
-            return vd;
-        } else {
-            return outside;
-        }
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public VoxelData getData(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        // Find block coord
-        getBlockCoord(s_x, slice, s_z, bcoord);
-
-        int id = bcoord[1] * blockXZSize + bcoord[0] * blockResZ + bcoord[2];
-
-        BlockShort block = data[id];
-
-        if (block != null) {
-            // Find coord in block
-            getVoxelInBlock(s_x, slice, s_z, vcoord);
-
-            short val = block.getValue(vcoord, blockOrder);
-
-            byte state = (byte) ((val & 0xFFFF) >> 14);
-            short mat = (short) (0x3FFF & val);
-
-            VoxelDataByte vd = new VoxelDataByte(state, mat);
-            return vd;
-        } else {
-            return outside;
-        }
+    public VoxelData getVoxelData() {
+        return new VoxelDataShort();
     }
 
     /**
@@ -699,6 +640,8 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
         }
 
         int[] coord = new int[3];
+        VoxelDataShort vd = new VoxelDataShort(Grid.OUTSIDE,0);
+
 
         for(int i=0; i < len; i++) {
             BlockShort block = data[i];
@@ -714,7 +657,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
                 byte state = (byte) ((data[j] & 0xFFFF) >> 14);
                 short mat = (short) (0x3FFF & data[j]);
 
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
+                vd.setData(state,mat);
 
                 getVoxelCoord(i,j, coord);
 
@@ -769,6 +712,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
         }
 
         int[] coord = new int[3];
+        VoxelDataShort vd = new VoxelDataShort(Grid.OUTSIDE,0);
 
         for(int i=0; i < len; i++) {
             BlockShort block = data[i];
@@ -788,7 +732,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
                     continue;
                 }
 
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
+                vd.setData(state,material);
 
                 getVoxelCoord(i,j, coord);
 
@@ -840,6 +784,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
         }
 
         int[] coord = new int[3];
+        VoxelDataShort vd = new VoxelDataShort(Grid.OUTSIDE,0);
 
         loop:
         for(int i=0; i < len; i++) {
@@ -856,8 +801,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
                 byte state = (byte) ((data[j] & 0xFFFF) >> 14);
                 short mat = (short) (0x3FFF & data[j]);
 
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
-
+                vd.setData(state,mat);
                 getVoxelCoord(i,j, coord);
 
                 switch(vc) {
@@ -984,6 +928,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
         }
 
         int[] coord = new int[3];
+        VoxelDataShort vd = new VoxelDataShort(Grid.OUTSIDE,0);
 
         loop:
         for(int i=0; i < len; i++) {
@@ -1003,7 +948,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
                     continue;
                 }
 
-                VoxelDataShort vd = new VoxelDataShort(state,mat);
+                vd.setData(state,material);
 
                 getVoxelCoord(i,j, coord);
 

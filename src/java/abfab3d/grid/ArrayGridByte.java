@@ -94,46 +94,6 @@ public class ArrayGridByte extends BaseGrid {
      * @param z The z grid coordinate
      * @return The voxel state
      */
-    public VoxelData getData(int x, int y, int z) {
-        int idx = y * sliceSize + x * depth + z;
-
-        byte state = (byte) ((data[idx] & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & data[idx]);
-
-        VoxelDataByte vd = new VoxelDataByte(state, mat);
-
-        return vd;
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public VoxelData getData(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        byte state = (byte) ((data[idx] & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & data[idx]);
-
-        return new VoxelDataByte(state, mat);
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel state
-     */
     public void getData(int x, int y, int z, VoxelData vd) {
         int idx = y * sliceSize + x * depth + z;
 
