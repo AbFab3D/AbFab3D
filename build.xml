@@ -87,7 +87,7 @@
   
     <target name="compile" depends="init" description="Compile all Java source files">
         <compilejava package="abfab3d/util"
-            jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar"
+            jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
         />
 <!--
         <compilejava package="abfab3d/math"
@@ -107,7 +107,7 @@
             jars=""
         />
         <compilejava package="abfab3d/grid/op"
-            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_1.0.0.jar vecmath.jar"
+            jars="jafama.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar vecmath.jar"
         />
         <compilejava package="abfab3d/grid/query"
             jars=""
@@ -146,7 +146,7 @@
                      jars="" />
 
         <compilejava package="abfab3d/io/shapeways"
-            jars="vecmath.jar xj3d-core_2.0.0.jar j3d-org-all_1.0.0.jar"
+            jars="vecmath.jar xj3d-core_2.0.0.jar j3d-org-all_2.0.0.jar"
         />
 
         <compilejava package="abfab3d/validate"
@@ -490,12 +490,12 @@
      <mkdir dir="${test.classes.dir}" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d" jars="support/junit-4.8.1.jar xj3d-sav_2.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/path" jars="support/junit-4.8.1.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar j3d-org-all_1.0.0.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid" jars="support/junit-4.8.1.jar j3d-org-all_2.0.0.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/util" jars="support/junit-4.8.1.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="support/junit-4.8.1.jar vecmath.jar j3d-org-all_1.0.0.jar xj3d-sav_2.0.0.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="support/junit-4.8.1.jar j3d-org-all_1.0.0.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_1.0.0.jar support/junit-4.8.1.jar" />
-      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="vecmath.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar xj3d-sav_2.0.0.jar j3d-org-all_1.0.0.jar support/junit-4.8.1.jar toxiclibscore.jar " />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="support/junit-4.8.1.jar vecmath.jar j3d-org-all_2.0.0.jar xj3d-sav_2.0.0.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="support/junit-4.8.1.jar j3d-org-all_2.0.0.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar support/junit-4.8.1.jar" />
+      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="vecmath.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar xj3d-sav_2.0.0.jar j3d-org-all_2.0.0.jar support/junit-4.8.1.jar toxiclibscore.jar " />
       <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="" jars="support/junit-4.8.1.jar" />
   </target>
 
@@ -544,7 +544,7 @@
 
     <target name="compileJapex" depends="init" description="Compile all Japex source files">
         <mkdir dir="${japex.classes.dir}" />
-        <compilejava destdir="${japex.classes.dir}" srcdir="${japex.dir}" package="abfab3d/grid" jars="j3d-org-all_1.0.0.jar support/japex/*.jar" />
+        <compilejava destdir="${japex.classes.dir}" srcdir="${japex.dir}" package="abfab3d/grid" jars="j3d-org-all_2.0.0.jar support/japex/*.jar" />
     </target>
 
     <!-- End Japex Tests -->
