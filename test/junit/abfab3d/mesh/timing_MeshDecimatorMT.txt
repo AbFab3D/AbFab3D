@@ -1,0 +1,333 @@
+leaf_01.stl
+face count: 1663140
+1 processMesh() done 4717 ms
+2 processMesh() done 2361 ms
+3 processMesh() done 1945 ms
+4 processMesh() done 1572 ms
+
+
+text_iso_0.stl 
+face count: 251836 
+1 processMesh() done 758 ms
+2 processMesh() done 504 ms
+3 processMesh() done 485 ms
+4 processMesh() done 421 ms
+
+
+----------------------------------
+
+synchronized collapseEdge
+
+leaf_01.stl
+1                     4582 ms
+2                     2718 ms
+3                     2178 ms
+4 processMesh() done  1791 ms
+
+
+
+
+
+
+1  4549 ms   840458 faces
+
+2  3688 ms   840666 faces 
+
+
+1 thread  
+
+faces   time per collapse (ns)   processMesh() (ms) 
+4,000            500                 5 
+15K              613                15 
+100K             860               168
+250K             1059              500
+500K             1145             1070
+1,6M             1448             4328
+
+4 thread (non synch)
+ 
+500K             2000             500
+1.6M             2000             1600 - 2100
+
+
+New approach - spacial partitioning 
+we divide grin into smaller blocs and do processing of each block in separater thread
+We measure time of 5th iteration 
+
+grid is the same - 6 x 6 x 6 array of spheres 3 mm diameter
+-------------------------------------------
+-------------------------------------------
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324412
+grid: [180 x 180 x 180]
+cell: [180 x 180 x 180]
+cells: [1 x 1 x 1]
+threads: 1
+data initialization 0 ms
+grid rendering: 301 ms
+grid made: 301 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 12622 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324412
+max memory 1918 MB
+----------
+grid: [180 x 180 x 180]
+cell: [90 x 90 x 90]
+cells: [2 x 2 x 2]
+threads: 1
+data initialization 0 ms
+grid rendering: 299 ms
+grid made: 299 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 9599 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324046
+max memory 1196 MB
+
+grid: [180 x 180 x 180]
+cell: [90 x 90 x 90]
+cells: [2 x 2 x 2]
+threads: 2
+data initialization 0 ms
+grid rendering: 302 ms
+grid made: 302 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 5713 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324046
+max memory 1628 MB
+
+grid: [180 x 180 x 180]
+cell: [90 x 90 x 90]
+cells: [2 x 2 x 2]
+threads: 3
+data initialization 0 ms
+grid rendering: 303 ms
+grid made: 303 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 4823 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324046
+max memory 2101 MB
+
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324046
+grid: [180 x 180 x 180]
+cell: [90 x 90 x 90]
+cells: [2 x 2 x 2]
+threads: 4
+data initialization 0 ms
+grid rendering: 299 ms
+grid made: 299 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 4570 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324046
+max memory 2532 MB
+-----------
+grid: [180 x 180 x 180]
+cell: [60 x 60 x 60]
+cells: [3 x 3 x 3]
+threads: 1
+data initialization 0 ms
+grid rendering: 298 ms
+grid made: 298 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 6909 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 323880
+max memory 1074 MB
+
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 323880
+grid: [180 x 180 x 180]
+cell: [60 x 60 x 60]
+cells: [3 x 3 x 3]
+threads: 2
+data initialization 0 ms
+grid rendering: 299 ms
+grid made: 300 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 4378 ms
+max memory 1624 MB
+
+grid: [180 x 180 x 180]
+cell: [60 x 60 x 60]
+cells: [3 x 3 x 3]
+threads: 3
+data initialization 0 ms
+grid rendering: 298 ms
+grid made: 298 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 3170 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 323880
+max memory 1934 MB
+
+grid: [180 x 180 x 180]
+cell: [60 x 60 x 60]
+cells: [3 x 3 x 3]
+threads: 4
+data initialization 0 ms
+grid rendering: 300 ms
+grid made: 300 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 2977 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 323880
+max memory 2288 MB
+----------
+
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324388
+grid: [180 x 180 x 180]
+cell: [30 x 30 x 30]
+cells: [6 x 6 x 6]
+threads: 1
+data initialization 0 ms
+grid rendering: 299 ms
+grid made: 299 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 6851 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324388
+max memory 1335 MB
+
+grid: [180 x 180 x 180]
+cell: [30 x 30 x 30]
+cells: [6 x 6 x 6]
+threads: 2
+data initialization 0 ms
+grid rendering: 298 ms
+grid made: 298 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 3714 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324388
+max memory 1834 MB
+
+grid: [180 x 180 x 180]
+cell: [30 x 30 x 30]
+cells: [6 x 6 x 6]
+threads: 3
+data initialization 0 ms
+grid rendering: 298 ms
+grid made: 299 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 3238 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324388
+max memory 1886 MB
+
+grid: [180 x 180 x 180]
+cell: [30 x 30 x 30]
+cells: [6 x 6 x 6]
+threads: 4
+data initialization 0 ms
+grid rendering: 298 ms
+grid made: 298 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 3070 ms
+ORIGINAL_FACE_COUNT: 1616544
+FINAL_FACE_COUNT: 324388
+max memory 1915 MB
+
+-----------------------------------
+smaller spheres 9 x 9 x 9
+-----------------------------------
+grid: [180 x 180 x 180]
+cell: [180 x 180 x 180]
+cells: [1 x 1 x 1]
+threads: 1
+data initialization 0 ms
+grid rendering: 325 ms
+grid made: 325 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 19481 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 429566
+max memory 2307 MB
+
+grid: [180 x 180 x 180]
+cell: [60 x 60 x 60]
+cells: [3 x 3 x 3]
+threads: 4
+data initialization 0 ms
+grid rendering: 317 ms
+grid made: 317 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 4903 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 430650
+max memory 2118 MB 
+
+grid: [180 x 180 x 180]
+cell: [20 x 20 x 20]
+cells: [9 x 9 x 9]
+threads: 4
+data initialization 0 ms
+grid rendering: 306 ms
+grid made: 307 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 8072 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 428482
+max memory 2362 MB 
+
+------------------------------
+after memory optimization
+------------------------------
+grid: [180 x 180 x 180]
+cell: [180 x 180 x 180]
+cells: [1 x 1 x 1]
+threads: 1
+grid made: 316 ms
+MESH_EXTRACTION_TIME: 20575 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 429566
+
+grid: [180 x 180 x 180]
+cell: [20 x 20 x 20]
+cells: [9 x 9 x 9]
+threads: 1
+grid made: 314 ms
+MESH_EXTRACTION_TIME: 6168 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 428482
+
+grid: [180 x 180 x 180]
+cell: [20 x 20 x 20]
+cells: [9 x 9 x 9]
+threads: 2
+grid made: 318 ms
+MESH_EXTRACTION_TIME: 3158 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 428482
+
+grid: [180 x 180 x 180]
+cell: [20 x 20 x 20]
+cells: [9 x 9 x 9]
+threads: 3
+data initialization 0 ms
+grid rendering: 309 ms
+grid made: 309 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 2028 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 428482
+
+max memory 424 MB
+
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 428482
+grid: [180 x 180 x 180]
+cell: [20 x 20 x 20]
+cells: [9 x 9 x 9]
+threads: 4
+grid made: 324 ms
+starting mesh building
+MESH_EXTRACTION_TIME: 1532 ms
+ORIGINAL_FACE_COUNT: 2411532
+FINAL_FACE_COUNT: 428482
+max memory 580 MB
