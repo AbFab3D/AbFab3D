@@ -467,7 +467,7 @@ class TwoBitArray {
 	 */
 	public TwoBitArray(int nbins) {
 		int nbytes = nbins >> 2;
-		if ((nbytes&0x3) > 0) {
+		if ((nbytes&0x3) > 0 || nbytes == 0) {
 			nbytes += 1;
 		}
 		data = new byte[nbytes];
