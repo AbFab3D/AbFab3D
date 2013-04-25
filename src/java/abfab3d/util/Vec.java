@@ -13,47 +13,33 @@
 package abfab3d.util;
 
 /**
-   wrapper for arbitrary vector of floating point data array 
+ * Wrapper for arbitrary vector of floating point data array
+ *
+ * @author Vladimir Bulatov
  */
 public class Vec {
     
-    // hlder for data 
+    // holder for data
     public double v[];
-
-    public double voxelSize;
 
     public Vec(int size){
         v = new double[size];
-        voxelSize = 0.;
     }
 
     public Vec(Vec in){
         v = new double[in.v.length];
         set(in);
-
     }
 
     public void set(double x, double y, double z){
-
         v[0] = x;
         v[1] = y;
         v[2] = z;       
-    }
-    
-    public void setVoxelSize(double vs){
-        voxelSize = vs;
-    }
-    
-    public void scaleVoxelSize(double scale){
-        voxelSize *= scale;
     }
 
     public void set(Vec in){
         for(int i=0; i < v.length; i++){
             v[i] = in.v[i];
         }
-        voxelSize = in.voxelSize;
-        
     }
-    
 }
