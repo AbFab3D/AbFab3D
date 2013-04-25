@@ -15,7 +15,9 @@ package abfab3d.util;
 import javax.vecmath.Vector3d;
 
 /**
-   counsts trinagles via TriangleCollector interface 
+ * Counts triangles via TriangleCollector interface
+ *
+ * @author Vladimir Bulatov
  */
 public class TriangleCounter implements TriangleCollector {
 
@@ -36,13 +38,10 @@ public class TriangleCounter implements TriangleCollector {
 
         count++;
         return true;
-
     }
 
     public int getCount(){
         return count;
     }
-    
-
 }
 
