@@ -100,6 +100,16 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
     }
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        // This is a default impl.  For larger sizes the grid is expected to implement.
+        return new VoxelDataByte();
+    }
+
+    /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -205,8 +215,6 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = getData(x,y,z);
-
                     byte state;
 
                     switch(vc) {
@@ -214,25 +222,25 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
                             ret_val++;
                             break;
                         case MARKED:
-                            state = vd.getState();
+                            state = getState(x,y,z);
                             if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
                                 ret_val++;
                             }
                             break;
                         case EXTERIOR:
-                            state = vd.getState();
+                            state = getState(x,y,z);
                             if (state == Grid.EXTERIOR) {
                                 ret_val++;
                             }
                             break;
                         case INTERIOR:
-                            state = vd.getState();
+                            state = getState(x,y,z);
                             if (state == Grid.INTERIOR) {
                                 ret_val++;
                             }
                             break;
                         case OUTSIDE:
-                            state = vd.getState();
+                            state = getState(x,y,z);
                             if (state == Grid.OUTSIDE) {
                                 ret_val++;
                             }

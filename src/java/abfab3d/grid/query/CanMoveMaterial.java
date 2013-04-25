@@ -15,7 +15,10 @@ package abfab3d.grid.query;
 // External Imports
 
 // Internal Imports
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import abfab3d.grid.*;
 import abfab3d.path.Path;
@@ -33,6 +36,8 @@ import abfab3d.path.Path;
  * @author Alan Hudson
  */
 public class CanMoveMaterial implements ClassAttributeTraverser {
+    private static final boolean CONCURRENT = true;
+
     /** The material to remove */
     private int material;
 
@@ -46,7 +51,12 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
     private AttributeGrid gridAtt;
 
     /** Coordinates that can be ignored */
-    HashSet<VoxelCoordinate> ignoreSet;
+    private Set<VoxelCoordinate> ignoreSet;
+
+    // scratch var
+    private int[] pos = new int[3];
+    private VoxelCoordinate vc = new VoxelCoordinate();
+    private VoxelData vd;
 
     public CanMoveMaterial(int material,Path path) {
         this.material = material;
@@ -64,8 +74,13 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
     public boolean execute(AttributeGrid grid) {
         allEscaped = true;
         this.gridAtt = grid;
+        vd = gridAtt.getVoxelData();
 
-        this.ignoreSet = new HashSet<VoxelCoordinate>();
+        if (CONCURRENT) {
+            ignoreSet = Collections.newSetFromMap(new ConcurrentHashMap<VoxelCoordinate, Boolean>());
+        } else {
+            ignoreSet = new HashSet<VoxelCoordinate>();
+        }
 
         // TODO: just use material and say class only moves external?
 //        gridAtt.findInterruptible(VoxelClasses.EXTERIOR, material, this);
@@ -107,15 +122,18 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
             return true;
         }
 
-        int[] pos = new int[] {x,y,z};
+        pos[0] = x;
+        pos[1] = y;
+        pos[2] = z;
 
         // Move along path till edge or
         path.init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
 
         boolean escaped = true;
 
+
         while(path.next(pos)) {
-            VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
+            gridAtt.getData(pos[0], pos[1], pos[2],vd);
 
 //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
             if (vd.getState() != Grid.OUTSIDE &&
@@ -147,7 +165,9 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
      * @param z The Z coordinate for the starting position
      */
     private void addIgnoredVoxels(int x, int y, int z) {
-        int[] pos = new int[] {x, y, z};
+        pos[0] = x;
+        pos[1] = y;
+        pos[2] = z;
 
         Path invertedPath = path.invertPath();
         invertedPath.init(pos, gridAtt.getWidth(), gridAtt.getHeight(), gridAtt.getDepth());
@@ -178,7 +198,6 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
 //if (1==1) return false;
 
         if (ignoreSet.contains(new VoxelCoordinate(x, y, z))) {
-//System.out.println("can ignore: " + x + " " + y + " " + z);
             return true;
         }
 

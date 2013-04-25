@@ -88,41 +88,12 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
     }
 
     /**
-     * Get the data of the voxel
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
      *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
+     * @return The voxel data
      */
-    public VoxelData getData(int x, int y, int z) {
-        byte datum = data[y][x][z];
-
-        byte state = (byte) ((datum & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & datum);
-
-        VoxelDataByte vd = new VoxelDataByte(state, mat);
-
-        return vd;
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public VoxelData getData(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        byte datum = data[slice][s_x][s_z];
-
-        byte state = (byte) ((datum & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & datum);
-
-        return new VoxelDataByte(state, mat);
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
     }
 
     /**

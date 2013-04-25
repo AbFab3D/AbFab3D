@@ -144,7 +144,7 @@ public class TestSetUnion extends BaseTestAttributeGrid {
                 		finalGrid.getState(2, y, z) == Grid.EXTERIOR || finalGrid.getState(2, y, z) == Grid.INTERIOR);
                 
                 assertTrue("(2, " + y + ", " + z + ") material is not " + material + " but was " + finalGrid.getAttribute(2,y,z),
-                		(finalGrid.getData(2, y, z)).getMaterial() == material);
+                		(finalGrid.getAttribute(2, y, z)) == material);
             }
         }
 
@@ -155,7 +155,7 @@ public class TestSetUnion extends BaseTestAttributeGrid {
                 		finalGrid.getState(7, y, z) == Grid.EXTERIOR || finalGrid.getState(7, y, z) == Grid.INTERIOR);
 
                 assertTrue("(7, " + y + ", " + z + ") material is not " + material ,
-                		(finalGrid.getData(7, y, z)).getMaterial() == material);
+                		(finalGrid.getAttribute(7, y, z)) == material);
             }
         }
 
@@ -165,7 +165,7 @@ public class TestSetUnion extends BaseTestAttributeGrid {
         			finalGrid.getState(x, 5, 5) == Grid.EXTERIOR || finalGrid.getState(x, 5, 5) == Grid.INTERIOR);
 
             assertTrue("(" + x + ", 5, 5) material is not " + material ,
-            		(finalGrid.getData(x, 5, 5)).getMaterial() == material);
+            		(finalGrid.getAttribute(x, 5, 5)) == material);
         }
     }
 

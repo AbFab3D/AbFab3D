@@ -138,7 +138,8 @@ public class TestOctreeGridByte extends BaseTestAttributeGrid implements ClassAt
         grid2.setData(x,y,z, Grid.EXTERIOR,1);
 
 System.out.println("***Get unset data");
-        VoxelData vd = grid.getData(2,2,z+1);
+        VoxelData vd = grid.getVoxelData();
+        grid.getData(2,2,z+1,vd);
 
         if (vd.getState() != Grid.OUTSIDE)
             grid.printTree();
@@ -309,19 +310,20 @@ System.out.println("Checking equals");
         grid.setData(1,0,0,Grid.EXTERIOR,0);
         grid.setData(2,0,0,Grid.EXTERIOR,0);
 
-        VoxelData vd = grid.getData(3,0,0);
+        VoxelData vd = grid.getVoxelData();
+        grid.getData(3,0,0,vd);
         assertEquals(Grid.OUTSIDE,vd.getState());
 
-        vd = grid.getData(2,0,0);
+        grid.getData(2,0,0,vd);
         assertEquals(Grid.EXTERIOR,vd.getState());
 
-        vd = grid.getData(1,0,0);
+        grid.getData(1,0,0,vd);
         assertEquals(Grid.EXTERIOR,vd.getState());
 
         // Test 3rd quadrant
         grid.setData(3,0,0,Grid.INTERIOR,0);
 
-        vd = grid.getData(3,0,0);
+        grid.getData(3,0,0,vd);
         assertEquals(Grid.INTERIOR,vd.getState());
     }
 
@@ -346,10 +348,11 @@ System.out.println("Checking equals");
 
         assertTrue("Collapse worked", count2 < count1);
 
-        VoxelData vd = grid.getData(3,0,0);
+        VoxelData vd = grid.getVoxelData();
+        grid.getData(3,0,0,vd);
         assertEquals(Grid.OUTSIDE,vd.getState());
 
-        vd = grid.getData(1,0,0);
+        grid.getData(1,0,0,vd);
         assertEquals(Grid.EXTERIOR,vd.getState());
     }
 

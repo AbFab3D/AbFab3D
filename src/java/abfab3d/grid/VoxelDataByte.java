@@ -24,6 +24,9 @@ public class VoxelDataByte implements VoxelData {
     /** The material */
     private int material;
 
+    public VoxelDataByte() {
+    }
+
     public VoxelDataByte(byte state, int material) {
         this.state = state;
         this.material = material;

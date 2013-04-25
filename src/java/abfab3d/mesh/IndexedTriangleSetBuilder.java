@@ -50,7 +50,8 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
         // from Euler formula V-E+F=2 for simple surfaces 
         float loadFactor = 0.75f;
         int expectedVertices = 2*expectedFaces;
-        //printf("expectedVertices: %d\n", expectedVertices);
+//        printf("***expectedVertices: %d\n", expectedVertices);
+
         ps = new PointSet(expectedVertices, loadFactor, TOLERANCE);
     }
 

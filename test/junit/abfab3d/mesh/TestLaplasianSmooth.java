@@ -14,13 +14,10 @@ package abfab3d.mesh;
 
 // External Imports
 
-import abfab3d.grid.Grid;
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.input.STLReader;
-import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
 import abfab3d.util.StructMixedData;
-import abfab3d.util.StructSet;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -29,7 +26,6 @@ import org.j3d.geom.GeometryData;
 import javax.vecmath.Vector3d;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
@@ -134,15 +130,15 @@ public class TestLaplasianSmooth extends TestCase {
 
         PointSet ps = new PointSet(1e-8);
 
-        while(v != -1) {
+        while (v != -1) {
             Vertex.getPoint(verts, v, pnt);
-            ps.add(pnt[0],pnt[1],pnt[2]);
+            ps.add(pnt[0], pnt[1], pnt[2]);
 
             v = Vertex.getNext(verts, v);
             System.out.println(java.util.Arrays.toString(pnt));
         }
 
-        assertEquals("Number of Unique points",8,ps.getPoints().length / 3);
+        assertEquals("Number of Unique points", 8, ps.getPoints().length / 3);
 
         try {
             MeshExporter.writeMeshSTL(mesh, fmt("c:/tmp/cube.stl", mesh.getFaceCount()));

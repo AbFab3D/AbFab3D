@@ -20,6 +20,7 @@ import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.*;
+import abfab3d.grid.op.DataSourceImageBitmap;
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.VecTransforms;
@@ -32,6 +33,7 @@ import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import app.common.GridSaver;
 import app.common.RegionPrunner;
+import app.common.ShellResults;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -303,6 +305,20 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
+        // HARD CODED params to play with 
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
+        double smoothingWidth = 0;
+        // size of grid block for MT calculatins 
+        // (larger values reduce processor cache performance)
+        int blockSize = 50;
+        // max number to use for surface transitions. Should be ODD number 
+        // set it to 1 to have binary grid 
+        int maxGridAttributeValue = 63;
+        // width of surface transition area relative to voxel size
+        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
+        // sreyt it to 0. to make no surface transitions
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+        double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
         
         double baseWidth = radius; 
         double shapeCenter[] = new double[]{0,0,sideHeight/2}; // center of the shape 
@@ -348,6 +364,9 @@ public class RectSidedPopperKernel extends HostedKernel {
             }
         }
 
+        int min_volume = 10;
+        int regions_removed = 0;
+        
         System.out.println("Writing grid");
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
@@ -359,6 +378,8 @@ public class RectSidedPopperKernel extends HostedKernel {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
 
+        long t0;
+
         WingedEdgeTriangleMesh mesh;
 
         double gbounds[] = new double[6];
@@ -367,20 +388,17 @@ public class RectSidedPopperKernel extends HostedKernel {
         // place of default viewpoint 
         double viewDistance = GridSaver.getViewDistance(grid);
 
-        long t0;
-        
         if(USE_MESH_MAKER_MT){
-
-            double smoothingWidth = 1.;
-            int blockSize = 30;
 
             MeshMakerMT meshmaker = new MeshMakerMT();
 
             t0 = time();
             meshmaker.setBlockSize(blockSize);
             meshmaker.setThreadCount(threads);
+            meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setSmoothingWidth(smoothingWidth);
+            meshmaker.setMaxAttributeValue(maxGridAttributeValue);
 
             // TODO: Need to get a better way to estimate this number
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
@@ -406,15 +424,13 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         // Release grid to save memory
         grid = null;
-        int regions_removed = 0;
-
 
         if(regions != RegionPrunner.Regions.ALL) {
             t0 = time();
-            mesh = GridSaver.getLargestShell(mesh);
+            ShellResults sr = GridSaver.getLargestShell(mesh, min_volume);
+            mesh = sr.getLargestShell();
+            regions_removed = sr.getShellsRemoved();
             printf("GridSaver.getLargestShell(): %d ms\n", (time()-t0));
-
-            System.out.println("TODO: Need to print the number of regions removed!!!!");
         }
 
         GridSaver.writeMesh(mesh, viewDistance, handler, params, true);
@@ -441,17 +457,17 @@ public class RectSidedPopperKernel extends HostedKernel {
                           String filename, double[] bounds, 
                           double rot[], double rot2[], double translation[]) {
 
-        DataSources.ImageBitmap layer = new DataSources.ImageBitmap();
+        DataSourceImageBitmap layer = new DataSourceImageBitmap();
         layer.setSize(bodyWidth, bodyHeight, bodyDepth);
         layer.setLocation(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane 
         layer.setBaseThickness(0.0);
-        layer.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        layer.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer.setTiles(1, 1);
         layer.setImagePath(filename);
         layer.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
-            layer.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
+            layer.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
             layer.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
             layer.setProbeSize(resolution * 2.);
         }
@@ -491,17 +507,17 @@ public class RectSidedPopperKernel extends HostedKernel {
     }
 /*
     private void popImageYUP(Grid grid, double bodyWidth1, double bodyDepth1, double bodyHeight1, double margin, String filename, double[] trans, double[] rot, double[] bounds) {
-        DataSources.ImageBitmapYUP layer1 = new DataSources.ImageBitmapYUP();
+        DataSourceImageBitmapYUP layer1 = new DataSourceImageBitmapYUP();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
         layer1.setLocation(0, 0, bodyDepth1/2);
         layer1.setBaseThickness(0.0);
-        layer1.setImageType(DataSources.ImageBitmapYUP.IMAGE_POSITIVE);
+        layer1.setImageType(DataSourceImageBitmapYUP.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename);
         layer1.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
-            layer1.setInterpolationType(DataSources.ImageBitmapYUP.INTERPOLATION_MIPMAP);
+            layer1.setInterpolationType(DataSourceImageBitmapYUP.INTERPOLATION_MIPMAP);
             layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
             layer1.setProbeSize(resolution * 2.);
         }

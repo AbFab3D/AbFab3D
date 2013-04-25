@@ -121,6 +121,15 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
     }
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
+    }
+
+    /**
      * Copy Constructor.
      *
      * @param grid The grid
@@ -168,17 +177,6 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param y The y grid coordinate
      * @param z The z grid coordinate
      */
-    public VoxelData getData(int x, int y, int z) {
-        return root.getData(x,y,z);
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     */
     public void getData(int x, int y, int z,VoxelData vd) {
         VoxelData ans = root.getData(x,y,z);
         vd.setData(ans.getState(), ans.getMaterial());
@@ -198,21 +196,6 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      */
     public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret) {
         // not impl
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public VoxelData getData(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        return root.getData(s_x,slice,s_z);
     }
 
     /**

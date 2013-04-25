@@ -1,6 +1,7 @@
 package abfab3d.geom;
 
 import abfab3d.grid.ArrayInt;
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridIntervals;
 import abfab3d.util.BoundingBoxUtilsFloat;
@@ -29,6 +30,11 @@ public class MeshVoxelizer {
     boolean m_rotate;
     double m_voxelSize, m_voxelHeight;
 
+    private int matID;
+
+    // User scale
+    double m_usx, m_usy, m_usz;
+
     ZBuffer m_zbuffer;
 
     /**
@@ -46,21 +52,16 @@ public class MeshVoxelizer {
                                  double tx, double ty, double tz
     ) {
 
-        m_voxelSize = voxelSize;
-        m_voxelHeight = voxelHeight;
+        this(nx,ny,nz,voxelSize,voxelHeight, 1,1,1,tx,ty,tz,0,0,0,0,-1);
+    }
 
+    public MeshVoxelizer(int nx, int ny, int nz,
+                         double voxelSize,
+                         double voxelHeight,
+                         double tx, double ty, double tz, int matID
+    ) {
 
-        m_nx = nx;
-        m_ny = ny;
-        m_nz = nz;
-
-        m_tx = tx + EPSILON_SHIFT;
-        m_ty = ty;
-        m_tz = tz;
-
-        m_zbuffer = new ZBuffer(nx, ny, nz);
-        m_rotate = false;
-        m_zbuffer_used = false;
+        this(nx,ny,nz,voxelSize,voxelHeight, 1,1,1,tx,ty,tz,0,0,0,0,matID);
     }
 
     /**
@@ -68,10 +69,39 @@ public class MeshVoxelizer {
      * given transfromation from model coordinates to grid coordinates
      */
     public MeshVoxelizer(int nx, int ny, int nz,
-                                 double voxelSize,
-                                 double voxelHeight,
-                                 double tx, double ty, double tz,
-                                 double rx, double ry, double rz, double rangle
+                         double voxelSize,
+                         double voxelHeight,
+                         double tx, double ty, double tz,
+                         double rx, double ry, double rz, double rangle
+    ) {
+        this(nx,ny,nz,voxelSize,voxelHeight,1,1,1,tx,ty,tz,rx,ry,rz,rangle,-1);
+    }
+
+    /**
+     * rasterizer for given grid size and
+     * given transfromation from model coordinates to grid coordinates
+     */
+    public MeshVoxelizer(int nx, int ny, int nz,
+                         double voxelSize,
+                         double voxelHeight,
+                         double sx, double sy, double sz,
+                         double tx, double ty, double tz,
+                         double rx, double ry, double rz, double rangle
+    ) {
+        this(nx,ny,nz,voxelSize,voxelHeight,sx,sy,sz,tx,ty,tz,rx,ry,rz,rangle,-1);
+    }
+
+    /**
+     * rasterizer for given grid size and
+     * given transfromation from model coordinates to grid coordinates
+     */
+    public MeshVoxelizer(int nx, int ny, int nz,
+                         double voxelSize,
+                         double voxelHeight,
+                         double sx, double sy, double sz,
+                         double tx, double ty, double tz,
+                         double rx, double ry, double rz, double rangle,
+                         int matID
     ) {
 
         m_voxelSize = voxelSize;
@@ -86,11 +116,19 @@ public class MeshVoxelizer {
         m_ty = ty;
         m_tz = tz;
 
+        m_usx = sx;
+        m_usy = sy;
+        m_usz = sz;
+
         m_rx = rx;
         m_ry = ry;
         m_rz = rz;
         m_rangle = rangle;
-        m_rotate = true;
+        this.matID = matID;
+
+        if (rangle != 0) {
+            m_rotate = true;
+        }
 
         m_zbuffer = new ZBuffer(nx, ny, nz);
         m_zbuffer_used = false;
@@ -115,6 +153,7 @@ public class MeshVoxelizer {
                 throw new IllegalArgumentException("Unsupported geometryType: " + geom.geometryType);
         }
 
+
         double
                 min_x = minmax[0],
                 max_x = minmax[1],
@@ -125,9 +164,9 @@ public class MeshVoxelizer {
 
         int padding = 1;
         // scale to transform from model space into grid space
-        m_sx = ((max_x - min_x) / grid.getVoxelSize() - 2 * padding) / (max_x - min_x);
-        m_sy = ((max_y - min_y) / grid.getSliceHeight() - 2 * padding) / (max_y - min_y);
-        m_sz = ((max_z - min_z) / grid.getVoxelSize() - 2 * padding) / (max_z - min_z);
+        m_sx = m_usx * ((max_x - min_x) / grid.getVoxelSize() - 2 * padding) / (max_x - min_x);
+        m_sy = m_usy * ((max_y - min_y) / grid.getSliceHeight() - 2 * padding) / (max_y - min_y);
+        m_sz = m_usz * ((max_z - min_z) / grid.getVoxelSize() - 2 * padding) / (max_z - min_z);
     }
 
     public void rasterize(GeometryData geom, Grid grid) {
@@ -167,7 +206,7 @@ public class MeshVoxelizer {
         m_zbuffer_used = true;
     }
 
-    public void rasterizeTriangles(GeometryData geom) {
+    private void rasterizeTriangles(GeometryData geom) {
 
         int len = geom.vertexCount / 3;
         //Point3d v = new Point3d();
@@ -192,7 +231,7 @@ public class MeshVoxelizer {
         }
     }
 
-    public void rasterizeTrianglesRotated(GeometryData geom) {
+    private void rasterizeTrianglesRotated(GeometryData geom) {
 
         Matrix4d mat = MatrixUtil.createMatrix(
                 new double[]{0, 0, 0},
@@ -281,7 +320,7 @@ public class MeshVoxelizer {
         m_zbuffer_used = true;
     }
 
-    public void rasterizeIndexedTriangles(GeometryData geom) {
+    private void rasterizeIndexedTriangles(GeometryData geom) {
         Matrix4d mat = MatrixUtil.createMatrix(
                 new double[]{0, 0, 0},
                 new double[]{m_sx, m_sy, m_sz}, new double[]{m_rx, m_ry, m_rz, m_rangle}, new double[]{m_tx, m_ty, m_tz},
@@ -290,7 +329,6 @@ public class MeshVoxelizer {
 
         int len = geom.indexesCount / 3;
 
-        double coords[] = new double[9];
         double x1, y1, z1, x2, y2, z2, x3, y3, z3;
 
         //if(m_debug) printf("rasterizeIndexedTriangles(tricount:%d)\n", len);
@@ -302,23 +340,23 @@ public class MeshVoxelizer {
 
             x1 = m_sx * geom.coordinates[off++] + m_tx;
             y1 = m_sy * geom.coordinates[off++] + m_ty;
-            z1 = m_sz * geom.coordinates[off++] + m_tz;
+            z1 = m_sz * geom.coordinates[off] + m_tz;
 
             off = geom.indexes[idx++] * 3;
             x2 = m_sx * geom.coordinates[off++] + m_tx;
             y2 = m_sy * geom.coordinates[off++] + m_ty;
-            z2 = m_sz * geom.coordinates[off++] + m_tz;
+            z2 = m_sz * geom.coordinates[off] + m_tz;
 
             off = geom.indexes[idx++] * 3;
             x3 = m_sx * geom.coordinates[off++] + m_tx;
             y3 = m_sy * geom.coordinates[off++] + m_ty;
-            z3 = m_sz * geom.coordinates[off++] + m_tz;
+            z3 = m_sz * geom.coordinates[off] + m_tz;
 
             m_zbuffer.fillTriangle(x1, y1, z1, x2, y2, z2, x3, y3, z3);
         }
     }
 
-    public void rasterizeIndexedTrianglesRotated(GeometryData geom) {
+    private void rasterizeIndexedTrianglesRotated(GeometryData geom) {
         Matrix4d mat = MatrixUtil.createMatrix(
                 new double[]{0, 0, 0},
                 new double[]{m_sx, m_sy, m_sz}, new double[]{m_rx, m_ry, m_rz, m_rangle}, new double[]{m_tx, m_ty, m_tz},
@@ -327,7 +365,6 @@ public class MeshVoxelizer {
 
         int len = geom.indexesCount / 3;
 
-        double coords[] = new double[9];
         double x1, y1, z1, x2, y2, z2, x3, y3, z3;
         Point3d v = new Point3d();
 
@@ -340,7 +377,7 @@ public class MeshVoxelizer {
 
             v.x = geom.coordinates[off++];
             v.y = geom.coordinates[off++];
-            v.z = geom.coordinates[off++];
+            v.z = geom.coordinates[off];
 
             mat.transform(v);
             x1 = v.x;
@@ -351,7 +388,7 @@ public class MeshVoxelizer {
 
             v.x = geom.coordinates[off++];
             v.y = geom.coordinates[off++];
-            v.z = geom.coordinates[off++];
+            v.z = geom.coordinates[off];
 
             mat.transform(v);
             x2 = v.x;
@@ -362,7 +399,7 @@ public class MeshVoxelizer {
 
             v.x = geom.coordinates[off++];
             v.y = geom.coordinates[off++];
-            v.z = geom.coordinates[off++];
+            v.z = geom.coordinates[off];
 
             mat.transform(v);
             x3 = v.x;
@@ -378,40 +415,73 @@ public class MeshVoxelizer {
         int m_ny = grid.getHeight();
         int m_nx = grid.getWidth();
 
-        for (int y = 0; y < m_ny; y++) {
+        if (matID < 0) {
+            for (int y = 0; y < m_ny; y++) {
+                for (int x = 0; x < m_nx; x++) {
 
-            for (int x = 0; x < m_nx; x++) {
+                    int len = m_zbuffer.getCount(x, y);
+                    if (len < 2)
+                        continue;
 
-                int len = m_zbuffer.getCount(x, y);
-                if (len < 2)
-                    continue;
+                    float zray[] = m_zbuffer.getRay(x, y);
 
-                float zray[] = m_zbuffer.getRay(x, y);
+                    len = (len & 0xFFFE); // make it even
 
-                len = (len & 0xFFFE); // make it even
-
-                for (int c = len - 2; c >= 0; c -= 2) {
-                    //for(int c = len-1; c < len; ){
-                    int z1 = (int) Math.ceil(zray[c]);
-                    int z2 = (int) Math.floor(zray[c + 1]);
-                    //fillSegment_direct(grid, x,y,z1,z2);
-                    fillSegment_reverse(grid, x, y, z1, z2);
+                    for (int c = len - 2; c >= 0; c -= 2) {
+                        //for(int c = len-1; c < len; ){
+                        int z1 = (int) Math.ceil(zray[c]);
+                        int z2 = (int) Math.floor(zray[c + 1]);
+                        //fillSegment_direct(grid, x,y,z1,z2);
+                        fillSegment_reverse(grid, x, y, z1, z2);
+                    }
+                    // release ray memory
+                    m_zbuffer.setRay(x, y, null);
                 }
-                // release ray memory
-                m_zbuffer.setRay(x, y, null);
+            }
+        } else {
+            AttributeGrid agrid = (AttributeGrid) grid;
+            for (int y = 0; y < m_ny; y++) {
+                for (int x = 0; x < m_nx; x++) {
+
+                    int len = m_zbuffer.getCount(x, y);
+                    if (len < 2)
+                        continue;
+
+                    float zray[] = m_zbuffer.getRay(x, y);
+
+                    len = (len & 0xFFFE); // make it even
+
+                    for (int c = len - 2; c >= 0; c -= 2) {
+                        //for(int c = len-1; c < len; ){
+                        int z1 = (int) Math.ceil(zray[c]);
+                        int z2 = (int) Math.floor(zray[c + 1]);
+                        //fillSegment_direct(grid, x,y,z1,z2);
+                        fillSegment_reverse(agrid, x, y, z1, z2, matID);
+                    }
+                    // release ray memory
+                    m_zbuffer.setRay(x, y, null);
+                }
             }
 
         }
     }
 
     void fillSegment_reverse(Grid grid, int x, int y, int z1, int z2) {
-
         for (int z = z2; z >= z1; z--) {
             grid.setState(x, y, z, Grid.INTERIOR);
         }
     }
+    void fillSegment_reverse(AttributeGrid grid, int x, int y, int z1, int z2, int matID) {
+        for (int z = z2; z >= z1; z--) {
+            grid.setData(x, y, z, Grid.INTERIOR, matID);
+        }
+    }
 
     void fillGridIntervals(GridIntervals grid) {
+
+        if (matID < 0) {
+            throw new IllegalArgumentException("GridIntervals does not support attributes");
+        }
 
         int arrayLength = 2;
         ArrayInt intervals = new ArrayInt(arrayLength);
@@ -476,9 +546,8 @@ public class MeshVoxelizer {
                     grid.setIntervals(x, y, intervals.toArray(intervals_arr), values.toArray(values_arr), intsize);
                 }
 
-                // TODO: is it removeal?
                 // release ray memory
-                //m_zbuffer.setRay(x,y, null);
+                m_zbuffer.setRay(x,y, null);
             }
         }
 

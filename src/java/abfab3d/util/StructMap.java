@@ -23,6 +23,7 @@ public class StructMap {
     private int count;
     private int threshold;
     private float loadFactor;
+    private int origCapacity;
 
     private StructMixedData entries;
     private HashFunction hasher;
@@ -42,6 +43,7 @@ public class StructMap {
         if (initialCapacity == 0)
             initialCapacity = 1;
 
+        origCapacity = initialCapacity;
         this.loadFactor = loadFactor;
         this.hasher = hasher;
         this.src = src;
@@ -62,6 +64,7 @@ public class StructMap {
         int hash = hasher.calcHashCode(src, key);
 
         int index = (hash & 0x7FFFFFFF) % table.length;
+        //System.out.println("Put: hash: " + hash + " index: " + index + " value: " + value);
 
 
         for(int next = table[index]; next != -1; next = MapEntry.getNext(entries, next)) {
@@ -110,11 +113,14 @@ public class StructMap {
 
                 int nkey = MapEntry.getKey(entries,next);
                 if (hasher.calcEquals(src,key,nkey)) {
+//                    System.out.println("Get: " + key + " ret: " + next + " val: " + MapEntry.getValue(entries, next));
                     return MapEntry.getValue(entries, next);
                 }
 
             }
         }
+
+//        System.out.println("Get: " + key + " ret: -1");
 
         return -1;
     }
@@ -188,7 +194,8 @@ public class StructMap {
         int oldCapacity = oldTable.length;
 
         int newCapacity = oldCapacity * 2;
-        printf("*****Rehashing StructMap: %d \n",newCapacity);
+        printf("*****Rehashing StructMap: new Capacity: %d   orig Capacity: %d  this: %s\n",newCapacity, origCapacity,this.toString());
+
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);
 
@@ -198,6 +205,10 @@ public class StructMap {
         threshold = (int) (newCapacity * loadFactor);
 
         table = newTable;
+    }
+
+    public String getStats() {
+        return ("StructMap.  Orig Size: " + origCapacity + " final Size: " + entries.getLength());
     }
 
     /**

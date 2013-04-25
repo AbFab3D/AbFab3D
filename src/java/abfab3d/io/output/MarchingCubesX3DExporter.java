@@ -249,6 +249,7 @@ System.out.println("Creating vol space array");
 
         double off_x, off_y, off_z;
 
+
         loop: for(int i=0; i < resZ1; i++) {
             off_z = i * pixelSize;
             
@@ -258,10 +259,8 @@ System.out.println("Creating vol space array");
                 for(int k=0; k < resX1; k++) {
                     off_x = k * pixelSize;
 
-                    VoxelData vd = grid.getData(k,j,i);
+                    state = grid.getState(k,j,i);
 
-                    state = vd.getState();
-                    mat = vd.getMaterial();
 
 /*
                     if (state != Grid.OUTSIDE) {
@@ -271,7 +270,7 @@ System.out.println("Creating vol space array");
                     }
 */
                     if (oldway) {
-                        if (vd.getState() != Grid.OUTSIDE) {
+                        if (state != Grid.OUTSIDE) {
                             vol.setVoxelAt(k,j,i,0.5f);
                         }
 

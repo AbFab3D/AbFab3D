@@ -105,6 +105,15 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
     }
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return new VoxelDataShort();
+    }
+
+    /**
      * Copy Constructor.
      *
      * @param grid The grid

@@ -219,7 +219,7 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 100, null, null)
         );
 
-        params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
+        params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "NONE", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -267,11 +267,11 @@ public class RingPopperKernel extends HostedKernel {
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
-        params.put("topBorderWidth", new Parameter("topBorderWidth", "Top Border Width", "The width of the top border", "0.001", 1,
+        params.put("topBorderWidth", new Parameter("topBorderWidth", "Top Border Width", "The width of the top border", "0", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
-        params.put("bottomBorderWidth", new Parameter("bottomBorderWidth", "Bottom Border Width", "The width of the bottom border", "0.001", 1,
+        params.put("bottomBorderWidth", new Parameter("bottomBorderWidth", "Bottom Border Width", "The width of the bottom border", "0", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
@@ -350,7 +350,7 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, true, 0, 100, null, null)
         );
 
-        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxels to smooth", "0.5", 1,
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxels to smooth", "1.0", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 100, null, null)
         );

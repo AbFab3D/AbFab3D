@@ -33,6 +33,9 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
     /** The set of materials found overlapping */
     private HashSet<Integer> overlaps;
 
+    // Scratch Variable
+    private VoxelData vd;
+
     /**
      * Constructor.
      *
@@ -41,6 +44,8 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
     public OverlapDetectorWrapper(AttributeGrid grid) {
         this.grid = grid;
         overlaps = new HashSet<Integer>();
+
+        vd = grid.getVoxelData();
     }
 
     /**
@@ -59,6 +64,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
             this.grid = (AttributeGrid) wrap.grid.clone();
 
         overlaps = new HashSet<Integer>();
+        vd = grid.getVoxelData();
     }
 
     /**
@@ -92,6 +98,15 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
     }
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return grid.getVoxelData();
+    }
+
+    /**
      * Sets the underlying grid to use.
      *
      * @param grid The grid or null to clear.
@@ -103,17 +118,6 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
     //----------------------------------------------------------
     // Grid methods
     //----------------------------------------------------------
-
-    /**
-     * Get the data for a voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public VoxelData getData(double x, double y, double z) {
-        return grid.getData(x,y,z);
-    }
 
     /**
      * Get the state of the voxel.
@@ -135,17 +139,6 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      */
     public void getData(double x, double y, double z,VoxelData vd) {
         grid.getData(x,y,z,vd);
-    }
-
-    /**
-     * Get the state of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     */
-    public VoxelData getData(int x, int y, int z) {
-        return grid.getData(x,y,z);
     }
 
     /**
@@ -202,7 +195,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param material The materialID
      */
     public void setData(double x, double y, double z, byte state, int material) {
-        VoxelData vd = grid.getData(x,y,z);
+        grid.getData(x,y,z,vd);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getMaterial() != material ) {
@@ -221,7 +214,7 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      */
     public void setData(int x, int y, int z, byte state, int material) {
-        VoxelData vd = grid.getData(x,y,z);
+        grid.getData(x,y,z,vd);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getMaterial() != material ) {

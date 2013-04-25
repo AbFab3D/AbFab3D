@@ -325,7 +325,7 @@ public class ZBuffer {
                 System.out.println("Outside grid+, clamping");
                 yend = m_zb.Ny;
             }
-*/
+ */
             // loop through the lines between ystart and yend
             for(int iy = ystart; iy < yend; iy++) {
                 

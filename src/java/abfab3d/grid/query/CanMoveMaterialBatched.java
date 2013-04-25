@@ -44,6 +44,7 @@ public class CanMoveMaterialBatched implements ClassAttributeTraverser {
 
     /** Coordinates that can be ignored */
     private HashSet<VoxelCoordinate> ignoreSet;
+    private VoxelData vd;
 
     public CanMoveMaterialBatched(int material,StraightPath path) {
         this.material = material;
@@ -61,6 +62,7 @@ public class CanMoveMaterialBatched implements ClassAttributeTraverser {
     public boolean execute(Grid grid) {
         allEscaped = true;
         this.gridAtt = (AttributeGrid)grid;
+        vd = grid.getVoxelData();
 
         this.ignoreSet = new HashSet<VoxelCoordinate>();
 
@@ -120,7 +122,7 @@ System.out.println("Not aligned: " + path);
 }
             // Diagonal path, process unbatched
             while(path.next(pos)) {
-                VoxelData vd = gridAtt.getData(pos[0], pos[1], pos[2]);
+                gridAtt.getData(pos[0], pos[1], pos[2],vd);
 
     //System.out.println(java.util.Arrays.toString(pos) + ": " + vd.getState() + "  " + vd.getAttribute());
                 if (vd.getState() != Grid.OUTSIDE &&

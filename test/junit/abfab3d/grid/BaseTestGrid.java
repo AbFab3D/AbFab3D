@@ -36,6 +36,9 @@ public class BaseTestGrid extends TestCase {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
@@ -47,7 +50,7 @@ public class BaseTestGrid extends TestCase {
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
                 }
             }
@@ -78,10 +81,13 @@ public class BaseTestGrid extends TestCase {
             }
         }
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
                         assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
@@ -114,10 +120,13 @@ public class BaseTestGrid extends TestCase {
             }
         }
 
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if (x == y && y == z) {
                         assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
@@ -152,13 +161,15 @@ public class BaseTestGrid extends TestCase {
             }
         }
 
+        VoxelData vd = grid.getVoxelData();
+
         for(int x=0; x < width; x++) {
             xcoord = (double)(x)*voxelSize + voxelSize/2.0;
             for(int y=0; y < height; y++) {
                 ycoord = (double)(y)*sliceHeight + sliceHeight/2.0;
                 for(int z=0; z < depth; z++) {
                     zcoord = (double)(z)*voxelSize + voxelSize/2.0;
-                    VoxelData vd = grid.getData(xcoord, ycoord, zcoord);
+                    grid.getData(xcoord, ycoord, zcoord,vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
                 }

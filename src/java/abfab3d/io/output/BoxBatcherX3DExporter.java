@@ -160,6 +160,8 @@ public class BoxBatcherX3DExporter {
 
         mesh = new TriangleMesh();
 
+        VoxelData vd = grid.getVoxelData();
+
         loop: for(int i=0; i < height; i++) {
             y = i * sheight;
 
@@ -171,7 +173,7 @@ public class BoxBatcherX3DExporter {
                 for(int k=0; k < depth; k++) {
                     z = k * pixelSize;
 
-                    VoxelData vd = grid.getData(j,i,k);
+                    grid.getData(j,i,k,vd);
 
                     byte state = vd.getState();
                     int mat = vd.getMaterial();

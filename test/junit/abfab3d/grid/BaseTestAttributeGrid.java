@@ -13,9 +13,16 @@
 package abfab3d.grid;
 
 // External Imports
+import abfab3d.io.output.BoxesX3DExporter;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.web3d.util.ErrorReporter;
+import org.web3d.vrml.export.PlainTextErrorReporter;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
 
 // Internal Imports
 
@@ -44,10 +51,12 @@ public class BaseTestAttributeGrid extends TestCase {
             }
         }
 
+        VoxelData vd = grid.getVoxelData();
+
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
                     assertTrue("Material wrong", vd.getMaterial() == 1);
                 }
@@ -79,10 +88,11 @@ public class BaseTestAttributeGrid extends TestCase {
             }
         }
 
+        VoxelData vd = grid.getVoxelData();
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
                         assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
@@ -117,10 +127,11 @@ public class BaseTestAttributeGrid extends TestCase {
             }
         }
 
+        VoxelData vd = grid.getVoxelData();
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if (x == y && y == z) {
                         assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
@@ -156,13 +167,15 @@ public class BaseTestAttributeGrid extends TestCase {
             }
         }
 
+        VoxelData vd = grid.getVoxelData();
+
         for(int x=0; x < width; x++) {
             xcoord = (double)(x)*voxelSize + voxelSize/2.0;
             for(int y=0; y < height; y++) {
                 ycoord = (double)(y)*sliceHeight + sliceHeight/2.0;
                 for(int z=0; z < depth; z++) {
                     zcoord = (double)(z)*voxelSize + voxelSize/2.0;
-                    VoxelData vd = grid.getData(xcoord, ycoord, zcoord);
+                    grid.getData(xcoord, ycoord, zcoord,vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
                     assertTrue("Material wrong", vd.getMaterial() == 1);
@@ -269,5 +282,36 @@ public class BaseTestAttributeGrid extends TestCase {
                 grid.setData(x, y, z, state, material);
             }
         }
+    }
+
+    protected static void saveDebug(Grid grid, String filename, boolean showOutside) {
+        ErrorReporter console = new PlainTextErrorReporter();
+
+        try {
+            FileOutputStream fos = new FileOutputStream(filename);
+            String encoding = filename.substring(filename.lastIndexOf(".") + 1);
+            BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
+
+            HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
+            colors.put(new Integer(Grid.INTERIOR), new float[]{0, 1, 0});
+            colors.put(new Integer(Grid.EXTERIOR), new float[]{1, 0, 0});
+
+            HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
+            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
+            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            if (showOutside) {
+                colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
+                transparency.put(new Integer(Grid.OUTSIDE), new Float(0.96));
+            }
+
+
+            exporter.writeDebug(grid, colors, transparency);
+            exporter.close();
+
+            fos.close();
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
     }
 }

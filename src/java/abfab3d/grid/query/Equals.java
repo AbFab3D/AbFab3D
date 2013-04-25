@@ -60,11 +60,13 @@ public class Equals {
             return false;
         }
 
+        VoxelData a = grid.getVoxelData();
+        VoxelData b = grid.getVoxelData();
         for(int i=0; i < width; i++) {
             for(int j=0; j < height; j++) {
                 for(int k=0; k < depth; k++) {
-                    VoxelData a = grid.getData(i,j,k);
-                    VoxelData b = gridB.getData(i,j,k);
+                    grid.getData(i,j,k,a);
+                    gridB.getData(i,j,k,b);
 
                     if (!a.equals(b)) {
                         reason = "Pos: " + i + " " + j + " " + k + " not equal.  A: " + a.getState() + " B: " + b.getState();
