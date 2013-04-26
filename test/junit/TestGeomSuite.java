@@ -15,26 +15,20 @@ import junit.framework.TestSuite;
 import junit.framework.Test;
 
 // Internal Imports
-import abfab3d.grid.op.*;
+import abfab3d.geom.*;
 
 /**
- * Grid Operation Tests
+ * Geom Tests
  *
- * @author Alan Hudson
+ * @author Tony Wong
  * @version
  */
-public class TestOpSuite extends TestSuite {
+public class TestGeomSuite extends TestSuite {
     public static Test suite() {
-        TestSuite suite = new TestSuite("Grid Operations Test Suite");
+        TestSuite suite = new TestSuite("Geom Test Suite");
 
-        suite.addTest(TestRemoveMaterial.suite());
-        suite.addTest(TestUnion.suite());
-        suite.addTest(TestSubtract.suite());
-        suite.addTest(TestSetDifference.suite());
-        suite.addTest(TestDilationCube.suite());
-        suite.addTest(TestErosionCube.suite());
-        suite.addTest(TestInteriorFinderVoxelBased.suite());
-
+        suite.addTest(TestTriangleModelCreator.suite());
+        
         return suite;
     }
 }

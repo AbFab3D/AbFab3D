@@ -68,19 +68,19 @@ public class TestTriangleModelCreator extends TestCase {
         byte innerMaterial = 2;
 
         // set the grid size with a slight over allocation
-        int gWidth = (int) (width / HORIZ_RESOLUTION) + 10;
-        int gHeight = (int) (height / VERT_RESOLUTION) + 10;
-        int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
+        int gWidth = (int) (width / HORIZ_RESOLUTION) + 3;
+        int gHeight = (int) (height / VERT_RESOLUTION) + 3;
+        int gDepth = (int) (depth / HORIZ_RESOLUTION) + 3;
 
         AttributeGrid grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         // translate the cube so it does not occupy one more row, height, and depth than it should
         // by having the "left" side start on a grid line
-        int indexOffset = 5;
-		double translateX = Math.round((width / 2.0f) * 1000f) / 1000f + indexOffset * HORIZ_RESOLUTION;
-        double translateY = Math.round((height / 2.0f) * 1000f) / 1000f + indexOffset * VERT_RESOLUTION;
-        double translateZ = Math.round((depth / 2.0f) * 1000f) / 1000f + indexOffset * HORIZ_RESOLUTION;
-
+        int indexOffset = 1;
+		double translateX = indexOffset * HORIZ_RESOLUTION;
+        double translateY = indexOffset * VERT_RESOLUTION;
+        double translateZ = indexOffset * HORIZ_RESOLUTION;
+        
 //System.out.println("test translate: " + Math.abs(Math.round((width / 2.0f) * 1000f)) / 1000f);
 //System.out.println("translateX: " + translateX);
 
@@ -154,6 +154,7 @@ public class TestTriangleModelCreator extends TestCase {
 		assertEquals("Inner material count is not " + expectedIntCount,
 				0,
 				grid.findCount(innerMaterial));
+
     }
 
     /**
@@ -170,18 +171,18 @@ public class TestTriangleModelCreator extends TestCase {
         byte innerMaterial = 2;
 
         // set the grid size with a slight over allocation
-        int gWidth = (int) (width / HORIZ_RESOLUTION) + 10;
-        int gHeight = (int) (height / VERT_RESOLUTION) + 10;
-        int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
+        int gWidth = (int) (width / HORIZ_RESOLUTION) + 3;
+        int gHeight = (int) (height / VERT_RESOLUTION) + 3;
+        int gDepth = (int) (depth / HORIZ_RESOLUTION) + 3;
 
         AttributeGrid grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
 
         // translate the cube so it does not occupy one more row, height, and depth than it should
         // by having the "left" side start on a grid line
-        int indexOffset = 5;
-		double translateX = Math.round((width / 2.0f) * 1000f) / 1000f + indexOffset * HORIZ_RESOLUTION;
-        double translateY = Math.round((height / 2.0f) * 1000f) / 1000f + indexOffset * VERT_RESOLUTION;
-        double translateZ = Math.round((depth / 2.0f) * 1000f) / 1000f + indexOffset * HORIZ_RESOLUTION;
+        int indexOffset = 1;
+		double translateX = indexOffset * HORIZ_RESOLUTION;
+        double translateY = indexOffset * VERT_RESOLUTION;
+        double translateZ = indexOffset * HORIZ_RESOLUTION;
 
 //System.out.println("test translate: " + Math.abs(Math.round((width / 2.0f) * 1000f)) / 1000f);
 //System.out.println("translateX: " + translateX);
@@ -194,7 +195,7 @@ public class TestTriangleModelCreator extends TestCase {
         		translateX, translateY, translateZ,
         		outerMaterial, innerMaterial,
         		GeometryData.INDEXED_TRIANGLES, true);
-
+//        generate(grid, "cube_IFVB.x3db");
 //System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
 
 		int xVoxels = (int) Math.round(width / HORIZ_RESOLUTION);
@@ -262,9 +263,9 @@ public class TestTriangleModelCreator extends TestCase {
      */
     public void testMaterialofTwoShapes() {
 
-        float width = 0.0799f;
-        float height = 0.0799f;
-        float depth = 0.0799f;
+        float width = 0.0399f;
+        float height = 0.0399f;
+        float depth = 0.0399f;
         byte outerMaterial1 = 1;
         byte innerMaterial1 = 2;
         byte outerMaterial2 = 5;
@@ -272,8 +273,8 @@ public class TestTriangleModelCreator extends TestCase {
 
         // set the grid size for two cubes with a slight over allocation
         int gWidth = (int) Math.round((width / HORIZ_RESOLUTION)) * 3;
-        int gHeight = (int) (height / VERT_RESOLUTION) + 10;
-        int gDepth = (int) (depth / HORIZ_RESOLUTION) + 10;
+        int gHeight = (int) (height / VERT_RESOLUTION) + 3;
+        int gDepth = (int) (depth / HORIZ_RESOLUTION) + 3;
 
         AttributeGrid grid = new ArrayAttributeGridByte(gWidth, gHeight, gDepth, HORIZ_RESOLUTION, VERT_RESOLUTION);
         grid = new RangeCheckAttributeWrapper(grid);
@@ -286,18 +287,19 @@ public class TestTriangleModelCreator extends TestCase {
 
         // translate the first cube so it does not occupy one more row, height, and depth than it should
         // by having the "left" side start on a grid line
-        int indexOffset = 5;
+//        int indexOffset = 5;
 		int xVoxels1 = (int) Math.round(width / HORIZ_RESOLUTION);
 		int yVoxels1 = (int) Math.round(height / VERT_RESOLUTION);
 		int zVoxels1 = (int) Math.round(depth / HORIZ_RESOLUTION);
 
-		double translateX = ((double)xVoxels1 / 2.0 + indexOffset) * HORIZ_RESOLUTION;
-        double translateY = ((double)yVoxels1 / 2.0 + indexOffset) * VERT_RESOLUTION;
-        double translateZ = ((double)zVoxels1 / 2.0 + indexOffset) * HORIZ_RESOLUTION;
-
-//		double translateX = Math.abs(Math.round((width / 2.0f) * 1000f) / 1000f) + indexOffset * HORIZ_RESOLUTION;
-//        double translateY = Math.abs(Math.round((height / 2.0f) * 1000f) / 1000f) + indexOffset * VERT_RESOLUTION;
-//        double translateZ = Math.abs(Math.round((depth / 2.0f) * 1000f) / 1000f) + indexOffset * HORIZ_RESOLUTION;
+//		double translateX = ((double)xVoxels1 / 2.0 + indexOffset) * HORIZ_RESOLUTION;
+//        double translateY = ((double)yVoxels1 / 2.0 + indexOffset) * VERT_RESOLUTION;
+//        double translateZ = ((double)zVoxels1 / 2.0 + indexOffset) * HORIZ_RESOLUTION;
+        
+        int indexOffset = 1;
+		double translateX = indexOffset * HORIZ_RESOLUTION;
+        double translateY = indexOffset * VERT_RESOLUTION;
+        double translateZ = indexOffset * HORIZ_RESOLUTION;
 
 //System.out.println("translateX: " + translateX);
 //System.out.println("translateY: " + translateY);
@@ -307,7 +309,8 @@ public class TestTriangleModelCreator extends TestCase {
         		translateX, translateY, translateZ,
         		outerMaterial1, innerMaterial1,
         		GeometryData.TRIANGLES, true);
-
+        
+//        generate(grid, "cube_IFVB.x3db");
 //		int expectedMat1Count = xVoxels1 * yVoxels1 * zVoxels1;
 
 //System.out.println("mat 1 count: " + grid.findCount(innerMaterial1));
@@ -318,19 +321,23 @@ public class TestTriangleModelCreator extends TestCase {
         // set up and add the second cube of different size
         //-------------------------------------------------------
 
-        width = 0.0399f;
-        height = 0.0399f;
-        depth = 0.0399f;
+        width = 0.0199f;
+        height = 0.0199f;
+        depth = 0.0199f;
 
 		int xVoxels2 = (int) Math.round(width / HORIZ_RESOLUTION);
 		int yVoxels2 = (int) Math.round(height / VERT_RESOLUTION);
 		int zVoxels2 = (int) Math.round(depth / HORIZ_RESOLUTION);
         int xStartIndex2 = xVoxels1 + 2 * indexOffset;
 
-		translateX = (xStartIndex2 + xVoxels2 / 2.0) * HORIZ_RESOLUTION;
-        translateY = ((double)yVoxels2 / 2.0 + indexOffset) * VERT_RESOLUTION;
-        translateZ = ((double)zVoxels2 / 2.0 + indexOffset) * HORIZ_RESOLUTION;
+//		translateX = (xStartIndex2 + xVoxels2 / 2.0) * HORIZ_RESOLUTION;
+//        translateY = ((double)yVoxels2 / 2.0 + indexOffset) * VERT_RESOLUTION;
+//        translateZ = ((double)zVoxels2 / 2.0 + indexOffset) * HORIZ_RESOLUTION;
 
+		translateX = xStartIndex2 * HORIZ_RESOLUTION;
+        translateY = indexOffset * VERT_RESOLUTION;
+        translateZ = indexOffset * HORIZ_RESOLUTION;
+        
 //System.out.println("translateX: " + translateX);
 //System.out.println("translateY: " + translateY);
 //System.out.println("translateZ: " + translateZ);
@@ -339,6 +346,8 @@ public class TestTriangleModelCreator extends TestCase {
         		translateX, translateY, translateZ,
         		outerMaterial2, innerMaterial2,
         		GeometryData.TRIANGLES, true);
+        
+//        generate(grid, "cube_IFVB2.x3db");
 
 		int expectedExtCount1 = getCubeExteriorVoxelCount(xVoxels1, yVoxels1, zVoxels1);
 		int expectedIntCount1 = getCubeInteriorVoxelCount(xVoxels1, yVoxels1, zVoxels1);
@@ -393,14 +402,19 @@ public class TestTriangleModelCreator extends TestCase {
         byte outerMaterial = 1;
         byte innerMaterial = 2;
 
-		double translateX = Math.round(radius * 1000f) / 1000f;
-		double translateY = Math.round((height / 2.0f) * 1000f) / 1000f;
-		double translateZ = Math.round(radius * 1000f) / 1000f;
-
+//		double translateX = Math.round(radius * 1000f) / 1000f;
+//		double translateY = Math.round((height / 2.0f) * 1000f) / 1000f;
+//		double translateZ = Math.round(radius * 1000f) / 1000f;
+        int indexOffset = 1;
+		double translateX = indexOffset * HORIZ_RESOLUTION;
+        double translateY = indexOffset * VERT_RESOLUTION;
+        double translateZ = indexOffset * HORIZ_RESOLUTION;
+        
         AttributeGrid grid = createCylinderInGrid(height, radius,
         		translateX, translateY, translateZ,
         		outerMaterial, innerMaterial, GeometryData.TRIANGLES);
-
+        
+//        generate(grid, "cylinder_IFVB.x3db");
 //System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
 
 //		int radiusInVoxels = (int) Math.round(radius / HORIZ_RESOLUTION);
@@ -564,15 +578,15 @@ public class TestTriangleModelCreator extends TestCase {
         geom.geometryType = geomType;
         bg.generate(geom);
 
-//        double bounds = findMaxBounds(geom);
+        double bounds = findMaxBounds(geom);
 //System.out.println("geometry bounds: " + bounds);
 
         double rx = 0,ry = 1,rz = 0,rangle = 0;
 
         TriangleModelCreator tmc = null;
-        tmc = new TriangleModelCreator(geom,translateX,translateY,translateZ,
+        tmc = new TriangleModelCreator(geom,translateX+bounds,translateY+bounds,translateZ+bounds,
             rx,ry,rz,rangle,outerMaterial,innerMaterial,fill);
-
+        
         tmc.generate(grid);
     }
 
@@ -589,12 +603,12 @@ public class TestTriangleModelCreator extends TestCase {
         geom.geometryType = geomType;
         cg.generate(geom);
 
-//        double bounds = findMaxBounds(geom);
+        double bounds = findMaxBounds(geom);
 //System.out.println("geometry bounds: " + bounds);
 
         // twice the bounds (since centered at origin) plus a slight over allocate
-        int gWidth = (int) (2.0f * radius / HORIZ_RESOLUTION) + 10;
-        int gHeight = (int) (height / VERT_RESOLUTION) + 10;
+        int gWidth = (int) (2.0f * radius / HORIZ_RESOLUTION) + 5;
+        int gHeight = (int) (height / VERT_RESOLUTION) + 5;
         int gDepth = gWidth;
 
 //System.out.println("grid dimensions: " + gWidth + " " + gHeight + " " + gDepth);
@@ -608,7 +622,7 @@ public class TestTriangleModelCreator extends TestCase {
         double rx = 0,ry = 1,rz = 0,rangle = 0;
 
         TriangleModelCreator tmc = null;
-        tmc = new TriangleModelCreator(geom, translateX, translateY, translatZ,
+        tmc = new TriangleModelCreator(geom, translateX+bounds, translateY+bounds, translatZ+bounds,
             rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
 
         tmc.generate(grid);
