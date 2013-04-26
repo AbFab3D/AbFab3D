@@ -16,6 +16,8 @@ package abfab3d.grid;
 import java.io.Serializable;
 
 
+import static abfab3d.util.Output.fmt;
+
 /**
  * Base class implementation of Grids.  Includes common code that
  * may get overwritten by faster implementations.
@@ -311,9 +313,9 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
      * @param coords The ans is placed into this preallocated array(3).
      */
     public void getGridCoords(double x, double y, double z, int[] coords) {
-        coords[0] = (int) (x / pixelSize);
-        coords[1] = (int) (y / sheight);
-        coords[2] = (int) (z / pixelSize);
+        coords[0] = (int) ((x - xorig) / pixelSize);
+        coords[1] = (int) ((y - yorig) / sheight);
+        coords[2] = (int) ((z - zorig) / pixelSize);
     }
 
     /**
@@ -325,9 +327,10 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
      * @param coords The ans is placed into this preallocated array(3).
      */
     public void getWorldCoords(int x, int y, int z, double[] coords) {
-        coords[0] = x * pixelSize + hpixelSize;
-        coords[1] = y * sheight + hsheight;
-        coords[2] = z * pixelSize + hpixelSize;
+
+        coords[0] = x * pixelSize + hpixelSize + xorig;
+        coords[1] = y * sheight + hsheight  + yorig;
+        coords[2] = z * pixelSize + hpixelSize  + zorig;
     }
 
     /**
@@ -337,13 +340,13 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
      * @param max The max coordinate
      */
     public void getGridBounds(double[] min, double[] max) {
-        min[0] = 0;
-        min[1] = 0;
-        min[2] = 0;
+        min[0] = xorig;
+        min[1] = yorig;
+        min[2] = zorig;
 
-        max[0] = width * pixelSize;
-        max[1] = height * sheight;
-        max[2] = depth * pixelSize;
+        max[0] = width * pixelSize + xorig;
+        max[1] = height * sheight + yorig;
+        max[2] = depth * pixelSize + zorig;
     }
 
     /**
@@ -356,9 +359,9 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
         bounds[2] = yorig;
         bounds[4] = zorig;
         
-        bounds[1] = bounds[0] + width * pixelSize;
-        bounds[3] = bounds[2] + height * sheight;
-        bounds[5] = bounds[4] + depth * pixelSize;
+        bounds[1] = xorig + width * pixelSize;
+        bounds[3] = yorig + height * sheight;
+        bounds[5] =  zorig + depth * pixelSize;
     }
 
     /**
@@ -371,11 +374,15 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
         yorig = bounds[2];
         zorig = bounds[4];
         
-        pixelSize = (bounds[1] - bounds[0])/width;
+        pixelSize =  (bounds[1] - bounds[0])/width;
+        
         sheight = (bounds[3] - bounds[2])/height;
-        // need zpixelsize ? 
+
+        double zpixelSize  = (bounds[5] - bounds[4])/depth;
         
-        
+        if(Math.abs((pixelSize - zpixelSize)/pixelSize) > 0.01){
+            throw new IllegalArgumentException(fmt("attempt to set non square pixel: [%12.5g x %12.5g]",pixelSize,zpixelSize ));
+        }
         
         
     }
@@ -410,9 +417,9 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
      */
     public boolean insideGrid(double wx, double wy, double wz) {
 
-        int x = (int) (wx / pixelSize);
-        int y = (int) (wy / sheight);
-        int z = (int) (wz / pixelSize);
+        int x = (int) ((wx - xorig) / pixelSize);
+        int y = (int) ((wy - yorig) / sheight);
+        int z = (int) ((wz - zorig) / pixelSize);
 
         if (x >= 0 && x < width &&
                 y >= 0 && y < height &&
