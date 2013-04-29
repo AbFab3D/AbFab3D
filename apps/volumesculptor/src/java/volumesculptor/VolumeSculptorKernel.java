@@ -60,6 +60,7 @@ import java.util.Map;
 import static abfab3d.util.MathUtil.TORAD;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
+import static abfab3d.util.MathUtil.extendBounds;
 
 /**
  * Geometry Kernel for the VolumeSculptor
@@ -70,7 +71,6 @@ import static abfab3d.util.Output.time;
 public class VolumeSculptorKernel extends HostedKernel {
     private static final boolean USE_MIP_MAPPING = false;
     private static final boolean USE_FAST_MATH = true;
-    private final boolean USE_MESH_MAKER_MT = true;
 
     static final int 
         GRID_SHORT_INTERVALS=1,
@@ -382,47 +382,28 @@ public class VolumeSculptorKernel extends HostedKernel {
         if (acc == Accuracy.VISUAL) {
             resolution = resolution * previewQuality.getFactor();
         }
+        
+        /**
+         * return bounds extended by given margin
+         */
 
-        if (maxDecimationError > 0) {
-            if (acc == Accuracy.VISUAL) {
-                maxDecimationError = 0.1 * resolution * resolution;
-            } else {
-                // Models looked too blocky with .1
-                maxDecimationError = 0.05 * resolution * resolution;
-            }
-        }
+        double modelBonds[] = new double[]{-20*MM, 20*MM, -20*MM, 20*MM, -20*MM, 20*MM};
 
-        printf("Res: %10.3g  maxDec: %10.3g\n", resolution, maxDecimationError);
+        double gridBounds[] = extendBounds(modelBonds, 0.2*MM);    
 
-        double margin = 2 * resolution;
         double voxelSize = resolution;
         
-        double gridWidth = (innerDiameter + 2 * ringThickness + 2 * margin);
-        
-        double ringYmin  = -ringWidth/2;
-        double ringYmax  = ringWidth/2;
-        if(hasTopBorder()){
-            ringYmax += topBorderWidth;
-        }
-        if(hasBottomBorder()){
-            ringYmin -= bottomBorderWidth;
-        }
-        
-        double gridDepth = gridWidth;
-        double offset = voxelSize*0.3; // some hack to get asymetry 
-        double bounds[] = new double[]{-gridWidth / 2 + offset, gridWidth / 2 + offset, 
-                                       ringYmin - margin, ringYmax + margin, 
-                                       -gridDepth / 2, gridDepth / 2};
-        
-        int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
-        int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
-        int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
+        double cellSize = 5*MM;
+
+        int nx = (int) ((gridBounds[1] - gridBounds[0]) / voxelSize);
+        int ny = (int) ((gridBounds[3] - gridBounds[2]) / voxelSize);
+        int nz = (int) ((gridBounds[5] - gridBounds[4]) / voxelSize);
         
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
         // HARD CODED params to play with 
         // width of Gaussian smoothing of grid, may be 0. - no smoothing 
-        //double smoothingWidth = 0.0; 
+        double gaussianSmooth = 1.0; 
         // size of grid block for MT calculatins 
         // (larger values reduce processor cache performance)
         int blockSize = 50;
@@ -430,59 +411,39 @@ public class VolumeSculptorKernel extends HostedKernel {
         // set it to 0 to have binary grid 
         int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid 
         int gridType =  GRID_BYTE_ARRAY;
-        
-        
+                
         // width of surface transition area relative to voxel size
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // set it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
-        imageBlurWidth = surfaceTransitionWidth*voxelSize;
-        imageBaseThreshold = 0.1;            
+
         imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
-
-
-        bandLength = innerDiameter * Math.PI;
-
-        DataSources.Intersection complete_band = new DataSources.Intersection();
-
-        // add crossSectionImage to complete_band
-        if (crossSectionPath != null && crossSectionPath.length() > 0 && !crossSectionPath.equalsIgnoreCase("NONE")) {
-            complete_band.addDataSource(makeCrossSection(ringYmin, ringYmax));
-        }
-
-        DataSource image_band = makeImageBand();       
-        complete_band.addDataSource(image_band);
-
-        // add Text 
-        if (text != null && text.length() > 0) {
-            complete_band.addDataSource(makeTextComplement(ringYmin, ringYmax));
-        }
-
-        VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
-        ringWrap.setRadius(innerDiameter / 2);
-
-        DataSources.DataTransformer completeRing = new DataSources.DataTransformer();
-        completeRing.setDataSource(complete_band);
-        completeRing.setTransform(ringWrap);
-                
-        DataSources.Intersection clippedRing = new DataSources.Intersection();
-        clippedRing.addDataSource(new DataSources.Ring(innerDiameter/2, ringThickness, ringYmin, ringYmax));
-        clippedRing.addDataSource(completeRing);
-        
-        //DataSources.DataTransformer ring = new DataSources.DataTransformer();
-        //ring.setDataSource(completeRing);
-        //ring.setDataSource(clippedRing);
-        //ring.setTransform(ringWrap);
 
         GridMaker gm = new GridMaker();
         
-        gm.setBounds(bounds);
-        gm.setDataSource(clippedRing);
+
+        //DataSource dataSource = new VolumePatterns.Balls(cellSize, (cellSize/2)*1.1);
+
+        DataSources.Ring ring = new DataSources.Ring(17*MM, 3*MM, -7*MM, 7*MM);
+
+        DataSource cubicGrid = new VolumePatterns.CubicGrid(3*MM, 0.5*MM);
+        DataSource gyroid = new VolumePatterns.Gyroid(8*MM, 0.5*MM);
+        
+        DataSources.Ball ball = new DataSources.Ball(0,0,0, 20*MM);
+        
+        DataSources.Intersection intersection = new DataSources.Intersection();
+
+        intersection.addDataSource(ring);
+        //intersection.addDataSource(ball);
+        //intersection.addDataSource(gyroid);
+        intersection.addDataSource(cubicGrid);
+
+        
+        gm.setBounds(gridBounds);
+        gm.setDataSource(intersection);
+
         gm.setMaxAttributeValue(maxGridAttributeValue);
         gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
-
-        // Seems BlockBased better for this then Array.
-        // BlockBasedGridByte is not MT safe (VB)
 
         Grid grid = null;
 
@@ -497,31 +458,13 @@ public class VolumeSculptorKernel extends HostedKernel {
             break;
             
         }
-        grid.setGridBounds(bounds);
+        grid.setGridBounds(gridBounds);
 
         printf("gm.makeGrid(), threads: %d\n", threadCount);
         long t0 = time();
         gm.setThreadCount(threadCount);
         gm.makeGrid(grid);
         printf("gm.makeGrid() done %d ms\n", (time() - t0));
-
-        int regions_removed = 0;
-        int min_volume = 10;
-
-        if (false) {
-        //if (regions != RegionPrunner.Regions.ALL) {
-            t0 = time();
-            if (visRemovedRegions) {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds, min_volume);
-            } else {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid, min_volume);
-            }
-            printf("Regions removed: %d\n", regions_removed);
-            printf("regions removal done %d ms\n", (time() - t0));
-
-        }
-
-        System.out.println("Writing grid");
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
@@ -540,59 +483,31 @@ public class VolumeSculptorKernel extends HostedKernel {
         // place of default viewpoint 
         double viewDistance = GridSaver.getViewDistance(grid);
 
-        if(USE_MESH_MAKER_MT){
+        MeshMakerMT meshmaker = new MeshMakerMT();        
+        
+        t0 = time();
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(threadCount);
+        meshmaker.setSmoothingWidth(smoothingWidth);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
+        
+        // TODO: Need to get a better way to estimate this number
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        meshmaker.makeMesh(grid, its);
+        
+        mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
-            MeshMakerMT meshmaker = new MeshMakerMT();        
+        printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
 
+        // extra decimation to get rid of seams
+        //TODO - better targeting of seams
+        if(maxDecimationError > 0){
             t0 = time();
-            meshmaker.setBlockSize(blockSize);
-            meshmaker.setThreadCount(threadCount);
-            meshmaker.setSmoothingWidth(smoothingWidth);
-            meshmaker.setMaxDecimationError(maxDecimationError);
-            meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
-
-            // TODO: Need to get a better way to estimate this number
-            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
-            meshmaker.makeMesh(grid, its);
-
-            // Release grid to lower total memory requirements
-            grid = null;
-
-            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-
-            printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
-            if(false){ // this should not be used here
-                if(smoothSteps > 0){
-                    LaplasianSmooth ls = new LaplasianSmooth();
-                    ls.processMesh(mesh, smoothSteps);
-                }
-            }
-            // extra decimation to get rid of seams
-            //TODO - better targeting of seams
-            if(maxDecimationError > 0){
-                t0 = time();
-                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
-                printf("final decimation: %d ms\n", (time()-t0));
-            }
-            
-        } else {
-            // old ST style 
-            mesh = GridSaver.createIsosurface(grid, smoothSteps);
-
-            // Release grid to lower total memory requirements
-            grid = null;
-            if(maxDecimationError > 0)
-                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+            mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+            printf("final decimation: %d ms\n", (time()-t0));
         }
-
-        if(regions != RegionPrunner.Regions.ALL) {
-            t0 = time();
-            ShellResults sr = GridSaver.getLargestShell(mesh, min_volume);
-            mesh = sr.getLargestShell();
-            regions_removed = sr.getShellsRemoved();
-            printf("GridSaver.getLargestShell(): %d ms\n", (time() - t0));
-        }
-
+        
         GridSaver.writeMesh(mesh, viewDistance, handler, params, true);
 
         AreaCalculator ac = new AreaCalculator();
@@ -606,234 +521,12 @@ public class VolumeSculptorKernel extends HostedKernel {
         
         printf("Total time: %d ms\n", (time() - start));
         printf("-------------------------------------------------\n");
-
+        
         double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
         double max_bounds[] = new double[]{gbounds[1],gbounds[3],gbounds[5]};
-
-        System.out.println("Regions Removed: " + regions_removed);
-        return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
-
-    }
-
-    boolean hasTopBorder(){
-        return (topBorderWidth > 0.);
-    }
-
-    boolean hasBottomBorder(){
-        return (bottomBorderWidth > 0.);
-    }
-
-    /**
-     * long horizontal unwrapped image
-     */
-    DataSource makeImageBand() {
-
-        DataSourceImageBitmap image_src = new DataSourceImageBitmap();
-       
-        image_src.setLocation(0, 0, ringThickness / 2);
-        image_src.setImagePath(imagePath);
-        image_src.setBaseThickness(baseThickness);
-        image_src.setUseGrayscale(useGrayscale);
-        image_src.setBlurWidth((useGrayscale)? 0.: imageBlurWidth);
-        image_src.setBaseThreshold(imageBaseThreshold);
-        image_src.setInterpolationType(imageInterpolationType);
-        image_src.setVoxelSize(resolution);
-
-        if (imageInvert) {
-            image_src.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
-        }
-
-        image_src.setInterpolationType(imageInterpolationType);
         
-
-        if (symmetryStyle == SymmetryStyle.NONE) {
-
-            // image spans the whole ring length
-            image_src.setSize(bandLength, ringWidth, ringThickness);
-            image_src.setTiles(tilingX, tilingY);
-
-        } else {
-
-            // image spans only one tile
-            image_src.setSize(bandLength / tilingX, ringWidth, ringThickness);
-            image_src.setTiles(1, tilingY);
-
-        }
-
-        DataSource image_band = image_src;
-
-        if (symmetryStyle != SymmetryStyle.NONE) {
-
-            DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();
-            image_frieze.setDataSource(image_src);
-
-            VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
-            fs.setFriezeType(symmetryStyle.getCode());
-            double tileWidth = bandLength / tilingX;
-            fs.setDomainWidth(tileWidth);
-
-            image_frieze.setTransform(fs);
-            image_frieze.setDataSource(image_src);
-
-            image_band = image_frieze;
-        }
-
-        if (!(hasTopBorder() || hasBottomBorder() )) {
-            return image_band;
-        }
-
-
-        DataSources.Union union = new DataSources.Union();
-
-        union.addDataSource(image_band);
-
-        if (hasTopBorder()) {
-            DataSources.Block top_band = new DataSources.Block();
-            top_band.setSize(bandLength, topBorderWidth, ringThickness);
-            top_band.setLocation(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
-            top_band.setSmoothBoundaries(false, true, true);
-
-            union.addDataSource(top_band);
-        }
-
-        if (hasBottomBorder()) {
-            DataSources.Block bottom_band = new DataSources.Block();
-            bottom_band.setSize(bandLength, bottomBorderWidth, ringThickness);
-            bottom_band.setLocation(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
-            bottom_band.setSmoothBoundaries(false, true, true);
-            union.addDataSource(bottom_band);
-        }
-
-        return union;
-
-    }
-
-
-    /**
-     * complement of text to make text engraving
-     */
-    DataSource makeTextComplement(double ymin, double ymax) {
-
-        double width = ymax - ymin;
-
-        int maxFontSize = (int) (width / POINT_SIZE);
-        if (fontSize > maxFontSize) {
-            fontSize = maxFontSize;
-            System.err.printf("EXTMSG: Font is too large. Reduced to %d points\n", fontSize);
-        }
-
-        // we need to create font of specified size
-        // we assume, that the font size is the maximal height of the text string 
-        double textHeightM = (fontSize * POINT_SIZE);
-
-        int textBitmapHeight = (int) (width / TEXT_RENDERING_PIXEL_SIZE);
-        int textBitmapWidth = (int) (textBitmapHeight * bandLength / width);
-        // height of text string in pixels
-        int textHeightPixels = (int) (textBitmapHeight * textHeightM / width);
-        // we use Insets to have empty space around centered text 
-        // it also will make text of specitfied height
-        int textOffsetV = (textBitmapHeight - textHeightPixels) / 2;
-        int textOffsetH = 10;
-        printf("text bitmap size: (%d x %d) pixels\n", textBitmapWidth, textBitmapHeight);
-        printf("text height: %d pixels\n", textHeightPixels);
-        printf("vertical text offset: %d pixels\n", textOffsetV);
-
-        DataSourceImageBitmap textBand = new DataSourceImageBitmap();
-
-        textBand.setSize(Math.PI * innerDiameter, width, textDepth);
-        // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
-        textBand.setLocation(0, (ymax + ymin)/2, -textDepth / 2);
-        textBand.setBaseThickness(0.);
-        textBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
-        textBand.setTiles(1, 1);
-        textBand.setBlurWidth(imageBlurWidth);
-        textBand.setUseGrayscale(false);
-        textBand.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
-
-
-        int fontStyle = Font.PLAIN;
-
-        if (fontBold)
-            fontStyle = Font.BOLD;
-
-        if (fontItalic)
-            fontStyle |= Font.ITALIC;
-
-        boolean font_found = false;
-
-        GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
-        for (String ffname : genv.getAvailableFontFamilyNames()) {
-            if (ffname.equals(fontName)) {
-                font_found = true;
-                break;
-            }
-        }
-
-        if (!font_found) {
-            System.err.println("EXTMSG: Could not find requested font: " + fontName);
-        }
-
-        Font font = new Font(fontName, fontStyle, DEFAULT_FONT_SIZE);
-
-        textBand.setImage(TextUtil.createTextImage(textBitmapWidth, textBitmapHeight, text,
-                font,
-                new Insets(textOffsetV, textOffsetH, textOffsetV, textOffsetH),
-                false));
-
-        // we want text on the inside. So it should face in opposite direction
-        VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
-        textRotation.setRotation(new Vector3d(0, 1, 0), 180 * TORAD);
-
-        // rotated text
-        DataSources.DataTransformer rotatedText = new DataSources.DataTransformer();
-        rotatedText.setDataSource(textBand);
-        rotatedText.setTransform(textRotation);
-
-        DataSources.Complement textComplement = new DataSources.Complement();
-        textComplement.setDataSource(rotatedText);
-
-        return textComplement;
-
-    }
-
-    /**
-     * cross section of ring
-     */
-    DataSource makeCrossSection(double ringYmin, double ringYmax) {
-
-        DataSourceImageBitmap crossSect = new DataSourceImageBitmap();
+        return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
         
-        double size = (ringYmax - ringYmin);
-        crossSect.setSize(size, ringThickness, Math.PI * innerDiameter);
-
-        double center = -(ringYmin+ringYmax)/2;
-
-        crossSect.setLocation(center, ringThickness / 2, 0);
-
-        printf("cross center: %7.3f mm cross size : %7.3f mm\n", center/MM,size/MM);
-
-        crossSect.setBaseThickness(0.);
-        crossSect.setUseGrayscale(false);
-        crossSect.setImagePath(crossSectionPath);
-        crossSect.setBlurWidth(imageBlurWidth);
-        crossSect.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
-
-        VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
-
-        VecTransforms.Rotation crot1 = new VecTransforms.Rotation();
-        crot1.setRotation(new Vector3d(0, 0, 1), -90 * TORAD);
-        VecTransforms.Rotation crot2 = new VecTransforms.Rotation();
-        crot2.setRotation(new Vector3d(0, 1, 0), -90 * TORAD);
-        crossTrans.add(crot1);
-        crossTrans.add(crot2);
-
-        // transformed cross section 
-        DataSources.DataTransformer transCross = new DataSources.DataTransformer();
-        transCross.setDataSource(crossSect);
-        transCross.setTransform(crossTrans);
-
-        return transCross;
-
     }
 
     /**
@@ -950,19 +643,6 @@ public class VolumeSculptorKernel extends HostedKernel {
         }
     }
 
-    /**
-     * return bounds extended by given margin
-     */
-    static double[] extendBounds(double bounds[], double margin) {
-        return new double[]{
-                bounds[0] - margin,
-                bounds[1] + margin,
-                bounds[2] - margin,
-                bounds[3] + margin,
-                bounds[4] - margin,
-                bounds[5] + margin,
-        };
-    }
 
     private void writeDebug(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
         // Output File
