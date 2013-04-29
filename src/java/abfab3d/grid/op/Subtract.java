@@ -70,9 +70,6 @@ public class Subtract implements Operation, ClassTraverser {
     public Grid execute(Grid dest) {
         long t0 = time();
 
-        int width = dest.getWidth();
-        int depth = dest.getDepth();
-        int height = dest.getHeight();
         this.dest = dest;
 
         // TODO: Make sure the grids are the same size
