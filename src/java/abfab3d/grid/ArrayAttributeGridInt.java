@@ -56,6 +56,12 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public ArrayAttributeGridInt(int w, int h, int d, double pixel, double sheight) {
         super(w,h,d,pixel,sheight);
 
+        long dataLength = (long)height * width * depth;
+
+        if(dataLength >= Integer.MAX_VALUE){
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayGridIntLongIndex");
+        }
+
         data = new int[height * width * depth];
     }
 
@@ -81,9 +87,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        Grid ret_val = new ArrayAttributeGridInt(w,h,d,pixel,sheight);
-
-        return ret_val;
+        return new ArrayAttributeGridInt(w,h,d,pixel,sheight);
     }
 
     /**
@@ -105,7 +109,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public void getData(int x, int y, int z, VoxelData vd) {
         int idx = y * sliceSize + x * depth + z;
 
-        byte state = (byte) ((data[idx] & 0xFFFFFFFF) >> 30);
+        byte state = (byte) (data[idx] >>> 30);
         int mat = (0x3FFFFFFF & data[idx]);
 
         vd.setData(state,mat);
@@ -125,7 +129,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        byte state = (byte) ((data[idx] & 0xFFFFFFFF) >> 30);
+        byte state = (byte) (data[idx] >>> 30);
         int mat = (0x3FFFFFFF & data[idx]);
 
         vd.setData(state,mat);
@@ -145,9 +149,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        byte state = (byte) ((data[idx] & 0xFFFFFFFF) >> 30);
-
-        return state;
+        return (byte) (data[idx] >>> 30);
     }
 
     /**
@@ -160,9 +162,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public byte getState(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
-        byte state = (byte) ((data[idx] & 0xFFFFFFFF) >> 30);
-
-        return state;
+        return (byte) (data[idx] >>> 30);
     }
 
     /**
@@ -179,9 +179,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        int mat = (0x3FFFFFFF & data[idx]);
-
-        return mat;
+        return (0x3FFFFFFF & data[idx]);
     }
 
     /**
@@ -194,9 +192,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public int getAttribute(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
-        int mat = (0x3FFFFFFF & data[idx]);
-
-        return mat;
+        return (0x3FFFFFFF & data[idx]);
     }
 
     /**
@@ -215,7 +211,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        data[idx] = (0xFFFFFFFF & (state << 30 | material));
+        data[idx] = (state << 30 | material);
     }
 
     /**
@@ -230,7 +226,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public void setData(int x, int y, int z, byte state, int material) {
         int idx = y * sliceSize + x * depth + z;
 
-        data[idx] = (0xFFFFFFFF & (state << 30 | material));
+        data[idx] = (state << 30 | material);
     }
 
     /**
@@ -244,9 +240,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public void setAttribute(int x, int y, int z, int material) {
         int idx = y * sliceSize + x * depth + z;
 
-        byte state = (byte) ((data[idx] & 0xFFFFFFFF) >> 30);
+        byte state = (byte) (data[idx] >>> 30);
 
-        data[idx] = (0xFFFFFFFF & (state << 30 | material));
+        data[idx] = (state << 30 | material);
     }
 
     /**
@@ -262,7 +258,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
 
         int mat = (0x3FFFFFFF & data[idx]);
 
-        data[idx] = (0xFFFFFFFF & (state << 30 | mat));
+        data[idx] = (state << 30 | mat);
     }
 
     /**
@@ -282,7 +278,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
 
         int mat = (0x3FFFFFFF & data[idx]);
 
-        data[idx] = (0xFFFFFFFF & (state << 30 | mat));
+        data[idx] = (state << 30 | mat);
     }
 
     /**

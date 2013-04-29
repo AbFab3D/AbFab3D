@@ -25,20 +25,51 @@ import junit.framework.TestSuite;
  * @author Alan Hudson
  * @version
  */
-public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implements ClassAttributeTraverser {
-
-    /** The material count */
-    private int allCount;
-    private int mrkCount;
-    private int extCount;
-    private int intCount;
-    private int outCount;
+public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
         return new TestSuite(TestRangeCheckAttributeWrapper.class);
+    }
+
+    /**
+     * Test clone.
+     */
+    public void testClone() {
+        int size = 10;
+        double voxelSize = 0.002;
+        double sliceHeight = 0.001;
+
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,voxelSize,sliceHeight);
+        RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
+        runClone(wrapper);
+    }
+
+    public void testToString() {
+        AttributeGrid grid = new ArrayAttributeGridByte(1, 1, 1, 0.001, 0.001);
+        RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
+
+        runToString(wrapper);
+    }
+
+    public void testInsideGrid() {
+        double voxelSize = 0.01;
+        AttributeGrid grid = new ArrayAttributeGridByte(50, 25, 70, voxelSize, 0.01);
+        RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
+
+        insideGrid(grid);
+    }
+
+    /**
+     * Test creating an empty grid.
+     */
+    public void testCreateEmpty() {
+        AttributeGrid grid = new ArrayAttributeGridByte(100, 101, 102, 0.001, 0.001);
+        RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
+
+        createEmpty(wrapper);
     }
 
     /**
@@ -54,6 +85,25 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
         assertEquals("Wrapper grid width is not " + 2, 2, wrapper.getWidth());
         assertEquals("Wrapper grid height is not " + 3, 3, wrapper.getHeight());
         assertEquals("Wrapper grid depth is not " + 4, 4, wrapper.getDepth());
+    }
+
+
+    /**
+     * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
+     */
+    public void testFindVoxelClassIterator() {
+        int width = 20;
+        int height = 10;
+        int depth = 10;
+
+        AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
+        RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
+
+        findVoxelClassIterator1(wrapper);
+
+        grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
+        wrapper = new RangeCheckAttributeWrapper(grid);
+        findVoxelClassIterator2(wrapper);
     }
 
     /**
@@ -122,42 +172,36 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
             wrapper.getData(-1,0,0,vd);
             fail("Negative width voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(width,0,0,vd);
             fail("Voxel coord greater than width-1 should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,-1,0,vd);
             fail("Negative height voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,height,0,vd);
             fail("Voxel coord greater than height-1 should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,0,-1,vd);
             fail("Negative depth voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,0,depth,vd);
             fail("Voxel coord greater than depth-1 should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         //-------------------------------------------------------
@@ -253,42 +297,36 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
             wrapper.getData(-hres,0,0,vd);
             fail("Negative width world coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(width+2*hres,0,0,vd);
             fail("Voxel coord greater than width+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,-vres,0,vd);
             fail("Negative height world coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,height+2*vres,0,vd);
             fail("World coord greater than height+2*vres should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,0,-hres,vd);
             fail("Negative depth voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         try {
             wrapper.getData(0,0,depth+2*hres,vd);
             fail("World coord greater than depth+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", vd);
         }
 
         //-------------------------------------------------------
@@ -340,42 +378,36 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
             state = wrapper.getState(-1,0,0);
             fail("Negative voxel coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(width,0,0);
             fail("Voxel coord greater than width should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,-1,0);
             fail("Negative voxel coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,height,0);
             fail("Voxel coord greater than height should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,0,-1);
             fail("Negative voxel coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,0,depth);
             fail("Voxel coord greater than depth should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         //-------------------------------------------------------
@@ -429,42 +461,36 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
             state = wrapper.getState(-hres,0.0,0.0);
             fail("Negative world coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(width+2*hres,0,0);
             fail("World coord greater than width should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,-vres,0);
             fail("Negative world coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,height+2*vres,0);
             fail("World coord greater than height should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,0,-hres);
             fail("Negative world coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         try {
             state = wrapper.getState(0,0,depth+2*hres);
             fail("World coord greater than depth should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", state);
         }
 
         //-------------------------------------------------------
@@ -521,42 +547,36 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
             material = wrapper.getAttribute(-1, 0, 0);
             fail("Negative voxel coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(width, 0, 0);
             fail("Voxel coord greater than width should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, -1, 0);
             fail("Negative voxel coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, height, 0);
             fail("Voxel coord greater than height should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, 0, -1);
             fail("Negative voxel coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, 0, depth);
             fail("Voxel coord greater than depth should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         //-------------------------------------------------------
@@ -610,42 +630,36 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
             material = wrapper.getAttribute(-hres, 0.0, 0.0);
             fail("Negative world coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(width + 2 * hres, 0, 0);
             fail("World coord greater than width should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, -vres, 0);
             fail("Negative world coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, height + 2 * vres, 0);
             fail("World coord greater than height should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, 0, -hres);
             fail("Negative world coord should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         try {
             material = wrapper.getAttribute(0, 0, depth + 2 * hres);
             fail("World coord greater than depth should throw exception");
         } catch (IllegalArgumentException e) {
-            assertNull("Voxel data is not null", material);
         }
 
         //-------------------------------------------------------
@@ -1205,62 +1219,5 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid implem
         grid = new ArrayAttributeGridByte(0.12, 0.11, 0.12, voxelSize, 0.01);
         wrapper = new RangeCheckAttributeWrapper(grid);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, wrapper.getVoxelSize());
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        allCount++;
-
-        if (vd.getState() == Grid.EXTERIOR) {
-            mrkCount++;
-            extCount++;
-        } else if (vd.getState() == Grid.INTERIOR) {
-            mrkCount++;
-            intCount++;
-        } else {
-            outCount++;
-        }
-
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        // ignore
-        return true;
-    }
-
-    /**
-     * Set the X values of a grid.
-     *
-     * @param state The new state
-     * @param mat The new material
-     */
-    protected static void setX(AttributeGrid grid, int y, int z, byte state, int mat, int startIndex, int endIndex) {
-        for(int x=startIndex; x <= endIndex; x++) {
-//System.out.println(x + " " + y + " " + z);
-            grid.setData(x,y,z, state, mat);
-        }
-    }
-
-    private void resetCounts() {
-        allCount = 0;
-        mrkCount = 0;
-        extCount = 0;
-        intCount = 0;
-        outCount = 0;
     }
 }

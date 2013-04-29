@@ -30,20 +30,6 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
      * Constructor.
      *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public BaseAttributeGrid(double w, double h, double d, double pixel, double sheight) {
-        this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
-           (int) (d / pixel) + 1, pixel, sheight);
-    }
-
-    /**
-     * Constructor.
-     *
      * @param w The number of voxels in width
      * @param h The number of voxels in height
      * @param d The number of voxels in depth
@@ -220,8 +206,6 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     getData(x,y,z,vd);
-
-                    byte state;
 
                     if (vd.getMaterial() == mat && vd.getState() != Grid.OUTSIDE) {
                         ret_val++;
@@ -428,7 +412,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
        print given crossection of attributes
      */
-    public String toStringAttrubutesSectionZ(int z) {
+    public String toStringAttributesSectionZ(int z) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -443,7 +427,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
         return sb.toString();
     }
 
-    
+
     public abstract Object clone();
 
 }

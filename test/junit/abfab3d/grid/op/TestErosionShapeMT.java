@@ -51,13 +51,15 @@ public class TestErosionShapeMT extends TestCase {
         return new TestSuite(TestErosionShapeMT.class);
     }
 
-    public void _testBlockErosion() {
+    public void testBlockErosion() {
 
-        int nx = 300, ny = 350, nz = 400;
+        int nx = 100, ny = 150, nz = 200;
 
         int offset = 10;
 
         AttributeGrid grid;
+
+        int cores = Runtime.getRuntime().availableProcessors();
 
         for(int k = 2; k <= 6; k++){
             
@@ -77,7 +79,7 @@ public class TestErosionShapeMT extends TestCase {
             grid = makeBlock(nx+2*offset, ny+2*offset, nz+2*offset, offset);
             // testing MT erosion 
             ErosionShapeMT dilm = new ErosionShapeMT();
-            dilm.setThreadCount(4);
+            dilm.setThreadCount(cores);
             dilm.setSliceSize(5);
 
             dilm.setVoxelShape(shape);            
@@ -91,7 +93,7 @@ public class TestErosionShapeMT extends TestCase {
         }
     }
 
-    public void testSpeed() {
+    public void _testSpeed() {
 
         int size = 100;
         //int nx = 100, ny = 200, nz = 300;

@@ -56,6 +56,12 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
     public ArrayAttributeGridShort(int w, int h, int d, double pixel, double sheight) {
         super(w,h,d,pixel,sheight);
 
+        long dataLength = (long)height * width * depth;
+
+        if(dataLength >= Integer.MAX_VALUE){
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayGridShortLongIndex");
+        }
+
         data = new short[height * width * depth];
     }
 

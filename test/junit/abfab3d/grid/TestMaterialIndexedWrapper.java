@@ -119,7 +119,6 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
         long time1;
         long time2;
 
-System.out.println("Removal Speed");
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
         int matSize = grid.getWidth() * matWidth;

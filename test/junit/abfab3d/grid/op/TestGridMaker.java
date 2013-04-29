@@ -13,9 +13,6 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
 
 
 import java.awt.image.BufferedImage;
@@ -31,12 +28,7 @@ import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.TorusGenerator;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
-
-// external imports 
+// external imports
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -45,7 +37,6 @@ import junit.framework.TestSuite;
 // Internal Imports
 import abfab3d.grid.Grid;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.BlockBasedGridByte;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.util.Vec;
@@ -1391,7 +1382,7 @@ public class TestGridMaker extends TestCase {
     }
 
 
-    public void _testAttributeGridGeneration() {
+    public void testAttributeGridGeneration() {
         
         printf("testAttributeGridGeneration()\n");
 
@@ -1427,7 +1418,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);               
         printf("gm.makeGrid() done\n");
-        printf("%s",grid.toStringAttrubutesSectionZ(nz/2));
+        printf("%s",grid.toStringAttributesSectionZ(nz / 2));
     }
 
     public void _testSmoohRing() throws Exception {
@@ -1749,7 +1740,7 @@ public class TestGridMaker extends TestCase {
         
     }
 
-    public void _testBlock() throws Exception {
+    public void testBlock() throws Exception {
         
         printf("testBlock()\n");
 
@@ -1818,7 +1809,7 @@ public class TestGridMaker extends TestCase {
         stl.close();
         
     }
-    public void testImage() throws Exception {
+    public void _testImage() throws Exception {
         for(int i = 0; i < 1; i++){
             runImageTest();
         }

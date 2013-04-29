@@ -27,14 +27,7 @@ import junit.framework.TestSuite;
  * @author Alan Hudson
  * @version
  */
-public class TestOctreeGridShort extends BaseTestAttributeGrid implements ClassAttributeTraverser {
-
-    /** The material count */
-    private int allCount;
-    private int mrkCount;
-    private int extCount;
-    private int intCount;
-    private int outCount;
+public class TestOctreeGridShort extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -1359,59 +1352,4 @@ grid.printTree();
 
     }
 
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        allCount++;
-
-        if (vd.getState() == Grid.EXTERIOR) {
-            mrkCount++;
-            extCount++;
-        } else if (vd.getState() == Grid.INTERIOR) {
-            mrkCount++;
-            intCount++;
-        } else {
-            outCount++;
-        }
-
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        // ignore
-        return true;
-    }
-
-    /**
-     * Set the X values of a grid.
-     *
-     * @param state The new state
-     * @param mat The new material
-     */
-    protected static void setX(AttributeGrid grid, int y, int z, byte state, byte mat, int startIndex, int endIndex) {
-        for(int x=startIndex; x <= endIndex; x++) {
-            grid.setData(x,y,z, state, mat);
-        }
-    }
-
-    private void resetCounts() {
-        allCount = 0;
-        mrkCount = 0;
-        extCount = 0;
-        intCount = 0;
-        outCount = 0;
-    }
 }

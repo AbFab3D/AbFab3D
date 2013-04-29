@@ -57,9 +57,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         super(w,h,d,pixel,sheight);
         long dataLength = (long)height * width * depth;
         if(dataLength >= Integer.MAX_VALUE){
-            System.out.printf("Out of memory");
-            Thread.currentThread().dumpStack();
-            return;
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayAttributeGridByteLongIndex");
         }
         data = new byte[height * width * depth];
     }
@@ -120,6 +118,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      *
      * @return Returns the data at each position.  3 dim array represented as flat, must be preallocated
      */
+/*
     public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret) {
 
         int idx;
@@ -127,11 +126,6 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         byte mat;
 
         int ridx = 0;
-
-// TODO: check whether array order matters for cache coherence
-//System.out.println("x1: " + x1 + " x2: " + x2);
-//System.out.println("y1: " + y1 + " y2: " + y2);
-//System.out.println("z1: " + z1 + " z2: " + z2);
 
         int x_len = x2 - x1 + 1;
         int y_len = y2 - y1 + 1;
@@ -151,7 +145,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
             }
         }
     }
-
+*/
     /**
      * Get the data of the voxel
      *

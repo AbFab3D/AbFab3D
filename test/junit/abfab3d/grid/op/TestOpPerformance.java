@@ -38,7 +38,7 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
     /**
      * Test that multithreaded performance improves as you add threads.
      */
-    public void testPerformanceMT() {
+    public void testSubtractPerformanceMT() {
         int size1 = 500;
         int size2 = 550;
         byte state1 = Grid.INTERIOR;
@@ -92,6 +92,67 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
             System.out.println("Time: " + (System.currentTimeMillis() - t0));
         }
         System.out.println("Times: " + java.util.Arrays.toString(times));
+        // Spot check, make sure 4 threads is better then 1 thread by at least 2X
+        assertTrue("Speed check",times[3] < (times[0] * 2));
+    }
+    public void testIntersectPerformanceMT() {
+        int size1 = 750;
+        int size2 = 750;
+        byte state1 = Grid.INTERIOR;
+        byte state2 = Grid.EXTERIOR;
+
+        int warmup = 4;
+        int cores = 4;
+        long[] times = new long[cores];
+        float[] factors = new float[cores];
+
+
+        for(int n=0; n < warmup; n++) {
+            Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
+            Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
+
+            // set grid1
+            for (int x=(int)(size1*0.3); x<(int)(size1*0.7); x++) {
+                grid1.setState(x, 5, 5, state1);
+            }
+
+            // set grid2
+            for (int y=(int)(size2*0.5); y<size2; y++) {
+                grid2.setState(3, y, 5, state2);
+            }
+
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            IntersectMT op = new IntersectMT(grid1, (n+1) % cores);
+            Grid dest = (Grid) op.execute(grid2);
+            System.out.println("Time: " + (System.currentTimeMillis() - t0));
+        }
+
+        for(int i=0; i < cores; i++) {
+            Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
+            Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
+
+            // set grid1
+            for (int x=(int)(size1*0.3); x<(int)(size1*0.7); x++) {
+                grid1.setState(x, 5, 5, state1);
+            }
+
+            // set grid2
+            for (int y=(int)(size2*0.5); y<size2; y++) {
+                grid2.setState(3, y, 5, state2);
+            }
+
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            IntersectMT op = new IntersectMT(grid1, i+1);
+            Grid dest = (Grid) op.execute(grid2);
+            times[i] = (System.currentTimeMillis() - t0);
+            if (i >= 1) {
+                factors[i] = (float) times[0] / times[i];
+            }
+        }
+        System.out.println("Times: " + java.util.Arrays.toString(times));
+        System.out.println("Factors: " + java.util.Arrays.toString(factors));
         // Spot check, make sure 4 threads is better then 1 thread by at least 2X
         assertTrue("Speed check",times[3] < (times[0] * 2));
     }

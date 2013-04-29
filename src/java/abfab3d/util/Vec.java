@@ -21,6 +21,7 @@ public class Vec {
     
     // holder for data
     public double v[];
+    public double voxelSize;
 
     public Vec(int size){
         v = new double[size];
