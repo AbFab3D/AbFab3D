@@ -12,13 +12,15 @@
 
 package abfab3d.grid.op;
 
-import java.util.concurrent.ExecutorService; 
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
 import java.util.HashMap; 
 import java.util.Iterator;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
@@ -55,8 +57,9 @@ public class DilationShapeMT implements Operation, AttributeOperation {
     int m_nx, m_ny, m_nz; 
     int m_threadCount = 1;
     int m_sliceSize = 1;
-    
-    Stack<Slice> m_slices;
+
+    private Slice[] m_slices;
+    private AtomicInteger m_slicesIdx;
     
     public DilationShapeMT() {
         
@@ -116,8 +119,9 @@ public class DilationShapeMT implements Operation, AttributeOperation {
 
         GridBitIntervals surface = new GridBitIntervals(m_nx, m_ny, m_nz);
         //GridShortIntervals surface = new GridShortIntervals(m_nx, m_ny, m_nz, 1., 1.);
-        m_slices = new Stack<Slice>();
 
+        m_slices = new Slice[(int) Math.ceil(m_ny / m_sliceSize) + 1];
+        int idx = 0;
         int sliceHeight = m_sliceSize; 
         
         for(int y = 0; y < m_ny; y+= sliceHeight){
@@ -127,10 +131,12 @@ public class DilationShapeMT implements Operation, AttributeOperation {
             
             if(ymax > y){
                 // non zero slice 
-                m_slices.push(new Slice(y, ymax-1));
+                m_slices[idx++] = new Slice(y, ymax-1);
             }
         }
-        
+
+        m_slicesIdx = new AtomicInteger(0);
+
         ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
         for(int i = 0; i < m_threadCount; i++){
 
@@ -149,7 +155,8 @@ public class DilationShapeMT implements Operation, AttributeOperation {
         printf("surface: %d ms\n", (time()-t0));
         t0 = time();
 
-        m_dilationSlices = new Stack<Slice>();
+        m_dilationSlices = new Slice[(int) Math.ceil(m_ny / m_sliceSize) + 1];
+        idx = 0;
 
         for(int y = 0; y < m_ny; y+= sliceHeight){
             int ymax = y + sliceHeight;
@@ -157,9 +164,11 @@ public class DilationShapeMT implements Operation, AttributeOperation {
                 ymax = m_ny;
             if(ymax > y){
                 // non zero slice 
-                m_dilationSlices.push(new Slice(y, ymax-1));
+                m_dilationSlices[idx++] = new Slice(y, ymax-1);
             }
         }
+
+        m_dsIdx = new AtomicInteger(0);
 
         executor = Executors.newFixedThreadPool(m_threadCount);
         for(int i = 0; i < m_threadCount; i++){
@@ -186,24 +195,25 @@ public class DilationShapeMT implements Operation, AttributeOperation {
     }
 
     
-    synchronized Slice getNextSlice(){
-        if(m_slices.empty())
+    Slice getNextSlice(){
+        if(m_slicesIdx.intValue() >= m_slices.length)
             return null;
         
-        return m_slices.pop();
+        return m_slices[m_slicesIdx.getAndIncrement()];
         
     }
     
-    Stack<Slice> m_dilationSlices;
+    Slice[] m_dilationSlices;
+    AtomicInteger m_dsIdx;
 
     final static int RESULT_OK = 0, RESULT_BUSY = -1, RESULT_EMPTY = 1;
 
-    synchronized int getNextDilationSlice(Slice slice){
+    int getNextDilationSlice(Slice slice){
         
-        if(m_dilationSlices.empty())
+        if(m_dsIdx.intValue() >= m_dilationSlices.length)
             return RESULT_EMPTY;
-        
-        Slice s = m_dilationSlices.pop();
+
+        Slice s = m_dilationSlices[m_dsIdx.getAndIncrement()];
 
         slice.ymin = s.ymin;
         slice.ymax = s.ymax;
@@ -286,7 +296,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
             this.surface = surface; 
 
             this.shape = shape;
-            this.voxelChecker = voxelChecker;
+            this.voxelChecker = checker;
 
 
             nx = grid.getWidth();
