@@ -179,7 +179,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
         // TODO: what to do about block order?
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
-        
+
         this.blockOrder = grid.blockOrder;
         this.blockResX = grid.blockResX;
         this.blockResY = grid.blockResY;
@@ -189,7 +189,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
         this.outside = (VoxelDataByte) grid.outside.clone();
         this.bcoord = grid.bcoord.clone();
         this.vcoord = grid.vcoord.clone();
-        
+
         data = new BlockByte[blockResX * blockResY * blockResZ];
         for(int b =0; b < data.length; b++){
             BlockByte bd = grid.data[b];
@@ -338,7 +338,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -357,7 +357,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             byte val = block.getValue(vcoord, blockOrder);
             byte mat = (byte) (0x3F & val);
 
-            return (int) mat;
+            return (long) mat;
         }
 
         return 0;
@@ -371,7 +371,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
@@ -387,7 +387,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
 
             byte mat = (byte) (0x3F & val);
 
-            return (int) mat;
+            return (long) mat;
         }
 
         return (int) OUTSIDE;
@@ -402,7 +402,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -436,7 +436,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
@@ -465,7 +465,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
@@ -726,7 +726,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -870,7 +870,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -1041,7 +1041,7 @@ class BlockByte {
     protected byte[] data;
 
     /**
-       copyu contstructor 
+       copyu contstructor
      */
     public BlockByte(BlockByte bb) {
 
@@ -1068,9 +1068,9 @@ class BlockByte {
     public byte[] getData() {
         return data;
     }
-    
+
     public Object clone(){
-        
+
         return new BlockByte(this);
 
     }

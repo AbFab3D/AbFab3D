@@ -319,7 +319,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -353,7 +353,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 

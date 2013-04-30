@@ -183,11 +183,11 @@ public class TestArrayAttributeGridByte extends BaseTestAttributeGrid {
     /**
      * Test setAttribute.
      */
-    public void testSetMaterial() {
+    public void testsetAttribute() {
         int size = 10;
 
         AttributeGrid grid = new ArrayAttributeGridByte(size, size, size, 0.001, 0.001);
-        setMaterial(grid);
+        setAttribute(grid);
     }
 
     /**

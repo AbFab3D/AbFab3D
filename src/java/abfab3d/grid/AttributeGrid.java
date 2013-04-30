@@ -14,7 +14,7 @@ public interface AttributeGrid extends Grid {
      * @param z The z world coordinate
      * @return The voxel attribute
      */
-    public int getAttribute(double x, double y, double z);
+    public long getAttribute(double x, double y, double z);
 
     /**
      * Get the attribute of the voxel.
@@ -24,7 +24,7 @@ public interface AttributeGrid extends Grid {
      * @param z The z grid coordinate
      * @return The voxel attribute
      */
-    public int getAttribute(int x, int y, int z);
+    public long getAttribute(int x, int y, int z);
 
     /**
      * Set the value of a voxel.
@@ -35,7 +35,7 @@ public interface AttributeGrid extends Grid {
      * @param state The value.  0 = nothing. > 0 attributeID
      * @param attribute The attributeID
      */
-    public void setData(double x, double y, double z, byte state, int attribute);
+    public void setData(double x, double y, double z, byte state, long attribute);
 
     /**
      * Set the value of a voxel.
@@ -46,7 +46,7 @@ public interface AttributeGrid extends Grid {
      * @param state The value.  0 = nothing. > 0 attributeID
      * @param attribute The attributeID
      */
-    public void setData(int x, int y, int z, byte state, int attribute);
+    public void setData(int x, int y, int z, byte state, long attribute);
 
     /**
      * Set the attribute value of a voxel.  Leaves the state unchanged.
@@ -56,7 +56,7 @@ public interface AttributeGrid extends Grid {
      * @param z The z world coordinate
      * @param attribute The attributeID
      */
-    public void setAttribute(int x, int y, int z, int attribute);
+    public void setAttribute(int x, int y, int z, long attribute);
 
     /**
      * Count a class of attribute types.  May be much faster then
@@ -65,7 +65,7 @@ public interface AttributeGrid extends Grid {
      * @param mat The class of attribute to traverse
      * @return The number
      */
-    public int findCount(int mat);
+    public int findCount(long mat);
 
     /**
      * Count a class of voxels types.  May be much faster then
@@ -92,7 +92,7 @@ public interface AttributeGrid extends Grid {
      * @param mat The attribute to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(int mat, ClassAttributeTraverser t);
+    public void findAttribute(long mat, ClassAttributeTraverser t);
 
     /*
      * Traverse a class of voxel and attribute types.  May be much faster then
@@ -103,7 +103,7 @@ public interface AttributeGrid extends Grid {
      * @param mat The attribute to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t);
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t);
 
     /**
      * Traverse a class of voxels types.  May be much faster then
@@ -113,7 +113,7 @@ public interface AttributeGrid extends Grid {
      * @param mat The attribute to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t);
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t);
 
     /*
      * Traverse a class of voxel and attribute types.  May be much faster then
@@ -124,14 +124,14 @@ public interface AttributeGrid extends Grid {
      * @param mat The attribute to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t);
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t);
 
     /**
      * Remove all voxels associated with the Attribute.
      *
      * @param mat The attributeID
      */
-    public void removeAttribute(int mat);
+    public void removeAttribute(long mat);
 
     /**
      * Reassign a group of attributes to a new attributeID
@@ -139,6 +139,6 @@ public interface AttributeGrid extends Grid {
      * @param attributes The new list of attributes
      * @param matID The new attributeID
      */
-    public void reassignAttribute(int[] attributes, int matID);
+    public void reassignAttribute(long[] attributes, long matID);
 
 }

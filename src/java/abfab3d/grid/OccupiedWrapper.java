@@ -152,7 +152,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         return grid.getAttribute(x, y, z);
     }
 
@@ -164,7 +164,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param z The z grid coordinate
      * @return The voxel material
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         return grid.getAttribute(x, y, z);
     }
 
@@ -177,7 +177,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         grid.getData(x,y,z,vd);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
@@ -196,7 +196,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @param material The value.  0 = nothing. > 0 materialID
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         grid.getData(x,y,z,vd);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
@@ -215,7 +215,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         if (grid.getAttribute(x, y, z) != material ) {
             throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
         }
@@ -329,7 +329,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(int mat, ClassAttributeTraverser t) {
+    public void findAttribute(long mat, ClassAttributeTraverser t) {
         grid.findAttribute(mat,t);
     }
 
@@ -345,18 +345,18 @@ public class OccupiedWrapper implements AttributeGridWrapper {
     }
 
     /**
-     * Traverse a class of voxels types over given rectangle in xy plane.  
+     * Traverse a class of voxels types over given rectangle in xy plane.
      * May be much faster then full grid traversal for some implementations.
      *
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
-     * @param xmin - minimal x - coordinate of voxels 
-     * @param xmax - maximal x - coordinate of voxels 
-     * @param ymin - minimal y - coordinate of voxels 
-     * @param ymax - maximal y - coordinate of voxels 
+     * @param xmin - minimal x - coordinate of voxels
+     * @param xmax - maximal x - coordinate of voxels
+     * @param ymin - minimal y - coordinate of voxels
+     * @param ymax - maximal y - coordinate of voxels
      */
     public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
-        
+
         grid.find(vc, t, xmin, xmax, ymin, ymax);
 
     }
@@ -380,7 +380,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         grid.findAttribute(vc, mat, t);
     }
 
@@ -391,7 +391,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
         grid.findAttributeInterruptible(mat,t);
     }
 
@@ -425,7 +425,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         grid.findAttributeInterruptible(vc, mat, t);
     }
 
@@ -436,7 +436,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(int mat) {
+    public int findCount(long mat) {
         return grid.findCount(mat);
     }
 
@@ -445,7 +445,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      *
      * @param mat The aterialID
      */
-    public void removeAttribute(int mat) {
+    public void removeAttribute(long mat) {
         grid.removeAttribute(mat);
     }
 
@@ -455,7 +455,7 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param materials The new list of materials
      * @param matID The new materialID
      */
-    public void reassignAttribute(int[] materials, int matID) {
+    public void reassignAttribute(long[] materials, long matID) {
         grid.reassignAttribute(materials, matID);
     }
 

@@ -254,7 +254,7 @@ System.out.println("test3");
     public void testByteMaterialRange() {
         int width = 63;
         int maxMaterial = 63;
-        int mat, expectedMat;
+        long mat, expectedMat;
 
         AttributeGrid grid =new MaterialIndexedAttributeGridByte(width, 1, 1, 0.001, 0.001);
 
@@ -292,7 +292,7 @@ System.out.println("test3");
     }
 */
     /**
-     * Test set/get int material range.
+     * Test set/get long material range.
      */
 /*
     public void testIntMaterialRange() {
@@ -371,11 +371,11 @@ System.out.println("test3");
         int width = 3;
         int height = 4;
         int depth = 10;
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 12;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 12;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         AttributeGrid grid =new MaterialIndexedAttributeGridByte(width, height, depth, 0.05, 0.02);
 
@@ -398,7 +398,7 @@ System.out.println("test3");
         }
 
         // test material 0
-        int mat = 0;
+        long mat = 0;
         grid = new MaterialIndexedAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.EXTERIOR, mat);

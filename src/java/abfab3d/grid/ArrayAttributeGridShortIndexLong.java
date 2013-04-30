@@ -38,9 +38,9 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      */
     public ArrayAttributeGridShortIndexLong(double w, double h, double d, double pixel, double sheight) {
         this((int) (Math.ceil(w / pixel)) + 1,
-        	 (int) (Math.ceil(h / sheight)) + 1,
-             (int) (Math.ceil(d / pixel)) + 1, 
-             pixel, 
+             (int) (Math.ceil(h / sheight)) + 1,
+             (int) (Math.ceil(d / pixel)) + 1,
+             pixel,
              sheight);
     }
 
@@ -172,7 +172,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -191,7 +191,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         short datum = data[y][x][z];
 
         short mat = (short) (0x3FFF & datum);
@@ -208,7 +208,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -226,7 +226,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
     }
 
@@ -238,7 +238,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         byte state = (byte) ((data[y][x][z] & 0xFFFF) >> 14);
 
         data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)material));

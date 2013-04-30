@@ -59,7 +59,7 @@ public class OctreeCellInternalShort implements OctreeCell, Cloneable {
     protected OctreeCellInternalShort() {
     }
 
-    public OctreeCellInternalShort(int level, int maxLevel, int x, int y, int z, int size, byte state, int material) {
+    public OctreeCellInternalShort(int level, int maxLevel, int x, int y, int z, int size, byte state, long material) {
         this.level = level;
         this.maxLevel = maxLevel;
 
@@ -147,7 +147,7 @@ public class OctreeCellInternalShort implements OctreeCell, Cloneable {
      * @param state The voxel state
      * @param material The voxel material
      */
-    private void setDataInternal(int x, int y, int z, byte state, int material) {
+    private void setDataInternal(int x, int y, int z, byte state, long material) {
 if (DEBUG) System.out.println("Setting dataInternal: " + x + " " + y + " " + z + " new_state: " + state + " new_mat: " + material);
         allState = new VoxelDataShort(state, material);
     }
@@ -161,9 +161,9 @@ if (DEBUG) System.out.println("Setting dataInternal: " + x + " " + y + " " + z +
      * @param state The voxel state
      * @param material The voxel material
      */
-    protected void setData(OctreeCellInternalShort parent, int x, int y, int z, byte state, int material) {
+    protected void setData(OctreeCellInternalShort parent, int x, int y, int z, byte state, long material) {
         byte astate = allState.getState();
-        int amaterial = allState.getMaterial();
+        long amaterial = allState.getMaterial();
 
         if (level >= maxLevel) {
 if (DEBUG) System.out.println("Setting TERM: " + x + " " + y + " " + z + " new_state: " + state + " new_mat: " + material);
@@ -253,7 +253,7 @@ if (DEBUG) System.out.println("   mixed, oc: " + oc);
         }
     }
 
-    private void createChild(int pos, byte state, int material) {
+    private void createChild(int pos, byte state, long material) {
         int new_size = size / 2;
         int new_level = level + 1;
 
@@ -326,7 +326,7 @@ if (DEBUG) System.out.println("   mixed, oc: " + oc);
     /**
      * Split this cell into 8 parts.
      */
-    private void split(int pos, byte oldState, int oldMaterial) {
+    private void split(int pos, byte oldState, long oldMaterial) {
         children = new OctreeCellInternalShort[8];
 
         // local calced values
@@ -362,7 +362,7 @@ if (DEBUG) System.out.println("   mixed, oc: " + oc);
     /**
      * Collapse the cell into 1 part.
      */
-    private void collapse(byte state, int material, OctreeCellInternalShort parent) {
+    private void collapse(byte state, long material, OctreeCellInternalShort parent) {
 
         boolean allSame = true;
 

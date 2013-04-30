@@ -81,22 +81,22 @@ public class TestSetUnion extends BaseTestAttributeGrid {
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
                 assertTrue("(2, " + y + ", " + z + ") state is not interior or exterior" ,
-                		finalGrid.getState(2, y, z) == Grid.EXTERIOR || finalGrid.getState(2, y, z) == Grid.INTERIOR);
+                        finalGrid.getState(2, y, z) == Grid.EXTERIOR || finalGrid.getState(2, y, z) == Grid.INTERIOR);
             }
         }
 
         // set difference grid should be outside at right rump coordinates
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
-            	assertTrue("(7, " + y + ", " + z + ") state is not interior or exterior",
-                		finalGrid.getState(7, y, z) == Grid.EXTERIOR || finalGrid.getState(7, y, z) == Grid.INTERIOR);
+                assertTrue("(7, " + y + ", " + z + ") state is not interior or exterior",
+                        finalGrid.getState(7, y, z) == Grid.EXTERIOR || finalGrid.getState(7, y, z) == Grid.INTERIOR);
             }
         }
 
         // set difference grid should have the connecting bar
         for (int x=3; x<7; x++) {
-        	assertTrue("(" + x + ", 5, 5) state is not interior",
-        			finalGrid.getState(x, 5, 5) == Grid.EXTERIOR || finalGrid.getState(x, 5, 5) == Grid.INTERIOR);
+            assertTrue("(" + x + ", 5, 5) state is not interior",
+                    finalGrid.getState(x, 5, 5) == Grid.EXTERIOR || finalGrid.getState(x, 5, 5) == Grid.INTERIOR);
         }
 
     }
@@ -106,7 +106,7 @@ public class TestSetUnion extends BaseTestAttributeGrid {
      */
     public void testBasicNewMaterial() {
         int size = 10;
-        int material = 50;
+        long material = 50;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
         AttributeGrid grid2 = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
@@ -141,31 +141,31 @@ public class TestSetUnion extends BaseTestAttributeGrid {
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
                 assertTrue("(2, " + y + ", " + z + ") state is not interior or exterior" ,
-                		finalGrid.getState(2, y, z) == Grid.EXTERIOR || finalGrid.getState(2, y, z) == Grid.INTERIOR);
-                
+                        finalGrid.getState(2, y, z) == Grid.EXTERIOR || finalGrid.getState(2, y, z) == Grid.INTERIOR);
+
                 assertTrue("(2, " + y + ", " + z + ") material is not " + material + " but was " + finalGrid.getAttribute(2,y,z),
-                		(finalGrid.getAttribute(2, y, z)) == material);
+                        (finalGrid.getAttribute(2, y, z)) == material);
             }
         }
 
         // set difference grid should be outside at right rump coordinates
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
-            	assertTrue("(7, " + y + ", " + z + ") state is not interior or exterior",
-                		finalGrid.getState(7, y, z) == Grid.EXTERIOR || finalGrid.getState(7, y, z) == Grid.INTERIOR);
+                assertTrue("(7, " + y + ", " + z + ") state is not interior or exterior",
+                        finalGrid.getState(7, y, z) == Grid.EXTERIOR || finalGrid.getState(7, y, z) == Grid.INTERIOR);
 
                 assertTrue("(7, " + y + ", " + z + ") material is not " + material ,
-                		(finalGrid.getAttribute(7, y, z)) == material);
+                        (finalGrid.getAttribute(7, y, z)) == material);
             }
         }
 
         // set difference grid should have the connecting bar
         for (int x=3; x<7; x++) {
-        	assertTrue("(" + x + ", 5, 5) state is not interior",
-        			finalGrid.getState(x, 5, 5) == Grid.EXTERIOR || finalGrid.getState(x, 5, 5) == Grid.INTERIOR);
+            assertTrue("(" + x + ", 5, 5) state is not interior",
+                    finalGrid.getState(x, 5, 5) == Grid.EXTERIOR || finalGrid.getState(x, 5, 5) == Grid.INTERIOR);
 
             assertTrue("(" + x + ", 5, 5) material is not " + material ,
-            		(finalGrid.getAttribute(x, 5, 5)) == material);
+                    (finalGrid.getAttribute(x, 5, 5)) == material);
         }
     }
 
@@ -212,10 +212,10 @@ public class TestSetUnion extends BaseTestAttributeGrid {
         }
 
         AttributeGrid[] grids = {grid1, grid2, grid3};
-        
+
         SetUnion union = new SetUnion(grids);
         AttributeGrid finalGrid = union.execute(null);
-        
+
         return finalGrid;
     }
 
@@ -250,7 +250,7 @@ public class TestSetUnion extends BaseTestAttributeGrid {
 
     public static void main(String[] args) {
         TestSetUnion ec = new TestSetUnion();
-        
+
         AttributeGrid grid = ec.generateDumbBell();
         ec.generate(grid, "unionGrid.x3db");
     }

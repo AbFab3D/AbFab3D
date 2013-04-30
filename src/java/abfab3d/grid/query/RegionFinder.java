@@ -49,7 +49,7 @@ public class RegionFinder {
     private Grid grid;
 
     /** The material to restrict regions to or -1 for no restriction */
-    private int mat;
+    private long mat;
 
     /**
      * Constructor.
@@ -83,7 +83,7 @@ public class RegionFinder {
      * @param maxRegions The max number of regions to create.
      * @param mat The material to restrict finding to or -1 for no restriction
      */
-    public RegionFinder(int maxRegions, int maxRegionSize, int mat) {
+    public RegionFinder(int maxRegions, int maxRegionSize, long mat) {
         this.maxRegions = maxRegions;
         this.maxRegionSize = maxRegionSize;
         this.mat = mat;

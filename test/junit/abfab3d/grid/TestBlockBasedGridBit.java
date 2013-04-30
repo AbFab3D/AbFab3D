@@ -411,7 +411,7 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid =new BlockBasedGridBit(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -486,7 +486,7 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid =new BlockBasedGridBit(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();

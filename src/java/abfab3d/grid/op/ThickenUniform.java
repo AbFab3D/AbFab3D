@@ -32,9 +32,9 @@ public class ThickenUniform implements Operation, AttributeOperation {
     /**
      * The material to use for new voxels
      */
-    private int material;
+    private long material;
 
-    public ThickenUniform(int material) {
+    public ThickenUniform(long material) {
         this.material = material;
     }
 

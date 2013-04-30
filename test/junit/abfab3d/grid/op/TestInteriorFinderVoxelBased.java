@@ -48,7 +48,7 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
      * Test basic operation
      */
     public void testInteriorFinderCube() {
-    	int mat = 1;
+        long mat = 1;
         int cubeVoxelsX = 16;
         int cubeVoxelsY = 10;
         int cubeVoxelsZ = 6;
@@ -57,11 +57,11 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
 
         // Just set every voxel to attribute 1
         for (int x=0; x<grid.getWidth(); x++) {
-        	for (int y=0; y<grid.getHeight(); y++) {
-        		for (int z=0; z<grid.getDepth(); z++) {
-        			grid.setAttribute(x, y, z, mat);
-        		}
-        	}
+            for (int y=0; y<grid.getHeight(); y++) {
+                for (int z=0; z<grid.getDepth(); z++) {
+                    grid.setAttribute(x, y, z, mat);
+                }
+            }
         }
 
         generateCubeExteriors(grid, cubeVoxelsX, cubeVoxelsY, cubeVoxelsZ, 1, 1, 1);
@@ -86,13 +86,13 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
     //---------------------------------------------------
 
     private void generateCubeExteriors(AttributeGrid grid, int xVoxels, int yVoxels, int zVoxels, int startX, int startY, int startZ) {
-    	int endX = startX + xVoxels - 1;
-    	int endY = startY + yVoxels - 1;
-    	int endZ = startZ + zVoxels - 1;
+        int endX = startX + xVoxels - 1;
+        int endY = startY + yVoxels - 1;
+        int endZ = startZ + zVoxels - 1;
 
-    	assertTrue(endX < grid.getWidth());
-    	assertTrue(endY < grid.getHeight());
-    	assertTrue(endZ < grid.getDepth());
+        assertTrue(endX < grid.getWidth());
+        assertTrue(endY < grid.getHeight());
+        assertTrue(endZ < grid.getDepth());
 
         for (int x=startX; x<endX; x++) {
             for (int y=startY; y<endY; y++) {
@@ -162,8 +162,8 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
         //   (numEdges in Y dir * gridHeight) -
         //   (numEdges in Z dir * gridDepth) +
         //   (number of corners)
-		return (xVoxels * yVoxels * 2) + (xVoxels * zVoxels * 2) + (yVoxels * zVoxels * 2) -
-			   (4 * xVoxels) - (4 * yVoxels) - (4 * zVoxels) + 8;
+        return (xVoxels * yVoxels * 2) + (xVoxels * zVoxels * 2) + (yVoxels * zVoxels * 2) -
+               (4 * xVoxels) - (4 * yVoxels) - (4 * zVoxels) + 8;
     }
 
 }

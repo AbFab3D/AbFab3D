@@ -110,7 +110,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         int width = 20;
         int height = 30;
         int depth = 40;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -235,7 +235,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         double depth = 0.041;
         double hres = 0.002;
         double vres = 0.002;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -358,7 +358,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         int width = 20;
         int height = 30;
         int depth = 40;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -441,7 +441,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         double depth = 0.041;
         double hres = 0.002;
         double vres = 0.002;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -588,7 +588,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         int width = 10;
         int height = 4;
         int depth = 3;
-        int mat = 5;
+        long mat = 5;
 
         boolean threw = false;
         RangeCheckWrapper wrapper = new RangeCheckWrapper(null);

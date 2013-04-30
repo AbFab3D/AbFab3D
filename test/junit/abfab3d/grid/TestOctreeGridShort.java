@@ -43,7 +43,7 @@ public class TestOctreeGridShort extends BaseTestAttributeGrid {
         int width = 8;
         int height = width;
         int depth = width;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -498,7 +498,7 @@ grid.printTree();
     public void testShortMaterialRange() {
         int width = 63;
         int maxMaterial = 63;
-        int mat, expectedMat;
+        long mat, expectedMat;
 
         OctreeAttributeGridShort grid = new OctreeAttributeGridShort(width, 1, 1, 0.001, 0.001);
 
@@ -537,7 +537,7 @@ grid.printTree();
     }
 */
     /**
-     * Test set/get int material range.
+     * Test set/get long material range.
      */
 /*
     public void testIntMaterialRange() {
@@ -784,7 +784,7 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -865,8 +865,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -941,8 +941,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -1023,8 +1023,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1099,8 +1099,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1242,11 +1242,11 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 12;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 12;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.05, 0.05);
 
@@ -1269,7 +1269,7 @@ grid.printTree();
         }
 
         // test material 0
-        int mat = 0;
+        long mat = 0;
         grid = new OctreeAttributeGridShort(width, height, depth, 0.05, 0.05);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.EXTERIOR, mat);
@@ -1293,8 +1293,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();

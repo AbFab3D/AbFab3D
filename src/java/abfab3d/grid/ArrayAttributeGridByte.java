@@ -37,10 +37,10 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1, 
+        this((int) (Math.ceil(w / pixel)) + 1,
              (int) (Math.ceil(h / sheight)) + 1,
-             (int) (Math.ceil(d / pixel)) + 1, 
-             pixel, 
+             (int) (Math.ceil(d / pixel)) + 1,
+             pixel,
              sheight);
     }
 
@@ -211,7 +211,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -220,7 +220,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
 
         byte mat = (byte) (0x3F & data[idx]);
 
-        return (int) mat;
+        return (long) mat;
     }
 
     /**
@@ -231,12 +231,12 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
         byte mat = (byte) (0x3F & data[idx]);
 
-        return (int) mat;
+        return (long) mat;
     }
 
     /**
@@ -248,7 +248,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -267,7 +267,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         int idx = y * sliceSize + x * depth + z;
 
         data[idx] = (byte) (0xFF & (state << 6 | ((byte)material)));
@@ -281,7 +281,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         int idx = y * sliceSize + x * depth + z;
 
         byte state = (byte) ((data[idx] & 0xFF) >> 6);

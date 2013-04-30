@@ -374,7 +374,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
     public void testByteMaterialRange() {
         int width = 100;
         int maxMaterial = 64;
-        int mat, expectedMat;
+        long mat, expectedMat;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, 1, 1, 0.001, 0.001);
 
@@ -453,11 +453,11 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 3;
         int height = 4;
         int depth = 10;
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 12;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 12;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
 
@@ -484,7 +484,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         }
 
         // test material 0
-        int mat = 0;
+        long mat = 0;
         grid = new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.EXTERIOR, mat);
@@ -612,7 +612,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -687,7 +687,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -768,7 +768,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -849,8 +849,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -925,8 +925,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -1007,8 +1007,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1083,8 +1083,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1311,7 +1311,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
     /**
      * Test setAttribute.
      */
-    public void testSetMaterial() {
+    public void testsetAttribute() {
         int size = 10;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(size, size, size, 0.001, 0.001);
@@ -1390,8 +1390,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();

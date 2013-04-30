@@ -326,7 +326,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -345,7 +345,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
             short val = block.getValue(vcoord, blockOrder);
             short mat = (short) (0x3FFF & val);
 
-            return (int) mat;
+            return (long) mat;
         }
 
         return 0;
@@ -358,7 +358,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
@@ -373,7 +373,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
             short val = block.getValue(vcoord, blockOrder);
             short mat = (short) (0x3FFF & val);
 
-            return (int) mat;
+            return (long) mat;
         }
 
         return (int) OUTSIDE;
@@ -388,7 +388,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -422,7 +422,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
@@ -451,7 +451,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 
@@ -695,7 +695,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z
@@ -911,7 +911,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         // Sadly this is slower, why?
         // Its faster when sparse, slower when not.  I suspect its all
         // that math to get the x,y,z

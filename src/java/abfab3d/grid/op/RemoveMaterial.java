@@ -24,9 +24,9 @@ import abfab3d.grid.*;
  */
 public class RemoveMaterial implements AttributeOperation {
     /** The material to remove */
-    private int material;
+    private long material;
 
-    public RemoveMaterial(int material) {
+    public RemoveMaterial(long material) {
         this.material = material;
     }
 

@@ -30,7 +30,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
     private byte currMaterial;
 
     /** The material count */
-    private int matCount;
+    private long matCount;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -85,7 +85,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
             }
         }
 
-        int matSize = grid.getWidth() * matWidth;
+        long matSize = grid.getWidth() * matWidth;
 
         int[] counts = new int[numMaterials];
         for(int i=0; i < numMaterials; i++) {
@@ -95,7 +95,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
         }
 
         for(int i=0; i < numMaterials; i++) {
-        	wrapper.removeAttribute(i);
+            wrapper.removeAttribute(i);
 
             assertEquals("Material not removed", wrapper.findCount((byte) i), 0);
 
@@ -133,7 +133,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
             }
 
             for(int i=0; i < numMaterials; i++) {
-            	wrapper.removeAttribute(i);
+                wrapper.removeAttribute(i);
             }
         }
 
@@ -166,7 +166,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
             }
 
             for(int i=0; i < numMaterials; i++) {
-            	wrapper.removeAttribute(i);
+                wrapper.removeAttribute(i);
             }
         }
 
@@ -216,7 +216,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
             }
         }
 
-        int matSize = grid.getWidth() * matWidth;
+        long matSize = grid.getWidth() * matWidth;
 
         for(int i=0; i < numMaterials; i++) {
             currMaterial = (byte) i;
@@ -260,7 +260,7 @@ System.out.println("Material Traversal Speed");
             }
         }
 
-        int matSize = grid.getWidth() * matWidth;
+        long matSize = grid.getWidth() * matWidth;
 
         // warmup method 1
 
@@ -343,7 +343,7 @@ System.out.println("Material Traversal Speed");
             }
         }
 
-        int matSize = grid.getWidth() * matWidth;
+        long matSize = grid.getWidth() * matWidth;
 
         // warmup method 1
 
@@ -432,7 +432,7 @@ System.out.println("Material Count Speed");
             }
         }
 
-        int matSize = grid.getWidth() * matWidth;
+        long matSize = grid.getWidth() * matWidth;
 
         // warmup method 1
 
@@ -538,10 +538,10 @@ System.out.println("Material Count Speed");
         wrapper.setState(10, 8, 10, Grid.OUTSIDE);
         setY(wrapper, 5, 10, Grid.EXTERIOR, 2, 8, 10);
 
-        int newMaterial = 10;
+        long newMaterial = 10;
 
         // reassign a non-existing material
-        wrapper.reassignAttribute(new int[]{50}, newMaterial);
+        wrapper.reassignAttribute(new long[]{50}, newMaterial);
         assertEquals(0, wrapper.findCount(50));
         assertEquals(5, wrapper.findCount(1));
         assertEquals(3, wrapper.findCount(2));
@@ -550,7 +550,7 @@ System.out.println("Material Count Speed");
         // reassign a single existing material
         // check that the original material count is 0
         // check that the material has changed for the set positions
-        wrapper.reassignAttribute(new int[]{1}, newMaterial);
+        wrapper.reassignAttribute(new long[]{1}, newMaterial);
 
         assertEquals(0, wrapper.findCount(1));
 
@@ -563,7 +563,7 @@ System.out.println("Material Count Speed");
         // check that the original material count is 0
         // check that the material has changed for the set positions
         newMaterial = 20;
-        wrapper.reassignAttribute(new int[]{2, 3, 10}, newMaterial);
+        wrapper.reassignAttribute(new long[]{2, 3, 10}, newMaterial);
 
         assertEquals(0, wrapper.findCount(2));
         assertEquals(0, wrapper.findCount(3));
@@ -629,8 +629,8 @@ System.out.println("Material Count Speed");
     /**
      * Test setAttribute.
      */
-    public void testSetMaterial() {
-    	int size = 10;
+    public void testsetAttribute() {
+        int size = 10;
 
         AttributeGrid grid = new ArrayAttributeGridByte(size, size, size, 0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
@@ -658,15 +658,15 @@ System.out.println("Material Count Speed");
      * Test setState.
      */
     public void testSetState() {
-    	int size = 10;
+        int size = 10;
 
         AttributeGrid grid = new ArrayAttributeGridByte(size, size, size, 0.001, 0.001);
         MaterialIndexedWrapper wrapper = new MaterialIndexedWrapper(grid);
-        
+
         wrapper.setData(0, 0, 0, Grid.INTERIOR, 1);
         wrapper.setData(9, 9, 9, Grid.EXTERIOR, 2);
         wrapper.setData(5, 0, 7, Grid.INTERIOR, 3);
-        
+
         wrapper.setState(0, 0, 0, Grid.EXTERIOR);
         wrapper.setState(9, 9, 9, Grid.INTERIOR);
         wrapper.setState(5, 0, 7, Grid.EXTERIOR);
@@ -681,7 +681,7 @@ System.out.println("Material Count Speed");
         assertEquals("State should be ", Grid.EXTERIOR, wrapper.getState(5, 0, 7));
         assertEquals("Material should be ", 3, wrapper.getAttribute(5, 0, 7));
     }
-    
+
     /**
      * Set all the X values of a grid.
      *

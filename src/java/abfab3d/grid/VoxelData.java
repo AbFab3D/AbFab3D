@@ -30,7 +30,7 @@ public interface VoxelData extends Cloneable {
      *
      * @return The material
      */
-    public int getMaterial();
+    public long getMaterial();
 
     /**
      * Set the state.
@@ -44,7 +44,7 @@ public interface VoxelData extends Cloneable {
      *
      * @param mat The material
      */
-    public void setMaterial(int mat);
+    public void setAttribute(long mat);
 
     /**
      * Set the state and material
@@ -52,7 +52,7 @@ public interface VoxelData extends Cloneable {
      * @param state The state
      * @param mat The material
      */
-    public void setData(byte state, int mat);
+    public void setData(byte state, long mat);
 
     /**
      * Clone this object.

@@ -774,7 +774,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      * @param startIndex The starting X index
      * @param endIndex   The ending X Index
      */
-    protected static void setX(Grid grid, int y, int z, byte state, int mat, int startIndex, int endIndex) {
+    protected static void setX(Grid grid, int y, int z, byte state, long mat, int startIndex, int endIndex) {
         for (int x = startIndex; x <= endIndex; x++) {
             grid.setState(x, y, z, state);
         }
@@ -788,7 +788,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      * @param startIndex The starting Y index
      * @param endIndex   The ending Y Index
      */
-    protected static void setY(Grid grid, int x, int z, byte state, int mat, int startIndex, int endIndex) {
+    protected static void setY(Grid grid, int x, int z, byte state, long mat, int startIndex, int endIndex) {
         for (int y = startIndex; y <= endIndex; y++) {
             grid.setState(x, y, z, state);
         }
@@ -802,7 +802,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      * @param startIndex The starting Z index
      * @param endIndex   The ending Z Index
      */
-    protected static void setZ(Grid grid, int x, int y, byte state, int mat, int startIndex, int endIndex) {
+    protected static void setZ(Grid grid, int x, int y, byte state, long mat, int startIndex, int endIndex) {
         for (int z = startIndex; z <= endIndex; z++) {
             grid.setState(x, y, z, state);
         }
@@ -817,7 +817,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      * @param state    The new state
      * @param material The new material
      */
-    protected static void setPlaneX(Grid grid, int x, byte state, int material) {
+    protected static void setPlaneX(Grid grid, int x, byte state, long material) {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
@@ -836,7 +836,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      * @param state    The new state
      * @param material The new material
      */
-    protected static void setPlaneY(Grid grid, int y, byte state, int material) {
+    protected static void setPlaneY(Grid grid, int y, byte state, long material) {
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
@@ -855,7 +855,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      * @param state    The new state
      * @param material The new material
      */
-    protected static void setPlaneZ(Grid grid, int z, byte state, int material) {
+    protected static void setPlaneZ(Grid grid, int z, byte state, long material) {
         int width = grid.getWidth();
         int height = grid.getHeight();
 

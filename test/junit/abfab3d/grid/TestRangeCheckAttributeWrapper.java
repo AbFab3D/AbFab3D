@@ -113,7 +113,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         int width = 20;
         int height = 30;
         int depth = 40;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
@@ -238,7 +238,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         double depth = 0.041;
         double hres = 0.002;
         double vres = 0.002;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
@@ -361,7 +361,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         int width = 20;
         int height = 30;
         int depth = 40;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
@@ -444,7 +444,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         double depth = 0.041;
         double hres = 0.002;
         double vres = 0.002;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
@@ -530,7 +530,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         int width = 20;
         int height = 30;
         int depth = 40;
-        Integer mat = 5;
+        Long mat = new Long(5);
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
@@ -538,7 +538,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         wrapper.setData(width-1, 0, 0, Grid.EXTERIOR, mat);
         setX(grid, 0, 0, Grid.INTERIOR, mat, 1, width-2);
 
-        Integer material = null;
+        Long material = null;
 
         //-------------------------------------------------------
         // Invalid getAttribute
@@ -613,7 +613,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         double depth = 0.041;
         double hres = 0.002;
         double vres = 0.002;
-        Integer mat = 5;
+        Long mat = new Long(5);
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
@@ -621,7 +621,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         wrapper.setData(width, 0.0, 0.0, Grid.EXTERIOR, mat);
         setX(grid, 0, 0, Grid.INTERIOR, mat, 1, (int)((width-hres)/hres));
 
-        Integer material = null;
+        Long material = null;
 
         //-------------------------------------------------------
         // Invalid getAttribute
@@ -758,11 +758,11 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         int width = 3;
         int height = 4;
         int depth = 10;
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 12;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 12;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         int temp = -1;
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(null);
@@ -803,7 +803,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         int width = 10;
         int height = 4;
         int depth = 3;
-        int mat = 5;
+        long mat = 5;
 
         boolean threw = false;
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(null);

@@ -217,14 +217,14 @@ public class TriangleModelCreator extends GeometryCreator {
      * @param grid The grid to generate into
      */
     public void generate(Grid grid) {
-    	// if grid is actually an AttributeGrid, use alternative execute
-    	if (grid instanceof AttributeGrid) {
-    		generate( (AttributeGrid) grid);
-    		return;
-    	}
-    	
+        // if grid is actually an AttributeGrid, use alternative execute
+        if (grid instanceof AttributeGrid) {
+            generate( (AttributeGrid) grid);
+            return;
+        }
+
         AttributeGrid gridAtt = null;
-        
+
         voxelSize = grid.getVoxelSize();
         halfVoxel = voxelSize / 2.0;
         sliceHeight = grid.getSliceHeight();
@@ -258,7 +258,7 @@ public class TriangleModelCreator extends GeometryCreator {
 //System.out.println("Triangles to insert: " + len);
 
             Point3d v = new Point3d();
-            
+
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
@@ -275,7 +275,7 @@ public class TriangleModelCreator extends GeometryCreator {
                 v.x = geom.coordinates[idx++];
                 v.y = geom.coordinates[idx++];
                 v.z = geom.coordinates[idx++];
-                
+
                 mat.transform(v);
                 coords[3] = (float) v.x;
                 coords[4] = (float) v.y;
@@ -284,7 +284,7 @@ public class TriangleModelCreator extends GeometryCreator {
                 v.x = geom.coordinates[idx++];
                 v.y = geom.coordinates[idx++];
                 v.z = geom.coordinates[idx++];
-                
+
                 mat.transform(v);
                 coords[6] = (float) v.x;
                 coords[7] = (float) v.y;
@@ -299,12 +299,12 @@ public class TriangleModelCreator extends GeometryCreator {
             int len = geom.indexesCount / 3;
 
             Point3d v = new Point3d();
-            
+
             for(int i=0; i < len; i++ ) {
     //System.out.println("Input coord: " + geom.coordinates[idx] + " " + geom.coordinates[idx+1] + " " + geom.coordinates[idx+2]);
     //System.out.println("Input coord: " + geom.coordinates[idx+3] + " " + geom.coordinates[idx+4] + " " + geom.coordinates[idx+5]);
     //System.out.println("Input coord: " + geom.coordinates[idx+6] + " " + geom.coordinates[idx+7] + " " + geom.coordinates[idx+8]);
-                
+
                 v.x = geom.coordinates[geom.indexes[idx] * 3];
                 v.y = geom.coordinates[geom.indexes[idx] * 3 + 1];
                 v.z = geom.coordinates[geom.indexes[idx] * 3 + 2];
@@ -478,7 +478,7 @@ public class TriangleModelCreator extends GeometryCreator {
      * @param tri The triangle
      * @param grid The grid to use
      */
-    public void insert(Triangle tri, AttributeGrid grid, int material) {
+    public void insert(Triangle tri, AttributeGrid grid, long material) {
 
         tri.calcBounds(minBounds, maxBounds);
 
@@ -638,7 +638,7 @@ System.out.flush();
 */
         fillCellsExact(minCoords, maxCoords, tri, grid);
     }
-    
+
     /**
      * Fill in the grid given a box of grid coordinates.
      *
@@ -646,7 +646,7 @@ System.out.flush();
      * @param max The max bounds in cell coords
      * @param material The ID to fill in
      */
-    protected void fillCellsExact(int[] min, int[] max, Triangle tri, AttributeGrid grid, int material) {
+    protected void fillCellsExact(int[] min, int[] max, Triangle tri, AttributeGrid grid, long material) {
         final int len_x = max[0] - min[0] + 1;
         final int len_y = max[1] - min[1] + 1;
         final int len_z = max[2] - min[2] + 1;
@@ -726,7 +726,7 @@ System.out.flush();
             }
         }
     }
-    
+
     /**
      * Does triangle overlap a voxel.
      *

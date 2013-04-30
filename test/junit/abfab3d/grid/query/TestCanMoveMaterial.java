@@ -44,7 +44,7 @@ public class TestCanMoveMaterial extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
-        int mat1_count = 5;
+        long mat1_count = 5;
 
         grid.setData(0,0,0, Grid.EXTERIOR, (byte) 1);
         grid.setData(0,0,1, Grid.EXTERIOR, (byte) 1);
@@ -53,7 +53,7 @@ public class TestCanMoveMaterial extends BaseTestAttributeGrid {
         grid.setData(0,0,4, Grid.EXTERIOR, (byte) 1);
 
         // Add Object 2
-        int mat2_count = 6;
+        long mat2_count = 6;
 
         grid.setData(0,2,0, Grid.EXTERIOR, (byte) 2);
         grid.setData(0,2,1, Grid.EXTERIOR, (byte) 2);
@@ -81,7 +81,7 @@ public class TestCanMoveMaterial extends BaseTestAttributeGrid {
      * Test a complex move where movement is only allowed in one direction
      */
     public void testComplexTrue() {
-        int matToMove = 2;
+        long matToMove = 2;
         AttributeGrid grid = new ArrayAttributeGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
@@ -128,7 +128,7 @@ public class TestCanMoveMaterial extends BaseTestAttributeGrid {
      * Test a complex move where movement is not allowed
      */
     public void testComplexFalse() {
-        int matToMove = 2;
+        long matToMove = 2;
         AttributeGrid grid = new ArrayAttributeGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
@@ -182,8 +182,8 @@ public class TestCanMoveMaterial extends BaseTestAttributeGrid {
      *    outside and material 0, and then test movement in that path.
      */
     public void testCanMoveAllPaths() {
-        int material1 = 1;
-        int material2 = 2;
+        long material1 = 1;
+        long material2 = 2;
         int size = 9;
         int center = size / 2;
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
@@ -271,7 +271,7 @@ public class TestCanMoveMaterial extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
-        int mat1_count = 5;
+        long mat1_count = 5;
 
         grid.setData(0,0,0, Grid.EXTERIOR, 1);
         grid.setData(0,0,1, Grid.INTERIOR, 1);
@@ -358,7 +358,7 @@ public class TestCanMoveMaterial extends BaseTestAttributeGrid {
         System.out.println("CanMoveMaterialAllPaths: " + totalTime1);
     }
 
-    private boolean canMove(AttributeGrid grid, int[] dir, int mat) {
+    private boolean canMove(AttributeGrid grid, int[] dir, long mat) {
         StraightPath path = new StraightPath(dir);
         CanMoveMaterial query = new CanMoveMaterial(mat, path);
 

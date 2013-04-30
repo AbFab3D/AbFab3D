@@ -166,7 +166,7 @@ public class BoxesX3DExporter implements Exporter {
                     grid.getData(j,i,k,vd);
 
                     byte state = vd.getState();
-                    int mat = vd.getMaterial();
+                    long mat = vd.getMaterial();
 
                     if (state == Grid.OUTSIDE)
                         continue;

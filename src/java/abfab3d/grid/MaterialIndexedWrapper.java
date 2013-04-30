@@ -45,10 +45,10 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
     private AttributeGrid grid;
 
     /** The index */
-    private Map<Integer, Set<VoxelCoordinate>> index;
+    private Map<Long, Set<VoxelCoordinate>> index;
 
     /** The optimized index */
-    private HashMap<Integer, Voxel[]> optIndex;
+    private HashMap<Long, Voxel[]> optIndex;
 
     /** Scratch var */
     private int[] gcoords;
@@ -65,9 +65,9 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
         this.grid = grid;
 
         if (CONCURRENT) {
-            index = new ConcurrentHashMap<Integer, Set<VoxelCoordinate>>();
+            index = new ConcurrentHashMap<Long, Set<VoxelCoordinate>>();
         } else {
-            index = new HashMap<Integer, Set<VoxelCoordinate>>();
+            index = new HashMap<Long, Set<VoxelCoordinate>>();
         }
         gcoords = new int[3];
         optRead = false;
@@ -88,13 +88,13 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
             this.grid = (AttributeGrid) wrap.grid.clone();
         if (wrap.index != null) {
             if (CONCURRENT) {
-                this.index = new ConcurrentHashMap<Integer, Set<VoxelCoordinate>>(wrap.index);
+                this.index = new ConcurrentHashMap<Long, Set<VoxelCoordinate>>(wrap.index);
             } else {
-                index = new HashMap<Integer, Set<VoxelCoordinate>>(wrap.index);
+                index = new HashMap<Long, Set<VoxelCoordinate>>(wrap.index);
             }
         }
         if (wrap.optIndex != null)
-            this.optIndex = (HashMap<Integer, Voxel[]>) wrap.optIndex.clone();
+            this.optIndex = (HashMap<Long, Voxel[]>) wrap.optIndex.clone();
         gcoords = new int[3];
         this.optRead = wrap.optRead;
     }
@@ -110,9 +110,9 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
         this.optRead = optRead;
 
         if (CONCURRENT) {
-            index = new ConcurrentHashMap<Integer, Set<VoxelCoordinate>>();
+            index = new ConcurrentHashMap<Long, Set<VoxelCoordinate>>();
         } else {
-            index = new HashMap<Integer, Set<VoxelCoordinate>>();
+            index = new HashMap<Long, Set<VoxelCoordinate>>();
         }
         gcoords = new int[3];
     }
@@ -146,15 +146,15 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param materials The new list of materials
      * @param matID The new materialID
      */
-    public void reassignAttribute(int[] materials, int matID) {
+    public void reassignAttribute(long[] materials, long matID) {
 
         int len = materials.length;
 
         for(int i=0; i < len; i++) {
-        	if (materials[i] == matID)
-        		continue;
-        	
-            Integer orig = new Integer(materials[i]);
+            if (materials[i] == matID)
+                continue;
+
+            Long orig = new Long(materials[i]);
 
             Set<VoxelCoordinate> coords = index.get(orig);
             if (coords == null) {
@@ -193,8 +193,8 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      *
      * @param mat The materialID
      */
-    public void removeAttribute(int mat) {
-        Integer b = new Integer(mat);
+    public void removeAttribute(long mat) {
+        Long b = new Long(mat);
 
         Set<VoxelCoordinate> coords = index.get(b);
         if (coords == null) {
@@ -283,7 +283,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         return grid.getAttribute(x, y, z);
     }
 
@@ -294,7 +294,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param y The y grid coordinate
      * @param z The z grid coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         return grid.getAttribute(x, y, z);
     }
 
@@ -307,8 +307,8 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, int material) {
-        Integer b = new Integer(material);
+    public void setData(double x, double y, double z, byte state, long material) {
+        Long b = new Long(material);
 
         Set<VoxelCoordinate> coords = index.get(b);
         if (coords == null) {
@@ -341,10 +341,10 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @param material The value.  0 = nothing. > 0 materialID
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         // TODO: I think this method does not correctly remove the entry from the old coords.
 
-        Integer b = new Integer(material);
+        Long b = new Long(material);
 
         Set<VoxelCoordinate> coords = index.get(b);
         if (coords == null) {
@@ -372,10 +372,10 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         // TODO: I think this method does not correctly remove the entry from the old coords.
 
-        Integer b = new Integer(material);
+        Long b = new Long(material);
 
         Set<VoxelCoordinate> coords = index.get(b);
         if (coords == null) {
@@ -492,10 +492,10 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(int mat) {
+    public int findCount(long mat) {
         int ret_val = 0;
 
-        Integer b = new Integer(mat);
+        Long b = new Long(mat);
 
         Set<VoxelCoordinate> coords = index.get(b);
         if (coords == null) {
@@ -531,8 +531,8 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
-        Integer b = new Integer(mat);
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
+        Long b = new Long(mat);
 
         Set<VoxelCoordinate> coords = index.get(b);
 
@@ -588,8 +588,8 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(int mat, ClassAttributeTraverser t) {
-        Integer b = new Integer(mat);
+    public void findAttribute(long mat, ClassAttributeTraverser t) {
+        Long b = new Long(mat);
 
         Set<VoxelCoordinate> coords = index.get(b);
 
@@ -628,18 +628,18 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
     }
 
     /**
-     * Traverse a class of voxels types over given rectangle in xy plane.  
+     * Traverse a class of voxels types over given rectangle in xy plane.
      * May be much faster then full grid traversal for some implementations.
      *
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
-     * @param xmin - minimal x - coordinate of voxels 
-     * @param xmax - maximal x - coordinate of voxels 
-     * @param ymin - minimal y - coordinate of voxels 
-     * @param ymax - maximal y - coordinate of voxels 
+     * @param xmin - minimal x - coordinate of voxels
+     * @param xmax - maximal x - coordinate of voxels
+     * @param ymin - minimal y - coordinate of voxels
+     * @param ymax - maximal y - coordinate of voxels
      */
     public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
-        
+
         grid.find(vc, t, xmin, xmax, ymin, ymax);
 
     }
@@ -663,8 +663,8 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
-        Integer b = new Integer(mat);
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
+        Long b = new Long(mat);
 
         if (optRead) {
             if (optIndex == null) {
@@ -785,8 +785,8 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
-        Integer b = new Integer(mat);
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
+        Long b = new Long(mat);
 
 // TODO: add optRead enhancements
 
@@ -901,7 +901,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      *
      * @param mat The material
      */
-    private void deoptimizeIndex(int mat) {
+    private void deoptimizeIndex(long mat) {
         throw new UnsupportedOperationException("deoptimizeIndex not implemented");
 
         // TODO:  to save memory we should be able to go back and forth from
@@ -915,14 +915,12 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
      *
      * @mat The material to optimize
      */
-    private void optimizeIndex(int mat) {
-        long startTime = System.currentTimeMillis();
-
+    private void optimizeIndex(long mat) {
         if (optIndex == null) {
-            optIndex = new HashMap<Integer,Voxel[]>();
+            optIndex = new HashMap<Long,Voxel[]>();
         }
 
-        Integer b = new Integer(mat);
+        Long b = new Long(mat);
 
         if (optIndex.get(b) != null) {
             // Index is in place so reuse,

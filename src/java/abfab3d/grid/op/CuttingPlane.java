@@ -39,9 +39,9 @@ public class CuttingPlane implements Operation, AttributeOperation {
     private int dir;
 
     /** The material for new exterior voxels */
-    private int material;
+    private long material;
 
-    public CuttingPlane(Axis axis, double loc, int dir, int material) {
+    public CuttingPlane(Axis axis, double loc, int dir, long material) {
         this.axis = axis;
         this.loc = loc;
         this.dir = dir;

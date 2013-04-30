@@ -38,9 +38,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      */
     public ArrayAttributeGridInt(double w, double h, double d, double pixel, double sheight) {
         this((int) (Math.ceil(w / pixel)) + 1,
-        	 (int) (Math.ceil(h / sheight)) + 1,
-             (int) (Math.ceil(d / pixel)) + 1, 
-             pixel, 
+             (int) (Math.ceil(h / sheight)) + 1,
+             (int) (Math.ceil(d / pixel)) + 1,
+             pixel,
              sheight);
     }
 
@@ -110,7 +110,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         int idx = y * sliceSize + x * depth + z;
 
         byte state = (byte) (data[idx] >>> 30);
-        int mat = (0x3FFFFFFF & data[idx]);
+        long mat = (0x3FFFFFFF & data[idx]);
 
         vd.setData(state,mat);
     }
@@ -130,7 +130,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         int idx = slice * sliceSize + s_x * depth + s_z;
 
         byte state = (byte) (data[idx] >>> 30);
-        int mat = (0x3FFFFFFF & data[idx]);
+        long mat = (0x3FFFFFFF & data[idx]);
 
         vd.setData(state,mat);
     }
@@ -172,7 +172,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -189,7 +189,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
         return (0x3FFFFFFF & data[idx]);
@@ -204,14 +204,14 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        data[idx] = (state << 30 | material);
+        data[idx] = (state << 30 | (int) material);
     }
 
     /**
@@ -223,10 +223,10 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         int idx = y * sliceSize + x * depth + z;
 
-        data[idx] = (state << 30 | material);
+        data[idx] = (state << 30 | (int) material);
     }
 
     /**
@@ -237,12 +237,12 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         int idx = y * sliceSize + x * depth + z;
 
         byte state = (byte) (data[idx] >>> 30);
 
-        data[idx] = (state << 30 | material);
+        data[idx] = (state << 30 | (int) material);
     }
 
     /**
@@ -256,9 +256,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public void setState(int x, int y, int z, byte state) {
         int idx = y * sliceSize + x * depth + z;
 
-        int mat = (0x3FFFFFFF & data[idx]);
+        long mat = (0x3FFFFFFF & data[idx]);
 
-        data[idx] = (state << 30 | mat);
+        data[idx] = (state << 30 | (int) mat);
     }
 
     /**
@@ -276,9 +276,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        int mat = (0x3FFFFFFF & data[idx]);
+        long mat = (0x3FFFFFFF & data[idx]);
 
-        data[idx] = (state << 30 | mat);
+        data[idx] = (state << 30 | (int) mat);
     }
 
     /**

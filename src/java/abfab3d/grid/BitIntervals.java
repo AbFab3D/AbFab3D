@@ -89,7 +89,7 @@ public class BitIntervals implements RowOfInt, Serializable {
 
     }
 
-    public synchronized void set(int x, int value){
+    public synchronized void set(int x, long value){
         
         if(m_curcount == 0) {
             // no interval exist (all bits are 0s) 

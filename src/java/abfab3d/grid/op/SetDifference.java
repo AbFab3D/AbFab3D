@@ -36,9 +36,9 @@ public class SetDifference implements Operation {
 
     /** Grid B */
     private AttributeGrid notInGridAtt;
-    
+
     /** The material for the set difference voxels */
-    private int material;
+    private long material;
 
     /**
      * Constructor.
@@ -47,13 +47,13 @@ public class SetDifference implements Operation {
      * @param notInGrid
      */
     public SetDifference(Grid inGrid, Grid notInGrid) {
-    	if (inGrid == null || notInGrid == null) {
-    		throw new IllegalArgumentException("One or both of the grids are null");
-    	}
-    	
+        if (inGrid == null || notInGrid == null) {
+            throw new IllegalArgumentException("One or both of the grids are null");
+        }
+
         this.inGrid = inGrid;
         this.notInGrid = notInGrid;
-        
+
         if (inGrid instanceof AttributeGrid) {
             this.inGridAtt = (AttributeGrid) inGrid;
         }
@@ -71,14 +71,14 @@ public class SetDifference implements Operation {
      * @param inGrid
      * @param notInGrid
      */
-    public SetDifference(Grid inGrid, Grid notInGrid, int material) {
-    	if (inGrid == null || notInGrid == null) {
-    		throw new IllegalArgumentException("One or both of the grids are null");
-    	}
-    	
+    public SetDifference(Grid inGrid, Grid notInGrid, long material) {
+        if (inGrid == null || notInGrid == null) {
+            throw new IllegalArgumentException("One or both of the grids are null");
+        }
+
         this.inGrid = inGrid;
         this.notInGrid = notInGrid;
-        
+
         if (inGrid instanceof AttributeGrid) {
             this.inGridAtt = (AttributeGrid) inGrid;
         }
@@ -86,7 +86,7 @@ public class SetDifference implements Operation {
         if (notInGrid instanceof AttributeGrid) {
             this.notInGridAtt = (AttributeGrid) notInGrid;
         }
-        
+
         this.material = material;
     }
 
@@ -99,7 +99,7 @@ public class SetDifference implements Operation {
      */
     public Grid execute(Grid dest) {
         int inGridWidth = inGrid.getWidth();
-    	int inGridHeight = inGrid.getHeight();
+        int inGridHeight = inGrid.getHeight();
         int inGridDepth = inGrid.getDepth();
 
         int notInGridWidth = notInGrid.getWidth();
@@ -107,9 +107,9 @@ public class SetDifference implements Operation {
         int notInGridDepth = notInGrid.getDepth();
 
         if (inGridWidth != notInGridWidth ||
-        	inGridHeight != notInGridHeight ||
-        	inGridDepth != notInGridDepth) {
-        	return null;
+            inGridHeight != notInGridHeight ||
+            inGridDepth != notInGridDepth) {
+            return null;
         }
 
         Grid diffGrid = null;
@@ -119,7 +119,7 @@ public class SetDifference implements Operation {
         } else {
             // Create the difference grid as an empty copy of inGrid
             diffGrid = inGrid.createEmpty(
-            		inGridWidth,
+                    inGridWidth,
                     inGridHeight,
                     inGridDepth,
                     inGrid.getVoxelSize(),
@@ -138,7 +138,7 @@ public class SetDifference implements Operation {
 
                         if (notInGridState == Grid.OUTSIDE) {
 //System.out.println("(" + x + ", " + y + ", " + z + ") notInGrid: outside");
-                        	diffGrid.setState(x, y, z, inGridState);
+                            diffGrid.setState(x, y, z, inGridState);
                         }
                     }
                 }
@@ -177,7 +177,7 @@ public class SetDifference implements Operation {
         } else {
             // Create the difference grid as an empty copy of inGrid
             diffGrid = (AttributeGrid) inGridAtt.createEmpty(
-            		inGridWidth,
+                    inGridWidth,
                     inGridHeight,
                     inGridDepth,
                     inGridAtt.getVoxelSize(),
@@ -195,7 +195,7 @@ public class SetDifference implements Operation {
 
                         if (inGridState != Grid.OUTSIDE) {
                             byte notInGridState = notInGridAtt.getState(x, y, z);
-                            int originalMaterial = inGridAtt.getAttribute(x, y, z);
+                            long originalMaterial = inGridAtt.getAttribute(x, y, z);
 
                             if (notInGridState == Grid.OUTSIDE) {
                                 diffGrid.setData(x, y, z, inGridState, originalMaterial);

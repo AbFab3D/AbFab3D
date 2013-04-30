@@ -33,7 +33,7 @@ public class DualWrapper implements AttributeGridWrapper {
 
     /** The wrapper grid */
     private Grid grid;
-    
+
     /**
      * Constructor.
      *
@@ -94,7 +94,7 @@ public class DualWrapper implements AttributeGridWrapper {
         if (grid instanceof AttributeGrid) {
             gridAtt = (AttributeGrid) grid;
         }
-        
+
         this.grid = grid;
 
         if (grid != null) {
@@ -127,7 +127,7 @@ public class DualWrapper implements AttributeGridWrapper {
             depth = 0;
         }
     }
-    
+
     //----------------------------------------------------------
     // Grid methods
     //----------------------------------------------------------
@@ -188,7 +188,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         if (gridAtt != null) {
             return gridAtt.getAttribute(x, y, z);
         } else {
@@ -204,7 +204,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param z The z grid coordinate
      * @return The voxel material
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         if (gridAtt != null) {
             return gridAtt.getAttribute(x, y, z);
         } else {
@@ -221,7 +221,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
 
 /*
         VoxelData vd = grid.getData(x,y,z);
@@ -248,7 +248,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param state The new state
      * @param material The new material value.  0 = nothing. > 0 materialID
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
 
 /*
         VoxelData vd = grid.getData(x,y,z);
@@ -256,7 +256,7 @@ public class DualWrapper implements AttributeGridWrapper {
         // Not sure why this was here, doesn't seem to make sense.
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getAttribute() != material ) {
-            
+
             System.out.println("curr state: " + vd.getState() + " new state: " + state);
             System.out.println("old material: " + vd.getAttribute() + " new mat: " + material);
             throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
@@ -277,7 +277,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         if (gridAtt != null) {
             gridAtt.setAttribute(x, y, z, material);
         }
@@ -350,7 +350,7 @@ public class DualWrapper implements AttributeGridWrapper {
      */
     public void getGridBounds(double[] bounds){
 
-        verifyGrid();        
+        verifyGrid();
         grid.getGridBounds(bounds);
 
     }
@@ -361,7 +361,7 @@ public class DualWrapper implements AttributeGridWrapper {
      */
     public void setGridBounds(double[] bounds){
 
-        verifyGrid();        
+        verifyGrid();
         grid.setGridBounds(bounds);
 
     }
@@ -387,7 +387,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(int mat, ClassAttributeTraverser t) {
+    public void findAttribute(long mat, ClassAttributeTraverser t) {
         if (gridAtt != null) {
             gridAtt.findAttribute(mat,t);
         } else {
@@ -408,18 +408,18 @@ public class DualWrapper implements AttributeGridWrapper {
     }
 
     /**
-     * Traverse a class of voxels types over given rectangle in xy plane.  
+     * Traverse a class of voxels types over given rectangle in xy plane.
      * May be much faster then full grid traversal for some implementations.
      *
      * @param vc The class of voxels to traverse
      * @param t The traverer to call for each voxel
-     * @param xmin - minimal x - coordinate of voxels 
-     * @param xmax - maximal x - coordinate of voxels 
-     * @param ymin - minimal y - coordinate of voxels 
-     * @param ymax - maximal y - coordinate of voxels 
+     * @param xmin - minimal x - coordinate of voxels
+     * @param xmax - maximal x - coordinate of voxels
+     * @param ymin - minimal y - coordinate of voxels
+     * @param ymax - maximal y - coordinate of voxels
      */
     public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
-        
+
         grid.find(vc, t, xmin, xmax, ymin, ymax);
 
     }
@@ -448,7 +448,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         if (gridAtt != null) {
             gridAtt.findAttribute(vc, mat, t);
         } else {
@@ -464,7 +464,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
         if (gridAtt != null) {
             gridAtt.findAttributeInterruptible(mat,t);
         } else {
@@ -508,7 +508,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param mat The material to traverse
      * @param t The traverser to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         if (gridAtt != null) {
             gridAtt.findAttributeInterruptible(vc, mat, t);
         } else {
@@ -524,7 +524,7 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(int mat) {
+    public int findCount(long mat) {
         if (gridAtt != null) {
             return gridAtt.findCount(mat);
         } else {
@@ -538,7 +538,7 @@ public class DualWrapper implements AttributeGridWrapper {
      *
      * @param mat The aterialID
      */
-    public void removeAttribute(int mat) {
+    public void removeAttribute(long mat) {
         if (gridAtt != null) {
             gridAtt.removeAttribute(mat);
         } else {
@@ -553,14 +553,14 @@ public class DualWrapper implements AttributeGridWrapper {
      * @param materials The new list of materials
      * @param matID The new materialID
      */
-    public void reassignAttribute(int[] materials, int matID) {
+    public void reassignAttribute(long[] materials, long matID) {
         if (gridAtt != null) {
             gridAtt.reassignAttribute(materials, matID);
         } else {
             // error
             throw new IllegalArgumentException("removeAttribute not available on grid");
         }
-        
+
     }
 
     /**

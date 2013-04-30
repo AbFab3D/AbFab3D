@@ -30,27 +30,27 @@ import static abfab3d.util.Output.fmt;
 public class GridShortIntervals extends GridBitIntervals{
 
     //
-    // state is store in 2 most signfican bit 
-    // attribute is stored in 14 less significant bits 
+    // state is store in 2 most signfican bit
+    // attribute is stored in 14 less significant bits
     //
-    static final int ATT_MASK = 0x3FFF; 
-    static final int STATE_SHIFT = 14; 
+    static final int ATT_MASK = 0x3FFF;
+    static final int STATE_SHIFT = 14;
     static final int STATE_MASK = 0xC000;
     static final int STATE_MASK_SHIFTED = 0x3;
 
     /**
-       copy constrcutor 
+       copy constrcutor
      */
     public GridShortIntervals(GridShortIntervals grid){
-        
+
         this(grid.m_nx,grid.m_ny,grid.m_nz,grid.m_orientation, grid.pixelSize, grid.sheight);
-        
+
         for(int i = 0; i < m_data.length; i++){
             RowOfInt dataItem = grid.m_data[i];
             if(dataItem != null)
-                m_data[i] = (RowOfInt)dataItem.clone();        
+                m_data[i] = (RowOfInt)dataItem.clone();
         }
-        
+
     }
 
     public GridShortIntervals(int nx, int ny, int nz, double pixelSize, double sliceHeight){
@@ -62,7 +62,7 @@ public class GridShortIntervals extends GridBitIntervals{
     }
 
     /**
-       method to return new interval (to be overridden by subclass) 
+       method to return new interval (to be overridden by subclass)
      */
     protected RowOfInt newInterval(){
 
@@ -72,8 +72,8 @@ public class GridShortIntervals extends GridBitIntervals{
 
 
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight){
-        
-        return new GridShortIntervals(w, h, d, m_orientation, pixel, sheight); 
+
+        return new GridShortIntervals(w, h, d, m_orientation, pixel, sheight);
 
     }
 
@@ -85,55 +85,55 @@ public class GridShortIntervals extends GridBitIntervals{
         int newState = (state << STATE_SHIFT);
         if(newState == curState)
             return;
-        
+
         int curAtt = curCode & ATT_MASK;
-        
+
         int newCode = newState | curAtt;
-        
+
         set(x,y,z,newCode);
 
     }
 
     public byte getState(int x, int y, int z){
-        
+
         int code = get(x,y,z);
 
         return (byte)((code & STATE_MASK) >> STATE_SHIFT);
 
     }
 
-    public void setAttribute(int x, int y, int z, int attribute){
-        
+    public void setAttribute(int x, int y, int z, long attribute){
+
         int curCode = get(x,y,z);
         int curAtt = curCode & ATT_MASK;
         if(curAtt == attribute)
             return;
-        
-        int newCode = (curCode & STATE_MASK) | attribute;
-        
+
+        int newCode = (curCode & STATE_MASK) | (int) attribute;
+
         set(x,y,z,newCode);
-        
+
     }
 
-    public int getAttribute(int x, int y, int z){
+    public long getAttribute(int x, int y, int z){
 
         int code = get(x,y,z);
         return code & ATT_MASK;
 
     }
-    
-    public void setData(int x, int y, int z, byte state, int attribute){
-        set(x,y,z, (state << STATE_SHIFT)|attribute);
+
+    public void setData(int x, int y, int z, byte state, long attribute){
+        set(x,y,z, (state << STATE_SHIFT)|(int)attribute);
     }
 
     /**
-       set raw data at given point 
+       set raw data at given point
      */
     public void set(int x, int y, int z, int value){
-        
+
         int ind = x + m_nx * y;
         RowOfInt interval = m_data[ind];
-        //RowOfInt interval = null;//m_data[ind];        
+        //RowOfInt interval = null;//m_data[ind];
         if(interval == null){
             m_data[ind] = interval = new ShortIntervals();//newInterval();
         }
@@ -142,7 +142,7 @@ public class GridShortIntervals extends GridBitIntervals{
     }
 
     public int get(int x, int y, int z){
-        
+
         int ind = x + m_nx * y;
         if(x < 0 || x >= m_nx || y < 0 || y >= m_ny) {//ind < 0){
             throw new IllegalArgumentException(fmt("x: %d, y: %d, ind: %d\n", x,y,ind));
@@ -150,26 +150,26 @@ public class GridShortIntervals extends GridBitIntervals{
         RowOfInt interval = m_data[x + m_nx * y];
         if(interval == null)
             return 0;
-        else 
+        else
             return interval.get(z);
-        
+
     }
 
 
-    public void getData(int x, int y, int z, VoxelData data){  
+    public void getData(int x, int y, int z, VoxelData data){
         int code = get(x,y,z);
         data.setState((byte)((code & STATE_MASK) >> STATE_SHIFT));
-        data.setMaterial(code & ATT_MASK );
+        data.setAttribute(code & ATT_MASK );
     }
 
 
     /**
-       interface Grid 
+       interface Grid
      */
     public Object clone(){
 
         return new GridShortIntervals(this);
-        
+
     }
 
 }

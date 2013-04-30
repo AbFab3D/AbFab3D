@@ -51,7 +51,7 @@ public class TestDilationCube extends BaseTestAttributeGrid {
      */
     public void testBasic() {
         int size = 10;
-        int material = 1;
+        long material = 1;
 
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 

@@ -39,7 +39,7 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
     private static final boolean CONCURRENT = true;
 
     /** The material to remove */
-    private int material;
+    private long material;
 
     /** The path to use */
     private Path path;
@@ -58,7 +58,7 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
     private VoxelCoordinate vc = new VoxelCoordinate();
     private VoxelData vd;
 
-    public CanMoveMaterial(int material,Path path) {
+    public CanMoveMaterial(long material,Path path) {
         this.material = material;
         this.path = path;
     }

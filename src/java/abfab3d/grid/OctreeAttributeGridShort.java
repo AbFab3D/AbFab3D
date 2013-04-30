@@ -215,7 +215,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -231,7 +231,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         VoxelData vd = root.getData(x,y,z);
 
         return vd.getMaterial();
@@ -246,7 +246,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -263,7 +263,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
 //System.out.println("sd int: " + x);
         root.setData(null, x, y, z, state,material);
     }
@@ -276,7 +276,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         // TODO: not implemented yet
         throw new IllegalArgumentException("Not Implemented");
     }
@@ -549,7 +549,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
             // I can't see a reason to optimize this
             super.findAttribute(vc,mat, t);
@@ -600,7 +600,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
             // I can't see a reason to optimize this
             super.findAttributeInterruptible(vc, mat, t);
@@ -651,7 +651,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(int mat, ClassAttributeTraverser t) {
+    public void findAttribute(long mat, ClassAttributeTraverser t) {
         ArrayList<OctreeCellInternalShort> list = new ArrayList();
         ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
 
@@ -695,7 +695,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
         ArrayList<OctreeCellInternalShort> list = new ArrayList();
         ArrayList<OctreeCellInternalShort> add_list = new ArrayList();
 
@@ -1242,7 +1242,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
         return true;
     }
 
-    private void findAttribute(OctreeCellInternalShort cell, int mat, ClassAttributeTraverser t) {
+    private void findAttribute(OctreeCellInternalShort cell, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1279,7 +1279,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
         }
     }
 
-    private boolean findInterruptible(OctreeCellInternalShort cell, int mat, ClassTraverser t) {
+    private boolean findInterruptible(OctreeCellInternalShort cell, long mat, ClassTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1321,7 +1321,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
         return true;
     }
 
-    private boolean findAttributeInterruptible(OctreeCellInternalShort cell, int mat, ClassAttributeTraverser t) {
+    private boolean findAttributeInterruptible(OctreeCellInternalShort cell, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1363,7 +1363,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
         return true;
     }
 
-    private void findAttribute(OctreeCellInternalShort cell, VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    private void findAttribute(OctreeCellInternalShort cell, VoxelClasses vc, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1492,7 +1492,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
     }
 
 
-    private boolean findAttributeInterruptible(OctreeCellInternalShort cell, VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    private boolean findAttributeInterruptible(OctreeCellInternalShort cell, VoxelClasses vc, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1639,7 +1639,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      *
      * @param mat The aterialID
      */
-    public void removeAttribute(int mat) {
+    public void removeAttribute(long mat) {
         ArrayList<VoxelCoordinate> remove_list = new ArrayList(100);
 
         ArrayList<OctreeCellInternalShort> list = new ArrayList();
@@ -1832,7 +1832,7 @@ public class OctreeAttributeGridShort extends BaseAttributeGrid {
      *
      * @param mat The material to count
      */
-    public int findCount(int mat) {
+    public int findCount(long mat) {
         int ret_val = 0;
 
         ArrayList<OctreeCellInternalShort> list = new ArrayList(128);

@@ -50,8 +50,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
@@ -101,7 +101,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
+        long mat1 = 1;
 
         //-------------------------------------------------------
         // test on some random boundary coordinates
@@ -136,8 +136,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
@@ -192,7 +192,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
+        long mat1 = 1;
 
         //-------------------------------------------------------
         // test on some random coordinates
@@ -226,8 +226,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat2 = new HashSet<VoxelCoordinate>();
@@ -277,7 +277,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
+        long mat1 = 1;
 
         //-------------------------------------------------------
         // test on some random coordinates
@@ -311,8 +311,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
@@ -376,7 +376,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int mat1 = 1;
+        long mat1 = 1;
 
         //-------------------------------------------------------
         // test on some random coordinates
@@ -410,11 +410,11 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 12;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 12;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         // set some material data
         for (int x = 0; x < material.length; x++) {
@@ -435,7 +435,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         }
 
         // test material 0
-        int mat = 0;
+        long mat = 0;
         grid = new ArrayAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x = 0; x < width; x++) {
             grid.setData(x, 0, 0, Grid.EXTERIOR, mat);
@@ -459,7 +459,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
     public void byteMaterialRange(AttributeGrid grid) {
         int width = grid.getWidth();
         int maxMaterial = 64;
-        int mat, expectedMat;
+        long mat, expectedMat;
 
         for (int x = 0; x < width; x++) {
             grid.setData(x, 0, 0, Grid.EXTERIOR, x);
@@ -492,7 +492,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
     }
 
     /**
-     * Test set/get int material range.
+     * Test set/get long material range.
      */
     public void intMaterialRange(AttributeGrid grid) {
         int width = grid.getWidth();
@@ -556,7 +556,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int newMaterial = 10;
 
         // reassign a non-existing material
-        grid.reassignAttribute(new int[]{50}, newMaterial);
+        grid.reassignAttribute(new long[]{50}, newMaterial);
         assertEquals(0, grid.findCount(50));
         assertEquals(5, grid.findCount(1));
         assertEquals(3, grid.findCount(2));
@@ -565,7 +565,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         // reassign a single existing material
         // check that the original material count is 0
         // check that the material has changed for the set positions
-        grid.reassignAttribute(new int[]{1}, newMaterial);
+        grid.reassignAttribute(new long[]{1}, newMaterial);
 
         assertEquals(0, grid.findCount(1));
 
@@ -578,7 +578,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         // check that the original material count is 0
         // check that the material has changed for the set positions
         newMaterial = 20;
-        grid.reassignAttribute(new int[]{2, 3, 10}, newMaterial);
+        grid.reassignAttribute(new long[]{2, 3, 10}, newMaterial);
 
         assertEquals(0, grid.findCount(2));
         assertEquals(0, grid.findCount(3));
@@ -667,7 +667,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
     /**
      * Test setAttribute.
      */
-    public void setMaterial(AttributeGrid grid) {
+    public void setAttribute(AttributeGrid grid) {
         grid.setData(0, 0, 0, Grid.INTERIOR, 1);
         grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
         grid.setData(5, 0, 7, Grid.INTERIOR, 3);
@@ -749,8 +749,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void removeMaterialIterator(AttributeGrid grid) {
         int width = grid.getWidth();
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
@@ -967,7 +967,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * @param startIndex The starting X index
      * @param endIndex   The ending X Index
      */
-    protected static void setX(AttributeGrid grid, int y, int z, byte state, int mat, int startIndex, int endIndex) {
+    protected static void setX(AttributeGrid grid, int y, int z, byte state, long mat, int startIndex, int endIndex) {
         for (int x = startIndex; x <= endIndex; x++) {
             grid.setData(x, y, z, state, mat);
         }
@@ -994,7 +994,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * @param startIndex The starting Y index
      * @param endIndex   The ending Y Index
      */
-    protected static void setY(AttributeGrid grid, int x, int z, byte state, int mat, int startIndex, int endIndex) {
+    protected static void setY(AttributeGrid grid, int x, int z, byte state, long mat, int startIndex, int endIndex) {
         for (int y = startIndex; y <= endIndex; y++) {
             grid.setData(x, y, z, state, mat);
         }
@@ -1008,7 +1008,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * @param startIndex The starting Z index
      * @param endIndex   The ending Z Index
      */
-    protected static void setZ(AttributeGrid grid, int x, int y, byte state, int mat, int startIndex, int endIndex) {
+    protected static void setZ(AttributeGrid grid, int x, int y, byte state, long mat, int startIndex, int endIndex) {
         for (int z = startIndex; z <= endIndex; z++) {
             grid.setData(x, y, z, state, mat);
         }
@@ -1023,7 +1023,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * @param state    The new state
      * @param material The new material
      */
-    protected static void setPlaneX(AttributeGrid grid, int x, byte state, int material) {
+    protected static void setPlaneX(AttributeGrid grid, int x, byte state, long material) {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
@@ -1042,7 +1042,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * @param state    The new state
      * @param material The new material
      */
-    protected static void setPlaneY(AttributeGrid grid, int y, byte state, int material) {
+    protected static void setPlaneY(AttributeGrid grid, int y, byte state, long material) {
         int width = grid.getWidth();
         int depth = grid.getDepth();
 
@@ -1061,7 +1061,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * @param state    The new state
      * @param material The new material
      */
-    protected static void setPlaneZ(AttributeGrid grid, int z, byte state, int material) {
+    protected static void setPlaneZ(AttributeGrid grid, int z, byte state, long material) {
         int width = grid.getWidth();
         int height = grid.getHeight();
 

@@ -25,7 +25,7 @@ import abfab3d.util.MathUtil;
  * @author Tony Wong
  */
 public class ErosionSphere implements Operation, AttributeOperation {
-	
+
     /** The distance from a voxel to erode */
     private int radius;
 
@@ -41,12 +41,12 @@ public class ErosionSphere implements Operation, AttributeOperation {
      * @return The new grid
      */
     public Grid execute(Grid dest) {
-    	
-    	// Nothing to do if radius is 0
-    	if (radius == 0) {
-    		return dest;
-    	}
-    	
+
+        // Nothing to do if radius is 0
+        if (radius == 0) {
+            return dest;
+        }
+
         int height = dest.getHeight();
         int width = dest.getWidth();
         int depth = dest.getDepth();
@@ -54,7 +54,7 @@ public class ErosionSphere implements Operation, AttributeOperation {
         // Create an empty copy of the grid
         // TODO: Decide on whether we should decrease the size of the
         // eroded grid by the erosion distance
-//        Grid erodedGrid = grid.createEmpty(width, height, depth, 
+//        Grid erodedGrid = grid.createEmpty(width, height, depth,
 //            grid.getVoxelSize(), grid.getSliceHeight());
         Grid erodedGrid = dest.createEmpty(width - 2 * radius,
                                            height - 2 * radius,
@@ -71,7 +71,7 @@ public class ErosionSphere implements Operation, AttributeOperation {
         int yEnd = height - radius;
         int zStart = 0 + radius;
         int zEnd = depth - radius;
-        
+
         // Loop through grid and check each voxel for erosion
         // If the voxel cannot be eroded (safe), mark the voxel in the grid copy
         for(int y=yStart; y < yEnd; y++) {
@@ -81,12 +81,12 @@ public class ErosionSphere implements Operation, AttributeOperation {
 
                     if (state != Grid.OUTSIDE) {
                         boolean safe = checkErosion(dest, x, y, z);
-                        
+
                         if (safe) {
                             // TODO: Decide on whether we should decrease the size of the
                             // eroded grid by the erosion distance
 //                            erodedGrid.setData(x, y, z, state, mat);
-                        	erodedGrid.setState(x-radius, y-radius, z-radius, state);
+                            erodedGrid.setState(x-radius, y-radius, z-radius, state);
                         }
                     }
                 }
@@ -146,7 +146,7 @@ public class ErosionSphere implements Operation, AttributeOperation {
                         boolean safe = checkErosion(dest, x, y, z);
 
                         if (safe) {
-                            int mat = dest.getAttribute(x, y, z);
+                            long mat = dest.getAttribute(x, y, z);
 
                             // TODO: Decide on whether we should decrease the size of the
                             // eroded grid by the erosion distance
@@ -163,29 +163,29 @@ public class ErosionSphere implements Operation, AttributeOperation {
 
     private boolean checkErosion(Grid grid, int xPos, int yPos, int zPos) {
         int[] origin = {xPos, yPos, zPos};
-    	
-    	int xStart = xPos - radius;
+
+        int xStart = xPos - radius;
         int xEnd = xPos + radius;
         int yStart = yPos - radius;
         int yEnd = yPos + radius;
         int zStart = zPos - radius;
         int zEnd = zPos + radius;
-        
-    	for (int y=yStart; y<=yEnd; y++) {
-    		for (int x=xStart; x<=xEnd; x++) {
-    			for (int z=zStart; z<=zEnd; z++) {
-    				int[] pos = {x, y, z};
 
-    				if (MathUtil.getDistance(origin, pos) <= radius) {
-        				if (grid.getState(x, y, z) == Grid.OUTSIDE) {
-        					return false;
-        				}
-    				}
-    			}
-    		}
-    	}
-    	
-    	return true;
+        for (int y=yStart; y<=yEnd; y++) {
+            for (int x=xStart; x<=xEnd; x++) {
+                for (int z=zStart; z<=zEnd; z++) {
+                    int[] pos = {x, y, z};
+
+                    if (MathUtil.getDistance(origin, pos) <= radius) {
+                        if (grid.getState(x, y, z) == Grid.OUTSIDE) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
 }

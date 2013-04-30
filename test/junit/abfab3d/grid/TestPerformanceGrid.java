@@ -893,7 +893,7 @@ System.out.println("Finding exterior voxels");
         int w = grid.getWidth();
         int h = grid.getHeight();
         int d = grid.getDepth();
-        
+
         int num = Math.round(grid.getWidth() * grid.getHeight() * grid.getDepth() * percent);
         int cnt = 0;
 
@@ -901,14 +901,14 @@ System.out.println("Finding exterior voxels");
             int x = r.nextInt(w);
             int y = r.nextInt(h);
             int z = r.nextInt(d);
-            
+
             if (grid.getState(x,y,z) != Grid.OUTSIDE) {
                 continue;
             }
-            
+
             cnt++;
             grid.setState(x,y,z,Grid.EXTERIOR);
-        }        
+        }
     }
 
     /**
@@ -959,7 +959,7 @@ System.out.println("Finding exterior voxels");
      * @param state The new state
      * @param mat The new material
      */
-    protected static void setX(AttributeGrid grid, byte state, int mat) {
+    protected static void setX(AttributeGrid grid, byte state, long mat) {
 
         int width = grid.getWidth();
         int height = grid.getHeight();
@@ -976,7 +976,7 @@ System.out.println("Finding exterior voxels");
      * @param state The new state
      * @param mat The new material
      */
-    protected static void setY(AttributeGrid grid, byte state, int mat) {
+    protected static void setY(AttributeGrid grid, byte state, long mat) {
 
         int width = grid.getWidth();
         int height = grid.getHeight();
@@ -993,7 +993,7 @@ System.out.println("Finding exterior voxels");
      * @param state The new state
      * @param mat The new material
      */
-    protected static void setZ(AttributeGrid grid, byte state, int mat) {
+    protected static void setZ(AttributeGrid grid, byte state, long mat) {
 
         int width = grid.getWidth();
         int height = grid.getHeight();
