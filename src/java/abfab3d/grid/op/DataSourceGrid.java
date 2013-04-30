@@ -142,7 +142,7 @@ public class DataSourceGrid implements DataSource, Initializable {
 
         default:  
             // grid value is in attribute 
-            int att = m_grid.getAttribute(ix, iy, iz);
+            long att = m_grid.getAttribute(ix, iy, iz);
             data.v[0] = ((double)att)/m_maxAttributeValue;
             return RESULT_OK;                
         }
