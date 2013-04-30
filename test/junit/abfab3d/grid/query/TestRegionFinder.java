@@ -287,7 +287,7 @@ public class TestRegionFinder extends BaseTestCase {
 
         int num_regions = regions_axis * regions_axis * regions_axis;
 
-        HashMap<Integer, Integer> regions = new HashMap<Integer, Integer>(num_regions);
+        HashMap<Long, Integer> regions = new HashMap<Long, Integer>(num_regions);
 
         if (num_regions < 63) {
             grid = new ArrayAttributeGridByte(size,size,size,0.1,0.1);
@@ -298,7 +298,7 @@ public class TestRegionFinder extends BaseTestCase {
 System.out.println("Num Regions: " + num_regions + " voxels: " + size);
         int[] ll_coord = new int[3];
         int[] vcoord = new int[3];
-        int matID = 0;
+        long matID = 0;
         for(int i=0; i < regions_axis; i++) {
             for(int j=0; j < regions_axis; j++) {
                 for(int k=0; k < regions_axis; k++) {
@@ -323,7 +323,7 @@ System.out.println("Num Regions: " + num_regions + " voxels: " + size);
                         }
                     }
 
-                    regions.put(new Integer(matID), region_size * region_size * region_size);
+                    regions.put(new Long(matID), region_size * region_size * region_size);
 
                     matID++;
                 }

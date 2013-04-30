@@ -19,35 +19,35 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 
 /**
-   grid array to represent on/off mask. 
+   grid array to represent on/off mask.
    Implemented as 2D array of bit intervals
 
    @author Vladimir Bulatov
 */
 public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, GridIntervals, Serializable {
-    
-    public static final int ORIENTATION_X=0, ORIENTATION_Y=1, ORIENTATION_Z = 2; // orientation of intervals 
 
-    protected int m_orientation; 
-    protected int m_nx, m_ny, m_nz; 
+    public static final int ORIENTATION_X=0, ORIENTATION_Y=1, ORIENTATION_Z = 2; // orientation of intervals
+
+    protected int m_orientation;
+    protected int m_nx, m_ny, m_nz;
     protected RowOfInt m_data[];
-    
+
     public GridBitIntervals(){
         super(1, 1, 1,  1., 1.);
-        // this is to make subclass GridBitIntervalsBlocks 
+        // this is to make subclass GridBitIntervalsBlocks
         // it is apparently very bad
     }
 
     /**
-       create grid of given orientation 
+       create grid of given orientation
      */
     public GridBitIntervals(GridBitIntervals grid){
-        
+
         this(grid.m_nx,grid.m_ny,grid.m_nz,grid.m_orientation, grid.pixelSize, grid.sheight);
         for(int i = 0; i < m_data.length; i++){
             RowOfInt dataItem = grid.m_data[i];
             if(dataItem != null)
-                m_data[i] = (RowOfInt)dataItem.clone();        
+                m_data[i] = (RowOfInt)dataItem.clone();
         }
     }
 
@@ -77,7 +77,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         m_nz = nz;
 
         m_orientation = orientation;
-        
+
         switch(m_orientation){
         default:
         case ORIENTATION_X:
@@ -90,14 +90,14 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             m_data = new RowOfInt[m_nx * m_ny];
             break;
         }
-        
+
     }
 
     /**
-       return raw data at given point 
+       return raw data at given point
      */
     public int get(int x, int y, int z){
-        
+
         switch(m_orientation){
 
         default:
@@ -106,43 +106,43 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 RowOfInt interval = m_data[y + m_ny * z];
                 if(interval == null)
                     return 0;
-                else 
-                    return interval.get(x);                
+                else
+                    return interval.get(x);
             }
         case ORIENTATION_Y:
             {
                 RowOfInt interval = m_data[x + m_nx * z];
                 if(interval == null)
                     return 0;
-                else 
+                else
                     return interval.get(y);
             }
         case ORIENTATION_Z:
             {
                 int ind = x + m_nx * y;
                 if(ind < 0){
-                    throw new IllegalArgumentException(fmt("x: %d, y: %d, ind: %d\n", x,y,ind));                                        
+                    throw new IllegalArgumentException(fmt("x: %d, y: %d, ind: %d\n", x,y,ind));
                     //return 0;
                 }
                 RowOfInt interval = m_data[x + m_nx * y];
                 if(interval == null)
                     return 0;
-                else 
+                else
                     return interval.get(z);
             }
         }
-        
+
     }
 
     /**
-       set one x,y column of this grid to given intervals and values 
+       set one x,y column of this grid to given intervals and values
 
-       intervals[] - ordered array of starts of intervals of identical pixels 
-       values[] - values of pixels in each interval 
-       
+       intervals[] - ordered array of starts of intervals of identical pixels
+       values[] - values of pixels in each interval
+
      */
     public void setIntervals(int x, int y, int intervals[], int values[], int count){
-        
+
         if(m_orientation != ORIENTATION_Z){
             // TODO
             throw new IllegalArgumentException("Not implemented");
@@ -156,12 +156,12 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         }
     }
 
-    
+
     /**
-       set raw data at given point 
+       set raw data at given point
      */
     public void set(int x, int y, int z, int value){
-        
+
         switch(m_orientation){
 
         default:
@@ -198,9 +198,9 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         }
 
     }
-    
+
     /**
-       
+
      */
     public void clear(){
 
@@ -224,7 +224,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     /**
-       method to be return new interval (to be overriddenb by subclass) 
+       method to be return new interval (to be overriddenb by subclass)
      */
     protected RowOfInt newInterval(){
 
@@ -243,7 +243,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     /**
-       implementaion of interface Grid 
+       implementaion of interface Grid
      */
 
     public void getData(double x, double y, double z, VoxelData data){
@@ -258,15 +258,15 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
         if(get(x,y,z) != 0){
             data.setState(Grid.INTERIOR);
-            data.setMaterial((byte)0);
+            data.setAttribute((byte)0);
         } else {
             // TODO: This was INTERIOR I think it should be OUTSIDE
 //            data.setState(Grid.INTERIOR);
             data.setState(Grid.OUTSIDE);
-            data.setMaterial((byte)0);
-        }        
+            data.setAttribute((byte)0);
+        }
     }
-    
+
     public byte getState(double x, double y, double z){
         int iy = (int) (y / sheight);
         int ix = (int) (x / pixelSize);
@@ -275,44 +275,44 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public byte getState(int x, int y, int z){
-        
+
         if(get(x,y,z) != 0)
             return Grid.INTERIOR;
-        else 
-            return Grid.OUTSIDE;                       
+        else
+            return Grid.OUTSIDE;
     }
 
     public void setState(int x, int y, int z, byte state){
-        
+
         if(state != Grid.OUTSIDE)
             set(x,y,z,state);
-        else 
+        else
             set(x,y,z,0);
     }
 
     public void setState(double x, double y, double z, byte state){
         int iy = (int) (y / sheight);
         int ix = (int) (x / pixelSize);
-        int iz = (int) (z / pixelSize);        
+        int iz = (int) (z / pixelSize);
         setState(ix,iy,iz,state);
     }
-    
-    public int findCount(VoxelClasses vc){  
+
+    public int findCount(VoxelClasses vc){
 
         VoxelCounter counter = new VoxelCounter();
         findInterruptible(vc, counter);
 
-        //TODO - possible loss of data for large grids 
+        //TODO - possible loss of data for large grids
         return (int)counter.getCount();
-        
+
     }
 
     /**
-       class to count voxels of given type 
-       used via ClassTraverser interface 
+       class to count voxels of given type
+       used via ClassTraverser interface
      */
     static class VoxelCounter implements ClassTraverser {
-        
+
         long m_count = 0;
         public void found(int x, int y, int z, byte state){
             m_count++;
@@ -328,24 +328,24 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         }
     }
 
-    public int findCount(int mat){
-        
-        //TODO 
+    public int findCount(long mat){
+
+        //TODO
         return super.findCount(mat);
-        
+
     }
 
-    public void find(VoxelClasses vc, ClassTraverser t){        
+    public void find(VoxelClasses vc, ClassTraverser t){
 
         //printf("%s.find(%s)\n",this, vc);
 
         RowProcesser rp = new RowProcesser(t);
         int data;
-        
+
         switch(vc){
-        default:             
+        default:
             //printf(" find() default procesing\n");
-            // go to default routine 
+            // go to default routine
             super.find(vc,  t);
             return;
         case EXTERIOR:
@@ -356,7 +356,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         }
 
         //printf(" find() custom procesing\n");
-                
+
         for(int y = 0; y < m_ny; y++){
             for(int x = 0; x < m_nx; x++){
                 RowOfInt row = m_data[x + m_nx*y];
@@ -364,21 +364,21 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 rp.setXY(x,y);
                 row.find(data, rp );
             }
-        }  
+        }
     }
 
-    public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){        
+    public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
 
         //printf("%s.find(%s,[%d,%d,%d,%d])\n",this, vc, xmin, xmax, ymin, ymax);
-        
+
         //printf("vc: %s\n",vc);
-        
+
         RowProcesser rp = new RowProcesser(t);
         int data;
-        
+
         switch(vc){
-        default:             
-            // go to default routine 
+        default:
+            // go to default routine
             //printf(" find() default processing\n");
             super.find(vc,  t, xmin, xmax, ymin, ymax);
             return;
@@ -395,12 +395,12 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         for(int y = ymin; y <= ymax; y++){
             for(int x = xmin; x <= xmax; x++){
                 RowOfInt row = m_data[x + m_nx*y];
-                if(row == null) 
+                if(row == null)
                     continue;
                 rp.setXY(x,y);
                 row.find(data, rp );
             }
-        }  
+        }
     }
 
     /**
@@ -416,10 +416,10 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
         RowProcesser rp = new RowProcesser(t);
         int data;
-        
+
         switch(vc){
-        default:             
-            // go to default routine 
+        default:
+            // go to default routine
             super.findInterruptible(vc,  t);
             return;
         case EXTERIOR:
@@ -428,8 +428,8 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             data = 1;
             break;
         }
-                
-        // TODO different orientation ?         
+
+        // TODO different orientation ?
         for(int y = 0; y < m_ny; y++){
             for(int x = 0; x < m_nx; x++){
                 RowOfInt row = m_data[x + m_nx*y];
@@ -438,11 +438,11 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 if(!row.findInterruptible(data, rp ))
                     return;
             }
-        }  
+        }
     }
 
     /**
-       utility class to traverse one row of data 
+       utility class to traverse one row of data
      */
     static class RowProcesser implements IntervalTraverser {
 
@@ -454,7 +454,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
         void setXY(int x, int y){
             this.x = x;
-            this.y = y;            
+            this.y = y;
         }
 
         public boolean foundInterruptible(int z, int data){
@@ -471,30 +471,30 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     /**
-       interface Grid 
+       interface Grid
      */
     public Object clone(){
 
         return new GridBitIntervals(this);
-        
+
     }
 
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight){
-        
-        return new GridBitIntervals(w, h, d, m_orientation, pixel, sheight); 
+
+        return new GridBitIntervals(w, h, d, m_orientation, pixel, sheight);
 
     }
 
-    public int getAttribute(int x, int y, int z){
-        // no attribute in bit grid 
+    public long getAttribute(int x, int y, int z){
+        // no attribute in bit grid
         return 0;
     }
 
-    public int getAttribute(double x, double y, double z){
+    public long getAttribute(double x, double y, double z){
         return 0;
     }
 
-    public void setData(double x, double y, double z, byte state, int attribute){
+    public void setData(double x, double y, double z, byte state, long attribute){
 
         int iy = (int) (y / sheight);
         int ix = (int) (x / pixelSize);
@@ -503,59 +503,59 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
     }
 
-    public void setData(int x, int y, int z, byte state, int attribute){
+    public void setData(int x, int y, int z, byte state, long attribute){
 
         if(state != Grid.OUTSIDE)
             set(x,y,z,1);
-        else 
-            set(x,y,z,0);            
+        else
+            set(x,y,z,0);
     }
 
-    public void setAttribute(int x, int y, int z, int attribute){
-        // no attrribute in bit grid 
+    public void setAttribute(int x, int y, int z, long attribute){
+        // no attrribute in bit grid
         return;
     }
 
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t){
-        //TODO 
+        //TODO
         super.findAttribute(vc, t);
     }
 
     public void findAttributeInterruptible(VoxelClasses vc, ClassAttributeTraverser t){
-        //TODO 
+        //TODO
         super.findAttributeInterruptible(vc, t);
     }
 
-    public void findAttribute(int mat, ClassAttributeTraverser t){
-        //TODO 
+    public void findAttribute(long mat, ClassAttributeTraverser t){
+        //TODO
         super.findAttribute(mat, t);
         return;
     }
 
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t){
-        //TODO 
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t){
+        //TODO
         super.findAttribute(vc, mat, t);
     }
 
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t){
-        //TODO 
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t){
+        //TODO
         super.findAttributeInterruptible(mat, t);
     }
 
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t){
-        //TODO 
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t){
+        //TODO
         super.findAttributeInterruptible(vc,mat, t);
     }
 
-    public void removeAttribute(int mat){
-        //TODO 
+    public void removeAttribute(long mat){
+        //TODO
         super.removeAttribute(mat);
-        
+
     }
 
-    public void reassignAttribute(int[] attributes, int matID){
-        //TODO 
-        super.reassignAttribute(attributes, matID);        
+    public void reassignAttribute(long[] attributes, long matID){
+        //TODO
+        super.reassignAttribute(attributes, matID);
     }
 
 
@@ -563,7 +563,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
         GridBitIntervals g1 = (GridBitIntervals)grid1;
         GridBitIntervals g2 = (GridBitIntervals)grid2;
-        
+
         int nx = g1.getWidth();
         int ny = g1.getHeight();
         for(int y = 0; y < ny; y++){
@@ -574,7 +574,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 BitIntervals r2 = (BitIntervals)g2.m_data[ind];
 
                 if(r1 != null && r2 != null){
-                    
+
                     if(r1.compareIntevals(r2) != 0){
                         printf("x: %d, y: %d\n", x, y);
                         r1.dump();
@@ -596,7 +596,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
                 }
             }
         }
-        return true;    
+        return true;
     }
 
     public void printStat(){
@@ -604,14 +604,14 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         long emptyCount = 0;
         long filledCount = 0;
         long dataMemory = 0;
-        
+
         for(int k = 0; k < m_data.length; k++){
             RowOfInt row = m_data[k];
             if(row != null){
                 filledCount++;
                 dataMemory += row.getDataMemory();
-            } else 
-                emptyCount++;            
+            } else
+                emptyCount++;
         }
 
         printf("*** GridBitIntervals stats\n ");

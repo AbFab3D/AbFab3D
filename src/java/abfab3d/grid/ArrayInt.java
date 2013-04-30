@@ -88,7 +88,7 @@ public class ArrayInt implements RowOfInt {
     }
 
     
-    public void set(int index, int value){
+    public void set(int index, long value){
         if(index >= data.length){
             int newSize = index+1;
             int newdata[] = new int[newSize];
@@ -97,7 +97,7 @@ public class ArrayInt implements RowOfInt {
             maxSize = newSize; 
             size = index+1;
         }
-        data[index] = value;
+        data[index] = (int)value;
     }
 
     protected void reallocArray(){

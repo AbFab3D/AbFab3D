@@ -30,7 +30,7 @@ import static abfab3d.util.Output.printf;
 
 
 /**
-   class to count specific regions 
+   class to count specific regions
 
    @author Vladimir Bulatov
  */
@@ -39,32 +39,32 @@ public class RegionCounter {
 
 
     /**
-       components counting via various algoritms 
-       
-       
+       components counting via various algoritms
+
+
      */
-    public static int countComponents(AttributeGrid grid, int material) {
+    public static int countComponents(AttributeGrid grid, long material) {
         return countComponents(grid, material, -1, false);
     }
 
-    public static int countComponents(AttributeGrid grid, int material, int minSize) {
+    public static int countComponents(AttributeGrid grid, long material, int minSize) {
         return countComponents(grid, material, minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
-    public static int countComponents(AttributeGrid grid, int material, int maxCount, boolean collectData) {
+    public static int countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData) {
 
         return countComponents(grid, material, maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
 
     }
 
-    public static int countComponents(AttributeGrid grid, int material, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
         int nz1 = grid.getDepth()-1;
-        
+
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
-        
+
         int compCount = 0;
         int volume = 0;
 
@@ -75,22 +75,22 @@ public class RegionCounter {
         for(int z = 1; z < nz1; z++){
 
             for(int x = 1; x < nx1; x++){
-                
+
                 for(int y = 1; y < ny1; y++){
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
 
                     if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
-                        
+
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z,material, collectData, algorithm);
 
                         //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
                         volume+= sc.getVolume();
                         compCount++;
                         if(maxCount > 0 && compCount > maxCount)
-                            break zcycle;                            
-                    }                                            
+                            break zcycle;
+                    }
                 }
             }
         }
@@ -100,7 +100,7 @@ public class RegionCounter {
         return compCount;
     }
 
-    public static int countComponents(AttributeGrid grid, int material, int minSize, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, long material, int minSize, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -249,12 +249,12 @@ public class RegionCounter {
     /**
        removes components from grid of size smaller than minSize
 
-       return total component count and small component count 
-       
-     */
-    public static Vector<ConnectedComponent> removeSmallComponents_old(AttributeGrid grid, int material, int minSize, int algorithm){
+       return total component count and small component count
 
-        
+     */
+    public static Vector<ConnectedComponent> removeSmallComponents_old(AttributeGrid grid, long material, int minSize, int algorithm){
+
+
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
         int nz1 = grid.getDepth()-1;
@@ -262,25 +262,25 @@ public class RegionCounter {
         Vector<ConnectedComponent> largeComponents = new Vector<ConnectedComponent>();
 
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1, GridBitIntervals.ORIENTATION_Y);
-        
+
         printf("removeSmallComponents(%d, %d)\n", material, minSize);
 
         int compCount = 0;
-        int volume = 0;        
+        int volume = 0;
         int smallVolume = 0;
         long maxRemovedVolume = 0;
 
     zcycle:
-        
+
         for(int z = 1; z < nz1; z++){
 
             for(int x = 1; x < nx1; x++){
-                
+
                 for(int y = 1; y < ny1; y++){
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
-                    if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){                        
+                    if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z,material, false, algorithm);
                         //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
                         if( sc.getVolume() < minSize){
@@ -293,23 +293,23 @@ public class RegionCounter {
                         }
                         compCount++;
                         volume += sc.getVolume();
-                    }                                            
+                    }
                 }
             }
         }
-        
+
         printf("totalComponentsCount: %d, voxelCount: %d\n", compCount, volume);
         printf("smallComponentsCount: %d, voxelCount: %d maxRemovedVolume: %d\n", smallComponents.size(), smallVolume, maxRemovedVolume);
-        
+
         if(smallComponents.size() == 0)
             return largeComponents;
 
         mask.clear();
 
         int voxel[] = new int[3];
-        
+
         for(int i = 0; i < smallComponents.size(); i++){
-            
+
             ConnectedComponent cc = smallComponents.get(i);
             ConnectedComponent sc = new ConnectedComponent(grid, mask, cc.seedX, cc.seedY, cc.seedZ, material, true, algorithm);
             long v = sc.getVolume();
@@ -317,25 +317,25 @@ public class RegionCounter {
             for(int j =0; j < v; j++){
                 sc.getVoxelCoord(j, voxel);
                 grid.setState(voxel[0],voxel[1],voxel[2],Grid.OUTSIDE);
-            }             
+            }
         }
         printf("removeSmallComponents(%d, %d) done\n", material, minSize);
-        
-        return largeComponents;        
-        
+
+        return largeComponents;
+
     }
-    
+
     /**
-       return components with specified material and INTERIOR class 
+       return components with specified material and INTERIOR class
      */
-    public static Vector<ConnectedComponent> findComponents(AttributeGrid grid, int material){
-        
+    public static Vector<ConnectedComponent> findComponents(AttributeGrid grid, long material){
+
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
         ComponentsFinder cf = new ComponentsFinder(grid, mask, material);
         grid.find(Grid.VoxelClasses.MARKED, cf);
-        cf.releaseReferences();        
+        cf.releaseReferences();
         return cf.getComponents();
-        
+
     }
 
     /**
@@ -351,24 +351,24 @@ public class RegionCounter {
 
     }
 
-    public static Vector<ConnectedComponent> removeSmallComponents(AttributeGrid grid, int material, int minSize){
-        
+    public static Vector<ConnectedComponent> removeSmallComponents(AttributeGrid grid, long material, int minSize){
+
         printf("removeSmallComponents(material:%d, minSize: %d)\n", material, minSize);
 
         int compCount = 0;
-        int volume = 0;        
+        int volume = 0;
         int smallVolume = 0;
         long maxRemovedVolume = 0;
-        
+
         Vector<ConnectedComponent> components = findComponents(grid, material);
-        
+
         Vector<ConnectedComponent> smallComp = new Vector<ConnectedComponent>();
         Vector<ConnectedComponent> largeComp = new Vector<ConnectedComponent>();
-        
-        GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(), grid.getDepth(), 
-                                            GridBitIntervals.ORIENTATION_Y);        
+
+        GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(), grid.getDepth(),
+                                            GridBitIntervals.ORIENTATION_Y);
         int voxel[] = new int[3];
-        
+
         for(int i =0; i <  components.size(); i++){
 
             ConnectedComponent c = components.get(i);
@@ -376,19 +376,19 @@ public class RegionCounter {
             volume += cv;
 
             if( cv < minSize){
-                
+
                 smallComp.add(c);
                 smallVolume += c.getVolume();
 
                 if(cv > maxRemovedVolume)
                     maxRemovedVolume = cv;
-                // remove small component 
+                // remove small component
                 ConnectedComponent sc = new ConnectedComponent(grid, mask, c.seedX, c.seedY, c.seedZ, material, true);
                 for(int j = 0; j < cv; j++){
                     c.getVoxelCoord(j, voxel);
                     grid.setState(voxel[0],voxel[1],voxel[2],Grid.OUTSIDE);
                 }
-                
+
             } else {
                 largeComp.add(c);
             }
@@ -397,8 +397,8 @@ public class RegionCounter {
         printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
         printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
         //printf("removeSmallComponents(%d, %d) done\n", material, minSize);
-        
-        return largeComp;        
+
+        return largeComp;
     }
 
     public static Vector<ConnectedComponentState> removeSmallComponents(Grid grid, byte state, int minSize){
@@ -450,115 +450,115 @@ public class RegionCounter {
         return largeComp;
     }
 
-    public static List<int[]> getComponentBoundsByVolume(AttributeGrid grid, int material, int maxCount, int minSize, boolean collectData) {
-    	return getComponentBoundsByVolume(grid, material, maxCount, minSize, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
+    public static List<int[]> getComponentBoundsByVolume(AttributeGrid grid, long material, int maxCount, int minSize, boolean collectData) {
+        return getComponentBoundsByVolume(grid, material, maxCount, minSize, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
     }
-    
+
     /**
      * Get bounds of component regions by material and sorted by largest first.
-     * 
+     *
      * @param grid The grid
-     * @param material The material 
+     * @param material The material
      * @param maxCount The max number of components to get
      * @param collectData Whether to get the components
      * @param algorithm The algorithm to use
      * @return
      */
-    public static List<int[]> getComponentBoundsByVolume(AttributeGrid grid, int material, int maxCount, 
-    		int minSize, boolean collectData, int algorithm) {
-       
+    public static List<int[]> getComponentBoundsByVolume(AttributeGrid grid, long material, int maxCount,
+            int minSize, boolean collectData, int algorithm) {
+
         Vector<ConnectedComponent> components = findComponents(grid, material);
-        
+
         Collections.sort(components);
-        
+
         ArrayList<int[]> boundsList = new ArrayList<int[]>();
-        
+
         int[] min = new int[3];
         int[] max = new int[3];
-        
+
         int compSize = components.size();
         int compCount = maxCount >= compSize ? compSize : maxCount;
         int lastCompIndex = maxCount >= compSize ? 0 : compSize - compCount;
-        
+
         for (int i=compSize-1; i>=lastCompIndex; i--) {
-        	if (minSize > 0 && components.get(i).getVolume() < minSize)
-        		break;
-        	
-        	components.get(i).getExtents(min, max);
-//        	System.out.println("==> mat min: " + java.util.Arrays.toString(min));
-//        	System.out.println("==> mat max: " + java.util.Arrays.toString(max));
-//        	System.out.println("==> mat vol: " + components.get(i).getVolume());
-        	boundsList.add(new int[] {min[0], min[1], min[2], max[0], max[1], max[2]});
+            if (minSize > 0 && components.get(i).getVolume() < minSize)
+                break;
+
+            components.get(i).getExtents(min, max);
+//          System.out.println("==> mat min: " + java.util.Arrays.toString(min));
+//          System.out.println("==> mat max: " + java.util.Arrays.toString(max));
+//          System.out.println("==> mat vol: " + components.get(i).getVolume());
+            boundsList.add(new int[] {min[0], min[1], min[2], max[0], max[1], max[2]});
         }
-        
+
         return boundsList;
 /*
         if (maxCount > components.size()) {
-        	return components;
+            return components;
         } else {
-        	Vector<ConnectedComponent> largest = new Vector<ConnectedComponent>();
-        	
-        	for (int i=0; i<maxCount; i++) {
-        		largest.add(components.get(i));
-        	}
-        	
-        	return largest;
+            Vector<ConnectedComponent> largest = new Vector<ConnectedComponent>();
+
+            for (int i=0; i<maxCount; i++) {
+                largest.add(components.get(i));
+            }
+
+            return largest;
         }
 */
     }
-    
+
     public static List<int[]> getComponentBoundsByVolume(Grid grid, byte state, int maxCount, int minSize, boolean collectData) {
-    	return getComponentBoundsByVolume(grid, state, maxCount, minSize, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
+        return getComponentBoundsByVolume(grid, state, maxCount, minSize, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
     }
-    
+
     /**
      * Get bounds of component regions by state and sorted by largest first.
-     * 
+     *
      * @param grid The grid
-     * @param material The state 
+     * @param material The state
      * @param maxCount The max number of components to get
      * @param collectData Whether to get the components
      * @param algorithm The algorithm to use
      * @return
      */
     public static List<int[]> getComponentBoundsByVolume(Grid grid, byte state, int maxCount,
-    		int minSize, boolean collectData, int algorithm) {
-       
-    	Vector<ConnectedComponentState> components = findComponents(grid, state);
-        
-    	Collections.sort(components);
-        
+            int minSize, boolean collectData, int algorithm) {
+
+        Vector<ConnectedComponentState> components = findComponents(grid, state);
+
+        Collections.sort(components);
+
         ArrayList<int[]> boundsList = new ArrayList<int[]>();
-        
+
         int[] min = new int[3];
         int[] max = new int[3];
-        
+
         int compSize = components.size();
         int compCount = maxCount >= compSize ? compSize : maxCount;
         int lastCompIndex = maxCount >= compSize ? 0 : compSize - compCount;
-        
+
         for (int i=compSize-1; i>=lastCompIndex; i--) {
-        	if (minSize > 0 && components.get(i).getVolume() < minSize)
-        		break;
-        	
-        	components.get(i).getExtents(min, max);
-//        	System.out.println("==> state min: " + java.util.Arrays.toString(min));
-//        	System.out.println("==> state max: " + java.util.Arrays.toString(max));
-//        	System.out.println("==> state vol: " + components.get(i).getVolume());
-        	boundsList.add(new int[] {min[0], min[1], min[2], max[0], max[1], max[2]});
+            if (minSize > 0 && components.get(i).getVolume() < minSize)
+                break;
+
+            components.get(i).getExtents(min, max);
+//          System.out.println("==> state min: " + java.util.Arrays.toString(min));
+//          System.out.println("==> state max: " + java.util.Arrays.toString(max));
+//          System.out.println("==> state vol: " + components.get(i).getVolume());
+            boundsList.add(new int[] {min[0], min[1], min[2], max[0], max[1], max[2]});
         }
-        
+
         return boundsList;
     }
-    
+
     static class ComponentsFinder implements ClassTraverser {
 
         AttributeGrid grid;
         GridBit mask;
-        int material;
+        long material;
         Vector<ConnectedComponent> components;
 
-        ComponentsFinder(AttributeGrid grid, GridBit mask, int material){
+        ComponentsFinder(AttributeGrid grid, GridBit mask, long material){
 
             this.grid = grid;
             this.mask = mask;
@@ -566,13 +566,13 @@ public class RegionCounter {
             this.components = new Vector<ConnectedComponent>();
 
         }
-        
+
         public void releaseReferences(){
             this.grid = null;
             this.mask.release();
-            this.mask = null;            
+            this.mask = null;
         }
-        
+
         public void found(int x, int y, int z, byte _state){
 
             if(mask.get(x,y,z) != 0)
@@ -586,19 +586,19 @@ public class RegionCounter {
         }
 
         public boolean foundInterruptible(int x, int y, int z, byte _state){
-            
+
             if(mask.get(x,y,z) != 0)
                 return true;
 
             if(grid.getAttribute(x,y,z) == material){
                 ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, material, true);
                 components.add(cc);
-            } 
-            return true; 
-        }        
+            }
+            return true;
+        }
 
         public Vector<ConnectedComponent> getComponents(){
-            return components; 
+            return components;
         }
     }
 

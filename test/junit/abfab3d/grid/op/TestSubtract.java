@@ -43,8 +43,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
         int size2 = 15;
         byte state1 = Grid.INTERIOR;
         byte state2 = Grid.EXTERIOR;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size1, size1, size1, 0.001, 0.001);
         AttributeGrid grid2 = new ArrayAttributeGridByte(size2, size2, size2, 0.002, 0.002);
@@ -99,8 +99,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
         int size2 = 15;
         byte state1 = Grid.INTERIOR;
         byte state2 = Grid.EXTERIOR;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size1, size1, size1, 0.001, 0.001);
         AttributeGrid grid2 = new ArrayAttributeGridByte(size2, size2, size2, 0.002, 0.002);

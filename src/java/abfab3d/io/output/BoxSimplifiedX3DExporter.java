@@ -55,7 +55,7 @@ public class BoxSimplifiedX3DExporter implements Exporter {
 
     /** Is this a complete file export */
     private boolean complete;
-    
+
     /** The mesh */
     private WETriangleMesh mesh;
 
@@ -211,7 +211,7 @@ public class BoxSimplifiedX3DExporter implements Exporter {
                     grid.getData(j,i,k,vd);
 
                     byte state = vd.getState();
-                    int mat = vd.getMaterial();
+                    long mat = vd.getMaterial();
 
                     if (state == Grid.OUTSIDE)
                         continue;
@@ -381,7 +381,7 @@ System.out.println("no color for: " + mat);
 
         SAVExporter exporter = new SAVExporter();
         exporter.outputX3D(mesh, params, writer);
-        
+
         // End Centering Transform
         writer.endField();
         writer.endNode();

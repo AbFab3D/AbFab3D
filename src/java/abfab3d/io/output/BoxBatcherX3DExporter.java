@@ -176,7 +176,7 @@ public class BoxBatcherX3DExporter {
                     grid.getData(j,i,k,vd);
 
                     byte state = vd.getState();
-                    int mat = vd.getMaterial();
+                    long mat = vd.getMaterial();
 
                     if (state == Grid.OUTSIDE)
                         continue;
@@ -240,7 +240,7 @@ public class BoxBatcherX3DExporter {
                     }
 
                     if (displayFront) {
-                        // Back Face                        
+                        // Back Face
                         frontFaces.add(new VoxelCoordinate(j, i, k));
                     }
 
@@ -403,7 +403,7 @@ for(VoxelCoordinate vc : frontFaces) {
                     curr_length++;
                     continue;
                 }
-                
+
                 // End of the line output
                 outputFace(start, prev, axis, grid, mesh);
                 curr_length=0;
@@ -585,7 +585,7 @@ System.out.println("outface: start: " + start + " end: " + end);
         Vec3D ur_coord = null;
         Vec3D lr_coord = null;
         Vec3D ll_coord = null;
-        
+
         switch(dir) {
             case Z_POSITIVE:
                 ul_coord = new Vec3D((float) (ul[0] - hpixelSize) ,
@@ -680,11 +680,11 @@ System.out.println("ul: " + ul_coord + " ur: " + ur_coord + " lr: " + lr_coord +
                 mesh.addFace(lr_coord,ll_coord, ur_coord);
                 break;
         }
-        
+
 //System.out.println("ul: " + ul_coord + " ur: " + ur_coord);
 //System.out.println("ll: " + ll_coord + " lr: " + lr_coord);
     }
-    
+
     /**
      * Write a grid to the stream using the grid state
      *

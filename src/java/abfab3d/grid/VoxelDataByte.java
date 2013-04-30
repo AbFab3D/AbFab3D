@@ -22,12 +22,12 @@ public class VoxelDataByte implements VoxelData {
     private byte state;
 
     /** The material */
-    private int material;
+    private long material;
 
     public VoxelDataByte() {
     }
 
-    public VoxelDataByte(byte state, int material) {
+    public VoxelDataByte(byte state, long material) {
         this.state = state;
         this.material = material;
     }
@@ -46,7 +46,7 @@ public class VoxelDataByte implements VoxelData {
      *
      * @return The material
      */
-    public int getMaterial() {
+    public long getMaterial() {
         return (int) material;
     }
 
@@ -64,7 +64,7 @@ public class VoxelDataByte implements VoxelData {
      *
      * @param mat The material
      */
-    public void setMaterial(int mat) {
+    public void setAttribute(long mat) {
         this.material = (byte) mat;
     }
 
@@ -74,7 +74,7 @@ public class VoxelDataByte implements VoxelData {
      * @param state The state
      * @param mat The material
      */
-    public void setData(byte state, int mat) {
+    public void setData(byte state, long mat) {
         this.state = state;
         this.material = (byte) mat;
     }

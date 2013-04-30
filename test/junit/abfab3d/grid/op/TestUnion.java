@@ -43,8 +43,57 @@ public class TestUnion extends BaseTestAttributeGrid {
         int size2 = 15;
         byte state1 = Grid.INTERIOR;
         byte state2 = Grid.EXTERIOR;
-        int mat1 = 1;
-        int mat2 = 2;
+
+        Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
+
+        // set grid1
+        for (int x=3; x<7; x++) {
+            grid1.setState(x, 5, 5, state1);
+        }
+
+        // set grid2
+        for (int y=5; y<size2; y++) {
+            grid2.setState(1, y, 10, state2);
+        }
+
+        // get the union of grid1 and grid2
+        Union u = new Union(grid1, 0, 0, 0, 0);
+        Grid unionGrid = u.execute(grid2);
+
+        assertEquals(size2, unionGrid.getWidth());
+
+        // check filled voxel state and material
+        for (int x=0; x<size2; x++) {
+            for (int y=0; y<size2; y++) {
+                for (int z=0; z<size2; z++) {
+
+                    if (x >= 3 && x < 7 && y == 5 && z == 5) {
+                        assertEquals("(" + x + ", " + y + ", " + z + ") state is not " + state1,
+                                state1, unionGrid.getState(x, y, z));
+                    } else if (x == 1 && y >= 5 && y < size2 && z == 10) {
+                        assertEquals("(" + x + ", " + y + ", " + z + ") state is not " + state2,
+                                state2, unionGrid.getState(x, y, z));
+                    } else {
+                        assertEquals("(" + x + ", " + y + ", " + z + ") state is not outside",
+                                Grid.OUTSIDE, unionGrid.getState(x, y, z));
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Test basic operation
+     */
+    public void testBasicAttribute() {
+        int size1 = 10;
+        int size2 = 15;
+        byte state1 = Grid.INTERIOR;
+        byte state2 = Grid.EXTERIOR;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size1, size1, size1, 0.001, 0.001);
         AttributeGrid grid2 = new ArrayAttributeGridByte(size2, size2, size2, 0.002, 0.002);
@@ -100,13 +149,13 @@ public class TestUnion extends BaseTestAttributeGrid {
      * Grids sharing a voxel coordinate should union to the state and material
      * of gridB
      */
-    public void testSharedVoxel() {
+    public void testSharedVoxelAttribute() {
         int size1 = 10;
         int size2 = 15;
         byte state1 = Grid.INTERIOR;
         byte state2 = Grid.EXTERIOR;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size1, size1, size1, 0.001, 0.001);
         AttributeGrid grid2 = new ArrayAttributeGridByte(size2, size2, size2, 0.002, 0.002);
@@ -148,6 +197,56 @@ public class TestUnion extends BaseTestAttributeGrid {
                                 state2, unionGrid.getState(x, y, z));
                         assertEquals("(" + x + ", " + y + ", " + z + ")) material is not " + mat2,
                                 mat2, unionGrid.getAttribute(x, y, z));
+                    } else {
+                        assertEquals("(" + x + ", " + y + ", " + z + ") state is not outside",
+                                Grid.OUTSIDE, unionGrid.getState(x, y, z));
+                    }
+                }
+            }
+        }
+
+    }
+
+    /**
+     * Grids sharing a voxel coordinate should union to the state and material
+     * of gridB
+     */
+    public void testSharedVoxel() {
+        int size1 = 10;
+        int size2 = 15;
+        byte state1 = Grid.INTERIOR;
+        byte state2 = Grid.EXTERIOR;
+
+        Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
+        Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
+
+        // set grid1
+        for (int x=3; x<7; x++) {
+            grid1.setState(x, 5, 5, state1);
+        }
+
+        // set grid2
+        for (int y=5; y<size2; y++) {
+            grid2.setState(3, y, 5, state2);
+        }
+
+        // get the union of grid1 and grid2
+        Union u = new Union(grid1, 0, 0, 0, 0);
+        Grid unionGrid = u.execute(grid2);
+
+        assertEquals(size2, unionGrid.getWidth());
+
+        // check filled voxel state and material
+        for (int x=0; x<size2; x++) {
+            for (int y=0; y<size2; y++) {
+                for (int z=0; z<size2; z++) {
+
+                    if (x >= 3 && x < 7 && y == 5 && z == 5) {
+                        assertEquals("(" + x + ", " + y + ", " + z + ") state is not " + state1,
+                                state1, unionGrid.getState(x, y, z));
+                    } else if (x == 3 && y >= 5 && y < size2 && z == 5) {
+                        assertEquals("(" + x + ", " + y + ", " + z + ") state is not " + state2,
+                                state2, unionGrid.getState(x, y, z));
                     } else {
                         assertEquals("(" + x + ", " + y + ", " + z + ") state is not outside",
                                 Grid.OUTSIDE, unionGrid.getState(x, y, z));

@@ -43,10 +43,10 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
     private static final boolean DEBUG = false;
 
     /** The material to remove */
-    private int material;
+    private long material;
 
     /** The target material */
-    private int target;
+    private long target;
 
     /** Minimum bounds of the target */
     private int[] targetMinBounds;
@@ -74,7 +74,7 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
     private VoxelCoordinate vc = new VoxelCoordinate();
     private VoxelData vd;
 
-    public CanMoveMaterialTargetedBounds(int material, int target,
+    public CanMoveMaterialTargetedBounds(long material, long target,
             int[] targetMinBounds, int[] targetMaxBounds, Path path) {
         this.material = material;
         this.target = target;

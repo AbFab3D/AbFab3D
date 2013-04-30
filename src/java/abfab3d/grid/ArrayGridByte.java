@@ -56,6 +56,12 @@ public class ArrayGridByte extends BaseGrid {
     public ArrayGridByte(int w, int h, int d, double pixel, double sheight) {
         super(w,h,d,pixel,sheight);
 
+        long dataLength = (long)height * width * depth;
+
+        if(dataLength >= Integer.MAX_VALUE){
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayGridByteLongIndex");
+        }
+
         data = new byte[height * width * depth];
     }
 
@@ -70,9 +76,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        Grid ret_val = new ArrayGridByte(w,h,d,pixel,sheight);
-
-        return ret_val;
+        return new ArrayGridByte(w,h,d,pixel,sheight);
     }
 
     /**
@@ -92,15 +96,14 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate
-     * @return The voxel state
+     * @param vd The voxel data
      */
     public void getData(int x, int y, int z, VoxelData vd) {
         int idx = y * sliceSize + x * depth + z;
 
-        byte state = (byte) ((data[idx] & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & data[idx]);
+        byte state = data[idx];
 
-        vd.setData(state,mat);
+        vd.setData(state,0);
     }
 
     /**
@@ -109,7 +112,7 @@ public class ArrayGridByte extends BaseGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @return The voxel state
+     * @param vd The voxel data
      */
     public void getData(double x, double y, double z, VoxelData vd) {
         int slice = (int) (y / sheight);
@@ -118,10 +121,9 @@ public class ArrayGridByte extends BaseGrid {
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        byte state = (byte) ((data[idx] & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & data[idx]);
+        byte state = data[idx];
 
-        vd.setData(state,mat);
+        vd.setData(state,0);
     }
 
     /**
@@ -139,9 +141,7 @@ public class ArrayGridByte extends BaseGrid {
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
-        byte state = data[idx];
-
-        return state;
+        return data[idx];
     }
 
     /**
@@ -155,43 +155,7 @@ public class ArrayGridByte extends BaseGrid {
     public byte getState(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
-        byte state = data[idx];
-
-        return state;
-    }
-
-    /**
-     * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The voxel state
-     * @param material The material
-     */
-    public void setData(double x, double y, double z, byte state, int material) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        data[idx] = state;
-    }
-
-    /**
-     * Set the value of a voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param state The voxel state
-     * @param material The material
-     */
-    public void setData(int x, int y, int z, byte state, int material) {
-        int idx = y * sliceSize + x * depth + z;
-
-        data[idx] = state;
+        return data[idx];
     }
 
     /**
@@ -204,8 +168,6 @@ public class ArrayGridByte extends BaseGrid {
      */
     public void setState(int x, int y, int z, byte state) {
         int idx = y * sliceSize + x * depth + z;
-
-        byte mat = (byte) (0x3F & data[idx]);
 
         data[idx] = state;
     }
@@ -225,7 +187,6 @@ public class ArrayGridByte extends BaseGrid {
         int s_z = (int) (z / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
-        byte mat = (byte) (0x3F & data[idx]);
 
         data[idx] = state;
     }

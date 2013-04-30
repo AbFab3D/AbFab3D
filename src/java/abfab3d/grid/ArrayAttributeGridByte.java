@@ -37,10 +37,10 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1, 
+        this((int) (Math.ceil(w / pixel)) + 1,
              (int) (Math.ceil(h / sheight)) + 1,
-             (int) (Math.ceil(d / pixel)) + 1, 
-             pixel, 
+             (int) (Math.ceil(d / pixel)) + 1,
+             pixel,
              sheight);
     }
 
@@ -57,9 +57,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         super(w,h,d,pixel,sheight);
         long dataLength = (long)height * width * depth;
         if(dataLength >= Integer.MAX_VALUE){
-            System.out.printf("Out of memory");
-            Thread.currentThread().dumpStack();
-            return;
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayAttributeGridByteLongIndex");
         }
         data = new byte[height * width * depth];
     }
@@ -120,6 +118,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      *
      * @return Returns the data at each position.  3 dim array represented as flat, must be preallocated
      */
+/*
     public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret) {
 
         int idx;
@@ -127,11 +126,6 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         byte mat;
 
         int ridx = 0;
-
-// TODO: check whether array order matters for cache coherence
-//System.out.println("x1: " + x1 + " x2: " + x2);
-//System.out.println("y1: " + y1 + " y2: " + y2);
-//System.out.println("z1: " + z1 + " z2: " + z2);
 
         int x_len = x2 - x1 + 1;
         int y_len = y2 - y1 + 1;
@@ -151,7 +145,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
             }
         }
     }
-
+*/
     /**
      * Get the data of the voxel
      *
@@ -217,7 +211,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -226,7 +220,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
 
         byte mat = (byte) (0x3F & data[idx]);
 
-        return (int) mat;
+        return (long) mat;
     }
 
     /**
@@ -237,12 +231,12 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
         byte mat = (byte) (0x3F & data[idx]);
 
-        return (int) mat;
+        return (long) mat;
     }
 
     /**
@@ -254,7 +248,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -273,7 +267,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         int idx = y * sliceSize + x * depth + z;
 
         data[idx] = (byte) (0xFF & (state << 6 | ((byte)material)));
@@ -287,7 +281,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         int idx = y * sliceSize + x * depth + z;
 
         byte state = (byte) ((data[idx] & 0xFF) >> 6);

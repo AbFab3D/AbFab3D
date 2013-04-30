@@ -56,7 +56,7 @@ import abfab3d.grid.*;
 
      /** Grid for findUnvisited calc. */
      protected AttributeGrid gridAtt;
-     
+
      /**
       * Constructor
       *
@@ -88,7 +88,7 @@ import abfab3d.grid.*;
       * @param target
       * @param mat
       */
-    public GridVisitedIndexed(AttributeGrid grid, Grid.VoxelClasses target, int mat) {
+    public GridVisitedIndexed(AttributeGrid grid, Grid.VoxelClasses target, long mat) {
         if (grid instanceof AttributeGrid) {
             this.gridAtt = (AttributeGrid) grid;
         }

@@ -27,7 +27,7 @@ public class VoxelDataShort implements VoxelData {
     public VoxelDataShort() {
     }
 
-    public VoxelDataShort(byte state, int material) {
+    public VoxelDataShort(byte state, long material) {
         this.state = state;
         this.material = (short) material;
     }
@@ -46,7 +46,7 @@ public class VoxelDataShort implements VoxelData {
      *
      * @return The material
      */
-    public int getMaterial() {
+    public long getMaterial() {
         return material;
     }
 
@@ -64,7 +64,7 @@ public class VoxelDataShort implements VoxelData {
      *
      * @param mat The material
      */
-    public void setMaterial(int mat) {
+    public void setAttribute(long mat) {
         this.material = (short) mat;
     }
 
@@ -74,7 +74,7 @@ public class VoxelDataShort implements VoxelData {
      * @param state The state
      * @param mat The material
      */
-    public void setData(byte state, int mat) {
+    public void setData(byte state, long mat) {
         this.state = state;
         this.material = (short) mat;
     }

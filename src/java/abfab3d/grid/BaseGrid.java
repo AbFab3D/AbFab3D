@@ -69,20 +69,6 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
     /**
      * Constructor.
      *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public BaseGrid(double w, double h, double d, double pixel, double sheight) {
-        this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
-           (int) (d / pixel) + 1, pixel, sheight);
-    }
-
-    /**
-     * Constructor.
-     *
      * @param w The number of voxels in width
      * @param h The number of voxels in height
      * @param d The number of voxels in depth

@@ -28,14 +28,7 @@ import junit.framework.TestSuite;
  * @author Alan Hudson
  * @version
  */
-public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements ClassAttributeTraverser {
-
-    /** The material count */
-    private int allCount;
-    private int mrkCount;
-    private int extCount;
-    private int intCount;
-    private int outCount;
+public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -331,7 +324,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
     public void testShortMaterialRange() {
         int maxMaterial = 16384;
         int width = maxMaterial;
-        int mat, expectedMat;
+        long mat, expectedMat;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, 1, 1, 0.001, 0.001);
 
@@ -410,11 +403,11 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 3;
         int height = 4;
         int depth = 10;
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 69;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 69;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.05, 0.02);
 
@@ -441,7 +434,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         }
 
         // test material 0
-        int mat = 0;
+        long mat = 0;
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.EXTERIOR, mat);
@@ -517,7 +510,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -592,7 +585,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -673,8 +666,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 69;
+        long mat1 = 1;
+        long mat2 = 69;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -749,8 +742,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 69;
+        long mat1 = 1;
+        long mat2 = 69;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -831,8 +824,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 69;
+        long mat1 = 1;
+        long mat2 = 69;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -907,8 +900,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 69;
+        long mat1 = 1;
+        long mat2 = 69;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1139,8 +1132,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 69;
+        long mat1 = 1;
+        long mat2 = 69;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -1198,62 +1191,4 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid implements Cl
 
     }
 
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        allCount++;
-
-        if (vd.getState() == Grid.EXTERIOR) {
-            mrkCount++;
-            extCount++;
-        } else if (vd.getState() == Grid.INTERIOR) {
-            mrkCount++;
-            intCount++;
-        } else {
-            outCount++;
-        }
-
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        // ignore
-        return true;
-    }
-
-    /**
-     * Set the X values of a grid.
-     *
-     * @param state The new state
-     * @param mat The new material
-     */
-    protected static void setX(AttributeGrid grid, int y, int z, byte state, byte mat, int startIndex, int endIndex) {
-        for(int x=startIndex; x <= endIndex; x++) {
-            grid.setData(x,y,z, state, mat);
-        }
-    }
-
-    /**
-     * Resets the voxel counts.
-     */
-    private void resetCounts() {
-        allCount = 0;
-        mrkCount = 0;
-        extCount = 0;
-        intCount = 0;
-        outCount = 0;
-    }
 }

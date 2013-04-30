@@ -1299,7 +1299,7 @@ public class IsosurfaceMaker {
                     }
                 default: 
                     {
-                        int att = (agrid.getAttribute(gx,gy,gz));
+                        long att = (agrid.getAttribute(gx,gy,gz));
                         return 1. - (2.*att / gridMaxAttributeValue);
                     }
                     

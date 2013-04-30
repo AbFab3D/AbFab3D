@@ -12,7 +12,8 @@
 
 package abfab3d.grid.op;
 
-import java.util.concurrent.ExecutorService; 
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
@@ -56,8 +57,8 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
     int m_threadCount = 1;
     int m_sliceSize = 1;
     int m_nx, m_ny, m_nz;
-    Stack<Slice> m_surfaceSlices; 
-    Stack<Slice> m_erosionSlices; 
+    ConcurrentLinkedQueue<Slice> m_surfaceSlices;
+    ConcurrentLinkedQueue<Slice> m_erosionSlices;
 
     public ErosionShapeMT() {
         
@@ -118,7 +119,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
 
         GridBitIntervals surface = new GridBitIntervals(m_nx, m_ny, m_nz);
         //GridShortIntervals surface = new GridShortIntervals(m_nx, m_ny, m_nz, 1., 1.);
-        m_surfaceSlices = new Stack<Slice>();
+        m_surfaceSlices = new ConcurrentLinkedQueue<Slice>();
 
         int sliceHeight = m_sliceSize; 
         
@@ -129,7 +130,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
             
             if(ymax > y){
                 // non zero slice 
-                m_surfaceSlices.push(new Slice(y, ymax-1));
+                m_surfaceSlices.add(new Slice(y, ymax-1));
             }
         }
         
@@ -152,7 +153,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
 
         t0 = time();
 
-        m_erosionSlices = new Stack<Slice>();
+        m_erosionSlices = new ConcurrentLinkedQueue<Slice>();
 
         for(int y = 0; y < m_ny; y+= sliceHeight){
             int ymax = y + sliceHeight;
@@ -160,7 +161,7 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
                 ymax = m_ny;
             if(ymax > y){
                 // non zero slice 
-                m_erosionSlices.push(new Slice(y, ymax-1));
+                m_erosionSlices.add(new Slice(y, ymax-1));
             }
         }
 
@@ -190,21 +191,21 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
     }
 
     
-    synchronized Slice getNextSurfaceSlice(){
+    Slice getNextSurfaceSlice(){
 
-        if(m_surfaceSlices.empty())
+        if(m_surfaceSlices.isEmpty())
             return null;
         
-        return m_surfaceSlices.pop();
+        return m_surfaceSlices.poll();
         
     }
     
-    synchronized Slice getNextErosionSlice(){
+    Slice getNextErosionSlice(){
 
-        if(m_erosionSlices.empty())
+        if(m_erosionSlices.isEmpty())
             return null;
         
-        return m_erosionSlices.pop();
+        return m_erosionSlices.poll();
         
     }
 

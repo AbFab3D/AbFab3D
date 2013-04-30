@@ -39,7 +39,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
     private static final int INDEX_SIZE = 10*1024;
 
     /** The data */
-    private HashMap<Integer, HashSet<Voxel>> data;
+    private HashMap<Long, HashSet<Voxel>> data;
 
     /** Scratch var */
     private int[] gcoords;
@@ -70,7 +70,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
     public MaterialIndexedAttributeGridByte(int w, int h, int d, double pixel, double sheight) {
         super(w,h,d,pixel,sheight);
 
-        data = new HashMap<Integer, HashSet<Voxel>>();
+        data = new HashMap<Long, HashSet<Voxel>>();
     }
 
     /**
@@ -97,7 +97,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
     public MaterialIndexedAttributeGridByte(MaterialIndexedAttributeGridByte grid) {
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight());
-        this.data = (HashMap<Integer, HashSet<Voxel>>)grid.data.clone();
+        this.data = (HashMap<Long, HashSet<Voxel>>)grid.data.clone();
     }
 
     /**
@@ -114,8 +114,8 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      *
      * @param mat The aterialID
      */
-    public void removeAttribute(int mat) {
-        Integer b = new Integer(mat);
+    public void removeAttribute(long mat) {
+        Long b = new Long(mat);
 
         data.remove(b);
     }
@@ -279,7 +279,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         // Slow method, must traverse all lists
 
         Iterator<HashSet<Voxel>> itr = data.values().iterator();
@@ -315,7 +315,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param y The y grid coordinate
      * @param z The z grid coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         // Slow method, must traverse all lists
 
         Iterator<HashSet<Voxel>> itr = data.values().iterator();
@@ -349,8 +349,8 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, int material) {
-        Integer b = new Integer(material);
+    public void setData(double x, double y, double z, byte state, long material) {
+        Long b = new Long(material);
 
         HashSet<Voxel> voxels = data.get(b);
         if (voxels == null) {
@@ -381,8 +381,8 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param state The state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
-        Integer b = new Integer(material);
+    public void setData(int x, int y, int z, byte state, long material) {
+        Long b = new Long(material);
 
         HashSet<Voxel> voxels = data.get(b);
         if (voxels == null) {
@@ -407,7 +407,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         // TODO: not implemented yet
         throw new IllegalArgumentException("Not Implemented");
     }
@@ -418,7 +418,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param state The value.  0 = nothing. > 0 materialID     
+     * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(int x, int y, int z, byte state) {
         // TODO: not implemented yet
@@ -501,10 +501,10 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param mat The class of material to traverse
      * @return The number
      */
-    public int findCount(int mat) {
+    public int findCount(long mat) {
         int ret_val = 0;
 
-        Integer b = new Integer(mat);
+        Long b = new Long(mat);
 
         HashSet<Voxel> voxels = data.get(b);
         if (voxels == null) {
@@ -534,7 +534,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         if (vc == VoxelClasses.ALL) {
             VoxelData vd = getVoxelData();
 
@@ -552,7 +552,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
             return;
         }
 
-        Integer b = new Integer(mat);
+        Long b = new Long(mat);
 
         HashSet<Voxel> voxels = data.get(b);
 
@@ -617,10 +617,8 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(int mat, ClassAttributeTraverser t) {
-        int ret_val = 0;
-
-        Integer b = new Integer(mat);
+    public void findAttribute(long mat, ClassAttributeTraverser t) {
+        Long b = new Long(mat);
 
         HashSet<Voxel> voxels = data.get(b);
         if (voxels == null) {
@@ -815,7 +813,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
             }
         }
     }
-    
+
     /**
      * Traverse a class of voxel and material types.  May be much faster then
      * full grid traversal for some implementations.
@@ -824,8 +822,8 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
-        Integer b = new Integer(mat);
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
+        Long b = new Long(mat);
 
         HashSet<Voxel> voxels = data.get(b);
 
@@ -885,8 +883,8 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
-        Integer b = new Integer(mat);
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
+        Long b = new Long(mat);
 
         HashSet<Voxel> voxels = data.get(b);
 

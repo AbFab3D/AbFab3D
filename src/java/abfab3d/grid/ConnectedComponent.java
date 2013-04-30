@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import static abfab3d.util.Output.printf;
 
 
-    
+
 /**
 
 
@@ -28,50 +28,50 @@ import static abfab3d.util.Output.printf;
 
 */
 public class ConnectedComponent implements Comparable, Region {
-        
+
     public static final int ALG_SCANLINE_STACK = 1, ALG_SCANLINE_QUEUE = 0, ALG_FLOODFILL_QUEUE = 2, ALG_FLOODFILL_RECURSIVE = -1 ;
 
     public static final int DEFAULT_ALGORITHM = ALG_SCANLINE_STACK;
-    
 
-    protected ArrayInt m_component = null; // array of coordinates of found voxels 
-    int material; // material  of the component 
+
+    protected ArrayInt m_component = null; // array of coordinates of found voxels
+    long material; // material  of the component
     AttributeGrid grid;
 
-    GridBit mask; // mask of visited voxels 
+    GridBit mask; // mask of visited voxels
 
     int nx1, ny1, nz1; // dimensions of grid reduced by 1
 
-    // region's bounds 
+    // region's bounds
     int xmin=Integer.MAX_VALUE,
-        ymin=Integer.MAX_VALUE, 
-        zmin=Integer.MAX_VALUE, 
-        xmax=Integer.MIN_VALUE, 
-        ymax=Integer.MIN_VALUE, 
+        ymin=Integer.MAX_VALUE,
+        zmin=Integer.MAX_VALUE,
+        xmax=Integer.MIN_VALUE,
+        ymax=Integer.MIN_VALUE,
         zmax=Integer.MIN_VALUE;
 
     long m_volume = 0;
-    
+
     int seedX, seedY, seedZ;
-    
+
     static final int MAXLEVEL = 2000;
-    
-    /** 
-        mask - bitmask of visited voxels 
-        x,y,z - start point 
-        material - material to use 
+
+    /**
+        mask - bitmask of visited voxels
+        x,y,z - start point
+        material - material to use
         collectData - colect regions data or not
-        algorithm - 
-        
+        algorithm -
+
     */
-    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, int material, boolean collectData){
+    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, long material, boolean collectData){
         this(grid, mask, x, y, z, material, collectData, DEFAULT_ALGORITHM);
     }
 
-    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, int material, boolean collectData, int algorithm){
-        
+    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, long material, boolean collectData, int algorithm){
+
         this.grid = grid;
-        this.mask = mask; 
+        this.mask = mask;
         this.material = material;
         this.seedX = x;
         this.seedY = y;
@@ -80,7 +80,7 @@ public class ConnectedComponent implements Comparable, Region {
         nx1 = grid.getWidth()-1;
         ny1 = grid.getHeight()-1;
         nz1 = grid.getDepth()-1;
-        
+
         //printf("ConnectedComponent(%d, %d, %d)\n", x,y,z);
         if(collectData)
             m_component = new ArrayInt(30);
@@ -99,20 +99,20 @@ public class ConnectedComponent implements Comparable, Region {
             floodFill(x, y, z,0);
             break;
         }
-        
-        // release references 
+
+        // release references
         mask = null;
         grid = null;
 
     }
-    
+
     void dumpScanLine(int x, int yy, int z){
-        
+
         for(int y = 0; y <= ny1; y++){
-            
-            int mat = grid.getAttribute(x,y,z);
+
+            long mat = grid.getAttribute(x,y,z);
             printf("y: %d, mat: %d\n", y, mat);
-            
+
         }
     }
 
@@ -142,268 +142,268 @@ public class ConnectedComponent implements Comparable, Region {
 
 
     }
-    
+
     /**
-       fills region using analog of scan line algorithm 
+       fills region using analog of scan line algorithm
     */
     boolean fillScanLineQueue(int start[]) {
-        
+
         //LinkedList<int[]> que = new LinkedList<int[]>();
         //ArrayDeque<int[]> que = new ArrayDeque<int[]>();
         QueueInt que = new QueueInt(100000);
-        
+
         boolean spanxLeft, spanxRight,spanzLeft, spanzRight;
         int x = start[0], y = start[1], z = start[2];
         int pnt[] = new int[3];
-        
+
         que.offer(x,y,z);
         while(!que.isEmpty()) {
-            
+
             //int pnt[] = que.remove();
             que.remove(pnt);
             x = pnt[0];
             y = pnt[1];
             z = pnt[2];
-            
+
             if(mask.get(x,y,z) != 0){
-                // this line was already visited 
+                // this line was already visited
                 continue;
             }
             //printf("new scanline: [%d,%d,%d]\n", x, y, z);
             //dumpScanLine(x,y,z);
-            
+
             int y1 = y;
-            // go down in y as far as possible 
+            // go down in y as far as possible
             while(y1 >= 0 && compareMaterial(grid,x,y1,z,material)) {
-                y1--; 
+                y1--;
             }
-            y1++; // increment back 
+            y1++; // increment back
             //printf("scanline [%2d,%2d,%2d]->", x,y1,z);
-            
+
             spanxLeft = spanxRight = spanzLeft = spanzRight = false;
-            
+
             while((y1 <= ny1) && compareMaterial(grid,x,y1,z,material) ){
-                // fill one scan line 
-                // mark voxel visited 
-                mask.set(x,y1,z,1); 
+                // fill one scan line
+                // mark voxel visited
+                mask.set(x,y1,z,1);
                 if(m_component != null)
                     m_component.add(x,y1,z);
                 updateBounds(x,y1,z);
                 m_volume++;
-                
-                // check x-direction 
+
+                // check x-direction
                 if(!spanxLeft && (x > 0) &&  (mask.get(x-1, y1, z) == 0) && compareMaterial(grid,x-1,y1,z,material)){
                     // start of potential new span
                     //que.offer(new int[]{x - 1, y1, z});
                     que.offer(x - 1, y1, z);
-                    
+
                     spanxLeft = true;
-                    
+
                 } else if(spanxLeft && (x > 0) && ((mask.get(x-1, y1, z)!= 0) || !compareMaterial(grid,x-1,y1,z,material))){
                     // end of potential new span
-                    
+
                     spanxLeft = false;
-                    
+
                 }
-                
+
                 if(!spanxRight && x < nx1 &&  (mask.get(x+1, y1, z)==0)  && compareMaterial(grid,x+1,y1,z,material)) {
                     // start of potential new span
-                    
+
                     //que.offer(new int[]{x + 1, y1, z});
                     que.offer(x + 1, y1, z);
                     spanxRight = true;
-                    
+
                 } else if(spanxRight && x < nx1 && ((mask.get(x+1, y1, z)!= 0) || !compareMaterial(grid,x+1,y1,z,material))) {
                     // end of potential new span
-                    
+
                     spanxRight = false;
-                    
-                } 
-                
-                // check z direction 
+
+                }
+
+                // check z direction
                 if(!spanzLeft && (z > 0) &&  (mask.get(x, y1, z-1)==0) && compareMaterial(grid, x,y1,z-1, material)){
                     // start of potential new span
                     //que.offer(new int[]{x, y1, z-1});
                     que.offer(x, y1, z-1);
                     spanzLeft = true;
-                    
+
                 } else if(spanzLeft && (z > 0) && ((mask.get(x, y1, z-1)!= 0) || !compareMaterial(grid,x,y1,z-1,material))){
                     // end of potential new span
-                    
+
                     spanzLeft = false;
-                    
+
                 }
-                
+
                 if(!spanzRight && z < nz1 &&  (mask.get(x, y1, z+1)==0)  && compareMaterial(grid, x,y1,z+1,material)) {
-                    // start of potential new span                        
+                    // start of potential new span
                     //que.offer(new int[]{x, y1, z+1});
                     que.offer(x, y1, z+1);
                     spanzRight = true;
-                    
+
                 } else if(spanzRight && z < nz1 && ((mask.get(x, y1, z+1)!= 0) || !compareMaterial(grid,x,y1,z+1,material))) {
                     // end of potential new span
-                    
+
                     spanzRight = false;
-                    
-                } 
+
+                }
                 y1++;
-            }                
+            }
             //printf("[%2d,%2d,%2d]\n ", x,y1,z);
-            
+
         }
-        
+
         //que.printStat();
         return true;
-    } // fillScanLineQue 
-    
+    } // fillScanLineQue
+
     /**
-       fills region using analog of scan line algorithm 
+       fills region using analog of scan line algorithm
     */
     boolean fillScanLineStack(int start[]) {
-        
-        
+
+
         StackInt3 stack = new StackInt3(100);
-        
-        int pnt[] = new int[3]; // point to pop from stack 
-        
+
+        int pnt[] = new int[3]; // point to pop from stack
+
         boolean spanxLeft, spanxRight,spanzLeft, spanzRight;
         int x = start[0], y = start[1], z = start[2];
-        
+
         stack.push(x, y, z);
-        
-        while(stack.pop(pnt)) { 
-            
+
+        while(stack.pop(pnt)) {
+
             x = pnt[0];
-            y = pnt[1]; 
+            y = pnt[1];
             z = pnt[2];
-            
+
             if(mask.get(x,y,z) != 0){
-                // this line was already visited 
+                // this line was already visited
                 continue;
             }
             int y1 = y;
-            
-            // go down in y as far as possible 
+
+            // go down in y as far as possible
             while(y1 >= 0 && compareMaterial(grid,x,y1,z,material)) {
-                y1--; 
+                y1--;
             }
-            y1++; // increment back 
+            y1++; // increment back
             //printf("scanline [%2d,%2d,%2d]->", x,y1,z);
-            
+
             spanxLeft = spanxRight = spanzLeft = spanzRight = false;
-            
+
             while((y1 <= ny1) && compareMaterial(grid,x,y1,z,material) ){
-                // fill one scan line 
-                // mark voxel visited 
-                mask.set(x,y1,z,1); 
+                // fill one scan line
+                // mark voxel visited
+                mask.set(x,y1,z,1);
                 if(m_component != null)
                     m_component.add(x,y1,z);
                 updateBounds(x,y1,z);
                 m_volume++;
-                
-                // check x-direction 
+
+                // check x-direction
                 if(!spanxLeft && (x > 0) &&  (mask.get(x-1, y1, z)==0) && compareMaterial(grid,x-1,y1,z,material)){
                     // start of potential new span
                     if(!stack.push(x - 1, y1, z)) return false;
                     spanxLeft = true;
-                    
+
                 } else if(spanxLeft && (x > 0) && ((mask.get(x-1, y1, z) != 0) || !compareMaterial(grid,x-1,y1,z, material))){
                     // end of potential new span
                     spanxLeft = false;
-                    
+
                 }
-                
+
                 if(!spanxRight && x < nx1 &&  (mask.get(x+1, y1, z)==0)  && compareMaterial(grid,x+1,y1,z,material)) {
-                    
+
                     // start of potential new span
-                    if(!stack.push(x + 1, y1, z)) return false; // stack overflow 
+                    if(!stack.push(x + 1, y1, z)) return false; // stack overflow
                     spanxRight = true;
-                    
+
                 } else if(spanxRight && x < nx1 && ((mask.get(x+1, y1, z)!= 0) || !compareMaterial(grid,x+1,y1,z,material))) {
                     // end of potential new span
-                    
+
                     spanxRight = false;
-                    
-                } 
-                
-                // check z direction 
+
+                }
+
+                // check z direction
                 if(!spanzLeft && (z > 0) &&  (mask.get(x, y1, z-1)==0) && compareMaterial(grid,x,y1,z-1, material)){
                     // start of potential new span
                     if(!stack.push(x, y1, z-1)) return false;
                     spanzLeft = true;
-                    
+
                 } else if(spanzLeft && (z > 0) && ((mask.get(x, y1, z-1)!= 0) || !compareMaterial(grid,x,y1,z-1,material))){
                     // end of potential new span
-                    
+
                     spanzLeft = false;
-                    
+
                 }
-                
+
                 if(!spanzRight && z < nz1 &&  (mask.get(x, y1, z+1)==0)  && compareMaterial(grid,x,y1,z+1,material)) {
                     // start of potential new span
-                    
-                    if(!stack.push(x, y1, z+1)) return false; // stack overflow 
+
+                    if(!stack.push(x, y1, z+1)) return false; // stack overflow
                     spanzRight = true;
-                    
+
                 } else if(spanzRight && z < nz1 && ((mask.get(x, y1, z+1)!= 0) || !compareMaterial(grid,x,y1,z+1,material))) {
-                    
+
                     // end of potential new span
                     spanzRight = false;
-                    
-                } 
+
+                }
                 y1++;
-            }                
+            }
             //printf("[%2d,%2d,%2d]\n ", x,y1,z);
-            
+
         }
-        
+
         //stack.printStat();
-        
+
         return true;
-    } // fillScanLine 
-    
+    } // fillScanLine
+
     /**
        similar to recursive fill, but uses no system stack
     */
     void floodFillQue(int start[]) {
-        
+
         //int start_state = grid.getState(start[0], start[1], start[2] );
-        
+
         LinkedList<int[]> que = new LinkedList<int[]>();
-        
+
         que.add(start);
         mask.set(start[0],start[1],start[2],1);
-        
+
         while(!que.isEmpty()) {
             int vc[] = que.remove();
-            
+
             int i = vc[0];
             int j = vc[1];
             int k = vc[2];
-            
+
             if (compareMaterial(grid, i,j,k, material)) {
 
                 if(m_component != null)
-                    m_component.add(i,j,k);                
+                    m_component.add(i,j,k);
                 updateBounds(i,j,k);
                 m_volume++;
                 // test adjacent voxels
-                
+
                 for(int n1=-1; n1 < 2; n1++) {
                     for(int n2=-1; n2 < 2; n2++) {
                         for(int n3=-1; n3 < 2; n3++) {
                             if (n1 == 0 && n2 == 0 && n3 == 0)
                                 continue;
-                            
+
                             int ni = i+n1;
                             int nj = j+n2;
                             int nk = k+n3;
-                            
+
                             if (mask.get(ni,nj,nk) == 0) {
-                                
+
                                 if (!compareMaterial(grid, ni, nj, nk,material))
                                     continue;
-                                
+
                                 que.offer(new int[]{ni,nj,nk});
                                 mask.set(ni,nj,nk,1);
                                 //printf("que: %d (%d,%d,%d)\n",que.size(),ni,nj,nk);
@@ -414,12 +414,12 @@ public class ConnectedComponent implements Comparable, Region {
             }
         }
     }
-    
+
     /*
-      this is very unefficient and stack intensive recursive algorithm 
+      this is very unefficient and stack intensive recursive algorithm
     */
     void floodFill(int x, int y, int z, int level){
-        
+
         if(level > MAXLEVEL)
             return;
         level++;
@@ -427,90 +427,90 @@ public class ConnectedComponent implements Comparable, Region {
             // we don't test boundary poins
             return;
         }
-        
+
         if(mask.get(x,y,z) != 0){
             // voxel already was visited
             return;
         }
-        
-        if(!compareMaterial(grid, x,y,z,material)) // different material 
+
+        if(!compareMaterial(grid, x,y,z,material)) // different material
             return;
-        
+
         // voxel of our material - add it and check 6 heighbors
         if(m_component != null)
             m_component.add(x,y,z);
         updateBounds(x,y,z);
         m_volume++;
-        
+
         mask.set(x,y,z,1);
-        
+
         floodFill(x+1,y,z,level);
         floodFill(x-1,y,z,level);
         floodFill(x,y+1,z,level);
         floodFill(x,y-1,z,level);
         floodFill(x,y,z+1,level);
-        floodFill(x,y,z-1,level);        
-        
+        floodFill(x,y,z-1,level);
+
     }
-    
+
     /**
-       returns voxel coordinates 
+       returns voxel coordinates
      */
     public int[] getVoxelCoord(int index, int[] coord){
 
         if(m_component == null)
             return coord;
         //
-        // coordinates are triplets 
+        // coordinates are triplets
         //
 
         index *= 3;
 
         if(index + 2 > m_component.size())
-            return coord;       
-        
+            return coord;
+
         coord[0] = m_component.get(index++);
         coord[1] = m_component.get(index++);
         coord[2] = m_component.get(index++);
 
         return coord;
     }
-    
+
     /**
        return volume of this region
      */
     public long getVolume(){
-        
+
         return m_volume;
-        
+
     }
 
     /**
-       return seed pont of this region 
+       return seed pont of this region
      */
     public int[] getSeed(){
-        
+
         return new int[]{seedX, seedY, seedZ};
-        
+
     }
-    
+
     void dump(){
         printf("component volume: %d\n",m_volume);
     }
 
     /**
-       return true if voxel is non zero and has given material 
-       
+       return true if voxel is non zero and has given material
+
     */
-    static boolean compareMaterial(AttributeGrid grid, int x, int y, int z, int material){
+    static boolean compareMaterial(AttributeGrid grid, int x, int y, int z, long material){
         byte s = grid.getState(x,y,z);
         if(s == AttributeGrid.OUTSIDE)
             return false;
-        int m = grid.getAttribute(x,y,z);
+        long m = grid.getAttribute(x,y,z);
         if(m == material)
             return true;
         else
-            return false;            
+            return false;
     }
 
     public int compareTo(Object o){
@@ -524,25 +524,25 @@ public class ConnectedComponent implements Comparable, Region {
         } else {
             return 1;
         }
-        
+
     }
-    
+
     public void traverse(RegionTraverser t){
-        
+
         int len3 = m_component.size()/3;
-        
+
         for(int i = 0, k = 0; k  < len3; k++){
             t.found(m_component.get(i++), m_component.get(i++), m_component.get(i++));
-        }                
-    }    
+        }
+    }
 
     public void traverseInterruptible(RegionTraverser t){
         int len3 = m_component.size()/3;
-        
+
         for(int i = 0, k = 0; k  < len3; k++){
             if(!t.foundInterruptible(m_component.get(i++), m_component.get(i++), m_component.get(i++)))
                 return;
-        }                        
+        }
     }
 
     /**

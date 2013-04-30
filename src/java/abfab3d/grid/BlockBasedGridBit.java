@@ -181,7 +181,7 @@ public class BlockBasedGridBit extends BaseGrid {
         // TODO: what to do about block order?
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
                 grid.getVoxelSize(), grid.getSliceHeight());
-        
+
         this.blockOrder = grid.blockOrder;
         this.blockResX = grid.blockResX;
         this.blockResY = grid.blockResY;
@@ -320,7 +320,7 @@ public class BlockBasedGridBit extends BaseGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -354,7 +354,7 @@ public class BlockBasedGridBit extends BaseGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         // Find block coord
         getBlockCoord(x, y, z, bcoord);
 

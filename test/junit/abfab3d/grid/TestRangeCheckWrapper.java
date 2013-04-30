@@ -25,14 +25,14 @@ import junit.framework.TestSuite;
  * @author Alan Hudson
  * @version
  */
-public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverser {
+public class TestRangeCheckWrapper extends BaseTestGrid {
+    public void testToString() {
+        Grid grid = new ArrayGridByte(1, 1, 1, 0.001, 0.001);
+        RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
 
-    /** The material count */
-    private int allCount;
-    private int mrkCount;
-    private int extCount;
-    private int intCount;
-    private int outCount;
+        runToString(wrapper);
+    }
+
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -42,14 +42,61 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
     }
 
     /**
+     * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
+     */
+    public void testFindInterruptableVoxelClassIterator() {
+        int width = 20;
+        int height = 10;
+        int depth = 10;
+
+        Grid grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
+
+        findInterruptableVoxelClassIterator1(wrapper);
+        grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
+        wrapper = new RangeCheckWrapper(grid);
+        findInterruptableVoxelClassIterator2(wrapper);
+    }
+
+    public void testInsideGrid() {
+        double voxelSize = 0.01;
+        Grid grid = new ArrayGridByte(50, 25, 70, voxelSize, 0.01);
+        RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
+
+        insideGrid(wrapper);
+    }
+
+    /**
+     * Test creating an empty grid.
+     */
+    public void testCreateEmpty() {
+        Grid grid = new ArrayGridByte(100, 101, 102, 0.001, 0.001);
+        RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
+
+        createEmpty(wrapper);
+    }
+
+    /**
+     * Test clone.
+     */
+    public void testClone() {
+        int size = 10;
+        double voxelSize = 0.002;
+        double sliceHeight = 0.001;
+
+        Grid grid = new ArrayGridByte(size,size,size,voxelSize,sliceHeight);
+        RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
+        runClone(wrapper);
+    }
+
+    /**
      * Test the constructors and the grid size.
      */
     public void testSetGrid() {
         Grid grid = null;
-        RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
 
         grid = new ArrayAttributeGridByte(2, 3, 4, 0.001, 0.001);
-        wrapper = new RangeCheckWrapper(grid);
+        RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
 
         assertEquals("Wrapper grid width is not " + 2, 2, wrapper.getWidth());
         assertEquals("Wrapper grid height is not " + 3, 3, wrapper.getHeight());
@@ -63,7 +110,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         int width = 20;
         int height = 30;
         int depth = 40;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -188,7 +235,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         double depth = 0.041;
         double hres = 0.002;
         double vres = 0.002;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -311,7 +358,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         int width = 20;
         int height = 30;
         int depth = 40;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -394,7 +441,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         double depth = 0.041;
         double hres = 0.002;
         double vres = 0.002;
-        int mat = 1;
+        long mat = 1;
 
         Grid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
@@ -541,7 +588,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         int width = 10;
         int height = 4;
         int depth = 3;
-        int mat = 5;
+        long mat = 5;
 
         boolean threw = false;
         RangeCheckWrapper wrapper = new RangeCheckWrapper(null);
@@ -772,38 +819,10 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         double voxelWidth = 0.02;
         double sliceHeight = 0.01;
 
-        double[] minBounds = new double[] {-999.0, -999.0, -999.0};
-        double[] maxBounds = new double[] {-999.0, -999.0, -999.0};
-
-        RangeCheckWrapper wrapper = new RangeCheckWrapper(null);
-
-        // test null grid
-        try {
-            wrapper.getGridBounds(minBounds, maxBounds);
-            fail("Null grid did not throw exception");
-        } catch (NullPointerException e) {
-            assertEquals("getGridBounds should fail on null grid", -999.0, minBounds[0]);
-        }
-
         Grid grid = new ArrayAttributeGridByte(xVoxels, yVoxels, zVoxels, voxelWidth, sliceHeight);
-        wrapper = new RangeCheckWrapper(grid);
-
-        double expectedMaxX = xVoxels * voxelWidth;
-        double expectedMaxY = yVoxels * sliceHeight;
-        double expectedMaxZ = zVoxels * voxelWidth;
-
-        wrapper.getGridBounds(minBounds, maxBounds);
-//System.out.println(maxBounds[0] + ", " + maxBounds[1] + ", " + maxBounds[2]);
-
-        assertTrue("Minimum bounds is not (0, 0, 0)",
-                minBounds[0] == 0.0 &&
-                minBounds[1] == 0.0 &&
-                minBounds[2] == 0.0);
-
-        assertTrue("Minimum bounds is not (" + expectedMaxX + ", " + expectedMaxY + ", " + expectedMaxZ + ")",
-                maxBounds[0] == expectedMaxX &&
-                maxBounds[1] == expectedMaxY &&
-                maxBounds[2] == expectedMaxZ);
+        Grid wrapper = new RangeCheckWrapper(grid);
+        getGridBounds(wrapper);
+        getGridBounds2(wrapper);
 
     }
 
@@ -957,62 +976,5 @@ public class TestRangeCheckWrapper extends BaseTestGrid implements ClassTraverse
         grid = new ArrayAttributeGridByte(0.12, 0.11, 0.12, voxelSize, 0.01);
         wrapper = new RangeCheckWrapper(grid);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, wrapper.getVoxelSize());
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, byte vd) {
-        allCount++;
-
-        if (vd == Grid.EXTERIOR) {
-            mrkCount++;
-            extCount++;
-        } else if (vd == Grid.INTERIOR) {
-            mrkCount++;
-            intCount++;
-        } else {
-            outCount++;
-        }
-
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public boolean foundInterruptible(int x, int y, int z, byte vd) {
-        // ignore
-        return true;
-    }
-
-    /**
-     * Set the X values of a grid.
-     *
-     * @param state The new state
-     * @param mat The new material
-     */
-    protected static void setX(Grid grid, int y, int z, byte state, int mat, int startIndex, int endIndex) {
-        for(int x=startIndex; x <= endIndex; x++) {
-//System.out.println(x + " " + y + " " + z);
-            grid.setState(x,y,z, state);
-        }
-    }
-
-    private void resetCounts() {
-        allCount = 0;
-        mrkCount = 0;
-        extCount = 0;
-        intCount = 0;
-        outCount = 0;
     }
 }

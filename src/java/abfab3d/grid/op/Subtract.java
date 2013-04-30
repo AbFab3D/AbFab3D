@@ -49,10 +49,10 @@ public class Subtract implements Operation, ClassTraverser {
     private double z;
 
     /** The material for new exterior voxels */
-    private int material;
+    private long material;
 
 
-    public Subtract(Grid src, double x, double y, double z, int material) {
+    public Subtract(Grid src, double x, double y, double z, long material) {
         this.src = src;
         this.x = x;
         this.y = y;
@@ -70,9 +70,6 @@ public class Subtract implements Operation, ClassTraverser {
     public Grid execute(Grid dest) {
         long t0 = time();
 
-        int width = dest.getWidth();
-        int depth = dest.getDepth();
-        int height = dest.getHeight();
         this.dest = dest;
 
         // TODO: Make sure the grids are the same size

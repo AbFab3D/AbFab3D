@@ -31,7 +31,7 @@ import abfab3d.path.*;
  */
 public class CanMoveMaterialBatched implements ClassAttributeTraverser {
     /** The material to remove */
-    private int material;
+    private long material;
 
     /** The path to use */
     private StraightPath path;
@@ -46,7 +46,7 @@ public class CanMoveMaterialBatched implements ClassAttributeTraverser {
     private HashSet<VoxelCoordinate> ignoreSet;
     private VoxelData vd;
 
-    public CanMoveMaterialBatched(int material,StraightPath path) {
+    public CanMoveMaterialBatched(long material,StraightPath path) {
         this.material = material;
         this.path = path;
     }

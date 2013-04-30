@@ -43,7 +43,7 @@ public class TestRemoveMaterial extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // Add Object 1
-        int mat1_count = 5;
+        long mat1_count = 5;
 
         grid.setData(0,0,0, Grid.EXTERIOR, 1);
         grid.setData(0,0,1, Grid.EXTERIOR, 1);
@@ -55,7 +55,7 @@ public class TestRemoveMaterial extends BaseTestAttributeGrid {
             grid.findCount(1),mat1_count);
 
         // Add Object 2
-        int mat2_count = 6;
+        long mat2_count = 6;
 
         grid.setData(6,5,0, Grid.EXTERIOR, 2);
         grid.setData(6,5,1, Grid.EXTERIOR, 2);
