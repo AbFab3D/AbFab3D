@@ -23,15 +23,19 @@ import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
 
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.DataSourceImageBitmap;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.VecTransforms;
+import abfab3d.grid.op.DataSourceGrid;
 
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.io.output.MeshMakerMT;
+
+import abfab3d.io.input.STLRasterizer;
 
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
@@ -94,9 +98,9 @@ public class VolumeSculptorKernel extends HostedKernel {
     enum EdgeStyle {NONE, TOP, BOTTOM, BOTH}    
     ;
 
-    // High = print resolution.  Medium = print * 1.5, LOW = print * 2
+    // High = print resolution.  Medium = print * 2, LOW = print * 4
     enum PreviewQuality {
-        LOW(2.0), MEDIUM(1.5), HIGH(1.0);
+        LOW(4.), MEDIUM(2.), HIGH(1.0);
 
         private double factor;
 
@@ -108,29 +112,7 @@ public class VolumeSculptorKernel extends HostedKernel {
             return factor;
         }
     }
-
     ;
-
-    enum SymmetryStyle {
-        NONE(-1),
-        FRIEZE_II(0),   // oo oo
-        FRIEZE_IX(1),   // oo X
-        FRIEZE_IS(2),   // oo *
-        FRIEZE_SII(3),  // * oo oo
-        FRIEZE_22I(4),  // 2 2 oo
-        FRIEZE_2SI(5),  // 2 * oo
-        FRIEZE_S22I(6); // * 2 2 oo
-
-        private int code;
-
-        SymmetryStyle(int code) {
-            this.code = code;
-        }
-
-        public int getCode() {
-            return code;
-        }
-    }
 
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
@@ -161,28 +143,14 @@ public class VolumeSculptorKernel extends HostedKernel {
     /**
      * The image filename
      */
-    private String imagePath = null;
-    private boolean imageInvert = false;
-    private String crossSectionPath = null;
+    private String modelPath = null;
 
-    private int tilingX;
-    private int tilingY;
     private int threadCount;
-    //private EdgeStyle edgeStyle;
-    private SymmetryStyle symmetryStyle;
-
+    
+    // size of output model boundingBox 
+    private double sizeX, sizeY, sizeZ; 
+        
     private String material;
-    private String text = "MADE IN THE FUTURE";
-    private double textDepth;
-    private String fontName = "Times New Roman";
-    private boolean fontBold = false;
-    private boolean fontItalic = false;
-    private int fontSize = 20;
-
-    private double imageBlurWidth = 0.;
-    private int imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
-    private double imageBaseThreshold = 0.1;
-    private double bandLength; // length of ring perimeter
 
     /**
      * How many regions to keep
@@ -203,77 +171,18 @@ public class VolumeSculptorKernel extends HostedKernel {
         int step = 0;
 
         // Image based params
-        params.put("image", new Parameter("image", "Image", "The image to use", "images/tile_01.png", 1,
+        params.put("modelPath", new Parameter("modelPath", "Model", "The model to use", "models/sphere_20mm.stl", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
-
-        params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the image", "false", 1,
-                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 100, null, null)
-        );
-
-        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
-                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 100, null, null)
-        );
-
-        params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-
-        params.put("tilingX", new Parameter("tilingX", "Tiling X", "The tiling along left/right of the ring", "8", 1,
-                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 50, null, null)
-        );
-
-        params.put("tilingY", new Parameter("tilingY", "Tiling Y", "The tiling along up/down of the ring", "1", 1,
-                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 50, null, null)
-        );
-
-        params.put("symmetryStyle", new Parameter("symmetryStyle", "Symmetry Style", "Whether to put lines on the band", symmetryStyle.NONE.toString(), 1,
-                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, enumToStringArray(symmetryStyle.values()))
-        );
-
-        //params.put("edgeStyle", new Parameter("edgeStyle", "Edge Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
-        //        Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-        //        step, seq++, false, -1, 1, null, enumToStringArray(edgeStyle.values()))
-        //);
 
         step++;
         seq = 0;
 
-        // Size based params
-        params.put("innerDiameter", new Parameter("innerDiameter", "Inner Diameter", "The inner diameter", "0.02118", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 1, null, null)
-        );
 
-        params.put("ringWidth", new Parameter("ringWidth", "Ring Width", "The ring width(Finger Length)", "0.005", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 1, null, null)
-        );
-
-        params.put("ringThickness", new Parameter("ringThickness", "Ring Thickness", "The thickness of the ring", "0.001", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 1, null, null)
-        );
-
-        params.put("baseThickness", new Parameter("baseThickness", "Base Thickness", "The thickness percent of the ring base", "0", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 1, null, null)
-        );
-        params.put("topBorderWidth", new Parameter("topBorderWidth", "Top Border Width", "The width of the top border", "0.001", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 1, null, null)
-        );
-        params.put("bottomBorderWidth", new Parameter("bottomBorderWidth", "Bottom Border Width", "The width of the bottom border", "0.001", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 1, null, null)
-        );
+        params.put("sizeX", new Parameter("sizeX", "Size X", "Size X", "0.02", 1, Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT, step, seq++, false, 0, 1, null, null));
+        params.put("sizeY", new Parameter("sizeY", "Size Y", "Size Y", "0.02", 1, Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT, step, seq++, false, 0, 1, null, null));
+        params.put("sizeZ", new Parameter("sizeZ", "Size Z", "Size Z", "0.02", 1, Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT, step, seq++, false, 0, 1, null, null));
 
         step++;
         seq = 0;
@@ -282,28 +191,6 @@ public class VolumeSculptorKernel extends HostedKernel {
                 Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, null)
         );
-
-        params.put("textDepth", new Parameter("textDepth", "Text Depth", "The depth of the text engraving", "0.0003", 1,
-                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 1, null, null)
-        );
-
-        params.put("fontName", new Parameter("fontName", "fontName", "Font Name", "Times New Roman", 1,
-                Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, null)
-        );
-
-        params.put("fontBold", new Parameter("fontBold", "Font Bold", "Use Bold Font", "false", 1,
-                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, null));
-
-        params.put("fontItalic", new Parameter("fontItalic", "Font Italic", "Use Italic Font", "false", 1,
-                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, null));
-
-        params.put("fontSize", new Parameter("fontSize", "fontSize", "The font size", "12", 1,
-                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 3, 50, null, null));
 
         step++;
         seq = 0;
@@ -343,13 +230,7 @@ public class VolumeSculptorKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, enumToStringArray(RegionPrunner.Regions.values()))
         );
 
-        // Deprecate this param
-        params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "5", 1,
-                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                step, seq++, true, 0, 100, null, null)
-        );
-
-        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxels to smooth", "0.5", 1,
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "Width of Gaussian Smoothing", "0.5", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 100, null, null)
         );
@@ -383,13 +264,35 @@ public class VolumeSculptorKernel extends HostedKernel {
             resolution = resolution * previewQuality.getFactor();
         }
         
-        /**
-         * return bounds extended by given margin
-         */
+        if (threadCount == 0) {
+            int cores = Runtime.getRuntime().availableProcessors();
+            
+            threadCount = cores;
+            
+            // scales well to 4 threads, stop there.
+            if (threadCount > 4) {
+                threadCount = 4;
+            }
+            
+            System.out.println("Number of cores:" + threadCount);
+        }
+        
 
-        double modelBonds[] = new double[]{-20*MM, 20*MM, -20*MM, 20*MM, -20*MM, 20*MM};
+        //double modelBounds[] = new double[]{-sizeX/2, sizeX/2, -sizeY/2, sizeY/2, -sizeZ/2, sizeZ/2};
+        double modelBounds[] = new double[6];
 
-        double gridBounds[] = extendBounds(modelBonds, 0.2*MM);    
+        STLRasterizer stl = new STLRasterizer();
+       
+        stl.setVoxelSize(resolution);
+        stl.setPadding(2);
+
+        AttributeGrid modelGrid = (AttributeGrid)stl.rasterizeFile(modelPath);        
+
+        modelGrid.getGridBounds(modelBounds);
+
+        printf("grid loaded:[%d x %d x %d]\n",modelGrid.getWidth(),modelGrid.getHeight(), modelGrid.getDepth());
+
+        double gridBounds[] = modelBounds;//extendBounds(modelBounds, 0.1*MM);    
 
         double voxelSize = resolution;
         
@@ -400,10 +303,12 @@ public class VolumeSculptorKernel extends HostedKernel {
         int nz = (int) ((gridBounds[5] - gridBounds[4]) / voxelSize);
         
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        printf("gridBounds: [%10.7f %10.7f %10.7f %10.7f %10.7f %10.7f ]\n", 
+               gridBounds[0], gridBounds[1], gridBounds[2], 
+               gridBounds[3], gridBounds[4], gridBounds[5]);
         
         // HARD CODED params to play with 
-        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
-        double gaussianSmooth = 1.0; 
+
         // size of grid block for MT calculatins 
         // (larger values reduce processor cache performance)
         int blockSize = 50;
@@ -417,26 +322,39 @@ public class VolumeSculptorKernel extends HostedKernel {
         // set it to 0. to make no surface transitions
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
 
-        imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
 
         GridMaker gm = new GridMaker();
         
 
-        //DataSource dataSource = new VolumePatterns.Balls(cellSize, (cellSize/2)*1.1);
+        DataSource balls = new VolumePatterns.Balls(cellSize, (cellSize/2)*1.1);
 
-        DataSources.Ring ring = new DataSources.Ring(17*MM, 3*MM, -7*MM, 7*MM);
+        DataSources.Ring ring = new DataSources.Ring(0.9*sizeX/2, 0.1*sizeX/2, sizeY/2, sizeY/2);
 
-        DataSource cubicGrid = new VolumePatterns.CubicGrid(3*MM, 0.5*MM);
-        DataSource gyroid = new VolumePatterns.Gyroid(8*MM, 0.5*MM);
+        DataSource cubicGrid = new VolumePatterns.CubicGrid(10*MM, 2*MM);
+        DataSource gyroid = new VolumePatterns.Gyroid(8*MM, 1.*MM);
         
-        DataSources.Ball ball = new DataSources.Ball(0,0,0, 20*MM);
+        DataSources.Ball ball = new DataSources.Ball(0,0,0, 10*MM);
+
+        DataSourceGrid model = new DataSourceGrid(modelGrid, modelBounds, 0);
         
+        DataSources.Block block = new DataSources.Block((modelBounds[1] + modelBounds[0])/2,
+                                                  (modelBounds[3] + modelBounds[2])/2,
+                                                  (modelBounds[5] + modelBounds[4])/2,
+                                                  (modelBounds[1] - modelBounds[0]),
+                                                  (modelBounds[3] - modelBounds[2]),
+                                                  (modelBounds[5] - modelBounds[4]));
+
         DataSources.Intersection intersection = new DataSources.Intersection();
 
-        intersection.addDataSource(ring);
+        //intersection.addDataSource(ring);
         //intersection.addDataSource(ball);
-        //intersection.addDataSource(gyroid);
-        intersection.addDataSource(cubicGrid);
+        intersection.addDataSource(model);
+        //intersection.addDataSource(block);
+        intersection.addDataSource(gyroid);
+
+        //intersection.addDataSource(cubicGrid);
+
+        //intersection.addDataSource(balls);
 
         
         gm.setBounds(gridBounds);
@@ -444,8 +362,10 @@ public class VolumeSculptorKernel extends HostedKernel {
 
         gm.setMaxAttributeValue(maxGridAttributeValue);
         gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
+        long t0 = time();
 
-        Grid grid = null;
+        
+        AttributeGrid grid;
 
         switch(gridType){
         default:
@@ -458,13 +378,16 @@ public class VolumeSculptorKernel extends HostedKernel {
             break;
             
         }
+
         grid.setGridBounds(gridBounds);
 
         printf("gm.makeGrid(), threads: %d\n", threadCount);
-        long t0 = time();
         gm.setThreadCount(threadCount);
         gm.makeGrid(grid);
         printf("gm.makeGrid() done %d ms\n", (time() - t0));
+        
+
+        //AttributeGrid grid = modelGrid;
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
         exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
@@ -479,7 +402,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         
         double gbounds[] = new double[6];
         grid.getGridBounds(gbounds);
-        
+        printf("gbounds: (%10.7f %10.7f %10.7f %10.7f %10.7f %10.7f )\n", gbounds[0],gbounds[1],gbounds[2],gbounds[3],gbounds[4],gbounds[5]);
         // place of default viewpoint 
         double viewDistance = GridSaver.getViewDistance(grid);
 
@@ -547,68 +470,20 @@ public class VolumeSculptorKernel extends HostedKernel {
             pname = "maxDecimationError";
             maxDecimationError = ((Double) params.get(pname)).doubleValue();
 
-            pname = "innerDiameter";
-            innerDiameter = ((Double) params.get(pname)).doubleValue();
+            pname = "modelPath";
+            modelPath = (String) params.get(pname);
 
-            pname = "ringThickness";
-            ringThickness = ((Double) params.get(pname)).doubleValue();
+            pname = "sizeX";
+            sizeX = ((Double) params.get(pname)).doubleValue();
 
-            pname = "ringWidth";
-            ringWidth = ((Double) params.get(pname)).doubleValue();
+            pname = "sizeY";
+            sizeY = ((Double) params.get(pname)).doubleValue();
 
-            pname = "topBorderWidth";
-            topBorderWidth = ((Double) params.get(pname)).doubleValue();
-
-            pname = "bottomBorderWidth";
-            bottomBorderWidth = ((Double) params.get(pname)).doubleValue();
-
-            pname = "baseThickness";
-            baseThickness = ((Double) params.get(pname)).doubleValue();
-
-            pname = "image";
-            imagePath = (String) params.get(pname);
-
-            pname = "imageInvert";
-            imageInvert = (Boolean) params.get(pname);
-
-            pname = "crossSection";
-            crossSectionPath = (String) params.get(pname);
-
-            pname = "tilingX";
-            tilingX = ((Integer) params.get(pname)).intValue();
-
-            pname = "tilingY";
-            tilingY = ((Integer) params.get(pname)).intValue();
-
-            //pname = "edgeStyle";
-            //edgeStyle = edgeStyle.valueOf((String) params.get(pname));
-
-            pname = "symmetryStyle";
-            symmetryStyle = symmetryStyle.valueOf((String) params.get(pname));
-
-            pname = "text";
-            text = ((String) params.get(pname));
-
-            pname = "textDepth";
-            textDepth = ((Double) params.get(pname));
-
-            pname = "fontName";
-            fontName = ((String) params.get(pname));
-
-            pname = "fontBold";
-            fontBold = (Boolean) params.get(pname);
-
-            pname = "fontItalic";
-            fontItalic = (Boolean) params.get(pname);
-
-            pname = "fontSize";
-            fontSize = ((Integer) params.get(pname)).intValue();
+            pname = "sizeZ";
+            sizeZ = ((Double) params.get(pname)).doubleValue();
 
             pname = "material";
             material = ((String) params.get(pname));
-
-            pname = "smoothSteps";
-            smoothSteps = ((Integer) params.get(pname)).intValue();
 
             pname = "smoothingWidth";
             smoothingWidth = ((Number) params.get(pname)).doubleValue();
@@ -616,24 +491,8 @@ public class VolumeSculptorKernel extends HostedKernel {
             pname = "threads";
             threadCount = ((Integer) params.get(pname)).intValue();
 
-            if (threadCount == 0) {
-                int cores = Runtime.getRuntime().availableProcessors();
-
-                threadCount = cores;
-
-                // scales well to 4 threads, stop there.
-                if (threadCount > 4) {
-                    threadCount = 4;
-                }
-
-                System.out.println("Number of cores:" + threadCount);
-            }
-
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
-
-            pname = "useGrayscale";
-            useGrayscale = (Boolean) params.get(pname);
 
             pname = "visRemovedRegions";
             visRemovedRegions = (Boolean) params.get(pname);

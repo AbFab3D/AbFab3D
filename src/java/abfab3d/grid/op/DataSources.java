@@ -597,13 +597,13 @@ public class DataSources {
         double exteriorRadius;        
         double exteriorRadius2;
         
-        public Ring(double innerRadius, double thickeness, double ymin, double ymax){  
+        public Ring(double innerRadius, double thickness, double ymin, double ymax){  
             
             this.ymin = ymin; 
             this.ymax = ymax; 
             
             this.innerRadius = innerRadius;
-            this.exteriorRadius = innerRadius + thickeness;
+            this.exteriorRadius = innerRadius + thickness;
 
             this.innerRadius2 = innerRadius*innerRadius;
 
