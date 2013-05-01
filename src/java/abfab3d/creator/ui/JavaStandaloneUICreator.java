@@ -408,6 +408,8 @@ System.out.println("Adding param: " + p.getName());
 //        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
         writeMesh(ps, true, "x3d", "VISUAL");
         ps.println(indent(16) + "fos.close();");
+        writeAopt(ps,"out.x3d","/tmp");
+        ps.println(indent(16) + "System.out.println(\"Aopt vis is\" + aopt_viz);");
 
         ps.println(indent(16) + "double[] bounds_min = results.getMinBounds();");
         ps.println(indent(16) + "double[] bounds_max = results.getMaxBounds();");
@@ -418,7 +420,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "double z = 2 * max_axis / Math.tan(Math.PI / 4);");
         ps.println(indent(16) + "float[] pos = new float[] {0,0,(float) z};");
 
-        ps.println(indent(16) + "X3DViewer.viewX3DOM(\"out.x3d\",pos);");
+        ps.println(indent(16) + "X3DViewer.viewX3DOM(aopt_viz,pos);");
 
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Model Done\");");
@@ -963,4 +965,17 @@ System.out.println("Adding param: " + p.getName());
 
 	    ps.println(indent(16) + "writer.endDocument();");
 	}
+
+    /**
+     * Use aopt to process the file
+     */
+    private void writeAopt(PrintStream ps, String input, String tmpDir) {
+
+        ps.println(indent(16) + "AoptRunner aoptr = new AoptRunner();");
+        ps.println(indent(16) + "AoptResult aopt_results = aoptr.run(\"" + input + "\", false);");
+
+        // Make the fully qualified path be relative
+        ps.println(indent(16) + "String aopt_viz = aopt_results.getOutput();");
+        ps.println(indent(16) + "if (aopt_viz != null) aopt_viz = aopt_viz.replace(\"" + tmpDir + "\",\"\");");
+    }
 }

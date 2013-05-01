@@ -11,6 +11,7 @@
       <module fileurl="file://$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" filepath="$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" filepath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" filepath="$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/volumesculptor/src/Volume Sculptor.iml" filepath="$PROJECT_DIR$/apps/volumesculptor/src/Volume Sculptor.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/cloth/src/cloth.iml" filepath="$PROJECT_DIR$/apps/cloth/src/cloth.iml" />
     </modules>
   </component>
