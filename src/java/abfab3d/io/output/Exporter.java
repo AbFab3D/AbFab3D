@@ -31,7 +31,7 @@ public interface Exporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors);
+    public void write(Grid grid, Map<Long, float[]> matColors);
 
     /**
      * Write a grid to the stream using the grid state

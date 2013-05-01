@@ -30,7 +30,7 @@ public class MeshVoxelizer {
     boolean m_rotate;
     double m_voxelSize, m_voxelHeight;
 
-    private int matID;
+    private long matID;
 
     // User scale
     double m_usx, m_usy, m_usz;
@@ -58,7 +58,7 @@ public class MeshVoxelizer {
     public MeshVoxelizer(int nx, int ny, int nz,
                          double voxelSize,
                          double voxelHeight,
-                         double tx, double ty, double tz, int matID
+                         double tx, double ty, double tz, long matID
     ) {
 
         this(nx,ny,nz,voxelSize,voxelHeight, 1,1,1,tx,ty,tz,0,0,0,0,matID);
@@ -101,7 +101,7 @@ public class MeshVoxelizer {
                          double sx, double sy, double sz,
                          double tx, double ty, double tz,
                          double rx, double ry, double rz, double rangle,
-                         int matID
+                         long matID
     ) {
 
         m_voxelSize = voxelSize;
@@ -471,7 +471,7 @@ public class MeshVoxelizer {
             grid.setState(x, y, z, Grid.INTERIOR);
         }
     }
-    void fillSegment_reverse(AttributeGrid grid, int x, int y, int z1, int z2, int matID) {
+    void fillSegment_reverse(AttributeGrid grid, int x, int y, int z1, int z2, long matID) {
         for (int z = z2; z >= z1; z--) {
             grid.setData(x, y, z, Grid.INTERIOR, matID);
         }

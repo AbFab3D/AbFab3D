@@ -127,7 +127,7 @@ public class MarchingCubesX3DExporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors.  4 component color
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors) {
+    public void write(Grid grid, Map<Long, float[]> matColors) {
 
 System.out.println("writing grid: " + grid);
         int idx = 0;
@@ -139,7 +139,7 @@ System.out.println("writing grid: " + grid);
 
         if (matColors != null) {
             // support color for material1
-            float[] mat_color = matColors.get(new Integer(1));
+            float[] mat_color = matColors.get(new Long(1));
             if (mat_color != null) {
                 color[0] = mat_color[0];
                 color[1] = mat_color[1];

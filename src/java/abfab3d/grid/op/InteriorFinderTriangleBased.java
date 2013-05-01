@@ -38,7 +38,7 @@ public class InteriorFinderTriangleBased implements Operation  {
     private static final boolean SPATIAL_ACCEL = true;
 
     /** The material to use for new voxels */
-    protected int innerMaterial;
+    protected long innerMaterial;
 
     // The center position
     protected double x;
@@ -80,7 +80,7 @@ public class InteriorFinderTriangleBased implements Operation  {
      *
      * @param newMaterial The materialID to assign new interior voxels
      */
-    public InteriorFinderTriangleBased(GeometryData geom, int newMaterial) {
+    public InteriorFinderTriangleBased(GeometryData geom, long newMaterial) {
         this.geom = geom;
         this.innerMaterial = newMaterial;
 
@@ -98,7 +98,7 @@ public class InteriorFinderTriangleBased implements Operation  {
     */
     public InteriorFinderTriangleBased(GeometryData geom,
                                        double x, double y, double z, double rx, double ry, double rz, double rangle,
-                                       int newMaterial) {
+                                       long newMaterial) {
         this.geom = geom;
         this.innerMaterial = newMaterial;
 
