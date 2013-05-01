@@ -12,11 +12,8 @@
 
 package abfab3d.io.input;
 
-import java.io.IOException;
-
-import java.io.DataInputStream;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
+import java.io.*;
+import java.util.zip.GZIPInputStream;
 
 
 import javax.vecmath.Vector3f;
@@ -78,8 +75,15 @@ public class STLReader  {
         long t0 = currentTimeMillis();
         
         this.out = out;
-        
-        DataInputStream data = new DataInputStream(new BufferedInputStream(new FileInputStream(path), (1 << 14)));
+
+        InputStream bis = null;
+
+        if (path.lastIndexOf(".gz") > -1) {
+            bis = new GZIPInputStream(new FileInputStream(path), (1 << 14));
+        } else {
+            bis = new BufferedInputStream(new FileInputStream(path), (1 << 14));
+        }
+        DataInputStream data = new DataInputStream(bis);
         
         data.skip(80);
         
