@@ -100,7 +100,7 @@ public class BoxBatcherX3DExporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors.  4 component color
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors) {
+    public void write(Grid grid, Map<Long, float[]> matColors) {
 
         if (grid instanceof OctreeAttributeGridByte) {
             ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
@@ -117,7 +117,7 @@ public class BoxBatcherX3DExporter {
 
         if (matColors != null) {
             // support color for material1
-            float[] mat_color = matColors.get(new Integer(1));
+            float[] mat_color = matColors.get(new Long(1));
             if (mat_color != null) {
                 color[0] = mat_color[0];
                 color[1] = mat_color[1];

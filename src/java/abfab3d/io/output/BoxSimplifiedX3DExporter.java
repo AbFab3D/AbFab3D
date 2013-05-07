@@ -103,7 +103,7 @@ public class BoxSimplifiedX3DExporter implements Exporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors.  4 component color
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors) {
+    public void write(Grid grid, Map<Long, float[]> matColors) {
 
         if (grid instanceof OctreeAttributeGridByte) {
             ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);

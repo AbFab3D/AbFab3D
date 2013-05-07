@@ -64,8 +64,8 @@ public class TriangleModelCreator extends GeometryCreator {
     protected double rz;
     protected double rangle;
 
-    protected int outerMaterialID;
-    protected int innerMaterialID;
+    protected long outerMaterialID;
+    protected long innerMaterialID;
 
     /** Scratch variables */
     protected double[] minBounds;
@@ -118,7 +118,7 @@ public class TriangleModelCreator extends GeometryCreator {
      */
     public TriangleModelCreator(GeometryData geom,
         double x, double y, double z, double rx, double ry, double rz, double rangle,
-        int outerMaterial, int innerMaterial, boolean fill) {
+        long outerMaterial, long innerMaterial, boolean fill) {
 
         this.geom = geom;
         this.x = x;
@@ -175,7 +175,7 @@ public class TriangleModelCreator extends GeometryCreator {
      */
     public TriangleModelCreator(GeometryData geom,
         double x, double y, double z, double rx, double ry, double rz, double rangle,
-        int outerMaterial, int innerMaterial, boolean fill, Operation interiorFinder) {
+        long outerMaterial, long innerMaterial, boolean fill, Operation interiorFinder) {
 
         this.interiorFinder = interiorFinder;
         this.geom = geom;

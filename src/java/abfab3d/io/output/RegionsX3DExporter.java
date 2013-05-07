@@ -94,7 +94,7 @@ public class RegionsX3DExporter implements Exporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors.  4 component color
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors) {
+    public void write(Grid grid, Map<Long, float[]> matColors) {
         BoxRegionFinder finder = new BoxRegionFinder();
         Set<Region> regions = finder.execute(grid);
 

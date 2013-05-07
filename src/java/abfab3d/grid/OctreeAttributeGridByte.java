@@ -1897,12 +1897,11 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param grid The grid to write
      * @param matColors Maps materials to colors
      */
-    public void write(BinaryContentHandler writer, OctreeAttributeGridByte grid, Map<Integer, float[]> matColors) {
+    public void write(BinaryContentHandler writer, OctreeAttributeGridByte grid, Map<Long, float[]> matColors) {
         double pixelSize = grid.getVoxelSize();
         double sheight = grid.getSliceHeight();
         float[] color = new float[] {0.8f,0.8f,0.8f};
         float transparency = 0;
-        int idx = 0;
         long saved = 0;
 
 
