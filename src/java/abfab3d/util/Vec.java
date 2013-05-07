@@ -42,5 +42,6 @@ public class Vec {
         for(int i=0; i < v.length; i++){
             v[i] = in.v[i];
         }
+        voxelSize = in.voxelSize;
     }
 }

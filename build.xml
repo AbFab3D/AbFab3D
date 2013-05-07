@@ -124,7 +124,7 @@
             jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
         />
         <compilejava package="abfab3d/io/output"
-            jars="toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar toxiclibscore.jar"
+            jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
         />
         <compilejava package="abfab3d/io/soap"
             jars=""
@@ -515,7 +515,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/util" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="support/junit-4.8.1.jar vecmath.jar j3d-org-all_2.0.0.jar xj3d-sav_2.0.0.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="support/junit-4.8.1.jar j3d-org-all_2.0.0.jar" />
-     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="support/junit-4.8.1.jar j3d-org-all_2.0.0.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar toxiclibscore.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="support/junit-4.8.1.jar j3d-org-all_2.0.0.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar toxiclibscore.jar vecmath.jar" />
       <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar j3d-org-all_2.0.0.jar support/junit-4.8.1.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="vecmath.jar xj3d-core_2.0.0.jar xj3d-common_2.0.0.jar xj3d-sav_2.0.0.jar j3d-org-all_2.0.0.jar support/junit-4.8.1.jar toxiclibscore.jar " />
