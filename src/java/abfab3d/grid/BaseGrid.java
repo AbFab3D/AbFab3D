@@ -115,7 +115,6 @@ public abstract class BaseGrid implements Grid, Cloneable,Serializable {
                             t.found(x,y,z,state);
                             break;
                         case MARKED:
-                            state = getState(x,y,z);
                             if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
                                 t.found(x,y,z,state);
                             }
