@@ -25,7 +25,7 @@
     <property name="entrypoint" value="volumesculptor.VolumeSculptor"/>
 
     <!--    <property name="runarg0" value="-Xmx4300m"/> -->
-    <property name="runarg0" value="-Xmx4300m"/>
+    <property name="runarg0" value="-Xmx8800m"/>
     <!--
         <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
         <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />

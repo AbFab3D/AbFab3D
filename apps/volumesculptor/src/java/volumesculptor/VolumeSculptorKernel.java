@@ -249,6 +249,8 @@ public class VolumeSculptorKernel extends HostedKernel {
      * @param handler The X3D content handler to use
      */
     public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
+//        int gridType =  GRID_BYTE_ARRAY;
+        int gridType =  GRID_SHORT_INTERVALS;
 
         if (USE_FAST_MATH) {
             System.setProperty("jodk.fastmath.usejdk", "false");
@@ -281,17 +283,33 @@ public class VolumeSculptorKernel extends HostedKernel {
         //double modelBounds[] = new double[]{-sizeX/2, sizeX/2, -sizeY/2, sizeY/2, -sizeZ/2, sizeZ/2};
         double modelBounds[] = new double[6];
 
+        AttributeGrid modelGrid = null;
+
         STLRasterizer stl = new STLRasterizer();
        
         stl.setVoxelSize(resolution);
         stl.setPadding(2);
 
-        long t0 = time();
-        AttributeGrid modelGrid = (AttributeGrid)stl.rasterizeFile(modelPath);        
+        switch(gridType){
+            default:
+            case GRID_BYTE_ARRAY:
+                stl.setGridType(new ArrayAttributeGridByte(1,1,1, resolution, resolution));
+                break;
+
+            case GRID_SHORT_INTERVALS:
+                stl.setGridType(new GridShortIntervals(1,1,1, resolution, resolution));
+                break;
+
+        }
+
+        modelGrid = (AttributeGrid)stl.rasterizeFile(modelPath);
+
+        // Clear memory from file loader
+        stl = null;
+
         modelGrid.getGridBounds(modelBounds);
 
-        printf("grid [%d x %d x %d]\n",modelGrid.getWidth(),modelGrid.getHeight(), modelGrid.getDepth());
-        printf("file load and rasterized: %dms\n", (time() - t0));
+        printf("grid loaded:[%d x %d x %d]\n",modelGrid.getWidth(),modelGrid.getHeight(), modelGrid.getDepth());
 
         double gridBounds[] = modelBounds;//extendBounds(modelBounds, 0.1*MM);    
 
@@ -316,8 +334,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         // max number to use for surface transitions. Should be ODD number 
         // set it to 0 to have binary grid 
         int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid 
-        int gridType =  GRID_BYTE_ARRAY;
-                
+
         // width of surface transition area relative to voxel size
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // set it to 0. to make no surface transitions
@@ -353,7 +370,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         intersection.addDataSource(model);
         //intersection.addDataSource(gyroidShape);
         //intersection.addDataSource(block);
-        //intersection.addDataSource(gyroid);
+        intersection.addDataSource(gyroid);
 
         //intersection.addDataSource(cubicGrid);
 
@@ -365,8 +382,7 @@ public class VolumeSculptorKernel extends HostedKernel {
 
         gm.setMaxAttributeValue(maxGridAttributeValue);
         gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
-
-        t0 = time();
+        long t0 = time();
 
         
         AttributeGrid grid;
@@ -424,6 +440,10 @@ public class VolumeSculptorKernel extends HostedKernel {
         meshmaker.makeMesh(grid, its);
         
         mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        // Clear grid to make room for decimator
+        meshmaker = null;
+        grid = null;
 
         printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
 
