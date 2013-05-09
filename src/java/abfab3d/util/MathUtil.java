@@ -97,6 +97,14 @@ public class MathUtil {
         return x;
     }
 
+    public static final long clamp(long x, long xmin, long xmax){
+        if(x <= xmin)
+            return xmin;
+        if(x >= xmax)
+            return xmax;
+        return x;
+    }
+
     /**
      * General invert routine.  Inverts m1 and places the result in "this".
      * Note that this routine handles both the "this" version and the

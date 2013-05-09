@@ -286,11 +286,12 @@ public class VolumeSculptorKernel extends HostedKernel {
         stl.setVoxelSize(resolution);
         stl.setPadding(2);
 
+        long t0 = time();
         AttributeGrid modelGrid = (AttributeGrid)stl.rasterizeFile(modelPath);        
-
         modelGrid.getGridBounds(modelBounds);
 
-        printf("grid loaded:[%d x %d x %d]\n",modelGrid.getWidth(),modelGrid.getHeight(), modelGrid.getDepth());
+        printf("grid [%d x %d x %d]\n",modelGrid.getWidth(),modelGrid.getHeight(), modelGrid.getDepth());
+        printf("file load and rasterized: %dms\n", (time() - t0));
 
         double gridBounds[] = modelBounds;//extendBounds(modelBounds, 0.1*MM);    
 
@@ -331,7 +332,8 @@ public class VolumeSculptorKernel extends HostedKernel {
         DataSources.Ring ring = new DataSources.Ring(0.9*sizeX/2, 0.1*sizeX/2, sizeY/2, sizeY/2);
 
         DataSource cubicGrid = new VolumePatterns.CubicGrid(10*MM, 2*MM);
-        DataSource gyroid = new VolumePatterns.Gyroid(8*MM, 1.*MM);
+        DataSource gyroidShape = new VolumePatterns.Gyroid(20*MM, 1.*MM);
+        DataSource gyroid = new VolumePatterns.Gyroid(4*MM, 0.5*MM);
         
         DataSources.Ball ball = new DataSources.Ball(0,0,0, 10*MM);
 
@@ -349,8 +351,9 @@ public class VolumeSculptorKernel extends HostedKernel {
         //intersection.addDataSource(ring);
         //intersection.addDataSource(ball);
         intersection.addDataSource(model);
+        //intersection.addDataSource(gyroidShape);
         //intersection.addDataSource(block);
-        intersection.addDataSource(gyroid);
+        //intersection.addDataSource(gyroid);
 
         //intersection.addDataSource(cubicGrid);
 
@@ -362,7 +365,8 @@ public class VolumeSculptorKernel extends HostedKernel {
 
         gm.setMaxAttributeValue(maxGridAttributeValue);
         gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
-        long t0 = time();
+
+        t0 = time();
 
         
         AttributeGrid grid;

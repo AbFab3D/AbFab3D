@@ -1408,6 +1408,7 @@ public class TestGridMaker extends TestCase {
         DataSources.Ball ball = new DataSources.Ball(0,0,0,ballRadius);  
         
         GridMaker gm = new GridMaker();  
+
         gm.setBounds(bounds);
         gm.setDataSource(ball);
         gm.setMaxAttributeValue(25);
