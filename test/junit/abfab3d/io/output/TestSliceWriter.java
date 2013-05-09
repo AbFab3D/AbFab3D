@@ -129,6 +129,7 @@ public class TestSliceWriter extends TestCase {
         printf("gm.makeGrid() done\n");
         //printf("%s",grid.toStringAttributesSectionZ(nz / 2));
         SlicesWriter slicer = new SlicesWriter();
+        new File("/tmp/slices").mkdirs();
         slicer.setFilePattern("/tmp/slices/slice_%03d.png");
         slicer.setCellSize(10);
         slicer.setVoxelSize(9);
