@@ -28,14 +28,7 @@ import junit.framework.TestSuite;
  * @author Alan Hudson
  * @version
  */
-public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid implements ClassAttributeTraverser {
-
-    /** The material count */
-    private int allCount;
-    private int mrkCount;
-    private int extCount;
-    private int intCount;
-    private int outCount;
+public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -194,7 +187,9 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         grid = new BlockBasedAttributeGridByte(16, 16, 16, 0.001, 0.001, 2);
         setGetAllVoxelCoords(grid);
 
-        grid = new BlockBasedAttributeGridByte(100, 91, 85, 0.001, 0.001, 2);
+        double vs = 0.001;
+
+        grid = new BlockBasedAttributeGridByte(100 * vs, 91 * vs, 85 * vs, 0.001, 0.001, 2);
         setGetAllVoxelCoords(grid);
     }
 
@@ -379,7 +374,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
     public void testByteMaterialRange() {
         int width = 100;
         int maxMaterial = 64;
-        int mat, expectedMat;
+        long mat, expectedMat;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, 1, 1, 0.001, 0.001);
 
@@ -458,11 +453,11 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         int width = 3;
         int height = 4;
         int depth = 10;
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 12;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 12;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
 
@@ -489,7 +484,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         }
 
         // test material 0
-        int mat = 0;
+        long mat = 0;
         grid = new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.EXTERIOR, mat);
@@ -509,14 +504,14 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
     /**
      * Test find voxels by voxel class
      */
-    public void testFindVoxelClass() {
+    public void testFindVoxelClassAttribute() {
         int width = 3;
         int height = 4;
         int depth = 10;
         int[] stateDepth = {10, 6, 1};
         byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
 
-        AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
+        AttributeGrid grid = new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
 
         width = grid.getWidth();
         height = grid.getHeight();
@@ -559,13 +554,65 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
     }
 
     /**
+     * Test find voxels by voxel class
+     */
+    public void testFindVoxelClass() {
+        int width = 3;
+        int height = 4;
+        int depth = 10;
+        int[] stateDepth = {10, 6, 1};
+        byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
+
+        AttributeGrid grid = new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
+
+        width = grid.getWidth();
+        height = grid.getHeight();
+        depth = grid.getDepth();
+
+        // set some data
+        for (int x=0; x<states.length; x++){
+            for (int y=0; y<height; y++) {
+                for (int z=0; z<stateDepth[x]; z++) {
+                    grid.setData(x, y, z, states[x], (byte) 2);
+                }
+            }
+        }
+
+        int expectedAllCount = width * height * depth;
+        int expectedExtCount = stateDepth[0] * height;
+        int expectedIntCount = stateDepth[1] * height;
+        int expectedMrkCount = expectedExtCount + expectedIntCount;
+        int expectedOutCount = expectedAllCount - expectedMrkCount;
+
+        resetCounts();
+        grid.find(VoxelClasses.ALL, this);
+        assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
+
+        resetCounts();
+        grid.find(VoxelClasses.MARKED, this);
+        assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
+
+        resetCounts();
+        grid.find(VoxelClasses.EXTERIOR, this);
+        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
+
+        resetCounts();
+        grid.find(VoxelClasses.INTERIOR, this);
+        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
+
+        resetCounts();
+        grid.find(VoxelClasses.OUTSIDE, this);
+        assertEquals("Outside voxel count is not " + expectedOutCount, expectedOutCount, outCount);
+    }
+
+    /**
      * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
      */
     public void testFindVoxelClassIterator() {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -636,11 +683,11 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
     /**
      * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
      */
-    public void testFindInterruptableVoxelClassIterator() {
+    public void testFindInterruptableVoxelClassIteratorAttribute() {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -715,14 +762,95 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
     }
 
     /**
+     * Test that find voxels by VoxelClass actually found the voxels in the correct coordinates
+     */
+    public void testFindInterruptableVoxelClassIterator() {
+        int width = 20;
+        int height = 10;
+        int depth = 10;
+        long mat = 1;
+
+        AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
+        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
+
+        for (int x=0; x<width; x++) {
+            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
+            grid.setData(x, 4, 4, Grid.EXTERIOR, mat);
+            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
+            vcSetExt.add(new VoxelCoordinate(x, 4, 4));
+
+            grid.setData(x, 5, 6, Grid.INTERIOR, mat);
+            vcSetInt.add(new VoxelCoordinate(x, 5, 6));
+        }
+
+        FindIterateTester ft = new FindIterateTester(vcSetExt);
+        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+
+        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
+                ft.foundAllVoxels());
+
+        ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INTERIOR, ft);
+
+        assertTrue("Found iterator did not find all voxels with INTERIOR state",
+                ft.foundAllVoxels());
+
+        // make sure that findInterruptible stops interating when voxel is not found
+        // do this by adding a new exterior voxel
+        grid.setData(5, 2, 2, Grid.OUTSIDE, mat);
+        grid.setData(1, 3, 3, Grid.EXTERIOR, mat);
+        ft = new FindIterateTester(vcSetExt);
+        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+
+        assertFalse("Found state interruptible iterator should return false",
+                ft.foundAllVoxels());
+        assertTrue("Found state interruptible did not get interrupted ",
+                ft.getIterateCount() < vcSetExt.size());
+
+        // make sure that not finding a voxel in the list returns false
+        // do this by changing one of the interior voxels to exterior state
+        grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
+        ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INTERIOR, ft);
+
+        assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
+
+        //-------------------------------------------------------
+        // test on some random coordinates
+        int[][] coords = {
+                {0,0,0},
+                {width/2, height/2, depth/2},
+                {0, height-1, depth-1},
+                {width-1, 0, 0},
+                {width-1, height-1, depth-1}
+        };
+
+        grid = new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
+        vcSetExt = new HashSet<VoxelCoordinate>();
+
+        for (int i=0; i<coords.length; i++) {
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat);
+            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+        }
+
+        ft = new FindIterateTester(vcSetExt);
+        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+
+        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
+                ft.foundAllVoxels());
+
+    }
+
+    /**
      * Test that find voxels by material actually found the voxels in the correct coordinates
      */
     public void testFindMaterialIterator() {
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -797,8 +925,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -879,8 +1007,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -955,8 +1083,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1183,7 +1311,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
     /**
      * Test setAttribute.
      */
-    public void testSetMaterial() {
+    public void testsetAttribute() {
         int size = 10;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(size, size, size, 0.001, 0.001);
@@ -1213,23 +1341,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         int size = 10;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(size, size, size, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.INTERIOR, 1);
-        grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, 3);
-
-        grid.setState(0, 0, 0, Grid.EXTERIOR);
-        grid.setState(9, 9, 9, Grid.INTERIOR);
-        grid.setState(5, 0, 7, Grid.EXTERIOR);
-
-        // check that the state changed, but the material did not
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0, 0, 0));
-        assertEquals("Material should be ", 1, grid.getAttribute(0, 0, 0));
-
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(9, 9, 9));
-        assertEquals("Material should be ", 2, grid.getAttribute(9, 9, 9));
-
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, 0, 7));
-        assertEquals("Material should be ", 3, grid.getAttribute(5, 0, 7));
+        setState(grid);
     }
 
     /**
@@ -1239,68 +1351,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         int size = 20;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(size,size,size,0.001, 0.001);
-
-        // Fill voxels such that it looks like:
-        //
-        //      2  11111
-        //      2
-        //      2  33 33
-        //
-        setX(grid, 10, 10, Grid.EXTERIOR, 1, 8, 12);
-        setX(grid, 8, 10, Grid.INTERIOR, 3, 8, 12);
-        grid.setState(10, 8, 10, Grid.OUTSIDE);
-        setY(grid, 5, 10, Grid.EXTERIOR, 2, 8, 10);
-
-        int newMaterial = 10;
-
-        // reassign a non-existing material
-        grid.reassignAttribute(new int[]{50}, newMaterial);
-        assertEquals(0, grid.findCount(50));
-        assertEquals(5, grid.findCount(1));
-        assertEquals(3, grid.findCount(2));
-        assertEquals(4, grid.findCount(3));
-
-        // reassign a single existing material
-        // check that the original material count is 0
-        // check that the material has changed for the set positions
-        grid.reassignAttribute(new int[]{1}, newMaterial);
-
-        assertEquals(0, grid.findCount(1));
-
-        for (int i=8; i<=12; i++) {
-            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(i, 10, 10));
-            assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 10, 10));
-        }
-
-        // reassign several material
-        // check that the original material count is 0
-        // check that the material has changed for the set positions
-        newMaterial = 20;
-        grid.reassignAttribute(new int[]{2, 3, 10}, newMaterial);
-
-        assertEquals(0, grid.findCount(2));
-        assertEquals(0, grid.findCount(3));
-        assertEquals(0, grid.findCount(10));
-
-        for (int i=8; i<=12; i++) {
-            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(i, 10, 10));
-            assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 10, 10));
-        }
-
-        for (int i=8; i<=9; i++) {
-            assertEquals("State should be ", Grid.INTERIOR, grid.getState(i, 8, 10));
-            assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 8, 10));
-        }
-
-        for (int i=11; i<=12; i++) {
-            assertEquals("State should be ", Grid.INTERIOR, grid.getState(i, 8, 10));
-            assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 8, 10));
-        }
-
-        for (int i=8; i<=10; i++) {
-            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, i, 10));
-            assertEquals("Material should be ", newMaterial, grid.getAttribute(5, i, 10));
-        }
+        reassignMaterial(grid);
     }
 
     /**
@@ -1339,8 +1390,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         int width = 20;
         int height = 10;
         int depth = 10;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -1396,64 +1447,5 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid imple
         assertTrue("Found iterator did not find all voxels with material " + mat2,
                 ft.foundAllVoxels());
 
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        allCount++;
-
-        if (vd.getState() == Grid.EXTERIOR) {
-            mrkCount++;
-            extCount++;
-        } else if (vd.getState() == Grid.INTERIOR) {
-            mrkCount++;
-            intCount++;
-        } else {
-            outCount++;
-        }
-
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        // ignore
-        return true;
-    }
-
-    /**
-     * Set the X values of a grid.
-     *
-     * @param state The new state
-     * @param mat The new material
-     */
-    protected static void setX(AttributeGrid grid, int y, int z, byte state, byte mat, int startIndex, int endIndex) {
-        for(int x=startIndex; x <= endIndex; x++) {
-            grid.setData(x,y,z, state, mat);
-        }
-    }
-
-    /**
-     * Resets the voxel counts.
-     */
-    private void resetCounts() {
-        allCount = 0;
-        mrkCount = 0;
-        extCount = 0;
-        intCount = 0;
-        outCount = 0;
     }
 }

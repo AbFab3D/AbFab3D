@@ -75,7 +75,10 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
         edges = new StructMixedData(Edge.DEFINITION, findex.length);
         hedges = new StructMixedData(HalfEdge.DEFINITION, findex.length * 2 + 1);
-        edgeMap = new StructMap((int) ((findex.length * 2 + 1) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
+        //int edgeCapacity = (int) (faceCount * 2 * 1.25);
+        int edgeCapacity = (int) Math.round((vertCoord.length / 3 * 1.25)) + 1;
+
+        edgeMap = new StructMap(edgeCapacity, 0.75f, hedges,new HalfEdgeHashFunction());
         faces = new StructMixedData(Face.DEFINITION, findex.length / 3);
         int idx = 0;
 
@@ -167,6 +170,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
     public WingedEdgeTriangleMesh(double[] vertCoord, int[] findex) {
         this(vertCoord, vertCoord.length/3, findex, findex.length/3);
+        System.out.println("Verts: " + vertCoord.length / 3 + " faces: " + findex.length / 3);
     }
 
     public WingedEdgeTriangleMesh(double[] vertCoord, int vertCount, int[] findex, int faceCount) {
@@ -177,11 +181,21 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         vertices = new StructMixedData(Vertex.DEFINITION,len);
         edges = new StructMixedData(Edge.DEFINITION, faceCount * 3 / 2 + 1);
         hedges = new StructMixedData(HalfEdge.DEFINITION, faceCount * 3 );
-        edgeMap = new StructMap((int) ((faceCount * 6 + 1 ) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
+
+        // TODO: this function is off
+        //edgeMap = new StructMap(faceCount * 2 , 0.75f, hedges,new HalfEdgeHashFunction());
+        int edgeCapacity = (int) (faceCount * 2 * 1.25);
+
+        // TODO: try the real count
+        edgeCapacity = (int) Math.round((faceCount * 3 * 1.25)) + 1;
+
+        edgeMap = new StructMap(edgeCapacity, 0.75f, hedges,new HalfEdgeHashFunction());
+
+        //edgeMap = new StructMap((int) ((faceCount * 6 + 1 ) * 1.25), 0.75f, hedges,new HalfEdgeHashFunction());
+        
         faces = new StructMixedData(Face.DEFINITION, faceCount);
         
         setFaces(vertCoord, vertCount, findex, faceCount);
-
     }
 
     public void clear(){
@@ -213,7 +227,6 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
      */
     public void setFaces( double[] vertCoord, int vertCount, int[] findex, int faceCount){
-        
         int len = vertCount;
         int idx = 0;
 
@@ -231,6 +244,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
         idx = 0;
         len = faceCount;
+
         for (int i = 0; i < len; i++) {
 
             face[0] = findex[idx++];
@@ -242,8 +256,9 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
                 int v1 = face[j];
                 int v2 = face[(j + 1) % 3];
-                //System.out.println("Build he: " + v1.getID() + " v2: " + v2.getID());
+
                 int he = buildHalfEdge(v1, v2);
+
                 edgeMap.put(he, he);
                 ahedges[ahedges_idx++] = he;
                 eface[j] = he;
@@ -271,13 +286,16 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                 HalfEdge.setEnd(HalfEdge.getStart(hedges, he1), hedges, key);
 
                 int he2 = edgeMap.get(key);
+
                 if (he2 != -1) {
                     betwin(he1, he2);
+
                     buildEdge(he1); // create the edge!
                 } else {
                     if (DEBUG && notifyNonManifold) {
                         System.out.println("NonManifold hedge: " + he1 + " ? " + Vertex.getID(vertices, HalfEdge.getStart(hedges,he1)) + "->" + Vertex.getID(vertices, HalfEdge.getEnd(hedges,he1)));
                     }
+
                     // Null twin means its an outer edge on a non-manifold surface
                     buildEdge(he1);
                 }
@@ -746,12 +764,14 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             System.out.println();
         }
 
-        int[] entries = edgeMap.entrySet();
-        int len = entries.length / 2;
+        if (edgeMap != null) {
+            int[] entries = edgeMap.entrySet();
+            int len = entries.length / 2;
 
-        System.out.println("EdgeMap: ");
-        for (int i=0; i < len; i++) {
-            System.out.println(HalfEdge.toString(hedges, entries[i*2]) + " val: " + HalfEdge.toString(hedges, entries[i*2+1]));
+            System.out.println("EdgeMap: ");
+            for (int i=0; i < len; i++) {
+                System.out.println(HalfEdge.toString(hedges, entries[i*2]) + " val: " + HalfEdge.toString(hedges, entries[i*2+1]));
+            }
         }
     }
 

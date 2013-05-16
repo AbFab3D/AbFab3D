@@ -56,16 +56,43 @@ public class StraightPath implements Path {
 
         if (dir_count == 1)
             axisAligned = true;
+
+        currPos = new int[3];
+    }
+
+    public StraightPath(int x,int y,int z) {
+        if (x == 0 && y == 0 && z == 0) {
+            throw new IllegalArgumentException("zero direction");
+        }
+
+        this.dir = new int[] {x,y,z};
+
+        int dir_count = 0;
+
+        if (dir[0] != 0)
+            dir_count++;
+
+        if (dir[1] != 0)
+            dir_count++;
+
+        if (dir[2] != 0)
+            dir_count++;
+
+        if (dir_count == 1)
+            axisAligned = true;
+
+        currPos = new int[3];
     }
 
     /**
      * Initial the path to the beginning.
      *
      * @param pos The initial pos
-     * @param numVoxels The number of voxels in grid.
      */
     public void init(int[] pos, int width, int height, int depth) {
-        this.currPos = pos.clone();
+        this.currPos[0] = pos[0];
+        this.currPos[1] = pos[1];
+        this.currPos[2] = pos[2];
         this.width = width;
         this.height = height;
         this.depth = depth;
@@ -74,11 +101,11 @@ public class StraightPath implements Path {
     /**
      * Initial the path to the beginning.
      *
-     * @param pos The initial pos
-     * @param numVoxels The number of voxels in grid.
      */
     public void init(int x, int y, int z, int width, int height, int depth) {
-        this.currPos = new int[] {x,y,z};
+        this.currPos[0] = x;
+        this.currPos[1] = y;
+        this.currPos[2] = z;
         this.width = width;
         this.height = height;
         this.depth = depth;
@@ -116,7 +143,7 @@ public class StraightPath implements Path {
      * @return The inverted path
      */
     public Path invertPath() {
-        return new StraightPath(new int[] {-dir[0],-dir[1],-dir[2]});
+        return new StraightPath(-dir[0],-dir[1],-dir[2]);
     }
 
     /**

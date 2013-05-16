@@ -24,7 +24,7 @@ import abfab3d.grid.*;
  * @author Tony Wong
  */
 public class ErosionCube implements Operation, AttributeOperation {
-	
+
     /** The distance from a voxel to erode */
     private int distance;
 
@@ -82,7 +82,7 @@ public class ErosionCube implements Operation, AttributeOperation {
                         boolean safe = checkErosion(grid, x, y, z);
 
                         if (safe) {
-                            int mat = grid.getAttribute(x, y, z);
+                            long mat = grid.getAttribute(x, y, z);
 
                             // TODO: Decide on whether we should decrease the size of the
                             // eroded grid by the erosion distance
@@ -105,12 +105,12 @@ public class ErosionCube implements Operation, AttributeOperation {
      * @return The new grid
      */
     public Grid execute(Grid grid) {
-    	
-    	// Nothing to do if distance is 0
-    	if (distance == 0) {
-    		return grid;
-    	}
-    	
+
+        // Nothing to do if distance is 0
+        if (distance == 0) {
+            return grid;
+        }
+
         int height = grid.getHeight();
         int width = grid.getWidth();
         int depth = grid.getDepth();
@@ -118,7 +118,7 @@ public class ErosionCube implements Operation, AttributeOperation {
         // Create an empty copy of the grid
         // TODO: Decide on whether we should decrease the size of the
         // eroded grid by the erosion distance
-//        Grid erodedGrid = grid.createEmpty(width, height, depth, 
+//        Grid erodedGrid = grid.createEmpty(width, height, depth,
 //            grid.getVoxelSize(), grid.getSliceHeight());
         Grid erodedGrid = grid.createEmpty(width - 2 * distance,
                                            height - 2 * distance,
@@ -135,7 +135,7 @@ public class ErosionCube implements Operation, AttributeOperation {
         int yEnd = height - distance;
         int zStart = 0 + distance;
         int zEnd = depth - distance;
-        
+
         // Loop through grid and check each voxel for erosion
         // If the voxel cannot be eroded (safe), mark the voxel in the grid copy
         for(int y=yStart; y < yEnd; y++) {
@@ -145,12 +145,12 @@ public class ErosionCube implements Operation, AttributeOperation {
 
                     if (state != Grid.OUTSIDE) {
                         boolean safe = checkErosion(grid, x, y, z);
-                        
+
                         if (safe) {
                             // TODO: Decide on whether we should decrease the size of the
                             // eroded grid by the erosion distance
 //                            erodedGrid.setData(x, y, z, state, mat);
-                        	erodedGrid.setState(x-distance, y-distance, z-distance, state);
+                            erodedGrid.setState(x-distance, y-distance, z-distance, state);
                         }
                     }
                 }
@@ -159,7 +159,7 @@ public class ErosionCube implements Operation, AttributeOperation {
 
         return erodedGrid;
     }
-    
+
     private boolean checkErosion(Grid grid, int xPos, int yPos, int zPos) {
         int xStart = xPos - distance;
         int xEnd = xPos + distance;
@@ -167,18 +167,18 @@ public class ErosionCube implements Operation, AttributeOperation {
         int yEnd = yPos + distance;
         int zStart = zPos - distance;
         int zEnd = zPos + distance;
-        
-    	for (int y=yStart; y<=yEnd; y++) {
-    		for (int x=xStart; x<=xEnd; x++) {
-    			for (int z=zStart; z<=zEnd; z++) {
-    				if (grid.getState(x, y, z) == Grid.OUTSIDE) {
-    					return false;
-    				}
-    			}
-    		}
-    	}
-    	
-    	return true;
+
+        for (int y=yStart; y<=yEnd; y++) {
+            for (int x=xStart; x<=xEnd; x++) {
+                for (int z=zStart; z<=zEnd; z++) {
+                    if (grid.getState(x, y, z) == Grid.OUTSIDE) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 }
 

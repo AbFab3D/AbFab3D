@@ -121,6 +121,15 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
     }
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
+    }
+
+    /**
      * Copy Constructor.
      *
      * @param grid The grid
@@ -168,17 +177,6 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param y The y grid coordinate
      * @param z The z grid coordinate
      */
-    public VoxelData getData(int x, int y, int z) {
-        return root.getData(x,y,z);
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     */
     public void getData(int x, int y, int z,VoxelData vd) {
         VoxelData ans = root.getData(x,y,z);
         vd.setData(ans.getState(), ans.getMaterial());
@@ -198,21 +196,6 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      */
     public void getData(int x1, int x2, int y1, int y2, int z1, int z2, VoxelData[] ret) {
         // not impl
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public VoxelData getData(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        return root.getData(s_x,slice,s_z);
     }
 
     /**
@@ -267,7 +250,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -283,7 +266,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         VoxelData vd = root.getData(x,y,z);
 
         return vd.getMaterial();
@@ -298,7 +281,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -314,7 +297,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         // TODO: not implemented yet
         throw new IllegalArgumentException("Not Implemented");
     }
@@ -325,7 +308,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
-     * @param state The value. 
+     * @param state The value.
      */
     public void setState(int x, int y, int z, byte state) {
         // TODO: This is not really right but is hard to deal with for BlockBased
@@ -348,7 +331,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
         // TODO: This is not really right but is hard to deal with for BlockBased
         root.setData(null, s_x, slice, s_z, state,Grid.NO_MATERIAL);
     }
-    
+
     /**
      * Set the value of a voxel.
      *
@@ -358,7 +341,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
 //System.out.println("sd int: " + x);
         root.setData(null, x, y, z, state,material);
     }
@@ -398,7 +381,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(int mat, ClassAttributeTraverser t) {
+    public void findAttribute(long mat, ClassAttributeTraverser t) {
         ArrayList<OctreeCellInternalByte> list = new ArrayList();
         ArrayList<OctreeCellInternalByte> add_list = new ArrayList();
 
@@ -442,7 +425,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(long mat, ClassAttributeTraverser t) {
         ArrayList<OctreeCellInternalByte> list = new ArrayList(128);
         ArrayList<OctreeCellInternalByte> add_list = new ArrayList(128);
 
@@ -932,7 +915,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttribute(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
             // I can't see a reason to optimize this
             super.findAttribute(vc,mat, t);
@@ -984,7 +967,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param mat The material to traverse
      * @param t The traverer to call for each voxel
      */
-    public void findAttributeInterruptible(VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
         if (vc == VoxelClasses.ALL || vc == VoxelClasses.OUTSIDE) {
             // I can't see a reason to optimize this
             super.findAttributeInterruptible(vc, mat, t);
@@ -1027,7 +1010,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
             add_list.clear();
         }
     }
-    
+
     private boolean findAttributeInterruptible(OctreeCellInternalByte cell, VoxelClasses vc, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
@@ -1297,7 +1280,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
         return true;
     }
 
-    private void findAttribute(OctreeCellInternalByte cell, int mat, ClassAttributeTraverser t) {
+    private void findAttribute(OctreeCellInternalByte cell, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1334,7 +1317,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
         }
     }
 
-    private boolean findAttributeInterruptible(OctreeCellInternalByte cell, int mat, ClassAttributeTraverser t) {
+    private boolean findAttributeInterruptible(OctreeCellInternalByte cell, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1376,7 +1359,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
         return true;
     }
 
-    private void findAttribute(OctreeCellInternalByte cell, VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    private void findAttribute(OctreeCellInternalByte cell, VoxelClasses vc, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1504,7 +1487,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
         }
     }
 
-    private boolean findAttributeInterruptible(OctreeCellInternalByte cell, VoxelClasses vc, int mat, ClassAttributeTraverser t) {
+    private boolean findAttributeInterruptible(OctreeCellInternalByte cell, VoxelClasses vc, long mat, ClassAttributeTraverser t) {
 //System.out.println("find: " + cell);
         if (cell.allState.getState() == cell.MIXED) {
             int len = cell.children.length;
@@ -1651,7 +1634,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      *
      * @param mat The aterialID
      */
-    public void removeAttribute(int mat) {
+    public void removeAttribute(long mat) {
         ArrayList<VoxelCoordinate> remove_list = new ArrayList(100);
 
         ArrayList<OctreeCellInternalByte> list = new ArrayList();
@@ -1844,7 +1827,7 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      *
      * @param mat The material to count
      */
-    public int findCount(int mat) {
+    public int findCount(long mat) {
         int ret_val = 0;
 
         ArrayList<OctreeCellInternalByte> list = new ArrayList(128);
@@ -1914,12 +1897,11 @@ public class OctreeAttributeGridByte extends BaseAttributeGrid implements Octree
      * @param grid The grid to write
      * @param matColors Maps materials to colors
      */
-    public void write(BinaryContentHandler writer, OctreeAttributeGridByte grid, Map<Integer, float[]> matColors) {
+    public void write(BinaryContentHandler writer, OctreeAttributeGridByte grid, Map<Long, float[]> matColors) {
         double pixelSize = grid.getVoxelSize();
         double sheight = grid.getSliceHeight();
         float[] color = new float[] {0.8f,0.8f,0.8f};
         float transparency = 0;
-        int idx = 0;
         long saved = 0;
 
 

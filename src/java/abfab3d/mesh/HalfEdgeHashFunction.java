@@ -25,7 +25,16 @@ public class HalfEdgeHashFunction implements HashFunction {
         int start = HalfEdge.getStart(src, srcIdx);
         int end = HalfEdge.getEnd(src, srcIdx);
 
+  /*
+        // Make sure hashcode will be the same regardless of order
+        if (start > end) {
+            int tmp = start;
+            start = end;
+            end = tmp;
+        }
+   */
         int h = start + 119 * end;
+        //System.out.println("Calc hash  start: " + start + " end: " + end + " h: " + h);
 
         return h;
 /*
@@ -46,6 +55,12 @@ public class HalfEdgeHashFunction implements HashFunction {
         int end_a = HalfEdge.getEnd(src, a);
         int end_b = HalfEdge.getEnd(src, b);
 
-        return  (start_a == start_b) && (end_a == end_b);
+        //System.out.println("Calc equals: a: " + a + " b: " + b);
+
+        return  ((start_a == start_b) && (end_a == end_b));
+/*
+        // hmmm, this kills everything why?
+        return  ((start_a == start_b) && (end_a == end_b)) || (start_a == end_b) && (end_a == start_b);
+*/
     }
 }

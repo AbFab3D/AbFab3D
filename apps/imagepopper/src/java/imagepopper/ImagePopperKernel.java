@@ -19,19 +19,19 @@ import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ConnectedComponentState;
-import abfab3d.grid.Grid;
-import abfab3d.grid.RegionCounter;
+import abfab3d.grid.*;
 import abfab3d.grid.op.DataSources;
+import abfab3d.grid.op.DataSourceImageBitmap;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.BoxesX3DExporter;
+import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SAVExporter;
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import app.common.GridSaver;
 import app.common.RegionPrunner;
+import app.common.ShellResults;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -48,6 +48,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 import static java.lang.System.currentTimeMillis;
 
 //import java.awt.*;
@@ -61,8 +62,12 @@ import static java.lang.System.currentTimeMillis;
  * @author Alan Hudson
  */
 public class ImagePopperKernel extends HostedKernel {
+    public enum ImagePlace {TOP, BOTTOM, BOTH};
+
     private static final boolean DEBUG = true;
     private static final boolean USE_MIP_MAPPING = false;
+    private final boolean USE_MESH_MAKER_MT = true;
+    private static final boolean USE_FAST_MATH = true;
 
     /**
      * Debugging level.  0-5.  0 is none
@@ -89,6 +94,7 @@ public class ImagePopperKernel extends HostedKernel {
     private double resolution;
     private PreviewQuality previewQuality;
     private int smoothSteps;
+    private double smoothingWidth;
     private double maxDecimationError;
 
     /**
@@ -101,30 +107,49 @@ public class ImagePopperKernel extends HostedKernel {
      */
     private double bodyWidth1;
     private double bodyWidth2;
+    private double bodyWidth3;
 
     /**
      * The height of the body geometry
      */
     private double bodyHeight1;
     private double bodyHeight2;
+    private double bodyHeight3;
 
     /**
      * The depth of the body geometry
      */
     private double bodyDepth1;
     private double bodyDepth2;
+    private double bodyDepth3;
+
+    /**
+     * Where to start placing the image, determines direction of grayscale height
+     */
+    private ImagePlace bodyImagePlacement1;
+    private ImagePlace bodyImagePlacement2;
+    private ImagePlace bodyImagePlacement3;
 
     /**
      * The image filename
      */
-    private String filename;
+    private String filename1;
     private String filename2;
+    private String filename3;
 
     private String material;
-    private boolean useGrayscale;
-    private boolean imageInvert = false;
-    private boolean visRemovedRegions;
+    private boolean useGrayscale1;
+    private boolean useGrayscale2;
+    private boolean useGrayscale3;
 
+    private boolean imageInvert1 = false;
+    private boolean imageInvert2 = false;
+    private boolean imageInvert3 = false;
+
+    private boolean visRemovedRegions;
+    private int threads;
+    
+    
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
             "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
@@ -140,11 +165,15 @@ public class ImagePopperKernel extends HostedKernel {
         int seq = 0;
         int step = 0;
 
-        params.put("bodyImage", new Parameter("bodyImage", "Image Layer 1", "The image to use for the front body", "images/leaf/5_cleaned.png", 1,
+        params.put("bodyImage1", new Parameter("bodyImage1", "Image Layer 1", "The image to use for layer1", "images/leaf/5_cleaned.png", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
-        params.put("bodyImage2", new Parameter("bodyImage2", "Image Layer 2", "The image to use for the front body", "NONE", 1,
+        params.put("bodyImage2", new Parameter("bodyImage2", "Image Layer 2", "The image to use for layer2", "NONE", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("bodyImage3", new Parameter("bodyImage3", "Image Layer 3", "The image to use for layer3", "NONE", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -159,41 +188,83 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, 0, 1, null, null)
         );
 
-        params.put("useGrayscale", new Parameter("useGrayscale", "Use Grayscale", "Should we use grayscale", "false", 1,
+        params.put("bodyDepth3", new Parameter("bodyDepth3", "Depth Amount - Layer 3", "The depth of the image", "0.0008", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
+        );
+
+        params.put("bodyImagePlacement1", new Parameter("bodyImagePlacement1", "Body Image Placement - Layer 1", "Where to start the image", ImagePlace.TOP.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(ImagePlace.values()))
+        );
+
+        params.put("bodyImagePlacement2", new Parameter("bodyImagePlacement2", "Body Image Placement - Layer 2", "Where to start the image", ImagePlace.TOP.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(ImagePlace.values()))
+        );
+
+        params.put("bodyImagePlacement3", new Parameter("bodyImagePlacement3", "Body Image Placement - Layer 3", "Where to start the image", ImagePlace.TOP.toString(), 1,
+                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, enumToStringArray(ImagePlace.values()))
+        );
+
+        params.put("useGrayscale1", new Parameter("useGrayscale1", "Use Grayscale1", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
+        );
+        params.put("useGrayscale2", new Parameter("useGrayscale2", "Use Grayscale2", "Should we use grayscale", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 100, null, null)
+        );
+        params.put("useGrayscale3", new Parameter("useGrayscale3", "Use Grayscale3", "Should we use grayscale", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
         );
 
-        params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the image", "false", 1,
+        params.put("imageInvert1", new Parameter("imageInvert1", "ImageInvert1", "Invert the images", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("imageInvert2", new Parameter("imageInvert2", "ImageInvert2", "Invert the images", "false", 1,
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("imageInvert3", new Parameter("imageInvert3", "ImageInvert3", "Invert the images", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 0.1, null, null)
         );
 
         step++;
         seq = 0;
-/*
-        params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.00006", 1,
-            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, true, 0, 0.1, null, null)
-        );
-*/
-        params.put("bodyWidth1", new Parameter("bodyWidth1", "Body Width", "The width of layer 1", "0.055330948", 1,
+
+        params.put("bodyWidth1", new Parameter("bodyWidth1", "Body Width1", "The width of layer 1", "0.055330948", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.002, 1, null, null)
         );
 
-        params.put("bodyHeight1", new Parameter("bodyHeight1", "Body Height", "The height of layer 1", "0.04", 1,
+        params.put("bodyHeight1", new Parameter("bodyHeight1", "Body Height1", "The height of layer 1", "0.04", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.002, 1, null, null)
         );
 
-        params.put("bodyWidth2", new Parameter("bodyWidth2", "Body Width", "The width of layer 2", "0.055330948", 1,
+        params.put("bodyWidth2", new Parameter("bodyWidth2", "Body Width2", "The width of layer 2", "0.055330948", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0.01, 1, null, null)
         );
 
-        params.put("bodyHeight2", new Parameter("bodyHeight2", "Body Height", "The height of layer 2", "0.04", 1,
+        params.put("bodyHeight2", new Parameter("bodyHeight2", "Body Height2", "The height of layer 2", "0.04", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
+        );
+
+        params.put("bodyWidth3", new Parameter("bodyWidth3", "Body Width3", "The width of layer 3", "0.055330948", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0.01, 1, null, null)
+        );
+
+        params.put("bodyHeight3", new Parameter("bodyHeight3", "Body Height3", "The height of layer 3", "0.04", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+
                 step, seq++, false, 0.01, 1, null, null)
         );
 
@@ -212,6 +283,11 @@ public class ImagePopperKernel extends HostedKernel {
         params.put("resolution", new Parameter("resolution", "Resolution", "How accurate to model the object", "0.0001", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
+        );
+
+        params.put("threads", new Parameter("threads", "Threads", "Threads to use for operations", "0", 1,
+                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 50, null, null)
         );
 
         params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.HIGH.toString(), 1,
@@ -234,6 +310,12 @@ public class ImagePopperKernel extends HostedKernel {
                 step, seq++, false, 0, 100, null, null)
         );
 
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxles to smooth", "0.", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0., 5., null, null)
+        );
+
+
         params.put("visRemovedRegions", new Parameter("visRemovedRegions", "Vis Removed Regions", "Visualize removed regions", "false", 1,
                 Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 100, null, null)
@@ -249,13 +331,12 @@ public class ImagePopperKernel extends HostedKernel {
      * @param handler The X3D content handler to use
      */
     public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
-//        System.gc();
-//        System.gc();
+        if (USE_FAST_MATH) {
+            System.setProperty("jodk.fastmath.usejdk", "false");
+        } else {
+            System.setProperty("jodk.fastmath.usejdk", "true");
+        }
 
-//        System.out.println("Starting memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));
-//        long startMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
-
-        System.out.println("Generating ImagePopper on thread: " + Thread.currentThread().getName());
         long start = currentTimeMillis();
 
         pullParams(params);
@@ -273,17 +354,42 @@ public class ImagePopperKernel extends HostedKernel {
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
 
-        double gridWidth = Math.max(bodyWidth1,bodyWidth2) + 2 * margin;
-        double gridHeight = Math.max(bodyHeight1,bodyHeight2) + 2 * margin;
+        double gridWidth = Math.max(Math.max(bodyWidth1,bodyWidth2),bodyWidth3) + 2 * margin;
+        double gridHeight = Math.max(Math.max(bodyHeight1,bodyHeight2),bodyHeight3) + 2 * margin;
         double bodyDepth = bodyDepth1;
         double layer1z = bodyDepth1/2; // z-center
-        double layer2z = 0;            // z-center of bottom layer
+        double layer2z = 0;            // z-center of middle layer
+        double layer3z = 0;            // z-center of bottom layer
+
+        // HARD CODED params to play with 
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
+        //double smoothingWidth = 0.0; 
+        // size of grid block for MT calculatins 
+        // (larger values reduce processor cache performance)
+        int blockSize = 50;
+        // max number to use for surface transitions. Should be ODD number 
+        // set it to 1 to have binary grid 
+        int maxGridAttributeValue = 63;
+        // width of surface transition area relative to voxel size
+        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
+        // sreyt it to 0. to make no surface transitions
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+        double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
+        double baseThreshold = 0.1;
+        int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
+        
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
             layer1z += bodyDepth2;
             layer2z = bodyDepth2/2;
-        } 
+        }
+        if (!filename3.equalsIgnoreCase("NONE")) {
+            bodyDepth += bodyDepth3;
+            layer1z += bodyDepth3;
+            layer2z += bodyDepth3;
+            layer3z = bodyDepth3/2;
+        }
 
         double bounds[] = new double[]{-gridWidth / 2, gridWidth / 2, -gridHeight / 2, gridHeight / 2, -margin, bodyDepth + margin};
         int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
@@ -294,48 +400,73 @@ public class ImagePopperKernel extends HostedKernel {
 
         DataSources.Union union = new DataSources.Union();
 
-        DataSources.ImageBitmap layer1 = new DataSources.ImageBitmap();
+        DataSourceImageBitmap layer1 = new DataSourceImageBitmap();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
         layer1.setLocation(0, 0, layer1z);
         layer1.setBaseThickness(0.0);
-        layer1.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
-        layer1.setImagePath(filename);
-        layer1.setUseGrayscale(useGrayscale);
-        if (imageInvert) {
-            layer1.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
-        }
+        layer1.setImagePath(filename1);
+        layer1.setUseGrayscale(useGrayscale1);        
+        layer1.setBlurWidth((useGrayscale1)? 0.: imagesBlurWidth);
+        layer1.setVoxelSize(resolution);
 
 
-        if (USE_MIP_MAPPING) {
-            layer1.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-            layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            layer1.setProbeSize(resolution * 2.);
+        layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
+        if (imageInvert1) {
+            layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
+        layer1.setBaseThreshold(baseThreshold);
+        layer1.setInterpolationType(interpolationType);
 
         union.addDataSource(layer1);
 
         if (!filename2.equalsIgnoreCase("NONE")) {
-            DataSources.ImageBitmap layer2 = new DataSources.ImageBitmap();
+            DataSourceImageBitmap layer2 = new DataSourceImageBitmap();
             layer2.setSize(bodyWidth2, bodyHeight2, bodyDepth2);
 
             layer2.setLocation(0, 0, layer2z);
             layer2.setBaseThickness(0.0);
-            layer2.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+            layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
-            layer2.setUseGrayscale(useGrayscale);
-            if (imageInvert) {
-                layer2.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+            layer2.setUseGrayscale(useGrayscale2);
+            layer2.setBlurWidth((useGrayscale2)? 0: imagesBlurWidth);
+            layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
+            if (imageInvert2) {
+                layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
-            if (USE_MIP_MAPPING) {
-                layer2.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-                layer2.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-                layer2.setProbeSize(resolution * 2.);
-            }
+            layer2.setInterpolationType(interpolationType);
+            layer2.setBaseThreshold(baseThreshold);
+            layer2.setVoxelSize(resolution);
 
             union.addDataSource(layer2);
+
+        }
+
+        if (!filename3.equalsIgnoreCase("NONE")) {
+            DataSourceImageBitmap layer3 = new DataSourceImageBitmap();
+            layer3.setSize(bodyWidth3, bodyHeight3, bodyDepth3);
+
+            layer3.setLocation(0, 0, layer3z);
+            layer3.setBaseThickness(0.0);
+            layer3.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+            layer3.setTiles(1, 1);
+            layer3.setImagePath(filename3);
+            layer3.setUseGrayscale(useGrayscale3);
+            layer3.setBlurWidth((useGrayscale3)? 0: imagesBlurWidth);
+
+            layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
+            if (imageInvert3) {
+                layer3.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
+            }
+
+            layer3.setInterpolationType(interpolationType);
+            layer3.setBaseThreshold(baseThreshold);
+            layer3.setVoxelSize(resolution);
+
+            union.addDataSource(layer3);
 
         }
 
@@ -344,24 +475,36 @@ public class ImagePopperKernel extends HostedKernel {
 
         gm.setBounds(bounds);
         gm.setDataSource(union);
+        gm.setThreadCount(threads);
+        
+        gm.setMaxAttributeValue(maxGridAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
 
         // TODO: Change to use BlockBased for some size
-        grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        //grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
+        grid.setGridBounds(bounds);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
         printf("gm.makeGrid() done\n");
 
-        int regions_removed = 0;
-        if (regions != RegionPrunner.Regions.ALL) {
-//            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INTERIOR, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
-            if (visRemovedRegions) {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds);
-            } else {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid);
-            }
-        }
 
+        int min_volume = 10;
+        int regions_removed = 0;
+/*
+        if (regions != RegionPrunner.Regions.ALL) {
+            long t0 = currentTimeMillis();
+            if (visRemovedRegions) {
+                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds, min_volume);
+            } else {
+                regions_removed = RegionPrunner.reduceToOneRegion(grid, min_volume);
+            }
+            printf("Regions removed: %d\n", regions_removed);
+            printf("regions removal done %d ms\n", (currentTimeMillis() - t0));
+
+        }
+ */
         System.out.println("Writing grid");
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
@@ -373,52 +516,76 @@ public class ImagePopperKernel extends HostedKernel {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
 
-        double[] min_bounds = new double[3];
-        double[] max_bounds = new double[3];
-        grid.getWorldCoords(0, 0, 0, min_bounds);
-        grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
+        long t0;
+        
+        WingedEdgeTriangleMesh mesh;
 
-        System.out.println("**** Resampling, decide if we like");
-        int resampleFactor = 1;
-        abfab3d.mesh.TriangleMesh mesh = GridSaver.createIsosurface2(grid, smoothSteps, resampleFactor);
+        double gbounds[] = new double[6];
+        grid.getGridBounds(gbounds);
+
+        // place of default viewpoint 
+        double viewDistance = GridSaver.getViewDistance(grid);
+
+        if(USE_MESH_MAKER_MT){
+
+            MeshMakerMT meshmaker = new MeshMakerMT();
+
+            t0 = time();
+            meshmaker.setBlockSize(blockSize);
+            meshmaker.setThreadCount(threads);
+            meshmaker.setSmoothingWidth(smoothingWidth);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
+
+            // TODO: Need to get a better way to estimate this number
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+            meshmaker.makeMesh(grid, its);
+            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+            printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
+
+            // extra decimation to get rid of seams
+            if(maxDecimationError > 0){
+                t0 = time();
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+                printf("final decimation: %d ms\n", (time()-t0));
+            }
+
+        } else {
+
+            mesh = GridSaver.createIsosurface(grid, smoothSteps);
+            // Release grid to lower total memory requirements
+            if(maxDecimationError > 0)
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+        }
+
+        // Release grid to save memory
+        grid = null;
+
+        if(regions != RegionPrunner.Regions.ALL) {
+            t0 = time();
+            ShellResults sr = GridSaver.getLargestShell(mesh, min_volume);
+            mesh = sr.getLargestShell();
+            regions_removed = sr.getShellsRemoved();
+            printf("GridSaver.getLargestShell(): %d ms\n", (time()-t0));
+        }
+
+        GridSaver.writeMesh(mesh, viewDistance, handler, params, true);
 
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
         double volume = ac.getVolume();
         double surface_area = ac.getArea();
 
-        long t0 = System.nanoTime();
-        printf("surface area: %7.3f CM^2\n", surface_area*1.e4);
-        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
+        // Do not shorten the accuracy of these prints they need to be high
+        printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %12.8f cm^3\n", volume * 1.e6);
 
-        int gw = grid.getWidth();
-        int gh = grid.getHeight();
-        int gd = grid.getDepth();
-        double sh = grid.getSliceHeight();
-        double vs = grid.getVoxelSize();
+        printf("Total time: %d ms\n", (time() - start));
+        printf("-------------------------------------------------\n");
 
-
-        // Release grid to lower total memory requirements
-        grid = null;
-
-        GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
-
-        System.out.println("Total Time: " + (System.currentTimeMillis() - start));
-        System.out.println("-------------------------------------------------");
-
-        //        long endMemory = (long) ((Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / (1024 * 1000));
-        //    System.out.println("Ending memory: " + Runtime.getRuntime().totalMemory() / (1024 * 1000) + " free: " + Runtime.getRuntime().freeMemory() / (1024 * 1000));        
-        //System.out.println("Memory used: " + (endMemory - startMemory) + " start: " + startMemory + " end: " + endMemory);
-
-        ac = new AreaCalculator();
-        mesh.getTriangles(ac);
-        volume = ac.getVolume();
-        surface_area = ac.getArea();
-
-        t0 = System.nanoTime();
-        printf("final surface area: %7.3f CM^2\n", surface_area*1.e4);
-        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
-
+        double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
+        double max_bounds[] = new double[]{gbounds[1],gbounds[3],gbounds[5]};
         return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
     }
 
@@ -455,11 +622,20 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "bodyHeight2";
             bodyHeight2 = ((Double) params.get(pname)).doubleValue();
 
-            pname = "bodyImage";
-            filename = (String) params.get(pname);
+            pname = "bodyWidth3";
+            bodyWidth3 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyHeight3";
+            bodyHeight3 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyImage1";
+            filename1 = (String) params.get(pname);
 
             pname = "bodyImage2";
             filename2 = (String) params.get(pname);
+
+            pname = "bodyImage3";
+            filename3 = (String) params.get(pname);
 
             pname = "bodyDepth1";
             bodyDepth1 = ((Double) params.get(pname)).doubleValue();
@@ -467,25 +643,82 @@ public class ImagePopperKernel extends HostedKernel {
             pname = "bodyDepth2";
             bodyDepth2 = ((Double) params.get(pname)).doubleValue();
 
+            pname = "bodyDepth3";
+            bodyDepth3 = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bodyImagePlacement1";
+            bodyImagePlacement1 = ImagePlace.valueOf((String) params.get(pname));
+
+            pname = "bodyImagePlacement2";
+            bodyImagePlacement2 = ImagePlace.valueOf((String) params.get(pname));
+
+            pname = "bodyImagePlacement3";
+            bodyImagePlacement3 = ImagePlace.valueOf((String) params.get(pname));
+
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
+
+            pname = "smoothingWidth";
+            smoothingWidth = ((Double) params.get(pname)).doubleValue();
 
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
 
-            pname = "useGrayscale";
-            useGrayscale = (Boolean) params.get(pname);
+            pname = "useGrayscale1";
+            useGrayscale1 = (Boolean) params.get(pname);
+
+            pname = "useGrayscale2";
+            useGrayscale2 = (Boolean) params.get(pname);
+
+            pname = "useGrayscale3";
+            useGrayscale3 = (Boolean) params.get(pname);
 
             pname = "visRemovedRegions";
             visRemovedRegions = (Boolean) params.get(pname);
 
-            pname = "imageInvert";
-            imageInvert = (Boolean) params.get(pname);
+            pname = "imageInvert1";
+            imageInvert1 = (Boolean) params.get(pname);
+
+            pname = "imageInvert2";
+            imageInvert2 = (Boolean) params.get(pname);
+
+            pname = "imageInvert3";
+            imageInvert3 = (Boolean) params.get(pname);
+
+            pname = "threads";
+            threads = ((Integer) params.get(pname)).intValue();
+
+            if (threads == 0) {
+                int cores = Runtime.getRuntime().availableProcessors();
+
+                threads = cores;
+
+                // scales well to 4 threads, stop there.
+                if (threads > 4) {
+                    threads = 4;
+                }
+
+                System.out.println("Number of cores:" + threads);
+            }
+            
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
         }
     }
+
+    private int getPlacementValue(ImagePlace place) {
+        switch(place) {
+            case TOP: return DataSourceImageBitmap.IMAGE_PLACE_TOP;
+            case BOTTOM: return DataSourceImageBitmap.IMAGE_PLACE_BOTTOM;
+            case BOTH: return DataSourceImageBitmap.IMAGE_PLACE_BOTH;
+            default :
+                System.out.println("Unhandled place: " + place);
+                new Exception().printStackTrace();
+                return DataSourceImageBitmap.IMAGE_PLACE_TOP;
+        }
+    }
+
 
     /**
      * return bounds extended by given margin
@@ -637,7 +870,7 @@ class FakeRunner implements Runnable {
         params.put("bodyDepth1","0.03");
         params.put("regions","ALL");
         params.put("previewQuality","LOW");
-        params.put("bodyImage","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
+        params.put("bodyImage1","C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\ringpopper\\images\\Tile_dilate8_unedged.png");
 
         Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 

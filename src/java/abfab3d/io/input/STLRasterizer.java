@@ -17,10 +17,15 @@ import java.io.IOException;
 import javax.vecmath.Vector3d;
 
 import abfab3d.grid.Grid;
-import abfab3d.grid.GridShortIntervals;
+//import abfab3d.grid.GridShortIntervals;
+import abfab3d.grid.ArrayAttributeGridByte;
 
 
 import abfab3d.util.TriangleCollector;
+
+
+import static java.lang.Math.floor;
+import static java.lang.Math.ceil;
 
 import static abfab3d.util.Output.printf;
 
@@ -29,15 +34,19 @@ import static abfab3d.util.Output.printf;
  */
 public class STLRasterizer {
     
-    static final double TOMM = 1000;
+    static final double MM = 0.001;
     
     //padding to put around the voxelized model     
     int m_padding = 2;
 
-    double m_voxelSize = 1.e-4;     
+    double m_voxelSize = 0.1*MM;
+    
+    Grid m_gridType = new ArrayAttributeGridByte(1,1,1,0.1,0.1);
 
-    public STLRasterizer(){
-        
+    // bound of grid to rasterize to 
+    double m_gridBounds[] = new double[6];
+
+    public STLRasterizer(){        
         
     }
 
@@ -45,89 +54,90 @@ public class STLRasterizer {
         m_voxelSize = voxelSize;
     }
 
+    /**
+       set the grid used to generate new grid 
+     */
+    public void setGridType(Grid grid){
+        m_gridType = grid;
+    }
+
+    /**
+       set padding around the voxelized geometry 
+     */
     public void setPadding(int padding){
         m_padding = padding;
     }
 
+    public void setGridBounds(double bounds[]){
+
+        m_gridBounds = new double[bounds.length];
+        System.arraycopy(bounds, 0, m_gridBounds, 0, bounds.length);
+
+    }
+    
+
     public Grid rasterizeFile(String path) throws IOException {
         
         printf("STLRasterizer.rasterizeFile(%s)\n",path );
-
+        
+        double mbounds[] = new double[6];
         STLReader reader = new STLReader();
         BoundsCalculator bc = new BoundsCalculator();
         reader.read(path, bc);
-        // model bounds 
-        double mbounds[] = bc.getBounds();
-        printf("bounds: [%7.2f, %7.2f; %7.2f,%7.2f; %7.2f,%7.2f]mm\n",
-               mbounds[0]*TOMM,mbounds[1]*TOMM,mbounds[2]*TOMM,mbounds[3]*TOMM,mbounds[4]*TOMM,mbounds[5]*TOMM);
+        bc.getBounds(mbounds);
+
+
+        //getModelBounds(path, mbounds);
+
+        double 
+            xmin = mbounds[0], 
+            xmax = mbounds[1],
+            ymin = mbounds[2], 
+            ymax = mbounds[3], 
+            zmin = mbounds[4], 
+            zmax = mbounds[5];
+
+        // do nice rounding off the model boundaries 
+        int 
+            nxmin = (int)floor(xmin/m_voxelSize) - m_padding,
+            nxmax = (int)ceil(xmax/m_voxelSize) + m_padding,
+            nymin = (int)floor(ymin/m_voxelSize) - m_padding,
+            nymax = (int)ceil(ymax/m_voxelSize) + m_padding,
+            nzmin = (int)floor(zmin/m_voxelSize) - m_padding,
+            nzmax = (int)ceil(zmax/m_voxelSize) + m_padding;            
         
-        int gridX = (int)Math.ceil((mbounds[1] - mbounds[0])/m_voxelSize);
-        int gridY = (int)Math.ceil((mbounds[3] - mbounds[2])/m_voxelSize);
-        int gridZ = (int)Math.ceil((mbounds[5] - mbounds[4])/m_voxelSize);
+        int 
+            voxelsX = (nxmax - nxmin),
+            voxelsY = (nymax - nymin),
+            voxelsZ = (nzmax - nzmin);
 
-        printf("model Grid: [%d x %d x %d]\n",gridX, gridY, gridZ);
-
-        gridX += 2*m_padding;
-        gridY += 2*m_padding;
-        gridZ += 2*m_padding;
-
-        printf("voxels Grid: [%d x %d x %d]\n",gridX, gridY, gridZ);
-
-        double gbounds[] = new double[]{mbounds[0] - m_padding*m_voxelSize,
-                                        mbounds[0] + (gridX-m_padding)*m_voxelSize,
-                                        mbounds[2] - m_padding*m_voxelSize,
-                                        mbounds[2] + (gridY-m_padding)*m_voxelSize,
-                                        mbounds[4] - m_padding*m_voxelSize,
-                                        mbounds[4] + (gridZ-m_padding)*m_voxelSize};
-                                                        
-        MeshRasterizer mr = new MeshRasterizer(gbounds, gridX, gridY, gridZ);
-        // read file again 
-        reader.read(path, mr);
+        printf("grid: [%d x %d x %d]\n", voxelsX,voxelsY,voxelsZ);
         
-        GridShortIntervals grid = new GridShortIntervals(gridX, gridY, gridZ, m_voxelSize, m_voxelSize);
+        double gbounds[] = m_gridBounds;
+
+        gbounds[0] = nxmin* m_voxelSize;
+        gbounds[1] = nxmax* m_voxelSize;
+        gbounds[2] = nymin* m_voxelSize;
+        gbounds[3] = nymax* m_voxelSize;
+        gbounds[4] = nzmin* m_voxelSize;
+        gbounds[5] = nzmax* m_voxelSize;
+
+        printf("grid bounds: [%10.7f, %10.7f, %10.7f, %10.7f, %10.7f, %10.7f]\n",gbounds[0],gbounds[1],gbounds[2],gbounds[3],gbounds[4],gbounds[5]);
+        printf("grid size: [%10.7f, %10.7f, %10.7f]\n",(gbounds[1]-gbounds[0]),(gbounds[3]-gbounds[2]),(gbounds[5]-gbounds[4]));
         
+        MeshRasterizer mr = new MeshRasterizer(gbounds, voxelsX, voxelsY, voxelsZ);
+
+        reader.read(path, mr);        
+
+        Grid grid =  grid = m_gridType.createEmpty(voxelsX, voxelsY, voxelsZ, m_voxelSize, m_voxelSize);        
+        
+        printf("grid: %s \n",grid.getClass().getName());
+        
+        grid.setGridBounds(gbounds);
+       
         mr.getRaster(grid);
         
         return grid;
-        
-    }
-
-
-
-    static class BoundsCalculator implements TriangleCollector{
-        
-        double 
-            xmin = Double.MAX_VALUE, xmax = Double.MIN_VALUE, 
-            ymin = Double.MAX_VALUE, ymax = Double.MIN_VALUE, 
-            zmin = Double.MAX_VALUE, zmax = Double.MIN_VALUE;
- 
-        public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
-
-            addVert(v0);
-            addVert(v1);
-            addVert(v2);
-            return true;
-        }
-
-        void addVert(Vector3d v){
-            
-            if(v.x < xmin) xmin = v.x;
-            if(v.x > xmax) xmax = v.x;
-
-            if(v.y < ymin) ymin = v.y;
-            if(v.y > ymax) ymax = v.y;
-
-            if(v.z < zmin) zmin = v.z;
-            if(v.z > zmax) zmax = v.z;
-            
-        }
-
-        public double[] getBounds(){
-
-            return new double[]{xmin, xmax, ymin, ymax, zmin, zmax};
-
-        }
-        
         
     }
 }

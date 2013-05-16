@@ -28,14 +28,7 @@ import abfab3d.grid.query.Equals;
  * @author Alan Hudson
  * @version
  */
-public class TestOctreeGridByte extends BaseTestAttributeGrid implements ClassAttributeTraverser {
-
-    /** The material count */
-    private int allCount;
-    private int mrkCount;
-    private int extCount;
-    private int intCount;
-    private int outCount;
+public class TestOctreeGridByte extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -138,7 +131,8 @@ public class TestOctreeGridByte extends BaseTestAttributeGrid implements ClassAt
         grid2.setData(x,y,z, Grid.EXTERIOR,1);
 
 System.out.println("***Get unset data");
-        VoxelData vd = grid.getData(2,2,z+1);
+        VoxelData vd = grid.getVoxelData();
+        grid.getData(2,2,z+1,vd);
 
         if (vd.getState() != Grid.OUTSIDE)
             grid.printTree();
@@ -170,7 +164,7 @@ System.out.println("Checking equals");
         int width = 64;
         int height = width;
         int depth = width;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -309,19 +303,20 @@ System.out.println("Checking equals");
         grid.setData(1,0,0,Grid.EXTERIOR,0);
         grid.setData(2,0,0,Grid.EXTERIOR,0);
 
-        VoxelData vd = grid.getData(3,0,0);
+        VoxelData vd = grid.getVoxelData();
+        grid.getData(3,0,0,vd);
         assertEquals(Grid.OUTSIDE,vd.getState());
 
-        vd = grid.getData(2,0,0);
+        grid.getData(2,0,0,vd);
         assertEquals(Grid.EXTERIOR,vd.getState());
 
-        vd = grid.getData(1,0,0);
+        grid.getData(1,0,0,vd);
         assertEquals(Grid.EXTERIOR,vd.getState());
 
         // Test 3rd quadrant
         grid.setData(3,0,0,Grid.INTERIOR,0);
 
-        vd = grid.getData(3,0,0);
+        grid.getData(3,0,0,vd);
         assertEquals(Grid.INTERIOR,vd.getState());
     }
 
@@ -346,10 +341,11 @@ System.out.println("Checking equals");
 
         assertTrue("Collapse worked", count2 < count1);
 
-        VoxelData vd = grid.getData(3,0,0);
+        VoxelData vd = grid.getVoxelData();
+        grid.getData(3,0,0,vd);
         assertEquals(Grid.OUTSIDE,vd.getState());
 
-        vd = grid.getData(1,0,0);
+        grid.getData(1,0,0,vd);
         assertEquals(Grid.EXTERIOR,vd.getState());
     }
 
@@ -617,7 +613,7 @@ grid.printTree();
     public void testByteMaterialRange() {
         int width = 63;
         int maxMaterial = 63;
-        int mat, expectedMat;
+        long mat, expectedMat;
 
         OctreeAttributeGridByte grid = new OctreeAttributeGridByte(width, 1, 1, 0.001, 0.001);
 
@@ -656,7 +652,7 @@ grid.printTree();
     }
 */
     /**
-     * Test set/get int material range.
+     * Test set/get long material range.
      */
 /*
     public void testIntMaterialRange() {
@@ -903,7 +899,7 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat = 1;
+        long mat = 1;
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
@@ -984,8 +980,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -1060,8 +1056,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -1142,8 +1138,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1218,8 +1214,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
@@ -1361,11 +1357,11 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int material0 = 2;
-        int material1 = 5;
-        int material2 = 12;
+        long material0 = 2;
+        long material1 = 5;
+        long material2 = 12;
         int[] materialDepth = {10, 6, 1};
-        int[] material = {material0, material1, material2};
+        long[] material = {material0, material1, material2};
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.05, 0.05);
 
@@ -1388,7 +1384,7 @@ grid.printTree();
         }
 
         // test material 0
-        int mat = 0;
+        long mat = 0;
         grid = new OctreeAttributeGridByte(width, height, depth, 0.05, 0.05);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.EXTERIOR, mat);
@@ -1412,8 +1408,8 @@ grid.printTree();
         int width = 16;
         int height = 16;
         int depth = 16;
-        int mat1 = 1;
-        int mat2 = 2;
+        long mat1 = 1;
+        long mat2 = 2;
 
         AttributeGrid grid =new OctreeAttributeGridByte(width, height, depth, 0.001, 0.001);
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
@@ -1469,61 +1465,5 @@ grid.printTree();
         assertTrue("Found iterator did not find all voxels with material " + mat2,
                 ft.foundAllVoxels());
 
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public void found(int x, int y, int z, VoxelData vd) {
-        allCount++;
-
-        if (vd.getState() == Grid.EXTERIOR) {
-            mrkCount++;
-            extCount++;
-        } else if (vd.getState() == Grid.INTERIOR) {
-            mrkCount++;
-            intCount++;
-        } else {
-            outCount++;
-        }
-
-    }
-
-    /**
-     * A voxel of the class requested has been found.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @param vd The voxel data
-     */
-    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
-        // ignore
-        return true;
-    }
-
-    /**
-     * Set the X values of a grid.
-     *
-     * @param state The new state
-     * @param mat The new material
-     */
-    protected static void setX(AttributeGrid grid, int y, int z, byte state, byte mat, int startIndex, int endIndex) {
-        for(int x=startIndex; x <= endIndex; x++) {
-            grid.setData(x,y,z, state, mat);
-        }
-    }
-
-    private void resetCounts() {
-        allCount = 0;
-        mrkCount = 0;
-        extCount = 0;
-        intCount = 0;
-        outCount = 0;
     }
 }

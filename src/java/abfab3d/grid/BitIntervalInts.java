@@ -89,7 +89,7 @@ public class BitIntervalInts implements RowOfInt, Serializable {
 
     }
 
-    public synchronized void set(int x, int value){
+    public synchronized void set(int x, long value){
         
         if(m_curcount == 0) {
             // no interval exist (all bits are 0s) 
@@ -290,7 +290,7 @@ public class BitIntervalInts implements RowOfInt, Serializable {
     /**
      * Traverse a class of voxels types.  May be much faster then
      *
-     * @param vc The class of voxels to traverse
+     * @param data The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */    
     public boolean findInterruptible(int data, IntervalTraverser t) {  
@@ -312,6 +312,27 @@ public class BitIntervalInts implements RowOfInt, Serializable {
             // scan interval of 0s 
             // TODO  do we need this ? 
             return false;
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     *
+     * @param data The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void find(int data, IntervalTraverser t) {
+
+        if(data != 0){
+            // scan interval of 1s
+            for(int i = 0; i < m_curcount; i+=2){
+                // cycle over all filled bits
+                for(int x = m_intervals[i];x < m_intervals[i+1]; x++){
+                    t.found(x,1);
+                }
+            }
+        } else {
+            throw new IllegalArgumentException("Not implemented");
         }
     }
 

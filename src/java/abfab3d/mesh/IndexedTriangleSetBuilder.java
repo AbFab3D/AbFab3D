@@ -45,12 +45,14 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
     }
 
     public IndexedTriangleSetBuilder(int expectedFaces) {
+
         faces = new StructMixedData(FaceList.DEFINITION, expectedFaces);
         // from Euler formula V-E+F=2 for simple surfaces 
         float loadFactor = 0.75f;
-        int estimatedFaces = (int)((expectedFaces/2 + 2)/loadFactor);
-        System.out.println("Estimated Faces: " + estimatedFaces);
-        ps = new PointSet(estimatedFaces, loadFactor, TOLERANCE);
+        int expectedVertices = 2*expectedFaces;
+//        printf("***expectedVertices: %d\n", expectedVertices);
+
+        ps = new PointSet(expectedVertices, loadFactor, TOLERANCE);
     }
 
     public void clear(){
@@ -113,6 +115,39 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
         return FaceList.getCount(faces);
 
     }
+
+    /**
+       feeds traingles to TriangleCollector interface
+     */
+    public void getTriangles(TriangleCollector tcollector){
+        
+        Vector3d 
+            v0 = new Vector3d(), 
+            v1 = new Vector3d(), 
+            v2 = new Vector3d();
+        int face[] = new int[3];
+        
+        double pnt[] = getVertices();
+
+        int fcount = FaceList.getCount(faces);
+        //printf("fcount: %d \n", fcount);
+        //printf("pnt count: %d \n", pnt.length);
+        
+        for(int i = 0; i < fcount; i++){
+
+            FaceList.get(faces, i, face);
+            int i0 = 3*face[0];
+            int i1 = 3*face[1];
+            int i2 = 3*face[2];
+            //printf("face: %d %d %d\n", i0, i1, i2);
+
+            v0.set(pnt[i0], pnt[i0 + 1], pnt[i0 + 2]);
+            v1.set(pnt[i1], pnt[i1 + 1], pnt[i1 + 2]);
+            v2.set(pnt[i2], pnt[i2 + 1], pnt[i2 + 2]);           
+            tcollector.addTri(v0,v1,v2);
+        }        
+    }
+
 
     /**
        add triangle 

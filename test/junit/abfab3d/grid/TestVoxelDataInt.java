@@ -39,7 +39,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
      */
     public void testConstructor() {
         byte state = Grid.EXTERIOR;
-        int material = 125;
+        long material = 125;
 
         VoxelDataInt vd = new VoxelDataInt(state, material);
 
@@ -49,7 +49,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
 
     public void testSetData() {
         byte state = Grid.EXTERIOR;
-        int material = 125;
+        long material = 125;
 
         VoxelDataInt vd = new VoxelDataInt(Grid.INTERIOR, 1);
         vd.setData(state, material);
@@ -60,7 +60,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
 
     public void testSetState() {
         byte state = Grid.EXTERIOR;
-        int material = 125;
+        long material = 125;
 
         VoxelDataInt vd = new VoxelDataInt(Grid.INTERIOR, material);
         vd.setState(state);
@@ -69,12 +69,12 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
         assertEquals(material, vd.getMaterial());
     }
 
-    public void testSetMaterial() {
+    public void testsetAttribute() {
         byte state = Grid.EXTERIOR;
-        int material = 125;
+        long material = 125;
 
         VoxelDataInt vd = new VoxelDataInt(state, 1);
-        vd.setMaterial(material);
+        vd.setAttribute(material);
 
         assertEquals(state, vd.getState());
         assertEquals(material, vd.getMaterial());
@@ -82,7 +82,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
 
     public void testDataRange() {
         byte state = 0;
-        int material = 0;
+        long material = 0;
 
         VoxelDataInt vd = new VoxelDataInt(state, material);
 
@@ -105,7 +105,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
 
     public void testClone() {
         byte state = Grid.EXTERIOR;
-        int material = 255;
+        long material = 255;
 
         VoxelDataInt vd = new VoxelDataInt(state, material);
         VoxelDataInt vd2 = (VoxelDataInt) vd.clone();
@@ -116,7 +116,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
 
     public void testEquals() {
         byte state = Grid.EXTERIOR;
-        int material = 255;
+        long material = 255;
 
         VoxelDataInt vd = new VoxelDataInt(state, material);
         VoxelDataInt vd2 = new VoxelDataInt((byte)2, 1000);

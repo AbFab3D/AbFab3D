@@ -21,6 +21,8 @@ import java.io.FileInputStream;
 
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
+
+import abfab3d.geom.ZBuffer;
 import abfab3d.util.TriangleCollector;
 
 import abfab3d.grid.Grid;
@@ -30,7 +32,7 @@ import static abfab3d.util.Output.printf;
 
 
 /**
-   class to convert collection of trinagles into a voxel grid
+   class to convert collection of triangles into a voxel grid
 
    it uses ZBuffer technique to rasterize each incoming triangle 
    
@@ -48,6 +50,8 @@ import static abfab3d.util.Output.printf;
    @author Vladimir Bulatov
  */
 public class MeshRasterizer implements TriangleCollector {
+
+    int exceptionCount = 100;
     
     // shift to break possible exact symmetry 
     static final double EPSILON_SHIFT = 1.2345e-10;
@@ -60,7 +64,7 @@ public class MeshRasterizer implements TriangleCollector {
     // grid size 
     int m_nx, m_ny, m_nz;
     
-    ZBuffer m_zbuffer; // z-buffer to render trianges to 
+    ZBuffer m_zbuffer; // z-buffer to render trianges to
     
 
     /**
@@ -88,8 +92,19 @@ public class MeshRasterizer implements TriangleCollector {
         
         // break possble symmetry (dirty hack)
         m_tx += EPSILON_SHIFT;
+
+        printf("MeshRasterizer()\n");
+        printf("grid: [%d %d %d]\n", m_nx, m_ny, m_nz);
+        printf("sx: [%10.7f, %10.7f, %10.7f]\n", m_sx, m_sy, m_sz);
+        printf("tx: [%10.7f, %10.7f, %10.7f]\n", m_tx, m_ty, m_tz);
+
     }
     
+
+    /**
+       method of TriangleCollector interface 
+       it is called for each triangle in the collection
+    */
     public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
 
         double 
@@ -118,7 +133,7 @@ public class MeshRasterizer implements TriangleCollector {
     }
 
     /**
-       the final mandatory sxtep after all rasterization is done
+       the final mandatory step after all rasterization is done
        it stores data from ZBuffer into supplied grid
      */
     public void getRaster(Grid grid){
@@ -162,10 +177,17 @@ public class MeshRasterizer implements TriangleCollector {
     }    
     
     void fillSegment(Grid grid, int x, int y, int z1, int z2){
-        
-        for(int z = z2; z >= z1; z--){
-            grid.setState(x, y, z, Grid.INTERIOR);
-        }         
+        int z = 0;
+        try {
+            for(z = z2; z >= z1; z--){
+                grid.setState(x, y, z, Grid.INTERIOR);
+            }         
+        } catch(Exception e){
+            if(exceptionCount > 0){
+                exceptionCount--;
+                printf("index out of bounds: (x: %d, y:%d, z: %d)\n", x,y,z);
+            }
+        }
     }
 }
 

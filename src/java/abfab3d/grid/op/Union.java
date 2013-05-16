@@ -39,7 +39,7 @@ public class Union implements Operation, AttributeOperation {
 
     /** The grid to subtract */
     private AttributeGrid gridBAtt;
-    
+
     /** The x translation of gridB */
     private double x;
 
@@ -50,14 +50,14 @@ public class Union implements Operation, AttributeOperation {
     private double z;
 
     /** The material for new exterior voxels */
-    private int material;
+    private long material;
 
 
-    public Union(Grid b, double x, double y, double z, int material) {
+    public Union(Grid b, double x, double y, double z, long material) {
         if (b instanceof AttributeGrid) {
             gridBAtt = (AttributeGrid) b;
         }
-        
+
         gridB = b;
         this.x = x;
         this.y = y;
@@ -108,16 +108,16 @@ public class Union implements Operation, AttributeOperation {
 
         return grid;
     }
-    
+
 }
 
 class Handler implements ClassTraverser {
     private Grid gridA;
-    
+
     public Handler(Grid grid) {
-        gridA = grid;    
+        gridA = grid;
     }
-    
+
     /**
      * A voxel of the class requested has been found.
      *
@@ -143,14 +143,14 @@ class Handler implements ClassTraverser {
     public boolean foundInterruptible(int x, int y, int z, byte vd) {
         // ignore
         return true;
-    }    
+    }
 }
 
 class AttributeHandler implements ClassAttributeTraverser {
     private AttributeGrid gridAAtt;
-    private int mat;
+    private long mat;
 
-    public AttributeHandler(AttributeGrid grid, int material) {
+    public AttributeHandler(AttributeGrid grid, long material) {
         gridAAtt = grid;
         this.mat = material;
     }
@@ -184,5 +184,5 @@ class AttributeHandler implements ClassAttributeTraverser {
     public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
         // ignore
         return true;
-    }        
+    }
 }

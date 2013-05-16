@@ -20,6 +20,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.DataSource;
@@ -51,8 +52,10 @@ public class GridMaker {
     private double voxelX, voxelY, voxelZ, offsetX, offsetY, offsetZ;
     private int m_slizeSize = 2;
 
-    Grid m_grid; 
+    AttributeGrid m_grid; 
     int m_nx, m_ny, m_nz;
+    int gridMaxAttributeValue = 0;
+    double voxelSize = 0;
 
     public void setDataSource(DataSource dataSource){
         m_dataSource = dataSource;
@@ -74,6 +77,23 @@ public class GridMaker {
 
     }
 
+    /**
+       set width of transitional surface area for shape calculations 
+     */
+    public void setVoxelSize(double vs){
+
+        this.voxelSize = vs; 
+    } 
+    
+    /**
+       sets scaling value for attributes
+     */
+    public void setMaxAttributeValue(int value){
+
+        gridMaxAttributeValue = value;
+
+    }
+
     public void setBounds(double bounds[]){
 
         m_centerX = (bounds[0] + bounds[1])/2;
@@ -92,7 +112,7 @@ public class GridMaker {
             throw new ExecutionStoppedException();
         }
 
-        m_grid = grid;
+        m_grid = (AttributeGrid)grid;
          
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
@@ -111,14 +131,14 @@ public class GridMaker {
             ((Initializable)m_dataSource).initialize();
         }
 
-        printf("data initialization %d ms\n", (time() - t0));
+        //printf("data initialization %d ms\n", (time() - t0));
         
         t0 = time();
         if(m_threadCount > 0)
             makeGridMT();
         else 
             makeGridST();
-        printf("grid rendering: %d ms\n", (time() - t0));
+        //printf("grid rendering: %d ms\n", (time() - t0));
     } 
 
     void makeGridMT(){
@@ -145,7 +165,7 @@ public class GridMaker {
             pntGrid = new Vec(3),
             pntWorld = new Vec(3),            
             pntData = new Vec(3),
-            dataValue = new Vec(2);
+            dataValue = new Vec(3);
         
         int margin = m_margin; 
         int nx = m_nx, ny = m_ny, nz = m_nz;
@@ -162,15 +182,32 @@ public class GridMaker {
                     
                     pntGrid.set(ix, iy, iz);
                     transformToWorldSpace(pntGrid, pntWorld);
+
+                    pntWorld.voxelSize = voxelSize;
+
                     int res = m_transform.inverse_transform(pntWorld, pntData);
+
+                    //pntData.voxelSize = voxelSize;
+
                     if(res != VecTransform.RESULT_OK)
                         continue;
                     res = m_dataSource.getDataValue(pntData, dataValue);
                     if(res != VecTransform.RESULT_OK)
                         continue;
                     
-                    if(dataValue.v[0] > 0.5){
-                        m_grid.setState(ix, iy, iz, Grid.INTERIOR);
+                    switch(gridMaxAttributeValue){
+                        
+                    case 0: // use grid state 
+                        if(dataValue.v[0] > 0.5){
+                            m_grid.setState(ix, iy, iz, Grid.INTERIOR);
+                        }
+                        break;
+                    default: // use grid attribute
+                        int v = (int)(gridMaxAttributeValue * dataValue.v[0] + 0.5);
+                        if(v > 0){
+                            m_grid.setData(ix, iy, iz, Grid.INTERIOR, v);   
+                        }
+                        break;
                     }
                 }
             }
@@ -191,7 +228,7 @@ public class GridMaker {
             pntGrid = new Vec(3),
             pntWorld = new Vec(3),            
             pntData = new Vec(3),
-            dataValue = new Vec(2);
+            dataValue = new Vec(3);
 
         SliceMaker(SliceSet slices ){
 
@@ -227,18 +264,35 @@ public class GridMaker {
                 for(int ix = margin; ix < nx1; ix++){
                     
                     for(int iz = nz1-1; iz >= margin; iz--){ // this z-order to speed up creation of GridIntervals
-                        
+                        //TODO make grid.setData() in one call 
+
                         pntGrid.set(ix, iy, iz);
                         transformToWorldSpace(pntGrid, pntWorld);
+
+                        pntWorld.voxelSize = voxelSize;
+
                         int res = m_transform.inverse_transform(pntWorld, pntData);
                         if(res != VecTransform.RESULT_OK)
-                            continue;
+                            continue;                        
+
                         res = m_dataSource.getDataValue(pntData, dataValue);
+
                         if(res != VecTransform.RESULT_OK)
                             continue;
                         
-                        if(dataValue.v[0] > 0.5){
-                            m_grid.setState(ix, iy, iz, Grid.INTERIOR);
+                        switch(gridMaxAttributeValue){
+                            
+                        case 0: // use grid state 
+                            if(dataValue.v[0] > 0.5){
+                                m_grid.setState(ix, iy, iz, Grid.INTERIOR);
+                            }
+                            break;
+                        default: // use grid attribute
+                            int v = (int)(gridMaxAttributeValue * dataValue.v[0] + 0.5);
+                            if(v > 0){
+                                m_grid.setData(ix, iy, iz, Grid.INTERIOR, v);   
+                            }
+                            break;
                         }
                     }
                 }

@@ -38,7 +38,7 @@ public class InteriorFinderVoxelBased implements AttributeOperation, ClassAttrib
     private static final int INSIDE = 3;
 
     /** The material to process */
-    protected int material;
+    protected long material;
 
     /** The material to use for new voxels */
     protected int innerMaterial;
@@ -53,7 +53,7 @@ public class InteriorFinderVoxelBased implements AttributeOperation, ClassAttrib
      * @param material The materialID of exterior voxels
      * @param newMaterial The materialID to assign new interior voxels
      */
-    public InteriorFinderVoxelBased(int material, int newMaterial) {
+    public InteriorFinderVoxelBased(long material, int newMaterial) {
         this.material = material;
         this.innerMaterial = newMaterial;
     }
@@ -83,6 +83,7 @@ System.out.println("Creating grid for Interior Finding");
 
 System.out.println("Outer material: " + material);
 
+        VoxelData vd = grid.getVoxelData();
         // Find interior voxels using in/out tests
         // March across XAXIS
         for(int y=0; y < height; y++) {
@@ -90,7 +91,7 @@ System.out.println("Outer material: " + material);
                 status = OUTSIDE;
 
                 for(int x=0; x < width; x++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     state = vd.getState();
 
                     if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
@@ -123,11 +124,11 @@ System.out.println("Outer material: " + material);
                     } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
 //System.out.println("exiting, found outside, set to outside at: " + x + " " + y + " " + z);
-                        	if (isInterior(grid, x, y, z)) {
-                        		status = INSIDE;
-                        	} else {
-                        		status = OUTSIDE;
-                        	}
+                            if (isInterior(grid, x, y, z)) {
+                                status = INSIDE;
+                            } else {
+                                status = OUTSIDE;
+                            }
                         } else if (state == Grid.INTERIOR) {
 //System.out.println("exiting, found interior, set to inside at: " + x + " " + y + " " + z);
                             status = INSIDE;
@@ -163,7 +164,7 @@ System.out.println("XAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             for(int z=0; z < depth; z++) {
                 status = OUTSIDE;
                 for(int y=0; y < height; y++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     state = vd.getState();
 
                     if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
@@ -186,7 +187,7 @@ System.out.println("outside to inside at: " + x + " " + y + " " + z);
                         }
                     } else if (status == ENTERING) {
 //                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'Y')) {
-                      	if (state == Grid.OUTSIDE && isInterior(grid, x, y, z)) {
+                        if (state == Grid.OUTSIDE && isInterior(grid, x, y, z)) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
 //                            result.setData(x,y,z,Grid.INTERIOR,innerMaterial);
 //                            status = INSIDE;
@@ -206,11 +207,11 @@ System.out.println("outside to inside at: " + x + " " + y + " " + z);
                         }
                     } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
-                        	if (isInterior(grid, x, y, z)) {
-                        		status = INSIDE;
-                        	} else {
-                        		status = OUTSIDE;
-                        	}
+                            if (isInterior(grid, x, y, z)) {
+                                status = INSIDE;
+                            } else {
+                                status = OUTSIDE;
+                            }
                         } else if (state == Grid.INTERIOR) {
                             status = INSIDE;
                             continue;
@@ -246,7 +247,7 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             for(int y=0; y < height; y++) {
                 status = OUTSIDE;
                 for(int z=0; z < depth; z++) {
-                    VoxelData vd = grid.getData(x,y,z);
+                    grid.getData(x,y,z,vd);
                     state = vd.getState();
 
                     if (vd.getMaterial() != material && state != Grid.OUTSIDE) {
@@ -269,7 +270,7 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                         }
                     } else if (status == ENTERING) {
 //                        if (state == Grid.OUTSIDE && hasMatchingExterior(grid, x, y, z, 'Z')) {
-                      	if (state == Grid.OUTSIDE && isInterior(grid, x, y, z)) {
+                        if (state == Grid.OUTSIDE && isInterior(grid, x, y, z)) {
 //System.out.println("Found inside at1: " + x + " " + y + " " + z);
                             if (result.getState(x,y,z) == Grid.INTERIOR) {
                                 status = INSIDE;
@@ -284,11 +285,11 @@ System.out.println("YAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
                         }
                     } else if (status == EXITING) {
                         if (state == Grid.OUTSIDE) {
-                        	if (isInterior(grid, x, y, z)) {
-                        		status = INSIDE;
-                        	} else {
-                        		status = OUTSIDE;
-                        	}
+                            if (isInterior(grid, x, y, z)) {
+                                status = INSIDE;
+                            } else {
+                                status = OUTSIDE;
+                            }
                         } else if (state == Grid.INTERIOR) {
                             status = INSIDE;
                             continue;
@@ -355,7 +356,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
     }
 
     /**
-     * Determines if a voxel is interior by walking along the X, Y, and Z axis 
+     * Determines if a voxel is interior by walking along the X, Y, and Z axis
      * @param grid
      * @param xPos
      * @param yPos
@@ -363,98 +364,99 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
      * @return
      */
     private boolean isInterior(Grid grid, int xPos, int yPos, int zPos) {
-    	int width = grid.getWidth();
-    	int height = grid.getHeight();
-    	int depth = grid.getDepth();
-    	byte state;
-    	boolean xPosInterior = false;
-    	boolean xNegInterior = false;
-    	boolean yPosInterior = false;
-    	boolean yNegInterior = false;
-    	boolean zPosInterior = false;
-    	boolean zNegInterior = false;
+        int width = grid.getWidth();
+        int height = grid.getHeight();
+        int depth = grid.getDepth();
+        byte state;
+        boolean xPosInterior = false;
+        boolean xNegInterior = false;
+        boolean yPosInterior = false;
+        boolean yNegInterior = false;
+        boolean zPosInterior = false;
+        boolean zNegInterior = false;
 
-		for (int x=xPos+1; x<width; x++) {
-            VoxelData vd = grid.getData(x, yPos, zPos);
+        VoxelData vd = grid.getVoxelData();
+        for (int x=xPos+1; x<width; x++) {
+            grid.getData(x, yPos, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
-            	xPosInterior = true;
-            	break;
+                xPosInterior = true;
+                break;
             }
-		}
-		
-		if (!xPosInterior) {
-			return false;
-		}
-		
-		for (int x=xPos-1; x>=0; x--) {
-            VoxelData vd = grid.getData(x, yPos, zPos);
+        }
+
+        if (!xPosInterior) {
+            return false;
+        }
+
+        for (int x=xPos-1; x>=0; x--) {
+            grid.getData(x, yPos, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
-            	xNegInterior = true;
-            	break;
+                xNegInterior = true;
+                break;
             }
-		}
-		
-		if (!xNegInterior) {
-			return false;
-		}
+        }
 
-		for (int y=yPos+1; y<height; y++) {
-            VoxelData vd = grid.getData(xPos, y, zPos);
+        if (!xNegInterior) {
+            return false;
+        }
+
+        for (int y=yPos+1; y<height; y++) {
+            grid.getData(xPos, y, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
-            	yPosInterior = true;
-            	break;
+                yPosInterior = true;
+                break;
             }
-		}
+        }
 
-		if (!yPosInterior) {
-			return false;
-		}
+        if (!yPosInterior) {
+            return false;
+        }
 
-		for (int y=yPos-1; y>=0; y--) {
-            VoxelData vd = grid.getData(xPos, y, zPos);
+        for (int y=yPos-1; y>=0; y--) {
+            grid.getData(xPos, y, zPos,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
-            	yNegInterior = true;
-            	break;
+                yNegInterior = true;
+                break;
             }
-		}
+        }
 
-		if (!yNegInterior) {
-			return false;
-		}
-		
-		for (int z=zPos+1; z<depth; z++) {
-            VoxelData vd = grid.getData(xPos, yPos, z);
+        if (!yNegInterior) {
+            return false;
+        }
+
+        for (int z=zPos+1; z<depth; z++) {
+            grid.getData(xPos, yPos, z,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
-            	zPosInterior = true;
-            	break;
+                zPosInterior = true;
+                break;
             }
-		}
+        }
 
-		if (!zPosInterior) {
-			return false;
-		}
-    	
-		for (int z=zPos-1; z>=0; z--) {
-            VoxelData vd = grid.getData(xPos, yPos, z);
+        if (!zPosInterior) {
+            return false;
+        }
+
+        for (int z=zPos-1; z>=0; z--) {
+            grid.getData(xPos, yPos, z,vd);
             state = vd.getState();
 
             if (state == Grid.EXTERIOR) {
-            	zNegInterior = true;
-            	break;
+                zNegInterior = true;
+                break;
             }
-		}
+        }
 
-    	return zNegInterior;
+        return zNegInterior;
     }
 
     private boolean hasMatchingExterior(Grid grid, int xPos, int yPos, int zPos, char dir) {
@@ -463,9 +465,10 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
         int depth = grid.getDepth();
         byte state;
 
+        VoxelData vd = grid.getVoxelData();
         if (dir == 'Y') {
             for (int y=yPos+1; y<height; y++) {
-                VoxelData vd = grid.getData(xPos, y, zPos);
+                grid.getData(xPos, y, zPos,vd);
                 state = vd.getState();
 
                 if (state == Grid.EXTERIOR)
@@ -473,7 +476,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             }
         } else if (dir == 'Z') {
             for (int z=zPos+1; z<depth; z++) {
-                VoxelData vd = grid.getData(xPos, yPos, z);
+                grid.getData(xPos, yPos, z,vd);
                 state = vd.getState();
 
                 if (state == Grid.EXTERIOR)
@@ -481,7 +484,7 @@ System.out.println("ZAXIS Interior: " + result.findCount(Grid.VoxelClasses.INTER
             }
         } else {
             for (int x=xPos+1; x<width; x++) {
-                VoxelData vd = grid.getData(x, yPos, zPos);
+                grid.getData(x, yPos, zPos,vd);
                 state = vd.getState();
 
                 if (state == Grid.EXTERIOR)

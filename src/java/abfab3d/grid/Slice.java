@@ -55,7 +55,7 @@ public interface Slice {
      * @param z The z value
      * @return The material value
      */
-    public int getMaterial(int x, int z);
+    public long getMaterial(int x, int z);
 
     /**
      * Set a pixel directly.
@@ -63,7 +63,7 @@ public interface Slice {
      * @param x The x value
      * @param z The z value
      */
-    public void setData(int x, int z, byte state, int material);
+    public void setData(int x, int z, byte state, long material);
 
     /**
      * Convert the slice into a printable string.

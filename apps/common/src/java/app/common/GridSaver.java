@@ -16,7 +16,13 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
-import abfab3d.mesh.*;
+
+import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.LaplasianSmooth;
+import abfab3d.mesh.MeshDecimator;
+import abfab3d.mesh.ShellFinder;
+
 import abfab3d.util.MathUtil;
 import abfab3d.util.TriangleCounter;
 
@@ -28,6 +34,8 @@ import java.util.Map;
 import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
+import static abfab3d.util.MathUtil.extendBounds;
 
 import org.web3d.vrml.sav.BinaryContentHandler;
 
@@ -49,6 +57,7 @@ public class GridSaver {
      * @throws IOException
      */
     public static void writeIsosurfaceMaker(String filename, Grid grid, int smoothSteps, double maxCollapseError) throws IOException {
+
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
@@ -84,31 +93,7 @@ public class GridSaver {
         int fcount = faces.length;
 
         if (maxCollapseError > 0) {
-            MeshDecimator md = new MeshDecimator();
-            md.setMaxCollapseError(maxCollapseError);
-            long start_time = System.currentTimeMillis();
-
-            int target = mesh.getTriangleCount() / 4;
-            int current = fcount;
-            System.out.println("Original face count: " + fcount);
-
-            while(true) {
-                target = mesh.getTriangleCount() / 2;
-                System.out.println("Target face count : " + target);
-                md.processMesh(mesh, target);
-
-                current = mesh.getFaceCount();
-                System.out.println("Current face count: " + current);
-                if (current >= target * 1.25) {
-                    System.out.println("Leaving loop");
-                    // not worth continuing
-                    break;
-                }
-            }
-
-            fcount = mesh.getFaceCount();
-            System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            mesh = decimateMesh(mesh, maxCollapseError);
         }
 
         if (encoding.equals("stl")) {
@@ -164,37 +149,10 @@ public class GridSaver {
         int fcount = faces.length;
 
         if (maxCollapseError > 0) {
-            MeshDecimator md = new MeshDecimator();
-            md.setMaxCollapseError(maxCollapseError);
-            long start_time = System.currentTimeMillis();
-
-            int target = mesh.getTriangleCount() / 4;
-            int current = fcount;
-            System.out.println("Original face count: " + fcount);
-
-            while(true) {
-                target = mesh.getTriangleCount() / 2;
-                System.out.println("Target face count : " + target);
-                md.processMesh(mesh, target);
-
-                current = mesh.getFaceCount();
-                System.out.println("Current face count: " + current);
-                if (current >= target * 1.25) {
-                    // not worth continuing
-                    break;
-                }
-            }
-
-            fcount = mesh.getFaceCount();
-            System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            mesh  = decimateMesh(mesh,maxCollapseError);
         }
 
-        double max_axis = Math.max(grid.getHeight() * grid.getSliceHeight(), grid.getWidth() * grid.getVoxelSize());
-        max_axis = Math.max(max_axis, grid.getDepth() * grid.getVoxelSize());
-
-        double z = 2 * max_axis / Math.tan(Math.PI / 4);
-        float[] pos = new float[] {0,0,(float) z};
+        float[] pos = new float[] {0,0,(float) getViewDistance(grid)};
 
         if (encoding.equals("stl")) {
             // TODO: Need to implement streaming version
@@ -251,37 +209,10 @@ public class GridSaver {
         int fcount = faces.length;
 
         if (maxCollapseError > 0) {
-            MeshDecimator md = new MeshDecimator();
-            md.setMaxCollapseError(maxCollapseError);
-            long start_time = System.currentTimeMillis();
-
-            int target = mesh.getTriangleCount() / 4;
-            int current = fcount;
-            System.out.println("Original face count: " + fcount);
-
-            while(true) {
-                target = mesh.getTriangleCount() / 2;
-                System.out.println("Target face count : " + target);
-                md.processMesh(mesh, target);
-
-                current = mesh.getFaceCount();
-                System.out.println("Current face count: " + current);
-                if (current >= target * 1.25) {
-                    // not worth continuing
-                    break;
-                }
-            }
-
-            fcount = mesh.getFaceCount();
-            System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            mesh = decimateMesh(mesh, maxCollapseError);
         }
 
-        double max_axis = Math.max(grid.getHeight() * grid.getSliceHeight(), grid.getWidth() * grid.getVoxelSize());
-        max_axis = Math.max(max_axis, grid.getDepth() * grid.getVoxelSize());
-
-        double z = 2 * max_axis / Math.tan(Math.PI / 4);
-        float[] pos = new float[] {0,0,(float) z};
+        float[] pos = new float[] {0,0,(float) getViewDistance(grid)};
 
         MeshExporter.writeMesh(mesh, writer, params, pos);
     }
@@ -319,14 +250,6 @@ public class GridSaver {
 
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
         printf("using NEW IsosurfaceMaker");
-
-        //TriangleCounter tc = new TriangleCounter();
-        //im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), tc); 
-        //printf("triCount: %d\n", tc.getCount());
-        //printf("TRI count: %d\n", IndexedTriangleSetBuilder.triCnt);
-        //printf("HC count: %d\n", IndexedTriangleSetBuilder.hcCnt);
-        //printf("EQ count: %d\n", IndexedTriangleSetBuilder.eqCnt);
-        //printf("EQ/HC ratio: %5.2f\n", ((double)IndexedTriangleSetBuilder.eqCnt/IndexedTriangleSetBuilder.hcCnt));
 
         printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
         //return null;
@@ -367,8 +290,13 @@ public class GridSaver {
      * @throws IOException
      */
     public static abfab3d.mesh.WingedEdgeTriangleMesh createIsosurface2(Grid grid, int smoothSteps, int resamplingFactor) throws IOException {
-        double bounds[] = new double[]{-grid.getWidth()/2 * grid.getVoxelSize(),grid.getWidth()/2*grid.getVoxelSize(),
-                -grid.getHeight()/2*grid.getSliceHeight(),grid.getHeight()/2*grid.getSliceHeight(),-grid.getDepth()/2*grid.getVoxelSize(),grid.getDepth()/2*grid.getVoxelSize()};
+
+        double bounds[] = new double[]{-grid.getWidth()/2 * grid.getVoxelSize()
+                                       ,grid.getWidth()/2*grid.getVoxelSize(),
+                                       -grid.getHeight()/2*grid.getSliceHeight(),
+                                       grid.getHeight()/2*grid.getSliceHeight(),
+                                       -grid.getDepth()/2*grid.getVoxelSize(),
+                                       grid.getDepth()/2*grid.getVoxelSize()};
 
         int nx = grid.getWidth();
         int ny = grid.getHeight();
@@ -401,17 +329,8 @@ public class GridSaver {
         int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
         abfab3d.mesh.IndexedTriangleSetBuilder its = new abfab3d.mesh.IndexedTriangleSetBuilder(estimatedFaceCount);
 
-
         // cut in half
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, bounds, resamplingFactor, 2.9), its);
-
-        //TriangleCounter tc = new TriangleCounter();
-        //im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), tc);
-        //printf("triCount: %d\n", tc.getCount());
-        //printf("TRI count: %d\n", IndexedTriangleSetBuilder.triCnt);
-        //printf("HC count: %d\n", IndexedTriangleSetBuilder.hcCnt);
-        //printf("EQ count: %d\n", IndexedTriangleSetBuilder.eqCnt);
-        //printf("EQ/HC ratio: %5.2f\n", ((double)IndexedTriangleSetBuilder.eqCnt/IndexedTriangleSetBuilder.hcCnt));
 
         printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
         //return null;
@@ -469,7 +388,6 @@ public class GridSaver {
         im.setGridSize(nx, ny, nz);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-
         im.makeIsosurface(new IsosurfaceMaker.SliceGrid(grid, gbounds, 0), its);
         int[] faces = its.getFaces();
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), faces);
@@ -490,64 +408,171 @@ public class GridSaver {
         int fcount = faces.length;
 
         if (maxCollapseError > 0) {
-            MeshDecimator md = new MeshDecimator();
+            mesh = decimateMesh(mesh, maxCollapseError);
+        }
+        
+        writeMesh(mesh, getViewDistance(grid), writer, params, meshOnly);
+        
+    }
+
+
+
+
+    /**
+     * Write a grid mesh into output
+     *
+     * @throws IOException
+     */
+    public static void writeMesh(WingedEdgeTriangleMesh mesh,
+                                 String filename
+                                 ) throws IOException {
+
+        MeshExporter.writeMesh(mesh, filename);
+
+        return;
+    }
+
+    /**
+     * Write a grid mesh into output
+     *
+     * @throws IOException
+     */
+    public static void writeMesh(WingedEdgeTriangleMesh mesh, 
+                                 double viewDistance, 
+                                 BinaryContentHandler writer, 
+                                 Map<String,Object> params,
+                                 boolean meshOnly ) throws IOException {
+        
+        float[] pos = new float[] {0,0,(float) viewDistance};
+
+        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
+
+        return;
+    }
+
+    /**
+       retuns good viewpoint for given box
+     */
+    public static double getViewDistance(Grid grid){
+        
+        double bounds[] = new double[6];
+        grid.getGridBounds(bounds);
+
+        double sizex = bounds[1] - bounds[0];
+        double sizey = bounds[3] - bounds[2]; 
+        double sizez = bounds[5] - bounds[4]; 
+        
+        double max = sizex;
+        if(sizey > max) max = sizey;
+        if(sizez > max) max = sizez;
+
+        double z = 2 * max / Math.tan(Math.PI / 4);
+        return z;
+        
+    }
+
+    /**
+       returns mesh with largest shell 
+     */
+    public static ShellResults getLargestShell(WingedEdgeTriangleMesh mesh, int minVolume){
+    
+        ShellFinder shellFinder = new ShellFinder();
+        ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);        
+        printf("shellsCount: %d\n",shells.length);
+
+        int regions_removed = 0;
+
+        if(shells.length > 1){
+            
+            ShellFinder.ShellInfo maxShell = shells[0];
+            
+            for(int i = 0; i < shells.length; i++){
+                
+                printf("shell: %d faces\n",shells[i].faceCount);
+                if(shells[i].faceCount > maxShell.faceCount){
+                    maxShell = shells[i];
+                }
+            }
+
+            for(int i = 0; i < shells.length; i++){
+
+                if (shells[i] != maxShell) {
+                    if (shells[i].faceCount >= minVolume) {
+                        regions_removed++;
+                    }
+                }
+            }
+            printf("extracting largest shell: %d\n",maxShell.faceCount);
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(maxShell.faceCount);
+            shellFinder.getShell(mesh, maxShell.startFace, its);
+            mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+            return new ShellResults(mesh, regions_removed);
+
+        } else {
+
+            return new ShellResults(mesh,regions_removed);
+        }
+    }        
+
+    public static WingedEdgeTriangleMesh decimateMesh(WingedEdgeTriangleMesh mesh, double maxCollapseError ){
+        
+            printf("GridSaver.decimateMesh()\n");
+
+            MeshDecimator md = new MeshDecimator();            
             md.setMaxCollapseError(maxCollapseError);
             long start_time = System.currentTimeMillis();
-
-            int target = mesh.getTriangleCount() / 4;
+            
+            int fcount = mesh.getTriangleCount();
+            int target = fcount / 2;
             int current = fcount;
-            System.out.println("Original face count: " + fcount);
+            printf("   Original face count: " + fcount);
 
             while(true) {
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new ExecutionStoppedException();
+                }
+
                 target = mesh.getTriangleCount() / 2;
-                System.out.println("Target face count : " + target);
+                printf("   Target face count : %d\n", target);
                 md.processMesh(mesh, target);
 
                 current = mesh.getFaceCount();
-                System.out.println("Current face count: " + current);
+                printf("   Current face count: %d \n", current);
                 if (current >= target * 1.25) {
                     // not worth continuing
                     break;
                 }
-            }
-
-            fcount = mesh.getFaceCount();
-            System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
-        }
-
-        double max_axis = Math.max(grid.getHeight() * grid.getSliceHeight(), grid.getWidth() * grid.getVoxelSize());
-        max_axis = Math.max(max_axis, grid.getDepth() * grid.getVoxelSize());
-
-        double z = 2 * max_axis / Math.tan(Math.PI / 4);
-        float[] pos = new float[] {0,0,(float) z};
-
-        MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
+            }            
+            fcount = current;            
+            printf("   Final face count: %d \n",fcount);
+            return mesh;
     }
 
+
     /**
-     * Write a grid using the IsoSurfaceMaker to the specified file
+     * Write a grid mesh into output
      *
      * @param maxCollapseError
      * @throws IOException
      */
-    public static void writeIsosurfaceMaker(abfab3d.mesh.TriangleMesh mesh, int gw, int gh, int gd, double vs, double sh, BinaryContentHandler writer, Map<String,Object> params,
-                                            double maxCollapseError, boolean meshOnly) throws IOException {
+    /*
+    public static void writeMesh(WingedEdgeTriangleMesh mesh, 
+                                 double sizex, double sizey, double sizez, 
+                                 BinaryContentHandler writer, Map<String,Object> params,
+                                 double maxCollapseError, boolean meshOnly,
+                                 boolean writeLargestShellOnly) throws IOException {
+
         // We could release the grid at this point
         int fcount = mesh.getFaceCount();
 
         if (maxCollapseError > 0) {
 
-            abfab3d.mesh.MeshDecimator md = new abfab3d.mesh.MeshDecimator();
-            System.out.println("*****Using new MeshDecimator*****: " + maxCollapseError);
-/*
             MeshDecimator md = new MeshDecimator();
-            System.out.println("*****Using old MeshDecimator*****");
-*/
+
             md.setMaxCollapseError(maxCollapseError);
             long start_time = System.currentTimeMillis();
 
-            int target = mesh.getTriangleCount() / 4;
+            int target = mesh.getTriangleCount() / 2;
             int current = fcount;
             System.out.println("Original face count: " + fcount);
 
@@ -567,10 +592,40 @@ public class GridSaver {
                     break;
                 }
             }
-
-            fcount = mesh.getFaceCount();
+            
+            fcount = mesh.getFaceCount();            
             System.out.println("Final face count: " + fcount);
-            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+            
+            
+            System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time)  + " ms");
+            
+        }
+        
+        if(writeLargestShellOnly) {
+            ShellFinder shellFinder = new ShellFinder();
+            long t0 = time();
+            ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
+
+            printf("shellsCount: %d\n",shells.length);
+
+            if(shells.length > 1){
+                
+                ShellFinder.ShellInfo maxShell = shells[0];
+
+                for(int i = 0; i < shells.length; i++){
+
+                    printf("shell: %d faces\n",shells[i].faceCount);
+                    if(shells[i].faceCount > maxShell.faceCount){
+                        maxShell = shells[i];
+                    }                        
+                }
+                
+                printf("extracting largest shell: %d\n",maxShell.faceCount);               
+                IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(maxShell.faceCount);
+                shellFinder.getShell(mesh, maxShell.startFace, its);
+                mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+            }
+            printf("shell extraction: %d ms\n", (time() - t0));
         }
 
         double max_axis = Math.max(gh * sh, gw * vs);
@@ -579,23 +634,10 @@ public class GridSaver {
         double z = 2 * max_axis / Math.tan(Math.PI / 4);
         float[] pos = new float[] {0,0,(float) z};
 
+
         MeshExporter.writeMesh(mesh, writer, params, pos, meshOnly, null);
 
         return;
     }
-
-    /**
-     return bounds extended by given margin
-     */
-    static double[] extendBounds(double bounds[], double margin){
-        return new double[]{
-                bounds[0] - margin,
-                bounds[1] + margin,
-                bounds[2] - margin,
-                bounds[3] + margin,
-                bounds[4] - margin,
-                bounds[5] + margin,
-        };
-    }
-
+    */
 }

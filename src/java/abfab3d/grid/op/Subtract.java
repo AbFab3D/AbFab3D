@@ -18,6 +18,9 @@ import java.util.Iterator;
 // Internal Imports
 import abfab3d.grid.*;
 
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
+
 /**
  * Subtraction operation.
  *
@@ -46,10 +49,10 @@ public class Subtract implements Operation, ClassTraverser {
     private double z;
 
     /** The material for new exterior voxels */
-    private int material;
+    private long material;
 
 
-    public Subtract(Grid src, double x, double y, double z, int material) {
+    public Subtract(Grid src, double x, double y, double z, long material) {
         this.src = src;
         this.x = x;
         this.y = y;
@@ -65,14 +68,15 @@ public class Subtract implements Operation, ClassTraverser {
      * @return The new grid
      */
     public Grid execute(Grid dest) {
-        int width = dest.getWidth();
-        int depth = dest.getDepth();
-        int height = dest.getHeight();
+        long t0 = time();
+
         this.dest = dest;
 
         // TODO: Make sure the grids are the same size
 
         src.find(Grid.VoxelClasses.MARKED, this);
+
+        printf("subtract: %d ms\n", (time() - t0));
 
         return dest;
     }

@@ -18,7 +18,7 @@
 public interface RowOfInt {
     
     public int get(int x);
-    public void set(int x, int value);
+    public void set(int x, long value);
     public Object clone();
     public void clear();   // clear data, but keep the memory 
     public void release(); // release all the memory 
@@ -31,6 +31,7 @@ public interface RowOfInt {
        and calling IntervalTraverser for each voxel 
     */
     public boolean findInterruptible(int data, IntervalTraverser t);
+    public void find(int data, IntervalTraverser t);
     public int getDataMemory();
        
 }

@@ -13,7 +13,6 @@
 package app.common;
 
 
-import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
 import abfab3d.grid.Region;
 import abfab3d.grid.RegionTraverser;
@@ -22,10 +21,8 @@ import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.MeshExporter;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.mesh.*;
-import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -45,13 +42,17 @@ public class RegionPrunner {
         ALL, ONE
     }
 
+    public static int reduceToOneRegion(Grid grid) {
+        return reduceToOneRegion(grid, Long.MAX_VALUE);
+    }
+
     /**
      * Reduce a grid down to one largest region.
      *
      * @param grid
      * @return The number of regions removed
      */
-    public static int reduceToOneRegion(Grid grid) {
+    public static int reduceToOneRegion(Grid grid, long minVol) {
         System.out.println("Finding Regions: ");
         // Remove all but the largest region
         RegionFinder finder = new RegionFinder();
@@ -70,11 +71,16 @@ public class RegionPrunner {
             //System.out.println("Region: " + r.getVolume());
         }
 
+        int removed_cnt = 0;
         System.out.println("Largest Region: " + largest);
         RegionClearer clearer = new RegionClearer(grid);
         System.out.println("Clearing regions: ");
         for (Region r : regions) {
             if (r != largest) {
+                if (r.getVolume() >= minVol) {
+                    removed_cnt++;
+                }
+
                 //System.out.println("   Region: " + r.getVolume());
                 r.traverse(clearer);
             }
@@ -84,7 +90,7 @@ public class RegionPrunner {
             }
         }
 
-        return regions.size() - 1;
+        return removed_cnt;
     }
 
     /**
@@ -93,6 +99,15 @@ public class RegionPrunner {
      * @param grid
      */
     public static int reduceToOneRegion(Grid grid, BinaryContentHandler handler, double[] bounds) {
+        return reduceToOneRegion(grid, handler, bounds, Long.MAX_VALUE);
+    }
+
+    /**
+     * Reduce a grid down to one largest region.
+     *
+     * @param grid
+     */
+    public static int reduceToOneRegion(Grid grid, BinaryContentHandler handler, double[] bounds, long minVol) {
         System.out.println("Finding Regions: ");
         // Remove all but the largest region
         RegionFinder finder = new RegionFinder();
@@ -111,6 +126,7 @@ public class RegionPrunner {
             //System.out.println("Region: " + r.getVolume());
         }
 
+        int removed_cnt = 0;
         if (regions.size() > 1) {
             System.out.println("Largest Region: " + largest);
             Grid vis_grid = grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getVoxelSize(), grid.getSliceHeight());
@@ -119,6 +135,9 @@ public class RegionPrunner {
             System.out.println("Clearing regions: ");
             for (Region r : regions) {
                 if (r != largest) {
+                    if (r.getVolume() >= minVol) {
+                        removed_cnt++;
+                    }
                     //System.out.println("   Region: " + r.getVolume());
                     r.traverse(clearer);
                 }
@@ -135,14 +154,14 @@ public class RegionPrunner {
 //            writeVisFile(vis_grid, 0.9, 3, 1e-8, bounds, handler, "debug", COLOR_REGION, "REMOVED_REGIONS");
         }
 
-        return regions.size() - 1;
+        return removed_cnt;
     }
 
     /**
      * writes grid voxels to the visualization file
      */
     static void writePointVisFile(Grid grid, double isoValue, double[] bounds, BinaryContentHandler handler,
-                             String material, String finish, String defName) {
+                                  String material, String finish, String defName) {
 
         double vs = grid.getVoxelSize();
 
@@ -167,7 +186,7 @@ public class RegionPrunner {
 
         try {
             MeshExporter.writePointSet(its.getVertices(), handler, params, new float[3], true, defName);
-        } catch(IOException ioe) {
+        } catch (IOException ioe) {
             ioe.printStackTrace();
         }
     }
@@ -176,7 +195,7 @@ public class RegionPrunner {
      * writes grid voxels to the visualization file
      */
     static void writeVisFile(Grid grid, double isoValue, int smooth, double maxDecimationError, double[] bounds, BinaryContentHandler handler,
-                      String material, String finish, String defName) {
+                             String material, String finish, String defName) {
 
         try {
             // Voxelize and Decimate with fixed edge length = voxels size
@@ -225,7 +244,7 @@ public class RegionPrunner {
 
                 fcount = mesh.getFaceCount();
                 System.out.println("Final face count: " + fcount);
-                System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time));
+                System.out.println("Decimate time: " + (System.currentTimeMillis() - start_time) + " ms");
             }
 
             HashMap<String, Object> params = new HashMap<String, Object>();

@@ -125,7 +125,7 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
     }
   */
 
-    public void testTmp() {
+    public void _testTmp() {
         int size = 10;
         double r = size / (2.0 * Math.PI);
         AttributeGrid grid = new ArrayAttributeGridByte(size,1,size,1,1);

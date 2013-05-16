@@ -79,7 +79,7 @@ public class RingSpaceWarp implements Operation, AttributeOperation {
 
         double[] wc = new double[3];
         int[] pos = new int[3];
-        VoxelData vd = src.getData(0, 0, 0);
+        VoxelData vd = dest.getVoxelData();
 
         long rejected = 0;
 
@@ -176,7 +176,7 @@ public class RingSpaceWarp implements Operation, AttributeOperation {
 
         double[] wc = new double[3];
         int[] pos = new int[3];
-        VoxelData vd;
+        VoxelData vd = dest.getVoxelData();
 
         long rejected = 0;
 
@@ -188,7 +188,7 @@ public class RingSpaceWarp implements Operation, AttributeOperation {
                         continue;
                     }
  */
-                    vd = src.getData(x, y, z);
+                    src.getData(x, y, z,vd);
                     if (vd.getState() != Grid.OUTSIDE) {
                         src.getWorldCoords(x, y, z, wc);
 

@@ -43,7 +43,7 @@ public class CylinderCreator extends GeometryCreator {
     protected double rz;
     protected double rangle;
 
-    protected int materialID;
+    protected long materialID;
 
     boolean swapYZ = false;
 
@@ -55,7 +55,7 @@ public class CylinderCreator extends GeometryCreator {
         double h, double r,
         double x, double y, double z,
         double rx, double ry, double rz, double ra,
-        int material) {
+        long material) {
 
         height = h;
         this.radius = r;
@@ -90,7 +90,7 @@ public class CylinderCreator extends GeometryCreator {
         } else {
             wrapper = new DualWrapper(grid);
         }
-        
+
         int[] coords1 = new int[3];
         int[] coords2 = new int[3];
         int start,end, r;
@@ -138,7 +138,7 @@ public class CylinderCreator extends GeometryCreator {
      * @param z0 The z center
      * @param radius The radius in voxels
      */
-    private void rasterCircle(AttributeGrid grid, int x0, int y0, int z0, int radius, int mat) {
+    private void rasterCircle(AttributeGrid grid, int x0, int y0, int z0, int radius, long mat) {
         int f = 1 - radius;
         int ddF_x = 1;
         int ddF_z = -2 * radius;
@@ -194,7 +194,7 @@ public class CylinderCreator extends GeometryCreator {
      * @param z0 The z center
      * @param radius The radius in voxels
      */
-    private void rasterCircleSwapYZ(AttributeGrid grid, int x0, int y0, int z0, int radius, int mat) {
+    private void rasterCircleSwapYZ(AttributeGrid grid, int x0, int y0, int z0, int radius, long mat) {
         int f = 1 - radius;
         int ddF_x = 1;
         int ddF_z = -2 * radius;
@@ -243,7 +243,7 @@ public class CylinderCreator extends GeometryCreator {
         }
     }
 
-    private void rasterLine(AttributeGrid grid, int x, int x2, int y, int z, int z2, int mat) {
+    private void rasterLine(AttributeGrid grid, int x, int x2, int y, int z, int z2, long mat) {
         int w = x2 - x;
         int h = z2 - z;
         int dx1 = 0, dz1 = 0, dx2 = 0, dz2 = 0;
@@ -279,8 +279,8 @@ public class CylinderCreator extends GeometryCreator {
             }
         }
     }
-    
-    private void rasterLineSwapYZ(AttributeGrid grid, int x, int x2, int y, int z, int z2, int mat) {
+
+    private void rasterLineSwapYZ(AttributeGrid grid, int x, int x2, int y, int z, int z2, long mat) {
         int w = x2 - x;
         int h = z2 - z;
         int dx1 = 0, dz1 = 0, dx2 = 0, dz2 = 0;

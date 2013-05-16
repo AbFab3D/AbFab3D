@@ -31,7 +31,7 @@ public class CountMaterials implements ClassAttributeTraverser {
     private int count;
 
     /** The materials seen */
-    private HashMap<Integer,Integer> seen;
+    private HashMap<Long,Integer> seen;
 
     public CountMaterials() {
     }
@@ -42,8 +42,8 @@ public class CountMaterials implements ClassAttributeTraverser {
      * @param grid The grid to use for grid src
      * @return Material counts
      */
-    public Map<Integer,Integer> execute(Grid grid) {
-        seen = new HashMap<Integer,Integer>();
+    public Map<Long,Integer> execute(Grid grid) {
+        seen = new HashMap<Long,Integer>();
 
         ((AttributeGrid)grid).findAttribute(VoxelClasses.MARKED,this);
 
@@ -61,7 +61,7 @@ public class CountMaterials implements ClassAttributeTraverser {
      * @param start The voxel data
      */
     public void found(int x, int y, int z, VoxelData start) {
-        Integer i = new Integer(start.getMaterial());
+        Long i = new Long(start.getMaterial());
 
         Integer cnt = seen.get(i);
 

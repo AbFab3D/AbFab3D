@@ -66,7 +66,7 @@ import abfab3d.grid.*;
 
      /** Grid for findUnvisited calc. */
      protected AttributeGrid gridAtt;
-     
+
     /** The unvisited coordinate found */
     protected VoxelCoordinate unvisited;
 
@@ -216,7 +216,7 @@ import abfab3d.grid.*;
      *
      * @param grid The grid
      */
-    public VoxelCoordinate findUnvisited(AttributeGrid grid, int mat) {
+    public VoxelCoordinate findUnvisited(AttributeGrid grid, long mat) {
         unvisited = null;
 
         this.gridAtt = grid;

@@ -53,7 +53,7 @@ public class CubeCreator extends GeometryCreator {
     protected double y;
     protected double z;
 
-    protected int materialID;
+    protected long materialID;
 
     /**
      * Constructor.
@@ -63,7 +63,7 @@ public class CubeCreator extends GeometryCreator {
     public CubeCreator(Style[][] styles,
         double w, double h, double d,
         double x, double y, double z,
-        int material) {
+        long material) {
 
         if (styles != null) {
             this.styles = new Style[6][styles.length];
@@ -100,7 +100,7 @@ public class CubeCreator extends GeometryCreator {
         } else {
             wrapper = new DualWrapper(grid);
         }
-        
+
         if (styles == null) {
             createSolidCube(wrapper);
             return;
@@ -664,7 +664,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
     private void createSolidCube(Grid grid) {
         AttributeGrid wrapper = null;
-        
+
         if (grid instanceof AttributeGrid) {
             wrapper = (AttributeGrid) grid;
         } else {
@@ -714,7 +714,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                 }
             }
         }
-        
+
         System.out.println("cube voxels: " + cnt);
     }
 }

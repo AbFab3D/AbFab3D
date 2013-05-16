@@ -13,46 +13,55 @@
 package ringpopper;
 
 // External Imports
-import java.awt.*;
-import java.io.*;
-import java.util.*;
-import javax.imageio.*;
-import javax.vecmath.Matrix4d;
-import javax.vecmath.Vector3d;
-import java.awt.image.BufferedImage;
 
-import abfab3d.grid.query.RegionFinder;
-import abfab3d.io.output.*;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.creator.GeometryKernel;
+import abfab3d.creator.KernelResults;
+import abfab3d.creator.Parameter;
+import abfab3d.creator.shapeways.HostedKernel;
+import abfab3d.creator.util.ParameterUtil;
+
+import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.GridShortIntervals;
+import abfab3d.grid.Grid;
+
+import abfab3d.grid.op.DataSources;
+import abfab3d.grid.op.DataSourceImageBitmap;
+import abfab3d.grid.op.GridMaker;
+import abfab3d.grid.op.VecTransforms;
+
+import abfab3d.io.output.BoxesX3DExporter;
+import abfab3d.io.output.SAVExporter;
+import abfab3d.io.output.MeshMakerMT;
+
 import abfab3d.mesh.AreaCalculator;
-import abfab3d.mesh.LaplasianSmooth;
-import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.util.TextUtil;
+import abfab3d.mesh.LaplasianSmooth;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+
 import abfab3d.util.DataSource;
-
-import app.common.RegionPrunner;
-import app.common.X3DViewer;
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.*;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
-import org.web3d.vrml.sav.BinaryContentHandler;
-
-import abfab3d.geom.*;
-import abfab3d.grid.*;
-import abfab3d.grid.op.*;
-import abfab3d.creator.*;
-import abfab3d.creator.shapeways.*;
-
-//import java.awt.*;
-
-import static abfab3d.util.MathUtil.TORAD;
-import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
+import abfab3d.util.TextUtil;
 
 import app.common.GridSaver;
+import app.common.RegionPrunner;
+import app.common.ShellResults;
+import org.web3d.util.ErrorReporter;
+import org.web3d.vrml.export.PlainTextErrorReporter;
+import org.web3d.vrml.export.X3DXMLRetainedExporter;
+import org.web3d.vrml.sav.BinaryContentHandler;
+
+import javax.vecmath.Vector3d;
+import java.awt.*;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static abfab3d.util.MathUtil.TORAD;
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
+
+//import java.awt.*;
 
 /**
  * Geometry Kernel for the RingPopper
@@ -61,22 +70,34 @@ import app.common.GridSaver;
  */
 public class RingPopperKernel extends HostedKernel {
     private static final boolean USE_MIP_MAPPING = false;
+    private static final boolean USE_FAST_MATH = true;
+    private final boolean USE_MESH_MAKER_MT = true;
 
-    /** Debugging level.  0-5.  0 is none */
+    static final int 
+        GRID_SHORT_INTERVALS=1,
+        GRID_BYTE_ARRAY = 2,
+        GRID_AUTO = -1;        
+
+    /**
+     * Debugging level.  0-5.  0 is none
+     */
     private static final int DEBUG_LEVEL = 0;
     static final double MM = 0.001; // millmeters to meters
+
 
     // large enough font size to be used to render text 
     static final int DEFAULT_FONT_SIZE = 50;
     // point size unit 
-    static final double POINT_SIZE = 25.4 * MM / 72; 
+    static final double POINT_SIZE = 25.4 * MM / 72;
     static final double TEXT_RENDERING_PIXEL_SIZE = 25.4 * MM / 600; // 600 dpi 
     int MINIMAL_TEXT_OFFSET = 10; // minimal border around engraved text 
 
-    enum EdgeStyle {NONE, TOP, BOTTOM, BOTH};
+    enum EdgeStyle {NONE, TOP, BOTTOM, BOTH}    
+    ;
 
     // High = print resolution.  Medium = print * 1.5, LOW = print * 2
-    enum PreviewQuality {LOW(2.0), MEDIUM(1.5), HIGH(1.0);
+    enum PreviewQuality {
+        LOW(2.0), MEDIUM(1.5), HIGH(1.0);
 
         private double factor;
 
@@ -87,12 +108,14 @@ public class RingPopperKernel extends HostedKernel {
         public double getFactor() {
             return factor;
         }
-    };
+    }
+
+    ;
 
     enum SymmetryStyle {
         NONE(-1),
         FRIEZE_II(0),   // oo oo
-        FRIEZE_IX (1),   // oo X
+        FRIEZE_IX(1),   // oo X
         FRIEZE_IS(2),   // oo *
         FRIEZE_SII(3),  // * oo oo
         FRIEZE_22I(4),  // 2 2 oo
@@ -110,26 +133,35 @@ public class RingPopperKernel extends HostedKernel {
         }
     }
 
-    private String[] availableMaterials = new String[] {"White Strong & Flexible", "White Strong & Flexible Polished",
-        "Silver", "Silver Glossy", "Stainless Steel","Gold Plated Matte", "Gold Plated Glossy","Antique Bronze Matte",
-        "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
+    private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
+            "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
+            "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
 
     // Physical Sizing
     private double innerDiameter;
     private double ringThickness;
     private double ringWidth;
-    private double edgeWidth;
+    private double topBorderWidth;
+    private double bottomBorderWidth;
+    //private double edgeWidth;
 
-    /** Percentage of the ringThickness to use as a base */
+    /**
+     * Percentage of the ringThickness to use as a base
+     */
     private double baseThickness;
 
-    /** The horizontal and vertical resolution */
+    /**
+     * The horizontal and vertical resolution
+     */
     private double resolution;
     private PreviewQuality previewQuality;
     private int smoothSteps;
+    private double smoothingWidth;
     private double maxDecimationError;
 
-    /** The image filename */
+    /**
+     * The image filename
+     */
     private String imagePath = null;
     private boolean imageInvert = false;
     private String crossSectionPath = null;
@@ -137,17 +169,25 @@ public class RingPopperKernel extends HostedKernel {
     private int tilingX;
     private int tilingY;
     private int threadCount;
-    private EdgeStyle edgeStyle;
+    //private EdgeStyle edgeStyle;
     private SymmetryStyle symmetryStyle;
 
     private String material;
-    private String text = "Test Image Text gg";
+    private String text = "MADE IN THE FUTURE";
+    private double textDepth;
     private String fontName = "Times New Roman";
     private boolean fontBold = false;
     private boolean fontItalic = false;
     private int fontSize = 20;
 
-    /** How many regions to keep */
+    private double imageBlurWidth = 0.;
+    private int imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
+    private double imageBaseThreshold = 0.1;
+    private double bandLength; // length of ring perimeter
+
+    /**
+     * How many regions to keep
+     */
     private RegionPrunner.Regions regions;
     private boolean useGrayscale;
     private boolean visRemovedRegions;
@@ -157,16 +197,16 @@ public class RingPopperKernel extends HostedKernel {
      *
      * @return The parameters.
      */
-    public Map<String,Parameter> getParams() {
-        HashMap<String,Parameter> params = new HashMap<String,Parameter>();
+    public Map<String, Parameter> getParams() {
+        HashMap<String, Parameter> params = new HashMap<String, Parameter>();
 
         int seq = 0;
         int step = 0;
 
         // Image based params
         params.put("image", new Parameter("image", "Image", "The image to use", "images/tile_01.png", 1,
-            Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-            step, seq++, false, 0, 0.1, null, null)
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
         );
 
         params.put("imageInvert", new Parameter("imageInvert", "ImageInvert", "Invert the image", "false", 1,
@@ -179,9 +219,9 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, 0, 100, null, null)
         );
 
-        params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "images/crosssection_01.png", 1,
-            Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-            step, seq++, false, 0, 0.1, null, null)
+        params.put("crossSection", new Parameter("crossSection", "Cross Section", "The image of cross section", "NONE", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
         );
 
         params.put("tilingX", new Parameter("tilingX", "Tiling X", "The tiling along left/right of the ring", "8", 1,
@@ -199,18 +239,18 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, enumToStringArray(symmetryStyle.values()))
         );
 
-        params.put("edgeStyle", new Parameter("edgeStyle", "Edge Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
-                Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, enumToStringArray(edgeStyle.values()))
-        );
+        //params.put("edgeStyle", new Parameter("edgeStyle", "Edge Style", "Whether to put lines on the band", edgeStyle.BOTH.toString(), 1,
+        //        Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
+        //        step, seq++, false, -1, 1, null, enumToStringArray(edgeStyle.values()))
+        //);
 
         step++;
         seq = 0;
 
         // Size based params
         params.put("innerDiameter", new Parameter("innerDiameter", "Inner Diameter", "The inner diameter", "0.02118", 1,
-            Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
-            step, seq++, false, 0, 1, null, null)
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
         );
 
         params.put("ringWidth", new Parameter("ringWidth", "Ring Width", "The ring width(Finger Length)", "0.005", 1,
@@ -227,7 +267,11 @@ public class RingPopperKernel extends HostedKernel {
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
-        params.put("edgeWidth", new Parameter("edgeWidth", "Edge Width", "The width of the bands", "0.001", 1,
+        params.put("topBorderWidth", new Parameter("topBorderWidth", "Top Border Width", "The width of the top border", "0", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
+        );
+        params.put("bottomBorderWidth", new Parameter("bottomBorderWidth", "Bottom Border Width", "The width of the bottom border", "0", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
@@ -240,23 +284,28 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, null)
         );
 
+        params.put("textDepth", new Parameter("textDepth", "Text Depth", "The depth of the text engraving", "0.0003", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 1, null, null)
+        );
+
         params.put("fontName", new Parameter("fontName", "fontName", "Font Name", "Times New Roman", 1,
                 Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, null)
         );
 
         params.put("fontBold", new Parameter("fontBold", "Font Bold", "Use Bold Font", "false", 1,
-                                             Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
-                                             step, seq++, false, -1, 1, null, null));
-        
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, null));
+
         params.put("fontItalic", new Parameter("fontItalic", "Font Italic", "Use Italic Font", "false", 1,
-                                               Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
-                                               step, seq++, false, -1, 1, null, null));
-        
-        params.put("fontSize", new Parameter("fontSize", "fontSize", "The font size", "20", 1,
-                                             Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
-                                             step, seq++, false, 3, 50, null, null));
-        
+                Parameter.DataType.BOOLEAN, Parameter.EditorType.DEFAULT,
+                step, seq++, false, -1, 1, null, null));
+
+        params.put("fontSize", new Parameter("fontSize", "fontSize", "The font size", "12", 1,
+                Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 3, 50, null, null));
+
         step++;
         seq = 0;
 
@@ -295,8 +344,14 @@ public class RingPopperKernel extends HostedKernel {
                 step, seq++, false, -1, 1, null, enumToStringArray(RegionPrunner.Regions.values()))
         );
 
-        params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "3", 1,
+        // Deprecate this param
+        params.put("smoothSteps", new Parameter("smoothSteps", "Smooth Steps", "How smooth to make the object", "5", 1,
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
+                step, seq++, true, 0, 100, null, null)
+        );
+
+        params.put("smoothingWidth", new Parameter("smoothingWidth", "Smoothing Width", "How many voxels to smooth", "1.0", 1,
+                Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 100, null, null)
         );
 
@@ -309,13 +364,21 @@ public class RingPopperKernel extends HostedKernel {
     }
 
     /**
-     * @param params The parameters
-     * @param acc The accuracy to generate the model
+     * @param params  The parameters
+     * @param acc     The accuracy to generate the model
      * @param handler The X3D content handler to use
      */
-    public KernelResults generate(Map<String,Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
+    public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
 
-        long start = System.currentTimeMillis();
+        if (USE_FAST_MATH) {
+            System.setProperty("jodk.fastmath.usejdk", "false");
+        } else {
+            System.setProperty("jodk.fastmath.usejdk", "true");
+        }
+
+        long start = time();
+
+        boolean makeRingWrap = true;
 
         pullParams(params);
 
@@ -324,81 +387,165 @@ public class RingPopperKernel extends HostedKernel {
         }
 
         if (maxDecimationError > 0) {
-            maxDecimationError = 0.1*resolution*resolution;
+            if (acc == Accuracy.VISUAL) {
+                maxDecimationError = 0.1 * resolution * resolution;
+            } else {
+                // Models looked too blocky with .1
+                maxDecimationError = 0.05 * resolution * resolution;
+            }
         }
 
         printf("Res: %10.3g  maxDec: %10.3g\n", resolution, maxDecimationError);
 
-        double EPS = 1.e-8; // to distort exact symmetry, which confuses meshlab
+        double margin = 2 * resolution;
+        double voxelSize = resolution;
+        
+        double gridWidth = 0;
+        if(makeRingWrap)
+            gridWidth = (innerDiameter + 2 * ringThickness + 2 * margin);
+        else
+            gridWidth = (innerDiameter*Math.PI  +  2 * margin);
+        
+        double ringYmin  = -ringWidth/2;
+        double ringYmax  = ringWidth/2;
+        if(hasTopBorder()){
+            ringYmax += topBorderWidth;
+        }
+        if(hasBottomBorder()){
+            ringYmin -= bottomBorderWidth;
+        }
+        
+        double gridDepth = 0;
+        if(makeRingWrap)
+            gridDepth = gridWidth;
+        else 
+            gridDepth = ringThickness + 2 * margin;
 
-        double margin = 1*resolution;
+        double gridHeight = ringYmax + -ringYmin + 2*margin;
 
-        double gridWidth = (innerDiameter + 2*ringThickness + 2*margin);
-        double gridHeight  = (ringWidth + 2*edgeWidth + 2*margin);
-        double gridDepth = gridWidth;
+        double offset = voxelSize*0.3; // some hack to get asymetry 
+        
+        int nx = (int) (gridWidth / voxelSize);
+        int ny = (int) (gridHeight / voxelSize);// ((bounds[3] - bounds[2]) / voxelSize);
+        int nz = (int) (gridDepth / voxelSize);//((bounds[5] - bounds[4]) / voxelSize);
+        double gridXmin = -nx * voxelSize/2;
+        double gridYmin = ringYmin - margin;
+        double gridZmin = -nz * voxelSize/2;
 
-        double bounds[] = new double[]{-gridWidth/2,gridWidth/2+EPS,-gridHeight/2,gridHeight/2+EPS,-gridDepth/2,gridDepth/2+EPS};
+        double bounds[] = new double[]{ gridXmin, gridXmin + nx * voxelSize, 
+                                        gridYmin, gridYmin + ny * voxelSize, 
+                                        gridZmin, gridZmin + nz * voxelSize};
+        
+        //int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
+        // int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
+        //int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
 
-        int nx = (int)((bounds[1] - bounds[0])/resolution);
-        int ny = (int)((bounds[3] - bounds[2])/resolution);
-        int nz = (int)((bounds[5] - bounds[4])/resolution);
+        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
-
         
-        DataSource image_band = makeImageBand(); 
-
-        DataSources.Intersection complete_band = new DataSources.Intersection(); 
-        complete_band.addDataSource(image_band); 
+        // HARD CODED params to play with 
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
+        //double smoothingWidth = 0.0; 
+        // size of grid block for MT calculatins 
+        // (larger values reduce processor cache performance)
+        int blockSize = 50;
+        // max number to use for surface transitions. Should be ODD number 
+        // set it to 0 to have binary grid 
+        int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid 
+        int gridType =  GRID_BYTE_ARRAY;
         
-        // add Text 
-        if (text != null && text.length() > 0) {
+        
+        // width of surface transition area relative to voxel size
+        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
+        // set it to 0. to make no surface transitions
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+        imageBlurWidth = surfaceTransitionWidth*voxelSize;
+        imageBaseThreshold = 0.1;            
+        imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
 
-            complete_band.addDataSource(makeTextComplement());
-            
-        } 
+
+        bandLength = innerDiameter * Math.PI;
+
+        DataSources.Intersection complete_band = new DataSources.Intersection();
 
         // add crossSectionImage to complete_band
-        if(crossSectionPath != null && crossSectionPath.length() > 0 && !crossSectionPath.equals("NONE")){
-            complete_band.addDataSource(makeCrossSection());
+        if (crossSectionPath != null && crossSectionPath.length() > 0 && !crossSectionPath.equalsIgnoreCase("NONE")) {
+            complete_band.addDataSource(makeCrossSection(ringYmin, ringYmax));
         }
-        
+
+        DataSource image_band = makeImageBand();       
+        complete_band.addDataSource(image_band);
+
+        // add Text 
+        if (text != null && text.length() > 0) {
+            complete_band.addDataSource(makeTextComplement(ringYmin, ringYmax));
+        }
 
         VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
-        ringWrap.setRadius(innerDiameter/2);
+        ringWrap.setRadius(innerDiameter / 2);
+
+        DataSources.DataTransformer completeRing = new DataSources.DataTransformer();
+        completeRing.setDataSource(complete_band);
+        if(makeRingWrap)
+            completeRing.setTransform(ringWrap);
+                
+        DataSources.Intersection clippedRing = new DataSources.Intersection();
+        if(makeRingWrap)
+            clippedRing.addDataSource(new DataSources.Ring(innerDiameter/2, ringThickness, ringYmin, ringYmax));
+        clippedRing.addDataSource(completeRing);
         
-        DataSources.DataTransformer ring = new DataSources.DataTransformer();
-        ring.setDataSource(complete_band);
-        ring.setTransform(ringWrap);
+        //DataSources.DataTransformer ring = new DataSources.DataTransformer();
+        //ring.setDataSource(completeRing);
+        //ring.setDataSource(clippedRing);
+        //ring.setTransform(ringWrap);
 
         GridMaker gm = new GridMaker();
-
+        
         gm.setBounds(bounds);
-        gm.setDataSource(ring);
+        gm.setDataSource(clippedRing);
+        gm.setMaxAttributeValue(maxGridAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
 
         // Seems BlockBased better for this then Array.
-        // BlockBasedGridByte is not MT safe 
-        //Grid grid = new BlockBasedGridByte(nx, ny, nz, resolution, resolution, 5);
-        Grid grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
-        //Grid grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
+        // BlockBasedGridByte is not MT safe (VB)
+
+        Grid grid = null;
+
+        switch(gridType){
+        default:
+        case GRID_BYTE_ARRAY:
+            grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
+            break;
+
+        case GRID_SHORT_INTERVALS:
+            grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
+            break;
+            
+        }
+        grid.setGridBounds(bounds);
 
         printf("gm.makeGrid(), threads: %d\n", threadCount);
-        long t0 = currentTimeMillis(); 
+        long t0 = time();
         gm.setThreadCount(threadCount);
         gm.makeGrid(grid);
-        printf("gm.makeGrid() done %d ms\n", (currentTimeMillis() - t0));
+        printf("gm.makeGrid() done %d ms\n", (time() - t0));
 
         int regions_removed = 0;
-        if (regions != RegionPrunner.Regions.ALL) {
-            t0 = currentTimeMillis(); 
+        int min_volume = 10;
+
+        if (false) {
+        //if (regions != RegionPrunner.Regions.ALL) {
+            t0 = time();
             if (visRemovedRegions) {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds);
+                regions_removed = RegionPrunner.reduceToOneRegion(grid, handler, bounds, min_volume);
             } else {
-                regions_removed = RegionPrunner.reduceToOneRegion(grid);
+                regions_removed = RegionPrunner.reduceToOneRegion(grid, min_volume);
             }
-            printf("regions removal done %d ms\n", (currentTimeMillis() - t0));
+            printf("Regions removed: %d\n", regions_removed);
+            printf("regions removal done %d ms\n", (time() - t0));
 
         }
-        
+
         System.out.println("Writing grid");
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
@@ -410,86 +557,144 @@ public class RingPopperKernel extends HostedKernel {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
 
-        double[] min_bounds = new double[3];
-        double[] max_bounds = new double[3];
-        grid.getWorldCoords(0, 0, 0, min_bounds);
-        grid.getWorldCoords(grid.getWidth() - 1, grid.getHeight() - 1, grid.getDepth() - 1, max_bounds);
+        WingedEdgeTriangleMesh mesh;
+        
+        double gbounds[] = new double[6];
+        grid.getGridBounds(gbounds);
+        
+        // place of default viewpoint 
+        double viewDistance = GridSaver.getViewDistance(grid);
 
-        WingedEdgeTriangleMesh mesh = GridSaver.createIsosurface(grid, smoothSteps);
-        int gw = grid.getWidth();
-        int gh = grid.getHeight();
-        int gd = grid.getDepth();
-        double sh = grid.getSliceHeight();
-        double vs = grid.getVoxelSize();
+        if(USE_MESH_MAKER_MT){
 
-        // Release grid to lower total memory requirements
-        grid = null;
+            MeshMakerMT meshmaker = new MeshMakerMT();        
 
-        GridSaver.writeIsosurfaceMaker(mesh, gw,gh,gd,vs,sh,handler,params,maxDecimationError, true);
+            t0 = time();
+            meshmaker.setBlockSize(blockSize);
+            meshmaker.setThreadCount(threadCount);
+            meshmaker.setSmoothingWidth(smoothingWidth);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
+
+            // TODO: Need to get a better way to estimate this number
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+            meshmaker.makeMesh(grid, its);
+
+            // Release grid to lower total memory requirements
+            grid = null;
+
+            mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+            printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
+            if(false){ // this should not be used here
+                if(smoothSteps > 0){
+                    LaplasianSmooth ls = new LaplasianSmooth();
+                    ls.processMesh(mesh, smoothSteps);
+                }
+            }
+            // extra decimation to get rid of seams
+            //TODO - better targeting of seams
+            if(maxDecimationError > 0){
+                t0 = time();
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+                printf("final decimation: %d ms\n", (time()-t0));
+            }
+            
+        } else {
+            // old ST style 
+            mesh = GridSaver.createIsosurface(grid, smoothSteps);
+
+            // Release grid to lower total memory requirements
+            grid = null;
+            if(maxDecimationError > 0)
+                mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
+        }
+
+        if(regions != RegionPrunner.Regions.ALL) {
+            t0 = time();
+            ShellResults sr = GridSaver.getLargestShell(mesh, min_volume);
+            mesh = sr.getLargestShell();
+            regions_removed = sr.getShellsRemoved();
+            printf("GridSaver.getLargestShell(): %d ms\n", (time() - t0));
+        }
+
+        GridSaver.writeMesh(mesh, viewDistance, handler, params, true);
 
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
         double volume = ac.getVolume();
         double surface_area = ac.getArea();
 
-        t0 = System.nanoTime();
-        printf("final surface area: %7.3f CM^2\n", surface_area*1.e4);
-        printf("final volume: %7.3f CM^3 (%5.3f ms)\n", volume*1.e6, (System.nanoTime() - t0)*1.e-6);
+        // Do not shorten the accuracy of these prints they need to be high
+        printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
+        printf("final volume: %12.8f cm^3\n", volume * 1.e6);
+        
+        printf("Total time: %d ms\n", (time() - start));
+        printf("-------------------------------------------------\n");
 
+        double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
+        double max_bounds[] = new double[]{gbounds[1],gbounds[3],gbounds[5]};
 
-        System.out.println("Total Time: " + (System.currentTimeMillis() - start));
-        System.out.println("-------------------------------------------------");
+        System.out.println("Regions Removed: " + regions_removed);
         return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, regions_removed);
 
     }
 
+    boolean hasTopBorder(){
+        return (topBorderWidth > 0.);
+    }
+
+    boolean hasBottomBorder(){
+        return (bottomBorderWidth > 0.);
+    }
 
     /**
-       long horizontal unwrapped image 
+     * long horizontal unwrapped image
      */
-    DataSource makeImageBand(){
+    DataSource makeImageBand() {
 
-        DataSources.ImageBitmap image_src = new DataSources.ImageBitmap();
-
-        image_src.setUseGrayscale(true);                
-        image_src.setLocation(0,0,ringThickness/2);
+        DataSourceImageBitmap image_src = new DataSourceImageBitmap();
+       
+        image_src.setLocation(0, 0, ringThickness / 2);
         image_src.setImagePath(imagePath);
         image_src.setBaseThickness(baseThickness);
         image_src.setUseGrayscale(useGrayscale);
+        image_src.setBlurWidth((useGrayscale)? 0.: imageBlurWidth);
+        image_src.setBaseThreshold(imageBaseThreshold);
+        image_src.setInterpolationType(imageInterpolationType);
+        image_src.setVoxelSize(resolution);
+
         if (imageInvert) {
-            image_src.setImageType(DataSources.ImageBitmap.IMAGE_NEGATIVE);
+            image_src.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
 
-        if (USE_MIP_MAPPING) {
-            image_src.setInterpolationType(DataSources.ImageBitmap.INTERPOLATION_MIPMAP);
-            image_src.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            image_src.setProbeSize(resolution * 2.);
-        }
+        image_src.setInterpolationType(imageInterpolationType);
+        
 
-        if(symmetryStyle == SymmetryStyle.NONE) {
+        if (symmetryStyle == SymmetryStyle.NONE) {
 
             // image spans the whole ring length
-            image_src.setSize(innerDiameter*Math.PI, ringWidth, ringThickness);
+            image_src.setSize(bandLength, ringWidth, ringThickness);
             image_src.setTiles(tilingX, tilingY);
 
         } else {
 
             // image spans only one tile
-            image_src.setSize(innerDiameter*Math.PI/tilingX, ringWidth, ringThickness);
+            image_src.setSize(bandLength / tilingX, ringWidth, ringThickness);
             image_src.setTiles(1, tilingY);
 
         }
-        
+
         DataSource image_band = image_src;
 
-        if(symmetryStyle != SymmetryStyle.NONE){
-            
+        if (symmetryStyle != SymmetryStyle.NONE) {
+
             DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();
             image_frieze.setDataSource(image_src);
-        
+
             VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
             fs.setFriezeType(symmetryStyle.getCode());
-            double tileWidth = innerDiameter*Math.PI/tilingX;
+            double tileWidth = bandLength / tilingX;
             fs.setDomainWidth(tileWidth);
 
             image_frieze.setTransform(fs);
@@ -498,122 +703,152 @@ public class RingPopperKernel extends HostedKernel {
             image_band = image_frieze;
         }
 
-        if (edgeStyle == edgeStyle.NONE) {
+        if (!(hasTopBorder() || hasBottomBorder() )) {
             return image_band;
         }
 
-        
-        DataSources.Union union =  new DataSources.Union();
-        
+
+        DataSources.Union union = new DataSources.Union();
+
         union.addDataSource(image_band);
-        
-        if (edgeStyle == edgeStyle.TOP || edgeStyle == edgeStyle.BOTH) {
+
+        if (hasTopBorder()) {
             DataSources.Block top_band = new DataSources.Block();
-            top_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
-            top_band.setLocation(0, ringWidth/2+edgeWidth/2, ringThickness/2);
+            top_band.setSize(bandLength, topBorderWidth, ringThickness);
+            top_band.setLocation(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
+            top_band.setSmoothBoundaries(false, true, true);
+
             union.addDataSource(top_band);
         }
-        
-        if (edgeStyle == edgeStyle.BOTTOM || edgeStyle == edgeStyle.BOTH) {
+
+        if (hasBottomBorder()) {
             DataSources.Block bottom_band = new DataSources.Block();
-            bottom_band.setSize(innerDiameter*Math.PI,edgeWidth, ringThickness);
-            bottom_band.setLocation(0, -ringWidth/2 - edgeWidth/2, ringThickness/2);
+            bottom_band.setSize(bandLength, bottomBorderWidth, ringThickness);
+            bottom_band.setLocation(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
+            bottom_band.setSmoothBoundaries(false, true, true);
             union.addDataSource(bottom_band);
         }
-        
+
         return union;
 
     }
 
 
     /**
-       complement of text to make text engraving 
+     * complement of text to make text engraving
      */
-    DataSource makeTextComplement(){
-        
-        int maxFontSize = (int) (ringWidth/POINT_SIZE);
-        if(fontSize > maxFontSize){
+    DataSource makeTextComplement(double ymin, double ymax) {
+
+        double width = ymax - ymin;
+
+        int maxFontSize = (int) (width / POINT_SIZE);
+        if (fontSize > maxFontSize) {
             fontSize = maxFontSize;
-            System.err.printf("EXTMSG: Font is too large. Reduced to %d points\n", fontSize);            
+            System.err.printf("EXTMSG: Font is too large. Reduced to %d points\n", fontSize);
         }
 
-        //we need to have some reasonable number here
-        double textDepth = 0.3*MM; 
         // we need to create font of specified size
         // we assume, that the font size is the maximal height of the text string 
         double textHeightM = (fontSize * POINT_SIZE);
 
-        int textBitmapHeight = (int)(ringWidth / TEXT_RENDERING_PIXEL_SIZE);
-        int textBitmapWidth = (int)(textBitmapHeight * (Math.PI*innerDiameter)/ringWidth);
-        // height of text stirng in pixels
-        int textHeightPixels = (int)(textBitmapHeight * textHeightM / ringWidth);
+        int textBitmapHeight = (int) (width / TEXT_RENDERING_PIXEL_SIZE);
+        int textBitmapWidth = (int) (textBitmapHeight * bandLength / width);
+        // height of text string in pixels
+        int textHeightPixels = (int) (textBitmapHeight * textHeightM / width);
         // we use Insets to have empty space around centered text 
         // it also will make text of specitfied height
-        int textOffsetV = (textBitmapHeight - textHeightPixels)/2;
+        int textOffsetV = (textBitmapHeight - textHeightPixels) / 2;
         int textOffsetH = 10;
         printf("text bitmap size: (%d x %d) pixels\n", textBitmapWidth, textBitmapHeight);
         printf("text height: %d pixels\n", textHeightPixels);
         printf("vertical text offset: %d pixels\n", textOffsetV);
-        
-        DataSources.ImageBitmap textBand = new DataSources.ImageBitmap();
 
-        textBand.setSize(Math.PI*innerDiameter, ringWidth, textDepth);
+        DataSourceImageBitmap textBand = new DataSourceImageBitmap();
+
+        textBand.setSize(Math.PI * innerDiameter, width, textDepth);
         // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
-        textBand.setLocation(0,0,-textDepth/2); 
+        textBand.setLocation(0, (ymax + ymin)/2, -textDepth / 2);
         textBand.setBaseThickness(0.);
-        textBand.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
-        textBand.setTiles(1,1);
+        textBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        textBand.setTiles(1, 1);
+        textBand.setBlurWidth(imageBlurWidth);
+        textBand.setUseGrayscale(false);
+        textBand.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
+
+
         int fontStyle = Font.PLAIN;
 
-        if(fontBold)
+        if (fontBold)
             fontStyle = Font.BOLD;
 
-        if(fontItalic)
+        if (fontItalic)
             fontStyle |= Font.ITALIC;
 
-        textBand.setImage(TextUtil.createTextImage(textBitmapWidth, textBitmapHeight, text, 
-                                                   new Font(fontName, fontStyle, DEFAULT_FONT_SIZE), 
-                                                   new Insets(textOffsetV, textOffsetH, textOffsetV, textOffsetH),
-                                                   false));
-        
+        boolean font_found = false;
+
+        GraphicsEnvironment genv = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        for (String ffname : genv.getAvailableFontFamilyNames()) {
+            if (ffname.equals(fontName)) {
+                font_found = true;
+                break;
+            }
+        }
+
+        if (!font_found) {
+            System.err.println("EXTMSG: Could not find requested font: " + fontName);
+        }
+
+        Font font = new Font(fontName, fontStyle, DEFAULT_FONT_SIZE);
+
+        textBand.setImage(TextUtil.createTextImage(textBitmapWidth, textBitmapHeight, text,
+                font,
+                new Insets(textOffsetV, textOffsetH, textOffsetV, textOffsetH),
+                false));
+
         // we want text on the inside. So it should face in opposite direction
         VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
-        textRotation.setRotation(new Vector3d(0,1,0), 180*TORAD);
-        
+        textRotation.setRotation(new Vector3d(0, 1, 0), 180 * TORAD);
+
         // rotated text
         DataSources.DataTransformer rotatedText = new DataSources.DataTransformer();
         rotatedText.setDataSource(textBand);
         rotatedText.setTransform(textRotation);
-        
+
         DataSources.Complement textComplement = new DataSources.Complement();
         textComplement.setDataSource(rotatedText);
-        
+
         return textComplement;
 
     }
 
     /**
-       cross section of ring 
+     * cross section of ring
      */
-    DataSource makeCrossSection(){
-        
-        DataSources.ImageBitmap crossSect = new DataSources.ImageBitmap();
-        double totalWidth = ringWidth;
-        if (edgeStyle != edgeStyle.NONE) 
-            totalWidth += 2*edgeWidth;
+    DataSource makeCrossSection(double ringYmin, double ringYmax) {
 
-        crossSect.setSize(totalWidth, ringThickness, Math.PI*innerDiameter);
-        crossSect.setLocation(0,ringThickness/2,0);
+        DataSourceImageBitmap crossSect = new DataSourceImageBitmap();
+        
+        double size = (ringYmax - ringYmin);
+        crossSect.setSize(size, ringThickness, Math.PI * innerDiameter);
+
+        double center = -(ringYmin+ringYmax)/2;
+
+        crossSect.setLocation(center, ringThickness / 2, 0);
+
+        printf("cross center: %7.3f mm cross size : %7.3f mm\n", center/MM,size/MM);
+
         crossSect.setBaseThickness(0.);
-        crossSect.setUseGrayscale(false);        
+        crossSect.setUseGrayscale(false);
         crossSect.setImagePath(crossSectionPath);
+        crossSect.setBlurWidth(imageBlurWidth);
+        crossSect.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
 
         VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
 
         VecTransforms.Rotation crot1 = new VecTransforms.Rotation();
-        crot1.setRotation(new Vector3d(0,0,1),-90*TORAD);
+        crot1.setRotation(new Vector3d(0, 0, 1), -90 * TORAD);
         VecTransforms.Rotation crot2 = new VecTransforms.Rotation();
-        crot2.setRotation(new Vector3d(0,1,0),-90*TORAD);
+        crot2.setRotation(new Vector3d(0, 1, 0), -90 * TORAD);
         crossTrans.add(crot1);
         crossTrans.add(crot2);
 
@@ -623,7 +858,7 @@ public class RingPopperKernel extends HostedKernel {
         transCross.setTransform(crossTrans);
 
         return transCross;
-        
+
     }
 
     /**
@@ -631,7 +866,7 @@ public class RingPopperKernel extends HostedKernel {
      *
      * @param params The parameters
      */
-    private void pullParams(Map<String,Object> params) {
+    private void pullParams(Map<String, Object> params) {
         String pname = null;
 
         try {
@@ -653,8 +888,11 @@ public class RingPopperKernel extends HostedKernel {
             pname = "ringWidth";
             ringWidth = ((Double) params.get(pname)).doubleValue();
 
-            pname = "edgeWidth";
-            edgeWidth = ((Double) params.get(pname)).doubleValue();
+            pname = "topBorderWidth";
+            topBorderWidth = ((Double) params.get(pname)).doubleValue();
+
+            pname = "bottomBorderWidth";
+            bottomBorderWidth = ((Double) params.get(pname)).doubleValue();
 
             pname = "baseThickness";
             baseThickness = ((Double) params.get(pname)).doubleValue();
@@ -674,14 +912,17 @@ public class RingPopperKernel extends HostedKernel {
             pname = "tilingY";
             tilingY = ((Integer) params.get(pname)).intValue();
 
-            pname = "edgeStyle";
-            edgeStyle = edgeStyle.valueOf((String) params.get(pname));
+            //pname = "edgeStyle";
+            //edgeStyle = edgeStyle.valueOf((String) params.get(pname));
 
             pname = "symmetryStyle";
             symmetryStyle = symmetryStyle.valueOf((String) params.get(pname));
 
             pname = "text";
             text = ((String) params.get(pname));
+
+            pname = "textDepth";
+            textDepth = ((Double) params.get(pname));
 
             pname = "fontName";
             fontName = ((String) params.get(pname));
@@ -701,8 +942,24 @@ public class RingPopperKernel extends HostedKernel {
             pname = "smoothSteps";
             smoothSteps = ((Integer) params.get(pname)).intValue();
 
+            pname = "smoothingWidth";
+            smoothingWidth = ((Number) params.get(pname)).doubleValue();
+
             pname = "threads";
             threadCount = ((Integer) params.get(pname)).intValue();
+
+            if (threadCount == 0) {
+                int cores = Runtime.getRuntime().availableProcessors();
+
+                threadCount = cores;
+
+                // scales well to 4 threads, stop there.
+                if (threadCount > 4) {
+                    threadCount = 4;
+                }
+
+                System.out.println("Number of cores:" + threadCount);
+            }
 
             pname = "regions";
             regions = RegionPrunner.Regions.valueOf((String) params.get(pname));
@@ -712,16 +969,16 @@ public class RingPopperKernel extends HostedKernel {
 
             pname = "visRemovedRegions";
             visRemovedRegions = (Boolean) params.get(pname);
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
         }
     }
 
     /**
-     return bounds extended by given margin
+     * return bounds extended by given margin
      */
-    static double[] extendBounds(double bounds[], double margin){
+    static double[] extendBounds(double bounds[], double margin) {
         return new double[]{
                 bounds[0] - margin,
                 bounds[1] + margin,
@@ -735,12 +992,12 @@ public class RingPopperKernel extends HostedKernel {
     private void writeDebug(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
         // Output File
 
-        BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
+        BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console, true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
+        colors.put(new Integer(Grid.INTERIOR), new float[]{1, 0, 0});
         colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
-        colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
+        colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
         transparency.put(new Integer(Grid.INTERIOR), new Float(0));
@@ -754,9 +1011,46 @@ public class RingPopperKernel extends HostedKernel {
     public static <T extends Enum<T>> String[] enumToStringArray(T[] values) {
         int i = 0;
         String[] result = new String[values.length];
-        for (T value: values) {
+        for (T value : values) {
             result[i++] = value.name();
         }
         return result;
+    }
+
+    public static void main(String[] args) {
+        HashMap<String,String> params = new HashMap<String,String>();
+
+        int LOOPS = 1;
+
+        for(int i=0; i < LOOPS; i++) {
+            HostedKernel kernel = new RingPopperKernel();
+
+            System.out.println("***High Resolution");
+            params.put("resolution","0.00002");
+            params.put("text","");
+            params.put("previewQuality","HIGH");
+            params.put("threads","4");
+
+            Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
+
+            try {
+                FileOutputStream fos = new FileOutputStream("c:/tmp/thread" + Thread.currentThread().getName() + ".x3d");
+                BufferedOutputStream bos = new BufferedOutputStream(fos);
+                PlainTextErrorReporter console = new PlainTextErrorReporter();
+
+                BinaryContentHandler writer = new X3DXMLRetainedExporter(bos,3,2,console);
+                writer.startDocument("","","utf8","#X3D", "V3.2", "");
+                writer.profileDecl("Immersive");
+
+
+                kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);
+
+                writer.endDocument();
+                bos.close();
+                fos.close();
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

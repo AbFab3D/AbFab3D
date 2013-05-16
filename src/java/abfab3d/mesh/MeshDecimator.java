@@ -21,7 +21,7 @@ import java.util.Random;
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
+import static abfab3d.util.Output.time;
 
 /**
    decimator to reduce face count of triangle mesh    
@@ -39,15 +39,19 @@ import static java.lang.System.currentTimeMillis;
 public class MeshDecimator {
 
 
+    static public final int NO_DATA = -1;
+    static public final int MINIMAL_EDGE_COUNT = 50; // minimal collapsable edges count do do decimation 
+
     static boolean DEBUG = false;
     static boolean m_printStat = false;
     static final double MM = 1000.; // mm per meter
+    long m_randomSeed = 101;
 
     // mesh we are working on
     TriangleMesh m_mesh;
 
     // array of all edges
-    EdgeArray m_edgeArray;
+    EdgeSelector m_edgeArray;
 
     // cadidate edges to check for collapse
     EdgeData m_candidates[];
@@ -80,6 +84,8 @@ public class MeshDecimator {
     protected EdgeTester m_edgeTester = null;
 
     StructMixedData quadrics;
+
+    private int m_internalEdges[]; //storage for internal edges 
 
     //
     // object, which calculates errors and new vertex placement
@@ -157,11 +163,16 @@ public class MeshDecimator {
         m_ignoreCount = 0;
 
 
-        long ts = currentTimeMillis();
+        long ts = time();
         doInitialization();
 
+        if(m_edgeArray.getDataCount() < MINIMAL_EDGE_COUNT) {
+            
+            return m_faceCount;
 
-        long ts1 = currentTimeMillis();
+        }
+
+        long ts1 = time();
         //printf("MeshDecimator.doInitialization() %d ms\n", (ts1-ts));
         ts = ts1;
         
@@ -170,7 +181,7 @@ public class MeshDecimator {
         int targetCount = m_faceCount - targetFaceCount; // to avoid cycling         
         int count = 0;
         int f0 = m_faceCount;
-        long t0 = System.currentTimeMillis();
+        long t0 = time();
         long time0 = t0;
 
         // do decimation 
@@ -179,8 +190,12 @@ public class MeshDecimator {
             doIteration();
                 
             count += 2;
+            
+            if(m_edgeArray.getDataCount() < MINIMAL_EDGE_COUNT)
+                break;
+
             if(m_faceCount % 100000 == 0){
-                long t1 = System.currentTimeMillis();
+                long t1 = time();
                 
                 double timeSinceStart = (double)(t1 - t0)/1000;
                 double coeff = timeSinceStart/count;
@@ -195,7 +210,7 @@ public class MeshDecimator {
         } 
 
         //printf("***Iterations: %d\n ",count);
-        ts1 = currentTimeMillis();
+        ts1 = time();
         //printf("MeshDecimator.doIterations() %d ms\n", (ts1-ts));
         ts = ts1;
 
@@ -249,28 +264,80 @@ public class MeshDecimator {
         }
          
         int ecount = m_mesh.getEdgeCount();
+        if(m_internalEdges == null || ecount > m_internalEdges.length){
+            //avoid edges storage reallocation 
+            m_internalEdges = new int[ecount];
+        }
         
         //ecd.edgeCount = count;
         //printf("edges count: %d\n", ecount);
         // printf("Not allocating edgeArray\n");
 
-        m_edgeArray = new EdgeArray(ecount);
+        m_errorFunction.init(m_mesh);
         
         // fill edges array 
         StructMixedData edges = m_mesh.getEdges();
-        int e = m_mesh.getStartEdge();
+        StructMixedData halfEdges = m_mesh.getHalfEdges();
+        StructMixedData vertices = m_mesh.getVertices();
+
+        int v = m_mesh.getStartVertex();
+        int boundaryCount = 0;
+        int vertexCount = 0;
+
+        double pos[] = new double[3];
+
+        /*
+        while(v != -1){
+            int ud = Vertex.getUserData(vertices, v);
+            
+            Vertex.getPoint(vertices, v, pos);
+            //printf("vertex: %d ud: %d, {%5.1f, %5.1f, %5.1f}\n", v, ud, pos[0], pos[1], pos[2]);
+            if(ud == NO_DATA){
+                boundaryCount++;
+            }
+            v = Vertex.getNext(vertices, v);
+            vertexCount++;
+        }        
+        printf("vertex count: %d boundary vertex count: %d\n", vertexCount, boundaryCount);
+        */
         int count = 0;
 
-        //printf("Starting edge: %d\n",e);
-        // TODO: I don't think edgeArray is needed now
-        while(e != -1){
-            Edge.setUserData(count,edges, e);
-            m_edgeArray.set(count++, e);
+        for(int e = m_mesh.getStartEdge(); e != NO_DATA; e = Edge.getNext(edges, e)){
+            int he = Edge.getHe(edges, e);
+            // we have to filter out the edges with vertices on the boundary
+            
+            if(he == NO_DATA) {
+                printf("no he: %d\n", e);
+                continue;
+            }
 
-            e = Edge.getNext(edges, e);
+
+            int twin = HalfEdge.getTwin(halfEdges, he);
+            int start = HalfEdge.getStart(halfEdges, he);
+            int end = HalfEdge.getEnd(halfEdges, he);
+            int sud = Vertex.getUserData(vertices, start);
+            int eud = Vertex.getUserData(vertices, end);
+
+            //printf("e: %4d he: %4d, twin: %4d start: %4d end: %4d sud: %d eud: %d",e, he, twin,  start, end, sud, eud);
+            
+            if(sud == NO_DATA || eud == NO_DATA){
+
+                //printf(" boundary\n");
+                continue;
+
+            } else {
+                
+                //printf(" internal\n", start, end);
+                //int he = Edge.getHe(halfEdges, e);                
+                Edge.setUserData(count,edges, e);
+                m_internalEdges[count++] = e;  
+
+            }
         }
 
-        m_errorFunction.init(m_mesh);
+        //printf("total edges: %d internal edges: %d boundary edges: %d\n", ecount, count, (ecount - count));
+
+        m_edgeArray = new EdgeSelector(m_internalEdges, count, m_randomSeed);
         
         //printf("edgesArray done\n");
     }
@@ -301,7 +368,7 @@ public class MeshDecimator {
 
             EdgeData ed = m_candidates[i];
 
-            if (ed.edge == -1) {
+            if (ed.edge == NO_DATA) {
                 //  We might of only gotten a partial list of items back.
                 break;
             }
@@ -321,9 +388,8 @@ public class MeshDecimator {
         }
 
         if(bestCandidate == null ||
-           Edge.getHe(edges,bestCandidate.edge) == -1) {
-            printf("!!!ERROR!!! no edge candidate was found\n");
-            //Thread.currenThread().dumpStack();
+           Edge.getHe(edges,bestCandidate.edge) == NO_DATA) {
+            //printf("!!!ERROR!!! no edge candidate was found\n");
             // should not happens 
             return false;
         }
@@ -400,7 +466,10 @@ public class MeshDecimator {
             int index = Edge.getUserData(edges,edges_removed[i]);
             if(DEBUG) printf(" %d", index);
             // remove edge from array 
-            m_edgeArray.set(index, -1);
+            if(index != NO_DATA){
+                // this can happens if surface edge was remoived 
+                m_edgeArray.set(index, NO_DATA);
+            }
         }
 
         if(ed.errorValue > m_maxError){
@@ -436,6 +505,7 @@ public class MeshDecimator {
        can return random non null element
        
      */
+    /*
     public static class EdgeArray {
         
         int array[];
@@ -453,7 +523,7 @@ public class MeshDecimator {
             array = new int[asize];
 
             // TODO: a bit more expensive null handling, rethink to 0 as null?
-            java.util.Arrays.fill(array, -1);
+            java.util.Arrays.fill(array, NO_DATA);
             //count = 0;
             
         }
@@ -464,17 +534,9 @@ public class MeshDecimator {
 
         public void set(int i, int value){
 
-            int oldValue = array[i];
+            //int oldValue = array[i];
             array[i] = value;
 
-            //printf("edgesArray.set(%d, %s)\n", i, value);
-            /*
-            if(value == -1 && oldValue != -1){
-                count--;
-            } else if(value != -1 && oldValue == -1){
-                count++;
-            }
-            */
         }
 
         public void getRandomEdge(EdgeData ed){
@@ -496,7 +558,7 @@ public class MeshDecimator {
         }
 
     }
-
+    */
     public static String formatPoint(Point3d p){
 
         return fmt("(%8.5f,%8.5f,%8.5f)", p.x, p.y, p.z);
@@ -525,7 +587,6 @@ public class MeshDecimator {
             if(he == -1){
                 printf("error: he null in calculateErrorFunction()\n");
                 printf("bad edge index: %s\n", Edge.getUserData(m_mesh.getEdges(), edge));
-                //Thread.currentThread().dumpStack();
                 ed.errorValue = Double.MAX_VALUE;
                 return;
             }
@@ -598,6 +659,9 @@ public class MeshDecimator {
         private double[] tmp = new double[9];
         StructMixedData quadrics;
         private TriangleMesh m_mesh;
+        private int noNextCount = 0;
+        private int noStartCount = 0;
+        private int noTwinCount = 0;
 
         public ErrorQuadric(StructMixedData quadrics) {
             this.quadrics = quadrics;
@@ -613,11 +677,18 @@ public class MeshDecimator {
             //
             int v = mesh.getStartVertex();
             StructMixedData vertices = mesh.getVertices();
+            
+            noNextCount = 0;
+            noStartCount = 0;
+            noTwinCount = 0;            
 
             while(v != -1){
                 Vertex.setUserData(makeVertexQuadric(v,plane), vertices, v);
                 v = Vertex.getNext(vertices, v);
             }
+            //printf("noTwinCount: %d\n", noTwinCount);
+            //printf("noNextCount: %d\n", noNextCount);
+            //printf("noStartCount: %d\n", noStartCount);
         }
 
         /**
@@ -634,17 +705,25 @@ public class MeshDecimator {
                 ed.errorValue = Double.MAX_VALUE;                
                 return;
             }
-            int
-                v0 = HalfEdge.getStart(m_mesh.getHalfEdges(), he),
-                v1 = HalfEdge.getEnd(m_mesh.getHalfEdges(), he);
-            
-            int q0 = Vertex.getUserData(m_mesh.getVertices(),v0);
-            int q1 = Vertex.getUserData(m_mesh.getVertices(),v1);
 
-            //System.out.println("q0: " + q0 + " q1: " + q1);
+            StructMixedData halfEdges = m_mesh.getHalfEdges(); 
+            StructMixedData vertices = m_mesh.getVertices(); 
+
+            int
+                v0 = HalfEdge.getStart(halfEdges, he),
+                v1 = HalfEdge.getEnd(halfEdges, he);
+            
+            int q0 = Vertex.getUserData(vertices,v0);
+            int q1 = Vertex.getUserData(vertices,v1);
+            
+            if(q0 == NO_DATA || q1 == NO_DATA){
+                printf("q0: %d, q1: %d \n", q0, q1);
+                ed.errorValue = Double.MAX_VALUE;                
+                return;                
+            }
             if(Double.isNaN(Quadric.getM00(quadrics,q0)) || Double.isNaN(Quadric.getM00(quadrics,q1))){
                 printf("bad quadric: \n");
-                 printf("   q0: %s\n", q0);
+                printf("   q0: %s\n", q0);
                 printf("   q1: %s\n", q1);
                 ed.errorValue = Double.MAX_VALUE;
                 Quadric.set(quadrics, q0, quadrics, ed.vertexUserData);
@@ -698,7 +777,8 @@ public class MeshDecimator {
     
 
         /**
-         creates vertex quadric from surrounding faces
+           creates vertex quadric from surrounding faces
+           if vertex is surface vertex, returns NO_DATA (no quadric)
          */
         public int makeVertexQuadric(int v, Vector4d plane){
 
@@ -707,31 +787,60 @@ public class MeshDecimator {
             // correction.
             // We are not using weights. All faces give the same contribution
             // it seems this works for our voxel based meshes
-            Point3d p0, p1, p2;
-            int start = Vertex.getLink(m_mesh.getVertices(), v);
-            int he = start;
 
+            int start = Vertex.getLink(m_mesh.getVertices(), v);
+            if(start == NO_DATA) {
+                noStartCount++;
+                //printf("makeVertexQuadric() no start v: %d\n", v);
+                return NO_DATA;
+            }
+
+            int he = start;
+                
             Quadric.setZero(sq,m_q0);
+            StructMixedData halfEdges = m_mesh.getHalfEdges();
+            StructMixedData vertices = m_mesh.getVertices();
 
             do {
-                int he_start = HalfEdge.getStart(m_mesh.getHalfEdges(), he);
-                int he_end = HalfEdge.getEnd(m_mesh.getHalfEdges(), he);
-                int he_next = HalfEdge.getNext(m_mesh.getHalfEdges(), he);
-                int he_next_end = HalfEdge.getEnd(m_mesh.getHalfEdges(), he_next);
-                Vertex.getPoint(m_mesh.getVertices(), he_start, sv0);
-                Vertex.getPoint(m_mesh.getVertices(), he_end, sv1);
-                Vertex.getPoint(m_mesh.getVertices(), he_next_end, sv2);
+
+                int he_start = HalfEdge.getStart(halfEdges, he);
+                int he_end = HalfEdge.getEnd(halfEdges, he);
+                int he_next = HalfEdge.getNext(halfEdges, he);
+
+                if(he_next == NO_DATA) {
+                    noNextCount++;
+                    //printf("makeVertexQuadric() no next he: %d v: %d\n", he, v);
+                    return NO_DATA;
+                }
+
+                int he_next_end = HalfEdge.getEnd(halfEdges, he_next);
+                Vertex.getPoint(vertices, he_start, sv0);
+                Vertex.getPoint(vertices, he_end, sv1);
+                Vertex.getPoint(vertices, he_next_end, sv2);
 
                 boolean good = Quadric.makePlane(sv0, sv1, sv2, sn, plane);
 
                 if(good){
-
                     Quadric.addSet(plane,sq,m_q0);
                 } else {
                     printVertex(m_mesh, v);
                 }
+                
+                he = HalfEdge.getTwin(halfEdges, he);
+                
+                if(he == NO_DATA) {
+                    //printf("makeVertexQuadric() no twin: he:%d v: %d\n", he, v);
+                    noTwinCount++;
+                    return NO_DATA;
+                }
+                
+                he = HalfEdge.getNext(halfEdges, he);
+                if(he == NO_DATA) {
+                    noNextCount++;
+                    return NO_DATA;
+                }
+                
 
-                he = HalfEdge.getNext(m_mesh.getHalfEdges(), HalfEdge.getTwin(m_mesh.getHalfEdges(), he));
             } while(he != start);
 
             return Quadric.create(sq,m_q0,quadrics);

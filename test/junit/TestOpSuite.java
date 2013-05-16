@@ -33,6 +33,7 @@ public class TestOpSuite extends TestSuite {
         suite.addTest(TestSetDifference.suite());
         suite.addTest(TestDilationCube.suite());
         suite.addTest(TestErosionCube.suite());
+        suite.addTest(TestInteriorFinderVoxelBased.suite());
 
         return suite;
     }

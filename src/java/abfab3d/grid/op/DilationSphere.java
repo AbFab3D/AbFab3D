@@ -26,7 +26,7 @@ import abfab3d.util.MathUtil;
  * @author Tony Wong
  */
 public class DilationSphere implements Operation, AttributeOperation {
-	
+
     /** The distance from a voxel to dilate */
     private int radius;
 
@@ -42,12 +42,12 @@ public class DilationSphere implements Operation, AttributeOperation {
      * @return The new grid
      */
     public Grid execute(Grid dest) {
-    	
-    	// Nothing to do if distance is 0
-    	if (radius == 0) {
-    		return dest;
-    	}
-    	
+
+        // Nothing to do if distance is 0
+        if (radius == 0) {
+            return dest;
+        }
+
         int height = dest.getHeight();
         int width = dest.getWidth();
         int depth = dest.getDepth();
@@ -59,7 +59,7 @@ public class DilationSphere implements Operation, AttributeOperation {
                                             depth + 2 * radius,
                                             dest.getVoxelSize(),
                                             dest.getSliceHeight());
-        
+
         // Loop through original grid to find filled voxels and apply dilation
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
@@ -67,7 +67,7 @@ public class DilationSphere implements Operation, AttributeOperation {
                     byte state = dest.getState(x, y, z);
 
                     if (state != Grid.OUTSIDE) {
-                    	dilateVoxel(dilatedGrid, x+radius, y+radius, z+radius, state);
+                        dilateVoxel(dilatedGrid, x+radius, y+radius, z+radius, state);
                     }
                 }
             }
@@ -101,7 +101,7 @@ public class DilationSphere implements Operation, AttributeOperation {
                                                                      depth + 2 * radius,
                                                                      dest.getVoxelSize(),
                                                                      dest.getSliceHeight());
-        
+
         // Loop through original grid to find filled voxels and apply dilation
         for(int y=0; y < height; y++) {
             for(int x=0; x < width; x++) {
@@ -109,7 +109,7 @@ public class DilationSphere implements Operation, AttributeOperation {
                     byte state = dest.getState(x, y, z);
 
                     if (state != Grid.OUTSIDE) {
-                        int mat = dest.getAttribute(x, y, z);
+                        long mat = dest.getAttribute(x, y, z);
                         dilateVoxel(dilatedGrid, x+radius, y+radius, z+radius, state, mat);
                     }
                 }
@@ -119,27 +119,27 @@ public class DilationSphere implements Operation, AttributeOperation {
         return dilatedGrid;
     }
 
-    private void dilateVoxel(AttributeGrid grid, int xPos, int yPos, int zPos, byte state, int mat) {
-    	int[] origin = {xPos, yPos, zPos};
-    	
+    private void dilateVoxel(AttributeGrid grid, int xPos, int yPos, int zPos, byte state, long mat) {
+        int[] origin = {xPos, yPos, zPos};
+
         int xStart = xPos - radius;
         int xEnd = xPos + radius;
         int yStart = yPos - radius;
         int yEnd = yPos + radius;
         int zStart = zPos - radius;
         int zEnd = zPos + radius;
-        
-    	for (int y=yStart; y<=yEnd; y++) {
-    		for (int x=xStart; x<=xEnd; x++) {
-    			for (int z=zStart; z<=zEnd; z++) {
-    				int[] pos = {x, y, z};
 
-    				if (MathUtil.getDistance(origin, pos) <= radius) {
-    					grid.setData(x, y, z, state, mat);
-    				}
-    			}
-    		}
-    	}
+        for (int y=yStart; y<=yEnd; y++) {
+            for (int x=xStart; x<=xEnd; x++) {
+                for (int z=zStart; z<=zEnd; z++) {
+                    int[] pos = {x, y, z};
+
+                    if (MathUtil.getDistance(origin, pos) <= radius) {
+                        grid.setData(x, y, z, state, mat);
+                    }
+                }
+            }
+        }
     }
 
     private void dilateVoxel(Grid grid, int xPos, int yPos, int zPos, byte state) {

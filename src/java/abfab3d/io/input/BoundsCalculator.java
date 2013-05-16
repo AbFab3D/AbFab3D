@@ -53,6 +53,7 @@ public class BoundsCalculator implements TriangleCollector {
     }
     
     public void checkVertex(Vector3d v){
+
         double x = v.x;
         double y = v.y;
         double z = v.z;
@@ -68,18 +69,15 @@ public class BoundsCalculator implements TriangleCollector {
         
     }
 
-    public double [] getBounds(){
+    public void getBounds(double bounds[]){
 
-        return new double[] {xmin, xmax, ymin, ymax, zmin, zmax};
+        bounds[0] = xmin;
+        bounds[1] = xmax;
+        bounds[2] = ymin;
+        bounds[3] = ymax;
+        bounds[4] = zmin;
+        bounds[5] = zmax;
 
-    }
-
-    /**
-       extends input bounds by given value 
-     */
-    public static double [] extendBounds(double bounds[], double offset ){
-        //TODO 
-        return null;
     }
 
 }

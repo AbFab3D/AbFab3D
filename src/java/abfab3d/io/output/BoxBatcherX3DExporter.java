@@ -100,7 +100,7 @@ public class BoxBatcherX3DExporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors.  4 component color
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors) {
+    public void write(Grid grid, Map<Long, float[]> matColors) {
 
         if (grid instanceof OctreeAttributeGridByte) {
             ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
@@ -117,7 +117,7 @@ public class BoxBatcherX3DExporter {
 
         if (matColors != null) {
             // support color for material1
-            float[] mat_color = matColors.get(new Integer(1));
+            float[] mat_color = matColors.get(new Long(1));
             if (mat_color != null) {
                 color[0] = mat_color[0];
                 color[1] = mat_color[1];
@@ -160,6 +160,8 @@ public class BoxBatcherX3DExporter {
 
         mesh = new TriangleMesh();
 
+        VoxelData vd = grid.getVoxelData();
+
         loop: for(int i=0; i < height; i++) {
             y = i * sheight;
 
@@ -171,10 +173,10 @@ public class BoxBatcherX3DExporter {
                 for(int k=0; k < depth; k++) {
                     z = k * pixelSize;
 
-                    VoxelData vd = grid.getData(j,i,k);
+                    grid.getData(j,i,k,vd);
 
                     byte state = vd.getState();
-                    int mat = vd.getMaterial();
+                    long mat = vd.getMaterial();
 
                     if (state == Grid.OUTSIDE)
                         continue;
@@ -238,7 +240,7 @@ public class BoxBatcherX3DExporter {
                     }
 
                     if (displayFront) {
-                        // Back Face                        
+                        // Back Face
                         frontFaces.add(new VoxelCoordinate(j, i, k));
                     }
 
@@ -401,7 +403,7 @@ for(VoxelCoordinate vc : frontFaces) {
                     curr_length++;
                     continue;
                 }
-                
+
                 // End of the line output
                 outputFace(start, prev, axis, grid, mesh);
                 curr_length=0;
@@ -583,7 +585,7 @@ System.out.println("outface: start: " + start + " end: " + end);
         Vec3D ur_coord = null;
         Vec3D lr_coord = null;
         Vec3D ll_coord = null;
-        
+
         switch(dir) {
             case Z_POSITIVE:
                 ul_coord = new Vec3D((float) (ul[0] - hpixelSize) ,
@@ -678,11 +680,11 @@ System.out.println("ul: " + ul_coord + " ur: " + ur_coord + " lr: " + lr_coord +
                 mesh.addFace(lr_coord,ll_coord, ur_coord);
                 break;
         }
-        
+
 //System.out.println("ul: " + ul_coord + " ur: " + ur_coord);
 //System.out.println("ll: " + ll_coord + " lr: " + lr_coord);
     }
-    
+
     /**
      * Write a grid to the stream using the grid state
      *

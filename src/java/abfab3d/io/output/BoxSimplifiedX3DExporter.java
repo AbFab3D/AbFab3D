@@ -55,7 +55,7 @@ public class BoxSimplifiedX3DExporter implements Exporter {
 
     /** Is this a complete file export */
     private boolean complete;
-    
+
     /** The mesh */
     private WETriangleMesh mesh;
 
@@ -103,7 +103,7 @@ public class BoxSimplifiedX3DExporter implements Exporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors.  4 component color
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors) {
+    public void write(Grid grid, Map<Long, float[]> matColors) {
 
         if (grid instanceof OctreeAttributeGridByte) {
             ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
@@ -195,6 +195,8 @@ public class BoxSimplifiedX3DExporter implements Exporter {
 
         mesh = new WETriangleMesh();
 
+        VoxelData vd = grid.getVoxelData();
+
         loop: for(int i=0; i < height; i++) {
             y = i * sheight;
 
@@ -206,10 +208,10 @@ public class BoxSimplifiedX3DExporter implements Exporter {
                 for(int k=0; k < depth; k++) {
                     z = k * pixelSize;
 
-                    VoxelData vd = grid.getData(j,i,k);
+                    grid.getData(j,i,k,vd);
 
                     byte state = vd.getState();
-                    int mat = vd.getMaterial();
+                    long mat = vd.getMaterial();
 
                     if (state == Grid.OUTSIDE)
                         continue;
@@ -379,7 +381,7 @@ System.out.println("no color for: " + mat);
 
         SAVExporter exporter = new SAVExporter();
         exporter.outputX3D(mesh, params, writer);
-        
+
         // End Centering Transform
         writer.endField();
         writer.endNode();

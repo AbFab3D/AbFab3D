@@ -89,7 +89,15 @@ public class MathUtil {
         };
     }
 
-    public static int clamp(int x, int xmin, int xmax){
+    public static final int clamp(int x, int xmin, int xmax){
+        if(x <= xmin)
+            return xmin;
+        if(x >= xmax)
+            return xmax;
+        return x;
+    }
+
+    public static final long clamp(long x, long xmin, long xmax){
         if(x <= xmin)
             return xmin;
         if(x >= xmax)
@@ -451,6 +459,57 @@ public class MathUtil {
 
         for (int i = 0 ; i < 4 ; i++)
             dst.setElement(i,3, i < 3 ? 0 : 1);
+    }
+
+
+    static final double DEFAULT_GAUSS_THRESHOLD = 0.01;
+
+    /**
+       returns normalized 1D gaussian kernel truncated to finite width 
+       exp( -1/2 (x/s)^2)
+       threshold - values below threshold are 0.
+     */
+    public static double[] getGaussianKernel(double sigma){
+        return getGaussianKernel(sigma, DEFAULT_GAUSS_THRESHOLD);
+    }
+    public static double[] getGaussianKernel(double sigma, double threshold){
+        
+        double s2 = sigma * sigma; 
+        threshold = Math.abs(threshold); 
+        if(threshold == 0.) 
+            threshold = DEFAULT_GAUSS_THRESHOLD;
+        if(threshold >= 1.) 
+            threshold = 0.999;
+        
+        double xmax = Math.sqrt(2 * s2 * Math.abs(Math.log(threshold)));
+
+        int imax = (int)Math.floor(xmax);
+        double kernel[] = new double[2*imax + 1];
+        double sum = 0.;
+        for(int i = -imax; i <= imax; i++){
+            double v = Math.exp(-0.5*(i*i/s2));            
+            kernel[i + imax] = v;
+            sum += v;
+        }
+        double norm = 1./sum;
+        for(int i = 0; i < (2*imax +1); i++){
+            kernel[i] *= norm;
+        }
+        return kernel;
+    }
+
+
+    
+    /**
+       return kernel for box smoothing
+     */
+    public static double[] getBoxKernel(int width){
+        double kernel[] = new double[2*width+1];
+        double w = 1./(kernel.length);
+        for(int i =0; i < kernel.length; i++){
+            kernel[i] = w;
+        }
+        return kernel;
     }
 
 }

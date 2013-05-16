@@ -103,9 +103,11 @@ public class StructMixedData {
         if (oldPointerData != null) {
             pointerData = new int[newSize * def.getPointerDataSize()];
             System.arraycopy(oldPointerData, 0, pointerData, 0, oldPointerData.length);
-            
-            // Clear pointers to -1
-            Arrays.fill(pointerData,oldPointerData.length, pointerData.length-1,-1);
+
+            if (pointerData.length > 0) {
+                // Clear pointers to -1
+                Arrays.fill(pointerData,oldPointerData.length, pointerData.length-1,-1);
+            }
         }
         if (oldLongData != null) {
             longData = new long[newSize * def.getLongDataSize()];

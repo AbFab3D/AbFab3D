@@ -16,6 +16,8 @@ import abfab3d.util.StructMixedData;
 
 import java.util.Arrays;
 
+import static abfab3d.util.Output.printf;
+
 /**
  * A set like interface for making points unique given some epsilon.
  *
@@ -44,6 +46,7 @@ public class PointSet {
     private int threshold;
     private float loadFactor;
     private double epsilon;
+    private int origCapacity;
 
     private StructMixedData entries;
 
@@ -53,11 +56,9 @@ public class PointSet {
     public PointSet(double epsilon) {
 
         this(10000,0.75f,epsilon);
-
     }
 
     public PointSet(int initialCapacity, float loadFactor, double epsilon) {
-
         this.epsilon = epsilon;
 
         if (initialCapacity < 0)
@@ -71,7 +72,10 @@ public class PointSet {
 
         this.loadFactor = loadFactor;
 
+        origCapacity = initialCapacity;
         table = new int[initialCapacity];
+
+        //System.out.println("Init: " + this + " capacity: " + initialCapacity);
 
         Arrays.fill(table, -1);
 
@@ -222,7 +226,8 @@ public class PointSet {
         int oldCapacity = oldTable.length;
 
         int newCapacity = oldCapacity * 2;
-        System.out.println("*****Rehashing PointSet: " + newCapacity);
+        printf("*****Rehashing PointSet: new Capacity: %d  orig Capacity: %d\n",newCapacity,origCapacity);
+
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);
 

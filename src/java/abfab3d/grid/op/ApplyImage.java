@@ -57,7 +57,7 @@ public class ApplyImage implements Operation, AttributeOperation {
     private int pixelDepth;
 
     /** The material for new exterior voxels */
-    private int material;
+    private long material;
 
     /** Remove stray pixels.  Any exterior pixel with no neighbors */
     private boolean removeStray;
@@ -82,15 +82,15 @@ public class ApplyImage implements Operation, AttributeOperation {
     public ApplyImage(BufferedImage image, int x, int y, int z,
         int w, int h,
         int threshold,
-        boolean blackExterior, int pixelDepth, boolean removeStray, int material) {
-        
+        boolean blackExterior, int pixelDepth, boolean removeStray, long material) {
+
         this(image,x,y,z,HalfAxis.X_POSITIVE, HalfAxis.Y_POSITIVE, HalfAxis.Z_POSITIVE,w,h,threshold,blackExterior,pixelDepth,removeStray,material);
     }
 
-    public ApplyImage(BufferedImage image, int x, int y, int z, HalfAxis xaxis, HalfAxis yaxis, HalfAxis zaxis, 
+    public ApplyImage(BufferedImage image, int x, int y, int z, HalfAxis xaxis, HalfAxis yaxis, HalfAxis zaxis,
                       int w, int h,
                       int threshold,
-                      boolean blackExterior, int pixelDepth, boolean removeStray, int material) {
+                      boolean blackExterior, int pixelDepth, boolean removeStray, long material) {
 
         this.image = image;
         this.x0 = x;
@@ -112,7 +112,7 @@ public class ApplyImage implements Operation, AttributeOperation {
             throw new IllegalArgumentException("Width or Height cannot <= zero.  Width: " + w + " Height: " + h);
         }
     }
-    
+
     /**
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
@@ -608,7 +608,7 @@ System.out.println("depth: " + pixelDepth);
     }
 
     private void setData(AttributeGrid grid, int x, int y, int z, HalfAxis xAxis, HalfAxis yAxis, HalfAxis zAxis,
-                         byte state, int material) {
+                         byte state, long material) {
         int xval = 0;
         int yval = 0;
         int zval = 0;

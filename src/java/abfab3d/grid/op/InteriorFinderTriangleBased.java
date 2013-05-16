@@ -38,7 +38,7 @@ public class InteriorFinderTriangleBased implements Operation  {
     private static final boolean SPATIAL_ACCEL = true;
 
     /** The material to use for new voxels */
-    protected int innerMaterial;
+    protected long innerMaterial;
 
     // The center position
     protected double x;
@@ -80,7 +80,7 @@ public class InteriorFinderTriangleBased implements Operation  {
      *
      * @param newMaterial The materialID to assign new interior voxels
      */
-    public InteriorFinderTriangleBased(GeometryData geom, int newMaterial) {
+    public InteriorFinderTriangleBased(GeometryData geom, long newMaterial) {
         this.geom = geom;
         this.innerMaterial = newMaterial;
 
@@ -98,7 +98,7 @@ public class InteriorFinderTriangleBased implements Operation  {
     */
     public InteriorFinderTriangleBased(GeometryData geom,
                                        double x, double y, double z, double rx, double ry, double rz, double rangle,
-                                       int newMaterial) {
+                                       long newMaterial) {
         this.geom = geom;
         this.innerMaterial = newMaterial;
 
@@ -225,8 +225,8 @@ public class InteriorFinderTriangleBased implements Operation  {
         int[] tris = null;
 
         // Cast rays from z direction
-        for(int y=min[1]; y < max[1]; y++) {
-            for(int x=min[0]; x < max[0]; x++) {
+        for(int y=min[1]+1; y < max[1]; y++) {
+            for(int x=min[0]+1; x < max[0]; x++) {
                 grid.getWorldCoords(x,y,0,pos);
 //                System.out.println("cast: x: " + x + " y: " + y + " wc: " + pos[0] + " " + pos[1]);
                 pos[2] = grid.getDepth() + grid.getVoxelSize();
@@ -256,8 +256,8 @@ public class InteriorFinderTriangleBased implements Operation  {
         }
 
         // Cast rays from y direction
-        for(int x=min[0]; x < max[0]; x++) {
-            for(int z=min[2]; z < max[2]; z++) {
+        for(int x=min[0]+1; x < max[0]; x++) {
+            for(int z=min[2]+1; z < max[2]; z++) {
 
                 grid.getWorldCoords(x,0,z,pos);
                 pos[1] = grid.getHeight() + grid.getSliceHeight();
@@ -283,8 +283,8 @@ public class InteriorFinderTriangleBased implements Operation  {
         }
 
         // Cast rays from x direction
-        for(int y=min[1]; y < max[1]; y++) {
-            for(int z=min[2]; z < max[2]; z++) {
+        for(int y=min[1]+1; y < max[1]; y++) {
+            for(int z=min[2]+1; z < max[2]; z++) {
 
                 grid.getWorldCoords(0,y,z,pos);
                 pos[0] = grid.getWidth() + grid.getVoxelSize();
@@ -467,8 +467,10 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setState(i,coords[1],coords[2], Grid.INTERIOR);
-                    counts[i][coords[1]][coords[2]]++;
+                	if (result.getState(i,coords[1],coords[2]) != Grid.EXTERIOR) {
+	                    result.setState(i,coords[1],coords[2], Grid.INTERIOR);
+	                    counts[i][coords[1]][coords[2]]++;
+                	}
                 }
             }
         } else if (axis == TunnelRegion.Axis.Y) {
@@ -479,8 +481,10 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setState(coords[0],i,coords[2], Grid.INTERIOR);
-                    counts[coords[0]][i][coords[2]]++;
+                	if (result.getState(coords[0],i,coords[2]) != Grid.EXTERIOR) {
+	                    result.setState(coords[0],i,coords[2], Grid.INTERIOR);
+	                    counts[coords[0]][i][coords[2]]++;
+                	}
                 }
             }
         } else if (axis == TunnelRegion.Axis.Z) {
@@ -492,8 +496,10 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                    result.setState(coords[0],coords[1],i, Grid.INTERIOR);
-                    counts[coords[0]][coords[1]][i]++;
+                	if (result.getState(coords[0],coords[1],i) != Grid.EXTERIOR) {
+                        result.setState(coords[0],coords[1],i, Grid.INTERIOR);
+                        counts[coords[0]][coords[1]][i]++;
+                	}
                 }
             }
         }
@@ -530,7 +536,7 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
             result[start + i] = val;
         }
     }
-    
+
     /**
      * Initialize the spatial grid for accelerating ray / voxel intersections
      * 

@@ -37,8 +37,8 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public ArrayAttributeGridByteIndexLong(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1, 
-        	 (int) (Math.ceil(h / sheight)) + 1,
+        this((int) (Math.ceil(w / pixel)) + 1,
+             (int) (Math.ceil(h / sheight)) + 1,
              (int) (Math.ceil(d / pixel)) + 1,
              pixel,
              sheight);
@@ -88,41 +88,12 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
     }
 
     /**
-     * Get the data of the voxel
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
      *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
+     * @return The voxel data
      */
-    public VoxelData getData(int x, int y, int z) {
-        byte datum = data[y][x][z];
-
-        byte state = (byte) ((datum & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & datum);
-
-        VoxelDataByte vd = new VoxelDataByte(state, mat);
-
-        return vd;
-    }
-
-    /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public VoxelData getData(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        byte datum = data[slice][s_x][s_z];
-
-        byte state = (byte) ((datum & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & datum);
-
-        return new VoxelDataByte(state, mat);
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
     }
 
     /**
@@ -202,7 +173,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(double x, double y, double z) {
+    public long getAttribute(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -211,7 +182,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
 
         byte mat = (byte) (0x3F & datum);
 
-        return (int) mat;
+        return (long) mat;
     }
 
     /**
@@ -221,14 +192,14 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public int getAttribute(int x, int y, int z) {
+    public long getAttribute(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
         byte datum = data[y][x][z];
 
         byte mat = (byte) (0x3F & datum);
 
-        return (int) mat;
+        return (long) mat;
     }
 
     /**
@@ -240,7 +211,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, int material) {
+    public void setData(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -257,7 +228,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(int x, int y, int z, byte state, int material) {
+    public void setData(int x, int y, int z, byte state, long material) {
         data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)material)));
     }
 
@@ -269,7 +240,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      * @param material The materialID
      */
-    public void setAttribute(int x, int y, int z, int material) {
+    public void setAttribute(int x, int y, int z, long material) {
         byte state = (byte) ((data[y][x][z] & 0xFF) >> 6);
 
         data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)material)));

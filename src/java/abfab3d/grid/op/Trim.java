@@ -44,13 +44,13 @@ public class Trim implements Operation, AttributeOperation {
         int y0 = 0, yn = height;
         int z0 = 0, zn = depth;
 
-        VoxelData vd;
+        VoxelData vd = src.getVoxelData();
 
         // Find x0 range
         loop: for(int x=0; x < width; x++) {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
-                    vd = src.getData(x,y,z);
+                    src.getData(x,y,z,vd);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         x0 = x;
@@ -64,7 +64,7 @@ public class Trim implements Operation, AttributeOperation {
         loop: for(int x=width - 1; x > x0; x--) {
             for(int y=0; y < height; y++) {
                 for(int z=0; z < depth; z++) {
-                    vd = src.getData(x,y,z);
+                    src.getData(x,y,z,vd);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         xn = x;
@@ -78,7 +78,7 @@ public class Trim implements Operation, AttributeOperation {
         loop: for(int y=0; y < height; y++) {
             for(int x=x0; x < xn; x++) {
                 for(int z=0; z < depth; z++) {
-                    vd = src.getData(x,y,z);
+                    src.getData(x,y,z,vd);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         y0 = y;
@@ -92,7 +92,7 @@ public class Trim implements Operation, AttributeOperation {
         loop: for(int y=height - 1; y < y0; y--) {
             for(int x=x0; x < xn; x++) {
                 for(int z=0; z < depth; z++) {
-                    vd = src.getData(x,y,z);
+                    src.getData(x,y,z,vd);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         yn = y;
@@ -106,7 +106,7 @@ public class Trim implements Operation, AttributeOperation {
         loop: for(int z=0; z < depth; z++) {
             for(int y=y0; y < yn; y++) {
                 for(int x=x0; x < xn; x++) {
-                    vd = src.getData(x,y,z);
+                    src.getData(x,y,z,vd);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         z0 = z;
@@ -120,7 +120,7 @@ public class Trim implements Operation, AttributeOperation {
         loop:for(int z=depth - 1; z < z0; z--) {
             for(int y=y0; y < yn; y++) {
                 for(int x=x0; x > xn; x++) {
-                    vd = src.getData(x,y,z);
+                    src.getData(x,y,z,vd);
 
                     if (vd.getState() != Grid.OUTSIDE) {
                         zn = z;
@@ -151,7 +151,7 @@ public class Trim implements Operation, AttributeOperation {
         for(int y=y0; y < yn; y++) {
             for(int x=x0; x < xn; x++) {
                 for(int z=z0; z < zn; z++) {
-                    vd = src.getData(x, y, z);
+                    src.getData(x, y, z,vd);
 
                     dest.setData(x - x0,y - y0,z - z0,vd.getState(), vd.getMaterial());
                 }

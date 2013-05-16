@@ -2,13 +2,17 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/apps/api/src/API.iml" filepath="$PROJECT_DIR$/apps/api/src/API.iml" />
       <module fileurl="file://$PROJECT_DIR$/src/AbFab3D Lib.iml" filepath="$PROJECT_DIR$/src/AbFab3D Lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/common/src/AppCommon.iml" filepath="$PROJECT_DIR$/apps/common/src/AppCommon.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/booleanops/src/Boolean Ops.iml" filepath="$PROJECT_DIR$/apps/booleanops/src/Boolean Ops.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/dla/src/Dla.iml" filepath="$PROJECT_DIR$/apps/dla/src/Dla.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" filepath="$PROJECT_DIR$/apps/imagepopper/src/Imagepopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" filepath="$PROJECT_DIR$/apps/rectsidedpopper/src/RectSidedPopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" filepath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" filepath="$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/volumesculptor/src/Volume Sculptor.iml" filepath="$PROJECT_DIR$/apps/volumesculptor/src/Volume Sculptor.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/cloth/src/cloth.iml" filepath="$PROJECT_DIR$/apps/cloth/src/cloth.iml" />
     </modules>
   </component>
 </project>

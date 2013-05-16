@@ -11,7 +11,7 @@ import java.util.Arrays;
  * @author Alan Hudson
  */
 public class StructSet {
-    static final int DEFAULT_INITIAL_CAPACITY = 16;
+    static final int DEFAULT_INITIAL_CAPACITY = 32;
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
     /** References to Entry positions or -1 if not filled */
@@ -193,112 +193,116 @@ public class StructSet {
             }
         }
     }
-}
 
-class SetEntry extends StructDataDefinition {
-    public static final StructDataDefinition DEFINITION = new SetEntry();
+    static class SetEntry extends StructDataDefinition {
 
-    public static final int INT_DATA_SIZE = 1;
-    public static final int POINTER_DATA_SIZE = 2;
-
-    // int positions
-    public static final int POS_HASH = 0;
-
-    // pointer positions
-    public static final int POS_KEY = 0;
-    public static final int POS_NEXT = 1;
-
-
-    public static int createEntry(StructMixedData dest) {
-        int destIdx = dest.addItem();
-
-        return destIdx;
-    }
-
-    public static int createEntry(int key, int hash, int next, StructMixedData dest) {
-        int destIdx = dest.addItem();
-        set(key,hash, next, dest, destIdx);
-
-        return destIdx;
-    }
-
-    public static void set(int key,int hash, int next, StructMixedData dest, int destIdx) {
-        int int_pos = destIdx * INT_DATA_SIZE;
-        int[] int_data = dest.getIntData();
-        int pointer_pos = destIdx * POINTER_DATA_SIZE;
-        int[] pointer_data = dest.getPointerData();
-
-        int_data[int_pos + POS_HASH] = hash;
+        public static final StructDataDefinition DEFINITION = new SetEntry();
         
-        pointer_data[pointer_pos + POS_KEY] = key;
-        pointer_data[pointer_pos + POS_NEXT] = next;
-    }
+        public static final int INT_DATA_SIZE = 1;
+        public static final int POINTER_DATA_SIZE = 2;
+        
+        // int positions
+        public static final int POS_HASH = 0;
+        
+        // pointer positions
+        public static final int POS_KEY = 0;
+        public static final int POS_NEXT = 1;
+        
+        
+        public static int createEntry(StructMixedData dest) {
+            int destIdx = dest.addItem();
+            
+            return destIdx;
+        }
+        
+        public static int createEntry(int key, int hash, int next, StructMixedData dest) {
+            int destIdx = dest.addItem();
+            set(key,hash, next, dest, destIdx);
+            
+            return destIdx;
+        }
+        
+        public static void set(int key,int hash, int next, StructMixedData dest, int destIdx) {
+            int int_pos = destIdx * INT_DATA_SIZE;
+            int[] int_data = dest.getIntData();
+            int pointer_pos = destIdx * POINTER_DATA_SIZE;
+            int[] pointer_data = dest.getPointerData();
+            
+            int_data[int_pos + POS_HASH] = hash;
+            
+            pointer_data[pointer_pos + POS_KEY] = key;
+            pointer_data[pointer_pos + POS_NEXT] = next;
+        }
+        
+        public static void setHash(int hash, StructMixedData dest, int destIdx) {
+            int int_pos = destIdx * INT_DATA_SIZE + POS_HASH;
+            int[] int_data = dest.getIntData();
+            
+            int_data[int_pos] = hash;
+        }
+        
+        public static int getHash(StructMixedData src, int srcIdx) {
+            int int_pos = srcIdx * INT_DATA_SIZE + POS_HASH;
+            int[] int_data = src.getIntData();
+            
+            return int_data[int_pos];
+        }
+        
+        public static void setKey(int id, StructMixedData dest, int destIdx) {
+            int pointer_pos = destIdx * POINTER_DATA_SIZE + POS_KEY;
+            int[] pointer_data = dest.getPointerData();
+            
+            pointer_data[pointer_pos] = id;
+        }
+        
+        public static int getKey(StructMixedData src, int srcIdx) {
+            int pointer_pos = srcIdx * POINTER_DATA_SIZE + POS_KEY;
+            int[] pointer_data = src.getPointerData();
+            
+            return pointer_data[pointer_pos];
+        }
+        
+        /**
+         * Get the next entry.
+         *
+         * @param src
+         * @param srcIdx
+         * @return The position or -1 if none
+         */
+        public static int getNext(StructMixedData src, int srcIdx) {
+            int pointer_pos = srcIdx * POINTER_DATA_SIZE + POS_NEXT;
+            int[] pointer_data = src.getPointerData();
+            
+            return pointer_data[pointer_pos];
+        }
+        
+        public static void setNext(int next, StructMixedData dest, int destIdx) {
+            int pointer_pos = destIdx * POINTER_DATA_SIZE + POS_NEXT;
+            int[] pointer_data = dest.getPointerData();
+            
+            pointer_data[pointer_pos] = next;
+        }
+        
+        /**
+         * Clear all entries.  Do not reallocate but make all entries back to default values.
+         *
+         * @param dest
+         */
+        public static void clear(StructMixedData dest) {
+            dest.clear();
+        }
+        
+        @Override
+            public int getPointerDataSize() {
+            return POINTER_DATA_SIZE;
+        }
+        
+        @Override
+            public int getIntDataSize() {
+            return INT_DATA_SIZE;
+        }
+    } // class SetEntry 
+    
 
-    public static void setHash(int hash, StructMixedData dest, int destIdx) {
-        int int_pos = destIdx * INT_DATA_SIZE + POS_HASH;
-        int[] int_data = dest.getIntData();
-
-        int_data[int_pos] = hash;
-    }
-
-    public static int getHash(StructMixedData src, int srcIdx) {
-        int int_pos = srcIdx * INT_DATA_SIZE + POS_HASH;
-        int[] int_data = src.getIntData();
-
-        return int_data[int_pos];
-    }
-
-    public static void setKey(int id, StructMixedData dest, int destIdx) {
-        int pointer_pos = destIdx * POINTER_DATA_SIZE + POS_KEY;
-        int[] pointer_data = dest.getPointerData();
-
-        pointer_data[pointer_pos] = id;
-    }
-
-    public static int getKey(StructMixedData src, int srcIdx) {
-        int pointer_pos = srcIdx * POINTER_DATA_SIZE + POS_KEY;
-        int[] pointer_data = src.getPointerData();
-
-        return pointer_data[pointer_pos];
-    }
-
-    /**
-     * Get the next entry.
-     *
-     * @param src
-     * @param srcIdx
-     * @return The position or -1 if none
-     */
-    public static int getNext(StructMixedData src, int srcIdx) {
-        int pointer_pos = srcIdx * POINTER_DATA_SIZE + POS_NEXT;
-        int[] pointer_data = src.getPointerData();
-
-        return pointer_data[pointer_pos];
-    }
-
-    public static void setNext(int next, StructMixedData dest, int destIdx) {
-        int pointer_pos = destIdx * POINTER_DATA_SIZE + POS_NEXT;
-        int[] pointer_data = dest.getPointerData();
-
-        pointer_data[pointer_pos] = next;
-    }
-
-    /**
-     * Clear all entries.  Do not reallocate but make all entries back to default values.
-     *
-     * @param dest
-     */
-    public static void clear(StructMixedData dest) {
-        dest.clear();
-    }
-
-    @Override
-    public int getPointerDataSize() {
-        return POINTER_DATA_SIZE;
-    }
-
-    @Override
-    public int getIntDataSize() {
-        return INT_DATA_SIZE;
-    }
 }
+

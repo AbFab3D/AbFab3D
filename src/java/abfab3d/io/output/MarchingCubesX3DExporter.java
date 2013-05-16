@@ -127,7 +127,7 @@ public class MarchingCubesX3DExporter {
      * @param grid The grid to write
      * @param matColors Maps materials to colors.  4 component color
      */
-    public void write(Grid grid, Map<Integer, float[]> matColors) {
+    public void write(Grid grid, Map<Long, float[]> matColors) {
 
 System.out.println("writing grid: " + grid);
         int idx = 0;
@@ -139,7 +139,7 @@ System.out.println("writing grid: " + grid);
 
         if (matColors != null) {
             // support color for material1
-            float[] mat_color = matColors.get(new Integer(1));
+            float[] mat_color = matColors.get(new Long(1));
             if (mat_color != null) {
                 color[0] = mat_color[0];
                 color[1] = mat_color[1];
@@ -185,37 +185,37 @@ System.out.println("writing grid: " + grid);
 System.out.println("Creating mesh");
         mesh = new WETriangleMesh();
 
-/*        
+/*
         VolumetricSpaceArray vol = new VolumetricSpaceArray(
                 new Vec3D((float)grid.getVoxelSize(),(float)grid.getSliceHeight(),(float)grid.getVoxelSize()),
                 grid.getWidth(), grid.getHeight(), grid.getDepth());
-*/        
-        
+*/
+
         double[] min = new double[3];
         double[] max = new double[3];
-        
+
         grid.getGridBounds(min,max);
         double w = max[0] - min[0];
         double h = max[1] - min[1];
         double d = max[2] - min[2];
-        
+
         double max_dim = Math.max(Math.max(w,h),d);
 
 
         // TODO: new method fails on iphone case.
         boolean oldway = true;
 
-System.out.println("Creating vol space array");        
+System.out.println("Creating vol space array");
         VolumetricSpaceArray vol = null;
 
         if (oldway) {
-/*            
+/*
             vol = new VolumetricSpaceArray(
                     new Vec3D((float) ((grid.getWidth() + 2) * grid.getVoxelSize()),(float)((grid.getHeight() + 2) * grid.getSliceHeight()),(float)((grid.getDepth() + 2) * grid.getVoxelSize())),
                     grid.getWidth() + 2, grid.getHeight() + 2, grid.getDepth() + 2);
-*/                  
+*/
             int border = 1;
-            
+
             vol = new VolumetricSpaceArray(
                     new Vec3D((float)(grid.getWidth() * grid.getVoxelSize()),(float)((grid.getHeight() * grid.getSliceHeight())),(float)((grid.getDepth() * grid.getVoxelSize()))),
                     grid.getWidth() + border, grid.getHeight() + border, grid.getDepth() + border);
@@ -226,9 +226,9 @@ System.out.println("Creating vol space array");
                 new Vec3D((float) ((grid.getWidth() + 0) * grid.getVoxelSize()),(float)((grid.getHeight() + 0) * grid.getSliceHeight()),(float)((grid.getDepth() + 0) * grid.getVoxelSize())),
                 grid.getWidth() + 0, grid.getHeight() + 0, grid.getDepth() + 0);
  */
-        
+
         byte state = 0;
-        int mat = 0;
+        long mat = 0;
         int cellIndex = 0;
 
         // TODO: What about structures with > int vertices?
@@ -249,19 +249,18 @@ System.out.println("Creating vol space array");
 
         double off_x, off_y, off_z;
 
+
         loop: for(int i=0; i < resZ1; i++) {
             off_z = i * pixelSize;
-            
+
             for(int j=0; j < resY1; j++) {
                 off_y = j * sheight;
 
                 for(int k=0; k < resX1; k++) {
                     off_x = k * pixelSize;
 
-                    VoxelData vd = grid.getData(k,j,i);
+                    state = grid.getState(k,j,i);
 
-                    state = vd.getState();
-                    mat = vd.getMaterial();
 
 /*
                     if (state != Grid.OUTSIDE) {
@@ -271,13 +270,13 @@ System.out.println("Creating vol space array");
                     }
 */
                     if (oldway) {
-                        if (vd.getState() != Grid.OUTSIDE) {
+                        if (state != Grid.OUTSIDE) {
                             vol.setVoxelAt(k,j,i,0.5f);
                         }
 
                         continue;
                     }
-                    
+
                     cellIndex = getCellIndex(grid,k,j,i);
 
                     if (cellIndex > 0 && cellIndex < 255) {
@@ -387,7 +386,7 @@ System.out.println("Add face: " + va + " " + vb + " " + vc);
             //vol.closeSides();
 //            IsoSurface surface = new HashIsoSurface(vol);
 
-System.out.println("Running debugiso");            
+System.out.println("Running debugiso");
             // TODO: this is working, has center movement backed in.
             IsoSurface surface = new DebugIsoSurface(vol);
 System.out.println("Running computeSurface");
@@ -400,12 +399,12 @@ System.out.println("Running computeSurface");
         boolean checkManifold = false;
 
         System.out.println("Running flipverts");
-        
+
         // TODO: Fix this
         mesh.flipVertexOrder();
 
         int orig_faces = mesh.getNumFaces();
-        
+
         System.out.println("Initial Mesh: faces: " + mesh.getNumFaces() + " verts: " + mesh.getNumVertices());
         boolean manifold = true;
 
@@ -422,7 +421,7 @@ System.out.println("Running computeSurface");
 
         if (simplifier != null) {
             System.out.println("Simplifying mesh");
-            
+
             if (!manifold) {
                 System.out.println("WARNING: Non manifold mesh in simplifier.");
             }
@@ -437,9 +436,9 @@ System.out.println("Running computeSurface");
 
         SAVExporter exporter = new SAVExporter();
         exporter.outputX3D(mesh, params, writer);
-        
+
         System.out.println("Mesh: faces: " + mesh.getFaces().size() + " verts: " + mesh.getNumVertices());
-        
+
         System.out.println("Orig faces: " + orig_faces + " final: " + mesh.getFaces().size() + " %: " +
         ((float)mesh.getFaces().size() / orig_faces));
         // End Centering Transform
@@ -539,7 +538,7 @@ System.out.println("Running computeSurface");
         //System.out.println("gci: " + x + " " + y + " " + z + " cellIndex: " + cellIndex + " bits: " + Integer.toBinaryString(cellIndex));
         return cellIndex;
     }
-    
+
     /**
      * Write a grid to the stream using the grid state
      *
@@ -551,7 +550,7 @@ System.out.println("Running computeSurface");
                            Map<Integer, Float> stateTransparency) {
 
         BoxSimplifiedX3DExporter exporter = new BoxSimplifiedX3DExporter(writer,console,complete);
-        
+
         exporter.writeDebug(grid, stateColors, stateTransparency);
     }
 
@@ -597,7 +596,7 @@ System.out.println("Running computeSurface");
     private void ejectFooter() {
         writer.endDocument();
     }
-    
+
     private boolean isManifold(WETriangleMesh mesh) {
         boolean manifold = true;
 

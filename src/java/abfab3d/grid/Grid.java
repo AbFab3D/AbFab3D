@@ -46,16 +46,6 @@ public interface Grid extends Cloneable {
     public static final int NO_MATERIAL = 0;
 
     /**
-     * Get the data for a voxel.  A new instance of VoxelData is created.
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel data
-     */
-    public VoxelData getData(double x, double y, double z);
-
-    /**
      * Get the data for a voxel.
      *
      * @param x The x world coordinate
@@ -64,16 +54,6 @@ public interface Grid extends Cloneable {
      * @return The voxel data
      */
     public void getData(double x, double y, double z, VoxelData data);
-
-    /**
-     * Get the state of the voxel.
-     *
-     * @param x The x grid coordinate
-     * @param y The y grid coordinate
-     * @param z The z grid coordinate
-     * @return The voxel state
-     */
-    public VoxelData getData(int x, int y, int z);
 
     /**
      * Get the data for a voxel.
@@ -170,6 +150,18 @@ public interface Grid extends Cloneable {
      * @param max The max coordinate
      */
     public void getGridBounds(double[] min, double[] max);
+    
+    /**
+     * Get the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void getGridBounds(double[] bounds);
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
+     */
+    public void setGridBounds(double[] bounds);
 
     /**
      * Count a class of voxels types.  May be much faster then
@@ -274,6 +266,13 @@ public interface Grid extends Cloneable {
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight);
 
     /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData();
+
+    /**
      * Determine if a voxel coordinate is inside the grid space.
      *
      * @param x The x coordinate
@@ -292,5 +291,6 @@ public interface Grid extends Cloneable {
      * @return True if the coordinate is inside the grid space
      */
     public boolean insideGrid(double wx, double wy, double wz);
+
 }
 

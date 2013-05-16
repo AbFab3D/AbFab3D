@@ -49,7 +49,7 @@ public class RegionFinder {
     private Grid grid;
 
     /** The material to restrict regions to or -1 for no restriction */
-    private int mat;
+    private long mat;
 
     /**
      * Constructor.
@@ -83,7 +83,7 @@ public class RegionFinder {
      * @param maxRegions The max number of regions to create.
      * @param mat The material to restrict finding to or -1 for no restriction
      */
-    public RegionFinder(int maxRegions, int maxRegionSize, int mat) {
+    public RegionFinder(int maxRegions, int maxRegionSize, long mat) {
         this.maxRegions = maxRegions;
         this.maxRegionSize = maxRegionSize;
         this.mat = mat;
@@ -371,6 +371,8 @@ System.out.println("Add list: " + add_list.size());
 
         HashSet<VoxelCoordinate> add_list = new HashSet<VoxelCoordinate>();
 
+        VoxelData vd = grid.getVoxelData();
+
         while(new_list.size() > 0) {
             Iterator<VoxelCoordinate> itr2 = new_list.iterator();
 
@@ -383,7 +385,7 @@ System.out.println("Add list: " + add_list.size());
                 int j = vc.getY();
                 int k = vc.getZ();
 
-                VoxelData vd = grid.getData(i,j,k);
+                grid.getData(i,j,k,vd);
 
                 int state = vd.getState();
 
@@ -413,9 +415,7 @@ System.out.println("Add list: " + add_list.size());
                                 int nk = k+n3;
 
                                 if (grid.insideGrid(ni,nj,nk) && !visited.getVisited(ni,nj,nk)) {
-                                    vd = grid.getData(ni,nj,nk);
-
-                                    state = vd.getState();
+                                    state = grid.getState(ni,nj,nk);
 
                                     if (start_state == Grid.OUTSIDE && state != Grid.OUTSIDE)
                                         continue;

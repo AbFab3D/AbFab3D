@@ -24,8 +24,7 @@ import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
-
-import static java.lang.Math.sqrt;
+import net.jafama.FastMath;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Symmetry.getReflection;
@@ -65,6 +64,14 @@ public class VecTransforms {
     public static class RingWrap implements VecTransform, Initializable {
 
         public double m_radius = 0.035; // units are meters       
+
+
+        public RingWrap(){
+        };
+        
+        public RingWrap(double r){
+            m_radius = r;            
+        }
         
         public void setRadius(double r){
             m_radius = r;
@@ -84,13 +91,14 @@ public class VecTransforms {
             
             double angle = in.v[0] / m_radius;
             double r = m_radius + in.v[2];
-            double sina = Math.sin(angle);
-            double cosa = Math.cos(angle);
+            double sina = FastMath.sin(angle);
+            double cosa = FastMath.cos(angle);
 
             out.v[0] = r * sina;
             out.v[1] = in.v[1];
             out.v[2] = r * cosa;
-
+            // TODO better aproximation ? 
+            out.voxelSize = in.voxelSize;
             return RESULT_OK;
         }                
 
@@ -105,15 +113,19 @@ public class VecTransforms {
             double wy = in.v[1];
             double wz = in.v[2] / m_radius;
             
-            double dist = Math.sqrt(wx * wx + wz * wz);
-            double angle = Math.atan2(wx, wz);
-            
+            double dist = FastMath.sqrt(wx * wx + wz * wz);
+            double angle = FastMath.atan2(wx, wz);
+
+
             wx = angle * m_radius;
             wz = (dist-1) * m_radius;
             
             out.v[0] = wx;
             out.v[1] = wy;
             out.v[2] = wz;
+
+            // TODO better aproximation ? 
+            out.voxelSize = in.voxelSize;
 
             return RESULT_OK;
 
@@ -125,12 +137,21 @@ public class VecTransforms {
      */
     public static class Rotation implements VecTransform, Initializable {
 
-        public Vector3d m_axis = new Vector3d(1,0,0); 
-        public double m_angle = 0;
+        private Vector3d m_axis = new Vector3d(1,0,0); 
+        private double m_angle = 0;
 
         private Matrix3d 
             mat = new Matrix3d(),
             mat_inv = new Matrix3d();
+
+        public Rotation(){
+        }
+
+        public Rotation(Vector3d axis, double angle){
+
+            setRotation(axis, angle);
+
+        }
 
         public void setRotation(Vector3d axis, double angle){
 
@@ -157,10 +178,12 @@ public class VecTransforms {
             x = in.v[0];
             y = in.v[1];
             z = in.v[2];
-
+            
             out.v[0] = mat.m00* x + mat.m01*y + mat.m02*z;
             out.v[1] = mat.m10* x + mat.m11*y + mat.m12*z;
             out.v[2] = mat.m20* x + mat.m21*y + mat.m22*z;
+
+            out.voxelSize = in.voxelSize;
 
             return RESULT_OK;
         }
@@ -180,6 +203,8 @@ public class VecTransforms {
             out.v[1] = mat_inv.m10* x + mat_inv.m11*y + mat_inv.m12*z;
             out.v[2] = mat_inv.m20* x + mat_inv.m21*y + mat_inv.m22*z;
 
+            out.voxelSize = in.voxelSize;
+
             return RESULT_OK;
 
         }
@@ -192,13 +217,26 @@ public class VecTransforms {
      */
     public static class Scale  implements VecTransform {
 
-        protected double sx = 1, sy = 1, sz = 1; 
+        protected double sx = 1., sy = 1., sz = 1.; 
+        protected double averageScale = 1.;
 
+        public Scale(){
+        }
+
+        public Scale(double s){
+            setScale(s);
+        }
+
+        public Scale(double sx, double sy, double sz){
+            setScale(sx,sy,sz);
+        }
+        
         public void setScale(double s){
 
             sx = s;
             sy = s;
             sz = s;
+            this.averageScale = s;
 
         }
 
@@ -208,6 +246,7 @@ public class VecTransforms {
             this.sy = sy;
             this.sz = sz;
 
+            this.averageScale = Math.pow(sz*sy*sz, 1./3);
         }
 
         /**
@@ -218,6 +257,8 @@ public class VecTransforms {
             out.v[0] = in.v[0]*sx;
             out.v[1] = in.v[1]*sy;
             out.v[2] = in.v[2]*sz;
+
+            out.voxelSize = in.voxelSize*averageScale;
 
             return RESULT_OK;
         }                
@@ -231,6 +272,8 @@ public class VecTransforms {
             out.v[1] = in.v[1]/sy;
             out.v[2] = in.v[2]/sz;
 
+            out.voxelSize = in.voxelSize/averageScale;
+            
             return RESULT_OK;
 
         }
@@ -263,6 +306,8 @@ public class VecTransforms {
             out.v[1] = in.v[1] + ty;
             out.v[2] = in.v[2] + tz;
 
+            out.voxelSize = in.voxelSize;
+
             return RESULT_OK;
         }                
 
@@ -274,6 +319,8 @@ public class VecTransforms {
             out.v[0] = in.v[0] - tx;
             out.v[1] = in.v[1] - ty;
             out.v[2] = in.v[2] - tz;
+
+            out.voxelSize = in.voxelSize;
 
             return RESULT_OK;
 
@@ -287,7 +334,7 @@ public class VecTransforms {
     public static class SphereInversion  implements VecTransform, Initializable  {
 
         public Vector3d m_center = new Vector3d(0,0,1); 
-        public double m_radius = sqrt(2.); 
+        public double m_radius = FastMath.sqrt(2.);
 
         private double radius2; 
         static double EPS = 1.e-20;
@@ -337,7 +384,9 @@ public class VecTransforms {
             out.v[0] = x;
             out.v[1] = y;
             out.v[2] = z;
-            
+
+            out.voxelSize = in.voxelSize*scale;
+
             return RESULT_OK;
         }                
 
@@ -399,6 +448,8 @@ public class VecTransforms {
             out.v[0] = x;
             out.v[1] = y;
             out.v[2] = z;
+
+            out.voxelSize = in.voxelSize;
             
             return RESULT_OK;
         }                
@@ -408,9 +459,7 @@ public class VecTransforms {
          */
         public int inverse_transform(Vec in, Vec out) {
             
-            transform(in, out);
-
-            return RESULT_OK;
+            return transform(in, out);
 
         }
     } // class PlaneReflection
@@ -460,6 +509,9 @@ public class VecTransforms {
                 out.set(in);
                 return RESULT_OK;                
             }
+
+            //TODO garbage generation 
+            Vec vin = new Vec(in);
 
             for(int i = 0; i < len; i++){
 
@@ -567,6 +619,7 @@ public class VecTransforms {
             out.v[0] = x;
             out.v[1] = y;
             out.v[2] = z;
+            out.voxelSize = in.voxelSize; 
             
             return RESULT_OK;
         }                
@@ -584,7 +637,9 @@ public class VecTransforms {
             out.v[0] = vin.x;
             out.v[1] = vin.y;
             out.v[2] = vin.z;
-            
+
+            out.voxelSize = in.voxelSize; 
+
             return RESULT_OK;
 
         }
@@ -681,6 +736,8 @@ public class VecTransforms {
             out.v[1] = y;
             out.v[2] = z;
             
+            out.voxelSize = in.voxelSize; 
+
             return RESULT_OK;
         }                
 
@@ -697,6 +754,8 @@ public class VecTransforms {
             out.v[0] = vin.x;
             out.v[1] = vin.y;
             out.v[2] = vin.z;
+
+            out.voxelSize = in.voxelSize; 
             
             return RESULT_OK;
 
@@ -704,7 +763,7 @@ public class VecTransforms {
     } // class WallpaperSymmetry
    
     static public void normalizePlane(Vector4d p){
-        double norm = Math.sqrt(p.x*p.x + p.y*p.y + p.z*p.z);
+        double norm = FastMath.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
         p.scale(1./norm);
         
     }
