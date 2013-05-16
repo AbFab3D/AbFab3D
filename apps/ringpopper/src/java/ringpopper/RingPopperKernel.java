@@ -378,6 +378,8 @@ public class RingPopperKernel extends HostedKernel {
 
         long start = time();
 
+        boolean makeRingWrap = true;
+
         pullParams(params);
 
         if (acc == Accuracy.VISUAL) {
@@ -398,7 +400,11 @@ public class RingPopperKernel extends HostedKernel {
         double margin = 2 * resolution;
         double voxelSize = resolution;
         
-        double gridWidth = (innerDiameter + 2 * ringThickness + 2 * margin);
+        double gridWidth = 0;
+        if(makeRingWrap)
+            gridWidth = (innerDiameter + 2 * ringThickness + 2 * margin);
+        else
+            gridWidth = (innerDiameter*Math.PI  +  2 * margin);
         
         double ringYmin  = -ringWidth/2;
         double ringYmax  = ringWidth/2;
@@ -409,15 +415,31 @@ public class RingPopperKernel extends HostedKernel {
             ringYmin -= bottomBorderWidth;
         }
         
-        double gridDepth = gridWidth;
+        double gridDepth = 0;
+        if(makeRingWrap)
+            gridDepth = gridWidth;
+        else 
+            gridDepth = ringThickness + 2 * margin;
+
+        double gridHeight = ringYmax + -ringYmin + 2*margin;
+
         double offset = voxelSize*0.3; // some hack to get asymetry 
-        double bounds[] = new double[]{-gridWidth / 2 + offset, gridWidth / 2 + offset, 
-                                       ringYmin - margin, ringYmax + margin, 
-                                       -gridDepth / 2, gridDepth / 2};
         
-        int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
-        int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
-        int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
+        int nx = (int) (gridWidth / voxelSize);
+        int ny = (int) (gridHeight / voxelSize);// ((bounds[3] - bounds[2]) / voxelSize);
+        int nz = (int) (gridDepth / voxelSize);//((bounds[5] - bounds[4]) / voxelSize);
+        double gridXmin = -nx * voxelSize/2;
+        double gridYmin = ringYmin - margin;
+        double gridZmin = -nz * voxelSize/2;
+
+        double bounds[] = new double[]{ gridXmin, gridXmin + nx * voxelSize, 
+                                        gridYmin, gridYmin + ny * voxelSize, 
+                                        gridZmin, gridZmin + nz * voxelSize};
+        
+        //int nx = (int) ((bounds[1] - bounds[0]) / voxelSize);
+        // int ny = (int) ((bounds[3] - bounds[2]) / voxelSize);
+        //int nz = (int) ((bounds[5] - bounds[4]) / voxelSize);
+
         
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
@@ -464,10 +486,12 @@ public class RingPopperKernel extends HostedKernel {
 
         DataSources.DataTransformer completeRing = new DataSources.DataTransformer();
         completeRing.setDataSource(complete_band);
-        completeRing.setTransform(ringWrap);
+        if(makeRingWrap)
+            completeRing.setTransform(ringWrap);
                 
         DataSources.Intersection clippedRing = new DataSources.Intersection();
-        clippedRing.addDataSource(new DataSources.Ring(innerDiameter/2, ringThickness, ringYmin, ringYmax));
+        if(makeRingWrap)
+            clippedRing.addDataSource(new DataSources.Ring(innerDiameter/2, ringThickness, ringYmin, ringYmax));
         clippedRing.addDataSource(completeRing);
         
         //DataSources.DataTransformer ring = new DataSources.DataTransformer();
