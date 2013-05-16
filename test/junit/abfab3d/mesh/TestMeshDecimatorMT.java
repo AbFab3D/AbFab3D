@@ -164,7 +164,7 @@ public class TestMeshDecimatorMT extends TestCase {
 
     public void runMeshPartitioningMT()  throws Exception {
         
-        int threadCount = 4;
+        int threadCount = 8;
 
         long t00 = time();
         int cellGrid = 20; // grid dimension of one cell 
@@ -194,6 +194,7 @@ public class TestMeshDecimatorMT extends TestCase {
         double gridBounds[] = new double[]{0,bodySize, 0,bodySize,0,bodySize};
 
         gridMaker.setBounds(gridBounds);
+        gridMaker.setThreadCount(threadCount);
         gridMaker.setDataSource(new ArrayOfSpheres(sphereSize));
         
         gridMaker.makeGrid(grid); 
@@ -397,9 +398,9 @@ public class TestMeshDecimatorMT extends TestCase {
             
             //md.setThreadCount(1); 
                         
-            md.setMaxCollapseError(1.e-8);
+            md.setMaxCollapseError(1.e-9);
 
-            int count = 5;
+            int count = 3;
 
             int fcount = mesh.getTriangleCount();
             block.origFaceCount = mesh.getTriangleCount();
