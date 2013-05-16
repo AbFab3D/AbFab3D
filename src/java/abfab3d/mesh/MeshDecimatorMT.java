@@ -12,7 +12,6 @@
 package abfab3d.mesh;
 
 import java.util.concurrent.atomic.AtomicIntegerArray;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import java.util.concurrent.ExecutorService; 
 import java.util.concurrent.Executors; 
@@ -20,16 +19,12 @@ import java.util.concurrent.TimeUnit;
 
 import java.util.Random;
 
-import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector4d;
 
 import abfab3d.util.StructMixedData;
 import abfab3d.util.StackOfInt;
 
 
-import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 
@@ -50,9 +45,11 @@ import static abfab3d.util.Output.time;
  */
 public class MeshDecimatorMT extends MeshDecimator {
 
-
+    /** Should we print debug information */
     private static final boolean DEBUG = false;
-    private static final boolean m_printStat = true;
+
+    /** Should we collect stats information */
+    private static final boolean STATS = false;
 
     protected int m_threadCount = 0;
 
@@ -393,17 +390,23 @@ public class MeshDecimatorMT extends MeshDecimator {
             //}
 
             // try to collapse the edge
-            long t0 = System.nanoTime();
+            long t0;
+            if (STATS) {
+                t0 = System.nanoTime();
+            }
             boolean res = m_mesh.collapseEdge(edgeCandidate.edge, edgeCandidate.point, ecparam, ecresult);
-            long ct = System.nanoTime() - t0;
-            collapseTime += ct;
-            if(ct > maxCollapseTime) 
-                maxCollapseTime = ct;
-            if(ct < minCollapseTime)
-                minCollapseTime = ct;
 
-            collapseCount++;
-            
+            if (STATS) {
+                long ct = System.nanoTime() - t0;
+                collapseTime += ct;
+                if(ct > maxCollapseTime)
+                    maxCollapseTime = ct;
+                if(ct < minCollapseTime)
+                    minCollapseTime = ct;
+
+                collapseCount++;
+            }
+
             if(!res){                
                 //printf("failed to collapse\n");
                 switch(ecresult.returnCode){

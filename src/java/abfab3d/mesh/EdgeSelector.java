@@ -26,8 +26,10 @@ import static abfab3d.util.Output.fmt;
    
 */
 public class EdgeSelector {
+    /** Should we collect stats information */
+    private static final boolean STATS = false;
 
-    public static int NO_DATA = Integer.MIN_VALUE;
+    public static final int NO_DATA = Integer.MIN_VALUE;
 
     int array[];
     int asize = 0; //
@@ -99,9 +101,12 @@ public class EdgeSelector {
             
             if(array[i] != NO_DATA){
                 ed.edge = array[i];
-                ed.index = i; 
-                countCount += count;
-                callCount++;
+                ed.index = i;
+
+                if (STATS) {
+                    countCount += count;
+                    callCount++;
+                }
                 return true;
             }                
         }
