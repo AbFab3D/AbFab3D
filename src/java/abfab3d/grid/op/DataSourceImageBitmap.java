@@ -73,8 +73,7 @@ import static abfab3d.grid.op.DataSources.intervalCap;
 */
 public class DataSourceImageBitmap implements DataSource, Initializable {
 
-    static int debugCount = 3000;
-    double MM = 0.001; // 
+    double MM = 0.001; //
     
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2; 
@@ -711,8 +710,10 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         double imageY = imageHeight*(1.-y);// reverse Y-direction 
         
         double pixelValue = getPixelValue(imageX, imageY, 0.);
+        /*
         if(debugCount-- > 0)
             printf("imageXY: [%7.2f, %7.2f] -> pixelValue: %8.5f\n", imageX, imageY, pixelValue);
+        */
         double d = 0;
         
         if(useGrayscale){ 

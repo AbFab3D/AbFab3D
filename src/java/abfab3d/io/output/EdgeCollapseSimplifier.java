@@ -83,6 +83,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
         
         for(int i=0; i < sample; i++) {
 
+            // TODO: this has a synchronized block in it, likely bad for multithreading
             int num = (int) (Math.random() * edges.length);
 
             WingedEdge edge = edges[num];
