@@ -33,6 +33,8 @@ import abfab3d.util.ImageMipMapGray16;
 
 import abfab3d.util.ImageUtil;
 
+import static java.lang.Math.sqrt;
+
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 
@@ -44,6 +46,7 @@ import static abfab3d.util.ImageUtil.RED;
 import static abfab3d.util.ImageUtil.GREEN;
 import static abfab3d.util.ImageUtil.BLUE;
 import static abfab3d.util.ImageUtil.ALPHA;
+
 
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.ImageUtil.us2i;
@@ -228,7 +231,40 @@ public class DataSources {
             
             return RESULT_OK;
         }                
+
     }  // class Ball 
+
+
+    public static class Torus implements DataSource {
+        
+        private double R, r;
+        
+        public Torus(double R, double r){
+
+            this.R = R;
+            this.r = r;
+        }
+        
+        /**
+         * returns 1 if pnt is inside of Torus 
+         * returns intepolated value if poiunt is within voxel size to the boundary 
+         * returns 0 if pnt is outside the Torus
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            double res = 1.;
+            double 
+                x = pnt.v[0],
+                y = pnt.v[1],
+                z = pnt.v[2];
+
+            double rxy = sqrt(x*x + y*y) - R;
+            
+            data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.voxelSize);
+
+            return RESULT_OK;
+        }                
+    }  // class Torus
 
 
 
