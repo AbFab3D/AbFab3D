@@ -352,8 +352,8 @@ System.out.println("Creating Regions Exporter");
 
         MarchingCubesX3DExporter exporter = new MarchingCubesX3DExporter(handler, console, true, reducer);
 
-        Map<Integer, float[]> matColors = new HashMap<Integer, float[]>();
-        matColors.put(0, new float[] {0.8f,0.8f,0.8f,1f});
+        Map<Long, float[]> matColors = new HashMap<Long, float[]>();
+        matColors.put(0l, new float[] {0.8f,0.8f,0.8f,1f});
         exporter.write(grid, matColors);
         exporter.close();
 

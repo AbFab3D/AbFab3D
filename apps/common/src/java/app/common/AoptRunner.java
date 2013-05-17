@@ -30,8 +30,8 @@ import java.util.StringTokenizer;
  */
 public class AoptRunner {
     private static final String SCRIPT_FILE = "aopt.sh";
-    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.9";
-    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server_v1.5.9";
+    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.10";
+    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server_v1.5.10";
 
     /** The output stream */
     protected ByteArrayOutputStream outStream;
