@@ -155,41 +155,46 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
 
         // Run wrapper code
 
-        startTime = System.nanoTime();
+        long total_time = 0;
+        long start_time;
+
 
         for(int n=0; n < times; n++) {
-            // TODO: Can we remove this timing, does it matter?
             for(int i=0; i < numMaterials; i++) {
                 for(int j=0; j < matWidth; j++) {
                     setX(wrapper, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
                 }
             }
 
+            start_time = System.nanoTime();
             for(int i=0; i < numMaterials; i++) {
                 wrapper.removeAttribute(i);
             }
+            total_time += (System.nanoTime() - start_time);
         }
 
-        time1 = System.nanoTime() - startTime;
+        time1 = total_time;
 
         // Run direct code
 
-        startTime = System.nanoTime();
+        System.out.println("Remove attribute speed");
+        total_time = 0;
 
         for(int n=0; n < times; n++) {
-            // TODO: Can we remove this timing, does it matter?
             for(int i=0; i < numMaterials; i++) {
                 for(int j=0; j < matWidth; j++) {
                     setX(grid2, matWidth * i + j,1,Grid.EXTERIOR, (byte) i);
                 }
             }
 
+            start_time = System.nanoTime();
             for(int i=0; i < numMaterials; i++) {
                 grid2.removeAttribute(i);
             }
+            total_time += (System.nanoTime() - start_time);
         }
 
-        time2 = System.nanoTime() - startTime;
+        time2 = total_time;
 
         // Time trials show this method is 30X faster.  Error out
         // if its ever < 10X faster
