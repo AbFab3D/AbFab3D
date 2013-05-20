@@ -37,8 +37,8 @@ public class WallThicknessRunner {
     public static final String HOLE_VISUALIZATION = "hole_visualization";
 
     private static final String SCRIPT_FILE = "wallthickness_ribt.sh";
-    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.9";
-    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server_v1.5.9";
+    private static final String RELEASE_LOC_UNIX = "/var/www/html/release/server_v1.5.11";
+    private static final String RELEASE_LOC_WIN  = "\\var\\www\\html\\release\\server_v1.5.11";
 
     private static final String RESULT_MARKER = "WT_PROCESSING_RESULT:";
     private static final String PARTS_COUNT_ORIGINAL_MARKER = "PARTS_COUNT_ORIGINAL:";
@@ -50,10 +50,11 @@ public class WallThicknessRunner {
     private static final String INTERFACE_MARKER = "TOTAL_INTERFACE:";
     private static final String BOUNDARY_MARKER = "TOTAL_BOUNDARY:";
     private static final String THIN_RUMP_RATIO_MARKER = "TOTAL_THIN_RUMP_RATIO:";
-    private static final String THIN_REGION_MARKER = "REGION:";
+    private static final String THIN_COUNT_MARKER = "THIN_REGION_COUNT:";
     private static final String WT_WARNING_MARKER = "WT_WARNING:";
     private static final String VIZ_MARKER = "VIZ_FILE:";
     private static final String GAP_VIZ_MARKER = "GAP_VIZ_FILE:";
+    private static final String CLASSIFIED_VIZ_MARKER = "CLASSIFIED_VIZ_FILE:";
 
     /** The output stream */
     protected ByteArrayOutputStream outStream;
@@ -130,11 +131,14 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         double wt = props.getMinWallthickness();
         double bir_suspect = 1.5;
         double bir_unsafe = 2.7;
+        boolean vis_classify = true;
+        boolean vis_thin = !vis_classify;
 
         //if we want to filter out only 5 voxels size, we use 5 * 0.1*0.1*0.1 mm = 0.005 mm^3
         double min_suspect_vol = 0.005;
         double min_unsafe_vol = 0.05;
-        int vpwt = 9;
+//        int vpwt = 9;
+        int vpwt = 15;    // was 17 (7346)  15(5296)
         int thin_area_erosion = vpwt / 2;
         boolean vis_gap = false;
         double gap_distance = 0;
@@ -148,12 +152,18 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
         }
         */
 
+        // Bias WT to insure thin things are caught.
+        double max_error = wt / vpwt;
+        System.out.println("Maximum error: " + max_error);
+        wt += max_error;
+        System.out.println("Using wallthickness of: " + wt);
+
         // TODO: Stop hardcoding params
         String[] params = new String[] {"-input", filename, "-wt", Double.toString(wt), "-visType","1",
                 "-visDir","/tmp", "-maxReg", "1000", "-debug","4", "-birSuspect", Double.toString(bir_suspect),
-                "-birUnsafe", Double.toString(bir_unsafe), "-vpwt", "9",
+                "-birUnsafe", Double.toString(bir_unsafe), "-vpwt", Integer.toString(vpwt),
                 "-minSuspectVol",Double.toString(min_suspect_vol),"-minUnsafeVol",Double.toString(min_unsafe_vol),
-                "-maxRunTime", "60", "-visThin", "true", "-visGap", Boolean.toString(vis_gap), "-gapDistance", Double.toString(gap_distance),"-thinAreaErosion", Integer.toString(thin_area_erosion)};
+                "-maxRunTime", "60", "-visThin", Boolean.toString(vis_thin), "-visClassification", Boolean.toString(vis_classify), "-visGap", Boolean.toString(vis_gap), "-gapDistance", Double.toString(gap_distance),"-thinAreaErosion", Integer.toString(thin_area_erosion)};
         String workingDirPath = "/tmp";
 
         WallThicknessResult ret_val = null;
@@ -260,8 +270,8 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
                     outMap.put("thinRumpRatio", Double.valueOf(val.trim()));
 
                     // get the text for the thin regions
-                } else if (line.startsWith(THIN_REGION_MARKER)) {
-                    val = line.replace(THIN_REGION_MARKER, "");
+                } else if (line.startsWith(THIN_COUNT_MARKER)) {
+                    val = line.replace(THIN_COUNT_MARKER, "");
                     thinRegionText = thinRegionText + val.trim() + "\n";
 
                     // get the wt warning message
@@ -276,6 +286,11 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
                     outMap.put(RESULT, val.trim());
                 } else if (line.startsWith(VIZ_MARKER)) {
                     val = line.replace(VIZ_MARKER, "");
+                    outMap.put(VISUALIZATION, val.trim());
+                } else if (line.startsWith(CLASSIFIED_VIZ_MARKER)) {
+                    val = line.replace(CLASSIFIED_VIZ_MARKER, "");
+
+                    //  We don't expect to have both styles as once so reuse the concept
                     outMap.put(VISUALIZATION, val.trim());
                 } else if (line.startsWith(GAP_VIZ_MARKER)) {
                     val = line.replace(GAP_VIZ_MARKER, "");
@@ -411,8 +426,6 @@ er.sh.x3db -wt 0.0007 -vpwt 7 -visType 2 -visDir wtOutput -maxReg 10 -debug 4 -b
      * @return The exit code from the script
      */
     protected int executeScript(String name, String[] params, File dir) throws IOException {
-        int idx = 0;
-
         outStream = new ByteArrayOutputStream();
         errStream = new ByteArrayOutputStream();
 

@@ -83,6 +83,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
         
         for(int i=0; i < sample; i++) {
 
+            // TODO: this has a synchronized block in it, likely bad for multithreading
             int num = (int) (Math.random() * edges.length);
 
             WingedEdge edge = edges[num];
@@ -119,7 +120,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             try {
                 PlainTextErrorReporter console = new PlainTextErrorReporter();
                 
-                FileOutputStream fos = new FileOutputStream("c:/tmp/viz.x3db");
+                FileOutputStream fos = new FileOutputStream("/tmp/viz.x3db");
                 stream = new X3DBinaryRetainedDirectExporter(fos,
                         3, 0, console,
                         X3DBinarySerializer.METHOD_FASTEST_PARSING,
@@ -825,7 +826,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             try {
                 PlainTextErrorReporter console = new PlainTextErrorReporter();
 
-                fos = new FileOutputStream("c:/tmp/viz.x3db");
+                fos = new FileOutputStream("/tmp/viz.x3db");
                 stream = new X3DBinaryRetainedDirectExporter(fos,
                         3, 0, console,
                         X3DBinarySerializer.METHOD_FASTEST_PARSING,

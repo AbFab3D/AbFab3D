@@ -318,7 +318,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_numbers.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_numbers.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -471,7 +471,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_tiled.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_tiled.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -558,7 +558,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_torus.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_torus.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -637,7 +637,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_with_band.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_with_band.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -703,7 +703,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_star_profile.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_star_profile.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -784,7 +784,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/cup_image.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "tmp/cup_image.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -846,7 +846,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/cup_profile.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/cup_profile.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -907,7 +907,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/plate_profile.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/plate_profile.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -955,12 +955,12 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/text_test.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/text_test.stl");
         printf("writeIsosurface() done\n");        
         
     }
 
-    public void _testHoledWedge() {
+    public void testHoledWedge() {
         
         double blockWidth = 50*MM;
         double blockHeight = 10*MM;
@@ -1119,7 +1119,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_text.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_text.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -1199,7 +1199,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_frieze.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_frieze.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -1270,7 +1270,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/sphere_star.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/sphere_star.stl");
         printf("writeIsosurface() done\n");
         
     }
@@ -1320,7 +1320,7 @@ public class TestGridMaker extends TestCase {
         printf("gm.makeGrid() done\n");
         
         printf("writeIsosurface()\n");
-        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "c:/tmp/ring_plain.stl");
+        writeIsosurface(grid, bounds, voxelSize, smoothSteps, "/tmp/ring_plain.stl");
         printf("writeIsosurface() done\n");
         
     }

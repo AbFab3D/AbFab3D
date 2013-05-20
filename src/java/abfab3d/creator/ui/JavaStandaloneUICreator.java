@@ -480,6 +480,8 @@ System.out.println("Adding param: " + p.getName());
         // Make the fully qualified path be relative
         ps.println(indent(16) + "String viz = res.getVisualization();");
         ps.println(indent(16) + "if (viz != null) viz = viz.replace(\"" + tmp_dir + "\",\"\");");
+        writeAoptLocalVar(ps,"viz","viz","/tmp");
+
         ps.println(indent(16) + "String gap_viz = res.getGapVisualization();");
         ps.println(indent(16) + "if (gap_viz != null) gap_viz = gap_viz.replace(\"" + tmp_dir + "\",\"\");");
 //        ps.println(indent(16) + "X3DViewer.viewX3DOM(new String[] {\"out_viz.x3d\",viz},pos);");
@@ -972,10 +974,25 @@ System.out.println("Adding param: " + p.getName());
     private void writeAopt(PrintStream ps, String input, String tmpDir) {
 
         ps.println(indent(16) + "AoptRunner aoptr = new AoptRunner();");
-        ps.println(indent(16) + "AoptResult aopt_results = aoptr.run(\"" + input + "\", false);");
+
+        // use per-face(true) for real views, false for nice views
+        ps.println(indent(16) + "AoptResult aopt_results = aoptr.run(\"" + input + "\", true);");
 
         // Make the fully qualified path be relative
         ps.println(indent(16) + "String aopt_viz = aopt_results.getOutput();");
         ps.println(indent(16) + "if (aopt_viz != null) aopt_viz = aopt_viz.replace(\"" + tmpDir + "\",\"\");");
+    }
+
+    /**
+     * Use aopt to process the file
+     */
+    private void writeAoptLocalVar(PrintStream ps, String var, String dest, String tmpDir) {
+
+        ps.println(indent(16) + "AoptRunner aoptr = new AoptRunner();");
+        ps.println(indent(16) + "AoptResult aopt_results = aoptr.run(" + var + ", true);");
+
+        // Make the fully qualified path be relative
+        ps.println(indent(16) + dest + " = aopt_results.getOutput();");
+        ps.println(indent(16) + "if (" + dest + " != null) " + dest + " = " + dest + ".replace(\"" + tmpDir + "\",\"\");");
     }
 }

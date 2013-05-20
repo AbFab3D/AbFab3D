@@ -824,7 +824,7 @@ class KernelRunner implements Runnable {
         Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
         try {
-            FileOutputStream fos = new FileOutputStream("c:/tmp/thread" + Thread.currentThread().getName() + ".x3d");
+            FileOutputStream fos = new FileOutputStream("/tmp/thread" + Thread.currentThread().getName() + ".x3d");
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             PlainTextErrorReporter console = new PlainTextErrorReporter();
 
@@ -875,7 +875,7 @@ class FakeRunner implements Runnable {
         Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
         try {
-            FileOutputStream fos = new FileOutputStream("c:/tmp/thread" + Thread.currentThread().getName());
+            FileOutputStream fos = new FileOutputStream("/tmp/thread" + Thread.currentThread().getName());
             BufferedOutputStream bos = new BufferedOutputStream(fos);
             PlainTextErrorReporter console = new PlainTextErrorReporter();
 

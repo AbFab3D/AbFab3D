@@ -386,7 +386,7 @@ public class TestEdgeCollapseSimplifier extends TestCase {
             HashMap<String,Object> params = new HashMap<String, Object>();
             params.put(SAVExporter.EXPORT_NORMALS, false);
     
-            FileOutputStream fos = new FileOutputStream("c:/tmp/out.x3dv");
+            FileOutputStream fos = new FileOutputStream("/tmp/out.x3dv");
             
             PlainTextErrorReporter console = new PlainTextErrorReporter();
             

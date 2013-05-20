@@ -297,7 +297,7 @@ public class TestMeshDecimator extends TestCase {
         int orig_fcount = mesh.getFaceCount();
         int fcount = orig_fcount;
         System.out.println("Initial Face Count: " + fcount);
-        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
+        MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_orig_%07d.stl", fcount));
 
         printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());
         printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
@@ -337,7 +337,7 @@ public class TestMeshDecimator extends TestCase {
             }
 
         }
-        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
+        MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_dec_%07d.stl", fcount));
 
 
         assertTrue("Not Reduced enough.  Target: " + reduceFactor * orig_fcount + " actual: " + mesh.getFaceCount() + " original: " + orig_fcount, mesh.getFaceCount() < reduceFactor * orig_fcount);
@@ -379,12 +379,12 @@ public class TestMeshDecimator extends TestCase {
         //String fpath = "test/models/speed-knot.x3db";
         //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
-        //String fpath = "c:/tmp/text_iso_2.stl";
-        //String fpath = "c:/tmp/sf31.stl";
-        String fpath = "c:/tmp/leaf_01.stl";
-        //String fpath = "c:/tmp/leaf_01_0832206.stl";
-        //String fpath = "c:/tmp/sf21.stl";
-        //String fpath = "c:/tmp/rtc_v3_04.stl";
+        //String fpath = "/tmp/text_iso_2.stl";
+        //String fpath = "/tmp/sf31.stl";
+        String fpath = "/tmp/leaf_01.stl";
+        //String fpath = "/tmp/leaf_01_0832206.stl";
+        //String fpath = "/tmp/sf21.stl";
+        //String fpath = "/tmp/rtc_v3_04.stl";
         
         long t0 = currentTimeMillis();
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
@@ -395,7 +395,7 @@ public class TestMeshDecimator extends TestCase {
 
         int fcount = mesh.getFaceCount();
 
-        MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
+        MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_orig_%07d.stl", fcount));
 
         printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());        
         printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
@@ -420,7 +420,7 @@ public class TestMeshDecimator extends TestCase {
             printf("processMesh() done %d ms\n",(currentTimeMillis()-t0));
             fcount = mesh.getFaceCount();
 
-            //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
+            //MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_dec_%07d.stl", fcount));
 
             // these things hang on large file - TODO - check this
             //assertTrue("verifyVertices", verifyVertices(mesh));
@@ -443,20 +443,20 @@ public class TestMeshDecimator extends TestCase {
     
     public void _testDecimatorQuality() throws Exception {
     
-        //String fpath = "c:/tmp/pen_v6.stl"; // strange rasterization errors 
-        //String fpath = "c:/tmp/mesh_text_orig.stl";
-        //String fpath = "c:/tmp/out_grid_04_2_1.stl";
-        //String fpath = "c:/tmp/out_grid_04_2_out.stl";
-        //String fpath = "c:/tmp/out_grid_04_2_out_dec_00_s.stl";
-        //String fpath = "c:/tmp/ring_image.stl";
-        //String fpath = "c:/tmp/ring_image_90s.stl";
-        String fpath = "c:/tmp/ring_image_45s.stl";
-        //String fpath = "c:/tmp/leaf_01.stl";
-        //String fpath = "c:/tmp/torus_02.stl";
-        //String fpath = "c:/tmp/block_01.stl";
-        //String fpath = "c:/tmp/block_02.stl";
-        //String fpath = "c:/tmp/torus_01.stl";
-        //String fpath = "c:/tmp/rtc_v3_04.stl";
+        //String fpath = "/tmp/pen_v6.stl"; // strange rasterization errors
+        //String fpath = "/tmp/mesh_text_orig.stl";
+        //String fpath = "/tmp/out_grid_04_2_1.stl";
+        //String fpath = "/tmp/out_grid_04_2_out.stl";
+        //String fpath = "/tmp/out_grid_04_2_out_dec_00_s.stl";
+        //String fpath = "/tmp/ring_image.stl";
+        //String fpath = "/tmp/ring_image_90s.stl";
+        String fpath = "/tmp/ring_image_45s.stl";
+        //String fpath = "/tmp/leaf_01.stl";
+        //String fpath = "/tmp/torus_02.stl";
+        //String fpath = "/tmp/block_01.stl";
+        //String fpath = "/tmp/block_02.stl";
+        //String fpath = "/tmp/torus_01.stl";
+        //String fpath = "/tmp/rtc_v3_04.stl";
 
 
         long t0 = currentTimeMillis();
@@ -507,9 +507,9 @@ public class TestMeshDecimator extends TestCase {
         
         //Grid grid1 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
 
-        //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_orig.stl"));
+        //MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_orig.stl"));
 
-        //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "c:/tmp/diff_orig.stl");
+        //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "/tmp/diff_orig.stl");
 
         //int count1 = grid1.findCount(Grid.VoxelClasses.INTERIOR);
         
@@ -537,15 +537,15 @@ public class TestMeshDecimator extends TestCase {
             //double differenceVolume = countDiff*voxelVolume*MM3;
             printf("CURRENT_FACE_COUNT: %d\n", mesh.getFaceCount());
             //printf("DIFFERENCE: %7.2f mm^3, LARGE_DIFFERENCE: %7.2f mm^3 count: %d\n", differenceVolume, erodedVolume, countEroded);
-            //String fout = fmt("c:/tmp/diff_%02d.stl", i);
-            MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%02d.stl", i));
+            //String fout = fmt("/tmp/diff_%02d.stl", i);
+            MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_dec_%02d.stl", i));
             //if(countEroded > 0){
                 //writeIsosurface(gridDiff, gbounds, voxelSize, gridX, gridY, gridZ, fout);
-                //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_dec_%02d.stl", i));
+                //MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_dec_%02d.stl", i));
             //    break;
             //}
         }
-        //MeshExporter.writeMeshSTL(mesh,fmt("c:/tmp/mesh_decimated.stl"));
+        //MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_decimated.stl"));
                 
     }
 
@@ -646,9 +646,9 @@ public class TestMeshDecimator extends TestCase {
 
     public void _testCombination(){
         try {
-            String f1 = "c:/tmp/block_01.0.stl";
-            String f2 = "c:/tmp/block_01.1.stl";
-            String fout = "c:/tmp/block_01.stl";
+            String f1 = "/tmp/block_01.0.stl";
+            String f2 = "/tmp/block_01.1.stl";
+            String fout = "/tmp/block_01.stl";
             
             STLReader reader = new STLReader();
             STLWriter writer = new STLWriter(fout);
@@ -666,7 +666,7 @@ public class TestMeshDecimator extends TestCase {
 
     public void _testRasterizer(){
         
-        String fpath = "c:/tmp/pen_v6.stl";
+        String fpath = "/tmp/pen_v6.stl";
         STLRasterizer sr = new STLRasterizer();
         
         try {
