@@ -120,7 +120,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             try {
                 PlainTextErrorReporter console = new PlainTextErrorReporter();
                 
-                FileOutputStream fos = new FileOutputStream("c:/tmp/viz.x3db");
+                FileOutputStream fos = new FileOutputStream("/tmp/viz.x3db");
                 stream = new X3DBinaryRetainedDirectExporter(fos,
                         3, 0, console,
                         X3DBinarySerializer.METHOD_FASTEST_PARSING,
@@ -826,7 +826,7 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
             try {
                 PlainTextErrorReporter console = new PlainTextErrorReporter();
 
-                fos = new FileOutputStream("c:/tmp/viz.x3db");
+                fos = new FileOutputStream("/tmp/viz.x3db");
                 stream = new X3DBinaryRetainedDirectExporter(fos,
                         3, 0, console,
                         X3DBinarySerializer.METHOD_FASTEST_PARSING,

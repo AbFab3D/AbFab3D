@@ -78,7 +78,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         we.writeOBJ(System.out);
 
-        writeMesh(we, "c:/tmp/pyramid.x3dv");
+        writeMesh(we, "/tmp/pyramid.x3dv");
     }
 
     /**
@@ -111,7 +111,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         we.writeOBJ(System.out);
 
-        writeMesh(we, "c:/tmp/pyramid_color.x3dv");
+        writeMesh(we, "/tmp/pyramid_color.x3dv");
     }
 
     public void testCollapse() throws Exception {
@@ -139,7 +139,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         //we.writeOBJ(System.out);
 
-        writeMesh(we, "c:/tmp/collapse1.x3dv");
+        writeMesh(we, "/tmp/collapse1.x3dv");
 
         int expected_verts = 8;
         int expected_faces = 8;
@@ -153,7 +153,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         boolean result = collapseEdge(3,5,we,verts,EPS);
         assertEquals("Did collapse", result, true);
 
-        writeMesh(we, "c:/tmp/collapse2.x3dv");
+        writeMesh(we, "/tmp/collapse2.x3dv");
 
         // verify number of vertices remaining
         assertEquals("Vertex Count", expected_verts - 1, we.getVertexCount());
@@ -258,7 +258,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, data.indexes);
         int edge_cnt = we.getEdgeCount();
 
-        writeMesh(we, "c:/tmp/box.x3dv");
+        writeMesh(we, "/tmp/box.x3dv");
 
         //we.writeOBJ(System.out);
 
@@ -271,7 +271,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertFalse("Edge Collapse", result);
 
         //we.writeOBJ(System.out);
-        writeMesh(we, "c:/tmp/box2.x3dv");
+        writeMesh(we, "/tmp/box2.x3dv");
 
         assertTrue("Manifold2", isManifold(we));
 
@@ -326,7 +326,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         //we.writeOBJ(System.out);
 
-        writeMesh(we, "c:/tmp/degenface1.x3dv");
+        writeMesh(we, "/tmp/degenface1.x3dv");
 
         int expected_verts = 12;
         int expected_faces = 20;
@@ -344,12 +344,12 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         assertEquals("Did not collapse", result, false);
 
-        writeMesh(we, "c:/tmp/degenface2.x3dv");
+        writeMesh(we, "/tmp/degenface2.x3dv");
         //we.writeOBJ(System.out);
         assertTrue("Structural Check", verifyStructure(we, false));
 
         //we.removeDegenerateFaces();
-        writeMesh(we, "c:/tmp/degenface3.x3dv");
+        writeMesh(we, "/tmp/degenface3.x3dv");
         //we.writeOBJ(System.out);
         assertTrue("Structural Check", verifyStructure(we, false));
 
@@ -383,7 +383,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, data.indexes);
 
-        writeMesh(we, "c:/tmp/etest1.x3dv");
+        writeMesh(we, "/tmp/etest1.x3dv");
 
         int[] tris = we.getFaceIndexes();
 
@@ -433,7 +433,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             boolean worked = we.collapseEdge(e, pos, ecp, ecr);
 
             //System.out.println("Collapsed: " + idx + " worked: " + worked);
-            writeMesh(we, "c:/tmp/etest_loop" + i + ".x3dv");
+            writeMesh(we, "/tmp/etest_loop" + i + ".x3dv");
             //we.writeOBJ(System.out);
 
             if (worked) {
@@ -448,7 +448,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Manifold2", isManifold(we));
         assertTrue("Triangle Check2", verifyTriangles(we));
 
-        writeMesh(we, "c:/tmp/etest2.x3dv");
+        writeMesh(we, "/tmp/etest2.x3dv");
     }
 
     /**
@@ -477,7 +477,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, data.indexes);
 
-        writeMesh(we, "c:/tmp/etest1.x3dv");
+        writeMesh(we, "/tmp/etest1.x3dv");
 
         int[] tris = we.getFaceIndexes();
 
@@ -526,7 +526,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             boolean worked = we.collapseEdge(e, pos, ecp, ecr);
 
             //System.out.println("Collapsed: " + idx + " worked: " + worked);
-            writeMesh(we, "c:/tmp/etest_loop" + i + ".x3dv");
+            writeMesh(we, "/tmp/etest_loop" + i + ".x3dv");
             //we.writeOBJ(System.out);
 
             if (worked) {
@@ -541,7 +541,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Manifold2", isManifold(we));
         assertTrue("Triangle Check2", verifyTriangles(we));
 
-        writeMesh(we, "c:/tmp/etest2.x3dv");
+        writeMesh(we, "/tmp/etest2.x3dv");
 
         System.out.println("Total time: " + (System.currentTimeMillis() - start_time));
     }
@@ -572,7 +572,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
 
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(verts, data.indexes);
 
-        writeMesh(we, "c:/tmp/speed-knot1.x3dv");
+        writeMesh(we, "/tmp/speed-knot1.x3dv");
 
         int[] tris = we.getFaceIndexes();
 
@@ -622,7 +622,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
             boolean worked = we.collapseEdge(e, pos, ecp, ecr);
 
             //System.out.println("Collapsed: " + idx + " worked: " + worked);
-            //writeMesh(we, "c:/tmp/etest_loop" + i + ".x3dv");
+            //writeMesh(we, "/tmp/etest_loop" + i + ".x3dv");
             //we.writeOBJ(System.out);
 
             if (worked) {
@@ -637,7 +637,7 @@ public class TestWingedEdgeTriangleMesh extends TestCase {
         assertTrue("Manifold2", isManifold(we));
         assertTrue("Triangle Check2", verifyTriangles(we));
 
-        writeMesh(we, "c:/tmp/speed-knot2.x3dv");
+        writeMesh(we, "/tmp/speed-knot2.x3dv");
 
         System.out.println("Total time: " + (System.currentTimeMillis() - start_time));
     }

@@ -86,7 +86,7 @@ public class TestLaplasianSmooth extends TestCase {
         }
 
         try {
-            MeshExporter.writeMeshSTL(mesh, fmt("c:/tmp/cube.stl", mesh.getFaceCount()));
+            MeshExporter.writeMeshSTL(mesh, fmt("/tmp/cube.stl", mesh.getFaceCount()));
         } catch (IOException ioe) {
             ioe.printStackTrace();
             fail("IO Exception");
@@ -141,7 +141,7 @@ public class TestLaplasianSmooth extends TestCase {
         assertEquals("Number of Unique points", 8, ps.getPoints().length / 3);
 
         try {
-            MeshExporter.writeMeshSTL(mesh, fmt("c:/tmp/cube.stl", mesh.getFaceCount()));
+            MeshExporter.writeMeshSTL(mesh, fmt("/tmp/cube.stl", mesh.getFaceCount()));
         } catch (IOException ioe) {
             ioe.printStackTrace();
             fail("IO Exception");
@@ -158,7 +158,7 @@ public class TestLaplasianSmooth extends TestCase {
         int orig_fcount = mesh.getFaceCount();
         int fcount = orig_fcount;
         System.out.println("Initial Face Count: " + fcount);
-        MeshExporter.writeMeshSTL(mesh, fmt("c:/tmp/mesh_orig_%07d.stl", fcount));
+        MeshExporter.writeMeshSTL(mesh, fmt("/tmp/mesh_orig_%07d.stl", fcount));
 
         printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount, mesh.getVertexCount(), mesh.getEdgeCount());
         printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(), mesh.getVertexCount(), mesh.getEdgeCount());
@@ -198,7 +198,7 @@ public class TestLaplasianSmooth extends TestCase {
             }
 
         }
-        MeshExporter.writeMeshSTL(mesh, fmt("c:/tmp/mesh_dec_%07d.stl", fcount));
+        MeshExporter.writeMeshSTL(mesh, fmt("/tmp/mesh_dec_%07d.stl", fcount));
 
 
         assertTrue("Not Reduced enough", mesh.getFaceCount() < reduceFactor * orig_fcount);

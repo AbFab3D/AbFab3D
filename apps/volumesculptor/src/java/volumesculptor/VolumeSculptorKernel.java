@@ -572,7 +572,7 @@ public class VolumeSculptorKernel extends HostedKernel {
             Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
             try {
-                FileOutputStream fos = new FileOutputStream("c:/tmp/thread" + Thread.currentThread().getName() + ".x3d");
+                FileOutputStream fos = new FileOutputStream("/tmp/thread" + Thread.currentThread().getName() + ".x3d");
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
                 PlainTextErrorReporter console = new PlainTextErrorReporter();
 
