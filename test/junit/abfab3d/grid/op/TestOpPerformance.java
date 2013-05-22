@@ -45,8 +45,9 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
         byte state2 = Grid.EXTERIOR;
 
         int warmup = 4;
-        int cores = 4;
+        int cores = Runtime.getRuntime().availableProcessors();;
         long[] times = new long[cores];
+        double[] factors = new double[cores];
 
 
         for(int n=0; n < warmup; n++) {
@@ -89,11 +90,23 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
             SubtractMT op = new SubtractMT(grid1, i+1);
             Grid subtrGrid = (Grid) op.execute(grid2);
             times[i] = (System.currentTimeMillis() - t0);
+            if (i >= 1) {
+                factors[i] = (float) times[0] / times[i];
+            }
             System.out.println("Time: " + (System.currentTimeMillis() - t0));
         }
         System.out.println("Times: " + java.util.Arrays.toString(times));
-        // Spot check, make sure 4 threads is better then 1 thread by at least 2X
-        assertTrue("Speed check",times[3] < (times[0] * 2));
+        System.out.println("Factors: " + java.util.Arrays.toString(factors));
+        double factor = cores / 2.0 * 0.8;
+
+        boolean found = false;
+        for(int i=0; i < times.length; i++) {
+            if (factors[i] >= factor) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue("Speed check - goal factor: " + factor,found);
     }
     public void testIntersectPerformanceMT() {
         int size1 = 750;
@@ -102,7 +115,7 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
         byte state2 = Grid.EXTERIOR;
 
         int warmup = 4;
-        int cores = 4;
+        int cores = Runtime.getRuntime().availableProcessors();;
         long[] times = new long[cores];
         float[] factors = new float[cores];
 
@@ -154,7 +167,17 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
         System.out.println("Times: " + java.util.Arrays.toString(times));
         System.out.println("Factors: " + java.util.Arrays.toString(factors));
         // Spot check, make sure 4 threads is better then 1 thread by at least 2X
-        assertTrue("Speed check",times[3] < (times[0] * 2));
+        // Hyperthreads lie so only assume we should get 90% of threads / 2 improvements
+        double factor = cores / 2.0 * 0.8;
+
+        boolean found = false;
+        for(int i=0; i < times.length; i++) {
+            if (factors[i] >= factor) {
+                found = true;
+                break;
+            }
+        }
+        assertTrue("Speed check - goal factor: " + factor,found);
     }
 
 }
