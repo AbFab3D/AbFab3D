@@ -12,9 +12,19 @@
 
 package abfab3d.util;
 
+import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferInt;
+
+import java.io.File;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import java.util.Arrays;
 
 import static abfab3d.util.ImageUtil.us2i; 
+import static abfab3d.util.ImageUtil.ub2i; 
 import static abfab3d.util.MathUtil.clamp;
 
 /**
@@ -38,11 +48,28 @@ public class ImageGray16 {
         m_height = 1;
     }
 
+    public ImageGray16(int width, int height){
+        data = new short[width*height];
+        m_width = width;
+        m_height = height;
+    }
+
     public ImageGray16(short data[], int width, int height){
 
         this.data = data;
         m_width = width; 
         m_height = height;
+            
+    }
+
+    public ImageGray16(byte bdata[], int width, int height){
+
+        m_width = width; 
+        m_height = height;
+        this.data = new short[width*height];
+        for(int i = 0; i < data.length; i++){
+            data[i] = (short)ub2i(bdata[i]);
+        }
             
     }
 
@@ -55,15 +82,30 @@ public class ImageGray16 {
     }
 
     public final double getDataD(int x, int y){
-
+        
         return us2i(data[x + y * m_width])/MAX_USHORT_D;
 
     }
 
     public final int getDataI(int x, int y){
 
+        if(x < 0) x = 0;
+        if(y < 0) y = 0;
+        if(x >= m_width) x = m_width-1;
+        if(y >= m_height) y = m_height-1;
+
         return us2i(data[x + y * m_width]);
 
+    }
+
+    public final void setData( int x, int y, int value){
+        data[x + y * m_width] = (short)value;
+    }
+
+    public Object clone(){
+        short d[] = new short[data.length];
+        System.arraycopy(data,0, d, 0, d.length);
+        return new ImageGray16(d, m_width, m_height);
     }
 
     /**
@@ -130,7 +172,7 @@ public class ImageGray16 {
             int yoffset = y*w;
             for(int x = 0; x < w; x++){
                 if(data[x + yoffset] == 0){
-                    // chack if point has while neighbours 
+                    // check if point has while neighbours 
                 }                    
             }
         }        
@@ -219,10 +261,35 @@ public class ImageGray16 {
             }                    
         }
     } // convolute y 
+
+
+    public void write(String fileName, int maxDataValue) throws IOException {
+        
+        BufferedImage outImage = new BufferedImage(m_width, m_height, BufferedImage.TYPE_INT_ARGB);
+
+        DataBufferInt dbi = (DataBufferInt)(outImage.getRaster().getDataBuffer());
+
+        int[] imageData = dbi.getData();
+        
+        for(int y = 0; y < m_height; y++){
+            for(int x = 0; x < m_width; x++){
+                
+                int cc = data[x + y * m_width];
+                if(cc < 0) cc = -cc;
+                if(cc > maxDataValue) cc = maxDataValue;
+                
+                imageData[x + y * m_width] = makeColor( (int)(((maxDataValue - cc) * 255)/maxDataValue));
+                
+            }
+        }
+        ImageIO.write(outImage, "PNG", new File(fileName));
+    }
     
+    static final int makeColor(int gray){
+
+        return 0xFF000000 | (gray << 16) | (gray << 8) | gray;
+
+    }
+
+
 } // class ImageGray16
-
-        
-
-        
-

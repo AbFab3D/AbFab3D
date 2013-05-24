@@ -42,11 +42,14 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
 
+import abfab3d.geom.TriangulatedModels;
+
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.MathUtil;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Symmetry;
+import abfab3d.util.ImageGray16;
 
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
@@ -171,7 +174,7 @@ public class TestSliceWriter extends TestCase {
         */
     }
 
-    public void testRing() throws Exception {
+    public void _testRing() throws Exception {
         
         printf("testBall()\n");
     
@@ -258,13 +261,21 @@ public class TestSliceWriter extends TestCase {
 
         int maxAttributeValue = 63;
         //AttributeGrid grid = readGrid("/tmp/gyroid_32.grid");
-        AttributeGrid grid = readGrid("/tmp/shoe_512.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/shoe_512.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/star_20arms_1mm_level7.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/star_20arms_1mm_level6.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/star_20arms_2mm_level7.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/star_20arms_2mm_level8.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/star_20arms_2mm_level9.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/star_24_512.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/bad/12.grid",maxAttributeValue);
+        AttributeGrid grid = readGrid("/tmp/bad/12_1024.grid",maxAttributeValue);
 
         double s = 23.3*CM/2;
         grid.setGridBounds(new double[]{-s, s, -s, s,-s, s });
     
         SlicesWriter slicer = new SlicesWriter();
-        slicer.setFilePattern("/tmp/slices/slice_%03d.png");
+        slicer.setFilePattern("/tmp/bad/slices_12/slice_%03d.png");
         slicer.setCellSize(1);
         slicer.setVoxelSize(1);
         
@@ -272,9 +283,9 @@ public class TestSliceWriter extends TestCase {
 
         //slicer.writeSlices(grid);
 
-
+        
         int blockSize = 50;
-        double errorFactor = 0.1;
+        double errorFactor = 0.05;
         double smoothWidth = 1;
         int maxDecimationCount= 10;
         int threadsCount = 4;
@@ -290,12 +301,161 @@ public class TestSliceWriter extends TestCase {
         meshmaker.setMaxDecimationCount(maxDecimationCount);
         meshmaker.setMaxAttributeValue(maxAttributeValue);            
         
-        STLWriter stl = new STLWriter("/tmp/slicer.stl");
+        STLWriter stl = new STLWriter("/tmp/bad/12_1024_repaired.stl");
         meshmaker.makeMesh(grid, stl);
         stl.close();
+        
 
 
+    }
 
+    public void _testHeightField() throws Exception {
+        
+        int maxAttributeValue = 63;
+        AttributeGrid grid = readGrid("/tmp/star_20arms_2mm_level7.grid",maxAttributeValue);
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        int scale = 4;
+        int sliceZ = nz/2-1;
+        
+        ImageGray16 slice = getSlice(grid, sliceZ, scale);
+        //slice.gaussianBlur(scale*1.0);
+        slice.convolute(MathUtil.getBoxKernel(4));
+
+        TriangulatedModels.HeightField hf = new TriangulatedModels.HeightField(slice, maxAttributeValue, 50*MM, 50*MM, 2*MM);
+        
+        STLWriter stl = new STLWriter("/tmp/slice_hf_box_2.stl");
+        hf.getTriangles(stl);
+        stl.close();
+        
+    }
+
+    public void _testWavePropagation() throws Exception {
+
+        int maxAttributeValue = 63;
+        //AttributeGrid grid = readGrid("/tmp/star_20arms_2mm_level8.grid",maxAttributeValue);
+        AttributeGrid grid = readGrid("/tmp/star_24_512.grid",maxAttributeValue);
+        
+        int sliceZ = grid.getWidth()/2-1;
+        
+        ImageGray16 slice0 = getSlice(grid, sliceZ, 1);
+        ImageGray16 slice1 = (ImageGray16)slice0.clone();
+        ImageGray16 slice2 = (ImageGray16)slice0.clone();
+        ImageGray16 slices[] = new ImageGray16[]{slice0, slice1, slice2};
+        
+        double c = 0.2;
+        for( int i=0, k = 0; i < 100; i++){
+            int k1 = (k+1)%3;
+            int k2 = (k+2)%3;
+
+            makeIteration(c, slices[k], slices[k1], slices[k2]);
+
+            slices[k2].write(fmt("/tmp/wave_512/wave_%03d.png",(i)), 0xFF);
+
+            k = (k+1)%3;
+
+        }
+        
+    }
+
+    public void testCircularWave() throws Exception {
+        int gridSize  = 512; 
+        double radius = 0.4;
+        double areaSize = 1;
+        int maxAttributeValue = 255;
+
+        //double pixelSize = (sqrt(2)/2)*areaSize/gridSize;
+        double pixelSize = 0.5*areaSize/gridSize;
+
+        ImageGray16 slice0 = makeCircle(gridSize, areaSize, radius, pixelSize);
+        ImageGray16 slice1 = makeCircle(gridSize, areaSize, radius - 0.0*pixelSize, pixelSize);
+
+        slice0.write(fmt("/tmp/circular_wave_512/wave_%03d.png",(0)), 0xFF);
+
+        if(true) {
+            TriangulatedModels.HeightField hf = new TriangulatedModels.HeightField(slice0, maxAttributeValue, 50*MM, 50*MM, 2*MM);        
+            STLWriter stl = new STLWriter("/tmp/circular_wave_512/slice_hf.stl");
+            hf.getTriangles(stl);
+            stl.close();
+        }
+
+        //ImageGray16 slice1 = (ImageGray16)slice0.clone();
+        ImageGray16 slice2 = (ImageGray16)slice0.clone();
+        ImageGray16 slices[] = new ImageGray16[]{slice0, slice1, slice2};
+        
+        //double c = 0.2;
+        double c = 0.3;
+        
+        for( int i=0, k = 0; i < 20; i++){
+            int k1 = (k+1)%3;
+            int k2 = (k+2)%3;
+
+            makeIteration(c, slices[k], slices[k1], slices[k2]);
+
+            slices[k1].write(fmt("/tmp/circular_wave_512/wave_%03d.png",(i)), 0xFF);
+
+            k = (k+1)%3;
+
+        }
+        
+        if(true) {
+            TriangulatedModels.HeightField hf = new TriangulatedModels.HeightField(slice0, maxAttributeValue, 50*MM, 50*MM, 2*MM);        
+            STLWriter stl = new STLWriter("/tmp/circular_wave_512/slice_hf_final.stl");
+            hf.getTriangles(stl);
+            stl.close();
+        }
+    }
+
+    // writes to slice2 result of wave iteration from with given values at 2 previous steps
+    static void makeIteration(double c, ImageGray16 slice0, ImageGray16 slice1, ImageGray16 slice2){
+        int nx = slice0.getWidth();
+        int ny = slice0.getHeight();
+        double c2 = c*c;
+
+        for( int y = 0; y < ny; y++){
+            for( int x = 0; x < nx; x++){
+                
+                double v = c2*(slice1.getDataI(x+1, y) + slice1.getDataI(x-1, y) + 
+                               slice1.getDataI(x, y+1) + slice1.getDataI(x, y-1) - 4 * slice1.getDataI(x, y)) 
+                    + 2 * slice1.getDataI(x, y) - slice0.getDataI(x,y);
+                slice2.setData(x,y,(int)(v+0.5));                    
+            }
+        }
+    }
+    
+    static ImageGray16 getSlice(AttributeGrid grid, int slizeZ, int scale){
+
+        int nx = grid.getWidth()*scale;
+        int ny = grid.getHeight()*scale;
+        byte data[] = new byte[nx*ny];
+
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+
+                long att = grid.getAttribute(x/scale,y/scale,slizeZ);
+                data[x + nx * y] = (byte)(att*4);
+            }
+        }
+        return new ImageGray16(data, nx, ny);
+            
+    }
+    
+    static ImageGray16 makeCircle(int nx, double width, double radius, double pixelSize){
+
+        ImageGray16 image = new ImageGray16(nx, nx);
+        for(int iy = 0; iy < nx; iy++){
+            double y = iy * width / (nx-1) - width/2;
+            for(int ix = 0; ix < nx; ix++){
+                double x = ix * width / (nx-1) - width/2;
+                double d = sqrt(x*x + y*y) - radius;
+                if(d <= -pixelSize) d = 1;
+                else if(d >= pixelSize) d = 0;
+                else d = (-d )/(2*pixelSize) + 0.5;
+                image.setData(ix, iy, (int)(d * 0xFF));
+            }
+        }
+        return image;
     }
 
     static AttributeGrid readGrid(String path, int maxAttributeValue)throws IOException{
@@ -313,11 +473,11 @@ public class TestSliceWriter extends TestCase {
         //GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, 0.1*MM, 0.1*MM);
         ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, 1., 1.);
         
-        for(int x =0; x < nx; x++){
-            for(int y =0; y < ny; y++){
-                for(int z =0; z < nz; z++){
+        for(int z =0; z < nz; z++){
+            for(int x =0; x < nx; x++){
+                for(int y =0; y < ny; y++){
                     int d = data.readUnsignedByte();
-                    grid.setAttribute(x,y,z, (d*maxAttributeValue)/255 );
+                    grid.setAttribute(x,y, z, (d*maxAttributeValue)/255 );
                 }
             }
         }
