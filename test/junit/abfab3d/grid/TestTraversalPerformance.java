@@ -59,7 +59,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
             setZ(grid, 450, 50 + i, Grid.EXTERIOR, 1, 40, 60);
         }
 
-        //saveDebug(grid,"c:/tmp/out.x3db",false);
+        //saveDebug(grid,"/tmp/out.x3db",false);
 
         int warmup = 4;
         int expected_count = 6880;
@@ -156,7 +156,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
             }
         }
 
-        //saveDebug(grid,"c:/tmp/out.x3db",false);
+        //saveDebug(grid,"/tmp/out.x3db",false);
 
         int maxThreads = Runtime.getRuntime().availableProcessors();
         int warmup = 4;

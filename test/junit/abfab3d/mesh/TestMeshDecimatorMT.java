@@ -60,22 +60,22 @@ public class TestMeshDecimatorMT extends TestCase {
         //String fpath = "test/models/sphere_10cm_rough_manifold.x3dv";
         //String fpath = "test/models/sphere_10cm_smooth_manifold.x3dv";
 
-        //String fpath = "c:/tmp/text_iso_0.stl";  // 250K faces
-        String fpath = "c:/tmp/leaf_01.stl";     // 1.6M faces 
-        //String fpath = "c:/tmp/ring_image_45.stl"; // 1.0M faces
-        //String fpath = "c:/tmp/cup_image.stl"; // 1.0M faces 
-        //String fpath = "c:/tmp/ring_with_band.stl"; // 1.7M faces
+        //String fpath = "/tmp/text_iso_0.stl";  // 250K faces
+        String fpath = "/tmp/leaf_01.stl";     // 1.6M faces
+        //String fpath = "/tmp/ring_image_45.stl"; // 1.0M faces
+        //String fpath = "/tmp/cup_image.stl"; // 1.0M faces
+        //String fpath = "/tmp/ring_with_band.stl"; // 1.7M faces
         //String fpath = "/tmp/ring_plain_3.stl"; // 500K faces 
         //String fpath = "/tmp/dilationShape1.x3d"; // 100K faces 
 
         //String fpath = "/tmp/dilationBlockDilated_17.x3d"; // 15K faces 
 
 
-        //String fpath = "c:/tmp/text_iso_2.stl";
-        //String fpath = "c:/tmp/sf31.stl";
-        //String fpath = "c:/tmp/leaf_01_0832206.stl";
-        //String fpath = "c:/tmp/sf21.stl";
-        //String fpath = "c:/tmp/rtc_v3_04.stl";
+        //String fpath = "/tmp/text_iso_2.stl";
+        //String fpath = "/tmp/sf31.stl";
+        //String fpath = "/tmp/leaf_01_0832206.stl";
+        //String fpath = "/tmp/sf21.stl";
+        //String fpath = "/tmp/rtc_v3_04.stl";
 
         for (int i = 0; i < 20; i++) {
             runFile(fpath);

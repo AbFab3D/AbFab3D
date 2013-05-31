@@ -1,4 +1,4 @@
-/*****************************************************************************
+/***************************************************************************
  *                        Shapeways, Inc Copyright (c) 2012
  *                               Java Source
  *
@@ -30,6 +30,8 @@ import static abfab3d.util.Output.fmt;
  * @author Vladimir Bulatov
  */
 public class ImageUtil {
+
+    public static final int RESULT_OK = 1, RESULT_FAILURE = -1;
 
     public static final double CNORM = 255.; // maximal value of color component
     public static final double CNORM1 = 1./255.;
@@ -327,7 +329,9 @@ public class ImageUtil {
                     break;
 
                 case DataBuffer.TYPE_USHORT: 
-                    ushort2gray16(((DataBufferUShort)dataBuffer).getData(), grayData);
+                    if( ushort2gray16(((DataBufferUShort)dataBuffer).getData(), grayData) != RESULT_OK){
+                        getGray16DataGeneric(image, grayData);
+                    }
                     break;
                 }
                 break;
@@ -404,14 +408,18 @@ public class ImageUtil {
         
     }
         
-    static void ushort2gray16(short imageData[], short grayData[]){
+    // convert image data into gray data
+    // return RESULT_OK or RESULT_FAILURE
+    // 
+    public static int ushort2gray16(short imageData[], short grayData[]){
         
         int len = grayData.length;
         int count = imageData.length/len;
         
         switch(count){
         default:
-            throw new IllegalArgumentException(fmt("unknown image data component count: %d\n",count));            
+            return RESULT_FAILURE;
+            //throw new IllegalArgumentException(fmt("unknown image data component count: %d\n",count));            
         case 3: //RGB data 
             for(int i = 0, k = 0; i < len; i++, k += 3){
                 grayData[i] = (short)((us2i(imageData[k]) + us2i(imageData[k+1]) + us2i(imageData[k+2]))/3);
@@ -427,6 +435,7 @@ public class ImageUtil {
             }            
             break;
         }
+        return RESULT_OK;
     }
 
     // unsigned byte to unsignes short conversion 
