@@ -158,5 +158,107 @@ public class VolumePatterns {
         
     }
 
-   
+    public static class Lidinoid implements DataSource {
+
+
+        double period;
+        double thickness;
+
+        public Lidinoid(double period, double thickness){
+
+            this.period = period;
+            this.thickness = thickness;
+
+
+        }
+
+        public int getDataValue(Vec pnt, Vec data){
+
+            double x = pnt.v[0];
+            double y = pnt.v[1];
+            double z = pnt.v[2];
+
+            x *= 2*PI/period;
+            y *= 2*PI/period;
+            z *= 2*PI/period;
+
+            double d = 0.5 * (sin(2*x) * cos(y) * sin(z) + sin(2*y) * cos(z) * sin(z) + sin(2*z)*cos(x) * sin(y)) -
+                    0.5 * (cos(2*x) * cos(2*y) + cos(2*y) * cos(2*z) + cos(2*z) * cos(2*x)) + 0.15 - thickness;
+            data.v[0] = step10(d, 0, (pnt.voxelSize));
+
+            return RESULT_OK;
+        }
+
+    }
+
+    /**
+     * Schwarz Primitive as defined here: http://en.wikipedia.org/wiki/Schwarz_minimal_surface#Schwarz_P_.28.22Primitive.22.29
+     *
+     * @author Alan Hudson
+     */
+    public static class SchwarzPrimitive implements DataSource {
+
+
+        double period;
+        double thickness;
+
+        public SchwarzPrimitive(double period, double thickness){
+
+            this.period = period;
+            this.thickness = thickness;
+        }
+
+        public int getDataValue(Vec pnt, Vec data){
+
+            double x = pnt.v[0];
+            double y = pnt.v[1];
+            double z = pnt.v[2];
+
+            x *= 2*PI/period;
+            y *= 2*PI/period;
+            z *= 2*PI/period;
+
+            double d = cos(x) + cos(y) + cos(z) - thickness;
+
+            data.v[0] = step10(d, 0, (pnt.voxelSize));
+
+            return RESULT_OK;
+        }
+    }
+
+    /**
+     * Schwarz Diamond as defined here: http://en.wikipedia.org/wiki/Schwarz_minimal_surface#Schwarz_P_.28.22Primitive.22.29
+     *
+     * @author Alan Hudson
+     */
+    public static class SchwarzDiamond implements DataSource {
+
+
+        double period;
+        double thickness;
+
+        public SchwarzDiamond(double period, double thickness){
+
+            this.period = period;
+            this.thickness = thickness;
+        }
+
+        public int getDataValue(Vec pnt, Vec data){
+
+            double x = pnt.v[0];
+            double y = pnt.v[1];
+            double z = pnt.v[2];
+
+            x *= 2*PI/period;
+            y *= 2*PI/period;
+            z *= 2*PI/period;
+
+            double d = sin(x) * sin(y) * sin(z) + sin(x) * cos(y) * cos(z) + cos(x) * sin(x) * cos(z) + cos(x) * cos(y) * sin(z) - thickness;
+
+            data.v[0] = step10(d, 0, (pnt.voxelSize));
+
+            return RESULT_OK;
+        }
+    }
+
 }
