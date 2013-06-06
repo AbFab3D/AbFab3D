@@ -160,7 +160,9 @@ public class TriangulatedModels {
         
     }
 
-    // creates hight field of triangles from 2D grid 
+    //
+    // creates height field of triangles from 2D grid 
+    //
     public static class HeightField {
 
         ImageGray16  image;
@@ -223,7 +225,108 @@ public class TriangulatedModels {
         }
 
     } // class HeightField 
-    
+
+
+    //
+    //  Parallelepiped with given corners 
+    //
+    public static class Parallelepiped {
+
+        double x0, y0, z0;
+        double x1, y1, z1;
+
+
+        public Parallelepiped(double x0, double y0, double z0, double x1, double y1, double z1){
+
+            this.x0 = x0;
+            this.x1 = x1;
+
+            this.y0 = y0;
+            this.y1 = y1;
+
+            this.z0 = z0;
+            this.z1 = z1;
+
+        }
+        
+        public void getTriangles(TriangleCollector tc){
+            Vector3d 
+                v000 = new Vector3d(x0,y0,z0),
+                v100 = new Vector3d(x1,y0,z0),
+                v010 = new Vector3d(x0,y1,z0),
+                v110 = new Vector3d(x1,y1,z0),
+                v001 = new Vector3d(x0,y0,z1),
+                v101 = new Vector3d(x1,y0,z1),
+                v011 = new Vector3d(x0,y1,z1),
+                v111 = new Vector3d(x1,y1,z1);
+                
+            tc.addTri(v001,v101,v111);
+            tc.addTri(v001,v111,v011);
+            tc.addTri(v101,v100,v110);
+            tc.addTri(v101,v110,v111);
+            tc.addTri(v100,v000,v010);
+            tc.addTri(v100,v010,v110);
+            tc.addTri(v000,v001,v011);
+            tc.addTri(v000,v011,v010);
+            tc.addTri(v011,v111,v110);
+            tc.addTri(v011,v110,v010);
+            tc.addTri(v000,v100,v101);
+            tc.addTri(v000,v101,v001);
+
+        }
+        
+    } // class Parallelepiped
+
+
+    //
+    //  TetrahedronInParallelepiped 
+    // makes tetrahedron inscibed in parallelepiped with given corners 
+    //
+    public static class TetrahedronInParallelepiped {
+
+        double x0, y0, z0;
+        double x1, y1, z1;
+        int type = 0; // two possible types 0 and 1 
+        
+        public TetrahedronInParallelepiped(double x0, double y0, double z0, double x1, double y1, double z1, int type){
+
+            this.x0 = x0;
+            this.x1 = x1;
+
+            this.y0 = y0;
+            this.y1 = y1;
+
+            this.z0 = z0;
+            this.z1 = z1;
+            this.type = type;
+        }
+        
+        public void getTriangles(TriangleCollector tc){
+            Vector3d 
+                v000 = new Vector3d(x0,y0,z0),
+                v100 = new Vector3d(x1,y0,z0),
+                v010 = new Vector3d(x0,y1,z0),
+                v110 = new Vector3d(x1,y1,z0),
+                v001 = new Vector3d(x0,y0,z1),
+                v101 = new Vector3d(x1,y0,z1),
+                v011 = new Vector3d(x0,y1,z1),
+                v111 = new Vector3d(x1,y1,z1);
+                
+            if(type == 0){
+                tc.addTri(v000, v011, v110);
+                tc.addTri(v000, v101, v011);
+                tc.addTri(v000, v110, v101);
+                tc.addTri(v101, v110, v011);
+            } else {
+                tc.addTri(v111, v100, v010);
+                tc.addTri(v111, v010, v001);
+                tc.addTri(v111, v001, v100);
+                tc.addTri(v001, v010, v100);
+            }  
+
+        }      
+  
+    } // class TetrahedronInParallelepiped
     
 } // class TriangulatedModels
 

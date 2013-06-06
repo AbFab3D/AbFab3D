@@ -37,6 +37,8 @@ import static abfab3d.util.Output.printf;
  */
 public class STLReader  {
 
+    static final boolean DEBUG = false;
+
     public static final double SCALE = 1./1000.; //to convert form STL standard millimeters into meters
     TriangleCollector out;
 
@@ -70,8 +72,8 @@ public class STLReader  {
     }
     
     public void read(String path, TriangleCollector out) throws IOException{
-        
-        printf("STLReader.read(%s, %s\n", path, out);
+        if(DEBUG)
+            printf("STLReader.read(%s, %s)\n", path, out);
         long t0 = currentTimeMillis();
         
         this.out = out;
@@ -88,8 +90,8 @@ public class STLReader  {
         data.skip(80);
         
         int fcount = readInt(data);      
-
-        printf("fcount: %d\n",fcount);
+        if(DEBUG)
+            printf("fcount: %d\n",fcount);
         int faces = 0;
 
         Vector3d 
@@ -112,10 +114,12 @@ public class STLReader  {
             }
         } catch(Exception e){
             data.close();
-            printf("faces read: %d\n", faces);
+            
+            if(DEBUG)
+                printf("faces read: %d\n", faces);
         }
-        
-        printf("STLReader.read() done in %d ms\n", (currentTimeMillis() - t0));
+        if(DEBUG)
+            printf("STLReader.read() done in %d ms\n", (currentTimeMillis() - t0));
         
     }
 

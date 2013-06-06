@@ -121,7 +121,7 @@
                      jars=""
                 />
         <compilejava package="abfab3d/io/input"
-            jars="vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
+            jars="vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
         />
         <compilejava package="abfab3d/io/output"
             jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
@@ -516,6 +516,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/op" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="**/*.jar" />

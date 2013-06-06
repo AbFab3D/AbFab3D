@@ -89,6 +89,30 @@ public class MathUtil {
         };
     }
 
+    /**
+       round the bounds to the voxel boundary. 
+       uper boundary grosw up, lover boundary grows down 
+     */
+    public static void roundBounds(double bounds[], double voxelSize){
+        for(int i =0; i < 3; i++){
+            bounds[2*i] = voxelSize*Math.floor(bounds[2*i]/voxelSize);
+            bounds[2*i + 1] = voxelSize*Math.ceil(bounds[2*i+1]/voxelSize);
+        }
+    }
+    
+    /**
+       return maximal count the n can be divided by 2 with rounding up. 
+     */
+    public static int getMaxSubdivision(int n){
+        int d = 0;
+        while( n > 1) {
+            n = (n+1)/2;
+            d++;
+        }
+        return d;
+        
+    }
+
     public static final int clamp(int x, int xmin, int xmax){
         if(x <= xmin)
             return xmin;

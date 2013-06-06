@@ -257,7 +257,7 @@ public class TestSliceWriter extends TestCase {
         */
     }
 
-    public void _testGrid() throws Exception {
+    public void testGrid() throws Exception {
 
         int maxAttributeValue = 63;
         //AttributeGrid grid = readGrid("/tmp/gyroid_32.grid");
@@ -269,21 +269,22 @@ public class TestSliceWriter extends TestCase {
         //AttributeGrid grid = readGrid("/tmp/star_20arms_2mm_level9.grid",maxAttributeValue);
         //AttributeGrid grid = readGrid("/tmp/star_24_512.grid",maxAttributeValue);
         //AttributeGrid grid = readGrid("/tmp/bad/12.grid",maxAttributeValue);
-        AttributeGrid grid = readGrid("/tmp/bad/12_1024.grid",maxAttributeValue);
+        AttributeGrid grid = readGrid("/tmp/star_400.grid",maxAttributeValue);
+        //AttributeGrid grid = readGrid("/tmp/bad/12_1024.grid",maxAttributeValue);
 
         double s = 23.3*CM/2;
         grid.setGridBounds(new double[]{-s, s, -s, s,-s, s });
     
         SlicesWriter slicer = new SlicesWriter();
-        slicer.setFilePattern("/tmp/bad/slices_12/slice_%03d.png");
+        slicer.setFilePattern("/tmp/slices/slice_%03d.png");
         slicer.setCellSize(1);
         slicer.setVoxelSize(1);
         
         slicer.setMaxAttributeValue(maxAttributeValue);
 
-        //slicer.writeSlices(grid);
-
+        slicer.writeSlices(grid);
         
+        /*
         int blockSize = 50;
         double errorFactor = 0.05;
         double smoothWidth = 1;
@@ -303,8 +304,8 @@ public class TestSliceWriter extends TestCase {
         
         STLWriter stl = new STLWriter("/tmp/bad/12_1024_repaired.stl");
         meshmaker.makeMesh(grid, stl);
-        stl.close();
-        
+        stl.close();x
+        */
 
 
     }
@@ -359,7 +360,7 @@ public class TestSliceWriter extends TestCase {
         
     }
 
-    public void testCircularWave() throws Exception {
+    public void _testCircularWave() throws Exception {
         int gridSize  = 512; 
         double radius = 0.4;
         double areaSize = 1;
@@ -491,10 +492,7 @@ public class TestSliceWriter extends TestCase {
             (data.readUnsignedByte()<<16)|(data.readUnsignedByte()<<24);      
         return i;
     }
-
   
-
-
     public static void main(String[] args) {
 
     }
