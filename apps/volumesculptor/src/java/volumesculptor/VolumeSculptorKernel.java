@@ -31,6 +31,7 @@ import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.VecTransforms;
 import abfab3d.grid.op.DataSourceGrid;
 
+import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.io.output.MeshMakerMT;
@@ -285,8 +286,14 @@ public class VolumeSculptorKernel extends HostedKernel {
 
         AttributeGrid modelGrid = null;
 
+        boolean use_wave = true;
         STLRasterizer stl = new STLRasterizer();
-       
+        if (use_wave) {
+            stl.setRasterMethod(STLRasterizer.RASTER_METHOD_WAVELET);
+        } else {
+            stl.setRasterMethod(STLRasterizer.RASTER_METHOD_ZBUFFER);
+        }
+
         stl.setVoxelSize(resolution);
         stl.setPadding(2);
 
@@ -306,6 +313,28 @@ public class VolumeSculptorKernel extends HostedKernel {
 
         // Clear memory from file loader
         stl = null;
+        long t0 = time();
+
+        // HARD CODED params to play with
+
+        // size of grid block for MT calculatins
+        // (larger values reduce processor cache performance)
+        int blockSize = 50;
+        // max number to use for surface transitions. Should be ODD number
+        // set it to 0 to have binary grid
+        int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid
+
+        if (use_wave) {
+            maxGridAttributeValue = 63;
+        } else {
+            maxGridAttributeValue = 0;
+        }
+
+        // width of surface transition area relative to voxel size
+        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
+        // set it to 0. to make no surface transitions
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866
+
 
         modelGrid.getGridBounds(modelBounds);
 
@@ -326,20 +355,6 @@ public class VolumeSculptorKernel extends HostedKernel {
                gridBounds[0], gridBounds[1], gridBounds[2], 
                gridBounds[3], gridBounds[4], gridBounds[5]);
         
-        // HARD CODED params to play with 
-
-        // size of grid block for MT calculatins 
-        // (larger values reduce processor cache performance)
-        int blockSize = 50;
-        // max number to use for surface transitions. Should be ODD number 
-        // set it to 0 to have binary grid 
-        int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid 
-
-        // width of surface transition area relative to voxel size
-        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
-        // set it to 0. to make no surface transitions
-        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
-
 
         GridMaker gm = new GridMaker();
         
@@ -354,7 +369,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         
         DataSources.Ball ball = new DataSources.Ball(0,0,0, 10*MM);
 
-        DataSourceGrid model = new DataSourceGrid(modelGrid, modelBounds, 0);
+        DataSourceGrid model = new DataSourceGrid(modelGrid, modelBounds, maxGridAttributeValue);
         
         DataSources.Block block = new DataSources.Block((modelBounds[1] + modelBounds[0])/2,
                                                   (modelBounds[3] + modelBounds[2])/2,
@@ -382,7 +397,7 @@ public class VolumeSculptorKernel extends HostedKernel {
 
         gm.setMaxAttributeValue(maxGridAttributeValue);
         gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
-        long t0 = time();
+        t0 = time();
 
         
         AttributeGrid grid;
@@ -405,7 +420,6 @@ public class VolumeSculptorKernel extends HostedKernel {
         gm.setThreadCount(threadCount);
         gm.makeGrid(grid);
         printf("gm.makeGrid() done %d ms\n", (time() - t0));
-        
 
         //AttributeGrid grid = modelGrid;
 
@@ -433,6 +447,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         meshmaker.setThreadCount(threadCount);
         meshmaker.setSmoothingWidth(smoothingWidth);
         meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(10);
         meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
         
         // TODO: Need to get a better way to estimate this number

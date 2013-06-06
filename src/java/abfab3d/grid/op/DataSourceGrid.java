@@ -42,6 +42,7 @@ import static abfab3d.util.Output.time;
 */
 public class DataSourceGrid implements DataSource, Initializable {
 
+    static final boolean DEBUG = false;
     static int debugCount = 0;
     
     AttributeGrid m_grid;
@@ -73,13 +74,13 @@ public class DataSourceGrid implements DataSource, Initializable {
         yscale = m_ny / (m_bounds[3] - m_bounds[2]);
         zscale = m_nz / (m_bounds[5] - m_bounds[4]);
 
-        if(debugCount > 0){
+
+        if(DEBUG && debugCount > 0){
             printf("DataSourceGrid()\n");
             printf("nx: (%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
             printf("xmin: (%10.7f,%10.7f,%10.7f) \n", xmin, ymin, zmin);
             printf("xscale: (%10.7f,%10.7f,%10.7f) \n", xscale,yscale,zscale);
         }
-
     }
     
     public int initialize(){
@@ -103,11 +104,12 @@ public class DataSourceGrid implements DataSource, Initializable {
         int ix = (int)((x - xmin)*xscale);
         int iy = (int)((y - ymin)*yscale);
         int iz = (int)((z - zmin)*zscale);
-        
-        if(debugCount > 0){
+
+        if(DEBUG && debugCount > 0){
             debugCount--;
             //printf("x:[%8.5f %8.5f %8.5f ] -> [%3d, %3d %3d]\n", x,y,z,ix, iy, iz);
         }
+
         if(ix < 0 || ix >= m_nx){
             data.v[0] = 0.;
             return RESULT_OUTSIDE; 
