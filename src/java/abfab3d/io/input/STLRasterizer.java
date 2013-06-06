@@ -16,6 +16,7 @@ import java.io.IOException;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
 //import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
@@ -33,7 +34,9 @@ import static abfab3d.util.Output.printf;
    class to load STL file and return rasterized grid
  */
 public class STLRasterizer {
-    
+    public static final int RASTER_METHOD_ZBUFFER = 0;
+    public static final int RASTER_METHOD_WAVELET = 1;
+
     static final double MM = 0.001;
     
     //padding to put around the voxelized model     
@@ -42,6 +45,7 @@ public class STLRasterizer {
     double m_voxelSize = 0.1*MM;
     
     Grid m_gridType = new ArrayAttributeGridByte(1,1,1,0.1,0.1);
+    private int method = RASTER_METHOD_ZBUFFER;
 
     // bound of grid to rasterize to 
     double m_gridBounds[] = new double[6];
@@ -59,6 +63,10 @@ public class STLRasterizer {
      */
     public void setGridType(Grid grid){
         m_gridType = grid;
+    }
+
+    public void setRasterMethod(int method) {
+        this.method = method;
     }
 
     /**
@@ -86,6 +94,7 @@ public class STLRasterizer {
         reader.read(path, bc);
         bc.getBounds(mbounds);
 
+        printf(" bounds:[(%7.2f %7.2f) (%7.2f %7.2f) (%7.2f %7.2f)] MM \n", mbounds[0]/MM,mbounds[1]/MM,mbounds[2]/MM,mbounds[3]/MM,mbounds[4]/MM,mbounds[5]/MM);
 
         //getModelBounds(path, mbounds);
 
@@ -124,19 +133,38 @@ public class STLRasterizer {
 
         printf("grid bounds: [%10.7f, %10.7f, %10.7f, %10.7f, %10.7f, %10.7f]\n",gbounds[0],gbounds[1],gbounds[2],gbounds[3],gbounds[4],gbounds[5]);
         printf("grid size: [%10.7f, %10.7f, %10.7f]\n",(gbounds[1]-gbounds[0]),(gbounds[3]-gbounds[2]),(gbounds[5]-gbounds[4]));
-        
-        MeshRasterizer mr = new MeshRasterizer(gbounds, voxelsX, voxelsY, voxelsZ);
 
-        reader.read(path, mr);        
+        Grid grid;
 
-        Grid grid =  grid = m_gridType.createEmpty(voxelsX, voxelsY, voxelsZ, m_voxelSize, m_voxelSize);        
-        
-        printf("grid: %s \n",grid.getClass().getName());
-        
-        grid.setGridBounds(gbounds);
-       
-        mr.getRaster(grid);
-        
+        if (method == RASTER_METHOD_ZBUFFER) {
+            MeshRasterizer mr = new MeshRasterizer(gbounds, voxelsX, voxelsY, voxelsZ);
+
+            reader.read(path, mr);
+
+            grid = m_gridType.createEmpty(voxelsX, voxelsY, voxelsZ, m_voxelSize, m_voxelSize);
+
+            printf("grid: %s \n",grid.getClass().getName());
+
+            grid.setGridBounds(gbounds);
+
+            mr.getRaster(grid);
+        } else {
+
+            WaveletRasterizer mr = new WaveletRasterizer(gbounds, voxelsX, voxelsY, voxelsZ);
+
+            // TODO: Do we need to expose this max?
+            mr.setMaxAttributeValue(63);
+
+            reader.read(path, mr);
+
+            grid = m_gridType.createEmpty(voxelsX, voxelsY, voxelsZ, m_voxelSize, m_voxelSize);
+
+            printf("grid: %s \n",grid.getClass().getName());
+
+            grid.setGridBounds(gbounds);
+
+            mr.getRaster((AttributeGrid)grid);
+        }
         return grid;
         
     }
