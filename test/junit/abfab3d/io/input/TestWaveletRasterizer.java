@@ -198,7 +198,7 @@ public class TestWaveletRasterizer extends TestCase {
         //int level = 9;
         int maxAttribute = 63;
         //double bounds[] = new double[]{0.,1.,0.,1.,0.,1.};
-        double voxelSize = 0.45*MM;
+        double voxelSize = 0.1*MM;
         
 
         //String filePath = "/tmp/00_image_1x1.stl";

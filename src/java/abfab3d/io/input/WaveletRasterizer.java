@@ -324,15 +324,16 @@ public class WaveletRasterizer implements TriangleCollector {
         for(int y = iy; y < iy1; y++){
             for(int x = ix; x < ix1; x++){
                 for(int z = iz; z < iz1; z++){ 
-                    try {
-                        grid.setAttribute(x,y,z,a);
-                    } catch(Exception e){
-                        printf("bad params in writeBlock(ix:%d iy:%d iz:%d, size:%d)\n", ix, y, iz, size); 
-                        if(exceptionsCount++ > 100)
-                            throw new RuntimeException("too many bad points");
-                        else 
-                            return;
-                    }
+                    //try {
+                    grid.setAttribute(x,y,z,a);
+                    
+                    //} catch(Exception e){
+                    //    printf("bad params in writeBlock(ix:%d iy:%d iz:%d, size:%d)\n", ix, y, iz, size); 
+                    //    if(exceptionsCount++ > 100)
+                    //        throw new RuntimeException("too many bad points");
+                    //    else 
+                    //        return;
+                    //}
                 }
             }
         }
@@ -733,7 +734,7 @@ public class WaveletRasterizer implements TriangleCollector {
     //
     static class Polygon {
         
-        Vec v[] = new Vec[8]; // max size of polygins is 6
+        Vec v[] = new Vec[10]; // max size of polygins is 6 (sometimes 8) 
         int size = 0;
 
         Polygon(){            
@@ -751,7 +752,7 @@ public class WaveletRasterizer implements TriangleCollector {
         void add(Vec a){
             v[size] = a;
             size++;
-        }
+        } 
         
         int size(){
             return size;
