@@ -46,7 +46,7 @@ public class TestTriangulatedModels extends TestCase {
     /**
      * Test the generation of star
      */
-    public void _testStar() throws IOException {
+    public void testStar() throws IOException {
 	
         //TriangulatedModels.Star star = new  TriangulatedModels.Star(100, 0.01, 0.12, 0.005, 2., 0.5);
         //TriangulatedModels.Star star = new  TriangulatedModels.Star(20, 1.9*MM, 0.1*MM, 0.1*MM, 20*MM, 10*MM);
@@ -69,7 +69,7 @@ public class TestTriangulatedModels extends TestCase {
 
     }
 
-    public void testTetrahedronInParallelepiped() throws IOException {
+    public void _testTetrahedronInParallelepiped() throws IOException {
 	
         //TriangulatedModels.TetrahedronInParallelepiped pp = new  TriangulatedModels.TetrahedronInParallelepiped(0.05*MM, 0.05*MM, 0.05*MM, 0.45*MM,  0.45*MM,  0.45*MM,1);
         //TriangulatedModels.TetrahedronInParallelepiped pp = new  TriangulatedModels.TetrahedronInParallelepiped(0.55*MM, 0.55*MM, 0.55*MM, 0.95*MM,  0.95*MM,  0.95*MM,1);

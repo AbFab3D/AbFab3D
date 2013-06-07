@@ -204,6 +204,8 @@ public class TestWaveletRasterizer extends TestCase {
         //String filePath = "/tmp/00_image_1x1.stl";
         String filePath = "/tmp/dodecahedron_1a_100mm.stl";
         //String filePath = "/tmp/00_image_4x4_bad.stl";
+        //String filePath = "/tmp/star_400.stl";
+        
         
         printf("reading file: %s\n", filePath);
 

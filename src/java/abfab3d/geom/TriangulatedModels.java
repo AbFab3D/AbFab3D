@@ -119,6 +119,9 @@ public class TriangulatedModels {
                 addBases(tc, new Vector3d[]{v0t, v4t, v5t}, zoffset);
                 
                 addBand(tc, new Vector3d[]{v1t, v2t, v3t, v4t, v5t}, zoffset);
+                //addBand(tc, new Vector3d[]{v1t, v2t}, zoffset); addBand(tc, new Vector3d[]{v3t, v4t, v5t}, zoffset);
+                //addBand(tc, new Vector3d[]{v1t, v2t, v3t, v4t}, zoffset); 
+
             }
             
             
