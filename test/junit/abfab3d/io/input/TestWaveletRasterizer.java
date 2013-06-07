@@ -94,26 +94,96 @@ public class TestWaveletRasterizer extends TestCase {
         return new TestSuite(TestWaveletRasterizer.class);
     }
 
-  
-    public void _testTriangle() throws Exception {
 
-        double bounds[] = new double[]{0.,1.,0.,1.,0.,1.};
+    /**
+       makes a set of boxes and checks volume 
+     */
+    public void testBox() throws Exception {
 
-        int level = 1;
-        int maxAttribute = 63;
-        
-        int nx = 1<<level, ny = 1<<level, nz = 1<<level;
-        
-        WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
-        
-        // set maximal value of data item to be stored in the grid voxels
-        rasterizer.setMaxAttributeValue(63); 
-        
-        double z = 0.1;
+        printf("testBox()\n");
 
-        rasterizer.addTri(new Vector3d(0.1,0.1,z),new Vector3d(0.6,0.1,z),new Vector3d(0.6,0.8,0.7));
+        for(int level = 6; level <=9; level++){
 
-        
+            boolean writeFiles = false;
+            //int maxAttribute = 10001;  // can be used for GridShortIntervals        
+            int maxAttribute = 63; // max value for AttributeGridByte
+            double precision = 0.001; // this is presision of volume calculatiuons with maxAttribute = 63
+            int gridSize = 1 << level;
+            double bounds[] = new double[]{0.,2.,0.,2.,0.,2.};
+            double originX = 0.1, originY = 0.3, originZ = 0.35;
+            double boxSizeX = 0.7, boxSizeY = 0.85, boxSizeZ = 1.2;
+            
+            double voxelSize = (bounds[1]- bounds[0])/gridSize;
+            double voxelVolume = voxelSize*voxelSize*voxelSize;
+            
+            printf("grid size: %d\n", gridSize);
+            
+            printf("running WaveletRasterizer\n");
+            WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, gridSize, gridSize, gridSize);        
+            rasterizer.setMaxAttributeValue(maxAttribute);
+
+            TriangulatedModels.Parallelepiped box = new  TriangulatedModels.Parallelepiped(originX, originY, originZ, originX+boxSizeX, originY+boxSizeY, originZ+boxSizeZ);  
+            long t0 = time();
+            box.getTriangles(rasterizer);
+            printf("WaveletRasterizer octree build time: %d ms\n", (time() - t0));
+            t0 = time();
+            AttributeGrid grid = new ArrayAttributeGridByte(gridSize,gridSize,gridSize,voxelSize, voxelSize);
+            //AttributeGrid grid = new GridShortIntervals(gridSize,gridSize,gridSize,voxelSize, voxelSize);
+            grid.setGridBounds(bounds);
+            
+            rasterizer.getRaster(grid);
+            printf("WaveletRasterizer rasterization time: %d ms\n", (time() - t0));
+            
+            double volumeWR = voxelVolume*getAttributeGridVolume(grid, maxAttribute);
+            double exactVolume = boxSizeX * boxSizeY * boxSizeZ;
+            printf("WaveletRasterizer volume: %18.15f  diff: %18.15f\n", volumeWR, (volumeWR-exactVolume));
+                                                                                                              
+            assertTrue("Test of WR grid volume presision", Math.abs(volumeWR - exactVolume) < precision);
+
+            if(writeFiles){
+                MeshMakerMT meshmaker1 = new MeshMakerMT();
+                meshmaker1.setBlockSize(30);
+                meshmaker1.setThreadCount(1);
+                meshmaker1.setSmoothingWidth(0);
+                meshmaker1.setMaxDecimationError(0);
+                meshmaker1.setMaxDecimationCount(0);
+                meshmaker1.setMaxAttributeValue(maxAttribute);            
+                STLWriter stlw1 = new STLWriter(fmt("/tmp/grid1_%03d.stl", gridSize));
+                meshmaker1.makeMesh(grid, stlw1);
+                stlw1.close();
+            }
+            
+            printf("running MeshRasterizer\n");
+            t0 = time();
+
+            MeshRasterizer rasterizer2 = new MeshRasterizer(bounds, gridSize, gridSize, gridSize);
+            
+            TriangulatedModels.Parallelepiped box2 = new  TriangulatedModels.Parallelepiped(originX, originY, originZ, originX+boxSizeX, originY+boxSizeY, originZ+boxSizeZ);  
+            box2.getTriangles(rasterizer2);
+
+            AttributeGrid grid2 = new ArrayAttributeGridByte(gridSize,gridSize,gridSize,voxelSize, voxelSize);
+            grid2.setGridBounds(bounds);
+            rasterizer2.getRaster(grid2);
+            printf("MeshRasterizer rasterization time: %d ms\n", (time() - t0));
+            
+            double volumeZB = voxelVolume*getGridVolume(grid2);
+            printf("MeshRasterizer volume: %18.15f  diff: %18.15f\n", volumeZB, (volumeZB-exactVolume));
+
+            if(writeFiles){
+                MeshMakerMT meshmaker = new MeshMakerMT();
+                meshmaker.setBlockSize(30);
+                meshmaker.setThreadCount(4);
+                meshmaker.setSmoothingWidth(0);
+                meshmaker.setMaxDecimationError(0.1*voxelSize*voxelSize);
+                meshmaker.setMaxDecimationCount(5);
+                meshmaker.setMaxAttributeValue(0);            
+                
+                STLWriter stlw = new STLWriter(fmt("/tmp/gridWR_%03d.stl", gridSize));
+                meshmaker.makeMesh(grid2, stlw);
+                stlw.close();
+            }
+            
+        }
     }
         
     public void _testParalelepiped() throws Exception {
@@ -192,7 +262,7 @@ public class TestWaveletRasterizer extends TestCase {
     }
 
 
-    public void testSTLfile() throws Exception {
+    public void _testSTLfile() throws Exception {
         
         
         //int level = 9;
@@ -277,7 +347,42 @@ public class TestWaveletRasterizer extends TestCase {
     }
 
 
-    public static void main(String[] args) {
+    static double getAttributeGridVolume(AttributeGrid grid, int maxAttribute){
+        
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        double cnt = 0;
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    cnt += grid.getAttribute(x,y,z);
+                }
+            }
+        }
+        return cnt / maxAttribute;
+    }
 
+    static double getGridVolume(Grid grid){
+        
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        double cnt = 0;
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    byte s  = grid.getState(x,y,z);
+                    if(s == Grid.INTERIOR)
+                        cnt++;
+                }
+            }
+        }
+        return cnt;
+    }
+
+    public static void main(String[] args) throws Exception{
+
+        new TestWaveletRasterizer().testBox();
     }
 }

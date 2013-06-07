@@ -26,6 +26,9 @@ import junit.framework.TestSuite;
 import abfab3d.util.TrianglePrinter;
 import abfab3d.io.output.STLWriter;
 
+import static abfab3d.util.Output.printf;
+
+
 /**
  * Tests the functionality of TriangleModelCreator.
  *
@@ -95,5 +98,10 @@ public class TestTriangulatedModels extends TestCase {
         stl.close();              
 
     }
-    
+
+    public static void main(String[] arg){
+
+        printf("main!\n");
+
+    }
 }

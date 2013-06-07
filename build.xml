@@ -543,7 +543,7 @@
     </junit>
   </target>
 
-    <target name="runMain" depends="compile" description="Run the application">
+    <target name="runMain" depends="compile,compileTest" description="Run the application">
         <echo message="jvmargs: ${jvmrunargs}" />
         <java classname="${class}" fork="true">
             <jvmarg line="${jvmrunargs}"/>

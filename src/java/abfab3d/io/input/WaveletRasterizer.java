@@ -95,7 +95,7 @@ public class WaveletRasterizer implements TriangleCollector {
         if(d3 > maxDepth) maxDepth = d3;            
 
         int gridSize =  (1<<maxDepth);
-        if(true){
+        if(DEBUG_CALC){
             printf("WaveletRasterizer(), maxDepth :%d\n", maxDepth);
             printf("   octree grid: [%d x %d x %d]\n", gridSize,gridSize, gridSize);
         } 
