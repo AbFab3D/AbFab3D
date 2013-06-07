@@ -543,6 +543,19 @@
     </junit>
   </target>
 
+    <target name="runMain" depends="compile" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}" />
+        <java classname="${class}" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
+                <pathelement path="${test.classes.dir}" />
+                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
     <!-- Begin Japex Tasks -->
     <target name="runJapex" depends="compile,compileJapex">
         <java dir="." fork="true" classname="com.sun.japex.Japex">
