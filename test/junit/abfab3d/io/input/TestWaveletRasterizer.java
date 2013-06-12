@@ -102,16 +102,20 @@ public class TestWaveletRasterizer extends TestCase {
 
         printf("testBox()\n");
 
+        boolean writeFiles = false;
+        //int maxAttribute = 10031;  // can be used for GridShortIntervals        
+        int maxAttribute = 63; // max value for AttributeGridByte
+        double precision = 1; // this is relative presision of volume calculations 
+        // volume presizion is within (voxelSize / maxAttribute)
+        //AttributeGrid gridType = new ArrayAttributeGridByte(1,1,1,0.1, 0.1);
+        AttributeGrid gridType = new GridShortIntervals(1,1,1,0.1, 0.1);
+
         for(int level = 6; level <=9; level++){
 
-            boolean writeFiles = false;
-            //int maxAttribute = 10001;  // can be used for GridShortIntervals        
-            int maxAttribute = 63; // max value for AttributeGridByte
-            double precision = 0.001; // this is presision of volume calculatiuons with maxAttribute = 63
             int gridSize = 1 << level;
             double bounds[] = new double[]{0.,2.,0.,2.,0.,2.};
-            double originX = 0.1, originY = 0.3, originZ = 0.35;
-            double boxSizeX = 0.7, boxSizeY = 0.85, boxSizeZ = 1.2;
+            double originX = 0.1, originY = 0.3, originZ = 0.35;  double boxSizeX = 0.7, boxSizeY = 0.85, boxSizeZ = 1.2;
+            //double originX = 0.1234, originY = 0.35657, originZ = 0.35555;  double boxSizeX = 0.76456456, boxSizeY = 0.854566, boxSizeZ = 1.2236457;
             
             double voxelSize = (bounds[1]- bounds[0])/gridSize;
             double voxelVolume = voxelSize*voxelSize*voxelSize;
@@ -127,18 +131,18 @@ public class TestWaveletRasterizer extends TestCase {
             box.getTriangles(rasterizer);
             printf("WaveletRasterizer octree build time: %d ms\n", (time() - t0));
             t0 = time();
-            AttributeGrid grid = new ArrayAttributeGridByte(gridSize,gridSize,gridSize,voxelSize, voxelSize);
-            //AttributeGrid grid = new GridShortIntervals(gridSize,gridSize,gridSize,voxelSize, voxelSize);
-            grid.setGridBounds(bounds);
+            AttributeGrid grid1 = (AttributeGrid)gridType.createEmpty(gridSize,gridSize,gridSize,voxelSize, voxelSize);
+            grid1.setGridBounds(bounds);
             
-            rasterizer.getRaster(grid);
+            rasterizer.getRaster(grid1);
             printf("WaveletRasterizer rasterization time: %d ms\n", (time() - t0));
             
-            double volumeWR = voxelVolume*getAttributeGridVolume(grid, maxAttribute);
+            double volumeWR = voxelVolume*getAttributeGridVolume(grid1, maxAttribute);
             double exactVolume = boxSizeX * boxSizeY * boxSizeZ;
-            printf("WaveletRasterizer volume: %18.15f  diff: %18.15f\n", volumeWR, (volumeWR-exactVolume));
+            double differentceWR = ((volumeWR-exactVolume)/voxelSize)*maxAttribute;
+            printf("WRvolume: %18.15f  WRdiff: %18.15f\n", volumeWR, differentceWR);
                                                                                                               
-            assertTrue("Test of WR grid volume presision", Math.abs(volumeWR - exactVolume) < precision);
+            assertTrue("Test of WR grid volume presision", Math.abs(differentceWR) < precision);
 
             if(writeFiles){
                 MeshMakerMT meshmaker1 = new MeshMakerMT();
@@ -149,7 +153,7 @@ public class TestWaveletRasterizer extends TestCase {
                 meshmaker1.setMaxDecimationCount(0);
                 meshmaker1.setMaxAttributeValue(maxAttribute);            
                 STLWriter stlw1 = new STLWriter(fmt("/tmp/grid1_%03d.stl", gridSize));
-                meshmaker1.makeMesh(grid, stlw1);
+                meshmaker1.makeMesh(grid1, stlw1);
                 stlw1.close();
             }
             
@@ -161,13 +165,16 @@ public class TestWaveletRasterizer extends TestCase {
             TriangulatedModels.Parallelepiped box2 = new  TriangulatedModels.Parallelepiped(originX, originY, originZ, originX+boxSizeX, originY+boxSizeY, originZ+boxSizeZ);  
             box2.getTriangles(rasterizer2);
 
-            AttributeGrid grid2 = new ArrayAttributeGridByte(gridSize,gridSize,gridSize,voxelSize, voxelSize);
+            AttributeGrid grid2 = (AttributeGrid)gridType.createEmpty(gridSize,gridSize,gridSize,voxelSize, voxelSize);
             grid2.setGridBounds(bounds);
             rasterizer2.getRaster(grid2);
             printf("MeshRasterizer rasterization time: %d ms\n", (time() - t0));
             
             double volumeZB = voxelVolume*getGridVolume(grid2);
-            printf("MeshRasterizer volume: %18.15f  diff: %18.15f\n", volumeZB, (volumeZB-exactVolume));
+            double differenceZB = ((volumeZB-exactVolume)/voxelSize);
+            printf("ZBvolume: %18.15f  ZBdiff: %18.15f\n", volumeZB, differenceZB);
+
+            assertTrue("Test of ZB grid volume presision", Math.abs(differentceWR) < precision);
 
             if(writeFiles){
                 MeshMakerMT meshmaker = new MeshMakerMT();

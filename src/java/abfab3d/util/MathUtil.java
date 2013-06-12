@@ -12,12 +12,16 @@
 
 package abfab3d.util;
 
+import javax.vecmath.Vector3d;
+
 // External Imports
 
 // Internal Imports
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.SingularMatrixException;
+
+import static java.lang.Math.sqrt;
 
 /**
  * Math utilities.
@@ -534,6 +538,23 @@ public class MathUtil {
             kernel[i] = w;
         }
         return kernel;
+    }
+
+
+    public static final double distance(Vector3d v0, Vector3d v1){
+        double 
+            x = v0.x - v1.x,
+            y = v0.y - v1.y,
+            z = v0.z - v1.z;        
+
+        return sqrt(x*x + y*y + z*z);
+    }
+
+
+    public static Vector3d midPoint(Vector3d v0, Vector3d v1){
+        
+        return new Vector3d((v0.x + v1.x)/2,(v0.y + v1.y)/2,(v0.z + v1.z)/2);
+
     }
 
 }

@@ -24,6 +24,11 @@ import javax.vecmath.AxisAngle4d;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.ImageGray16;
 
+import static abfab3d.util.MathUtil.distance;
+import static abfab3d.util.MathUtil.midPoint;
+
+import static java.lang.Math.sqrt;
+import static java.lang.Math.max;
 
 
 // Internal Imports
@@ -41,9 +46,6 @@ import static java.lang.Math.cos;
  * @author Vladimir Bulatov
  */
 public class TriangulatedModels {
-
-    static final double MM = 0.001;
-
 
     // class to generate stars with parameters
     // parameters are illustrated in file docs/images/mesh_star.svg
@@ -163,9 +165,12 @@ public class TriangulatedModels {
         
     }
 
-    //
-    // creates height field of triangles from 2D grid 
-    //
+    
+    /**
+       
+       creates height field of triangles from 2D grid 
+       
+    */
     public static class HeightField {
 
         ImageGray16  image;
@@ -230,9 +235,9 @@ public class TriangulatedModels {
     } // class HeightField 
 
 
-    //
-    //  Parallelepiped with given corners 
-    //
+    /**
+       Parallelepiped with given coordinates of main diagonal 
+    */
     public static class Parallelepiped {
 
         double x0, y0, z0;
@@ -281,10 +286,10 @@ public class TriangulatedModels {
     } // class Parallelepiped
 
 
-    //
-    //  TetrahedronInParallelepiped 
-    // makes tetrahedron inscibed in parallelepiped with given corners 
-    //
+    /**
+       TetrahedronInParallelepiped 
+        makes tetrahedron inscibed in parallelepiped with given corners 
+    */
     public static class TetrahedronInParallelepiped {
 
         double x0, y0, z0;
@@ -330,6 +335,201 @@ public class TriangulatedModels {
         }      
   
     } // class TetrahedronInParallelepiped
+
+    /**
+       makes triangulated sphere of given radius and center and subdivion level 
+     */
+    public static class Sphere {
+
+        Vector3d center = new Vector3d();
+        double radius; 
+        int subdivision;
+        double tolerance = 0.;
+        
+        // corner vertices of octahedron 
+        Vector3d 
+            v100 = new Vector3d(1,0,0),
+            v_100 = new Vector3d(-1,0,0),
+            v010 = new Vector3d(0,1,0),
+            v0_10 = new Vector3d(0,-1,0),
+            v001 = new Vector3d(0,0,1),
+            v00_1 = new Vector3d(0,0,-1);
+        
+    
+        public Sphere(double radius, Vector3d center, int subdivision){
+            
+            this.center.set(center);
+
+            this.radius = radius; 
+            this.subdivision = subdivision;
+            
+        }
+
+        public Sphere(double radius, Vector3d center, int subdivision, double tolerance){
+            
+            this.center.set(center);
+
+            this.radius = radius; 
+            this.subdivision = subdivision;
+            this.tolerance = tolerance; 
+            
+        }
+        
+        public void getTriangles(TriangleCollector tc){
+            
+            splitTriangle(tc, v100, v010, v001, subdivision);
+            splitTriangle(tc, v100, v001, v0_10, subdivision);
+            splitTriangle(tc, v100, v0_10, v00_1, subdivision);
+            splitTriangle(tc, v100, v00_1, v010, subdivision);
+
+            splitTriangle(tc, v_100, v001,v010,  subdivision);
+            splitTriangle(tc, v_100, v0_10,v001,  subdivision);
+            splitTriangle(tc, v_100, v00_1,v0_10,  subdivision);
+            splitTriangle(tc, v_100, v010,v00_1,  subdivision);
+            
+        }      
+        
+        void splitTriangle(TriangleCollector tc, Vector3d v0, Vector3d v1, Vector3d v2, int subdiv){
+           
+            if(subdiv <= 0){
+                addTri(tc, v0, v1, v2);
+                return;                
+            }
+
+            Vector3d v01 = null, v12=null, v20=null;
+
+            int selector = 0;
+            if(needSubdivision(v0, v1)) { selector += 1;v01 = getSpherePoint(v0, v1);}
+            if(needSubdivision(v1, v2)) { selector += 2;v12 = getSpherePoint(v1, v2); }
+            if(needSubdivision(v2, v0)) { selector += 4;v20 = getSpherePoint(v2, v0); }
+            
+            subdiv--;
+      
+            switch(selector){                
+                
+            case 0: // no splits 
+                addTri(tc, v0, v1, v2);
+                break;            
+            case 1: // split 01   
+                splitTriangle(tc, v0, v01, v2, subdiv);
+                splitTriangle(tc, v01, v1, v2, subdiv);
+                break;
+        
+        case 2:  // split 12         
+            splitTriangle(tc, v0, v1, v12, subdiv);
+            splitTriangle(tc, v0, v12, v2, subdiv);
+            break;
+                
+        case 4:  // split 20 
+            splitTriangle(tc, v1, v2, v20,subdiv);
+            splitTriangle(tc, v1, v20, v0, subdiv);
+            break;        
+        
+        case 3:  // split 01, 12         
+            splitTriangle(tc, v1, v12, v01,subdiv);
+
+            if(distance(v01, v2) < distance(v0, v12)) {
+                splitTriangle(tc, v01, v12, v2, subdiv);
+                splitTriangle(tc, v0, v01, v2, subdiv);
+            } else {
+                splitTriangle(tc, v01, v12, v0,subdiv);
+                splitTriangle(tc, v0, v12, v2,subdiv);                
+            }
+            break;
+        
+        
+        case 6:  //split 12 20 
+            
+            splitTriangle(tc, v12,v2, v20,subdiv );
+            if(distance(v0, v12) < distance(v1, v20)) {
+                splitTriangle(tc, v0, v12,v20,subdiv);
+                splitTriangle(tc, v0, v1, v12,subdiv);
+            } else {
+                splitTriangle(tc, v0, v1, v20,subdiv);
+                splitTriangle(tc, v1, v12, v20,subdiv);
+            }
+            break;
+            
+        case 5:  // split 01, 20 
+            splitTriangle(tc, v0, v01, v20, subdiv);
+            if(distance(v01, v2) < distance(v1, v20)){
+                splitTriangle(tc, v01, v2, v20,subdiv);
+                splitTriangle(tc, v01, v1, v2, subdiv);
+            } else {
+                splitTriangle(tc, v01, v1, v20,subdiv);                
+                splitTriangle(tc, v1, v2, v20, subdiv);                
+            }
+            break; // split s0, s2       
+        
+        case 7: // split 01, 12, 20       
+            
+            splitTriangle(tc, v0, v01, v20,subdiv);
+            splitTriangle(tc, v1, v12, v01,subdiv);
+            splitTriangle(tc, v2, v20, v12,subdiv);
+            splitTriangle(tc, v01, v12, v20, subdiv);
+            break;                  
+        } // switch()
+            
+            
+
+            /*
+           if(subdiv <= 0){
+                tc.addTri(getScaled(v0), getScaled(v1), getScaled(v2));
+                return;                
+            } else {
+                subdiv--;
+                Vector3d v01 = getSpherePoint(v0, v1);
+                Vector3d v12 = getSpherePoint(v1, v2);
+                Vector3d v20 = getSpherePoint(v2, v0);
+                splitTriangle(tc, v0, v01, v20,subdiv);
+                splitTriangle(tc, v1, v12, v01,subdiv);
+                splitTriangle(tc, v2, v20, v12,subdiv);
+                splitTriangle(tc, v01, v12, v20,subdiv);
+            }
+            */
+
+        }
+
+        void addTri(TriangleCollector tc, Vector3d v0, Vector3d v1, Vector3d v2){
+            
+            tc.addTri(getScaled(v0),getScaled(v1),getScaled(v2));
+        }
+
+        boolean needSubdivision(Vector3d v0, Vector3d v1, Vector3d v2){
+            
+            return 
+                needSubdivision(v0, v1) || 
+                needSubdivision(v1, v2) || 
+                needSubdivision(v2, v0);
+
+        }
+
+        boolean needSubdivision(Vector3d v0, Vector3d v1){
+
+            return (radius* distance(midPoint(v0, v1), getSpherePoint(v0, v1)) > tolerance);
+        }
+        
+        
+        Vector3d getSpherePoint(Vector3d v1, Vector3d v2){
+            
+            double x = v1.x + v2.x;
+            double y = v1.y + v2.y;
+            double z = v1.z + v2.z;
+            double r = sqrt(x*x + y*y + z*z);
+            return new Vector3d(x/r, y/r, z/r);
+            
+        }
+        
+        
+        Vector3d getScaled(Vector3d v){
+
+            return new Vector3d(v.x * radius + center.x, v.y * radius + center.y, v.z * radius + center.z);
+
+        }
+
+        
+    } // class Sphere 
+
     
 } // class TriangulatedModels
 

@@ -21,12 +21,17 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import javax.vecmath.Vector3d;
 
 // Internal Imports
 import abfab3d.util.TrianglePrinter;
 import abfab3d.io.output.STLWriter;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.MM;
+import static java.lang.Math.sin;
+import static java.lang.Math.cos;
+import static java.lang.Math.sqrt;
 
 
 /**
@@ -49,7 +54,7 @@ public class TestTriangulatedModels extends TestCase {
     /**
      * Test the generation of star
      */
-    public void testStar() throws IOException {
+    public void makeStar() throws IOException {
 	
         //TriangulatedModels.Star star = new  TriangulatedModels.Star(100, 0.01, 0.12, 0.005, 2., 0.5);
         //TriangulatedModels.Star star = new  TriangulatedModels.Star(20, 1.9*MM, 0.1*MM, 0.1*MM, 20*MM, 10*MM);
@@ -99,9 +104,47 @@ public class TestTriangulatedModels extends TestCase {
 
     }
 
-    public static void main(String[] arg){
+    public static void makeUnitSphere()throws Exception {
+        
+        STLWriter stl = new STLWriter("/tmp/sphere_10mm_10_1.stl");
+        
+        int n = 10;
 
-        printf("main!\n");
+        TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10, 0.1*MM);
+        s.getTriangles(stl);
+
+        stl.close();              
+
+    }
+
+
+    public static void makeChainOfSphere()throws Exception {
+        
+        STLWriter stl = new STLWriter("/tmp/chain_of_spheres.stl");
+        
+        int n = 10;
+
+        for(int i = 0; i < 10; i++){
+
+            double r = 10*MM;
+            double rr = 30*MM;
+            double phi = (2*Math.PI*i)/n;
+            double xc = rr*cos(phi);
+            double yc = rr*sin(phi);
+            double zc = 0;
+
+            TriangulatedModels.Sphere s = new  TriangulatedModels.Sphere(r, new Vector3d(xc, yc, zc), 6);
+            s.getTriangles(stl);
+        }
+
+        stl.close();              
+       
+    }
+
+
+    public static void main(String[] arg) throws Exception {
+
+        makeUnitSphere();
 
     }
 }
