@@ -50,6 +50,10 @@ public class TestParametricSurfaceMaker extends TestCase {
         return new TestSuite(TestParametricSurfaceMaker.class);
     }
 
+    public void testDumb(){
+        //this test here is to make Test happy. 
+    }
+
     /**
      * 
      */

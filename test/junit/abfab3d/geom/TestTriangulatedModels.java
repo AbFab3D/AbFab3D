@@ -51,6 +51,11 @@ public class TestTriangulatedModels extends TestCase {
         return new TestSuite(TestTriangulatedModels.class);
     }
 
+
+    public void testDumb(){
+        //this test here is to make Test happy. 
+    }
+
     /**
      * Test the generation of star
      */
