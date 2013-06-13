@@ -99,12 +99,12 @@ System.out.println("test2");
 System.out.println("test3");
         AttributeGrid grid =new MaterialIndexedAttributeGridByte(10, 9, 8, 0.001, 0.001);
         grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)2);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)1);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (byte)0);
+        grid.setData(9, 8, 7, Grid.INSIDE, (byte)1);
+        grid.setData(5, 0, 7, Grid.INSIDE, (byte)0);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(2, 2, 2));
@@ -118,21 +118,21 @@ System.out.println("test3");
 
         // set and test get on some random world coordinates
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)2);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte)1);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (byte)0);
+        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte)1);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte)0);
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0.95, 0.39, 0.45));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.6, 0.1, 0.4));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.95, 0.39, 0.45));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.6, 0.1, 0.4));
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
         grid = new MaterialIndexedAttributeGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (byte)2);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.0799, 0.0999));
+        grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte)2);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.0799, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.0999));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.0799, 0.0999));
         assertEquals("State should be ", 0, grid.getState(0.0499, 0.06, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0599, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.0499));
@@ -141,23 +141,23 @@ System.out.println("test3");
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (byte)2);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0199, 0.0499));
+        grid.setData(0.0, 0.0, 0.0, Grid.INSIDE, (byte)2);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0199, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0499));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0199, 0.0499));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.02, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte)2);
-//        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.199));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.119, 0.199));
+        grid.setData(0.149, 0.119, 0.199, Grid.INSIDE, (byte)2);
+//        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.15));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.1, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.119, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.199));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.119, 0.199));
         assertEquals("State should be ", 0, grid.getState(0.0999, 0.1, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.0999, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.1499));
@@ -183,8 +183,8 @@ System.out.println("test3");
      */
     public void testGetMaterialByVoxel() {
         AttributeGrid grid =new MaterialIndexedAttributeGridByte(10, 9, 8, 0.001, 0.001);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (byte)1);
+        grid.setData(9, 8, 7, Grid.INSIDE, (byte)2);
+        grid.setData(5, 0, 7, Grid.INSIDE, (byte)1);
 
         assertEquals("State should be ", 2, grid.getAttribute(9, 8, 7));
         assertEquals("State should be ", 1, grid.getAttribute(5, 0, 7));
@@ -201,8 +201,8 @@ System.out.println("test3");
 
         // set and test get on some random world coordinates
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)3);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte)2);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (byte)1);
+        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte)2);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte)1);
         assertEquals("State should be ", 3, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("State should be ", 2, grid.getAttribute(0.95, 0.39, 0.45));
         assertEquals("State should be ", 1, grid.getAttribute(0.6, 0.1, 0.4));
@@ -210,7 +210,7 @@ System.out.println("test3");
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
         grid = new MaterialIndexedAttributeGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (byte)2);
+        grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte)2);
         assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.06, 0.05));
         assertEquals("State should be ", 2, grid.getAttribute(0.0999, 0.06, 0.05));
         assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.0799, 0.05));
@@ -224,7 +224,7 @@ System.out.println("test3");
         assertEquals("State should be ", 0, grid.getAttribute(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (byte)5);
+        grid.setData(0.0, 0.0, 0.0, Grid.INSIDE, (byte)5);
         assertEquals("State should be ", 5, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("State should be ", 5, grid.getAttribute(0.0499, 0.0, 0.0));
         assertEquals("State should be ", 5, grid.getAttribute(0.0, 0.0199, 0.0));
@@ -235,7 +235,7 @@ System.out.println("test3");
         assertEquals("State should be ", 0, grid.getAttribute(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte)12);
+        grid.setData(0.149, 0.119, 0.199, Grid.INSIDE, (byte)12);
 //        assertEquals("State should be ", 12, grid.getAttribute(0.1, 0.1, 0.15)); //failing because 0.15/0.05=2.999997
         assertEquals("State should be ", 12, grid.getAttribute(0.1499, 0.1, 0.1501));
         assertEquals("State should be ", 12, grid.getAttribute(0.1, 0.119, 0.1501));
@@ -259,7 +259,7 @@ System.out.println("test3");
         AttributeGrid grid =new MaterialIndexedAttributeGridByte(width, 1, 1, 0.001, 0.001);
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 0, 0, Grid.EXTERIOR, x);
+            grid.setData(x, 0, 0, Grid.INSIDE, x);
         }
 
         for (int x=0; x<width; x++) {
@@ -279,10 +279,10 @@ System.out.println("test3");
         int maxMaterial = (int) Math.pow(2.0, 14.0);
 
         AttributeGrid grid =new MaterialIndexedAttributeGridShort(width, 1, 1, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
-        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial-1);
-        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial+1);
-        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
+        grid.setData(0, 0, 0, Grid.INSIDE, 0);
+        grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial-1);
+        grid.setData(2, 0, 0, Grid.INSIDE, maxMaterial+1);
+        grid.setData(3, 0, 0, Grid.INSIDE, 2 * maxMaterial - 1);
 
         assertEquals("Material [0,0,0] is not 0", 0, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getAttribute(1, 0, 0));
@@ -300,10 +300,10 @@ System.out.println("test3");
         int maxMaterial = (int) Math.pow(2.0, 30.0);
 
         AttributeGrid grid =new MaterialIndexedGridInt(width, 1, 1, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
-        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial-1);
-        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial+1);
-        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
+        grid.setData(0, 0, 0, Grid.INSIDE, 0);
+        grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial-1);
+        grid.setData(2, 0, 0, Grid.INSIDE, maxMaterial+1);
+        grid.setData(3, 0, 0, Grid.INSIDE, 2 * maxMaterial - 1);
 
         assertEquals("Material [0,0,0] is not 0", 0, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial-1), (maxMaterial-1), grid.getAttribute(1, 0, 0));
@@ -320,7 +320,7 @@ System.out.println("test3");
         int height = 3;
         int depth = 10;
         int[] row = {0, 3, 5};
-        byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
+        byte[] state = {Grid.INSIDE, Grid.INSIDE, Grid.INSIDE};
 
         AttributeGrid grid =new MaterialIndexedAttributeGridByte(width, height, depth, 0.05, 0.02);
 
@@ -340,9 +340,7 @@ System.out.println("test3");
         int expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
 
         // change one of the interior voxel rows to outside
@@ -358,9 +356,7 @@ System.out.println("test3");
         expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
     }
 
@@ -384,7 +380,7 @@ System.out.println("test3");
             for (int y=0; y<height; y++) {
                 for (int z=0; z<materialDepth[x]; z++) {
 //System.out.println(x + ", " + y + ", " + z + ": " + material[x]);
-                    grid.setData(x, y, z, Grid.INTERIOR, material[x]);
+                    grid.setData(x, y, z, Grid.INSIDE, material[x]);
                 }
             }
         }
@@ -401,14 +397,14 @@ System.out.println("test3");
         long mat = 0;
         grid = new MaterialIndexedAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
-            grid.setData(x,0,0, Grid.EXTERIOR, mat);
+            grid.setData(x,0,0, Grid.INSIDE, mat);
         }
 
         assertEquals("Material count is not " + width, width, grid.findCount(mat));
 
         grid = new MaterialIndexedAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int y=0; y<height; y++) {
-            grid.setData(0, y, 0, Grid.INTERIOR, mat);
+            grid.setData(0, y, 0, Grid.INSIDE, mat);
         }
 
         assertEquals("Material count is not " + height, height, grid.findCount(mat));
@@ -420,7 +416,7 @@ System.out.println("test3");
         int height = 4;
         int depth = 10;
         int[] stateDepth = {10, 6, 1};
-        byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
+        byte[] states = {Grid.INSIDE, Grid.INSIDE, Grid.OUTSIDE};
 
         AttributeGrid grid =new MaterialIndexedAttributeGridByte(width, height, depth, 0.05, 0.02);
 
@@ -444,16 +440,8 @@ System.out.println("test3");
         assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
 
         resetCounts();
-        grid.findAttribute(VoxelClasses.MARKED, this);
+        grid.findAttribute(VoxelClasses.INSIDE, this);
         assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
-
-        resetCounts();
-        grid.findAttribute(VoxelClasses.EXTERIOR, this);
-        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
-
-        resetCounts();
-        grid.findAttribute(VoxelClasses.INTERIOR, this);
-        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
 
         resetCounts();
         grid.findAttribute(VoxelClasses.OUTSIDE, this);

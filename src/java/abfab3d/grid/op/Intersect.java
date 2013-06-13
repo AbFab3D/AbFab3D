@@ -27,7 +27,7 @@ import static abfab3d.util.Output.time;
 /**
  * Intersection operation.
  * <p/>
- * Intersects two grids.  A voxel which is MARKED in both
+ * Intersects two grids.  A voxel which is INSIDE in both
  * grids will be in the destination.
  *
  * @author Alan Hudson

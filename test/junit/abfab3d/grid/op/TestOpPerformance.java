@@ -41,8 +41,8 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
     public void testSubtractPerformanceMT() {
         int size1 = 500;
         int size2 = 550;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         int warmup = 4;
         int cores = Runtime.getRuntime().availableProcessors();;
@@ -111,8 +111,8 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
     public void testIntersectPerformanceMT() {
         int size1 = 750;
         int size2 = 750;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         int warmup = 4;
         int cores = Runtime.getRuntime().availableProcessors();;

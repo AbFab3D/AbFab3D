@@ -22,7 +22,7 @@ import abfab3d.grid.*;
  * A cutting plane tool for grids.  All voxels above the plane will be
  * set to EMPTY.
  *
- * Any INTERIOR voxels on the plane will be turned into EXTERIOR voxels.
+ * Any INSIDE voxels on the plane will be turned into EXTERIOR voxels.
  *
  * Place planes on the middle of a voxel for best results.
  *
@@ -77,12 +77,12 @@ public class CuttingPlane implements Operation, AttributeOperation {
                     }
                 }
 
-                // Mark any INTERIOR voxels on the plane as EXTERIOR
+                // Mark any INSIDE voxels on the plane as INSIDE
                 for(int k=coords[2]+1; k < depth; k++) {
                     for(int i=0; i < width; i++) {
                         for(int j=0; j < height; j++) {
-                            if (dest.getState(i,j,k) == Grid.INTERIOR) {
-                                dest.setState(i,j,k,Grid.EXTERIOR);
+                            if (dest.getState(i,j,k) == Grid.INSIDE) {
+                                dest.setState(i,j,k,Grid.INSIDE);
                             }
                         }
                     }
@@ -121,12 +121,12 @@ public class CuttingPlane implements Operation, AttributeOperation {
                     }
                 }
 
-                // Mark any INTERIOR voxels on the plane as EXTERIOR
+                // Mark any INSIDE voxels on the plane as INSIDE
                 for(int k=coords[2]+1; k < depth; k++) {
                     for(int i=0; i < width; i++) {
                         for(int j=0; j < height; j++) {
-                            if (dest.getState(i,j,k) == Grid.INTERIOR) {
-                                dest.setData(i,j,k,Grid.EXTERIOR,material);
+                            if (dest.getState(i,j,k) == Grid.INSIDE) {
+                                dest.setData(i,j,k,Grid.INSIDE,material);
                             }
                         }
                     }

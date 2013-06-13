@@ -124,8 +124,8 @@ public class TestGridVisited extends TestCase {
         int d = 2;
 
         AttributeGrid grid = new ArrayAttributeGridByte(w,h,d,0.1,0.1);
-        grid.setData(0,0,0,Grid.EXTERIOR,1);
-        grid.setData(0,0,1,Grid.EXTERIOR,1);
+        grid.setData(0,0,0,Grid.INSIDE,1);
+        grid.setData(0,0,1,Grid.INSIDE,1);
 
         GridVisited gv = new GridVisited(w,h,d,1);
 
@@ -150,8 +150,8 @@ public class TestGridVisited extends TestCase {
         int d = 2;
 
         AttributeGrid grid = new ArrayAttributeGridByte(w,h,d,0.1,0.1);
-        grid.setData(0,0,0,Grid.EXTERIOR,1);
-        grid.setData(0,0,1,Grid.EXTERIOR,1);
+        grid.setData(0,0,0,Grid.INSIDE,1);
+        grid.setData(0,0,1,Grid.INSIDE,1);
 
         // Force to array
         GridVisited gv = new GridVisited(w,h,d,0);
@@ -177,12 +177,12 @@ public class TestGridVisited extends TestCase {
         int d = 10;
 
         AttributeGrid grid = new ArrayAttributeGridByte(w,h,d,0.1,0.1);
-        grid.setData(0,0,0,Grid.EXTERIOR,1);
-        grid.setData(0,0,1,Grid.EXTERIOR,1);
-        grid.setData(0,1,0,Grid.EXTERIOR,1);
-        grid.setData(0,1,1,Grid.EXTERIOR,1);
-        grid.setData(0,2,0,Grid.EXTERIOR,1);
-        grid.setData(0,2,1,Grid.EXTERIOR,1);
+        grid.setData(0,0,0,Grid.INSIDE,1);
+        grid.setData(0,0,1,Grid.INSIDE,1);
+        grid.setData(0,1,0,Grid.INSIDE,1);
+        grid.setData(0,1,1,Grid.INSIDE,1);
+        grid.setData(0,2,0,Grid.INSIDE,1);
+        grid.setData(0,2,1,Grid.INSIDE,1);
 
         GridVisited gv = new GridVisited(w,h,d,1);
 

@@ -129,19 +129,19 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
     public void testBlockBasedGridBitCopyConstructor() {
         BlockBasedGridBit grid = new BlockBasedGridBit(10, 9, 8, 0.001, 0.001);
 
-        grid.setState(0, 0, 0, Grid.INTERIOR);
-        grid.setState(9, 8, 7, Grid.EXTERIOR);
-        grid.setState(5, 0, 7, Grid.INTERIOR);
+        grid.setState(0, 0, 0, Grid.INSIDE);
+        grid.setState(9, 8, 7, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         BlockBasedGridBit grid2 = new BlockBasedGridBit(grid);
 
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid2.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(5, 0, 7));
         assertEquals("State should be ", Grid.OUTSIDE, grid2.getState(0, 0, 1));
     }
 
@@ -151,7 +151,7 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
     public void testCreateEmpty() {
         Grid grid =new BlockBasedGridBit(100, 101, 102, 0.001, 0.001);
 
-        grid.setState(5, 5, 5, Grid.EXTERIOR);
+        grid.setState(5, 5, 5, Grid.INSIDE);
 
         Grid grid2 =(Grid) grid.createEmpty(10, 11, 12, 0.002, 0.003);
 
@@ -217,12 +217,12 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
     public void testGetStateByVoxel() {
         Grid grid = new BlockBasedGridBit(10, 9, 9, 0.001, 0.001);
         grid.setState(0, 0, 0, Grid.OUTSIDE);
-        grid.setState(9, 8, 7, Grid.EXTERIOR);
-        grid.setState(5, 0, 7, Grid.INTERIOR);
+        grid.setState(9, 8, 7, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(8, 8, 8));
@@ -236,21 +236,21 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
 
         // set and test get on some random world coordinates
         grid.setState(0.0, 0.0, 0.0, Grid.OUTSIDE);
-        grid.setState(0.95, 0.39, 0.45, Grid.EXTERIOR);
-        grid.setState(0.6, 0.1, 0.4, Grid.INTERIOR);
+        grid.setState(0.95, 0.39, 0.45, Grid.INSIDE);
+        grid.setState(0.6, 0.1, 0.4, Grid.INSIDE);
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0.95, 0.39, 0.45));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.6, 0.1, 0.4));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.95, 0.39, 0.45));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.6, 0.1, 0.4));
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
         grid = new BlockBasedGridBit(0.12, 0.11, 0.16, 0.05, 0.02);
-        grid.setState(0.06, 0.07, 0.08, Grid.INTERIOR);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.0799, 0.0999));
+        grid.setState(0.06, 0.07, 0.08, Grid.INSIDE);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.0799, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.0999));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.0799, 0.0999));
         assertEquals("State should be ", 0, grid.getState(0.0499, 0.06, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0599, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.0499));
@@ -259,23 +259,23 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setState(0.0, 0.0, 0.0, Grid.INTERIOR);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0199, 0.0499));
+        grid.setState(0.0, 0.0, 0.0, Grid.INSIDE);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0199, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0499));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0199, 0.0499));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.02, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setState(0.149, 0.119, 0.199, Grid.INTERIOR);
-//        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.199));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.119, 0.199));
+        grid.setState(0.149, 0.119, 0.199, Grid.INSIDE);
+//        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.15));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.1, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.119, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.199));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.119, 0.199));
         assertEquals("State should be ", 0, grid.getState(0.0999, 0.1, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.0999, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.1499));
@@ -304,7 +304,7 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         int height = 3;
         int depth = 10;
         int[] row = {0, 3, 5};
-        byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
+        byte[] state = {Grid.INSIDE, Grid.INSIDE, Grid.INSIDE};
 
         Grid grid =new BlockBasedGridBit(width, height, depth, 0.05, 0.02);
 
@@ -328,9 +328,7 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         int expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
 
         // change one of the interior voxel rows to outside
@@ -346,9 +344,7 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
     }
 
@@ -360,7 +356,7 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         int height = 4;
         int depth = 10;
         int[] stateDepth = {10, 6, 1};
-        byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
+        byte[] states = {Grid.INSIDE, Grid.INSIDE, Grid.OUTSIDE};
 
         Grid grid =new BlockBasedGridBit(width, height, depth, 0.05, 0.02);
 
@@ -388,16 +384,8 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
 
         resetCounts();
-        grid.find(VoxelClasses.MARKED, this);
+        grid.find(VoxelClasses.INSIDE, this);
         assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
-
-        resetCounts();
-        grid.find(VoxelClasses.EXTERIOR, this);
-        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
-
-        resetCounts();
-        grid.find(VoxelClasses.INTERIOR, this);
-        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
 
         resetCounts();
         grid.find(VoxelClasses.OUTSIDE, this);
@@ -414,41 +402,40 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         long mat = 1;
 
         Grid grid =new BlockBasedGridBit(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setState(x, 2, 2, Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
+            grid.setState(x, 2, 2, Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setState(x, 5, 6, Grid.INTERIOR);
+            grid.setState(x, 5, 6, Grid.INSIDE);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
         ft = new FindIterateTester(vcSetInt);
-        grid.find(VoxelClasses.INTERIOR, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
-        assertTrue("Found state iterator did not find all voxels with INTERIOR state",
+        assertTrue("Found state iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setState(10, 6, 2, Grid.EXTERIOR);
-        ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
+        grid.setState(10, 6, 2, Grid.INSIDE);
+        ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setState(1, 5, 6, Grid.EXTERIOR);
+        grid.setState(1, 5, 6, Grid.INSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.find(VoxelClasses.INTERIOR, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
@@ -464,15 +451,15 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         };
 
         grid = new BlockBasedGridBit(width, height, depth, 0.001, 0.001);
-        vcSetExt = new HashSet<VoxelCoordinate>();
+        vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
+        ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -489,48 +476,47 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         long mat = 1;
 
         Grid grid =new BlockBasedGridBit(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setState(x, 2, 2, Grid.EXTERIOR);
-            grid.setState(x, 4, 4, Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
-            vcSetExt.add(new VoxelCoordinate(x, 4, 4));
+            grid.setState(x, 2, 2, Grid.INSIDE);
+            grid.setState(x, 4, 4, Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
+            vcSetInt.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setState(x, 5, 6, Grid.INTERIOR);
+            grid.setState(x, 5, 6, Grid.INSIDE);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
         ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(VoxelClasses.INTERIOR, ft);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
-        assertTrue("Found iterator did not find all voxels with INTERIOR state",
+        assertTrue("Found iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
 
         // make sure that findInterruptible stops interating when voxel is not found
         // do this by adding a new exterior voxel
         grid.setState(5, 2, 2, Grid.OUTSIDE);
-        grid.setState(1, 3, 3, Grid.EXTERIOR);
-        ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+        grid.setState(1, 3, 3, Grid.INSIDE);
+        ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false",
                 ft.foundAllVoxels());
         assertTrue("Found state interruptible did not get interrupted ",
-                ft.getIterateCount() < vcSetExt.size());
+                ft.getIterateCount() < vcSetInt.size());
 
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to exterior state
-        grid.setState(1, 5, 6, Grid.EXTERIOR);
+        grid.setState(1, 5, 6, Grid.OUTSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(VoxelClasses.INTERIOR, ft);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
 
@@ -545,15 +531,15 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         };
 
         grid = new BlockBasedGridBit(width, height, depth, 0.001, 0.001);
-        vcSetExt = new HashSet<VoxelCoordinate>();
+        vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+        ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -710,20 +696,20 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         int size = 10;
 
         Grid grid =new BlockBasedGridBit(size, size, size, 0.001, 0.001);
-        grid.setState(0, 0, 0, Grid.INTERIOR);
-        grid.setState(9, 9, 9, Grid.EXTERIOR);
-        grid.setState(5, 0, 7, Grid.INTERIOR);
+        grid.setState(0, 0, 0, Grid.INSIDE);
+        grid.setState(9, 9, 9, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
-        grid.setState(0, 0, 0, Grid.EXTERIOR);
-        grid.setState(9, 9, 9, Grid.INTERIOR);
-        grid.setState(5, 0, 7, Grid.EXTERIOR);
+        grid.setState(0, 0, 0, Grid.INSIDE);
+        grid.setState(9, 9, 9, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
         // check that the state changed, but the material did not
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
 
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 9, 9));
 
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
     }
 
     /**
@@ -735,9 +721,9 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         double sliceHeight = 0.001;
 
         Grid grid =new BlockBasedGridBit(size, size, size, voxelSize, sliceHeight);
-        grid.setState(0, 0, 0, Grid.INTERIOR);
-        grid.setState(9, 9, 9, Grid.EXTERIOR);
-        grid.setState(5, 0, 7, Grid.INTERIOR);
+        grid.setState(0, 0, 0, Grid.INSIDE);
+        grid.setState(9, 9, 9, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
         Grid grid2 =(BlockBasedGridBit) grid.clone();
 
@@ -745,10 +731,10 @@ public class TestBlockBasedGridBit extends BaseTestGrid {
         assertEquals("Slight height should be ", sliceHeight, grid2.getSliceHeight());
 
         // check that the state and material are set
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(0, 0, 0));
 
-        assertEquals("State should be ", Grid.EXTERIOR, grid2.getState(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(9, 9, 9));
 
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(5, 0, 7));
     }
 }

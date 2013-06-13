@@ -30,7 +30,7 @@ import static abfab3d.util.Output.fmt;
 public class GridShortIntervals extends GridBitIntervals{
 
     //
-    // state is store in 2 most signfican bit
+    // state is store in 2 most signficant bit
     // attribute is stored in 14 less significant bits
     //
     static final int ATT_MASK = 0x3FFF;
@@ -39,7 +39,7 @@ public class GridShortIntervals extends GridBitIntervals{
     static final int STATE_MASK_SHIFTED = 0x3;
 
     /**
-       copy constrcutor
+       copy constructor
      */
     public GridShortIntervals(GridShortIntervals grid){
 
@@ -109,6 +109,7 @@ public class GridShortIntervals extends GridBitIntervals{
         if(curAtt == attribute)
             return;
 
+        // TODO: I think this cast of attribute to int is wrong
         int newCode = (curCode & STATE_MASK) | (int) attribute;
 
         set(x,y,z,newCode);
@@ -123,6 +124,7 @@ public class GridShortIntervals extends GridBitIntervals{
     }
 
     public void setData(int x, int y, int z, byte state, long attribute){
+        // TODO: I think this cast of attribute to int is wrong
         set(x,y,z, (state << STATE_SHIFT)|(int)attribute);
     }
 

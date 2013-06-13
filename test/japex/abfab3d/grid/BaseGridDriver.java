@@ -17,7 +17,7 @@ import java.util.Random;
 public abstract class BaseGridDriver extends JapexDriverBase {
     double voxel_size = 0.001;
     double slice_height = 0.001;
-    
+
     protected int CLEAR_MEMORY = 2;
     protected static final long MEMORY_UNITS = (long) 1e3;    // Kilobytes
 
@@ -25,7 +25,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
     protected Grid grid;
     protected Grid torusGridShell;
     protected Grid torusGridSolid;
-    
+
     protected long startMemory;
     protected long alloc;
 
@@ -78,7 +78,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
     public void run(TestCase testCase) {
 //System.out.println("run");
         int times = 1;
-        
+
         clearMemory();
 
         startMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / MEMORY_UNITS;
@@ -90,7 +90,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
 
         if (input.equals("WriteRandom")) {
             allocate(testCase);
-            
+
             for (int i=0; i < times; i++) {
                 writeRandom(grid, randomPercent);
             }
@@ -167,7 +167,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
         }
         clearMemory();
     }
-    
+
     /**
      * Write a random pattern to the grid
      *
@@ -191,7 +191,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
             int z = r.nextInt(d);
 
             cnt++;
-            grid.setState(x,y,z,Grid.EXTERIOR);
+            grid.setState(x,y,z,Grid.INSIDE);
         }
     }
 
@@ -231,10 +231,10 @@ public abstract class BaseGridDriver extends JapexDriverBase {
 
         TriangleModelCreator tmc = null;
         tmc = new TriangleModelCreator(geom, x, y, z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,solid);
+                rx,ry,rz,rangle,innerMaterial,solid);
 
         tmc.generate(grid);
-        //System.out.println("interior cnt: " + grid.findCount(Grid.VoxelClasses.INTERIOR) + " solid: " + solid);
+        //System.out.println("interior cnt: " + grid.findCount(Grid.VoxelClasses.INSIDE) + " solid: " + solid);
     }
 
     public static void writeLinkedCubes(Grid grid) {
@@ -367,7 +367,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
         int num = Math.round(grid.getWidth() * grid.getHeight() * grid.getDepth() * percent);
         int cnt = 0;
         int ext_cnt = 0;
-        
+
         while(cnt < num) {
             int x = r.nextInt(w);
             int y = r.nextInt(h);
@@ -375,8 +375,8 @@ public abstract class BaseGridDriver extends JapexDriverBase {
 
             cnt++;
             byte state = grid.getState(x,y,z);
-            
-            if (state == Grid.EXTERIOR) {
+
+            if (state == Grid.INSIDE) {
                 ext_cnt++;     // force compiler to execute paths
             }
         }
@@ -388,7 +388,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
      * @param grid
      */
     protected void readExterior(Grid grid) {
-        grid.find(Grid.VoxelClasses.EXTERIOR, new CountTraverser());
+        grid.find(Grid.VoxelClasses.INSIDE, new CountTraverser());
     }
 
     /**
@@ -397,7 +397,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
      * @param grid
      */
     protected void readInterior(Grid grid) {
-        grid.find(Grid.VoxelClasses.INTERIOR, new CountTraverser());
+        grid.find(Grid.VoxelClasses.INSIDE, new CountTraverser());
     }
 
     protected void clearMemory() {
@@ -406,8 +406,8 @@ public abstract class BaseGridDriver extends JapexDriverBase {
             try {
                 Thread.sleep(25);
             } catch(Exception e)  {}
-        }            
-        
+        }
+
     }
 
     /**
@@ -425,8 +425,8 @@ public abstract class BaseGridDriver extends JapexDriverBase {
             for(int x=0; x < width; x++) {
                 for(int z=0; z < depth; z++) {
                     byte state = grid.getState(x,y,z);
-                    
-                    if (state == Grid.EXTERIOR) {
+
+                    if (state == Grid.INSIDE) {
                         cnt++;
                     }
                 }
@@ -449,14 +449,14 @@ public abstract class BaseGridDriver extends JapexDriverBase {
                 for(int y=0; y < height; y++) {
                     byte state = grid.getState(x,y,z);
 
-                    if (state == Grid.EXTERIOR) {
+                    if (state == Grid.INSIDE) {
                         cnt++;
                     }
                 }
             }
         }
     }
-    
+
     private void copyGrid(Grid src, Grid dest) {
         int w = src.getWidth();
         int h = src.getHeight();
@@ -468,7 +468,7 @@ public abstract class BaseGridDriver extends JapexDriverBase {
                     dest.setState(x,y,z,src.getState(x,y,z));
                 }
             }
-        }            
+        }
     }
 }
 

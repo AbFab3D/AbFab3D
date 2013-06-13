@@ -12,14 +12,10 @@
 
 package abfab3d.grid.op;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
-import java.util.HashMap; 
-import java.util.Iterator;
-import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import abfab3d.grid.Grid;
@@ -27,19 +23,16 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
-import abfab3d.grid.VoxelStateSetter;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 
 import static abfab3d.grid.Grid.OUTSIDE;
-import static abfab3d.grid.Grid.INTERIOR;
 
 /**
- * Dilate an object with given custom shape. Multithreaded versioin 
+ * Dilate an object with given custom shape. Multithreaded version
  * 
  * 
  *  1) find surface voxels of the grid 
@@ -151,7 +144,6 @@ public class DilationShapeMT implements Operation, AttributeOperation {
             e.printStackTrace();
         }
         
-        //grid.find(Grid.VoxelClasses.INTERIOR, new SurfaceFinder(grid, surface));
         printf("surface: %d ms\n", (time()-t0));
         t0 = time();
 
@@ -185,8 +177,6 @@ public class DilationShapeMT implements Operation, AttributeOperation {
         }
         
 
-        //surface.find(Grid.VoxelClasses.INTERIOR, new ShapeDilater(grid, m_voxelShape, m_voxelChecker));
-        
         printf("dilation: %d ms\n", (time()-t0));
         
         surface.release();
@@ -243,7 +233,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
                     // end of processing 
                     break;
                 }
-                grid.find(Grid.VoxelClasses.INTERIOR, this, 0, m_nx-1, slice.ymin, slice.ymax);
+                grid.find(Grid.VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
             }
         }
             
@@ -321,7 +311,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
                 } else if(res == RESULT_OK){
 
                     //printf("%s: [%d,%d]\n", Thread.currentThread(), slice.ymin, slice.ymax);
-                    surface.find(Grid.VoxelClasses.INTERIOR, this, 0, m_nx-1, slice.ymin, slice.ymax); 
+                    surface.find(Grid.VoxelClasses.INSIDE, this, 0, m_nx-1, slice.ymin, slice.ymax);
 
                 } if(res == RESULT_BUSY){
                     try {Thread.sleep(1);} catch(Exception e){}
@@ -371,7 +361,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
                 int yy = y + iy; 
                 int zz = z + iz; 
                 if(xx >= 0 && xx < nx && yy >= 0 && yy < ny && zz >= 0 && zz < nz ){
-                    grid.setState(xx,yy,zz, Grid.INTERIOR);
+                    grid.setState(xx,yy,zz, Grid.INSIDE);
                 }                    
             }
         }        

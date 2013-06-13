@@ -15,11 +15,7 @@ package dla;
 // External Imports
 import java.io.*;
 import java.util.*;
-import javax.imageio.*;
-import javax.vecmath.Matrix4d;
-import java.awt.image.BufferedImage;
 
-import abfab3d.grid.query.RegionFinder;
 import abfab3d.io.output.*;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.*;
@@ -29,14 +25,11 @@ import org.web3d.vrml.sav.BinaryContentHandler;
 
 import abfab3d.geom.*;
 import abfab3d.grid.*;
-import abfab3d.grid.op.*;
 import abfab3d.creator.*;
 import abfab3d.creator.shapeways.*;
 
 //import java.awt.*;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
+
 
 /**
  * Geometry Kernel for the ImageEditor.
@@ -184,7 +177,7 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
 
 
         System.out.println("Initial Pos: " + (voxelsX / 2 - 1) + "," + (voxelsY / 2 - 1) + "," + (voxelsZ / 2 - 1));
-        grid.setState(voxelsX / 2 - 1, voxelsY / 2 - 1, 2, Grid.EXTERIOR);
+        grid.setState(voxelsX / 2 - 1, voxelsY / 2 - 1, 2, Grid.INSIDE);
 
         int iter = 10000;
 
@@ -285,12 +278,12 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
                 float r = rand.nextFloat();
                 if (r < prob) {
                     //System.out.println("New pos: " + pos[0] + "," + pos[1] + "," + pos[2]);
-                    grid.setState(pos[0],pos[1],pos[2], Grid.EXTERIOR);
+                    grid.setState(pos[0],pos[1],pos[2], Grid.INSIDE);
                     //System.out.println("Mirror pos: " + pos[0] + "," + ((grid.getHeight() ) - pos[1]) + "," + pos[2]);
-                    grid.setState(pos[0],grid.getHeight() - pos[1], pos[2], Grid.EXTERIOR);
+                    grid.setState(pos[0],grid.getHeight() - pos[1], pos[2], Grid.INSIDE);
 
-                    grid.setState(grid.getWidth() - pos[0],pos[1],pos[2], Grid.EXTERIOR);
-                    grid.setState(grid.getWidth() - pos[0],grid.getHeight() - pos[1], pos[2], Grid.EXTERIOR);
+                    grid.setState(grid.getWidth() - pos[0],pos[1],pos[2], Grid.INSIDE);
+                    grid.setState(grid.getWidth() - pos[0],grid.getHeight() - pos[1], pos[2], Grid.INSIDE);
                 }
                 return;
             }
@@ -742,13 +735,13 @@ System.out.println("Creating Regions Exporter");
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[] {0,1,0});
+        colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
+        colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 
         exporter.writeDebug(grid, colors, transparency);

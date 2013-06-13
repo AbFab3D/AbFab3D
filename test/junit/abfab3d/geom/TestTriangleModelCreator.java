@@ -90,7 +90,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         createCubeInGrid(grid, width, height, depth,
                 translateX, translateY, translateZ,
-                outerMaterial, innerMaterial,
+                innerMaterial,
                 GeometryData.TRIANGLES, true);
 
 //        generate(grid, "cube_IFVB.x3db");
@@ -100,22 +100,12 @@ public class TestTriangleModelCreator extends TestCase {
         int yVoxels = (int) Math.round(height / VERT_RESOLUTION);
         int zVoxels = (int) Math.round(depth / HORIZ_RESOLUTION);
 
-        int expectedExtCount = getCubeExteriorVoxelCount(xVoxels, yVoxels, zVoxels);
         int expectedIntCount = getCubeInteriorVoxelCount(xVoxels, yVoxels, zVoxels);
 
         // check exterior and interior voxel counts
-        assertEquals("Exterior count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(VoxelClasses.EXTERIOR));
-
-        assertEquals("Interior count is not " + expectedIntCount,
+        assertEquals("Inside count is not " + expectedIntCount,
                 expectedIntCount,
-                grid.findCount(VoxelClasses.INTERIOR));
-
-        // check outer and inner material counts
-        assertEquals("Outer material count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(outerMaterial));
+                grid.findCount(VoxelClasses.INSIDE));
 
         assertEquals("Inner material count is not " + expectedIntCount,
                 expectedIntCount,
@@ -123,7 +113,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         // check that the state and material is correct for each filled grid coordinate
         int cubeStartIndex = indexOffset;
-        checkCubeVoxelStates(grid, outerMaterial, innerMaterial,
+        checkCubeVoxelStates(grid, innerMaterial,
                 cubeStartIndex, cubeStartIndex, cubeStartIndex, xVoxels, yVoxels, zVoxels);
 
         //------------------------------------------------------
@@ -134,26 +124,17 @@ public class TestTriangleModelCreator extends TestCase {
 
         createCubeInGrid(grid, width, height, depth,
                 translateX, translateY, translateZ,
-                outerMaterial, innerMaterial,
+                innerMaterial,
                 GeometryData.TRIANGLES, false);
 
         // check exterior and interior voxel counts
-        assertEquals("Exterior count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(VoxelClasses.EXTERIOR));
-
-        assertEquals("Interior count is not 0",
-                0,
-                grid.findCount(VoxelClasses.INTERIOR));
+        assertTrue("Exterior count is not < full",
+                grid.findCount(VoxelClasses.INSIDE) < expectedIntCount
+                );
 
         // check outer and inner material counts
-        assertEquals("Outer material count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(outerMaterial));
-
-        assertEquals("Inner material count is not " + expectedIntCount,
-                0,
-                grid.findCount(innerMaterial));
+        assertTrue("Inner material count is not " + expectedIntCount,
+                grid.findCount(innerMaterial) < expectedIntCount);
 
     }
 
@@ -193,7 +174,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         createCubeInGrid(grid, width, height, depth,
                 translateX, translateY, translateZ,
-                outerMaterial, innerMaterial,
+                innerMaterial,
                 GeometryData.INDEXED_TRIANGLES, true);
 //        generate(grid, "cube_IFVB.x3db");
 //System.out.println("grid dimensions: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
@@ -202,30 +183,20 @@ public class TestTriangleModelCreator extends TestCase {
         int yVoxels = (int) Math.round(height / VERT_RESOLUTION);
         int zVoxels = (int) Math.round(depth / HORIZ_RESOLUTION);
 
-        int expectedExtCount = getCubeExteriorVoxelCount(xVoxels, yVoxels, zVoxels);
         int expectedIntCount = getCubeInteriorVoxelCount(xVoxels, yVoxels, zVoxels);
 
-        // check exterior and interior voxel counts
-        assertEquals("Exterior count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(VoxelClasses.EXTERIOR));
-
-        assertEquals("Interior count is not " + expectedIntCount,
+        assertEquals("Inside count is not " + expectedIntCount,
                 expectedIntCount,
-                grid.findCount(VoxelClasses.INTERIOR));
+                grid.findCount(VoxelClasses.INSIDE));
 
         // check outer and inner material counts
-        assertEquals("Outer material count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(outerMaterial));
-
         assertEquals("Inner material count is not " + expectedIntCount,
                 expectedIntCount,
                 grid.findCount(innerMaterial));
 
         // check that the state and material is correct for each filled grid coordinate
         int cubeStartIndex = indexOffset;
-        checkCubeVoxelStates(grid, outerMaterial, innerMaterial,
+        checkCubeVoxelStates(grid, innerMaterial,
                 cubeStartIndex, cubeStartIndex, cubeStartIndex, xVoxels, yVoxels, zVoxels);
 
         //------------------------------------------------------
@@ -236,26 +207,16 @@ public class TestTriangleModelCreator extends TestCase {
 
         createCubeInGrid(grid, width, height, depth,
                 translateX, translateY, translateZ,
-                outerMaterial, innerMaterial,
+                innerMaterial,
                 GeometryData.INDEXED_TRIANGLES, false);
 
         // check exterior and interior voxel counts
-        assertEquals("Exterior count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(VoxelClasses.EXTERIOR));
+        assertTrue("Exterior count is not ",
+                grid.findCount(VoxelClasses.INSIDE) < expectedIntCount
+                );
 
-        assertEquals("Interior count is not 0",
-                0,
-                grid.findCount(VoxelClasses.INTERIOR));
-
-        // check outer and inner material counts
-        assertEquals("Outer material count is not " + expectedExtCount,
-                expectedExtCount,
-                grid.findCount(outerMaterial));
-
-        assertEquals("Inner material count is not " + expectedIntCount,
-                0,
-                grid.findCount(innerMaterial));
+        assertTrue("Inner material count is not ",
+                grid.findCount(innerMaterial) < expectedIntCount);
     }
 
     /**
@@ -307,7 +268,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         createCubeInGrid(grid, width, height, depth,
                 translateX, translateY, translateZ,
-                outerMaterial1, innerMaterial1,
+                innerMaterial1,
                 GeometryData.TRIANGLES, true);
 
 //        generate(grid, "cube_IFVB.x3db");
@@ -344,49 +305,34 @@ public class TestTriangleModelCreator extends TestCase {
 
         createCubeInGrid(grid, width, height, depth,
                 translateX, translateY, translateZ,
-                outerMaterial2, innerMaterial2,
+                innerMaterial2,
                 GeometryData.TRIANGLES, true);
 
 //        generate(grid, "cube_IFVB2.x3db");
 
-        int expectedExtCount1 = getCubeExteriorVoxelCount(xVoxels1, yVoxels1, zVoxels1);
         int expectedIntCount1 = getCubeInteriorVoxelCount(xVoxels1, yVoxels1, zVoxels1);
-        int expectedExtCount2 = getCubeExteriorVoxelCount(xVoxels2, yVoxels2, zVoxels2);
         int expectedIntCount2 = getCubeInteriorVoxelCount(xVoxels2, yVoxels2, zVoxels2);
 
         // check exterior and interior voxel counts
-        assertEquals("Exterior count for both cubes is not " + expectedExtCount1 + expectedExtCount2,
-                expectedExtCount1 + expectedExtCount2,
-                grid.findCount(VoxelClasses.EXTERIOR));
-
         assertEquals("Interior count for both cubes is not " + expectedIntCount1 + expectedIntCount2,
                 expectedIntCount1 + expectedIntCount2,
-                grid.findCount(VoxelClasses.INTERIOR));
+                grid.findCount(VoxelClasses.INSIDE));
 
         // check outer and inner material counts for cube 1
-        assertEquals("Outer material count for cube 1 is not " + expectedExtCount1,
-                expectedExtCount1,
-                grid.findCount(outerMaterial1));
-
         assertEquals("Inner material count for cube 1 is not " + expectedIntCount1,
                 expectedIntCount1,
                 grid.findCount(innerMaterial1));
-
-        // check outer and inner material counts for cube 2
-        assertEquals("Outer material count for cube 2 is not " + expectedExtCount2,
-                expectedExtCount2,
-                grid.findCount(outerMaterial2));
 
         assertEquals("Inner material count for cube 2 is not " + expectedIntCount2,
                 expectedIntCount2,
                 grid.findCount(innerMaterial2));
 
         // check that the state and material is correct for each filled grid coordinate of cubes
-        checkCubeOnlyVoxelStates(grid, outerMaterial1, innerMaterial1,
+        checkCubeOnlyVoxelStates(grid, innerMaterial1,
                 indexOffset, indexOffset, indexOffset, xVoxels1, yVoxels1, zVoxels1);
 
 //System.out.println("xStartIndex2: " + xStartIndex2);
-        checkCubeOnlyVoxelStates(grid, outerMaterial2, innerMaterial2,
+        checkCubeOnlyVoxelStates(grid, innerMaterial2,
                 xStartIndex2, indexOffset, indexOffset, xVoxels2, yVoxels2, zVoxels2);
 
     }
@@ -520,14 +466,13 @@ public class TestTriangleModelCreator extends TestCase {
      * @param ir The inside radius of the torus
      * @param or The outside radius of the grid
      * @param facets The tessellation accuracy
-     * @param outerMaterial The outer material
      * @param innerMaterial The inner material
      * @param geomType The geometry type to use
      * @param fill Should the interior be filled or just a shell
      * @return The grid containing the cube
      */
     private static AttributeGrid createTorusInGrid(float ir, float or, int facets,
-            byte outerMaterial, byte innerMaterial, int geomType, boolean fill) {
+            byte innerMaterial, int geomType, boolean fill) {
 
         TorusGenerator tg = new TorusGenerator(ir, or, facets, facets);
         GeometryData geom = new GeometryData();
@@ -552,7 +497,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         TriangleModelCreator tmc = null;
         tmc = new TriangleModelCreator(geom, x, y, z,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,fill);
+            rx,ry,rz,rangle,innerMaterial,fill);
 
         tmc.generate(grid);
 
@@ -565,13 +510,12 @@ public class TestTriangleModelCreator extends TestCase {
      * @param cWidth The width of the cube
      * @param cHeight The height of the cube
      * @param cDepth The depth of the cube
-     * @param outerMaterial The outer material
      * @param innerMaterial The inner material
      * @return The grid containing the cube
      */
     private static void createCubeInGrid(AttributeGrid grid, float cWidth, float cHeight, float cDepth,
             double translateX, double translateY, double translateZ,
-            byte outerMaterial, byte innerMaterial, int geomType, boolean fill) {
+            byte innerMaterial, int geomType, boolean fill) {
 
         BoxGenerator bg = new BoxGenerator(cWidth, cHeight, cDepth);
         GeometryData geom = new GeometryData();
@@ -585,7 +529,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         TriangleModelCreator tmc = null;
         tmc = new TriangleModelCreator(geom,translateX+bounds,translateY+bounds,translateZ+bounds,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,fill);
+            rx,ry,rz,rangle,innerMaterial,fill);
 
         tmc.generate(grid);
     }
@@ -623,7 +567,7 @@ public class TestTriangleModelCreator extends TestCase {
 
         TriangleModelCreator tmc = null;
         tmc = new TriangleModelCreator(geom, translateX+bounds, translateY+bounds, translatZ+bounds,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,true);
+            rx,ry,rz,rangle,innerMaterial,true);
 
         tmc.generate(grid);
 
@@ -640,12 +584,12 @@ public class TestTriangleModelCreator extends TestCase {
      * @param yVoxels The number of cube voxels in the y axis
      * @param zVoxels The number of cube voxels in the z axis
      */
-    private void checkCubeVoxelStates(AttributeGrid grid, int outerMaterial, int innerMaterial,
+    private void checkCubeVoxelStates(AttributeGrid grid, int innerMaterial,
             int xStartIndex, int yStartIndex, int zStartIndex,
             int xVoxels, int yVoxels, int zVoxels) {
 
-//System.out.println("cube interior count: " + grid.findCount(VoxelClasses.INTERIOR));
-//System.out.println("cube exterior count: " + grid.findCount(VoxelClasses.EXTERIOR));
+//System.out.println("cube interior count: " + grid.findCount(VoxelClasses.INSIDE));
+//System.out.println("cube exterior count: " + grid.findCount(VoxelClasses.INSIDE));
 
         int xEndIndex = xStartIndex + xVoxels - 1;
         int yEndIndex = yStartIndex + yVoxels - 1;
@@ -678,17 +622,14 @@ public class TestTriangleModelCreator extends TestCase {
                          (z == (zEndIndex) && (x >= xStartIndex && x <= xEndIndex) && (y >= yStartIndex && y <= yEndIndex) ) ) {
 
                         assertEquals("State is not exterior for grid: " + x + ", " + y + ", " + z,
-                                Grid.EXTERIOR, grid.getState(x, y, z));
-
-                        assertEquals("Outer material is not " + outerMaterial + " for grid: " + x + ", " + y + ", " + z,
-                                outerMaterial, grid.getAttribute(x, y, z));
+                                Grid.INSIDE, grid.getState(x, y, z));
 
                     } else if (x > xStartIndex && x < (xEndIndex) &&
                                y > yStartIndex && y < (yEndIndex) &&
                                z > zStartIndex && z < (zEndIndex)) {
 
                         assertEquals("State is not interior for grid: " + x + ", " + y + ", " + z,
-                                Grid.INTERIOR, grid.getState(x, y, z));
+                                Grid.INSIDE, grid.getState(x, y, z));
 
                         assertEquals("Inner material is not " + innerMaterial + " for grid: " + x + ", " + y + ", " + z,
                                 innerMaterial, grid.getAttribute(x, y, z));
@@ -712,7 +653,7 @@ public class TestTriangleModelCreator extends TestCase {
      * @param yVoxels The number of cube voxels in the y axis
      * @param zVoxels The number of cube voxels in the z axis
      */
-    private void checkCubeOnlyVoxelStates(AttributeGrid grid, int outerMaterial, int innerMaterial,
+    private void checkCubeOnlyVoxelStates(AttributeGrid grid, int innerMaterial,
             int xStartIndex, int yStartIndex, int zStartIndex,
             int xVoxels, int yVoxels, int zVoxels) {
 
@@ -747,17 +688,14 @@ public class TestTriangleModelCreator extends TestCase {
                          (z == (zEndIndex) && (x >= xStartIndex && x <= xEndIndex) && (y >= yStartIndex && y <= yEndIndex) ) ) {
 
                         assertEquals("State is not exterior for grid: " + x + ", " + y + ", " + z,
-                                Grid.EXTERIOR, grid.getState(x, y, z));
-
-                        assertEquals("Outer material is not " + outerMaterial + " for grid: " + x + ", " + y + ", " + z,
-                                outerMaterial, grid.getAttribute(x, y, z));
+                                Grid.INSIDE, grid.getState(x, y, z));
 
                     } else if (x > xStartIndex && x < (xEndIndex) &&
                                y > yStartIndex && y < (yEndIndex) &&
                                z > zStartIndex && z < (zEndIndex)) {
 
                         assertEquals("State is not interior for grid: " + x + ", " + y + ", " + z,
-                                Grid.INTERIOR, grid.getState(x, y, z));
+                                Grid.INSIDE, grid.getState(x, y, z));
 
                         assertEquals("Inner material is not " + innerMaterial + " for grid: " + x + ", " + y + ", " + z,
                                 innerMaterial, grid.getAttribute(x, y, z));
@@ -806,28 +744,26 @@ public class TestTriangleModelCreator extends TestCase {
                 state = grid.getState(x, midHeight, z);
 //System.out.println(x + ", " + midHeight + ", " + z + ": " + state);
 
-                if (state == Grid.EXTERIOR) {
+                if (state == Grid.INSIDE) {
                     exteriorPerSlice++;
 
                     if (inside) {
                         inside = false;
                     } else {
-                        if (z < (gridDepth - 1) && grid.getState(x, midHeight, z+1) == Grid.INTERIOR) {
+                        if (z < (gridDepth - 1) && grid.getState(x, midHeight, z+1) == Grid.INSIDE) {
                             inside = true;
                         }
                     }
 
                     continue;
-                } else if (state == Grid.INTERIOR) {
-                    interiorPerSlice++;
                 }
 
                 if (inside) {
-                    assertEquals("State is not INTERIOR for: " + x + ", " + midHeight + ", " + z,
-                            Grid.INTERIOR, state);
+                    assertEquals("State is not INSIDE for: " + x + ", " + midHeight + ", " + z,
+                            Grid.INSIDE, state);
                 } else {
-                    assertFalse("State is INTERIOR for: " + x + ", " + midHeight + ", " + z,
-                            state == Grid.INTERIOR);
+                    assertFalse("State is INSIDE for: " + x + ", " + midHeight + ", " + z,
+                            state == Grid.INSIDE);
                 }
             }
 
@@ -843,19 +779,12 @@ public class TestTriangleModelCreator extends TestCase {
 
         int expectedInteriorCount = interiorPerSlice * (heightInVoxels - 2);
         int expectedExteriorCount = exteriorPerSlice * heightInVoxels + 2 * interiorPerSlice;
-        int expectedOutMatCount = expectedExteriorCount;
-        int expectedInMatCount = expectedInteriorCount;
+        int expectedInMatCount = expectedInteriorCount + expectedExteriorCount;
 
-        assertEquals("Exterior count is not " + expectedExteriorCount,
-                expectedExteriorCount, grid.findCount(VoxelClasses.EXTERIOR));
+        assertEquals("Inside count is not " + expectedExteriorCount + expectedInteriorCount,
+                expectedExteriorCount + expectedInteriorCount, grid.findCount(VoxelClasses.INSIDE));
 
-        assertEquals("Interior count is not " + expectedInteriorCount,
-                expectedInteriorCount, grid.findCount(VoxelClasses.INTERIOR));
-
-        assertEquals("Outer material count is not " + expectedOutMatCount,
-                expectedOutMatCount, grid.findCount(outerMaterial));
-
-        assertEquals("Outer material count is not " + expectedInMatCount,
+        assertEquals("Inside material count is not " + expectedInMatCount,
                 expectedInMatCount, grid.findCount(innerMaterial));
     }
 
@@ -877,11 +806,11 @@ public class TestTriangleModelCreator extends TestCase {
                     state = grid.getState(x, y, z);
 //System.out.println(x + ", " + y + ", " + z + ": " + state);
 
-                    if (state == Grid.EXTERIOR) {
+                    if (state == Grid.INSIDE) {
                         if (inside) {
                             inside = false;
                         } else {
-                            if (x < (gridWidth - 1) && grid.getState(x+1, y, z) == Grid.INTERIOR) {
+                            if (x < (gridWidth - 1) && grid.getState(x+1, y, z) == Grid.INSIDE) {
                                 inside = true;
                             }
                         }
@@ -890,11 +819,11 @@ public class TestTriangleModelCreator extends TestCase {
                     }
 
                     if (inside) {
-                        assertEquals("State is not INTERIOR for: " + x + ", " + y + ", " + z,
-                                Grid.INTERIOR, state);
+                        assertEquals("State is not INSIDE for: " + x + ", " + y + ", " + z,
+                                Grid.INSIDE, state);
                     } else {
-                        assertFalse("State is INTERIOR for: " + x + ", " + y + ", " + z,
-                                state == Grid.INTERIOR);
+                        assertFalse("State is INSIDE for: " + x + ", " + y + ", " + z,
+                                state == Grid.INSIDE);
                     }
                 }
 
@@ -936,27 +865,6 @@ public class TestTriangleModelCreator extends TestCase {
     }
 
     /**
-     * Get the total number of exterior voxels of a cube.
-     *
-     * @param xVoxels Number of voxels in the x direction
-     * @param yVoxels Number of voxels in the y direction
-     * @param zVoxels Number of voxels in the z direction
-     * @return The number of exterior voxels of the cube
-     */
-    private int getCubeExteriorVoxelCount(int xVoxels, int yVoxels, int zVoxels) {
-        // expected number of exterior voxels should be the following formula:
-        //   (exteriorVoxels per face in XY plane * 2) +
-        //   (exteriorVoxels per face in XZ plane * 2) +
-        //   (exteriorVoxels per face in YZ plane * 2) -
-        //   (numEdges in X dir * gridWidth) -
-        //   (numEdges in Y dir * gridHeight) -
-        //   (numEdges in Z dir * gridDepth) +
-        //   (number of corners)
-        return (xVoxels * yVoxels * 2) + (xVoxels * zVoxels * 2) + (yVoxels * zVoxels * 2) -
-               (4 * xVoxels) - (4 * yVoxels) - (4 * zVoxels) + 8;
-    }
-
-    /**
      * Get the total number of interior voxels of a cube.
      *
      * @param xVoxels Number of voxels in the x direction
@@ -965,7 +873,8 @@ public class TestTriangleModelCreator extends TestCase {
      * @return The number of interior voxels of the cube
      */
     private int getCubeInteriorVoxelCount(int xVoxels, int yVoxels, int zVoxels) {
-        return (xVoxels - 2) * (yVoxels - 2) * (xVoxels - 2);
+        return (xVoxels - 2) * (yVoxels - 2) * (xVoxels - 2) + (xVoxels * yVoxels * 2) + (xVoxels * zVoxels * 2) + (yVoxels * zVoxels * 2) -
+                (4 * xVoxels) - (4 * yVoxels) - (4 * zVoxels) + 8;
     }
 
     /**
@@ -994,11 +903,11 @@ public class TestTriangleModelCreator extends TestCase {
 
                     if (state == Grid.OUTSIDE) {
                         temp = temp + x + " " + y + " " + z + ": OUTSIDE\n";
-                    } else if (state == Grid.EXTERIOR) {
+                    } else if (state == Grid.INSIDE) {
                         temp = temp + x + " " + y + " " + z + ": =>EXTERIOR\n";
                         rowHasState = true;
-                    } else if (state == Grid.INTERIOR) {
-                        temp = temp + x + " " + y + " " + z + ": ==>INTERIOR\n";
+                    } else if (state == Grid.INSIDE) {
+                        temp = temp + x + " " + y + " " + z + ": ==>INSIDE\n";
                         rowHasState = true;
                     }
                 }
@@ -1027,7 +936,7 @@ public class TestTriangleModelCreator extends TestCase {
             byte outerMaterial = 1;
             byte innerMaterial = 2;
 
-            AttributeGrid grid = createTorusInGrid(ir, or, facets, outerMaterial, innerMaterial,
+            AttributeGrid grid = createTorusInGrid(ir, or, facets, innerMaterial,
                     GeometryData.TRIANGLES, true);
 
             FileOutputStream fos = new FileOutputStream(filename);
@@ -1035,13 +944,13 @@ public class TestTriangleModelCreator extends TestCase {
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
             colors.put(new Integer(Grid.OUTSIDE), new float[] {0,1,1});
 
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
             transparency.put(new Integer(Grid.OUTSIDE), new Float(1));
 
 //            exporter.write(grid, null);
@@ -1072,13 +981,13 @@ public class TestTriangleModelCreator extends TestCase {
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
             colors.put(new Integer(Grid.OUTSIDE), new float[] {0,1,1});
 
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-            transparency.put(new Integer(Grid.INTERIOR), new Float(0.0));
-            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0.0));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
             transparency.put(new Integer(Grid.OUTSIDE), new Float(0.9));
 
             exporter.writeDebug(grid, colors, transparency);

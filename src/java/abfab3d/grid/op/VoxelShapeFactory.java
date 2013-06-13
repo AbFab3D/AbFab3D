@@ -25,12 +25,12 @@ public class VoxelShapeFactory {
     */
     public static VoxelShape get6neighbors(){
 
-        int shape[] = new int[]{1,0,0, 
-                                    -1,0,0, 
-                                    0,1,0,
-                                    0,-1,0,
-                                    0,0,1,
-                                    0,0,-1
+        int shape[] = new int[]{1, 0, 0,
+                               -1, 0, 0,
+                                0, 1, 0,
+                                0,-1, 0,
+                                0, 0, 1,
+                                0, 0,-1
         };
 
         return new VoxelShapeBase(shape);

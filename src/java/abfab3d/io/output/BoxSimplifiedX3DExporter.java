@@ -104,11 +104,12 @@ public class BoxSimplifiedX3DExporter implements Exporter {
      * @param matColors Maps materials to colors.  4 component color
      */
     public void write(Grid grid, Map<Long, float[]> matColors) {
-
+/*
         if (grid instanceof OctreeAttributeGridByte) {
             ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
             return;
         }
+*/
 /*
         // TODO: Not sure its nice to change the real grid, make a copy?
         System.out.println("Fixing grid");
@@ -132,13 +133,13 @@ public class BoxSimplifiedX3DExporter implements Exporter {
 
         if (dest != null) {
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
             //colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
             HashMap<Integer, Float> transp = new HashMap<Integer, Float>();
-            transp.put(new Integer(Grid.INTERIOR), new Float(0));
-            transp.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transp.put(new Integer(Grid.INSIDE), new Float(0));
+            transp.put(new Integer(Grid.INSIDE), new Float(0.5));
     //        transp.put(new Integer(Grid.OUTSIDE), new Float(0.95));
 
             try {
@@ -425,26 +426,15 @@ System.out.println("no color for: " + mat);
             outputState(grid, writer, Grid.OUTSIDE, color, trans);
         }
 
-        color = stateColors.get(new Integer(Grid.EXTERIOR));
-        transF = stateTransparency.get(new Integer(Grid.EXTERIOR));
+        color = stateColors.get(new Integer(Grid.INSIDE));
+        transF = stateTransparency.get(new Integer(Grid.INSIDE));
         trans = 1;
 
         if (color != null) {
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, writer, Grid.EXTERIOR, color, trans);
-        }
-
-        color = stateColors.get(new Integer(Grid.INTERIOR));
-        transF = stateTransparency.get(new Integer(Grid.INTERIOR));
-        trans = 1;
-
-        if (color != null) {
-            if (transF != null) {
-                trans = transF;
-            }
-            outputState(grid, writer, Grid.INTERIOR, color, trans);
+            outputState(grid, writer, Grid.INSIDE, color, trans);
         }
 
         // End Centering Transform

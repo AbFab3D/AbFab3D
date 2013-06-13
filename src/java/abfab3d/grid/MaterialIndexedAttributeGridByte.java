@@ -452,7 +452,7 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
         if (vc == VoxelClasses.ALL) {
             return width * height * depth;
         } else if (vc == VoxelClasses.OUTSIDE) {
-            int all = width * height * depth - findCount(VoxelClasses.MARKED);
+            int all = width * height * depth - findCount(VoxelClasses.INSIDE);
 
             return all;
         }
@@ -469,21 +469,9 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
                 Voxel v = itr2.next();
 
                 switch(vc) {
-                    case MARKED:
+                    case INSIDE:
                         state = v.getData().getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            ret_val++;
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.EXTERIOR) {
-                            ret_val++;
-                        }
-                        break;
-                    case INTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             ret_val++;
                         }
                         break;
@@ -576,29 +564,9 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
 
 
             switch(vc) {
-                case MARKED:
+                case INSIDE:
                     state = vd.getState();
-                    if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                        x = vcoord.getX();
-                        y = vcoord.getY();
-                        z = vcoord.getZ();
-
-                        t.found(x,y,z,vd);
-                    }
-                    break;
-                case EXTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.EXTERIOR) {
-                        x = vcoord.getX();
-                        y = vcoord.getY();
-                        z = vcoord.getZ();
-
-                        t.found(x,y,z,vd);
-                    }
-                    break;
-                case INTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.INTERIOR) {
+                    if (state == Grid.INSIDE) {
                         x = vcoord.getX();
                         y = vcoord.getY();
                         z = vcoord.getZ();
@@ -698,21 +666,9 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
                     case ALL:
                         t.found(x,y,z,v.getData().getState());
                         break;
-                    case MARKED:
+                    case INSIDE:
                         state = v.getData().getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(x,y,z,state);
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.EXTERIOR) {
-                            t.found(x,y,z,state);
-                        }
-                        break;
-                    case INTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             t.found(x,y,z,state);
                         }
                         break;
@@ -785,21 +741,9 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
                     case ALL:
                         t.found(x,y,z,v.getData());
                         break;
-                    case MARKED:
+                    case INSIDE:
                         state = v.getData().getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(x,y,z,v.getData());
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.EXTERIOR) {
-                            t.found(x,y,z,v.getData());
-                        }
-                        break;
-                    case INTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             t.found(x,y,z,v.getData());
                         }
                         break;
@@ -848,25 +792,9 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
             int z = vcoord.getZ();
 
             switch(vc) {
-                case MARKED:
+                case INSIDE:
                     state = vd.getState();
-                    if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                        if (!t.foundInterruptible(x,y,z,vd)) {
-                            break rloop;
-                        }
-                    }
-                    break;
-                case EXTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.EXTERIOR) {
-                        if (!t.foundInterruptible(x,y,z,vd)) {
-                            break rloop;
-                        }
-                    }
-                    break;
-                case INTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.INTERIOR) {
+                    if (state == Grid.INSIDE) {
                         if (!t.foundInterruptible(x,y,z,vd)) {
                             break rloop;
                         }
@@ -944,25 +872,9 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
                     case ALL:
                         t.found(x,y,z,v.getData());
                         break;
-                    case MARKED:
+                    case INSIDE:
                         state = v.getData().getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(x,y,z,v.getData())) {
-                                break loop;
-                            }
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.EXTERIOR) {
-                            if (!t.foundInterruptible(x,y,z,v.getData())) {
-                                break loop;
-                            }
-                        }
-                        break;
-                    case INTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             if (!t.foundInterruptible(x,y,z,v.getData())) {
                                 break loop;
                             }
@@ -1011,25 +923,9 @@ public class MaterialIndexedAttributeGridByte extends BaseAttributeGrid {
                     case ALL:
                         t.found(x,y,z,v.getData().getState());
                         break;
-                    case MARKED:
+                    case INSIDE:
                         state = v.getData().getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(x,y,z,state)) {
-                                break loop;
-                            }
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.EXTERIOR) {
-                            if (!t.foundInterruptible(x,y,z,state)) {
-                                break loop;
-                            }
-                        }
-                        break;
-                    case INTERIOR:
-                        state = v.getData().getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             if (!t.foundInterruptible(x,y,z,state)) {
                                 break loop;
                             }

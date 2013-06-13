@@ -13,12 +13,9 @@
 package abfab3d.geom;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.DualWrapper;
-import org.web3d.vrml.sav.ContentHandler;
 
 // Internal Imports
 import abfab3d.grid.Grid;
@@ -94,7 +91,7 @@ public class SphereCreator extends GeometryCreator {
         } else {
             wrapper = new DualWrapper(grid);
         }
-        
+
         // Wall all grid points and check implicit equations points = 0
         // f(x,y,z) = (or - sqrt(x^2 + y^2)) ^ 2 + z^2 - ir^2
 
@@ -118,14 +115,14 @@ System.out.println("Generating Sphere: " + x0 + " y: " + y0 + " z: " + z0 + " r:
 
 
                     if (surface(wcoords[0],wcoords[1],wcoords[2])) {
-                        wrapper.setData(i,j,k,Grid.EXTERIOR, outerMaterial);
+                        wrapper.setData(i,j,k,Grid.INSIDE, outerMaterial);
                     } else if (inside(wcoords[0],wcoords[1],wcoords[2])) {
-                        wrapper.setData(i,j,k,Grid.INTERIOR, innerMaterial);
+                        wrapper.setData(i,j,k,Grid.INSIDE, innerMaterial);
                     }
 
 /*
                     if (inside(wcoords[0],wcoords[1],wcoords[2])) {
-                        wrapper.setData(i,j,k,Grid.EXTERIOR, outerMaterial);
+                        wrapper.setData(i,j,k,Grid.INSIDE, outerMaterial);
                     }
 */
                 }

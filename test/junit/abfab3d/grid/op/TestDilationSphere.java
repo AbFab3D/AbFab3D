@@ -56,7 +56,7 @@ public class TestDilationSphere extends BaseTestAttributeGrid {
 
         for (int y=2; y<8; y++) {
             for (int z=2; z<8; z++) {
-                setX(grid, y, z, Grid.INTERIOR, 1, 2, 7);
+                setX(grid, y, z, Grid.INSIDE, 1, 2, 7);
             }
         }
 
@@ -105,7 +105,7 @@ public class TestDilationSphere extends BaseTestAttributeGrid {
 
         for (int y=5; y<6; y++) {
             for (int z=5; z<6; z++) {
-                setX(grid, y, z, Grid.INTERIOR, 1, 0, size-1);
+                setX(grid, y, z, Grid.INSIDE, 1, 0, size-1);
             }
         }
 
@@ -156,14 +156,14 @@ public class TestDilationSphere extends BaseTestAttributeGrid {
         // left cube
         for (int y=0; y<size; y++) {
             for (int z=0; z<size; z++) {
-                setX(grid, y, z, Grid.INTERIOR, 1, 0, 4);
+                setX(grid, y, z, Grid.INSIDE, 1, 0, 4);
             }
         }
 
         // right cube
         for (int y=0; y<size; y++) {
             for (int z=0; z<size; z++) {
-                setX(grid, y, z, Grid.INTERIOR, 1, 15, size-1);
+                setX(grid, y, z, Grid.INSIDE, 1, 15, size-1);
             }
         }
 
@@ -174,7 +174,7 @@ public class TestDilationSphere extends BaseTestAttributeGrid {
 
         for (int y=bridgeHeight; y<bridgeHeight+bridgeThickness; y++) {
             for (int z=bridgeDepth; z<bridgeDepth+bridgeThickness; z++) {
-                setX(grid, y, z, Grid.INTERIOR, 1, 4, 15);
+                setX(grid, y, z, Grid.INSIDE, 1, 4, 15);
             }
         }
 
@@ -277,13 +277,13 @@ public class TestDilationSphere extends BaseTestAttributeGrid {
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
             colors.put(new Integer(Grid.OUTSIDE), new float[] {0,1,1});
 
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
             transparency.put(new Integer(Grid.OUTSIDE), new Float(0.8));
 
             exporter.writeDebug(grid, colors, transparency);

@@ -12,14 +12,7 @@
 
 package abfab3d.io.input;
 
-import java.io.IOException;
 
-import java.io.DataInputStream;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-
-
-import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
 
 import abfab3d.geom.ZBuffer;
@@ -27,8 +20,7 @@ import abfab3d.util.TriangleCollector;
 
 import abfab3d.grid.Grid;
 
-import static java.lang.System.currentTimeMillis;
-import static abfab3d.util.Output.printf; 
+import static abfab3d.util.Output.printf;
 
 
 /**
@@ -180,7 +172,7 @@ public class MeshRasterizer implements TriangleCollector {
         int z = 0;
         try {
             for(z = z2; z >= z1; z--){
-                grid.setState(x, y, z, Grid.INTERIOR);
+                grid.setState(x, y, z, Grid.INSIDE);
             }         
         } catch(Exception e){
             if(exceptionCount > 0){

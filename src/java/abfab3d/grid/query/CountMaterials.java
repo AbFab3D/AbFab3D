@@ -45,7 +45,7 @@ public class CountMaterials implements ClassAttributeTraverser {
     public Map<Long,Integer> execute(Grid grid) {
         seen = new HashMap<Long,Integer>();
 
-        ((AttributeGrid)grid).findAttribute(VoxelClasses.MARKED,this);
+        ((AttributeGrid)grid).findAttribute(VoxelClasses.INSIDE,this);
 
         return seen;
     }

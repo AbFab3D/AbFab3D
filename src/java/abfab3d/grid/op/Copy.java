@@ -21,29 +21,37 @@ import abfab3d.grid.*;
  * Copy a grid to another grid.  Assumes the grid fits into the
  * destination.
  *
- * TODO: Optimize using iterator for MARKED only copies
+ * TODO: Optimize using iterator for INSIDE only copies
  * TODO: Add a param for wether to copy outside.  Really just a union then
  *
  * @author Alan Hudson
  */
-public class Copy implements Operation, AttributeOperation {
+public class Copy implements Operation, AttributeOperation, ClassTraverser, ClassAttributeTraverser {
     /** The x location */
-    private int x;
+    private int x0;
 
     /** The y location */
-    private int y;
+    private int y0;
 
     /** The z location */
-    private int z;
+    private int z0;
 
     /** The src grid */
     private Grid src;
 
+    /** The dest grid */
+    private Grid destGrid;
+    private AttributeGrid destGridAtt;
+
     public Copy(Grid src, int x, int y, int z) {
         this.src = src;
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        this.x0 = x;
+        this.y0 = y;
+        this.z0 = z;
+    }
+
+    public Copy(Grid src) {
+        this.src = src;
     }
 
     /**
@@ -54,30 +62,10 @@ public class Copy implements Operation, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid execute(AttributeGrid dest) {
-        int width = src.getWidth();
-        int height = src.getHeight();
-        int depth = src.getDepth();
+        destGridAtt = dest;
+        ((AttributeGrid)src).findAttribute(Grid.VoxelClasses.INSIDE, this);
 
-        int origin_x = x;
-        int origin_y = y;
-        int origin_z = z;
-        VoxelData vd = dest.getVoxelData();
-
-
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
-                for(int z=0; z < depth; z++) {
-                    dest.getData(x,y,z,vd);
-
-                    if (vd.getState() != Grid.OUTSIDE) {
-                        // TODO: really only works on empty
-                        dest.setData(origin_x + x, origin_y + y, origin_z + z,
-                            vd.getState(), vd.getMaterial());
-                    }
-                }
-            }
-        }
-
+        destGridAtt = null;
         return dest;
     }
 
@@ -89,29 +77,37 @@ public class Copy implements Operation, AttributeOperation {
      * @return The new grid
      */
     public Grid execute(Grid dest) {
-        int width = src.getWidth();
-        int height = src.getHeight();
-        int depth = src.getDepth();
+        destGrid = dest;
+        src.find(Grid.VoxelClasses.INSIDE, this);
 
-        int origin_x = x;
-        int origin_y = y;
-        int origin_z = z;
-        byte vd;
-
-        for(int x=0; x < width; x++) {
-            for(int y=0; y < height; y++) {
-                for(int z=0; z < depth; z++) {
-                    vd = src.getState(x,y,z);
-
-                    if (vd != Grid.OUTSIDE) {
-                        // TODO: really only works on empty
-                        dest.setState(origin_x + x, origin_y + y, origin_z + z,
-                                vd);
-                    }
-                }
-            }
-        }
-
+        destGrid = null;
         return dest;
+    }
+
+    @Override
+    public void found(int x, int y, int z, VoxelData vd) {
+        if (vd.getState() != Grid.OUTSIDE) {
+            destGridAtt.setData(x0 + x, y0 + y, z0 + z,
+                    vd.getState(), vd.getMaterial());
+        }
+    }
+
+    @Override
+    public boolean foundInterruptible(int x, int y, int z, VoxelData vd) {
+        // not used
+        return true;
+    }
+
+    @Override
+    public void found(int x, int y, int z, byte state) {
+        if (state != Grid.OUTSIDE) {
+            destGrid.setState(x0 + x, y0 + y, z0 + z, state);
+        }
+    }
+
+    @Override
+    public boolean foundInterruptible(int x, int y, int z, byte state) {
+        // not used
+        return false;
     }
 }

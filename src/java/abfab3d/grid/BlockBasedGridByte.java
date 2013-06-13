@@ -484,18 +484,8 @@ public class BlockBasedGridByte extends BaseGrid {
                     case ALL:
                         t.found(coord[0],coord[1],coord[2],state);
                         break;
-                    case MARKED:
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],state);
-                        }
-                        break;
-                    case EXTERIOR:
-                        if (state == Grid.EXTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],state);
-                        }
-                        break;
-                    case INTERIOR:
-                        if (state == Grid.INTERIOR) {
+                    case INSIDE:
+                        if (state == Grid.INSIDE) {
                             t.found(coord[0],coord[1],coord[2],state);
                         }
                         break;
@@ -544,20 +534,8 @@ public class BlockBasedGridByte extends BaseGrid {
                         if(!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                             break loop;
                         break;
-                    case MARKED:
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
-                                break loop;
-                        }
-                        break;
-                    case EXTERIOR:
-                        if (state == Grid.EXTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
-                                break loop;
-                        }
-                        break;
-                    case INTERIOR:
-                        if (state == Grid.INTERIOR) {
+                    case INSIDE:
+                        if (state == Grid.INSIDE) {
                             if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                                 break loop;
                         }

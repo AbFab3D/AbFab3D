@@ -18,7 +18,7 @@ package abfab3d.grid.op;
 import abfab3d.grid.*;
 
 /**
- * Trim a grid to its smallest size based on where MARKED voxels are.
+ * Trim a grid to its smallest size based on where INSIDE voxels are.
  *
  * @author Alan Hudson
  */

@@ -113,7 +113,6 @@ public class VoxelCoordinate implements Cloneable, Comparable {
         long v1 = vc1.getX() * MAX_VOXELS_SQ + vc1.getY() * MAX_VOXELS + vc1.getZ();
         long v2 = vc2.getX() * MAX_VOXELS_SQ + vc2.getY() * MAX_VOXELS + vc2.getZ();
         
-System.out.println(this + " to: " + o2 + " v1: " + v1 + " v2: " + v2);
         return ((v1 < v2) ? -1 : ((v1 == v2) ? 0 : 1));
 /*        
         if (vc1.getX() < vc2.getX()) {

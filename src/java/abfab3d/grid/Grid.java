@@ -30,17 +30,11 @@ public interface Grid extends Cloneable {
     // The voxel is outside any object
     public static final byte OUTSIDE = 0;
 
-    // The voxel is an exterior voxel
-    public static final byte EXTERIOR = 1;
-
     // The voxel is an interior voxel
-    public static final byte INTERIOR = 2;
+    public static final byte INSIDE = 1;
 
-    // The voxel is a user defined state.  Consider it outside if its not your value.
-    public static final byte USER_DEFINED = 3;
-
-    // Marked is EXTERIOR | INTERIOR
-    public enum VoxelClasses {ALL, MARKED, EXTERIOR, INTERIOR, OUTSIDE};
+    // Classes of voxels
+    public enum VoxelClasses {ALL, INSIDE, OUTSIDE};
 
     /** The value for a voxel with no specified material */
     public static final int NO_MATERIAL = 0;

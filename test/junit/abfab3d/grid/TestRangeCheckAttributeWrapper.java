@@ -122,42 +122,42 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         // Invalid setData
         //-------------------------------------------------------
         try {
-            wrapper.setData(-1,0,0, Grid.EXTERIOR, mat);
+            wrapper.setData(-1,0,0, Grid.INSIDE, mat);
             fail("Negative width voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(width,0,0, Grid.EXTERIOR, mat);
+            wrapper.setData(width,0,0, Grid.INSIDE, mat);
             fail("Voxel coord greater than width-1 should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,-1,0, Grid.EXTERIOR, mat);
+            wrapper.setData(0,-1,0, Grid.INSIDE, mat);
             fail("Negative height voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,height,0, Grid.EXTERIOR, mat);
+            wrapper.setData(0,height,0, Grid.INSIDE, mat);
             fail("Voxel coord greater than height-1 should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,0,-1, Grid.EXTERIOR, mat);
+            wrapper.setData(0,0,-1, Grid.INSIDE, mat);
             fail("Negative depth voxel coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,0,depth, Grid.EXTERIOR, mat);
+            wrapper.setData(0,0,depth, Grid.INSIDE, mat);
             fail("Voxel coord greater than depth-1 should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
@@ -207,26 +207,26 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         //-------------------------------------------------------
         // Valid setData and getData
         //-------------------------------------------------------
-        wrapper.setData(0,0,0, Grid.EXTERIOR, mat);
-        wrapper.setData(width-1,0,0, Grid.EXTERIOR, mat);
-        wrapper.setData(0,height-1,0, Grid.EXTERIOR, mat);
-        wrapper.setData(0,0,depth-1, Grid.EXTERIOR, mat);
-        wrapper.setData(width-1,height-1,depth-1, Grid.EXTERIOR, mat);
+        wrapper.setData(0,0,0, Grid.INSIDE, mat);
+        wrapper.setData(width-1,0,0, Grid.INSIDE, mat);
+        wrapper.setData(0,height-1,0, Grid.INSIDE, mat);
+        wrapper.setData(0,0,depth-1, Grid.INSIDE, mat);
+        wrapper.setData(width-1,height-1,depth-1, Grid.INSIDE, mat);
 
         wrapper.getData(0,0,0,vd);
-        assertTrue("Voxel [0,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("Voxel [0,0,0] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(width-1,0,0,vd);
-        assertTrue("Voxel [width-1,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("Voxel [width-1,0,0] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(0,height-1,0,vd);
-        assertTrue("Voxel [0,height-1,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("Voxel [0,height-1,0] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(0,0,depth-1,vd);
-        assertTrue("Voxel [0,0,depth-1] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("Voxel [0,0,depth-1] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(width-1,height-1,depth-1,vd);
-        assertTrue("Voxel [width-1,height-1,width-1] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("Voxel [width-1,height-1,width-1] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
     }
 
     /**
@@ -247,42 +247,42 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         // Invalid setData
         //-------------------------------------------------------
         try {
-            wrapper.setData(-hres,0.0,0.0, Grid.EXTERIOR, mat);
+            wrapper.setData(-hres,0.0,0.0, Grid.INSIDE, mat);
             fail("Negative width world coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(width+2*hres,0,0, Grid.EXTERIOR, mat);
+            wrapper.setData(width+2*hres,0,0, Grid.INSIDE, mat);
             fail("World coord greater than width+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,-vres,0, Grid.EXTERIOR, mat);
+            wrapper.setData(0,-vres,0, Grid.INSIDE, mat);
             fail("Negative height world coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,height+2*vres,0, Grid.EXTERIOR, mat);
+            wrapper.setData(0,height+2*vres,0, Grid.INSIDE, mat);
             fail("Voxel world greater than height+2*vres should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,0,-hres, Grid.EXTERIOR, mat);
+            wrapper.setData(0,0,-hres, Grid.INSIDE, mat);
             fail("Negative depth world coord did not throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
         }
 
         try {
-            wrapper.setData(0,0,depth+2*hres, Grid.EXTERIOR, mat);
+            wrapper.setData(0,0,depth+2*hres, Grid.INSIDE, mat);
             fail("World coord greater than depth+2*hres should throw exception");
         } catch (IllegalArgumentException e) {
             assertEquals("No voxels should have been set", 0, wrapper.findCount(mat));
@@ -332,26 +332,26 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         //-------------------------------------------------------
         // Valid setData and getData
         //-------------------------------------------------------
-        wrapper.setData(0.0,0.0,0.0, Grid.EXTERIOR, mat);
-        wrapper.setData(width,0,0, Grid.EXTERIOR, mat);
-        wrapper.setData(0,height,0, Grid.EXTERIOR, mat);
-        wrapper.setData(0,0,depth, Grid.EXTERIOR, mat);
-        wrapper.setData(width,height,depth, Grid.EXTERIOR, mat);
+        wrapper.setData(0.0,0.0,0.0, Grid.INSIDE, mat);
+        wrapper.setData(width,0,0, Grid.INSIDE, mat);
+        wrapper.setData(0,height,0, Grid.INSIDE, mat);
+        wrapper.setData(0,0,depth, Grid.INSIDE, mat);
+        wrapper.setData(width,height,depth, Grid.INSIDE, mat);
 
         wrapper.getData(0.0,0.0,0.0,vd);
-        assertTrue("World coord [0,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("World coord [0,0,0] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(width,0.0,0.0,vd);
-        assertTrue("World coord [width,0,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("World coord [width,0,0] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(0.0,height,0.0,vd);
-        assertTrue("World coord [0,height,0] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("World coord [0,height,0] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(0.0,0.0,depth,vd);
-        assertTrue("World coord [0,0,depth-1] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("World coord [0,0,depth-1] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
 
         wrapper.getData(width,height,depth,vd);
-        assertTrue("World coord [width,height,width] data is incorrect", vd.getState() == Grid.EXTERIOR && vd.getMaterial() == mat);
+        assertTrue("World coord [width,height,width] data is incorrect", vd.getState() == Grid.INSIDE && vd.getMaterial() == mat);
     }
 
     /**
@@ -365,9 +365,9 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
-        wrapper.setData(0, 0, 0, Grid.EXTERIOR, mat);
-        wrapper.setData(width-1, 0, 0, Grid.EXTERIOR, mat);
-        setX(grid, 0, 0, Grid.INTERIOR, mat, 1, width-2);
+        wrapper.setData(0, 0, 0, Grid.INSIDE, mat);
+        wrapper.setData(width-1, 0, 0, Grid.INSIDE, mat);
+        setX(grid, 0, 0, Grid.INSIDE, mat, 1, width-2);
 
         Byte state = null;
 
@@ -415,21 +415,21 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         //-------------------------------------------------------
         try {
             state = wrapper.getState(0,0,0);
-            assertEquals("Voxel state should be exterior", Grid.EXTERIOR, (byte)state);
+            assertEquals("Voxel state should be exterior", Grid.INSIDE, (byte)state);
         } catch (IllegalArgumentException e) {
             fail("Should not throw exception");
         }
 
         try {
             state = wrapper.getState(width-1,0,0);
-            assertEquals("Voxel state should be exterior", Grid.EXTERIOR, (byte)state);
+            assertEquals("Voxel state should be exterior", Grid.INSIDE, (byte)state);
         } catch (IllegalArgumentException e) {
             fail("Should not throw exception");
         }
 
         try {
             state = wrapper.getState(width/2,0,0);
-            assertEquals("Voxel state should be interior", Grid.INTERIOR, (byte)state);
+            assertEquals("Voxel state should be interior", Grid.INSIDE, (byte)state);
         } catch (IllegalArgumentException e) {
             fail("Should not throw exception");
         }
@@ -448,9 +448,9 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
-        wrapper.setData(0.0, 0.0, 0.0, Grid.EXTERIOR, mat);
-        wrapper.setData(width, 0.0, 0.0, Grid.EXTERIOR, mat);
-        setX(grid, 0, 0, Grid.INTERIOR, mat, 1, (int)((width-hres)/hres));
+        wrapper.setData(0.0, 0.0, 0.0, Grid.INSIDE, mat);
+        wrapper.setData(width, 0.0, 0.0, Grid.INSIDE, mat);
+        setX(grid, 0, 0, Grid.INSIDE, mat, 1, (int)((width-hres)/hres));
 
         Byte state = null;
 
@@ -498,21 +498,21 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         //-------------------------------------------------------
         try {
             state = wrapper.getState(0.0,0.0,0.0);
-            assertEquals("Voxel state should be exterior", Grid.EXTERIOR, (byte)state);
+            assertEquals("Voxel state should be exterior", Grid.INSIDE, (byte)state);
         } catch (IllegalArgumentException e) {
             fail("Should not throw exception");
         }
 
         try {
             state = wrapper.getState(width,0.0,0.0);
-            assertEquals("Voxel state should be exterior", Grid.EXTERIOR, (byte)state);
+            assertEquals("Voxel state should be exterior", Grid.INSIDE, (byte)state);
         } catch (IllegalArgumentException e) {
             fail("Should not throw exception");
         }
 
         try {
             state = wrapper.getState(width/2.0f,0.0,0.0);
-            assertEquals("Voxel state should be interior", Grid.INTERIOR, (byte)state);
+            assertEquals("Voxel state should be interior", Grid.INSIDE, (byte)state);
         } catch (IllegalArgumentException e) {
             fail("Should not throw exception");
         }
@@ -534,9 +534,9 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
-        wrapper.setData(0, 0, 0, Grid.EXTERIOR, mat);
-        wrapper.setData(width-1, 0, 0, Grid.EXTERIOR, mat);
-        setX(grid, 0, 0, Grid.INTERIOR, mat, 1, width-2);
+        wrapper.setData(0, 0, 0, Grid.INSIDE, mat);
+        wrapper.setData(width-1, 0, 0, Grid.INSIDE, mat);
+        setX(grid, 0, 0, Grid.INSIDE, mat, 1, width-2);
 
         Long material = null;
 
@@ -617,9 +617,9 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
 
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
-        wrapper.setData(0.0, 0.0, 0.0, Grid.EXTERIOR, mat);
-        wrapper.setData(width, 0.0, 0.0, Grid.EXTERIOR, mat);
-        setX(grid, 0, 0, Grid.INTERIOR, mat, 1, (int)((width-hres)/hres));
+        wrapper.setData(0.0, 0.0, 0.0, Grid.INSIDE, mat);
+        wrapper.setData(width, 0.0, 0.0, Grid.INSIDE, mat);
+        setX(grid, 0, 0, Grid.INSIDE, mat, 1, (int)((width-hres)/hres));
 
         Long material = null;
 
@@ -695,7 +695,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         int height = 3;
         int depth = 10;
         int[] row = {0, 3, 5};
-        byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
+        byte[] state = {Grid.INSIDE, Grid.INSIDE, Grid.INSIDE};
 
         int temp = -1;
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(null);
@@ -727,9 +727,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         int expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, wrapper.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, wrapper.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, wrapper.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, wrapper.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, wrapper.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, wrapper.findCount(VoxelClasses.OUTSIDE));
 
         // change one of the interior voxel rows to outside
@@ -745,9 +743,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
     }
 
@@ -783,7 +779,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
             for (int y=0; y<height; y++) {
                 for (int z=0; z<materialDepth[x]; z++) {
 //System.out.println(x + ", " + y + ", " + z + ": " + material[x]);
-                    wrapper.setData(x, y, z, Grid.INTERIOR, material[x]);
+                    wrapper.setData(x, y, z, Grid.INSIDE, material[x]);
                 }
             }
         }
@@ -820,8 +816,8 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.05, 0.02);
         wrapper = new RangeCheckAttributeWrapper(grid);
 
-        setX(wrapper, 0, 0, Grid.INTERIOR, mat, 1, width-2);
-        setX(wrapper, 1, 1, Grid.EXTERIOR, mat, 0, width-1);
+        setX(wrapper, 0, 0, Grid.INSIDE, mat, 1, width-2);
+        setX(wrapper, 1, 1, Grid.INSIDE, mat, 0, width-1);
 
         int expectedAllCount = width * height * depth;
         int expectedExtCount = width;
@@ -834,16 +830,8 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
 
         resetCounts();
-        wrapper.findAttribute(VoxelClasses.MARKED, this);
+        wrapper.findAttribute(VoxelClasses.INSIDE, this);
         assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
-
-        resetCounts();
-        wrapper.findAttribute(VoxelClasses.EXTERIOR, this);
-        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
-
-        resetCounts();
-        wrapper.findAttribute(VoxelClasses.INTERIOR, this);
-        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
 
         resetCounts();
         wrapper.findAttribute(VoxelClasses.OUTSIDE, this);

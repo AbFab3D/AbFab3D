@@ -26,12 +26,9 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
 
 import abfab3d.grid.op.DataSources;
-import abfab3d.grid.op.DataSourceImageBitmap;
 import abfab3d.grid.op.GridMaker;
-import abfab3d.grid.op.VecTransforms;
 import abfab3d.grid.op.DataSourceGrid;
 
-import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.io.output.MeshMakerMT;
@@ -40,32 +37,25 @@ import abfab3d.io.input.STLRasterizer;
 
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 
 import abfab3d.util.DataSource;
-import abfab3d.util.TextUtil;
 
 import app.common.GridSaver;
 import app.common.RegionPrunner;
-import app.common.ShellResults;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
-import javax.vecmath.Vector3d;
-import java.awt.*;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static abfab3d.util.MathUtil.TORAD;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.extendBounds;
 
 /**
  * Geometry Kernel for the VolumeSculptor
@@ -325,7 +315,9 @@ public class VolumeSculptorKernel extends HostedKernel {
         int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid
 
         if (use_wave) {
-            maxGridAttributeValue = 63;
+//            maxGridAttributeValue = 2^6 - 1;
+            maxGridAttributeValue = 2^8 - 1;
+//            maxGridAttributeValue = 2^14 - 1;
         } else {
             maxGridAttributeValue = 0;
         }
@@ -385,7 +377,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         intersection.addDataSource(model);
         //intersection.addDataSource(gyroidShape);
         //intersection.addDataSource(block);
-        intersection.addDataSource(gyroid);
+        //intersection.addDataSource(gyroid);
 
         //intersection.addDataSource(cubicGrid);
 
@@ -548,12 +540,12 @@ public class VolumeSculptorKernel extends HostedKernel {
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console, true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[]{1, 0, 0});
+        colors.put(new Integer(Grid.INSIDE), new float[]{1, 0, 0});
         colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
         colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
         transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 

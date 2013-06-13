@@ -256,7 +256,6 @@ public class Downsample implements Operation, AttributeOperation {
         }
 
         int cnt_outside = 0;
-        int cnt_exterior = 0;
         int cnt_interior = 0;
 
         byte val;
@@ -267,24 +266,16 @@ public class Downsample implements Operation, AttributeOperation {
                     val = state[i][j][k];
                     if (val == Grid.OUTSIDE) {
                         cnt_outside++;
-                    } else if (val == Grid.INTERIOR) {
+                    } else if (val == Grid.INSIDE) {
                         cnt_interior++;
-                    } else if (val == Grid.EXTERIOR) {
-                        cnt_exterior++;
                     }
                 }
             }
         }
 
-        // On equal counts use favor exterior
-        if (cnt_exterior >= cnt_outside &&
-            cnt_exterior >= cnt_interior) {
+        if (cnt_interior >= cnt_outside) {
 
-            ret_val = Grid.EXTERIOR;
-        } else if (cnt_interior >= cnt_outside &&
-            cnt_interior >= cnt_exterior) {
-
-            ret_val = Grid.INTERIOR;
+            ret_val = Grid.INSIDE;
         } else {
             ret_val = Grid.OUTSIDE;
         }
@@ -347,21 +338,15 @@ public class Downsample implements Operation, AttributeOperation {
             for(int j=0; j < 2; j++) {
                 for(int k=0; k < 2; k++) {
                     val = state[i][j][k];
-                    if (val == Grid.INTERIOR) {
+                    if (val == Grid.INSIDE) {
                         cnt_interior++;
-                    } else if (val == Grid.EXTERIOR) {
-                        cnt_exterior++;
                     }
                 }
             }
         }
 
-        if (cnt_exterior > 0) {
-            return Grid.EXTERIOR;
-        }
-
         if (cnt_interior > 0) {
-            return Grid.INTERIOR;
+            return Grid.INSIDE;
         }
 
         return Grid.OUTSIDE;

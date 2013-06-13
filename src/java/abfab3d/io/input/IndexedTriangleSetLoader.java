@@ -879,9 +879,6 @@ public class IndexedTriangleSetLoader
      */
     public void processFile(File inputFile) {
 
-        //
-        // process the file
-        //
         System.out.println("Processing file " + inputFile.toString() + "...");
         foundITS = false;
 

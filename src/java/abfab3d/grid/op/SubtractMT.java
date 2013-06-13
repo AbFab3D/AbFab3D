@@ -24,7 +24,7 @@ import static abfab3d.util.Output.*;
  * Subtraction operation.   Multithreaded version.
  *
  * Subtracts one grid from another.  Grid A is the base grid.  B is
- * the subtracting grid.  MARKED voxels of grid B will become
+ * the subtracting grid.  INSIDE voxels of grid B will become
  * OUTSIDE voxels of A.
  *
  * Would like a mode that preserves EXTERIOR/INTERRIOR difference.
@@ -59,7 +59,7 @@ public class SubtractMT implements Operation {
 
         setThreadCount(threads);
     }
-    
+
     public void setThreadCount(int count) {
         threadCount = count;
 
@@ -195,7 +195,7 @@ public class SubtractMT implements Operation {
                     // end of processing
                     break;
                 }
-                src.find(Grid.VoxelClasses.MARKED, this, 0, nx - 1, slice.ymin, slice.ymax);
+                src.find(Grid.VoxelClasses.INSIDE, this, 0, nx - 1, slice.ymin, slice.ymax);
             }
         }
 

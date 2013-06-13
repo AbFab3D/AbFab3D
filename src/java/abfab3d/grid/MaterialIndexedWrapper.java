@@ -559,26 +559,29 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
             byte state;
 
             switch(vc) {
-                case MARKED:
+                case INSIDE:
                     state = vd.getState();
-                    if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                        t.found(x,y,z,vd);
-                    }
-                    break;
-                case EXTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.EXTERIOR) {
-                        t.found(x,y,z,vd);
-                    }
-                    break;
-                case INTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.INTERIOR) {
+                    if (state == Grid.INSIDE) {
                         t.found(x,y,z,vd);
                     }
                     break;
             }
         }
+    }
+
+    /**
+     * Traverse a class of voxels types over given rectangle in xy plane.
+     * May be much faster then full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     * @param xmin - minimal x - coordinate of voxels
+     * @param xmax - maximal x - coordinate of voxels
+     * @param ymin - minimal y - coordinate of voxels
+     * @param ymax - maximal y - coordinate of voxels
+     */
+    public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t, int xmin, int xmax, int ymin, int ymax) {
+        grid.findAttribute(vc,t,xmin,xmax,ymin,ymax);
     }
 
     /**
@@ -700,23 +703,9 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
                 byte state;
 
                 switch(vc) {
-                    case MARKED:
+                    case INSIDE:
                         state = vd.getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(x,y,z,vd))
-                                break rloop;
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = vd.getState();
-                        if (state == Grid.EXTERIOR) {
-                            if (!t.foundInterruptible(x,y,z,vd))
-                                break rloop;
-                        }
-                        break;
-                    case INTERIOR:
-                        state = vd.getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             if (!t.foundInterruptible(x,y,z,vd))
                                 break rloop;
                         }
@@ -753,23 +742,9 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
             byte state;
 
             switch(vc) {
-                case MARKED:
+                case INSIDE:
                     state = vd.getState();
-                    if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                        if (!t.foundInterruptible(x,y,z,vd))
-                            break loop;
-                    }
-                    break;
-                case EXTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.EXTERIOR) {
-                        if (!t.foundInterruptible(x,y,z,vd))
-                            break loop;
-                    }
-                    break;
-                case INTERIOR:
-                    state = vd.getState();
-                    if (state == Grid.INTERIOR) {
+                    if (state == Grid.INSIDE) {
                         if (!t.foundInterruptible(x,y,z,vd))
                             break loop;
                     }
@@ -958,7 +933,7 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
         optRead = false;
         EmptyFound ef = new EmptyFound();
         for(int i=0; i < TIMES; i++) {
-            findInterruptible(VoxelClasses.EXTERIOR, mat, ef);
+            findInterruptible(VoxelClasses.INSIDE, mat, ef);
         }
 System.out.println("Speed unopt: " + (System.currentTimeMillis() - startTime));
 
@@ -966,7 +941,7 @@ System.out.println("Speed unopt: " + (System.currentTimeMillis() - startTime));
 
         optRead = true;
         for(int i=0; i < TIMES; i++) {
-            findInterruptible(VoxelClasses.EXTERIOR, mat,ef);
+            findInterruptible(VoxelClasses.INSIDE, mat,ef);
         }
 System.out.println("Speed opt: " + (System.currentTimeMillis() - startTime));
 */

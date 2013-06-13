@@ -52,25 +52,25 @@ import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.ImageUtil.us2i;
 
 /**
-   
-   a collection of various DataSource 
+
+   a collection of various DataSource
 
    @author Vladimir Bulatov
 
  */
 public class DataSources {
-   
+
     /**
 
        makes solid block of given size
-       
+
      */
     public static class Block implements DataSource, Initializable {
 
-        private double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1, m_centerX=0, m_centerY=0, m_centerZ=0;             
-        
-        private double 
-            xmin, 
+        private double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1, m_centerX=0, m_centerY=0, m_centerZ=0;
+
+        private double
+            xmin,
             xmax,
             ymin,
             ymax,
@@ -80,7 +80,7 @@ public class DataSources {
             m_hasSmoothBoundaryX = false,
             m_hasSmoothBoundaryY = false,
             m_hasSmoothBoundaryZ = false;
-        
+
         public Block(){
         }
         public void setSmoothBoundaries(boolean boundaryX,boolean boundaryY,boolean boundaryZ){
@@ -90,7 +90,7 @@ public class DataSources {
         }
 
         /**
-           makes block with given center and size 
+           makes block with given center and size
          */
         public Block(double x, double y, double z, double sx, double sy, double sz){
 
@@ -100,7 +100,7 @@ public class DataSources {
         }
 
         /**
-           
+
          */
         public void setSize(double sx, double sy, double sz){
             m_sizeX = sx;
@@ -109,7 +109,7 @@ public class DataSources {
         }
 
         /**
-           
+
          */
         public void setLocation(double x, double y, double z){
             m_centerX = x;
@@ -118,10 +118,10 @@ public class DataSources {
         }
 
         /**
-           
+
          */
         public int initialize(){
-            
+
             xmin = m_centerX - m_sizeX/2;
             xmax = m_centerX + m_sizeX/2;
 
@@ -142,7 +142,7 @@ public class DataSources {
         public int getDataValue(Vec pnt, Vec data) {
 
             double res = 1.;
-            double 
+            double
                 x = pnt.v[0],
                 y = pnt.v[1],
                 z = pnt.v[2];
@@ -150,28 +150,28 @@ public class DataSources {
             double vs = pnt.voxelSize;
 
             if(vs == 0.){
-                // zero voxel size 
+                // zero voxel size
                 if(x < xmin || x > xmax ||
                    y < ymin || y > ymax ||
                    z < zmin || z > zmax ){
                     data.v[0] = 0.;
-                    return RESULT_OK;                
+                    return RESULT_OK;
                 } else {
                     data.v[0] = 1.;
-                    return RESULT_OK;                                    
-                }                
+                    return RESULT_OK;
+                }
             } else {
-                
-                // finite voxel size 
-                
-                if(x <= xmin - vs || x >= xmax + vs || 
-                   y <= ymin - vs || y >= ymax + vs || 
+
+                // finite voxel size
+
+                if(x <= xmin - vs || x >= xmax + vs ||
+                   y <= ymin - vs || y >= ymax + vs ||
                    z <= zmin - vs || z >= zmax + vs ){
                     data.v[0] = 0.;
-                    return RESULT_OK;                      
+                    return RESULT_OK;
                 }
                 double finalValue = 1;
-                
+
                 if(m_hasSmoothBoundaryX)
                     finalValue = Math.min(finalValue, intervalCap(x, xmin, xmax, vs));
                 if(m_hasSmoothBoundaryY)
@@ -180,41 +180,41 @@ public class DataSources {
                     finalValue = Math.min(finalValue, intervalCap(z, zmin, zmax, vs));
 
                 data.v[0] = finalValue;
-                return RESULT_OK;                      
+                return RESULT_OK;
             }
-        }  
-        
-    }  // class Block 
+        }
+
+    }  // class Block
 
     /**
-       Ball with given location and radius 
+       Ball with given location and radius
      */
     public static class Ball implements DataSource {
-        
+
         private double R, R2, RR;
-        
+
         private double x0, y0, z0;
-        
+
         public Ball(double x0, double y0, double z0, double r){
             R = r;
             R2 = 2*r;
             RR = r*r;
         }
-        
+
         /**
          * returns 1 if pnt is inside of ball
-         * returns intepolated value if poiunt is within voxel size to the boundary 
+         * returns intepolated value if poiunt is within voxel size to the boundary
          * returns 0 if pnt is outside the ball
          */
         public int getDataValue(Vec pnt, Vec data) {
 
             double res = 1.;
-            double 
+            double
                 x = pnt.v[0]-x0,
                 y = pnt.v[1]-y0,
                 z = pnt.v[2]-z0;
 
-            // good approximation to the distance to the surface of the ball).x 
+            // good approximation to the distance to the surface of the ball).x
             double dist = ((x*x + y*y + z*z) - RR)/(R2);
             //double dist = (Math.sqrt(x*x + y*y + z*z) - R);//)/(R2);
 
@@ -222,69 +222,69 @@ public class DataSources {
             if(dist <= -vs){
                 data.v[0] = 1;
             } else if(dist >= vs){
-                data.v[0] = 0;                
-            } else {// we are near the surface - return interpolation 
+                data.v[0] = 0;
+            } else {// we are near the surface - return interpolation
                 data.v[0] = interpolate_linear(dist/vs);
                 //data.v[0] = interpolate_cubic(dist/vs);
             }
-                
-            
-            return RESULT_OK;
-        }                
 
-    }  // class Ball 
+
+            return RESULT_OK;
+        }
+
+    }  // class Ball
 
 
     public static class Torus implements DataSource {
-        
+
         private double R, r;
-        
+
         public Torus(double R, double r){
 
             this.R = R;
             this.r = r;
         }
-        
+
         /**
-         * returns 1 if pnt is inside of Torus 
-         * returns intepolated value if poiunt is within voxel size to the boundary 
+         * returns 1 if pnt is inside of Torus
+         * returns intepolated value if poiunt is within voxel size to the boundary
          * returns 0 if pnt is outside the Torus
          */
         public int getDataValue(Vec pnt, Vec data) {
 
             double res = 1.;
-            double 
+            double
                 x = pnt.v[0],
                 y = pnt.v[1],
                 z = pnt.v[2];
 
             double rxy = sqrt(x*x + y*y) - R;
-            
+
             data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.voxelSize);
 
             return RESULT_OK;
-        }                
+        }
     }  // class Torus
 
 
 
     /**
-       return 1 if any of input data sources is 1, return 0 if all data sources are 0 
-       can be used to make union of few shapes        
+       return 1 if any of input data sources is 1, return 0 if all data sources are 0
+       can be used to make union of few shapes
      */
     public static class Union implements DataSource, Initializable {
 
         Vector<DataSource> dataSources = new Vector<DataSource>();
-        // fixed vector for calculations 
-        DataSource vDataSources[]; 
+        // fixed vector for calculations
+        DataSource vDataSources[];
 
 
-        public Union(){  
+        public Union(){
 
         }
 
         /**
-           add items to set of data sources 
+           add items to set of data sources
          */
         public void addDataSource(DataSource ds){
 
@@ -293,24 +293,24 @@ public class DataSources {
         }
 
         public int initialize(){
-            
+
             vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
-           
+
             for(int i = 0; i < vDataSources.length; i++){
-                
+
                 DataSource ds = vDataSources[i];
                 if(ds instanceof Initializable){
                     ((Initializable)ds).initialize();
                 }
-            }      
+            }
             return RESULT_OK;
-            
+
         }
-        
+
 
         /**
          * calculates values of all data sources and return maximal value
-         * can be used to make union of few shapes 
+         * can be used to make union of few shapes
          */
         public int getDataValue(Vec pnt, Vec data) {
 
@@ -320,18 +320,18 @@ public class DataSources {
             double value = 0.;
 
             for(int i = 0; i < len; i++){
-                
+
                 DataSource ds = dss[i];
-                int res = ds.getDataValue(pnt, data);                
+                int res = ds.getDataValue(pnt, data);
 
                 if(res != RESULT_OK){
-                    // outside of domain 
+                    // outside of domain
                     continue;
                 }
                 double v = data.v[0];
                 if(v >= 1.){
                     data.v[0] = 1;
-                    return RESULT_OK;                                        
+                    return RESULT_OK;
                 }
 
                 //value += v *(1 - value); //1-(1-value)*(1-v);
@@ -341,27 +341,27 @@ public class DataSources {
                 //if( v > value) value = v;
             }
 
-            data.v[0] = value; 
+            data.v[0] = value;
 
             return RESULT_OK;
-        }        
+        }
 
     } // class Union
 
 
     /**
-       does boolean complement 
+       does boolean complement
      */
     public static class Complement implements DataSource, Initializable {
 
         DataSource dataSource = null;
-        
-        public Complement(){  
+
+        public Complement(){
 
         }
 
         /**
-           add items to set of data sources 
+           add items to set of data sources
          */
         public void setDataSource(DataSource ds){
 
@@ -370,18 +370,18 @@ public class DataSources {
         }
 
         public int initialize(){
-            
+
             if(dataSource instanceof Initializable){
                 ((Initializable)dataSource).initialize();
             }
-            
+
             return RESULT_OK;
-            
+
         }
-        
+
 
         /**
-         * calculates complement of given data 
+         * calculates complement of given data
            replaces 1 to 0 and 0 to 1
          */
         public int getDataValue(Vec pnt, Vec data) {
@@ -392,31 +392,31 @@ public class DataSources {
                 return res;
             } else {
                 // we have good result
-                // do complement 
-                data.v[0] = 1-data.v[0];            
+                // do complement
+                data.v[0] = 1-data.v[0];
                 return RESULT_OK;
-            }        
+            }
         }
     } // class Complement
 
-    
+
     /**
-       Intersection of multiple data sourrces 
+       Intersection of multiple data sourrces
        return 1 if all data sources return 1
        return 0 otherwise
      */
     public static class Intersection implements DataSource, Initializable {
 
         Vector<DataSource> dataSources = new Vector<DataSource>();
-        // fixed vector for calculations 
+        // fixed vector for calculations
         DataSource vDataSources[];
 
-        public Intersection(){  
+        public Intersection(){
 
         }
 
         /**
-           add items to set of data sources 
+           add items to set of data sources
          */
         public void addDataSource(DataSource ds){
 
@@ -427,32 +427,32 @@ public class DataSources {
         public int initialize(){
 
             vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
-           
+
             for(int i = 0; i < vDataSources.length; i++){
-                
+
                 DataSource ds = vDataSources[i];
                 if(ds instanceof Initializable){
                     ((Initializable)ds).initialize();
                 }
-            }      
+            }
             return RESULT_OK;
-            
+
         }
-        
+
 
         /**
          * calculates intersection of all values
-         * 
+         *
          */
         public int getDataValue(Vec pnt, Vec data) {
-            
+
             DataSource dss[] = vDataSources;
             int len = dss.length;
 
             double value = 1;
 
             for(int i = 0; i < len; i++){
-                
+
                 DataSource ds = dss[i];
                 //int res = ds.getDataValue(pnt, workPnt);
                 int res = ds.getDataValue(pnt, data);
@@ -465,32 +465,32 @@ public class DataSources {
 
                 if(v <= 0.){
                     data.v[0] = 0;
-                    return RESULT_OK;                    
+                    return RESULT_OK;
                 }
                 //value *= v;
 
                 if(v < value)
                     value = v;
-                    
+
             }
 
-            data.v[0] = value; 
+            data.v[0] = value;
             return RESULT_OK;
-        }        
+        }
 
     } // class Intersection
 
 
     /**
-       subtracts (dataSource1 - dataSource2)       
-       can be used for boolean difference 
+       subtracts (dataSource1 - dataSource2)
+       can be used for boolean difference
      */
     public static class Subtraction implements DataSource, Initializable {
 
         DataSource dataSource1;
         DataSource dataSource2;
-        
-        public Subtraction(){     
+
+        public Subtraction(){
 
         }
 
@@ -500,7 +500,7 @@ public class DataSources {
             dataSource2 = ds2;
 
         }
-        
+
 
         public int initialize(){
 
@@ -511,15 +511,15 @@ public class DataSources {
                 ((Initializable)dataSource2).initialize();
             }
             return RESULT_OK;
-            
+
         }
-        
+
         /**
          * calculates values of all data sources and return maximal value
-         * can be used to make union of few shapes 
+         * can be used to make union of few shapes
          */
         public int getDataValue(Vec pnt, Vec data) {
-            
+
             double v1 = 0, v2 = 0;
 
             int res = dataSource1.getDataValue(pnt, data);
@@ -536,7 +536,7 @@ public class DataSources {
             }
 
             // we are here if v1 > 0
-            
+
             res = dataSource2.getDataValue(pnt, data);
 
             if(res != RESULT_OK){
@@ -544,33 +544,33 @@ public class DataSources {
                 return res;
             }
 
-            v2 = data.v[0];            
+            v2 = data.v[0];
             if(v2 >= 1.){
                 data.v[0] = 0.;
                 return RESULT_OK;
-            } 
-            //TODO better calculation 
+            }
+            //TODO better calculation
             data.v[0] = v1*(1-v2);
 
             return RESULT_OK;
-        }        
+        }
 
     } // class Subtraction
 
-    
+
     /**
-       class to accept generic DataSource and VecTransform 
-       
-       in getDataValue() it applued inverse_transform to the point and calcylates data value in 
+       class to accept generic DataSource and VecTransform
+
+       in getDataValue() it applued inverse_transform to the point and calcylates data value in
        transformed point
-       
+
      */
     public static class DataTransformer implements DataSource, Initializable {
-        
+
         protected DataSource dataSource;
         protected VecTransform transform;
-        
-        public DataTransformer(){  
+
+        public DataTransformer(){
         }
 
         public void setDataSource(DataSource ds){
@@ -582,80 +582,80 @@ public class DataSources {
         }
 
         public int initialize(){
-            
+
             if(dataSource != null && dataSource instanceof Initializable){
                 ((Initializable)dataSource).initialize();
             }
             if(transform != null && transform instanceof Initializable){
                 ((Initializable)transform).initialize();
-            }               
-            return RESULT_OK;            
+            }
+            return RESULT_OK;
         }
-        
+
 
         /**
-         * 
-         * 
+         *
+         *
          */
         public int getDataValue(Vec pnt, Vec data) {
 
             // TODO - garbage generation
             Vec workPnt = new Vec(pnt);
-            
+
             if(transform != null){
                 int res = transform.inverse_transform(pnt, workPnt);
                 if(res != RESULT_OK){
-                    data.v[0] = 0;                    
+                    data.v[0] = 0;
                     return res;
                 }
-            } 
-           
+            }
+
             if(dataSource != null){
                 return dataSource.getDataValue(workPnt, data);
             } else {
                 data.v[0] = 1.;
                 return RESULT_OK;
             }
-        }        
+        }
 
     } // class DataTransformer
 
 
     /**
-       ring in XZ plane of given radius, width and thickness 
-       
+       ring in XZ plane of given radius, width and thickness
+
      */
     public static class Ring implements DataSource{
 
         double ymin, ymax;
         double innerRadius2;
         double innerRadius;
-        double exteriorRadius;        
+        double exteriorRadius;
         double exteriorRadius2;
-        
-        public Ring(double innerRadius, double thickness, double ymin, double ymax){  
-            
-            this.ymin = ymin; 
-            this.ymax = ymax; 
-            
+
+        public Ring(double innerRadius, double thickness, double ymin, double ymax){
+
+            this.ymin = ymin;
+            this.ymax = ymax;
+
             this.innerRadius = innerRadius;
             this.exteriorRadius = innerRadius + thickness;
 
             this.innerRadius2 = innerRadius*innerRadius;
 
             this.exteriorRadius2 = exteriorRadius*exteriorRadius;
-            
+
         }
 
-        public Ring(double innerRadius, double thickeness, double width){  
+        public Ring(double innerRadius, double thickeness, double width){
 
-            this(innerRadius, thickeness, -width/2, width/2);            
+            this(innerRadius, thickeness, -width/2, width/2);
         }
 
 
         /**
          * calculates values of all data sources and return maximal value
-         * can be used to make union of few shapes 
+         * can be used to make union of few shapes
          */
         public int getDataValue(Vec pnt, Vec data) {
 
@@ -671,18 +671,18 @@ public class DataSources {
                 return RESULT_OK;
 
             } else if(y < (ymin + vs)){
-                // interpolate lower rim 
-                
+                // interpolate lower rim
+
                 yvalue = (y - (ymin - vs))/(2*vs);
 
             } else if(y > (ymax - vs)){
 
-                // interpolate upper rim 
-                yvalue = ((ymax + vs)-y)/(2*vs);                
+                // interpolate upper rim
+                yvalue = ((ymax + vs)-y)/(2*vs);
 
-            } 
-                        
-            
+            }
+
+
             double x = pnt.v[0];
             double z = pnt.v[2];
             double r = Math.sqrt(x*x + z*z);
@@ -690,34 +690,34 @@ public class DataSources {
             double rvalue = 1;
             if(r < (innerRadius-vs) || r > (exteriorRadius+vs)){
                 data.v[0] = 0;
-                return RESULT_OK;                
+                return RESULT_OK;
 
             } else if(r < (innerRadius+vs)){
-                // interpolate interior surface 
+                // interpolate interior surface
                 rvalue = (r-(innerRadius-vs))/(2*vs);
-                
+
             } else if(r > (exteriorRadius - vs)){
 
                 rvalue = ((exteriorRadius + vs) - r)/(2*vs);
-                // interpolate exterior surface 
-                
-            } 
-            
+                // interpolate exterior surface
+
+            }
+
             //data.v[0] = (rvalue < yvalue)? rvalue : yvalue;
             if(rvalue < yvalue)
                 data.v[0] = rvalue;
-            else 
+            else
                 data.v[0] = yvalue;
-            
-            return RESULT_OK;             
-        }        
+
+            return RESULT_OK;
+        }
 
     } // class Ring
 
 
-    // linear intepolation 
+    // linear intepolation
     // x < -1 return 1;
-    // x >  1 returns 0    
+    // x >  1 returns 0
     public static final double interpolate_linear(double x){
 
         return 0.5*(1 - x);
@@ -739,17 +739,17 @@ public class DataSources {
                          0     1
      */
     public static final double step(double x){
-        if(x < 0.)    
+        if(x < 0.)
             return 0.;
         else if( x > 1.)
             return 1.;
-        else 
+        else
             return x;
     }
 
     /*
       step from 0 to 1
-      
+
     1                          _____________________
                               /
                              /
@@ -760,20 +760,20 @@ public class DataSources {
                             x0
      */
     public static final double step01(double x, double x0, double vs){
-        
+
         if(x <= x0 - vs)
             return 0.;
 
         if(x >= x0 + vs)
             return 1.;
-        
+
         return (x-(x0-vs))/(2*vs);
 
     }
 
     /*
       step from 1 to 0
-      
+
     1     _________
                    \
                     \
@@ -784,13 +784,13 @@ public class DataSources {
                      x0
     */
     public static final double step10(double x, double x0, double vs){
-        
+
         if(x <= x0 - vs)
             return 1.;
 
         if(x >= x0 + vs)
             return 0.;
-        
+
         return ((x0+vs)-x)/(2*vs);
 
     }
@@ -804,58 +804,58 @@ public class DataSources {
      0 ___________________/ .             . \_______________
 
                            xmin          xmax
-    
-    
+
+
        return 1 inside of interval and 0 outside of intervale with linear transition at the boundaries
      */
     public static final double intervalCap(double x, double xmin, double xmax, double vs){
-        
+
         if(xmin >= xmax-vs)
             return 0;
-        
+
         double vs2 = vs*2;
         double vxi = step((x-(xmin-vs))/(vs2));
         double vxa = step(((xmax+vs)-x)/(vs2));
-        
+
         return vxi*vxa;
 
     }
-    
-    // linear intepolation 
+
+    // linear intepolation
     // x < -1 return 1;
-    // x >  1 returns 0    
-    // smoth cubic polynom between 
+    // x >  1 returns 0
+    // smoth cubic polynom between
     public static final double interpolate_cubic(double x){
 
         return 0.25*x*(x*x - 3.) + 0.5;
-        
+
     }
-    
-    public final static double getBox(double x, double y, double z, 
-                               double xmin, double xmax, 
-                               double ymin, double ymax, 
-                               double zmin, double zmax, 
+
+    public final static double getBox(double x, double y, double z,
+                               double xmin, double xmax,
+                               double ymin, double ymax,
+                               double zmin, double zmax,
                                double vs){
-        
+
         if(xmin >= xmax || ymin >= ymax || zmin >= zmax ){
-            // empty box 
+            // empty box
             return 0.;
         }
-                
-        double vs2 = 2*vs; 
+
+        double vs2 = 2*vs;
         double vxi = step((x-(xmin-vs))/(vs2));
         double vxa = step(((xmax+vs)-x)/(vs2));
         double vyi = step((y-(ymin-vs))/(vs2));
         double vya = step(((ymax+vs)-y)/(vs2));
         double vzi = step((z-(zmin-vs))/(vs2));
         double vza = step(((zmax+vs)-z)/(vs2));
-            
+
         vxi *= vxa;
         vyi *= vya;
         vzi *= vza;
-        
+
         return vxi*vyi*vzi;
     }
-        
+
 }
 

@@ -15,16 +15,11 @@ package stemfastener;
 // External Imports
 import java.io.*;
 import java.util.*;
-import javax.imageio.*;
-import java.awt.image.BufferedImage;
 
-import abfab3d.grid.query.RegionFinder;
 import abfab3d.io.output.*;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
@@ -36,13 +31,9 @@ import abfab3d.creator.*;
 import abfab3d.creator.shapeways.*;
 
 //import java.awt.*;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
-import static java.lang.System.currentTimeMillis;
 
 /**
  * Geometry Kernel for the ImageEditor.
@@ -418,13 +409,11 @@ System.out.println("Creating Regions Exporter");
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
+        colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 
         exporter.writeDebug(grid, colors, transparency);

@@ -12,9 +12,6 @@
 
 package abfab3d.grid.op;
 
-import java.util.HashMap; 
-import java.util.Iterator;
-
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Operation;
@@ -22,13 +19,11 @@ import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
-import abfab3d.grid.VoxelStateSetter;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 
 import static abfab3d.grid.Grid.OUTSIDE;
-import static abfab3d.grid.Grid.INTERIOR;
 
 /**
  * Dilate an object with given custom shape
@@ -102,10 +97,10 @@ public class DilationShape implements Operation, AttributeOperation {
 
         GridBitIntervals m_surface = new GridBitIntervals(m_nx, m_ny, m_nz);
         long t0 = time();
-        grid.find(Grid.VoxelClasses.INTERIOR, new SurfaceFinder(grid, m_surface));
+        grid.find(Grid.VoxelClasses.INSIDE, new SurfaceFinder(grid, m_surface));
         //printf("surface: %d ms\n", (time()-t0));
         t0 = time();
-        m_surface.find(Grid.VoxelClasses.INTERIOR, new ShapeDilater(grid, m_voxelShape, m_voxelChecker));
+        m_surface.find(Grid.VoxelClasses.INSIDE, new ShapeDilater(grid, m_voxelShape, m_voxelChecker));
         //printf("dilation: %d ms\n", (time()-t0));
         
         m_surface.release();
@@ -183,7 +178,7 @@ public class DilationShape implements Operation, AttributeOperation {
                 int yy = y + iy; 
                 int zz = z + iz; 
                 if(xx >= 0 && xx < nx && yy >= 0 && yy < ny && zz >= 0 && zz < nz ){
-                    grid.setState(xx,yy,zz, Grid.INTERIOR);
+                    grid.setState(xx,yy,zz, Grid.INSIDE);
                 }                    
             }
         }        

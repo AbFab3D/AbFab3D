@@ -47,13 +47,13 @@ public class BoxRegionFinder {
     public Set<Region> execute(Grid grid) {
         ret_val = new HashSet<Region>();
 
-        if (!(grid instanceof OctreeCell)) {
+        //if (!(grid instanceof OctreeCell)) {
             walkGrid(grid);
 
             return ret_val;
-        }
+        //}
 
-
+        /*
         OctreeCell root = (OctreeCell) grid;
 
         OctreeCell[] children = root.getChildren();
@@ -61,8 +61,9 @@ public class BoxRegionFinder {
         addChildren(children);
 
         return ret_val;
+        */
     }
-
+/*
     private void addChildren(OctreeCell[] cell) {
         int len = cell.length;
         for(int i=0; i < len; i++) {
@@ -72,7 +73,7 @@ public class BoxRegionFinder {
             byte state = cell[i].getState();
 
             if (state != OctreeCell.MIXED) {
-                if (state == Grid.EXTERIOR) {
+                if (state == Grid.INSIDE) {
                     cell[i].getRegion(center,size);
                     BoxRegion box = new BoxRegion(center,size);
 
@@ -83,7 +84,7 @@ public class BoxRegionFinder {
             }
         }
     }
-
+     */
     /**
      * Walk the grid and create boxes.
      *
@@ -116,12 +117,12 @@ System.out.println("***depth");
 //System.out.println(i + "," + j + "," + k + " state: " + state);
 
                         if (stateVal == 0) {
-                            if (state == Grid.EXTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 start = k;
                                 stateVal = 1;
                             }
                         } else if (stateVal == 1) {
-                            if (state == Grid.EXTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 continue;
                             }
 
@@ -173,12 +174,12 @@ System.out.println("***height");
                         state = grid.getState(i,j,k);
 //System.out.println(i + "," + j + "," + k + " state: " + state);
                         if (stateVal == 0) {
-                            if (state == Grid.EXTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 start = j;
                                 stateVal = 1;
                             }
                         } else if (stateVal == 1) {
-                            if (state == Grid.EXTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 continue;
                             }
 
@@ -229,12 +230,12 @@ System.out.println("***width");
                         state = grid.getState(i,j,k);
 //System.out.println(i + "," + j + "," + k + " state: " + state);
                         if (stateVal == 0) {
-                            if (state == Grid.EXTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 start = i;
                                 stateVal = 1;
                             }
                         } else if (stateVal == 1) {
-                            if (state == Grid.EXTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 continue;
                             }
 

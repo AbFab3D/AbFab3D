@@ -201,23 +201,23 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 1));
 
-        grid.setData(0, 0, 0, Grid.INTERIOR, 2);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, 1);
-        grid.setData(5, 0, 7, Grid.INTERIOR, 0);
+        grid.setData(0, 0, 0, Grid.INSIDE, 2);
+        grid.setData(9, 8, 7, Grid.INSIDE, 1);
+        grid.setData(5, 0, 7, Grid.INSIDE, 0);
 
         assertEquals("Material should be ",0,grid.getMaterial(0, 0, 0));
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 1));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         Grid grid2 = new BlockArrayGrid(grid);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid2.getState(0, 0, 1));
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid2.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(5, 0, 7));
     }
 
     /**
@@ -229,7 +229,7 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         assertEquals("block width in voxels ", 4, ((BlockArrayGrid)grid).BLOCK_WIDTH_IN_VOXELS[0]);
         assertEquals("grid width in blocks ", 32, ((BlockArrayGrid)grid).GRID_WIDTH_IN_BLOCKS[0]);
 
-        grid.setData(5, 5, 5, Grid.EXTERIOR, 10);
+        grid.setData(5, 5, 5, Grid.INSIDE, 10);
 
         Grid grid2 = grid.createEmpty(10, 11, 12, 0.002, 0.003);
 
@@ -288,12 +288,12 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         BlockArrayGrid grid = new BlockArrayGrid(10, 9, 8, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
 
         grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)2);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (byte)1);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (byte)0);
+        grid.setData(9, 8, 7, Grid.INSIDE, (byte)1);
+        grid.setData(5, 0, 7, Grid.INSIDE, (byte)0);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(7, 7, 7));
@@ -315,21 +315,21 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
 
         // set and test get on some random world coordinates
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte) 2);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte) 1);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (byte) 0);
+        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 1);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte) 0);
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0.95, 0.39, 0.45));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.6, 0.1, 0.4));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.95, 0.39, 0.45));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.6, 0.1, 0.4));
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
         grid = new BlockArrayGrid(0.12, 0.11, 0.16, 0.05, 0.02, new int[] {0,0,0}, BlockArrayGrid.BlockType.Array);
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (byte)2);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.07, 0.075));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.0799, 0.0999));
+        grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte)2);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.07, 0.075));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.0799, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.0999));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.0799, 0.0999));
         assertEquals("State should be ", 0, grid.getState(0.0499, 0.06, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0599, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.0499));
@@ -338,23 +338,23 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (byte)2);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0199, 0.0499));
+        grid.setData(0.0, 0.0, 0.0, Grid.INSIDE, (byte)2);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0199, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0499));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0199, 0.0499));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.02, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte)2);
-//      assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.199));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.119, 0.199));
+        grid.setData(0.149, 0.119, 0.199, Grid.INSIDE, (byte)2);
+//      assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.15));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.1, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.119, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.199));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.119, 0.199));
         assertEquals("State should be ", 0, grid.getState(0.0999, 0.1, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.0999, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.1499));
@@ -369,7 +369,7 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         int height = 3;
         int depth = 10;
         int[] row = {0, 3, 5};
-        byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
+        byte[] state = {Grid.INSIDE, Grid.INSIDE, Grid.INSIDE};
 
         BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.05, 0.02, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
 
@@ -393,9 +393,7 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         int expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
 
         // change one of the interior voxel rows to outside
@@ -411,9 +409,7 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
     }
 
@@ -425,7 +421,7 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         int height = 4;
         int depth = 10;
         int[] stateDepth = {10, 6, 1};
-        byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
+        byte[] states = {Grid.INSIDE, Grid.INSIDE, Grid.OUTSIDE};
 
         BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.05, 0.02, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
 
@@ -453,16 +449,8 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
 
         resetCounts();
-        grid.find(VoxelClasses.MARKED, this);
+        grid.find(VoxelClasses.INSIDE, this);
         assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
-
-        resetCounts();
-        grid.find(VoxelClasses.EXTERIOR, this);
-        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
-
-        resetCounts();
-        grid.find(VoxelClasses.INTERIOR, this);
-        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
 
         resetCounts();
         grid.find(VoxelClasses.OUTSIDE, this);
@@ -479,41 +467,40 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         long mat = 1;
 
         BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
         ft = new FindIterateTester(vcSetInt);
-        grid.find(VoxelClasses.INTERIOR, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
-        assertTrue("Found state iterator did not find all voxels with INTERIOR state",
+        assertTrue("Found state iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setData(10, 6, 2, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
+        grid.setData(10, 6, 2, Grid.INSIDE, mat);
+        ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
+        grid.setData(1, 5, 6, Grid.OUTSIDE, mat);
         ft = new FindIterateTester(vcSetInt);
-        grid.find(VoxelClasses.INTERIOR, ft);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
@@ -529,15 +516,15 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         };
 
         grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
-        vcSetExt = new HashSet<VoxelCoordinate>();
+        vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
-        grid.find(VoxelClasses.EXTERIOR, ft);
+        ft = new FindIterateTester(vcSetInt);
+        grid.find(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -554,48 +541,41 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         long mat = 1;
 
         BlockArrayGrid grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
-            grid.setData(x, 4, 4, Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
-            vcSetExt.add(new VoxelCoordinate(x, 4, 4));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat);
+            grid.setData(x, 4, 4, Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
+            vcSetInt.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
-                ft.foundAllVoxels());
-
-        ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(VoxelClasses.INTERIOR, ft);
-
-        assertTrue("Found iterator did not find all voxels with INTERIOR state",
                 ft.foundAllVoxels());
 
         // make sure that findInterruptible stops interating when voxel is not found
         // do this by adding a new exterior voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, mat);
-        grid.setData(1, 3, 3, Grid.EXTERIOR, mat);
-        ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+        grid.setData(1, 3, 3, Grid.INSIDE, mat);
+        ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false",
                 ft.foundAllVoxels());
         assertTrue("Found state interruptible did not get interrupted ",
-                ft.getIterateCount() < vcSetExt.size());
+                ft.getIterateCount() < vcSetInt.size());
 
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to exterior state
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat);
         ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(VoxelClasses.INTERIOR, ft);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
 
@@ -610,15 +590,15 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         };
 
         grid = new BlockArrayGrid(width, height, depth, 0.001, 0.001, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
-        vcSetExt = new HashSet<VoxelCoordinate>();
+        vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(VoxelClasses.EXTERIOR, ft);
+        ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -771,22 +751,22 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
 
     BlockArrayGrid grid = new BlockArrayGrid(size, size, size, 0.001, 0.001, new int[] {0,0,0}, BlockArrayGrid.BlockType.Array);
 
-        grid.setData(0, 0, 0, Grid.INTERIOR, 1);
-        grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, 3);
+        grid.setData(0, 0, 0, Grid.INSIDE, 1);
+        grid.setData(9, 9, 9, Grid.INSIDE, 2);
+        grid.setData(5, 0, 7, Grid.INSIDE, 3);
 
-        grid.setState(0, 0, 0, Grid.EXTERIOR);
-        grid.setState(9, 9, 9, Grid.INTERIOR);
-        grid.setState(5, 0, 7, Grid.EXTERIOR);
+        grid.setState(0, 0, 0, Grid.INSIDE);
+        grid.setState(9, 9, 9, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
         // check that the state changed, but the material did not
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
         //assertEquals("Material should be ", 1, grid.getMaterial(0, 0, 0));
 
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 9, 9));
         //assertEquals("Material should be ", 2, grid.getMaterial(9, 9, 9));
 
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
         //assertEquals("Material should be ", 3, grid.getMaterial(5, 0, 7));
     }
 
@@ -800,9 +780,9 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
 
         BlockArrayGrid grid = new BlockArrayGrid(size, size, size, voxelSize, sliceHeight, new int[] {2,2,2}, BlockArrayGrid.BlockType.Array);
 
-        grid.setData(0, 0, 0, Grid.INTERIOR, 1);
-        grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, 3);
+        grid.setData(0, 0, 0, Grid.INSIDE, 1);
+        grid.setData(9, 9, 9, Grid.INSIDE, 2);
+        grid.setData(5, 0, 7, Grid.INSIDE, 3);
 
         Grid grid2 = (BlockArrayGrid) grid.clone();
 
@@ -810,10 +790,10 @@ public class TestBlockArrayGrid_ArrayBlock extends BaseTestGrid {
         assertEquals("Slight height should be ", sliceHeight, grid2.getSliceHeight());
 
         // check that the state and material are set
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(0, 0, 0));
 
-        assertEquals("State should be ", Grid.EXTERIOR, grid2.getState(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(9, 9, 9));
 
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(5, 0, 7));
     }
 }

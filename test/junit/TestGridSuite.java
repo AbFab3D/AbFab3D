@@ -30,11 +30,8 @@ public class TestGridSuite extends TestSuite {
         suite.addTest(TestBlockBasedAttributeGridByte.suite());
         suite.addTest(TestBlockBasedGridShort.suite());
         suite.addTest(TestArrayAttributeGridByte.suite());
-        suite.addTest(TestOctreeGridByte.suite());
-        suite.addTest(TestOctreeGridShort.suite());
         suite.addTest(TestMaterialIndexedGridByte.suite());
 
-        suite.addTest(TestOccupiedWrapper.suite());
         suite.addTest(TestRangeCheckWrapper.suite());
         suite.addTest(TestMaterialIndexedWrapper.suite());
 

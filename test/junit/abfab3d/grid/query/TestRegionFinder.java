@@ -43,12 +43,12 @@ public class TestRegionFinder extends BaseTestCase {
         AttributeGrid grid = new ArrayAttributeGridByte(20,20,20,0.1,0.1);
 
         // Create a simple region
-        grid.setData(5,5,5,Grid.EXTERIOR,1);
-        grid.setData(5,5,6,Grid.EXTERIOR,1);
-        grid.setData(5,5,7,Grid.EXTERIOR,1);
-        grid.setData(5,6,5,Grid.EXTERIOR,1);
-        grid.setData(5,6,6,Grid.EXTERIOR,1);
-        grid.setData(5,6,7,Grid.EXTERIOR,1);
+        grid.setData(5,5,5,Grid.INSIDE,1);
+        grid.setData(5,5,6,Grid.INSIDE,1);
+        grid.setData(5,5,7,Grid.INSIDE,1);
+        grid.setData(5,6,5,Grid.INSIDE,1);
+        grid.setData(5,6,6,Grid.INSIDE,1);
+        grid.setData(5,6,7,Grid.INSIDE,1);
 
         RegionFinder rf = new RegionFinder(10);
         List<Region> regions = rf.execute(grid);
@@ -84,7 +84,7 @@ public class TestRegionFinder extends BaseTestCase {
         Iterator<VoxelCoordinate> itr = region1.iterator();
         while(itr.hasNext()) {
             VoxelCoordinate vc = itr.next();
-            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.EXTERIOR,1);
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INSIDE,1);
         }
 
         HashSet<VoxelCoordinate> region2 = new HashSet<VoxelCoordinate>();
@@ -100,7 +100,7 @@ public class TestRegionFinder extends BaseTestCase {
         itr = region2.iterator();
         while(itr.hasNext()) {
             VoxelCoordinate vc = itr.next();
-            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INTERIOR,1);
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INSIDE,1);
         }
 
 
@@ -177,7 +177,7 @@ public class TestRegionFinder extends BaseTestCase {
         Iterator<VoxelCoordinate> itr = region1.iterator();
         while(itr.hasNext()) {
             VoxelCoordinate vc = itr.next();
-            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.EXTERIOR,1);
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INSIDE,1);
         }
 
         HashSet<VoxelCoordinate> region2 = new HashSet<VoxelCoordinate>();
@@ -193,7 +193,7 @@ public class TestRegionFinder extends BaseTestCase {
         itr = region2.iterator();
         while(itr.hasNext()) {
             VoxelCoordinate vc = itr.next();
-            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INTERIOR,2);
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INSIDE,2);
         }
 
 
@@ -317,7 +317,7 @@ System.out.println("Num Regions: " + num_regions + " voxels: " + size);
                                 vcoord[1] = ll_coord[1] + jj;
                                 vcoord[2] = ll_coord[2] + kk;
 //System.out.println("Setting Data: " + java.util.Arrays.toString(vcoord) + " matID: " + matID);
-                                grid.setData(vcoord[0], vcoord[1], vcoord[2], Grid.EXTERIOR, matID);
+                                grid.setData(vcoord[0], vcoord[1], vcoord[2], Grid.INSIDE, matID);
                                 region.add(new VoxelCoordinate(vcoord));
                             }
                         }

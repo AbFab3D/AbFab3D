@@ -46,21 +46,21 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
         // Add Object 1
         long mat1_count = 5;
 
-        grid.setData(0,0,0, Grid.EXTERIOR, 1);
-        grid.setData(0,0,1, Grid.EXTERIOR, 1);
-        grid.setData(0,0,2, Grid.EXTERIOR, 1);
-        grid.setData(0,0,3, Grid.EXTERIOR, 1);
-        grid.setData(0,0,4, Grid.EXTERIOR, 1);
+        grid.setData(0,0,0, Grid.INSIDE, 1);
+        grid.setData(0,0,1, Grid.INSIDE, 1);
+        grid.setData(0,0,2, Grid.INSIDE, 1);
+        grid.setData(0,0,3, Grid.INSIDE, 1);
+        grid.setData(0,0,4, Grid.INSIDE, 1);
 
         // Add Object 2
         long mat2_count = 6;
 
-        grid.setData(0,2,0, Grid.EXTERIOR, 2);
-        grid.setData(0,2,1, Grid.EXTERIOR, 2);
-        grid.setData(0,2,2, Grid.EXTERIOR, 2);
-        grid.setData(0,2,3, Grid.EXTERIOR, 2);
-        grid.setData(0,2,4, Grid.EXTERIOR, 2);
-        grid.setData(0,2,5, Grid.EXTERIOR, 2);
+        grid.setData(0,2,0, Grid.INSIDE, 2);
+        grid.setData(0,2,1, Grid.INSIDE, 2);
+        grid.setData(0,2,2, Grid.INSIDE, 2);
+        grid.setData(0,2,3, Grid.INSIDE, 2);
+        grid.setData(0,2,4, Grid.INSIDE, 2);
+        grid.setData(0,2,5, Grid.INSIDE, 2);
 
         // X axis move where mat 1 can move without hitting mat 2
         StraightPath path = new StraightPath(new int[] {1,0,0});
@@ -90,30 +90,30 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
         // Add Object 1
         long mat1_count = 5;
 
-        grid.setData(0,0,0, Grid.EXTERIOR, 1);
-        grid.setData(0,0,1, Grid.EXTERIOR, 1);
-        grid.setData(0,0,2, Grid.EXTERIOR, 1);
-        grid.setData(0,0,3, Grid.EXTERIOR, 1);
-        grid.setData(0,0,4, Grid.EXTERIOR, 1);
+        grid.setData(0,0,0, Grid.INSIDE, 1);
+        grid.setData(0,0,1, Grid.INSIDE, 1);
+        grid.setData(0,0,2, Grid.INSIDE, 1);
+        grid.setData(0,0,3, Grid.INSIDE, 1);
+        grid.setData(0,0,4, Grid.INSIDE, 1);
 
         // Add Object 2
         long mat2_count = 6;
 
-        grid.setData(0,2,0, Grid.EXTERIOR, 2);
-        grid.setData(0,2,1, Grid.EXTERIOR, 2);
-        grid.setData(0,2,2, Grid.EXTERIOR, 2);
-        grid.setData(0,2,3, Grid.EXTERIOR, 2);
-        grid.setData(0,2,4, Grid.EXTERIOR, 2);
-        grid.setData(0,2,5, Grid.EXTERIOR, 2);
+        grid.setData(0,2,0, Grid.INSIDE, 2);
+        grid.setData(0,2,1, Grid.INSIDE, 2);
+        grid.setData(0,2,2, Grid.INSIDE, 2);
+        grid.setData(0,2,3, Grid.INSIDE, 2);
+        grid.setData(0,2,4, Grid.INSIDE, 2);
+        grid.setData(0,2,5, Grid.INSIDE, 2);
 
         // Add Object 3
         long mat3_count = 5;
 
-        grid.setData(2,0,0, Grid.EXTERIOR, 3);
-        grid.setData(2,0,1, Grid.EXTERIOR, 3);
-        grid.setData(2,0,2, Grid.EXTERIOR, 3);
-        grid.setData(2,0,3, Grid.EXTERIOR, 3);
-        grid.setData(2,0,4, Grid.EXTERIOR, 3);
+        grid.setData(2,0,0, Grid.INSIDE, 3);
+        grid.setData(2,0,1, Grid.INSIDE, 3);
+        grid.setData(2,0,2, Grid.INSIDE, 3);
+        grid.setData(2,0,3, Grid.INSIDE, 3);
+        grid.setData(2,0,4, Grid.INSIDE, 3);
 
 
         StraightPath path = new StraightPath(new int[] {1,0,0});
@@ -141,14 +141,14 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
-        setX(grid, 50, 40, Grid.EXTERIOR, 1, 40, 60);
-        setX(grid, 50, 60, Grid.EXTERIOR, 1, 40, 60);
-        setZ(grid, 40, 50, Grid.EXTERIOR, 1, 40, 60);
-        setZ(grid, 60, 50, Grid.EXTERIOR, 1, 40, 60);
+        setX(grid, 50, 40, Grid.INSIDE, 1, 40, 60);
+        setX(grid, 50, 60, Grid.INSIDE, 1, 40, 60);
+        setZ(grid, 40, 50, Grid.INSIDE, 1, 40, 60);
+        setZ(grid, 60, 50, Grid.INSIDE, 1, 40, 60);
 
         // set the voxels of a T shape with the bottom of the T intersecting the opening of the square
-        setX(grid, 60, 50, Grid.EXTERIOR, matToMove, 30, 70);
-        setY(grid, 50, 50, Grid.EXTERIOR, matToMove, 40, 60);
+        setX(grid, 60, 50, Grid.INSIDE, matToMove, 30, 70);
+        setY(grid, 50, 50, Grid.INSIDE, matToMove, 40, 60);
 
         //------------------------------------------------------
         // test movement in all directions
@@ -189,15 +189,15 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(100,100,100,0.001, 0.001);
 
         // set the voxels of a square
-        setX(grid, 50, 40, Grid.EXTERIOR, 1, 40, 60);
-        setX(grid, 50, 60, Grid.EXTERIOR, 1, 40, 60);
-        setZ(grid, 40, 50, Grid.EXTERIOR, 1, 40, 60);
-        setZ(grid, 60, 50, Grid.EXTERIOR, 1, 40, 60);
+        setX(grid, 50, 40, Grid.INSIDE, 1, 40, 60);
+        setX(grid, 50, 60, Grid.INSIDE, 1, 40, 60);
+        setZ(grid, 40, 50, Grid.INSIDE, 1, 40, 60);
+        setZ(grid, 60, 50, Grid.INSIDE, 1, 40, 60);
 
         // set the voxels of an I shape with the vertical part intersecting the opening of the square
-        setX(grid, 60, 50, Grid.EXTERIOR, matToMove, 30, 70);
-        setX(grid, 40, 50, Grid.EXTERIOR, matToMove, 30, 70);
-        setY(grid, 50, 50, Grid.EXTERIOR, matToMove, 40, 60);
+        setX(grid, 60, 50, Grid.INSIDE, matToMove, 30, 70);
+        setX(grid, 40, 50, Grid.INSIDE, matToMove, 30, 70);
+        setY(grid, 50, 50, Grid.INSIDE, matToMove, 40, 60);
 
         //------------------------------------------------------
         // test movement in all directions
@@ -246,15 +246,15 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         // set the material to move at the center of the grid
-        grid.setData(center, center, center, Grid.EXTERIOR, material2);
+        grid.setData(center, center, center, Grid.INSIDE, material2);
 
         // set the edge voxels of the grid to a different material
-        setPlaneX(grid, 0, Grid.EXTERIOR, material1);
-        setPlaneX(grid, size-1, Grid.EXTERIOR, material1);
-        setPlaneY(grid, 0, Grid.EXTERIOR, material1);
-        setPlaneY(grid, size-1, Grid.EXTERIOR, material1);
-        setPlaneZ(grid, 0, Grid.EXTERIOR, material1);
-        setPlaneZ(grid, size-1, Grid.EXTERIOR, material1);
+        setPlaneX(grid, 0, Grid.INSIDE, material1);
+        setPlaneX(grid, size-1, Grid.INSIDE, material1);
+        setPlaneY(grid, 0, Grid.INSIDE, material1);
+        setPlaneY(grid, size-1, Grid.INSIDE, material1);
+        setPlaneZ(grid, 0, Grid.INSIDE, material1);
+        setPlaneZ(grid, size-1, Grid.INSIDE, material1);
 
         //------------------------------------------------------
         // test movement in all directions
@@ -330,11 +330,11 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
         // Add Object 1
         long mat1_count = 5;
 
-        grid.setData(0,0,0, Grid.EXTERIOR, 1);
-        grid.setData(0,0,1, Grid.INTERIOR, 1);
-        grid.setData(0,0,2, Grid.INTERIOR, 1);
-        grid.setData(0,0,3, Grid.INTERIOR, 1);
-        grid.setData(0,0,4, Grid.EXTERIOR, 1);
+        grid.setData(0,0,0, Grid.INSIDE, 1);
+        grid.setData(0,0,1, Grid.INSIDE, 1);
+        grid.setData(0,0,2, Grid.INSIDE, 1);
+        grid.setData(0,0,3, Grid.INSIDE, 1);
+        grid.setData(0,0,4, Grid.INSIDE, 1);
 
         StraightPath path = new StraightPath(new int[] {0,0,-1});
         CanMoveMaterialTargeted query = new CanMoveMaterialTargeted(1, 2, path);
@@ -361,14 +361,14 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
         //         333 3  2
         //         33333  2
         //
-        setX(grid, 10, 10, Grid.EXTERIOR, 1, 8, 12);
-        setX(grid, 9, 10, Grid.EXTERIOR, 3, 8, 10);
-        setX(grid, 8, 10, Grid.EXTERIOR, 3, 8, 12);
-        grid.setData(12, 9, 10, Grid.EXTERIOR, 3);
+        setX(grid, 10, 10, Grid.INSIDE, 1, 8, 12);
+        setX(grid, 9, 10, Grid.INSIDE, 3, 8, 10);
+        setX(grid, 8, 10, Grid.INSIDE, 3, 8, 12);
+        grid.setData(12, 9, 10, Grid.INSIDE, 3);
 
-        setX(grid, 12, 10, Grid.EXTERIOR, 2, 5, 15);
-//        setY(grid, 5, 10, Grid.EXTERIOR, 2, 8, 11);
-        setY(grid, 15, 10, Grid.EXTERIOR, 2, 8, 11);
+        setX(grid, 12, 10, Grid.INSIDE, 2, 5, 15);
+//        setY(grid, 5, 10, Grid.INSIDE, 2, 8, 11);
+        setY(grid, 15, 10, Grid.INSIDE, 2, 8, 11);
 
         int[] minBounds = {5, 8, 10};
         int[] maxBounds = {15, 12, 10};
@@ -414,19 +414,19 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
 
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
-        setX(grid, yIndex, 0, Grid.INTERIOR, 1, startIndex+1, endIndex-1);
+        setX(grid, yIndex, 0, Grid.INSIDE, 1, startIndex+1, endIndex-1);
         setX(grid, yIndex, 0, Grid.OUTSIDE, 0, 11, 12);
 
-        grid.setData(startIndex,yIndex,0, Grid.EXTERIOR, 1);
-        grid.setData(endIndex,yIndex,0, Grid.EXTERIOR, 1);
-        grid.setData(10,yIndex,0, Grid.EXTERIOR, 1);
-        grid.setData(13,yIndex,0, Grid.EXTERIOR, 1);
+        grid.setData(startIndex,yIndex,0, Grid.INSIDE, 1);
+        grid.setData(endIndex,yIndex,0, Grid.INSIDE, 1);
+        grid.setData(10,yIndex,0, Grid.INSIDE, 1);
+        grid.setData(13,yIndex,0, Grid.INSIDE, 1);
 
         // Set different material
-//        grid.setData(5,yIndex,0, Grid.EXTERIOR, 2);
-        grid.setData(18,yIndex,0, Grid.EXTERIOR, 2);
-        grid.setData(7,5,0, Grid.EXTERIOR, 2);
-        grid.setData(10,15,0, Grid.EXTERIOR, 2);
+//        grid.setData(5,yIndex,0, Grid.INSIDE, 2);
+        grid.setData(18,yIndex,0, Grid.INSIDE, 2);
+        grid.setData(7,5,0, Grid.INSIDE, 2);
+        grid.setData(10,15,0, Grid.INSIDE, 2);
 
         return grid;
     }
@@ -439,19 +439,19 @@ public class TestCanMoveMaterialTargeted extends BaseTestAttributeGrid {
 
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
-        setX(grid, yIndex, 0, Grid.INTERIOR, 1, startIndex+1, endIndex-1);
+        setX(grid, yIndex, 0, Grid.INSIDE, 1, startIndex+1, endIndex-1);
         setX(grid, yIndex, 0, Grid.OUTSIDE, 0, 201, 249);
 
-        grid.setData(startIndex,yIndex,0, Grid.EXTERIOR, 1);
-        grid.setData(endIndex,yIndex,0, Grid.EXTERIOR, 1);
-        grid.setData(200,yIndex,0, Grid.EXTERIOR, 1);
-        grid.setData(250,yIndex,0, Grid.EXTERIOR, 1);
+        grid.setData(startIndex,yIndex,0, Grid.INSIDE, 1);
+        grid.setData(endIndex,yIndex,0, Grid.INSIDE, 1);
+        grid.setData(200,yIndex,0, Grid.INSIDE, 1);
+        grid.setData(250,yIndex,0, Grid.INSIDE, 1);
 
         // Set different material
-//        grid.setData(50,yIndex,0, Grid.EXTERIOR, 2);
-        grid.setData(400,yIndex,0, Grid.EXTERIOR, 2);
-        grid.setData(100,5,0, Grid.EXTERIOR, 2);
-        grid.setData(200,15,0, Grid.EXTERIOR, 2);
+//        grid.setData(50,yIndex,0, Grid.INSIDE, 2);
+        grid.setData(400,yIndex,0, Grid.INSIDE, 2);
+        grid.setData(100,5,0, Grid.INSIDE, 2);
+        grid.setData(200,15,0, Grid.INSIDE, 2);
 
         return grid;
     }

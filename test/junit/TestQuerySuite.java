@@ -29,7 +29,6 @@ public class TestQuerySuite extends TestSuite {
 
         suite.addTest(TestCanMoveMaterial.suite());
         suite.addTest(TestCanMoveMaterialTargeted.suite());
-        suite.addTest(TestCanMoveMaterialOctree.suite());
 
         // TODO: Not working, need to replace with RegionCounter anyway
         //suite.addTest(TestRegionFinder.suite());
