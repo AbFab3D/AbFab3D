@@ -20,9 +20,9 @@ import javax.vecmath.*;
 import abfab3d.grid.*;
 
 /**
- * Transform the position of MARKED elements.
+ * Transform the position of INSIDE elements.
  *
- * Applies a 4x4 matrix to each MARKED element.  Scales are supported
+ * Applies a 4x4 matrix to each INSIDE element.  Scales are supported
  * but this can lead to voxels outside the grid.
  *
  * @author Alan Hudson
@@ -35,7 +35,7 @@ public class TransformPosition implements Operation, ClassTraverser {
 
     /** The source grid */
     private Grid src;
-    
+
     /** The dest grid */
     private Grid dest;
 
@@ -64,7 +64,7 @@ public class TransformPosition implements Operation, ClassTraverser {
     public Grid execute(Grid dest) {
         this.dest = dest;
 
-        src.find(Grid.VoxelClasses.MARKED, this);
+        src.find(Grid.VoxelClasses.INSIDE, this);
 
         return dest;
     }

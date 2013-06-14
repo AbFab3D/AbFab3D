@@ -64,7 +64,6 @@ public class TriangleModelCreator extends GeometryCreator {
     protected double rz;
     protected double rangle;
 
-    protected long outerMaterialID;
     protected long innerMaterialID;
 
     /** Scratch variables */
@@ -112,19 +111,17 @@ public class TriangleModelCreator extends GeometryCreator {
      * @param ry The y rotation applied before voxelization
      * @param rz The z rotation applied before voxelization
      * @param rangle The angle rotation applied before voxelization
-     * @param outerMaterial The outer materialID to use
-     * @param outerMaterial The inner materialID to use
+     * @param innerMaterial The inner materialID to use
      * @param fill Should the interior be filled or just a shell
      */
     public TriangleModelCreator(GeometryData geom,
         double x, double y, double z, double rx, double ry, double rz, double rangle,
-        long outerMaterial, long innerMaterial, boolean fill) {
+        long innerMaterial, boolean fill) {
 
         this.geom = geom;
         this.x = x;
         this.y = y;
         this.z = z;
-        this.outerMaterialID = outerMaterial;
         this.innerMaterialID = innerMaterial;
         this.rx = rx;
         this.ry = ry;
@@ -169,20 +166,18 @@ public class TriangleModelCreator extends GeometryCreator {
      * @param ry The y rotation applied before voxelization
      * @param rz The z rotation applied before voxelization
      * @param rangle The angle rotation applied before voxelization
-     * @param outerMaterial The outer materialID to use
-     * @param outerMaterial The inner materialID to use
+     * @param innerMaterial The inner materialID to use
      * @param fill Should the interior be filled or just a shell
      */
     public TriangleModelCreator(GeometryData geom,
         double x, double y, double z, double rx, double ry, double rz, double rangle,
-        long outerMaterial, long innerMaterial, boolean fill, Operation interiorFinder) {
+        long innerMaterial, boolean fill, Operation interiorFinder) {
 
         this.interiorFinder = interiorFinder;
         this.geom = geom;
         this.x = x;
         this.y = y;
         this.z = z;
-        this.outerMaterialID = outerMaterial;
         this.innerMaterialID = innerMaterial;
         this.rx = rx;
         this.ry = ry;
@@ -419,7 +414,7 @@ public class TriangleModelCreator extends GeometryCreator {
 //System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
 
                 tri = new Triangle(coords, i);
-                insert(tri, grid, outerMaterialID);
+                insert(tri, grid, innerMaterialID);
             }
         } else if (geom.geometryType == GeometryData.INDEXED_TRIANGLES) {
             int len = geom.indexesCount / 3;
@@ -462,7 +457,7 @@ public class TriangleModelCreator extends GeometryCreator {
                 idx++;
 //System.out.println("Insert tri: " + java.util.Arrays.toString(coords));
                 tri = new Triangle(coords, i);
-                insert(tri, grid, outerMaterialID);
+                insert(tri, grid, innerMaterialID);
             }
         }
 
@@ -668,7 +663,7 @@ System.out.flush();
                     grid.getWorldCoords(i,j,k,vcoords);
                     if (intersectsTriangle(v0,v1,v2, vcoords)) {
 //System.out.println("Set data: " + i + " " + j + " " + k);
-                        grid.setData(i,j,k,Grid.EXTERIOR,material);
+                        grid.setData(i,j,k,Grid.INSIDE,material);
 
                         if (COLLECT_STATS) {
                             cellsFilled ++;
@@ -715,7 +710,7 @@ System.out.flush();
                     grid.getWorldCoords(i,j,k,vcoords);
                     if (intersectsTriangle(v0,v1,v2, vcoords)) {
 //System.out.println("Set data: " + i + " " + j + " " + k);
-                        grid.setState(i,j,k,Grid.EXTERIOR);
+                        grid.setState(i,j,k,Grid.INSIDE);
 
                         if (COLLECT_STATS) {
                             cellsFilled ++;

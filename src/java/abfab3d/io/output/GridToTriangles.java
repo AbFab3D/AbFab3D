@@ -77,7 +77,7 @@ public class GridToTriangles implements ClassTraverser {
         this.out = out;
                 
         // traverse the grid with triMaker 
-        grid.findInterruptible(Grid.VoxelClasses.MARKED, this);           
+        grid.findInterruptible(Grid.VoxelClasses.INSIDE, this);
         
     }
     

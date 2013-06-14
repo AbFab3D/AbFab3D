@@ -17,8 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
@@ -27,8 +25,6 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 // Internal Imports
-import abfab3d.geom.TorusCreator;
-import abfab3d.geom.TriangleModelCreator;
 import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
 
@@ -58,15 +54,15 @@ public class TestErosionShape extends TestCase {//BaseTestAttributeGrid {
         int offset = 10;
 
         for(int k = 1; k <= kmax; k++){
-            
+
             AttributeGrid grid = makeBlock(nx+2*offset, ny+2*offset, nz+2*offset, offset);
-            
+
             int origVolume =  grid.findCount(0);
-            ErosionShape dil = new ErosionShape();        
-            dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));            
-            grid = dil.execute(grid);            
+            ErosionShape dil = new ErosionShape();
+            dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
+            grid = dil.execute(grid);
             writeFile(grid, fmt("/tmp/erosionBlockEroded_%d.x3d", k));
-            
+
             int erodedVolume =  grid.findCount(0);
             int exactVolume = (nx-2*k)*(ny-2*k)*(nz-2*k);
             printf("orig volume: %d eroded volume: %d exactVolume: %d\n",origVolume, erodedVolume, exactVolume);
@@ -83,36 +79,36 @@ public class TestErosionShape extends TestCase {//BaseTestAttributeGrid {
 
         printf("grid: %d x %d x %d\n", nx, ny, nz);
         printf("dilation size: %d\n", dilationSize);
-        
+
         AttributeGrid grid = makeBlock(nx, ny, nz, dilationSize+1);
 
-        ErosionShape op = new ErosionShape();        
-        op.setVoxelShape(VoxelShapeFactory.getBall(dilationSize,0,0));            
+        ErosionShape op = new ErosionShape();
+        op.setVoxelShape(VoxelShapeFactory.getBall(dilationSize,0,0));
         long t0 = time();
-        grid = op.execute(grid);            
+        grid = op.execute(grid);
         printf("ball erosion time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationShape.x3d"));
-        
-        // test iterative dilation 
+
+        // test iterative dilation
         grid = makeBlock(nx, ny, nz, dilationSize+1);
-        ErosionMask opm = new ErosionMask(dilationSize);        
+        ErosionMask opm = new ErosionMask(dilationSize);
         t0 = time();
         opm.execute(grid);
         printf("iterative erosion time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationIterative.x3d"));
-                
+
         // test old sphere dilation
         grid = makeBlock(nx, ny, nz, dilationSize+1);
-        ErosionMask ops = new ErosionMask(dilationSize,0);        
+        ErosionMask ops = new ErosionMask(dilationSize,0);
         t0 = time();
         ops.execute(grid);
         printf("old spherical erosion time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationSphere.x3d"));
-        
+
     }
 
     private AttributeGrid makeBlock(int nx, int ny, int nz, int offset) {
-        
+
         AttributeGrid grid = new GridShortIntervals(nx, ny, nz, 0.001, 0.001);
         //AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, 0.001, 0.001);
 
@@ -120,7 +116,7 @@ public class TestErosionShape extends TestCase {//BaseTestAttributeGrid {
             for (int x = offset; x < nx - offset; x++) {
                 for (int z = offset; z < nz - offset; z++) {
                     //printf("%d %d %d\n",x,y,z);
-                    grid.setState(x,y,z, Grid.INTERIOR);
+                    grid.setState(x,y,z, Grid.INSIDE);
                 }
             }
         }
@@ -138,13 +134,13 @@ public class TestErosionShape extends TestCase {//BaseTestAttributeGrid {
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-            //colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
+            //colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
             //colors.put(new Integer(Grid.OUTSIDE), new float[] {0,1,1});
 
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-            //transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0));
+            //transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
             //transparency.put(new Integer(Grid.OUTSIDE), new Float(1));
 
             exporter.writeDebug(grid, colors, transparency);
@@ -157,7 +153,7 @@ public class TestErosionShape extends TestCase {//BaseTestAttributeGrid {
         }
     }
 
-    
+
 
 
     public static void main(String[] args) {

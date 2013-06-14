@@ -13,12 +13,9 @@
 package abfab3d.geom;
 
 // External Imports
-import java.util.*;
-import java.io.*;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.DualWrapper;
-import org.web3d.vrml.sav.ContentHandler;
 
 // Internal Imports
 import abfab3d.grid.Grid;
@@ -120,9 +117,9 @@ public class TorusCreator extends GeometryCreator {
                     wrapper.getWorldCoords(i,j,k,wcoords);
 
                     if (surface(wcoords[0],wcoords[1],wcoords[2])) {
-                        wrapper.setData(i,j,k,Grid.EXTERIOR, outerMaterial);
+                        wrapper.setData(i,j,k,Grid.INSIDE, outerMaterial);
                     } else if (inside(wcoords[0],wcoords[1],wcoords[2])) {
-                        wrapper.setData(i,j,k,Grid.INTERIOR, innerMaterial);
+                        wrapper.setData(i,j,k,Grid.INSIDE, innerMaterial);
                     }
                 }
             }

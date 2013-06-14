@@ -70,7 +70,7 @@ public class ThickenUniform implements Operation, AttributeOperation {
 
                     byte state = vd.getState();
 
-                    if (state == Grid.EXTERIOR) {
+                    if (state == Grid.INSIDE) {
                         ext_voxels.add(new VoxelCoordinate(x, y, z));
                     }
                 }
@@ -91,7 +91,7 @@ public class ThickenUniform implements Operation, AttributeOperation {
             for (int i = -1; i < 2; i++) {
                 for (int j = -1; j < 2; j++) {
                     for (int k = -1; k < 2; k++) {
-                        grid.setState(x + i, y + j, z + k, Grid.EXTERIOR);
+                        grid.setState(x + i, y + j, z + k, Grid.INSIDE);
                     }
                 }
             }
@@ -132,7 +132,7 @@ public class ThickenUniform implements Operation, AttributeOperation {
 
                     byte state = vd.getState();
 
-                    if (state == Grid.EXTERIOR) {
+                    if (state == Grid.INSIDE) {
                         ext_voxels.add(new VoxelCoordinate(x, y, z));
                     }
                 }
@@ -153,7 +153,7 @@ public class ThickenUniform implements Operation, AttributeOperation {
             for (int i = -1; i < 2; i++) {
                 for (int j = -1; j < 2; j++) {
                     for (int k = -1; k < 2; k++) {
-                        grid.setData(x + i, y + j, z + k, Grid.EXTERIOR, material);
+                        grid.setData(x + i, y + j, z + k, Grid.INSIDE, material);
                     }
                 }
             }

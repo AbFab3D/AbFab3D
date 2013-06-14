@@ -101,12 +101,12 @@ public class BoxBatcherX3DExporter {
      * @param matColors Maps materials to colors.  4 component color
      */
     public void write(Grid grid, Map<Long, float[]> matColors) {
-
+/*
         if (grid instanceof OctreeAttributeGridByte) {
             ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
             return;
         }
-
+*/
         double x,y,z;
         int idx = 0;
 //        float[] color = new float[] {0.8f,0.8f,0.8f};
@@ -716,27 +716,27 @@ System.out.println("ul: " + ul_coord + " ur: " + ur_coord + " lr: " + lr_coord +
             }
             outputState(grid, writer, Grid.OUTSIDE, color, trans);
         }
-
-        color = stateColors.get(new Integer(Grid.EXTERIOR));
-        transF = stateTransparency.get(new Integer(Grid.EXTERIOR));
+/*
+        color = stateColors.get(new Integer(Grid.INSIDE));
+        transF = stateTransparency.get(new Integer(Grid.INSIDE));
         trans = 1;
 
         if (color != null) {
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, writer, Grid.EXTERIOR, color, trans);
+            outputState(grid, writer, Grid.INSIDE, color, trans);
         }
-
-        color = stateColors.get(new Integer(Grid.INTERIOR));
-        transF = stateTransparency.get(new Integer(Grid.INTERIOR));
+*/
+        color = stateColors.get(new Integer(Grid.INSIDE));
+        transF = stateTransparency.get(new Integer(Grid.INSIDE));
         trans = 1;
 
         if (color != null) {
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, writer, Grid.INTERIOR, color, trans);
+            outputState(grid, writer, Grid.INSIDE, color, trans);
         }
 
         // End Centering Transform

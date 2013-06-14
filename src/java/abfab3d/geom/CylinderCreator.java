@@ -145,10 +145,10 @@ public class CylinderCreator extends GeometryCreator {
         int x = 0;
         int z = radius;
 
-        grid.setData(x0, y0, z0 + radius, Grid.EXTERIOR, mat);
+        grid.setData(x0, y0, z0 + radius, Grid.INSIDE, mat);
         //setPixel(x0, z0 + radius);
 
-        grid.setData(x0, y0, z0 - radius, Grid.EXTERIOR, mat);
+        grid.setData(x0, y0, z0 - radius, Grid.INSIDE, mat);
         //setPixel(x0, z0 - radius);
 
         rasterLine(grid, x0 - radius, x0 + radius, y0, z0, z0, mat);
@@ -202,10 +202,10 @@ public class CylinderCreator extends GeometryCreator {
         int z = radius;
 
 //System.out.println("rcswap: " + x0 + " " + " " + y0 + " " + z0 + " " + radius);
-        grid.setData(x0, z0 + radius, y0, Grid.EXTERIOR, mat);
+        grid.setData(x0, z0 + radius, y0, Grid.INSIDE, mat);
         //setPixel(x0, z0 + radius);
 
-        grid.setData(x0, z0 - radius,y0,Grid.EXTERIOR, mat);
+        grid.setData(x0, z0 - radius,y0,Grid.INSIDE, mat);
         //setPixel(x0, z0 - radius);
 
         rasterLineSwapYZ(grid,x0 - radius, x0 + radius,y0,z0,z0,mat);
@@ -267,7 +267,7 @@ public class CylinderCreator extends GeometryCreator {
         int numerator = longest >> 1 ;
 
         for (int i=0;i <= longest;i++) {
-            grid.setData(x,y,z,Grid.EXTERIOR,mat);
+            grid.setData(x,y,z,Grid.INSIDE,mat);
             numerator += shortest ;
             if (!(numerator<longest)) {
                 numerator -= longest ;
@@ -304,7 +304,7 @@ public class CylinderCreator extends GeometryCreator {
         int numerator = longest >> 1 ;
 
         for (int i=0;i <= longest;i++) {
-            grid.setData(x, z, y, Grid.EXTERIOR, mat);
+            grid.setData(x, z, y, Grid.INSIDE, mat);
             numerator += shortest ;
             if (!(numerator<longest)) {
                 numerator -= longest ;

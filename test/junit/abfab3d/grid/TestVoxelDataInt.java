@@ -14,7 +14,6 @@ package abfab3d.grid;
 
 // External Imports
 import junit.framework.Test;
-import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 // Internal Imports
@@ -38,7 +37,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
      * Test setGrid.
      */
     public void testConstructor() {
-        byte state = Grid.EXTERIOR;
+        byte state = Grid.INSIDE;
         long material = 125;
 
         VoxelDataInt vd = new VoxelDataInt(state, material);
@@ -48,10 +47,10 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
     }
 
     public void testSetData() {
-        byte state = Grid.EXTERIOR;
+        byte state = Grid.INSIDE;
         long material = 125;
 
-        VoxelDataInt vd = new VoxelDataInt(Grid.INTERIOR, 1);
+        VoxelDataInt vd = new VoxelDataInt(Grid.INSIDE, 1);
         vd.setData(state, material);
 
         assertEquals(state, vd.getState());
@@ -59,10 +58,10 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
     }
 
     public void testSetState() {
-        byte state = Grid.EXTERIOR;
+        byte state = Grid.INSIDE;
         long material = 125;
 
-        VoxelDataInt vd = new VoxelDataInt(Grid.INTERIOR, material);
+        VoxelDataInt vd = new VoxelDataInt(Grid.INSIDE, material);
         vd.setState(state);
 
         assertEquals(state, vd.getState());
@@ -70,7 +69,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
     }
 
     public void testsetAttribute() {
-        byte state = Grid.EXTERIOR;
+        byte state = Grid.INSIDE;
         long material = 125;
 
         VoxelDataInt vd = new VoxelDataInt(state, 1);
@@ -104,7 +103,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
     }
 
     public void testClone() {
-        byte state = Grid.EXTERIOR;
+        byte state = Grid.INSIDE;
         long material = 255;
 
         VoxelDataInt vd = new VoxelDataInt(state, material);
@@ -115,7 +114,7 @@ public class TestVoxelDataInt extends BaseTestAttributeGrid {
     }
 
     public void testEquals() {
-        byte state = Grid.EXTERIOR;
+        byte state = Grid.INSIDE;
         long material = 255;
 
         VoxelDataInt vd = new VoxelDataInt(state, material);

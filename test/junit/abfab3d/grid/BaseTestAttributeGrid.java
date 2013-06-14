@@ -29,7 +29,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * Test creating an empty grid.
      */
     public void createEmpty(AttributeGrid grid) {
-        grid.setData(5, 5, 5, Grid.EXTERIOR, 10);
+        grid.setData(5, 5, 5, Grid.INSIDE, 10);
 
         AttributeGrid grid2 = (AttributeGrid) grid.createEmpty(10, 11, 12, 0.002, 0.003);
         int gridSize = 10 * 11 * 12;
@@ -57,10 +57,10 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
@@ -77,7 +77,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
+        grid.setData(10, 6, 2, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
@@ -85,7 +85,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat1, ft);
 
@@ -117,7 +117,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i = 0; i < coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
@@ -143,12 +143,12 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
-            grid.setData(x, 4, 4, Grid.INTERIOR, mat1);
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
+            grid.setData(x, 4, 4, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
             vcSetMat1.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 5, 6, Grid.EXTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
@@ -167,7 +167,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         // make sure that findAttributeInterruptible stops interating when voxel is not found
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
-        grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
+        grid.setData(1, 3, 3, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
@@ -178,7 +178,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
 
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to EXTERIOR state
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttributeInterruptible(mat2, ft);
 
@@ -207,7 +207,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i = 0; i < coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
@@ -229,41 +229,41 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         long mat1 = 1;
         long mat2 = 2;
 
-        HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(x, 2, 2));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetIntMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttribute(Grid.VoxelClasses.EXTERIOR, mat1, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttribute(Grid.VoxelClasses.INTERIOR, mat2, ft);
+        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat2, ft);
 
-        assertTrue("Found state iterator did not find all voxels with INTERIOR state and material " + mat2,
+        assertTrue("Found state iterator did not find all voxels with INSIDE state and material " + mat2,
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
-        ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttribute(Grid.VoxelClasses.EXTERIOR, mat1, ft);
+        grid.setData(10, 6, 2, Grid.INSIDE, mat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat1, ft);
 
         assertFalse("Found state and material iterator should return false",
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttribute(Grid.VoxelClasses.INTERIOR, ft);
+        grid.findAttribute(Grid.VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state and material iterator should return false",
                 ft.foundAllVoxels());
@@ -289,15 +289,15 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                 {width - 1, height - 1, depth - 1}
         };
 
-        HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i = 0; i < coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttribute(Grid.VoxelClasses.EXTERIOR, mat1, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttribute(Grid.VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
@@ -314,56 +314,55 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         long mat1 = 1;
         long mat2 = 2;
 
-        HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
-        HashSet<VoxelCoordinate> vcSetExtMat2 = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetIntMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(x, 2, 2));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 4, 4, Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(x, 4, 4));
+            grid.setData(x, 4, 4, Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 7, 7, Grid.INTERIOR, mat1);
+            grid.setData(x, 7, 7, Grid.INSIDE, mat1);
             vcSetIntMat1.add(new VoxelCoordinate(x, 7, 7));
 
-            grid.setData(x, 5, 6, Grid.EXTERIOR, mat2);
-            vcSetExtMat2.add(new VoxelCoordinate(x, 5, 6));
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
+            vcSetIntMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.EXTERIOR, mat1, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.INTERIOR, mat1, ft);
-        assertTrue("Found iterator did not find all voxels with INTERIOR state and material " + mat1,
+        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
+        assertTrue("Found iterator did not find all voxels with INSIDE state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindAttributeIterateTester(vcSetExtMat2);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.EXTERIOR, mat2, ft);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
+        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat2, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat2,
                 ft.foundAllVoxels());
 
         // make sure that findAttributeInterruptible stops interating when voxel is not found
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
-        grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
-        ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.EXTERIOR, mat1, ft);
+        grid.setData(1, 3, 3, Grid.INSIDE, mat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
 
         assertFalse("Found state and material interruptible iterator should return false",
                 ft.foundAllVoxels());
         assertTrue("Found state and material interruptible did not get interrupted ",
-                ft.getIterateCount() < vcSetExtMat1.size());
+                ft.getIterateCount() < vcSetIntMat1.size());
 
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior and mat2 voxels
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindAttributeIterateTester(vcSetExtMat2);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.EXTERIOR, mat2, ft);
+        grid.setData(1, 5, 6, Grid.OUTSIDE, mat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
+        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat2, ft);
 
         assertFalse("Found state and material iterator should return false", ft.foundAllVoxels());
 
@@ -388,15 +387,15 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                 {width - 1, height - 1, depth - 1}
         };
 
-        HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i = 0; i < coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttributeInterruptible(Grid.VoxelClasses.EXTERIOR, mat1, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttributeInterruptible(Grid.VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
@@ -421,7 +420,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
             for (int y = 0; y < height; y++) {
                 for (int z = 0; z < materialDepth[x]; z++) {
 //System.out.println(x + ", " + y + ", " + z + ": " + material[x]);
-                    grid.setData(x, y, z, Grid.INTERIOR, material[x]);
+                    grid.setData(x, y, z, Grid.INSIDE, material[x]);
                 }
             }
         }
@@ -438,14 +437,14 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         long mat = 0;
         grid = new ArrayAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 0, 0, Grid.EXTERIOR, mat);
+            grid.setData(x, 0, 0, Grid.INSIDE, mat);
         }
 
         assertEquals("Material count is not " + width, width, grid.findCount(mat));
 
         grid = new ArrayAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int y = 0; y < height; y++) {
-            grid.setData(0, y, 0, Grid.INTERIOR, mat);
+            grid.setData(0, y, 0, Grid.INSIDE, mat);
         }
 
         assertEquals("Material count is not " + height, height, grid.findCount(mat));
@@ -462,7 +461,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         long mat, expectedMat;
 
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 0, 0, Grid.EXTERIOR, x);
+            grid.setData(x, 0, 0, Grid.INSIDE, x);
         }
 
         for (int x = 0; x < width; x++) {
@@ -480,10 +479,10 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int maxMaterial = (int) Math.pow(2.0, 14.0);
 
-        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
-        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial - 1);
-        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial + 1);
-        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
+        grid.setData(0, 0, 0, Grid.INSIDE, 0);
+        grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial - 1);
+        grid.setData(2, 0, 0, Grid.INSIDE, maxMaterial + 1);
+        grid.setData(3, 0, 0, Grid.INSIDE, 2 * maxMaterial - 1);
 
         assertEquals("Material [0,0,0] is not 0", 0, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(1, 0, 0));
@@ -498,10 +497,10 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         int width = grid.getWidth();
         int maxMaterial = (int) Math.pow(2.0, 30.0);
 
-        grid.setData(0, 0, 0, Grid.EXTERIOR, 0);
-        grid.setData(1, 0, 0, Grid.EXTERIOR, maxMaterial - 1);
-        grid.setData(2, 0, 0, Grid.EXTERIOR, maxMaterial + 1);
-        grid.setData(3, 0, 0, Grid.EXTERIOR, 2 * maxMaterial - 1);
+        grid.setData(0, 0, 0, Grid.INSIDE, 0);
+        grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial - 1);
+        grid.setData(2, 0, 0, Grid.INSIDE, maxMaterial + 1);
+        grid.setData(3, 0, 0, Grid.INSIDE, 2 * maxMaterial - 1);
 
         assertEquals("Material [0,0,0] is not 0", 0, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(1, 0, 0));
@@ -516,26 +515,26 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
     public void setState(AttributeGrid grid) {
         double vs = 0.001;
 
-        grid.setData(0, 0, 0, Grid.INTERIOR, 1);
-        grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, 3);
+        grid.setData(0, 0, 0, Grid.INSIDE, 1);
+        grid.setData(9, 9, 9, Grid.INSIDE, 2);
+        grid.setData(5, 0, 7, Grid.INSIDE, 3);
 
-        grid.setState(0, 0, 0, Grid.EXTERIOR);
-        grid.setState(9, 9, 9, Grid.INTERIOR);
-        grid.setState(5, 0, 7, Grid.EXTERIOR);
-        grid.setState(6 * vs, 0, 7 * vs , Grid.INTERIOR);
+        grid.setState(0, 0, 0, Grid.INSIDE);
+        grid.setState(9, 9, 9, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
+        grid.setState(6 * vs, 0, 7 * vs , Grid.INSIDE);
 
         // check that the state changed, but the material did not
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
         assertEquals("Material should be ", 1, grid.getAttribute(0, 0, 0));
 
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 9, 9));
         assertEquals("Material should be ", 2, grid.getAttribute(9, 9, 9));
 
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
         assertEquals("Material should be ", 3, grid.getAttribute(5, 0, 7));
 
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(6 * vs, 0, 7 * vs));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(6 * vs, 0, 7 * vs));
     }
 
     /**
@@ -548,10 +547,10 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         //      2
         //      2  33 33
         //
-        setX(grid, 10, 10, Grid.EXTERIOR, 1, 8, 12);
-        setX(grid, 8, 10, Grid.INTERIOR, 3, 8, 12);
+        setX(grid, 10, 10, Grid.INSIDE, 1, 8, 12);
+        setX(grid, 8, 10, Grid.INSIDE, 3, 8, 12);
         grid.setState(10, 8, 10, Grid.OUTSIDE);
-        setY(grid, 5, 10, Grid.EXTERIOR, 2, 8, 10);
+        setY(grid, 5, 10, Grid.INSIDE, 2, 8, 10);
 
         int newMaterial = 10;
 
@@ -570,7 +569,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         assertEquals(0, grid.findCount(1));
 
         for (int i = 8; i <= 12; i++) {
-            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(i, 10, 10));
+            assertEquals("State should be ", Grid.INSIDE, grid.getState(i, 10, 10));
             assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 10, 10));
         }
 
@@ -585,22 +584,22 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         assertEquals(0, grid.findCount(10));
 
         for (int i = 8; i <= 12; i++) {
-            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(i, 10, 10));
+            assertEquals("State should be ", Grid.INSIDE, grid.getState(i, 10, 10));
             assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 10, 10));
         }
 
         for (int i = 8; i <= 9; i++) {
-            assertEquals("State should be ", Grid.INTERIOR, grid.getState(i, 8, 10));
+            assertEquals("State should be ", Grid.INSIDE, grid.getState(i, 8, 10));
             assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 8, 10));
         }
 
         for (int i = 11; i <= 12; i++) {
-            assertEquals("State should be ", Grid.INTERIOR, grid.getState(i, 8, 10));
+            assertEquals("State should be ", Grid.INSIDE, grid.getState(i, 8, 10));
             assertEquals("Material should be ", newMaterial, grid.getAttribute(i, 8, 10));
         }
 
         for (int i = 8; i <= 10; i++) {
-            assertEquals("State should be ", Grid.EXTERIOR, grid.getState(5, i, 10));
+            assertEquals("State should be ", Grid.INSIDE, grid.getState(5, i, 10));
             assertEquals("Material should be ", newMaterial, grid.getAttribute(5, i, 10));
         }
     }
@@ -612,8 +611,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
     public void getMaterialByCoord1(AttributeGrid grid) {
         // set and test get on some random world coordinates
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte) 3);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte) 2);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (byte) 1);
+        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 2);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte) 1);
         assertEquals("State should be ", 3, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("State should be ", 2, grid.getAttribute(0.95, 0.39, 0.45));
         assertEquals("State should be ", 1, grid.getAttribute(0.6, 0.1, 0.4));
@@ -627,7 +626,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (byte) 2);
+        grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte) 2);
         assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.06, 0.05));
         assertEquals("State should be ", 2, grid.getAttribute(0.0999, 0.06, 0.05));
         assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.0799, 0.05));
@@ -641,7 +640,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         assertEquals("State should be ", 0, grid.getAttribute(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (byte) 5);
+        grid.setData(0.0, 0.0, 0.0, Grid.INSIDE, (byte) 5);
         assertEquals("State should be ", 5, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("State should be ", 5, grid.getAttribute(0.0499, 0.0, 0.0));
         assertEquals("State should be ", 5, grid.getAttribute(0.0, 0.0199, 0.0));
@@ -652,7 +651,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         assertEquals("State should be ", 0, grid.getAttribute(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (byte) 12);
+        grid.setData(0.149, 0.119, 0.199, Grid.INSIDE, (byte) 12);
 //        assertEquals("State should be ", 12, grid.getAttribute(0.1, 0.1, 0.15)); //failing because 0.15/0.05=2.999997
         assertEquals("State should be ", 12, grid.getAttribute(0.1499, 0.1, 0.1501));
         assertEquals("State should be ", 12, grid.getAttribute(0.1, 0.119, 0.1501));
@@ -668,9 +667,9 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * Test setAttribute.
      */
     public void setAttribute(AttributeGrid grid) {
-        grid.setData(0, 0, 0, Grid.INTERIOR, 1);
-        grid.setData(9, 9, 9, Grid.EXTERIOR, 2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, 3);
+        grid.setData(0, 0, 0, Grid.INSIDE, 1);
+        grid.setData(9, 9, 9, Grid.INSIDE, 2);
+        grid.setData(5, 0, 7, Grid.INSIDE, 3);
 
         grid.setAttribute(0, 0, 0, 10);
         grid.setAttribute(9, 9, 9, 11);
@@ -678,13 +677,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
 
         // check that the material changed, but the state did not
         assertEquals("Material should be ", 10, grid.getAttribute(0, 0, 0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
 
         assertEquals("Material should be ", 11, grid.getAttribute(9, 9, 9));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 9, 9));
 
         assertEquals("Material should be ", 12, grid.getAttribute(5, 0, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
     }
 
 
@@ -694,8 +693,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
     public void getMaterialByVoxel(AttributeGrid grid) {
         // Removed outside as it doesn't have to carry state
         //grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)3);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (byte) 2);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (byte) 1);
+        grid.setData(9, 8, 7, Grid.INSIDE, (byte) 2);
+        grid.setData(5, 0, 7, Grid.INSIDE, (byte) 1);
 
         assertEquals("State should be ", 2, grid.getAttribute(9, 8, 7));
         assertEquals("State should be ", 1, grid.getAttribute(5, 0, 7));
@@ -710,15 +709,15 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void getDataByCoord(AttributeGrid grid) {
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte) 2);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (byte) 1);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (byte) 0);
+        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 1);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte) 0);
         VoxelData vd = grid.getVoxelData();
         grid.getData(0.0, 0.0, 0.0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
         grid.getData(0.95, 0.39, 0.45, vd);
-        assertEquals("State should be ", Grid.EXTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
         grid.getData(0.6, 0.1, 0.4, vd);
-        assertEquals("State should be ", Grid.INTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
     }
 
 
@@ -727,17 +726,17 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void getDataByVoxel(AttributeGrid grid) {
         grid.setData(0, 0, 0, Grid.OUTSIDE, (byte) 2);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (byte) 1);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (byte) 0);
+        grid.setData(9, 8, 7, Grid.INSIDE, (byte) 1);
+        grid.setData(5, 0, 7, Grid.INSIDE, (byte) 0);
 
         VoxelData vd = grid.getVoxelData();
 
         grid.getData(0, 0, 0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
         grid.getData(9, 8, 7, vd);
-        assertEquals("State should be ", Grid.EXTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
         grid.getData(5, 0, 7, vd);
-        assertEquals("State should be ", Grid.INTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(2, 2, 2));
@@ -756,13 +755,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 4, 4, Grid.INTERIOR, mat1);
+            grid.setData(x, 4, 4, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
@@ -821,7 +820,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
-                    grid.setData(x, y, z, Grid.EXTERIOR, 1);
+                    grid.setData(x, y, z, Grid.INSIDE, 1);
                 }
             }
         }
@@ -832,7 +831,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
                     grid.getData(x, y, z, vd);
-                    assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                    assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                     assertTrue("Material wrong", vd.getMaterial() == 1);
                 }
             }
@@ -854,9 +853,9 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
-                        grid.setData(x, y, z, Grid.EXTERIOR, 1);
+                        grid.setData(x, y, z, Grid.INSIDE, 1);
                     } else {
-                        grid.setData(x, y, z, Grid.INTERIOR, 2);
+                        grid.setData(x, y, z, Grid.INSIDE, 2);
                     }
 
                 }
@@ -870,10 +869,10 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                     grid.getData(x, y, z, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
-                        assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                        assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                         assertTrue("Material wrong", vd.getMaterial() == 1);
                     } else {
-                        assertTrue("State wrong", vd.getState() == Grid.INTERIOR);
+                        assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                         assertTrue("Material wrong", vd.getMaterial() == 2);
                     }
                 }
@@ -896,7 +895,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
                     if (x == y && y == z) {
-                        grid.setData(x, y, z, Grid.EXTERIOR, 1);
+                        grid.setData(x, y, z, Grid.INSIDE, 1);
                     }
                 }
             }
@@ -909,7 +908,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                     grid.getData(x, y, z, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if (x == y && y == z) {
-                        assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                        assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                         assertTrue("Material wrong", vd.getMaterial() == 1);
                     }
                 }
@@ -937,7 +936,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                 ycoord = (double) (y) * sliceHeight + sliceHeight / 2.0;
                 for (int z = 0; z < depth; z++) {
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
-                    grid.setData(xcoord, ycoord, zcoord, Grid.EXTERIOR, (byte) 1);
+                    grid.setData(xcoord, ycoord, zcoord, Grid.INSIDE, (byte) 1);
                 }
             }
         }
@@ -952,7 +951,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
                     grid.getData(xcoord, ycoord, zcoord, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
-                    assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                    assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                     assertTrue("Material wrong", vd.getMaterial() == 1);
                 }
             }
@@ -1083,10 +1082,10 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
     public void found(int x, int y, int z, VoxelData vd) {
         allCount++;
 
-        if (vd.getState() == Grid.EXTERIOR) {
+        if (vd.getState() == Grid.INSIDE) {
             mrkCount++;
             extCount++;
-        } else if (vd.getState() == Grid.INTERIOR) {
+        } else if (vd.getState() == Grid.INSIDE) {
             mrkCount++;
             intCount++;
         } else {

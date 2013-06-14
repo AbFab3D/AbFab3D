@@ -467,10 +467,8 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                	if (result.getState(i,coords[1],coords[2]) != Grid.EXTERIOR) {
-	                    result.setState(i,coords[1],coords[2], Grid.INTERIOR);
-	                    counts[i][coords[1]][coords[2]]++;
-                	}
+                    result.setState(i,coords[1],coords[2], Grid.INSIDE);
+                    counts[i][coords[1]][coords[2]]++;
                 }
             }
         } else if (axis == TunnelRegion.Axis.Y) {
@@ -481,10 +479,8 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                	if (result.getState(coords[0],i,coords[2]) != Grid.EXTERIOR) {
-	                    result.setState(coords[0],i,coords[2], Grid.INTERIOR);
-	                    counts[coords[0]][i][coords[2]]++;
-                	}
+                    result.setState(coords[0],i,coords[2], Grid.INSIDE);
+                    counts[coords[0]][i][coords[2]]++;
                 }
             }
         } else if (axis == TunnelRegion.Axis.Z) {
@@ -496,10 +492,8 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
 
             for(int i=start; i < len; i++) {
                 if (t_result[i] == true) {
-                	if (result.getState(coords[0],coords[1],i) != Grid.EXTERIOR) {
-                        result.setState(coords[0],coords[1],i, Grid.INTERIOR);
-                        counts[coords[0]][coords[1]][i]++;
-                	}
+                    result.setState(coords[0],coords[1],i, Grid.INSIDE);
+                    counts[coords[0]][coords[1]][i]++;
                 }
             }
         }
@@ -625,7 +619,7 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
             for(int j=0; j < h; j++) {
                 for(int k=0; k < d; k++) {
                     if (counts[i][j][k] == 3) {
-                        gridOp.setState(i,j,k,Grid.INTERIOR);
+                        gridOp.setState(i,j,k,Grid.INSIDE);
                     }
                 }
             }
@@ -644,7 +638,7 @@ System.out.println("findInterior: " + axis + " rx: " + rayX + " " + rayY + " " +
             for(int j=0; j < h; j++) {
                 for(int k=0; k < d; k++) {
                     if (counts[i][j][k] == 3) {
-                        gridOpAtt.setData(i, j, k, Grid.INTERIOR, innerMaterial);
+                        gridOpAtt.setData(i, j, k, Grid.INSIDE, innerMaterial);
                     }
                 }
             }

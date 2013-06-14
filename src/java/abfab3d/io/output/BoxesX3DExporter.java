@@ -93,12 +93,12 @@ public class BoxesX3DExporter implements Exporter {
      * @param matColors Maps materials to colors.  4 component color
      */
     public void write(Grid grid, Map<Long, float[]> matColors) {
-
+/*
         if (grid instanceof OctreeAttributeGridByte) {
             ((OctreeAttributeGridByte)grid).write(writer, (OctreeAttributeGridByte)grid, matColors);
             return;
         }
-
+*/
         HashMap<WorldCoordinate,Integer> coords = new HashMap<WorldCoordinate,Integer>();
         ArrayList<Integer> indices = new ArrayList<Integer>();
         ArrayList<WorldCoordinate> lastSlice = new ArrayList<WorldCoordinate>();
@@ -491,26 +491,15 @@ System.out.println("no color for: " + mat);
             outputState(grid, writer, Grid.OUTSIDE, color, trans);
         }
 
-        color = stateColors.get(new Integer(Grid.EXTERIOR));
-        transF = stateTransparency.get(new Integer(Grid.EXTERIOR));
+        color = stateColors.get(new Integer(Grid.INSIDE));
+        transF = stateTransparency.get(new Integer(Grid.INSIDE));
         trans = 1;
 
         if (color != null) {
             if (transF != null) {
                 trans = transF;
             }
-            outputState(grid, writer, Grid.EXTERIOR, color, trans);
-        }
-
-        color = stateColors.get(new Integer(Grid.INTERIOR));
-        transF = stateTransparency.get(new Integer(Grid.INTERIOR));
-        trans = 1;
-
-        if (color != null) {
-            if (transF != null) {
-                trans = transF;
-            }
-            outputState(grid, writer, Grid.INTERIOR, color, trans);
+            outputState(grid, writer, Grid.INSIDE, color, trans);
         }
 
         // End Centering Transform

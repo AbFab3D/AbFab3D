@@ -25,7 +25,7 @@ import static abfab3d.util.Output.time;
  * Subtraction operation.
  *
  * Subtracts one grid from another.  Grid A is the base grid.  B is
- * the subtracting grid.  MARKED voxels of grid B will become
+ * the subtracting grid.  INSIDE voxels of grid B will become
  * OUTSIDE voxels of A.
  *
  * Would like a mode that preserves EXTERIOR/INTERRIOR difference.
@@ -74,7 +74,7 @@ public class Subtract implements Operation, ClassTraverser {
 
         // TODO: Make sure the grids are the same size
 
-        src.find(Grid.VoxelClasses.MARKED, this);
+        src.find(Grid.VoxelClasses.INSIDE, this);
 
         printf("subtract: %d ms\n", (time() - t0));
 
@@ -93,11 +93,11 @@ public class Subtract implements Operation, ClassTraverser {
         dest.setState(x,y,z, Grid.OUTSIDE);
 
 /*
-        if (bstate == Grid.EXTERIOR) {
+        if (bstate == Grid.INSIDE) {
 //System.out.println("found EXT: " + x + " " + y + " a: " + astate);
-            if (astate == Grid.INTERIOR) {
-                gridA.setData(x,y,z,Grid.EXTERIOR, material);
-            } else if (astate == Grid.EXTERIOR) {
+            if (astate == Grid.INSIDE) {
+                gridA.setData(x,y,z,Grid.INSIDE, material);
+            } else if (astate == Grid.INSIDE) {
                 // TODO: not so sure about this
                 gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
             }
@@ -105,9 +105,9 @@ public class Subtract implements Operation, ClassTraverser {
             // must be interior
 //System.out.println("found INT: " + x + " " + y);
 
-            if (astate == Grid.INTERIOR) {
+            if (astate == Grid.INSIDE) {
                 gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
-            } else if (astate == Grid.EXTERIOR) {
+            } else if (astate == Grid.INSIDE) {
                 gridA.setData(x,y,z,Grid.OUTSIDE, (byte)0);
             }
         }

@@ -65,9 +65,9 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         double voxelSize = grid.getVoxelSize();
         double sliceHeight = grid.getSliceHeight();
 
-        grid.setState(0, 0, 0, Grid.INTERIOR);
-        grid.setState(9, 9, 9, Grid.EXTERIOR);
-        grid.setState(5, 0, 7, Grid.INTERIOR);
+        grid.setState(0, 0, 0, Grid.INSIDE);
+        grid.setState(9, 9, 9, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
         Grid grid2 = (Grid) grid.clone();
 
@@ -75,11 +75,11 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         assertEquals("Slight height should be ", sliceHeight, grid2.getSliceHeight());
 
         // check that the state and material are set
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(0, 0, 0));
 
-        assertEquals("State should be ", Grid.EXTERIOR, grid2.getState(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(9, 9, 9));
 
-        assertEquals("State should be ", Grid.INTERIOR, grid2.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid2.getState(5, 0, 7));
     }
 
     /**
@@ -87,17 +87,17 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      */
     public void getDataByVoxel(Grid grid) {
         grid.setState(0, 0, 0, Grid.OUTSIDE);
-        grid.setState(9, 8, 7, Grid.EXTERIOR);
-        grid.setState(5, 0, 7, Grid.INTERIOR);
+        grid.setState(9, 8, 7, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
         VoxelData vd = grid.getVoxelData();
 
         grid.getData(0, 0, 0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
         grid.getData(9, 8, 7, vd);
-        assertEquals("State should be ", Grid.EXTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
         grid.getData(5, 0, 7, vd);
-        assertEquals("State should be ", Grid.INTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(2, 2, 2));
@@ -108,22 +108,22 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      */
     public void getDataByCoord(Grid grid) {
         grid.setState(0.0, 0.0, 0.0, Grid.OUTSIDE);
-        grid.setState(0.95, 0.39, 0.45, Grid.EXTERIOR);
-        grid.setState(0.6, 0.1, 0.4, Grid.INTERIOR);
+        grid.setState(0.95, 0.39, 0.45, Grid.INSIDE);
+        grid.setState(0.6, 0.1, 0.4, Grid.INSIDE);
         VoxelData vd = grid.getVoxelData();
         grid.getData(0.0, 0.0, 0.0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
         grid.getData(0.95, 0.39, 0.45, vd);
-        assertEquals("State should be ", Grid.EXTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
         grid.getData(0.6, 0.1, 0.4, vd);
-        assertEquals("State should be ", Grid.INTERIOR, vd.getState());
+        assertEquals("State should be ", Grid.INSIDE, vd.getState());
     }
 
     /**
      * Test creating an empty grid.
      */
     public void createEmpty(Grid grid) {
-        grid.setState(5, 5, 5, Grid.EXTERIOR);
+        grid.setState(5, 5, 5, Grid.INSIDE);
 
         Grid grid2 = (Grid) grid.createEmpty(10, 11, 12, 0.002, 0.003);
         int gridSize = 10 * 11 * 12;
@@ -145,7 +145,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         int height = grid.getHeight();
         int depth = grid.getDepth();
         int[] stateDepth = {10, 6, 1};
-        byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
+        byte[] states = {Grid.INSIDE, Grid.INSIDE, Grid.OUTSIDE};
 
         // set some data
         for (int x = 0; x < states.length; x++) {
@@ -167,16 +167,8 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
 
         resetCounts();
-        grid.find(Grid.VoxelClasses.MARKED, this);
+        grid.find(Grid.VoxelClasses.INSIDE, this);
         assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
-
-        resetCounts();
-        grid.find(Grid.VoxelClasses.EXTERIOR, this);
-        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
-
-        resetCounts();
-        grid.find(Grid.VoxelClasses.INTERIOR, this);
-        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
 
         resetCounts();
         grid.find(Grid.VoxelClasses.OUTSIDE, this);
@@ -189,41 +181,34 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
     public void findVoxelClassIterator1(Grid grid) {
         int width = grid.getWidth();
 
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x = 0; x < width; x++) {
-            grid.setState(x, 2, 2, Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
+            grid.setState(x, 2, 2, Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setState(x, 5, 6, Grid.INTERIOR);
+            grid.setState(x, 5, 6, Grid.INSIDE);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.find(Grid.VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.find(Grid.VoxelClasses.INSIDE, ft);
 
-        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
-                ft.foundAllVoxels());
-
-        ft = new FindIterateTester(vcSetInt);
-        grid.find(Grid.VoxelClasses.INTERIOR, ft);
-
-        assertTrue("Found state iterator did not find all voxels with INTERIOR state",
+        assertTrue("Found iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setState(10, 6, 2, Grid.EXTERIOR);
-        ft = new FindIterateTester(vcSetExt);
-        grid.find(Grid.VoxelClasses.EXTERIOR, ft);
+        grid.setState(10, 6, 2, Grid.INSIDE);
+        ft = new FindIterateTester(vcSetInt);
+        grid.find(Grid.VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setState(1, 5, 6, Grid.EXTERIOR);
+        grid.setState(1, 5, 6, Grid.INSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.find(Grid.VoxelClasses.INTERIOR, ft);
+        grid.find(Grid.VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
@@ -238,7 +223,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         int height = grid.getHeight();
         int depth = grid.getDepth();
 
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
 
         int[][] coords = {
@@ -250,15 +235,15 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         };
 
         grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
-        vcSetExt = new HashSet<VoxelCoordinate>();
+        vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i = 0; i < coords.length; i++) {
-            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.find(Grid.VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.find(Grid.VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -271,48 +256,41 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
     public void findInterruptableVoxelClassIterator1(Grid grid) {
         int width = grid.getWidth();
 
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x = 0; x < width; x++) {
-            grid.setState(x, 2, 2, Grid.EXTERIOR);
-            grid.setState(x, 4, 4, Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
-            vcSetExt.add(new VoxelCoordinate(x, 4, 4));
+            grid.setState(x, 2, 2, Grid.INSIDE);
+            grid.setState(x, 4, 4, Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
+            vcSetInt.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setState(x, 5, 6, Grid.INTERIOR);
+            grid.setState(x, 5, 6, Grid.INSIDE);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(Grid.VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
 
-        assertTrue("Found iterator did not find all voxels with EXTERIOR state",
-                ft.foundAllVoxels());
-
-        ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(Grid.VoxelClasses.INTERIOR, ft);
-
-        assertTrue("Found iterator did not find all voxels with INTERIOR state",
+        assertTrue("Found iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
 
         // make sure that findInterruptible stops interating when voxel is not found
         // do this by adding a new exterior voxel
         grid.setState(5, 2, 2, Grid.OUTSIDE);
-        grid.setState(1, 3, 3, Grid.EXTERIOR);
-        ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(Grid.VoxelClasses.EXTERIOR, ft);
+        grid.setState(1, 3, 3, Grid.INSIDE);
+        ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false",
                 ft.foundAllVoxels());
         assertTrue("Found state interruptible did not get interrupted ",
-                ft.getIterateCount() < vcSetExt.size());
+                ft.getIterateCount() < vcSetInt.size());
 
         // make sure that not finding a voxel in the list returns false
-        // do this by changing one of the interior voxels to exterior state
-        grid.setState(1, 5, 6, Grid.EXTERIOR);
+        // do this by changing one of the interior voxels to outside state
+        grid.setState(1, 5, 6, Grid.OUTSIDE);
         ft = new FindIterateTester(vcSetInt);
-        grid.findInterruptible(Grid.VoxelClasses.INTERIOR, ft);
+        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
     }
@@ -336,15 +314,15 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         };
 
         grid = new ArrayGridByte(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i = 0; i < coords.length; i++) {
-            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setState(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        FindIterateTester ft = new FindIterateTester(vcSetExt);
-        grid.findInterruptible(Grid.VoxelClasses.EXTERIOR, ft);
+        FindIterateTester ft = new FindIterateTester(vcSetInt);
+        grid.findInterruptible(Grid.VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -360,7 +338,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         int height = grid.getHeight();
         int depth = grid.getDepth();
         int[] row = {0, 3, 5};
-        byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
+        byte[] state = {Grid.INSIDE, Grid.INSIDE, Grid.INSIDE};
 
         // set some rows to interior and exterior
         for (int y = 0; y < height; y++) {
@@ -378,9 +356,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         int expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(Grid.VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(Grid.VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(Grid.VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(Grid.VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(Grid.VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(Grid.VoxelClasses.OUTSIDE));
 
         // change one of the interior voxel rows to outside
@@ -396,9 +372,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(Grid.VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(Grid.VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(Grid.VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(Grid.VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(Grid.VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(Grid.VoxelClasses.OUTSIDE));
     }
 
@@ -410,12 +384,12 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid.setState(0.06, 0.07, 0.08, Grid.INTERIOR);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.0799, 0.0999));
+        grid.setState(0.06, 0.07, 0.08, Grid.INSIDE);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.0799, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.0999));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.0799, 0.0999));
         assertEquals("State should be ", 0, grid.getState(0.0499, 0.06, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0599, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.0499));
@@ -424,23 +398,23 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setState(0.0, 0.0, 0.0, Grid.INTERIOR);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0199, 0.0499));
+        grid.setState(0.0, 0.0, 0.0, Grid.INSIDE);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0199, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0499));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0199, 0.0499));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.02, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setState(0.149, 0.119, 0.199, Grid.INTERIOR);
-//        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.199));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.119, 0.199));
+        grid.setState(0.149, 0.119, 0.199, Grid.INSIDE);
+//        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.15));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.1, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.119, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.199));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.119, 0.199));
         assertEquals("State should be ", 0, grid.getState(0.0999, 0.1, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.0999, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.1499));
@@ -454,11 +428,11 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
     public void getStateByCoord1(Grid grid) {
         // set and test get on some random world coordinates
         grid.setState(0.0, 0.0, 0.0, Grid.OUTSIDE);
-        grid.setState(0.95, 0.39, 0.45, Grid.EXTERIOR);
-        grid.setState(0.6, 0.1, 0.4, Grid.INTERIOR);
+        grid.setState(0.95, 0.39, 0.45, Grid.INSIDE);
+        grid.setState(0.6, 0.1, 0.4, Grid.INSIDE);
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0.95, 0.39, 0.45));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.6, 0.1, 0.4));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.95, 0.39, 0.45));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.6, 0.1, 0.4));
 
     }
 
@@ -467,12 +441,12 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      */
     public void getStateByVoxel(Grid grid) {
         grid.setState(0, 0, 0, Grid.OUTSIDE);
-        grid.setState(9, 8, 7, Grid.EXTERIOR);
-        grid.setState(5, 0, 7, Grid.INTERIOR);
+        grid.setState(9, 8, 7, Grid.INSIDE);
+        grid.setState(5, 0, 7, Grid.INSIDE);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(2, 2, 2));
@@ -620,7 +594,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
-                    grid.setState(x, y, z, Grid.EXTERIOR);
+                    grid.setState(x, y, z, Grid.INSIDE);
                 }
             }
         }
@@ -629,7 +603,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
                     grid.getData(x, y, z, vd);
-                    assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                    assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                 }
             }
         }
@@ -650,9 +624,9 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
-                        grid.setState(x, y, z, Grid.EXTERIOR);
+                        grid.setState(x, y, z, Grid.INSIDE);
                     } else {
-                        grid.setState(x, y, z, Grid.INTERIOR);
+                        grid.setState(x, y, z, Grid.INSIDE);
                     }
 
                 }
@@ -668,9 +642,9 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
                     grid.getData(x, y, z, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if ((x % 2) == 0 && (y % 2) == 0 && (z % 2) == 0) {
-                        assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                        assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                     } else {
-                        assertTrue("State wrong", vd.getState() == Grid.INTERIOR);
+                        assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                     }
                 }
             }
@@ -692,7 +666,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
             for (int x = 0; x < width; x++) {
                 for (int z = 0; z < depth; z++) {
                     if (x == y && y == z) {
-                        grid.setState(x, y, z, Grid.EXTERIOR);
+                        grid.setState(x, y, z, Grid.INSIDE);
                     }
                 }
             }
@@ -707,7 +681,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
                     grid.getData(x, y, z, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     if (x == y && y == z) {
-                        assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                        assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                     }
                 }
             }
@@ -734,7 +708,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
                 ycoord = (double) (y) * sliceHeight + sliceHeight / 2.0;
                 for (int z = 0; z < depth; z++) {
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
-                    grid.setState(xcoord, ycoord, zcoord, Grid.EXTERIOR);
+                    grid.setState(xcoord, ycoord, zcoord, Grid.INSIDE);
                 }
             }
         }
@@ -749,7 +723,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
                     grid.getData(xcoord, ycoord, zcoord, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
-                    assertTrue("State wrong", vd.getState() == Grid.EXTERIOR);
+                    assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                 }
             }
         }
@@ -875,12 +849,12 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[]{0, 1, 0});
-            colors.put(new Integer(Grid.EXTERIOR), new float[]{1, 0, 0});
+            colors.put(new Integer(Grid.INSIDE), new float[]{0, 1, 0});
+            colors.put(new Integer(Grid.INSIDE), new float[]{1, 0, 0});
 
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
             if (showOutside) {
                 colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
                 transparency.put(new Integer(Grid.OUTSIDE), new Float(0.96));
@@ -902,10 +876,10 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
     public void found(int x, int y, int z, byte state) {
         allCount++;
 
-        if (state == Grid.EXTERIOR) {
+        if (state == Grid.INSIDE) {
             mrkCount++;
             extCount++;
-        } else if (state == Grid.INTERIOR) {
+        } else if (state == Grid.INSIDE) {
             mrkCount++;
             intCount++;
         } else {

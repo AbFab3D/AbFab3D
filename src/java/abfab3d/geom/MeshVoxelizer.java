@@ -468,12 +468,12 @@ public class MeshVoxelizer {
 
     void fillSegment_reverse(Grid grid, int x, int y, int z1, int z2) {
         for (int z = z2; z >= z1; z--) {
-            grid.setState(x, y, z, Grid.INTERIOR);
+            grid.setState(x, y, z, Grid.INSIDE);
         }
     }
     void fillSegment_reverse(AttributeGrid grid, int x, int y, int z1, int z2, long matID) {
         for (int z = z2; z >= z1; z--) {
-            grid.setData(x, y, z, Grid.INTERIOR, matID);
+            grid.setData(x, y, z, Grid.INSIDE, matID);
         }
     }
 
@@ -516,7 +516,7 @@ public class MeshVoxelizer {
                             values.removeLast();
                         } else {
                             intervals.add(z);
-                            values.add(Grid.INTERIOR);
+                            values.add(Grid.INSIDE);
                         }
                     } else { // state == 1
                         // start outside

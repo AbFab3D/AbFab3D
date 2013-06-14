@@ -83,7 +83,7 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
         }
 
         // TODO: just use material and say class only moves external?
-//        gridAtt.findInterruptible(VoxelClasses.EXTERIOR, material, this);
+//        gridAtt.findInterruptible(VoxelClasses.INSIDE, material, this);
         grid.findAttributeInterruptible(material, this);
 
         return allEscaped;
@@ -179,7 +179,7 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
             if (state == Grid.OUTSIDE)
                 break;
 
-            if (state == Grid.EXTERIOR) {
+            if (state == Grid.INSIDE) {
 //System.out.println("placing in ignore list: " + pos[0] + " " + pos[1] + " " + pos[2]);
                 ignoreSet.add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
             }

@@ -127,6 +127,19 @@ public interface AttributeGrid extends Grid {
     public void findAttributeInterruptible(VoxelClasses vc, long mat, ClassAttributeTraverser t);
 
     /**
+     * Traverse a class of voxels types over given rectangle in xy plane.
+     * May be much faster then full grid traversal for some implementations.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t The traverer to call for each voxel
+     * @param xmin - minimal x - coordinate of voxels
+     * @param xmax - maximal x - coordinate of voxels
+     * @param ymin - minimal y - coordinate of voxels
+     * @param ymax - maximal y - coordinate of voxels
+     */
+    public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t, int xmin, int xmax, int ymin, int ymax);
+
+    /**
      * Remove all voxels associated with the Attribute.
      *
      * @param mat The attributeID

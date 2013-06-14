@@ -198,7 +198,7 @@ System.out.println("depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z < pixelDepth; z++) {
-                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.INSIDE);
                             }
                         }
                     }
@@ -247,7 +247,7 @@ System.out.println("depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z < pixelDepth; z++) {
-                                setData(dest,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR);
+                                setData(dest,x,y,z,xAxis,yAxis,zAxis,Grid.INSIDE);
                             }
                         }
                     }
@@ -299,7 +299,7 @@ System.out.println("depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.INSIDE);
                             }
                         }
                     }
@@ -348,7 +348,7 @@ System.out.println("depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.INSIDE);
                             }
                         }
                     }
@@ -445,7 +445,7 @@ System.out.println("depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z < pixelDepth; z++) {
-                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.INSIDE, material);
                             }
                         }
                     }
@@ -494,7 +494,7 @@ System.out.println("depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z < pixelDepth; z++) {
-                                setData(dest,x,y,z,xAxis,yAxis,zAxis,Grid.EXTERIOR,material);
+                                setData(dest,x,y,z,xAxis,yAxis,zAxis,Grid.INSIDE,material);
                             }
                         }
                     }
@@ -546,7 +546,7 @@ System.out.println("depth: " + pixelDepth);
                             applied++;
 
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.INSIDE, material);
                             }
                         }
                     }
@@ -595,7 +595,7 @@ System.out.println("depth: " + pixelDepth);
 
                             applied++;
                             for(int z = 0; z > pixelDepth; z--) {
-                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.EXTERIOR, material);
+                                setData(dest, x, y, z, xAxis, yAxis, zAxis, Grid.INSIDE, material);
                             }
                         }
                     }

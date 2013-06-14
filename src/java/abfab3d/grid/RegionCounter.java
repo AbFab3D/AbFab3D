@@ -326,26 +326,26 @@ public class RegionCounter {
     }
 
     /**
-       return components with specified material and INTERIOR class
+       return components with specified material and INSIDE class
      */
     public static Vector<ConnectedComponent> findComponents(AttributeGrid grid, long material){
 
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
         ComponentsFinder cf = new ComponentsFinder(grid, mask, material);
-        grid.find(Grid.VoxelClasses.MARKED, cf);
+        grid.find(Grid.VoxelClasses.INSIDE, cf);
         cf.releaseReferences();
         return cf.getComponents();
 
     }
 
     /**
-     return components with specified material and INTERIOR class
+     return components with specified material and INSIDE class
      */
     public static Vector<ConnectedComponentState> findComponents(Grid grid, byte state){
 
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
         ComponentsFinderState cf = new ComponentsFinderState(grid, mask, state);
-        grid.find(Grid.VoxelClasses.MARKED, cf);
+        grid.find(Grid.VoxelClasses.INSIDE, cf);
         cf.releaseReferences();
         return cf.getComponents();
 
@@ -515,7 +515,7 @@ public class RegionCounter {
      * Get bounds of component regions by state and sorted by largest first.
      *
      * @param grid The grid
-     * @param material The state
+     * @param state The state
      * @param maxCount The max number of components to get
      * @param collectData Whether to get the components
      * @param algorithm The algorithm to use

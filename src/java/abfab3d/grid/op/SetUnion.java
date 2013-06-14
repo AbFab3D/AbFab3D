@@ -105,11 +105,9 @@ public class SetUnion implements Operation {
                     // - If the state is interior, mark the finalGrid voxel as interior and break
                     // - If the state is exterior, mark the finalGrid voxel as exterior, but continue loop
                     for (int i=0; i<grids.length; i++) {
-                        if (grids[i].getState(x, y, z) == Grid.INTERIOR) {
-                            finalGrid.setState(x, y, z, Grid.INTERIOR);
+                        if (grids[i].getState(x, y, z) == Grid.INSIDE) {
+                            finalGrid.setState(x, y, z, Grid.INSIDE);
                             break;
-                        } else if (grids[i].getState(x, y, z) == Grid.EXTERIOR) {
-                            finalGrid.setState(x, y, z, Grid.EXTERIOR);
                         }
                     }
                 }
@@ -168,15 +166,13 @@ public class SetUnion implements Operation {
                         // - If the state is interior, mark the finalGrid voxel as interior and break
                         // - If the state is exterior, mark the finalGrid voxel as exterior, but continue loop
                         for (int i=1; i<attrGrids.length; i++) {
-                            if (finalGrid.getState(x, y, z) == Grid.INTERIOR) {
+                            if (finalGrid.getState(x, y, z) == Grid.INSIDE) {
                                 continue;
                             }
 
-                            if (attrGrids[i].getState(x, y, z) == Grid.INTERIOR) {
-                                finalGrid.setData(x, y, z, Grid.INTERIOR, originalMaterial);
+                            if (attrGrids[i].getState(x, y, z) == Grid.INSIDE) {
+                                finalGrid.setData(x, y, z, Grid.INSIDE, originalMaterial);
                                 break;
-                            } else if (attrGrids[i].getState(x, y, z) == Grid.EXTERIOR) {
-                                finalGrid.setData(x, y, z, Grid.EXTERIOR, originalMaterial);
                             }
                         }
                     }
@@ -196,15 +192,13 @@ public class SetUnion implements Operation {
                         // - If the state is interior, mark the finalGrid voxel as interior and break
                         // - If the state is exterior, mark the finalGrid voxel as exterior, but continue loop
                         for (int i=1; i<attrGrids.length; i++) {
-                            if (finalGrid.getState(x, y, z) == Grid.INTERIOR) {
+                            if (finalGrid.getState(x, y, z) == Grid.INSIDE) {
                                 continue;
                             }
 
-                            if (attrGrids[i].getState(x, y, z) == Grid.INTERIOR) {
-                                finalGrid.setData(x, y, z, Grid.INTERIOR, material);
+                            if (attrGrids[i].getState(x, y, z) == Grid.INSIDE) {
+                                finalGrid.setData(x, y, z, Grid.INSIDE, material);
                                 break;
-                            } else if (attrGrids[i].getState(x, y, z) == Grid.EXTERIOR) {
-                                finalGrid.setData(x, y, z, Grid.EXTERIOR, material);
                             }
                         }
                     }

@@ -45,11 +45,11 @@ public class TestRemoveMaterial extends BaseTestAttributeGrid {
         // Add Object 1
         long mat1_count = 5;
 
-        grid.setData(0,0,0, Grid.EXTERIOR, 1);
-        grid.setData(0,0,1, Grid.EXTERIOR, 1);
-        grid.setData(0,0,2, Grid.EXTERIOR, 1);
-        grid.setData(0,1,0, Grid.EXTERIOR, 1);
-        grid.setData(0,1,1, Grid.EXTERIOR, 1);
+        grid.setData(0,0,0, Grid.INSIDE, 1);
+        grid.setData(0,0,1, Grid.INSIDE, 1);
+        grid.setData(0,0,2, Grid.INSIDE, 1);
+        grid.setData(0,1,0, Grid.INSIDE, 1);
+        grid.setData(0,1,1, Grid.INSIDE, 1);
 
         assertEquals("Material1 count wrong on insert",
             grid.findCount(1),mat1_count);
@@ -57,12 +57,12 @@ public class TestRemoveMaterial extends BaseTestAttributeGrid {
         // Add Object 2
         long mat2_count = 6;
 
-        grid.setData(6,5,0, Grid.EXTERIOR, 2);
-        grid.setData(6,5,1, Grid.EXTERIOR, 2);
-        grid.setData(6,5,2, Grid.EXTERIOR, 2);
-        grid.setData(6,6,0, Grid.EXTERIOR, 2);
-        grid.setData(6,6,1, Grid.EXTERIOR, 2);
-        grid.setData(6,6,2, Grid.EXTERIOR, 2);
+        grid.setData(6,5,0, Grid.INSIDE, 2);
+        grid.setData(6,5,1, Grid.INSIDE, 2);
+        grid.setData(6,5,2, Grid.INSIDE, 2);
+        grid.setData(6,6,0, Grid.INSIDE, 2);
+        grid.setData(6,6,1, Grid.INSIDE, 2);
+        grid.setData(6,6,2, Grid.INSIDE, 2);
 
         assertEquals("Material2 count wrong after insert2",
             grid.findCount(2),mat2_count);

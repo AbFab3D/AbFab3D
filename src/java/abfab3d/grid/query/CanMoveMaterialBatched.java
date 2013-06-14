@@ -193,7 +193,7 @@ System.out.println("getData method not implemented");
             if (state == Grid.OUTSIDE)
                 break;
 
-            if (state == Grid.EXTERIOR) {
+            if (state == Grid.INSIDE) {
 //System.out.println("placing in ignore list: " + pos[0] + " " + pos[1] + " " + pos[2]);
                 ignoreSet.add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
             }

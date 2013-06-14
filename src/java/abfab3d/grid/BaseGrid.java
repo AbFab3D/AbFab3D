@@ -133,39 +133,13 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
                     }
                 }
                 break;
-            case MARKED:
+            case INSIDE:
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         for (int z = 0; z < depth; z++) {
                             byte state = getState(x, y, z);
 
-                            if (state != Grid.OUTSIDE) {
-                                t.found(x, y, z, state);
-                            }
-                        }
-                    }
-                }
-                break;
-            case EXTERIOR:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.EXTERIOR) {
-                                t.found(x, y, z, state);
-                            }
-                        }
-                    }
-                }
-                break;
-            case INTERIOR:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.INTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 t.found(x, y, z, state);
                             }
                         }
@@ -210,40 +184,13 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
                     }
                 }
                 break;
-
-            case MARKED:
+            case INSIDE:
                 for (int y = ymin; y <= ymax; y++) {
                     for (int x = xmin; x <= xmax; x++) {
                         for (int z = 0; z < depth; z++) {
                             byte state = getState(x, y, z);
 
-                            if (state != Grid.OUTSIDE) {
-                                t.found(x, y, z, state);
-                            }
-                        }
-                    }
-                }
-                break;
-            case EXTERIOR:
-                for (int y = ymin; y <= ymax; y++) {
-                    for (int x = xmin; x <= xmax; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.EXTERIOR) {
-                                t.found(x, y, z, state);
-                            }
-                        }
-                    }
-                }
-                break;
-            case INTERIOR:
-                for (int y = ymin; y <= ymax; y++) {
-                    for (int x = xmin; x <= xmax; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.INTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 t.found(x, y, z, state);
                             }
                         }
@@ -287,36 +234,12 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
                 }
 
                 break;
-            case MARKED:
+            case INSIDE:
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         for (int z = 0; z < depth; z++) {
                             byte state = getState(x, y, z);
-                            if (state != Grid.OUTSIDE) {
-                                ret_val++;
-                            }
-                        }
-                    }
-                }
-                break;
-            case EXTERIOR:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-                            if (state == Grid.EXTERIOR) {
-                                ret_val++;
-                            }
-                        }
-                    }
-                }
-                break;
-            case INTERIOR:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-                            if (state == Grid.INTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 ret_val++;
                             }
                         }
@@ -361,44 +284,14 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
                     }
                 }
                 break;
-            case MARKED:
+            case INSIDE:
                 loop:
                 for (int y = 0; y < height; y++) {
                     for (int x = 0; x < width; x++) {
                         for (int z = 0; z < depth; z++) {
                             byte state = getState(x, y, z);
 
-                            if (state != Grid.OUTSIDE) {
-                                if (!t.foundInterruptible(x, y, z, state))
-                                    break loop;
-                            }
-                        }
-                    }
-                }
-                break;
-            case EXTERIOR:
-                loop:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.EXTERIOR) {
-                                if (!t.foundInterruptible(x, y, z, state))
-                                    break loop;
-                            }
-                        }
-                    }
-                }
-                break;
-            case INTERIOR:
-                loop:
-                for (int y = 0; y < height; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte state = getState(x, y, z);
-
-                            if (state == Grid.INTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 if (!t.foundInterruptible(x, y, z, state))
                                     break loop;
                             }

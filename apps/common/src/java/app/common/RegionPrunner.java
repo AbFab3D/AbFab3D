@@ -332,13 +332,13 @@ class RegionClearerAndCopier implements RegionTraverser {
     @Override
     public void found(int x, int y, int z) {
         grid.setState(x, y, z, Grid.OUTSIDE);
-        copy.setState(x, y, z, Grid.EXTERIOR);
+        copy.setState(x, y, z, Grid.INSIDE);
     }
 
     @Override
     public boolean foundInterruptible(int x, int y, int z) {
         grid.setState(x, y, z, Grid.OUTSIDE);
-        copy.setState(x, y, z, Grid.EXTERIOR);
+        copy.setState(x, y, z, Grid.INSIDE);
 
         return true;
     }

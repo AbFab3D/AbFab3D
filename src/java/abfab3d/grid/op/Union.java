@@ -13,7 +13,6 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.util.Iterator;
 
 // Internal Imports
 import abfab3d.grid.*;
@@ -84,7 +83,7 @@ public class Union implements Operation, AttributeOperation {
 
         // TODO: Make sure the grids are the same size
 
-        gridB.find(Grid.VoxelClasses.MARKED, new Handler(gridA));
+        gridB.find(Grid.VoxelClasses.INSIDE, new Handler(gridA));
 
         return grid;
     }
@@ -104,7 +103,7 @@ public class Union implements Operation, AttributeOperation {
 
         // TODO: Make sure the grids are the same size
 
-        gridBAtt.findAttribute(Grid.VoxelClasses.MARKED, new AttributeHandler((AttributeGrid)gridA,material));
+        gridBAtt.findAttribute(Grid.VoxelClasses.INSIDE, new AttributeHandler((AttributeGrid)gridA,material));
 
         return grid;
     }
@@ -127,7 +126,7 @@ class Handler implements ClassTraverser {
      * @param vd The voxel data
      */
     public void found(int x, int y, int z, byte vd) {
-        if (vd == Grid.EXTERIOR || vd == Grid.INTERIOR) {
+        if (vd == Grid.INSIDE) {
             gridA.setState(x,y,z,vd);
         }
     }
@@ -166,7 +165,7 @@ class AttributeHandler implements ClassAttributeTraverser {
     public void found(int x, int y, int z, VoxelData vd) {
         byte state = vd.getState();
 
-        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+        if (state == Grid.INSIDE) {
             // TODO: this is not using the passed in material, should it?
 //            gridAAtt.setData(x,y,z,state, mat);
             gridAAtt.setData(x,y,z,state, vd.getMaterial());

@@ -139,29 +139,29 @@ System.out.println("Regions for x: " + regions.size());
     public void testYBreakIt() {
         AttributeGrid grid = new ArrayAttributeGridByte(4,6,5,0.1,0.1);
 
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
-        vcSetExt.add(new VoxelCoordinate(2,0,1));
-        vcSetExt.add(new VoxelCoordinate(3,0,1));
-        vcSetExt.add(new VoxelCoordinate(3,0,2));
-        vcSetExt.add(new VoxelCoordinate(3,1,1));
-        vcSetExt.add(new VoxelCoordinate(3,1,2));
-        vcSetExt.add(new VoxelCoordinate(3,1,3));
-        vcSetExt.add(new VoxelCoordinate(3,2,1));
-        vcSetExt.add(new VoxelCoordinate(3,2,2));
-        vcSetExt.add(new VoxelCoordinate(3,2,3));
-        vcSetExt.add(new VoxelCoordinate(3,2,4));
-        vcSetExt.add(new VoxelCoordinate(3,3,1));
-        vcSetExt.add(new VoxelCoordinate(3,3,2));
-        vcSetExt.add(new VoxelCoordinate(3,3,3));
-        vcSetExt.add(new VoxelCoordinate(3,3,4));
+        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
+        vcSetInt.add(new VoxelCoordinate(2,0,1));
+        vcSetInt.add(new VoxelCoordinate(3,0,1));
+        vcSetInt.add(new VoxelCoordinate(3,0,2));
+        vcSetInt.add(new VoxelCoordinate(3,1,1));
+        vcSetInt.add(new VoxelCoordinate(3,1,2));
+        vcSetInt.add(new VoxelCoordinate(3,1,3));
+        vcSetInt.add(new VoxelCoordinate(3,2,1));
+        vcSetInt.add(new VoxelCoordinate(3,2,2));
+        vcSetInt.add(new VoxelCoordinate(3,2,3));
+        vcSetInt.add(new VoxelCoordinate(3,2,4));
+        vcSetInt.add(new VoxelCoordinate(3,3,1));
+        vcSetInt.add(new VoxelCoordinate(3,3,2));
+        vcSetInt.add(new VoxelCoordinate(3,3,3));
+        vcSetInt.add(new VoxelCoordinate(3,3,4));
 
-        Iterator<VoxelCoordinate> vc_itr = vcSetExt.iterator();
+        Iterator<VoxelCoordinate> vc_itr = vcSetInt.iterator();
         while(vc_itr.hasNext()) {
             VoxelCoordinate vc = vc_itr.next();
-            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.EXTERIOR,1);
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INSIDE,1);
         }
 
-        FindRegionTester ft = new FindRegionTester(vcSetExt);
+        FindRegionTester ft = new FindRegionTester(vcSetInt);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -200,29 +200,29 @@ System.out.println("vol: " + vol);
     public void testZBreakIt() {
         AttributeGrid grid = new ArrayAttributeGridByte(4,5,6,0.1,0.1);
 
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
-        vcSetExt.add(new VoxelCoordinate(2,0,1));
-        vcSetExt.add(new VoxelCoordinate(3,0,1));
-        vcSetExt.add(new VoxelCoordinate(3,0,2));
-        vcSetExt.add(new VoxelCoordinate(3,1,1));
-        vcSetExt.add(new VoxelCoordinate(3,1,2));
-        vcSetExt.add(new VoxelCoordinate(3,1,3));
-        vcSetExt.add(new VoxelCoordinate(3,2,1));
-        vcSetExt.add(new VoxelCoordinate(3,2,2));
-        vcSetExt.add(new VoxelCoordinate(3,2,3));
-        vcSetExt.add(new VoxelCoordinate(3,2,4));
-        vcSetExt.add(new VoxelCoordinate(3,3,1));
-        vcSetExt.add(new VoxelCoordinate(3,3,2));
-        vcSetExt.add(new VoxelCoordinate(3,3,3));
-        vcSetExt.add(new VoxelCoordinate(3,3,4));
+        HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
+        vcSetInt.add(new VoxelCoordinate(2,0,1));
+        vcSetInt.add(new VoxelCoordinate(3,0,1));
+        vcSetInt.add(new VoxelCoordinate(3,0,2));
+        vcSetInt.add(new VoxelCoordinate(3,1,1));
+        vcSetInt.add(new VoxelCoordinate(3,1,2));
+        vcSetInt.add(new VoxelCoordinate(3,1,3));
+        vcSetInt.add(new VoxelCoordinate(3,2,1));
+        vcSetInt.add(new VoxelCoordinate(3,2,2));
+        vcSetInt.add(new VoxelCoordinate(3,2,3));
+        vcSetInt.add(new VoxelCoordinate(3,2,4));
+        vcSetInt.add(new VoxelCoordinate(3,3,1));
+        vcSetInt.add(new VoxelCoordinate(3,3,2));
+        vcSetInt.add(new VoxelCoordinate(3,3,3));
+        vcSetInt.add(new VoxelCoordinate(3,3,4));
 
-        Iterator<VoxelCoordinate> vc_itr = vcSetExt.iterator();
+        Iterator<VoxelCoordinate> vc_itr = vcSetInt.iterator();
         while(vc_itr.hasNext()) {
             VoxelCoordinate vc = vc_itr.next();
-            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.EXTERIOR,1);
+            grid.setData(vc.getX(), vc.getY(), vc.getZ(), Grid.INSIDE,1);
         }
 
-        FindRegionTester ft = new FindRegionTester(vcSetExt);
+        FindRegionTester ft = new FindRegionTester(vcSetInt);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -262,12 +262,12 @@ System.out.println("vol: " + vol);
         AttributeGrid grid = new ArrayAttributeGridByte(20,20,30,0.1,0.1);
 
         // Create a simple region
-        grid.setData(5,5,5,Grid.EXTERIOR,1);
-        grid.setData(5,5,6,Grid.EXTERIOR,1);
-        grid.setData(5,5,7,Grid.EXTERIOR,1);
-        grid.setData(5,6,5,Grid.EXTERIOR,1);
-        grid.setData(5,6,6,Grid.EXTERIOR,1);
-        grid.setData(5,6,7,Grid.EXTERIOR,1);
+        grid.setData(5,5,5,Grid.INSIDE,1);
+        grid.setData(5,5,6,Grid.INSIDE,1);
+        grid.setData(5,5,7,Grid.INSIDE,1);
+        grid.setData(5,6,5,Grid.INSIDE,1);
+        grid.setData(5,6,6,Grid.INSIDE,1);
+        grid.setData(5,6,7,Grid.INSIDE,1);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -300,12 +300,12 @@ System.out.println("vol: " + vol);
         AttributeGrid grid = new ArrayAttributeGridByte(20,30,20,0.1,0.1);
 
         // Create a simple region
-        grid.setData(5,5,5,Grid.EXTERIOR,1);
-        grid.setData(5,5,6,Grid.EXTERIOR,1);
-        grid.setData(5,5,7,Grid.EXTERIOR,1);
-        grid.setData(5,6,5,Grid.EXTERIOR,1);
-        grid.setData(5,6,6,Grid.EXTERIOR,1);
-        grid.setData(5,6,7,Grid.EXTERIOR,1);
+        grid.setData(5,5,5,Grid.INSIDE,1);
+        grid.setData(5,5,6,Grid.INSIDE,1);
+        grid.setData(5,5,7,Grid.INSIDE,1);
+        grid.setData(5,6,5,Grid.INSIDE,1);
+        grid.setData(5,6,6,Grid.INSIDE,1);
+        grid.setData(5,6,7,Grid.INSIDE,1);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -338,12 +338,12 @@ System.out.println("vol: " + vol);
         AttributeGrid grid = new ArrayAttributeGridByte(4,5,4,0.1,0.1);
 
         // Create a simple region
-        grid.setData(3,3,1,Grid.EXTERIOR,1);
-        grid.setData(3,3,2,Grid.EXTERIOR,1);
-        grid.setData(3,3,3,Grid.EXTERIOR,1);
-        grid.setData(3,4,1,Grid.EXTERIOR,1);
-        grid.setData(3,4,2,Grid.EXTERIOR,1);
-        grid.setData(3,4,3,Grid.EXTERIOR,1);
+        grid.setData(3,3,1,Grid.INSIDE,1);
+        grid.setData(3,3,2,Grid.INSIDE,1);
+        grid.setData(3,3,3,Grid.INSIDE,1);
+        grid.setData(3,4,1,Grid.INSIDE,1);
+        grid.setData(3,4,2,Grid.INSIDE,1);
+        grid.setData(3,4,3,Grid.INSIDE,1);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -378,12 +378,12 @@ System.out.println("vol: " + vol);
         AttributeGrid grid = new ArrayAttributeGridByte(4,5,4,0.1,0.1);
 
         // Create a simple region
-        grid.setData(3,0,0,Grid.EXTERIOR,1);
-        grid.setData(3,0,1,Grid.EXTERIOR,1);
-        grid.setData(3,0,2,Grid.EXTERIOR,1);
-        grid.setData(3,1,0,Grid.EXTERIOR,1);
-        grid.setData(3,1,1,Grid.EXTERIOR,1);
-        grid.setData(3,1,2,Grid.EXTERIOR,1);
+        grid.setData(3,0,0,Grid.INSIDE,1);
+        grid.setData(3,0,1,Grid.INSIDE,1);
+        grid.setData(3,0,2,Grid.INSIDE,1);
+        grid.setData(3,1,0,Grid.INSIDE,1);
+        grid.setData(3,1,1,Grid.INSIDE,1);
+        grid.setData(3,1,2,Grid.INSIDE,1);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -418,14 +418,14 @@ System.out.println("vol: " + vol);
         AttributeGrid grid = new ArrayAttributeGridByte(4,4,5,0.1,0.1);
 
         // Create a simple region
-        grid.setData(3,2,1,Grid.EXTERIOR,1);
-        grid.setData(3,2,2,Grid.EXTERIOR,1);
-        grid.setData(3,2,3,Grid.EXTERIOR,1);
-        grid.setData(3,2,4,Grid.EXTERIOR,1);
-        grid.setData(3,3,1,Grid.EXTERIOR,1);
-        grid.setData(3,3,2,Grid.EXTERIOR,1);
-        grid.setData(3,3,3,Grid.EXTERIOR,1);
-        grid.setData(3,3,4,Grid.EXTERIOR,1);
+        grid.setData(3,2,1,Grid.INSIDE,1);
+        grid.setData(3,2,2,Grid.INSIDE,1);
+        grid.setData(3,2,3,Grid.INSIDE,1);
+        grid.setData(3,2,4,Grid.INSIDE,1);
+        grid.setData(3,3,1,Grid.INSIDE,1);
+        grid.setData(3,3,2,Grid.INSIDE,1);
+        grid.setData(3,3,3,Grid.INSIDE,1);
+        grid.setData(3,3,4,Grid.INSIDE,1);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -460,12 +460,12 @@ System.out.println("vol: " + vol);
         AttributeGrid grid = new ArrayAttributeGridByte(4,4,5,0.1,0.1);
 
         // Create a simple region
-        grid.setData(3,0,0,Grid.EXTERIOR,1);
-        grid.setData(3,0,1,Grid.EXTERIOR,1);
-        grid.setData(3,0,2,Grid.EXTERIOR,1);
-        grid.setData(3,1,0,Grid.EXTERIOR,1);
-        grid.setData(3,1,1,Grid.EXTERIOR,1);
-        grid.setData(3,1,2,Grid.EXTERIOR,1);
+        grid.setData(3,0,0,Grid.INSIDE,1);
+        grid.setData(3,0,1,Grid.INSIDE,1);
+        grid.setData(3,0,2,Grid.INSIDE,1);
+        grid.setData(3,1,0,Grid.INSIDE,1);
+        grid.setData(3,1,1,Grid.INSIDE,1);
+        grid.setData(3,1,2,Grid.INSIDE,1);
 
         BoxRegionFinder rf = new BoxRegionFinder();
         Set<Region> regions = rf.execute(grid);
@@ -531,7 +531,7 @@ System.out.println("vol: " + vol);
 
         TriangleModelCreator tmc = null;
         tmc = new TriangleModelCreator(geom, x, y, z,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,fill);
+            rx,ry,rz,rangle,innerMaterial,fill);
 
         tmc.generate(grid);
 

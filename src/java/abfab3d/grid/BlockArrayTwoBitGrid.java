@@ -57,16 +57,12 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	
 	// declare constant blocks
 	static final Block OUTSIDE_BLOCK = new ConstantBlock(Grid.OUTSIDE);
-	static final Block EXTERIOR_BLOCK = new ConstantBlock(Grid.EXTERIOR);
-	static final Block INTERIOR_BLOCK = new ConstantBlock(Grid.INTERIOR);
-	static final Block USERDEF_BLOCK = new ConstantBlock(Grid.USER_DEFINED);
-	
+	static final Block INTERIOR_BLOCK = new ConstantBlock(Grid.INSIDE);
+
 	// preallocated return VoxelDataBytes
 	protected final VoxelDataByte VOXEL_OUTSIDE = new VoxelDataByte(Grid.OUTSIDE, Grid.NO_MATERIAL);
-	protected final VoxelDataByte VOXEL_EXTERIOR = new VoxelDataByte(Grid.EXTERIOR, Grid.NO_MATERIAL);
-	protected final VoxelDataByte VOXEL_INTERIOR = new VoxelDataByte(Grid.INTERIOR, Grid.NO_MATERIAL);
-	protected final VoxelDataByte VOXEL_USER_DEFINED = new VoxelDataByte(Grid.USER_DEFINED, Grid.NO_MATERIAL);
-	
+	protected final VoxelDataByte VOXEL_INTERIOR = new VoxelDataByte(Grid.INSIDE, Grid.NO_MATERIAL);
+
 	// how many times a block has received a set() command since last clear
 	protected int[] activity;
 	
@@ -173,15 +169,11 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
             case Grid.OUTSIDE:
                 vd.setState(Grid.OUTSIDE);
                 break;
-            case Grid.EXTERIOR:
-                vd.setState(Grid.EXTERIOR);
-                break;
-            case Grid.INTERIOR:
-                vd.setState(Grid.INTERIOR);
+            case Grid.INSIDE:
+                vd.setState(Grid.INSIDE);
                 break;
             default:
-                vd.setState(Grid.USER_DEFINED);
-                break;
+                throw new IllegalArgumentException("Unhandled state");
         }
     }
 
@@ -193,15 +185,11 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
             case Grid.OUTSIDE:
                 vd.setState(Grid.OUTSIDE);
                 break;
-            case Grid.EXTERIOR:
-                vd.setState(Grid.EXTERIOR);
-                break;
-            case Grid.INTERIOR:
-                vd.setState(Grid.INTERIOR);
+            case Grid.INSIDE:
+                vd.setState(Grid.INSIDE);
                 break;
             default:
-                vd.setState(Grid.USER_DEFINED);
-                break;
+                throw new IllegalArgumentException("Unhandled state");
         }
     }
 
@@ -272,14 +260,8 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 							case OUTSIDE:
 								if (byt != Grid.OUTSIDE) continue;
 								break;
-							case EXTERIOR:
-								if (byt != Grid.EXTERIOR) continue;
-								break;
-							case INTERIOR:
-								if (byt != Grid.INTERIOR) continue;
-								break;
-							case MARKED:
-								if ((byt != Grid.EXTERIOR) & (byt != Grid.INTERIOR)) continue;
+							case INSIDE:
+								if (byt != Grid.INSIDE) continue;
 								break;
 						}
 						// set all voxels within this homogeneous block
@@ -302,14 +284,8 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 										case OUTSIDE:
 											if (byt != Grid.OUTSIDE) continue;
 											break;
-										case EXTERIOR:
-											if (byt != Grid.EXTERIOR) continue;
-											break;
-										case INTERIOR:
-											if (byt != Grid.INTERIOR) continue;
-											break;
-										case MARKED:
-											if (byt != Grid.EXTERIOR & byt != Grid.INTERIOR) continue;
+										case INSIDE:
+											if (byt != Grid.INSIDE) continue;
 											break;
 										// if requested ALL, no need to break out of block
 									}
@@ -343,14 +319,11 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 					case Grid.OUTSIDE:
 						blocks[i] = OUTSIDE_BLOCK;
 						break;
-					case Grid.EXTERIOR:
-						blocks[i] = EXTERIOR_BLOCK;
-						break;
-					case Grid.INTERIOR:
+					case Grid.INSIDE:
 						blocks[i] = INTERIOR_BLOCK;
 						break;
 					default:
-						blocks[i] = USERDEF_BLOCK;
+						throw new IllegalArgumentException("Unhandled state");
 				}
 				// reset activity upon clean
 				activity[i] = 0;

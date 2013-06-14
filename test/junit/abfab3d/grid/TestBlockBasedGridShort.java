@@ -169,12 +169,12 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
     public void testGetStateByVoxel() {
         AttributeGrid grid =new BlockBasedAttributeGridShort(10, 9, 9, 0.001, 0.001);
         grid.setData(0, 0, 0, Grid.OUTSIDE, (short)2);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (short)1);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (short)0);
+        grid.setData(9, 8, 7, Grid.INSIDE, (short)1);
+        grid.setData(5, 0, 7, Grid.INSIDE, (short)0);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(5, 0, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(8, 8, 8));
@@ -188,21 +188,21 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
 
         // set and test get on some random world coordinates
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (short)2);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (short)1);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (short)0);
+        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (short)1);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (short)0);
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.EXTERIOR, grid.getState(0.95, 0.39, 0.45));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.6, 0.1, 0.4));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.95, 0.39, 0.45));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.6, 0.1, 0.4));
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
         grid = new BlockBasedAttributeGridShort(0.12, 0.11, 0.16, 0.05, 0.02);
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (short)2);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0999, 0.0799, 0.0999));
+        grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (short)2);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.0799, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.0999));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.0799, 0.0999));
         assertEquals("State should be ", 0, grid.getState(0.0499, 0.06, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0599, 0.05));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.0499));
@@ -211,23 +211,23 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (short)2);
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.0499, 0.0199, 0.0499));
+        grid.setData(0.0, 0.0, 0.0, Grid.INSIDE, (short)2);
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0199, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0499));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0199, 0.0499));
         assertEquals("State should be ", 0, grid.getState(0.05, 0.0, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.02, 0.0));
         assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (short)2);
-//        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.1, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.119, 0.151));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.1, 0.1, 0.199));
-        assertEquals("State should be ", Grid.INTERIOR, grid.getState(0.149, 0.119, 0.199));
+        grid.setData(0.149, 0.119, 0.199, Grid.INSIDE, (short)2);
+//        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.15));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.1, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.119, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.199));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.119, 0.199));
         assertEquals("State should be ", 0, grid.getState(0.0999, 0.1, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.0999, 0.1501));
         assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.1499));
@@ -253,8 +253,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
      */
     public void testGetMaterialByVoxel() {
         AttributeGrid grid =new BlockBasedAttributeGridShort(10, 9, 8, 0.001, 0.001);
-        grid.setData(9, 8, 7, Grid.EXTERIOR, (short)67);
-        grid.setData(5, 0, 7, Grid.INTERIOR, (short)1);
+        grid.setData(9, 8, 7, Grid.INSIDE, (short)67);
+        grid.setData(5, 0, 7, Grid.INSIDE, (short)1);
 
         assertEquals("Material should be ", 67, grid.getAttribute(9, 8, 7));
         assertEquals("Material should be ", 1, grid.getAttribute(5, 0, 7));
@@ -271,8 +271,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
 
         // set and test get on some random world coordinates
         grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (short)67);
-        grid.setData(0.95, 0.39, 0.45, Grid.EXTERIOR, (short)2);
-        grid.setData(0.6, 0.1, 0.4, Grid.INTERIOR, (short)1);
+        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (short)2);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (short)1);
         assertEquals("Material should be ", 67, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("Material should be ", 2, grid.getAttribute(0.95, 0.39, 0.45));
         assertEquals("Material should be ", 1, grid.getAttribute(0.6, 0.1, 0.4));
@@ -280,7 +280,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
         grid = new BlockBasedAttributeGridShort(0.12, 0.11, 0.16, 0.05, 0.02);
-        grid.setData(0.06, 0.07, 0.08, Grid.INTERIOR, (short)2);
+        grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (short)2);
         assertEquals("Material should be ", 2, grid.getAttribute(0.05, 0.06, 0.05));
         assertEquals("Material should be ", 2, grid.getAttribute(0.0999, 0.06, 0.05));
         assertEquals("Material should be ", 2, grid.getAttribute(0.05, 0.0799, 0.05));
@@ -294,7 +294,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         assertEquals("Material should be ", 0, grid.getAttribute(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INTERIOR, (short)69);
+        grid.setData(0.0, 0.0, 0.0, Grid.INSIDE, (short)69);
         assertEquals("Material should be ", 69, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("Material should be ", 69, grid.getAttribute(0.0499, 0.0, 0.0));
         assertEquals("Material should be ", 69, grid.getAttribute(0.0, 0.0199, 0.0));
@@ -305,7 +305,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         assertEquals("Material should be ", 0, grid.getAttribute(0.0, 0.0, 0.069));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INTERIOR, (short)12);
+        grid.setData(0.149, 0.119, 0.199, Grid.INSIDE, (short)12);
 //        assertEquals("Material should be ", 12, grid.getAttribute(0.1, 0.1, 0.15)); //failing because 0.15/0.05=2.999997
         assertEquals("Material should be ", 12, grid.getAttribute(0.1499, 0.1, 0.1501));
         assertEquals("Material should be ", 12, grid.getAttribute(0.1, 0.119, 0.1501));
@@ -329,7 +329,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, 1, 1, 0.001, 0.001);
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 0, 0, Grid.EXTERIOR, x);
+            grid.setData(x, 0, 0, Grid.INSIDE, x);
         }
 
         for (int x=0; x<width; x++) {
@@ -348,7 +348,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         int height = 3;
         int depth = 10;
         int[] row = {0, 3, 5};
-        byte[] state = {Grid.INTERIOR, Grid.EXTERIOR, Grid.INTERIOR};
+        byte[] state = {Grid.INSIDE, Grid.INSIDE, Grid.INSIDE};
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.05, 0.02);
 
@@ -372,9 +372,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         int expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
 
         // change one of the interior voxel rows to outside
@@ -390,9 +388,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         expectedOutCount = expectedAllCount - expectedIntCount - expectedExtCount;
 
         assertEquals("Expected total voxels is not " + expectedAllCount, expectedAllCount, grid.findCount(VoxelClasses.ALL));
-        assertEquals("Expected interior voxels is not " + expectedIntCount, expectedIntCount, grid.findCount(VoxelClasses.INTERIOR));
-        assertEquals("Expected exterior voxels is not " + expectedExtCount, expectedExtCount, grid.findCount(VoxelClasses.EXTERIOR));
-        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.MARKED));
+        assertEquals("Expected marked voxels is not " + expectedMrkCount, expectedMrkCount, grid.findCount(VoxelClasses.INSIDE));
         assertEquals("Expected outside voxels is not " + expectedOutCount, expectedOutCount, grid.findCount(VoxelClasses.OUTSIDE));
     }
 
@@ -420,7 +416,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
             for (int y=0; y<height; y++) {
                 for (int z=0; z<materialDepth[x]; z++) {
 //System.out.println(x + ", " + y + ", " + z + ": " + material[x]);
-                    grid.setData(x, y, z, Grid.INTERIOR, material[x]);
+                    grid.setData(x, y, z, Grid.INSIDE, material[x]);
                 }
             }
         }
@@ -437,14 +433,14 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         long mat = 0;
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
-            grid.setData(x,0,0, Grid.EXTERIOR, mat);
+            grid.setData(x,0,0, Grid.INSIDE, mat);
         }
 
         assertEquals("Material count is not " + width, width, grid.findCount(mat));
 
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.05, 0.02);
         for (int y=0; y<height; y++) {
-            grid.setData(0, y, 0, Grid.INTERIOR, mat);
+            grid.setData(0, y, 0, Grid.INSIDE, mat);
         }
 
         assertEquals("Material count is not " + height, height, grid.findCount(mat));
@@ -459,7 +455,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         int height = 4;
         int depth = 10;
         int[] stateDepth = {10, 6, 1};
-        byte[] states = {Grid.EXTERIOR, Grid.INTERIOR, Grid.OUTSIDE};
+        byte[] states = {Grid.INSIDE, Grid.INSIDE, Grid.OUTSIDE};
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.05, 0.02);
 
@@ -487,16 +483,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         assertEquals("All voxel count is not " + expectedAllCount, expectedAllCount, allCount);
 
         resetCounts();
-        grid.findAttribute(VoxelClasses.MARKED, this);
+        grid.findAttribute(VoxelClasses.INSIDE, this);
         assertEquals("Marked voxel count is not " + expectedMrkCount, expectedMrkCount, mrkCount);
-
-        resetCounts();
-        grid.findAttribute(VoxelClasses.EXTERIOR, this);
-        assertEquals("Exterior voxel count is not " + expectedExtCount, expectedExtCount, extCount);
-
-        resetCounts();
-        grid.findAttribute(VoxelClasses.INTERIOR, this);
-        assertEquals("Interior voxel count is not " + expectedIntCount, expectedIntCount, intCount);
 
         resetCounts();
         grid.findAttribute(VoxelClasses.OUTSIDE, this);
@@ -513,41 +501,40 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExt);
-        grid.findAttribute(VoxelClasses.EXTERIOR, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetInt);
+        grid.findAttribute(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetInt);
-        grid.findAttribute(VoxelClasses.INTERIOR, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, ft);
 
-        assertTrue("Found state iterator did not find all voxels with INTERIOR state",
+        assertTrue("Found state iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setData(10, 6, 2, Grid.EXTERIOR, mat);
-        ft = new FindAttributeIterateTester(vcSetExt);
-        grid.findAttribute(VoxelClasses.EXTERIOR, ft);
+        grid.setData(10, 6, 2, Grid.INSIDE, mat);
+        ft = new FindAttributeIterateTester(vcSetInt);
+        grid.findAttribute(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat);
         ft = new FindAttributeIterateTester(vcSetInt);
-        grid.findAttribute(VoxelClasses.INTERIOR, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state iterator should return false",
                 ft.foundAllVoxels());
@@ -563,15 +550,15 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         };
 
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        vcSetExt = new HashSet<VoxelCoordinate>();
+        vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindAttributeIterateTester(vcSetExt);
-        grid.findAttribute(VoxelClasses.EXTERIOR, ft);
+        ft = new FindAttributeIterateTester(vcSetInt);
+        grid.findAttribute(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -588,48 +575,47 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         long mat = 1;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExt = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat);
-            grid.setData(x, 4, 4, Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(x, 2, 2));
-            vcSetExt.add(new VoxelCoordinate(x, 4, 4));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat);
+            grid.setData(x, 4, 4, Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(x, 2, 2));
+            vcSetInt.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat);
             vcSetInt.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExt);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetInt);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetInt);
-        grid.findAttributeInterruptible(VoxelClasses.INTERIOR, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, ft);
 
-        assertTrue("Found iterator did not find all voxels with INTERIOR state",
+        assertTrue("Found iterator did not find all voxels with INSIDE state",
                 ft.foundAllVoxels());
 
         // make sure that findInterruptible stops interating when voxel is not found
         // do this by adding a new exterior voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, mat);
-        grid.setData(1, 3, 3, Grid.EXTERIOR, mat);
-        ft = new FindAttributeIterateTester(vcSetExt);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
+        grid.setData(1, 3, 3, Grid.INSIDE, mat);
+        ft = new FindAttributeIterateTester(vcSetInt);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false",
                 ft.foundAllVoxels());
         assertTrue("Found state interruptible did not get interrupted ",
-                ft.getIterateCount() < vcSetExt.size());
+                ft.getIterateCount() < vcSetInt.size());
 
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to exterior state
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat);
+        grid.setData(1, 5, 6, Grid.OUTSIDE, mat);
         ft = new FindAttributeIterateTester(vcSetInt);
-        grid.findAttributeInterruptible(VoxelClasses.INTERIOR, ft);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state interruptible iterator should return false", ft.foundAllVoxels());
 
@@ -644,15 +630,15 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         };
 
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        vcSetExt = new HashSet<VoxelCoordinate>();
+        vcSetInt = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat);
-            vcSetExt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat);
+            vcSetInt.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindAttributeIterateTester(vcSetExt);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, ft);
+        ft = new FindAttributeIterateTester(vcSetInt);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state",
                 ft.foundAllVoxels());
@@ -674,10 +660,10 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
@@ -694,7 +680,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
+        grid.setData(10, 6, 2, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttribute(mat1, ft);
 
@@ -702,7 +688,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttribute(mat1, ft);
 
@@ -723,7 +709,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         vcSetMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
@@ -750,12 +736,12 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
-            grid.setData(x, 4, 4, Grid.INTERIOR, mat1);
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
+            grid.setData(x, 4, 4, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
             vcSetMat1.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 5, 6, Grid.EXTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
@@ -774,7 +760,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         // make sure that findInterruptible stops interating when voxel is not found
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
-        grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
+        grid.setData(1, 3, 3, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat1);
         grid.findAttributeInterruptible(mat1, ft);
 
@@ -785,7 +771,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
 
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior voxels to EXTERIOR state
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetMat2);
         grid.findAttributeInterruptible(mat2, ft);
 
@@ -805,7 +791,7 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         vcSetMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
@@ -828,41 +814,41 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         long mat2 = 69;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(x, 2, 2));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetIntMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttribute(VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttribute(VoxelClasses.INTERIOR, mat2, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, mat2, ft);
 
-        assertTrue("Found state iterator did not find all voxels with INTERIOR state and material " + mat2,
+        assertTrue("Found state iterator did not find all voxels with INSIDE state and material " + mat2,
                 ft.foundAllVoxels());
 
         // make sure that finding a voxel not in the list returns false
-        grid.setData(10, 6, 2, Grid.EXTERIOR, mat1);
-        ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
+        grid.setData(10, 6, 2, Grid.INSIDE, mat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttribute(VoxelClasses.INSIDE, mat1, ft);
 
         assertFalse("Found state and material iterator should return false",
                 ft.foundAllVoxels());
 
         // make sure that not finding a voxel in the list returns false
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat1);
         ft = new FindAttributeIterateTester(vcSetIntMat2);
-        grid.findAttribute(VoxelClasses.INTERIOR, ft);
+        grid.findAttribute(VoxelClasses.INSIDE, ft);
 
         assertFalse("Found state and material iterator should return false",
                 ft.foundAllVoxels());
@@ -878,15 +864,15 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         };
 
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        vcSetExtMat1 = new HashSet<VoxelCoordinate>();
+        vcSetIntMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttribute(VoxelClasses.EXTERIOR, mat1, ft);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttribute(VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
@@ -904,56 +890,55 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         long mat2 = 69;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        HashSet<VoxelCoordinate> vcSetExtMat1 = new HashSet<VoxelCoordinate>();
         HashSet<VoxelCoordinate> vcSetIntMat1 = new HashSet<VoxelCoordinate>();
-        HashSet<VoxelCoordinate> vcSetExtMat2 = new HashSet<VoxelCoordinate>();
+        HashSet<VoxelCoordinate> vcSetIntMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(x, 2, 2));
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 4, 4, Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(x, 4, 4));
+            grid.setData(x, 4, 4, Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 7, 7, Grid.INTERIOR, mat1);
+            grid.setData(x, 7, 7, Grid.INSIDE, mat1);
             vcSetIntMat1.add(new VoxelCoordinate(x, 7, 7));
 
-            grid.setData(x, 5, 6, Grid.EXTERIOR, mat2);
-            vcSetExtMat2.add(new VoxelCoordinate(x, 5, 6));
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
+            vcSetIntMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 
-        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
+        FindAttributeIterateTester ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
 
         ft = new FindAttributeIterateTester(vcSetIntMat1);
-        grid.findAttributeInterruptible(VoxelClasses.INTERIOR, mat1, ft);
-        assertTrue("Found iterator did not find all voxels with INTERIOR state and material " + mat1,
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
+        assertTrue("Found iterator did not find all voxels with INSIDE state and material " + mat1,
                 ft.foundAllVoxels());
 
-        ft = new FindAttributeIterateTester(vcSetExtMat2);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat2, ft);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat2, ft);
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat2,
                 ft.foundAllVoxels());
 
         // make sure that findInterruptible stops interating when voxel is not found
         // do this by adding a new material voxel
         grid.setData(5, 2, 2, Grid.OUTSIDE, 0);
-        grid.setData(1, 3, 3, Grid.EXTERIOR, mat1);
-        ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
+        grid.setData(1, 3, 3, Grid.INSIDE, mat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
 
         assertFalse("Found state and material interruptible iterator should return false",
                 ft.foundAllVoxels());
         assertTrue("Found state and material interruptible did not get interrupted ",
-                ft.getIterateCount() < vcSetExtMat1.size());
+                ft.getIterateCount() < vcSetIntMat1.size());
 
         // make sure that not finding a voxel in the list returns false
         // do this by changing one of the interior and mat2 voxels
-        grid.setData(1, 5, 6, Grid.EXTERIOR, mat1);
-        ft = new FindAttributeIterateTester(vcSetExtMat2);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat2, ft);
+        grid.setData(1, 5, 6, Grid.INSIDE, mat1);
+        ft = new FindAttributeIterateTester(vcSetIntMat2);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat2, ft);
 
         assertFalse("Found state and material iterator should return false", ft.foundAllVoxels());
 
@@ -968,15 +953,15 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         };
 
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.001, 0.001);
-        vcSetExtMat1 = new HashSet<VoxelCoordinate>();
+        vcSetIntMat1 = new HashSet<VoxelCoordinate>();
 
         for (int i=0; i<coords.length; i++) {
-            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.EXTERIOR, mat1);
-            vcSetExtMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
+            grid.setData(coords[i][0], coords[i][1], coords[i][2], Grid.INSIDE, mat1);
+            vcSetIntMat1.add(new VoxelCoordinate(coords[i][0], coords[i][1], coords[i][2]));
         }
 
-        ft = new FindAttributeIterateTester(vcSetExtMat1);
-        grid.findAttributeInterruptible(VoxelClasses.EXTERIOR, mat1, ft);
+        ft = new FindAttributeIterateTester(vcSetIntMat1);
+        grid.findAttributeInterruptible(VoxelClasses.INSIDE, mat1, ft);
 
         assertTrue("Found iterator did not find all voxels with EXTERIOR state and material " + mat1,
                 ft.foundAllVoxels());
@@ -1140,13 +1125,13 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         HashSet<VoxelCoordinate> vcSetMat2 = new HashSet<VoxelCoordinate>();
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 2, 2, Grid.EXTERIOR, mat1);
+            grid.setData(x, 2, 2, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
 
-            grid.setData(x, 4, 4, Grid.INTERIOR, mat1);
+            grid.setData(x, 4, 4, Grid.INSIDE, mat1);
             vcSetMat1.add(new VoxelCoordinate(x, 4, 4));
 
-            grid.setData(x, 5, 6, Grid.INTERIOR, mat2);
+            grid.setData(x, 5, 6, Grid.INSIDE, mat2);
             vcSetMat2.add(new VoxelCoordinate(x, 5, 6));
         }
 

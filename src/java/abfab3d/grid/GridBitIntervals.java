@@ -257,11 +257,11 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     public void getData(int x, int y, int z, VoxelData data){
 
         if(get(x,y,z) != 0){
-            data.setState(Grid.INTERIOR);
+            data.setState(Grid.INSIDE);
             data.setAttribute((byte)0);
         } else {
-            // TODO: This was INTERIOR I think it should be OUTSIDE
-//            data.setState(Grid.INTERIOR);
+            // TODO: This was INSIDE I think it should be OUTSIDE
+//            data.setState(Grid.INSIDE);
             data.setState(Grid.OUTSIDE);
             data.setAttribute((byte)0);
         }
@@ -277,7 +277,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     public byte getState(int x, int y, int z){
 
         if(get(x,y,z) != 0)
-            return Grid.INTERIOR;
+            return Grid.INSIDE;
         else
             return Grid.OUTSIDE;
     }
@@ -348,9 +348,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             // go to default routine
             super.find(vc,  t);
             return;
-        case EXTERIOR:
-        case INTERIOR:
-        case MARKED:
+        case INSIDE:
             data = 1;
             break;
         }
@@ -383,9 +381,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             super.find(vc,  t, xmin, xmax, ymin, ymax);
             return;
 
-        case EXTERIOR:
-        case INTERIOR:
-        case MARKED:
+        case INSIDE:
             data = 1;
             break;
         }
@@ -422,9 +418,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             // go to default routine
             super.findInterruptible(vc,  t);
             return;
-        case EXTERIOR:
-        case INTERIOR:
-        case MARKED:
+        case INSIDE:
             data = 1;
             break;
         }

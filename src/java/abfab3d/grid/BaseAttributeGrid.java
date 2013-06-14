@@ -89,21 +89,9 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
                     byte state;
 
                     switch(vc) {
-                        case MARKED:
+                        case INSIDE:
                             state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 t.found(x,y,z,vd);
                             }
                             break;
@@ -162,23 +150,9 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
                     byte state;
 
                     switch(vc) {
-                        case MARKED:
+                        case INSIDE:
                             state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 if (!t.foundInterruptible(x,y,z,vd))
                                     break loop;
                             }
@@ -238,21 +212,9 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
                         case ALL:
                             t.found(x,y,z,vd);
                             break;
-                        case MARKED:
+                        case INSIDE:
                             state = vd.getState();
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case EXTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.EXTERIOR) {
-                                t.found(x,y,z,vd);
-                            }
-                            break;
-                        case INTERIOR:
-                            state = vd.getState();
-                            if (state == Grid.INTERIOR) {
+                            if (state == Grid.INSIDE) {
                                 t.found(x,y,z,vd);
                             }
                             break;
@@ -290,20 +252,8 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
                             if (!t.foundInterruptible(x,y,z,vd))
                                 break loop;
                             break;
-                        case MARKED:
-                            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case EXTERIOR:
-                            if (state == Grid.EXTERIOR) {
-                                if (!t.foundInterruptible(x,y,z,vd))
-                                    break loop;
-                            }
-                            break;
-                        case INTERIOR:
-                            if (state == Grid.INTERIOR) {
+                        case INSIDE:
+                            if (state == Grid.INSIDE) {
                                 if (!t.foundInterruptible(x,y,z,vd))
                                     break loop;
                             }
@@ -317,6 +267,62 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types over given rectangle in xy plane.
+     * May be much faster then full grid traversal for some implementations.
+     *
+     * @param vc   The class of voxels to traverse
+     * @param t    The traverer to call for each voxel
+     * @param xmin - minimal x - coordinate of voxels
+     * @param xmax - maximal x - coordinate of voxels
+     * @param ymin - minimal y - coordinate of voxels
+     * @param ymax - maximal y - coordinate of voxels
+     */
+    public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t, int xmin, int xmax, int ymin, int ymax) {
+        VoxelData vd = getVoxelData();
+
+        switch (vc) {
+            case ALL:
+                for (int y = ymin; y <= ymax; y++) {
+                    for (int x = xmin; x <= xmax; x++) {
+                        for (int z = 0; z < depth; z++) {
+                            getData(x, y, z, vd);
+                            t.found(x, y, z, vd);
+                        }
+                    }
+                }
+                break;
+            case INSIDE:
+                for (int y = ymin; y <= ymax; y++) {
+                    for (int x = xmin; x <= xmax; x++) {
+                        for (int z = 0; z < depth; z++) {
+                            byte state = getState(x, y, z);
+
+                            if (state == Grid.INSIDE) {
+                                getData(x, y, z,vd);
+                                t.found(x, y, z, vd);
+                            }
+                        }
+                    }
+                }
+                break;
+            case OUTSIDE:
+                for (int y = ymin; y <= ymax; y++) {
+                    for (int x = xmin; x <= xmax; x++) {
+                        for (int z = 0; z < depth; z++) {
+                            byte state = getState(x, y, z);
+
+                            if (state == Grid.OUTSIDE) {
+                                getData(x, y, z,vd);
+                                t.found(x, y, z, vd);
+                            }
+                        }
+                    }
+                }
+                break;
         }
     }
 

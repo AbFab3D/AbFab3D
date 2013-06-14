@@ -43,7 +43,7 @@ public class Lettering {
     public static final int INT_MAT = 1;
 
     // Input model is in mm's
-    
+
     /**  Resolution of the printer in mm's.  */
     public static final double RESOLUTION = 0.15 * SCALE;
 
@@ -121,13 +121,13 @@ System.out.println("Main Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
             int picTz = (int) (25 * SCALE);      // X in base world
 
             // Make height double so we can rotate.
-/*            
+/*
             Grid grid2 = grid.createEmpty(labelWidthPixels * 2, labelWidthPixels * 2, labelDepthPixels * 2,
                 grid.getVoxelSize(), grid.getSliceHeight());
  */
             Grid grid2 = grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(),
                     grid.getVoxelSize(), grid.getSliceHeight());
-            
+
             System.out.println("Creating image grid: " + grid2.getWidth() + " " + grid2.getHeight() + " " + grid.getDepth());
             System.out.println("image tx: " + picTx + " " + picTy + " " + picTz);
             // TODO: remove me
@@ -176,7 +176,7 @@ if (1==0) {
             writeDebug(grid, "x3db", fos, console);
         } catch(Exception e) {
             e.printStackTrace();
-        }        
+        }
     }
 
     /**
@@ -245,13 +245,13 @@ System.out.println("putting text at: " + x + " " + y);
 
     /**
      *  Load a 3D file into the grid
-     *  
+     *
      * @param file
      */
     private void loadFile(Grid grid, String file, double scale) {
         IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
         loader.processFile(new File(file));
-        
+
         GeometryData geom = new GeometryData();
         geom.geometryType = GeometryData.INDEXED_TRIANGLES;
         geom.coordinates = loader.getCoords();
@@ -266,7 +266,7 @@ System.out.println("putting text at: " + x + " " + y);
         for(int i=0; i < len; i++)  {
             geom.coordinates[i] = (float) ((double) geom.coordinates[i] * scale);
         }
-        
+
         for(int i=0; i < bounds.length; i++) {
             bounds[i] = (float) ((double)bounds[i] * scale);
         }
@@ -298,10 +298,10 @@ System.out.println("translate: " + x + " " + y + " " + z);
                 new InteriorFinderTriangleBased(geom,bounds, x,y,z,rx,ry,rz,rangle,INT_MAT));
 
         tmc.generate(grid);
-        
+
     }
     private void write(Grid grid, String type, OutputStream os, ErrorReporter console) {
-        System.out.println("exterior voxels: " + grid.findCount(Grid.VoxelClasses.EXTERIOR));
+        System.out.println("exterior voxels: " + grid.findCount(Grid.VoxelClasses.INSIDE));
         // Output File
 //        BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
 //        RegionsX3DExporter exporter = new RegionsX3DExporter(type, os, console);
@@ -323,13 +323,11 @@ System.out.println("translate: " + x + " " + y + " " + z);
         BoxesX3DExporter exporter = new BoxesX3DExporter(type, os, console);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+        colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.95));
 
         exporter.writeDebug(grid, colors, transparency);

@@ -13,32 +13,18 @@
 package ringtorus;
 
 // External Imports
-import java.awt.*;
 import java.io.*;
 import java.util.*;
-import javax.imageio.*;
-import javax.vecmath.Matrix4d;
 import javax.vecmath.Vector3d;
-import java.awt.image.BufferedImage;
 
-import abfab3d.grid.query.RegionFinder;
 import abfab3d.io.output.*;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.LaplasianSmooth;
-import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.util.TextUtil;
-import abfab3d.util.DataSource;
 
 import app.common.RegionPrunner;
 import app.common.X3DViewer;
-import org.j3d.geom.GeometryData;
-import org.j3d.geom.*;
 import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
-import abfab3d.geom.*;
 import abfab3d.grid.*;
 import abfab3d.grid.op.*;
 import abfab3d.creator.*;
@@ -47,10 +33,8 @@ import abfab3d.creator.shapeways.*;
 //import java.awt.*;
 
 import static abfab3d.util.MathUtil.TORAD;
-import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 import static java.lang.Math.PI;
-import static java.lang.System.currentTimeMillis;
 
 import app.common.GridSaver;
 
@@ -425,13 +409,11 @@ public class RingTorusKernel extends HostedKernel {
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
+        colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 
         exporter.writeDebug(grid, colors, transparency);

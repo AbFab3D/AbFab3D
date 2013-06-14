@@ -148,8 +148,8 @@ public class ImagePopperKernel extends HostedKernel {
 
     private boolean visRemovedRegions;
     private int threads;
-    
-    
+
+
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
             "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
@@ -361,23 +361,23 @@ public class ImagePopperKernel extends HostedKernel {
         double layer2z = 0;            // z-center of middle layer
         double layer3z = 0;            // z-center of bottom layer
 
-        // HARD CODED params to play with 
-        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
-        //double smoothingWidth = 0.0; 
-        // size of grid block for MT calculatins 
+        // HARD CODED params to play with
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing
+        //double smoothingWidth = 0.0;
+        // size of grid block for MT calculatins
         // (larger values reduce processor cache performance)
         int blockSize = 50;
-        // max number to use for surface transitions. Should be ODD number 
-        // set it to 1 to have binary grid 
+        // max number to use for surface transitions. Should be ODD number
+        // set it to 1 to have binary grid
         int maxGridAttributeValue = 63;
         // width of surface transition area relative to voxel size
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // sreyt it to 0. to make no surface transitions
-        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866
         double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
         double baseThreshold = 0.1;
         int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
-        
+
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             bodyDepth += bodyDepth2;
@@ -407,7 +407,7 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
-        layer1.setUseGrayscale(useGrayscale1);        
+        layer1.setUseGrayscale(useGrayscale1);
         layer1.setBlurWidth((useGrayscale1)? 0.: imagesBlurWidth);
         layer1.setVoxelSize(resolution);
 
@@ -476,7 +476,7 @@ public class ImagePopperKernel extends HostedKernel {
         gm.setBounds(bounds);
         gm.setDataSource(union);
         gm.setThreadCount(threads);
-        
+
         gm.setMaxAttributeValue(maxGridAttributeValue);
         gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
 
@@ -517,13 +517,13 @@ public class ImagePopperKernel extends HostedKernel {
         }
 
         long t0;
-        
+
         WingedEdgeTriangleMesh mesh;
 
         double gbounds[] = new double[6];
         grid.getGridBounds(gbounds);
 
-        // place of default viewpoint 
+        // place of default viewpoint
         double viewDistance = GridSaver.getViewDistance(grid);
 
         if(USE_MESH_MAKER_MT){
@@ -535,7 +535,7 @@ public class ImagePopperKernel extends HostedKernel {
             meshmaker.setThreadCount(threads);
             meshmaker.setSmoothingWidth(smoothingWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
-            meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
+            meshmaker.setMaxAttributeValue(maxGridAttributeValue);
 
             // TODO: Need to get a better way to estimate this number
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
@@ -700,7 +700,7 @@ public class ImagePopperKernel extends HostedKernel {
 
                 System.out.println("Number of cores:" + threads);
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
@@ -740,13 +740,11 @@ public class ImagePopperKernel extends HostedKernel {
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console, true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[]{1, 0, 0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
+        colors.put(new Integer(Grid.INSIDE), new float[]{1, 0, 0});
         colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 
         exporter.writeDebug(grid, colors, transparency);

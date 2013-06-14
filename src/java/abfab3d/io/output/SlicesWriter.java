@@ -15,13 +15,11 @@ import java.io.IOException;
 import java.io.File;
 
 import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 
 import java.util.Arrays;
 
 import javax.imageio.ImageIO;
-import javax.vecmath.Vector3d;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
@@ -175,10 +173,8 @@ public class SlicesWriter {
                 default:
                 case Grid.OUTSIDE:
                     return COLOR_WHITE;
-                case Grid.INTERIOR:
+                case Grid.INSIDE:
                     return COLOR_BLACK;
-                case Grid.EXTERIOR:
-                    return COLOR_GRAY;                    
                 }
             }
         default: // use grid attribute 

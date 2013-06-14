@@ -646,13 +646,11 @@ System.out.println("Creating Regions Exporter");
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[] {0,1,0});
+        colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 
         exporter.writeDebug(grid, colors, transparency);

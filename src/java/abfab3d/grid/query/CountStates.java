@@ -28,9 +28,7 @@ import java.util.Map;
  * @author Alan Hudson
  */
 public class CountStates implements ClassTraverser {
-    private long outside;
-    private long exterior;
-    private long interior;
+    private long inside;
 
     public CountStates() {
     }
@@ -42,13 +40,12 @@ public class CountStates implements ClassTraverser {
      * @return Material counts
      */
     public Map<Byte,Long> execute(Grid grid) {
-        grid.find(VoxelClasses.MARKED, this);
+        grid.find(VoxelClasses.INSIDE, this);
 
         Map<Byte,Long> ret_val = new HashMap<Byte, Long>();
-        ret_val.put(new Byte(Grid.INTERIOR), interior);
-        ret_val.put(new Byte(Grid.EXTERIOR), exterior);
+        ret_val.put(new Byte(Grid.INSIDE), inside);
         long tot_voxels = (long) grid.getWidth() * grid.getHeight() * grid.getDepth();
-        ret_val.put(new Byte(Grid.OUTSIDE), tot_voxels - interior - exterior);
+        ret_val.put(new Byte(Grid.OUTSIDE), tot_voxels - inside);
 
         return ret_val;
     }
@@ -65,11 +62,8 @@ public class CountStates implements ClassTraverser {
      */
     public void found(int x, int y, int z, byte state) {
         switch(state) {
-            case Grid.INTERIOR:
-                interior++;
-                break;
-            case Grid.EXTERIOR:
-                exterior++;
+            case Grid.INSIDE:
+                inside++;
                 break;
         }
     }

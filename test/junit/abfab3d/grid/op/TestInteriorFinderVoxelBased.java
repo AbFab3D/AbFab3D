@@ -17,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
-import org.j3d.geom.GeometryData;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 
@@ -68,17 +67,8 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
 //        generate(grid, "cube_IFVB.x3db");
 
         int expectedExteriors = getCubeExteriorVoxelCount(cubeVoxelsX, cubeVoxelsY, cubeVoxelsZ);
-        assertEquals(expectedExteriors, grid.findCount(VoxelClasses.EXTERIOR));
+        assertEquals(expectedExteriors, grid.findCount(VoxelClasses.INSIDE));
 
-        InteriorFinderVoxelBased finder = new InteriorFinderVoxelBased(1, 2);
-        finder.execute(grid);
-//        generate(grid, "cube_IFVB2.x3db");
-
-        // Make sure exterior voxels count hasn't changed
-        assertEquals(expectedExteriors, grid.findCount(VoxelClasses.EXTERIOR));
-
-        int expectedInteriors = (cubeVoxelsX - 2) * (cubeVoxelsY - 2) * (cubeVoxelsZ - 2);
-        assertEquals(expectedInteriors, grid.findCount(VoxelClasses.INTERIOR));
     }
 
     //---------------------------------------------------
@@ -96,22 +86,22 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
 
         for (int x=startX; x<endX; x++) {
             for (int y=startY; y<endY; y++) {
-                grid.setState(x, y, startZ, Grid.EXTERIOR);
-                grid.setState(x, y, endZ, Grid.EXTERIOR);
+                grid.setState(x, y, startZ, Grid.INSIDE);
+                grid.setState(x, y, endZ, Grid.INSIDE);
             }
         }
 
         for (int x=startX; x<=endX; x++) {
             for (int z=startZ; z<=endZ; z++) {
-                grid.setState(x, startY, z, Grid.EXTERIOR);
-                grid.setState(x, endY, z, Grid.EXTERIOR);
+                grid.setState(x, startY, z, Grid.INSIDE);
+                grid.setState(x, endY, z, Grid.INSIDE);
             }
         }
 
         for (int y=startY; y<=endY; y++) {
             for (int z=startZ; z<=endZ; z++) {
-                grid.setState(startX, y, z, Grid.EXTERIOR);
-                grid.setState(endX, y, z, Grid.EXTERIOR);
+                grid.setState(startX, y, z, Grid.INSIDE);
+                grid.setState(endX, y, z, Grid.INSIDE);
             }
         }
 
@@ -126,13 +116,13 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
             colors.put(new Integer(Grid.OUTSIDE), new float[] {0,1,1});
 
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
             transparency.put(new Integer(Grid.OUTSIDE), new Float(0.8));
 
             exporter.writeDebug(grid, colors, transparency);

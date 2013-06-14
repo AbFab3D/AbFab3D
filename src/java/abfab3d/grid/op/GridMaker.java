@@ -199,13 +199,13 @@ public class GridMaker {
                         
                     case 0: // use grid state 
                         if(dataValue.v[0] > 0.5){
-                            m_grid.setState(ix, iy, iz, Grid.INTERIOR);
+                            m_grid.setState(ix, iy, iz, Grid.INSIDE);
                         }
                         break;
                     default: // use grid attribute
                         int v = (int)(gridMaxAttributeValue * dataValue.v[0] + 0.5);
                         if(v > 0){
-                            m_grid.setData(ix, iy, iz, Grid.INTERIOR, v);   
+                            m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
                         }
                         break;
                     }
@@ -284,13 +284,13 @@ public class GridMaker {
                             
                         case 0: // use grid state 
                             if(dataValue.v[0] > 0.5){
-                                m_grid.setState(ix, iy, iz, Grid.INTERIOR);
+                                m_grid.setState(ix, iy, iz, Grid.INSIDE);
                             }
                             break;
                         default: // use grid attribute
                             int v = (int)(gridMaxAttributeValue * dataValue.v[0] + 0.5);
                             if(v > 0){
-                                m_grid.setData(ix, iy, iz, Grid.INTERIOR, v);   
+                                m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
                             }
                             break;
                         }

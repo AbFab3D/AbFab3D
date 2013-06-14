@@ -3,7 +3,6 @@ package abfab3d.geom;
 import abfab3d.grid.ArrayInt;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridIntervals;
-import abfab3d.geom.ZBuffer;
 import abfab3d.util.BoundingBoxUtilsFloat;
 import abfab3d.util.MatrixUtil;
 import org.j3d.geom.GeometryData;
@@ -382,7 +381,7 @@ public class TriangleModelCreatorMT {
     void fillSegment_reverse(Grid grid, int x, int y, int z1, int z2) {
 
         for (int z = z2; z >= z1; z--) {
-            grid.setState(x, y, z, Grid.INTERIOR);
+            grid.setState(x, y, z, Grid.INSIDE);
         }
     }
 
@@ -471,7 +470,7 @@ public class TriangleModelCreatorMT {
                                 values.removeLast();
                             } else {
                                 intervals.add(z);
-                                values.add(Grid.INTERIOR);
+                                values.add(Grid.INSIDE);
                             }
                         } else { // state == 1
                             // start outside

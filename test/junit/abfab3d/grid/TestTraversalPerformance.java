@@ -53,10 +53,10 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
         // set the voxels of a square
         for (int i = 0; i < width; i++) {
             // set the voxels of a square
-            setX(grid, 50 + i, 40, Grid.EXTERIOR, 1, 40, 450);
-            setX(grid, 50 + i, 60, Grid.EXTERIOR, 1, 40, 450);
-            setZ(grid, 40, 50 + i, Grid.EXTERIOR, 1, 40, 60);
-            setZ(grid, 450, 50 + i, Grid.EXTERIOR, 1, 40, 60);
+            setX(grid, 50 + i, 40, Grid.INSIDE, 1, 40, 450);
+            setX(grid, 50 + i, 60, Grid.INSIDE, 1, 40, 450);
+            setZ(grid, 40, 50 + i, Grid.INSIDE, 1, 40, 60);
+            setZ(grid, 450, 50 + i, Grid.INSIDE, 1, 40, 60);
         }
 
         //saveDebug(grid,"/tmp/out.x3db",false);
@@ -151,8 +151,8 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
             int y = rnd.nextInt(size);
             int z = rnd.nextInt(sizez);
 
-            if (grid.getState(x,y,z) != Grid.EXTERIOR) {
-                grid.setState(x,y,z,Grid.EXTERIOR);
+            if (grid.getState(x,y,z) != Grid.INSIDE) {
+                grid.setState(x,y,z,Grid.INSIDE);
             }
         }
 
@@ -345,7 +345,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
     private long getNumMarked(Grid grid, int xmin, int xmax, int ymin, int ymax) {
         Counter counter = new Counter();
 
-        grid.find(Grid.VoxelClasses.MARKED, counter, xmin, xmax, ymin, ymax);
+        grid.find(Grid.VoxelClasses.INSIDE, counter, xmin, xmax, ymin, ymax);
 
         return counter.getCount();
     }

@@ -73,7 +73,7 @@ public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
             ignoreSet[i] = new HashSet<VoxelCoordinate>();
         }
 
-//        gridAtt.find(VoxelClasses.EXTERIOR, material, this);
+//        gridAtt.find(VoxelClasses.INSIDE, material, this);
         grid.findAttributeInterruptible(material, this);
 
         return canEscape();
@@ -207,7 +207,7 @@ public class CanMoveMaterialAllPaths implements ClassAttributeTraverser {
             if (vd.getState() == Grid.OUTSIDE)
                 break;
 
-            if (vd.getState() == Grid.EXTERIOR) {
+            if (vd.getState() == Grid.INSIDE) {
 //System.out.println("placing in ignore list: " + pos[0] + " " + pos[1] + " " + pos[2]);
                 ignoreSet[ignoreSetIndex].add(new VoxelCoordinate(pos[0], pos[1], pos[2]));
             }

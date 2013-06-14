@@ -113,7 +113,7 @@ public class RegionFinder {
         this.grid = grid;
         regions = new ArrayList<Region>();
 
-        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.MARKED);
+        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.INSIDE);
 
         VoxelCoordinate vc;
 
@@ -137,8 +137,8 @@ public class RegionFinder {
     private List<Region> executeStateNew(Grid grid) {
         ArrayList<Region> ret_val = new ArrayList<Region>();
 
-        // TODO: Should support MARKED as well
-        byte state = Grid.INTERIOR;
+        // TODO: Should support INSIDE as well
+        byte state = Grid.INSIDE;
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -189,7 +189,7 @@ public class RegionFinder {
         this.grid = grid;
         regions = new ArrayList<Region>();
 
-        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.MARKED, mat);
+        visited = new GridVisitedIndexed(grid, Grid.VoxelClasses.INSIDE, mat);
 
         VoxelCoordinate vc;
 
@@ -230,7 +230,7 @@ public class RegionFinder {
 
             int state = grid.getState(i,j,k);
 
-            if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+            if (state == Grid.INSIDE) {
                 region.add(vc);
 
                 // test adjacent voxels
@@ -302,7 +302,7 @@ public class RegionFinder {
                     continue;
 */
 
-                if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                if (state == Grid.INSIDE) {
                     region.add(vc);
                     // test adjacent voxels
 
@@ -395,7 +395,7 @@ System.out.println("Add list: " + add_list.size());
                 if (start_state != Grid.OUTSIDE && state == Grid.OUTSIDE)
                     continue;
 
-                if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
+                if (state == Grid.INSIDE) {
                     if (vd.getMaterial() != mat) {
                         continue;
                     }

@@ -39,9 +39,7 @@ import java.util.BitSet;
 public class BlockArrayGrid extends BaseGrid {
     // declare constant blocks
     static final Block OUTSIDE_BLOCK = new ConstantBlock(Grid.OUTSIDE);
-    static final Block EXTERIOR_BLOCK = new ConstantBlock(Grid.EXTERIOR);
-    static final Block INTERIOR_BLOCK = new ConstantBlock(Grid.INTERIOR);
-    static final Block USERDEF_BLOCK = new ConstantBlock(Grid.USER_DEFINED);
+    static final Block INTERIOR_BLOCK = new ConstantBlock(Grid.INSIDE);
 
     // type of blocks to use for this grid
     // options are:
@@ -243,9 +241,9 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Get the material of the voxel.
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param wx The x world coordinate
+     * @param wy The y world coordinate
+     * @param wz The z world coordinate
      * @return The voxel material
      */
     public long getMaterial(double wx, double wy, double wz) {
@@ -308,9 +306,9 @@ public class BlockArrayGrid extends BaseGrid {
      * Set the material value of a voxel.
      * This is the no material version, so it actually does NOTHING!
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param wx The x world coordinate
+     * @param wy The y world coordinate
+     * @param wz The z world coordinate
      * @param material The materialID
      */
     public void setAttribute(double wx, double wy, double wz, long material) {
@@ -332,9 +330,9 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param wx The x world coordinate
+     * @param wy The y world coordinate
+     * @param wz The z world coordinate
      * @param state The value.
      */
     public void setState(double wx, double wy, double wz, byte state) {
@@ -346,7 +344,6 @@ public class BlockArrayGrid extends BaseGrid {
      * Currently assumes all active voxels are EXTERNAL.
      * This is "no material" version to mat = 0.
      *
-     * @param coord, the coord to read
      * @return a VoxelData object describing the voxel
      */
     protected VoxelData getVoxelData(int x, int y, int z) {
@@ -358,7 +355,6 @@ public class BlockArrayGrid extends BaseGrid {
      * Currently assumes all active voxels are EXTERNAL.
      * This is "no material" version to mat = 0.
      *
-     * @param coord, the coord to read
      * @return a VoxelData object describing the voxel
      */
     protected VoxelData getVoxelData(double wx, double wy, double wz) {
@@ -369,7 +365,6 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Get a voxel's value by index.
      *
-     * @param index, the {blockIndex, voxelIndex} to get
      * @return the voxel's value
      */
     protected byte get(int idxBlockInGrid, int idxVoxelInBlock) {
@@ -389,7 +384,6 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Get voxel data by grid coords.
      *
-     * @param xyz, the voxel to read
      * @return the voxel's value
      */
     protected byte get(int x, int y, int z) {
@@ -400,7 +394,6 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Get voxel data by world coords.
      *
-     * @param xyz, the voxel to read
      * @return the voxel's value
      */
     protected byte get(double wx, double wy, double wz) {
@@ -464,7 +457,6 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Set a voxel's value by grid coords.
      *
-     * @param xyz, the coords of the voxel to set
      * @param state, the data to set
      */
     protected void set(int x, int y, int z, byte state) {
@@ -475,7 +467,6 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Set a voxel's state by world coords.
      *
-     * @param xyz, the coords of the voxel to set
      * @param state, the data to set
      */
     protected void set(double wx, double wy, double wz, byte state) {
@@ -487,7 +478,6 @@ public class BlockArrayGrid extends BaseGrid {
      * Set all voxels within a block to a given value.
      * Exploit existing constant blocks where possible.
      *
-     * @param coord, a grid coordinate in the block
      * @param state, the state to set
      */
     protected void setBlock(int x, int y, int z, byte state) {
@@ -495,10 +485,7 @@ public class BlockArrayGrid extends BaseGrid {
             case Grid.OUTSIDE:
                 blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)] = OUTSIDE_BLOCK;
                 break;
-            case Grid.EXTERIOR:
-                blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)] = EXTERIOR_BLOCK;
-                break;
-            case Grid.INTERIOR:
+            case Grid.INSIDE:
                 blocks[f.blockIndex(x, y, z, GRID_TWOS_ORDER, BLOCK_TWOS_ORDER)] = INTERIOR_BLOCK;
                 break;
             default:
@@ -509,7 +496,9 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Set all voxels within a block to a given value.
      *
-     * @param coord, a world coordinate in the block
+     * @param wx, a world coordinate in the block
+     * @param wy, a world coordinate in the block
+     * @param wz, a world coordinate in the block
      * @param value, the data to set
      */
     protected void setBlock(double wx, double wy, double wz, byte value) {
@@ -520,7 +509,9 @@ public class BlockArrayGrid extends BaseGrid {
     /**
      * Convert world coordinates to grid coordinates.
      *
-     * @param coord, the world coordinate
+     * @param wx, a world coordinate in the block
+     * @param wy, a world coordinate in the block
+     * @param wz, a world coordinate in the block
      * @return the grid coordinate
      */
     protected int[] worldToGrid(double wx, double wy, double wz) {
@@ -543,7 +534,7 @@ public class BlockArrayGrid extends BaseGrid {
      *
      * This currently only looks for blocks which can be replaced with
      * one of the grid's constant blocks, representing Grid.OUTSIDE,
-     * Grid.EXTERIOR, and Grid.INTERIOR states.
+     * Grid.INSIDE, and Grid.INSIDE states.
      */
     public void clean() {
         if (GRID_BLOCK_TYPE == BlockType.KeyValue) {
@@ -551,17 +542,13 @@ public class BlockArrayGrid extends BaseGrid {
                 // TODO: change this over to a class comparison
                 // Or just nuke it, since KeyValueBlock seems to waste too much time resizing
                 if (blocks[i] != OUTSIDE_BLOCK &
-                    blocks[i] != EXTERIOR_BLOCK &
                     blocks[i] != INTERIOR_BLOCK) {
                     if (((KeyValueBlock) blocks[i]).allEqual(VOXELS_PER_BLOCK)) {
                         switch (blocks[i].get(0)) {
                             case Grid.OUTSIDE:
                                 blocks[i] = OUTSIDE_BLOCK;
                                 break;
-                            case Grid.EXTERIOR:
-                                blocks[i] = EXTERIOR_BLOCK;
-                                break;
-                            case Grid.INTERIOR:
+                            case Grid.INSIDE:
                                 blocks[i] = INTERIOR_BLOCK;
                                 break;
                         }
@@ -580,10 +567,7 @@ public class BlockArrayGrid extends BaseGrid {
                         case Grid.OUTSIDE:
                             blocks[i] = OUTSIDE_BLOCK;
                             break;
-                        case Grid.EXTERIOR:
-                            blocks[i] = EXTERIOR_BLOCK;
-                            break;
-                        case Grid.INTERIOR:
+                        case Grid.INSIDE:
                             blocks[i] = INTERIOR_BLOCK;
                             break;
                     }
@@ -759,7 +743,6 @@ class PointSet {
      * Set all blocks to the same state.
      *
      * @param state
-     * @param voxelsPerBlock
      */
     public void setAll(byte state) {
         for (int i = 0; i < data.length; i++) {
@@ -823,7 +806,6 @@ class RLEBlock implements Block {
     /**
      * Construct a block with a size. Voxels are inactive.
      *
-     * @param blockSize
      */
     public RLEBlock(int voxelsPerBlock) {
         head = new RLENode(voxelsPerBlock, Grid.OUTSIDE);
@@ -832,7 +814,6 @@ class RLEBlock implements Block {
     /**
      * Construct a block with a size. Voxels are given state.
      *
-     * @param blockSize
      */
     public RLEBlock(int voxelsPerBlock, byte state) {
         head = new RLENode(voxelsPerBlock, state);
@@ -872,7 +853,7 @@ class RLEBlock implements Block {
      *      not check that index < blockSize, and
      *      will throw null pointers if you try it.
      * @return the activation state of the voxel.
-     *      may be Grid.OUTSIDE or Grid.EXTERIOR.
+     *      may be Grid.OUTSIDE or Grid.INSIDE.
      */
     public byte get(int index) {
         node = head;
@@ -896,8 +877,8 @@ class RLEBlock implements Block {
      *      will throw null pointers if you try it.
      * @param state, the desired voxel state. the
      *      supported values are Grid.OUTSIDE and
-     *      Grid.EXTERIOR. If another value is used,
-     *      state will be assumed as Grid.EXTERIOR.
+     *      Grid.INSIDE. If another value is used,
+     *      state will be assumed as Grid.INSIDE.
      */
     public void set(int index, byte state) {
         node = head;
@@ -988,9 +969,8 @@ class RLEBlock implements Block {
      *
      * @param state, the desired voxel state. the
      *      supported values are Grid.OUTSIDE and
-     *      Grid.EXTERIOR. If another value is used,
-     *      state will be assumed as Grid.EXTERIOR.
-     * @param voxelsPerBlock
+     *      Grid.INSIDE. If another value is used,
+     *      state will be assumed as Grid.INSIDE.
      */
     public void setAll(byte state) {
         head = new RLENode(size(),state);
@@ -1085,7 +1065,6 @@ class RLEArrayListBlock implements Block {
     /**
      * Construct a block with a size. Voxels are inactive.
      *
-     * @param blockSize
      */
     public RLEArrayListBlock(int voxelsPerBlock) {
         this(voxelsPerBlock,Grid.OUTSIDE);
@@ -1094,7 +1073,6 @@ class RLEArrayListBlock implements Block {
     /**
      * Construct a block with a size. Voxels are given state.
      *
-     * @param blockSize
      */
     public RLEArrayListBlock(int voxelsPerBlock, byte state) {
         runLength = new ArrayList<Integer>();
@@ -1246,9 +1224,8 @@ class RLEArrayListBlock implements Block {
      *
      * @param state, the desired voxel state. the
      *      supported values are Grid.OUTSIDE and
-     *      Grid.EXTERIOR. If another value is used,
-     *      state will be assumed as Grid.EXTERIOR.
-     * @param voxelsPerBlock
+     *      Grid.INSIDE. If another value is used,
+     *      state will be assumed as Grid.INSIDE.
      */
     public void setAll(byte state) {
         runLength = new ArrayList<Integer>();
@@ -1299,8 +1276,8 @@ class RLEArrayListBlock implements Block {
  *
  * States are:
  *      00: Grid.OUTSIDE
- *      01: Grid.EXTERIOR
- *      10: Grid.INTERIOR
+ *      01: Grid.INSIDE
+ *      10: Grid.INSIDE
  *      11: Grid.USER_DEFINED
  *
  */
@@ -1403,8 +1380,8 @@ class BitSetBlock implements Block {
  *
  * States are:
  *      00: Grid.OUTSIDE
- *      01: Grid.EXTERIOR
- *      10: Grid.INTERIOR
+ *      01: Grid.INSIDE
+ *      10: Grid.INSIDE
  *      11: Grid.USER_DEFINED
  *
  */
@@ -1510,8 +1487,8 @@ class BitArrayBlock implements Block {
  *
  * Allowed states are:
  *      00: Grid.OUTSIDE
- *      01: Grid.EXTERIOR
- *      10: Grid.INTERIOR
+ *      01: Grid.INSIDE
+ *      10: Grid.INSIDE
  *      11: Grid.USER_DEFINED
  *
  */
@@ -1657,7 +1634,6 @@ class f {
      * need the block index.
      *
      * @param x,y,z the voxel coordinate
-     * @param gridTwosOrder, the size of the grid in blocks using twos order
      * @return idxBlockInGrid, index of the block containing the voxel coordinate
      */
     static int voxelIndex(int x, int y, int z, int[] blockLastIndex, int[] blockTwosOrder) {

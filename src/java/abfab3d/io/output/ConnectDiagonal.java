@@ -13,7 +13,7 @@ public class ConnectDiagonal implements Operation, ClassTraverser, ClassAttribut
     private Grid dest;
     private AttributeGrid gridAtt;
     private AttributeGrid destAtt;
-    
+
     private int[] gcoords;
     private long cnt;
     int[][] corners = new int[][] {
@@ -53,9 +53,9 @@ public class ConnectDiagonal implements Operation, ClassTraverser, ClassAttribut
         cnt = 0;
 
         if (grid instanceof AttributeGrid) {
-            ((AttributeGrid)grid).findAttribute(Grid.VoxelClasses.MARKED, this);
+            ((AttributeGrid)grid).findAttribute(Grid.VoxelClasses.INSIDE, this);
         } else {
-            grid.find(Grid.VoxelClasses.MARKED, this);
+            grid.find(Grid.VoxelClasses.INSIDE, this);
         }
 
         System.out.println("Voxels fixed: " + cnt);
@@ -87,10 +87,10 @@ public class ConnectDiagonal implements Operation, ClassTraverser, ClassAttribut
 
                             // Square, doesn't work
 /*
-                            dest.setData(tx1,ty1,tz1, Grid.EXTERIOR, vd.getAttribute());
-                            dest.setData(tx2,ty2,tz2, Grid.EXTERIOR, vd.getAttribute());
+                            dest.setData(tx1,ty1,tz1, Grid.INSIDE, vd.getAttribute());
+                            dest.setData(tx2,ty2,tz2, Grid.INSIDE, vd.getAttribute());
 */
-                            //dest.setData(dx,dy,dz, Grid.EXTERIOR, vd.getAttribute());
+                            //dest.setData(dx,dy,dz, Grid.INSIDE, vd.getAttribute());
 
                             cnt++;
                         }
@@ -133,10 +133,10 @@ public class ConnectDiagonal implements Operation, ClassTraverser, ClassAttribut
 
                             // Square, doesn't work
 /*
-                            dest.setData(tx1,ty1,tz1, Grid.EXTERIOR, vd.getAttribute());
-                            dest.setData(tx2,ty2,tz2, Grid.EXTERIOR, vd.getAttribute());
+                            dest.setData(tx1,ty1,tz1, Grid.INSIDE, vd.getAttribute());
+                            dest.setData(tx2,ty2,tz2, Grid.INSIDE, vd.getAttribute());
 */
-                            //dest.setData(dx,dy,dz, Grid.EXTERIOR, vd.getAttribute());
+                            //dest.setData(dx,dy,dz, Grid.INSIDE, vd.getAttribute());
 
                             cnt++;
                         }
@@ -153,7 +153,7 @@ public class ConnectDiagonal implements Operation, ClassTraverser, ClassAttribut
         // ignore
         return false;
     }
-    
+
     public long getCount() {
         return cnt;
     }

@@ -14,17 +14,11 @@ package abfab3d.grid.op;
 
 // External Imports
 
-import abfab3d.creator.KernelResults;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.BaseTestAttributeGrid;
 import abfab3d.grid.Grid;
 import abfab3d.io.output.BoxesX3DExporter;
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.MeshExporter;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.MeshDecimator;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.web3d.util.ErrorReporter;
@@ -35,13 +29,10 @@ import org.web3d.vrml.sav.BinaryContentHandler;
 
 // Internal Imports
 
-import javax.vecmath.Point3d;
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 
-import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 
 /**
@@ -78,7 +69,7 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
             double[] coord = new double[] {x,0,5*r};
             double[] dest = new double[3];
             double[] dest2 = new double[3];
-            
+
             warp.transform(coord, dest);
             printf("coord: [%7.4f, %7.4f, %7.4f] -> dest1: [%7.4f, %7.4f, %7.4f]\n", coord[0],coord[1],coord[2],dest[0],dest[1],dest[2]);
             warp.invert(dest, dest2);
@@ -167,7 +158,7 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
         RingSpaceWarp warp = new RingSpaceWarp(grid,radius, true);
 
         for(int x=0; x < grid.getWidth(); x++) {
-            grid.setData(x,0,0,Grid.EXTERIOR, x+1);
+            grid.setData(x,0,0,Grid.INSIDE, x+1);
         }
 
         warp.execute(dest);
@@ -205,7 +196,7 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
         RingSpaceWarp warp = new RingSpaceWarp(grid,radius, false);
 
         for(int x=0; x < grid.getWidth(); x++) {
-            grid.setData(x,0,0,Grid.EXTERIOR, x+1);
+            grid.setData(x,0,0,Grid.INSIDE, x+1);
         }
 
         warp.execute(dest);
@@ -237,13 +228,13 @@ public class TestRingSpaceWarp extends BaseTestAttributeGrid {
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console,true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[] {1,0,0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
+        colors.put(new Integer(Grid.INSIDE), new float[] {1,0,0});
+        colors.put(new Integer(Grid.INSIDE), new float[]{0, 1, 0});
         colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0.5));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.9));
 
         exporter.writeDebug(grid, colors, transparency);

@@ -49,9 +49,9 @@ import static java.lang.System.currentTimeMillis;
  * @version
  */
 public class TestMeshDecimator extends TestCase {
-    
-    static final double MM = 1000; // m -> mm conversion 
-    static final double MM3 = 1.e9; // m^3 -> mm^3 conversion 
+
+    static final double MM = 1000; // m -> mm conversion
+    static final double MM3 = 1.e9; // m^3 -> mm^3 conversion
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -61,7 +61,7 @@ public class TestMeshDecimator extends TestCase {
     }
 
     public void testQuadric(){
-        
+
         Point3d p[] = new Point3d[]{
             new Point3d(0,0,0), // 0
             new Point3d(1,0,0), // 1
@@ -71,7 +71,7 @@ public class TestMeshDecimator extends TestCase {
             new Point3d(1,0,1), // 5
             new Point3d(1,1,1), // 6
             new Point3d(0.1,1.1,1)};// 7
-        
+
         int faces[][] = new int[][]{{6,5,2},{5,1,2}, {7,6,2}, {7,3,2}, {4,5,6}, {4,6,7}, {0,4,7}, {0,7,3}, {5,4,1}, {4,0,1}, {3,2,1}, {3,1,0}};
 
         Vector3d sc0 = new Vector3d();
@@ -120,7 +120,7 @@ public class TestMeshDecimator extends TestCase {
 
         /*
         for(int i = 0; i < p.length ; i++){
-            
+
             //printf("p526t[%d]): %10.7f\n",  i, MeshDecimator.planePointDistance2(p526, p[i]));
             //printf("p627[%d]): %10.7f\n",  i, MeshDecimator.planePointDistance2(p627, p[i]));
             //printf("p675[%d]): %10.7f\n",  i, MeshDecimator.planePointDistance2(p675, p[i]));
@@ -132,29 +132,29 @@ public class TestMeshDecimator extends TestCase {
             printf("q67(p[%d]): %10.7f\n\n", i, q67.evaluate(p[i]));
 
         }
-        
+
         Point3d p67 = q67.getMinimum(new Point3d());
         printf("p67: [%10.7f %10.7f %10.7f] \n", p67.x,p67.y,p67.z);
-        
+
         printf("q67(p67): %10.7f\n\n", q67.evaluate(p67));
         Point3d pp = new Point3d(p67);
         pp.add(new Point3d(0.,-0.1,0.1));
         printf("q67(p67): %10.7f\n", q67.evaluate(pp));
-        
+
 
         Quadric qe65 = new Quadric(q526);
         qe65.addSet(q675);
-        
+
         printf("qe65(p6): %10.7f\n", qe65.evaluate(p[6]));
         printf("qe65(p5): %10.7f\n", qe65.evaluate(p[5]));
-        
+
         printf("qe65.det:  %10.7e\n", qe65.determinant());
         printf("q56s.det: %10.7e\n", q56s.determinant());
-        
+
         Point3d p56s = q56s.getMinimum(new Point3d());
-                
+
         printf("p56s: %s\n",p56s);
-        
+
         qe65.addSet(q56s);
         printf("dets: [%10.7e]\n", qe65.determinant());
 
@@ -162,11 +162,11 @@ public class TestMeshDecimator extends TestCase {
 
         printf("p65: [%10.7f,%10.7f,%10.7f]\n", p65.x,p65.y,p65.z);
 
-        
+
         Quadric q57 = new Quadric(p[5], p[7], 1.e-05);
         q675.addSet(q57);
         Point3d p57 =  q675.getMinimum(new Point3d());
-        
+
         printf("det: %10.7e\n", q675.determinant());
         printf("p57: [%18.15f,%18.15f,%18.15f]\n", p57.x,p57.y,p57.z);
         */
@@ -193,14 +193,14 @@ public class TestMeshDecimator extends TestCase {
     }
 
     public void  _testArray() throws Exception {
-        
-        
+
+
         int N = 10000000;
 
         Integer al[] = new Integer[N];
-        
+
         printf("testArray()  N: %d\n", N);
-        
+
         long t0 = System.currentTimeMillis();
 
         Integer obj = new Integer(5);
@@ -215,19 +215,19 @@ public class TestMeshDecimator extends TestCase {
         Random rnd = new Random(49);
 
         t0 = System.currentTimeMillis();
-        
+
         int count = N;
         int countMissed = 0;
         int alength = count;
         while(count > n1){
 
             int k = rnd.nextInt(alength);
-            
+
             if(al[k] != null){
                 al[k] = null;
                 count--;
                 if(count < alength*3/5){
-                    // removes nulls from array 
+                    // removes nulls from array
                     for(int i =0, j = 0; i < alength; i++){
                         if(al[i] != null)
                             al[j++] = al[i];
@@ -239,7 +239,7 @@ public class TestMeshDecimator extends TestCase {
                 countMissed++;
             }
         }
-        
+
         printf("count: %d, countMissed: %d, time: %d ms\n", count, countMissed, (System.currentTimeMillis()-t0));
 
         t0 = System.currentTimeMillis();
@@ -248,16 +248,16 @@ public class TestMeshDecimator extends TestCase {
             al[i] = obj;
         }
         printf("fill array: %d ms\n", (System.currentTimeMillis()-t0));
-        
+
     }
 
     public void  _testArrayList() throws Exception {
         ArrayList al = new ArrayList();
-        
+
         int N = 10000000;
 
         printf("testArrayList()  N: %d\n", N);
-        
+
         long t0 = System.currentTimeMillis();
         for(int i = 0; i < N; i++){
             al.add(new Integer(i));
@@ -269,7 +269,7 @@ public class TestMeshDecimator extends TestCase {
         Random rnd = new Random(49);
 
         t0 = System.currentTimeMillis();
-        
+
         int count = N;
         int countMissed = 0;
 
@@ -282,9 +282,9 @@ public class TestMeshDecimator extends TestCase {
                 countMissed++;
             }
         }
-        
+
         printf("count: %d, countMissed: %d, time: %d ms\n", count, countMissed, (System.currentTimeMillis()-t0));
-        
+
     }
 
     public void processFile(String fpath, double maxDecimationError, double reduceFactor) throws Exception {
@@ -385,7 +385,7 @@ public class TestMeshDecimator extends TestCase {
         //String fpath = "/tmp/leaf_01_0832206.stl";
         //String fpath = "/tmp/sf21.stl";
         //String fpath = "/tmp/rtc_v3_04.stl";
-        
+
         long t0 = currentTimeMillis();
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
         printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
@@ -397,7 +397,7 @@ public class TestMeshDecimator extends TestCase {
 
         MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_orig_%07d.stl", fcount));
 
-        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());        
+        printf("mesh faces: %d, vertices: %d, edges: %d\n", fcount,mesh.getVertexCount(), mesh.getEdgeCount());
         printf("initial counts: faces: %d, vertices: %d, edges: %d \n", mesh.getFaceCount(),mesh.getVertexCount(), mesh.getEdgeCount());
 
         assertTrue("Initial Manifold", TestWingedEdgeTriangleMesh.isManifold(mesh));
@@ -440,9 +440,9 @@ public class TestMeshDecimator extends TestCase {
 
     }
 
-    
+
     public void _testDecimatorQuality() throws Exception {
-    
+
         //String fpath = "/tmp/pen_v6.stl"; // strange rasterization errors
         //String fpath = "/tmp/mesh_text_orig.stl";
         //String fpath = "/tmp/out_grid_04_2_1.stl";
@@ -462,26 +462,26 @@ public class TestMeshDecimator extends TestCase {
         long t0 = currentTimeMillis();
         WingedEdgeTriangleMesh mesh = loadMesh(fpath);
         printf("mesh loading: %d ms\n",(currentTimeMillis() - t0));
-        mesh.DEBUG = false; 
+        mesh.DEBUG = false;
 
 
         MeshDecimator md = new MeshDecimator();
         md.DEBUG = false;
-        md.setMaxCollapseError(1.e-8);        
+        md.setMaxCollapseError(1.e-8);
 
         int fcount = mesh.getFaceCount();
         printf("mesh faces: %d \n",fcount);
         //double maxErodedVolumeMM3 = 1.; // 1mm^3
 
         double mbounds[] = mesh.getBounds();
-        
+
         printf("model bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",
                mbounds[0]*MM,mbounds[1]*MM,mbounds[2]*MM,mbounds[3]*MM,mbounds[4]*MM,mbounds[5]*MM);
-        
+
         double voxelSize = 0.1e-3; // 0.1 mm;
         double voxelVolume = voxelSize*voxelSize*voxelSize;
 
-        int padding = 2; // empty padding around the model 
+        int padding = 2; // empty padding around the model
 
         int gridX = (int)Math.ceil((mbounds[1] - mbounds[0])/voxelSize);
         int gridY = (int)Math.ceil((mbounds[3] - mbounds[2])/voxelSize);
@@ -501,38 +501,38 @@ public class TestMeshDecimator extends TestCase {
                                         mbounds[2] + (gridY-padding)*voxelSize,
                                         mbounds[4] - padding*voxelSize,
                                         mbounds[4] + (gridZ-padding)*voxelSize};
-        
+
         printf("grid bounds: [%7.2f,%7.2f,%7.2f,%7.2f,%7.2f,%7.2f]mm \n",
                gbounds[0]*MM,gbounds[1]*MM,gbounds[2]*MM,gbounds[3]*MM,gbounds[4]*MM,gbounds[5]*MM);
-        
+
         //Grid grid1 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
 
         //MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_orig.stl"));
 
         //writeIsosurface(grid1, gbounds, voxelSize, gridX, gridY, gridZ, "/tmp/diff_orig.stl");
 
-        //int count1 = grid1.findCount(Grid.VoxelClasses.INTERIOR);
-        
+        //int count1 = grid1.findCount(Grid.VoxelClasses.INSIDE);
+
         printf("MODEL_FACE_COUNT: %d\n", fcount);
         //printf("MODEL_VOXELS_COUNT: %d VOLUME: %7.2f mm^3\n", count1, count1*voxelVolume* MM3);
 
-        for(int i = 0; i < 10; i++){      
-  
+        for(int i = 0; i < 10; i++){
+
             fcount = fcount/2;
             md.processMesh(mesh, fcount);
             //Grid grid2 = makeGrid(mesh, gbounds, gridX, gridY, gridZ, voxelSize);
-            //int count2 = grid2.findCount(Grid.VoxelClasses.INTERIOR);
+            //int count2 = grid2.findCount(Grid.VoxelClasses.INSIDE);
 
-            //printf("count2: %d volume2: %7.2f mm^3\n", count2, count2*voxelVolume* MM3);            
-            t0 = currentTimeMillis();            
-            //Grid gridDiff = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);  
-            //Grid gridDiff = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);              
-            //getDifference(grid1, grid2, gridDiff);   
-            //int countDiff = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
+            //printf("count2: %d volume2: %7.2f mm^3\n", count2, count2*voxelVolume* MM3);
+            t0 = currentTimeMillis();
+            //Grid gridDiff = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);
+            //Grid gridDiff = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);
+            //getDifference(grid1, grid2, gridDiff);
+            //int countDiff = gridDiff.findCount(Grid.VoxelClasses.INSIDE);
             //ErosionMask err = new ErosionMask(1);
             //err.execute(gridDiff);
-            //printf("difference found: %d ms\n",(currentTimeMillis() - t0));            
-            //int countEroded = gridDiff.findCount(Grid.VoxelClasses.INTERIOR);
+            //printf("difference found: %d ms\n",(currentTimeMillis() - t0));
+            //int countEroded = gridDiff.findCount(Grid.VoxelClasses.INSIDE);
             //double erodedVolume = countEroded*voxelVolume*MM3;
             //double differenceVolume = countDiff*voxelVolume*MM3;
             printf("CURRENT_FACE_COUNT: %d\n", mesh.getFaceCount());
@@ -546,18 +546,18 @@ public class TestMeshDecimator extends TestCase {
             //}
         }
         //MeshExporter.writeMeshSTL(mesh,fmt("/tmp/mesh_decimated.stl"));
-                
+
     }
 
     Grid makeGrid(WingedEdgeTriangleMesh mesh, double gbounds[], int gridX, int gridY, int gridZ, double voxelSize){
-        
+
         long t0 = currentTimeMillis();
-        
-        MeshRasterizer mr = new MeshRasterizer(gbounds, gridX, gridY, gridZ);         
+
+        MeshRasterizer mr = new MeshRasterizer(gbounds, gridX, gridY, gridZ);
         mesh.getTriangles(mr);
 
-        Grid grid = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);        
-        //Grid grid = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);        
+        Grid grid = new GridShortIntervals(gridX, gridY, gridZ, voxelSize, voxelSize);
+        //Grid grid = new ArrayAttributeGridByte(gridX, gridY, gridZ, voxelSize, voxelSize);
         mr.getRaster(grid);
         //printf("mesh rasterized: %d ms\n",(currentTimeMillis() - t0));
 
@@ -569,54 +569,54 @@ public class TestMeshDecimator extends TestCase {
        makes symetric difference of two grids
      */
     public void getDifference(Grid grid1, Grid grid2, Grid difference){
-        
-        grid1.findInterruptible(Grid.VoxelClasses.MARKED, new GridDifference(grid2,difference));
-        grid2.findInterruptible(Grid.VoxelClasses.MARKED, new GridDifference(grid1,difference));        
+
+        grid1.findInterruptible(Grid.VoxelClasses.INSIDE, new GridDifference(grid2,difference));
+        grid2.findInterruptible(Grid.VoxelClasses.INSIDE, new GridDifference(grid1,difference));
 
     }
-    
+
     /**
-       compares voxel from 
+       compares voxel from
        traversal is going over marked voxels of another grid
        if gridToCompare has empty voxel, then the difference grid has it's voxel set
      */
     static class GridDifference implements ClassTraverser {
-        
+
         Grid gridToCompare; // grid to compare to
-        Grid gridDifference; // difference grid to write to 
-        
+        Grid gridDifference; // difference grid to write to
+
         GridDifference(Grid gridToCompare, Grid gridDifference){
 
             this.gridToCompare = gridToCompare;
-            this.gridDifference = gridDifference; 
+            this.gridDifference = gridDifference;
 
         }
 
         public void found(int x, int y, int z, byte state){
-            
+
             foundInterruptible(x, y, z, state);
 
         }
-        
+
         public boolean foundInterruptible(int x, int y, int z, byte state){
 
             if(gridToCompare.getState(x,y,z) == Grid.OUTSIDE){
-                gridDifference.setState(x,y,z, Grid.INTERIOR);
+                gridDifference.setState(x,y,z, Grid.INSIDE);
             }
             return true;
-            
+
         }
 
     } // class GridDifference
 
-    
+
     /**
-       
+
      */
     void writeIsosurface(Grid grid, double bounds[], double voxelSize, int nx, int ny, int nz, String fpath){
 
         IsosurfaceMaker im = new IsosurfaceMaker();
-        
+
         im.setIsovalue(0.);
         im.setBounds(extendBounds(bounds, -voxelSize/2));
         im.setGridSize(nx, ny, nz);
@@ -632,14 +632,14 @@ public class TestMeshDecimator extends TestCase {
     }
 
     static double[] extendBounds(double bounds[], double margin){
-        
+
         return new double[]{
-            bounds[0] - margin, 
-            bounds[1] + margin, 
-            bounds[2] - margin, 
-            bounds[3] + margin, 
-            bounds[4] - margin, 
-            bounds[5] + margin, 
+            bounds[0] - margin,
+            bounds[1] + margin,
+            bounds[2] - margin,
+            bounds[3] + margin,
+            bounds[4] - margin,
+            bounds[5] + margin,
         };
     }
 
@@ -649,13 +649,13 @@ public class TestMeshDecimator extends TestCase {
             String f1 = "/tmp/block_01.0.stl";
             String f2 = "/tmp/block_01.1.stl";
             String fout = "/tmp/block_01.stl";
-            
+
             STLReader reader = new STLReader();
             STLWriter writer = new STLWriter(fout);
-            
+
             reader.read(f1, writer);
             reader.read(f2, writer);
-            
+
             writer.close();
 
         } catch(Exception e){
@@ -665,14 +665,14 @@ public class TestMeshDecimator extends TestCase {
     }
 
     public void _testRasterizer(){
-        
+
         String fpath = "/tmp/pen_v6.stl";
         STLRasterizer sr = new STLRasterizer();
-        
+
         try {
-            
+
             Grid grid = sr.rasterizeFile(fpath);
-        
+
             printf("done!\n");
 
         } catch(Exception e){
@@ -683,7 +683,7 @@ public class TestMeshDecimator extends TestCase {
     }
 
     /**
-       
+
      */
     public static WingedEdgeTriangleMesh loadMesh(String fpath){
         if(fpath.toLowerCase().lastIndexOf(".stl") > 0){
@@ -694,7 +694,7 @@ public class TestMeshDecimator extends TestCase {
     }
 
     /**
-       load STL file 
+       load STL file
      */
     public static WingedEdgeTriangleMesh loadSTL(String fpath){
 
@@ -708,17 +708,17 @@ public class TestMeshDecimator extends TestCase {
         }
         return null;
     }
-    
+
 
     /**
        load X3D file
      */
     public static WingedEdgeTriangleMesh loadX3D(String fpath){
-        
+
         IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
-        
+
         loader.processFile(new File(fpath));
-        
+
         GeometryData data = new GeometryData();
         data.coordinates = loader.getCoords();
         data.vertexCount = data.coordinates.length / 3;
@@ -727,8 +727,8 @@ public class TestMeshDecimator extends TestCase {
 
         Vector3d[] verts = new Vector3d[data.vertexCount];
         int len = data.vertexCount;
-        int idx = 0;        
-        
+        int idx = 0;
+
         for(int i=0; i < len; i++) {
             idx = i * 3;
             verts[i] = new Vector3d(data.coordinates[idx++], data.coordinates[idx++], data.coordinates[idx++]);
@@ -740,18 +740,18 @@ public class TestMeshDecimator extends TestCase {
         for(int i=0; i < len; i++) {
             its.addTri(verts[data.indexes[idx++]],verts[data.indexes[idx++]],verts[data.indexes[idx++]]);
         }
-        
+
         WingedEdgeTriangleMesh we = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
         return we;
 
     }
 
-    
+
     /**
        inits all vertices user data to Integer
      */
     static void setVerticesUserData(WingedEdgeTriangleMesh mesh){
-        
+
         int vcount = 0;
         StructMixedData vertices = mesh.getVertices();
         int v = mesh.getStartVertex();
@@ -763,7 +763,7 @@ public class TestMeshDecimator extends TestCase {
     }
 
     /**
-       check, that all the vertices have consistent ring of faces 
+       check, that all the vertices have consistent ring of faces
      */
     static boolean verifyVertices(WingedEdgeTriangleMesh mesh){
 
@@ -778,20 +778,20 @@ public class TestMeshDecimator extends TestCase {
             int start = Vertex.getLink(vertices,v);
             int he = start;
             int tricount = 0;
-            
-            do{                 
-                //printf("[%3s %3s %3s] ", he.getEnd().getUserData(), he.getNext().getEnd().getUserData(),  he.getNext().getNext().getEnd().getUserData()); 
-                
+
+            do{
+                //printf("[%3s %3s %3s] ", he.getEnd().getUserData(), he.getNext().getEnd().getUserData(),  he.getNext().getNext().getEnd().getUserData());
+
                 if(tricount++ > 100){
 
                     printf("verifyVertices() !!! tricount exceeded\n");
-                    
+
                     return false;
                 }
 
                 int twin = HalfEdge.getTwin(hedges,he);
                 he = HalfEdge.getNext(hedges,twin);
-                
+
             } while(he != start);
             //printf("\n");
 

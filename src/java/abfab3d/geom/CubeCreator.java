@@ -167,7 +167,7 @@ public class CubeCreator extends GeometryCreator {
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            wrapper.setData(x_idx, y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, y_idx, coords1[2],Grid.INSIDE,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
@@ -182,7 +182,7 @@ public class CubeCreator extends GeometryCreator {
 //System.out.println("Top Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
 //System.out.println("Bottom Row");
@@ -197,7 +197,7 @@ public class CubeCreator extends GeometryCreator {
 //System.out.println("Bottom Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
                     x_pos = llx;
@@ -210,7 +210,7 @@ public class CubeCreator extends GeometryCreator {
 //System.out.println("Left Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
                     x_pos = lrx;
@@ -222,7 +222,7 @@ public class CubeCreator extends GeometryCreator {
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 }
             }
@@ -275,7 +275,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            wrapper.setData(x_idx, y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, y_idx, coords1[2],Grid.INSIDE,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
@@ -290,7 +290,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 //System.out.println("Top Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
                     y_pos = lly;
@@ -303,7 +303,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 //System.out.println("Bottom Row: " + len);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
-                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(x_idx, coords1[1], coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
                     x_pos = llx;
@@ -316,7 +316,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 //System.out.println("Left Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
                     x_pos = lrx;
@@ -329,7 +329,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 //System.out.println("Right Row: " + len);
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 }
             }
@@ -384,7 +384,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            wrapper.setData(coords1[0], y_idx, z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(coords1[0], y_idx, z_idx,Grid.INSIDE,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
@@ -397,7 +397,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
                     x_pos = llx;
@@ -409,7 +409,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
 //System.out.println("Left Row");
@@ -422,7 +422,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
 //System.out.println("Right Row");
@@ -435,7 +435,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 }
             }
@@ -489,7 +489,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
                         for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                            wrapper.setData(coords1[0], y_idx, z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(coords1[0], y_idx, z_idx,Grid.INSIDE,materialID);
                         }
                     }
                 } else if (side_styles[i] == Style.TOP_ROW) {
@@ -502,7 +502,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.BOTTOM_ROW) {
                     x_pos = llx;
@@ -514,7 +514,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0], coords1[1], z_idx,Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.LEFT_ROW) {
 //System.out.println("Left Row");
@@ -527,7 +527,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 } else  if (side_styles[i] == Style.RIGHT_ROW) {
 //System.out.println("Right Row");
@@ -540,7 +540,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
                     len = coords2[0] - coords1[0];
 
                     for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
-                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.EXTERIOR,materialID);
+                        wrapper.setData(coords1[0],y_idx, coords1[2],Grid.INSIDE,materialID);
                     }
                 }
             }
@@ -593,7 +593,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                            wrapper.setData(x_idx, coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, coords1[1], z_idx,Grid.INSIDE,materialID);
                         }
                     }
                 } else {
@@ -649,7 +649,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
 
                     for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
                         for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                            wrapper.setData(x_idx, coords1[1], z_idx,Grid.EXTERIOR,materialID);
+                            wrapper.setData(x_idx, coords1[1], z_idx,Grid.INSIDE,materialID);
                         }
                     }
                 } else {
@@ -709,7 +709,7 @@ System.out.println("lr: " + lrx + " " + lry + " " + lrz);
         for(int x_idx = coords1[0]; x_idx <= coords2[0]; x_idx++) {
             for(int y_idx = coords1[1]; y_idx <= coords2[1]; y_idx++) {
                 for(int z_idx = coords1[2]; z_idx <= coords2[2]; z_idx++) {
-                    wrapper.setData(x_idx, y_idx, z_idx,Grid.EXTERIOR,materialID);
+                    wrapper.setData(x_idx, y_idx, z_idx,Grid.INSIDE,materialID);
                     cnt++;
                 }
             }

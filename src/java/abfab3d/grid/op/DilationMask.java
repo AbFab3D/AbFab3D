@@ -12,9 +12,6 @@
 
 package abfab3d.grid.op;
 
-import java.util.HashMap; 
-import java.util.Iterator;
-
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Operation;
@@ -24,11 +21,10 @@ import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
 import abfab3d.grid.VoxelStateSetter;
 
-import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.printf;
 
 import static abfab3d.grid.Grid.OUTSIDE;
-import static abfab3d.grid.Grid.INTERIOR;
+import static abfab3d.grid.Grid.INSIDE;
 
 /**
  * Dilate an object one layer per iteration. Repeat given numbers of iterations.
@@ -101,9 +97,9 @@ public class DilationMask implements Operation, AttributeOperation {
             m_marked =  new GridBitIntervals(m_nx, m_ny, m_nz);
             
             //m_grid.find(Grid.VoxelClasses.OUTSIDE, new CustomOutsideVoxelProcesser(m_grid, m_marked, makeBall(m_iterCount), m_voxelChecker));
-            m_grid.find(Grid.VoxelClasses.INTERIOR, new CustomInsideVoxelProcesser(m_grid, m_marked, MaskFactory.makeBall(m_iterCount), m_voxelChecker));
-            //m_grid.find(Grid.VoxelClasses.INTERIOR, new SphericalVoxelProcesser(m_grid, m_marked, m_iterCount, m_voxelChecker));
-            m_marked.find(Grid.VoxelClasses.INTERIOR, new VoxelStateSetter(m_grid, Grid.INTERIOR));
+            m_grid.find(Grid.VoxelClasses.INSIDE, new CustomInsideVoxelProcesser(m_grid, m_marked, MaskFactory.makeBall(m_iterCount), m_voxelChecker));
+            //m_grid.find(Grid.VoxelClasses.INSIDE, new SphericalVoxelProcesser(m_grid, m_marked, m_iterCount, m_voxelChecker));
+            m_marked.find(Grid.VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.INSIDE));
            
         } else {
             
@@ -152,18 +148,18 @@ public class DilationMask implements Operation, AttributeOperation {
             // we have surface voxels calculated on previous step 
             // scan only surface voxels 
             m_marked.clear();
-            m_surface.find(Grid.VoxelClasses.INTERIOR, new BodyVoxelProcesser(m_grid, m_marked, nnCount));
+            m_surface.find(Grid.VoxelClasses.INSIDE, new BodyVoxelProcesser(m_grid, m_marked, nnCount));
 
         } else {
             
             // no surface calculated yet. Scan the whole grid to find marked voxels 
             m_surface = new GridBitIntervals(m_nx, m_ny, m_nz);
             m_marked =  new GridBitIntervals(m_nx, m_ny, m_nz);
-            m_grid.find(Grid.VoxelClasses.INTERIOR, new BodyVoxelProcesser(m_grid, m_marked, m_nnCount));
+            m_grid.find(Grid.VoxelClasses.INSIDE, new BodyVoxelProcesser(m_grid, m_marked, m_nnCount));
             
         }
 
-        m_marked.find(Grid.VoxelClasses.INTERIOR, new VoxelStateSetter(m_grid, Grid.INTERIOR));
+        m_marked.find(Grid.VoxelClasses.INSIDE, new VoxelStateSetter(m_grid, Grid.INSIDE));
         
         // swap pointers surface <-> marked
         GridBitIntervals t = m_surface;
@@ -295,7 +291,7 @@ public class DilationMask implements Operation, AttributeOperation {
                    zz >= 0 && zz < nz 
                    ){
                     //m_gridCallCount++;
-                    if(grid.getState(xx,yy,zz) == INTERIOR){
+                    if(grid.getState(xx,yy,zz) == INSIDE){
                         // the voxel has filled neighbor 
                         //m_maskCallCount++;
                         mask.set(x,y,z,1); 

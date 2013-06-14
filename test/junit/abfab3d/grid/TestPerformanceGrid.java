@@ -93,7 +93,7 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
 //                new ArrayAttributeGridShort(size,size,size,voxel_size, slice_height),
 //                new ArrayAttributeGridInt(size,size,size,voxel_size, slice_height),
                 new BlockBasedAttributeGridByte(size,size,size,voxel_size, slice_height),
-                new OctreeAttributeGridByte(size,size,size,voxel_size, slice_height)
+                //new OctreeAttributeGridByte(size,size,size,voxel_size, slice_height)
         };
 
     }
@@ -139,15 +139,14 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
     public static void testFindCount() {
         // Test Method 1
         int size = 32;
-        AttributeGrid grid = new OctreeAttributeGridByte(size,size,size,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         //setup
-        setX(grid, Grid.EXTERIOR, 0);
-        setY(grid, Grid.EXTERIOR, 0);
-        setZ(grid, Grid.EXTERIOR, 0);
+        setX(grid, Grid.INSIDE, 0);
+        setY(grid, Grid.INSIDE, 0);
+        setZ(grid, Grid.INSIDE, 0);
 
-System.out.println("Finding exterior voxels");
-        grid.findCount(Grid.VoxelClasses.EXTERIOR);
+        grid.findCount(Grid.VoxelClasses.INSIDE);
 
 //        assertTrue("stop",1 == 0);
     }
@@ -413,19 +412,19 @@ System.out.println("Finding exterior voxels");
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         //setup
-        setX(grid, Grid.EXTERIOR, 0);
-        setY(grid, Grid.EXTERIOR, 0);
-        setZ(grid, Grid.EXTERIOR, 0);
+        setX(grid, Grid.INSIDE, 0);
+        setY(grid, Grid.INSIDE, 0);
+        setZ(grid, Grid.INSIDE, 0);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            grid.findCount(Grid.VoxelClasses.EXTERIOR);
+            grid.findCount(Grid.VoxelClasses.INSIDE);
         }
 
         long stime = System.nanoTime();
 
         for(int i=0; i < times; i++) {
-            grid.findCount(Grid.VoxelClasses.EXTERIOR);
+            grid.findCount(Grid.VoxelClasses.INSIDE);
         }
 
         long totalTime1 = System.nanoTime() - stime;
@@ -436,19 +435,19 @@ System.out.println("Finding exterior voxels");
         grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
         //setup
-        setX(grid, Grid.EXTERIOR, 0);
-        setY(grid, Grid.EXTERIOR, 0);
-        setZ(grid, Grid.EXTERIOR, 0);
+        setX(grid, Grid.INSIDE, 0);
+        setY(grid, Grid.INSIDE, 0);
+        setZ(grid, Grid.INSIDE, 0);
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            grid.findCount(Grid.VoxelClasses.EXTERIOR);
+            grid.findCount(Grid.VoxelClasses.INSIDE);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < times; i++) {
-            grid.findCount(Grid.VoxelClasses.EXTERIOR);
+            grid.findCount(Grid.VoxelClasses.INSIDE);
         }
 
         long totalTime2 = System.nanoTime() - stime;
@@ -456,26 +455,27 @@ System.out.println("Finding exterior voxels");
         if (display) System.out.println("SliceGrid(Array) : " + totalTime2 + " " +
             formater.format((float)totalTime2 / totalTime1) + "X");
 
+        /*
         // Test Method 2
         grid = new OctreeAttributeGridByte(size,size,size,0.001, 0.001);
 
 
         //setup
-        setX(grid, Grid.EXTERIOR, 0);
-        setY(grid, Grid.EXTERIOR, 0);
-        setZ(grid, Grid.EXTERIOR, 0);
+        setX(grid, Grid.INSIDE, 0);
+        setY(grid, Grid.INSIDE, 0);
+        setZ(grid, Grid.INSIDE, 0);
 
         //System.out.println("Cell Count: " + ((OctreeAttributeGridByte)grid).getCellCount() + " verses: " + (size*size*size));
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            grid.findCount(Grid.VoxelClasses.EXTERIOR);
+            grid.findCount(Grid.VoxelClasses.INSIDE);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < times; i++) {
-            grid.findCount(Grid.VoxelClasses.EXTERIOR);
+            grid.findCount(Grid.VoxelClasses.INSIDE);
         }
 
         long totalTime3 = System.nanoTime() - stime;
@@ -484,6 +484,7 @@ System.out.println("Finding exterior voxels");
             formater.format((float)totalTime3 / totalTime1) + "X");
 
         if (display) System.out.println();
+        */
     }
 
     /**
@@ -727,13 +728,13 @@ System.out.println("Finding exterior voxels");
         for(int n=0; n < grids.length; n++) {
             // warmup
             for(int i=0; i < WARMUP; i++) {
-                setX(grids[n], Grid.EXTERIOR, 8);
+                setX(grids[n], Grid.INSIDE, 8);
             }
 
             long stime = System.nanoTime();
 
             for(int i=0; i < times; i++) {
-                setX(grids[n], Grid.EXTERIOR, 8);
+                setX(grids[n], Grid.INSIDE, 8);
             }
 
             totalTime[n] = System.nanoTime() - stime;
@@ -761,13 +762,13 @@ System.out.println("Finding exterior voxels");
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            setY(grid, Grid.EXTERIOR, 8);
+            setY(grid, Grid.INSIDE, 8);
         }
 
         long stime = System.nanoTime();
 
         for(int i=0; i < TIMES; i++) {
-            setY(grid, Grid.EXTERIOR, 8);
+            setY(grid, Grid.INSIDE, 8);
         }
 
         long totalTime1 = System.nanoTime() - stime;
@@ -779,13 +780,13 @@ System.out.println("Finding exterior voxels");
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            setY(grid, Grid.EXTERIOR, 8);
+            setY(grid, Grid.INSIDE, 8);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < TIMES; i++) {
-            setY(grid, Grid.EXTERIOR, 8);
+            setY(grid, Grid.INSIDE, 8);
         }
 
         long totalTime2 = System.nanoTime() - stime;
@@ -797,13 +798,13 @@ System.out.println("Finding exterior voxels");
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            setY(grid, Grid.EXTERIOR, 8);
+            setY(grid, Grid.INSIDE, 8);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < TIMES; i++) {
-            setY(grid, Grid.EXTERIOR, 8);
+            setY(grid, Grid.INSIDE, 8);
         }
 
         long totalTime3 = System.nanoTime() - stime;
@@ -825,13 +826,13 @@ System.out.println("Finding exterior voxels");
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            setZ(grid, Grid.EXTERIOR, 8);
+            setZ(grid, Grid.INSIDE, 8);
         }
 
         long stime = System.nanoTime();
 
         for(int i=0; i < TIMES; i++) {
-            setZ(grid, Grid.EXTERIOR, 8);
+            setZ(grid, Grid.INSIDE, 8);
         }
 
         long totalTime1 = System.nanoTime() - stime;
@@ -843,13 +844,13 @@ System.out.println("Finding exterior voxels");
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            setZ(grid, Grid.EXTERIOR, 8);
+            setZ(grid, Grid.INSIDE, 8);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < TIMES; i++) {
-            setZ(grid, Grid.EXTERIOR, 8);
+            setZ(grid, Grid.INSIDE, 8);
         }
 
         long totalTime2 = System.nanoTime() - stime;
@@ -862,13 +863,13 @@ System.out.println("Finding exterior voxels");
 
         // warmup
         for(int i=0; i < WARMUP; i++) {
-            setZ(grid, Grid.EXTERIOR, 8);
+            setZ(grid, Grid.INSIDE, 8);
         }
 
         stime = System.nanoTime();
 
         for(int i=0; i < TIMES; i++) {
-            setZ(grid, Grid.EXTERIOR, 8);
+            setZ(grid, Grid.INSIDE, 8);
         }
 
         long totalTime3 = System.nanoTime() - stime;
@@ -907,7 +908,7 @@ System.out.println("Finding exterior voxels");
             }
 
             cnt++;
-            grid.setState(x,y,z,Grid.EXTERIOR);
+            grid.setState(x,y,z,Grid.INSIDE);
         }
     }
 
@@ -947,10 +948,10 @@ System.out.println("Finding exterior voxels");
 
         TriangleModelCreator tmc = null;
         tmc = new TriangleModelCreator(geom, x, y, z,
-                rx,ry,rz,rangle,outerMaterial,innerMaterial,solid);
+                rx,ry,rz,rangle,innerMaterial,solid);
 
         tmc.generate(grid);
-        //System.out.println("interior cnt: " + grid.findCount(Grid.VoxelClasses.INTERIOR) + " solid: " + solid);
+        //System.out.println("interior cnt: " + grid.findCount(Grid.VoxelClasses.INSIDE) + " solid: " + solid);
     }
 
     /**

@@ -629,18 +629,8 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
                     case ALL:
                         t.found(coord[0],coord[1],coord[2],state);
                         break;
-                    case MARKED:
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],state);
-                        }
-                        break;
-                    case EXTERIOR:
-                        if (state == Grid.EXTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],state);
-                        }
-                        break;
-                    case INTERIOR:
-                        if (state == Grid.INTERIOR) {
+                    case INSIDE:
+                        if (state == Grid.INSIDE) {
                             t.found(coord[0],coord[1],coord[2],state);
                         }
                         break;
@@ -696,20 +686,9 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
                     case ALL:
                         t.found(coord[0],coord[1],coord[2],vd);
                         break;
-                    case MARKED:
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],vd);
-                        }
-                        break;
-                    case EXTERIOR:
+                    case INSIDE:
                         state = vd.getState();
-                        if (state == Grid.EXTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],vd);
-                        }
-                        break;
-                    case INTERIOR:
-                        state = vd.getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             t.found(coord[0],coord[1],coord[2],vd);
                         }
                         break;
@@ -767,21 +746,9 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
                 getVoxelCoord(i,j, coord);
 
                 switch(vc) {
-                    case MARKED:
+                    case INSIDE:
                         state = vd.getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],vd);
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = vd.getState();
-                        if (state == Grid.EXTERIOR) {
-                            t.found(coord[0],coord[1],coord[2],vd);
-                        }
-                        break;
-                    case INTERIOR:
-                        state = vd.getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             t.found(coord[0],coord[1],coord[2],vd);
                         }
                         break;
@@ -839,20 +806,8 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
                         if(!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                             break loop;
                         break;
-                    case MARKED:
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
-                                break loop;
-                        }
-                        break;
-                    case EXTERIOR:
-                        if (state == Grid.EXTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
-                                break loop;
-                        }
-                        break;
-                    case INTERIOR:
-                        if (state == Grid.INTERIOR) {
+                    case INSIDE:
+                        if (state == Grid.INSIDE) {
                             if (!t.foundInterruptible(coord[0],coord[1],coord[2],state))
                                 break loop;
                         }
@@ -911,23 +866,9 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
                 getVoxelCoord(i,j, coord);
 
                 switch(vc) {
-                    case MARKED:
+                    case INSIDE:
                         state = vd.getState();
-                        if (state == Grid.EXTERIOR || state == Grid.INTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],vd))
-                                break loop;
-                        }
-                        break;
-                    case EXTERIOR:
-                        state = vd.getState();
-                        if (state == Grid.EXTERIOR) {
-                            if (!t.foundInterruptible(coord[0],coord[1],coord[2],vd))
-                                break loop;
-                        }
-                        break;
-                    case INTERIOR:
-                        state = vd.getState();
-                        if (state == Grid.INTERIOR) {
+                        if (state == Grid.INSIDE) {
                             if (!t.foundInterruptible(coord[0],coord[1],coord[2],vd))
                                 break loop;
                         }

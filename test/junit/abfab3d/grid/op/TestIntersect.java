@@ -42,8 +42,8 @@ public class TestIntersect extends BaseTestAttributeGrid {
     public void testBasicAttribute() {
         int size1 = 10;
         int size2 = 10;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
         long mat1 = 1;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size1, size1, size1, 0.001, 0.001);
@@ -65,9 +65,9 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
         assertEquals(size2, dest.getWidth());
 
-        int expected_marked = grid1.findCount(Grid.VoxelClasses.MARKED);
+        int expected_marked = grid1.findCount(Grid.VoxelClasses.INSIDE);
 
-        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.MARKED));
+        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.INSIDE));
 
         // check filled voxel state and material
         for (int x=0; x<size2; x++) {
@@ -76,7 +76,7 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
                     if (x >=3 && x < 7 && y == 5 && z == 5) {
                         assertTrue("(" + x + ", " + y + ", " + z + ") state is not " + state2,
-                                dest.getState(x, y, z) == Grid.EXTERIOR || dest.getState(x,y,z) == Grid.INTERIOR);
+                                dest.getState(x, y, z) == Grid.INSIDE || dest.getState(x,y,z) == Grid.INSIDE);
                     } else {
                         assertEquals("(" + x + ", " + y + ", " + z + ") state is not outside",
                                 Grid.OUTSIDE, dest.getState(x, y, z));
@@ -93,8 +93,8 @@ public class TestIntersect extends BaseTestAttributeGrid {
     public void testBasicMT() {
         int size1 = 200;
         int size2 = 200;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
         long mat1 = 1;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size1, size1, size1, 0.001, 0.001);
@@ -116,9 +116,9 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
         assertEquals(size2, dest.getWidth());
 
-        int expected_marked = grid1.findCount(Grid.VoxelClasses.MARKED);
+        int expected_marked = grid1.findCount(Grid.VoxelClasses.INSIDE);
 
-        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.MARKED));
+        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.INSIDE));
 
         // check filled voxel state and material
         for (int x=0; x<size2; x++) {
@@ -127,7 +127,7 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
                     if (x >=3 && x < 7 && y == 5 && z == 5) {
                         assertTrue("(" + x + ", " + y + ", " + z + ") state is not " + state2,
-                                dest.getState(x, y, z) == Grid.EXTERIOR || dest.getState(x,y,z) == Grid.INTERIOR);
+                                dest.getState(x, y, z) == Grid.INSIDE || dest.getState(x,y,z) == Grid.INSIDE);
                     } else {
                         assertEquals("(" + x + ", " + y + ", " + z + ") state is not outside",
                                 Grid.OUTSIDE, dest.getState(x, y, z));
@@ -144,8 +144,8 @@ public class TestIntersect extends BaseTestAttributeGrid {
     public void testScalingMT() {
         int size1 = 200;
         int size2 = 200;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
         long mat1 = 1;
 
         AttributeGrid grid1 = new ArrayAttributeGridByte(size1, size1, size1, 0.001, 0.001);
@@ -167,9 +167,9 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
         assertEquals(size2, dest.getWidth());
 
-        int expected_marked = grid1.findCount(Grid.VoxelClasses.MARKED);
+        int expected_marked = grid1.findCount(Grid.VoxelClasses.INSIDE);
 
-        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.MARKED));
+        assertEquals(expected_marked, dest.findCount(Grid.VoxelClasses.INSIDE));
 
         // check filled voxel state and material
         for (int x=0; x<size2; x++) {
@@ -178,7 +178,7 @@ public class TestIntersect extends BaseTestAttributeGrid {
 
                     if (x >=3 && x < 7 && y == 5 && z == 5) {
                         assertTrue("(" + x + ", " + y + ", " + z + ") state is not " + state2,
-                                dest.getState(x, y, z) == Grid.EXTERIOR || dest.getState(x,y,z) == Grid.INTERIOR);
+                                dest.getState(x, y, z) == Grid.INSIDE || dest.getState(x,y,z) == Grid.INSIDE);
                     } else {
                         assertEquals("(" + x + ", " + y + ", " + z + ") state is not outside",
                                 Grid.OUTSIDE, dest.getState(x, y, z));
@@ -195,8 +195,8 @@ public class TestIntersect extends BaseTestAttributeGrid {
     public void testMTEquals() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
         Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);

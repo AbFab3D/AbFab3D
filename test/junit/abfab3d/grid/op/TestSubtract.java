@@ -41,8 +41,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
     public void testBasicAttribute() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
         long mat1 = 1;
         long mat2 = 2;
 
@@ -97,8 +97,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
     public void testSharedVoxelAttribute() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
         long mat1 = 1;
         long mat2 = 2;
 
@@ -152,8 +152,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
     public void testBasic() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
         Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
@@ -198,8 +198,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
     public void testSharedVoxel() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
         Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
@@ -243,8 +243,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
     public void testBasicMT() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
         Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
@@ -289,8 +289,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
     public void testSharedVoxelMT() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
         Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);
@@ -334,8 +334,8 @@ public class TestSubtract extends BaseTestAttributeGrid {
     public void testMTEquals() {
         int size1 = 10;
         int size2 = 15;
-        byte state1 = Grid.INTERIOR;
-        byte state2 = Grid.EXTERIOR;
+        byte state1 = Grid.INSIDE;
+        byte state2 = Grid.INSIDE;
 
         Grid grid1 = new ArrayGridByte(size1, size1, size1, 0.001, 0.001);
         Grid grid2 = new ArrayGridByte(size2, size2, size2, 0.002, 0.002);

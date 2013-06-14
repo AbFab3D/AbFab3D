@@ -103,7 +103,7 @@ System.out.println("Grid size: " + grid.getWidth() + " " + grid.getHeight() + " 
         double[] min = new double[3];
         double[] max = new double[3];
         grid.getGridBounds(min,max);
-System.out.println("Grid bounds: " + java.util.Arrays.toString(min) + " " + java.util.Arrays.toString(max));        
+System.out.println("Grid bounds: " + java.util.Arrays.toString(min) + " " + java.util.Arrays.toString(max));
         TriangleModelCreator tmc = null;
 
         double rx = 0,ry = 1,rz = 0,rangle = 0;
@@ -122,13 +122,11 @@ System.out.println("Grid bounds: " + java.util.Arrays.toString(min) + " " + java
             BoxesX3DExporter exporter = new BoxesX3DExporter(encoding, fos, console);
 
             HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-            colors.put(new Integer(Grid.INTERIOR), new float[] {0,1,0});
-            colors.put(new Integer(Grid.EXTERIOR), new float[] {1,0,0});
+            colors.put(new Integer(Grid.INSIDE), new float[] {0,1,0});
             //colors.put(new Integer(Grid.OUTSIDE), new float[] {0,0,1});
 
             HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-            transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-            transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+            transparency.put(new Integer(Grid.INSIDE), new Float(0));
             //transparency.put(new Integer(Grid.OUTSIDE), new Float(0.95));
 
 //            exporter.write(grid, null);
@@ -234,7 +232,7 @@ System.out.println("Grid bounds: " + java.util.Arrays.toString(min) + " " + java
      */
     private void loadFile(Grid grid, String file) {
         long start = System.currentTimeMillis();
-        
+
         IndexedTriangleSetLoader loader = new IndexedTriangleSetLoader(false);
         loader.processFile(new File(file));
 
@@ -268,7 +266,7 @@ System.out.println("Grid bounds: " + java.util.Arrays.toString(min) + " " + java
                 new InteriorFinderTriangleBased(geom,bounds, x,y,z,rx,ry,rz,rangle,1, 1));
 
         tmc.generate(grid);
-        
+
         System.out.println("load time: " + (System.currentTimeMillis() - start));
 
     }

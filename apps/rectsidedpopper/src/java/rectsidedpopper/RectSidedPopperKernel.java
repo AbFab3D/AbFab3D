@@ -21,14 +21,12 @@ import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.*;
 import abfab3d.grid.op.DataSourceImageBitmap;
-import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.VecTransforms;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import app.common.GridSaver;
@@ -131,7 +129,7 @@ public class RectSidedPopperKernel extends HostedKernel {
 
     /** Shape to create */
     private Shape shape;
-    
+
     private String material;
     private boolean useGrayscale;
     private boolean visRemovedRegions;
@@ -161,7 +159,7 @@ public class RectSidedPopperKernel extends HostedKernel {
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
         );
-        
+
         params.put("radius", new Parameter("radius", "Radius", "The radius of the inscribed circle", "0.01", 1,
                 Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 1, null, null)
@@ -251,7 +249,7 @@ public class RectSidedPopperKernel extends HostedKernel {
                 Parameter.DataType.INTEGER, Parameter.EditorType.DEFAULT,
                 step, seq++, false, 0, 50, null, null)
         );
-        
+
         params.put("previewQuality", new Parameter("previewQuality", "PreviewQuality", "How rough is the preview", PreviewQuality.MEDIUM.toString(), 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
                 step, seq++, false, -1, 1, null, enumToStringArray(PreviewQuality.values()))
@@ -305,23 +303,23 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         double voxelSize = resolution;
         double margin = 5 * voxelSize;
-        // HARD CODED params to play with 
-        // width of Gaussian smoothing of grid, may be 0. - no smoothing 
+        // HARD CODED params to play with
+        // width of Gaussian smoothing of grid, may be 0. - no smoothing
         double smoothingWidth = 0;
-        // size of grid block for MT calculatins 
+        // size of grid block for MT calculatins
         // (larger values reduce processor cache performance)
         int blockSize = 50;
-        // max number to use for surface transitions. Should be ODD number 
-        // set it to 1 to have binary grid 
+        // max number to use for surface transitions. Should be ODD number
+        // set it to 1 to have binary grid
         int maxGridAttributeValue = 63;
         // width of surface transition area relative to voxel size
         // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
         // sreyt it to 0. to make no surface transitions
-        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
+        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866
         double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
-        
-        double baseWidth = radius; 
-        double shapeCenter[] = new double[]{0,0,sideHeight/2}; // center of the shape 
+
+        double baseWidth = radius;
+        double shapeCenter[] = new double[]{0,0,sideHeight/2}; // center of the shape
 
         double gridWidth = baseWidth + 2 * margin;
         double gridHeight = baseWidth + 2 * margin;
@@ -342,21 +340,21 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         popImage(grid, baseWidth, baseWidth, bottomThickness, bottomImage, bounds, new double[]{1,0,0,180*TORAD},null,new double[] {0,0,bottomThickness});
         popImage(grid, baseWidth, baseWidth, topThickness, topImage, bounds, null,null, new double[] {0,0,topLocation * sideHeight-topThickness});
-        
-        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage1, bounds, new double[]{1,0,0,90*TORAD}, null, new double[] {0,-baseWidth/2+sideThickness,sideHeight/2});        
-        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage2, bounds, 
-                 new double[]{0,0,1,180*TORAD}, new double[]{1,0,0,-90*TORAD}, new double[] {0,baseWidth/2-sideThickness,sideHeight/2});    
-        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage3, bounds, 
-                 new double[]{0,0,1,90*TORAD}, new double[]{0,1,0,90*TORAD}, new double[] {baseWidth/2-sideThickness,0,sideHeight/2});    
-        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage4, bounds, 
-                 new double[]{0,0,1,-90*TORAD}, new double[]{0,1,0,-90*TORAD}, new double[] {-baseWidth/2+sideThickness,0,sideHeight/2});    
+
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage1, bounds, new double[]{1,0,0,90*TORAD}, null, new double[] {0,-baseWidth/2+sideThickness,sideHeight/2});
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage2, bounds,
+                 new double[]{0,0,1,180*TORAD}, new double[]{1,0,0,-90*TORAD}, new double[] {0,baseWidth/2-sideThickness,sideHeight/2});
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage3, bounds,
+                 new double[]{0,0,1,90*TORAD}, new double[]{0,1,0,90*TORAD}, new double[] {baseWidth/2-sideThickness,0,sideHeight/2});
+        popImage(grid, baseWidth, sideHeight, sideThickness, sideImage4, bounds,
+                 new double[]{0,0,1,-90*TORAD}, new double[]{0,1,0,-90*TORAD}, new double[] {-baseWidth/2+sideThickness,0,sideHeight/2});
 
         //popImage(grid, sideHeight, baseWidth, sideThickness, sideImage3, bounds, new double[]{0,1,0,90*TORAD}, null, new double[] {-baseWidth/2,0,sideHeight/2});
         //popImage(grid, sideHeight, baseWidth, sideThickness, sideImage4, bounds, new double[]{0,1,0,-90*TORAD}, null, new double[] {baseWidth/2,0,sideHeight/2});
 
 
         if (regions != RegionPrunner.Regions.ALL) {
-//            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INTERIOR, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
+//            System.out.println("Regions Counter: " + RegionCounter.countComponents(grid, Grid.INSIDE, Integer.MAX_VALUE, true, ConnectedComponentState.DEFAULT_ALGORITHM));
             if (visRemovedRegions) {
                 RegionPrunner.reduceToOneRegion(grid, handler, bounds);
             } else {
@@ -366,7 +364,7 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         int min_volume = 10;
         int regions_removed = 0;
-        
+
         System.out.println("Writing grid");
 
         HashMap<String, Object> exp_params = new HashMap<String, Object>();
@@ -385,7 +383,7 @@ public class RectSidedPopperKernel extends HostedKernel {
         double gbounds[] = new double[6];
         grid.getGridBounds(gbounds);
 
-        // place of default viewpoint 
+        // place of default viewpoint
         double viewDistance = GridSaver.getViewDistance(grid);
 
         if(USE_MESH_MAKER_MT){
@@ -453,13 +451,13 @@ public class RectSidedPopperKernel extends HostedKernel {
 
     }
 
-    private void popImage(Grid grid, double bodyWidth, double bodyHeight, double bodyDepth, 
-                          String filename, double[] bounds, 
+    private void popImage(Grid grid, double bodyWidth, double bodyHeight, double bodyDepth,
+                          String filename, double[] bounds,
                           double rot[], double rot2[], double translation[]) {
 
         DataSourceImageBitmap layer = new DataSourceImageBitmap();
         layer.setSize(bodyWidth, bodyHeight, bodyDepth);
-        layer.setLocation(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane 
+        layer.setLocation(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane
         layer.setBaseThickness(0.0);
         layer.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer.setTiles(1, 1);
@@ -476,27 +474,27 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         VecTransforms.CompositeTransform transform = new VecTransforms.CompositeTransform();
 
-        // do rotation if needed 
+        // do rotation if needed
         if(rot != null){
-            VecTransforms.Rotation r = new VecTransforms.Rotation();                
+            VecTransforms.Rotation r = new VecTransforms.Rotation();
             r.setRotation(new Vector3d(rot[0],rot[1],rot[2]), rot[3]);
             transform.add(r);
         }
-        // secont rotation if needed 
+        // secont rotation if needed
         if(rot2 != null){
-            VecTransforms.Rotation r = new VecTransforms.Rotation();                
+            VecTransforms.Rotation r = new VecTransforms.Rotation();
             r.setRotation(new Vector3d(rot2[0],rot2[1],rot2[2]), rot2[3]);
             transform.add(r);
         }
 
-        // do translation 
+        // do translation
         if(translation != null){
-            VecTransforms.Translation tr = new VecTransforms.Translation();                
+            VecTransforms.Translation tr = new VecTransforms.Translation();
             tr.setTranslation(translation[0],translation[1],translation[2]);
             transform.add(tr);
         }
 
-        gm.setTransform(transform);        
+        gm.setTransform(transform);
         gm.setBounds(bounds);
         gm.setDataSource(layer);
 
@@ -639,7 +637,7 @@ public class RectSidedPopperKernel extends HostedKernel {
 
                 System.out.println("Number of cores:" + threads);
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new IllegalArgumentException("Error parsing: " + pname + " val: " + params.get(pname));
@@ -666,13 +664,11 @@ public class RectSidedPopperKernel extends HostedKernel {
         BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console, true);
 
         HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INTERIOR), new float[]{1, 0, 0});
-        colors.put(new Integer(Grid.EXTERIOR), new float[]{0, 1, 0});
+        colors.put(new Integer(Grid.INSIDE), new float[]{1, 0, 0});
         colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
 
         HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INTERIOR), new Float(0));
-        transparency.put(new Integer(Grid.EXTERIOR), new Float(0.5));
+        transparency.put(new Integer(Grid.INSIDE), new Float(0));
         transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
 
         exporter.writeDebug(grid, colors, transparency);
