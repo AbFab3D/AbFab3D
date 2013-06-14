@@ -95,7 +95,7 @@ public class MathUtil {
 
     /**
        round the bounds to the voxel boundary. 
-       uper boundary grosw up, lover boundary grows down 
+       upper boundary grows up, lover boundary grows down 
      */
     public static void roundBounds(double bounds[], double voxelSize){
         for(int i =0; i < 3; i++){

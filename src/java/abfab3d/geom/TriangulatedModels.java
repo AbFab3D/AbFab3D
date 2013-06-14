@@ -21,7 +21,9 @@ import javax.vecmath.Vector3d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
+
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.TriangleProducer;
 import abfab3d.util.ImageGray16;
 
 import static abfab3d.util.MathUtil.distance;
@@ -49,7 +51,7 @@ public class TriangulatedModels {
 
     // class to generate stars with parameters
     // parameters are illustrated in file docs/images/mesh_star.svg
-    public static class Star {
+    public static class Star  implements TriangleProducer {
         double armCount;
         double armBaseWidth;
         double armEndWidth;
@@ -72,7 +74,7 @@ public class TriangulatedModels {
             
             
         }
-        public void getTriangles(TriangleCollector tc){
+        public boolean getTriangles(TriangleCollector tc){
             double a = PI/armCount;
 
             double Cy = armBaseWidth/2;
@@ -126,7 +128,7 @@ public class TriangulatedModels {
 
             }
             
-            
+            return true;
             
         }
     } // class Star  
@@ -171,7 +173,7 @@ public class TriangulatedModels {
        creates height field of triangles from 2D grid 
        
     */
-    public static class HeightField {
+    public static class HeightField  implements TriangleProducer {
 
         ImageGray16  image;
         int nx,  ny;
@@ -190,7 +192,7 @@ public class TriangulatedModels {
 
         }
         
-        public void getTriangles(TriangleCollector tc){
+        public boolean getTriangles(TriangleCollector tc){
             
             double dx = sx / nx;
             double dy = sy / ny;
@@ -224,6 +226,7 @@ public class TriangulatedModels {
                     tc.addTri(v01, v00, vc);
                 }            
             }
+            return true;
         }
 
         double getHeight(int ix, int iy){
@@ -290,7 +293,7 @@ public class TriangulatedModels {
        TetrahedronInParallelepiped 
         makes tetrahedron inscibed in parallelepiped with given corners 
     */
-    public static class TetrahedronInParallelepiped {
+    public static class TetrahedronInParallelepiped implements TriangleProducer {
 
         double x0, y0, z0;
         double x1, y1, z1;
@@ -309,7 +312,7 @@ public class TriangulatedModels {
             this.type = type;
         }
         
-        public void getTriangles(TriangleCollector tc){
+        public boolean getTriangles(TriangleCollector tc){
             Vector3d 
                 v000 = new Vector3d(x0,y0,z0),
                 v100 = new Vector3d(x1,y0,z0),
@@ -331,7 +334,7 @@ public class TriangulatedModels {
                 tc.addTri(v111, v001, v100);
                 tc.addTri(v001, v010, v100);
             }  
-
+            return true;
         }      
   
     } // class TetrahedronInParallelepiped
@@ -339,7 +342,7 @@ public class TriangulatedModels {
     /**
        makes triangulated sphere of given radius and center and subdivion level 
      */
-    public static class Sphere {
+    public static class Sphere  implements TriangleProducer {
 
         Vector3d center = new Vector3d();
         double radius; 
@@ -375,7 +378,7 @@ public class TriangulatedModels {
             
         }
         
-        public void getTriangles(TriangleCollector tc){
+        public boolean getTriangles(TriangleCollector tc){
             
             splitTriangle(tc, v100, v010, v001, subdivision);
             splitTriangle(tc, v100, v001, v0_10, subdivision);
@@ -386,7 +389,8 @@ public class TriangulatedModels {
             splitTriangle(tc, v_100, v0_10,v001,  subdivision);
             splitTriangle(tc, v_100, v00_1,v0_10,  subdivision);
             splitTriangle(tc, v_100, v010,v00_1,  subdivision);
-            
+
+            return true;
         }      
         
         void splitTriangle(TriangleCollector tc, Vector3d v0, Vector3d v1, Vector3d v2, int subdiv){
@@ -526,10 +530,8 @@ public class TriangulatedModels {
             return new Vector3d(v.x * radius + center.x, v.y * radius + center.y, v.z * radius + center.z);
 
         }
-
         
     } // class Sphere 
-
     
 } // class TriangulatedModels
 
