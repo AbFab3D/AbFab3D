@@ -13,13 +13,15 @@
 
 package abfab3d.grid;
 
+import java.util.Arrays;
+
 import static abfab3d.util.Output.printf;
 
 
 /**
    represent variable length array of int 
 
-   
+   @author Vladimir Bulatov
 */
 public class ArrayInt implements RowOfInt {
 
@@ -83,8 +85,40 @@ public class ArrayInt implements RowOfInt {
         data[size++] = value;
     }
 
+
+    public void add(ArrayInt array){
+        int s = array.size();
+        for(int i = 0; i < s; i++){
+            add(array.get(i));
+        }
+    }
+
     public int size(){
         return size;
+    }
+
+    /**
+       sorts array and removes duplicates 
+     */
+    public void sortAndRemoveDuplicates(){
+        
+        Arrays.sort(data, 0, size);
+
+        int srcIndex = 0;
+        int destIndex = 0;
+
+        while( srcIndex < size){            
+            int lastData = data[srcIndex];
+            data[destIndex] = lastData;
+            srcIndex++;
+            destIndex++;
+            while(srcIndex < size && data[srcIndex] == lastData){
+                srcIndex++;
+            }
+        }
+        
+        size = destIndex+1;
+
     }
 
     

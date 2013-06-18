@@ -45,16 +45,54 @@ public class DevTestMeshDistance extends TestCase {
         TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(11*MM, new Vector3d(0,0,0), 6, 0.1*MM);
 
         MeshDistance md = new MeshDistance();
-        md.setMaxTriangleSize(0.1*MM);
+        md.setMaxTriangleSize(0.25*MM);
+        md.setTriangleSplit(true);
+        md.setHashDistanceValues(true);
+
         md.measure(source, target);
         
         
 
     }
 
+    public static void testTwoSpheresWithBuckets() throws Exception {
+        
+        
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 6, 0.1*MM);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(11*MM, new Vector3d(0,0,0), 6, 0.1*MM);
+
+        MeshDistance md = new MeshDistance();
+        md.setMaxTriangleSize(0.25*MM);
+        md.setTriangleSplit(true);
+        md.setHashDistanceValues(true);
+        md.setUseTriBuckets(true);
+        md.setTriBucketSize(1*MM);
+
+        md.measure(source, target);              
+    }
+    
+    // two high resolution spheres 
+    public static void testTwoSpheresWithBucketsHR() throws Exception {
+        
+        
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10, 0.01*MM);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(10.3*MM, new Vector3d(0,0,0), 10, 0.0001*MM);
+
+        MeshDistance md = new MeshDistance();
+        md.setMaxTriangleSize(0.2*MM);
+        md.setTriangleSplit(true);
+        md.setHashDistanceValues(true);
+        md.setUseTriBuckets(true);
+        md.setTriBucketSize(0.3*MM);
+
+        md.measure(source, target);              
+    }
+
+
+
     public static void testTwoBlocks() throws Exception {
         
-        double s = 12*MM;
+        double s = 11*MM;
         double s1 = 10*MM;
         
         TriangulatedModels.Parallelepiped source = new TriangulatedModels.Parallelepiped(-s, -s, -s, s, s, s);
@@ -92,10 +130,11 @@ public class DevTestMeshDistance extends TestCase {
 
     public static void main(String arg[]) throws Exception {
         //testTwoSpheres();
+        for(int i = 0; i < 1; i++)
+            testTwoSpheresWithBucketsHR();
         //testTwoBlocks();
-        testBlockAndSphere();
+        //testBlockAndSphere();
     }
-
        
 }
 

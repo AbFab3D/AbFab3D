@@ -12,11 +12,15 @@
 package abfab3d.mesh;
 
 import java.util.Vector;
+
 import javax.vecmath.Vector3d;
 
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.PointToTriangleDistance;
+import abfab3d.grid.ArrayInt;
+
+import abfab3d.util.MathUtil;
 
 import static java.lang.Math.sqrt;
 
@@ -44,14 +48,14 @@ public class MeshDistance {
     boolean m_doTriangleSplit = false;
     int maxSplitLevel = 20; // very deep split. THis is mostly to avoid stack overfow on recursion 
     boolean m_hashDistanceValues = false;
+    boolean m_useTriBuckets = false;
+    double m_triBucketSize = 2*MM;
 
     public MeshDistance(){
     }
     
     ProcessedMesh m_targetMesh;
-    
     SourceMeshProcessor m_source;
-
 
     /**
        hasjh precalculated distance values? 
@@ -60,6 +64,18 @@ public class MeshDistance {
         
         m_hashDistanceValues = value;
 
+    }
+
+    
+    /**
+       
+     */
+    public void setUseTriBuckets(boolean value){
+        m_useTriBuckets = value;
+    }
+
+    public void setTriBucketSize(double value){
+        m_triBucketSize = value;
     }
 
 
@@ -84,26 +100,29 @@ public class MeshDistance {
         targetMesh.getTriangles(targetBuilder);
         
         if(DEBUG)
-            printf("target mesh: %d triangles\n", targetBuilder.getTriCount());
+            printf("  target mesh triangles: %d\n", targetBuilder.getTriCount());
 
-        IndexedTriangleSetBuilder its = targetBuilder.its;
+        IndexedTriangleSetBuilder its = targetBuilder.getIndexedFaceSet();
         m_targetMesh = new ProcessedMesh(its.getVertices(new double[3*its.getVertexCount()]),
                                          its.getFaces(new int[3*its.getFaceCount()])
                                          );
-        
+        if(m_useTriBuckets)
+            m_targetMesh.buildTriBuckets(m_triBucketSize);
         
         m_source = new SourceMeshProcessor();
         sourceMesh.getTriangles(m_source);
         
         if(DEBUG){
-            printf("distance measured: %d ms\n", (time() - t0));
-            printf("  source triangles: %d\n", m_source.getTriCount());
-            printf("  distance measurements: %d\n", m_source.getDistCount());
-            printf("  HDF distance: %8.6f\n", m_source.getHausdorffDistance());
-            printf("  L_1 distance: %8.6f\n", m_source.getL1Distance());
-            printf("  L_2 distance: %8.6f\n", m_source.getL2Distance());
-            printf("  min distance: %8.6f\n", m_source.getMinDistance());
-            
+            printf("  source mesh triangles: %d\n", m_source.getTriCount());
+            printf("  distance measurements count: %d\n", m_source.getDistCount());
+            printf("  HDF distance: %5.3f mm\n", m_source.getHausdorffDistance()/MM);
+            printf("  L_1 distance: %5.3f mm\n", m_source.getL1Distance()/MM);
+            printf("  L_2 distance: %5.3f mm\n", m_source.getL2Distance()/MM);
+            printf("  min distance: %5.3f mm\n", m_source.getMinDistance()/MM);
+            printf("  measure time: %d ms\n", (time() - t0));
+            if(m_targetMesh.triBuckets != null)
+                m_targetMesh.triBuckets.printStat();
+
         }
         
         
@@ -116,11 +135,12 @@ public class MeshDistance {
     }
     
     /**
-       bilds preprocessed target mesh 
+       builds preprocessed target mesh 
      */
     static class TargetMeshBuilder implements TriangleCollector {
 
-        IndexedTriangleSetBuilder its;
+        private IndexedTriangleSetBuilder its;
+
         TargetMeshBuilder(){
             its = new IndexedTriangleSetBuilder();
         }
@@ -129,6 +149,11 @@ public class MeshDistance {
             its.addTri(v0, v1, v2);
             return true;
         }
+
+        IndexedTriangleSetBuilder getIndexedFaceSet() {
+            return its;
+        }
+
         int getTriCount() {
             return its.getFaceCount();
         }
@@ -309,6 +334,8 @@ public class MeshDistance {
         
         double m_vertices[];
         int m_faces[];
+
+        TriBuckets triBuckets;
         
         PointSet pointTable;
         Vector<Double> distArray;
@@ -343,6 +370,22 @@ public class MeshDistance {
                     return distArray.get(index).doubleValue();
                 }
             }
+
+            double minDist = 0;
+
+            if(m_useTriBuckets)
+                minDist = getDistanceSquaredBuckets(v);            
+            else 
+                minDist = getDistanceSquaredSimple(v);            
+            
+            if(m_hashDistanceValues){
+                distArray.add(new Double(minDist));
+            }
+            return minDist;
+        }
+
+        double getDistanceSquaredSimple(Vector3d v){ 
+
             double minDist = Double.MAX_VALUE;
             
             for(int i = 0; i < m_faces.length; i += 3){
@@ -365,13 +408,53 @@ public class MeshDistance {
                 if(d < minDist)
                     minDist = d;
             }
-
-            if(m_hashDistanceValues){
-                distArray.add(new Double(minDist));
-            }
+            
             return minDist;
         }
+        
+        ArrayInt triangles = new ArrayInt(10);
 
-    }
-    
+        double getDistanceSquaredBuckets(Vector3d v){ 
+            
+            triBuckets.getTriangles(v.x, v.y, v.z, triangles);
+            
+            double minDist = Double.MAX_VALUE;
+
+            int s = triangles.size();
+
+            for(int i = 0; i < s; i++){
+
+                int f = 3*triangles.get(i);
+                
+                int i0 = 3*m_faces[f];
+                int i1 = 3*m_faces[f+1];
+                int i2 = 3*m_faces[f+2];
+                
+                v0.x = m_vertices[i0];
+                v0.y = m_vertices[i0+1];
+                v0.z = m_vertices[i0+2];
+                v1.x = m_vertices[i1];
+                v1.y = m_vertices[i1+1];
+                v1.z = m_vertices[i1+2];
+                v2.x = m_vertices[i2];
+                v2.y = m_vertices[i2+1];               
+                v2.z = m_vertices[i2+2];
+                
+                double d = PointToTriangleDistance.getSquared(v, v0, v1, v2);
+                if(d < minDist)
+                    minDist = d;
+            }
+
+            return minDist;
+
+        }
+
+        void buildTriBuckets(double bucketSize){
+            
+            triBuckets = new TriBuckets(m_vertices, m_faces, bucketSize);
+
+        }
+
+    } // class ProcessedMesh 
+
 } // class MeshDistance 

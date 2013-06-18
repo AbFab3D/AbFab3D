@@ -95,7 +95,7 @@ public class MathUtil {
 
     /**
        round the bounds to the voxel boundary. 
-       upper boundary grows up, lover boundary grows down 
+       upper boundary grows up, lower boundary grows down 
      */
     public static void roundBounds(double bounds[], double voxelSize){
         for(int i =0; i < 3; i++){
@@ -104,6 +104,24 @@ public class MathUtil {
         }
     }
     
+    /**
+       calculates bounds of array of 3D vertices stored in flat array 
+     */
+    public static double[] calculateBounds(double vertices[]){
+        double bounds[] = new double[]{Double.MAX_VALUE,Double.MIN_VALUE,Double.MAX_VALUE,Double.MIN_VALUE,Double.MAX_VALUE,Double.MIN_VALUE};
+        int vcount = vertices.length/3;        
+
+        for(int i = 0; i < vcount; i++){
+            int ind = i*3;
+            for(int k = 0; k < 3; k++){
+                double v = vertices[ind + k];
+                if( v < bounds[2*k]) bounds[2*k] = v;
+                if( v > bounds[2*k+1]) bounds[2*k+1] = v;
+            }
+        }
+        return bounds;        
+    }
+
     /**
        return maximal count the n can be divided by 2 with rounding up. 
      */
