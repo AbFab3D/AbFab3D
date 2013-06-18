@@ -31,6 +31,7 @@ import static abfab3d.util.Output.printf;
  */
 public class PointSet {
     private boolean COLLECT_STATS = true;
+    private final boolean DEBUG = false;
 
     static final double  // arbitrary constants for hashcode calculations
             CX = 10556796.789,
@@ -226,7 +227,8 @@ public class PointSet {
         int oldCapacity = oldTable.length;
 
         int newCapacity = oldCapacity * 2;
-        printf("*****Rehashing PointSet: new Capacity: %d  orig Capacity: %d\n",newCapacity,origCapacity);
+        if(DEBUG)
+            printf("*****Rehashing PointSet: new Capacity: %d  orig Capacity: %d\n",newCapacity,origCapacity);
 
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);

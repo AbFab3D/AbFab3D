@@ -14,6 +14,7 @@ package abfab3d.mesh;
 import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMixedData;
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.TriangleProducer;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Tuple3d;
@@ -29,7 +30,7 @@ import static abfab3d.util.Output.printf;
    @author Vladimir Bulatov
 
  */
-public class IndexedTriangleSetBuilder implements TriangleCollector {
+public class IndexedTriangleSetBuilder implements TriangleCollector, TriangleProducer {
 
     private int INITIAL_SIZE = 10000;
     static final boolean DEBUG = false;
@@ -117,9 +118,9 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
     }
 
     /**
-       feeds traingles to TriangleCollector interface
+       feeds triangles to TriangleCollector interface
      */
-    public void getTriangles(TriangleCollector tcollector){
+    public boolean getTriangles(TriangleCollector tcollector){
         
         Vector3d 
             v0 = new Vector3d(), 
@@ -145,7 +146,9 @@ public class IndexedTriangleSetBuilder implements TriangleCollector {
             v1.set(pnt[i1], pnt[i1 + 1], pnt[i1 + 2]);
             v2.set(pnt[i2], pnt[i2 + 1], pnt[i2 + 2]);           
             tcollector.addTri(v0,v1,v2);
-        }        
+        }  
+
+        return true;
     }
 
 

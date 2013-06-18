@@ -870,7 +870,7 @@ public class DataSources {
 
 
     //
-    // 3D shape within given distance threshold t ogoiven 3D triangle
+    // 3D shape within given distance threshold to given 3D triangle
     // 
     public static class Triangle implements DataSource{
                                 

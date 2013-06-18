@@ -18,6 +18,7 @@ import abfab3d.util.DataSource;
 import abfab3d.util.Vec; 
 
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.TriangleProducer;
 
 import static abfab3d.util.MathUtil.distance;
 import static abfab3d.util.MathUtil.midPoint;
@@ -32,7 +33,7 @@ import static abfab3d.util.Output.printf;
  *
  * @author Vladimir Bulatov
  */
-public class ParametricSurfaceMaker { 
+public class ParametricSurfaceMaker implements TriangleProducer { 
   
     static final boolean DEBUG = false;
 
@@ -51,7 +52,7 @@ public class ParametricSurfaceMaker {
     /**
        returns triangulated surface 
      */
-    public void getTriangles(TriangleCollector tc){
+    public boolean getTriangles(TriangleCollector tc){
 
         int gsize[] = surface.getGridSize();        
         int nu = gsize[0];
@@ -89,8 +90,7 @@ public class ParametricSurfaceMaker {
             } // for(iu... 
         } // for(iv... 
 
-
-        
+        return true;
     }
     
     /**

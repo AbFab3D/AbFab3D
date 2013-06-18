@@ -241,7 +241,7 @@ public class TriangulatedModels {
     /**
        Parallelepiped with given coordinates of main diagonal 
     */
-    public static class Parallelepiped {
+    public static class Parallelepiped   implements TriangleProducer {
 
         double x0, y0, z0;
         double x1, y1, z1;
@@ -260,7 +260,7 @@ public class TriangulatedModels {
 
         }
         
-        public void getTriangles(TriangleCollector tc){
+        public boolean getTriangles(TriangleCollector tc){
             Vector3d 
                 v000 = new Vector3d(x0,y0,z0),
                 v100 = new Vector3d(x1,y0,z0),
@@ -284,6 +284,7 @@ public class TriangulatedModels {
             tc.addTri(v000,v100,v101);
             tc.addTri(v000,v101,v001);
 
+            return true;
         }
         
     } // class Parallelepiped

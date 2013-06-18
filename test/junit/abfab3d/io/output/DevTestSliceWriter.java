@@ -95,7 +95,7 @@ public class DevTestSliceWriter extends TestCase {
         double voxelSize = 0.1*MM;
         double margin = 1*voxelSize;
 
-        double s = 25*MM;
+        double s = 30*MM;
         double thickness = 4.*MM;
 
         double xmin = -thickness;
@@ -180,6 +180,101 @@ public class DevTestSliceWriter extends TestCase {
         
     }
 
+   public static void twoTriangles() throws Exception {
+        
+        printf("triangularShape()\n");
+    
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
+
+        double s = 25*MM;
+        double thickness = 4.*MM;
+
+        double xmin = -thickness;
+        double xmax = s + thickness;
+
+
+        double bounds[] = new double[]{xmin, xmax, xmin, xmax, xmin, xmax};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);
+                
+
+        int maxAttributeValue = 63;
+        int blockSize = 50;
+        double errorFactor = 0.05;
+        double smoothWidth = 1;
+        int maxDecimationCount= 10;
+        int threadsCount = 4;
+        double surfareThickness = sqrt(3)/2;//0.5;
+
+        double maxDecimationError = errorFactor*voxelSize*voxelSize;
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        Vector3d 
+            v0 = new Vector3d(s,0,0),
+            v1 = new Vector3d(0,s,0),
+            v2 = new Vector3d(0,0,s);
+        /*
+        v0 = new Vector3d(s,s,0),
+            v1 = new Vector3d(0,s,0),
+            v2 = new Vector3d(0,0,s);
+        */
+        //DataSources.Triangle triangle = new DataSources.Triangle(v0, v1, v2, thickness);
+        DataSources.Triangle triangle = new DataSources.Triangle(v0, v1, v2, thickness);
+        
+        VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(12*MM, 0.8*MM);  
+
+        VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        
+        DataSources.Intersection intersection = new DataSources.Intersection();
+        intersection.add(triangle);
+        intersection.add(gyroid);
+
+        //gm.setDataSource(triangle);
+        gm.setDataSource(intersection);
+        
+        //gm.setDataSource(balls);
+        // gm.setTransform(rotation);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfareThickness);
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);        
+       
+        printf("gm.makeGrid() done\n");
+        //printf("%s",grid.toStringAttributesSectionZ(nz / 2));
+        SlicesWriter slicer = new SlicesWriter();
+        slicer.setFilePattern("/tmp/slices/slice_%03d.png");
+        slicer.setCellSize(5);
+        slicer.setVoxelSize(4);
+        
+        slicer.setMaxAttributeValue(maxAttributeValue);
+        //slicer.writeSlices(grid);
+        
+        
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(threadsCount);
+        meshmaker.setSmoothingWidth(smoothWidth);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
+        meshmaker.setMaxAttributeValue(maxAttributeValue);            
+        
+        STLWriter stl = new STLWriter("/tmp/triangle.stl");
+        meshmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
 
   
     public static void main(String[] args) throws Exception {
