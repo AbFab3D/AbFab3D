@@ -17,7 +17,7 @@
  */
 public interface RowOfInt {
     
-    public long get(int x);
+    public int get(int x);
     public void set(int x, long value);
     public Object clone();
     public void clear();   // clear data, but keep the memory 

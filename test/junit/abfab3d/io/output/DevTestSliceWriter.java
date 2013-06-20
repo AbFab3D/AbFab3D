@@ -67,8 +67,6 @@ import abfab3d.grid.op.GridMaker;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
-//import static abfab3d.util.MathUtil.TORAD;
-import static abfab3d.util.Units.TORAD;
 import static abfab3d.util.Units.CM;
 import static abfab3d.util.Units.MM;
 

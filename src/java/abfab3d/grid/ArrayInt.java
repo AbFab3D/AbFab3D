@@ -44,7 +44,7 @@ public class ArrayInt implements RowOfInt {
 
     }
 
-    public long get(int index){
+    public int get(int index){
 
         return data[index];
 

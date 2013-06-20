@@ -91,7 +91,7 @@ public class ShortIntervals implements RowOfInt {
     /**
 
      */
-    public long get(int x){
+    public int get(int x){
         //find interval which contains x
         //
         //0000000aaabbbbccdddddef000

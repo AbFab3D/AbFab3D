@@ -61,7 +61,7 @@ public class BitIntervalInts implements RowOfInt, Serializable {
     /**
 
      */
-    public long get(int x){
+    public int get(int x){
 
         //find interval which contains x 
         //
