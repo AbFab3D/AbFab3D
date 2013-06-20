@@ -53,7 +53,7 @@ public class SlicesWriter {
 
     int xmin=-1, xmax=-1, ymin=-1, ymax=-1, zmin=-1, zmax=-1;
 
-    AttributeGrid m_grid;
+    Grid m_grid;
     
     public void setBounds(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax){
 
@@ -87,7 +87,7 @@ public class SlicesWriter {
 
     }
 
-    public void writeSlices(AttributeGrid grid) throws IOException {   
+    public void writeSlices(Grid grid) throws IOException {
 
         if(DEBUG) printf("%s.writeSlices()\n", this.getClass().getName());
 
@@ -160,7 +160,6 @@ public class SlicesWriter {
                 
     } //    writeSlices(AttributeGtrid grid){   
 
-
     /**
        returns color to be used for given vocxel
     */
@@ -179,7 +178,7 @@ public class SlicesWriter {
             }
         default: // use grid attribute 
 
-            long a = clamp(m_grid.getAttribute(x,y,z), 0, m_maxAttributeValue);
+            long a = clamp(((AttributeGrid)m_grid).getAttribute(x,y,z), 0, m_maxAttributeValue);
 
             return makeColor( (int)(((m_maxAttributeValue - a) * 255)/m_maxAttributeValue));
             

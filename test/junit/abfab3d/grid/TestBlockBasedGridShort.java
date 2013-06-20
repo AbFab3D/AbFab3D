@@ -270,10 +270,10 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
         AttributeGrid grid =new BlockBasedAttributeGridShort(1.0, 0.4, 0.5, 0.05, 0.01);
 
         // set and test get on some random world coordinates
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (short)67);
+        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (short)0);
         grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (short)2);
         grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (short)1);
-        assertEquals("Material should be ", 67, grid.getAttribute(0.0, 0.0, 0.0));
+        assertEquals("Material should be ", 0, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("Material should be ", 2, grid.getAttribute(0.95, 0.39, 0.45));
         assertEquals("Material should be ", 1, grid.getAttribute(0.6, 0.1, 0.4));
 
@@ -322,22 +322,11 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
      * Test set/get byte material range.
      */
     public void testShortMaterialRange() {
-        int maxMaterial = 16384;
-        int width = maxMaterial;
-        long mat, expectedMat;
+        int width = 100;
 
         AttributeGrid grid =new BlockBasedAttributeGridShort(width, 1, 1, 0.001, 0.001);
 
-        for (int x=0; x<width; x++) {
-            grid.setData(x, 0, 0, Grid.INSIDE, x);
-        }
-
-        for (int x=0; x<width; x++) {
-            mat = grid.getAttribute(x, 0, 0);
-            expectedMat = x % maxMaterial;
-//System.out.println("Material [" + x + ",0,0]: " + mat);
-            assertEquals("Material [" + x + ",0,0] is not " + expectedMat, expectedMat, mat);
-        }
+        shortMaterialRange(grid);
     }
 
     /**
@@ -429,8 +418,8 @@ public class TestBlockBasedGridShort extends BaseTestAttributeGrid {
             assertEquals("Material count for " + material[j] + " is not " + expectedCount[j], expectedCount[j], grid.findCount(material[j]));
         }
 
-        // test material 0
-        long mat = 0;
+        // test material 1
+        long mat = 1;
         grid = new BlockBasedAttributeGridShort(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.INSIDE, mat);

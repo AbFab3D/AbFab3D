@@ -58,14 +58,14 @@ public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
 
             AttributeGrid grid = makeBlock(size, size, size, size/2);
 
-            int voxelCount =  grid.findCount(0);
+            int voxelCount =  grid.findCount(Grid.INSIDE);
             //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
             DilationShape dil = new DilationShape();
             dil.setVoxelShape(VoxelShapeFactory.getCross(k));
             grid = dil.execute(grid);
             writeFile(grid, fmt("/tmp/dilationSingleVoxelDilated_%d.x3d", k));
 
-            voxelCount =  grid.findCount(0);
+            voxelCount =  grid.findCount(Grid.INSIDE);
             printf("dilated grid volume: %d\n",voxelCount);
             assertTrue("dilation of single voxel", voxelCount == (6*k + 1));
 
@@ -81,14 +81,14 @@ public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
 
             AttributeGrid grid = makeBlock(size, size, size, 10);
 
-            int origVolume =  grid.findCount(0);
+            int origVolume =  grid.findCount(Grid.INSIDE);
             //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
             DilationShape dil = new DilationShape();
             dil.setVoxelShape(VoxelShapeFactory.getCross(k));
             grid = dil.execute(grid);
             writeFile(grid, fmt("/tmp/dilationBlockDilated_%d.x3d", k));
 
-            int dilatedVolume =  grid.findCount(0);
+            int dilatedVolume =  grid.findCount(Grid.INSIDE);
 
             printf("orig volume: %d dilated volume: %d\n",origVolume, dilatedVolume);
             assertTrue("volume of dilated block ", (dilatedVolume - origVolume) == k * 600);
@@ -104,13 +104,13 @@ public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
 
             AttributeGrid grid = makeBlock(size, size, size, 20);
 
-            int origVolume =  grid.findCount(0);
+            int origVolume =  grid.findCount(Grid.INSIDE);
             DilationShape dil = new DilationShape();
             dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
             grid = dil.execute(grid);
             writeFile(grid, fmt("/tmp/dilationBlockDilated_%02d.x3d", k));
 
-            int dilatedVolume =  grid.findCount(0);
+            int dilatedVolume =  grid.findCount(Grid.INSIDE);
 
             printf("orig volume: %d dilated volume: %d\n",origVolume, dilatedVolume);
             //assertTrue("volume of dilated block ", (dilatedVolume - origVolume) == k * 600);

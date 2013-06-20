@@ -33,15 +33,14 @@ import java.util.Random;
  * @version
  */
 public class TestPerformanceGrid extends BaseTestAttributeGrid {
-    public static final int SIZE = 16;
-
     /** How many times to run a test to compare with itself */
-    public static final int RUNS = 1;
+    public static final int RUNS = 4;
 
     public static final int SMALL_SIZE = 32;
-    public static final int LARGE_SIZE = 128;
+    public static final int LARGE_SIZE = 256;
 
-    public static final int TIMES = 15;
+//    public static final int TIMES = 20;
+    public static final int TIMES = 30;
     public static final int SMALL_TIMES = 3 * TIMES;
     public static final int LARGE_TIMES = TIMES;
 
@@ -88,12 +87,18 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
 
     private void createGrids(int size) {
         grids = new AttributeGrid[] {
-                new ArrayAttributeGridByte(size,size,size,voxel_size, slice_height),
-                new ArrayAttributeGridByteIndexLong(size,size,size,voxel_size, slice_height),
+                new GridShortIntervals(size,size,size,voxel_size, slice_height),
+//                new ArrayAttributeGridByteDefault(size,size,size,voxel_size, slice_height),
+//                new ArrayAttributeGridByte(size,size,size,voxel_size, slice_height),
+//                new ArrayAttributeGridByteProto(size,size,size,voxel_size, slice_height,null),
+//                new ArrayAttributeGridByteProto(size,size,size,voxel_size, slice_height,StoredInsideOutsideFuncFactory.create(2,6))
+
+//                new ArrayAttributeGridByteIndexLong(size,size,size,voxel_size, slice_height),
 //                new ArrayAttributeGridShort(size,size,size,voxel_size, slice_height),
 //                new ArrayAttributeGridInt(size,size,size,voxel_size, slice_height),
-                new BlockBasedAttributeGridByte(size,size,size,voxel_size, slice_height),
+//                new BlockBasedAttributeGridByte(size,size,size,voxel_size, slice_height),
                 //new OctreeAttributeGridByte(size,size,size,voxel_size, slice_height)
+//                new ArrayAttributeGridByteProto(size,size,size,voxel_size, slice_height,StoredInsideOutsideFuncFactory.create(2,6))
         };
 
     }
@@ -180,9 +185,13 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
             createGrids(LARGE_SIZE);
             writeAccessX(grids,LARGE_TIMES,false);
         }
+        System.gc();
+
         for(int i=0; i < RUNS; i++) {
             createGrids(LARGE_SIZE);
             writeAccessX(grids,LARGE_TIMES,true);
+            System.gc();
+
         }
     }
 
@@ -196,9 +205,12 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
             createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES, false, false);
         }
+        System.gc();
+
         for(int i=0; i < RUNS; i++) {
             createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES, false, true);
+            System.gc();
         }
     }
 
@@ -213,10 +225,12 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
             createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES / div, true, false);
         }
+        System.gc();
 
         for(int i=0; i < RUNS; i++) {
             createGrids(LARGE_SIZE);
             writeAccessTorusShell(grids, LARGE_TIMES / div, true, true);
+            System.gc();
         }
     }
 
@@ -231,9 +245,12 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
             writeAccessLinkedCubes(grids, LARGE_TIMES, false);
         }
 
+        System.gc();
+
         for(int i=0; i < RUNS; i++) {
-            createGrids(LARGE_SIZE);
+            createGrids(LARGE_SIZE*2);
             writeAccessLinkedCubes(grids, LARGE_TIMES, true);
+            System.gc();
         }
     }
 
@@ -250,9 +267,12 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
             writeAccessRandom(grids, LARGE_TIMES / div, false);
         }
 
+        System.gc();
+
         for(int i=0; i < RUNS; i++) {
             createGrids(LARGE_SIZE);
             writeAccessRandom(grids, LARGE_TIMES / div, true);
+            System.gc();
         }
     }
 
@@ -264,9 +284,11 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
         for(int i=0; i < WARMUP2; i++) {
             readAccessState(SMALL_SIZE,SMALL_TIMES,false);
         }
+        System.gc();
 
         for(int i=0; i < RUNS; i++) {
             readAccessState(SMALL_SIZE,SMALL_TIMES,true);
+            System.gc();
         }
     }
 
@@ -278,8 +300,11 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
         for(int i=0; i < WARMUP2; i++) {
             readAccessState(LARGE_SIZE,LARGE_TIMES,false);
         }
+        System.gc();
+
         for(int i=0; i < RUNS; i++) {
             readAccessState(LARGE_SIZE,LARGE_TIMES,true);
+            System.gc();
         }
     }
 
@@ -296,11 +321,14 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
         for(int i=0; i < WARMUP; i++) {
             readStyleYXZ(grid);
         }
+        System.gc();
 
         long stime = System.nanoTime();
 
         for(int i=0; i < times; i++) {
             readStyleYXZ(grid);
+            System.gc();
+
         }
 
         long totalTime1 = System.nanoTime() - stime;
@@ -314,6 +342,8 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
         for(int i=0; i < WARMUP; i++) {
             readStyleXYZ(grid);
         }
+
+        System.gc();
 
         stime = System.nanoTime();
 
@@ -578,34 +608,6 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
 
         long[] totalTime = new long[grids.length];
 
-        for(int n=0; n < grids.length; n++) {
-            // warmup
-            for(int i=0; i < WARMUP; i++) {
-                setLinkedCubes(grids[n]);
-            }
-
-            long stime = System.nanoTime();
-
-            for(int i=0; i < times; i++) {
-                setLinkedCubes(grids[n]);
-            }
-
-            totalTime[n] = System.nanoTime() - stime;
-
-            String name = grids[n].getClass().getSimpleName();
-
-            if (display) {
-                float tps = 1000000000f / totalTime[n];
-                System.out.println(String.format("%1$-31s",name) + "        : " + String.format("%1$-13s",totalTime[n]) + " NS " + String.format("%1$-7s",formater.format(tps)) + " TPS " + " " + String.format("%1$-7s",formater.format((float)totalTime[n] / totalTime[0])) + "X");
-            }
-        }
-
-
-        if (display) System.out.println();
-
-    }
-
-    public static void setLinkedCubes(Grid grid) {
         CubeCreator.Style[][] styles = new CubeCreator.Style[6][];
 
         styles[0] = new CubeCreator.Style[4];
@@ -642,11 +644,44 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
         double x,y,z;
         CubeCreator cg = null;
 
-        float max_dim = (float) Math.max(Math.max(grid.getWidth() * grid.getVoxelSize(), grid.getHeight()) * grid.getSliceHeight(), grid.getDepth() * grid.getVoxelSize());
+        float max_dim = (float) Math.max(Math.max(grids[0].getWidth() * grids[0].getVoxelSize(), grids[0].getHeight()) * grids[0].getSliceHeight(), grids[0].getDepth() * grids[0].getVoxelSize());
 
         double boxSize = 0.008;
         int size = (int) Math.floor(max_dim / boxSize / 2.0);
 
+
+        cg = new CubeCreator(styles, boxSize, boxSize, boxSize,
+                0,0,0,1);
+
+
+        for(int n=0; n < grids.length; n++) {
+            // warmup
+            for(int i=0; i < WARMUP; i++) {
+                setLinkedCubes(grids[n], cg, boxSize, size);
+            }
+
+            long stime = System.nanoTime();
+
+            for(int i=0; i < times; i++) {
+                setLinkedCubes(grids[n], cg, boxSize, size);
+            }
+
+            totalTime[n] = System.nanoTime() - stime;
+
+            String name = grids[n].getClass().getSimpleName();
+
+            if (display) {
+                float tps = 1000000000f / totalTime[n];
+                System.out.println(String.format("%1$-31s",name) + "        : " + String.format("%1$-13s",totalTime[n]) + " NS " + String.format("%1$-7s",formater.format(tps)) + " TPS " + " " + String.format("%1$-7s",formater.format((float)totalTime[n] / totalTime[0])) + "X");
+            }
+        }
+
+
+        if (display) System.out.println();
+
+    }
+
+    public static void setLinkedCubes(Grid grid, CubeCreator cg, double boxSize, int size) {
         double exoffset = 0;
         double eyoffset = 0;
         double ezoffset = 0;
@@ -667,6 +702,10 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
         double xspacer;
         double yspacer;
         double zspacer;
+
+        double x;
+        double y;
+        double z;
 
         for(int k=0; k < 2 * size - 1; k++) {
             if (k % 2 == 0) {
@@ -707,9 +746,7 @@ public class TestPerformanceGrid extends BaseTestAttributeGrid {
                         y = yoffset + boxSize * (i+1) + yspacer * (i+1);
                     }
 
-                    cg = new CubeCreator(styles, boxSize, boxSize, boxSize,
-                            x,y,z,1);
-
+                    cg.setCenter(x,y,z);
                     cg.generate(grid);
                 }
             }

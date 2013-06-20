@@ -38,10 +38,10 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      */
     public ArrayAttributeGridShortIndexLong(double w, double h, double d, double pixel, double sheight) {
         this((int) (Math.ceil(w / pixel)) + 1,
-             (int) (Math.ceil(h / sheight)) + 1,
-             (int) (Math.ceil(d / pixel)) + 1,
-             pixel,
-             sheight);
+                (int) (Math.ceil(h / sheight)) + 1,
+                (int) (Math.ceil(d / pixel)) + 1,
+                pixel,
+                sheight, null);
     }
 
     /**
@@ -54,21 +54,39 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public ArrayAttributeGridShortIndexLong(int w, int h, int d, double pixel, double sheight) {
-        super(w,h,d,pixel,sheight);
-
-        // TODO: Align memory with slice access patterns.  Need to verify
-        data = new short[height][width][depth];
+        this(w,h,d,pixel,sheight,null);
     }
 
     /**
-     * Copy Constructor.
+     * Constructor.
      *
-     * @param grid The grid
+     * @param w The width in world coords
+     * @param h The height in world coords
+     * @param d The depth in world coords
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
      */
-    public ArrayAttributeGridShortIndexLong(ArrayAttributeGridShortIndexLong grid) {
-        super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight());
-        this.data = grid.data.clone();
+    public ArrayAttributeGridShortIndexLong(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
+        this((int) (Math.ceil(w / pixel)) + 1,
+                (int) (Math.ceil(h / sheight)) + 1,
+                (int) (Math.ceil(d / pixel)) + 1,
+                pixel,
+                sheight, ioFunc);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param d The number of voxels in depth
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public ArrayAttributeGridShortIndexLong(int w, int h, int d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
+        super(w,h,d,pixel,sheight,ioFunc);
+
+        data = new short[height][width][depth];
     }
 
     /**
@@ -82,9 +100,20 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        Grid ret_val = new ArrayAttributeGridShortIndexLong(w,h,d,pixel,sheight);
+        Grid ret_val = new ArrayAttributeGridShortIndexLong(w,h,d,pixel,sheight, ioFunc);
 
         return ret_val;
+    }
+
+    /**
+     * Copy Constructor.
+     *
+     * @param grid The grid
+     */
+    public ArrayAttributeGridShortIndexLong(ArrayAttributeGridShortIndexLong grid) {
+        super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
+                grid.getVoxelSize(), grid.getSliceHeight(),grid.ioFunc);
+        this.data = grid.data.clone();
     }
 
     /**
@@ -104,11 +133,11 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z grid coordinate
      */
     public void getData(int x, int y, int z, VoxelData vd) {
-        short datum = data[y][x][z];
-        byte state = (byte) ((datum & 0xFFFF) >> 14);
-        short mat = (short) (0x3FFF & datum);
+        short encoded = data[y][x][z];
+        long att = ioFunc.getAttribute(encoded);
+        byte state = ioFunc.getState(encoded);
 
-        vd.setData(state,mat);
+        vd.setData(state,att);
     }
 
     /**
@@ -123,12 +152,10 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        short datum = data[slice][s_x][s_z];
+        long att = ioFunc.getAttribute(data[slice][s_x][s_z]);
+        byte state = ioFunc.getState(data[slice][s_x][s_z]);
 
-        byte state = (byte) ((datum & 0xFFFF) >> 14);
-        short mat = (short) (0x3FFF & datum);
-
-        vd.setData(state,mat);
+        vd.setData(state, att);
     }
 
     /**
@@ -143,11 +170,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        short datum = data[slice][s_x][s_z];
-
-        byte state = (byte) ((datum & 0xFFFF) >> 14);
-
-        return state;
+        return ioFunc.getState(data[slice][s_x][s_z]);
     }
 
     /**
@@ -158,11 +181,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public byte getState(int x, int y, int z) {
-        short datum = data[y][x][z];
-
-        byte state = (byte) ((datum & 0xFFFF) >> 14);
-
-        return state;
+        return ioFunc.getState(data[y][x][z]);
     }
 
     /**
@@ -177,11 +196,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        short datum = data[slice][s_x][s_z];
-
-        short mat = (short) (0x3FFF & datum);
-
-        return mat;
+        return ioFunc.getAttribute(data[slice][s_x][s_z]);
     }
 
     /**
@@ -192,11 +207,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public long getAttribute(int x, int y, int z) {
-        short datum = data[y][x][z];
-
-        short mat = (short) (0x3FFF & datum);
-
-        return mat;
+        return ioFunc.getAttribute(data[y][x][z]);
     }
 
     /**
@@ -213,8 +224,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-
-        data[slice][s_x][s_z] = (short) (0xFFFF & (((short)state) << 14 | ((short)material)));
+        data[slice][s_x][s_z] = (short) ioFunc.combineStateAndAttribute(state,material);
     }
 
     /**
@@ -227,7 +237,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param material The material
      */
     public void setData(int x, int y, int z, byte state, long material) {
-        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
+        data[y][x][z] = (short) ioFunc.combineStateAndAttribute(state,material);
     }
 
     /**
@@ -239,9 +249,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param material The materialID
      */
     public void setAttribute(int x, int y, int z, long material) {
-        byte state = (byte) ((data[y][x][z] & 0xFFFF) >> 14);
-
-        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)material));
+        data[y][x][z] = (short) ioFunc.updateAttribute(data[y][x][z], material);
     }
 
     /**
@@ -253,9 +261,8 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(int x, int y, int z, byte state) {
-        short mat = (short) (0x3FFF & data[y][x][z]);
-
-        data[y][x][z] = (short) (0xFFFF & (((short)state) << 14 | (short)mat));
+        long att = ioFunc.getAttribute(data[y][x][z]);
+        data[y][x][z] = (short) ioFunc.combineStateAndAttribute(state,att);
     }
 
     /**
@@ -271,9 +278,8 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        short mat = (short) (0x3FFF & data[slice][s_x][s_z]);
-
-        data[slice][s_x][s_z] = (short) (0xFFFF & (((short)state) << 14 | (short)mat));
+        long att = ioFunc.getAttribute(data[slice][s_x][s_z]);
+        data[slice][s_x][s_z] = (short) ioFunc.combineStateAndAttribute(state,att);
     }
 
     /**

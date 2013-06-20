@@ -282,7 +282,7 @@ public class VecTransforms {
 
     /**
        
-       perforsm translation 
+       performs translation
        
      */
     public static class Translation  implements VecTransform {

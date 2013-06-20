@@ -81,7 +81,7 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
 
         for(int i=0; i < numMaterials; i++) {
             for(int j=0; j < matWidth; j++) {
-                setX(wrapper, matWidth * i + j,1,Grid.INSIDE, (byte) i);
+                setX(wrapper, matWidth * i + j,1,Grid.INSIDE, (byte) (i+1));
             }
         }
 
@@ -89,18 +89,18 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
 
         int[] counts = new int[numMaterials];
         for(int i=0; i < numMaterials; i++) {
-            counts[i] = wrapper.findCount((byte) i);
+            counts[i] = wrapper.findCount((byte) (i+1));
 
             assertEquals("Insert count wrong", matSize,counts[i]);
         }
 
         for(int i=0; i < numMaterials; i++) {
-            wrapper.removeAttribute(i);
+            wrapper.removeAttribute(i+1);
 
-            assertEquals("Material not removed", wrapper.findCount((byte) i), 0);
+            assertEquals("Material not removed", wrapper.findCount((byte) (i+1)), 0);
 
             for(int j=i+1; j < numMaterials; j++) {
-                assertEquals("Other material removed", wrapper.findCount((byte) j), counts[j]);
+                assertEquals("Other material removed", wrapper.findCount((byte) j+1), counts[j]);
             }
         }
     }
@@ -217,25 +217,25 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
 
         for(int i=0; i < numMaterials; i++) {
             for(int j=0; j < matWidth; j++) {
-                setX(wrapper, matWidth * i + j,1,Grid.INSIDE, (byte) i);
+                setX(wrapper, matWidth * i + j,1,Grid.INSIDE, (byte) (i+1));
             }
         }
 
         long matSize = grid.getWidth() * matWidth;
 
         for(int i=0; i < numMaterials; i++) {
-            currMaterial = (byte) i;
+            currMaterial = (byte) (i+1);
             matCount = 0;
-            wrapper.findAttribute((byte) i, this);
+            wrapper.findAttribute((byte) (i+1), this);
 
             assertEquals("Insert count wrong", matSize,matCount);
         }
 
 
         for(int i=0; i < numMaterials; i++) {
-            currMaterial = (byte) i;
+            currMaterial = (byte) (i+1);
             matCount = 0;
-            wrapper.findAttribute((byte) i, this);
+            wrapper.findAttribute((byte) (i+1), this);
 
             assertEquals("Insert count wrong", matSize,matCount);
         }

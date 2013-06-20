@@ -44,13 +44,13 @@ public class ArrayInt implements RowOfInt {
 
     }
 
-    public int get(int index){
+    public long get(int index){
 
         return data[index];
 
     }
 
-    public int getLast(){
+    public long getLast(){
 
         if(size > 0)
             return data[size-1];
@@ -204,6 +204,16 @@ public class ArrayInt implements RowOfInt {
      */
     public void setIntervals(int intervals[], int values[], int count){
         //TODO 
+        // we never use it actually
+
+        throw new IllegalArgumentException("Not implemented");
+    }
+
+    /**
+     set pixels to values of given intervals
+     */
+    public void setIntervals(int intervals[], long values[], int count){
+        //TODO
         // we never use it actually
 
         throw new IllegalArgumentException("Not implemented");

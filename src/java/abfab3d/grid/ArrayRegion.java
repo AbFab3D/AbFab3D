@@ -96,9 +96,9 @@ public class ArrayRegion implements Region {
         int idx = 0;
 
         for(int i=0; i < len; i++) {
-            int x = coords.get(idx++);
-            int y = coords.get(idx++);
-            int z = coords.get(idx++);
+            int x = (int) coords.get(idx++);
+            int y = (int) coords.get(idx++);
+            int z = (int) coords.get(idx++);
 
             if (vc.getX() == x && vc.getY() == y && vc.getZ() == z) {
                 return true;
@@ -136,9 +136,9 @@ public class ArrayRegion implements Region {
         int idx = 0;
 
         for(int i=0; i < len; i++) {
-            int x = coords.get(idx++);
-            int y = coords.get(idx++);
-            int z = coords.get(idx++);
+            int x = (int) coords.get(idx++);
+            int y = (int) coords.get(idx++);
+            int z = (int) coords.get(idx++);
 
             t.found(x,y,z);
         }
@@ -157,9 +157,9 @@ public class ArrayRegion implements Region {
         int idx = 0;
 
         for(int i=0; i < len; i++) {
-            int x = coords.get(idx++);
-            int y = coords.get(idx++);
-            int z = coords.get(idx++);
+            int x = (int) coords.get(idx++);
+            int y = (int) coords.get(idx++);
+            int z = (int) coords.get(idx++);
 
             if (!t.foundInterruptible(x,y,z)) {
                 break;
@@ -213,9 +213,9 @@ public class ArrayRegion implements Region {
         int idx = 0;
 
         for(int i=0; i < len; i++) {
-            cx = coords.get(idx++);
-            cy = coords.get(idx++);
-            cz = coords.get(idx++);
+            cx = (int) coords.get(idx++);
+            cy = (int) coords.get(idx++);
+            cz = (int) coords.get(idx++);
 
             // gets max and min bounds
             if (cx > max_x)

@@ -37,6 +37,7 @@ public class TestForkJoinPerformance extends BaseTestAttributeGrid {
         return new TestSuite(TestForkJoinPerformance.class);
     }
 
+    /*
     public void testPureCPU() {
         long total_ops = (long) 1e7;
         int maxThreads = Runtime.getRuntime().availableProcessors();
@@ -77,18 +78,12 @@ public class TestForkJoinPerformance extends BaseTestAttributeGrid {
             System.out.println("Threads: " + threadCount + " time: " + ((int) (totalTime / 1000000)) + " scaling: " + (factors[threadCount - 1]));
 
         }
-        /*
-        double min_factor = 1.5;
-
-        for (int i = 1; i < factors.length; i++) {
-            assertTrue("Non Linear Scaling: threads: " + i + " scale: " + factors[i], factors[i] >= ((i - 1) * min_factor));
-        }
-        */
-
     }
-
+      */
 }
 
+// Commented out to compile in JDK 6
+     /*
 class ForkMath extends RecursiveAction {
     long ops;
 
@@ -142,12 +137,10 @@ class ForkMath extends RecursiveAction {
         //long startTime = System.currentTimeMillis();
         pool.invoke(fb);
         //long endTime = System.currentTimeMillis();
-/*
-        System.out.println("Image blur took " + (endTime - startTime) +
-                " milliseconds.");
-*/
     }
 }
+
+*/
 /*
 class ForkTraverse extends RecursiveAction {
 

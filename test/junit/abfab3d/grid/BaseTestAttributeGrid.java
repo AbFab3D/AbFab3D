@@ -433,8 +433,8 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
             assertEquals("Material count for " + material[j] + " is not " + expectedCount[j], expectedCount[j], grid.findCount(material[j]));
         }
 
-        // test material 0
-        long mat = 0;
+        // test material 1
+        long mat = 1;
         grid = new ArrayAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x = 0; x < width; x++) {
             grid.setData(x, 0, 0, Grid.INSIDE, mat);
@@ -457,16 +457,16 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void byteMaterialRange(AttributeGrid grid) {
         int width = grid.getWidth();
-        int maxMaterial = 64;
+        int maxMaterial = (int) Math.pow(2,8) - 1;
         long mat, expectedMat;
 
         for (int x = 0; x < width; x++) {
-            grid.setData(x, 0, 0, Grid.INSIDE, x);
+            grid.setData(x, 0, 0, Grid.INSIDE, x+1);
         }
 
         for (int x = 0; x < width; x++) {
             mat = grid.getAttribute(x, 0, 0);
-            expectedMat = x % maxMaterial;
+            expectedMat = (x+1) % maxMaterial;
 //System.out.println("Material [" + x + ",0,0]: " + mat);
             assertEquals("Material [" + x + ",0,0] is not " + expectedMat, expectedMat, mat);
         }
@@ -477,17 +477,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void shortMaterialRange(AttributeGrid grid) {
         int width = grid.getWidth();
-        int maxMaterial = (int) Math.pow(2.0, 14.0);
+        int maxMaterial = (int) Math.pow(2, 15);
 
-        grid.setData(0, 0, 0, Grid.INSIDE, 0);
+        grid.setData(0, 0, 0, Grid.INSIDE, 1);
         grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial - 1);
-        grid.setData(2, 0, 0, Grid.INSIDE, maxMaterial + 1);
-        grid.setData(3, 0, 0, Grid.INSIDE, 2 * maxMaterial - 1);
 
-        assertEquals("Material [0,0,0] is not 0", 0, grid.getAttribute(0, 0, 0));
+        assertEquals("Material [0,0,0] is not 1", 1, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(1, 0, 0));
-        assertEquals("Material [2,0,0] is not 1", 1, grid.getAttribute(2, 0, 0));
-        assertEquals("Material [3,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(3, 0, 0));
     }
 
     /**
@@ -495,17 +491,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void intMaterialRange(AttributeGrid grid) {
         int width = grid.getWidth();
-        int maxMaterial = (int) Math.pow(2.0, 30.0);
+        int maxMaterial = (int) Math.pow(2, 31);
 
-        grid.setData(0, 0, 0, Grid.INSIDE, 0);
+        grid.setData(0, 0, 0, Grid.INSIDE, 1);
         grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial - 1);
-        grid.setData(2, 0, 0, Grid.INSIDE, maxMaterial + 1);
-        grid.setData(3, 0, 0, Grid.INSIDE, 2 * maxMaterial - 1);
 
-        assertEquals("Material [0,0,0] is not 0", 0, grid.getAttribute(0, 0, 0));
+        assertEquals("Material [0,0,0] is not 1", 1, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(1, 0, 0));
-        assertEquals("Material [2,0,0] is not 1", 1, grid.getAttribute(2, 0, 0));
-        assertEquals("Material [3,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(3, 0, 0));
     }
 
 
@@ -609,11 +601,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * Test getAttribute by world coordinates.
      */
     public void getMaterialByCoord1(AttributeGrid grid) {
+        // OUTSIDE voxels cannot contain attributes
+        //grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte) 3);
+
         // set and test get on some random world coordinates
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte) 3);
         grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 2);
         grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte) 1);
-        assertEquals("State should be ", 3, grid.getAttribute(0.0, 0.0, 0.0));
+        //assertEquals("State should be ", 3, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("State should be ", 2, grid.getAttribute(0.95, 0.39, 0.45));
         assertEquals("State should be ", 1, grid.getAttribute(0.6, 0.1, 0.4));
 
@@ -708,15 +702,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * Test getData by voxels.
      */
     public void getDataByCoord(AttributeGrid grid) {
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte) 2);
+        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, 0);
         grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 1);
-        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte) 0);
+
         VoxelData vd = grid.getVoxelData();
         grid.getData(0.0, 0.0, 0.0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
         grid.getData(0.95, 0.39, 0.45, vd);
-        assertEquals("State should be ", Grid.INSIDE, vd.getState());
-        grid.getData(0.6, 0.1, 0.4, vd);
         assertEquals("State should be ", Grid.INSIDE, vd.getState());
     }
 
@@ -725,17 +717,14 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * Test getData by voxels.
      */
     public void getDataByVoxel(AttributeGrid grid) {
-        grid.setData(0, 0, 0, Grid.OUTSIDE, (byte) 2);
+        grid.setData(0, 0, 0, Grid.OUTSIDE, 0);
         grid.setData(9, 8, 7, Grid.INSIDE, (byte) 1);
-        grid.setData(5, 0, 7, Grid.INSIDE, (byte) 0);
 
         VoxelData vd = grid.getVoxelData();
 
         grid.getData(0, 0, 0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
         grid.getData(9, 8, 7, vd);
-        assertEquals("State should be ", Grid.INSIDE, vd.getState());
-        grid.getData(5, 0, 7, vd);
         assertEquals("State should be ", Grid.INSIDE, vd.getState());
 
         // Index that are not set should default to 0

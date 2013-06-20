@@ -17,14 +17,15 @@
  */
 public interface RowOfInt {
     
-    public int get(int x);
+    public long get(int x);
     public void set(int x, long value);
     public Object clone();
     public void clear();   // clear data, but keep the memory 
     public void release(); // release all the memory 
 
     public void setIntervals(int intervals[], int values[], int count);
-    
+    public void setIntervals(int intervals[], long values[], int count);
+
     /**
        traverses all point with given data value 
        from start to (end-1) inclusive 

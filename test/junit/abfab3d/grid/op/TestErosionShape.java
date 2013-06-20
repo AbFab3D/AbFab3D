@@ -57,13 +57,13 @@ public class TestErosionShape extends TestCase {//BaseTestAttributeGrid {
 
             AttributeGrid grid = makeBlock(nx+2*offset, ny+2*offset, nz+2*offset, offset);
 
-            int origVolume =  grid.findCount(0);
+            int origVolume =  grid.findCount(Grid.INSIDE);
             ErosionShape dil = new ErosionShape();
             dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
             grid = dil.execute(grid);
             writeFile(grid, fmt("/tmp/erosionBlockEroded_%d.x3d", k));
 
-            int erodedVolume =  grid.findCount(0);
+            int erodedVolume =  grid.findCount(Grid.INSIDE);
             int exactVolume = (nx-2*k)*(ny-2*k)*(nz-2*k);
             printf("orig volume: %d eroded volume: %d exactVolume: %d\n",origVolume, erodedVolume, exactVolume);
             assertTrue("test of volume of eroded block ", (erodedVolume == exactVolume));

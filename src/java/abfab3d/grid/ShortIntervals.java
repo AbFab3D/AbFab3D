@@ -91,7 +91,7 @@ public class ShortIntervals implements RowOfInt {
     /**
 
      */
-    public int get(int x){
+    public long get(int x){
         //find interval which contains x
         //
         //0000000aaabbbbccdddddef000
@@ -385,10 +385,10 @@ public class ShortIntervals implements RowOfInt {
     /**
        compare two arrays
      */
-    public int compare(RowOfInt ai, int start, int end){
+    public long compare(RowOfInt ai, int start, int end){
 
         for(int i =start; i < end; i++){
-            int d = get(i) - ai.get(i);
+            long d = get(i) - ai.get(i);
             if(d != 0)
                 return d;
         }
@@ -480,6 +480,27 @@ public class ShortIntervals implements RowOfInt {
        set pixels to values of given intervals
      */
     public void setIntervals(int intervals[], int values[], int count){
+
+        // we have to transform intervals of values into codes
+        // we assume for now, that values are 1s and 0s, as it should be ideally
+
+        m_intervals = new int[count + 2];
+
+        m_curcount = m_intervals.length;
+        // first and last points are special
+        m_intervals[0] = makeCode(Short.MIN_VALUE, 0);
+        m_intervals[m_curcount-1] = makeCode(Short.MAX_VALUE, 0);
+
+        for(int i = 0; i < count; i++){
+            m_intervals[i+1] = makeCode(intervals[i],values[i]);
+        }
+
+    }
+
+    /**
+     set pixels to values of given intervals
+     */
+    public void setIntervals(int intervals[], long values[], int count){
 
         // we have to transform intervals of values into codes
         // we assume for now, that values are 1s and 0s, as it should be ideally

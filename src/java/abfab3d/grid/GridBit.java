@@ -14,8 +14,8 @@ package abfab3d.grid;
 
 public interface GridBit {
 
-    public int get(int x, int y, int z);
-    public void set(int x, int y, int z, int value);
+    public long get(int x, int y, int z);
+    public void set(int x, int y, int z, long value);
     
     public void clear();// set all data to 0 (but doesn't releases allocated memory)
     public void release(); // releases all the memory 

@@ -1,7 +1,8 @@
 package abfab3d.grid;
 
 /**
- * A grid that can contain per-voxel attributes.
+ * A grid that can contain per-voxel attributes.  The state of the grid is INSIDE if the attribute
+ * is > 0 and is OUTSIDE if it equals 0.
  *
  * @author Alan Hudson
  */

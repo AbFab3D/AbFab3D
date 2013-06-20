@@ -281,8 +281,9 @@ public class WaveletRasterizer implements TriangleCollector {
             int a = getAttribute(cvals[octant]);
             if(DEBUG_GRID)
                 printf("          [%d,%d,%d] -> %6.4f, 0x%x\n", ix+x, iy+y, iz+z, cvals[octant], a); 
-            if(a > 0)
+            if(a > 0) {
                 grid.setAttribute(ix + x,iy + y, iz + z, a);
+            }
             
 	}
     }
@@ -310,8 +311,9 @@ public class WaveletRasterizer implements TriangleCollector {
             return;
         
         if(size == 1){
-            if(ix < m_nx && iy < m_ny && iz < m_nz)
+            if(ix < m_nx && iy < m_ny && iz < m_nz) {
                 grid.setAttribute(ix,iy,iz,a);
+            }
             return;
         }
         int ix1 = ix + size;
@@ -326,7 +328,7 @@ public class WaveletRasterizer implements TriangleCollector {
                 for(int z = iz; z < iz1; z++){ 
                     //try {
                     grid.setAttribute(x,y,z,a);
-                    
+
                     //} catch(Exception e){
                     //    printf("bad params in writeBlock(ix:%d iy:%d iz:%d, size:%d)\n", ix, y, iz, size); 
                     //    if(exceptionsCount++ > 100)

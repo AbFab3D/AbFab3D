@@ -52,7 +52,7 @@ public class TestInteriorFinderVoxelBased extends BaseTestAttributeGrid {
         int cubeVoxelsY = 10;
         int cubeVoxelsZ = 6;
 
-        AttributeGrid grid = new ArrayAttributeGridByte(cubeVoxelsX+3,cubeVoxelsY+3,cubeVoxelsZ+3,0.001, 0.001);
+        AttributeGrid grid = new ArrayAttributeGridByte(cubeVoxelsX+3,cubeVoxelsY+3,cubeVoxelsZ+3,0.001, 0.001, StoredInsideOutsideFuncFactory.create(1,6));
 
         // Just set every voxel to attribute 1
         for (int x=0; x<grid.getWidth(); x++) {

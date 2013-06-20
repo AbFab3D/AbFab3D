@@ -61,14 +61,14 @@ public class TestErosionShapeMT extends TestCase {
             grid = makeBlock(nx+2*offset, ny+2*offset, nz+2*offset, offset);
             VoxelShape shape = VoxelShapeFactory.getBall(k,0,0);
 
-            int origVolume =  grid.findCount(0);
+            int origVolume =  grid.findCount(Grid.INSIDE);
             ErosionShape dil = new ErosionShape();
             dil.setVoxelShape(shape);
             grid = dil.execute(grid);
 
             //writeFile(grid, fmt("/tmp/erosionBlockEroded_%d.x3d", k));
 
-            int erodedVolume =  grid.findCount(0);
+            int erodedVolume =  grid.findCount(Grid.INSIDE);
             int exactVolume = (nx-2*k)*(ny-2*k)*(nz-2*k);
 
             grid = makeBlock(nx+2*offset, ny+2*offset, nz+2*offset, offset);
@@ -80,7 +80,7 @@ public class TestErosionShapeMT extends TestCase {
             dilm.setVoxelShape(shape);
             grid = dilm.execute(grid);
             //writeFile(grid, fmt("/tmp/erosionBlockErodedMT_%d.x3d", k));
-            int erodedVolumeMT =  grid.findCount(0);
+            int erodedVolumeMT =  grid.findCount(Grid.INSIDE);
 
             printf("orig volume: %d eroded volume: %d erodeVolumeMT: %d, exactVolume: %d\n",origVolume, erodedVolume, erodedVolumeMT, exactVolume);
             assertTrue("test of eroded block volume", (erodedVolume == exactVolume) && ((erodedVolumeMT == exactVolume)));

@@ -41,7 +41,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
              (int) (Math.ceil(h / sheight)) + 1,
              (int) (Math.ceil(d / pixel)) + 1,
              pixel,
-             sheight);
+             sheight, null);
     }
 
     /**
@@ -54,9 +54,38 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public ArrayAttributeGridByteIndexLong(int w, int h, int d, double pixel, double sheight) {
-        super(w,h,d,pixel,sheight);
+        this(w,h,d,pixel,sheight,null);
+    }
 
-        // TODO: Align memory with slice access patterns.  Need to verify
+    /**
+     * Constructor.
+     *
+     * @param w The width in world coords
+     * @param h The height in world coords
+     * @param d The depth in world coords
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public ArrayAttributeGridByteIndexLong(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
+        this((int) (Math.ceil(w / pixel)) + 1,
+                (int) (Math.ceil(h / sheight)) + 1,
+                (int) (Math.ceil(d / pixel)) + 1,
+                pixel,
+                sheight, ioFunc);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param d The number of voxels in depth
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public ArrayAttributeGridByteIndexLong(int w, int h, int d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
+        super(w,h,d,pixel,sheight,ioFunc);
+
         data = new byte[height][width][depth];
     }
 
@@ -71,7 +100,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        Grid ret_val = new ArrayAttributeGridByteIndexLong(w,h,d,pixel,sheight);
+        Grid ret_val = new ArrayAttributeGridByteIndexLong(w,h,d,pixel,sheight,ioFunc);
 
         return ret_val;
     }
@@ -83,7 +112,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      */
     public ArrayAttributeGridByteIndexLong(ArrayAttributeGridByteIndexLong grid) {
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight());
+            grid.getVoxelSize(), grid.getSliceHeight(),grid.ioFunc);
         this.data = grid.data.clone();
     }
 
@@ -104,12 +133,11 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param z The z grid coordinate
      */
     public void getData(int x, int y, int z, VoxelData vd) {
-        byte datum = data[y][x][z];
+        byte encoded = data[y][x][z];
+        long att = ioFunc.getAttribute(encoded);
+        byte state = ioFunc.getState(encoded);
 
-        byte state = (byte) ((datum & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & datum);
-
-        vd.setData(state,mat);
+        vd.setData(state,att);
     }
 
     /**
@@ -124,12 +152,10 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        byte datum = data[slice][s_x][s_z];
+        long att = ioFunc.getAttribute(data[slice][s_x][s_z]);
+        byte state = ioFunc.getState(data[slice][s_x][s_z]);
 
-        byte state = (byte) ((datum & 0xFF) >> 6);
-        byte mat = (byte) (0x3F & datum);
-
-        vd.setData(state,mat);
+        vd.setData(state, att);
     }
 
     /**
@@ -144,11 +170,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        byte datum = data[slice][s_x][s_z];
-
-        byte state = (byte) ((datum & 0xFF) >> 6);
-
-        return state;
+        return ioFunc.getState(data[slice][s_x][s_z]);
     }
 
     /**
@@ -159,11 +181,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public byte getState(int x, int y, int z) {
-        byte datum = data[y][x][z];
-
-        byte state = (byte) ((datum & 0xFF) >> 6);
-
-        return state;
+        return ioFunc.getState(data[y][x][z]);
     }
 
     /**
@@ -178,11 +196,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        byte datum = data[slice][s_x][s_z];
-
-        byte mat = (byte) (0x3F & datum);
-
-        return (long) mat;
+        return ioFunc.getAttribute(data[slice][s_x][s_z]);
     }
 
     /**
@@ -193,13 +207,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public long getAttribute(int x, int y, int z) {
-        int idx = y * sliceSize + x * depth + z;
-
-        byte datum = data[y][x][z];
-
-        byte mat = (byte) (0x3F & datum);
-
-        return (long) mat;
+        return ioFunc.getAttribute(data[y][x][z]);
     }
 
     /**
@@ -216,7 +224,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        data[slice][s_x][s_z] = (byte) (0xFF & (state << 6 | ((byte)material)));
+        data[slice][s_x][s_z] = (byte) ioFunc.combineStateAndAttribute(state,material);
     }
 
     /**
@@ -229,7 +237,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param material The material
      */
     public void setData(int x, int y, int z, byte state, long material) {
-        data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)material)));
+        data[y][x][z] = (byte) ioFunc.combineStateAndAttribute(state,material);
     }
 
     /**
@@ -241,9 +249,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param material The materialID
      */
     public void setAttribute(int x, int y, int z, long material) {
-        byte state = (byte) ((data[y][x][z] & 0xFF) >> 6);
-
-        data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)material)));
+        data[y][x][z] = (byte) ioFunc.updateAttribute(data[y][x][z], material);
     }
 
     /**
@@ -255,9 +261,8 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
      * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(int x, int y, int z, byte state) {
-        byte mat = (byte) (0x3F & data[y][x][z]);
-
-        data[y][x][z] = (byte) (0xFF & (state << 6 | ((byte)mat)));
+        long att = ioFunc.getAttribute(data[y][x][z]);
+        data[y][x][z] = (byte) ioFunc.combineStateAndAttribute(state,att);
     }
 
     /**
@@ -274,9 +279,8 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        byte mat = (byte) (0x3F & data[slice][s_x][s_z]);
-
-        data[slice][s_x][s_z] = (byte) (0xFF & (state << 6 | ((byte)mat)));
+        long att = ioFunc.getAttribute(data[slice][s_x][s_z]);
+        data[slice][s_x][s_z] = (byte) ioFunc.combineStateAndAttribute(state,att);
     }
 
     /**

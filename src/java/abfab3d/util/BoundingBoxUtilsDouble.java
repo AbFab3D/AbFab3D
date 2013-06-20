@@ -78,7 +78,6 @@ public class BoundingBoxUtilsDouble {
         double maxz = Double.NEGATIVE_INFINITY;
 
         double x,y,z;
-        double ix, iy, iz;
         int index;
         int len = indices.length;
 

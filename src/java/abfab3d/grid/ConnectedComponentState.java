@@ -468,9 +468,9 @@ public class ConnectedComponentState implements Comparable, Region {
         if(index + 2 > m_component.size())
             return coord;       
         
-        coord[0] = m_component.get(index++);
-        coord[1] = m_component.get(index++);
-        coord[2] = m_component.get(index++);
+        coord[0] = (int) m_component.get(index++);
+        coord[1] = (int) m_component.get(index++);
+        coord[2] = (int) m_component.get(index++);
 
         return coord;
     }
@@ -526,7 +526,7 @@ public class ConnectedComponentState implements Comparable, Region {
         int len3 = m_component.size()/3;
         
         for(int i = 0, k = 0; k  < len3; k++){
-            t.found(m_component.get(i++), m_component.get(i++), m_component.get(i++));
+            t.found((int)m_component.get(i++), (int)m_component.get(i++), (int)m_component.get(i++));
         }                
     }    
 
@@ -534,7 +534,7 @@ public class ConnectedComponentState implements Comparable, Region {
         int len3 = m_component.size()/3;
         
         for(int i = 0, k = 0; k  < len3; k++){
-            if(!t.foundInterruptible(m_component.get(i++), m_component.get(i++), m_component.get(i++)))
+            if(!t.foundInterruptible((int)m_component.get(i++), (int)m_component.get(i++), (int)m_component.get(i++)))
                 return;
         }                        
     }

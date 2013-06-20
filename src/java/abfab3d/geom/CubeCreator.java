@@ -87,6 +87,12 @@ public class CubeCreator extends GeometryCreator {
         this.materialID = material;
     }
 
+    public void setCenter(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     /**
      * Generate the geometry and issue commands to the provided handler.
      *

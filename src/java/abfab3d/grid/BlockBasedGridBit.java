@@ -166,8 +166,7 @@ public class BlockBasedGridBit extends BaseGrid {
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
 
-        // TODO: what to do about block order?
-        Grid ret_val = new BlockBasedGridBit(w,h,d,pixel,sheight,4);
+        Grid ret_val = new BlockBasedGridBit(w,h,d,pixel,sheight,blockOrder);
 
         return ret_val;
     }
@@ -765,6 +764,8 @@ public class BlockBasedGridBit extends BaseGrid {
 
 /**
  * A 2 bit block storage method.
+ *
+ * TODO: We could change this to a 1 bit block now
  */
 
 class BlockBit {

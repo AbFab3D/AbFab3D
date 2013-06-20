@@ -156,22 +156,15 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
     public void testCountComponentsDifferentState() {
         // two adjacent voxels of different material
     	AttributeGrid grid = new ArrayAttributeGridByte(10, 10, 10, 0.001, 0.001);
-        grid.setData(2, 2, 2, (byte)1, 3);
-        grid.setData(3, 2, 2, (byte)2, 4);
-        
-        int count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        grid.setData(2, 2, 2, Grid.INSIDE, 3);
+
+        int count = RegionCounter.countComponents((Grid) grid, Grid.INSIDE, 10, false);
         assertEquals("Region count is not 1", 1, count);
         
-        count = RegionCounter.countComponents((Grid) grid, (byte) 2, 10, false);
-        assertEquals("Region count is not 1", 1, count);
+        grid.setData(4, 2, 2, Grid.INSIDE, 3);
         
-        grid.setData(4, 2, 2, (byte)1, 3);
-        
-        count = RegionCounter.countComponents((Grid) grid, (byte) 1, 10, false);
+        count = RegionCounter.countComponents((Grid) grid, Grid.INSIDE, 10, false);
         assertEquals("Region count is not 2", 2, count);
-        
-        count = RegionCounter.countComponents((Grid) grid, (byte) 2, 10, false);
-        assertEquals("Region count is not 1", 1, count);
     }
     
     /**

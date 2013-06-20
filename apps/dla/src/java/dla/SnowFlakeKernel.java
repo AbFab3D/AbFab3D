@@ -786,7 +786,7 @@ System.out.println("createTorus: " + ir + " or: " + or);
         tg.generate(geom);
 
         TriangleModelCreator tmc = new TriangleModelCreator(geom,tx,ty,tz,
-            rx,ry,rz,ra,mat,mat,filled);
+            rx,ry,rz,ra,mat,filled);
 
         tmc.generate(grid);
     }
@@ -802,7 +802,7 @@ System.out.println("createTorus: " + ir + " or: " + or);
         tg.generate(geom);
 
         TriangleModelCreator tmc = new TriangleModelCreator(geom,tx,ty,tz,
-                rx,ry,rz,ra,mat,mat,filled);
+                rx,ry,rz,ra,mat,filled);
 
         tmc.generate(grid);
 

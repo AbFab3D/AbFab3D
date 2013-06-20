@@ -61,7 +61,7 @@ public class BitIntervalInts implements RowOfInt, Serializable {
     /**
 
      */
-    public int get(int x){
+    public long get(int x){
 
         //find interval which contains x 
         //
@@ -342,6 +342,24 @@ public class BitIntervalInts implements RowOfInt, Serializable {
     public void setIntervals(int intervals[], int values[], int count){
 
         // we have to transform intervals of values into intervals of 0s and 1s. 
+        // we assume for now, that values are 1s and 0s, as it should be ideally
+
+        m_intervals = new int[count];
+
+        m_curcount = m_intervals.length;
+
+        for(int i =0; i < count; i++){
+            m_intervals[i] = (int)intervals[i];
+        }
+
+    }
+
+    /**
+     set pixels to values of given intervals
+     */
+    public void setIntervals(int intervals[], long values[], int count){
+
+        // we have to transform intervals of values into intervals of 0s and 1s.
         // we assume for now, that values are 1s and 0s, as it should be ideally
 
         m_intervals = new int[count];

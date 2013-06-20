@@ -89,7 +89,7 @@ public class GridBitIntervalsBlocks extends GridBitIntervals {
     /**
        return bit at given point 
      */
-    public int get(int x, int y, int z){
+    public long get(int x, int y, int z){
         
         switch(m_orientation){
 

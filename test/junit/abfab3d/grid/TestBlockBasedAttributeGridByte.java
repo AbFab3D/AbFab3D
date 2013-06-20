@@ -131,7 +131,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
 
         grid.setData(0, 0, 0, Grid.INSIDE, 2);
         grid.setData(9, 8, 7, Grid.INSIDE, 1);
-        grid.setData(5, 0, 7, Grid.INSIDE, 0);
+        grid.setData(5, 0, 7, Grid.INSIDE, 3);
 
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
         assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
@@ -146,7 +146,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
 
         assertEquals("Material should be ", 2, grid2.getAttribute(0, 0, 0));
         assertEquals("Material should be ", 1, grid2.getAttribute(9, 8, 7));
-        assertEquals("Material should be ", 0, grid2.getAttribute(5, 0, 7));
+        assertEquals("Material should be ", 3, grid2.getAttribute(5, 0, 7));
     }
 
     /**
@@ -215,13 +215,11 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
      */
     public void testGetStateByVoxel() {
         AttributeGrid grid = new BlockBasedAttributeGridByte(10, 9, 9, 0.001, 0.001);
-        grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)2);
+        grid.setData(0, 0, 0, Grid.OUTSIDE, (byte)0);
         grid.setData(9, 8, 7, Grid.INSIDE, (byte)1);
-        grid.setData(5, 0, 7, Grid.INSIDE, (byte)0);
 
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0, 0, 0));
         assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 8, 7));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
 
         // Index that are not set should default to 0
         assertEquals("State should be ", 0, grid.getState(8, 8, 8));
@@ -234,9 +232,9 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         AttributeGrid grid =new BlockBasedAttributeGridByte(1.0, 0.4, 0.5, 0.05, 0.01);
 
         // set and test get on some random world coordinates
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)2);
+        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)0);
         grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte)1);
-        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte)0);
+        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte)2);
         assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0.95, 0.39, 0.45));
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0.6, 0.1, 0.4));
@@ -320,10 +318,10 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         AttributeGrid grid =new BlockBasedAttributeGridByte(1.0, 0.4, 0.5, 0.05, 0.01);
 
         // set and test get on some random world coordinates
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)3);
+        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte)0);
         grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte)2);
         grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte)1);
-        assertEquals("State should be ", 3, grid.getAttribute(0.0, 0.0, 0.0));
+        assertEquals("State should be ", 0, grid.getAttribute(0.0, 0.0, 0.0));
         assertEquals("State should be ", 2, grid.getAttribute(0.95, 0.39, 0.45));
         assertEquals("State should be ", 1, grid.getAttribute(0.6, 0.1, 0.4));
 
@@ -373,18 +371,18 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
      */
     public void testByteMaterialRange() {
         int width = 100;
-        int maxMaterial = 64;
+        int maxMaterial = (int) Math.pow(2,8) - 1;
         long mat, expectedMat;
 
         AttributeGrid grid =new BlockBasedAttributeGridByte(width, 1, 1, 0.001, 0.001);
 
         for (int x=0; x<width; x++) {
-            grid.setData(x, 0, 0, Grid.INSIDE, x);
+            grid.setData(x, 0, 0, Grid.INSIDE, x+1);
         }
 
         for (int x=0; x<width; x++) {
             mat = grid.getAttribute(x, 0, 0);
-            expectedMat = x % maxMaterial;
+            expectedMat = (x+1) % maxMaterial;
 //System.out.println("Material [" + x + ",0,0]: " + mat);
             assertEquals("Material [" + x + ",0,0] is not " + expectedMat, expectedMat, mat);
         }
@@ -428,7 +426,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         // change one of the interior voxel rows to outside
         for (int y=0; y<height; y++) {
             for (int z=0; z<depth; z++) {
-                grid.setData(row[0], y, z, Grid.OUTSIDE, (byte)2);
+                grid.setData(row[0], y, z, Grid.OUTSIDE, (byte)0);
             }
         }
 
@@ -479,8 +477,8 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
             assertEquals("Material count for " + material[j] + " is not " + expectedCount[j], expectedCount[j], grid.findCount(material[j]));
         }
 
-        // test material 0
-        long mat = 0;
+        // test material 1
+        long mat = 1;
         grid = new BlockBasedAttributeGridByte(width, height, depth, 0.05, 0.02);
         for (int x=0; x<width; x++) {
             grid.setData(x,0,0, Grid.INSIDE, mat);
@@ -517,7 +515,11 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         for (int x=0; x<states.length; x++){
             for (int y=0; y<height; y++) {
                 for (int z=0; z<stateDepth[x]; z++) {
-                    grid.setData(x, y, z, states[x], (byte) 2);
+                    if (states[x] == Grid.INSIDE) {
+                        grid.setData(x, y, z, states[x], (byte) 2);
+                    } else {
+                        grid.setData(x, y, z, states[x], (byte) 0);
+                    }
                 }
             }
         }
@@ -561,7 +563,11 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
         for (int x=0; x<states.length; x++){
             for (int y=0; y<height; y++) {
                 for (int z=0; z<stateDepth[x]; z++) {
-                    grid.setData(x, y, z, states[x], (byte) 2);
+                    if (states[x] == Grid.INSIDE) {
+                        grid.setData(x, y, z, states[x], (byte) 2);
+                    } else {
+                        grid.setData(x, y, z, states[x], (byte) 0);
+                    }
                 }
             }
         }

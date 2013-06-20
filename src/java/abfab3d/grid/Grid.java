@@ -248,8 +248,8 @@ public interface Grid extends Cloneable {
     public Object clone();
 
     /**
-     * Create an empty grid of the specified size.  Reuses
-     * the grid type and material type(byte, short, int).
+     * Create an empty grid of the specified size.
+     * Reuses the grid type, attribute size and
      *
      * @param w The number of voxels in width
      * @param h The number of voxels in height

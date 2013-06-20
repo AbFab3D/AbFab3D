@@ -63,7 +63,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
             AttributeGrid grid = makeBlock(gridType, size, size, size, size/2);
 
-            int voxelCount =  grid.findCount(0);
+            int voxelCount =  grid.findCount(Grid.INSIDE);
             //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
             DilationShapeMT dil = new DilationShapeMT();
             dil.setThreadCount(4);
@@ -71,7 +71,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             grid = dil.execute(grid);
             writeFile(grid, fmt("/tmp/dilationSingleVoxelDilatedMT_%d.x3d", k));
 
-            voxelCount =  grid.findCount(0);
+            voxelCount =  grid.findCount(Grid.INSIDE);
             printf("dilated grid volume: %d\n",voxelCount);
             assertTrue("dilation of single voxel", voxelCount == (6*k + 1));
 
@@ -88,7 +88,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
             AttributeGrid grid = makeBlock(gridType, size, size, size, size/3);
 
-            int voxelCount =  grid.findCount(0);
+            int voxelCount =  grid.findCount(Grid.INSIDE);
             //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
             DilationShapeMT dil = new DilationShapeMT();
             dil.setThreadCount(1);
@@ -98,7 +98,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             printf("dilation time: %dms\n", (time()-t0));
             //writeFile(grid, fmt("/tmp/dilationSingleVoxelDilatedMT_%d.x3d", k));
 
-            voxelCount =  grid.findCount(0);
+            voxelCount =  grid.findCount(Grid.INSIDE);
             printf("dilated grid volume: %d\n",voxelCount);
             //assertTrue("dilation of single voxel", voxelCount == (6*k + 1));
 
@@ -114,7 +114,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
             AttributeGrid grid = makeBlock(gridType, size, size, size, 10);
 
-            int origVolume =  grid.findCount(0);
+            int origVolume =  grid.findCount(Grid.INSIDE);
             //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
             DilationShapeMT dil = new DilationShapeMT();
             dil.setThreadCount(4);
@@ -122,7 +122,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             grid = dil.execute(grid);
             writeFile(grid, fmt("/tmp/dilationBlockDilatedMT_%d.x3d", k));
 
-            int dilatedVolume =  grid.findCount(0);
+            int dilatedVolume =  grid.findCount(Grid.INSIDE);
 
             printf("orig volume: %d dilated volume: %d\n",origVolume, dilatedVolume);
             assertTrue("volume of dilated block ", (dilatedVolume - origVolume) == k * 600);
@@ -152,7 +152,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             long t0 = time();
             grid = dilm.execute(grid);
             printf("DilationShapeMT: %dms\n",(time() - t0));
-            int dilatedVolumeMT =  grid.findCount(0);
+            int dilatedVolumeMT =  grid.findCount(Grid.INSIDE);
 
             grid = makeBlock(gridType,s,s,s, maxDilation);
 
@@ -161,7 +161,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             t0 = time();
             grid = dil.execute(grid);
             printf("DilationShape: %dms\n",(time() - t0));
-            int dilatedVolume =  grid.findCount(0);
+            int dilatedVolume =  grid.findCount(Grid.INSIDE);
 
             printf("DilationShape volume: %d, DilationShapeMT: %d\n",dilatedVolume, dilatedVolumeMT);
             assertTrue("DilationShapeMT and DilationShape volumes test", (dilatedVolume == dilatedVolumeMT));

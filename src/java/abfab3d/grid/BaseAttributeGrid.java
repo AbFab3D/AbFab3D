@@ -27,6 +27,8 @@ import java.io.Serializable;
  * @author Alan Hudson
  */
 public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGrid, Cloneable, Serializable {
+    protected InsideOutsideFunc ioFunc;
+
     /**
      * Constructor.
      *
@@ -36,8 +38,14 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public BaseAttributeGrid(int w, int h, int d, double pixel, double sheight) {
+    public BaseAttributeGrid(int w, int h, int d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
         super(w,h,d,pixel,sheight);
+
+        if (ioFunc == null) {
+            this.ioFunc = new DefaultInsideOutsideFunc();
+        } else {
+            this.ioFunc = ioFunc;
+        }
     }
 
     /**

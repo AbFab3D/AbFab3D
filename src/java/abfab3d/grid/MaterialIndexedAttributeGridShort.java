@@ -65,7 +65,20 @@ public class MaterialIndexedAttributeGridShort extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public MaterialIndexedAttributeGridShort(int w, int h, int d, double pixel, double sheight) {
-        super(w,h,d,pixel,sheight);
+        this(w,h,d,pixel,sheight,null);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param w The number of voxels in width
+     * @param h The number of voxels in height
+     * @param d The number of voxels in depth
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public MaterialIndexedAttributeGridShort(int w, int h, int d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
+        super(w,h,d,pixel,sheight, ioFunc);
 
         data = new HashMap<Long, HashSet<Voxel>>();
     }
@@ -81,7 +94,7 @@ public class MaterialIndexedAttributeGridShort extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
-        Grid ret_val = new MaterialIndexedAttributeGridShort(w,h,d,pixel,sheight);
+        Grid ret_val = new MaterialIndexedAttributeGridShort(w,h,d,pixel,sheight,ioFunc);
 
         return ret_val;
     }
@@ -93,7 +106,7 @@ public class MaterialIndexedAttributeGridShort extends BaseAttributeGrid {
      */
     public MaterialIndexedAttributeGridShort(MaterialIndexedAttributeGridShort grid) {
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
-            grid.getVoxelSize(), grid.getSliceHeight());
+            grid.getVoxelSize(), grid.getSliceHeight(), grid.ioFunc);
         this.data = (HashMap<Long, HashSet<Voxel>>)grid.data.clone();
     }
 

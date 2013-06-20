@@ -37,7 +37,7 @@ public class GridMask implements GridBit {
         data = new int[nz*ny*lenx];
     }
     
-    public int get(int x, int y, int z){
+    public long get(int x, int y, int z){
 
         int xint = x/INTLEN;
         int bit = x%INTLEN;
@@ -48,7 +48,7 @@ public class GridMask implements GridBit {
         
     }
     
-    public void set(int x, int y, int z, int value){
+    public void set(int x, int y, int z, long value){
         
         //printf("mask.set(%d,%d,%d)\n", x,y,z);
         
