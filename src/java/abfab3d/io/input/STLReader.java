@@ -19,10 +19,12 @@ import java.util.zip.GZIPInputStream;
 import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.TriangleProducer;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 
 import static java.lang.System.currentTimeMillis;
+import static abfab3d.util.Output.fmt;
 
 /**
    STL files reader. Triangles from STL fiule are passed to TriangleCollector 
@@ -37,7 +39,8 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
  */
-public class STLReader  {
+public class STLReader  implements TriangleProducer {
+
     static final boolean DEBUG = false;
 
     public static final double SCALE = 1./1000.; //to convert form STL standard millimeters into meters
@@ -45,6 +48,11 @@ public class STLReader  {
 
     /** Transformation to apply to vertices, null for none */
     private VecTransform transform;
+
+    /**
+       path to file to read from 
+     */
+    private String m_path; 
 
     public static int readInt(DataInputStream data) throws IOException{
         
@@ -82,6 +90,14 @@ public class STLReader  {
     public STLReader(){        
     }
 
+    public STLReader(String path){        
+        m_path = path;
+    }
+
+    public void setPath(String path){
+        m_path = path;
+    }
+
     /**
      * Set the transform.
      *
@@ -109,6 +125,20 @@ public class STLReader  {
         } else {
             readTransform(path,out);
         }
+    }
+
+    /**
+       interface TriangleProducer
+     */
+    public boolean getTriangles(TriangleCollector out) {
+        try {
+
+            read(m_path, out);
+            return true;
+
+        } catch(Exception e){
+            throw new RuntimeException(fmt("Exception while reading STL file:%s\n", m_path), e);
+        }        
     }
 
     /**
@@ -205,29 +235,36 @@ public class STLReader  {
         int faces = 0;
 
         Vec
-                v0 = new Vec(3),
-                v1 = new Vec(3),
-                v2 = new Vec(3);
-
-        Vector3d dv0 = new Vector3d(),
-                dv1 = new Vector3d(),
-                dv2 = new Vector3d();
+            v0 = new Vec(3),
+            v1 = new Vec(3),
+            v2 = new Vec(3);
+        
+        Vector3d 
+            dv0 = new Vector3d(),
+            dv1 = new Vector3d(),
+            dv2 = new Vector3d();
+        
         try {
             while(true) {
                 // ignore normal
                 data.skip(3*4);
-                readVector3Df(data, v0);
-                readVector3Df(data, v1);
-                readVector3Df(data, v2);
+                readVector3Df(data, dv0);
+                readVector3Df(data, dv1);
+                readVector3Df(data, dv2);
 
+                v0.set(dv0);
+                v1.set(dv1);
+                v2.set(dv2);
+                
                 transform.transform(v0,v0);
                 transform.transform(v1,v1);
                 transform.transform(v2,v2);
-
+                
                 // TODO: I don't like having to change vector reps
-                dv0.set(v0.v[0],v0.v[1],v0.v[2]);
-                dv1.set(v1.v[0],v1.v[1],v1.v[2]);
-                dv1.set(v1.v[0],v1.v[1],v1.v[2]);
+                v0.get(dv0);
+                v1.get(dv1);
+                v2.get(dv2);            
+
                 out.addTri(dv0,dv1,dv2);
 
                 data.skip(2); // unsused stuff

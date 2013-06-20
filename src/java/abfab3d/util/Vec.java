@@ -12,6 +12,8 @@
 
 package abfab3d.util;
 
+import javax.vecmath.Tuple3d;
+
 /**
  * Wrapper for arbitrary vector of floating point data array
  *
@@ -36,6 +38,18 @@ public class Vec {
         v[0] = x;
         v[1] = y;
         v[2] = z;       
+    }
+
+    public void set(Tuple3d t){
+        v[0] = t.x;
+        v[1] = t.y;
+        v[2] = t.z;       
+    }
+
+    public void get(Tuple3d t){
+        t.x = v[0];
+        t.y = v[1];
+        t.z = v[2];       
     }
 
     public void set(Vec in){

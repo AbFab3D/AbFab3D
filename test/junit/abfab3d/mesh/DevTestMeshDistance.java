@@ -22,6 +22,9 @@ import junit.framework.TestSuite;
 
 import abfab3d.geom.TriangulatedModels;
 
+import abfab3d.grid.op.VecTransforms;
+import abfab3d.io.output.STLWriter; 
+
 import static abfab3d.util.Units.MM; 
 import static abfab3d.util.Output.printf; 
 import static abfab3d.util.Output.fmt; 
@@ -71,11 +74,20 @@ public class DevTestMeshDistance extends TestCase {
         md.measure(source, target);              
     }
     
+    public static void makeTwoSpheresHR() throws Exception {
+
+        TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(10.3*MM, new Vector3d(0,0,0), 10, 0.0001*MM);
+        STLWriter stl = new STLWriter("/tmp/sphere_10.3mm.stl");
+        sphere.getTriangles(stl);
+        stl.close();
+
+    }
+
     // two high resolution spheres 
     public static void testTwoSpheresWithBucketsHR() throws Exception {
         
         
-        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10, 0.01*MM);
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10*MM, new Vector3d(0,0,0), 10, 0.0001*MM);
         TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(10.3*MM, new Vector3d(0,0,0), 10, 0.0001*MM);
 
         MeshDistance md = new MeshDistance();
@@ -111,6 +123,33 @@ public class DevTestMeshDistance extends TestCase {
 
     }
 
+
+    public static void testRotatedBlocks() throws Exception {
+        
+        double s = 11*MM;
+        double s1 = 10*MM;
+        
+        
+
+        TriangulatedModels.Parallelepiped block1 = new TriangulatedModels.Parallelepiped(-s, -s, -s, s, s, s);
+        TriangulatedModels.Parallelepiped block2 = new TriangulatedModels.Parallelepiped(-s1, -s1, -s1, s1, s1, s1);
+
+        TriangulatedModels.Transformer model = new TriangulatedModels.Transformer();
+        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(1,0,0), Math.PI/4);
+        model.setTransform(rot);
+        model.addProducer(block1);
+        
+        model.initialize();
+
+        STLWriter stl = new STLWriter("/tmp/rotated_block.stl");
+        
+        model.getTriangles(stl);
+        block2.getTriangles(stl);
+        
+        stl.close();
+
+    }
+
     public static void testBlockAndSphere() throws Exception {
         
         double s = 10*MM;
@@ -130,11 +169,13 @@ public class DevTestMeshDistance extends TestCase {
 
     public static void main(String arg[]) throws Exception {
         //testTwoSpheres();
-        for(int i = 0; i < 1; i++)
-            testTwoSpheresWithBucketsHR();
-        //testTwoBlocks();
-        //testBlockAndSphere();
+        for(int i = 0; i < 1; i++){
+            //makeTwoSpheresHR();
+            testRotatedBlocks();
+            //testTwoSpheresWithBucketsHR();
+            //testTwoBlocks();
+            //testBlockAndSphere();
+        }
     }
-       
 }
 

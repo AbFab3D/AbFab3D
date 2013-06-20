@@ -19,9 +19,9 @@ package abfab3d.util;
 public interface VecTransform {
 
     public static int 
-        RESULT_OK = 0,     // transform was successfull 
-        RESULT_ERROR = 1,  // error occurs during transform 
-        RESULT_OUTSIDE = 2; // argument is outside of domain of definition 
+        RESULT_OK = ResultCodes.RESULT_OK,     // transform was successfull 
+        RESULT_ERROR = ResultCodes.RESULT_ERROR,  // error occurs during transform 
+        RESULT_OUTSIDE = ResultCodes.RESULT_OUTSIDE; // argument is outside of domain of definition 
 
     /**
        direct transform from vin to vout        

@@ -22,8 +22,12 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
 
+import abfab3d.util.Vec;
+import abfab3d.util.VecTransform;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.TriangleProducer;
+import abfab3d.util.Initializable;
+import abfab3d.util.ResultCodes;
 import abfab3d.util.ImageGray16;
 
 import static abfab3d.util.MathUtil.distance;
@@ -48,6 +52,87 @@ import static java.lang.Math.cos;
  * @author Vladimir Bulatov
  */
 public class TriangulatedModels {
+
+    //TODO need class TriangleSplitter which splits incomng triangles into smaller pieces 
+    // according to the specified precision 
+    
+    /**
+       class takes a set of TriangleProducers and one VecTransform and generates 
+       stream of transformed triangles, which are sent to TriangleCollector 
+
+     */
+    public static class Transformer implements TriangleProducer, TriangleCollector, Initializable {
+
+        VecTransform transform;
+        Vector<TriangleProducer> producers = new Vector<TriangleProducer>(); 
+
+        public Transformer(){
+        }
+
+        public int initialize(){
+            if(transform != null && transform instanceof Initializable){
+                ((Initializable)transform).initialize();
+            }
+            
+            for(int i = 0; i < producers.size(); i++){
+                TriangleProducer tp = producers.get(i);
+                if(tp instanceof Initializable){
+                    ((Initializable)tp).initialize();
+                }
+                
+            }  
+            return ResultCodes.RESULT_OK;
+        }
+
+        public void setTransform(VecTransform trans){
+            transform = trans;
+        }
+        public void addProducer(TriangleProducer producer){
+            producers.add(producer);
+        }
+
+        // interface TriangleProducer
+        public boolean getTriangles(TriangleCollector tc){
+            
+            m_tc = tc;
+
+            for(int i = 0; i < producers.size(); i++){
+                TriangleProducer tp = producers.get(i);
+                tp.getTriangles(this);
+            }            
+            return true;
+        }
+
+        // currently used triangle collecor
+        TriangleCollector m_tc; 
+
+        // this called by triangle each producers         
+        public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
+            
+            Vec in = new Vec(3);
+            Vec out = new Vec(3);
+            Vector3d 
+                tv0 = new Vector3d(v0),
+                tv1 = new Vector3d(v1),
+                tv2 = new Vector3d(v2);
+            
+            in.set(v0);
+            transform.transform(in, out);
+            out.get(tv0);
+            in.set(v1);
+            transform.transform(in, out);
+            out.get(tv1);
+            in.set(v2);
+            transform.transform(in, out);
+            out.get(tv2);
+
+            m_tc.addTri(tv0,tv1,tv2);
+            
+            return true;
+        }
+        
+    } // class Transformer
+
 
     // class to generate stars with parameters
     // parameters are illustrated in file docs/images/mesh_star.svg
