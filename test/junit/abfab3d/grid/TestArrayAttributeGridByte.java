@@ -483,6 +483,7 @@ public class TestArrayAttributeGridByte extends BaseTestAttributeGrid {
         AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, 0.001, 0.001);
         removeMaterialIterator(grid);
     }
+
 }
 
 

@@ -133,7 +133,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z grid coordinate
      */
     public void getData(int x, int y, int z, VoxelData vd) {
-        short encoded = data[y][x][z];
+        long encoded = data[y][x][z] & 0xFFFF;
         long att = ioFunc.getAttribute(encoded);
         byte state = ioFunc.getState(encoded);
 
@@ -152,8 +152,9 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        long att = ioFunc.getAttribute(data[slice][s_x][s_z]);
-        byte state = ioFunc.getState(data[slice][s_x][s_z]);
+        long d = data[slice][s_x][s_z] & 0xFFFF;
+        long att = ioFunc.getAttribute(d);
+        byte state = ioFunc.getState(d);
 
         vd.setData(state, att);
     }
@@ -170,7 +171,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        return ioFunc.getState(data[slice][s_x][s_z]);
+        return ioFunc.getState(data[slice][s_x][s_z] & 0xFFFF);
     }
 
     /**
@@ -181,7 +182,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public byte getState(int x, int y, int z) {
-        return ioFunc.getState(data[y][x][z]);
+        return ioFunc.getState(data[y][x][z] & 0xFFFF);
     }
 
     /**
@@ -196,7 +197,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        return ioFunc.getAttribute(data[slice][s_x][s_z]);
+        return ioFunc.getAttribute(data[slice][s_x][s_z] & 0xFFFF);
     }
 
     /**
@@ -207,7 +208,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public long getAttribute(int x, int y, int z) {
-        return ioFunc.getAttribute(data[y][x][z]);
+        return ioFunc.getAttribute(data[y][x][z] & 0xFFFF);
     }
 
     /**
@@ -249,7 +250,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param material The materialID
      */
     public void setAttribute(int x, int y, int z, long material) {
-        data[y][x][z] = (short) ioFunc.updateAttribute(data[y][x][z], material);
+        data[y][x][z] = (short) ioFunc.updateAttribute(data[y][x][z] & 0xFFFF, material);
     }
 
     /**
@@ -278,7 +279,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
 
-        long att = ioFunc.getAttribute(data[slice][s_x][s_z]);
+        long att = ioFunc.getAttribute(data[slice][s_x][s_z] & 0xFFFF);
         data[slice][s_x][s_z] = (short) ioFunc.combineStateAndAttribute(state,att);
     }
 
