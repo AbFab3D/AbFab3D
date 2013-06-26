@@ -14,6 +14,7 @@ package abfab3d.grid.op;
 
 
 import abfab3d.util.DataSource;
+import abfab3d.util.Initializable;
 import abfab3d.util.Vec;
 
 
@@ -24,6 +25,7 @@ import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static abfab3d.grid.op.DataSources.step10;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.MM;
 
 
 public class VolumePatterns {
@@ -119,33 +121,66 @@ public class VolumePatterns {
             return RESULT_OK;
         }
         
-    }
+    } // class CubicGrid
 
-    public static class Gyroid implements DataSource {
+
+    /**
+       approximation to Gyroid 
+    */
+    public static class Gyroid implements DataSource, Initializable {
         
 
-        double period;
-        double thickness;
+        private double period = 10*MM;
+        private double thickness = 0.1*MM;
+        private double level = 0;
+        private double offsetX = 0,offsetY = 0,offsetZ = 0;
+
+        private double factor = 0;
+
+        public Gyroid(){
+            
+        }
 
         public Gyroid(double period, double thickness){
 
             this.period = period;
             this.thickness = thickness;
+        }
+        
+        public void setPeriod(double value){
+            this.period = value; 
+        }
+        public void setThickness(double value){
+            this.thickness = value;
+        }
+        public void setLevel(double value){
+            this.level = value;
+        }
 
+        public void setOffset(double offsetX, double offsetY,double offsetZ){
+            this.offsetX = offsetX;
+            this.offsetY = offsetY;
+            this.offsetZ = offsetZ;
+        }
+        
+        public int initialize(){
 
+            this.factor = 2*PI/period;
+
+            return RESULT_OK;
         }
 
         public int getDataValue(Vec pnt, Vec data){
             
-            double x = pnt.v[0];
-            double y = pnt.v[1];
-            double z = pnt.v[2];
+            double x = pnt.v[0]-offsetX;
+            double y = pnt.v[1]-offsetY;
+            double z = pnt.v[2]-offsetZ;
             
-            x *= 2*PI/period;
-            y *= 2*PI/period;
-            z *= 2*PI/period;
+            x *= factor;
+            y *= factor;
+            z *= factor;
             
-            double d = abs((sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x))*(period/(2*PI))) - thickness;
+            double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - level)/factor) - thickness;
             
             data.v[0] = step10(d, 0, (pnt.voxelSize));
 

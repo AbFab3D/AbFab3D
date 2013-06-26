@@ -242,7 +242,7 @@ public class WaveletRasterizer implements TriangleCollector {
             }  else if (res2 > 2) {
                 // internal node, do recursion
                 writeNode(grid, child, res2, cval, ix1, iy1, iz1);
-            } else { //if(res2 == 2) { // it is leaf
+            } else { //if(res2 == 2) { // last leaf
                 writeLeaf(grid, child, cval, ix1, iy1, iz1);
             }
 	}

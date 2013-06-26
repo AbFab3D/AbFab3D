@@ -85,6 +85,104 @@ import static java.lang.Math.PI;
  */
 public class DevTestSliceWriter extends TestCase {
 
+    public static void gyroCube() throws Exception {
+        printf("gyroCube()\n");
+
+        double voxelSize = 0.1*MM;
+        double margin = 0*voxelSize;
+
+        double s = 10*MM;
+
+        double 
+            xmin = 0.*s,
+            xmax = 3.*s,
+            ymin = -0.*s,
+            ymax = 2*s,
+            zmin = -0.*s,
+            zmax = 2*s;
+
+
+        double bounds[] = new double[]{xmin, xmax, ymin, ymax, zmin, zmax};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);
+                
+
+        int maxAttributeValue = 63;
+        int blockSize = 50;
+        double errorFactor = 0.05;
+        double smoothWidth = 1;
+        int maxDecimationCount= 10;
+        int threadsCount = 4;
+        double surfareThickness = sqrt(3)/2;//0.5;
+
+        
+        double maxDecimationError = errorFactor*voxelSize*voxelSize;
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        
+        DataSources.Block block = new DataSources.Block(0,0,0, 2*s, 2*s, 2*s);
+        
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid();  
+        gyroid.setPeriod(s);
+        gyroid.setThickness(0.02*s);
+        //gyroid.setLevel(0);
+        gyroid.setLevel(1.5);
+        gyroid.setOffset(-0.25*s,-0.25*s,0.*s);
+       
+        //VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
+        
+        DataSources.Intersection intersection = new DataSources.Intersection();
+
+        intersection.add(block);
+        intersection.add(gyroid);
+
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        //gm.setDataSource(triangle);
+        gm.setDataSource(gyroid);
+
+        gm.setThreadCount(threadsCount);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfareThickness);
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);        
+        printf("gm.makeGrid() done\n");
+        
+        if(false){
+            //printf("%s",grid.toStringAttributesSectionZ(nz / 2));
+            SlicesWriter slicer = new SlicesWriter();
+            slicer.setFilePattern("/tmp/slices/slice_%03d.png");
+            slicer.setCellSize(5);
+            slicer.setVoxelSize(4);
+        
+            slicer.setMaxAttributeValue(maxAttributeValue);
+            //slicer.writeSlices(grid);
+        }
+        
+        if(true){ 
+
+            MeshMakerMT meshmaker = new MeshMakerMT();
+            meshmaker.setBlockSize(blockSize);
+            meshmaker.setThreadCount(threadsCount);
+            meshmaker.setSmoothingWidth(smoothWidth);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setMaxDecimationCount(maxDecimationCount);
+            meshmaker.setMaxAttributeValue(maxAttributeValue);            
+            
+            STLWriter stl = new STLWriter("/tmp/gyro_cube.stl");
+            meshmaker.makeMesh(grid, stl);
+            stl.close();
+        }
+
+    }
  
     public static void triangularShape() throws Exception {
         
@@ -277,7 +375,8 @@ public class DevTestSliceWriter extends TestCase {
   
     public static void main(String[] args) throws Exception {
 
-        triangularShape();
+        gyroCube();
+        //triangularShape();
 
     }
 }

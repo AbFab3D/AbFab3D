@@ -87,12 +87,6 @@ public class DataSources {
         public Block(){
         }
 
-        public void setSmoothBoundaries(boolean boundaryX,boolean boundaryY,boolean boundaryZ){
-            m_hasSmoothBoundaryX = boundaryX;
-            m_hasSmoothBoundaryY = boundaryY;
-            m_hasSmoothBoundaryZ = boundaryZ;
-        }
-
         /**
            makes block with given center and size
          */
@@ -101,6 +95,12 @@ public class DataSources {
             setLocation(x,y,z);
             setSize(sx, sy, sz);
 
+        }
+
+        public void setSmoothBoundaries(boolean boundaryX,boolean boundaryY,boolean boundaryZ){
+            m_hasSmoothBoundaryX = boundaryX;
+            m_hasSmoothBoundaryY = boundaryY;
+            m_hasSmoothBoundaryZ = boundaryZ;
         }
 
         /**
