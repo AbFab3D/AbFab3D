@@ -212,7 +212,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             // Find coord in block
             getVoxelInBlock(x, y, z, vcoord);
 
-            byte encoded = block.getValue(vcoord, blockOrder);
+            long encoded = block.getValue(vcoord, blockOrder) & 0xFF;
             long att = ioFunc.getAttribute(encoded);
             byte state = ioFunc.getState(encoded);
 
@@ -246,7 +246,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             // Find coord in block
             getVoxelInBlock(s_x, slice, s_z, vcoord);
 
-            byte encoded = block.getValue(vcoord, blockOrder);
+            long encoded = block.getValue(vcoord, blockOrder) & 0xFF;
             long att = ioFunc.getAttribute(encoded);
             byte state = ioFunc.getState(encoded);
 
@@ -280,7 +280,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             // Find coord in block
             getVoxelInBlock(s_x, slice, s_z, vcoord);
 
-            byte encoded = block.getValue(vcoord, blockOrder);
+            long encoded = block.getValue(vcoord, blockOrder) & 0xFF;
             return ioFunc.getState(encoded);
         } else {
             return OUTSIDE;
@@ -306,7 +306,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             // Find coord in block
             getVoxelInBlock(x, y, z, vcoord);
 
-            byte encoded = block.getValue(vcoord, blockOrder);
+            long encoded = block.getValue(vcoord, blockOrder) & 0xFF;
             return ioFunc.getState(encoded);
         } else {
             return OUTSIDE;
@@ -337,7 +337,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             // Find coord in block
             getVoxelInBlock(s_x, slice, s_z, vcoord);
 
-            byte encoded = block.getValue(vcoord, blockOrder);
+            long encoded = block.getValue(vcoord, blockOrder) & 0xFF;
             return ioFunc.getAttribute(encoded);
         }
 
@@ -364,7 +364,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             // Find coord in block
             getVoxelInBlock(x, y, z, vcoord);
 
-            byte encoded = block.getValue(vcoord, blockOrder);
+            long encoded = block.getValue(vcoord, blockOrder) & 0xFF;
             return ioFunc.getAttribute(encoded);
         }
 
@@ -463,7 +463,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
         getVoxelInBlock(x, y, z, vcoord);
 
         if (block != null) {
-            byte encoded = block.getValue(vcoord, blockOrder);
+            long encoded = block.getValue(vcoord, blockOrder) & 0xFF;
             long att = ioFunc.getAttribute(encoded);
 
             block.setValue((byte) ioFunc.updateAttribute(att, material), vcoord, blockOrder);
@@ -499,7 +499,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
 
             switch (state) {
                 case INSIDE:
-                    byte att = block.getValue(vcoord, blockOrder);
+                    long att = block.getValue(vcoord, blockOrder) & 0xFF;
                     block.setValue((byte)ioFunc.combineStateAndAttribute(state,att), vcoord, blockOrder);
                     break;
                 case OUTSIDE:
@@ -542,7 +542,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
         if (block != null) {
             switch (state) {
                 case INSIDE:
-                    byte att = block.getValue(vcoord, blockOrder);
+                    long att = block.getValue(vcoord, blockOrder) & 0xFF;
                     block.setValue((byte)ioFunc.combineStateAndAttribute(state,att), vcoord, blockOrder);
                     break;
                 case OUTSIDE:
@@ -616,7 +616,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte state = ioFunc.getState(data[j]);
+                byte state = ioFunc.getState(data[j] & 0xFF);
 
                 getVoxelCoord(i,j, coord);
 
@@ -671,8 +671,9 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte state = ioFunc.getState(data[j]);
-                byte mat = (byte) ioFunc.getAttribute(data[j]);
+                long d = data[j] & 0xFF;
+                byte state = ioFunc.getState(d);
+                byte mat = (byte) ioFunc.getAttribute(d);
 
                 vd.setData(state,mat);
 
@@ -730,7 +731,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte material = (byte) ioFunc.getAttribute(data[j]);
+                byte material = (byte) ioFunc.getAttribute(data[j] & 0xFF);
 
                 if (mat != material) {
                     continue;
@@ -791,7 +792,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte state = ioFunc.getState(data[j]);
+                byte state = ioFunc.getState(data[j] & 0xFF);
 
                 getVoxelCoord(i,j, coord);
 
@@ -849,7 +850,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             byte[] data = block.getData();
             int len2 = data.length;
             for(int j=0; j < len2; j++) {
-                byte material = (byte) ioFunc.getAttribute(data[j]);
+                byte material = (byte) ioFunc.getAttribute(data[j] & 0xFF);
 
                 if (mat != material) {
                     continue;

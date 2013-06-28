@@ -470,6 +470,17 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
 //System.out.println("Material [" + x + ",0,0]: " + mat);
             assertEquals("Material [" + x + ",0,0] is not " + expectedMat, expectedMat, mat);
         }
+
+        for (int x = 0; x < width; x++) {
+            grid.setAttribute(x, 0, 0, maxMaterial - x);
+        }
+
+        for (int x = 0; x < width; x++) {
+            mat = grid.getAttribute(x, 0, 0);
+            expectedMat = maxMaterial - x;
+//System.out.println("Material [" + x + ",0,0]: " + mat);
+            assertEquals("Material [" + x + ",0,0] is not " + expectedMat, expectedMat, mat);
+        }
     }
 
     /**
@@ -477,13 +488,20 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void shortMaterialRange(AttributeGrid grid) {
         int width = grid.getWidth();
-        int maxMaterial = (int) Math.pow(2, 15);
+        int maxMaterial = (int) Math.pow(2, 16);
 
         grid.setData(0, 0, 0, Grid.INSIDE, 1);
         grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial - 1);
 
         assertEquals("Material [0,0,0] is not 1", 1, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(1, 0, 0));
+
+        grid.setAttribute(0, 0, 0, maxMaterial - 1);
+        grid.setAttribute(1, 0, 0, 1);
+
+        assertEquals("Material [0,0,0] is not " + (maxMaterial - 1), maxMaterial - 1, grid.getAttribute(0, 0, 0));
+        assertEquals("Material [1,0,0] is not 1", 1, grid.getAttribute(1, 0, 0));
+
     }
 
     /**
@@ -491,13 +509,19 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      */
     public void intMaterialRange(AttributeGrid grid) {
         int width = grid.getWidth();
-        int maxMaterial = (int) Math.pow(2, 31);
+        int maxMaterial = (int) Math.pow(2, 32);
 
         grid.setData(0, 0, 0, Grid.INSIDE, 1);
         grid.setData(1, 0, 0, Grid.INSIDE, maxMaterial - 1);
 
         assertEquals("Material [0,0,0] is not 1", 1, grid.getAttribute(0, 0, 0));
         assertEquals("Material [1,0,0] is not " + (maxMaterial - 1), (maxMaterial - 1), grid.getAttribute(1, 0, 0));
+
+        grid.setAttribute(0, 0, 0, maxMaterial - 1);
+        grid.setAttribute(1, 0, 0, 1);
+
+        assertEquals("Material [0,0,0] is not " + (maxMaterial - 1), maxMaterial - 1, grid.getAttribute(0, 0, 0));
+        assertEquals("Material [1,0,0] is not 1", 1, grid.getAttribute(1, 0, 0));
     }
 
 
