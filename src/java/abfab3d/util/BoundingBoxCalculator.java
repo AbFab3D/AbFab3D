@@ -14,6 +14,9 @@ package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 
+import static abfab3d.util.Output.printf;
+
+
 /**
  * Counts triangles via TriangleCollector interface
  *
@@ -21,12 +24,14 @@ import javax.vecmath.Vector3d;
  */
 public class BoundingBoxCalculator implements TriangleCollector {
 
-    protected double bounds[] = new double[]{
-        Double.MAX_VALUE,Double.MIN_VALUE,
-        Double.MAX_VALUE,Double.MIN_VALUE,
-        Double.MAX_VALUE,Double.MIN_VALUE
-    };
+    static boolean DEBUG = false;
+    int debugCount = 100;
 
+    protected double bounds[] = new double[]{
+        Double.MAX_VALUE,-Double.MAX_VALUE,
+        Double.MAX_VALUE,-Double.MAX_VALUE,
+        Double.MAX_VALUE,-Double.MAX_VALUE};
+    
     public BoundingBoxCalculator(){
         
     }
@@ -39,11 +44,15 @@ public class BoundingBoxCalculator implements TriangleCollector {
        
      */
     public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
-
+        if(DEBUG && debugCount-- > 0)
+            printf("bounds: %s, %s, %s, %s, %s, %s\n ", bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
+        
         addVect(v0);
         addVect(v1);
         addVect(v2);
 
+        if(DEBUG && debugCount > 0)
+            printf(" -> bounds: %s, %s, %s, %s, %s, %s\n ", bounds[0],bounds[1],bounds[2],bounds[3],bounds[4],bounds[5]);
         return true;
     }
 

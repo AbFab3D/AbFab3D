@@ -46,7 +46,7 @@ import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 
 /**
- * Tests the functionality of SlicesWriter
+ * Tests the functionality of WaveletRasterizer
  *
  * @version
  */

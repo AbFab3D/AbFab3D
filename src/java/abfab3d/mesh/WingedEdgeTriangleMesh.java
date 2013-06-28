@@ -1067,9 +1067,9 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
     public double[] getBounds() {
 
         double
-                xmin = Double.MAX_VALUE, xmax = Double.MIN_VALUE,
-                ymin = Double.MAX_VALUE, ymax = Double.MIN_VALUE,
-                zmin = Double.MAX_VALUE, zmax = Double.MIN_VALUE;
+                xmin = Double.MAX_VALUE, xmax = -Double.MAX_VALUE,
+                ymin = Double.MAX_VALUE, ymax = -Double.MAX_VALUE,
+                zmin = Double.MAX_VALUE, zmax = -Double.MAX_VALUE;
 
         double[] pnt = new double[3];
         

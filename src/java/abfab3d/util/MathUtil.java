@@ -108,7 +108,8 @@ public class MathUtil {
        calculates bounds of array of 3D vertices stored in flat array 
      */
     public static double[] calculateBounds(double vertices[]){
-        double bounds[] = new double[]{Double.MAX_VALUE,Double.MIN_VALUE,Double.MAX_VALUE,Double.MIN_VALUE,Double.MAX_VALUE,Double.MIN_VALUE};
+        double bounds[] = new double[]{Double.MAX_VALUE,-Double.MAX_VALUE,
+		Double.MAX_VALUE,-Double.MAX_VALUE,Double.MAX_VALUE,-Double.MAX_VALUE};
         int vcount = vertices.length/3;        
 
         for(int i = 0; i < vcount; i++){

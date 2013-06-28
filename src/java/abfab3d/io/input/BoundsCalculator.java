@@ -38,9 +38,9 @@ public class BoundsCalculator implements TriangleCollector {
     
     
     double
-        xmin = Double.MAX_VALUE, xmax = Double.MIN_VALUE,
-        ymin = Double.MAX_VALUE, ymax = Double.MIN_VALUE,
-        zmin = Double.MAX_VALUE, zmax = Double.MIN_VALUE;
+        xmin = Double.MAX_VALUE, xmax = -Double.MAX_VALUE,
+        ymin = Double.MAX_VALUE, ymax = -Double.MAX_VALUE,
+        zmin = Double.MAX_VALUE, zmax = -Double.MAX_VALUE;
 
     public boolean addTri(Vector3d v0,Vector3d v1,Vector3d v2){
        
