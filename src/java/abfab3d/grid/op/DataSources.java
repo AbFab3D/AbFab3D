@@ -151,7 +151,7 @@ public class DataSources {
                 y = pnt.v[1],
                 z = pnt.v[2];
 
-            double vs = pnt.voxelSize;
+            double vs = pnt.getVoxelSize() * pnt.getScaleFactor();
 
             if(vs == 0.){
                 // zero voxel size
@@ -203,6 +203,10 @@ public class DataSources {
             R = r;
             R2 = 2*r;
             RR = r*r;
+            this.x0 = x0;
+            this.y0 = y0;
+            this.z0 = z0;
+
         }
 
         /**
@@ -218,11 +222,18 @@ public class DataSources {
                 y = pnt.v[1]-y0,
                 z = pnt.v[2]-z0;
 
-            // good approximation to the distance to the surface of the ball).x
-            double dist = ((x*x + y*y + z*z) - RR)/(R2);
+            double vs = pnt.getScaledVoxelSize();
+
+            // good approximation to the distance to the surface of the ball).x 
+            if(vs > 2*R){
+                data.v[0] = 1;
+                return RESULT_OK;
+            }
+                
+            double rv = (R + vs); // add slight growing with voxel size 
+            double dist = ((x*x + y*y + z*z) - rv*rv)/(2*rv);
             //double dist = (Math.sqrt(x*x + y*y + z*z) - R);//)/(R2);
 
-            double vs = pnt.voxelSize;
             if(dist <= -vs){
                 data.v[0] = 1;
             } else if(dist >= vs){
@@ -264,7 +275,7 @@ public class DataSources {
 
             double rxy = sqrt(x*x + y*y) - R;
 
-            data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.voxelSize);
+            data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.getScaledVoxelSize());
 
             return RESULT_OK;
         }
@@ -290,6 +301,9 @@ public class DataSources {
         /**
            add items to set of data sources
          */
+        public void add(DataSource ds){
+            dataSources.add(ds);            
+        }
         public void addDataSource(DataSource ds){
 
             dataSources.add(ds);
@@ -671,7 +685,7 @@ public class DataSources {
         public int getDataValue(Vec pnt, Vec data) {
 
             double y = pnt.v[1];
-            double vs = pnt.voxelSize;
+            double vs = pnt.getScaledVoxelSize();
             //double w2 = width2 + vs;
 
             double yvalue = 1.;
@@ -898,7 +912,7 @@ public class DataSources {
             Vector3d p = new Vector3d(x,y,z);
             double dist = PointToTriangleDistance.get(p, v0, v1, v2);
 
-            double vs = pnt.voxelSize;
+            double vs = pnt.getScaledVoxelSize();
             
             data.v[0] = step10(dist, threshold, vs);
 
@@ -907,6 +921,48 @@ public class DataSources {
             
             return RESULT_OK;             
         }                
-    }        
+    } // class Triangle 
+
+
+    //
+    // class to return neighborhood of limit set. These are points where 1/scaleFactor is close to 0. 
+    //
+    public static class LimitSet implements DataSource {
+
+        final boolean DEBUG = false;
+        int debugCount = 100;
+        private double distance = 1;
+        private double stretchFactor = 1;
+
+        public LimitSet(double distance, double stretchFactor){
+
+            this.distance = distance;
+            this.stretchFactor = stretchFactor;
+
+        }
+
+        /**
+         * returns 1 if pnt is closer to the limit set then distance
+         * returns 0 if pnt is further from he limit set 
+         limit set distance is calculated as  stretchFactor/pnt.scaleFactor 
+         */
+        public int getDataValue(Vec pnt, Vec data) {
+
+            double dist = stretchFactor/pnt.getScaleFactor();
+            
+            if(DEBUG ) {
+                double s = pnt.getScaleFactor();
+                if(s != 1.0 && debugCount-- > 0)
+                    printf("limitSet scaleFactor: %10.5f\n", s);
+            }
+        
+            data.v[0] = step10(dist, distance, pnt.getVoxelSize());
+            
+            return RESULT_OK;
+
+        }
+
+    }  // class LimitSet
+
 }
 

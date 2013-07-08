@@ -134,8 +134,7 @@ public class DevTestGridMipMap {
         }
         public int inverse_transform(Vec in, Vec out){
             out.set(in);
-            out.voxelSize = in.voxelSize * (25*(1-in.v[0]/boxWidth));
-            //out.voxelSize = in.voxelSize * (0*(1-in.v[0]/boxWidth));
+            out.setVoxelSize(in.getVoxelSize() * (25*(1-in.v[0]/boxWidth)));
             return RESULT_OK;
         }
     }

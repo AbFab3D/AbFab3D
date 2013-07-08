@@ -14,16 +14,24 @@ package abfab3d.util;
 
 import javax.vecmath.Tuple3d;
 
+
+import static abfab3d.util.Output.printf;
+
+
 /**
  * Wrapper for arbitrary vector of floating point data array
  *
  * @author Vladimir Bulatov
  */
 public class Vec {
+
+    static final boolean DEBUG = true;
     
     // holder for data
     public double v[];
-    public double voxelSize;
+    
+    private double voxelSize=1; // size of voxel in the grid in physical units 
+    private double scaleFactor = 1;   // accumulated scale factor of all applied transform 
 
     public Vec(int size){
         v = new double[size];
@@ -32,6 +40,32 @@ public class Vec {
     public Vec(Vec in){
         v = new double[in.v.length];
         set(in);
+    }
+    
+    public final double getVoxelSize(){
+        return voxelSize;
+    }
+
+    public final void setVoxelSize(double value){
+        voxelSize = value;
+    }
+
+    public final double getScaleFactor(){
+        return scaleFactor;
+    }
+    public final void setScaleFactor(double value){
+        scaleFactor = value;
+    }
+
+    public final double getScaledVoxelSize(){
+
+        return voxelSize*scaleFactor;
+
+    }
+
+    public final void mulScale(double value){            
+        scaleFactor *= value;
+
     }
 
     public void set(double x, double y, double z){
@@ -53,9 +87,11 @@ public class Vec {
     }
 
     public void set(Vec in){
+        
         for(int i=0; i < v.length; i++){
             v[i] = in.v[i];
         }
         voxelSize = in.voxelSize;
+        scaleFactor = in.scaleFactor;
     }
 }

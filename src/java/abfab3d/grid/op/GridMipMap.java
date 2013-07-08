@@ -138,7 +138,7 @@ public class GridMipMap implements DataSource, Initializable {
         double xg  = (x - xgmin)*scaleFactor;
         double yg  = (y - ygmin)*scaleFactor;
         double zg  = (z - zgmin)*scaleFactor;
-        double vg = abs(pnt.voxelSize) * scaleFactor;
+        double vg = abs(pnt.getScaledVoxelSize()) * scaleFactor;
             
         if(vg <= 1.) {        
             dataValue.v[0] = m_normalization*getValue(m_grids[0], xg, yg, zg);

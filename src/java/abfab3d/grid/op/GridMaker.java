@@ -37,7 +37,9 @@ import static abfab3d.util.Output.printf;
  */
 public class GridMaker {
     
-    
+    static final boolean DEBUG = false;
+    static int debugCount = 100;
+
     protected VecTransform m_transform;
     protected DataSource m_dataSource;
 
@@ -183,10 +185,14 @@ public class GridMaker {
                     pntGrid.set(ix, iy, iz);
                     transformToWorldSpace(pntGrid, pntWorld);
 
-                    pntWorld.voxelSize = voxelSize;
+                    pntWorld.setVoxelSize(voxelSize);
 
                     int res = m_transform.inverse_transform(pntWorld, pntData);
-
+                    if(DEBUG){                        
+                        double s = pntData.getScaleFactor();
+                        if(s != 1.0 && debugCount-- > 0)
+                            printf("scale: %10.5f\n", s);
+                    }
                     //pntData.voxelSize = voxelSize;
 
                     if(res != VecTransform.RESULT_OK)
@@ -269,12 +275,17 @@ public class GridMaker {
                         pntGrid.set(ix, iy, iz);
                         transformToWorldSpace(pntGrid, pntWorld);
 
-                        pntWorld.voxelSize = voxelSize;
-
+                        pntWorld.setVoxelSize(voxelSize);
+                        
                         int res = m_transform.inverse_transform(pntWorld, pntData);
+                        if(DEBUG){
+                            double s = pntData.getScaleFactor();
+                            if(s != 1.0 &&  debugCount-- > 0) {
+                                printf("scale: %10.5f\n", s);
+                            }
+                        }
                         if(res != VecTransform.RESULT_OK)
                             continue;                        
-
                         res = m_dataSource.getDataValue(pntData, dataValue);
 
                         if(res != VecTransform.RESULT_OK)
@@ -303,6 +314,8 @@ public class GridMaker {
 
     void transformToWorldSpace(Vec gridPnt, Vec worldPnt){
 
+        worldPnt.set(gridPnt);
+        
         double in[] = gridPnt.v;
         double out[] = worldPnt.v;
         

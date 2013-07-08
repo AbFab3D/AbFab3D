@@ -54,7 +54,7 @@ public class VolumePatterns {
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
-            double vs = pnt.voxelSize;
+            double vs = pnt.getScaledVoxelSize();
             
             x -= period*floor(x/period);
             y -= period*floor(y/period);
@@ -65,7 +65,7 @@ public class VolumePatterns {
             z -= period/2;
             
             double dist = ((x*x + y*y + z*z) - RR)/R2;
-            data.v[0] = step10(dist, 0,(pnt.voxelSize));
+            data.v[0] = step10(dist, 0,vs);
 
             if(DEBUG && debugCount-- > 0)
                 printf("(%10.5f %10.5f %10.5f) -> %10.5f\n", x,y,z,data.v[0]);
@@ -97,7 +97,7 @@ public class VolumePatterns {
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
-            double vs = pnt.voxelSize;
+            double vs = pnt.getScaledVoxelSize();
             
             x -= period*floor(x/period);
             y -= period*floor(y/period);
@@ -107,9 +107,9 @@ public class VolumePatterns {
             y -= period/2;
             z -= period/2;
             
-            double dxy = step10(((x*x + y*y) - RR)/R2, 0, (pnt.voxelSize));
-            double dyz = step10(((y*y + z*z) - RR)/R2, 0, (pnt.voxelSize));
-            double dzx = step10(((z*z + x*x) - RR)/R2, 0, (pnt.voxelSize));
+            double dxy = step10(((x*x + y*y) - RR)/R2, 0, vs);
+            double dyz = step10(((y*y + z*z) - RR)/R2, 0, vs);
+            double dzx = step10(((z*z + x*x) - RR)/R2, 0, vs);
 
             double d = 0;
             if( dxy > d) d = dxy;
@@ -179,10 +179,11 @@ public class VolumePatterns {
             x *= factor;
             y *= factor;
             z *= factor;
+            double vs = pnt.getScaledVoxelSize();
             
-            double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - level)/factor) - thickness;
+            double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - level)/factor) - (thickness + vs);
             
-            data.v[0] = step10(d, 0, (pnt.voxelSize));
+            data.v[0] = step10(d, 0, vs);
 
             return RESULT_OK;
         }

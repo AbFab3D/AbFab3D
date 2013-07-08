@@ -24,6 +24,8 @@ import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
+import abfab3d.util.ReflectionGroup;
+
 import net.jafama.FastMath;
 
 import static abfab3d.util.Output.printf;
@@ -89,6 +91,8 @@ public class VecTransforms {
          */
         public int transform(Vec in, Vec out) {
             
+            out.set(in);
+
             double angle = in.v[0] / m_radius;
             double r = m_radius + in.v[2];
             double sina = FastMath.sin(angle);
@@ -97,8 +101,6 @@ public class VecTransforms {
             out.v[0] = r * sina;
             out.v[1] = in.v[1];
             out.v[2] = r * cosa;
-            // TODO better aproximation ? 
-            out.voxelSize = in.voxelSize;
             return RESULT_OK;
         }                
 
@@ -109,6 +111,7 @@ public class VecTransforms {
          */
         public int inverse_transform(Vec in, Vec out) {
             
+            out.set(in);
             double wx = in.v[0] / m_radius;
             double wy = in.v[1];
             double wz = in.v[2] / m_radius;
@@ -123,9 +126,6 @@ public class VecTransforms {
             out.v[0] = wx;
             out.v[1] = wy;
             out.v[2] = wz;
-
-            // TODO better aproximation ? 
-            out.voxelSize = in.voxelSize;
 
             return RESULT_OK;
 
@@ -173,6 +173,7 @@ public class VecTransforms {
          */
         public int transform(Vec in, Vec out) {
 
+            out.set(in);
             double x,y,z;
 
             x = in.v[0];
@@ -183,8 +184,6 @@ public class VecTransforms {
             out.v[1] = mat.m10* x + mat.m11*y + mat.m12*z;
             out.v[2] = mat.m20* x + mat.m21*y + mat.m22*z;
 
-            out.voxelSize = in.voxelSize;
-
             return RESULT_OK;
         }
 
@@ -192,6 +191,8 @@ public class VecTransforms {
          *
          */
         public int inverse_transform(Vec in, Vec out) {
+
+            out.set(in);
 
             double x,y,z;
 
@@ -202,8 +203,6 @@ public class VecTransforms {
             out.v[0] = mat_inv.m00* x + mat_inv.m01*y + mat_inv.m02*z;
             out.v[1] = mat_inv.m10* x + mat_inv.m11*y + mat_inv.m12*z;
             out.v[2] = mat_inv.m20* x + mat_inv.m21*y + mat_inv.m22*z;
-
-            out.voxelSize = in.voxelSize;
 
             return RESULT_OK;
 
@@ -254,11 +253,13 @@ public class VecTransforms {
          */
         public int transform(Vec in, Vec out) {
             
+            out.set(in);
+            
             out.v[0] = in.v[0]*sx;
             out.v[1] = in.v[1]*sy;
             out.v[2] = in.v[2]*sz;
 
-            out.voxelSize = in.voxelSize*averageScale;
+            out.mulScale(averageScale);
 
             return RESULT_OK;
         }                
@@ -267,12 +268,13 @@ public class VecTransforms {
          *
          */
         public int inverse_transform(Vec in, Vec out) {
-            
+
+            out.set(in);
             out.v[0] = in.v[0]/sx;
             out.v[1] = in.v[1]/sy;
             out.v[2] = in.v[2]/sz;
 
-            out.voxelSize = in.voxelSize/averageScale;
+            out.mulScale(1/averageScale);
             
             return RESULT_OK;
 
@@ -302,11 +304,11 @@ public class VecTransforms {
          */
         public int transform(Vec in, Vec out) {
             
+            out.set(in);
             out.v[0] = in.v[0] + tx;
             out.v[1] = in.v[1] + ty;
             out.v[2] = in.v[2] + tz;
 
-            out.voxelSize = in.voxelSize;
 
             return RESULT_OK;
         }                
@@ -315,12 +317,10 @@ public class VecTransforms {
          *
          */
         public int inverse_transform(Vec in, Vec out) {
-            
+            out.set(in);
             out.v[0] = in.v[0] - tx;
             out.v[1] = in.v[1] - ty;
             out.v[2] = in.v[2] - tz;
-
-            out.voxelSize = in.voxelSize;
 
             return RESULT_OK;
 
@@ -359,6 +359,8 @@ public class VecTransforms {
          */
         public int transform(Vec in, Vec out) {
             
+            out.set(in);
+
             double x = in.v[0];
             double y = in.v[1];
             double z = in.v[2];
@@ -385,7 +387,7 @@ public class VecTransforms {
             out.v[1] = y;
             out.v[2] = z;
 
-            out.voxelSize = in.voxelSize*scale;
+            out.mulScale(scale);
 
             return RESULT_OK;
         }                
@@ -424,7 +426,7 @@ public class VecTransforms {
          *
          */
         public int transform(Vec in, Vec out) {
-            
+            out.set(in);
             double x = in.v[0];
             double y = in.v[1];
             double z = in.v[2];
@@ -448,8 +450,6 @@ public class VecTransforms {
             out.v[0] = x;
             out.v[1] = y;
             out.v[2] = z;
-
-            out.voxelSize = in.voxelSize;
             
             return RESULT_OK;
         }                
@@ -608,7 +608,7 @@ public class VecTransforms {
          *
          */
         public int transform(Vec in, Vec out) {
-            
+            out.set(in);
             // this is one  to many transform 
             // it only makes sence for inverse transform 
             // so we apply only identity transform to the input 
@@ -619,7 +619,6 @@ public class VecTransforms {
             out.v[0] = x;
             out.v[1] = y;
             out.v[2] = z;
-            out.voxelSize = in.voxelSize; 
             
             return RESULT_OK;
         }                
@@ -628,6 +627,7 @@ public class VecTransforms {
          *  composite transform is identical to direct transform
          */
         public int inverse_transform(Vec in, Vec out) {
+            out.set(in);
             // TODO - garbage generation 
             Vector4d vin = new Vector4d(in.v[0],in.v[1],in.v[2],1);
 
@@ -638,8 +638,6 @@ public class VecTransforms {
             out.v[1] = vin.y;
             out.v[2] = vin.z;
 
-            out.voxelSize = in.voxelSize; 
-
             return RESULT_OK;
 
         }
@@ -647,7 +645,7 @@ public class VecTransforms {
 
 
     /**
-       makes transformations to reproduce one of wallpaper symmetry patterns
+       makes transformations to reproduce wallpaper symmetry patterns
      */
     public static class WallpaperSymmetry  implements VecTransform, Initializable  {
 
@@ -724,7 +722,7 @@ public class VecTransforms {
          *
          */
         public int transform(Vec in, Vec out) {
-            
+            out.set(in);
             // this is one  to many transform 
             // it only makes sence for inverse transform 
             // so we apply only identity transform to the input 
@@ -736,8 +734,6 @@ public class VecTransforms {
             out.v[1] = y;
             out.v[2] = z;
             
-            out.voxelSize = in.voxelSize; 
-
             return RESULT_OK;
         }                
 
@@ -745,6 +741,7 @@ public class VecTransforms {
          *  composite transform is identical to direct transform
          */
         public int inverse_transform(Vec in, Vec out) {
+            out.set(in);
             // TODO garbage generation 
             Vector4d vin = new Vector4d(in.v[0],in.v[1],in.v[2],1);
 
@@ -754,15 +751,63 @@ public class VecTransforms {
             out.v[0] = vin.x;
             out.v[1] = vin.y;
             out.v[2] = vin.z;
-
-            out.voxelSize = in.voxelSize; 
             
             return RESULT_OK;
 
         }
     } // class WallpaperSymmetry
+
+
+    /**
+       makes transformations for reflection symetry groups
+     */
+    public static class ReflectionSymmetry  implements VecTransform, Initializable  {
+        
+
+        ReflectionGroup group;
+        double riemannSphereRadius;
+
+        public ReflectionSymmetry(){            
+
+        }
+        
+        public void setGroup(ReflectionGroup group){
+            this.group = group;
+        }
+
+        public void setRiemannSphereRadius(double value){
+            this.riemannSphereRadius = value;
+        }
+        
+        public int initialize(){
+            
+            if(group == null){               
+                // init to simple one generator group 
+                group = new ReflectionGroup(new ReflectionGroup.SPlane[]{new ReflectionGroup.Plane(new Vector3d(1,0,0),0)});
+            }
+                
+            group.setRiemannSphereRadius(riemannSphereRadius);
+            return RESULT_OK;
+        }
+
+        public int transform(Vec in, Vec out) {
+            // direct transform is identity transform 
+            out.set(in);
+            // TODO we use custom combination of reflectins from the group 
+            return RESULT_OK;
+            
+        }
+        public int inverse_transform(Vec in, Vec out) {
+            out.set(in);
+            return group.toFundamentalDomain(out);
+            
+        }
+        
+        
+    } // class ReflectionSymmetry 
+
    
-    static public void normalizePlane(Vector4d p){
+    static public final void normalizePlane(Vector4d p){
         double norm = FastMath.sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
         p.scale(1./norm);
         

@@ -431,7 +431,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
         
         // TODO get proper pointer size from chain of transforms
         
-        double vs = pnt.voxelSize;
+        double vs = pnt.getScaledVoxelSize();
         if(vs == 0.)
             return getDataValueZeroVoxel(pnt, data);
         else 
@@ -450,7 +450,7 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
             y = pnt.v[1],
             z = pnt.v[2];
 
-        double vs = pnt.voxelSize; 
+        double vs = pnt.getScaledVoxelSize(); 
         
         if(x <= xmin - vs || x >= xmax + vs || 
            y <= ymin - vs || y >= ymax + vs || 

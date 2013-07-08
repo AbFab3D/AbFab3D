@@ -823,7 +823,10 @@ public class MeshDecimator {
                 if(good){
                     Quadric.addSet(plane,sq,m_q0);
                 } else {
-                    printVertex(m_mesh, v);
+					if(DEBUG){
+						printf("bad triangle around vertex\n");
+						printVertex(m_mesh, v);
+					}	
                 }
                 
                 he = HalfEdge.getTwin(halfEdges, he);

@@ -403,10 +403,13 @@ public class Quadric extends StructDataDefinition {
         normal.normalize();
 
         if(Double.isNaN(normal.x)){
-            printf("****BAD triangle\n");
-            printf("v1: (%18.15g, %18.15g, %18.15g) \n", v1.x,v1.y,v1.z);
-            printf("v2: (%18.15g, %18.15g, %18.15g) \n", v2.x,v2.y,v2.z);
-            printf("p0: (%18.15g, %18.15g, %18.15g) \n", v0.x,v0.y,v0.z);
+            //badTriagleCount++;
+            if(false){
+                printf("****BAD triangle\n");
+                printf("v1: (%18.15g, %18.15g, %18.15g) \n", v1.x,v1.y,v1.z);
+                printf("v2: (%18.15g, %18.15g, %18.15g) \n", v2.x,v2.y,v2.z);
+                printf("p0: (%18.15g, %18.15g, %18.15g) \n", v0.x,v0.y,v0.z);
+            }
             return false;
         }
 
