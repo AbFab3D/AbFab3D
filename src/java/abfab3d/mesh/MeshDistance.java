@@ -38,11 +38,11 @@ import static abfab3d.util.Units.MM;
 
    @author Vladimir Bulatov 
 
- */
+i */
 public class MeshDistance {
     
-    static final boolean DEBUG = true;
-
+    static final boolean DEBUG = false;
+    static int debugCount = 1;
     double m_maxTriangleSize = 0.1*MM;
     // do we need to split source mesh triangles? 
     boolean m_doTriangleSplit = false;
@@ -123,16 +123,26 @@ public class MeshDistance {
             if(m_targetMesh.triBuckets != null)
                 m_targetMesh.triBuckets.printStat();
 
-        }
-        
+        }        
         
     }
 
     public double getHausdorffDistance(){
-
         return m_source.getHausdorffDistance();
-        
     }
+
+    public double getL1Distance(){
+        return m_source.getL1Distance();
+    }
+
+    public double getL2Distance(){
+        return m_source.getL2Distance();
+    }
+
+    public double getMinDistance(){
+        return m_source.getMinDistance();
+    }
+
     
     /**
        builds preprocessed target mesh 
@@ -301,7 +311,7 @@ public class MeshDistance {
         int getTriCount(){
             return triCount;
         }
-        int getDistCount(){
+        public int getDistCount(){
             return distCount;
         }
         
@@ -310,9 +320,14 @@ public class MeshDistance {
             return sqrt(maxDistance);
         }
 
-        // minimal distacne between meshes
+        // minimal distance between meshes
         double getMinDistance(){
-            return sqrt(minDistance);
+            if(DEBUG)
+                printf("minDistance: %s\n",minDistance);
+            double s = sqrt(minDistance);
+            if(DEBUG)
+                printf("         s: %s\n",s);
+            return s; 
         }
         // distance in L_1 metric
         double getL1Distance(){
@@ -441,6 +456,16 @@ public class MeshDistance {
                 v2.z = m_vertices[i2+2];
                 
                 double d = PointToTriangleDistance.getSquared(v, v0, v1, v2);
+                if(d < 0.){
+                    if(DEBUG && debugCount-- > 0 ){
+                        printf("NEGATIVE DISTANCE: %s\n", d);
+                        printf("v:  %21.17e %21.17e %21.17e\n", v.x, v.y, v.z);
+                        printf("v0: %21.17e %21.17e %21.17e\n", v0.x, v0.y, v0.z);
+                        printf("v1: %21.17e %21.17e %21.17e\n", v1.x, v1.y, v1.z);
+                        printf("v2: %21.17e %21.17e %21.17e\n", v2.x, v2.y, v2.z);
+                    }
+                    d = 0;
+                }
                 if(d < minDist)
                     minDist = d;
             }

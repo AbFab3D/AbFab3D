@@ -20,7 +20,7 @@ import static abfab3d.util.Output.fmt;
 import static java.lang.Math.sqrt;
 
 /**
-   calculates distance between point and traingles in 3D 
+   calculates distance between point and triangles in 3D 
 
    @author Vladimir Bulatov 
 
@@ -124,8 +124,16 @@ public class PointToTriangleDistance {
                 double invDet = 1/det;
                 s *= invDet;
                 t *= invDet;
-                sqrDistance = s*(a00*s + a01*t + 2*b0) +
-                    t*(a01*s + a11*t + 2*b1) + c;
+                if(DEBUG){
+                    printf("det: %21.17e\n invDet: %21.17e\ns: %21.17e\n t: %21.17e\n", det, invDet, s, t);
+                    printf("a00: %21.17e\n", a00);
+                    printf("a01: %21.17e\n", a01);
+                    printf("a11: %21.17e\n", a11);
+                    printf("b0: %21.17e\n", b0);
+                    printf("b1: %21.17e\n", b1);
+                    printf("c: %21.17e\n", c);
+                }
+                sqrDistance = s*(a00*s + a01*t + 2*b0) + t*(a01*s + a11*t + 2*b1) + c;
             }
         } else {
             double tmp0, tmp1, numer, denom;                
@@ -143,8 +151,7 @@ public class PointToTriangleDistance {
                     } else {
                         s = numer/denom;
                         t = 1 - s;
-                        sqrDistance = s*(a00*s + a01*t + 2*b0) +
-                            t*(a01*s + a11*t + 2*b1) + c;
+                        sqrDistance = s*(a00*s + a01*t + 2*b0) + t*(a01*s + a11*t + 2*b1) + c;
                     }
                 } else {
                     s = 0;
@@ -212,7 +219,9 @@ public class PointToTriangleDistance {
             }
         }
         if(DEBUG)printf("sqrDistance: %10.8f dist: %10.8f\n",sqrDistance, sqrt(sqrDistance));
-            
+        
+        if(sqrDistance < 0.) // this may happen as result of round off errors 
+            sqrDistance = 0.;
         return sqrDistance;
     }
         

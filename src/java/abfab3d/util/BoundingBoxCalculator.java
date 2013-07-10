@@ -67,9 +67,23 @@ public class BoundingBoxCalculator implements TriangleCollector {
 
     }
 
-    public void getBounds(double bnds[]){
+    public double [] getBounds(double bnds[]){
+        if(bnds == null)
+            bnds = new double[6];
+        
         for(int i =0; i < 6; i++)
             bnds[i] = bounds[i];
+        return bnds;
+    }
+    public double [] getBounds(){
+        return getBounds(null);
+    }
+    
+    public double[] getRoundedBounds(double voxelSize){
+        double b[] = new double[6];
+        System.arraycopy(bounds, 0, b, 0, 6);        
+        b = MathUtil.roundBounds(b, voxelSize);
+        return b;
     }
 }
 
