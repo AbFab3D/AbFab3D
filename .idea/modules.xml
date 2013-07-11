@@ -13,6 +13,8 @@
       <module fileurl="file://$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" filepath="$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/volumesculptor/src/Volume Sculptor.iml" filepath="$PROJECT_DIR$/apps/volumesculptor/src/Volume Sculptor.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/cloth/src/cloth.iml" filepath="$PROJECT_DIR$/apps/cloth/src/cloth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/shell/src/shell.iml" filepath="$PROJECT_DIR$/apps/shell/src/shell.iml" />
+      <module fileurl="file://$PROJECT_DIR$/examples/voxelize/voxelize.iml" filepath="$PROJECT_DIR$/examples/voxelize/voxelize.iml" />
     </modules>
   </component>
 </project>

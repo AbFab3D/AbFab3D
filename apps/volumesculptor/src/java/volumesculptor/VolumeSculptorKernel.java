@@ -29,6 +29,7 @@ import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.GridMaker;
 import abfab3d.grid.op.DataSourceGrid;
 
+import abfab3d.grid.op.VolumePatterns;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
 import abfab3d.io.output.MeshMakerMT;
@@ -363,7 +364,7 @@ public class VolumeSculptorKernel extends HostedKernel {
 
         DataSourceGrid model = new DataSourceGrid(modelGrid, modelBounds, maxGridAttributeValue);
         
-        DataSources.Block block = new DataSources.Block((modelBounds[1] + modelBounds[0])/2,
+        DataSources.Box box = new DataSources.Box((modelBounds[1] + modelBounds[0])/2,
                                                   (modelBounds[3] + modelBounds[2])/2,
                                                   (modelBounds[5] + modelBounds[4])/2,
                                                   (modelBounds[1] - modelBounds[0]),
@@ -375,7 +376,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         //intersection.addDataSource(ring);
         //intersection.addDataSource(ball);
         intersection.addDataSource(model);
-        //intersection.addDataSource(gyroidShape);
+        intersection.addDataSource(gyroidShape);
         //intersection.addDataSource(block);
         //intersection.addDataSource(gyroid);
 

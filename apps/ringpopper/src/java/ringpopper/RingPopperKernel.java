@@ -713,7 +713,7 @@ public class RingPopperKernel extends HostedKernel {
         union.addDataSource(image_band);
 
         if (hasTopBorder()) {
-            DataSources.Block top_band = new DataSources.Block();
+            DataSources.Box top_band = new DataSources.Box();
             top_band.setSize(bandLength, topBorderWidth, ringThickness);
             top_band.setLocation(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
             top_band.setSmoothBoundaries(false, true, true);
@@ -722,7 +722,7 @@ public class RingPopperKernel extends HostedKernel {
         }
 
         if (hasBottomBorder()) {
-            DataSources.Block bottom_band = new DataSources.Block();
+            DataSources.Box bottom_band = new DataSources.Box();
             bottom_band.setSize(bandLength, bottomBorderWidth, ringThickness);
             bottom_band.setLocation(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
             bottom_band.setSmoothBoundaries(false, true, true);

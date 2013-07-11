@@ -74,7 +74,7 @@ public class DataSources {
        makes solid block of given size
 
      */
-    public static class Block implements DataSource, Initializable {
+    public static class Box implements DataSource, Initializable {
 
         private double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1, m_centerX=0, m_centerY=0, m_centerZ=0;
 
@@ -90,13 +90,13 @@ public class DataSources {
             m_hasSmoothBoundaryY = false,
             m_hasSmoothBoundaryZ = false;
 
-        public Block(){
+        public Box(){
         }
 
         /**
            makes block with given center and size
          */
-        public Block(double x, double y, double z, double sx, double sy, double sz){
+        public Box(double x, double y, double z, double sx, double sy, double sz){
 
             setLocation(x,y,z);
             setSize(sx, sy, sz);
