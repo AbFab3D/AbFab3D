@@ -360,7 +360,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         DataSource gyroidShape = new VolumePatterns.Gyroid(20*MM, 1.*MM);
         DataSource gyroid = new VolumePatterns.Gyroid(4*MM, 0.5*MM);
         
-        DataSources.Ball ball = new DataSources.Ball(0,0,0, 10*MM);
+        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0, 10*MM);
 
         DataSourceGrid model = new DataSourceGrid(modelGrid, modelBounds, maxGridAttributeValue);
         
@@ -374,7 +374,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         DataSources.Intersection intersection = new DataSources.Intersection();
 
         //intersection.addDataSource(ring);
-        //intersection.addDataSource(ball);
+        //intersection.addDataSource(sphere);
         intersection.addDataSource(model);
         intersection.addDataSource(gyroidShape);
         //intersection.addDataSource(block);

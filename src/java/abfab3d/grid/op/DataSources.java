@@ -13,17 +13,11 @@
 package abfab3d.grid.op;
 
 
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBuffer;
-import java.awt.image.DataBufferInt;
-import java.awt.image.DataBufferUShort;
 //import java.awt.image.Raster;
 
-import java.io.File;
 import java.util.Vector;
 
-import javax.imageio.ImageIO;
-import javax.vecmath.Vector3d;
+        import javax.vecmath.Vector3d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
@@ -32,31 +26,17 @@ import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
-import abfab3d.util.ImageMipMapGray16;
 
-import abfab3d.util.PointToTriangleDistance;
+        import abfab3d.util.PointToTriangleDistance;
 
-import abfab3d.util.ImageUtil;
-
-import static java.lang.Math.sqrt;
+        import static java.lang.Math.sqrt;
 import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-
-import static abfab3d.util.ImageUtil.getRed;
-import static abfab3d.util.ImageUtil.getGreen;
-import static abfab3d.util.ImageUtil.getBlue;
-import static abfab3d.util.ImageUtil.getAlpha;
-import static abfab3d.util.ImageUtil.RED;
-import static abfab3d.util.ImageUtil.GREEN;
-import static abfab3d.util.ImageUtil.BLUE;
-import static abfab3d.util.ImageUtil.ALPHA;
 
 
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.ImageUtil.us2i;
+        import static abfab3d.util.MathUtil.clamp;
 
 /**
 
@@ -197,19 +177,19 @@ public class DataSources {
     }  // class Block
 
     /**
-       Ball with given location and radius
+       Sphere with given location and radius
      */
-    public static class Ball implements DataSource {
+    public static class Sphere implements DataSource {
 
         private double R, R2, RR;
 
         private double x0, y0, z0;
 
-        public Ball(Vector3d c, double r){
+        public Sphere(Vector3d c, double r){
             this(c.x, c.y, c.z, r);
         }
 
-        public Ball(double x0, double y0, double z0, double r){
+        public Sphere(double x0, double y0, double z0, double r){
             R = r;
             R2 = 2*r;
             RR = r*r;
@@ -244,7 +224,7 @@ public class DataSources {
             return RESULT_OK;
         }
 
-    }  // class Ball
+    }  // class Sphere
 
 
     /**

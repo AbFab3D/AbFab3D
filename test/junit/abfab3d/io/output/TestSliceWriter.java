@@ -15,12 +15,7 @@ package abfab3d.io.output;
 // External Imports
 
 
-import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
 import javax.vecmath.Vector3d;
-
-import java.awt.Font;
-import java.awt.Insets;
 
 
 import java.io.File;
@@ -37,25 +32,13 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.geom.TriangulatedModels;
 
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
 import abfab3d.util.MathUtil;
-import abfab3d.util.TextUtil;
-import abfab3d.util.Symmetry;
 import abfab3d.util.ImageGray16;
-
-import abfab3d.io.output.IsosurfaceMaker;
-import abfab3d.io.output.STLWriter;
-import abfab3d.io.output.MeshMakerMT;
-
-import abfab3d.util.ImageMipMap;
 
 import abfab3d.grid.op.DataSources;
 import abfab3d.grid.op.VecTransforms;
@@ -65,14 +48,8 @@ import abfab3d.grid.op.GridMaker;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
-import static abfab3d.util.Output.time;
-import static abfab3d.util.MathUtil.TORAD;
 
-import static java.lang.System.currentTimeMillis;
-import static java.lang.Math.sin;
-import static java.lang.Math.cos;
 import static java.lang.Math.sqrt;
-import static java.lang.Math.PI;
 
 /**
  * Tests the functionality of SlicesWriter
@@ -128,7 +105,7 @@ public class TestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ball ball = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0,ballRadius);
         DataSources.Torus torus = new DataSources.Torus(0.34*CM, 0.15*CM);
 
         VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
@@ -141,7 +118,7 @@ public class TestSliceWriter extends TestCase {
         gm.setBounds(bounds);
         //gm.setDataSource(gyroid);
         //gm.setDataSource(torus);
-        gm.setDataSource(ball);
+        gm.setDataSource(sphere);
         // gm.setTransform(rotation);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);
@@ -210,7 +187,7 @@ public class TestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ball ball = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0,ballRadius);
         DataSources.Torus torus = new DataSources.Torus(0.34*CM, 0.15*CM);
 
         VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
@@ -223,7 +200,7 @@ public class TestSliceWriter extends TestCase {
         gm.setBounds(bounds);
         //gm.setDataSource(gyroid);
         //gm.setDataSource(torus);
-        gm.setDataSource(ball);
+        gm.setDataSource(sphere);
         // gm.setTransform(rotation);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);

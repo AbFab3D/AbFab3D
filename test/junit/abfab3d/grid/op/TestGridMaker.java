@@ -1405,12 +1405,12 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ball ball = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0,ballRadius);
         
         GridMaker gm = new GridMaker();  
 
         gm.setBounds(bounds);
-        gm.setDataSource(ball);
+        gm.setDataSource(sphere);
         gm.setMaxAttributeValue(25);
         gm.setVoxelSize(0.09*MM);
         
@@ -1450,7 +1450,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        //DataSources.Ball shape = new DataSources.Ball(0,0,0,ballRadius);  
+        //DataSources.Sphere shape = new DataSources.Sphere(0,0,0,ballRadius);
         DataSources.Ring shape = new DataSources.Ring(ballRadius - thickness, thickness, width);  
         VecTransforms.Rotation trans = new VecTransforms.Rotation(new Vector3d(1,0,0), Math.PI/6);
 
@@ -1511,7 +1511,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ball shape1 = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Sphere shape1 = new DataSources.Sphere(0,0,0,ballRadius);
         DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness/2, thickness, width);  
         DataSources.Union union = new DataSources.Union();  
         union.addDataSource(shape1);
@@ -1573,7 +1573,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ball shape1 = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Sphere shape1 = new DataSources.Sphere(0,0,0,ballRadius);
         DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness, thickness, width);  
         DataSources.Subtraction subtraction = new DataSources.Subtraction();  
         subtraction.setDataSources(shape1, shape2);
@@ -1634,7 +1634,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ball shape1 = new DataSources.Ball(0,0,0,ballRadius);  
+        DataSources.Sphere shape1 = new DataSources.Sphere(0,0,0,ballRadius);
         DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness/2, thickness, width);  
         DataSources.Intersection intersection = new DataSources.Intersection(); 
         intersection.addDataSource(shape1);
