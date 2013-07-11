@@ -149,7 +149,7 @@ public class DevTestWaveletRasterizer {
     }
 
     // convert triangle set into voxels and back into triangles 
-    static TriangleProducer tri2grid2tri(TriangleProducer tp){
+    static TriangleProducer tri2grid2tri(TriangleProducer tp) throws Exception {
 
         printf("tri2grid2tri()\n");
 
@@ -185,6 +185,7 @@ public class DevTestWaveletRasterizer {
             double smoothWidth = 0.5;
             int maxDecimationCount= 10;
             int threadsCount = 4;
+            int maxAttribute = 255;
             //double voxelSize = 2*s/grid.getWidth();
             
             double maxDecimationError = errorFactor*voxelSize*voxelSize;

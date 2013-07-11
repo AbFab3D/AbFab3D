@@ -564,12 +564,206 @@ public class DevTestSliceWriter extends TestCase {
         return new ReflectionGroup(s);        
     }
 
+    static ReflectionGroup getIcosahedralKaleidoscope(){
+        double t = (sqrt(5)+1)/2;
+
+        Vector3d v5 = new Vector3d(1,0,t); // vertex of icosahedron 
+        Vector3d v3 = new Vector3d(0,1/t,t); // vertex of dodecahedron 
+        Vector3d p35 = new Vector3d(); p35.cross(v5,v3); p35.normalize();
+
+        ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
+            new ReflectionGroup.Plane(new Vector3d(1,0,0), 0.), 
+            new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.), 
+            //new ReflectionGroup.Plane(new Vector3d(0,0,1), 0.), 
+            new ReflectionGroup.Plane(p35, 0.),
+        };
+        return new ReflectionGroup(s);          
+        
+    }
+
+    public static void cylinderTest() throws Exception {
+        
+        printf("cylinderTest()\n");    
+
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
+
+        double s = 16*MM;
+
+        double xmin = -s;
+        double xmax = s;
+
+        double bounds[] = new double[]{xmin, xmax, xmin, xmax, xmin, xmax};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+
+
+        int maxAttributeValue = 63;
+        int blockSize = 50;
+        double errorFactor = 0.05;
+        double smoothWidth = 1;
+        int maxDecimationCount= 10;
+        int threadsCount = 4;
+        double surfareThickness = sqrt(3)/2;//0.5;
+        double maxDecimationError = errorFactor*voxelSize*voxelSize;
+        int nx[] = MathUtil.getGridSize(bounds, voxelSize);
+
+        double ss = 13*MM;
+        double rs = 1*MM;
+
+        printf("grid: [%d x %d x %d]\n", nx[0],nx[1],nx[2]);
+        DataSources.Union union = new DataSources.Union();
+
+        union.add(new DataSources.Ball(ss, ss, ss, rs));
+        union.add(new DataSources.Ball(-ss, ss, ss, rs));
+        union.add(new DataSources.Ball(-ss, -ss, ss, rs));
+        union.add(new DataSources.Ball(ss, -ss, ss, rs));
+        union.add(new DataSources.Ball(ss, ss, -ss, rs));
+        union.add(new DataSources.Ball(-ss, ss, -ss, rs));
+        union.add(new DataSources.Ball(-ss, -ss, -ss, rs));
+        union.add(new DataSources.Ball(ss, -ss, -ss, rs));
+
+        union.add(new DataSources.Cylinder(new Vector3d(-ss,-ss,-ss), new Vector3d(ss, ss, ss), rs));
+        union.add(new DataSources.Cylinder(new Vector3d(-ss,ss,-ss), new Vector3d(ss, -ss, ss), rs));
+        union.add(new DataSources.Cylinder(new Vector3d(-ss,-ss,ss), new Vector3d(ss, ss, -ss), rs));
+        union.add(new DataSources.Cylinder(new Vector3d(ss,-ss,-ss), new Vector3d(-ss, ss, ss), rs));
+
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        
+        gm.setDataSource(union);
+
+        
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfareThickness);
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx[0], nx[1], nx[2], voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        long t0 = time();
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done in %d ms\n", (time() - t0));
+        
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(threadsCount);
+        meshmaker.setSmoothingWidth(smoothWidth);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
+        meshmaker.setMaxAttributeValue(maxAttributeValue);            
+        
+        STLWriter stl = new STLWriter("/tmp/cylinder.stl");
+        meshmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }    
   
+
+    public static void makeIcosahedron() throws Exception {
+        
+        printf("cylinderTest()\n");    
+
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
+
+        double s = 16*MM;
+
+        double xmin = -s;
+        double xmax = s;
+
+        double bounds[] = new double[]{xmin, xmax, xmin, xmax, xmin, xmax};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+
+
+        int maxAttributeValue = 63;
+        int blockSize = 50;
+        double errorFactor = 0.05;
+        double smoothWidth = 1;
+        int maxDecimationCount= 10;
+        int threadsCount = 4;
+        double surfareThickness = sqrt(3)/2;//0.5;
+        double maxDecimationError = errorFactor*voxelSize*voxelSize;
+        int nx[] = MathUtil.getGridSize(bounds, voxelSize);
+
+        double ss = 7*MM;
+        double rs = 1*MM;
+        double T = (sqrt(5) + 1)/2;
+        printf("grid: [%d x %d x %d]\n", nx[0],nx[1],nx[2]);
+        DataSources.Union union = new DataSources.Union();
+        Vector3d v5 = new Vector3d(ss, 0,   ss*T);
+        Vector3d v3 = new Vector3d(0, ss/T, ss*T);
+        Vector3d v2 = new Vector3d(0, 0,    ss*T);
+        
+
+        //union.add(new DataSources.Ball(0, ss/T, ss*T, rs));
+        //union.add(new DataSources.Cylinder(v2, v3, rs));
+        union.add(new DataSources.Cylinder(v5, v3, rs));
+        //union.add(new DataSources.Cylinder(v5, v2, rs));
+        //union.add(new DataSources.Cylinder(v3, v2, rs));
+        union.add(new DataSources.Ball(v3, rs));
+        union.add(new DataSources.Ball(v5, rs));
+
+        VecTransforms.ReflectionSymmetry symm = new VecTransforms.ReflectionSymmetry();
+        //symm.setRiemannSphereRadius(15*MM);
+        symm.setGroup(getIcosahedralKaleidoscope());
+        
+        double sg = 10*MM;
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid();  
+        gyroid.setPeriod(sg);
+        gyroid.setThickness(0.03*sg);
+        //gyroid.setLevel(0);
+        gyroid.setLevel(1.5);
+        gyroid.setOffset(0.25*sg,-0.2*sg,0.*sg);
+
+        DataSources.Intersection intersection = new DataSources.Intersection();
+        intersection.add(new DataSources.Ball(0,0,0,15*MM));
+        intersection.add(gyroid);        
+
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        
+        //gm.setDataSource(union);
+        gm.setDataSource(intersection);
+
+        gm.setTransform(symm);
+        
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfareThickness);
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx[0], nx[1], nx[2], voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        long t0 = time();
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done in %d ms\n", (time() - t0));
+        
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(threadsCount);
+        meshmaker.setSmoothingWidth(smoothWidth);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
+        meshmaker.setMaxAttributeValue(maxAttributeValue);            
+        
+        STLWriter stl = new STLWriter("/tmp/dodecahedron.stl");
+        meshmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }    
+  
+
     public static void main(String[] args) throws Exception {
 
         //gyroCube();
         //triangularShape();
-        hyperBall();
+        //hyperBall();
+        //cylinderTest();
+        makeIcosahedron();
         
     }
 }

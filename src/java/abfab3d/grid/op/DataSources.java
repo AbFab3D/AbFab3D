@@ -24,6 +24,8 @@ import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Vector3d;
+import javax.vecmath.Matrix3d;
+import javax.vecmath.AxisAngle4d;
 
 
 import abfab3d.util.Vec;
@@ -37,6 +39,8 @@ import abfab3d.util.PointToTriangleDistance;
 import abfab3d.util.ImageUtil;
 
 import static java.lang.Math.sqrt;
+import static java.lang.Math.atan2;
+import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -62,6 +66,8 @@ import static abfab3d.util.ImageUtil.us2i;
 
  */
 public class DataSources {
+
+    static final double EPSILON = 1.e-8;
 
     /**
 
@@ -199,6 +205,10 @@ public class DataSources {
 
         private double x0, y0, z0;
 
+        public Ball(Vector3d c, double r){
+            this(c.x, c.y, c.z, r);
+        }
+
         public Ball(double x0, double y0, double z0, double r){
             R = r;
             R2 = 2*r;
@@ -224,31 +234,92 @@ public class DataSources {
 
             double vs = pnt.getScaledVoxelSize();
 
-            // good approximation to the distance to the surface of the ball).x 
-            if(vs > 2*R){
-                data.v[0] = 1;
-                return RESULT_OK;
-            }
-                
-            double rv = (R + vs); // add slight growing with voxel size 
-            double dist = ((x*x + y*y + z*z) - rv*rv)/(2*rv);
-            //double dist = (Math.sqrt(x*x + y*y + z*z) - R);//)/(R2);
-
-            if(dist <= -vs){
-                data.v[0] = 1;
-            } else if(dist >= vs){
-                data.v[0] = 0;
-            } else {// we are near the surface - return interpolation
-                data.v[0] = interpolate_linear(dist/vs);
-                //data.v[0] = interpolate_cubic(dist/vs);
-            }
-
-
+            //double rv = (R); // add slight growing with voxel size ? 
+            
+            // good approximation to the distance to the surface of the ball).x                             
+            //double dist = ((x*x + y*y + z*z) - rv*rv)/(2*rv);
+            double r = Math.sqrt(x*x + y*y + z*z);//)/(R2);
+            data.v[0] = step10(r, this.R, vs);
+            
             return RESULT_OK;
         }
 
     }  // class Ball
 
+
+    /**
+       cylinder with given ends and radius 
+     */
+    public static class Cylinder implements DataSource {
+
+        private double R; // cylinder radius 
+        private double h2; // cylnder's half height of
+        private Vector3d center;
+        Matrix3d rotation;
+        static final Vector3d Yaxis = new Vector3d(0,1,0);
+
+        public Cylinder(Vector3d v0, Vector3d v1, double r){
+
+            this.R = r;
+            center = new Vector3d(v0);
+            center.add(v1);
+            center.scale(0.5);
+            Vector3d caxis = new Vector3d(v1); // cylinder axis 
+            caxis.sub(center);
+            
+            this.h2 = caxis.length();
+            
+            caxis.normalize();
+
+            // rotation axis 
+            Vector3d raxis = new Vector3d();
+            raxis.cross(caxis, Yaxis); 
+            double sina = raxis.length();
+            double cosa = Yaxis.dot(caxis);
+            if(abs(sina) < EPSILON) { // zero angle 
+                //TODO do something smart 
+                raxis = new Vector3d(0,1,0);
+            }
+            raxis.normalize();
+            double angle = atan2(sina, cosa);
+            rotation = new Matrix3d();
+            rotation.set(new AxisAngle4d(raxis, angle));
+        }
+
+        /**
+         * returns 1 if pnt is inside of cylinder
+         * returns intepolated value if point is within voxel size to the boundary
+         * returns 0 if pnt is outside the ball
+         */
+        public int getDataValue(Vec pntIn, Vec data) {
+            
+            Vec pnt = new Vec(pntIn);
+            canonicalTransform(pnt);            
+            // cylinder is along Y axis with center at origin             
+            double x = pnt.v[0];            
+            double y = abs(pnt.v[1]);
+            double z = pnt.v[2];
+            double vs = pnt.getScaledVoxelSize();
+            
+            double baseCap = step10(y, this.h2, vs);
+            if(baseCap == 0.0){
+                data.v[0] = 0;
+                return RESULT_OK;
+            }
+
+            double r = sqrt(x*x + z*z);
+            double sideCap = step10(r, this.R, vs);            
+            if(sideCap < baseCap)baseCap = sideCap;
+            data.v[0] = baseCap;
+            return RESULT_OK;
+        }
+        // move cylinder into canononical position with center at origin and cylinder axis aligned with Y-axis 
+        protected void canonicalTransform(Vec pnt){
+            pnt.subSet(center);
+            pnt.mulSetLeft(rotation);
+        }
+
+    }  // class Cylinder
 
     public static class Torus implements DataSource {
 
@@ -352,11 +423,7 @@ public class DataSources {
                     return RESULT_OK;
                 }
 
-                //value += v *(1 - value); //1-(1-value)*(1-v);
-                value += v;
-                if(value > 1) value = 1;
-
-                //if( v > value) value = v;
+                if( v > value) value = v;
             }
 
             data.v[0] = value;
@@ -922,6 +989,7 @@ public class DataSources {
             return RESULT_OK;             
         }                
     } // class Triangle 
+
 
 
     //

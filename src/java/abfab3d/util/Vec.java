@@ -13,6 +13,7 @@
 package abfab3d.util;
 
 import javax.vecmath.Tuple3d;
+import javax.vecmath.Matrix3d;
 
 
 import static abfab3d.util.Output.printf;
@@ -94,4 +95,23 @@ public class Vec {
         voxelSize = in.voxelSize;
         scaleFactor = in.scaleFactor;
     }
+
+    public void subSet(Tuple3d a){
+        v[0] -= a.x;
+        v[1] -= a.y;
+        v[2] -= a.z;
+
+    }
+
+    // multiply vector to given matrix from the left 
+    public void mulSetLeft(Matrix3d m){
+        //TODO 
+        double x = m.m00 * v[0] + m.m01 * v[1] + m.m02 * v[2];
+        double y = m.m10 * v[0] + m.m11 * v[1] + m.m12 * v[2];
+        double z = m.m20 * v[0] + m.m21 * v[1] + m.m22 * v[2];
+        v[0] = x;
+        v[1] = y;
+        v[2] = z;
+    }
+
 }
