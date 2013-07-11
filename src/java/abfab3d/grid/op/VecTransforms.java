@@ -291,6 +291,16 @@ public class VecTransforms {
 
         protected double tx = 1, ty = 1, tz = 1; 
 
+        public Translation(){
+            setTranslation(0,0,0);
+        }
+
+        public Translation(double tx, double ty, double tz){
+
+            setTranslation(tx, ty, tz);
+
+        }
+
         public void setTranslation(double tx, double ty, double tz){
 
             this.tx = tx;

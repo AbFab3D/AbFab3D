@@ -17,7 +17,7 @@ package abfab3d.grid.op;
 
 import java.util.Vector;
 
-        import javax.vecmath.Vector3d;
+import javax.vecmath.Vector3d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
@@ -27,16 +27,18 @@ import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 
-        import abfab3d.util.PointToTriangleDistance;
+import abfab3d.util.PointToTriangleDistance;
 
-        import static java.lang.Math.sqrt;
+import static java.lang.Math.sqrt;
 import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 
 
-        import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.util.Units.MM;
+
 
 /**
 
@@ -82,6 +84,7 @@ public class DataSources {
             setSize(sx, sy, sz);
 
         }
+
 
         public void setSmoothBoundaries(boolean boundaryX,boolean boundaryY,boolean boundaryZ){
             m_hasSmoothBoundaryX = boundaryX;
@@ -174,31 +177,47 @@ public class DataSources {
             }
         }
 
-    }  // class Block
+    }  // class Box
 
     /**
        Sphere with given location and radius
      */
-    public static class Sphere implements DataSource {
+    public static class Sphere extends TransformableDataSource {
 
         private double R, R2, RR;
 
         private double x0, y0, z0;
 
+        public Sphere(){
+            this(0.,0.,0.,1*MM);
+        }
         public Sphere(Vector3d c, double r){
             this(c.x, c.y, c.z, r);
         }
 
         public Sphere(double x0, double y0, double z0, double r){
-            R = r;
-            R2 = 2*r;
-            RR = r*r;
+
+            setCenter(x0, y0, z0);
+            setRadius(r);
+            
+        }
+
+        public void setCenter(double x, double y, double z){
+            
             this.x0 = x0;
             this.y0 = y0;
             this.z0 = z0;
+            
+        }
+        
+        public void setRadius(double r){
+        
+            R = r;
+            R2 = 2*r;
+            RR = r*r;
 
         }
-
+        
         /**
          * returns 1 if pnt is inside of ball
          * returns intepolated value if poiunt is within voxel size to the boundary
@@ -206,6 +225,8 @@ public class DataSources {
          */
         public int getDataValue(Vec pnt, Vec data) {
 
+            super.transform(pnt);
+            
             double res = 1.;
             double
                 x = pnt.v[0]-x0,
@@ -1012,5 +1033,5 @@ public class DataSources {
 
     }  // class LimitSet
 
-}
+} // class DataSources 
 

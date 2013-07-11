@@ -629,7 +629,7 @@ public class DevTestSliceWriter extends TestCase {
 
     public static void makeIcosahedron() throws Exception {
         
-        printf("cylinderTest()\n");    
+        printf("makeIcosahedron()\n");    
 
         double voxelSize = 0.1*MM;
         double margin = 1*voxelSize;
@@ -721,13 +721,93 @@ public class DevTestSliceWriter extends TestCase {
         stl.close();
         
     }    
-  
+
+
+    public static void testTransformableSphere() throws Exception {
+        
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
+
+        double s = 16*MM;
+
+        double xmin = -s;
+        double xmax = s;
+
+        double bounds[] = new double[]{xmin, xmax, xmin, xmax, xmin, xmax};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+
+
+        int maxAttributeValue = 63;
+        int blockSize = 50;
+        double errorFactor = 0.05;
+        double smoothWidth = 1;
+        int maxDecimationCount= 10;
+        int threadsCount = 0;
+        double surfareThickness = sqrt(3)/2;
+        double maxDecimationError = errorFactor*voxelSize*voxelSize;
+        int nx[] = MathUtil.getGridSize(bounds, voxelSize);
+
+        double sr = 2*MM;
+
+        DataSources.Sphere sphere = new DataSources.Sphere();
+        sphere.setRadius(sr);
+        sphere.setTransform(new VecTransforms.Translation(2.*MM,0,0));
+        
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfareThickness);        
+        gm.setDataSource(sphere);        
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx[0], nx[1], nx[2], voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+        
+        long t0 = time();
+        printf("gm.makeGrid()\n");
+        if(false){
+            for(int i = -3; i < 3; i++){
+                sphere.setTransform(new VecTransforms.Translation(i*3*MM,0,0));
+                gm.makeGrid(grid);               
+            }
+        }
+        if(true){
+            DataSources.Union union = new DataSources.Union();
+            for(int i = -3; i < 3; i++){
+                DataSources.Sphere sph = new DataSources.Sphere();
+                sph.setTransform(new VecTransforms.Translation(i*3*MM,0,0));
+                union.add(sphere);
+            }            
+            gm.setDataSource(union);
+            gm.makeGrid(grid);               
+        }
+
+        printf("gm.makeGrid() done in %d ms\n", (time() - t0));
+        
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(threadsCount);
+        meshmaker.setSmoothingWidth(smoothWidth);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
+        meshmaker.setMaxAttributeValue(maxAttributeValue);            
+        
+        STLWriter stl = new STLWriter("/tmp/sphere.stl");
+        meshmaker.makeMesh(grid, stl);
+        stl.close();
+        
+    }
+
 
     public static void main(String[] args) throws Exception {
 
         //gyroCube();
         //triangularShape();
-        hyperBall();
-        
+        //hyperBall();
+
+        //makeIcosahedron();
+        testTransformableSphere();
     }
 }
