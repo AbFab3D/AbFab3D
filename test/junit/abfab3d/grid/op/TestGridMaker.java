@@ -103,7 +103,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Block box = new DataSources.Block();
+        DataSources.Box box = new DataSources.Box();
         box.setSize(ringDiameter*Math.PI,ringWidth, ringThickness);
         box.setLocation(0,0, ringThickness/2);
         
@@ -236,7 +236,7 @@ public class TestGridMaker extends TestCase {
         tiling.setDataSource(image);
         tiling.setTransform(compTrans);
         
-        DataSources.Block box = new DataSources.Block();
+        DataSources.Box box = new DataSources.Box();
         box.setSize(rectWidth, rectHeight, rectDepth);
         DataSources.Intersection clip = new DataSources.Intersection();
         
@@ -597,7 +597,7 @@ public class TestGridMaker extends TestCase {
         image.setTiles(12, 1);
         image.setImagePath("docs/images/Tile_DecorativeCeiling_1k_h.png");
 
-        DataSources.Block topBand = new DataSources.Block();
+        DataSources.Box topBand = new DataSources.Box();
         topBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
         topBand.setLocation(0, ringWidth/2, bandThickness/2);
 
@@ -1300,7 +1300,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Block box = new DataSources.Block();
+        DataSources.Box box = new DataSources.Box();
         box.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
         box.setLocation(0,0,ringThickness/2);
         
@@ -1773,7 +1773,7 @@ public class TestGridMaker extends TestCase {
 
         for(int i = 0; i < 5; i++){
 
-            DataSources.Block shape1 = new DataSources.Block(0,0,0, 2*ballRadius, thickness, width);  
+            DataSources.Box shape1 = new DataSources.Box(0,0,0, 2*ballRadius, thickness, width);
             DataSources.DataTransformer shape1t = new DataSources.DataTransformer();
             VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,0,1), i*Math.PI/5);
             shape1t.setDataSource(shape1);

@@ -126,7 +126,7 @@ public class DevTestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
-        DataSources.Block block = new DataSources.Block(0,0,0, 2*s, 2*s, 2*s);
+        DataSources.Box block = new DataSources.Box(0,0,0, 2*s, 2*s, 2*s);
         
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid();  
         gyroid.setPeriod(s);
@@ -761,9 +761,7 @@ public class DevTestSliceWriter extends TestCase {
 
         //gyroCube();
         //triangularShape();
-        //hyperBall();
-        //cylinderTest();
-        makeIcosahedron();
+        hyperBall();
         
     }
 }
