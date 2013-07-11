@@ -263,6 +263,10 @@ public class Main
             }
             String arg = args[i];
             if (!arg.startsWith("-")) {
+                if (arg.equals("${script}")) {
+                    // ignore
+                    continue;
+                }
                 processStdin = false;
                 fileList.add(arg);
                 mainModule = arg;
