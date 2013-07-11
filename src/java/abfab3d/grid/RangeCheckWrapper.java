@@ -37,16 +37,17 @@ public class RangeCheckWrapper implements GridWrapper {
 
     /** Should we check conversion like getGridCoords */
     private boolean checkConversion;
-    
+
+    /** Should we expand the grid if out of range */
+    private boolean expandGrid;
+
     /**
      * Constructor.
      *
      * @param grid The grid to wrap
      */
     public RangeCheckWrapper(Grid grid) {
-        setGrid(grid);
-
-        checkConversion = true;
+        this(grid,true,false);
     }
 
     /**
@@ -56,11 +57,22 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param checkConversions Should we check read accesses.
      */
     public RangeCheckWrapper(Grid grid, boolean checkConversions) {
-        setGrid(grid);
-        
-        checkConversion = checkConversions;
+        this(grid,checkConversions, false);
     }
-    
+
+    /**
+     * Constructor.
+     *
+     * @param grid The grid to wrap
+     * @param checkConversions Should we check read accesses.
+     */
+    public RangeCheckWrapper(Grid grid, boolean checkConversions, boolean expandGrid) {
+        setGrid(grid);
+
+        checkConversion = checkConversions;
+        this.expandGrid = expandGrid;
+    }
+
     /**
      * Copy Constructor.
      *
@@ -78,6 +90,8 @@ public class RangeCheckWrapper implements GridWrapper {
         this.width = wrap.width;
         this.height = wrap.height;
         this.depth = wrap.depth;
+        this.checkConversion = wrap.checkConversion;
+        this.expandGrid = wrap.expandGrid;
     }
 
     /**
@@ -422,6 +436,9 @@ public class RangeCheckWrapper implements GridWrapper {
         verifyGrid();
 
         if (x < 0 || x > width - 1) {
+            if (expandGrid) {
+                //expand(x,y,z);
+            }
             throw new IllegalArgumentException("x value invalid: " + x);
         }
 
@@ -469,6 +486,25 @@ public class RangeCheckWrapper implements GridWrapper {
         if (grid == null) {
             throw new NullPointerException("Grid has not been set");
         }
+    }
+
+    /**
+     * Expand the grid to contain at least this point.  Centers the existing grid inside the new grid
+     * and expands the bounds of the grid.
+     *
+     * @param x
+     * @param y
+     * @param z
+     */
+    private void expandGrid(int x, int y, int z) {
+        int w;
+        int h;
+        int d;
+
+        if (x < 0) {
+
+        }
+        //Grid new_grid = grid.createEmpty(w,h,d,grid.getVoxelSize(),grid.getSliceHeight());
     }
 
     /**
