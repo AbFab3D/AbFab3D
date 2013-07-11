@@ -82,7 +82,11 @@ public class DataSourceGrid implements DataSource, Initializable {
             printf("xscale: (%10.7f,%10.7f,%10.7f) \n", xscale,yscale,zscale);
         }
     }
-    
+
+    public DataSourceGrid(AttributeGrid grid, int maxAttributeValue){
+        this(grid,null,maxAttributeValue);
+    }
+
     public int initialize(){
         
         return RESULT_OK;
