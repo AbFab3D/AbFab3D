@@ -97,11 +97,19 @@ public class MathUtil {
        round the bounds to the voxel boundary. 
        upper boundary grows up, lower boundary grows down 
      */
-    public static void roundBounds(double bounds[], double voxelSize){
+    public static double[] roundBounds(double bounds[], double voxelSize){
         for(int i =0; i < 3; i++){
             bounds[2*i] = voxelSize*Math.floor(bounds[2*i]/voxelSize);
             bounds[2*i + 1] = voxelSize*Math.ceil(bounds[2*i+1]/voxelSize);
         }
+        return bounds;
+    }
+    
+    public static int[] getGridSize(double bounds[], double voxelSize){
+        int n[] = new int[3];
+        for(int i = 0; i < 3; i++)
+            n[i] = (int)((bounds[2*i+1] - bounds[2*i])/voxelSize + 0.5);
+        return n;
     }
     
     /**

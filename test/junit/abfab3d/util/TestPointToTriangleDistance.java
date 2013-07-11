@@ -105,5 +105,21 @@ public class TestPointToTriangleDistance extends TestCase {
     }
 
 
+    public void testNegativeDistance(){
+        //v:  9.84385141970472100e-03 1.70822026594486320e-03 0.00000000000000000e+00
+        //v0: 9.95184726672196900e-03 9.80171403295605800e-04 0.00000000000000000e+00
+        //v1: 9.87883124233685100e-03 1.47140661366339200e-03 -4.93615095693959100e-04
+        //v2: 9.80785280403230500e-03 1.95090322016128260e-03 0.00000000000000000e+00
+        // these params return negative distance as a result of round off errors 
+        Vector3d v  = new Vector3d(9.843851419704721e-03,  1.7082202659448632e-03, 0.0);
+        Vector3d v0 = new Vector3d(9.951847266721969e-03, 9.8017140329560580e-04, 0.0);
+        Vector3d v1 = new Vector3d(9.878831242336851e-03, 1.4714066136633920e-03, -4.936150956939591e-04);
+        Vector3d v2 = new Vector3d(9.807852804032305e-03, 1.9509032201612826e-03, 0.0);
+        double d = PointToTriangleDistance.getSquared(v, v0, v1, v2);
+        assertTrue("positive distance squared", d >= 0.);
+        
+        printf("distance: %21.17e\n", d);
+    }
+
     
 }

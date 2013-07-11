@@ -12,14 +12,20 @@
 
 package abfab3d.io.input;
 
+import javax.vecmath.Vector3d;
+
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.MathUtil;
+import abfab3d.util.TriangleProducer;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.io.output.SlicesWriter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
+import abfab3d.mesh.MeshDistance;
+
+import abfab3d.geom.TriangulatedModels;
 
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
@@ -116,8 +122,97 @@ public class DevTestWaveletRasterizer {
         }
     }
     
+    public static void testSphere()throws Exception {
+        
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10.*MM, new Vector3d(0,0,0), 10, 0.001*MM);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(10.*MM, new Vector3d(0,0,0), 10, 0.001*MM);
+              
+        MeshDistance md = new MeshDistance();
+        md.setMaxTriangleSize(0.2*MM);
+        md.setTriangleSplit(true);
+        md.setHashDistanceValues(true);
+        md.setUseTriBuckets(true);
+        md.setTriBucketSize(0.3*MM);
+
+        md.measure(source, target);  
+        long t0 = time();
+        printf("  HDF distance: %6.4f mm\n", md.getHausdorffDistance()/MM);
+        printf("  L_1 distance: %6.4f mm\n", md.getL1Distance()/MM);
+        printf("  L_2 distance: %6.4f mm\n", md.getL2Distance()/MM);
+        printf("  min distance: %6.4f mm\n", md.getMinDistance()/MM);        
+        printf("  measure time: %d ms\n", (time() - t0));
+        
+        tri2grid2tri(source);
+
+        //writeSTL(source, "/tmp/mesh_source.stl");
+        //writeSTL(target, "/tmp/mesh_target.stl");
+    }
+
+    // convert triangle set into voxels and back into triangles 
+    static TriangleProducer tri2grid2tri(TriangleProducer tp){
+
+        printf("tri2grid2tri()\n");
+
+        double voxelSize = 0.1*MM;
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        tp.getTriangles(bb);
+        double bounds[] = bb.getRoundedBounds(voxelSize);
+        int gn[] = MathUtil.getGridSize(bounds, voxelSize);
+        printf("grid [%d x %d x %d]\n", gn[0], gn[1], gn[2]);
+
+        WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, gn[0], gn[1],gn[2]);
+        
+        rasterizer.setMaxAttributeValue(255);
+        
+        long t0 = time();
+
+        tp.getTriangles(rasterizer);
+
+        printf("octree calculation: %d ms\n", (time() - t0));
+        
+        AttributeGrid grid = new ArrayAttributeGridByte(gn[0],gn[1],gn[2], voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        t0 = time();
+        
+        rasterizer.getRaster(grid);
+
+        printf("grid calculation: %d ms\n", (time() - t0));
+        
+        if(true){
+            int blockSize = 50;
+            double errorFactor = 0.5;
+            double smoothWidth = 0.5;
+            int maxDecimationCount= 10;
+            int threadsCount = 4;
+            //double voxelSize = 2*s/grid.getWidth();
+            
+            double maxDecimationError = errorFactor*voxelSize*voxelSize;
+            
+            MeshMakerMT meshmaker = new MeshMakerMT();
+            meshmaker.setBlockSize(blockSize);
+            meshmaker.setThreadCount(threadsCount);
+            meshmaker.setSmoothingWidth(smoothWidth);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setMaxDecimationCount(maxDecimationCount);
+            meshmaker.setMaxAttributeValue(maxAttribute);            
+            
+            STLWriter stlw = new STLWriter("/tmp/raster_to_voxels_0.1.stl");
+            meshmaker.makeMesh(grid, stlw);
+            stlw.close();
+        }
+        return null;
+    } 
+
+    static void writeSTL(TriangleProducer tp, String path) throws Exception {
+        STLWriter stl = new STLWriter(path);
+        tp.getTriangles(stl);
+        stl.close();
+    }
+
     public static void main(String arg[]) throws Exception {
-        testSTLfile();
+        //testSTLfile();
+        testSphere();
     }
 
 }
