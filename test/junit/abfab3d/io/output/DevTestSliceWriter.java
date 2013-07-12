@@ -835,10 +835,9 @@ public class DevTestSliceWriter extends TestCase {
 
         //gyroCube();
         //triangularShape();
-        hyperBall();
+        //hyperBall();
 
         //makeIcosahedron();
-        //testTransformableSphere();
-
+        testTransformableSphere();
     }
 }

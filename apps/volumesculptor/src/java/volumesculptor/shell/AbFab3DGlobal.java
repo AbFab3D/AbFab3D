@@ -270,6 +270,7 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             dest = new ArrayAttributeGridByte(gs[0], gs[1], gs[2], vs, vs);
         }
 
+        dest.setGridBounds(grid_bounds);
         System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs);
         return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
     }

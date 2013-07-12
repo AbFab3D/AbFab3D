@@ -31,7 +31,7 @@ public class World {
 
         maker = new GridMaker();
         maker.setVoxelSize(grid.getVoxelSize() * Math.sqrt(3.0)/2.0);
-        maker.setBounds(bounds);
+        //maker.setBounds(bounds);
         maker.setThreadCount(Runtime.getRuntime().availableProcessors());
         grid.getGridBounds(bounds);
     }
@@ -51,13 +51,13 @@ public class World {
     public void setBounds(double[] val) {
         bounds = val.clone();
         grid.setGridBounds(bounds);
-        maker.setBounds(bounds);
+        //maker.setBounds(bounds);
     }
 
     public void setGrid(AttributeGrid grid) {
         this.grid = grid;
         grid.getGridBounds(bounds);
-        maker.setBounds(bounds);
+        //maker.setBounds(bounds);
         maker.setVoxelSize(grid.getVoxelSize() * Math.sqrt(3.0)/2.0);
     }
 
