@@ -8,6 +8,7 @@ package shell;
 
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.GridShortIntervals;
 import abfab3d.io.input.STLReader;
 import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.output.GridSaver;
@@ -230,26 +231,34 @@ public class AbFab3DGlobal extends ImporterTopLevel {
     public static Object createGrid(Context cx, Scriptable thisObj,
                             Object[] args, Function funObj) {
 
-        AttributeGrid grid = null;
-        if (args.length > 0) {
-            if (args[0] instanceof AttributeGrid) {
-                grid = (AttributeGrid) args[0];
-            } else if (args[0] instanceof NativeJavaObject) {
-                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
-            }
+        if (args.length != 7) {
+            System.out.println("CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize");
         }
 
-        if (grid == null) {
-            grid = (AttributeGrid) thisObj.get("grid", thisObj);
+        double[] grid_bounds = new double[6];
+        grid_bounds[0] = (Double) args[0];
+        grid_bounds[1] = (Double) args[1];
+        grid_bounds[2] = (Double) args[2];
+        grid_bounds[3] = (Double) args[3];
+        grid_bounds[4] = (Double) args[4];
+        grid_bounds[5] = (Double) args[5];
+
+        double vs = (Double) args[6];
+
+        grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
+        int[] gs = MathUtil.getGridSize(grid_bounds, vs);
+
+        AttributeGrid dest = null;
+
+        long voxels = gs[0] * gs[1] * gs[2];
+        long MAX_MEMORY = 1000l * 1000 * 1000;
+        if (voxels > MAX_MEMORY) {
+            dest = new GridShortIntervals(gs[0], gs[1], gs[2], vs, vs);
+        } else {
+            dest = new ArrayAttributeGridByte(gs[0], gs[1], gs[2], vs, vs);
         }
 
-        double[] bounds = (double[]) thisObj.get("bounds", thisObj);
-
-        AttributeGrid dest = (AttributeGrid) grid.createEmpty(grid.getWidth(),grid.getHeight(),grid.getDepth(), grid.getVoxelSize(), grid.getSliceHeight());
-
-        System.out.println("new grid bounds: " + java.util.Arrays.toString(bounds));
-        dest.setGridBounds(bounds);
-
+        System.out.println("Creating grid: " + java.util.Arrays.toString(gs));
         return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
     }
 
