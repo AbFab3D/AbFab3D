@@ -354,17 +354,13 @@ public class DevTestSliceWriter extends TestCase {
         double xmax = s;
         double ymin = -s;
         double ymax = s;
-        double zmin = -8*MM;
-        double zmax = 8*MM;
+        double zmin = -s;
+        double zmax = s;
         
 
-        double bounds[] = new double[]{xmin, xmax, ymin, ymax, zmin, zmax};
-        
+        double bounds[] = new double[]{xmin, xmax, ymin, ymax, zmin, zmax};        
         MathUtil.roundBounds(bounds, voxelSize);
-        printf("round bounds: [%10.5f %10.5f %10.5f %10.5f %10.5f %10.5f]MM\n", bounds[0]/MM,bounds[1]/MM,bounds[2]/MM,bounds[3]/MM,bounds[4]/MM,bounds[5]/MM);
-        bounds = MathUtil.extendBounds(bounds, margin);
-        printf("ext bounds: [%10.5f %10.5f %10.5f %10.5f %10.5f %10.5f]MM\n", bounds[0]/MM,bounds[1]/MM,bounds[2]/MM,bounds[3]/MM,bounds[4]/MM,bounds[5]/MM);
-        
+        bounds = MathUtil.extendBounds(bounds, margin);        
 
         int maxAttributeValue = 63;
         int blockSize = 50;
@@ -384,8 +380,13 @@ public class DevTestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize + 0.5);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Sphere sphere = new DataSources.Sphere(4*MM,4*MM,4*MM, 5*MM);
-        
+        //DataSources.Sphere sphere = new DataSources.Sphere(4*MM,4*MM,4*MM, 5*MM);
+        DataSources.Sphere sphere = new DataSources.Sphere(0*MM,0*MM,0*MM, 0.75*MM);
+        //DataSources.Cylinder cylinder = new DataSources.Cylinder(new Vector3d(0,0,0), new Vector3d(15*MM,15*MM,15*MM), 0.75*MM);
+        DataSources.Cylinder cylinder = new DataSources.Cylinder(new Vector3d(0,0,0), new Vector3d(0,0,20*MM), 0.75*MM);
+        //DataSources.Cylinder cylinder = new DataSources.Cylinder(new Vector3d(0,3*MM,0), new Vector3d(6*MM,4*MM,0), 0.75*MM);
+        cylinder.setScaleFactor(1);
+
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(8*MM, 0.8*MM);  
 
         VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
@@ -395,11 +396,15 @@ public class DevTestSliceWriter extends TestCase {
         gm.setBounds(bounds);
         
         VecTransforms.ReflectionSymmetry symm = new VecTransforms.ReflectionSymmetry();
-        symm.setRiemannSphereRadius(15*MM);
+        //symm.setRiemannSphereRadius(15*MM);
+        symm.setRiemannSphereRadius(10*MM);
 
-        DataSources.Intersection intersection = new DataSources.Intersection();
+        DataSources.LimitSet limitSet = new DataSources.LimitSet(0.1*MM, 0.01);
+        
         DataSources.Union union = new DataSources.Union();
-        DataSources.LimitSet limitSet = new DataSources.LimitSet(0.6*MM, 0.01);
+        union.add(sphere);
+        union.add(cylinder);
+        union.add(limitSet);
 
         //symm.setGroup(getTwoPlanes(0, 5*MM));
         //symm.setGroup(getTwoSpheres(8*MM, 10*MM));
@@ -407,31 +412,40 @@ public class DevTestSliceWriter extends TestCase {
         //symm.setGroup(getPlaneAndSphere(15*MM, 14.99*MM));
         //symm.setGroup(getPlaneAndSphere(10*MM, -20*MM));
         //symm.setGroup(getQuad(20*MM, 20*MM, 28*MM, PI/3));
-        symm.setGroup(getQuad1(20*MM, 25*MM, PI/3));
+        //symm.setGroup(getQuad1(20*MM, 25*MM, PI/3));
+        //symm.setGroup(getXYZ(20*MM, PI/3,PI/3,PI/8));
+        symm.setGroup(getXYZ(20*MM, PI/3,PI/3,PI/5));
         gm.setThreadCount(threadCount);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);
         
         ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
         grid.setGridBounds(bounds);
-        intersection.add(sphere);
-        intersection.add(gyroid);
 
+
+        DataSources.Intersection intersection = new DataSources.Intersection();
+        DataSources.DataTransformer fractal = new DataSources.DataTransformer();
+        fractal.setDataSource(union);
+        fractal.setTransform(symm);
+
+        intersection.add(fractal);
+        intersection.add(new DataSources.Cylinder(new Vector3d(0, 0*MM, 0),new Vector3d(0, -4*MM, 0),20*MM));       
+        
         //union.add(new DataSources.Sphere(8*MM,2*MM,-3*MM, 3*MM));
         //union.add(new DataSources.Sphere(4*MM,0.*MM,-2*MM, 2*MM));
         //union.add(new DataSources.Sphere(0*MM,0.*MM,-3*MM, 3.*MM));
-        union.add(intersection);
+        //union.add(intersection);
         //union.add(limitSet);
         
         printf("gm.makeGrid()\n");
 
         //gm.setDataSource(sphere);
-        //gm.setDataSource(intersection);
-        gm.setDataSource(union);        
+        gm.setDataSource(intersection);
+        //gm.setDataSource(union);        
         //gm.setDataSource(limitSet);
 
         //gm.setDataSource(gyroid);
-        gm.setTransform(symm);
+        //gm.setTransform(symm);
         gm.makeGrid(grid);   
        
         printf("gm.makeGrid() done\n");
@@ -491,6 +505,7 @@ public class DevTestSliceWriter extends TestCase {
         return new ReflectionGroup(s);
         
     }
+
     static ReflectionGroup getQuad(double r1, double r2, double x1, double alpha){
 
         double y2 = sqrt(r1*r1 + r2*r2 + 2*r1*r2*cos(alpha) - x1*x1);
@@ -544,6 +559,21 @@ public class DevTestSliceWriter extends TestCase {
             new ReflectionGroup.Plane(p35, 0.),
         };
         return new ReflectionGroup(s);          
+        
+    }
+
+    static ReflectionGroup getXYZ(double r, double ax,double ay, double az){
+        double dx = r*cos(ax);
+        double dy = r*cos(ay);
+        double dz = r*cos(az);
+        
+        ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
+            new ReflectionGroup.Plane(new Vector3d(1,0,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(0,0,1), 0.), // 
+            new ReflectionGroup.Sphere(new Vector3d(dx, dy, dz), -r), // outside of sphere  
+        };   
+        return new ReflectionGroup(s);
         
     }
 
@@ -805,9 +835,10 @@ public class DevTestSliceWriter extends TestCase {
 
         //gyroCube();
         //triangularShape();
-        //hyperBall();
+        hyperBall();
 
         //makeIcosahedron();
-        testTransformableSphere();
+        //testTransformableSphere();
+
     }
 }

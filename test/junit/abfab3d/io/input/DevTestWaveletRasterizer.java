@@ -39,14 +39,14 @@ public class DevTestWaveletRasterizer {
     public static void testSTLfile() throws Exception {
                 
         //int level = 9;
-        int maxAttribute = 63;
+        int maxAttribute = 255;
         //double bounds[] = new double[]{0.,1.,0.,1.,0.,1.};
-        double voxelSize = 0.15*MM;
+        double voxelSize = 0.1*MM;
         
 
-        String filePath = "/tmp/stl/mm3mstl.stl";
+        //String filePath = "/tmp/stl/mm3mstl.stl";
         //String filePath = "/tmp/00_image_1x1.stl";
-        //String filePath = "/tmp/dodecahedron_1a_100mm.stl";
+        String filePath = "/tmp/dodecahedron_1a_100mm.stl";
         //String filePath = "/tmp/00_image_4x4_bad.stl";
         //String filePath = "/tmp/star_400.stl";
         
@@ -56,30 +56,22 @@ public class DevTestWaveletRasterizer {
         STLReader stl = new STLReader();
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         stl.read(filePath, bb);        
-        double bounds[] = new double[6];
-        bb.getBounds(bounds);
-        printf(" bounds:[(%7.2f %7.2f) (%7.2f %7.2f) (%7.2f %7.2f)] MM \n", bounds[0]/MM,bounds[1]/MM,bounds[2]/MM,bounds[3]/MM,bounds[4]/MM,bounds[5]/MM);
-        MathUtil.roundBounds(bounds, voxelSize);
+        double bounds[] = bb.getRoundedBounds(voxelSize);
+        
         printf("rbounds:[(%7.2f %7.2f) (%7.2f %7.2f) (%7.2f %7.2f)] MM \n", bounds[0]/MM,bounds[1]/MM,bounds[2]/MM,bounds[3]/MM,bounds[4]/MM,bounds[5]/MM);
         bounds = MathUtil.extendBounds(bounds, 1*voxelSize);
-        printf("ebounds:[(%7.2f %7.2f) (%7.2f %7.2f) (%7.2f %7.2f)] MM \n", bounds[0]/MM,bounds[1]/MM,bounds[2]/MM,bounds[3]/MM,bounds[4]/MM,bounds[5]/MM);
-        int nx = (int)Math.round((bounds[1] - bounds[0])/voxelSize);
-        int ny = (int)Math.round((bounds[3] - bounds[2])/voxelSize);
-        int nz = (int)Math.round((bounds[5] - bounds[4])/voxelSize);
+        int gn[] = MathUtil.getGridSize(bounds, voxelSize);
 
-        printf("grid size: [%d x %d x %d]\n", nx, ny, nz);
+        printf("grid size: [%d x %d x %d]\n", gn[0], gn[1], gn[2]);
         
-        WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
-        
+        //MeshRasterizer rasterizer = new MeshRasterizer(bounds, gn[0],gn[1], gn[2]);  
+        WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, gn[0],gn[1], gn[2]);  
         rasterizer.setMaxAttributeValue(maxAttribute);
         
         long t0 = time();
-
         stl.read(filePath, rasterizer); 
-
-        printf("octree calculation: %d ms\n", (time() - t0));
-        
-        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        printf("octree calculation: %d ms\n", (time() - t0));        
+        AttributeGrid grid = new ArrayAttributeGridByte(gn[0],gn[1], gn[2], voxelSize, voxelSize);
         grid.setGridBounds(bounds);
         //AttributeGrid grid = new ArrayAttributeGridByte(64, 64, 64, voxelSize, voxelSize);
         t0 = time();
@@ -99,8 +91,10 @@ public class DevTestWaveletRasterizer {
 
         if(true){
             int blockSize = 50;
-            double errorFactor = 0.5;
-            double smoothWidth = 0.5;
+            //double errorFactor = 0.5;
+            double errorFactor = 0.1;
+            //double smoothWidth = 0.5;
+            double smoothWidth = 0.2;
             int maxDecimationCount= 10;
             int threadsCount = 4;
             //double voxelSize = 2*s/grid.getWidth();
@@ -113,9 +107,9 @@ public class DevTestWaveletRasterizer {
             meshmaker.setSmoothingWidth(smoothWidth);
             meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setMaxDecimationCount(maxDecimationCount);
-            meshmaker.setMaxAttributeValue(maxAttribute);            
+            meshmaker.setMaxAttributeValue(maxAttribute);
             
-            STLWriter stlw = new STLWriter("/tmp/raster_to_voxels_0.1.stl");
+            STLWriter stlw = new STLWriter("/tmp/raster_to_voxels_0..stl");
             meshmaker.makeMesh(grid, stlw);
             stlw.close();
             
@@ -212,8 +206,8 @@ public class DevTestWaveletRasterizer {
     }
 
     public static void main(String arg[]) throws Exception {
-        //testSTLfile();
-        testSphere();
+        testSTLfile();
+        //testSphere();
     }
 
 }

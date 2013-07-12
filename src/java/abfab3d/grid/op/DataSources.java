@@ -204,9 +204,9 @@ public class DataSources {
 
         public void setCenter(double x, double y, double z){
             
-            this.x0 = x0;
-            this.y0 = y0;
-            this.z0 = z0;
+            this.x0 = x;
+            this.y0 = y;
+            this.z0 = z;
             
         }
         
@@ -255,10 +255,11 @@ public class DataSources {
 
         private double R; // cylinder radius 
         private double h2; // cylnder's half height of
+        private double scaleFactor = 0;
         private Vector3d center;
         Matrix3d rotation;
         static final Vector3d Yaxis = new Vector3d(0,1,0);
-
+        
         public Cylinder(Vector3d v0, Vector3d v1, double r){
 
             this.R = r;
@@ -287,6 +288,10 @@ public class DataSources {
             rotation.set(new AxisAngle4d(raxis, angle));
         }
 
+        public void setScaleFactor(double value){
+            scaleFactor = value;
+        }
+
         /**
          * returns 1 if pnt is inside of cylinder
          * returns intepolated value if point is within voxel size to the boundary
@@ -296,12 +301,20 @@ public class DataSources {
             
             Vec pnt = new Vec(pntIn);
             canonicalTransform(pnt);            
-            // cylinder is along Y axis with center at origin             
+            // cylinder is along Y axis with center at origin 
+
             double x = pnt.v[0];            
             double y = abs(pnt.v[1]);
             double z = pnt.v[2];
             double vs = pnt.getScaledVoxelSize();
+            if(scaleFactor != 0.) {
+                double s = 1/(scaleFactor*pnt.getScaleFactor());
+                x *= s;
+                y *= s;
+                z *= s;
+            }
             
+
             double baseCap = step10(y, this.h2, vs);
             if(baseCap == 0.0){
                 data.v[0] = 0;
