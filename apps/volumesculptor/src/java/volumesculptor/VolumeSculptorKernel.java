@@ -110,18 +110,17 @@ public class VolumeSculptorKernel extends HostedKernel {
             "Silver", "Silver Glossy", "Stainless Steel", "Gold Plated Matte", "Gold Plated Glossy", "Antique Bronze Matte",
             "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
 
-    // Physical Sizing
-    private double innerDiameter;
-    private double ringThickness;
-    private double ringWidth;
-    private double topBorderWidth;
-    private double bottomBorderWidth;
-    //private double edgeWidth;
-
-    /**
-     * Percentage of the ringThickness to use as a base
-     */
-    private double baseThickness;
+    private String script;
+    private String file1;
+    private String file2;
+    private String file3;
+    private String file4;
+    private String file5;
+    private String file6;
+    private String file7;
+    private String file8;
+    private String file9;
+    private String file10;
 
     /**
      * The horizontal and vertical resolution
@@ -162,8 +161,56 @@ public class VolumeSculptorKernel extends HostedKernel {
         int seq = 0;
         int step = 0;
 
-        // Image based params
-        params.put("modelPath", new Parameter("modelPath", "Model", "The model to use", "models/sphere_20mm.stl", 1,
+        // Script
+        params.put("script", new Parameter("script", "Script", "The script to run", "scripts/gyroidize.vss", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, true, 0, 0.1, null, null)
+        );
+
+        // File based params
+        params.put("params", new Parameter("params", "Params", "Params to substitute into the script", "{}", 1,
+                Parameter.DataType.MAP, Parameter.EditorType.DEFAULT,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+
+        // File based params
+        params.put("file1", new Parameter("file1", "File1", "File1 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file2", new Parameter("file2", "File2", "File2 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file3", new Parameter("file3", "File3", "File3 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file4", new Parameter("file4", "File4", "File4 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file5", new Parameter("file5", "File5", "File5 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file6", new Parameter("file6", "File6", "File6 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file7", new Parameter("file7", "File7", "File7 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file8", new Parameter("file8", "File8", "File8 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file9", new Parameter("file9", "File9", "File9 to use", "", 1,
+                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                step, seq++, false, 0, 0.1, null, null)
+        );
+        params.put("file10", new Parameter("file10", "File10", "File10 to use", "", 1,
                 Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
                 step, seq++, false, 0, 0.1, null, null)
         );
@@ -171,21 +218,6 @@ public class VolumeSculptorKernel extends HostedKernel {
         step++;
         seq = 0;
 
-
-        params.put("sizeX", new Parameter("sizeX", "Size X", "Size X", "0.02", 1, Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT, step, seq++, false, 0, 1, null, null));
-        params.put("sizeY", new Parameter("sizeY", "Size Y", "Size Y", "0.02", 1, Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT, step, seq++, false, 0, 1, null, null));
-        params.put("sizeZ", new Parameter("sizeZ", "Size Z", "Size Z", "0.02", 1, Parameter.DataType.DOUBLE, Parameter.EditorType.DEFAULT, step, seq++, false, 0, 1, null, null));
-
-        step++;
-        seq = 0;
-
-        params.put("text", new Parameter("text", "text", "Engraved Text", "MADE IN THE FUTURE", 1,
-                Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
-                step, seq++, false, -1, 1, null, null)
-        );
-
-        step++;
-        seq = 0;
 
         params.put("material", new Parameter("material", "Material", "What material to design for", "Silver Glossy", 1,
                 Parameter.DataType.ENUM, Parameter.EditorType.DEFAULT,
@@ -493,6 +525,39 @@ public class VolumeSculptorKernel extends HostedKernel {
         String pname = null;
 
         try {
+            pname = "script";
+            script = (String) params.get(pname);
+
+            pname = "file1";
+            file1 = (String) params.get(pname);
+
+            pname = "file2";
+            file2 = (String) params.get(pname);
+
+            pname = "file3";
+            file3 = (String) params.get(pname);
+
+            pname = "file4";
+            file4 = (String) params.get(pname);
+
+            pname = "file5";
+            file5 = (String) params.get(pname);
+
+            pname = "file6";
+            file6 = (String) params.get(pname);
+
+            pname = "file7";
+            file7 = (String) params.get(pname);
+
+            pname = "file8";
+            file8 = (String) params.get(pname);
+
+            pname = "file9";
+            file9 = (String) params.get(pname);
+
+            pname = "file10";
+            file10 = (String) params.get(pname);
+
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
 

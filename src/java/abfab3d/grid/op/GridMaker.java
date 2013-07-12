@@ -58,6 +58,7 @@ public class GridMaker {
     int m_nx, m_ny, m_nz;
     int gridMaxAttributeValue = 0;
     double voxelSize = 0;
+    private boolean boundsSet = false;
 
     public void setDataSource(DataSource dataSource){
         m_dataSource = dataSource;
@@ -106,9 +107,23 @@ public class GridMaker {
         m_sizeY = bounds[3] - bounds[2];
         m_sizeZ = bounds[5] - bounds[4];
 
+        boundsSet = true;
+
     }
 
     public void makeGrid(Grid grid){
+
+        if (!boundsSet) {
+            double[] bounds = new double[6];
+            grid.getGridBounds(bounds);
+            m_centerX = (bounds[0] + bounds[1])/2;
+            m_centerY = (bounds[2] + bounds[3])/2;
+            m_centerZ = (bounds[4] + bounds[5])/2;
+
+            m_sizeX = bounds[1] - bounds[0];
+            m_sizeY = bounds[3] - bounds[2];
+            m_sizeZ = bounds[5] - bounds[4];
+        }
 
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();

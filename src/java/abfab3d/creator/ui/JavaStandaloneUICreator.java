@@ -88,6 +88,7 @@ public class JavaStandaloneUICreator {
             ps.println("import org.web3d.vrml.export.*;");
             ps.println("import app.common.*;");
             ps.println("import app.common.upload.shapeways.oauth.*;");
+            ps.println("import com.google.gson.Gson;");
 
             ps.println("");
             ps.println("public class " + className + " implements ActionListener {");
@@ -359,6 +360,7 @@ System.out.println("Adding param: " + p.getName());
 
         ps.println(indent(12) + "HashMap<String,String> params = new HashMap<String,String>();");
         itr = params.values().iterator();
+        ps.println(indent(12) + "Gson gson = new Gson();");
 
         while(itr.hasNext()) {
             Parameter p = itr.next();
@@ -366,7 +368,11 @@ System.out.println("Adding param: " + p.getName());
                 continue;
             }
 
-            ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
+            if (p.getDataType() == Parameter.DataType.MAP) {
+                ps.println(indent(12) + "params.put(\"" + p.getName() + "\", gson.toJson(" + p.getName() + "));");
+            } else {
+                ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
+            }
         }
 
         ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");
@@ -895,13 +901,19 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(12) + "HashMap<String,String> params = new HashMap<String,String>();");
         itr = params.values().iterator();
 
+        ps.println(indent(12) + "Gson gson = new Gson();");
+
+
         while(itr.hasNext()) {
             Parameter p = itr.next();
             if (remove.contains(p.getName())) {
                 continue;
             }
-
-            ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
+            if (p.getDataType() == Parameter.DataType.MAP) {
+                ps.println(indent(12) + "params.put(\"" + p.getName() + "\", gson.toJson(" + p.getName() + "));");
+            } else {
+                ps.println(indent(12) + "params.put(\"" + p.getName() + "\", " + p.getName() + ");");
+            }
         }
 
         ps.println(indent(12) + "Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);");

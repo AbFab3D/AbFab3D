@@ -1,0 +1,6 @@
+importPackage(Packages.abfab3d.grid.op)
+importPackage(Packages.abfab3d.grid)
+
+grid = load("models/sphere.stl.gz")
+show(grid)
+

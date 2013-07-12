@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-package shell;
+package volumesculptor.shell;
 
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
@@ -22,6 +22,7 @@ import abfab3d.util.Units;
 import app.common.X3DViewer;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
+import static abfab3d.util.Units.MM;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -73,24 +74,25 @@ public class AbFab3DGlobal extends ImporterTopLevel {
      * <p/>
      * This method is defined as a JavaScript function.
      */
-    public static void load(Context cx, Scriptable thisObj,
+    public static Object load(Context cx, Scriptable thisObj,
                                  Object[] args, Function funObj) {
         if (args.length < 1) {
             throw Context.reportRuntimeError(
                     "Expected a file to load");
         }
         String filename = Context.toString(args[0]);
-        World world = null;
+        AttributeGrid grid = null;
+
+        double vs = 0.1*MM;
         if (args.length > 1) {
-            world = (World) args[1];
-        } else {
-            world = (World) thisObj.get("world", thisObj);
+            grid = (AttributeGrid) args[1];
         }
 
-        AttributeGrid grid = world.getGrid();
+        if (args.length > 2) {
+            vs = (Double) args[0];
+        }
 
         try {
-            double vs = grid.getVoxelSize();
             STLReader stl = new STLReader();
             BoundingBoxCalculator bb = new BoundingBoxCalculator();
             stl.read(filename, bb);
@@ -105,15 +107,16 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             int nz = (int) Math.round((bounds[5] - bounds[4]) / vs);
             System.out.println("Bounds: " + java.util.Arrays.toString(bounds) + " vs: " + vs);
 
-            // TODO: Replace current world, review this decision
-            AttributeGrid dest = new ArrayAttributeGridByte(nx,ny,nz, vs, vs);
 
-            // update global pointers to new value.  Maybe hid in World?
-            thisObj.put("grid", thisObj, dest);
-            thisObj.put("bounds", thisObj, bounds);
+            AttributeGrid dest = null;
+
+            if (grid == null) {
+                dest = new ArrayAttributeGridByte(nx,ny,nz, vs, vs);
+            } else {
+                dest = grid;
+            }
 
             dest.setGridBounds(bounds);
-            world.setGrid(dest);
 
             System.out.println("voxels: " + nx + " " + ny + " " + nz);
             WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
@@ -121,15 +124,16 @@ public class AbFab3DGlobal extends ImporterTopLevel {
 
             stl.read(filename, rasterizer);
 
-            // TODO: not sure what to do about bounds here, do a replace
-            world.setBounds(bounds);
-
             rasterizer.getRaster(dest);
 
-            System.out.println("Loaded: " + filename + " to World: " + world);
+            System.out.println("Loaded: " + filename);
+
+            return dest;
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
+
+        return null;
     }
 
     /**
@@ -231,19 +235,25 @@ public class AbFab3DGlobal extends ImporterTopLevel {
     public static Object createGrid(Context cx, Scriptable thisObj,
                             Object[] args, Function funObj) {
 
-        if (args.length != 7) {
+        double[] grid_bounds = new double[6];
+        double vs = 0.1*MM;
+
+        if (args.length == 1) {
+            AttributeGrid grid = (AttributeGrid) args[0];
+            grid.getGridBounds(grid_bounds);
+            vs = grid.getVoxelSize();
+        } else if (args.length != 7) {
             System.out.println("CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize");
+            grid_bounds[0] = (Double) args[0];
+            grid_bounds[1] = (Double) args[1];
+            grid_bounds[2] = (Double) args[2];
+            grid_bounds[3] = (Double) args[3];
+            grid_bounds[4] = (Double) args[4];
+            grid_bounds[5] = (Double) args[5];
+
+            vs = (Double) args[6];
         }
 
-        double[] grid_bounds = new double[6];
-        grid_bounds[0] = (Double) args[0];
-        grid_bounds[1] = (Double) args[1];
-        grid_bounds[2] = (Double) args[2];
-        grid_bounds[3] = (Double) args[3];
-        grid_bounds[4] = (Double) args[4];
-        grid_bounds[5] = (Double) args[5];
-
-        double vs = (Double) args[6];
 
         grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
         int[] gs = MathUtil.getGridSize(grid_bounds, vs);

@@ -56,6 +56,15 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
+        <compilejava package="volumesculptor/shell"
+                     jars=""
+                >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
 
         <ant target="createUI"  />
 
@@ -96,6 +105,22 @@
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="volumesculptor.ui.Editor" fork="true">
             <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
+    <target name="runShell" depends="compile" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}"/>
+        <java classname="volumesculptor.shell.Main" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <arg value="${script}" />
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>

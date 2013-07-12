@@ -26,7 +26,7 @@ public class Parameter implements Comparable {
     /** The data type */
     public enum DataType {STRING, ENUM, DOUBLE, BOOLEAN, INTEGER, FORMULA,
                           STRING_LIST, ENUM_LIST, DOUBLE_LIST, BOOLEAN_LIST, INTEGER_LIST,
-                          URI,SCENE};
+                          URI,SCENE, MAP};
 
     /** The editor to use */
     public enum EditorType {
