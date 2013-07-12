@@ -195,6 +195,11 @@ public class DataSources {
             this(c.x, c.y, c.z, r);
         }
 
+        public Sphere(double r){
+
+            setRadius(r);
+        }
+
         public Sphere(double x0, double y0, double z0, double r){
 
             setCenter(x0, y0, z0);
