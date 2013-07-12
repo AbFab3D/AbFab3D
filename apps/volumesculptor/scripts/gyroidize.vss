@@ -7,10 +7,8 @@ intersect.addDataSource(new DataSourceGrid(grid, 63))
 intersect.addDataSource(new VolumePatterns.Gyroid(10*MM, 1*MM));
 
 maker.setDataSource(intersect);
-maker.setMaxAttributeValue(63);
 
 dest = createGrid(grid);
 maker.makeGrid(dest);
-show(grid);
 show(dest);
 

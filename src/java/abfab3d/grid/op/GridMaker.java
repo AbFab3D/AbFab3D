@@ -59,6 +59,7 @@ public class GridMaker {
     int gridMaxAttributeValue = 0;
     double voxelSize = 0;
     private boolean boundsSet = false;
+    private double voxelScale = Math.sqrt(3) / 2.0;
 
     public void setDataSource(DataSource dataSource){
         m_dataSource = dataSource;
@@ -86,8 +87,16 @@ public class GridMaker {
     public void setVoxelSize(double vs){
 
         this.voxelSize = vs; 
-    } 
-    
+    }
+
+    /**
+     set width of transitional surface area for shape calculations
+     */
+    public void setVoxelScale(double vs){
+
+        this.voxelScale = vs;
+    }
+
     /**
        sets scaling value for attributes
      */
@@ -123,6 +132,9 @@ public class GridMaker {
             m_sizeX = bounds[1] - bounds[0];
             m_sizeY = bounds[3] - bounds[2];
             m_sizeZ = bounds[5] - bounds[4];
+
+            voxelSize = grid.getVoxelSize() * voxelScale;
+
         }
 
         if (Thread.currentThread().isInterrupted()) {
