@@ -161,7 +161,7 @@ public class AbFab3DGlobal extends ImporterTopLevel {
         }
 
         if (grid == null) {
-            grid = (AttributeGrid) thisObj.get("grid", thisObj);
+            System.out.println("No grid specified");
         }
         if (args.length > 1) {
             if (args[1] instanceof Boolean) {
@@ -242,8 +242,8 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             AttributeGrid grid = (AttributeGrid) args[0];
             grid.getGridBounds(grid_bounds);
             vs = grid.getVoxelSize();
-        } else if (args.length != 7) {
-            System.out.println("CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize");
+        } else if (args.length == 7) {
+            System.out.println("CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize)");
             grid_bounds[0] = (Double) args[0];
             grid_bounds[1] = (Double) args[1];
             grid_bounds[2] = (Double) args[2];
@@ -252,6 +252,8 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             grid_bounds[5] = (Double) args[5];
 
             vs = (Double) args[6];
+        }  else {
+            throw new IllegalArgumentException("Invalid number of arguments to CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize)");
         }
 
 
@@ -268,7 +270,7 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             dest = new ArrayAttributeGridByte(gs[0], gs[1], gs[2], vs, vs);
         }
 
-        System.out.println("Creating grid: " + java.util.Arrays.toString(gs));
+        System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs);
         return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
     }
 
