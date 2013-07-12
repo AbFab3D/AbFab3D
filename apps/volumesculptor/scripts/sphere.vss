@@ -2,7 +2,7 @@ importPackage(Packages.abfab3d.grid.op)
 importPackage(Packages.abfab3d.grid)
 
 grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,.1*MM);
-sphere = new DataSources.Sphere(0,0,0,5*MM);
+sphere = new DataSources.Sphere(5*MM);
 maker.setDataSource(sphere);
 maker.makeGrid(grid);
 show(grid);
