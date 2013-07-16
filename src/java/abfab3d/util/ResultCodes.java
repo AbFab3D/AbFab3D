@@ -15,7 +15,7 @@ package abfab3d.util;
 
 public class ResultCodes {
     
-    public static int 
+    public final static int 
         RESULT_OK = 0,     // successfull 
         RESULT_ERROR = 1,  // error occurs 
         RESULT_OUTSIDE = 2; // argument is outside of domain of definition 

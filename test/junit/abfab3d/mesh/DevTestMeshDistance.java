@@ -20,9 +20,9 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import abfab3d.transforms.Rotation;
 import abfab3d.geom.TriangulatedModels;
 
-import abfab3d.grid.op.VecTransforms;
 import abfab3d.io.output.STLWriter; 
 
 import static abfab3d.util.Units.MM; 
@@ -135,7 +135,7 @@ public class DevTestMeshDistance extends TestCase {
         TriangulatedModels.Parallelepiped block2 = new TriangulatedModels.Parallelepiped(-s1, -s1, -s1, s1, s1, s1);
 
         TriangulatedModels.Transformer model = new TriangulatedModels.Transformer();
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(1,0,0), Math.PI/4);
+        Rotation rot = new Rotation(new Vector3d(1,0,0), Math.PI/4);
         model.setTransform(rot);
         model.addProducer(block1);
         

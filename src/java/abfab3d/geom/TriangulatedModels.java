@@ -23,12 +23,13 @@ import javax.vecmath.AxisAngle4d;
 
 
 import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.Initializable;
 import abfab3d.util.ResultCodes;
 import abfab3d.util.ImageGray16;
+import abfab3d.util.VecTransform;
+
 
 import static abfab3d.util.MathUtil.distance;
 import static abfab3d.util.MathUtil.midPoint;

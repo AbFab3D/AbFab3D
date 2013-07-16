@@ -9,7 +9,7 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.grid.op;
+package abfab3d.datasources;
 
 import java.util.Vector;
 
@@ -32,7 +32,7 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
  */
-public class GridMipMap implements DataSource, Initializable {
+public class GridMipMap extends TransformableDataSource {
     
     static final boolean DEBUG = true;
     static int debugCount = 100;
@@ -66,6 +66,8 @@ public class GridMipMap implements DataSource, Initializable {
 
     public int initialize(){
         
+        super.initialize();
+
         m_normalization = 1./m_maxAttribute;
         
         createMipMap(m_grid);
@@ -128,6 +130,8 @@ public class GridMipMap implements DataSource, Initializable {
        point and voxelSize is given in world coordinates 
     */
     public int getDataValue(Vec pnt, Vec dataValue){
+
+        super.transform(pnt);
         double 
             x = pnt.v[0],
             y = pnt.v[1],

@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
+package abfab3d.datasources;
 
 
 import abfab3d.util.DataSource;
@@ -28,7 +28,8 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sinh;
 import static java.lang.Math.pow;
 import static java.lang.Math.sqrt;
-import static abfab3d.grid.op.DataSources.step10;
+
+import static abfab3d.util.MathUtil.step10;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Units.MM;
 
@@ -38,7 +39,7 @@ public class VolumePatterns {
     static final boolean DEBUG = false;
     static int debugCount = 100;
     
-    public static class Balls implements DataSource {
+    public static class Balls  extends TransformableDataSource{
         
 
         double period;
@@ -55,7 +56,8 @@ public class VolumePatterns {
         }
 
         public int getDataValue(Vec pnt, Vec data){
-            
+            super.transform(pnt);
+
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -80,7 +82,7 @@ public class VolumePatterns {
         
     }
 
-    public static class CubicGrid implements DataSource {
+    public static class CubicGrid  extends TransformableDataSource{
         
 
 
@@ -99,6 +101,7 @@ public class VolumePatterns {
 
         public int getDataValue(Vec pnt, Vec data){
             
+            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -132,7 +135,7 @@ public class VolumePatterns {
     /**
        approximation to Gyroid 
     */
-    public static class Gyroid implements DataSource, Initializable {
+    public static class Gyroid  extends TransformableDataSource{
         
 
         private double period = 10*MM;
@@ -174,7 +177,7 @@ public class VolumePatterns {
         }
         
         public int initialize(){
-
+            super.initialize();
             this.factor = 2*PI/period;
 
             return RESULT_OK;
@@ -182,6 +185,7 @@ public class VolumePatterns {
 
         public int getDataValue(Vec pnt, Vec data){
             
+            super.transform(pnt);
             double x = pnt.v[0]-offsetX;
             double y = pnt.v[1]-offsetY;
             double z = pnt.v[2]-offsetZ;
@@ -203,7 +207,7 @@ public class VolumePatterns {
     /**
      approximation to Gyroid
      */
-    public static class GyroidGradient implements DataSource, Initializable {
+    public static class GyroidGradient extends TransformableDataSource{
 
 
         private double period = 10*MM;
@@ -251,6 +255,7 @@ public class VolumePatterns {
 
         public int initialize(){
 
+            super.initialize();
             this.factor = 2*PI/period;
             double l = pos.length();
             this.lengthSq = l*l * factor;
@@ -261,6 +266,7 @@ public class VolumePatterns {
         int cnt = 0;
         public int getDataValue(Vec pnt, Vec data){
 
+            super.transform(pnt);
             double x = pnt.v[0]-offsetX;
             double y = pnt.v[1]-offsetY;
             double z = pnt.v[2]-offsetZ;
@@ -287,7 +293,7 @@ public class VolumePatterns {
 
     }
 
-    public static class Lidinoid implements DataSource {
+    public static class Lidinoid extends TransformableDataSource{
 
 
         double period;
@@ -303,6 +309,7 @@ public class VolumePatterns {
 
         public int getDataValue(Vec pnt, Vec data){
 
+            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -327,7 +334,7 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
-    public static class SchwarzPrimitive implements DataSource {
+    public static class SchwarzPrimitive extends TransformableDataSource{
 
 
         double period;
@@ -341,6 +348,7 @@ public class VolumePatterns {
 
         public int getDataValue(Vec pnt, Vec data){
 
+            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -363,7 +371,7 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
-    public static class SchwarzDiamond implements DataSource,Initializable {
+    public static class SchwarzDiamond extends TransformableDataSource {
 
 
         double period;
@@ -384,6 +392,7 @@ public class VolumePatterns {
 
         public int initialize(){
 
+            super.initialize();
             this.factor = 2*PI/period;
 
             return RESULT_OK;
@@ -391,6 +400,7 @@ public class VolumePatterns {
 
         public int getDataValue(Vec pnt, Vec data){
 
+            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -413,7 +423,7 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
-    public static class ScherkSecondSurface implements DataSource {
+    public static class ScherkSecondSurface extends TransformableDataSource {
 
 
         double period;
@@ -427,6 +437,7 @@ public class VolumePatterns {
 
         public int getDataValue(Vec pnt, Vec data){
 
+            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
@@ -449,7 +460,7 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
-    public static class Enneper implements DataSource {
+    public static class Enneper extends TransformableDataSource{
 
 
         double period;
@@ -463,6 +474,7 @@ public class VolumePatterns {
 
         public int getDataValue(Vec pnt, Vec data){
 
+            super.transform(pnt);
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];

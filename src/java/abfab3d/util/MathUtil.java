@@ -13,6 +13,7 @@
 package abfab3d.util;
 
 import javax.vecmath.Vector3d;
+import javax.vecmath.Vector4d;
 
 // External Imports
 
@@ -582,6 +583,161 @@ public class MathUtil {
         
         return new Vector3d((v0.x + v1.x)/2,(v0.y + v1.y)/2,(v0.z + v1.z)/2);
 
+    }
+
+
+    // linear intepolation
+    // x < -1 return 1;
+    // x >  1 returns 0
+    public static final double interpolate_linear(double x){
+
+        return 0.5*(1 - x);
+
+    }
+
+    /**
+       x < 0 return 0
+       x > 1 return 1
+       return x inside (0.,1.)
+
+    1                          _____________________
+                              /
+                             /
+                            /
+                           /
+     0 ___________________/
+
+                         0     1
+     */
+    public static final double step(double x){
+        if(x < 0.)
+            return 0.;
+        else if( x > 1.)
+            return 1.;
+        else
+            return x;
+    }
+
+    /*
+      step from 0 to 1
+
+    1                          _____________________
+                              /
+                             /
+                            .
+                           /.
+     0 ___________________/ .
+
+                            x0
+     */
+    public static final double step01(double x, double x0, double vs){
+
+        if(x <= x0 - vs)
+            return 0.;
+
+        if(x >= x0 + vs)
+            return 1.;
+
+        return (x-(x0-vs))/(2*vs);
+
+    }
+
+    /*
+      step from 1 to 0
+
+    1     _________
+                   \
+                    \
+                     .
+                      \
+     0               . \_______________
+
+                     x0
+    */
+    public static final double step10(double x, double x0, double vs){
+
+        if(x <= x0 - vs)
+            return 1.;
+
+        if(x >= x0 + vs)
+            return 0.;
+
+        return ((x0+vs)-x)/(2*vs);
+
+    }
+
+    /*
+    1                          _________
+                              /         \
+                             /           \
+                            .             .
+                           /               \
+     0 ___________________/ .             . \_______________
+
+                           xmin          xmax
+
+
+       return 1 inside of interval and 0 outside of intervale with linear transition at the boundaries
+     */
+    public static final double intervalCap(double x, double xmin, double xmax, double vs){
+
+        if(xmin >= xmax-vs)
+            return 0;
+
+        double vs2 = vs*2;
+        double vxi = step((x-(xmin-vs))/(vs2));
+        double vxa = step(((xmax+vs)-x)/(vs2));
+
+        return vxi*vxa;
+
+    }
+
+    // linear intepolation
+    // x < -1 return 1;
+    // x >  1 returns 0
+    // smoth cubic polynom between
+    public static final double interpolate_cubic(double x){
+
+        return 0.25*x*(x*x - 3.) + 0.5;
+
+    }
+    
+    /**
+       returns interpolated value for box with given boundaries 
+     */
+    public final static double getBox(double x, double y, double z,
+                               double xmin, double xmax,
+                               double ymin, double ymax,
+                               double zmin, double zmax,
+                               double vs){
+
+        if(xmin >= xmax || ymin >= ymax || zmin >= zmax ){
+            // empty box
+            return 0.;
+        }
+
+        double vs2 = 2*vs;
+        double vxi = step((x-(xmin-vs))/(vs2));
+        double vxa = step(((xmax+vs)-x)/(vs2));
+        double vyi = step((y-(ymin-vs))/(vs2));
+        double vya = step(((ymax+vs)-y)/(vs2));
+        double vzi = step((z-(zmin-vs))/(vs2));
+        double vza = step(((zmax+vs)-z)/(vs2));
+
+        vxi *= vxa;
+        vyi *= vya;
+        vzi *= vza;
+
+        return vxi*vyi*vzi;
+    }
+
+    /**
+       normalized 3D part of 4D vector 
+     */    
+    static public final void normalizePlane(Vector4d p){
+        double norm = sqrt(p.x * p.x + p.y * p.y + p.z * p.z);
+        p.scale(1./norm);
+        
     }
 
 }

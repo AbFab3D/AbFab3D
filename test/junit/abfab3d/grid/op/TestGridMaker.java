@@ -40,10 +40,29 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
 import abfab3d.util.MathUtil;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Symmetry;
+import abfab3d.util.VecTransform;
+
+import abfab3d.datasources.Box;
+import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Ring;
+import abfab3d.datasources.DataSourceImageBitmap;
+import abfab3d.datasources.DataTransformer;
+import abfab3d.datasources.Intersection;
+import abfab3d.datasources.Union;
+import abfab3d.datasources.Subtraction;
+
+import abfab3d.transforms.RingWrap;
+import abfab3d.transforms.FriezeSymmetry;
+import abfab3d.transforms.WallpaperSymmetry;
+import abfab3d.transforms.Rotation;
+import abfab3d.transforms.CompositeTransform;
+import abfab3d.transforms.Scale;
+import abfab3d.transforms.SphereInversion;
+import abfab3d.transforms.Translation;
+import abfab3d.transforms.PlaneReflection;
 
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
@@ -62,6 +81,9 @@ import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.PI;
+
+import static abfab3d.util.VecTransform.RESULT_OK;
+import static abfab3d.util.MathUtil.normalizePlane;
 
 /**
  * Tests the functionality of GridMaker
@@ -103,7 +125,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Box box = new DataSources.Box();
+        Box box = new Box();
         box.setSize(ringDiameter*Math.PI,ringWidth, ringThickness);
         box.setLocation(0,0, ringThickness/2);
         
@@ -119,7 +141,7 @@ public class TestGridMaker extends TestCase {
         image.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
 
 
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.setRadius(ringDiameter/2);
         
         GridMaker gm = new GridMaker();
@@ -152,25 +174,25 @@ public class TestGridMaker extends TestCase {
      */
     public void _testSymmetricImage() {
         /*
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "/tmp/wp01_s442.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "/tmp/wp02_442.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_4S2, "docs/images/wp_fd.png", "/tmp/wp03_4S2.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S632, "docs/images/wp_fd.png", "/tmp/wp04_S632.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_632, "docs/images/wp_fd.png", "/tmp/wp05_632.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_3S3, "docs/images/wp_fd.png", "/tmp/wp06_3S3.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S333, "docs/images/wp_fd.png", "/tmp/wp07_S333.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_333, "docs/images/wp_fd.png", "/tmp/wp08_333.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_S2222, "docs/images/wp_fd_01.png", "/tmp/wp09_S2222.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2222, "docs/images/wp_fd_01.png", "/tmp/wp10_2222.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_2S22, "docs/images/wp_fd_01.png", "/tmp/wp11_2S22.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22S, "docs/images/wp_fd_01.png", "/tmp/wp12_22S.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SS, "docs/images/wp_fd_01.png", "/tmp/wp13_SS.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "/tmp/wp14_SX.stl");
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "/tmp/wp15_22X.stl"); 
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "/tmp/wp16_XX.stl");                
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "/tmp/wp17_O.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_S442, "docs/images/wp_fd.png", "/tmp/wp01_s442.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_442, "docs/images/wp_fd.png", "/tmp/wp02_442.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_4S2, "docs/images/wp_fd.png", "/tmp/wp03_4S2.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_S632, "docs/images/wp_fd.png", "/tmp/wp04_S632.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_632, "docs/images/wp_fd.png", "/tmp/wp05_632.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_3S3, "docs/images/wp_fd.png", "/tmp/wp06_3S3.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_S333, "docs/images/wp_fd.png", "/tmp/wp07_S333.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_333, "docs/images/wp_fd.png", "/tmp/wp08_333.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_S2222, "docs/images/wp_fd_01.png", "/tmp/wp09_S2222.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_2222, "docs/images/wp_fd_01.png", "/tmp/wp10_2222.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_2S22, "docs/images/wp_fd_01.png", "/tmp/wp11_2S22.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_22S, "docs/images/wp_fd_01.png", "/tmp/wp12_22S.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_SS, "docs/images/wp_fd_01.png", "/tmp/wp13_SS.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_SX, "docs/images/wp_fd_01.png", "/tmp/wp14_SX.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_22X, "docs/images/wp_fd_01.png", "/tmp/wp15_22X.stl"); 
+        makeSymmetricImage(WallpaperSymmetry.WP_XX, "docs/images/wp_fd_01.png", "/tmp/wp16_XX.stl");                
+        makeSymmetricImage(WallpaperSymmetry.WP_O, "docs/images/wp/wp17_O.png", "/tmp/wp17_O.stl");
         */
-        makeSymmetricImage(VecTransforms.WallpaperSymmetry.WP_O, "/tmp/Anonymous_alarm_clock.png", "/tmp/alarm_clock.stl");
+        makeSymmetricImage(WallpaperSymmetry.WP_O, "/tmp/Anonymous_alarm_clock.png", "/tmp/alarm_clock.stl");
         
     }
     
@@ -219,11 +241,11 @@ public class TestGridMaker extends TestCase {
         image.setUseGrayscale(useGrayscale);
         image.setImageType(imageType);
 
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(tileRotationAxis,tileRotationAngle);
+        Rotation rot = new Rotation(tileRotationAxis,tileRotationAngle);
 
-        VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
+        WallpaperSymmetry wps = new WallpaperSymmetry();
         wps.setSymmetryType(symmetryType);
         wps.setDomainWidth(tileWidth);
         wps.setDomainHeight(tileHeight);
@@ -232,13 +254,13 @@ public class TestGridMaker extends TestCase {
         //compTrans.add(rot);
         compTrans.add(wps);
 
-        DataSources.DataTransformer tiling = new DataSources.DataTransformer();
+        DataTransformer tiling = new DataTransformer();
         tiling.setDataSource(image);
         tiling.setTransform(compTrans);
         
-        DataSources.Box box = new DataSources.Box();
+        Box box = new Box();
         box.setSize(rectWidth, rectHeight, rectDepth);
-        DataSources.Intersection clip = new DataSources.Intersection();
+        Intersection clip = new Intersection();
         
         clip.addDataSource(box);
         clip.addDataSource(tiling);
@@ -294,12 +316,12 @@ public class TestGridMaker extends TestCase {
         image.setBaseThickness(0.4);
         image.setImagePath("docs/images/numbers_1.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.setRadius(ringDiameter/2);
 
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        Rotation rot = new Rotation();
         rot.setRotation(new Vector3d(1,0,0),0*TORAD);
         
         compTrans.add(rot);
@@ -366,28 +388,28 @@ public class TestGridMaker extends TestCase {
         crossSect.setUseGrayscale(false);        
         crossSect.setImagePath("apps/ringpopper/images/crosssection_01.png");
 
-        VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
-        VecTransforms.Rotation crot1 = new VecTransforms.Rotation();
+        CompositeTransform crossTrans = new CompositeTransform();
+        Rotation crot1 = new Rotation();
         crot1.setRotation(new Vector3d(0,0,1),-90*TORAD);
-        VecTransforms.Rotation crot2 = new VecTransforms.Rotation();
+        Rotation crot2 = new Rotation();
         crot2.setRotation(new Vector3d(0,1,0),-90*TORAD);
         crossTrans.add(crot1);
         crossTrans.add(crot2);
 
-        DataSources.DataTransformer transCross = new DataSources.DataTransformer();
+        DataTransformer transCross = new DataTransformer();
         transCross.setDataSource(crossSect);
         transCross.setTransform(crossTrans);
         
-        DataSources.Intersection inter = new DataSources.Intersection();
+        Intersection inter = new Intersection();
         inter.addDataSource(transCross);
         inter.addDataSource(image);
 
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.setRadius(ringDiameter/2);
 
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        Rotation rot = new Rotation();
         rot.setRotation(new Vector3d(1,0,0),0*TORAD);
         
         compTrans.add(rot);
@@ -439,21 +461,18 @@ public class TestGridMaker extends TestCase {
 
         DataSourceImageBitmap image = new DataSourceImageBitmap();
         
-        image.m_sizeX = ringDiameter*Math.PI;
-        image.m_sizeY = ringWidth;
-        image.m_sizeZ = ringThickness;
-        image.m_centerZ = ringThickness/2;
-        image.m_baseThickness = 0.5;
-        image.m_xTilesCount = 12;
-        image.m_yTilesCount = 1;
-        image.m_imagePath = "docs/images/Tile_DecorativeCeiling_2.png";
+        image.setSize(ringDiameter*Math.PI, ringWidth,  ringThickness);
+        image.setLocation(0,0, ringThickness/2);
+        image.setBaseThickness(0.5);
+        image.setTiles(12,1);
+        image.setImagePath("docs/images/Tile_DecorativeCeiling_2.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.m_radius = ringDiameter/2;
 
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(1,0,0),0*TORAD);
+        Rotation rot = new Rotation(new Vector3d(1,0,0),0*TORAD);
         
         compTrans.add(rot);
         compTrans.add(rw);
@@ -518,24 +537,24 @@ public class TestGridMaker extends TestCase {
         image.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
         image.setImagePath("docs/images/tile_01.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.WallpaperSymmetry wps = new VecTransforms.WallpaperSymmetry();
-        wps.setSymmetryType(VecTransforms.WallpaperSymmetry.WP_O);
+        WallpaperSymmetry wps = new WallpaperSymmetry();
+        wps.setSymmetryType(WallpaperSymmetry.WP_O);
         wps.setDomainWidth(tileWidth);
         wps.setDomainHeight(tileHeight);
         wps.setDomainSkew(0);
 
-        VecTransforms.RingWrap rw1 = new VecTransforms.RingWrap();
+        RingWrap rw1 = new RingWrap();
         rw1.setRadius(ringr);
 
-        VecTransforms.Rotation rot = new VecTransforms.Rotation();
+        Rotation rot = new Rotation();
         rot.setRotation(new Vector3d(0,0,1), 90*TORAD);
 
-        VecTransforms.Scale scale = new VecTransforms.Scale();
+        Scale scale = new Scale();
         scale.setScale(1, 1, 0.5);
         
-        VecTransforms.RingWrap rw2 = new VecTransforms.RingWrap();
+        RingWrap rw2 = new RingWrap();
         rw2.setRadius(ringR);
         
         compTrans.add(wps);
@@ -597,29 +616,29 @@ public class TestGridMaker extends TestCase {
         image.setTiles(12, 1);
         image.setImagePath("docs/images/Tile_DecorativeCeiling_1k_h.png");
 
-        DataSources.Box topBand = new DataSources.Box();
+        Box topBand = new Box();
         topBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
         topBand.setLocation(0, ringWidth/2, bandThickness/2);
 
-        //DataSources.Block bottomBand = new DataSources.Block();
+        //Block bottomBand = new Block();
         DataSourceImageBitmap bottomBand = new DataSourceImageBitmap();
         bottomBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
         bottomBand.setLocation(0, -ringWidth/2, bandThickness/2);
         bottomBand.setTiles((int)(ringDiameter*Math.PI/bandWidth), 1);
         bottomBand.setImagePath("docs/images/circle.png");
 
-        DataSources.Union union = new DataSources.Union();
+        Union union = new Union();
         
         union.addDataSource(image);
         union.addDataSource(topBand);
         union.addDataSource(bottomBand);
 
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.m_radius = ringDiameter/2;
 
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(1,0,0),0*TORAD);
+        Rotation rot = new Rotation(new Vector3d(1,0,0),0*TORAD);
         
         compTrans.add(rot);
         compTrans.add(rw);
@@ -670,21 +689,17 @@ public class TestGridMaker extends TestCase {
 
         DataSourceImageBitmap image = new DataSourceImageBitmap();
         
-        image.m_sizeX = ringWidth;
-        image.m_sizeY = ringWidth;
-        image.m_sizeZ = ringDiameter*Math.PI;
-        image.m_centerX = 0;
-        image.m_centerY = 0;
-        image.m_centerZ = 0;
-        image.m_baseThickness = 0.;
-        image.m_xTilesCount = 1;
-        image.m_imagePath = "docs/images/star_4_arms_1.png";
+        image.setSize(ringWidth, ringWidth, ringDiameter*Math.PI);
+        image.setLocation (0,0,0);
+        image.setBaseThickness(0);
+        image.setTiles(1,1);
+        image.setImagePath( "docs/images/star_4_arms_1.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),90*TORAD);
+        Rotation rot = new Rotation(new Vector3d(0,1,0),90*TORAD);
 
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.m_radius = ringDiameter/2;
         
         compTrans.add(rot);
@@ -744,11 +759,11 @@ public class TestGridMaker extends TestCase {
         //image.setImagePath("docs/images/star_4_arms_1.png");
         image.setImagePath("docs/images/R.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),0*TORAD);
+        Rotation rot = new Rotation(new Vector3d(0,1,0),0*TORAD);
 
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.setRadius(ringDiameter/2);
         
         double ringRadius = ringDiameter/2;
@@ -756,13 +771,13 @@ public class TestGridMaker extends TestCase {
         double soffset = 10*ringRadius;
         double sradius = Math.hypot(soffset, ringRadius);
 
-        VecTransforms.SphereInversion inversion = new VecTransforms.SphereInversion();
+        SphereInversion inversion = new SphereInversion();
         inversion.setSphere(new Vector3d(0,-soffset-ringWidth/2,0), sradius);
 
-        //VecTransforms.Scale scale = new VecTransforms.Scale();
+        //Scale scale = new Scale();
         //scale.setScale((ringRadius*ringRadius)/(sradius*sradius));
 
-        VecTransforms.Translation translation = new VecTransforms.Translation();
+        Translation translation = new Translation();
         translation.setTranslation(0, ringWidth, 0);
 
         compTrans.add(rot);
@@ -823,11 +838,11 @@ public class TestGridMaker extends TestCase {
         image.setTiles(1,1);
         image.setImagePath("docs/images/cup_profile.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),-90*TORAD);
+        Rotation rot = new Rotation(new Vector3d(0,1,0),-90*TORAD);
 
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.setRadius(cupDiameter/2);
         
         compTrans.add(rot);
@@ -884,11 +899,11 @@ public class TestGridMaker extends TestCase {
         image.setTiles(1,1);
         image.setImagePath("docs/images/plate_profile.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,1,0),-90*TORAD);
+        Rotation rot = new Rotation(new Vector3d(0,1,0),-90*TORAD);
 
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.setRadius(cupDiameter/2);
         
         compTrans.add(rot);
@@ -1092,18 +1107,18 @@ public class TestGridMaker extends TestCase {
                                                    new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
         
         // we want text on the inside. So it should face in opposite direction 
-        VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
+        Rotation textRotation = new Rotation();
         textRotation.setRotation(new Vector3d(0,1,0), 180*TORAD);
         
         // rotated text 
-        DataSources.DataTransformer rotatedText = new DataSources.DataTransformer();
+        DataTransformer rotatedText = new DataTransformer();
         rotatedText.setDataSource(textBand);
         rotatedText.setTransform(textRotation);
         
-        DataSources.Subtraction ringMinusText = new DataSources.Subtraction();
+        Subtraction ringMinusText = new Subtraction();
         ringMinusText.setDataSources(ringBand, rotatedText); // 
 
-        VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
+        RingWrap ringWrap = new RingWrap();
         ringWrap.setRadius(ringDiameter/2);
 
         GridMaker gm = new GridMaker();
@@ -1161,26 +1176,26 @@ public class TestGridMaker extends TestCase {
         image.setLocation(0,0,0);
         image.setBaseThickness(0.5);
         image.setTiles(1,1);
-        image.m_imagePath = "docs/images/R.png";
+        image.setImagePath("docs/images/R.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         //
         // this may independently rotate each image fragmnent 
         //
-        VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,0,1),0*TORAD);
+        Rotation rot = new Rotation(new Vector3d(0,0,1),0*TORAD);
 
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.m_radius = ringDiameter/2;
         
-        VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
+        FriezeSymmetry fs = new FriezeSymmetry();
         fs.setDomainWidth(tileWidth);
-        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_S22I);
-        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_II);
-        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IS);
-        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_SII);
-        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_2SI);
-        //fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_22I);
-        fs.setFriezeType(VecTransforms.FriezeSymmetry.FRIEZE_IX);
+        //fs.setFriezeType(FriezeSymmetry.FRIEZE_S22I);
+        //fs.setFriezeType(FriezeSymmetry.FRIEZE_II);
+        //fs.setFriezeType(FriezeSymmetry.FRIEZE_IS);
+        //fs.setFriezeType(FriezeSymmetry.FRIEZE_SII);
+        //fs.setFriezeType(FriezeSymmetry.FRIEZE_2SI);
+        //fs.setFriezeType(FriezeSymmetry.FRIEZE_22I);
+        fs.setFriezeType(FriezeSymmetry.FRIEZE_IX);
 
         compTrans.add(rot);
         compTrans.add(fs);
@@ -1233,24 +1248,18 @@ public class TestGridMaker extends TestCase {
 
         DataSourceImageBitmap image = new DataSourceImageBitmap();
         
-        image.m_sizeX = sphereDiameter;
-        image.m_sizeY = sphereDiameter;
-        image.m_sizeZ = sphereThickness;
-
-        image.m_centerX = 0;
-        image.m_centerY = 0;
-        image.m_centerZ = 0;
-        image.m_baseThickness = 0.;
-        //image.m_imagePath = "docs/images/star_4_arms_1.png";
-        image.m_imagePath = "docs/images/spiral.png";
+        image.setSize( sphereDiameter, sphereDiameter,sphereThickness);
+        image.setLocation(0,0,0);
+        image.setBaseThickness( 0.);
+        image.setImagePath("docs/images/spiral.png");
         
-        VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform compTrans = new CompositeTransform();
         
-        VecTransforms.PlaneReflection pr = new VecTransforms.PlaneReflection();
+        PlaneReflection pr = new PlaneReflection();
         pr.m_pointOnPlane = new Vector3d(0,0,0);
         pr.m_planeNormal = new Vector3d(0,0,1);
 
-        VecTransforms.SphereInversion si = new VecTransforms.SphereInversion();
+        SphereInversion si = new SphereInversion();
         si.m_radius = (sphereDiameter/2)*(Math.sqrt(3));
         si.m_center = new Vector3d(0,0,-sphereDiameter/2*Math.sqrt(2));
                 
@@ -1300,11 +1309,11 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Box box = new DataSources.Box();
+        Box box = new Box();
         box.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
         box.setLocation(0,0,ringThickness/2);
         
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.m_radius = ringDiameter/2;
         
         GridMaker gm = new GridMaker();
@@ -1405,7 +1414,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0,ballRadius);
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
         
         GridMaker gm = new GridMaker();  
 
@@ -1450,9 +1459,9 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        //DataSources.Sphere shape = new DataSources.Sphere(0,0,0,ballRadius);
-        DataSources.Ring shape = new DataSources.Ring(ballRadius - thickness, thickness, width);  
-        VecTransforms.Rotation trans = new VecTransforms.Rotation(new Vector3d(1,0,0), Math.PI/6);
+        //Sphere shape = new Sphere(0,0,0,ballRadius);
+        Ring shape = new Ring(ballRadius - thickness, thickness, width);  
+        Rotation trans = new Rotation(new Vector3d(1,0,0), Math.PI/6);
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
@@ -1511,9 +1520,9 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Sphere shape1 = new DataSources.Sphere(0,0,0,ballRadius);
-        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness/2, thickness, width);  
-        DataSources.Union union = new DataSources.Union();  
+        Sphere shape1 = new Sphere(0,0,0,ballRadius);
+        Ring shape2 = new Ring(ballRadius-thickness/2, thickness, width);  
+        Union union = new Union();  
         union.addDataSource(shape1);
         union.addDataSource(shape2);
         
@@ -1573,9 +1582,9 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Sphere shape1 = new DataSources.Sphere(0,0,0,ballRadius);
-        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness, thickness, width);  
-        DataSources.Subtraction subtraction = new DataSources.Subtraction();  
+        Sphere shape1 = new Sphere(0,0,0,ballRadius);
+        Ring shape2 = new Ring(ballRadius-thickness, thickness, width);  
+        Subtraction subtraction = new Subtraction();  
         subtraction.setDataSources(shape1, shape2);
         
         GridMaker gm = new GridMaker();  
@@ -1634,9 +1643,9 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Sphere shape1 = new DataSources.Sphere(0,0,0,ballRadius);
-        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness/2, thickness, width);  
-        DataSources.Intersection intersection = new DataSources.Intersection(); 
+        Sphere shape1 = new Sphere(0,0,0,ballRadius);
+        Ring shape2 = new Ring(ballRadius-thickness/2, thickness, width);  
+        Intersection intersection = new Intersection(); 
         intersection.addDataSource(shape1);
         intersection.addDataSource(shape2);
         
@@ -1697,15 +1706,15 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ring shape = new DataSources.Ring(ballRadius-thickness, thickness, width);  
+        Ring shape = new Ring(ballRadius-thickness, thickness, width);  
         
-        DataSources.Union union = new DataSources.Union();  
+        Union union = new Union();  
         //union.addDataSource(shape);
         double s = 1;
         for(int i = 0; i < 10; i++){
-            DataSources.Ring shape1 = new DataSources.Ring(ballRadius-thickness, thickness/2, width);  
-            DataSources.DataTransformer shape1t = new DataSources.DataTransformer();
-            VecTransforms.Scale trans1 = new VecTransforms.Scale(s);
+            Ring shape1 = new Ring(ballRadius-thickness, thickness/2, width);  
+            DataTransformer shape1t = new DataTransformer();
+            Scale trans1 = new Scale(s);
             shape1t.setDataSource(shape1);
             shape1t.setTransform(trans1);
             union.addDataSource(shape1t);
@@ -1769,13 +1778,13 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
-        DataSources.Union union = new DataSources.Union();  
+        Union union = new Union();  
 
         for(int i = 0; i < 5; i++){
 
-            DataSources.Box shape1 = new DataSources.Box(0,0,0, 2*ballRadius, thickness, width);
-            DataSources.DataTransformer shape1t = new DataSources.DataTransformer();
-            VecTransforms.Rotation rot = new VecTransforms.Rotation(new Vector3d(0,0,1), i*Math.PI/5);
+            Box shape1 = new Box(0,0,0, 2*ballRadius, thickness, width);
+            DataTransformer shape1t = new DataTransformer();
+            Rotation rot = new Rotation(new Vector3d(0,0,1), i*Math.PI/5);
             shape1t.setDataSource(shape1);
             shape1t.setTransform(rot);
 
@@ -1887,11 +1896,11 @@ public class TestGridMaker extends TestCase {
         image.setInterpolationType(imageInterpolation);        
 
         
-        DataSources.DataTransformer shape = new DataSources.DataTransformer();
+        DataTransformer shape = new DataTransformer();
         shape.setDataSource(image);
-        //shape.setTransform(new VecTransforms.Scale(3,3,3));
-        //shape.setTransform(new VecTransforms.Rotation(new Vector3d(1.,0,0), -Math.PI/6));
-        //shape.setTransform(new VecTransforms.RingWrap(img_width/(2*Math.PI)));
+        //shape.setTransform(new Scale(3,3,3));
+        //shape.setTransform(new Rotation(new Vector3d(1.,0,0), -Math.PI/6));
+        //shape.setTransform(new RingWrap(img_width/(2*Math.PI)));
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
@@ -1952,20 +1961,20 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Ring shape1 = new DataSources.Ring(ballRadius-thickness, thickness, width);  
+        Ring shape1 = new Ring(ballRadius-thickness, thickness, width);  
 
-        DataSources.DataTransformer shape1t = new DataSources.DataTransformer();
-        VecTransforms.Rotation trans1 = new VecTransforms.Rotation(new Vector3d(1,0,0), Math.PI/4);
+        DataTransformer shape1t = new DataTransformer();
+        Rotation trans1 = new Rotation(new Vector3d(1,0,0), Math.PI/4);
         shape1t.setDataSource(shape1);
         shape1t.setTransform(trans1);
 
-        DataSources.Ring shape2 = new DataSources.Ring(ballRadius-thickness, thickness, width);  
+        Ring shape2 = new Ring(ballRadius-thickness, thickness, width);  
         
-        //DataSources.Union union = new DataSources.Union();  
+        //Union union = new Union();  
         //union.addDataSource(shape1t);
         //union.addDataSource(shape2);
 
-        DataSources.Subtraction subtract = new DataSources.Subtraction();  
+        Subtraction subtract = new Subtraction();  
         subtract.setDataSources(shape2, shape1t);
         
         GridMaker gm = new GridMaker();  
@@ -2000,7 +2009,7 @@ public class TestGridMaker extends TestCase {
     public void _testTransform() {
 
         double r = 0.1;
-        VecTransforms.RingWrap rw = new VecTransforms.RingWrap();
+        RingWrap rw = new RingWrap();
         rw.m_radius = r;
 
         Vec ringPnt = new Vec(3);
@@ -2023,10 +2032,10 @@ public class TestGridMaker extends TestCase {
     public void _testFriezeTransform() {
         
         Vector4d p1 = new Vector4d(1,1,1,0);
-        VecTransforms.normalizePlane(p1);
+        normalizePlane(p1);
 
         Vector4d p2 = new Vector4d(1,1,1,0.1);
-        VecTransforms.normalizePlane(p2);
+        normalizePlane(p2);
 
         Matrix4d r1 = Symmetry.getReflection(p1);
         Matrix4d r2 = Symmetry.getReflection(p2);        
@@ -2059,7 +2068,7 @@ public class TestGridMaker extends TestCase {
 
     public void _testFriezeTransform2() {
 
-        VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
+        FriezeSymmetry fs = new FriezeSymmetry();
         fs.setDomainWidth(0.07);
         fs.initialize();
         
@@ -2118,7 +2127,7 @@ public class TestGridMaker extends TestCase {
             Vector4d in = new Vector4d(x,y,z,1);
 
             int res = Symmetry.toFundamentalDomain(in, planes, trans, maxCount );
-            if(res == VecTransform.RESULT_OK)
+            if(res == RESULT_OK)
                 printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f)\n", x,y,z, in.x,in.y,in.z);
             else 
                 printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f) error\n", x,y,z, in.x,in.y,in.z);
@@ -2147,7 +2156,7 @@ public class TestGridMaker extends TestCase {
             Vector4d in = new Vector4d(x,y,z,1);
 
             int res = Symmetry.toFundamentalDomain(in, s, maxCount);
-            if(res == VecTransform.RESULT_OK)
+            if(res == RESULT_OK)
                 printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f)\n", x,y,z, in.x,in.y,in.z);
             else 
                 printf("(%5.2f,%5.2f,%5.2f) u:(%5.2f,%5.2f,%5.2f) error\n", x,y,z, in.x,in.y,in.z);

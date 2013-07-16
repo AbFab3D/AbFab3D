@@ -7,6 +7,7 @@
  *
  * This software comes with the standard NO WARRANTY disclaimer for any
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
+
  *
  ****************************************************************************/
 
@@ -31,6 +32,8 @@ import abfab3d.io.output.SlicesWriter;
 
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
+
+import abfab3d.datasources.GridMipMap;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;

@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
+package abfab3d.datasources;
 
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;

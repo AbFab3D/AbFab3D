@@ -88,19 +88,21 @@
         <compilejava package="abfab3d/util"
             jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
         />
-<!--
-        <compilejava package="abfab3d/math"
-                     jars=""
-                />
--->
+        <compilejava package="abfab3d/transforms"
+            jars="jafama.jar vecmath.jar"
+        />  
         <compilejava package="abfab3d/intersect"
                      jars=""
-                />
+                            />
+                                                                                                
         <compilejava package="abfab3d/path"
             jars=""
-        />
+        />  
         <compilejava package="abfab3d/grid"
             jars=""
+        />
+        <compilejava package="abfab3d/datasources"
+            jars="jafama.jar vecmath.jar"
         />
         <compilejava package="abfab3d/grid/util"
             jars=""
@@ -115,9 +117,6 @@
             jars=""
         />
         <compilejava package="abfab3d/mesh"
-                     jars=""
-                />
-        <compilejava package="abfab3d/mesh2"
                      jars=""
                 />
         <compilejava package="abfab3d/io/input"
@@ -198,8 +197,10 @@
             manifest="abfab3d_core.mf"
             includes="
                 abfab3d/math/*
+                abfab3d/transform/*
                 abfab3d/geom/*
                 abfab3d/grid/*
+                abfab3d/grid/maker/*
                 abfab3d/grid/op/*
                 abfab3d/grid/query/*
                 abfab3d/grid/util/*
@@ -219,6 +220,7 @@
                 abfab3d/io/soap/encoders/*
                 abfab3d/io/soap/envelope/*
                 abfab3d/io/shapeways/*
+                abfab3d/transform/*
                 abfab3d/util/*
                 "
         />
@@ -521,6 +523,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/grid/query" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/output" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transform" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/mesh" jars="**/*.jar" />

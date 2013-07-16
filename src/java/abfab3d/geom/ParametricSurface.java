@@ -14,7 +14,6 @@ package abfab3d.geom;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.util.DataSource; 
 import abfab3d.util.Vec; 
 
 import abfab3d.util.TriangleCollector;

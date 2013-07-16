@@ -40,9 +40,32 @@ import abfab3d.geom.TriangulatedModels;
 import abfab3d.util.MathUtil;
 import abfab3d.util.ImageGray16;
 
-import abfab3d.grid.op.DataSources;
-import abfab3d.grid.op.VecTransforms;
-import abfab3d.grid.op.VolumePatterns;
+import abfab3d.datasources.Box;
+import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Ring;
+import abfab3d.datasources.Torus;
+import abfab3d.datasources.DataSourceImageBitmap;
+import abfab3d.datasources.DataTransformer;
+import abfab3d.datasources.Intersection;
+import abfab3d.datasources.Union;
+import abfab3d.datasources.Subtraction;
+import abfab3d.datasources.Triangle;
+import abfab3d.datasources.Cylinder;
+import abfab3d.datasources.LimitSet;
+import abfab3d.datasources.VolumePatterns;
+
+import abfab3d.transforms.RingWrap;
+import abfab3d.transforms.FriezeSymmetry;
+import abfab3d.transforms.WallpaperSymmetry;
+import abfab3d.transforms.Rotation;
+import abfab3d.transforms.CompositeTransform;
+import abfab3d.transforms.Scale;
+import abfab3d.transforms.SphereInversion;
+import abfab3d.transforms.Translation;
+import abfab3d.transforms.PlaneReflection;
+
+import abfab3d.datasources.VolumePatterns;
+
 import abfab3d.grid.op.GridMaker;
 
 
@@ -105,15 +128,15 @@ public class TestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0,ballRadius);
-        DataSources.Torus torus = new DataSources.Torus(0.34*CM, 0.15*CM);
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+        Torus torus = new Torus(0.34*CM, 0.15*CM);
 
         VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
 
         //VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
 
-        VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
+        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         //gm.setDataSource(gyroid);
@@ -187,15 +210,15 @@ public class TestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0,ballRadius);
-        DataSources.Torus torus = new DataSources.Torus(0.34*CM, 0.15*CM);
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+        Torus torus = new Torus(0.34*CM, 0.15*CM);
 
         VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
 
         //VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
 
-        VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
+        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         //gm.setDataSource(gyroid);

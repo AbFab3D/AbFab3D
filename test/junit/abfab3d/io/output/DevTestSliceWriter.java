@@ -28,10 +28,33 @@ import abfab3d.util.ReflectionGroup;
 
 import abfab3d.util.MathUtil;
 
-import abfab3d.grid.op.DataSources;
-import abfab3d.grid.op.VecTransforms;
-import abfab3d.grid.op.VolumePatterns;
 import abfab3d.grid.op.GridMaker;
+
+import abfab3d.datasources.Box;
+import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Ring;
+import abfab3d.datasources.DataSourceImageBitmap;
+import abfab3d.datasources.DataTransformer;
+import abfab3d.datasources.Intersection;
+import abfab3d.datasources.Union;
+import abfab3d.datasources.Subtraction;
+import abfab3d.datasources.Triangle;
+import abfab3d.datasources.Cylinder;
+import abfab3d.datasources.LimitSet;
+import abfab3d.datasources.VolumePatterns;
+
+import abfab3d.transforms.RingWrap;
+import abfab3d.transforms.FriezeSymmetry;
+import abfab3d.transforms.WallpaperSymmetry;
+import abfab3d.transforms.Rotation;
+import abfab3d.transforms.CompositeTransform;
+import abfab3d.transforms.Scale;
+import abfab3d.transforms.SphereInversion;
+import abfab3d.transforms.Translation;
+import abfab3d.transforms.PlaneReflection;
+
+
+import abfab3d.transforms.*;
 
 
 import static abfab3d.util.Output.printf;
@@ -92,7 +115,7 @@ public class DevTestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
-        DataSources.Box block = new DataSources.Box(0,0,0, 2*s, 2*s, 2*s);
+        Box block = new Box(0,0,0, 2*s, 2*s, 2*s);
         
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid();  
         gyroid.setPeriod(s);
@@ -103,7 +126,7 @@ public class DevTestSliceWriter extends TestCase {
        
         //VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
         
-        DataSources.Intersection intersection = new DataSources.Intersection();
+        Intersection intersection = new Intersection();
 
         intersection.add(block);
         intersection.add(gyroid);
@@ -191,17 +214,17 @@ public class DevTestSliceWriter extends TestCase {
             v1 = new Vector3d(0,s,0),
             v2 = new Vector3d(0,0,s);
         
-        //DataSources.Triangle triangle = new DataSources.Triangle(v0, v1, v2, thickness);
-        DataSources.Triangle triangle = new DataSources.Triangle(v0, v1, v2, thickness);
+        //Triangle triangle = new Triangle(v0, v1, v2, thickness);
+        Triangle triangle = new Triangle(v0, v1, v2, thickness);
         
         VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(12*MM, 0.8*MM);  
 
-        VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
+        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         
-        DataSources.Intersection intersection = new DataSources.Intersection();
+        Intersection intersection = new Intersection();
         intersection.add(triangle);
         intersection.add(gyroid);
 
@@ -287,17 +310,17 @@ public class DevTestSliceWriter extends TestCase {
             v1 = new Vector3d(0,s,0),
             v2 = new Vector3d(0,0,s);
         */
-        //DataSources.Triangle triangle = new DataSources.Triangle(v0, v1, v2, thickness);
-        DataSources.Triangle triangle = new DataSources.Triangle(v0, v1, v2, thickness);
+        //Triangle triangle = new Triangle(v0, v1, v2, thickness);
+        Triangle triangle = new Triangle(v0, v1, v2, thickness);
         
         VolumePatterns.Balls balls = new VolumePatterns.Balls(0.5*CM, 0.25*CM);  
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(12*MM, 0.8*MM);  
 
-        VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
+        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         
-        DataSources.Intersection intersection = new DataSources.Intersection();
+        Intersection intersection = new Intersection();
         intersection.add(triangle);
         //intersection.add(gyroid);
 
@@ -380,28 +403,28 @@ public class DevTestSliceWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize + 0.5);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        //DataSources.Sphere sphere = new DataSources.Sphere(4*MM,4*MM,4*MM, 5*MM);
-        DataSources.Sphere sphere = new DataSources.Sphere(0*MM,0*MM,0*MM, 0.75*MM);
-        //DataSources.Cylinder cylinder = new DataSources.Cylinder(new Vector3d(0,0,0), new Vector3d(15*MM,15*MM,15*MM), 0.75*MM);
-        DataSources.Cylinder cylinder = new DataSources.Cylinder(new Vector3d(0,0,0), new Vector3d(0,0,20*MM), 0.75*MM);
-        //DataSources.Cylinder cylinder = new DataSources.Cylinder(new Vector3d(0,3*MM,0), new Vector3d(6*MM,4*MM,0), 0.75*MM);
+        //Sphere sphere = new Sphere(4*MM,4*MM,4*MM, 5*MM);
+        Sphere sphere = new Sphere(0*MM,0*MM,0*MM, 0.75*MM);
+        //Cylinder cylinder = new Cylinder(new Vector3d(0,0,0), new Vector3d(15*MM,15*MM,15*MM), 0.75*MM);
+        Cylinder cylinder = new Cylinder(new Vector3d(0,0,0), new Vector3d(0,0,20*MM), 0.75*MM);
+        //Cylinder cylinder = new Cylinder(new Vector3d(0,3*MM,0), new Vector3d(6*MM,4*MM,0), 0.75*MM);
         cylinder.setScaleFactor(1);
 
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(8*MM, 0.8*MM);  
 
-        VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
+        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
 
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         
-        VecTransforms.ReflectionSymmetry symm = new VecTransforms.ReflectionSymmetry();
+        ReflectionSymmetry symm = new ReflectionSymmetry();
         //symm.setRiemannSphereRadius(15*MM);
         symm.setRiemannSphereRadius(10*MM);
 
-        DataSources.LimitSet limitSet = new DataSources.LimitSet(0.1*MM, 0.01);
+        LimitSet limitSet = new LimitSet(0.1*MM, 0.01);
         
-        DataSources.Union union = new DataSources.Union();
+        Union union = new Union();
         union.add(sphere);
         union.add(cylinder);
         union.add(limitSet);
@@ -423,17 +446,17 @@ public class DevTestSliceWriter extends TestCase {
         grid.setGridBounds(bounds);
 
 
-        DataSources.Intersection intersection = new DataSources.Intersection();
-        DataSources.DataTransformer fractal = new DataSources.DataTransformer();
+        Intersection intersection = new Intersection();
+        DataTransformer fractal = new DataTransformer();
         fractal.setDataSource(union);
         fractal.setTransform(symm);
 
         intersection.add(fractal);
-        intersection.add(new DataSources.Cylinder(new Vector3d(0, 0*MM, 0),new Vector3d(0, -4*MM, 0),20*MM));       
+        intersection.add(new Cylinder(new Vector3d(0, 0*MM, 0),new Vector3d(0, -4*MM, 0),20*MM));       
         
-        //union.add(new DataSources.Sphere(8*MM,2*MM,-3*MM, 3*MM));
-        //union.add(new DataSources.Sphere(4*MM,0.*MM,-2*MM, 2*MM));
-        //union.add(new DataSources.Sphere(0*MM,0.*MM,-3*MM, 3.*MM));
+        //union.add(new Sphere(8*MM,2*MM,-3*MM, 3*MM));
+        //union.add(new Sphere(4*MM,0.*MM,-2*MM, 2*MM));
+        //union.add(new Sphere(0*MM,0.*MM,-3*MM, 3.*MM));
         //union.add(intersection);
         //union.add(limitSet);
         
@@ -609,21 +632,21 @@ public class DevTestSliceWriter extends TestCase {
         double rs = 1*MM;
 
         printf("grid: [%d x %d x %d]\n", nx[0],nx[1],nx[2]);
-        DataSources.Union union = new DataSources.Union();
+        Union union = new Union();
 
-        union.add(new DataSources.Sphere(ss, ss, ss, rs));
-        union.add(new DataSources.Sphere(-ss, ss, ss, rs));
-        union.add(new DataSources.Sphere(-ss, -ss, ss, rs));
-        union.add(new DataSources.Sphere(ss, -ss, ss, rs));
-        union.add(new DataSources.Sphere(ss, ss, -ss, rs));
-        union.add(new DataSources.Sphere(-ss, ss, -ss, rs));
-        union.add(new DataSources.Sphere(-ss, -ss, -ss, rs));
-        union.add(new DataSources.Sphere(ss, -ss, -ss, rs));
+        union.add(new Sphere(ss, ss, ss, rs));
+        union.add(new Sphere(-ss, ss, ss, rs));
+        union.add(new Sphere(-ss, -ss, ss, rs));
+        union.add(new Sphere(ss, -ss, ss, rs));
+        union.add(new Sphere(ss, ss, -ss, rs));
+        union.add(new Sphere(-ss, ss, -ss, rs));
+        union.add(new Sphere(-ss, -ss, -ss, rs));
+        union.add(new Sphere(ss, -ss, -ss, rs));
 
-        union.add(new DataSources.Cylinder(new Vector3d(-ss,-ss,-ss), new Vector3d(ss, ss, ss), rs));
-        union.add(new DataSources.Cylinder(new Vector3d(-ss,ss,-ss), new Vector3d(ss, -ss, ss), rs));
-        union.add(new DataSources.Cylinder(new Vector3d(-ss,-ss,ss), new Vector3d(ss, ss, -ss), rs));
-        union.add(new DataSources.Cylinder(new Vector3d(ss,-ss,-ss), new Vector3d(-ss, ss, ss), rs));
+        union.add(new Cylinder(new Vector3d(-ss,-ss,-ss), new Vector3d(ss, ss, ss), rs));
+        union.add(new Cylinder(new Vector3d(-ss,ss,-ss), new Vector3d(ss, -ss, ss), rs));
+        union.add(new Cylinder(new Vector3d(-ss,-ss,ss), new Vector3d(ss, ss, -ss), rs));
+        union.add(new Cylinder(new Vector3d(ss,-ss,-ss), new Vector3d(-ss, ss, ss), rs));
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
@@ -689,21 +712,21 @@ public class DevTestSliceWriter extends TestCase {
         double rs = 1*MM;
         double T = (sqrt(5) + 1)/2;
         printf("grid: [%d x %d x %d]\n", nx[0],nx[1],nx[2]);
-        DataSources.Union union = new DataSources.Union();
+        Union union = new Union();
         Vector3d v5 = new Vector3d(ss, 0,   ss*T);
         Vector3d v3 = new Vector3d(0, ss/T, ss*T);
         Vector3d v2 = new Vector3d(0, 0,    ss*T);
         
 
-        //union.add(new DataSources.Sphere(0, ss/T, ss*T, rs));
-        //union.add(new DataSources.Cylinder(v2, v3, rs));
-        union.add(new DataSources.Cylinder(v5, v3, rs));
-        //union.add(new DataSources.Cylinder(v5, v2, rs));
-        //union.add(new DataSources.Cylinder(v3, v2, rs));
-        union.add(new DataSources.Sphere(v3, rs));
-        union.add(new DataSources.Sphere(v5, rs));
+        //union.add(new Sphere(0, ss/T, ss*T, rs));
+        //union.add(new Cylinder(v2, v3, rs));
+        union.add(new Cylinder(v5, v3, rs));
+        //union.add(new Cylinder(v5, v2, rs));
+        //union.add(new Cylinder(v3, v2, rs));
+        union.add(new Sphere(v3, rs));
+        union.add(new Sphere(v5, rs));
 
-        VecTransforms.ReflectionSymmetry symm = new VecTransforms.ReflectionSymmetry();
+        ReflectionSymmetry symm = new ReflectionSymmetry();
         //symm.setRiemannSphereRadius(15*MM);
         symm.setGroup(getIcosahedralKaleidoscope());
         
@@ -715,8 +738,8 @@ public class DevTestSliceWriter extends TestCase {
         gyroid.setLevel(1.5);
         gyroid.setOffset(0.25*sg,-0.2*sg,0.*sg);
 
-        DataSources.Intersection intersection = new DataSources.Intersection();
-        intersection.add(new DataSources.Sphere(0,0,0,15*MM));
+        Intersection intersection = new Intersection();
+        intersection.add(new Sphere(0,0,0,15*MM));
         intersection.add(gyroid);        
 
         GridMaker gm = new GridMaker();  
@@ -781,9 +804,9 @@ public class DevTestSliceWriter extends TestCase {
 
         double sr = 2*MM;
 
-        DataSources.Sphere sphere = new DataSources.Sphere();
+        Sphere sphere = new Sphere();
         sphere.setRadius(sr);
-        sphere.setTransform(new VecTransforms.Translation(2.*MM,0,0));
+        sphere.setTransform(new Translation(2.*MM,0,0));
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
@@ -799,15 +822,15 @@ public class DevTestSliceWriter extends TestCase {
         printf("gm.makeGrid()\n");
         if(false){
             for(int i = -3; i < 3; i++){
-                sphere.setTransform(new VecTransforms.Translation(i*3*MM,0,0));
+                sphere.setTransform(new Translation(i*3*MM,0,0));
                 gm.makeGrid(grid);               
             }
         }
         if(true){
-            DataSources.Union union = new DataSources.Union();
+            Union union = new Union();
             for(int i = -3; i < 3; i++){
-                DataSources.Sphere sph = new DataSources.Sphere();
-                sph.setTransform(new VecTransforms.Translation(i*3*MM,0,0));
+                Sphere sph = new Sphere();
+                sph.setTransform(new Translation(i*3*MM,0,0));
                 union.add(sphere);
             }            
             gm.setDataSource(union);

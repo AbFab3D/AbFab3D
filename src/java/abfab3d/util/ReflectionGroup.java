@@ -30,8 +30,8 @@ public class ReflectionGroup {
     
     static final boolean DEBUG = true;
     
-    public static final int RESULT_OK = VecTransform.RESULT_OK;
-    public static final int RESULT_ERROR = VecTransform.RESULT_ERROR;
+    public static final int RESULT_OK = ResultCodes.RESULT_OK;
+    public static final int RESULT_ERROR = ResultCodes.RESULT_ERROR;
     
     double m_R2 = 1; // Radius^2 of Riemannn sphere 
 

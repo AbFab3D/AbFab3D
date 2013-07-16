@@ -667,12 +667,12 @@ public class Symmetry {
             
             if(!found){
                 // we are in FD
-                return VecTransform.RESULT_OK;
+                return ResultCodes.RESULT_OK;
             }
         }        
         // if we are here - we haven't found FD 
         // do somthing 
         if(DEBUG)printf("out of iterations\n");
-        return VecTransform.RESULT_ERROR;
+        return ResultCodes.RESULT_ERROR;
     }   
 }

@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
+package abfab3d.datasources;
 
 
 import abfab3d.util.Vec;
@@ -29,18 +29,14 @@ import static abfab3d.util.Output.time;
 
 /**
    
-   DataSourceGrid
-   
-   @author Vladimir Bulatov
-   
-*/
-
-/**
    
    DataSource interface to Grid
    
+   @author Vladimir Bulatov
+   
+   
 */
-public class DataSourceGrid implements DataSource, Initializable {
+public class DataSourceGrid extends TransformableDataSource {
 
     static final boolean DEBUG = false;
     static int debugCount = 0;
@@ -88,7 +84,8 @@ public class DataSourceGrid implements DataSource, Initializable {
     }
 
     public int initialize(){
-        
+
+        super.initialize();
         return RESULT_OK;
 
     }
@@ -100,6 +97,7 @@ public class DataSourceGrid implements DataSource, Initializable {
      */
     public int getDataValue(Vec pnt, Vec data) {
 
+        super.transform(pnt);
         double 
             x = pnt.v[0],
             y = pnt.v[1],

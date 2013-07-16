@@ -20,8 +20,11 @@ import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.*;
-import abfab3d.grid.op.DataSources;
-import abfab3d.grid.op.DataSourceImageBitmap;
+
+import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.Union;
+
+
 import abfab3d.grid.op.GridMaker;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshMakerMT;
@@ -376,7 +379,7 @@ public class ImagePopperKernel extends HostedKernel {
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866
         double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
         double baseThreshold = 0.1;
-        int interpolationType = DataSourceImageBitmap.INTERPOLATION_BOX;
+        int interpolationType = ImageBitmap.INTERPOLATION_BOX;
 
 
         if (!filename2.equalsIgnoreCase("NONE")) {
@@ -398,13 +401,13 @@ public class ImagePopperKernel extends HostedKernel {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         printf("bodyDepth: %f mm\n", bodyDepth*1000);
 
-        DataSources.Union union = new DataSources.Union();
+        Union union = new Union();
 
-        DataSourceImageBitmap layer1 = new DataSourceImageBitmap();
+        ImageBitmap layer1 = new ImageBitmap();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
         layer1.setLocation(0, 0, layer1z);
         layer1.setBaseThickness(0.0);
-        layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        layer1.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale1);
@@ -414,7 +417,7 @@ public class ImagePopperKernel extends HostedKernel {
 
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
-            layer1.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
+            layer1.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
         layer1.setBaseThreshold(baseThreshold);
         layer1.setInterpolationType(interpolationType);
@@ -422,19 +425,19 @@ public class ImagePopperKernel extends HostedKernel {
         union.addDataSource(layer1);
 
         if (!filename2.equalsIgnoreCase("NONE")) {
-            DataSourceImageBitmap layer2 = new DataSourceImageBitmap();
+            ImageBitmap layer2 = new ImageBitmap();
             layer2.setSize(bodyWidth2, bodyHeight2, bodyDepth2);
 
             layer2.setLocation(0, 0, layer2z);
             layer2.setBaseThickness(0.0);
-            layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+            layer2.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale2);
             layer2.setBlurWidth((useGrayscale2)? 0: imagesBlurWidth);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert2) {
-                layer2.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
+                layer2.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
             layer2.setInterpolationType(interpolationType);
@@ -446,12 +449,12 @@ public class ImagePopperKernel extends HostedKernel {
         }
 
         if (!filename3.equalsIgnoreCase("NONE")) {
-            DataSourceImageBitmap layer3 = new DataSourceImageBitmap();
+            ImageBitmap layer3 = new ImageBitmap();
             layer3.setSize(bodyWidth3, bodyHeight3, bodyDepth3);
 
             layer3.setLocation(0, 0, layer3z);
             layer3.setBaseThickness(0.0);
-            layer3.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+            layer3.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale3);
@@ -459,7 +462,7 @@ public class ImagePopperKernel extends HostedKernel {
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert3) {
-                layer3.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
+                layer3.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
             }
 
             layer3.setInterpolationType(interpolationType);
@@ -485,9 +488,10 @@ public class ImagePopperKernel extends HostedKernel {
         grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
         grid.setGridBounds(bounds);
 
-        printf("gm.makeGrid()\n");
-        gm.makeGrid(grid);
-        printf("gm.makeGrid() done\n");
+        long t0 = time();
+        printf("GridMaker.execute()\n");
+        gm.execute(grid);
+        printf("GridMaker.execute() done %d ms\n", (time() - t0));
 
 
         int min_volume = 10;
@@ -516,7 +520,6 @@ public class ImagePopperKernel extends HostedKernel {
             params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
         }
 
-        long t0;
 
         WingedEdgeTriangleMesh mesh;
 
@@ -709,13 +712,13 @@ public class ImagePopperKernel extends HostedKernel {
 
     private int getPlacementValue(ImagePlace place) {
         switch(place) {
-            case TOP: return DataSourceImageBitmap.IMAGE_PLACE_TOP;
-            case BOTTOM: return DataSourceImageBitmap.IMAGE_PLACE_BOTTOM;
-            case BOTH: return DataSourceImageBitmap.IMAGE_PLACE_BOTH;
-            default :
-                System.out.println("Unhandled place: " + place);
-                new Exception().printStackTrace();
-                return DataSourceImageBitmap.IMAGE_PLACE_TOP;
+        case TOP: return ImageBitmap.IMAGE_PLACE_TOP;
+        case BOTTOM: return ImageBitmap.IMAGE_PLACE_BOTTOM;
+        case BOTH: return ImageBitmap.IMAGE_PLACE_BOTH;
+        default :
+            System.out.println("Unhandled place: " + place);
+            new Exception().printStackTrace();
+            return ImageBitmap.IMAGE_PLACE_TOP;
         }
     }
 

@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
+package abfab3d.datasources;
 
 
 import java.awt.image.BufferedImage;
@@ -51,12 +51,14 @@ import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
 
 
 import static abfab3d.util.MathUtil.clamp;
+
 import static abfab3d.util.ImageUtil.us2i;
-import static abfab3d.grid.op.DataSources.step;
-import static abfab3d.grid.op.DataSources.step01;
-import static abfab3d.grid.op.DataSources.step10;
-import static abfab3d.grid.op.DataSources.getBox;
-import static abfab3d.grid.op.DataSources.intervalCap;
+
+import static abfab3d.util.MathUtil.step;
+import static abfab3d.util.MathUtil.step01;
+import static abfab3d.util.MathUtil.step10;
+import static abfab3d.util.MathUtil.getBox;
+import static abfab3d.util.MathUtil.intervalCap;
 
 /**
    
@@ -71,7 +73,7 @@ import static abfab3d.grid.op.DataSources.intervalCap;
    makes embossed image from given file of given size 
    
 */
-public class DataSourceImageBitmap implements DataSource, Initializable {
+public class ImageBitmap  extends TransformableDataSource {
 
     double MM = 0.001; //
     
@@ -144,10 +146,10 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     //double[] cc = new double[4];
     double color[] = new double[4];
     
-    public DataSourceImageBitmap(){
+    public ImageBitmap(){
     }
     
-    public DataSourceImageBitmap(String imagePath, double sx, double sy, double sz){
+    public ImageBitmap(String imagePath, double sx, double sy, double sz){
         
         setImagePath(imagePath);
         setSize(sx, sy, sz);
@@ -261,7 +263,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
     }
     
     public int initialize(){
-        
+
+        super.initialize();
         xmin = m_centerX - m_sizeX/2.;
         xmax = m_centerX + m_sizeX/2.;
         xscale = 1./(xmax-xmin);
@@ -429,8 +432,8 @@ public class DataSourceImageBitmap implements DataSource, Initializable {
      */
     public int getDataValue(Vec pnt, Vec data) {
         
-        // TODO get proper pointer size from chain of transforms
-        
+        super.transform(pnt);
+
         double vs = pnt.getScaledVoxelSize();
         if(vs == 0.)
             return getDataValueZeroVoxel(pnt, data);

@@ -21,12 +21,15 @@ import java.util.concurrent.TimeUnit;
 
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.Operation;
+import abfab3d.grid.AttributeOperation;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.DataSource;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Initializable;
+import abfab3d.transforms.Identity;
 
 
 import static abfab3d.util.Output.time;
@@ -35,7 +38,7 @@ import static abfab3d.util.Output.printf;
 /**
    class takes premade grid, transfromation and data source and fills the grid's voxel if data according to value of data source 
  */
-public class GridMaker {
+public class GridMaker implements Operation, AttributeOperation {
     
     static final boolean DEBUG = false;
     static int debugCount = 100;
@@ -120,6 +123,16 @@ public class GridMaker {
 
     }
 
+    public Grid execute(Grid grid) {
+        makeGrid(grid);
+        return grid;
+    }
+    
+    public AttributeGrid execute(AttributeGrid grid) {
+        makeGrid(grid);
+        return grid;
+    }
+
     public void makeGrid(Grid grid){
 
         if (!boundsSet) {
@@ -151,7 +164,7 @@ public class GridMaker {
 
         makeTransform();
         if(m_transform == null)
-            m_transform = new VecTransforms.Identity();
+            m_transform = new Identity();
 
         if(m_transform instanceof Initializable){
             ((Initializable)m_transform).initialize();

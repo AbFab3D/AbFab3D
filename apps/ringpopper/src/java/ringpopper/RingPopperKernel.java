@@ -24,10 +24,23 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.Grid;
 
-import abfab3d.grid.op.DataSources;
-import abfab3d.grid.op.DataSourceImageBitmap;
+import abfab3d.util.DataSource;
+import abfab3d.util.TextUtil;
+
+import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.Intersection;
+import abfab3d.datasources.DataTransformer;
+import abfab3d.datasources.Ring;
+import abfab3d.datasources.Complement;
+import abfab3d.datasources.Box;
+import abfab3d.datasources.Union;
+
+import abfab3d.transforms.RingWrap;
+import abfab3d.transforms.Rotation;
+import abfab3d.transforms.FriezeSymmetry;
+import abfab3d.transforms.CompositeTransform;
+
 import abfab3d.grid.op.GridMaker;
-import abfab3d.grid.op.VecTransforms;
 
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.SAVExporter;
@@ -38,8 +51,6 @@ import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.mesh.LaplasianSmooth;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 
-import abfab3d.util.DataSource;
-import abfab3d.util.TextUtil;
 
 import app.common.GridSaver;
 import app.common.RegionPrunner;
@@ -67,6 +78,7 @@ import static abfab3d.util.Output.time;
  * Geometry Kernel for the RingPopper
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public class RingPopperKernel extends HostedKernel {
     private static final boolean USE_MIP_MAPPING = false;
@@ -181,7 +193,7 @@ public class RingPopperKernel extends HostedKernel {
     private int fontSize = 20;
 
     private double imageBlurWidth = 0.;
-    private int imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
+    private int imageInterpolationType = ImageBitmap.INTERPOLATION_LINEAR;
     private double imageBaseThreshold = 0.1;
     private double bandLength; // length of ring perimeter
 
@@ -461,44 +473,39 @@ public class RingPopperKernel extends HostedKernel {
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
         imageBlurWidth = surfaceTransitionWidth*voxelSize;
         imageBaseThreshold = 0.1;            
-        imageInterpolationType = DataSourceImageBitmap.INTERPOLATION_LINEAR;
+        imageInterpolationType = ImageBitmap.INTERPOLATION_LINEAR;
 
 
         bandLength = innerDiameter * Math.PI;
 
-        DataSources.Intersection complete_band = new DataSources.Intersection();
+        Intersection complete_band = new Intersection();
 
         // add crossSectionImage to complete_band
         if (crossSectionPath != null && crossSectionPath.length() > 0 && !crossSectionPath.equalsIgnoreCase("NONE")) {
-            complete_band.addDataSource(makeCrossSection(ringYmin, ringYmax));
+            complete_band.add(makeCrossSection(ringYmin, ringYmax));
         }
 
         DataSource image_band = makeImageBand();       
-        complete_band.addDataSource(image_band);
+        complete_band.add(image_band);
 
         // add Text 
         if (text != null && text.length() > 0) {
-            complete_band.addDataSource(makeTextComplement(ringYmin, ringYmax));
+            complete_band.add(makeTextComplement(ringYmin, ringYmax));
         }
 
-        VecTransforms.RingWrap ringWrap = new VecTransforms.RingWrap();
+        RingWrap ringWrap = new RingWrap();
         ringWrap.setRadius(innerDiameter / 2);
 
-        DataSources.DataTransformer completeRing = new DataSources.DataTransformer();
+        DataTransformer completeRing = new DataTransformer();
         completeRing.setDataSource(complete_band);
         if(makeRingWrap)
             completeRing.setTransform(ringWrap);
                 
-        DataSources.Intersection clippedRing = new DataSources.Intersection();
+        Intersection clippedRing = new Intersection();
         if(makeRingWrap)
-            clippedRing.addDataSource(new DataSources.Ring(innerDiameter/2, ringThickness, ringYmin, ringYmax));
-        clippedRing.addDataSource(completeRing);
+            clippedRing.add(new Ring(innerDiameter/2, ringThickness, ringYmin, ringYmax));
+        clippedRing.add(completeRing);
         
-        //DataSources.DataTransformer ring = new DataSources.DataTransformer();
-        //ring.setDataSource(completeRing);
-        //ring.setDataSource(clippedRing);
-        //ring.setTransform(ringWrap);
-
         GridMaker gm = new GridMaker();
         
         gm.setBounds(bounds);
@@ -527,7 +534,7 @@ public class RingPopperKernel extends HostedKernel {
         printf("gm.makeGrid(), threads: %d\n", threadCount);
         long t0 = time();
         gm.setThreadCount(threadCount);
-        gm.makeGrid(grid);
+        gm.execute(grid);
         printf("gm.makeGrid() done %d ms\n", (time() - t0));
 
         int regions_removed = 0;
@@ -653,7 +660,7 @@ public class RingPopperKernel extends HostedKernel {
      */
     DataSource makeImageBand() {
 
-        DataSourceImageBitmap image_src = new DataSourceImageBitmap();
+        ImageBitmap image_src = new ImageBitmap();
        
         image_src.setLocation(0, 0, ringThickness / 2);
         image_src.setImagePath(imagePath);
@@ -665,7 +672,7 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setVoxelSize(resolution);
 
         if (imageInvert) {
-            image_src.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
+            image_src.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
         }
 
         image_src.setInterpolationType(imageInterpolationType);
@@ -689,10 +696,10 @@ public class RingPopperKernel extends HostedKernel {
 
         if (symmetryStyle != SymmetryStyle.NONE) {
 
-            DataSources.DataTransformer image_frieze = new DataSources.DataTransformer();
+            DataTransformer image_frieze = new DataTransformer();
             image_frieze.setDataSource(image_src);
 
-            VecTransforms.FriezeSymmetry fs = new VecTransforms.FriezeSymmetry();
+            FriezeSymmetry fs = new FriezeSymmetry();
             fs.setFriezeType(symmetryStyle.getCode());
             double tileWidth = bandLength / tilingX;
             fs.setDomainWidth(tileWidth);
@@ -708,25 +715,25 @@ public class RingPopperKernel extends HostedKernel {
         }
 
 
-        DataSources.Union union = new DataSources.Union();
+        Union union = new Union();
 
-        union.addDataSource(image_band);
+        union.add(image_band);
 
         if (hasTopBorder()) {
-            DataSources.Box top_band = new DataSources.Box();
+            Box top_band = new Box();
             top_band.setSize(bandLength, topBorderWidth, ringThickness);
             top_band.setLocation(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
             top_band.setSmoothBoundaries(false, true, true);
 
-            union.addDataSource(top_band);
+            union.add(top_band);
         }
 
         if (hasBottomBorder()) {
-            DataSources.Box bottom_band = new DataSources.Box();
+            Box bottom_band = new Box();
             bottom_band.setSize(bandLength, bottomBorderWidth, ringThickness);
             bottom_band.setLocation(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
             bottom_band.setSmoothBoundaries(false, true, true);
-            union.addDataSource(bottom_band);
+            union.add(bottom_band);
         }
 
         return union;
@@ -763,17 +770,17 @@ public class RingPopperKernel extends HostedKernel {
         printf("text height: %d pixels\n", textHeightPixels);
         printf("vertical text offset: %d pixels\n", textOffsetV);
 
-        DataSourceImageBitmap textBand = new DataSourceImageBitmap();
+        ImageBitmap textBand = new ImageBitmap();
 
         textBand.setSize(Math.PI * innerDiameter, width, textDepth);
         // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
         textBand.setLocation(0, (ymax + ymin)/2, -textDepth / 2);
         textBand.setBaseThickness(0.);
-        textBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        textBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1, 1);
         textBand.setBlurWidth(imageBlurWidth);
         textBand.setUseGrayscale(false);
-        textBand.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
+        textBand.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
 
 
         int fontStyle = Font.PLAIN;
@@ -806,15 +813,15 @@ public class RingPopperKernel extends HostedKernel {
                 false));
 
         // we want text on the inside. So it should face in opposite direction
-        VecTransforms.Rotation textRotation = new VecTransforms.Rotation();
+        Rotation textRotation = new Rotation();
         textRotation.setRotation(new Vector3d(0, 1, 0), 180 * TORAD);
 
         // rotated text
-        DataSources.DataTransformer rotatedText = new DataSources.DataTransformer();
+        DataTransformer rotatedText = new DataTransformer();
         rotatedText.setDataSource(textBand);
         rotatedText.setTransform(textRotation);
 
-        DataSources.Complement textComplement = new DataSources.Complement();
+        Complement textComplement = new Complement();
         textComplement.setDataSource(rotatedText);
 
         return textComplement;
@@ -826,7 +833,7 @@ public class RingPopperKernel extends HostedKernel {
      */
     DataSource makeCrossSection(double ringYmin, double ringYmax) {
 
-        DataSourceImageBitmap crossSect = new DataSourceImageBitmap();
+        ImageBitmap crossSect = new ImageBitmap();
         
         double size = (ringYmax - ringYmin);
         crossSect.setSize(size, ringThickness, Math.PI * innerDiameter);
@@ -841,19 +848,19 @@ public class RingPopperKernel extends HostedKernel {
         crossSect.setUseGrayscale(false);
         crossSect.setImagePath(crossSectionPath);
         crossSect.setBlurWidth(imageBlurWidth);
-        crossSect.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_LINEAR);
+        crossSect.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
 
-        VecTransforms.CompositeTransform crossTrans = new VecTransforms.CompositeTransform();
+        CompositeTransform crossTrans = new CompositeTransform();
 
-        VecTransforms.Rotation crot1 = new VecTransforms.Rotation();
+        Rotation crot1 = new Rotation();
         crot1.setRotation(new Vector3d(0, 0, 1), -90 * TORAD);
-        VecTransforms.Rotation crot2 = new VecTransforms.Rotation();
+        Rotation crot2 = new Rotation();
         crot2.setRotation(new Vector3d(0, 1, 0), -90 * TORAD);
         crossTrans.add(crot1);
         crossTrans.add(crot2);
 
         // transformed cross section 
-        DataSources.DataTransformer transCross = new DataSources.DataTransformer();
+        DataTransformer transCross = new DataTransformer();
         transCross.setDataSource(crossSect);
         transCross.setTransform(crossTrans);
 
