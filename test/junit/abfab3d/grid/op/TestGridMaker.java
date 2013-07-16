@@ -48,7 +48,7 @@ import abfab3d.util.VecTransform;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
-import abfab3d.datasources.DataSourceImageBitmap;
+import abfab3d.datasources.ImageBitmap;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;
@@ -129,7 +129,7 @@ public class TestGridMaker extends TestCase {
         box.setSize(ringDiameter*Math.PI,ringWidth, ringThickness);
         box.setLocation(0,0, ringThickness/2);
         
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
         image.setLocation(0,0,0);
@@ -138,7 +138,7 @@ public class TestGridMaker extends TestCase {
         image.setImagePath("docs/images/numbers_1.png");
         image.setUseGrayscale(true);
         image.setTiles(2, 1);
-        image.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        image.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
 
 
         RingWrap rw = new RingWrap();
@@ -218,7 +218,7 @@ public class TestGridMaker extends TestCase {
         double tileRotationAngle = 0*TORAD;
         Vector3d tileRotationAxis = new Vector3d(1,1,1);
         boolean useGrayscale = true;
-        int imageType = DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED;
+        int imageType = ImageBitmap.IMAGE_TYPE_EMBOSSED;
 
         double gridWidth = rectWidth + 2*margin;
         double gridHeight  = rectHeight + 2*margin;
@@ -231,7 +231,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(tileWidth, tileHeight, imageDepth);
         image.setLocation(0,0,0);
@@ -309,7 +309,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
         image.setLocation(0,0,ringThickness/2);
@@ -369,7 +369,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(bandLength, ringWidth, ringThickness);
         image.setLocation(0,0,ringThickness/2);
@@ -377,11 +377,11 @@ public class TestGridMaker extends TestCase {
         image.setTiles(12,1);
         image.setUseGrayscale(true);        
         image.setImagePath("apps/ringpopper/images/tile_02.png");
-        image.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
+        image.setInterpolationType(ImageBitmap.INTERPOLATION_MIPMAP);
         image.setPixelWeightNonlinearity(-1.);
         image.setProbeSize(0.5*MM);
 
-        DataSourceImageBitmap crossSect = new DataSourceImageBitmap();
+        ImageBitmap crossSect = new ImageBitmap();
         crossSect.setSize(ringWidth, ringThickness,bandLength);
         crossSect.setLocation(0,ringThickness/2,0);
         crossSect.setBaseThickness(0.);
@@ -459,7 +459,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth,  ringThickness);
         image.setLocation(0,0, ringThickness/2);
@@ -528,13 +528,13 @@ public class TestGridMaker extends TestCase {
 
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(tileWidth, tileHeight, ringThickness);
         image.setLocation(0,0,-ringThickness);
         image.setBaseThickness(0.);
         image.setTiles(1,1);
-        image.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        image.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         image.setImagePath("docs/images/tile_01.png");
         
         CompositeTransform compTrans = new CompositeTransform();
@@ -608,7 +608,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
         image.setLocation(0,0,ringThickness/2);
@@ -621,7 +621,7 @@ public class TestGridMaker extends TestCase {
         topBand.setLocation(0, ringWidth/2, bandThickness/2);
 
         //Block bottomBand = new Block();
-        DataSourceImageBitmap bottomBand = new DataSourceImageBitmap();
+        ImageBitmap bottomBand = new ImageBitmap();
         bottomBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
         bottomBand.setLocation(0, -ringWidth/2, bandThickness/2);
         bottomBand.setTiles((int)(ringDiameter*Math.PI/bandWidth), 1);
@@ -687,7 +687,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringWidth, ringWidth, ringDiameter*Math.PI);
         image.setLocation (0,0,0);
@@ -750,7 +750,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
         image.setLocation(0,0,0);
@@ -830,7 +830,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(cupDiameter/2, cupHeight, cupDiameter*Math.PI);
         image.setLocation(-cupDiameter/4,0,0);
@@ -891,7 +891,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize(cupDiameter/2, cupHeight, cupDiameter*Math.PI);
         image.setLocation(-cupDiameter/4,0,0);
@@ -946,11 +946,11 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap textBand = new DataSourceImageBitmap();        
+        ImageBitmap textBand = new ImageBitmap();        
         textBand.setSize(textWidth, textHeight, textDepth);
         textBand.setLocation(0,0,0); 
         textBand.setBaseThickness(0.0);
-        textBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        textBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
         textBand.setImage(TextUtil.createTextImage(1000, 200, "Test Image Text gg", 
                                                    new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
@@ -995,13 +995,13 @@ public class TestGridMaker extends TestCase {
         int nz = (int)Math.round((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap block = new DataSourceImageBitmap();        
+        ImageBitmap block = new ImageBitmap();        
         block.setSize(blockWidth, blockHeight, blockDepth);
         block.setImagePath("docs/images/circles.png");                
         block.setLocation(0,0,0); 
         block.setBaseThickness(0.);
-        //block.setImageType(DataSourceImageBitmap.IMAGE_POSITIVE);
-        block.setImageType(DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED);
+        //block.setImageType(ImageBitmap.IMAGE_POSITIVE);
+        block.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
         block.setUseGrayscale(false);        
         block.setTiles(1,1);
         
@@ -1088,20 +1088,20 @@ public class TestGridMaker extends TestCase {
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
                 
-        DataSourceImageBitmap ringBand = new DataSourceImageBitmap();        
+        ImageBitmap ringBand = new ImageBitmap();        
         ringBand.setSize(Math.PI*ringDiameter, ringWidth, ringThickness);
         ringBand.setLocation(0,0,ringThickness/2); // make z-offset to have band in positive z halfspace 
         ringBand.setBaseThickness(0.5);
-        ringBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        ringBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         ringBand.setTiles(20,1); 
         ringBand.setImagePath("docs/images/star_4_arms_1.png");
 
         
-        DataSourceImageBitmap textBand = new DataSourceImageBitmap();        
+        ImageBitmap textBand = new ImageBitmap();        
         textBand.setSize(Math.PI*ringDiameter, ringWidth, textDepth);
         textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
         textBand.setBaseThickness(0.);
-        textBand.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        textBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
         textBand.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", 
                                                    new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
@@ -1171,7 +1171,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         image.setSize(ringWidth, ringWidth, ringThickness);
         image.setLocation(0,0,0);
         image.setBaseThickness(0.5);
@@ -1246,7 +1246,7 @@ public class TestGridMaker extends TestCase {
 
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSourceImageBitmap image = new DataSourceImageBitmap();
+        ImageBitmap image = new ImageBitmap();
         
         image.setSize( sphereDiameter, sphereDiameter,sphereThickness);
         image.setLocation(0,0,0);
@@ -1359,14 +1359,14 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        int type[] = new int[]{DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED,DataSourceImageBitmap.IMAGE_TYPE_ENGRAVED};
-        int place[] = new int[]{DataSourceImageBitmap.IMAGE_PLACE_TOP,DataSourceImageBitmap.IMAGE_PLACE_BOTTOM, DataSourceImageBitmap.IMAGE_PLACE_BOTH};
+        int type[] = new int[]{ImageBitmap.IMAGE_TYPE_EMBOSSED,ImageBitmap.IMAGE_TYPE_ENGRAVED};
+        int place[] = new int[]{ImageBitmap.IMAGE_PLACE_TOP,ImageBitmap.IMAGE_PLACE_BOTTOM, ImageBitmap.IMAGE_PLACE_BOTH};
         double baseThickness = 0.0;
 
         for(int i= 0; i < type.length; i++){
             for(int k = 0; k < place.length; k++){
                 
-                DataSourceImageBitmap image = new DataSourceImageBitmap();       
+                ImageBitmap image = new ImageBitmap();       
                 image.setSize(width,height,thickness);
                 image.setLocation(0,0,0);
                 image.setBaseThickness(baseThickness);
@@ -1848,13 +1848,13 @@ public class TestGridMaker extends TestCase {
         double img_width = tileWidth*tilesX;
         double img_height = tileHeight*tilesY;
 
-        int imagePlace = DataSourceImageBitmap.IMAGE_PLACE_TOP;
-        int imageType = DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED;//ENGRAVED;//ENGRAVED;
+        int imagePlace = ImageBitmap.IMAGE_PLACE_TOP;
+        int imageType = ImageBitmap.IMAGE_TYPE_EMBOSSED;//ENGRAVED;//ENGRAVED;
         boolean grayScale = false;
         double gridSmooth = 0.;
         double baseThickness = 0.2;
         double imageBlur = 0.5*transitionWidth*voxelSize;
-        int imageInterpolation = DataSourceImageBitmap.INTERPOLATION_LINEAR; //MIPMAP or BOX;        
+        int imageInterpolation = ImageBitmap.INTERPOLATION_LINEAR; //MIPMAP or BOX;        
         double maxDecimationError = 3.e-10;
         double imageBaseThreshold = 0.01;
         
@@ -1885,7 +1885,7 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
         
-        DataSourceImageBitmap image = new DataSourceImageBitmap(imagePath,img_width,img_height, img_thickness);          
+        ImageBitmap image = new ImageBitmap(imagePath,img_width,img_height, img_thickness);          
         image.setUseGrayscale(grayScale);
         image.setBlurWidth(imageBlur);        
         image.setTiles(tilesX, tilesY);
