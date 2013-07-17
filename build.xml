@@ -197,7 +197,8 @@
             manifest="abfab3d_core.mf"
             includes="
                 abfab3d/math/*
-                abfab3d/transform/*
+                abfab3d/transforms/*
+                abfab3d/datasources/*
                 abfab3d/geom/*
                 abfab3d/grid/*
                 abfab3d/grid/maker/*

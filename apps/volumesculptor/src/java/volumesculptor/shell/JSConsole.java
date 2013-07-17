@@ -135,7 +135,8 @@ public class JSConsole extends JFrame implements ActionListener
         addWindowListener(new WindowAdapter() {
                 @Override
                 public void windowClosing(WindowEvent e) {
-                    System.exit(0);
+                    System.out.println("Removed system exit");
+                    //System.exit(0);
                 }
             });
         pack();
@@ -159,7 +160,8 @@ public class JSConsole extends JFrame implements ActionListener
                 consoleTextArea.eval("load(\"" + f + "\");");
             }
         } else if(cmd.equals("Exit")) {
-            System.exit(0);
+            System.out.println("***Not calling exit");
+            //System.exit(0);
         } else if(cmd.equals("Cut")) {
             consoleTextArea.cut();
         } else if(cmd.equals("Copy")) {

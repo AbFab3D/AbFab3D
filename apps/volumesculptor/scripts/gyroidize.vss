@@ -1,14 +1,18 @@
-importPackage(Packages.abfab3d.grid.op)
-importPackage(Packages.abfab3d.grid)
+importPackage(Packages.abfab3d.grid.op);
+importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.datasources);
 
-grid = load("models/sphere.stl.gz")
-intersect = new DataSources.Intersection();
-intersect.addDataSource(new DataSourceGrid(grid, 63))
-intersect.addDataSource(new VolumePatterns.Gyroid(10*MM, 1*MM));
+function main(baseFile) {
 
-maker.setDataSource(intersect);
+	var grid = load(baseFile);      
+	var intersect = new Intersection();
+	intersect.addDataSource(new DataSourceGrid(grid, 255));
+	intersect.addDataSource(new VolumePatterns.Gyroid(10*MM, 1*MM));
 
-dest = createGrid(grid);
-maker.makeGrid(dest);
-show(dest);
+	maker.setDataSource(intersect);
 
+	var dest = createGrid(grid);
+	maker.makeGrid(dest);
+	
+	return grid;
+}

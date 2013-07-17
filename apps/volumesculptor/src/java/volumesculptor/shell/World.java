@@ -25,7 +25,7 @@ public class World {
     public World(int w, int h, int d, double vs) {
         maker = new GridMaker();
         //maker.setVoxelSize(grid.getVoxelSize() * Math.sqrt(3.0)/2.0);
-        maker.setMaxAttributeValue(63);
+        maker.setMaxAttributeValue(255);
         //maker.setBounds(bounds);
         maker.setThreadCount(Runtime.getRuntime().availableProcessors());
     }

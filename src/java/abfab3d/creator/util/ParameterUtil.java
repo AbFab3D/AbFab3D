@@ -17,6 +17,7 @@ import java.util.*;
 
 // Internal Imports
 import abfab3d.creator.*;
+import com.google.gson.Gson;
 
 /**
  * Utilities dealing with parameters.
@@ -75,6 +76,9 @@ public class ParameterUtil {
                         break;
                     case BOOLEAN:
                     	val = parseBoolean(p, raw_val);
+                        break;
+                    case MAP:
+                        val = parseMap(p, raw_val);
                         break;
                     case ENUM_LIST:
                         val = parseEnumList(p, raw_val);
@@ -306,5 +310,22 @@ public class ParameterUtil {
         }
 
     	return val;
+    }
+
+    /**
+     * Parses a string as a map.  This expects JSON encoded which is different to the rest of the API.  Changing
+     * over to JSON in the future.
+     *
+     * @param param The parameter
+     * @param raw_val The string to parse
+     * @return A map representation of the input string
+     */
+    private static Map<String,String> parseMap(Parameter param, String raw_val) {
+        if (raw_val.length() == 0) {
+            return new HashMap();
+        }
+
+        Gson gson = new Gson();
+        return gson.fromJson(raw_val, Map.class);
     }
 }
