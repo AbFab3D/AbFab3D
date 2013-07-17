@@ -178,7 +178,7 @@ public class IsosurfaceMaker {
                     switch(m_algorithm){
                     default:
                     case CUBES:
-                        polygonizeCubeNew(cell, triangles, tcollector);
+                        polygonizeCube(cell, triangles, tcollector);
                         break;
                     case TETRAHEDRA:
                         polygonizeCube_tetra(cell, 0., triangles, tcollector);
@@ -208,8 +208,11 @@ public class IsosurfaceMaker {
             }
         }        
     }
-    
-    public static void polygonizeCube(Cell g, Vector3d triangles[], TriangleCollector ggen){
+
+    /*
+      // this version generates some garbage 
+    */
+    public static void polygonizeCube_g(Cell g, Vector3d triangles[], TriangleCollector ggen){
 
         int cubeindex = 0;
         double iso = 0.0;
@@ -223,11 +226,11 @@ public class IsosurfaceMaker {
         if (g.val[6] < 0) cubeindex |= 64;
         if (g.val[7] < 0) cubeindex |= 128;
 
-        /* Cube is entirely in/out of the surface */
+        // Cube is entirely in/out of the surface 
         if (edgeTable[cubeindex] == 0)
             return;
 
-        /* Find the vertices where the surface intersects the cube */
+        // Find the vertices where the surface intersects the cube
         if ((edgeTable[cubeindex] & 1)  != 0)
             g.e[0] = vertexInterp(iso,g.p[0],g.p[1],g.val[0],g.val[1]);
 
@@ -264,7 +267,7 @@ public class IsosurfaceMaker {
         if ((edgeTable[cubeindex] & 2048) != 0)
             g.e[11] = vertexInterp(iso,g.p[3],g.p[7],g.val[3],g.val[7]);
         
-        /* Create the triangles */
+        // Create the triangles 
         int ntriang = 0;
         for (int i=0; i < triTable[cubeindex].length; i+=3) {
             
@@ -277,8 +280,10 @@ public class IsosurfaceMaker {
         addTri(ggen, triangles, ntriang);        
         
     }
+    
 
-    public static void polygonizeCubeNew(Cell g, Vector3d triangles[], TriangleCollector ggen){
+    // this version produces no garbage 
+    public static void polygonizeCube(Cell g, Vector3d triangles[], TriangleCollector ggen){
 
         int cubeindex = 0;
         double iso = 0.0;
@@ -573,7 +578,7 @@ public class IsosurfaceMaker {
 
     /*
       Linearly interpolate the position where an isosurface cuts
-      an edge between two vertices, each with their own scalar value
+      the edge between two vertices, each with their own scalar value
     */
     public static Vector3d vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2){    
         
@@ -597,6 +602,7 @@ public class IsosurfaceMaker {
     /*
       Linearly interpolate the position where an isosurface cuts
       an edge between two vertices, each with their own scalar value
+      makes no garbage 
     */
     public static void vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2, Vector3d dest){
 

@@ -118,8 +118,8 @@ public class DevTestWaveletRasterizer {
     
     public static void testSphere()throws Exception {
         
-        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(10.*MM, new Vector3d(0,0,0), 10, 0.001*MM);
-        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(10.*MM, new Vector3d(0,0,0), 10, 0.001*MM);
+        TriangulatedModels.Sphere source = new TriangulatedModels.Sphere(5.05*MM, new Vector3d(0,0,0), 10, 0.001*MM);
+        TriangulatedModels.Sphere target = new TriangulatedModels.Sphere(5.*MM, new Vector3d(0,0,0), 10, 0.001*MM);
               
         MeshDistance md = new MeshDistance();
         md.setMaxTriangleSize(0.2*MM);
@@ -138,19 +138,29 @@ public class DevTestWaveletRasterizer {
         
         tri2grid2tri(source);
 
-        //writeSTL(source, "/tmp/mesh_source.stl");
+        writeSTL(source, "/tmp/mesh_source.stl");
+        //writeSTL(target, "/tmp/mesh_target.stl");
+    }
+
+    public static void testTetra()throws Exception {
+        
+        TriangulatedModels.TetrahedronInParallelepiped source = new TriangulatedModels.TetrahedronInParallelepiped(-5*MM,-5*MM,-2*MM, 5*MM, 5*MM, 2*MM,0);
+                      
+        tri2grid2tri(source, "/tmp/tetra_tri2grid2tri.stl");
+
+        writeSTL(source, "/tmp/tetra_orig.stl");
         //writeSTL(target, "/tmp/mesh_target.stl");
     }
 
     // convert triangle set into voxels and back into triangles 
-    static TriangleProducer tri2grid2tri(TriangleProducer tp) throws Exception {
-
+    static TriangleProducer tri2grid2tri(TriangleProducer tp, String path) throws Exception {
         printf("tri2grid2tri()\n");
 
         double voxelSize = 0.1*MM;
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         tp.getTriangles(bb);
         double bounds[] = bb.getRoundedBounds(voxelSize);
+        bounds = MathUtil.extendBounds(bounds, voxelSize);
         int gn[] = MathUtil.getGridSize(bounds, voxelSize);
         printf("grid [%d x %d x %d]\n", gn[0], gn[1], gn[2]);
 
@@ -175,9 +185,9 @@ public class DevTestWaveletRasterizer {
         
         if(true){
             int blockSize = 50;
-            double errorFactor = 0.5;
-            double smoothWidth = 0.5;
-            int maxDecimationCount= 10;
+            double errorFactor = 0.0;
+            double smoothWidth = 0.0;
+            int maxDecimationCount= 0;
             int threadsCount = 4;
             int maxAttribute = 255;
             //double voxelSize = 2*s/grid.getWidth();
@@ -192,11 +202,18 @@ public class DevTestWaveletRasterizer {
             meshmaker.setMaxDecimationCount(maxDecimationCount);
             meshmaker.setMaxAttributeValue(maxAttribute);            
             
-            STLWriter stlw = new STLWriter("/tmp/raster_to_voxels_0.1.stl");
+            STLWriter stlw = new STLWriter(path);
             meshmaker.makeMesh(grid, stlw);
             stlw.close();
         }
         return null;
+        
+    }
+
+    static TriangleProducer tri2grid2tri(TriangleProducer tp) throws Exception {
+
+        return tri2grid2tri(tp, "/tmp/tri2grid2tri.stl");
+
     } 
 
     static void writeSTL(TriangleProducer tp, String path) throws Exception {
@@ -206,8 +223,9 @@ public class DevTestWaveletRasterizer {
     }
 
     public static void main(String arg[]) throws Exception {
-        testSTLfile();
+        //testSTLfile();
         //testSphere();
+        testTetra();
     }
 
 }
