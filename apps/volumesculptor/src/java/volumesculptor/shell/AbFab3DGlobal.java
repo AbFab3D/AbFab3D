@@ -35,10 +35,10 @@ import java.util.Map;
  * @author Norris Boyd
  */
 public class AbFab3DGlobal extends ImporterTopLevel {
-    private static final int maxAttribute = 63;
+    private static final int maxAttribute = 255;
 
     private static String[] globalFunctions = {
-            "load", "show", "createGrid"
+            "load", "show", "createGrid", "save"
     };
 
     private HashMap<String,Object> globals = new HashMap<String,Object>();
@@ -92,6 +92,7 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             vs = (Double) args[0];
         }
 
+        System.out.println("Load(file,vs): " + filename + " vs: " + vs);
         try {
             STLReader stl = new STLReader();
             BoundingBoxCalculator bb = new BoundingBoxCalculator();
@@ -105,7 +106,7 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             int nx = (int) Math.round((bounds[1] - bounds[0]) / vs);
             int ny = (int) Math.round((bounds[3] - bounds[2]) / vs);
             int nz = (int) Math.round((bounds[5] - bounds[4]) / vs);
-            System.out.println("Bounds: " + java.util.Arrays.toString(bounds) + " vs: " + vs);
+            System.out.println("   Bounds: " + java.util.Arrays.toString(bounds) + " vs: " + vs);
 
 
             AttributeGrid dest = null;
@@ -118,7 +119,7 @@ public class AbFab3DGlobal extends ImporterTopLevel {
 
             dest.setGridBounds(bounds);
 
-            System.out.println("voxels: " + nx + " " + ny + " " + nz);
+            System.out.println("   voxels: " + nx + " " + ny + " " + nz);
             WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
             rasterizer.setMaxAttributeValue(maxAttribute);
 
@@ -133,6 +134,7 @@ public class AbFab3DGlobal extends ImporterTopLevel {
             ioe.printStackTrace();
         }
 
+        System.out.println("Failed to load");
         return null;
     }
 
@@ -143,6 +145,97 @@ public class AbFab3DGlobal extends ImporterTopLevel {
      */
     public static void show(Context cx, Scriptable thisObj,
                                  Object[] args, Function funObj) {
+
+
+
+        AttributeGrid grid = null;
+
+        boolean show_slices = false;
+
+        if (args.length > 0) {
+            if (args[0] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            } else if (args[0] instanceof AttributeGrid) {
+                grid = (AttributeGrid) args[0];
+            } else if (args[0] instanceof NativeJavaObject) {
+                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+            }
+        }
+
+        if (grid == null) {
+            System.out.println("No grid specified");
+        }
+        if (args.length > 1) {
+            if (args[1] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            }
+        }
+
+        double vs = grid.getVoxelSize();
+
+
+        if (show_slices) {
+            SlicesWriter slicer = new SlicesWriter();
+            slicer.setFilePattern("/tmp/slices2/slice_%03d.png");
+            slicer.setCellSize(5);
+            slicer.setVoxelSize(4);
+
+            slicer.setMaxAttributeValue(maxAttribute);
+            try {
+                slicer.writeSlices(grid);
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        System.out.println("Saving world: " + grid + " to triangles");
+        double errorFactor = 0.5;
+        double maxDecimationError = errorFactor * vs * vs;
+
+        // Write out the grid to an STL file
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(50);
+        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        meshmaker.setSmoothingWidth(0.5);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(10);
+        meshmaker.setMaxAttributeValue(maxAttribute);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        meshmaker.makeMesh(grid, its);
+
+        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        String path = "/tmp";
+        String name = "save.x3d";
+        String out = path + "/" + name  ;
+        double[] bounds_min = new double[3];
+        double[] bounds_max = new double[3];
+
+        grid.getGridBounds(bounds_min,bounds_max);
+        double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+        max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+
+        double z = 2 * max_axis / Math.tan(Math.PI / 4);
+        float[] pos = new float[] {0,0,(float) z};
+
+        try {
+            GridSaver.writeMesh(mesh, out);
+            X3DViewer.viewX3DOM(name, pos);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+    }
+
+    /**
+     * Save a grid to a file.  save(grid,filename)
+     * <p/>
+     * This method is defined as a JavaScript function.
+     */
+    public static void save(Context cx, Scriptable thisObj,
+                            Object[] args, Function funObj) {
 
 
 
@@ -239,11 +332,16 @@ public class AbFab3DGlobal extends ImporterTopLevel {
         double vs = 0.1*MM;
 
         if (args.length == 1) {
-            AttributeGrid grid = (AttributeGrid) args[0];
-            grid.getGridBounds(grid_bounds);
-            vs = grid.getVoxelSize();
+            if (args[0] instanceof AttributeGrid) {
+                AttributeGrid grid = (AttributeGrid) args[0];
+                grid.getGridBounds(grid_bounds);
+                vs = grid.getVoxelSize();
+            } else if (args[0] instanceof NativeJavaObject) {
+                AttributeGrid grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+                grid.getGridBounds(grid_bounds);
+                vs = grid.getVoxelSize();
+            }
         } else if (args.length == 7) {
-            System.out.println("CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize)");
             grid_bounds[0] = (Double) args[0];
             grid_bounds[1] = (Double) args[1];
             grid_bounds[2] = (Double) args[2];

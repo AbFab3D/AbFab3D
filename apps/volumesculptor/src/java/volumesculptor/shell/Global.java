@@ -253,10 +253,11 @@ public class Global extends ImporterTopLevel
     public static void load(Context cx, Scriptable thisObj,
                             Object[] args, Function funObj)
     {
+
         for (Object arg : args) {
             String file = Context.toString(arg);
             try {
-                Main.processFile(cx, thisObj, file);
+                Main.processFile(cx, thisObj, file, new String[0], new String[0], false);
             } catch (IOException ioex) {
                 String msg = ToolErrorReporter.getMessage(
                         "msg.couldnt.read.source", file, ioex.getMessage());

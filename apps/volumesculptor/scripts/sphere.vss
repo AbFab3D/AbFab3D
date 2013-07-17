@@ -1,8 +1,12 @@
-importPackage(Packages.abfab3d.grid.op)
-importPackage(Packages.abfab3d.grid)
+importPackage(Packages.abfab3d.grid.op);
+importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.datasources);
 
-grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,.1*MM);
-sphere = new DataSources.Sphere(5*MM);
-maker.setDataSource(sphere);
-maker.makeGrid(grid);
-show(grid);
+function main(radius) {
+	var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,.1*MM);
+	var sphere = new Sphere(radius);
+	maker.setDataSource(sphere);
+	maker.makeGrid(grid);
+	
+	return grid;
+}

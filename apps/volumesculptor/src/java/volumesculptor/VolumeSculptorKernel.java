@@ -19,39 +19,25 @@ import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
-
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.GridShortIntervals;
 import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-
-import abfab3d.grid.op.DataSources;
-import abfab3d.grid.op.GridMaker;
-import abfab3d.grid.op.DataSourceGrid;
-
-import abfab3d.grid.op.VolumePatterns;
+import abfab3d.io.input.BoundsCalculator;
 import abfab3d.io.output.BoxesX3DExporter;
-import abfab3d.io.output.SAVExporter;
-import abfab3d.io.output.MeshMakerMT;
-
-import abfab3d.io.input.STLRasterizer;
-
+import abfab3d.io.output.MeshExporter;
 import abfab3d.mesh.AreaCalculator;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-
-import abfab3d.util.DataSource;
-
-import app.common.GridSaver;
+import abfab3d.mesh.TriangleMesh;
 import app.common.RegionPrunner;
+import org.apache.commons.io.FileUtils;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
+import volumesculptor.shell.Main;
 
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,13 +51,16 @@ import static abfab3d.util.Output.time;
  * @author Vladimir Bulatov
  */
 public class VolumeSculptorKernel extends HostedKernel {
+    private static final int NUM_FILES = 10;
+    private static final int NUM_PARAMS = 10;
+
     private static final boolean USE_MIP_MAPPING = false;
     private static final boolean USE_FAST_MATH = true;
 
-    static final int 
-        GRID_SHORT_INTERVALS=1,
-        GRID_BYTE_ARRAY = 2,
-        GRID_AUTO = -1;        
+    static final int
+            GRID_SHORT_INTERVALS = 1,
+            GRID_BYTE_ARRAY = 2,
+            GRID_AUTO = -1;
 
     /**
      * Debugging level.  0-5.  0 is none
@@ -87,7 +76,8 @@ public class VolumeSculptorKernel extends HostedKernel {
     static final double TEXT_RENDERING_PIXEL_SIZE = 25.4 * MM / 600; // 600 dpi 
     int MINIMAL_TEXT_OFFSET = 10; // minimal border around engraved text 
 
-    enum EdgeStyle {NONE, TOP, BOTTOM, BOTH}    
+    enum EdgeStyle {NONE, TOP, BOTTOM, BOTH}
+
     ;
 
     // High = print resolution.  Medium = print * 2, LOW = print * 4
@@ -104,6 +94,7 @@ public class VolumeSculptorKernel extends HostedKernel {
             return factor;
         }
     }
+
     ;
 
     private String[] availableMaterials = new String[]{"White Strong & Flexible", "White Strong & Flexible Polished",
@@ -111,16 +102,8 @@ public class VolumeSculptorKernel extends HostedKernel {
             "Antique Bronze Glossy", "Alumide", "Polished Alumide"};
 
     private String script;
-    private String file1;
-    private String file2;
-    private String file3;
-    private String file4;
-    private String file5;
-    private String file6;
-    private String file7;
-    private String file8;
-    private String file9;
-    private String file10;
+    private String[] files;
+    private String[] params;
 
     /**
      * The horizontal and vertical resolution
@@ -131,23 +114,14 @@ public class VolumeSculptorKernel extends HostedKernel {
     private double smoothingWidth;
     private double maxDecimationError;
 
-    /**
-     * The image filename
-     */
-    private String modelPath = null;
-
     private int threadCount;
-    
-    // size of output model boundingBox 
-    private double sizeX, sizeY, sizeZ; 
-        
+
     private String material;
 
     /**
      * How many regions to keep
      */
     private RegionPrunner.Regions regions;
-    private boolean useGrayscale;
     private boolean visRemovedRegions;
 
     /**
@@ -162,58 +136,26 @@ public class VolumeSculptorKernel extends HostedKernel {
         int step = 0;
 
         // Script
-        params.put("script", new Parameter("script", "Script", "The script to run", "scripts/gyroidize.vss", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+        params.put("script", new Parameter("script", "Script", "The script to run", "", 1,
+                Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
                 step, seq++, true, 0, 0.1, null, null)
         );
 
-        // File based params
-        params.put("params", new Parameter("params", "Params", "Params to substitute into the script", "{}", 1,
-                Parameter.DataType.MAP, Parameter.EditorType.DEFAULT,
-                step, seq++, false, 0, 0.1, null, null)
-        );
+        for(int i=0; i < NUM_FILES; i++) {
+            // File based params
+            params.put("file" + i, new Parameter("file" + i, "File" + i, "File" + i + " to use", "", 1,
+                    Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
+                    step, seq++, false, 0, 0.1, null, null)
+            );
+        }
 
-        // File based params
-        params.put("file1", new Parameter("file1", "File1", "File1 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file2", new Parameter("file2", "File2", "File2 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file3", new Parameter("file3", "File3", "File3 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file4", new Parameter("file4", "File4", "File4 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file5", new Parameter("file5", "File5", "File5 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file6", new Parameter("file6", "File6", "File6 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file7", new Parameter("file7", "File7", "File7 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file8", new Parameter("file8", "File8", "File8 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file9", new Parameter("file9", "File9", "File9 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
-        params.put("file10", new Parameter("file10", "File10", "File10 to use", "", 1,
-                Parameter.DataType.URI, Parameter.EditorType.FILE_DIALOG,
-                step, seq++, false, 0, 0.1, null, null)
-        );
+        for(int i=0; i < NUM_PARAMS; i++) {
+            // File based params
+            params.put("param" + i, new Parameter("param" + i, "Param" + i, "Param" + i + " to use", "", 1,
+                    Parameter.DataType.STRING, Parameter.EditorType.DEFAULT,
+                    step, seq++, false, 0, 0.1, null, null)
+            );
+        }
 
         step++;
         seq = 0;
@@ -274,7 +216,7 @@ public class VolumeSculptorKernel extends HostedKernel {
      */
     public KernelResults generate(Map<String, Object> params, Accuracy acc, BinaryContentHandler handler) throws IOException {
 //        int gridType =  GRID_BYTE_ARRAY;
-        int gridType =  GRID_SHORT_INTERVALS;
+        int gridType = GRID_SHORT_INTERVALS;
 
         if (USE_FAST_MATH) {
             System.setProperty("jodk.fastmath.usejdk", "false");
@@ -289,213 +231,41 @@ public class VolumeSculptorKernel extends HostedKernel {
         if (acc == Accuracy.VISUAL) {
             resolution = resolution * previewQuality.getFactor();
         }
-        
+
         if (threadCount == 0) {
             int cores = Runtime.getRuntime().availableProcessors();
-            
+
             threadCount = cores;
-            
+
             // scales well to 4 threads, stop there.
             if (threadCount > 4) {
                 threadCount = 4;
             }
-            
+
             System.out.println("Number of cores:" + threadCount);
         }
-        
-
-        //double modelBounds[] = new double[]{-sizeX/2, sizeX/2, -sizeY/2, sizeY/2, -sizeZ/2, sizeZ/2};
-        double modelBounds[] = new double[6];
-
-        AttributeGrid modelGrid = null;
-
-        boolean use_wave = true;
-        STLRasterizer stl = new STLRasterizer();
-        if (use_wave) {
-            stl.setRasterMethod(STLRasterizer.RASTER_METHOD_WAVELET);
-        } else {
-            stl.setRasterMethod(STLRasterizer.RASTER_METHOD_ZBUFFER);
-        }
-
-        stl.setVoxelSize(resolution);
-        stl.setPadding(2);
-
-        switch(gridType){
-            default:
-            case GRID_BYTE_ARRAY:
-                stl.setGridType(new ArrayAttributeGridByte(1,1,1, resolution, resolution));
-                break;
-
-            case GRID_SHORT_INTERVALS:
-                stl.setGridType(new GridShortIntervals(1,1,1, resolution, resolution));
-                break;
-
-        }
-
-        modelGrid = (AttributeGrid)stl.rasterizeFile(modelPath);
-
-        // Clear memory from file loader
-        stl = null;
-        long t0 = time();
-
-        // HARD CODED params to play with
-
-        // size of grid block for MT calculatins
-        // (larger values reduce processor cache performance)
-        int blockSize = 50;
-        // max number to use for surface transitions. Should be ODD number
-        // set it to 0 to have binary grid
-        int maxGridAttributeValue = 63; // 63 is max value for BYTE_ARRAY grid
-
-        if (use_wave) {
-//            maxGridAttributeValue = 2^6 - 1;
-            maxGridAttributeValue = 2^8 - 1;
-//            maxGridAttributeValue = 2^14 - 1;
-        } else {
-            maxGridAttributeValue = 0;
-        }
-
-        // width of surface transition area relative to voxel size
-        // optimal value sqrt(3)/2. Larger value causes rounding of sharp edges
-        // set it to 0. to make no surface transitions
-        double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866
 
 
-        modelGrid.getGridBounds(modelBounds);
+        File temp = File.createTempFile("script", ".vss");
+        FileUtils.write(temp, script);
 
-        printf("grid loaded:[%d x %d x %d]\n",modelGrid.getWidth(),modelGrid.getHeight(), modelGrid.getDepth());
+        System.out.println("Loading script: " + script);
 
-        double gridBounds[] = modelBounds;//extendBounds(modelBounds, 0.1*MM);    
+        String[] args = new String[] {temp.toString() };
 
-        double voxelSize = resolution;
-        
-        double cellSize = 5*MM;
+        System.out.println("Files: " + files + " params: " + this.params);
 
-        int nx = (int) ((gridBounds[1] - gridBounds[0]) / voxelSize);
-        int ny = (int) ((gridBounds[3] - gridBounds[2]) / voxelSize);
-        int nz = (int) ((gridBounds[5] - gridBounds[4]) / voxelSize);
-        
-        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
-        printf("gridBounds: [%10.7f %10.7f %10.7f %10.7f %10.7f %10.7f ]\n", 
-               gridBounds[0], gridBounds[1], gridBounds[2], 
-               gridBounds[3], gridBounds[4], gridBounds[5]);
-        
+        TriangleMesh mesh = Main.execMesh(args, files,this.params);
 
-        GridMaker gm = new GridMaker();
-        
+        System.out.println("After creation");
 
-        DataSource balls = new VolumePatterns.Balls(cellSize, (cellSize/2)*1.1);
+        HashMap<String, Object> out_params = new HashMap<String, Object>();
+        MeshExporter.writeMesh(mesh, handler, out_params, true);
 
-        DataSources.Ring ring = new DataSources.Ring(0.9*sizeX/2, 0.1*sizeX/2, sizeY/2, sizeY/2);
-
-        DataSource cubicGrid = new VolumePatterns.CubicGrid(10*MM, 2*MM);
-        DataSource gyroidShape = new VolumePatterns.Gyroid(20*MM, 1.*MM);
-        DataSource gyroid = new VolumePatterns.Gyroid(4*MM, 0.5*MM);
-        
-        DataSources.Sphere sphere = new DataSources.Sphere(0,0,0, 10*MM);
-
-        DataSourceGrid model = new DataSourceGrid(modelGrid, modelBounds, maxGridAttributeValue);
-        
-        DataSources.Box box = new DataSources.Box((modelBounds[1] + modelBounds[0])/2,
-                                                  (modelBounds[3] + modelBounds[2])/2,
-                                                  (modelBounds[5] + modelBounds[4])/2,
-                                                  (modelBounds[1] - modelBounds[0]),
-                                                  (modelBounds[3] - modelBounds[2]),
-                                                  (modelBounds[5] - modelBounds[4]));
-
-        DataSources.Intersection intersection = new DataSources.Intersection();
-
-        //intersection.addDataSource(ring);
-        //intersection.addDataSource(sphere);
-        intersection.addDataSource(model);
-        intersection.addDataSource(gyroidShape);
-        //intersection.addDataSource(block);
-        //intersection.addDataSource(gyroid);
-
-        //intersection.addDataSource(cubicGrid);
-
-        //intersection.addDataSource(balls);
-
-        
-        gm.setBounds(gridBounds);
-        gm.setDataSource(intersection);
-
-        gm.setMaxAttributeValue(maxGridAttributeValue);
-        gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
-        t0 = time();
-
-        
-        AttributeGrid grid;
-
-        switch(gridType){
-        default:
-        case GRID_BYTE_ARRAY:
-            grid = new ArrayAttributeGridByte(nx, ny, nz, resolution, resolution);
-            break;
-
-        case GRID_SHORT_INTERVALS:
-            grid = new GridShortIntervals(nx, ny, nz, resolution, resolution);
-            break;
-            
-        }
-
-        grid.setGridBounds(gridBounds);
-
-        printf("gm.makeGrid(), threads: %d\n", threadCount);
-        gm.setThreadCount(threadCount);
-        gm.makeGrid(grid);
-        printf("gm.makeGrid() done %d ms\n", (time() - t0));
-
-        //AttributeGrid grid = modelGrid;
-
-        HashMap<String, Object> exp_params = new HashMap<String, Object>();
-        exp_params.put(SAVExporter.EXPORT_NORMALS, false);   // Required now for ITS?
-        if (acc == Accuracy.VISUAL) {
-            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
-            params.put(SAVExporter.VERTEX_NORMALS, true);
-        } else {
-            params.put(SAVExporter.GEOMETRY_TYPE, SAVExporter.GeometryType.INDEXEDTRIANGLESET);
-        }
-
-        WingedEdgeTriangleMesh mesh;
-        
-        double gbounds[] = new double[6];
-        grid.getGridBounds(gbounds);
-        printf("gbounds: (%10.7f %10.7f %10.7f %10.7f %10.7f %10.7f )\n", gbounds[0],gbounds[1],gbounds[2],gbounds[3],gbounds[4],gbounds[5]);
-        // place of default viewpoint 
-        double viewDistance = GridSaver.getViewDistance(grid);
-
-        MeshMakerMT meshmaker = new MeshMakerMT();        
-        
-        t0 = time();
-        meshmaker.setBlockSize(blockSize);
-        meshmaker.setThreadCount(threadCount);
-        meshmaker.setSmoothingWidth(smoothingWidth);
-        meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(10);
-        meshmaker.setMaxAttributeValue(maxGridAttributeValue);            
-        
-        // TODO: Need to get a better way to estimate this number
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
-        meshmaker.makeMesh(grid, its);
-        
-        mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-
-        // Clear grid to make room for decimator
-        meshmaker = null;
-        grid = null;
-
-        printf("MeshMakerMT.makeMesh(): %d ms\n", (time()-t0));
-
-        // extra decimation to get rid of seams
-        //TODO - better targeting of seams
-        if(maxDecimationError > 0){
-            t0 = time();
-            mesh = GridSaver.decimateMesh(mesh, maxDecimationError);
-            printf("final decimation: %d ms\n", (time()-t0));
-        }
-        
-        GridSaver.writeMesh(mesh, viewDistance, handler, params, true);
+        BoundsCalculator bc = new BoundsCalculator();
+        mesh.getTriangles(bc);
+        double[] bounds = new double[6];
+        bc.getBounds(bounds);
 
         AreaCalculator ac = new AreaCalculator();
         mesh.getTriangles(ac);
@@ -505,15 +275,24 @@ public class VolumeSculptorKernel extends HostedKernel {
         // Do not shorten the accuracy of these prints they need to be high
         printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
         printf("final volume: %12.8f cm^3\n", volume * 1.e6);
-        
+
         printf("Total time: %d ms\n", (time() - start));
         printf("-------------------------------------------------\n");
-        
-        double min_bounds[] = new double[]{gbounds[0],gbounds[2],gbounds[4]};
-        double max_bounds[] = new double[]{gbounds[1],gbounds[3],gbounds[5]};
-        
+
+        double min_bounds[] = new double[3];
+        double max_bounds[] = new double[3];
+
+        System.out.println("Bounds: " + java.util.Arrays.toString(bounds));
+        min_bounds[0] = bounds[0];
+        max_bounds[0] = bounds[1];
+        min_bounds[1] = bounds[2];
+        max_bounds[1] = bounds[3];
+        min_bounds[2] = bounds[4];
+        max_bounds[2] = bounds[5];
+        System.out.println("MinBounds: " + java.util.Arrays.toString(min_bounds));
+        System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
+
         return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
-        
     }
 
     /**
@@ -528,35 +307,36 @@ public class VolumeSculptorKernel extends HostedKernel {
             pname = "script";
             script = (String) params.get(pname);
 
-            pname = "file1";
-            file1 = (String) params.get(pname);
+            System.out.println("Script: \n" + script);
+            ArrayList<String> list = new ArrayList<String>();
+            String val = null;
 
-            pname = "file2";
-            file2 = (String) params.get(pname);
+            for(int i=0; i < NUM_FILES; i++) {
+                pname = "file" + i;
+                val = (String) params.get(pname);
 
-            pname = "file3";
-            file3 = (String) params.get(pname);
+                if (val != null && val.length() > 0) {
+                    list.add(val);
+                }
+            }
 
-            pname = "file4";
-            file4 = (String) params.get(pname);
+            files = new String[list.size()];
+            files = list.toArray(files);
 
-            pname = "file5";
-            file5 = (String) params.get(pname);
+            System.out.println("VSK Files: " + java.util.Arrays.toString(files));
+            list.clear();
 
-            pname = "file6";
-            file6 = (String) params.get(pname);
+            for(int i=0; i < NUM_PARAMS; i++) {
+                pname = "param" + i;
+                val = (String) params.get(pname);
 
-            pname = "file7";
-            file7 = (String) params.get(pname);
-
-            pname = "file8";
-            file8 = (String) params.get(pname);
-
-            pname = "file9";
-            file9 = (String) params.get(pname);
-
-            pname = "file10";
-            file10 = (String) params.get(pname);
+                if (val != null && val.length() > 0) {
+                    list.add(val);
+                }
+            }
+            this.params = new String[list.size()];
+            this.params = list.toArray(this.params);
+            System.out.println("VSK Params: " + java.util.Arrays.toString(this.params));
 
             pname = "resolution";
             resolution = ((Double) params.get(pname)).doubleValue();
@@ -566,18 +346,6 @@ public class VolumeSculptorKernel extends HostedKernel {
 
             pname = "maxDecimationError";
             maxDecimationError = ((Double) params.get(pname)).doubleValue();
-
-            pname = "modelPath";
-            modelPath = (String) params.get(pname);
-
-            pname = "sizeX";
-            sizeX = ((Double) params.get(pname)).doubleValue();
-
-            pname = "sizeY";
-            sizeY = ((Double) params.get(pname)).doubleValue();
-
-            pname = "sizeZ";
-            sizeZ = ((Double) params.get(pname)).doubleValue();
 
             pname = "material";
             material = ((String) params.get(pname));
@@ -627,28 +395,28 @@ public class VolumeSculptorKernel extends HostedKernel {
     }
 
     public static void main(String[] args) {
-        HashMap<String,String> params = new HashMap<String,String>();
+        HashMap<String, String> params = new HashMap<String, String>();
 
         int LOOPS = 1;
 
-        for(int i=0; i < LOOPS; i++) {
+        for (int i = 0; i < LOOPS; i++) {
             HostedKernel kernel = new VolumeSculptorKernel();
 
             System.out.println("***High Resolution");
-            params.put("resolution","0.00002");
-            params.put("text","");
-            params.put("previewQuality","HIGH");
-            params.put("threads","4");
+            params.put("resolution", "0.00002");
+            params.put("text", "");
+            params.put("previewQuality", "HIGH");
+            params.put("threads", "4");
 
-            Map<String,Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
+            Map<String, Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
 
             try {
                 FileOutputStream fos = new FileOutputStream("/tmp/thread" + Thread.currentThread().getName() + ".x3d");
                 BufferedOutputStream bos = new BufferedOutputStream(fos);
                 PlainTextErrorReporter console = new PlainTextErrorReporter();
 
-                BinaryContentHandler writer = new X3DXMLRetainedExporter(bos,3,2,console);
-                writer.startDocument("","","utf8","#X3D", "V3.2", "");
+                BinaryContentHandler writer = new X3DXMLRetainedExporter(bos, 3, 2, console);
+                writer.startDocument("", "", "utf8", "#X3D", "V3.2", "");
                 writer.profileDecl("Immersive");
 
 
@@ -657,7 +425,7 @@ public class VolumeSculptorKernel extends HostedKernel {
                 writer.endDocument();
                 bos.close();
                 fos.close();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

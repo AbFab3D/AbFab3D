@@ -6,14 +6,20 @@
 
 package volumesculptor.shell;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
+import abfab3d.grid.Grid;
+import abfab3d.io.output.MeshMakerMT;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.TriangleMesh;
+import abfab3d.mesh.WingedEdgeTriangleMesh;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.mozilla.javascript.*;
+import org.mozilla.javascript.commonjs.module.ModuleScope;
+import org.mozilla.javascript.commonjs.module.Require;
+import org.mozilla.javascript.tools.SourceReader;
+import org.mozilla.javascript.tools.ToolErrorReporter;
+
+import java.io.*;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.SoftReference;
 import java.lang.reflect.UndeclaredThrowableException;
@@ -21,40 +27,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.ContextAction;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.GeneratedClassLoader;
-import org.mozilla.javascript.Kit;
-import org.mozilla.javascript.NativeArray;
-import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.Script;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.SecurityController;
-import org.mozilla.javascript.commonjs.module.ModuleScope;
-import org.mozilla.javascript.commonjs.module.Require;
-import org.mozilla.javascript.tools.SourceReader;
-import org.mozilla.javascript.tools.ToolErrorReporter;
+import java.util.*;
 
 /**
  * The shell program.
- *
+ * <p/>
  * Can execute scripts interactively or in batch mode at the command line.
  * An example of controlling the JavaScript engine.
  *
  * @author Norris Boyd
  */
-public class Main
-{
+public class Main {
     public static ShellContextFactory
-        shellContextFactory = new ShellContextFactory();
+            shellContextFactory = new ShellContextFactory();
 
     public static Global global = new Global();
     static protected ToolErrorReporter errorReporter;
@@ -68,7 +53,7 @@ public class Main
     static boolean sandboxed = false;
     static boolean useRequire = false;
     static Require require;
-    private static SecurityProxy securityImpl;
+    private static volumesculptor.shell.SecurityProxy securityImpl;
     private final static ScriptCache scriptCache = new ScriptCache(32);
 
     static {
@@ -78,49 +63,55 @@ public class Main
     /**
      * Proxy class to avoid proliferation of anonymous classes.
      */
-    private static class IProxy implements ContextAction, QuitAction
-    {
+    private static class IProxy implements ContextAction, QuitAction {
         private static final int PROCESS_FILES = 1;
         private static final int EVAL_INLINE_SCRIPT = 2;
         private static final int SYSTEM_EXIT = 3;
 
         private int type;
         String[] args;
+        String[] files;
+        String[] params;
+        private boolean show;
         String scriptText;
+        private TriangleMesh mesh;
 
-        IProxy(int type)
-        {
+        IProxy(int type) {
             this.type = type;
         }
 
-        public Object run(Context cx)
-        {
+        public Object run(Context cx) {
             if (useRequire) {
                 require = global.installRequire(cx, modulePath, sandboxed);
             }
             if (type == PROCESS_FILES) {
-                processFiles(cx, args);
+                mesh = processFile(cx, args, files, params,show);
             } else if (type == EVAL_INLINE_SCRIPT) {
-                evalInlineScript(cx, scriptText);
+                mesh = evalInlineScript(cx, scriptText, files, params, show);
             } else {
                 throw Kit.codeBug();
             }
             return null;
         }
 
-        public void quit(Context cx, int exitCode)
-        {
+        public void quit(Context cx, int exitCode) {
             if (type == SYSTEM_EXIT) {
-                System.exit(exitCode);
+                System.out.println("quit. Not calling exit");
+
+                //System.exit(exitCode);
                 return;
             }
             throw Kit.codeBug();
+        }
+
+        public TriangleMesh getMesh() {
+            return mesh;
         }
     }
 
     /**
      * Main entry point.
-     *
+     * <p/>
      * Process arguments as would a normal Java program. Also
      * create a new Context and associate it with the current thread.
      * Then set up the execution environment and begin to
@@ -128,24 +119,82 @@ public class Main
      */
     public static void main(String args[]) {
         try {
-            if (Boolean.getBoolean("rhino.use_java_policy_security")) {
-                initJavaPolicySecuritySupport();
-            }
+            System.out.println("Initializing Java security model");
+            initJavaPolicySecuritySupport();
         } catch (SecurityException ex) {
             ex.printStackTrace(System.err);
         }
 
         int result = exec(args);
         if (result != 0) {
-            System.exit(result);
+            System.out.println("main. Not calling exit");
+            //System.exit(result);
         }
     }
 
     /**
-     *  Execute the given arguments, but don't System.exit at the end.
+     * Execute the given arguments, but don't System.exit at the end.
      */
-    public static int exec(String origArgs[])
-    {
+    public static int exec(String origArgs[]) {
+        errorReporter = new ToolErrorReporter(false, global.getErr());
+        shellContextFactory.setErrorReporter(errorReporter);
+        String[] args = processOptions(origArgs);
+        if (processStdin) {
+            fileList.add(null);
+        }
+        if (!global.initialized) {
+            global.init(shellContextFactory);
+        }
+
+        System.out.println("Orig: " + java.util.Arrays.toString(origArgs));
+        System.out.println("Args: " + java.util.Arrays.toString(args));
+
+        //  TODO: somewhat dodgy idea but check for none file types and call those files
+        HashSet<String> file_types = new HashSet<String>();
+        file_types.add("stl");
+        file_types.add("x3db");
+        file_types.add("x3dv");
+        file_types.add("x3d");
+        file_types.add("png");
+        file_types.add("jpg");
+        file_types.add("gz");
+
+        ArrayList<String> file_list = new ArrayList<String>();
+        ArrayList<String> param_list = new ArrayList<String>();
+
+        for(int i=0; i < args.length; i++) {
+            if (file_types.contains(FilenameUtils.getExtension(args[i]))) {
+                file_list.add(args[i]);
+            } else {
+                param_list.add(args[i]);
+            }
+        }
+
+        String[] files = new String[file_list.size()];
+        files = file_list.toArray(files);
+        String[] params = new String[param_list.size()];
+        params = param_list.toArray(params);
+        IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
+        iproxy.args = new String[0];
+        iproxy.files = files;
+        iproxy.params = params;
+        iproxy.show = true;
+
+        System.out.println("Show:" + iproxy.show);
+        shellContextFactory.call(iproxy);
+
+        return exitCode;
+    }
+
+    /**
+     * Execute the given arguments, but don't System.exit at the end.
+     */
+    public static TriangleMesh execMesh(String origArgs[], String[] files, String[] params) {
+        System.out.println("Execute mesh.  args: ");
+        for (int i = 0; i < origArgs.length; i++) {
+            System.out.println(origArgs[i]);
+        }
+
         errorReporter = new ToolErrorReporter(false, global.getErr());
         shellContextFactory.setErrorReporter(errorReporter);
         String[] args = processOptions(origArgs);
@@ -157,13 +206,16 @@ public class Main
         }
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = args;
+        iproxy.files = files;
+        iproxy.params = params;
+        iproxy.show = false;
+
         shellContextFactory.call(iproxy);
 
-        return exitCode;
+        return iproxy.getMesh();
     }
 
-    static void processFiles(Context cx, String[] args)
-    {
+    static TriangleMesh processFile(Context cx, String[] args, String[] files, String[] params, boolean show) {
         // define "arguments" array in the top-level object:
         // need to allocate new array since newArray requires instances
         // of exactly Object[], not ObjectSubclass[]
@@ -171,35 +223,38 @@ public class Main
         System.arraycopy(args, 0, array, 0, args.length);
         Scriptable argsObj = cx.newArray(global, array);
         global.defineProperty("arguments", argsObj,
-                              ScriptableObject.DONTENUM);
+                ScriptableObject.DONTENUM);
 
-        for (String file: fileList) {
+        for (String file : fileList) {
             try {
-                processSource(cx, file);
+                return processSource(cx, file, files, params, show);
             } catch (IOException ioex) {
                 Context.reportError(ToolErrorReporter.getMessage(
                         "msg.couldnt.read.source", file, ioex.getMessage()));
                 exitCode = EXITCODE_FILE_NOT_FOUND;
             } catch (RhinoException rex) {
                 ToolErrorReporter.reportException(
-                    cx.getErrorReporter(), rex);
+                        cx.getErrorReporter(), rex);
                 exitCode = EXITCODE_RUNTIME_ERROR;
             } catch (VirtualMachineError ex) {
                 // Treat StackOverflow and OutOfMemory as runtime errors
                 ex.printStackTrace();
                 String msg = ToolErrorReporter.getMessage(
-                    "msg.uncaughtJSException", ex.toString());
+                        "msg.uncaughtJSException", ex.toString());
                 Context.reportError(msg);
                 exitCode = EXITCODE_RUNTIME_ERROR;
             }
         }
+
+        return null;
     }
 
-    static void evalInlineScript(Context cx, String scriptText) {
+    static TriangleMesh evalInlineScript(Context cx, String scriptText, String[] files, String[] params, boolean show) {
         try {
             Script script = cx.compileString(scriptText, "<command>", 1, null);
             if (script != null) {
                 script.exec(cx, getShellScope());
+                return executeMain(cx, getShellScope(), show, files, params);
             }
         } catch (RhinoException rex) {
             ToolErrorReporter.reportException(
@@ -213,10 +268,11 @@ public class Main
             Context.reportError(msg);
             exitCode = EXITCODE_RUNTIME_ERROR;
         }
+
+        return null;
     }
 
-    public static Global getGlobal()
-    {
+    public static Global getGlobal() {
         return global;
     }
 
@@ -254,10 +310,10 @@ public class Main
     /**
      * Parse arguments.
      */
-    public static String[] processOptions(String args[])
-    {
+    public static String[] processOptions(String args[]) {
         String usageError;
-        goodUsage: for (int i = 0; ; ++i) {
+        goodUsage:
+        for (int i = 0; ; ++i) {
             if (i == args.length) {
                 return new String[0];
             }
@@ -271,7 +327,7 @@ public class Main
                 fileList.add(arg);
                 mainModule = arg;
                 String[] result = new String[args.length - i - 1];
-                System.arraycopy(args, i+1, result, 0, args.length - i - 1);
+                System.arraycopy(args, i + 1, result, 0, args.length - i - 1);
                 return result;
             }
             if (arg.equals("-version")) {
@@ -396,31 +452,33 @@ public class Main
                 continue;
             }
             if (arg.equals("-?") ||
-                arg.equals("-help")) {
+                    arg.equals("-help")) {
                 // print usage message
                 global.getOut().println(
-                    ToolErrorReporter.getMessage("msg.shell.usage", Main.class.getName()));
-                System.exit(1);
+                        ToolErrorReporter.getMessage("msg.shell.usage", Main.class.getName()));
+                System.out.println("args. Not calling exit");
+                //System.exit(1);
             }
             usageError = arg;
             break goodUsage;
         }
         // print error and usage message
         global.getOut().println(
-            ToolErrorReporter.getMessage("msg.shell.invalid", usageError));
+                ToolErrorReporter.getMessage("msg.shell.invalid", usageError));
         global.getOut().println(
-            ToolErrorReporter.getMessage("msg.shell.usage", Main.class.getName()));
-        System.exit(1);
+                ToolErrorReporter.getMessage("msg.shell.usage", Main.class.getName()));
+        System.out.println("main. Not calling exit");
+
+        //System.exit(1);
         return null;
     }
 
-    private static void initJavaPolicySecuritySupport()
-    {
+    private static void initJavaPolicySecuritySupport() {
         Throwable exObj;
         try {
             Class<?> cl = Class.forName
-                ("org.mozilla.javascript.tools.shell.JavaPolicySecurity");
-            securityImpl = (SecurityProxy)cl.newInstance();
+                    ("volumesculptor.shell.JavaPolicySecurity");
+            securityImpl = (SecurityProxy) cl.newInstance();
             SecurityController.initGlobal(securityImpl);
             return;
         } catch (ClassNotFoundException ex) {
@@ -433,21 +491,20 @@ public class Main
             exObj = ex;
         }
         throw Kit.initCause(new IllegalStateException(
-            "Can not load security support: "+exObj), exObj);
+                "Can not load security support: " + exObj), exObj);
     }
 
     /**
      * Evaluate JavaScript source.
      *
-     * @param cx the current context
+     * @param cx       the current context
      * @param filename the name of the file to compile, or null
      *                 for interactive mode.
-     * @throws IOException if the source could not be read
+     * @throws IOException    if the source could not be read
      * @throws RhinoException thrown during evaluation of source
      */
-    public static void processSource(Context cx, String filename)
-            throws IOException
-    {
+    public static TriangleMesh processSource(Context cx, String filename, String[] files, String[] params, boolean show)
+            throws IOException {
         if (filename == null || filename.equals("-")) {
             Scriptable scope = getShellScope();
             PrintStream ps = global.getErr();
@@ -457,24 +514,20 @@ public class Main
             }
 
             String charEnc = shellContextFactory.getCharacterEncoding();
-            if(charEnc == null)
-            {
+            if (charEnc == null) {
                 charEnc = System.getProperty("file.encoding");
             }
             BufferedReader in;
-            try
-            {
+            try {
                 in = new BufferedReader(new InputStreamReader(global.getIn(),
                         charEnc));
-            }
-            catch(UnsupportedEncodingException e)
-            {
+            } catch (UnsupportedEncodingException e) {
                 throw new UndeclaredThrowableException(e);
             }
             int lineno = 1;
             boolean hitEOF = false;
             while (!hitEOF) {
-            	String[] prompts = global.getPrompts(cx);
+                String[] prompts = global.getPrompts(cx);
                 if (filename == null)
                     ps.print(prompts[0]);
                 ps.flush();
@@ -485,8 +538,7 @@ public class Main
                     String newline;
                     try {
                         newline = in.readLine();
-                    }
-                    catch (IOException ioe) {
+                    } catch (IOException ioe) {
                         ps.println(ioe.toString());
                         break;
                     }
@@ -503,12 +555,12 @@ public class Main
                 try {
                     Script script = cx.compileString(source, "<stdin>", lineno, null);
                     if (script != null) {
+
                         Object result = script.exec(cx, scope);
                         // Avoid printing out undefined or function definitions.
                         if (result != Context.getUndefinedValue() &&
                                 !(result instanceof Function &&
-                                        source.trim().startsWith("function")))
-                        {
+                                        source.trim().startsWith("function"))) {
                             try {
                                 ps.println(Context.toString(result));
                             } catch (RhinoException rex) {
@@ -517,17 +569,18 @@ public class Main
                             }
                         }
                         NativeArray h = global.history;
-                        h.put((int)h.getLength(), h, source);
+                        h.put((int) h.getLength(), h, source);
+                        return executeMain(cx, scope, show, files, params);
                     }
                 } catch (RhinoException rex) {
                     ToolErrorReporter.reportException(
-                        cx.getErrorReporter(), rex);
+                            cx.getErrorReporter(), rex);
                     exitCode = EXITCODE_RUNTIME_ERROR;
                 } catch (VirtualMachineError ex) {
                     // Treat StackOverflow and OutOfMemory as runtime errors
                     ex.printStackTrace();
                     String msg = ToolErrorReporter.getMessage(
-                        "msg.uncaughtJSException", ex.toString());
+                            "msg.uncaughtJSException", ex.toString());
                     Context.reportError(msg);
                     exitCode = EXITCODE_RUNTIME_ERROR;
                 }
@@ -536,13 +589,15 @@ public class Main
         } else if (useRequire && filename.equals(mainModule)) {
             require.requireMain(cx, filename);
         } else {
-            processFile(cx, getScope(filename), filename);
+            return processFile(cx, getScope(filename), filename, files, params, show);
         }
+
+        return null;
     }
 
-    public static void processFileNoThrow(Context cx, Scriptable scope, String filename) {
+    public static TriangleMesh processFileNoThrow(Context cx, Scriptable scope, String filename, String[] files, String[] params, boolean show) {
         try {
-            processFile(cx, scope, filename);
+            return processFile(cx, scope, filename, files, params, show);
         } catch (IOException ioex) {
             Context.reportError(ToolErrorReporter.getMessage(
                     "msg.couldnt.read.source", filename, ioex.getMessage()));
@@ -559,20 +614,21 @@ public class Main
             Context.reportError(msg);
             exitCode = EXITCODE_RUNTIME_ERROR;
         }
+
+        return null;
     }
 
-    public static void processFile(Context cx, Scriptable scope, String filename)
-            throws IOException
-    {
+    public static TriangleMesh processFile(Context cx, Scriptable scope, String filename, String[] files, String[] params, boolean show)
+            throws IOException {
         if (securityImpl == null) {
-            processFileSecure(cx, scope, filename, null);
+            return processFileSecure(cx, scope, filename, null, files, params, show);
         } else {
-            securityImpl.callProcessFileSecure(cx, scope, filename);
+            return securityImpl.callProcessFileSecure(cx, scope, filename, files, params, show);
         }
     }
 
-    static void processFileSecure(Context cx, Scriptable scope,
-                                  String path, Object securityDomain)
+    static TriangleMesh processFileSecure(Context cx, Scriptable scope,
+                                          String path, Object securityDomain, String[] files, String[] params, boolean show)
             throws IOException {
 
         boolean isClass = path.endsWith(".class");
@@ -580,12 +636,16 @@ public class Main
 
         byte[] digest = getDigest(source);
         String key = path + "_" + cx.getOptimizationLevel();
-        ScriptReference ref = scriptCache.get(key, digest);
+
+        // Remove caching as it doesn't work for VS
+        //ScriptReference ref = scriptCache.get(key, digest);
+        ScriptReference ref = null;
+
         Script script = ref != null ? ref.get() : null;
 
         if (script == null) {
             if (isClass) {
-                script = loadCompiledScript(cx, path, (byte[])source, securityDomain);
+                script = loadCompiledScript(cx, path, (byte[]) source, securityDomain);
             } else {
                 String strSrc = (String) source;
                 // Support the executable script #! syntax:  If
@@ -600,14 +660,115 @@ public class Main
                         }
                     }
                 }
+
+                System.out.println("Compiling: " + strSrc);
                 script = cx.compileString(strSrc, path, 1, securityDomain);
             }
-            scriptCache.put(key, digest, script);
+            //scriptCache.put(key, digest, script);
         }
+
+        System.out.println("Script: " + script);
 
         if (script != null) {
             script.exec(cx, scope);
+
+            return executeMain(cx, scope, show, files, params);
         }
+
+        return null;
+    }
+
+    /**
+     * Execute the main function.  We expect a Grid back.
+     *
+     * @param cx
+     * @param scope
+     */
+    private static TriangleMesh executeMain(Context cx, Scriptable scope, boolean show, String[] files, String[] params) {
+
+        System.out.println("ExecMain.  show: " + show);
+        cx.setClassShutter(new ClassShutter() {
+
+            // Only allow AbFab3D classes to be created from scripts.
+            // A type of security policy, but we should learn security policy better
+            public boolean visibleToScripts(String className) {
+                if (className.startsWith("abfab3d.")) {
+                    return true;
+                }
+
+                return false;
+            }
+        });
+
+        Object o = scope.get("main", scope);
+
+        if (o == Scriptable.NOT_FOUND) {
+            System.out.println("Cannot find function main");
+
+        }
+        Function main = (Function) o;
+
+        Object[] func_args = new Object[files.length + params.length];
+        int idx = 0;
+        for(int i=0; i < files.length; i++) {
+            func_args[idx++] = files[i];
+        }
+        for(int i=0; i < params.length; i++) {
+            func_args[idx++] = params[i];
+        }
+
+
+        System.out.println("Func Args: " + java.util.Arrays.toString(func_args));
+
+        // this is what dies
+        Object result = main.call(cx, scope, scope, func_args);
+
+        System.out.println("Result: " + result);
+        Grid grid = null;
+        if (result instanceof Grid) {
+            grid = (Grid) result;
+        } else {
+            NativeJavaObject njo = (NativeJavaObject) result;
+            grid = (Grid) njo.unwrap();
+        }
+        System.out.println("Result: " + grid);
+
+        if (show) {
+            AbFab3DGlobal.show(cx, scope, new Object[]{grid}, null);
+        }
+
+        return save(grid);
+    }
+
+    private static TriangleMesh save(Grid grid) {
+        System.out.println("Save file to handler");
+
+        if (grid == null) {
+            System.out.println("No grid specified");
+        }
+        double vs = grid.getVoxelSize();
+
+
+        System.out.println("Saving world: " + grid + " to triangles");
+        double errorFactor = 0.5;
+        double maxDecimationError = errorFactor * vs * vs;
+
+        // Write out the grid to an STL file
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(50);
+        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        meshmaker.setSmoothingWidth(0.5);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(10);
+        meshmaker.setMaxAttributeValue(255);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        meshmaker.makeMesh(grid, its);
+
+        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        return mesh;
     }
 
     private static byte[] getDigest(Object source) {
@@ -616,12 +777,12 @@ public class Main
         if (source != null) {
             if (source instanceof String) {
                 try {
-                    bytes = ((String)source).getBytes("UTF-8");
+                    bytes = ((String) source).getBytes("UTF-8");
                 } catch (UnsupportedEncodingException ue) {
-                    bytes = ((String)source).getBytes();
+                    bytes = ((String) source).getBytes();
                 }
             } else {
-                bytes = (byte[])source;
+                bytes = (byte[]) source;
             }
             try {
                 MessageDigest md = MessageDigest.getInstance("MD5");
@@ -637,8 +798,7 @@ public class Main
 
     private static Script loadCompiledScript(Context cx, String path,
                                              byte[] data, Object securityDomain)
-            throws FileNotFoundException
-    {
+            throws FileNotFoundException {
         if (data == null) {
             throw new FileNotFoundException(path);
         }
@@ -700,12 +860,12 @@ public class Main
 
     /**
      * Read file or url specified by <tt>path</tt>.
+     *
      * @return file or url content as <tt>byte[]</tt> or as <tt>String</tt> if
-     * <tt>convertToString</tt> is true.
+     *         <tt>convertToString</tt> is true.
      */
     private static Object readFileOrUrl(String path, boolean convertToString)
-            throws IOException
-    {
+            throws IOException {
         return SourceReader.readFileOrUrl(path, convertToString,
                 shellContextFactory.getCharacterEncoding());
     }
@@ -739,7 +899,7 @@ public class Main
 
         ScriptReference get(String path, byte[] digest) {
             ScriptReference ref;
-            while((ref = (ScriptReference) queue.poll()) != null) {
+            while ((ref = (ScriptReference) queue.poll()) != null) {
                 remove(ref.path);
             }
             ref = get(path);

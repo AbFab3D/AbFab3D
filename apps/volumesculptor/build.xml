@@ -47,7 +47,7 @@
     </target>
 
     <target name="compile" depends="init" description="Compile all Java source files">
-        <compilejava package="volumesculptor"
+        <compilejava package="volumesculptor/shell"
                      jars=""
                 >
             <classpath-elements>
@@ -56,7 +56,7 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
-        <compilejava package="volumesculptor/shell"
+        <compilejava package="volumesculptor"
                      jars=""
                 >
             <classpath-elements>
@@ -81,7 +81,9 @@
         <createjar name="abfab3d_apps_volumesculptor" 
             version="${version}"
             manifest="abfab3d_apps_volumesculptor.mf"
-            includes="volumesculptor/VolumeSculptorKernel*"
+            includes="volumesculptor/VolumeSculptorKernel*
+                volumesculptor/shell/*
+            "
         />
     </target>
 
