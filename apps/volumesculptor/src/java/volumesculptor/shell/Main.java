@@ -190,6 +190,8 @@ public class Main {
      * Execute the given arguments, but don't System.exit at the end.
      */
     public static TriangleMesh execMesh(String origArgs[], String[] files, String[] params) {
+    	fileList = new ArrayList<String>();
+    	
         System.out.println("Execute mesh.  args: ");
         for (int i = 0; i < origArgs.length; i++) {
             System.out.println(origArgs[i]);
