@@ -12,10 +12,6 @@ public class ShapewaysApi extends DefaultApi10a
 {
 	private String BASE_URL = "http://api.shapeways.com";
 
-    public ShapewaysApi(String url) {
-        BASE_URL = url;
-    }
-
 	@Override
 	public String getRequestTokenEndpoint()
 	{

@@ -414,6 +414,7 @@ System.out.println("Adding param: " + p.getName());
 //        ps.println(indent(16) + "KernelResults results = kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);");
         writeMesh(ps, true, "x3d", "VISUAL");
         ps.println(indent(16) + "fos.close();");
+        ps.println(indent(16) + "String viz_file = \"out.x3d\";");
         writeAopt(ps,"out.x3d","/tmp");
         ps.println(indent(16) + "System.out.println(\"Aopt vis is\" + aopt_viz);");
 
@@ -426,7 +427,7 @@ System.out.println("Adding param: " + p.getName());
         ps.println(indent(16) + "double z = 2 * max_axis / Math.tan(Math.PI / 4);");
         ps.println(indent(16) + "float[] pos = new float[] {0,0,(float) z};");
 
-        ps.println(indent(16) + "X3DViewer.viewX3DOM(aopt_viz,pos);");
+        ps.println(indent(16) + "X3DViewer.viewX3DOM(viz_file,pos);");
 
         ps.println(indent(12) + "} catch(IOException ioe) { ioe.printStackTrace(); }");
         ps.println(indent(12) + "System.out.println(\"Model Done\");");

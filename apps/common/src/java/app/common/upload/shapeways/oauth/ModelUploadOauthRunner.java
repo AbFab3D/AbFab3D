@@ -36,7 +36,7 @@ import app.common.upload.shapeways.oauth.api.ShapewaysApi;
  */
 public class ModelUploadOauthRunner {
 	/** The upload url */
-	private static final String UPLOAD_URL = "http://api.shapeways.com/model/v1";
+	private static final String UPLOAD_URL = "http://api.shapeways.com/models/v1";
 	
 	/** Access token and secret */
 	private String CONSUMER_KEY = "fcc8983c4e72e553e19583fcfbedf8d55d5dfc24";
@@ -83,7 +83,7 @@ public class ModelUploadOauthRunner {
 			String title,
 			String description,
 			Integer isPublic,
-			Integer viewState) throws Exception {
+			Integer isForSale) throws Exception {
 		
 		String reason = null;
 		Gson gson = new Gson();
@@ -96,6 +96,7 @@ public class ModelUploadOauthRunner {
 	    parameters.put("fileName", fileName);
 	    parameters.put("ownOrAuthorizedModel", 1);
 	    parameters.put("acceptTermsAndConditions", 1);
+	    parameters.put("hasRightsToModel", 1);
 	    
 	    if (scale != null) {
 	    	parameters.put("uploadScale", scale.doubleValue());
@@ -112,8 +113,8 @@ public class ModelUploadOauthRunner {
 	    if (isPublic != null) {
 	    	parameters.put("isPublic", isPublic.intValue());
 	    }
-	    if (viewState != null) {
-	    	parameters.put("viewState", viewState.intValue());
+	    if (isForSale != null) {
+	    	parameters.put("isForSale", isForSale.intValue());
 	    }
 	    
 	    OAuthRequest request = new OAuthRequest(Verb.POST, UPLOAD_URL);
@@ -143,7 +144,7 @@ public class ModelUploadOauthRunner {
 			String title,
 			String description,
 			Integer isPublic,
-			Integer viewState) throws Exception {
+			Integer isForSale) throws Exception {
 		
 //		System.out.println("in ModelUploadOauthRunner, uploading: " + modelFile);
 		String reason = null;
@@ -151,7 +152,7 @@ public class ModelUploadOauthRunner {
 
 		try {
 			byte[] fileBytes = FileUtils.readFileToByteArray(file);
-			return uploadModel(fileBytes, file.getName(), modelId, scale, title, description, isPublic, viewState);
+			return uploadModel(fileBytes, file.getName(), modelId, scale, title, description, isPublic, isForSale);
 		} catch (IOException ioe) {
 			reason = "Model not found: " + file.getAbsolutePath();
 			System.out.println(reason);
