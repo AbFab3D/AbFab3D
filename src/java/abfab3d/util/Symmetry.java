@@ -671,8 +671,8 @@ public class Symmetry {
             }
         }        
         // if we are here - we haven't found FD 
-        // do somthing 
-        if(DEBUG)printf("out of iterations\n");
-        return ResultCodes.RESULT_ERROR;
+        // return out of domain do something 
+        //if(DEBUG)printf("out of iterations\n");
+        return ResultCodes.RESULT_OUTSIDE;
     }   
 }

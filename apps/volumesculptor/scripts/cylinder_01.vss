@@ -1,0 +1,36 @@
+importPackage(Packages.abfab3d.grid)
+importPackage(Packages.abfab3d.datasources)
+importPackage(Packages.abfab3d.transforms)
+
+function cross3D(size, thickness){
+
+  var union = new Union();
+  var boxX = new Box(0,0,0,size,thickness, thickness);
+  var boxY = new Box(0,0,0, thickness, size, thickness);
+  var boxZ = new Box(0,0,0,thickness, thickness,size);
+  union.add(boxX);
+  union.add(boxY);
+  union.add(boxZ);
+  
+  return union;
+}
+
+
+function main(){
+
+	var a = 26*MM;
+	var b = 25*MM;
+	var voxelSize = 0.2*MM;
+	
+	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
+	//var v0 = new Vector3D(0,0,0);
+	
+	var cradius = 0.2*b;
+	
+	var cyl1 = new Cylinder(new Vector3D(0,0,-b),new Vector3D(0,0,b), cradius);
+	
+	maker.setDataSource(cyl1);
+	maker.makeGrid(dest);
+	return dest;
+	
+}

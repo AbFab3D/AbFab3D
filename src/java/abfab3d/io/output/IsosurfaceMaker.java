@@ -22,6 +22,7 @@ import abfab3d.grid.Grid;
 import abfab3d.util.TriangleCollector;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 
 
@@ -43,15 +44,18 @@ public class IsosurfaceMaker {
 
     public static final int CUBES = 0; 
     public static final int TETRAHEDRA = 1; 
-
+    
+    public static final int INTERPOLATION_LINEAR = 0;
+    public static final int INTERPOLATION_INDICATOR_FUNCTION = 1;
 
     int m_algorithm = CUBES;
+    protected int m_interpolationAlgorithm = INTERPOLATION_LINEAR;
 
     AttributeGrid m_grid;
 
     
-    double m_isoValue = 0.; // value of isosurface 
-    double m_bounds[] = new double[]{-1, 1, -1, 1, -1, 1}; // bounds of the area 
+    protected double m_isoValue = 0.; // value of isosurface 
+    protected double m_bounds[] = new double[]{-1, 1, -1, 1, -1, 1}; // bounds of the area 
     int m_nx=10, m_ny=10, m_nz=10;
 
     SliceFunction m_sfunction = null;
@@ -95,6 +99,17 @@ public class IsosurfaceMaker {
      */
     public void setAlgorithm(int algorithm){
         m_algorithm = algorithm;
+    }
+
+    /**
+       set interpolation algorith to use 
+       INTERPOLATION_LINEAR
+       or 
+       INTERPOLATION_INDICATOR_FUNCTION       
+     */
+    public void setInterpolationAlgorithm(int algorithm){
+
+        m_interpolationAlgorithm = algorithm;
     }
 
     /**
@@ -212,6 +227,7 @@ public class IsosurfaceMaker {
     /*
       // this version generates some garbage 
     */
+    /*
     public static void polygonizeCube_g(Cell g, Vector3d triangles[], TriangleCollector ggen){
 
         int cubeindex = 0;
@@ -280,10 +296,10 @@ public class IsosurfaceMaker {
         addTri(ggen, triangles, ntriang);        
         
     }
-    
+    */
 
     // this version produces no garbage 
-    public static void polygonizeCube(Cell g, Vector3d triangles[], TriangleCollector ggen){
+    public void polygonizeCube(Cell g, Vector3d triangles[], TriangleCollector ggen){
 
         int cubeindex = 0;
         double iso = 0.0;
@@ -400,7 +416,7 @@ public class IsosurfaceMaker {
                3+--------2---------+2
                                    
     */
-    public static void polygonizeCube_tetra(Cell cell, double iso, Vector3d triangles[], TriangleCollector ggen){
+    public void polygonizeCube_tetra(Cell cell, double iso, Vector3d triangles[], TriangleCollector ggen){
 
         int count;
 
@@ -423,7 +439,7 @@ public class IsosurfaceMaker {
        this is to make positive valued area looks solid from outside 
               
     */
-    public static int polygonizeTetra(Cell g, double iso,int v0,int v1,int v2,int v3,Vector3d tri[]) {
+    public int polygonizeTetra(Cell g, double iso,int v0,int v1,int v2,int v3,Vector3d tri[]) {
         
         /*
           Determine which of the 16 cases we have given which vertices
@@ -442,106 +458,106 @@ public class IsosurfaceMaker {
             return 0;
             
         case 0x0E: // 1110  01 03 02 
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1]);
-            tri[1] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2]);
+            vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1], tri[0]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3], tri[1]);
+            vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2], tri[2]);
             return 1;
             
         case 0x01: //  0001 01 02 03 
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1]);
-            tri[1] = vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2]);
-            tri[2] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
+            vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1],tri[0]);
+            vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2],tri[1]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3],tri[2]);
             return 1;
             
         case 0x0D: // 1101 
-            tri[0] = vertexInterp(iso,g.p[v1],g.p[v0],g.val[v1],g.val[v0]);
-            tri[1] = vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2]);
-            tri[2] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
+            vertexInterp(iso,g.p[v1],g.p[v0],g.val[v1],g.val[v0],tri[0]);
+            vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2],tri[1]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[2]);
             return 1;
             
         case 0x02: // 0010   10 13 12 
-            tri[0] = vertexInterp(iso,g.p[v1],g.p[v0],g.val[v1],g.val[v0]);
-            tri[1] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2]);
+            vertexInterp(iso,g.p[v1],g.p[v0],g.val[v1],g.val[v0],tri[0]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2],tri[2]);
             return 1;
             
         case 0x0C: // 1100  12 13 03, 12 03 02 
-            tri[0] = vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2]);
-            tri[1] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
+            vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2],tri[0]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3],tri[2]);
             
-            tri[3] = tri[0];
-            tri[4] = tri[2];
-            tri[5] = vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2]);
+            tri[3].set(tri[0]);
+            tri[4].set(tri[2]);
+            vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2], tri[5]);
             return 2;
             
         case 0x03: // 0011  12 03 13, 12 02 03 
-            tri[0] = vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2]);
-            tri[1] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
-            tri[3] = tri[0];
-            tri[4] = vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2]);
-            tri[5] = tri[1];
+            vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2],tri[0]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[2]);
+            tri[3].set(tri[0]);
+            vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2],tri[4]);
+            tri[5].set(tri[1]);
             return 2;
             
         case 0x0B: // 1011  2-> 013
-            tri[0] = vertexInterp(iso,g.p[v2],g.p[v0],g.val[v2],g.val[v0]);
-            tri[1] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v2],g.p[v1],g.val[v2],g.val[v1]);
+            vertexInterp(iso,g.p[v2],g.p[v0],g.val[v2],g.val[v0],tri[0]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v2],g.p[v1],g.val[v2],g.val[v1],tri[2]);
             return 1;
             
         case 0x04: // 0100  2 -> 013
-            tri[0] = vertexInterp(iso,g.p[v2],g.p[v0],g.val[v2],g.val[v0]);
-            tri[1] = vertexInterp(iso,g.p[v2],g.p[v1],g.val[v2],g.val[v1]);
-            tri[2] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
+            vertexInterp(iso,g.p[v2],g.p[v0],g.val[v2],g.val[v0],tri[0]);
+            vertexInterp(iso,g.p[v2],g.p[v1],g.val[v2],g.val[v1],tri[1]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[2]);
             return 1;
             
         case 0x0A: // 1010 
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1]);
-            tri[1] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
-            tri[3] = tri[0];
-            tri[4] = tri[2];
-            tri[5] = vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2]);
+            vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1],tri[0]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[2]);
+            tri[3].set(tri[0]);
+            tri[4].set(tri[2]);
+            vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2],tri[5]);
             return 2;        
             
         case 0x05: // 0101 
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1]);
-            tri[1] = vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2]);
-            tri[2] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
-            tri[3] = tri[0];
-            tri[4] = tri[2];
-            tri[5] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
+            vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1],tri[0]);
+            vertexInterp(iso,g.p[v1],g.p[v2],g.val[v1],g.val[v2],tri[1]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[2]);
+            tri[3].set(tri[0]);
+            tri[4].set(tri[2]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3],tri[5]);
             return 2;
             
         case 0x09: // 1001
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1]);
-            tri[1] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
-            tri[3] = tri[0];
-            tri[4] = vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2]);
-            tri[5] = tri[1];
+            vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1],tri[0]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[2]);
+            tri[3].set(tri[0]);
+            vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2],tri[4]);
+            tri[5].set(tri[1]);
             return 2;
             
         case 0x06: // 0110
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1]);
-            tri[1] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
-            tri[3] = tri[0];
-            tri[4] = tri[2];
-            tri[5] = vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2]);
+            vertexInterp(iso,g.p[v0],g.p[v1],g.val[v0],g.val[v1],tri[0]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[2]);
+            tri[3].set(tri[0]);
+            tri[4].set(tri[2]);
+            vertexInterp(iso,g.p[v0],g.p[v2],g.val[v0],g.val[v2],tri[5]);
             return 2;
             
         case 0x07: // 0111
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
-            tri[1] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3],tri[0]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[2]);
             return 1;
             
         case 0x08: // 1000
-            tri[0] = vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3]);
-            tri[1] = vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3]);
-            tri[2] = vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3]);
+            vertexInterp(iso,g.p[v0],g.p[v3],g.val[v0],g.val[v3],tri[0]);
+            vertexInterp(iso,g.p[v2],g.p[v3],g.val[v2],g.val[v3],tri[1]);
+            vertexInterp(iso,g.p[v1],g.p[v3],g.val[v1],g.val[v3],tri[2]);
             return 1;
         }
         return 0;
@@ -580,7 +596,7 @@ public class IsosurfaceMaker {
       Linearly interpolate the position where an isosurface cuts
       the edge between two vertices, each with their own scalar value
     */
-    public static Vector3d vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2){    
+    public static Vector3d _vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2){    
         
         if (abs(isolevel-valp1) < EPS)
             return(p1);
@@ -602,32 +618,112 @@ public class IsosurfaceMaker {
     /*
       Linearly interpolate the position where an isosurface cuts
       an edge between two vertices, each with their own scalar value
-      makes no garbage 
+      generates no garbage 
     */
-    public static void vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2, Vector3d dest){
+    public void vertexInterp(double isolevel,Vector3d p1,Vector3d p2, double valp1, double valp2, Vector3d dest){
 
-        if (abs(isolevel-valp1) < EPS)
+        if (abs(isolevel-valp1) < EPS){
             dest.set(p1);
-        if (abs(isolevel-valp2) < EPS)
+            return;
+        }
+        if (abs(isolevel-valp2) < EPS){
             dest.set(p2);
-        if (abs(valp1-valp2) < EPS)
+            return;
+        }
+        if (abs(valp1-valp2) < EPS){
             dest.set(p1);
+            return;
+        }
 
-        double mu = (isolevel - valp1) / (valp2 - valp1);
+        double mu = getLerpCoeff(valp1, valp2, isolevel); 
 
-        double x = p1.x + mu * (p2.x - p1.x);
-        double y = p1.y + mu * (p2.y - p1.y);
-        double z = p1.z + mu * (p2.z - p1.z);
-
+        double x = lerp(p1.x,p2.x, mu); 
+        double y = lerp(p1.y,p2.y, mu); 
+        double z = lerp(p1.z,p2.z, mu); 
+        
         dest.set(x,y,z);
 
     }
 
+    static final double lerp(double x1, double x2, double t){
+        return x1 + t * (x2-x1);
+    }
 
+
+    public final double getLerpCoeff(double v1, double v2, double isolevel){
+
+        switch(m_interpolationAlgorithm){
+        default:
+        case INTERPOLATION_LINEAR:
+            return (isolevel - v1) / (v2 - v1);
+
+        case INTERPOLATION_INDICATOR_FUNCTION:
+            return coeff_indicator(0.5*( 1- v1), 0.5*(1-v2));
+        }
+    }
+
+    // indicator function algorithm is based on 
+    // 
+    // J. Manson, J. Smith, and S. Schaefer (2011) 
+    // Contouring Discrete Indicator Functions
+    //
+    public static final double coeff_indicator(double v1, double v2){
+        if (v1 < v2)
+            return coeff_indicator_half(v1, v2);
+        else
+            return 1. - coeff_indicator_half(v2, v1);
+    }
+    
+    public static final double coeff_indicator_half(double v1, double v2){
+
+        int selector = 0;
+	if (3*v1 >= v2) // test 1-3
+            selector += 1;
+	if (v1 + 2 >= 3*v2) // test 1-4
+            selector += 2;
+        
+	switch (selector){
+            
+	case 3: // must be 1
+            return (v1 - .5) / (v1 - v2);  
+	case 0: // must be 2
+            return 1.5 - v1 - v2;            
+	case 2: // test 2-3
+            {
+                double d = v1*(v1+v2);
+                double s = 2*v1+2*v2-1;
+                if (4*d > s*s)	{
+                    return 1. - (2*v2 - 1) / (8*v1 + 4*v2 -8*sqrt(d)); // must be 3
+                } else {
+                    return 1.5 - v1 - v2; // must be 2
+                }
+            }
+            
+	case 1: // test 2-4
+            {
+                double b1 = 1 - v2;
+                double b2 = 1 - v1;
+                
+                double d = b1*(b1+b2);
+                double s = 2*b1+2*b2-1;
+                if (4*d > s*s){
+                    return (2*b2 - 1) / (8*b1 + 4*b2 - 8*sqrt(d)); // must be 4
+                } else {
+                    return 1.5 - v1 - v2; // must be 2
+                }
+            }
+	}
+        
+	return 0;
+    }
+    
+    //
+    // class describes one cubic cell    
+    //
     public static class Cell {
 
         double val[]; // values at corners of the cube         
-        Vector3d p[]; // coordinates of corners of he cube 
+        Vector3d p[]; // coordinates of corners of the cube 
         Vector3d e[]; // coordinates of isosurface-edges intersections 
         
         Cell(){

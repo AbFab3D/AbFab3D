@@ -156,6 +156,4 @@ public class ParametricSurfaces {
         }
 
     } // Sphere
-
-
 }

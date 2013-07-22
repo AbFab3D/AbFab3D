@@ -58,7 +58,7 @@ public class Rotation implements VecTransform, Initializable {
         m_axis = new Vector3d(axis); 
         m_angle = angle;
         
-    }
+   } 
     
     public int initialize(){
         

@@ -99,16 +99,19 @@ public class Union  extends TransformableDataSource {
      * can be used to make union of few shapes
      */
     public int getDataValue(Vec pnt, Vec data) {
+
         super.transform(pnt);
+
         int len = vDataSources.length;
         DataSource dss[] = vDataSources;
         
         double value = 0.;
-        
         for(int i = 0; i < len; i++){
             
             DataSource ds = dss[i];
-            int res = ds.getDataValue(pnt, data);
+            //TODO garbage generation 
+            Vec pnt1 = new Vec(pnt);
+            int res = ds.getDataValue(pnt1, data);
             
             if(res != RESULT_OK){
                 // outside of domain

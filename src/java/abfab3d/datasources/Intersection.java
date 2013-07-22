@@ -112,7 +112,7 @@ public class Intersection extends TransformableDataSource{
             
             DataSource ds = dss[i];
             //int res = ds.getDataValue(pnt, workPnt);
-            int res = ds.getDataValue(pnt, data);
+            int res = ds.getDataValue(new Vec(pnt), data);
             if(res != RESULT_OK){
                 data.v[0] = 0.;
                 return res;

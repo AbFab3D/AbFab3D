@@ -91,7 +91,7 @@ public class Subtraction extends TransformableDataSource {
         super.transform(pnt);
         double v1 = 0, v2 = 0;
         
-        int res = dataSource1.getDataValue(pnt, data);
+        int res = dataSource1.getDataValue(new Vec(pnt), data);
         if(res != RESULT_OK){
             data.v[0] = 0.0;
             return res;
@@ -106,7 +106,7 @@ public class Subtraction extends TransformableDataSource {
         
         // we are here if v1 > 0
         
-        res = dataSource2.getDataValue(pnt, data);
+        res = dataSource2.getDataValue(new Vec(pnt), data);
         
         if(res != RESULT_OK){
             data.v[0] = v1;

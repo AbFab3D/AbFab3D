@@ -1,0 +1,28 @@
+//importPackage(Packages.abfab3d.grid.op)
+importPackage(Packages.abfab3d.grid)
+importPackage(Packages.abfab3d.datasources)
+
+function cross3D(size, thickness){
+
+  var union = new Union();
+  var boxX = new Box(0,0,0,size,thickness, thickness);
+  var boxY = new Box(0,0,0, thickness, size, thickness);
+  var boxZ = new Box(0,0,0,thickness, thickness,size);
+  union.add(boxX);
+  union.add(boxY);
+  union.add(boxZ);
+  
+  return union;
+}
+
+function main(){
+	var a = 25*MM;
+	var voxelSize = 0.2*MM;
+	
+	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+		
+	maker.setDataSource(cross3D(a*0.2, a*0.95));
+	maker.makeGrid(dest);
+	return dest;
+	
+}

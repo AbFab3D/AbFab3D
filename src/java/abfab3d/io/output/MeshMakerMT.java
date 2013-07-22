@@ -56,6 +56,8 @@ public class MeshMakerMT {
     //max error of decimation
     protected double m_maxDecimationError = 1.e-9;
 
+    protected int m_interpolationAlgorithm = IsosurfaceMaker.INTERPOLATION_LINEAR;
+
     protected double m_smoothingWidth = 1.;
     protected int m_gridMaxAttributeValue = 0;
     protected int m_maxDecimationCount = 7;
@@ -111,6 +113,18 @@ public class MeshMakerMT {
 
         m_edgeTester = tester;
 
+    }
+
+
+    /**
+       set interpolation algorith to use 
+       INTERPOLATION_LINEAR
+       or 
+       INTERPOLATION_INDICATOR_FUNCTION       
+     */
+    public void setInterpolationAlgorithm(int algorithm){
+
+        m_interpolationAlgorithm = algorithm;
     }
 
     /**
@@ -432,6 +446,7 @@ public class MeshMakerMT {
             imaker.setIsovalue(0.);
             imaker.setBounds(blockBounds);
             imaker.setGridSize(block.xmax - block.xmin + 1, block.ymax - block.ymin + 1, block.zmax - block.zmin + 1);
+            imaker.setInterpolationAlgorithm(m_interpolationAlgorithm);
 
             if (its == null) {
                 its = new IndexedTriangleSetBuilder();

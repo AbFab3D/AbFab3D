@@ -1,0 +1,47 @@
+importPackage(Packages.abfab3d.grid)
+importPackage(Packages.abfab3d.datasources)
+importPackage(Packages.abfab3d.transforms)
+
+function makePart(height, baseRadius, baseThickness, 
+                  steamRadius,   capRadius, capThickness){
+	
+	var cyl1 = new Cylinder(new Vector3D(0,0,0),new Vector3D(0,0,height), steamRadius);
+	var cyl2 = new Cylinder(new Vector3D(0,0,0),new Vector3D(0,0,baseThickness), baseRadius);
+	var cyl3 = new Cylinder(new Vector3D(0,0, height-capThickness),new Vector3D(0,0,height), capRadius);
+	var union = new Union();
+	
+	union.add(cyl1);
+	union.add(cyl2);
+	union.add(cyl3);
+	return union;
+	
+}
+
+function main(){
+
+	var a = 26*MM;
+	var b = 25*MM;
+	var voxelSize = 0.2*MM;
+	
+	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
+	
+	var part1 = makePart(20*MM, 7*MM, 4*MM, 2*MM, 5*MM, 2*MM);	
+	part1.setTransform(new Translation(20*MM,0,0));
+	
+	var union = new Union();	
+	var scale = 1;
+	for(var i = 0; i < 5; i++){
+		var dt = new DataTransformer();
+		dt.setDataSource(part1);
+		dt.setTransform(new Scale(scale));
+		union.add(dt);
+		scale *= 0.6;
+	}	
+	union.setTransform(new Translation(-5*MM, 0,0));
+	
+	maker.setDataSource(union);	
+	
+	maker.makeGrid(dest);
+	return dest;
+	
+}

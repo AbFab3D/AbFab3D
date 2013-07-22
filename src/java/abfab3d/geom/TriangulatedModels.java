@@ -33,6 +33,7 @@ import abfab3d.util.VecTransform;
 
 import static abfab3d.util.MathUtil.distance;
 import static abfab3d.util.MathUtil.midPoint;
+import static abfab3d.util.Units.MM;
 
 import static java.lang.Math.sqrt;
 import static java.lang.Math.max;
@@ -47,6 +48,7 @@ import static java.lang.Math.PI;
 import static java.lang.Math.sin;
 import static java.lang.Math.cos;
 
+
 /**
  * Creates a bunch of Models as triangle meshes
  *
@@ -57,6 +59,8 @@ public class TriangulatedModels {
     //TODO need class TriangleSplitter which splits incomng triangles into smaller pieces 
     // according to the specified precision 
     
+    public static final double DEFAULT_PRECISION = 0.001*MM;
+
     /**
        class takes a set of TriangleProducers and one VecTransform and generates 
        stream of transformed triangles, which are sent to TriangleCollector 
@@ -619,6 +623,34 @@ public class TriangulatedModels {
         }
         
     } // class Sphere 
+
+
+    /**
+      Torus of given sizes 
+     */
+    public static class Torus  implements TriangleProducer {
+            
+        double m_rin, m_rout;
+        double m_precision;
+
+        public Torus(double r, double R){
+            this(r, R, DEFAULT_PRECISION);
+        }
+
+        public Torus(double r, double R, double precision){
+            m_rin = r;
+            m_rout = R;
+            m_precision = precision;
+        }
+
+        public boolean getTriangles(TriangleCollector tc){
+            
+            ParametricSurfaces.Torus torus = new ParametricSurfaces.Torus(m_rin, m_rout);
+            ParametricSurfaceMaker maker = new ParametricSurfaceMaker(torus, m_precision);
+            return maker.getTriangles(tc);
+            
+        }
+    } // Torus     
     
 } // class TriangulatedModels
 
