@@ -42,13 +42,18 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
     
     ReflectionGroup group;
     double riemannSphereRadius;
-    
+    int m_maxCount = 100;
+
     public ReflectionSymmetry(){            
         
     }
     
     public void setGroup(ReflectionGroup group){
         this.group = group;
+    }
+
+    public void setMaxCount(int count){
+        this.m_maxCount  = count;
     }
     
     public void setRiemannSphereRadius(double value){
@@ -63,6 +68,7 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
         }
         
         group.setRiemannSphereRadius(riemannSphereRadius);
+        group.setMaxIterations(m_maxCount);
         return RESULT_OK;
     }
     

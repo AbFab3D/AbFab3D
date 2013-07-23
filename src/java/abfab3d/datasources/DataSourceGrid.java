@@ -40,13 +40,20 @@ public class DataSourceGrid extends TransformableDataSource {
 
     static final boolean DEBUG = false;
     static int debugCount = 0;
-    
+    static final int DEFAULT_MAX_ATTRIBUTE_VALUE = 255;
     AttributeGrid m_grid;
     int m_maxAttributeValue;
     double m_bounds[] = new double[6];
     int m_nx, m_ny, m_nz;
     double xmin, ymin, zmin, xscale, yscale, zscale;
         
+    public DataSourceGrid(AttributeGrid grid){
+        this(grid, null, DEFAULT_MAX_ATTRIBUTE_VALUE);
+    }
+
+    public DataSourceGrid(AttributeGrid grid, int maxAttributeValue){
+        this(grid,null,maxAttributeValue);
+    }
 
     public DataSourceGrid(AttributeGrid grid, double bounds[], int maxAttributeValue){
         
@@ -77,10 +84,6 @@ public class DataSourceGrid extends TransformableDataSource {
             printf("xmin: (%10.7f,%10.7f,%10.7f) \n", xmin, ymin, zmin);
             printf("xscale: (%10.7f,%10.7f,%10.7f) \n", xscale,yscale,zscale);
         }
-    }
-
-    public DataSourceGrid(AttributeGrid grid, int maxAttributeValue){
-        this(grid,null,maxAttributeValue);
     }
 
     public int initialize(){

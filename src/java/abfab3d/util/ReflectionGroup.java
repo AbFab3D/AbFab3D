@@ -32,6 +32,7 @@ public class ReflectionGroup {
     
     public static final int RESULT_OK = ResultCodes.RESULT_OK;
     public static final int RESULT_ERROR = ResultCodes.RESULT_ERROR;
+    public static final int RESULT_OUTSIDE = ResultCodes.RESULT_OUTSIDE;
     
     double m_R2 = 1; // Radius^2 of Riemannn sphere 
 
@@ -107,7 +108,7 @@ public class ReflectionGroup {
 
         // we are here is we exceeded maxIterations; 
 
-        return RESULT_ERROR;
+        return RESULT_OUTSIDE;
     }
  
     

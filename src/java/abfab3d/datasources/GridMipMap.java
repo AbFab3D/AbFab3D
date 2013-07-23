@@ -34,7 +34,10 @@ import static abfab3d.util.Output.printf;
  */
 public class GridMipMap extends TransformableDataSource {
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
+
+    static public final int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_Z = 4;
+ 
     static int debugCount = 100;
 
     static final double LOG2 = log(2.);
@@ -46,6 +49,8 @@ public class GridMipMap extends TransformableDataSource {
     static public final int SCALING_AVERAGE = 0, SCALING_MAX = 1;
 
     protected int m_interpolationType = INTERPOLATION_BOX;
+    protected int m_repeatType = REPEAT_NONE;
+
     // what algorith to use for grid downsampling 
     protected int m_scalingType = SCALING_AVERAGE;
     
@@ -83,6 +88,13 @@ public class GridMipMap extends TransformableDataSource {
         m_interpolationType = type;
     }
 
+    public void setRepeatType(int type){
+        m_repeatType = type;
+    }
+
+    /**
+       allowed values REPEAT_NONE or bitwise combination of REPEAT_X, REPEAT_Y, REPEAT_Z 
+     */
     public void setMaxAttribute(long value){
         m_maxAttribute  = value;
     }
@@ -132,6 +144,7 @@ public class GridMipMap extends TransformableDataSource {
     public int getDataValue(Vec pnt, Vec dataValue){
 
         super.transform(pnt);
+
         double 
             x = pnt.v[0],
             y = pnt.v[1],
@@ -142,8 +155,9 @@ public class GridMipMap extends TransformableDataSource {
         double xg  = (x - xgmin)*scaleFactor;
         double yg  = (y - ygmin)*scaleFactor;
         double zg  = (z - zgmin)*scaleFactor;
+
         double vg = abs(pnt.getScaledVoxelSize()) * scaleFactor;
-            
+        
         if(vg <= 1.) {        
             dataValue.v[0] = m_normalization*getValue(m_grids[0], xg, yg, zg);
             return RESULT_OK;
@@ -188,23 +202,26 @@ public class GridMipMap extends TransformableDataSource {
     /**
        returns interpolated value from one grid; 
      */
-    static double getValue(AttributeGrid grid, double x, double y, double z){
+    double getValue(AttributeGrid grid, double x, double y, double z){
         int 
             nx = grid.getWidth(),
             ny = grid.getHeight(),
             nz = grid.getDepth();
-
         // half voxel shift to get to the voxels centers 
         x -= 0.5;
         y -= 0.5;
         z -= 0.5;
-        //TODO robust way to move point into grid bounds 
 
-
+            
         int 
             ix = (int)floor(x),
             iy = (int)floor(y),
             iz = (int)floor(z);
+
+        //TODO robust way to move point into grid bounds        
+        if(((m_repeatType & REPEAT_X) == 0) && (ix < 0 || ix >= nx)) return 0;
+        if(((m_repeatType & REPEAT_Y) == 0) && (iy < 0 || iy >= ny)) return 0;
+        if(((m_repeatType & REPEAT_Z) == 0) && (iz < 0 || iz >= nz)) return 0;
 
         double 
             dx = x - ix,
@@ -217,7 +234,7 @@ public class GridMipMap extends TransformableDataSource {
         if(ix < 0) ix += nx;
         if(iy < 0) iy += ny;
         if(iz < 0) iz += nz;
-
+        
         int 
             ix1 = (ix+1) % nx,
             iy1 = (iy+1) % ny,
