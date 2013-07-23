@@ -1,0 +1,45 @@
+importPackage(Packages.abfab3d.grid)
+importPackage(Packages.abfab3d.datasources)
+importPackage(Packages.abfab3d.transforms)
+
+function makePart(size, thickeness){
+
+  var union = new Union();
+  
+  var boxX = new Box(0,0,0,thickeness, thickeness, size);
+  union.add(boxX);  
+  return union;
+}
+
+
+function main(){
+
+	var a = 25*MM;
+	
+	var voxelSize = 0.2*MM;
+	
+	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	
+	var cz = 20.*MM;
+	var cx = 5.*MM;
+	var cy = 5.*MM;
+	
+	var part = makePart(30*MM, 5*MM);
+	
+	part.setTransform(new Rotation(new Vector3D(-1,1,0), 3*Math.PI/8));
+	
+	var dt = new DataTransformer();
+	dt.setDataSource(part);	
+	
+	var sym = new ReflectionSymmetry();
+    sym.setGroup(ReflectionSymmetries.getQuad_1(25*MM, 30*MM, Math.PI/3));
+	sym.setMaxCount(25);
+	
+	dt.setTransform(sym);
+	
+	maker.setDataSource(dt);
+	maker.makeGrid(dest);
+	
+	return dest;
+	
+}

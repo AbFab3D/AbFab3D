@@ -51,8 +51,9 @@ public class GridMipMap extends TransformableDataSource {
     protected int m_interpolationType = INTERPOLATION_BOX;
     protected int m_repeatType = REPEAT_NONE;
 
-    // what algorith to use for grid downsampling 
-    protected int m_scalingType = SCALING_AVERAGE;
+    // what algorithm to use for grid downsampling 
+    //protected int m_scalingType = SCALING_AVERAGE;
+    protected int m_scalingType = SCALING_MAX;
     
     protected double scaleFactor;
     protected double xgmin, ygmin, zgmin;

@@ -39,7 +39,14 @@ public class ReflectionSymmetries {
 
     }
 
-
+    /**
+       hyperbolic circular quadrilateral made by 2 orthogonal planes and 2 spheres. 
+       angles of quadrilateral are (pi/2, pi/2, pi/2, alpha)
+       r - radius of common sphere to which both spheres are orthogonal 
+       the equator of that sphere will be place where all the tiles accumulate 
+       r1 radius of one sphere 
+       alpha angle between spheres
+     */
     public static ReflectionGroup getQuad_1(double r, double r1, double alpha){
         double r2 = r*r/(r1*cos(alpha));
         double x1 = sqrt(r1*r1 + r*r);
@@ -48,8 +55,8 @@ public class ReflectionSymmetries {
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
             new ReflectionGroup.Plane(new Vector3d(1,0,0), 0.), // 
             new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.), // 
-            new ReflectionGroup.Sphere(new Vector3d(x1,0,0), -r1), // outside of sphere  
-            new ReflectionGroup.Sphere(new Vector3d(0,y2,0), -r2), // outside of sphere              
+            new ReflectionGroup.Sphere(new Vector3d(x1,0,0), -r1), // outside of sphere 1
+            new ReflectionGroup.Sphere(new Vector3d(0,y2,0), -r2), // outside of sphere 2           
         };   
         return new ReflectionGroup(s);
         
