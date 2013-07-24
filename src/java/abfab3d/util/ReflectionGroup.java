@@ -28,7 +28,8 @@ import static abfab3d.util.Output.fmt;
  */
 public class ReflectionGroup {
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
+    static int debugCount = 1000;
     
     public static final int RESULT_OK = ResultCodes.RESULT_OK;
     public static final int RESULT_ERROR = ResultCodes.RESULT_ERROR;
@@ -79,8 +80,9 @@ public class ReflectionGroup {
             SPlane plane = m_planes[currentPlane];            
             
             if(plane.distance(pnt) < 0.0 ){
-                
+                // we are outside of this plane - reflect in this plane 
                 if(false)printf(" out\n"); 
+
                 plane.reflect(pnt);
                 // we are now inside of this plane, but this transform may move point outside of other planes 
                 insideCount = 1; 
@@ -91,13 +93,18 @@ public class ReflectionGroup {
                 insideCount++;
                 if(insideCount >= planeCount){
 
-                    // point is inside of all planes - it is in the fundamental domain 
+                    // point is inside of all planes => point is in the fundamental domain 
                     if(false) {
                         if(pnt.getScaleFactor() != 1)
                             printf(" pnt.scaleFactor():%10.5f pnt: (%10.5f %10.5f %10.5f)\n", pnt.getScaleFactor(),pnt.v[0],pnt.v[1],pnt.v[2]); 
                     }
-                    // make final scale of transformation which transforms R^3 to Riemann sphere 
-                    pnt.mulScale(1/(1 + len2(pnt)/m_R2));
+                    // make final scaling of transformation which transforms R^3 to Riemann sphere 
+                    if(m_R2 != 0.0)
+                        pnt.mulScale(1/(1 + len2(pnt)/m_R2));
+
+                    if(DEBUG && debugCount-- > 0)
+                        printf("plane reflect vs: %5.3f mm\n", pnt.getScaledVoxelSize()*1000);
+
                     return RESULT_OK;
                 }
             }
@@ -111,7 +118,8 @@ public class ReflectionGroup {
         return RESULT_OUTSIDE;
     }
  
-    
+
+
     //   class to represent sphere or plane 
     public static abstract class SPlane {
         
@@ -146,11 +154,12 @@ public class ReflectionGroup {
 
         public void reflect(Vec p){
 
+
             //vn = dot( v - normal*dist, normal);             
             double vn = 2*((p.v[0] - nx*dist)*nx + (p.v[1] - ny*dist)*ny + (p.v[2] - nz*dist)*nz); 
             //p -= normal*vn
-            subSet(p, nx * vn,ny * vn,nz * vn);
-
+            subSet(p, nx * vn,ny * vn,nz * vn);            
+            
         }
     } // class Plane 
 

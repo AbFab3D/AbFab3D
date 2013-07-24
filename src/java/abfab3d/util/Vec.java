@@ -31,7 +31,7 @@ public class Vec {
     // holder for data
     public double v[];
     
-    private double voxelSize=1; // size of voxel in the grid in physical units 
+    private double voxelSize = 1; // size of voxel in the grid in physical units 
     private double scaleFactor = 1;   // accumulated scale factor of all applied transform 
 
     public Vec(int size){
@@ -88,7 +88,10 @@ public class Vec {
     }
 
     public void set(Vec in){
-        
+
+        if(in == this)
+            return;
+
         for(int i=0; i < v.length; i++){
             v[i] = in.v[i];
         }

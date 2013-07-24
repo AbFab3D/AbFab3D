@@ -1,6 +1,6 @@
-importPackage(Packages.abfab3d.grid)
-importPackage(Packages.abfab3d.datasources)
-importPackage(Packages.abfab3d.transforms)
+importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.datasources);
+importPackage(Packages.abfab3d.transforms);
 
 function cross3D(size, thickeness){
 
@@ -18,15 +18,14 @@ function cross3D(size, thickeness){
 
 function main(){
 
-	var a = 40*MM;
-	var b = 41*MM;
+	var b = 25*MM;
 	var voxelSize = 0.2*MM;
 	
 	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
 
-	var part1 = cross3D(10*MM, 4*MM);
+	var part1 = cross3D(11*MM, 2*MM);
 	
-	part1.setTransform(new Translation(5*MM, 3*MM,20*MM));
+	part1.setTransform(new Translation(5*MM, 3*MM,18*MM));
 	
 	var dt = new DataTransformer();
 	dt.setDataSource(part1);	

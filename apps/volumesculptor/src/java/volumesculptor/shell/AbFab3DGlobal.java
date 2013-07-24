@@ -35,7 +35,26 @@ import java.util.Map;
  * @author Norris Boyd
  */
 public class AbFab3DGlobal extends ImporterTopLevel {
+
     private static final int maxAttribute = 255;
+
+    static double errorFactor = 0.1;
+    static int maxDecimationCount = 10;
+    static double smoothingWidth = 0.5;
+    static int blockSize = 30;
+
+
+    public static void setErrorFactor(double value){
+        errorFactor = value;
+    }
+
+    public static void setMaxDecimationCount(int value){
+        maxDecimationCount = value;
+    }    
+
+    public static void setSmoothingWidth(double value){
+        smoothingWidth = value;
+    }    
 
     private static String[] globalFunctions = {
             "load", "show", "createGrid", "save"
@@ -189,16 +208,15 @@ public class AbFab3DGlobal extends ImporterTopLevel {
         }
 
         System.out.println("Saving world: " + grid + " to triangles");
-        double errorFactor = 0.5;
-        double maxDecimationError = errorFactor * vs * vs;
 
+        double maxDecimationError = errorFactor * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(50);
+        meshmaker.setBlockSize(blockSize);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
-        meshmaker.setSmoothingWidth(0.5);
+        meshmaker.setSmoothingWidth(smoothingWidth);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(10);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
         meshmaker.setMaxAttributeValue(maxAttribute);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
@@ -278,18 +296,19 @@ public class AbFab3DGlobal extends ImporterTopLevel {
                 ioe.printStackTrace();
             }
         }
-
+        
         System.out.println("Saving world: " + grid + " to triangles");
-        double errorFactor = 0.5;
+
+
         double maxDecimationError = errorFactor * vs * vs;
 
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(50);
+        meshmaker.setBlockSize(blockSize);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
-        meshmaker.setSmoothingWidth(0.5);
+        meshmaker.setSmoothingWidth(smoothingWidth);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(10);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
         meshmaker.setMaxAttributeValue(maxAttribute);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);

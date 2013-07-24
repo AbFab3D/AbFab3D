@@ -59,7 +59,6 @@ import static abfab3d.util.Units.MM;
 public class DataTransformer   extends TransformableDataSource {
     
     protected DataSource dataSource;
-    protected VecTransform transform;
     
     public DataTransformer(){
     }
@@ -67,20 +66,13 @@ public class DataTransformer   extends TransformableDataSource {
     public void setDataSource(DataSource ds){
         dataSource = ds;
     }
-    
-    public void setTransform(VecTransform vt){
-        transform = vt;
-    }
-    
+        
     public int initialize(){
         
         super.initialize();
         
         if(dataSource != null && dataSource instanceof Initializable){
             ((Initializable)dataSource).initialize();
-        }
-        if(transform != null && transform instanceof Initializable){
-            ((Initializable)transform).initialize();
         }
         return RESULT_OK;
     }
@@ -91,22 +83,11 @@ public class DataTransformer   extends TransformableDataSource {
      *
      */
     public int getDataValue(Vec pnt, Vec data) {
-        
-        super.transform(pnt);
 
-        // TODO - garbage generation
-        Vec workPnt = new Vec(pnt);
-        
-        if(transform != null){
-            int res = transform.inverse_transform(pnt, workPnt);
-            if(res != RESULT_OK){
-                data.v[0] = 0;
-                return res;
-            }
-        }
+	super.transform(pnt);
         
         if(dataSource != null){
-            return dataSource.getDataValue(workPnt, data);
+            return dataSource.getDataValue(pnt, data);
         } else {
             data.v[0] = 1.;
             return RESULT_OK;

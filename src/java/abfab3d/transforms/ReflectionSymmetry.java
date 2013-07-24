@@ -25,6 +25,7 @@ import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
 import abfab3d.util.ReflectionGroup;
 import abfab3d.util.VecTransform;
+import abfab3d.util.Units;
 
 import net.jafama.FastMath;
 
@@ -39,6 +40,8 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 */
 public class ReflectionSymmetry  implements VecTransform, Initializable  {
     
+    static final boolean DEBUG = false;
+    static int debugCount = 1000;
     
     ReflectionGroup group;
     double riemannSphereRadius;
@@ -75,16 +78,28 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
     public int transform(Vec in, Vec out) {
         // direct transform is identity transform 
         out.set(in);
-        // TODO we use custom combination of reflectins from the group 
+        // TODO we may use one specific element from the group
         return RESULT_OK;
         
     }
+
+
     public int inverse_transform(Vec in, Vec out) {
+
         out.set(in);
-        return group.toFundamentalDomain(out);
-        
+
+        if(DEBUG && debugCount-- > 0)
+            printf("vs before: %5.3f\n", in.getScaledVoxelSize()/Units.MM);
+
+        int res = group.toFundamentalDomain(out);
+
+        if(DEBUG && debugCount-- > 0)
+            printf("vs after: %5.3f\n", out.getScaledVoxelSize()/Units.MM);
+
+        return res;
     }
-    
+
+   
     
 } // class ReflectionSymmetry 
 

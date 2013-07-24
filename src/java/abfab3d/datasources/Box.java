@@ -26,6 +26,7 @@ import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
+import abfab3d.util.Units;
 
 import abfab3d.util.PointToTriangleDistance;
 
@@ -51,7 +52,10 @@ import static abfab3d.util.Units.MM;
 
  */
 public class Box extends TransformableDataSource {
-    
+
+    static final boolean DEBUG = false;
+    static int debugCount = 1000;
+
     private double m_sizeX=0.1, m_sizeY=0.1, m_sizeZ=0.1, m_centerX=0, m_centerY=0, m_centerZ=0;
     
     private double
@@ -62,9 +66,9 @@ public class Box extends TransformableDataSource {
         zmin, zmax;
     
     protected boolean
-        m_hasSmoothBoundaryX = false,
-        m_hasSmoothBoundaryY = false,
-        m_hasSmoothBoundaryZ = false;
+        m_hasSmoothBoundaryX = true,
+        m_hasSmoothBoundaryY = true,
+        m_hasSmoothBoundaryZ = true;
     
     public Box(){
     }
@@ -138,8 +142,9 @@ public class Box extends TransformableDataSource {
             y = pnt.v[1],
             z = pnt.v[2];
         
-        double vs = pnt.getVoxelSize() * pnt.getScaleFactor();
-        
+        double vs = pnt.getScaledVoxelSize();
+        if(DEBUG && debugCount -- > 0)
+            printf("vs: %5.3fmm\n", vs/Units.MM);
         if(vs == 0.){
             // zero voxel size
             if(x < xmin || x > xmax ||

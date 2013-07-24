@@ -39,7 +39,8 @@ public class Rotation implements VecTransform, Initializable {
     
     private Vector3d m_axis = new Vector3d(1,0,0); 
     private double m_angle = 0;
-    
+    private Vector3d m_center;
+
     private Matrix3d 
         mat = new Matrix3d(),
         mat_inv = new Matrix3d();
@@ -52,11 +53,25 @@ public class Rotation implements VecTransform, Initializable {
         setRotation(axis, angle);
         
     }
+
+    public Rotation(Vector3d axis, double angle, Vector3d center){
+        
+        setRotation(axis, angle, center);
+        
+    }
     
     public void setRotation(Vector3d axis, double angle){
         
         m_axis = new Vector3d(axis); 
         m_angle = angle;
+        m_center = null;
+   } 
+
+    public void setRotation(Vector3d axis, double angle, Vector3d center){
+        
+        m_axis = new Vector3d(axis); 
+        m_angle = angle;
+        m_center = new Vector3d(center);
         
    } 
     
@@ -79,10 +94,22 @@ public class Rotation implements VecTransform, Initializable {
         x = in.v[0];
         y = in.v[1];
         z = in.v[2];
+
+        if(m_center != null){
+            x -= m_center.x;
+            y -= m_center.y;
+            z -= m_center.z;
+        }
         
         out.v[0] = mat.m00* x + mat.m01*y + mat.m02*z;
         out.v[1] = mat.m10* x + mat.m11*y + mat.m12*z;
         out.v[2] = mat.m20* x + mat.m21*y + mat.m22*z;
+
+        if(m_center != null){
+            out.v[0] += m_center.x;
+            out.v[1] += m_center.y;
+            out.v[2] += m_center.z;
+        }
         
         return RESULT_OK;
     }
@@ -100,10 +127,21 @@ public class Rotation implements VecTransform, Initializable {
         y = in.v[1];
         z = in.v[2];
         
+        if(m_center != null){
+            x -= m_center.x;
+            y -= m_center.y;
+            z -= m_center.z;
+        }
         out.v[0] = mat_inv.m00* x + mat_inv.m01*y + mat_inv.m02*z;
         out.v[1] = mat_inv.m10* x + mat_inv.m11*y + mat_inv.m12*z;
         out.v[2] = mat_inv.m20* x + mat_inv.m21*y + mat_inv.m22*z;
         
+        if(m_center != null){
+            out.v[0] += m_center.x;
+            out.v[1] += m_center.y;
+            out.v[2] += m_center.z;
+        }
+
         return RESULT_OK;
         
     }

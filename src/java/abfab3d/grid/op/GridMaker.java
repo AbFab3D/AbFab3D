@@ -1,4 +1,4 @@
-/*****************************************************************************
+/* -*- Mode: java; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *                        Shapeways, Inc Copyright (c) 2011
  *                               Java Source
  *
@@ -29,6 +29,7 @@ import abfab3d.util.DataSource;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Initializable;
+import abfab3d.util.Units;
 import abfab3d.transforms.Identity;
 
 
@@ -42,7 +43,7 @@ public class GridMaker implements Operation, AttributeOperation {
     
     static final boolean DEBUG = false;
     static int debugCount = 100;
-
+    
     protected VecTransform m_transform;
     protected DataSource m_dataSource;
 
@@ -60,6 +61,8 @@ public class GridMaker implements Operation, AttributeOperation {
     AttributeGrid m_grid; 
     int m_nx, m_ny, m_nz;
     int gridMaxAttributeValue = 0;
+    // this is width of transitional layer neatr surfgace of the object.
+    // data sources are supposed to return transitional value inside of that layer
     double voxelSize = 0;
     private boolean boundsSet = false;
     private double voxelScale = Math.sqrt(3) / 2.0;
@@ -138,18 +141,11 @@ public class GridMaker implements Operation, AttributeOperation {
         if (!boundsSet) {
             double[] bounds = new double[6];
             grid.getGridBounds(bounds);
-            m_centerX = (bounds[0] + bounds[1])/2;
-            m_centerY = (bounds[2] + bounds[3])/2;
-            m_centerZ = (bounds[4] + bounds[5])/2;
-
-            m_sizeX = bounds[1] - bounds[0];
-            m_sizeY = bounds[3] - bounds[2];
-            m_sizeZ = bounds[5] - bounds[4];
-
-            voxelSize = grid.getVoxelSize() * voxelScale;
-
+            setBounds(bounds);
         }
-
+        
+        voxelSize = grid.getVoxelSize() * voxelScale;
+        printf("gridMaker vcoxleSize: %7.3f mm\n", voxelSize/Units.MM);
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }

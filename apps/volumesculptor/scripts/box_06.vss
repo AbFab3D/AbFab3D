@@ -1,6 +1,7 @@
 importPackage(Packages.abfab3d.grid);
 importPackage(Packages.abfab3d.datasources);
 importPackage(Packages.abfab3d.transforms);
+importPackage(Packages.volumesculptor.shell);
 
 function cross3D(size, thickness){
 
@@ -15,6 +16,16 @@ function cross3D(size, thickness){
   return union;
 }
 
+function makeBox(length, width){
+
+	var box = new Box(0,0,0, length, width, width);
+	box.setTransform(new Rotation(new Vector3D(1,0,0), Math.PI/4));
+	
+	var dt = new DataTransformer();
+	dt.setDataSource(box);
+	
+	return dt;
+}
 
 function main(){
 
@@ -24,15 +35,16 @@ function main(){
 	
 	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
 	
-	var cradius = 0.2*b;
+	var cr = 0.43*b;
 	var union = new Union();
 	for(var i = 0; i < 6; i++){
-		var part = new Cylinder(new Vector3D(0,0,-b),new Vector3D(0,0,b), cradius);
-		part.setTransform(new Rotation(new Vector3D(1,0,0), i*Math.PI/6));
+		var part = makeBox(a, cr);
+		part.setTransform(new Rotation(new Vector3D(0,0,1), i*Math.PI/6));
 		union.add(part);
 	}
 	maker.setDataSource(union);
 	maker.makeGrid(dest);
+		
 	return dest;
 	
 }

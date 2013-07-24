@@ -1,6 +1,6 @@
-importPackage(Packages.abfab3d.grid)
-importPackage(Packages.abfab3d.datasources)
-importPackage(Packages.abfab3d.transforms)
+importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.datasources);
+importPackage(Packages.abfab3d.transforms);
 
 var voxelSize = 0.1*MM;
 
@@ -42,7 +42,6 @@ function main(){
 	var dt = new DataTransformer();
 	var union = new Union();
 	union.add(part);
-	//union.add(new LimitSet(2*MM, 0.03));
 	
 	dt.setDataSource(union);	
 	
