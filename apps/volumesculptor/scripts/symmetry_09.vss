@@ -1,58 +1,70 @@
-importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.grid.op);
 importPackage(Packages.abfab3d.datasources);
 importPackage(Packages.abfab3d.transforms);
 
-var voxelSize = 0.1*MM;
+var voxelSize = 0.2*MM;
 
-function makePart(size, thickness){
+function makePart_g(size, thickness){
 
   var t = (thickness/2) * 1.5;
   var s = size/2;
-  var g = createGrid(-t, t, -t, t, -s, s,voxelSize);
+  //var g = createGrid(-t, t, -t, t, -s, s,voxelSize);
+  var b = 20*MM;
+  var g = createGrid(-b,b,-b,b,-b,b,0.5*MM);
   
   var boxZ = new Box(0,0,0,thickness, thickness, size);
   
-  maker.setDataSource(boxZ);
-  maker.makeGrid(g);
+  var mm = new GridMaker();
+  mm.setDataSource(boxZ);
+  mm.setMaxAttributeValue(255);
+  mm.makeGrid(g);
   
+  var gmm = new GridMipMap(g);
   
-  var gm = new GridMipMap(g);
+  gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
+  //gmm.setScalingType(GridMipMap.SCALING_MAX);  
   
-  gm.setScalingType(GridMipMap.SCALING_MAX);  
+  return gmm;
   
-  return gm;
+}
+
+function makePart(size, thickeness){
+
+  var union = new Union();
   
+  var boxX = new Box(0,0,0,thickeness, thickeness, size);
+  union.add(boxX);  
+  return union;
 }
 
 
 function main(){
 
 	var a = 25*MM;
-		
-	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
 	
+	var voxelSize = 0.1*MM;
+		
 	var cz = 20.*MM;
 	var cx = 5.*MM;
 	var cy = 5.*MM;
 	
-	var part = makePart(30*MM, 5*MM);
+	var part = makePart_g(30*MM, 5*MM);
 	
-	part.setTransform(new Rotation(new Vector3D(-1,1,0), 2*Math.PI/5));
+	part.setTransform(new Rotation(new Vector3D(-1,1,0), 3*Math.PI/8));
 	
 	var dt = new DataTransformer();
-	var union = new Union();
-	union.add(part);
-	
-	dt.setDataSource(union);	
+	dt.setDataSource(part);	
 	
 	var sym = new ReflectionSymmetry();
-	sym.setRiemannSphereRadius(25*MM);
-    sym.setGroup(ReflectionSymmetries.getQuad_1(23*MM, 30*MM, Math.PI/3));
-	sym.setMaxCount(25);
+    sym.setGroup(ReflectionSymmetries.getQuad_1(25*MM, 30*MM, Math.PI/3));
+	sym.setMaxCount(125);
 	
 	dt.setTransform(sym);
 	
 	maker.setDataSource(dt);
+	
+	var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	
 	maker.makeGrid(dest);
 	
 	return dest;

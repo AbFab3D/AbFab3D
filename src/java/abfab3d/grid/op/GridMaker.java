@@ -114,6 +114,13 @@ public class GridMaker implements Operation, AttributeOperation {
 
     public void setBounds(double bounds[]){
 
+        initBounds(bounds);
+        boundsSet = true;
+        
+    }
+
+    protected void initBounds(double bounds[]){
+
         m_centerX = (bounds[0] + bounds[1])/2;
         m_centerY = (bounds[2] + bounds[3])/2;
         m_centerZ = (bounds[4] + bounds[5])/2;
@@ -122,7 +129,6 @@ public class GridMaker implements Operation, AttributeOperation {
         m_sizeY = bounds[3] - bounds[2];
         m_sizeZ = bounds[5] - bounds[4];
 
-        boundsSet = true;
 
     }
 
@@ -141,7 +147,7 @@ public class GridMaker implements Operation, AttributeOperation {
         if (!boundsSet) {
             double[] bounds = new double[6];
             grid.getGridBounds(bounds);
-            setBounds(bounds);
+            initBounds(bounds);
         }
         
         voxelSize = grid.getVoxelSize() * voxelScale;

@@ -18,7 +18,8 @@ function makePart(size, thickness){
   
   var gm = new GridMipMap(g);
   
-  gm.setScalingType(GridMipMap.SCALING_MAX);  
+  //gm.setScalingType(GridMipMap.SCALING_MAX);  
+  gm.setScalingType(GridMipMap.SCALING_AVERAGE);  
   
   return gm;
   

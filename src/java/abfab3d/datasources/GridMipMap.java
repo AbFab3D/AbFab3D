@@ -89,13 +89,13 @@ public class GridMipMap extends TransformableDataSource {
         m_interpolationType = type;
     }
 
+    /**
+       allowed values REPEAT_NONE or bitwise combination of REPEAT_X, REPEAT_Y, REPEAT_Z 
+     */
     public void setRepeatType(int type){
         m_repeatType = type;
     }
 
-    /**
-       allowed values REPEAT_NONE or bitwise combination of REPEAT_X, REPEAT_Y, REPEAT_Z 
-     */
     public void setMaxAttribute(long value){
         m_maxAttribute  = value;
     }
@@ -145,7 +145,7 @@ public class GridMipMap extends TransformableDataSource {
     public int getDataValue(Vec pnt, Vec dataValue){
 
         super.transform(pnt);
-
+        
         double 
             x = pnt.v[0],
             y = pnt.v[1],
