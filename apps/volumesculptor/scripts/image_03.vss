@@ -1,0 +1,38 @@
+importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.datasources);
+importPackage(Packages.abfab3d.transforms);
+
+var voxelSize = 0.1*MM;
+
+function makePart(path, width, height, thickness){
+
+  var img = new ImageBitmap(path, width, height, thickness);
+  img.setBaseThickness(0.);
+  img.setVoxelSize(voxelSize);
+  img.setBlurWidth(2*voxelSize);
+  img.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
+  
+  return img;
+  
+}
+
+function main(image){
+	var a = 32*MM;
+	
+	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	var th = 3*MM;	
+	var width = 20*MM;
+	var height = 60*MM;
+	
+	var img = makePart(image, width, height, th);
+	
+	var part = new Intersection();
+	
+	part.add(img);
+	
+	maker.setDataSource(part);
+	
+	maker.makeGrid(dest);
+	return dest;
+	
+}
