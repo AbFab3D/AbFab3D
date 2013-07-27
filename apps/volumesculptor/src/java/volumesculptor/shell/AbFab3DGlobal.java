@@ -70,6 +70,9 @@ public class AbFab3DGlobal extends ImporterTopLevel {
         globals.put("maker", world.getMaker());
         //globals.put("bounds", world.getBounds());
         globals.put("MM", Units.MM);
+        globals.put("CM", Units.CM);
+        globals.put("IN", Units.IN);
+        globals.put("FT", Units.FT);
     }
 
     public String[] getFunctions() {
