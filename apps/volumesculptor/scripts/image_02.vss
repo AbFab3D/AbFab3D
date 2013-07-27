@@ -1,0 +1,39 @@
+importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.datasources);
+importPackage(Packages.abfab3d.transforms);
+
+var voxelSize = 0.1*MM;
+
+function makePart(path, size, thickness){
+
+  var img = new ImageBitmap(path, size, size, thickness);
+  img.setBaseThickness(0.);
+  img.setVoxelSize(voxelSize);
+  img.setBlurWidth(2*voxelSize);
+  img.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
+  
+  return img;
+  
+}
+
+function main(){
+	var a = 25*MM;
+	
+	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	var th = 3*MM;	
+	var radius = 24*MM;
+	
+	var img = makePart("images/woodInterlockingTriangles_piece.png", 2*radius, th);
+	var cyl = new Cylinder(new Vector3D(0,0,-th/2), new Vector3D(0,0,th/2), radius);
+	
+	var part = new Intersection();
+	
+	part.add(img);
+	part.add(cyl);
+	
+	maker.setDataSource(part);
+	
+	maker.makeGrid(dest);
+	return dest;
+	
+}
