@@ -69,7 +69,11 @@ public class WallpaperSymmetry  implements VecTransform, Initializable  {
     
     // symmetry to be used 
     protected Symmetry m_sym;
-    
+
+    public WallpaperSymmetry() {
+
+    }
+
     public WallpaperSymmetry(int symmetryType){
         setSymmetryType(symmetryType);
     }
