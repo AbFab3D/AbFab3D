@@ -43,6 +43,16 @@ public class SphereInversion  implements VecTransform, Initializable  {
     private double radius2; 
     static double EPS = 1.e-20;
     
+    // creates default sphere, which interchanges upper half space and unit ball. 
+    public SphereInversion(){
+   }
+    public SphereInversion(Vector3d center, double radius){
+
+        setSphere(center, radius); 
+
+    }
+
+
     public void setSphere(Vector3d center, double radius){
         
         m_center = new Vector3d(center);

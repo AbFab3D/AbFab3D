@@ -61,23 +61,19 @@ public class Intersection extends TransformableDataSource{
         
     }
     
-    
-    /**
-       simpler name for addDataSource()
-    */
-    public void add(DataSource ds){
-        dataSources.add(ds);
+    public Intersection(DataSource ds1, DataSource ds2 ){
+
+        add(ds1);
+        add(ds2);        
     }
     
     /**
        add items to set of data sources
     */
-    public void addDataSource(DataSource ds){
-        
+    public void add(DataSource ds){
         dataSources.add(ds);
-        
     }
-
+    
     public int initialize(){
 
         super.initialize();

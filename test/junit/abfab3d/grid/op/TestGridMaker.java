@@ -148,7 +148,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(rw);
-        gm.setDataSource(image);
+        gm.setSource(image);
 
 
         for(int i = 0; i <= 4; i++){
@@ -255,20 +255,20 @@ public class TestGridMaker extends TestCase {
         compTrans.add(wps);
 
         DataTransformer tiling = new DataTransformer();
-        tiling.setDataSource(image);
+        tiling.setSource(image);
         tiling.setTransform(compTrans);
         
         Box box = new Box();
         box.setSize(rectWidth, rectHeight, rectDepth);
         Intersection clip = new Intersection();
         
-        clip.addDataSource(box);
-        clip.addDataSource(tiling);
+        clip.add(box);
+        clip.add(tiling);
         
         GridMaker gm = new GridMaker();
                 
         gm.setBounds(bounds);
-        gm.setDataSource(clip);
+        gm.setSource(clip);
 
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
@@ -331,7 +331,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -397,12 +397,12 @@ public class TestGridMaker extends TestCase {
         crossTrans.add(crot2);
 
         DataTransformer transCross = new DataTransformer();
-        transCross.setDataSource(crossSect);
+        transCross.setSource(crossSect);
         transCross.setTransform(crossTrans);
         
         Intersection inter = new Intersection();
-        inter.addDataSource(transCross);
-        inter.addDataSource(image);
+        inter.add(transCross);
+        inter.add(image);
 
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -419,7 +419,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(inter);
+        gm.setSource(inter);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -481,7 +481,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -568,7 +568,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -629,9 +629,9 @@ public class TestGridMaker extends TestCase {
 
         Union union = new Union();
         
-        union.addDataSource(image);
-        union.addDataSource(topBand);
-        union.addDataSource(bottomBand);
+        union.add(image);
+        union.add(topBand);
+        union.add(bottomBand);
 
         CompositeTransform compTrans = new CompositeTransform();
         
@@ -647,7 +647,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(union);
+        gm.setSource(union);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -709,7 +709,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -790,7 +790,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -852,7 +852,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -913,7 +913,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -962,7 +962,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(ripples);
-        gm.setDataSource(textBand);        
+        gm.setSource(textBand);        
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
         printf("gm.makeGrid()\n");
@@ -1008,7 +1008,7 @@ public class TestGridMaker extends TestCase {
         GridMaker gm = new GridMaker();
                 
         gm.setBounds(bounds);
-        gm.setDataSource(block);        
+        gm.setSource(block);        
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -1112,11 +1112,10 @@ public class TestGridMaker extends TestCase {
         
         // rotated text 
         DataTransformer rotatedText = new DataTransformer();
-        rotatedText.setDataSource(textBand);
+        rotatedText.setSource(textBand);
         rotatedText.setTransform(textRotation);
         
-        Subtraction ringMinusText = new Subtraction();
-        ringMinusText.setDataSources(ringBand, rotatedText); // 
+        Subtraction ringMinusText = new Subtraction(ringBand, rotatedText);
 
         RingWrap ringWrap = new RingWrap();
         ringWrap.setRadius(ringDiameter/2);
@@ -1125,7 +1124,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(ringWrap);
-        gm.setDataSource(ringMinusText);        
+        gm.setSource(ringMinusText);        
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -1205,7 +1204,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -1270,7 +1269,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(compTrans);
-        gm.setDataSource(image);
+        gm.setSource(image);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -1320,7 +1319,7 @@ public class TestGridMaker extends TestCase {
                 
         gm.setBounds(bounds);
         gm.setTransform(rw);
-        gm.setDataSource(box);
+        gm.setSource(box);
         
         Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
 
@@ -1376,7 +1375,7 @@ public class TestGridMaker extends TestCase {
                 GridMaker gm = new GridMaker();                
                 gm.setBounds(bounds);
                 gm.setThreadCount(4);
-                gm.setDataSource(image);
+                gm.setSource(image);
 
                 Grid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
                 printf("gm.makeGrid()\n");
@@ -1419,7 +1418,7 @@ public class TestGridMaker extends TestCase {
         GridMaker gm = new GridMaker();  
 
         gm.setBounds(bounds);
-        gm.setDataSource(sphere);
+        gm.setSource(sphere);
         gm.setMaxAttributeValue(25);
         gm.setVoxelSize(0.09*MM);
         
@@ -1465,7 +1464,7 @@ public class TestGridMaker extends TestCase {
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(shape);
+        gm.setSource(shape);
         gm.setTransform(trans);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
@@ -1523,12 +1522,12 @@ public class TestGridMaker extends TestCase {
         Sphere shape1 = new Sphere(0,0,0,ballRadius);
         Ring shape2 = new Ring(ballRadius-thickness/2, thickness, width);  
         Union union = new Union();  
-        union.addDataSource(shape1);
-        union.addDataSource(shape2);
+        union.add(shape1);
+        union.add(shape2);
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(union);
+        gm.setSource(union);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
         gm.setVoxelSize(0.7*voxelSize*Math.sqrt(3));
@@ -1584,12 +1583,11 @@ public class TestGridMaker extends TestCase {
 
         Sphere shape1 = new Sphere(0,0,0,ballRadius);
         Ring shape2 = new Ring(ballRadius-thickness, thickness, width);  
-        Subtraction subtraction = new Subtraction();  
-        subtraction.setDataSources(shape1, shape2);
+        Subtraction subtraction = new Subtraction(shape1, shape2);  
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(subtraction);
+        gm.setSource(subtraction);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
         //gm.setVoxelSize(voxelSize*Math.sqrt(3));
@@ -1646,12 +1644,12 @@ public class TestGridMaker extends TestCase {
         Sphere shape1 = new Sphere(0,0,0,ballRadius);
         Ring shape2 = new Ring(ballRadius-thickness/2, thickness, width);  
         Intersection intersection = new Intersection(); 
-        intersection.addDataSource(shape1);
-        intersection.addDataSource(shape2);
+        intersection.add(shape1);
+        intersection.add(shape2);
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(intersection);
+        gm.setSource(intersection);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
         gm.setVoxelSize(voxelSize*Math.sqrt(3));
@@ -1709,22 +1707,22 @@ public class TestGridMaker extends TestCase {
         Ring shape = new Ring(ballRadius-thickness, thickness, width);  
         
         Union union = new Union();  
-        //union.addDataSource(shape);
+        //union.add(shape);
         double s = 1;
         for(int i = 0; i < 10; i++){
             Ring shape1 = new Ring(ballRadius-thickness, thickness/2, width);  
             DataTransformer shape1t = new DataTransformer();
             Scale trans1 = new Scale(s);
-            shape1t.setDataSource(shape1);
+            shape1t.setSource(shape1);
             shape1t.setTransform(trans1);
-            union.addDataSource(shape1t);
+            union.add(shape1t);
 
             s*= 0.8;
         }
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(union);
+        gm.setSource(union);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
         gm.setVoxelSize(voxelSize*Math.sqrt(3));
@@ -1785,16 +1783,16 @@ public class TestGridMaker extends TestCase {
             Box shape1 = new Box(0,0,0, 2*ballRadius, thickness, width);
             DataTransformer shape1t = new DataTransformer();
             Rotation rot = new Rotation(new Vector3d(0,0,1), i*Math.PI/5);
-            shape1t.setDataSource(shape1);
+            shape1t.setSource(shape1);
             shape1t.setTransform(rot);
 
-            union.addDataSource(shape1t);
+            union.add(shape1t);
 
         }
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(union);
+        gm.setSource(union);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         //gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
         gm.setVoxelSize(voxelSize*Math.sqrt(3));
@@ -1897,14 +1895,14 @@ public class TestGridMaker extends TestCase {
 
         
         DataTransformer shape = new DataTransformer();
-        shape.setDataSource(image);
+        shape.setSource(image);
         //shape.setTransform(new Scale(3,3,3));
         //shape.setTransform(new Rotation(new Vector3d(1.,0,0), -Math.PI/6));
         //shape.setTransform(new RingWrap(img_width/(2*Math.PI)));
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(shape);
+        gm.setSource(shape);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         gm.setThreadCount(threadCount);
         gm.setVoxelSize(voxelSize*transitionWidth);
@@ -1965,21 +1963,20 @@ public class TestGridMaker extends TestCase {
 
         DataTransformer shape1t = new DataTransformer();
         Rotation trans1 = new Rotation(new Vector3d(1,0,0), Math.PI/4);
-        shape1t.setDataSource(shape1);
+        shape1t.setSource(shape1);
         shape1t.setTransform(trans1);
 
         Ring shape2 = new Ring(ballRadius-thickness, thickness, width);  
         
         //Union union = new Union();  
-        //union.addDataSource(shape1t);
-        //union.addDataSource(shape2);
+        //union.add(shape1t);
+        //union.add(shape2);
 
-        Subtraction subtract = new Subtraction();  
-        subtract.setDataSources(shape2, shape1t);
+        Subtraction subtract = new Subtraction(shape2, shape1t);  
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        gm.setDataSource(subtract);
+        gm.setSource(subtract);
         gm.setMaxAttributeValue(gridMaxAttributeValue);
         gm.setVoxelSize(voxelSize*Math.sqrt(3)/2);
         //gm.setVoxelSize(voxelSize*Math.sqrt(3));

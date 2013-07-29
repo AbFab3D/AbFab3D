@@ -109,7 +109,7 @@ public class DevTestGridMipMap {
         //bounds[3] /= 2;
         gm.setBounds(bounds);
         AttributeGrid grid1 = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
-        gm.setDataSource(mipmap);
+        gm.setSource(mipmap);
         gm.setTransform(new VoxelSizeTransformer());
 
         gm.setVoxelSize(voxelSize);
