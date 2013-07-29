@@ -681,7 +681,9 @@ public class Main {
                     }
                 }
 
-                strSrc = addImports(strSrc);
+                System.out.println("Not importing classes");
+                // TODO: removing default imports to test
+                //strSrc = addImports(strSrc);
                 System.out.println("Compiling: " + strSrc);
                 script = cx.compileString(strSrc, path, 1, securityDomain);
             }
@@ -763,10 +765,8 @@ public class Main {
 
         System.out.println("Func Args: " + java.util.Arrays.toString(func_args));
 
-        // this is what dies
         Object result = main.call(cx, scope, scope, func_args);
 
-        System.out.println("Result: " + result);
         Grid grid = null;
         if (result instanceof Grid) {
             grid = (Grid) result;
@@ -774,7 +774,6 @@ public class Main {
             NativeJavaObject njo = (NativeJavaObject) result;
             grid = (Grid) njo.unwrap();
         }
-        System.out.println("Result: " + grid);
 
         if (show) {
             AbFab3DGlobal.show(cx, scope, new Object[]{grid}, null);

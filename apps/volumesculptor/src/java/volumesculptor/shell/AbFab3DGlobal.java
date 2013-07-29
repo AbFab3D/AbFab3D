@@ -8,6 +8,7 @@ package volumesculptor.shell;
 
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.io.input.STLReader;
 import abfab3d.io.input.WaveletRasterizer;
@@ -107,11 +108,11 @@ public class AbFab3DGlobal extends ImporterTopLevel {
 
         double vs = 0.1*MM;
         if (args.length > 1) {
-            grid = (AttributeGrid) args[1];
-        }
-
-        if (args.length > 2) {
-            vs = (Double) args[0];
+            if (args[1] instanceof Grid) {
+                grid = (AttributeGrid) args[1];
+            } else if (args[1] instanceof Double) {
+                vs = (Double) args[1];
+            }
         }
 
         System.out.println("Load(file,vs): " + filename + " vs: " + vs);

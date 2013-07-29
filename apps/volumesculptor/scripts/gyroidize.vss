@@ -4,7 +4,7 @@ importPackage(Packages.abfab3d.datasources);
 
 function main(baseFile) {
 
-	var grid = load(baseFile);      
+	var grid = load(baseFile,0.075*MM);
 	var intersect = new Intersection();
 	intersect.addDataSource(new DataSourceGrid(grid, 255));
 	intersect.addDataSource(new VolumePatterns.Gyroid(10*MM, 1*MM));
@@ -14,5 +14,5 @@ function main(baseFile) {
 	var dest = createGrid(grid);
 	maker.makeGrid(dest);
 	
-	return grid;
+	return dest;
 }
