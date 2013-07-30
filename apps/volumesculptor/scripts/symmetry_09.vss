@@ -22,8 +22,7 @@ function makePart_g(size, thickness){
   var gmm = new GridMipMap(g);
   
   gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
-  //gmm.setScalingType(GridMipMap.SCALING_MAX);  
-  
+
   return gmm;
   
 }
@@ -44,9 +43,9 @@ function main(){
 	
 	var voxelSize = 0.1*MM;
 		
-	var cz = 20.*MM;
-	var cx = 5.*MM;
-	var cy = 5.*MM;
+	var cz = 20.0*MM;
+	var cx = 5.0*MM;
+	var cy = 5.0*MM;
 	
 	var part = makePart_g(30*MM, 5*MM);
 	

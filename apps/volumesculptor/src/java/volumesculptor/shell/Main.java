@@ -11,7 +11,6 @@ import abfab3d.io.output.MeshMakerMT;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.commonjs.module.ModuleScope;
@@ -56,9 +55,28 @@ public class Main {
     private static volumesculptor.shell.SecurityProxy securityImpl;
     private final static ScriptCache scriptCache = new ScriptCache(32);
 
+    /** Packages allowed to be imported.  Security mechanism */
+    private static final ArrayList<String> packageWhitelist;
+
+    /** Default imports to add to scripts */
+    private static final ArrayList<String> scriptImports;
+
     static {
         global.initQuitAction(new IProxy(IProxy.SYSTEM_EXIT));
+
+        packageWhitelist = new ArrayList();
+        packageWhitelist.add("abfab3d.");
+        packageWhitelist.add("javax.vecmath");
+
+        scriptImports = new ArrayList<String>();
+
+        //scriptImports.add("abfab3d.grid.op");
+        scriptImports.add("abfab3d.grid");
+        scriptImports.add("abfab3d.datasources");
+
     }
+
+
 
     /**
      * Proxy class to avoid proliferation of anonymous classes.
@@ -663,6 +681,9 @@ public class Main {
                     }
                 }
 
+                System.out.println("Not importing classes");
+                // TODO: removing default imports to test
+                //strSrc = addImports(strSrc);
                 System.out.println("Compiling: " + strSrc);
                 script = cx.compileString(strSrc, path, 1, securityDomain);
             }
@@ -681,6 +702,24 @@ public class Main {
     }
 
     /**
+     * Add default imports to a script
+     * @return
+     */
+    private static String addImports(String script) {
+        StringBuilder bldr = new StringBuilder();
+
+        for(String pack : scriptImports) {
+            bldr.append("importPackage(Packages.");
+            bldr.append(pack);
+            bldr.append(");\n");
+        }
+
+        bldr.append(script);
+
+        return bldr.toString();
+    }
+
+    /**
      * Execute the main function.  We expect a Grid back.
      *
      * @param cx
@@ -694,8 +733,11 @@ public class Main {
             // Only allow AbFab3D classes to be created from scripts.
             // A type of security policy, but we should learn security policy better
             public boolean visibleToScripts(String className) {
-                if (className.startsWith("abfab3d.")) {
-                    return true;
+                for(String pack : packageWhitelist) {
+                    if (className.startsWith(pack)) {
+                        return true;
+                    }
+
                 }
 
                 return false;
@@ -706,6 +748,7 @@ public class Main {
 
         if (o == Scriptable.NOT_FOUND) {
             System.out.println("Cannot find function main");
+            return null;
 
         }
         Function main = (Function) o;
@@ -722,10 +765,8 @@ public class Main {
 
         System.out.println("Func Args: " + java.util.Arrays.toString(func_args));
 
-        // this is what dies
         Object result = main.call(cx, scope, scope, func_args);
 
-        System.out.println("Result: " + result);
         Grid grid = null;
         if (result instanceof Grid) {
             grid = (Grid) result;
@@ -733,7 +774,6 @@ public class Main {
             NativeJavaObject njo = (NativeJavaObject) result;
             grid = (Grid) njo.unwrap();
         }
-        System.out.println("Result: " + grid);
 
         if (show) {
             AbFab3DGlobal.show(cx, scope, new Object[]{grid}, null);

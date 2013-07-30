@@ -256,6 +256,11 @@ public class VolumeSculptorKernel extends HostedKernel {
         System.out.println("Files: " + files + " params: " + this.params);
 
         TriangleMesh mesh = Main.execMesh(args, files,this.params);
+        
+        // Script compile error
+        if (mesh == null) {
+        	return new KernelResults(KernelResults.INVALID_PARAMS, "Invalid script");
+        }
 
         System.out.println("After creation");
 
@@ -291,8 +296,15 @@ public class VolumeSculptorKernel extends HostedKernel {
         max_bounds[2] = bounds[5];
         System.out.println("MinBounds: " + java.util.Arrays.toString(min_bounds));
         System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
-
-        return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
+        System.out.println("Volume: " + volume);
+        
+        // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
+        // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
+        if (volume == 0.0) {
+        	return new KernelResults(KernelResults.INVALID_PARAMS, "Invalid parameter");
+        } else {
+        	return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
+        }
     }
 
     /**

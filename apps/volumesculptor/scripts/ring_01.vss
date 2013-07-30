@@ -19,8 +19,6 @@ function cross3D(size, thickness){
 function makeBox(length, width){
 
 	var box = new Box(0,0,0, length, width, width);
-	//var box = new Cylinder(new Vector3D(0,0,-a), new Vector3D(0,0,a), cr);
-	// rotate box around axis 
 	box.setTransform(new Rotation(new Vector3D(1,0,0), Math.PI/4));
 	
 	var dt = new DataTransformer();
