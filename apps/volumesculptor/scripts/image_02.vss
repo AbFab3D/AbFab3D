@@ -7,7 +7,7 @@ var voxelSize = 0.1*MM;
 function makePart(path, size, thickness){
 
   var img = new ImageBitmap(path, size, size, thickness);
-  img.setBaseThickness(0.);
+  img.setBaseThickness(0.0);
   img.setVoxelSize(voxelSize);
   img.setBlurWidth(2*voxelSize);
   img.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
