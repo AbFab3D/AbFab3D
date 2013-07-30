@@ -26,10 +26,10 @@ function main(){
 	
 	var part = makePart(30*MM, 5*MM);
 	
-	part.setTransform(new Rotation(new Vector3D(-1,1,0), 3*Math.PI/8));
+	part.setTransform(new Rotation(new Vector3d(-1,1,0), 3*Math.PI/8));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(part);	
+	dt.setSource(part);	
 	
 	var sym = new ReflectionSymmetry();
     sym.setGroup(ReflectionSymmetries.getQuad_1(25*MM, 30*MM, Math.PI/3));
@@ -37,7 +37,7 @@ function main(){
 	
 	dt.setTransform(sym);
 	
-	maker.setDataSource(dt);
+	maker.setSource(dt);
 	maker.makeGrid(dest);
 	
 	return dest;

@@ -30,15 +30,15 @@ function main(){
 	var baseThickness = 0.2*b;
 	var capThickness = 0.15*b;
 	
-	var cyl1 = new Cylinder(new Vector3D(0,0,-b),new Vector3D(0,0,b), steamRadius);
-	var cyl2 = new Cylinder(new Vector3D(0,0,-b),new Vector3D(0,0,-b+baseThickness), baseRadius);
-	var cyl3 = new Cylinder(new Vector3D(0,0, b-capThickness),new Vector3D(0,0,b), capRadius);
+	var cyl1 = new Cylinder(new Vector3d(0,0,-b),new Vector3d(0,0,b), steamRadius);
+	var cyl2 = new Cylinder(new Vector3d(0,0,-b),new Vector3d(0,0,-b+baseThickness), baseRadius);
+	var cyl3 = new Cylinder(new Vector3d(0,0, b-capThickness),new Vector3d(0,0,b), capRadius);
 	var union = new Union();
 	union.add(cyl1);
 	union.add(cyl2);
 	union.add(cyl3);
 	
-	maker.setDataSource(union);
+	maker.setSource(union);
 	maker.makeGrid(dest);
 	return dest;
 	

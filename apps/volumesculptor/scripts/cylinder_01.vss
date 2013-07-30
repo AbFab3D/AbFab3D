@@ -27,11 +27,11 @@ function main(){
 	var cradius = 0.2*b;
 	var union = new Union();
 	for(var i = 0; i < 6; i++){
-		var part = new Cylinder(new Vector3D(0,0,-b),new Vector3D(0,0,b), cradius);
-		part.setTransform(new Rotation(new Vector3D(1,0,0), i*Math.PI/6));
+		var part = new Cylinder(new Vector3d(0,0,-b),new Vector3d(0,0,b), cradius);
+		part.setTransform(new Rotation(new Vector3d(1,0,0), i*Math.PI/6));
 		union.add(part);
 	}
-	maker.setDataSource(union);
+	maker.setSource(union);
 	maker.makeGrid(dest);
 	return dest;
 	

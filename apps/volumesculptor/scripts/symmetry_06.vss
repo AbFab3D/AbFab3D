@@ -24,19 +24,19 @@ function main(){
 	
 	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
 
-	var part1 = Cylinder(new Vector3D(-10*MM, 0*MM, 20*MM),new Vector3D(10*MM, 0*MM, 20*MM), 2*MM);
+	var part1 = Cylinder(new Vector3d(-10*MM, 0*MM, 20*MM),new Vector3d(10*MM, 0*MM, 20*MM), 2*MM);
 	
 	part1.setTransform(new Translation(0*MM, 0*MM,0*MM));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(part1);	
+	dt.setSource(part1);	
 	var sym = new ReflectionSymmetry();
     sym.setGroup(ReflectionSymmetries.getIcosahedralKaleidoscope());
 
 	sym.setMaxCount(20);
 	dt.setTransform(sym);
 	
-	maker.setDataSource(dt);
+	maker.setSource(dt);
 	maker.makeGrid(dest);
 	
 	return dest;

@@ -15,11 +15,11 @@ function main(){
 	part1.setTransform(new Scale(1.7));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(part1);	
+	dt.setSource(part1);	
 	var sym = new WallpaperSymmetry(WallpaperSymmetry.WP_S333, 16*MM, 16*MM);
 	sym.setMaxCount(20);
 	dt.setTransform(sym);
-	maker.setDataSource(dt);	
+	maker.setSource(dt);	
 	
 	
 	maker.makeGrid(dest);

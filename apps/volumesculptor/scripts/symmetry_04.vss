@@ -5,9 +5,9 @@ importPackage(Packages.abfab3d.transforms);
 function makePart(height, baseRadius, baseThickness, 
                   steamRadius,   capRadius, capThickness){
 	
-	var cyl1 = new Cylinder(new Vector3D(0,0,0),new Vector3D(0,0,height), steamRadius);
-	var cyl2 = new Cylinder(new Vector3D(0,0,0),new Vector3D(0,0,baseThickness), baseRadius);
-	var cyl3 = new Cylinder(new Vector3D(0,0, height-capThickness),new Vector3D(0,0,height), capRadius);
+	var cyl1 = new Cylinder(new Vector3d(0,0,0),new Vector3d(0,0,height), steamRadius);
+	var cyl2 = new Cylinder(new Vector3d(0,0,0),new Vector3d(0,0,baseThickness), baseRadius);
+	var cyl3 = new Cylinder(new Vector3d(0,0, height-capThickness),new Vector3d(0,0,height), capRadius);
 	var union = new Union();
 	
 	union.add(cyl1);
@@ -43,11 +43,11 @@ function main(){
 	part1.setTransform(new Translation((16./3)*MM,0*MM,0));
 	var dt = new DataTransformer();
 	
-	dt.setDataSource(part1);
+	dt.setSource(part1);
 	
 	var sym = new WallpaperSymmetry(WallpaperSymmetry.WP_S333, 8*MM, 8*MM);
 	sym.setMaxCount(20);
-	maker.setDataSource(dt);	
+	maker.setSource(dt);	
 	
 	maker.setTransform(sym);	
 	

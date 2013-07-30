@@ -19,10 +19,10 @@ function cross3D(size, thickness){
 function makeBox(length, width){
 
 	var box = new Box(0,0,0, length, width, width);
-	box.setTransform(new Rotation(new Vector3D(1,0,0), Math.PI/4));
+	box.setTransform(new Rotation(new Vector3d(1,0,0), Math.PI/4));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(box);
+	dt.setSource(box);
 	
 	return dt;
 }
@@ -35,13 +35,12 @@ function makeBoxes(count, outRadius, inRadius){
 	var union = new Union();
 	for(var i = 0; i < count; i++){
 		var part = makeBox(2*outRadius, 2*d);
-		part.setTransform(new Rotation(new Vector3D(0,0,1), i*alpha));
+		part.setTransform(new Rotation(new Vector3d(0,0,1), i*alpha));
 		union.add(part);
 	}
 	
-	var hole = new Cylinder(new Vector3D(0,0,-1.1*h), new Vector3D(0,0,1.1*h),inRadius);
-	var diff = new Subtraction();
-	diff.setDataSources(union, hole);
+	var hole = new Cylinder(new Vector3d(0,0,-1.1*h), new Vector3d(0,0,1.1*h),inRadius);
+	var diff = new Subtraction(union, hole);
 	
 	return diff;
 	
@@ -56,7 +55,7 @@ function main(){
 	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
 	
 	var part = makeBoxes(7, 12*MM, 10.5*MM);
-	maker.setDataSource(part);
+	maker.setSource(part);
 	maker.makeGrid(dest);
 		
 	return dest;
