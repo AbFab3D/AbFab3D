@@ -36,6 +36,8 @@ import java.util.Map;
  * @author Alan Hudson
  */
 public class AbFab3DGlobal  {
+    private static final String SMOOTHING_WIDTH_VAR = "meshSmoothingWidth";
+    private static final String ERROR_FACTOR_VAR = "meshErrorFactor";
 
     private static final int maxAttribute = 255;
 
@@ -66,14 +68,13 @@ public class AbFab3DGlobal  {
     public AbFab3DGlobal() {
         WorldWrapper ww = new WorldWrapper();
         World world = ww.getWorld();
-        //globals.put("world", world);
-        //globals.put("grid", world.getGrid());
         globals.put("maker", world.getMaker());
-        //globals.put("bounds", world.getBounds());
         globals.put("MM", Units.MM);
         globals.put("CM", Units.CM);
         globals.put("IN", Units.IN);
         globals.put("FT", Units.FT);
+        globals.put(ERROR_FACTOR_VAR,0.1);
+        globals.put(SMOOTHING_WIDTH_VAR,0.5);
     }
 
     public String[] getFunctions() {
@@ -205,6 +206,18 @@ public class AbFab3DGlobal  {
 
         System.out.println("Saving world: " + grid + " to triangles");
 
+        Object smoothing_width = thisObj.get(SMOOTHING_WIDTH_VAR, thisObj);
+
+        if (smoothing_width instanceof Number) {
+            smoothingWidth = ((Number)smoothing_width).doubleValue();
+        }
+
+        Object error_factor = thisObj.get(ERROR_FACTOR_VAR, thisObj);
+
+        if (smoothing_width instanceof Number) {
+            errorFactor = ((Number)error_factor).doubleValue();
+        }
+
         double maxDecimationError = errorFactor * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
@@ -293,11 +306,17 @@ public class AbFab3DGlobal  {
             }
         }
         
-        System.out.println("Saving world: " + grid + " to triangles");
+        System.out.println("Saving world2: " + grid + " to triangles");
 
 
         double maxDecimationError = errorFactor * vs * vs;
 
+        Object smoothing_width = thisObj.get("SMOOTHING_WIDTH", thisObj);
+
+        if (smoothing_width instanceof Number) {
+            smoothingWidth = ((Number)smoothing_width).doubleValue();
+        }
+        System.out.println("Smoothing width: " + smoothingWidth);
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
         meshmaker.setBlockSize(blockSize);
