@@ -497,7 +497,7 @@ public class RingPopperKernel extends HostedKernel {
         ringWrap.setRadius(innerDiameter / 2);
 
         DataTransformer completeRing = new DataTransformer();
-        completeRing.setDataSource(complete_band);
+        completeRing.setSource(complete_band);
         if(makeRingWrap)
             completeRing.setTransform(ringWrap);
                 
@@ -509,7 +509,7 @@ public class RingPopperKernel extends HostedKernel {
         GridMaker gm = new GridMaker();
         
         gm.setBounds(bounds);
-        gm.setDataSource(clippedRing);
+        gm.setSource(clippedRing);
         gm.setMaxAttributeValue(maxGridAttributeValue);
         gm.setVoxelSize(voxelSize*surfaceTransitionWidth);
 
@@ -697,7 +697,7 @@ public class RingPopperKernel extends HostedKernel {
         if (symmetryStyle != SymmetryStyle.NONE) {
 
             DataTransformer image_frieze = new DataTransformer();
-            image_frieze.setDataSource(image_src);
+            image_frieze.setSource(image_src);
 
             FriezeSymmetry fs = new FriezeSymmetry();
             fs.setFriezeType(symmetryStyle.getCode());
@@ -705,7 +705,7 @@ public class RingPopperKernel extends HostedKernel {
             fs.setDomainWidth(tileWidth);
 
             image_frieze.setTransform(fs);
-            image_frieze.setDataSource(image_src);
+            image_frieze.setSource(image_src);
 
             image_band = image_frieze;
         }
@@ -818,11 +818,10 @@ public class RingPopperKernel extends HostedKernel {
 
         // rotated text
         DataTransformer rotatedText = new DataTransformer();
-        rotatedText.setDataSource(textBand);
+        rotatedText.setSource(textBand);
         rotatedText.setTransform(textRotation);
 
-        Complement textComplement = new Complement();
-        textComplement.setDataSource(rotatedText);
+        Complement textComplement = new Complement(rotatedText);
 
         return textComplement;
 
@@ -861,7 +860,7 @@ public class RingPopperKernel extends HostedKernel {
 
         // transformed cross section 
         DataTransformer transCross = new DataTransformer();
-        transCross.setDataSource(crossSect);
+        transCross.setSource(crossSect);
         transCross.setTransform(crossTrans);
 
         return transCross;

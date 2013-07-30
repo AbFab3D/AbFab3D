@@ -9,7 +9,7 @@ function main(){
 	
 	sphere = new Sphere(0,0,0,a*0.9);
 	
-	maker.setDataSource(sphere);
+	maker.setSource(sphere);
 	maker.makeGrid(dest);
 	return dest;
 	

@@ -20,10 +20,9 @@ function main(){
 	
 	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
 	
-	var diff = new Subtraction();
-	diff.setDataSources(cross3D(a*0.2, a*0.95), cross3D(a*0.99, a*0.15));
+	var diff = new Subtraction(cross3D(a*0.2, a*0.95), cross3D(a*0.99, a*0.15));
 		
-	maker.setDataSource(diff);
+	maker.setSource(diff);
 	maker.makeGrid(dest);
 	return dest;
 	

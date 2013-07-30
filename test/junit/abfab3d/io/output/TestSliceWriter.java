@@ -141,7 +141,7 @@ public class TestSliceWriter extends TestCase {
         gm.setBounds(bounds);
         //gm.setDataSource(gyroid);
         //gm.setDataSource(torus);
-        gm.setDataSource(sphere);
+        gm.setSource(sphere);
         // gm.setTransform(rotation);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);
@@ -221,9 +221,9 @@ public class TestSliceWriter extends TestCase {
         Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        //gm.setDataSource(gyroid);
-        //gm.setDataSource(torus);
-        gm.setDataSource(sphere);
+        //gm.setSource(gyroid);
+        //gm.setSource(torus);
+        gm.setSource(sphere);
         // gm.setTransform(rotation);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);

@@ -18,9 +18,9 @@ function cross3D(size, thickness){
 function makePart(height, baseRadius, baseThickness, 
                   steamRadius,   capRadius, capThickness){
 	
-	var cyl1 = new Cylinder(new Vector3D(0,0,0),new Vector3D(0,0,height), steamRadius);
-	var cyl2 = new Cylinder(new Vector3D(0,0,0),new Vector3D(0,0,baseThickness), baseRadius);
-	var cyl3 = new Cylinder(new Vector3D(0,0, height-capThickness),new Vector3D(0,0,height), capRadius);
+	var cyl1 = new Cylinder(new Vector3d(0,0,0),new Vector3d(0,0,height), steamRadius);
+	var cyl2 = new Cylinder(new Vector3d(0,0,0),new Vector3d(0,0,baseThickness), baseRadius);
+	var cyl3 = new Cylinder(new Vector3d(0,0, height-capThickness),new Vector3d(0,0,height), capRadius);
 	var union = new Union();
 	
 	union.add(cyl1);
@@ -47,7 +47,7 @@ function main(){
 	union.add(part1);
 	union.add(part2);
 	
-	maker.setDataSource(union);	
+	maker.setSource(union);	
 	
 	maker.makeGrid(dest);
 	return dest;

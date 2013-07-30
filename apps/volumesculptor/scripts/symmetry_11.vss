@@ -2,7 +2,7 @@ importPackage(Packages.abfab3d.grid);
 importPackage(Packages.abfab3d.datasources);
 importPackage(Packages.abfab3d.transforms);
 
-var voxelSize = 0.1*MM;
+var voxelSize = 0.2*MM;
 
 function makePart(size, thickness){
 
@@ -12,7 +12,7 @@ function makePart(size, thickness){
   
   var boxZ = new Box(0,0,0,thickness, thickness, size);
   
-  maker.setDataSource(boxZ);
+  maker.setSource(boxZ);
   maker.makeGrid(g);
   
   
@@ -38,14 +38,14 @@ function main(){
 	
 	var part = makePart(30*MM, 5*MM);
 	
-	part.setTransform(new Rotation(new Vector3D(-1.3,1,0), 2*Math.PI/5));
+	part.setTransform(new Rotation(new Vector3d(-1.3,1,0), 2*Math.PI/5));
 	
 	var dt = new DataTransformer();
 	var union = new Union();
 	union.add(part);
 	union.add(new LimitSet(2*MM, 0.03));
 	
-	dt.setDataSource(union);	
+	dt.setSource(union);	
 	
 	var sym = new ReflectionSymmetry();
 	sym.setRiemannSphereRadius(25*MM);
@@ -54,7 +54,7 @@ function main(){
 	
 	dt.setTransform(sym);
 	
-	maker.setDataSource(dt);
+	maker.setSource(dt);
 	maker.makeGrid(dest);
 	
 	return dest;

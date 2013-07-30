@@ -27,8 +27,8 @@ function main(){
 	var cx = 5.*MM;
 	var cy = 5.*MM;
 	
-	var c1 = Cylinder(new Vector3D(-cx, cy, cz),new Vector3D(cx, cy, cz), 2*MM);
-	var c2 = Cylinder(new Vector3D(cx, -cy, cz),new Vector3D(cx, cy, cz), 2*MM);
+	var c1 = Cylinder(new Vector3d(-cx, cy, cz),new Vector3d(cx, cy, cz), 2*MM);
+	var c2 = Cylinder(new Vector3d(cx, -cy, cz),new Vector3d(cx, cy, cz), 2*MM);
 	var part1 = new Union();
 	part1.add(c1);
 	part1.add(c2);	
@@ -36,14 +36,14 @@ function main(){
 	part1.setTransform(new Translation(0*MM, 0*MM,0*MM));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(part1);	
+	dt.setSource(part1);	
 	var sym = new ReflectionSymmetry();
     sym.setGroup(ReflectionSymmetries.getIcosahedralKaleidoscope());
 
 	sym.setMaxCount(20);
 	dt.setTransform(sym);
 	
-	maker.setDataSource(dt);
+	maker.setSource(dt);
 	maker.makeGrid(dest);
 	
 	return dest;

@@ -24,13 +24,13 @@ function main(){
 	var radius = 23*MM;
 	
 	var img = makePart("images/woodInterlockingTriangles_piece.png", 2*radius, th);
-	var cyl = new Cylinder(new Vector3D(0,0,-th/2), new Vector3D(0,0,th/2), radius);
+	var cyl = new Cylinder(new Vector3d(0,0,-th/2), new Vector3d(0,0,th/2), radius);
 	
 	var part = new Intersection();
 	
 	part.add(img);
 	
-	maker.setDataSource(part);
+	maker.setSource(part);
 	
 	maker.makeGrid(dest);
 	return dest;

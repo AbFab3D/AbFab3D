@@ -54,18 +54,10 @@ public class Complement  extends TransformableDataSource {
 
     DataSource dataSource = null;
     
-    public Complement(){
-        
+    public Complement(DataSource ds){
+        dataSource = ds;        
     }
     
-    /**
-       add items to set of data sources
-    */
-    public void setDataSource(DataSource ds){
-        
-        dataSource = ds;
-        
-    }
     
     public int initialize(){
         

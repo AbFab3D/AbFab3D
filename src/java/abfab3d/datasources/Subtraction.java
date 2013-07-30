@@ -55,18 +55,15 @@ public class Subtraction extends TransformableDataSource {
     
     DataSource dataSource1;
     DataSource dataSource2;
+
     
-    public Subtraction(){
-        
-    }
-    
-    public void setDataSources(DataSource ds1, DataSource ds2){
-        
+    public Subtraction(DataSource ds1, DataSource ds2){
+
         dataSource1 = ds1;
         dataSource2 = ds2;
         
     }
-    
+        
     
     public int initialize(){
 

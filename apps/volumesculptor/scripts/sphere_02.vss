@@ -20,7 +20,7 @@ function main() {
   var diff = new Subtraction();
   diff.setDataSources(new Sphere(15*MM), cross3D(40*MM, 10*MM));
       
-  maker.setDataSource(diff);
+  maker.setSource(diff);
   maker.makeGrid(grid);
   return grid;
 }

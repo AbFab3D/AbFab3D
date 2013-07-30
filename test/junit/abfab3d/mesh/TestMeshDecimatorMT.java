@@ -237,7 +237,7 @@ public class TestMeshDecimatorMT extends TestCase {
                 padding + offset, bodySize - padding - offset};
 
         gridMaker.setBounds(gridBounds);
-        gridMaker.setDataSource(new ArrayOfSpheres(sphereSize, 0.97));
+        gridMaker.setSource(new ArrayOfSpheres(sphereSize, 0.97));
         gridMaker.makeGrid(grid);
         printf("grid made: %d ms\n", (time() - t0));
 
@@ -314,7 +314,7 @@ public class TestMeshDecimatorMT extends TestCase {
         long t0 = time();
         GridMaker gridMaker = new GridMaker();
         gridMaker.setBounds(gridBounds);
-        gridMaker.setDataSource(new ArrayOfSpheres(sphereSize, radius));
+        gridMaker.setSource(new ArrayOfSpheres(sphereSize, radius));
         gridMaker.setThreadCount(threadCount);
         gridMaker.makeGrid(grid);
         printf("GRID_RENDERING_TIME: %d ms\n", (time() - t0));
@@ -370,7 +370,7 @@ public class TestMeshDecimatorMT extends TestCase {
         double gridBounds[] = new double[]{0, bodySize, 0, bodySize, 0, bodySize};
 
         gridMaker.setBounds(gridBounds);
-        gridMaker.setDataSource(new ArrayOfSpheres(cellSize, 0.97));
+        gridMaker.setSource(new ArrayOfSpheres(cellSize, 0.97));
 
         gridMaker.makeGrid(grid);
         printf("grid made: %d ms\n", (time() - t0));

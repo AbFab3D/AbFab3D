@@ -20,7 +20,7 @@ function main(){
 	
 	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
 		
-	maker.setDataSource(cross3D(a*0.2, a*0.95));
+	maker.setSource(cross3D(a*0.2, a*0.95));
 	maker.makeGrid(dest);
 	return dest;
 	

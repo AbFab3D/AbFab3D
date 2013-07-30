@@ -133,8 +133,8 @@ public class DevTestSliceWriter extends TestCase {
 
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
-        //gm.setDataSource(triangle);
-        gm.setDataSource(gyroid);
+        //gm.setSource(triangle);
+        gm.setSource(gyroid);
 
         gm.setThreadCount(threadsCount);
         gm.setMaxAttributeValue(maxAttributeValue);
@@ -229,9 +229,9 @@ public class DevTestSliceWriter extends TestCase {
         intersection.add(gyroid);
 
         //gm.setDataSource(triangle);
-        gm.setDataSource(intersection);
+        gm.setSource(intersection);
         
-        //gm.setDataSource(balls);
+        //gm.setSource(balls);
         // gm.setTransform(rotation);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);
@@ -324,10 +324,10 @@ public class DevTestSliceWriter extends TestCase {
         intersection.add(triangle);
         //intersection.add(gyroid);
 
-        //gm.setDataSource(triangle);
-        gm.setDataSource(triangle);
+        //gm.setSource(triangle);
+        gm.setSource(triangle);
         
-        //gm.setDataSource(balls);
+        //gm.setSource(balls);
         // gm.setTransform(rotation);
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);
@@ -448,7 +448,7 @@ public class DevTestSliceWriter extends TestCase {
 
         Intersection intersection = new Intersection();
         DataTransformer fractal = new DataTransformer();
-        fractal.setDataSource(union);
+        fractal.setSource(union);
         fractal.setTransform(symm);
 
         intersection.add(fractal);
@@ -462,12 +462,12 @@ public class DevTestSliceWriter extends TestCase {
         
         printf("gm.makeGrid()\n");
 
-        //gm.setDataSource(sphere);
-        gm.setDataSource(intersection);
-        //gm.setDataSource(union);        
-        //gm.setDataSource(limitSet);
+        //gm.setSource(sphere);
+        gm.setSource(intersection);
+        //gm.setSource(union);        
+        //gm.setSource(limitSet);
 
-        //gm.setDataSource(gyroid);
+        //gm.setSource(gyroid);
         //gm.setTransform(symm);
         gm.makeGrid(grid);   
        
@@ -651,7 +651,7 @@ public class DevTestSliceWriter extends TestCase {
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         
-        gm.setDataSource(union);
+        gm.setSource(union);
 
         
         gm.setMaxAttributeValue(maxAttributeValue);
@@ -745,8 +745,8 @@ public class DevTestSliceWriter extends TestCase {
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         
-        //gm.setDataSource(union);
-        gm.setDataSource(intersection);
+        //gm.setSource(union);
+        gm.setSource(intersection);
 
         gm.setTransform(symm);
         
@@ -813,7 +813,7 @@ public class DevTestSliceWriter extends TestCase {
         
         gm.setMaxAttributeValue(maxAttributeValue);
         gm.setVoxelSize(voxelSize*surfareThickness);        
-        gm.setDataSource(sphere);        
+        gm.setSource(sphere);        
         
         ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx[0], nx[1], nx[2], voxelSize, voxelSize);
         grid.setGridBounds(bounds);
@@ -833,7 +833,7 @@ public class DevTestSliceWriter extends TestCase {
                 sph.setTransform(new Translation(i*3*MM,0,0));
                 union.add(sphere);
             }            
-            gm.setDataSource(union);
+            gm.setSource(union);
             gm.makeGrid(grid);               
         }
 

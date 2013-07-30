@@ -138,7 +138,7 @@ public class TestShellFinder extends TestCase {
         GridMaker gridMaker = new GridMaker();
 
         gridMaker.setBounds(gridBounds);
-        gridMaker.setDataSource(new ArrayOfSpheres(cellSize, radius));
+        gridMaker.setSource(new ArrayOfSpheres(cellSize, radius));
 
         gridMaker.makeGrid(grid);
 

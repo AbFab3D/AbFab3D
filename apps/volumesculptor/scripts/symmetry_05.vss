@@ -28,14 +28,14 @@ function main(){
 	part1.setTransform(new Translation(5*MM, 3*MM,18*MM));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(part1);	
+	dt.setSource(part1);	
 	var sym = new ReflectionSymmetry();
     sym.setGroup(ReflectionSymmetries.getIcosahedralKaleidoscope());
 
 	sym.setMaxCount(20);
 	dt.setTransform(sym);
 	
-	maker.setDataSource(dt);
+	maker.setSource(dt);
 	maker.makeGrid(dest);
 	
 	return dest;

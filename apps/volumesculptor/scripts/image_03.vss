@@ -24,7 +24,7 @@ function main(image) {
 	var height = 60*MM;
 	
 	var img = makePart(image, width, height, th);	
-	maker.setDataSource(img);
+	maker.setSource(img);
 	
 	maker.makeGrid(dest);
 	return dest;

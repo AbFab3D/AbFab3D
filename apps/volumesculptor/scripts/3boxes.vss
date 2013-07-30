@@ -17,10 +17,9 @@ function cross3D(size, thickeness){
 function main() {
 
   var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);
-  var diff = new Subtraction();
-  diff.setDataSources(new Sphere(15*MM), cross3D(40*MM, 10*MM));
+  var diff = new Subtraction(new Sphere(15*MM), cross3D(40*MM, 10*MM));
       
-  maker.setDataSource(diff);
+  maker.setSource(diff);
   maker.makeGrid(grid);
   return grid;
 }

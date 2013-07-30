@@ -52,8 +52,9 @@ import static abfab3d.util.Units.MM;
    
    class to accept generic DataSource and VecTransform
    
-   in getDataValue() it applied inverse_transform to the point and calcylates data value in
-   transformed point
+   in getDataValue() it applies inverse_transform to the point and calculates data value in
+   
+   transformed point 
    
 */
 public class DataTransformer   extends TransformableDataSource {
@@ -63,7 +64,7 @@ public class DataTransformer   extends TransformableDataSource {
     public DataTransformer(){
     }
     
-    public void setDataSource(DataSource ds){
+    public void setSource(DataSource ds){
         dataSource = ds;
     }
         
@@ -79,7 +80,7 @@ public class DataTransformer   extends TransformableDataSource {
     
     
     /**
-     *
+     * 
      *
      */
     public int getDataValue(Vec pnt, Vec data) {

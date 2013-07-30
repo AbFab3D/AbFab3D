@@ -6,10 +6,10 @@ function main(baseFile) {
 
 	var grid = load(baseFile,0.075*MM);
 	var intersect = new Intersection();
-	intersect.addDataSource(new DataSourceGrid(grid, 255));
-	intersect.addDataSource(new VolumePatterns.Gyroid(10*MM, 1*MM));
+	intersect.add(new DataSourceGrid(grid, 255));
+	intersect.add(new VolumePatterns.Gyroid(10*MM, 1*MM));
 
-	maker.setDataSource(intersect);
+	maker.setSource(intersect);
 
 	var dest = createGrid(grid);
 	maker.makeGrid(dest);

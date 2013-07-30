@@ -25,11 +25,10 @@ function main(){
 	union.add(new Sphere(0.4*a));
 	union.add(cross3D(a*0.99, a*0.15));
 	
-	var diff = new Subtraction();
+	var diff = new Subtraction(cross3D(a*0.2, a*0.95), union);
 	
-	diff.setDataSources(cross3D(a*0.2, a*0.95), union);
 		
-	maker.setDataSource(diff);
+	maker.setSource(diff);
 	maker.makeGrid(dest);
 	return dest;
 	

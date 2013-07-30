@@ -67,7 +67,7 @@ public class GridMaker implements Operation, AttributeOperation {
     private boolean boundsSet = false;
     private double voxelScale = Math.sqrt(3) / 2.0;
 
-    public void setDataSource(DataSource dataSource){
+    public void setSource(DataSource dataSource){
         m_dataSource = dataSource;
     }
 

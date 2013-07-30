@@ -15,7 +15,7 @@ function makePart_g(size, thickness){
   var boxZ = new Box(0,0,0,thickness, thickness, size);
   
   var mm = new GridMaker();
-  mm.setDataSource(boxZ);
+  mm.setSource(boxZ);
   mm.setMaxAttributeValue(255);
   mm.makeGrid(g);
   
@@ -49,10 +49,10 @@ function main(){
 	
 	var part = makePart_g(30*MM, 5*MM);
 	
-	part.setTransform(new Rotation(new Vector3D(-1,1,0), 3*Math.PI/8));
+	part.setTransform(new Rotation(new Vector3d(-1,1,0), 3*Math.PI/8));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(part);	
+	dt.setSource(part);	
 	
 	var sym = new ReflectionSymmetry();
     sym.setGroup(ReflectionSymmetries.getQuad_1(25*MM, 30*MM, Math.PI/3));
@@ -60,7 +60,7 @@ function main(){
 	
 	dt.setTransform(sym);
 	
-	maker.setDataSource(dt);
+	maker.setSource(dt);
 	
 	var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
 	

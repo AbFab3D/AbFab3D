@@ -70,8 +70,11 @@ public class WallpaperSymmetry  implements VecTransform, Initializable  {
     // symmetry to be used 
     protected Symmetry m_sym;
 
-    public WallpaperSymmetry() {
-
+    /**
+       default cponstructor with default symmetry type WP_S2222;
+     */
+    public WallpaperSymmetry(){
+        setSymmetryType(WP_S2222);
     }
 
     public WallpaperSymmetry(int symmetryType){

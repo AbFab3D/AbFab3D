@@ -4,7 +4,7 @@ importPackage(Packages.abfab3d.transforms);
 
 function makePart(length, width){
 
-	var part = new Cylinder(new Vector3D(-length,0,0), new Vector3D(length,0,0), width);
+	var part = new Cylinder(new Vector3d(-length,0,0), new Vector3d(length,0,0), width);
 	return part;
 }
 
@@ -17,13 +17,12 @@ function makeRing(count, outRadius, inRadius){
 	var union = new Union();
 	for(var i = 0; i < count; i++){
 		var part = makePart(outRadius, h);
-		part.setTransform(new Rotation(new Vector3D(0,0,1), i*alpha));
+		part.setTransform(new Rotation(new Vector3d(0,0,1), i*alpha));
 		union.add(part);
 	}
 	
-	var hole = new Cylinder(new Vector3D(0,0,-1.1*h), new Vector3D(0,0,1.1*h),inRadius);
-	var diff = new Subtraction();
-	diff.setDataSources(union, hole);
+	var hole = new Cylinder(new Vector3d(0,0,-1.1*h), new Vector3d(0,0,1.1*h),inRadius);
+	var diff = new Subtraction(union, hole);
 	
 	return diff;
 	
@@ -38,7 +37,7 @@ function main(){
 	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
 	
 	var part = makeRing(7, 12*MM, 10.5*MM);
-	maker.setDataSource(part);
+	maker.setSource(part);
 	maker.makeGrid(dest);
 		
 	return dest;

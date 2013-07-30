@@ -19,10 +19,10 @@ function cross3D(size, thickness){
 function makeBox(length, width){
 
 	var box = new Box(0,0,0, length, width, width);
-	box.setTransform(new Rotation(new Vector3D(1,0,0), Math.PI/4));
+	box.setTransform(new Rotation(new Vector3d(1,0,0), Math.PI/4));
 	
 	var dt = new DataTransformer();
-	dt.setDataSource(box);
+	dt.setSource(box);
 	
 	return dt;
 }
@@ -39,10 +39,10 @@ function main(){
 	var union = new Union();
 	for(var i = 0; i < 6; i++){
 		var part = makeBox(a, cr);
-		part.setTransform(new Rotation(new Vector3D(0,0,1), i*Math.PI/6));
+		part.setTransform(new Rotation(new Vector3d(0,0,1), i*Math.PI/6));
 		union.add(part);
 	}
-	maker.setDataSource(union);
+	maker.setSource(union);
 	maker.makeGrid(dest);
 		
 	return dest;
