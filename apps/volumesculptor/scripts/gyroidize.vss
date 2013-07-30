@@ -1,7 +1,3 @@
-importPackage(Packages.abfab3d.grid.op);
-importPackage(Packages.abfab3d.grid);
-importPackage(Packages.abfab3d.datasources);
-
 function main(baseFile) {
 
 	var grid = load(baseFile,0.075*MM);

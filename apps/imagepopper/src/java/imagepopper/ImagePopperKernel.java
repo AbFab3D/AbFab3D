@@ -422,7 +422,7 @@ public class ImagePopperKernel extends HostedKernel {
         layer1.setBaseThreshold(baseThreshold);
         layer1.setInterpolationType(interpolationType);
 
-        union.addDataSource(layer1);
+        union.add(layer1);
 
         if (!filename2.equalsIgnoreCase("NONE")) {
             ImageBitmap layer2 = new ImageBitmap();
@@ -444,7 +444,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer2.setBaseThreshold(baseThreshold);
             layer2.setVoxelSize(resolution);
 
-            union.addDataSource(layer2);
+            union.add(layer2);
 
         }
 
@@ -469,7 +469,7 @@ public class ImagePopperKernel extends HostedKernel {
             layer3.setBaseThreshold(baseThreshold);
             layer3.setVoxelSize(resolution);
 
-            union.addDataSource(layer3);
+            union.add(layer3);
 
         }
 
@@ -477,7 +477,7 @@ public class ImagePopperKernel extends HostedKernel {
         GridMaker gm = new GridMaker();
 
         gm.setBounds(bounds);
-        gm.setDataSource(union);
+        gm.setSource(union);
         gm.setThreadCount(threads);
 
         gm.setMaxAttributeValue(maxGridAttributeValue);

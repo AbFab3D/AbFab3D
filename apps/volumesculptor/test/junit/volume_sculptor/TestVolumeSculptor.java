@@ -19,6 +19,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.commons.io.FileUtils;
+import volumesculptor.shell.ExecResult;
 import volumesculptor.shell.Main;
 
 import java.io.File;
@@ -61,7 +62,8 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
             FileUtils.write(f,script);
 
-            TriangleMesh mesh = Main.execMesh(args, files, params);
+            ExecResult result = Main.execMesh(args, files, params);
+            TriangleMesh mesh = result.getMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -101,10 +103,54 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
             FileUtils.write(f,script);
 
-            TriangleMesh mesh = Main.execMesh(args, files, params);
+            ExecResult result = Main.execMesh(args, files, params);
+            TriangleMesh mesh = result.getMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
+    public void testCompileError() {
+        String script = "importPackage(Packages.abfab3d.grid.op);\n" +
+                "importPackage(Packages.abfab3d.grid);\n" +
+                "importPackage(Packages.abfab3d.datasources);\n" +
+                "\n" +
+                "function main(baseFile) {\n" +
+                "\n" +
+                "\tvar grid = loadBad(baseFile);      \n" +
+                "\tvar intersect = new Intersection();\n" +
+                "\tintersect.addDataSource(new DataSourceGrid(grid, 255));\n" +
+                "\tintersect.addDataSource(new VolumePatterns.Gyroid(10*MM, 1*MM));\n" +
+                "\n" +
+                "\tmaker.setDataSource(intersect);\n" +
+                "\n" +
+                "\tvar dest = createGrid(grid);\n" +
+                "\tmaker.makeGrid(dest);\n" +
+                "\t\n" +
+                "\treturn grid;\n" +
+                "}";
+
+        String[] files = new String[] {"C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\volumesculptor\\models\\sphere.stl"};
+        String[] params = new String[] {};
+
+
+        try {
+            File f = File.createTempFile("script","vss");
+
+            String[] args = new String[] {f.toString()};
+            FileUtils.write(f,script);
+
+            ExecResult result = Main.execMesh(args, files, params);
+            TriangleMesh mesh = result.getMesh();
+            String error = result.getErrors();
+            assertNull("Mesh",mesh);
+            System.out.println("Error String: " + error);
+            assertTrue("Error String not empty",error.length() > 0);
 
         } catch(Exception e) {
             e.printStackTrace();

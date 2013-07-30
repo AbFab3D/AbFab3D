@@ -1164,6 +1164,7 @@ public class Global extends ImporterTopLevel
 
     static RuntimeException reportRuntimeError(String msgId) {
         String message = ToolErrorReporter.getMessage(msgId);
+
         return Context.reportRuntimeError(message);
     }
 

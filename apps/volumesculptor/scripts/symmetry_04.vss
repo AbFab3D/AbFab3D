@@ -1,8 +1,4 @@
-importPackage(Packages.abfab3d.grid);
-importPackage(Packages.abfab3d.datasources);
-importPackage(Packages.abfab3d.transforms);
-
-function makePart(height, baseRadius, baseThickness, 
+function makePart(height, baseRadius, baseThickness,
                   steamRadius,   capRadius, capThickness){
 	
 	var cyl1 = new Cylinder(new Vector3d(0,0,0),new Vector3d(0,0,height), steamRadius);

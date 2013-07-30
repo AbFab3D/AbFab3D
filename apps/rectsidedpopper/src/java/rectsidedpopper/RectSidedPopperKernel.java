@@ -20,9 +20,9 @@ import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.*;
-import abfab3d.grid.op.DataSourceImageBitmap;
+import abfab3d.datasources.*;
 import abfab3d.grid.op.GridMaker;
-import abfab3d.grid.op.VecTransforms;
+import abfab3d.transforms.*;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SAVExporter;
@@ -455,48 +455,48 @@ public class RectSidedPopperKernel extends HostedKernel {
                           String filename, double[] bounds,
                           double rot[], double rot2[], double translation[]) {
 
-        DataSourceImageBitmap layer = new DataSourceImageBitmap();
+        ImageBitmap layer = new ImageBitmap();
         layer.setSize(bodyWidth, bodyHeight, bodyDepth);
         layer.setLocation(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane
         layer.setBaseThickness(0.0);
-        layer.setImageType(DataSourceImageBitmap.IMAGE_TYPE_EMBOSSED);
+        layer.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer.setTiles(1, 1);
         layer.setImagePath(filename);
         layer.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
-            layer.setInterpolationType(DataSourceImageBitmap.INTERPOLATION_MIPMAP);
+            layer.setInterpolationType(ImageBitmap.INTERPOLATION_MIPMAP);
             layer.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
             layer.setProbeSize(resolution * 2.);
         }
 
         GridMaker gm = new GridMaker();
 
-        VecTransforms.CompositeTransform transform = new VecTransforms.CompositeTransform();
+        CompositeTransform transform = new CompositeTransform();
 
         // do rotation if needed
         if(rot != null){
-            VecTransforms.Rotation r = new VecTransforms.Rotation();
+            Rotation r = new Rotation();
             r.setRotation(new Vector3d(rot[0],rot[1],rot[2]), rot[3]);
             transform.add(r);
         }
         // secont rotation if needed
         if(rot2 != null){
-            VecTransforms.Rotation r = new VecTransforms.Rotation();
+            Rotation r = new Rotation();
             r.setRotation(new Vector3d(rot2[0],rot2[1],rot2[2]), rot2[3]);
             transform.add(r);
         }
 
         // do translation
         if(translation != null){
-            VecTransforms.Translation tr = new VecTransforms.Translation();
+            Translation tr = new Translation();
             tr.setTranslation(translation[0],translation[1],translation[2]);
             transform.add(tr);
         }
 
         gm.setTransform(transform);
         gm.setBounds(bounds);
-        gm.setDataSource(layer);
+        gm.setSource(layer);
 
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);
@@ -505,17 +505,17 @@ public class RectSidedPopperKernel extends HostedKernel {
     }
 /*
     private void popImageYUP(Grid grid, double bodyWidth1, double bodyDepth1, double bodyHeight1, double margin, String filename, double[] trans, double[] rot, double[] bounds) {
-        DataSourceImageBitmapYUP layer1 = new DataSourceImageBitmapYUP();
+        ImageBitmapYUP layer1 = new ImageBitmapYUP();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
         layer1.setLocation(0, 0, bodyDepth1/2);
         layer1.setBaseThickness(0.0);
-        layer1.setImageType(DataSourceImageBitmapYUP.IMAGE_POSITIVE);
+        layer1.setImageType(ImageBitmapYUP.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename);
         layer1.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
-            layer1.setInterpolationType(DataSourceImageBitmapYUP.INTERPOLATION_MIPMAP);
+            layer1.setInterpolationType(ImageBitmapYUP.INTERPOLATION_MIPMAP);
             layer1.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
             layer1.setProbeSize(resolution * 2.);
         }
@@ -526,7 +526,7 @@ public class RectSidedPopperKernel extends HostedKernel {
         } else if (trans != null) {
             layer1.setLocation(trans[0],trans[1],bodyDepth1/2 + trans[2]);
         } else if (rot != null) {
-            VecTransforms.Rotation rotation = new VecTransforms.Rotation();
+            Rotation rotation = new Rotation();
             rotation.m_axis = new Vector3d(rot[0],rot[1],rot[2]);
             rotation.m_angle = rot[3];
             gm.setTransform(rotation);

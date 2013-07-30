@@ -32,7 +32,7 @@ import static abfab3d.util.Output.time;
  *
  * @author Alan Hudson
  */
-public class Intersect implements Operation, AttributeOperation {
+public class IntersectOp implements Operation, AttributeOperation {
     /**
      * The source grid, A
      */
@@ -43,7 +43,7 @@ public class Intersect implements Operation, AttributeOperation {
      */
     private Grid dest;
 
-    public Intersect(Grid src) {
+    public IntersectOp(Grid src) {
         this.src = src;
     }
 

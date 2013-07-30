@@ -26,7 +26,7 @@ import abfab3d.grid.*;
  *
  * @author Alan Hudson
  */
-public class Union implements Operation, AttributeOperation {
+public class UnionOp implements Operation, AttributeOperation {
     /** The grid used for A */
     private Grid gridA;
 
@@ -52,7 +52,7 @@ public class Union implements Operation, AttributeOperation {
     private long material;
 
 
-    public Union(Grid b, double x, double y, double z, long material) {
+    public UnionOp(Grid b, double x, double y, double z, long material) {
         if (b instanceof AttributeGrid) {
             gridBAtt = (AttributeGrid) b;
         }

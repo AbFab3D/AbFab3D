@@ -33,9 +33,9 @@ import java.util.Map;
  * This class provides for sharing functions across multiple threads.
  * This is of particular interest to server applications.
  *
- * @author Norris Boyd
+ * @author Alan Hudson
  */
-public class AbFab3DGlobal extends ImporterTopLevel {
+public class AbFab3DGlobal  {
 
     private static final int maxAttribute = 255;
 
@@ -82,14 +82,6 @@ public class AbFab3DGlobal extends ImporterTopLevel {
 
     public Map<String,Object> getProperties() {
         return globals;
-    }
-
-    private static Global getInstance(Function function) {
-        Scriptable scope = function.getParentScope();
-        if (!(scope instanceof Global))
-            throw reportRuntimeError("msg.bad.shell.function.scope",
-                    String.valueOf(scope));
-        return (Global) scope;
     }
 
     /**
@@ -383,8 +375,9 @@ public class AbFab3DGlobal extends ImporterTopLevel {
 
         AttributeGrid dest = null;
 
-        long voxels = gs[0] * gs[1] * gs[2];
-        long MAX_MEMORY = 1000l * 1000 * 1000;
+        long voxels = (long) gs[0] * gs[1] * gs[2];
+        System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs + " voxels: " + voxels);
+        long MAX_MEMORY = Integer.MAX_VALUE;
         if (voxels > MAX_MEMORY) {
             dest = new GridShortIntervals(gs[0], gs[1], gs[2], vs, vs);
         } else {
@@ -392,15 +385,8 @@ public class AbFab3DGlobal extends ImporterTopLevel {
         }
 
         dest.setGridBounds(grid_bounds);
-        System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs);
         return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
     }
-
-    static RuntimeException reportRuntimeError(String msgId, String msgArg) {
-        String message = ToolErrorReporter.getMessage(msgId, msgArg);
-        return Context.reportRuntimeError(message);
-    }
-
 }
 
 

@@ -1,7 +1,3 @@
-importPackage(Packages.abfab3d.grid);
-importPackage(Packages.abfab3d.datasources);
-importPackage(Packages.abfab3d.transforms);
-
 function makePart(height, baseRadius, baseThickness, 
                   steamRadius,   capRadius, capThickness){
 	

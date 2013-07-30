@@ -66,7 +66,7 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
 
             long t0 = System.currentTimeMillis();
             // get the subtraction of grid1 from grid2
-            SubtractMT op = new SubtractMT(grid1, (n+1) % cores);
+            SubtractOpMT op = new SubtractOpMT(grid1, (n+1) % cores);
             Grid subtrGrid = (Grid) op.execute(grid2);
             System.out.println("Time: " + (System.currentTimeMillis() - t0));
         }
@@ -87,7 +87,7 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
 
             long t0 = System.currentTimeMillis();
             // get the subtraction of grid1 from grid2
-            SubtractMT op = new SubtractMT(grid1, i+1);
+            SubtractOpMT op = new SubtractOpMT(grid1, i+1);
             Grid subtrGrid = (Grid) op.execute(grid2);
             times[i] = (System.currentTimeMillis() - t0);
             if (i >= 1) {
@@ -136,7 +136,7 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
 
             long t0 = System.currentTimeMillis();
             // get the subtraction of grid1 from grid2
-            IntersectMT op = new IntersectMT(grid1, (n+1) % cores);
+            IntersectOpMT op = new IntersectOpMT(grid1, (n+1) % cores);
             Grid dest = (Grid) op.execute(grid2);
             System.out.println("Time: " + (System.currentTimeMillis() - t0));
         }
@@ -157,7 +157,7 @@ public class TestOpPerformance extends BaseTestAttributeGrid {
 
             long t0 = System.currentTimeMillis();
             // get the subtraction of grid1 from grid2
-            IntersectMT op = new IntersectMT(grid1, i+1);
+            IntersectOpMT op = new IntersectOpMT(grid1, i+1);
             Grid dest = (Grid) op.execute(grid2);
             times[i] = (System.currentTimeMillis() - t0);
             if (i >= 1) {

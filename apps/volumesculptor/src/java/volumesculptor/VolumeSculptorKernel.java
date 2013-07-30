@@ -31,6 +31,7 @@ import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
+import volumesculptor.shell.ExecResult;
 import volumesculptor.shell.Main;
 
 import java.io.BufferedOutputStream;
@@ -246,23 +247,24 @@ public class VolumeSculptorKernel extends HostedKernel {
         }
 
 
+        int lines = script.split(System.getProperty("line.separator")).length;
+        System.out.println("Number of lines at generate: " + lines);
         File temp = File.createTempFile("script", ".vss");
         FileUtils.write(temp, script);
 
-        System.out.println("Loading script: " + script);
+        System.out.println("Loading script2: " + script);
 
         String[] args = new String[] {temp.toString() };
 
         System.out.println("Files: " + files + " params: " + this.params);
 
-        TriangleMesh mesh = Main.execMesh(args, files,this.params);
-        
+        ExecResult result = Main.execMesh(args, files,this.params);
+        TriangleMesh mesh = result.getMesh();
+
         // Script compile error
         if (mesh == null) {
-        	return new KernelResults(KernelResults.INVALID_PARAMS, "Invalid script");
+        	return new KernelResults(KernelResults.INVALID_PARAMS, result.getErrors());
         }
-
-        System.out.println("After creation");
 
         HashMap<String, Object> out_params = new HashMap<String, Object>();
         MeshExporter.writeMesh(mesh, handler, out_params, true);
@@ -297,7 +299,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         System.out.println("MinBounds: " + java.util.Arrays.toString(min_bounds));
         System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
         System.out.println("Volume: " + volume);
-        
+
         // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
         // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
         if (volume == 0.0) {

@@ -1,6 +1,3 @@
-importPackage(Packages.abfab3d.grid);
-importPackage(Packages.abfab3d.datasources);
-
 function main(){
 	var a = 25*MM;
 	var voxelSize = 0.2*MM;

@@ -263,7 +263,7 @@ System.out.println("Voxels: " + voxelsX + " " + voxelsY + " " + voxelsZ);
                 grid.getVoxelSize(), grid.getSliceHeight());
 
         trunc.generate(grid2);
-        Operation op = new Subtract(grid2, 0, 0, 0, 1);
+        Operation op = new SubtractOp(grid2, 0, 0, 0, 1);
         op.execute(grid);
 
         // Make Stem

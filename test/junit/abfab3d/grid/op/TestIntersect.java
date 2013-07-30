@@ -60,7 +60,7 @@ public class TestIntersect extends BaseTestAttributeGrid {
         }
 
         // get the intersection of grid1 and grid2
-        Intersect op = new Intersect(grid1);
+        IntersectOp op = new IntersectOp(grid1);
         AttributeGrid dest = (AttributeGrid) op.execute(grid2);
 
         assertEquals(size2, dest.getWidth());
@@ -111,7 +111,7 @@ public class TestIntersect extends BaseTestAttributeGrid {
         }
 
         // get the intersection of grid1 and grid2
-        IntersectMT op = new IntersectMT(grid1, Runtime.getRuntime().availableProcessors());
+        IntersectOpMT op = new IntersectOpMT(grid1, Runtime.getRuntime().availableProcessors());
         AttributeGrid dest = (AttributeGrid) op.execute(grid2);
 
         assertEquals(size2, dest.getWidth());
@@ -162,7 +162,7 @@ public class TestIntersect extends BaseTestAttributeGrid {
         }
 
         // get the intersection of grid1 and grid2
-        IntersectMT op = new IntersectMT(grid1, Runtime.getRuntime().availableProcessors());
+        IntersectOpMT op = new IntersectOpMT(grid1, Runtime.getRuntime().availableProcessors());
         AttributeGrid dest = (AttributeGrid) op.execute(grid2);
 
         assertEquals(size2, dest.getWidth());
@@ -217,10 +217,10 @@ public class TestIntersect extends BaseTestAttributeGrid {
         }
 
         // get the subtraction of grid1 from grid2
-        SubtractMT op = new SubtractMT(grid1, Runtime.getRuntime().availableProcessors());
+        SubtractOpMT op = new SubtractOpMT(grid1, Runtime.getRuntime().availableProcessors());
         Grid subtrGridMT = op.execute(grid2);
 
-        Subtract op2 = new Subtract(grid1,0,0,0,1);
+        SubtractOp op2 = new SubtractOp(grid1,0,0,0,1);
         Grid subtrGridST = op2.execute(grid2);
 
         assertEquals(size2, subtrGridST.getWidth());

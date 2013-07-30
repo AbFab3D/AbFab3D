@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2013
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -9,43 +9,33 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-
 package abfab3d.grid.op;
 
-// External Imports
-
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.Grid;
-import abfab3d.grid.Operation;
+import abfab3d.grid.*;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
-
-// Internal Imports
+import static abfab3d.util.Output.*;
 
 /**
- * Intersection operation multithreaded version.
- * <p/>
- * Intersects two grids.  A voxel which is INSIDE in both
- * grids will be in the destination.
+ * Subtraction operation.   Multithreaded version.
+ *
+ * Subtracts one grid from another.  Grid A is the base grid.  B is
+ * the subtracting grid.  INSIDE voxels of grid B will become
+ * OUTSIDE voxels of A.
+ *
+ * Would like a mode that preserves EXTERIOR/INTERRIOR difference.
  *
  * @author Alan Hudson
  */
-public class IntersectMT implements Operation, AttributeOperation {
-    /**
-     * The source grid, A
-     */
+public class SubtractOpMT implements Operation {
+    /** The grid used for subtraction */
     private Grid src;
 
-    /**
-     * The dest grid, B
-     */
+    /** The dest grid */
     private Grid dest;
 
     /** The number of threads to use */
@@ -60,11 +50,11 @@ public class IntersectMT implements Operation, AttributeOperation {
     /** Slices of work */
     private ConcurrentLinkedQueue<Slice> slices;
 
-    public IntersectMT(Grid src) {
+    public SubtractOpMT(Grid src) {
         this.src = src;
     }
 
-    public IntersectMT(Grid src, int threads) {
+    public SubtractOpMT(Grid src, int threads) {
         this.src = src;
 
         setThreadCount(threads);
@@ -79,14 +69,26 @@ public class IntersectMT implements Operation, AttributeOperation {
     }
 
     /**
+     * Set the size of y slices used for multithreading.  Changes the chunk size of jobs used in threading.  Has a fair
+     * bit of interaction with cache sizes.  Not sure of a good guidance right now for setting this.
+     * @param size
+     */
+    public void setSliceSize(int size) {
+        sliceSize = size;
+    }
+
+
+    /**
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
      *
-     * @param dest The destination grid
-     * @return The new grid
+     * @param dest The grid to use for grid A.
+     * @return original grid modified
      */
     public Grid execute(Grid dest) {
         long t0 = time();
+
+        this.dest = dest;
 
         nx = dest.getWidth();
         ny = dest.getHeight();
@@ -109,7 +111,7 @@ public class IntersectMT implements Operation, AttributeOperation {
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         for (int i = 0; i < threadCount; i++) {
 
-            Runnable runner = new IntersectRunner(src,dest);
+            Runnable runner = new SubtractRunner(src,dest);
             executor.submit(runner);
         }
         executor.shutdown();
@@ -120,20 +122,52 @@ public class IntersectMT implements Operation, AttributeOperation {
             e.printStackTrace();
         }
 
-        printf("intersectMT: %d ms\n", (time() - t0));
+        printf("subtractMT: %d ms\n", (time() - t0));
 
         return dest;
     }
 
-    /**
-     * Execute an operation on a grid.  If the operation changes the grid
-     * dimensions then a new one will be returned from the call.
-     *
-     * @param dest The grid to use or null to create one
-     * @return The new grid
-     */
+
     public AttributeGrid execute(AttributeGrid dest) {
-        return (AttributeGrid) execute((Grid)dest);
+        long t0 = time();
+
+        this.dest = dest;
+
+        nx = dest.getWidth();
+        ny = dest.getHeight();
+
+        slices = new ConcurrentLinkedQueue<Slice>();
+
+        int sliceHeight = sliceSize;
+
+        for (int y = 0; y < ny; y += sliceHeight) {
+            int ymax = y + sliceHeight;
+            if (ymax > ny)
+                ymax = ny;
+
+            if (ymax > y) {
+                // non zero slice
+                slices.add(new Slice(y, ymax - 1));
+            }
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+
+            Runnable runner = new SubtractRunner(src,dest);
+            executor.submit(runner);
+        }
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        printf("subtract: %d ms\n", (time() - t0));
+
+        return dest;
     }
 
     private Slice getNextSlice() {
@@ -143,12 +177,12 @@ public class IntersectMT implements Operation, AttributeOperation {
     /**
      * class processes one slice of grid from the array of slices
      */
-    class IntersectRunner implements Runnable {
+    class SubtractRunner implements Runnable, ClassTraverser {
 
         Grid src;
         Grid dest;
 
-        IntersectRunner(Grid src, Grid dest) {
+        SubtractRunner(Grid src, Grid dest) {
             this.src = src;
             this.dest = dest;
         }
@@ -161,24 +195,33 @@ public class IntersectMT implements Operation, AttributeOperation {
                     // end of processing
                     break;
                 }
-
-                int width = dest.getWidth();
-                int depth = dest.getDepth();
-
-                //System.out.println("Process slice: " + slice.ymin + " max: " + slice.ymax);
-                for (int y = slice.ymin; y <= slice.ymax; y++) {
-                    for (int x = 0; x < width; x++) {
-                        for (int z = 0; z < depth; z++) {
-                            byte src_state = src.getState(x, y, z);
-                            if (src_state == Grid.OUTSIDE) {
-                                dest.setState(x, y, z, Grid.OUTSIDE);
-                            }
-                        }
-                    }
-                }
+                src.find(Grid.VoxelClasses.INSIDE, this, 0, nx - 1, slice.ymin, slice.ymax);
             }
         }
-    }
+
+        public void found(int x, int y, int z, byte state) {
+            dest.setState(x,y,z,Grid.OUTSIDE);
+        }
+
+        /**
+         * A voxel of the class requested has been found.
+         * VoxelData classes may be reused so clone the object
+         * if you keep a copy.
+         *
+         * @param x The x grid coordinate
+         * @param y The y grid coordinate
+         * @param z The z grid coordinate
+         * @param state The voxel state
+         *
+         * @return True to continue, false stops the traversal.
+         */
+        public boolean foundInterruptible(int x, int y, int z, byte state) {
+            dest.setState(x,y,z,Grid.OUTSIDE);
+            return true;
+        }
+
+    } // SubtractRunner
+
 
     //
     //  class to represent one slice of grid
@@ -188,10 +231,18 @@ public class IntersectMT implements Operation, AttributeOperation {
         int ymin;
         int ymax;
 
+        Slice() {
+            ymin = 0;
+            ymax = -1;
+
+        }
+
         Slice(int ymin, int ymax) {
+
             this.ymin = ymin;
             this.ymax = ymax;
-        }
-    }
 
+        }
+
+    }
 }

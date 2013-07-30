@@ -58,7 +58,7 @@ public class TestUnion extends BaseTestAttributeGrid {
         }
 
         // get the union of grid1 and grid2
-        Union u = new Union(grid1, 0, 0, 0, 0);
+        UnionOp u = new UnionOp(grid1, 0, 0, 0, 0);
         Grid unionGrid = u.execute(grid2);
 
         assertEquals(size2, unionGrid.getWidth());
@@ -109,7 +109,7 @@ public class TestUnion extends BaseTestAttributeGrid {
         }
 
         // get the union of grid1 and grid2
-        Union u = new Union(grid1, 0, 0, 0, 0);
+        UnionOp u = new UnionOp(grid1, 0, 0, 0, 0);
         AttributeGrid unionGrid = u.execute(grid2);
 
         assertEquals(size2, unionGrid.getWidth());
@@ -171,7 +171,7 @@ public class TestUnion extends BaseTestAttributeGrid {
         }
 
         // get the union of grid1 and grid2
-        Union u = new Union(grid1, 0, 0, 0, 0);
+        UnionOp u = new UnionOp(grid1, 0, 0, 0, 0);
         AttributeGrid unionGrid = u.execute(grid2);
 
         assertEquals(size2, unionGrid.getWidth());
@@ -231,7 +231,7 @@ public class TestUnion extends BaseTestAttributeGrid {
         }
 
         // get the union of grid1 and grid2
-        Union u = new Union(grid1, 0, 0, 0, 0);
+        UnionOp u = new UnionOp(grid1, 0, 0, 0, 0);
         Grid unionGrid = u.execute(grid2);
 
         assertEquals(size2, unionGrid.getWidth());

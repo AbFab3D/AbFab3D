@@ -19,7 +19,7 @@ import abfab3d.grid.ArrayGridByte;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.Operation;
-import abfab3d.grid.op.SubtractMT;
+import abfab3d.grid.op.SubtractOpMT;
 import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SAVExporter;
@@ -88,10 +88,6 @@ public class BooleanOps {
         maxsize[1] *= 1.2;
         maxsize[2] *= 1.2;
 
-        double x = maxsize[0] / 2;
-        double y = maxsize[1] / 2;
-        double z = maxsize[2] / 2;
-
         Grid grid = getGrid(maxsize[0], maxsize[1], maxsize[2], RESOLUTION, RESOLUTION, maxRamUsage);
 
         System.out.println("Grid size: " + grid.getWidth() + " " + grid.getHeight() + " " + grid.getDepth());
@@ -155,7 +151,7 @@ public class BooleanOps {
         start = System.currentTimeMillis();
 
 
-        Operation op = new SubtractMT(grid2,threads);
+        Operation op = new SubtractOpMT(grid2,threads);
 
 //        Operation op = new Union(grid2, 0, 0, 0, 1);
         grid = op.execute(grid);
@@ -178,7 +174,7 @@ public class BooleanOps {
         System.out.println("Generated Cylinder2: " + (System.currentTimeMillis() - start) + " ms");
         start = System.currentTimeMillis();
 
-        op = new SubtractMT(grid2,threads);
+        op = new SubtractOpMT(grid2,threads);
 //        op = new Union(grid2, 0, 0, 0, 1);
         grid = op.execute(grid);
         System.out.println("Subtract Cylinder2: " + (System.currentTimeMillis() - start) + " ms");
@@ -198,7 +194,7 @@ public class BooleanOps {
         System.out.println("Generated Cylinder3: " + (System.currentTimeMillis() - start) + " ms");
         start = System.currentTimeMillis();
 
-        op = new SubtractMT(grid2,threads);
+        op = new SubtractOpMT(grid2,threads);
 //        op = new Union(grid2, 0, 0, 0, 1);
         grid = op.execute(grid);
         System.out.println("Subtract Cylinder2: " + (System.currentTimeMillis() - start) + " ms");

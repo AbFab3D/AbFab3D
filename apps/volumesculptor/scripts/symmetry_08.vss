@@ -1,7 +1,3 @@
-importPackage(Packages.abfab3d.grid);
-importPackage(Packages.abfab3d.datasources);
-importPackage(Packages.abfab3d.transforms);
-
 function makePart(size, thickeness){
 
   var union = new Union();

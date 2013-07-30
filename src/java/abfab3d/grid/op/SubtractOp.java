@@ -32,7 +32,7 @@ import static abfab3d.util.Output.time;
  *
  * @author Alan Hudson
  */
-public class Subtract implements Operation, ClassTraverser {
+public class SubtractOp implements Operation, ClassTraverser {
     /** The grid used for subtraction */
     private Grid src;
 
@@ -52,7 +52,7 @@ public class Subtract implements Operation, ClassTraverser {
     private long material;
 
 
-    public Subtract(Grid src, double x, double y, double z, long material) {
+    public SubtractOp(Grid src, double x, double y, double z, long material) {
         this.src = src;
         this.x = x;
         this.y = y;

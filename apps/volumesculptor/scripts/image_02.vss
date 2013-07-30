@@ -1,7 +1,3 @@
-importPackage(Packages.abfab3d.grid);
-importPackage(Packages.abfab3d.datasources);
-importPackage(Packages.abfab3d.transforms);
-
 var voxelSize = 0.1*MM;
 
 function makePart(path, size, thickness){

@@ -1,6 +1,3 @@
-importPackage(Packages.abfab3d.grid);
-importPackage(Packages.abfab3d.datasources);
-
 function cross3D(size, thickness){
 
   var union = new Union();

@@ -71,9 +71,10 @@ public class Main {
         scriptImports = new ArrayList<String>();
 
         //scriptImports.add("abfab3d.grid.op");
-        scriptImports.add("abfab3d.grid");
+        //scriptImports.add("abfab3d.grid");
         scriptImports.add("abfab3d.datasources");
-
+        scriptImports.add("abfab3d.transforms");
+        scriptImports.add("javax.vecmath");
     }
 
 
@@ -207,7 +208,7 @@ public class Main {
     /**
      * Execute the given arguments, but don't System.exit at the end.
      */
-    public static TriangleMesh execMesh(String origArgs[], String[] files, String[] params) {
+    public static ExecResult execMesh(String origArgs[], String[] files, String[] params) {
     	fileList = new ArrayList<String>();
     	
         System.out.println("Execute mesh.  args: ");
@@ -216,7 +217,8 @@ public class Main {
         }
 
         errorReporter = new ToolErrorReporter(false, global.getErr());
-        shellContextFactory.setErrorReporter(errorReporter);
+        ErrorReporterWrapper errors = new ErrorReporterWrapper(errorReporter);
+        shellContextFactory.setErrorReporter(errors);
         String[] args = processOptions(origArgs);
         if (processStdin) {
             fileList.add(null);
@@ -232,7 +234,15 @@ public class Main {
 
         shellContextFactory.call(iproxy);
 
-        return iproxy.getMesh();
+
+        StringBuilder bldr = new StringBuilder();
+        for(JsError error : errors.getErrors()) {
+            bldr.append(error.toString());
+            bldr.append("\n");
+        }
+
+        System.out.println("Errors: " + bldr.toString());
+        return new ExecResult(iproxy.getMesh(),bldr.toString(),"");
     }
 
     static TriangleMesh processFile(Context cx, String[] args, String[] files, String[] params, boolean show) {
@@ -681,10 +691,8 @@ public class Main {
                     }
                 }
 
-                System.out.println("Not importing classes");
-                // TODO: removing default imports to test
-                //strSrc = addImports(strSrc);
-                System.out.println("Compiling: " + strSrc);
+                strSrc = addImports(strSrc);
+                System.out.println("Compiling: \n" + strSrc);
                 script = cx.compileString(strSrc, path, 1, securityDomain);
             }
             //scriptCache.put(key, digest, script);
