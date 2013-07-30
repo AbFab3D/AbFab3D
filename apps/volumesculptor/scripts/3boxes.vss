@@ -15,7 +15,7 @@ function main(args) {
   var size = args[0];
   var thickness = args[1];
   var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
-  var diff = new Subtraction(new Sphere(15*MM), cross3D(size*MM, thickness*MM));
+  var diff = new Subtraction(new Sphere(15*MM), cross3D(size, thickness));
       
   maker.setSource(diff);
   maker.makeGrid(grid);

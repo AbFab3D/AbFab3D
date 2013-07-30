@@ -75,6 +75,7 @@ public class Main {
         //scriptImports.add("abfab3d.grid");
         scriptImports.add("abfab3d.datasources");
         scriptImports.add("abfab3d.transforms");
+        scriptImports.add("abfab3d.grid.op");
         scriptImports.add("javax.vecmath");
     }
 
