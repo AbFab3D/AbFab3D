@@ -55,7 +55,6 @@ public class VolumeSculptorKernel extends HostedKernel {
     private static final int NUM_FILES = 10;
     private static final int NUM_PARAMS = 10;
 
-    private static final boolean USE_MIP_MAPPING = false;
     private static final boolean USE_FAST_MATH = true;
 
     static final int
@@ -67,19 +66,7 @@ public class VolumeSculptorKernel extends HostedKernel {
      * Debugging level.  0-5.  0 is none
      */
     private static final int DEBUG_LEVEL = 0;
-    static final double MM = 0.001; // millmeters to meters
 
-
-    // large enough font size to be used to render text 
-    static final int DEFAULT_FONT_SIZE = 50;
-    // point size unit 
-    static final double POINT_SIZE = 25.4 * MM / 72;
-    static final double TEXT_RENDERING_PIXEL_SIZE = 25.4 * MM / 600; // 600 dpi 
-    int MINIMAL_TEXT_OFFSET = 10; // minimal border around engraved text 
-
-    enum EdgeStyle {NONE, TOP, BOTTOM, BOTH}
-
-    ;
 
     // High = print resolution.  Medium = print * 2, LOW = print * 4
     enum PreviewQuality {
@@ -111,13 +98,8 @@ public class VolumeSculptorKernel extends HostedKernel {
      */
     private double resolution;
     private PreviewQuality previewQuality;
-    private int smoothSteps;
-    private double smoothingWidth;
-    private double maxDecimationError;
 
     private int threadCount;
-
-    private String material;
 
     /**
      * How many regions to keep
@@ -255,10 +237,18 @@ public class VolumeSculptorKernel extends HostedKernel {
         System.out.println("Loading script2: " + script);
 
         String[] args = new String[] {temp.toString() };
+        String[] script_args = new String[files.length + this.params.length];
+        int idx = 0;
+        for(int i=0; i < this.params.length; i++) {
+            script_args[idx++] = this.params[i];
+        }
+        for(int i=0; i < this.files.length; i++) {
+            script_args[idx++] = this.files[i];
+        }
 
         System.out.println("Files: " + files + " params: " + this.params);
 
-        ExecResult result = Main.execMesh(args, files,this.params);
+        ExecResult result = Main.execMesh(args, script_args);
         TriangleMesh mesh = result.getMesh();
 
         // Script compile error
@@ -358,15 +348,6 @@ public class VolumeSculptorKernel extends HostedKernel {
             pname = "previewQuality";
             previewQuality = PreviewQuality.valueOf((String) params.get(pname));
 
-            pname = "maxDecimationError";
-            maxDecimationError = ((Double) params.get(pname)).doubleValue();
-
-            pname = "material";
-            material = ((String) params.get(pname));
-
-            pname = "smoothingWidth";
-            smoothingWidth = ((Number) params.get(pname)).doubleValue();
-
             pname = "threads";
             threadCount = ((Integer) params.get(pname)).intValue();
 
@@ -382,23 +363,6 @@ public class VolumeSculptorKernel extends HostedKernel {
     }
 
 
-    private void writeDebug(Grid grid, BinaryContentHandler handler, ErrorReporter console) {
-        // Output File
-
-        BoxesX3DExporter exporter = new BoxesX3DExporter(handler, console, true);
-
-        HashMap<Integer, float[]> colors = new HashMap<Integer, float[]>();
-        colors.put(new Integer(Grid.INSIDE), new float[]{1, 0, 0});
-        colors.put(new Integer(Grid.OUTSIDE), new float[]{0, 0, 1});
-
-        HashMap<Integer, Float> transparency = new HashMap<Integer, Float>();
-        transparency.put(new Integer(Grid.INSIDE), new Float(0));
-        transparency.put(new Integer(Grid.OUTSIDE), new Float(0.98));
-
-        exporter.writeDebug(grid, colors, transparency);
-        exporter.close();
-    }
-
     public static <T extends Enum<T>> String[] enumToStringArray(T[] values) {
         int i = 0;
         String[] result = new String[values.length];
@@ -406,42 +370,5 @@ public class VolumeSculptorKernel extends HostedKernel {
             result[i++] = value.name();
         }
         return result;
-    }
-
-    public static void main(String[] args) {
-        HashMap<String, String> params = new HashMap<String, String>();
-
-        int LOOPS = 1;
-
-        for (int i = 0; i < LOOPS; i++) {
-            HostedKernel kernel = new VolumeSculptorKernel();
-
-            System.out.println("***High Resolution");
-            params.put("resolution", "0.00002");
-            params.put("text", "");
-            params.put("previewQuality", "HIGH");
-            params.put("threads", "4");
-
-            Map<String, Object> parsed_params = ParameterUtil.parseParams(kernel.getParams(), params);
-
-            try {
-                FileOutputStream fos = new FileOutputStream("/tmp/thread" + Thread.currentThread().getName() + ".x3d");
-                BufferedOutputStream bos = new BufferedOutputStream(fos);
-                PlainTextErrorReporter console = new PlainTextErrorReporter();
-
-                BinaryContentHandler writer = new X3DXMLRetainedExporter(bos, 3, 2, console);
-                writer.startDocument("", "", "utf8", "#X3D", "V3.2", "");
-                writer.profileDecl("Immersive");
-
-
-                kernel.generate(parsed_params, GeometryKernel.Accuracy.VISUAL, writer);
-
-                writer.endDocument();
-                bos.close();
-                fos.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

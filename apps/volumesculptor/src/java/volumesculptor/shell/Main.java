@@ -67,6 +67,7 @@ public class Main {
         packageWhitelist = new ArrayList();
         packageWhitelist.add("abfab3d.");
         packageWhitelist.add("javax.vecmath");
+        packageWhitelist.add("java.lang");
 
         scriptImports = new ArrayList<String>();
 
@@ -89,7 +90,7 @@ public class Main {
 
         private int type;
         String[] args;
-        String[] files;
+        String[] script_args;
         String[] params;
         private boolean show;
         String scriptText;
@@ -104,9 +105,9 @@ public class Main {
                 require = global.installRequire(cx, modulePath, sandboxed);
             }
             if (type == PROCESS_FILES) {
-                mesh = processFile(cx, args, files, params,show);
+                mesh = processFile(cx, args, script_args,show);
             } else if (type == EVAL_INLINE_SCRIPT) {
-                mesh = evalInlineScript(cx, scriptText, files, params, show);
+                mesh = evalInlineScript(cx, scriptText, script_args, show);
             } else {
                 throw Kit.codeBug();
             }
@@ -195,8 +196,7 @@ public class Main {
         params = param_list.toArray(params);
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = new String[0];
-        iproxy.files = files;
-        iproxy.params = params;
+        iproxy.script_args = args;
         iproxy.show = true;
 
         System.out.println("Show:" + iproxy.show);
@@ -208,7 +208,7 @@ public class Main {
     /**
      * Execute the given arguments, but don't System.exit at the end.
      */
-    public static ExecResult execMesh(String origArgs[], String[] files, String[] params) {
+    public static ExecResult execMesh(String origArgs[], String[] scriptArgs) {
     	fileList = new ArrayList<String>();
     	
         System.out.println("Execute mesh.  args: ");
@@ -228,8 +228,7 @@ public class Main {
         }
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = args;
-        iproxy.files = files;
-        iproxy.params = params;
+        iproxy.script_args = scriptArgs;
         iproxy.show = false;
 
         shellContextFactory.call(iproxy);
@@ -245,7 +244,7 @@ public class Main {
         return new ExecResult(iproxy.getMesh(),bldr.toString(),"");
     }
 
-    static TriangleMesh processFile(Context cx, String[] args, String[] files, String[] params, boolean show) {
+    static TriangleMesh processFile(Context cx, String[] args, String[] scriptArgs, boolean show) {
         // define "arguments" array in the top-level object:
         // need to allocate new array since newArray requires instances
         // of exactly Object[], not ObjectSubclass[]
@@ -257,7 +256,7 @@ public class Main {
 
         for (String file : fileList) {
             try {
-                return processSource(cx, file, files, params, show);
+                return processSource(cx, file, scriptArgs, show);
             } catch (IOException ioex) {
                 Context.reportError(ToolErrorReporter.getMessage(
                         "msg.couldnt.read.source", file, ioex.getMessage()));
@@ -279,12 +278,12 @@ public class Main {
         return null;
     }
 
-    static TriangleMesh evalInlineScript(Context cx, String scriptText, String[] files, String[] params, boolean show) {
+    static TriangleMesh evalInlineScript(Context cx, String scriptText, String[] args, boolean show) {
         try {
             Script script = cx.compileString(scriptText, "<command>", 1, null);
             if (script != null) {
                 script.exec(cx, getShellScope());
-                return executeMain(cx, getShellScope(), show, files, params);
+                return executeMain(cx, getShellScope(), show, args);
             }
         } catch (RhinoException rex) {
             ToolErrorReporter.reportException(
@@ -533,7 +532,7 @@ public class Main {
      * @throws IOException    if the source could not be read
      * @throws RhinoException thrown during evaluation of source
      */
-    public static TriangleMesh processSource(Context cx, String filename, String[] files, String[] params, boolean show)
+    public static TriangleMesh processSource(Context cx, String filename, String[] args, boolean show)
             throws IOException {
         if (filename == null || filename.equals("-")) {
             Scriptable scope = getShellScope();
@@ -600,7 +599,7 @@ public class Main {
                         }
                         NativeArray h = global.history;
                         h.put((int) h.getLength(), h, source);
-                        return executeMain(cx, scope, show, files, params);
+                        return executeMain(cx, scope, show, args);
                     }
                 } catch (RhinoException rex) {
                     ToolErrorReporter.reportException(
@@ -619,15 +618,15 @@ public class Main {
         } else if (useRequire && filename.equals(mainModule)) {
             require.requireMain(cx, filename);
         } else {
-            return processFile(cx, getScope(filename), filename, files, params, show);
+            return processFile(cx, getScope(filename), filename, args, show);
         }
 
         return null;
     }
 
-    public static TriangleMesh processFileNoThrow(Context cx, Scriptable scope, String filename, String[] files, String[] params, boolean show) {
+    public static TriangleMesh processFileNoThrow(Context cx, Scriptable scope, String filename, String[] args, boolean show) {
         try {
-            return processFile(cx, scope, filename, files, params, show);
+            return processFile(cx, scope, filename, args, show);
         } catch (IOException ioex) {
             Context.reportError(ToolErrorReporter.getMessage(
                     "msg.couldnt.read.source", filename, ioex.getMessage()));
@@ -648,17 +647,17 @@ public class Main {
         return null;
     }
 
-    public static TriangleMesh processFile(Context cx, Scriptable scope, String filename, String[] files, String[] params, boolean show)
+    public static TriangleMesh processFile(Context cx, Scriptable scope, String filename, String[] args, boolean show)
             throws IOException {
         if (securityImpl == null) {
-            return processFileSecure(cx, scope, filename, null, files, params, show);
+            return processFileSecure(cx, scope, filename, null, args, show);
         } else {
-            return securityImpl.callProcessFileSecure(cx, scope, filename, files, params, show);
+            return securityImpl.callProcessFileSecure(cx, scope, filename, args, show);
         }
     }
 
     static TriangleMesh processFileSecure(Context cx, Scriptable scope,
-                                          String path, Object securityDomain, String[] files, String[] params, boolean show)
+                                          String path, Object securityDomain, String[] args, boolean show)
             throws IOException {
 
         boolean isClass = path.endsWith(".class");
@@ -703,7 +702,7 @@ public class Main {
         if (script != null) {
             script.exec(cx, scope);
 
-            return executeMain(cx, scope, show, files, params);
+            return executeMain(cx, scope, show, args);
         }
 
         return null;
@@ -733,9 +732,10 @@ public class Main {
      * @param cx
      * @param scope
      */
-    private static TriangleMesh executeMain(Context cx, Scriptable scope, boolean show, String[] files, String[] params) {
+    private static TriangleMesh executeMain(Context cx, Scriptable scope, boolean show, String[] args) {
 
         System.out.println("ExecMain.  show: " + show);
+
         cx.setClassShutter(new ClassShutter() {
 
             // Only allow AbFab3D classes to be created from scripts.
@@ -761,19 +761,9 @@ public class Main {
         }
         Function main = (Function) o;
 
-        Object[] func_args = new Object[files.length + params.length];
-        int idx = 0;
-        for(int i=0; i < files.length; i++) {
-            func_args[idx++] = files[i];
-        }
-        for(int i=0; i < params.length; i++) {
-            func_args[idx++] = params[i];
-        }
+        System.out.println("Func Args: " + java.util.Arrays.toString(args));
 
-
-        System.out.println("Func Args: " + java.util.Arrays.toString(func_args));
-
-        Object result = main.call(cx, scope, scope, func_args);
+        Object result = main.call(cx, scope, scope, new Object[] {args});
 
         Grid grid = null;
         if (result instanceof Grid) {

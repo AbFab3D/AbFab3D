@@ -11,7 +11,8 @@ function makePart(path, width, height, thickness){
   return img;  
 }
 
-function main(image) {
+function main(args) {
+    var image = args[0];
 	var a = 32*MM;
 	
 	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);

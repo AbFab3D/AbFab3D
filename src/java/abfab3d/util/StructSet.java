@@ -156,7 +156,7 @@ public class StructSet {
         int oldCapacity = oldTable.length;
 
         int newCapacity = oldCapacity * 2;
-        System.out.println("*****Rehashing StructSet: " + newCapacity);
+        //System.out.println("*****Rehashing StructSet: " + newCapacity);
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);
 

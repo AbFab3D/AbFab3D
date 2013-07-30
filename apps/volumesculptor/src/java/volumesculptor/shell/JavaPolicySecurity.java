@@ -113,7 +113,7 @@ public class JavaPolicySecurity extends SecurityProxy
     @Override
     protected TriangleMesh callProcessFileSecure(final Context cx,
                                          final Scriptable scope,
-                                         final String filename, final String[] files, final String[] params, final boolean show)
+                                         final String filename, final String[] args, final boolean show)
     {
         return (TriangleMesh) AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
@@ -121,7 +121,7 @@ public class JavaPolicySecurity extends SecurityProxy
                 ProtectionDomain staticDomain = getUrlDomain(url);
                 try {
                     return Main.processFileSecure(cx, scope, url.toExternalForm(),
-                                           staticDomain, files, params, show);
+                                           staticDomain, args, show);
                 } catch (IOException ioex) {
                     throw new RuntimeException(ioex);
                 }

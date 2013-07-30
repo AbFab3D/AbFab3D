@@ -11,10 +11,11 @@ function cross3D(size, thickeness){
   return union;
 }
 
-function main() {
-
-  var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);
-  var diff = new Subtraction(new Sphere(15*MM), cross3D(40*MM, 10*MM));
+function main(args) {
+  var size = args[0];
+  var thickness = args[1];
+  var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
+  var diff = new Subtraction(new Sphere(15*MM), cross3D(size*MM, thickness*MM));
       
   maker.setSource(diff);
   maker.makeGrid(grid);

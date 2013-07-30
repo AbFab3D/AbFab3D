@@ -1,4 +1,5 @@
-function main(radius) {
+function main(args) {
+	var radius = args[0];
 	var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,.1*MM);
 	var sphere = new Sphere(radius);
 	maker.setSource(sphere);

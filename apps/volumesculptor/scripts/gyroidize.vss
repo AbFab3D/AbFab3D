@@ -1,5 +1,5 @@
-function main(baseFile) {
-
+function main(args) {
+	var baseFile = args[0];
 	var grid = load(baseFile,0.075*MM);
 	var intersect = new Intersection();
 	intersect.add(new DataSourceGrid(grid, 255));

@@ -194,7 +194,7 @@ public class StructMap {
         int oldCapacity = oldTable.length;
 
         int newCapacity = oldCapacity * 2;
-        printf("*****Rehashing StructMap: new Capacity: %d   orig Capacity: %d  this: %s\n",newCapacity, origCapacity,this.toString());
+        //printf("*****Rehashing StructMap: new Capacity: %d   orig Capacity: %d  this: %s\n",newCapacity, origCapacity,this.toString());
 
         int[] newTable = new int[newCapacity];
         Arrays.fill(newTable,-1);
