@@ -253,10 +253,9 @@ public class AbFab3DGlobal  {
 
 
         try {
-            File f = File.createTempFile("save","x3d");
             String path = "/tmp";
             String name = "save.x3d";
-            String out = f.toString();
+            String out = path + "/" + name  ;
             double[] bounds_min = new double[3];
             double[] bounds_max = new double[3];
 
