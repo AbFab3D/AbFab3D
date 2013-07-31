@@ -12,6 +12,8 @@ function cross3D(size, thickeness){
 }
 
 function main(args) {
+  print("args: " + args);
+  print("args.length: " + args.length);
   var size = args[0];
   var thickness = args[1];
   var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
