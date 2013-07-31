@@ -42,6 +42,7 @@ function main(){
 	
 	var part = makeRing(15, 12*MM, 10.5*MM);
 	
+    var maker = new GridMaker();
 	maker.setSource(part);
 	maker.makeGrid(dest);
 		

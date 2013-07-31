@@ -21,6 +21,7 @@ function main(args) {
 	var height = 60*MM;
 	
 	var img = makePart(image, width, height, th);	
+    var maker = new GridMaker();
 	maker.setSource(img);
 	
 	maker.makeGrid(dest);

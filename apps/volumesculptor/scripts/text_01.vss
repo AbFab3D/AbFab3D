@@ -16,6 +16,7 @@ function main(){
 	var inter = new Intersection(text, gyroid);
 	var union = new Union(inter, new Box(0,0,-depth/2 + baseDepth/2, width, height, baseDepth));
 	
+    var maker = new GridMaker();
 	maker.setSource(union);
 	
 	maker.makeGrid(dest);

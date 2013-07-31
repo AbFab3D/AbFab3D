@@ -22,6 +22,7 @@ function main(){
 	union.add(new Sphere(0.4*a));
 	union.add(cross3D(a*0.99, a*0.15));
 				
+    var maker = new GridMaker();
 	maker.setSource(union);
 	maker.makeGrid(dest);
 	return dest;

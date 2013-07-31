@@ -26,6 +26,7 @@ function main(){
 	
 	part.add(img);
 	
+    var maker = new GridMaker();
 	maker.setSource(part);
 	
 	maker.makeGrid(dest);

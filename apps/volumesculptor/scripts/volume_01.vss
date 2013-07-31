@@ -15,7 +15,8 @@ function main(){
 	var sym = new WallpaperSymmetry(WallpaperSymmetry.WP_S333, 16*MM, 16*MM);
 	sym.setMaxCount(20);
 	dt.setTransform(sym);
-	maker.setSource(dt);	
+    var maker = new GridMaker();
+	maker.setSource(dt);
 	
 	
 	maker.makeGrid(dest);

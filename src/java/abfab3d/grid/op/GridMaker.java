@@ -60,7 +60,7 @@ public class GridMaker implements Operation, AttributeOperation {
 
     AttributeGrid m_grid; 
     int m_nx, m_ny, m_nz;
-    int gridMaxAttributeValue = 0;
+    int gridMaxAttributeValue = 255;
     // this is width of transitional layer neatr surfgace of the object.
     // data sources are supposed to return transitional value inside of that layer
     double voxelSize = 0;
@@ -176,7 +176,11 @@ public class GridMaker implements Operation, AttributeOperation {
         }
 
         //printf("data initialization %d ms\n", (time() - t0));
-        
+
+        if (m_threadCount == 0) {
+            m_threadCount = Runtime.getRuntime().availableProcessors();
+        }
+
         t0 = time();
         if(m_threadCount > 0)
             makeGridMT();

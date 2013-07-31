@@ -35,7 +35,8 @@ function main(){
 	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
 	
 	var part = makePart(10*MM, 5*MM, 2*MM, 1*MM, 2*MM, 2*MM);	
-	maker.setSource(part);	
+    var maker = new GridMaker();
+	maker.setSource(part);
 	maker.makeGrid(dest);
 	return dest;
 	

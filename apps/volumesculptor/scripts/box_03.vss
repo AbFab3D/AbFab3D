@@ -19,6 +19,7 @@ function main(){
 	
 	var diff = new Subtraction(cross3D(a*0.2, a*0.95), cross3D(a*0.99, a*0.15));
 		
+    var maker = new GridMaker();
 	maker.setSource(diff);
 	maker.makeGrid(dest);
 	return dest;

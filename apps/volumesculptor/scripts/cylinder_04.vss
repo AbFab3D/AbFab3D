@@ -43,7 +43,8 @@ function main(){
 	union.add(part1);
 	union.add(part2);
 	
-	maker.setSource(union);	
+    var maker = new GridMaker();
+	maker.setSource(union);
 	
 	maker.makeGrid(dest);
 	return dest;

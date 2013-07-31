@@ -68,7 +68,6 @@ public class AbFab3DGlobal  {
     public AbFab3DGlobal() {
         WorldWrapper ww = new WorldWrapper();
         World world = ww.getWorld();
-        globals.put("maker", world.getMaker());
         globals.put("MM", Units.MM);
         globals.put("CM", Units.CM);
         globals.put("IN", Units.IN);
@@ -207,23 +206,29 @@ public class AbFab3DGlobal  {
         System.out.println("Saving world: " + grid + " to triangles");
 
         Object smoothing_width = thisObj.get(SMOOTHING_WIDTH_VAR, thisObj);
+        double sw;
+        double ef;
 
         if (smoothing_width instanceof Number) {
-            smoothingWidth = ((Number)smoothing_width).doubleValue();
+            sw = ((Number)smoothing_width).doubleValue();
+        } else {
+            sw = smoothingWidth;
         }
 
         Object error_factor = thisObj.get(ERROR_FACTOR_VAR, thisObj);
 
         if (smoothing_width instanceof Number) {
-            errorFactor = ((Number)error_factor).doubleValue();
+            ef = ((Number)error_factor).doubleValue();
+        } else {
+            ef = errorFactor;
         }
 
-        double maxDecimationError = errorFactor * vs * vs;
+        double maxDecimationError = ef * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
         meshmaker.setBlockSize(blockSize);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
-        meshmaker.setSmoothingWidth(smoothingWidth);
+        meshmaker.setSmoothingWidth(sw);
         meshmaker.setMaxDecimationError(maxDecimationError);
         meshmaker.setMaxDecimationCount(maxDecimationCount);
         meshmaker.setMaxAttributeValue(maxAttribute);

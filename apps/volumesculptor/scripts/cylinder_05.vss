@@ -35,7 +35,8 @@ function main(){
 	}	
 	union.setTransform(new Translation(-5*MM, 0,0));
 	
-	maker.setSource(union);	
+    var maker = new GridMaker();
+	maker.setSource(union);
 	
 	maker.makeGrid(dest);
 	return dest;
