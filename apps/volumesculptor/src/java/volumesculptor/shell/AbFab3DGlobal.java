@@ -25,6 +25,7 @@ import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 import static abfab3d.util.Units.MM;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,6 +37,9 @@ import java.util.Map;
  * @author Alan Hudson
  */
 public class AbFab3DGlobal  {
+    public static final int MAX_GRID_SIZE = 2000;
+    public static final int MAX_TRIANGLE_SIZE = 3000000;
+
     private static final String SMOOTHING_WIDTH_VAR = "meshSmoothingWidth";
     private static final String ERROR_FACTOR_VAR = "meshErrorFactor";
 
@@ -237,22 +241,32 @@ public class AbFab3DGlobal  {
         meshmaker.makeMesh(grid, its);
 
         System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+
+        System.out.println("Bigger then max?" + (its.getFaceCount() > MAX_TRIANGLE_SIZE));
+        if (its.getFaceCount() > MAX_TRIANGLE_SIZE) {
+            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
+            throw Context.reportRuntimeError(
+                    "Maximum triangle count exceeded.  Max is: " + MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+        }
+
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
-        String path = "/tmp";
-        String name = "save.x3d";
-        String out = path + "/" + name  ;
-        double[] bounds_min = new double[3];
-        double[] bounds_max = new double[3];
-
-        grid.getGridBounds(bounds_min,bounds_max);
-        double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
-        max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
-
-        double z = 2 * max_axis / Math.tan(Math.PI / 4);
-        float[] pos = new float[] {0,0,(float) z};
 
         try {
+            File f = File.createTempFile("save","x3d");
+            String path = "/tmp";
+            String name = "save.x3d";
+            String out = f.toString();
+            double[] bounds_min = new double[3];
+            double[] bounds_max = new double[3];
+
+            grid.getGridBounds(bounds_min,bounds_max);
+            double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+            max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+
+            double z = 2 * max_axis / Math.tan(Math.PI / 4);
+            float[] pos = new float[] {0,0,(float) z};
+
             GridSaver.writeMesh(mesh, out);
             X3DViewer.viewX3DOM(name, pos);
         } catch(IOException ioe) {
@@ -408,6 +422,14 @@ public class AbFab3DGlobal  {
         AttributeGrid dest = null;
 
         long voxels = (long) gs[0] * gs[1] * gs[2];
+        long max_voxels = (long) MAX_GRID_SIZE * MAX_GRID_SIZE * MAX_GRID_SIZE;
+
+        if (voxels > max_voxels) {
+            System.out.println("Maximum voxel size exceeded.  Max is: " + MAX_GRID_SIZE + " grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+            throw Context.reportRuntimeError(
+                    "Maximum voxel size exceeded.  Max is: " + MAX_GRID_SIZE + " grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+        }
+
         long MAX_MEMORY = Integer.MAX_VALUE;
         if (voxels > MAX_MEMORY) {
             dest = new GridShortIntervals(gs[0], gs[1], gs[2], vs, vs);

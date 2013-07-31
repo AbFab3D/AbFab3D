@@ -811,6 +811,13 @@ public class Main {
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
+        System.out.println("Bigger then max?" + (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE));
+        if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
+            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
+            throw Context.reportRuntimeError(
+                    "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+        }
+
         System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
