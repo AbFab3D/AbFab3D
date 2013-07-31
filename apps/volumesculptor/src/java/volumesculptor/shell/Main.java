@@ -263,6 +263,11 @@ public class Main {
                         "msg.couldnt.read.source", file, ioex.getMessage()));
                 exitCode = EXITCODE_FILE_NOT_FOUND;
             } catch (RhinoException rex) {
+                if (rex instanceof WrappedException) {
+                    System.out.println("Wrapped exception:");
+                    Throwable we = ((WrappedException)rex).getWrappedException();
+                    we.printStackTrace();
+                }
                 ToolErrorReporter.reportException(
                         cx.getErrorReporter(), rex);
                 exitCode = EXITCODE_RUNTIME_ERROR;

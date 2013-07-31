@@ -127,7 +127,7 @@ public class AbFab3DGlobal  {
             AttributeGrid dest = null;
 
             if (grid == null) {
-                dest = new ArrayAttributeGridByte(nx,ny,nz, vs, vs);
+                dest = makeEmptyGrid(new int[] {nx,ny,nz},vs);
             } else {
                 dest = grid;
             }
@@ -397,10 +397,17 @@ public class AbFab3DGlobal  {
         grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
         int[] gs = MathUtil.getGridSize(grid_bounds, vs);
 
+        AttributeGrid dest = makeEmptyGrid(gs,vs);
+
+        System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs);
+        dest.setGridBounds(grid_bounds);
+        return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
+    }
+
+    private static AttributeGrid makeEmptyGrid(int[] gs, double vs) {
         AttributeGrid dest = null;
 
         long voxels = (long) gs[0] * gs[1] * gs[2];
-        System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs + " voxels: " + voxels);
         long MAX_MEMORY = Integer.MAX_VALUE;
         if (voxels > MAX_MEMORY) {
             dest = new GridShortIntervals(gs[0], gs[1], gs[2], vs, vs);
@@ -408,8 +415,7 @@ public class AbFab3DGlobal  {
             dest = new ArrayAttributeGridByte(gs[0], gs[1], gs[2], vs, vs);
         }
 
-        dest.setGridBounds(grid_bounds);
-        return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
+        return dest;
     }
 }
 
