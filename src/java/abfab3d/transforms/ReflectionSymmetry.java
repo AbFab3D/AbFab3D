@@ -55,6 +55,15 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
         this.group = group;
     }
 
+    /**
+       sets the reflection group via it's fundamental domain
+     */
+    public void setGroup(ReflectionGroup.SPlane fundamentalDomain[]){
+
+        this.group = new ReflectionGroup(fundamentalDomain);
+
+    }
+
     public void setMaxCount(int count){
         this.m_maxCount  = count;
     }
@@ -99,7 +108,27 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
         return res;
     }
 
-   
+    /**
+       convenience method 
+       returns half space defined by this plane. 
+       plane is defined by normal pointing to positive half space 
+       and distance along that normal
+       distance my be positive or negative 
+     */
+    public static ReflectionGroup.SPlane getPlane(Vector3d normal, double distance){
+        return new ReflectionGroup.Plane(normal, distance);
+    }
+
+    /**
+       convenience method 
+       returns spherical SPlane with given center. 
+       if radius > 0 - the inside of sphere is used 
+       if radius < 0 - the outside of sphere is used        
+       
+     */
+    public static ReflectionGroup.SPlane getSphere(Vector3d center, double radius){
+        return new ReflectionGroup.Plane(center, radius);
+    }
     
 } // class ReflectionSymmetry 
 
