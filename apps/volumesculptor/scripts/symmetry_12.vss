@@ -50,6 +50,7 @@ function main(){
 	
 	dt.setTransform(sym);
 	
+    var maker = new GridMaker();
 	maker.setSource(dt);
 	maker.makeGrid(dest);
 	

@@ -29,7 +29,8 @@ function main(){
 	dt.setSource(part1);
 	dt.setTransform(sym);	
 	
-	maker.setSource(dt);	
+    var maker = new GridMaker();
+	maker.setSource(dt);
 		
 	maker.makeGrid(dest);
 	return dest;

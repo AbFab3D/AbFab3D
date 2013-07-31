@@ -38,6 +38,7 @@ function main(){
 	dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
 	
 	var part = makeRing(7, 12*MM, 10.5*MM);
+    var maker = new GridMaker();
 	maker.setSource(part);
 	maker.makeGrid(dest);
 		

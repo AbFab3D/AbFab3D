@@ -263,6 +263,11 @@ public class Main {
                         "msg.couldnt.read.source", file, ioex.getMessage()));
                 exitCode = EXITCODE_FILE_NOT_FOUND;
             } catch (RhinoException rex) {
+                if (rex instanceof WrappedException) {
+                    System.out.println("Wrapped exception:");
+                    Throwable we = ((WrappedException)rex).getWrappedException();
+                    we.printStackTrace();
+                }
                 ToolErrorReporter.reportException(
                         cx.getErrorReporter(), rex);
                 exitCode = EXITCODE_RUNTIME_ERROR;
@@ -805,6 +810,13 @@ public class Main {
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
+
+        System.out.println("Bigger then max?" + (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE));
+        if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
+            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
+            throw Context.reportRuntimeError(
+                    "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+        }
 
         System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());

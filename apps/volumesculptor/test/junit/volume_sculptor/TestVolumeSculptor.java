@@ -47,6 +47,7 @@ public class TestVolumeSculptor extends TestCase {
                 "\tvar radius = args[0];" +
                 "\tvar grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,.1*MM);\n" +
                 "\tvar sphere = new Sphere(radius);\n" +
+                "\tvar maker = new GridMaker();\n" +
                 "\tmaker.setSource(sphere);\n" +
                 "\tmaker.makeGrid(grid);\n" +
                 "\t\n" +
@@ -86,6 +87,7 @@ public class TestVolumeSculptor extends TestCase {
                 "\tintersect.add(new DataSourceGrid(grid, 255));\n" +
                 "\tintersect.add(new VolumePatterns.Gyroid(10*MM, 1*MM));\n" +
                 "\n" +
+                "\tvar maker = new GridMaker();\n" +
                 "\tmaker.setSource(intersect);\n" +
                 "\n" +
                 "\tvar dest = createGrid(grid);\n" +
@@ -129,6 +131,7 @@ public class TestVolumeSculptor extends TestCase {
                 "\tintersect.add(new DataSourceGrid(grid, 255));\n" +
                 "\tintersect.add(new VolumePatterns.Gyroid(10*MM, 1*MM));\n" +
                 "\n" +
+                "\tvar maker = new GridMaker();\n" +
                 "\tmaker.setSource(intersect);\n" +
                 "\n" +
                 "\tvar dest = createGrid(grid);\n" +
@@ -167,6 +170,7 @@ public class TestVolumeSculptor extends TestCase {
                 "var f = new java.io.File(\"c:/tmp/foo.txt\");" +
                 "\tvar grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,.1*MM);\n" +
                 "\tvar sphere = new Sphere(radius);\n" +
+                "\tvar maker = new GridMaker();\n" +
                 "\tmaker.setSource(sphere);\n" +
                 "\tmaker.makeGrid(grid);\n" +
                 "\t\n" +

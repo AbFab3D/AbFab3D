@@ -39,6 +39,7 @@ function main(){
 	sym.setMaxCount(20);
 	dt.setTransform(sym);
 	
+    var maker = new GridMaker();
 	maker.setSource(dt);
 	maker.makeGrid(dest);
 	

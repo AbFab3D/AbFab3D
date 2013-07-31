@@ -17,6 +17,7 @@ function main(){
 	
 	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
 		
+    var maker = new GridMaker();
 	maker.setSource(cross3D(a*0.95, a*0.2));
 	maker.makeGrid(dest);
 	return dest;

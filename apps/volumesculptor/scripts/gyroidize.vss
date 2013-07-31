@@ -5,6 +5,7 @@ function main(args) {
 	intersect.add(new DataSourceGrid(grid, 255));
 	intersect.add(new VolumePatterns.Gyroid(10*MM, 1*MM));
 
+    var maker = new GridMaker();
 	maker.setSource(intersect);
 
 	var dest = createGrid(grid);
