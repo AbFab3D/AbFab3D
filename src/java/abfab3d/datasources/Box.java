@@ -80,10 +80,15 @@ public class Box extends TransformableDataSource {
         
         setLocation(x,y,z);
         setSize(sx, sy, sz);
-        
     }
-    
-    
+
+    /**
+     makes block with given center and size
+     */
+    public Box(double sx, double sy, double sz){
+        setSize(sx, sy, sz);
+    }
+
     public void setSmoothBoundaries(boolean boundaryX,boolean boundaryY,boolean boundaryZ){
         m_hasSmoothBoundaryX = boundaryX;
         m_hasSmoothBoundaryY = boundaryY;
