@@ -1,6 +1,145 @@
 <HTML>
+<head>
+    <TITLE>Volume Sculptor</TITLE>
+</head>
 <BODY>
 <H2>Volume Sculpting Overview</H2>
+The Volume Sculptor provides a powerful system for generating 3D printable objects.  The primary tool is called GridMaker and it
+takes a datasource and a transformation.  These can be chained together to create complex objects.
+
+<H3>Scripts</H3>
+The executed Javascript is expected to have a main method.  Any parameters or files you provide from the webpage will be
+passed into the main function as a single array called args.
+<pre>
+function main(args){
+    var radius = args[0] * MM;
+    var a = radius*1.1;
+    var voxelSize = 0.1*MM;
+
+    var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+
+    var maker = new GridMaker();
+    maker.setSource(new Sphere(radius));
+    maker.makeGrid(dest);
+
+    return dest;
+}
+</pre>
+<p>
+This example has one argument, the radius of the Sphere.  Click here to run this example.  <a href="SphereExample">TODO: Add link</a>
+</p>
+<p>
+A few key points.  You need to allocate the voxel Grid.  This is done with the <b>createGrid</b> function.  It takes a grid physical
+size in meters and a voxelSize.  The smaller the voxel size the more accurate the grid at the tradeoff of more processing time.  A voxel
+size of 0.1mm is usually sufficient.
+</p>
+<p>The next object we use is the GridMaker.  The GridMaker takes a data source and transformation set and evaluates those
+to voxels.  In this example we place the result of the evaluation into the Grid called dest.</p>
+<p>The final requirement of a script is that it returns a Grid.  This grid will be the result of the script and is visualized
+by the webpage.</p>
+
+<H2>Examples</H2>
+<h3>Boolean Operations</h3>
+<p>
+In this example we'll show a powerful modeling technique creating objects by using boolean algebra.  Many objects can be described
+by adding and subtracting primitive shapes from them.  In this example we create a cool doodad by subtracting a 3D cross from
+a sphere.  Try the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/index.html#Subtraction">TODO: Manual Run Subtraction for now</a>
+</p>
+<pre>
+function cross3D(size, thickeness){
+  var union = new Union();
+  var boxX = new Box(0,0,0,size,thickeness, thickeness);
+  var boxY = new Box(0,0,0,thickeness, size, thickeness);
+  var boxZ = new Box(0,0,0,thickeness, thickeness,size);
+  union.add(boxX);
+  union.add(boxY);
+  union.add(boxZ);
+  return union;
+}
+
+function main(args) {
+  var size = args[0];
+  var thickness = args[1];
+  var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
+  var diff = new Subtraction(new Sphere(15*MM), cross3D(size, thickness));
+  var maker = new GridMaker();
+  maker.setSource(diff);
+  maker.makeGrid(grid);
+  return grid;
+}
+</pre>
+<p>
+This script takes two parameters, the size of the cross and its thickness.  The 3D cross is created by unioning together
+3 boxes.  The boxes are aligned in the x,y and z planes.  The source for the grid is the Subtraction of a Sphere and the
+result of the cross3D function.
+</p>
+<h3>Image Popping</h3>
+<p>
+One of the nice features of using Voxel grids is the ability to use 2D raster image data.  In this example we'll take
+an image and turn it into a 3D object.  Here we use an ImageBitMap source and give it a physical size.  We'll place
+this object on both sides to create a mirror image.
+</p>
+<p>
+Notice we changed the voxelSize in this example from the typical .1mm default.  When dealing with greyscale images you'll
+likely want higher resolution to get smooth transitions between heights.
+</p>
+<p>
+    TODO:  Describe base thickness and bluring.
+</p>
+Run the example here: Try the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/index.html#ImagePopper">TODO: Manual Run Image for now</a>
+<pre>
+var voxelSize = 0.05*MM;
+
+function makePart(path, width, height, thickness){
+  var img = new ImageBitmap(path, width, height, thickness);
+  img.setBaseThickness(0.0);
+  img.setVoxelSize(voxelSize);
+  img.setBlurWidth(2*voxelSize);
+  img.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
+  return img;
+}
+
+function main(args) {
+  var image = args[0];
+  var x = 10*MM;
+  var y = 22*MM;
+  var z = 3*MM;
+  dest = createGrid(-x,x,-y,y,-z,z,voxelSize);
+  var th = 2*MM;
+  var width = 12*MM;
+  var height = 40*MM;
+  var img = makePart(image, width, height, th);
+  var maker = new GridMaker();
+  maker.setSource(img);
+  maker.makeGrid(dest);
+  return dest;
+}
+</pre>
+<H3>Web Example</H3>
+<p>
+The web example has several panels.  The top Inspiration panel changes the example shown.  When you click on an image
+the Editor panel will show the new source, the Parameters and Files panels will revert to the example defaults and the
+3D view will show the result of evaluating the script.
+</p>
+<p>
+If a script's main function references arguments then you'll need to provide values in the Parameters or Files section.  Click
+the Blue Plus buttons to add a value.  TODO:  Maybe name things in examples as radiusParam and imageFile to make it obvious?
+</p>
+<p>
+You can save a model to your local storage with the Save model button.  Currently this generates an X3D binary file.  You can
+view these files with <a href="http://www.instantreality.org/">Instant Reality</a>, <a href="http://www.bitmanagement.com/products/interactive-3d-clients/bs-contact">BS Contact</a> or </a><a href="http://www.netfabb.com/basic.php">NetFabb Studio Basic</a>
+</p>
+<p>
+The upload button will upload the model to Shapeways.  You'll be provided with a link to order the model.  Please be aware these
+are public models so anyone could order them as well.
+</p>
+<H3>Creating your own Creators</H3>
+The underlying engine for the web examples can be used in your own Javascript creator.  Once you have a script you like then we'd
+encourage you to make a user-interface that's more specific and easier to use.  Once you have the parameters ready then you
+can use a REST call to execute_pipeline that will generate the 3D model.  With this model you can easily use the rest of the
+Shapeways API to store the models, get pricing and add your own markup to the models.
+
+TODO:  Clean up HTML source and document the functions here.
 <H2>Reference Guide</H2>
 <H3>Data Sources</H3>
 <H4>Box</H4>
@@ -25,6 +164,11 @@ Do not use a Grid as a datasource and a destination grid at the same time.
 <h5>ImageBitMap(imagePath,sx,sy,sz)</h5>
 Take an image as a source.  The image will be the sx,sy,sz size in the voxel
 grid.  Can take png, jpeg either as black and white or greyscale images.  Greyscale images will act as heightmaps where 0 to no image and maxValue is full sized.
+
+Image placement can be specified via the setImagePlace function.  An image can be placed in the TOP, BOTTOM or BOTH positions.  In
+the TOP position the object grows upward from the starting point.  In the BOTTOM it grows downward.  The BOTH mode has it grow in
+both directions to create a mirror image.
+
 <H4>Intersection</H4>
 <H4>Ring</H4>
 <H4>Subtraction</H4>
@@ -33,7 +177,32 @@ grid.  Can take png, jpeg either as black and white or greyscale images.  Greysc
 <H3>Union</H3>
 <H3>VolumePatterns</H3>
 <H3>Transformations</H3>
+<h4>CompositeTransform</h4>
+Combines several transformations together.
+
+Use the add method to chain together several transformations.
+<h4>Rotation</h4>
+<h5>Rotation(axis, angle)</h5>
+Rotate around a Vector3d axis for angle radians(TODO: confirm radians).
+<h5>Rotation(axis, angle, center){</h5>
+
+<h4>Scale</h4>
+<h5>Scale(s)</h5>
+Set the uniform scale s in all the x,y,z axises
+<h5>Scale(sx,sy,sz)</h5>
+Set the individual scale per axis.
+
+<h4>Translation</h4>
+<h5>Translation(tx,ty,tz)</h5>
+Translate an object by x,y,z
+
+<h4>*Symmetry</h4>
+TODO: Have Vlad fill in these docs
 <H3>Javascript Functions</H3>
+<H4>createGrid</H4>
+Create a voxel grid
+
+<h5>Grid createGrid(sx,sy,sz,voxelSize)</h5>
 <H4>load</H4>
 Description: Load a 3D mesh into a grid.
 
@@ -45,7 +214,5 @@ Returns a grid from the 3D mesh.  Uses the specified voxelSize.
 Load a 3D mesh into the specified grid.  Uses the Grid's voxel size.  
 <p>
 Supported formats are STL(ASCII and BINARY).
-<H3>Creating your own Creators</H3>
-exec_pipeline example
 </BODY>
 </HTML>

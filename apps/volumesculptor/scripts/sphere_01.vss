@@ -1,14 +1,13 @@
-function main(){
-	var a = 25*MM;
-	var voxelSize = 0.2*MM;
-	
-	dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
-	
-	sphere = new Sphere(0,0,0,a*0.9);
-	
+function main(args){
+    var radius = args[0] * MM;
+    var a = radius*1.1;
+    var voxelSize = 0.1*MM;
+
+    var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+
     var maker = new GridMaker();
-	maker.setSource(sphere);
-	maker.makeGrid(dest);
-	return dest;
-	
+    maker.setSource(new Sphere(radius));
+    maker.makeGrid(dest);
+    
+    return dest;
 }
