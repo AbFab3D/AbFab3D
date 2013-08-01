@@ -4,28 +4,55 @@
     <title>Volume Sculptor - Reference</title>
 </head>
 <body>
-<H2>Volume Sculptor - Reference Guide</H2>
-<H3>Data Sources</H3>
-<H4>Box</H4>
-<h5>Box(x,y,z,sx,sy,sz)</h5>
+<H1>Volume Sculptor - Reference Guide</H1>
+<ul>
+<li><a href="#DataSources">1 Data Sources</a></li>
+   <ul>
+      <li><a href="#Box">Box</a></li>
+       <li><a href="#Cylinder">Cylinder</a></li>
+       <li><a href="#DataSourceGrid">DataSourceGrid</a></li>
+       <li><a href="#ImageBitMap">ImageBitMap</a></li>
+       <li><a href="#Intersection">Intersection</a></li>
+       <li><a href="#Ring">Ring</a></li>
+       <li><a href="#Sphere">Sphere</a></li>
+       <li><a href="#Subtraction">Subtraction</a></li>
+       <li><a href="#Text">Text</a></li>
+       <li><a href="#Torus">Torus</a></li>
+       <li><a href="#Union">Union</a></li>
+   </ul>
+<li><a href="#Transformations">2 Transformations</a></li>
+    <ul>
+        <li><a href="#CompositeTransform">CompositeTransform</a></li>
+        <li><a href="#Rotation">Rotation</a></li>
+        <li><a href="#Scale">Scale</a></li>
+        <li><a href="#Translation">Translation</a></li>
+    </ul>
+<li><a href="#Javascript Functions">3 Functions</a></li>
+    <ul>
+        <li><a href="#createGrid">createGrid</a></li>
+        <li><a href="#load">load</a></li>
+    </ul>
+    <li><a href="#Java Objects">4 Java Objects</a></li>
+    <ul>
+        <li><a href="#Math">Math</a></li>
+    </ul>
+</ul>
+<H2 id="DataSources">Data Sources</H2>
+<H3 id="Box">Box</H3>
+<h4>Box(sx,sy,sz)</h4>
+Create a box centered around 0,0,0 with face sizes of sx,sy,sz.
+<h4>Box(x,y,z,sx,sy,sz)</h4>
 Create a box centered around x,y,z with face sizes of sx,sy,sz.
-<H4>Cylinder</H4>
-<h5>Cylinder(v0,v1,r)</h5>
+<H3 id="Cylinder">Cylinder</H3>
+<h4>Cylinder(v0,v1,r)</h4>
 Create a cylinder from position v0 to v1.  Cylinder is of radius r.
-<H4>Sphere</H4>
-<h5>Sphere(c, r)</h5>
-Create a sphere centered around Vector3d c with radius r.
-<h5>Sphere(r)</h5>
-Create a sphere centered around 0,0,0 with radius r.
-<h5>Sphere(x,y,z,r)</h5>
-Create a sphere centered around x,y,z with radius r.
-<H4>DataSourceGrid</H4>
-<h5>DataSourceGrid(grid)</h5>
+<H3 id="DataSourceGrid">DataSourceGrid</H3>
+<h4>DataSourceGrid(grid)</h4>
 Use a Grid as a datasource.
 
 Do not use a Grid as a datasource and a destination grid at the same time.
-<H4>ImageBitMap</H4>
-<h5>ImageBitMap(imagePath,sx,sy,sz)</h5>
+<H3 id="ImageBitMap">ImageBitMap</H3>
+<h4>ImageBitMap(imagePath,sx,sy,sz)</h4>
 Take an image as a source.  The image will be the sx,sy,sz size in the voxel
 grid.  Can take png, jpeg either as black and white or greyscale images.  Greyscale images will act as heightmaps where 0 to no image and maxValue is full sized.
 
@@ -33,51 +60,163 @@ Image placement can be specified via the setImagePlace function.  An image can b
 the TOP position the object grows upward from the starting point.  In the BOTTOM it grows downward.  The BOTH mode has it grow in
 both directions to create a mirror image.
 
-<H4>Intersection</H4>
-<H4>Ring</H4>
-<H4>Subtraction</H4>
-<H3>Text</H3>
-<H3>Triangle</H3>
-<H3>Union</H3>
-<H3>VolumePatterns</H3>
-<H3>Transformations</H3>
-<h4>CompositeTransform</h4>
+Follow this link for an example<a href="http://volumesculptor.com/creators/volume_sculptor/?example=image" target="_blank">Image Example</a>
+<H3 id="Sphere">Sphere</H3>
+<h4>Sphere(c, r)</h4>
+Create a sphere centered around Vector3d c with radius r.
+<h4>Sphere(r)</h4>
+Create a sphere centered around 0,0,0 with radius r.
+<h4>Sphere(x,y,z,r)</h4>
+Create a sphere centered around x,y,z with radius r.
+
+<H3 id="Intersection">Intersection</H3>
+<h4>Intersection(ds1, ds2)</h4>
+Intersects the sources.  The result is any voxels which are shared between the data sources.
+add(DataSource)
+
+<H3 id="Ring">Ring</H3>
+<h4>Ring(innerRadius, thickness, ymin, ymax)</h4>
+Create a Ring in the XZ plane.
+<h4>Ring(innerRadius, thickness, width)</h4>
+Create a Ring in the XZ plane.
+
+<H3 id="Subtraction">Subtraction</H3>
+<h4>Subtraction(ds1,ds2)</h4>
+Subtracts ds2 from ds1.
+<H3 id="Text">Text</H3>
+<h4>Text(text,fontName,width,height,depth,voxelSize)</h4>
+Makes 3D text string with given font and dimensions.
+
+TODO:  fontName is dependant on system install.  Here is the list from our servers:
+<pre>
+Lucida Sans:style=Demibold Oblique
+Nimbus Sans L:style=Regular Italic
+Lucida Sans:style=Demibold
+URW Palladio L:style=Roman
+Century Schoolbook L:style=Bold Italic
+Lucida Bright:style=Demibold
+Lucida Bright:style=Italic
+Nimbus Sans L:style=Bold
+URW Chancery L:style=Medium Italic
+Lucida Sans Typewriter:style=Bold
+Nimbus Roman No9 L:style=Regular
+Century Schoolbook L:style=Bold
+Century Schoolbook L:style=Italic
+Nimbus Sans L:style=Regular
+URW Palladio L:style=Italic
+Lucida Sans:style=Oblique
+Nimbus Sans L:style=Bold Condensed
+URW Gothic L:style=Demi
+Nimbus Roman No9 L:style=Medium Italic
+Nimbus Mono L:style=Bold Oblique
+Dingbats:style=Regular
+Nimbus Roman No9 L:style=Medium
+Nimbus Sans L:style=Bold Italic
+Lucida Bright:style=Regular
+Nimbus Mono L:style=Regular
+URW Gothic L:style=Book
+Lucida Sans Typewriter:style=Oblique
+Nimbus Sans L:style=Regular Condensed Italic
+URW Bookman L:style=Demi Bold
+URW Bookman L:style=Light
+URW Gothic L:style=Demi Oblique
+Standard Symbols L:style=Regular
+Lucida Sans Typewriter:style=Regular
+URW Palladio L:style=Bold
+Nimbus Sans L:style=Regular Condensed
+URW Bookman L:style=Light Italic
+Century Schoolbook L:style=Roman
+Nimbus Roman No9 L:style=Regular Italic
+DejaVu Sans:style=Bold
+DejaVu Sans:style=Book
+URW Gothic L:style=Book Oblique
+URW Palladio L:style=Bold Italic
+Lucida Sans Typewriter:style=Bold Oblique
+Nimbus Mono L:style=Regular Oblique
+DejaVu Sans Mono:style=Book
+DejaVu Sans Mono:style=Bold
+Nimbus Mono L:style=Bold
+Lucida Sans:style=Regular
+Lucida Bright:style=Demibold Italic
+Nimbus Sans L:style=Bold Condensed Italic
+URW Bookman L:style=Demi Bold Italic
+DejaVu Serif:style=Book
+DejaVu Serif:style=Bold
+</pre>
+
+If a font is not recognized it will fallback in someway to a known font.  Uses Java font resolution to do this.
+<H3 id="Torus">Torus</H3>
+<h4>Torus(R, r)</h4>
+Creates a torus.  R is the outer radius, r is the inner radius.
+this.R = R;
+this.r = r;
+}
+<H3 id="Union">Union</H3>
+<h4>Union(ds1, ds2)</h4>
+The result is any voxel in either data source.
+
+<H3 id="VolumePatterns">VolumePatterns</H3>
+Volume Patterns fill the complete space with a repeating pattern.
+
+<h4>Balls</h4>
+<h5>Balls(period, radius)</h5>
+A space filled with Spheres.  Each sphere is period distance apart and radius sized.
+
+<h4>CubicGrid</h4>
+<h5>CubicGrid(period, radius)</h5>
+A space filled with Cubes.  Each cube is period distance apart and radius sized.
+See this reference for more info on Gyroids: <a href="http://en.wikipedia.org/wiki/Gyroid">en.wikipedia.org/wiki/Gyroid</a>
+<h4>Gyroid</h4>
+<h5>Gyroid(period, thickness)</h5>
+A space filled with a Gyroid function.  Each gyroid is period distance apart and radius sized.
+<h4>GyroidGradient</h4>
+<h5>Gyroid(period, thickness,pos,str)</h5>
+A space filled with a Gyroid function influenced by a gradient.  Each gyroid is period distance apart and radius sized.  Vector3d
+pos is the gradient center and str is the strength.
+
+<H2 id="Transformations">Transformations</H2>
+<h3 id="CompositeTransform">CompositeTransform</h3>
 Combines several transformations together.
 
 Use the add method to chain together several transformations.
-<h4>Rotation</h4>
-<h5>Rotation(axis, angle)</h5>
-Rotate around a Vector3d axis for angle radians(TODO: confirm radians).
-<h5>Rotation(axis, angle, center){</h5>
+<h3 id="Rotation">Rotation</h3>
+<h4>Rotation(axis, angle)</h4>
+Rotate around a Vector3d axis for angle radians
+<h4>Rotation(axis, angle, center)</h4>
+Rotate around a Vector3d axis for angle radians with a specified Vector3d center
 
-<h4>Scale</h4>
-<h5>Scale(s)</h5>
+<h3 id="Scale">Scale</h3>
+<h4>Scale(s)</h4>
 Set the uniform scale s in all the x,y,z axises
-<h5>Scale(sx,sy,sz)</h5>
+<h4>Scale(sx,sy,sz)</h4>
 Set the individual scale per axis.
 
-<h4>Translation</h4>
-<h5>Translation(tx,ty,tz)</h5>
-Translate an object by x,y,z
+<h3 id="Translation">Translation</h3>
+<h4>Translation(tx,ty,tz)</h4>
+Translate a source by x,y,z
 
-<h4>*Symmetry</h4>
-TODO: Have Vlad fill in these docs
-<H3>Javascript Functions</H3>
-<H4>createGrid</H4>
+<H2 id="Functions">Javascript Functions</H2>
+<H3 id="createGrid">createGrid</H3>
 Create a voxel grid
 
-<h5>Grid createGrid(sx,sy,sz,voxelSize)</h5>
-<H4>load</H4>
+<h4>Grid createGrid(sx,sy,sz,voxelSize)</h4>
+<H3 id="load">load</H3>
 Description: Load a 3D mesh into a grid.
 
-<h5>Grid load(filename)</h5>
+<h4>Grid load(filename)</h4>
 Returns a grid from the 3D mesh.  Uses the default voxelSize of 0.1mm
-<h5>Grid load(filename,voxelSize)</h5>
+<h4>Grid load(filename,voxelSize)</h4>
 Returns a grid from the 3D mesh.  Uses the specified voxelSize.
-<h5>load(filename,Grid)</h5>
+<h4>load(filename,Grid)</h4>
 Load a 3D mesh into the specified grid.  Uses the Grid's voxel size.
 <p>
     Supported formats are STL(ASCII and BINARY).
+<H2 id="JavaObjects">Java Objects</H2>
+Specific Java objects are exposed to the scripts.  This section lists the objects exposed and provides links to their
+Javadoc.
+<H3 id="Math">Math</H3>
+The java.lang.Math class is available.  This is where you will find the typical min,max,sin,cos functions.
+Please see the posted Javadoc for complete details.  <a href="http://docs.oracle.com/javase/6/docs/api/">Java6 Javadoc</a>
 
 </body>
 </html>
