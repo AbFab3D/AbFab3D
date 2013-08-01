@@ -127,7 +127,7 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
        
      */
     public static ReflectionGroup.SPlane getSphere(Vector3d center, double radius){
-        return new ReflectionGroup.Plane(center, radius);
+        return new ReflectionGroup.Sphere(center, radius);
     }
     
 } // class ReflectionSymmetry 

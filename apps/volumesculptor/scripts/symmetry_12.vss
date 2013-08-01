@@ -8,6 +8,7 @@ function makePart(size, thickness){
   
   var boxZ = new Box(0,0,0,thickness, thickness, size);
   
+  var maker = new GridMaker();
   maker.setSource(boxZ);
   maker.makeGrid(g);
   
@@ -22,7 +23,7 @@ function makePart(size, thickness){
 }
 
 
-function main(){
+function main(arg){
 
 	var a = 25*MM;
 		
