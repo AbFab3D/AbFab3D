@@ -54,13 +54,29 @@ import static abfab3d.util.Units.MM;
 public class Torus extends TransformableDataSource{
     
     private double R, r;
+    private double x0, y0, z0;
+
+    public Torus(Vector3d c, double R, double r) {
+        this(c.x,c.y,c.z,R,r);
+    }
 
     public Torus(double R, double r){
-        
         this.R = R;
         this.r = r;
     }
-    
+
+    public Torus(double x0, double y0, double z0, double R, double r){
+        setCenter(x0,y0,z0);
+        this.R = R;
+        this.r = r;
+    }
+
+    public void setCenter(double x, double y, double z) {
+        this.x0 = x;
+        this.y0 = y;
+        this.z0 = z;
+    }
+
     /**
      * returns 1 if pnt is inside of Torus
      * returns intepolated value if poiunt is within voxel size to the boundary
@@ -69,11 +85,11 @@ public class Torus extends TransformableDataSource{
     public int getDataValue(Vec pnt, Vec data) {
         
         super.transform(pnt);
-        double res = 1.;
+
         double
-            x = pnt.v[0],
-            y = pnt.v[1],
-            z = pnt.v[2];
+                x = pnt.v[0] - x0,
+                y = pnt.v[1] - y0,
+                z = pnt.v[2] - z0;
         
         double rxy = sqrt(x*x + y*y) - R;
         
