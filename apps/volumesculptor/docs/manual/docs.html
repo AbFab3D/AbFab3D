@@ -1,0 +1,51 @@
+<HTML>
+<BODY>
+<H2>Volume Sculpting Overview</H2>
+<H2>Reference Guide</H2>
+<H3>Data Sources</H3>
+<H4>Box</H4>
+<h5>Box(x,y,z,sx,sy,sz)</h5>
+Create a box centered around x,y,z with face sizes of sx,sy,sz.
+<H4>Cylinder</H4>
+<h5>Cylinder(v0,v1,r)</h5>
+Create a cylinder from position v0 to v1.  Cylinder is of radius r.
+<H4>Sphere</H4>
+<h5>Sphere(c, r)</h5>
+Create a sphere centered around Vector3d c with radius r.
+<h5>Sphere(r)</h5>
+Create a sphere centered around 0,0,0 with radius r.
+<h5>Sphere(x,y,z,r)</h5>
+Create a sphere centered around x,y,z with radius r.
+<H4>DataSourceGrid</H4>
+<h5>DataSourceGrid(grid)</h5>
+Use a Grid as a datasource.
+
+Do not use a Grid as a datasource and a destination grid at the same time.
+<H4>ImageBitMap</H4>
+<h5>ImageBitMap(imagePath,sx,sy,sz)</h5>
+Take an image as a source.  The image will be the sx,sy,sz size in the voxel
+grid.  Can take png, jpeg either as black and white or greyscale images.  Greyscale images will act as heightmaps where 0 to no image and maxValue is full sized.
+<H4>Intersection</H4>
+<H4>Ring</H4>
+<H4>Subtraction</H4>
+<H3>Text</H3>
+<H3>Triangle</H3>
+<H3>Union</H3>
+<H3>VolumePatterns</H3>
+<H3>Transformations</H3>
+<H3>Javascript Functions</H3>
+<H4>load</H4>
+Description: Load a 3D mesh into a grid.
+
+<h5>Grid load(filename)</h5>
+Returns a grid from the 3D mesh.  Uses the default voxelSize of 0.1mm
+<h5>Grid load(filename,voxelSize)</h5>
+Returns a grid from the 3D mesh.  Uses the specified voxelSize.
+<h5>load(filename,Grid)</h5>
+Load a 3D mesh into the specified grid.  Uses the Grid's voxel size.  
+<p>
+Supported formats are STL(ASCII and BINARY).
+<H3>Creating your own Creators</H3>
+exec_pipeline example
+</BODY>
+</HTML>
