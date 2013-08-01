@@ -46,9 +46,9 @@ by adding and subtracting primitive shapes from them.  In this example we create
 a sphere.  Try the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/?example=subtraction" target="_blank">Boolean Example</a>
 </p>
 <pre>
-function cross3D(size, thickeness){
+function cross3D(size, thickness){
   var union = new Union();
-  var boxX = new Box(0,0,0,size,thickeness, thickeness);
+  var boxX = new Box(0,0,0,size,thickness, thickeness);
   var boxY = new Box(0,0,0,thickeness, size, thickeness);
   var boxZ = new Box(0,0,0,thickeness, thickeness,size);
   union.add(boxX);
@@ -83,9 +83,7 @@ this object on both sides to create a mirror image.
 Notice we changed the voxelSize in this example from the typical .1mm default.  When dealing with greyscale images you'll
 likely want higher resolution to get smooth transitions between heights.
 </p>
-<p>
-    TODO:  Describe base thickness and bluring.
-</p>
+
 Run the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/?example=image" target="_blank">Image Popper</a>
 <pre>
 var voxelSize = 0.05*MM;
@@ -115,6 +113,17 @@ function main(args) {
   return dest;
 }
 </pre>
+<p>
+    The ImageBitMap may have optional solid base. In this case we set base thickness to be 0, which in effect eliminates the base. 
+The base thickness is 	given as fraction of the ImageBitMap object thickness. For example, setBaseThickness(0.4) will make ImageBitMap 
+base thickness equal to (0.4*thickness) and the thickness of image will be reduces to 0.6*thickness;
+</p>
+<p>
+Another useful method of ImageBitMap is setBlurWidth(blurWidth). The blurWidth is given in physical units and should normally be of the same size as 
+voxelSize. The blurring eliminates sharp edges in the image. 
+</p>
+
+
 <H3>Web Example</H3>
 <p>
 The web example has several panels.  The top Inspiration panel changes the example shown.  When you click on an image
