@@ -83,7 +83,8 @@ public class ModelUploadOauthRunner {
 			String title,
 			String description,
 			Integer isPublic,
-			Integer isForSale) throws Exception {
+			Integer isForSale,
+			Map<Integer, Object> materialsMap) throws Exception {
 		
 		String reason = null;
 		Gson gson = new Gson();
@@ -116,6 +117,9 @@ public class ModelUploadOauthRunner {
 	    if (isForSale != null) {
 	    	parameters.put("isForSale", isForSale.intValue());
 	    }
+	    if (materialsMap != null) {
+	    	parameters.put("materials", materialsMap);
+	    }
 	    
 	    OAuthRequest request = new OAuthRequest(Verb.POST, UPLOAD_URL);
 	    String encodedParams = gson.toJson(parameters);
@@ -144,15 +148,15 @@ public class ModelUploadOauthRunner {
 			String title,
 			String description,
 			Integer isPublic,
-			Integer isForSale) throws Exception {
+			Integer isForSale,
+			Map<Integer, Object> materialsMap) throws Exception {
 		
-//		System.out.println("in ModelUploadOauthRunner, uploading: " + modelFile);
 		String reason = null;
 		File file = new File(modelFile);
 
 		try {
 			byte[] fileBytes = FileUtils.readFileToByteArray(file);
-			return uploadModel(fileBytes, file.getName(), modelId, scale, title, description, isPublic, isForSale);
+			return uploadModel(fileBytes, file.getName(), modelId, scale, title, description, isPublic, isForSale, materialsMap);
 		} catch (IOException ioe) {
 			reason = "Model not found: " + file.getAbsolutePath();
 			System.out.println(reason);
