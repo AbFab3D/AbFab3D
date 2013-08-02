@@ -70,9 +70,14 @@ Create a sphere centered around 0,0,0 with radius r.
 Create a sphere centered around x,y,z with radius r.
 
 <H3 id="Intersection">Intersection</H3>
-<h4>Intersection(ds1, ds2)</h4>
-Intersects the sources.  The result is any voxels which are shared between the data sources.
-add(DataSource)
+<h4>Intersection()</h4>
+Intersection of arbitrary array of objects. 
+Creates intersection with empty array of objects.
+<h4>Intersection(ds1, ds2)</h4> 
+Intersects two data object.  The result is any voxels which are shared between objects.
+<h4>add(DataSource)</h4> 
+Add data source to the array of objects to intersect. 
+
 
 <H3 id="Ring">Ring</H3>
 <h4>Ring(innerRadius, thickness, ymin, ymax)</h4>
