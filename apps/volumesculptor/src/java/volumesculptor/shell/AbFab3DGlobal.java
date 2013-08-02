@@ -73,6 +73,7 @@ public class AbFab3DGlobal  {
         WorldWrapper ww = new WorldWrapper();
         World world = ww.getWorld();
         globals.put("MM", Units.MM);
+        globals.put("MM3", Units.MM3);
         globals.put("CM", Units.CM);
         globals.put("IN", Units.IN);
         globals.put("FT", Units.FT);

@@ -1,42 +1,133 @@
 <HTML>
 <head>
     <TITLE>Volume Sculptor</TITLE>
-</head>
+
+	<link rel="stylesheet" href="style.css" type="text/css" media="all" />
+
+	</head>
 <BODY>
+<div id="main">
+<div id="content">
 <H2>Volume Sculpting Overview</H2>
-The Volume Sculptor provides a powerful system for generating 3D printable objects.  The primary tool is called GridMaker and it
-takes a datasource and a transformation.  These can be chained together to create complex objects.
+<p>
+The Volume Sculptor provides a powerful system for generating 3D printable objects via simple javascript program.  
+The functionality of VS is based on representaion of three dimensional objects via voxels on 3 dimensional regular grid. 
+</p>
+<p>
+Roughly speaking the value of each voxel represents  the percent of this voxel volume occupied by the shape. 
+More precisely speaking the voxel value is appropriately normalized limited range signed distance function - 
+distance from voxel center to the shape surface. 
+That value is represented internally by default with 8 bit precision which is equivalent to 256 different levels. 
+This more precise representation greatly enchances the quality of generated objects in comparision with more traditional binary values of 0 and 1. 
+The gain in quality is similar to those of grayscale image over black and white image of the same resolution. 
+</p>
+<p>
+The voxel based representation gives Volume Sculptor greater flexibility in shapes generation over traditional representation via triangle meshes. 
+It is similar to advantages 2D raster graphics has over 2D vector graphics. Vector graphics is great for drawing diagrams and raster 
+graphics is on practice the tool of choice for anything else. 
+</p>
+<p>
+The way to fill the voxel grid is to create an object with <span class="code">DataSource</span> interface, 
+which can calculate signed distance function for each point in space.  This object is fed to an instance of <span class="code">GridMaker</span> 
+which controls the calculations. 
+The distance function calculations may be very complex task for complex object. But this calculation can be simplified by 
+composing complex object from many simpler one using several simple operations. 
+</p>
+<p>
+There are several predefines simple object like <span class="code">Sphere</span>,<span class="code">Box</span>, <span class="code">Cylinder</span>.
+More complex methods include functionality to convert 2D image to a 3D embossed object using <span class="code">ImageBitmap</span> object and 
+importing user provided 3D object using <span class="code">load()</span> function. 
+</p>
+<p>
+The real power of volume sculpting is in the flexibility of combining and transforming objects represented as distance function.  
+There are usual boolean operations on objects which include <span class="code">Union</span>, <span class="code">Intersection</span>, 
+<span class="code">Subtraction</span>, <span class="code">Complement</span>. 
+</p>
+<p>
+There is flexible set of transformations whci can be applied to any <span class="code">DataSource</span> object. Tranformations include standard 
+3D liear transformations like <span class="code">Rotation</span>, <span class="code">Translation</span>, <span class="code">Scale</span>, 
+<span class="code">Reflection</span>. Flexibility of using volume based data allows to use arbitrary non linear transformation among those are 
+<span class="code">RingWrap</span>, <span class="code">SphereInversion</span>, <span class="code">FrizeSymmetry</span>,
+<span class="code">WalPaperSymmetry</span>, <span class="code">ReflectionSymmetry</span>. Several 
+simple transformations can be composed into more comlex transformation using <span class="code">CompositeTransform</span>. 
+A transformation can be applied to any DataSource object via its <span class="code">setTransform()</span> method. 
+</p>
 
-<H3>Scripts</H3>
-The executed Javascript is expected to have a main method.  Any parameters or files you provide from the webpage will be
-passed into the main function as a single array called args.
-<pre>
-function main(args){
-    var radius = args[0] * MM;
-    var a = radius*1.1;
-    var voxelSize = 0.1*MM;
 
-    var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+<H2>Volume Sculptor Scripts</H2>
+<p>
+The sripting language of Volume Sculptor is javascript as implemented by Rhino scripting engine. All standard javasript functionality is 
+supported. 
+</p>
+<p>
+Below is the simplest complete VSS (Volume Sculptor Script) program. 
+<pre class="code">
+function main(args){  // this script will make a sphere
 
-    var maker = new GridMaker();
-    maker.setSource(new Sphere(radius));
-    maker.makeGrid(dest);
+    var radius = 5*MM;       // radius of sphere 5 millimeters 
+    var voxelSize = 0.1*MM;  // size of grid voxel 			
+    var gw = radius*1.1;      // make the grid size a little larger to have some clearance 
+	
+    var grid = createGrid(-gw,gw,-gw,gw,-gw,gw,voxelSize); // create the grid 
+	
+    var maker = new GridMaker();            // instance of grid maker
+    maker.setSource(new Sphere(radius));    // gives GridMaker object to work on 
+    maker.makeGrid(grid);                   // GridMaker fills the grid with data 
 
-    return dest;
+    return grid;   // return the grid for final processing 
 }
 </pre>
 <p>
-This example has one argument, the radius of the Sphere.  Click here to run this example.  <a href="http://volumesculptor.com/creators/volume_sculptor/?example=sphere" target="_blank">Simple Sphere</a>
+Any vss script should have function <span class="code">main(arg)</span>. This function is executed by Volume Sculptor scripting engine. 
+It is possible to pass arbitrary arguments (including uploaded files ) to the main(args), but we will explain this later. 
 </p>
 <p>
-A few key points.  You need to allocate the voxel Grid.  This is done with the <b>createGrid</b> function.  It takes a grid physical
-size in meters and a voxelSize.  The smaller the voxel size the more accurate the grid at the tradeoff of more processing time.  A voxel
-size of 0.1mm is usually sufficient.
+Unit of length in Volume Sculptor is <b>meter</b>. 
+To avoid awkward numbers there are few useful conversion constants MM=0.001 for millimeters, IN=0.0254 for inches. 
 </p>
-<p>The next object we use is the GridMaker.  The GridMaker takes a data source and transformation set and evaluates those
-to voxels.  In this example we place the result of the evaluation into the Grid called dest.</p>
-<p>The final requirement of a script is that it returns a Grid.  This grid will be the result of the script and is visualized
-by the webpage.</p>
+
+<p>
+The primary object of Volume Sculptor script is grid. The result of executing <span class="code">main(args)</span>should be grid filled with scene data. 
+The scripting engine convert grid returned by main() into traditional triangle mesh which is send back to the browser 
+and displayed in the 3D view.  
+</p>
+<p>
+The grid is created via function: <br><span class="code">grid = createGrid(xmin, xmax, ymin, ymax, zmin, zmax, voxelSize);</span>
+</p>
+Here the <span class="code">xmin, xmax ...</span> are the bounds of grid in the space. They define minimal and maximal coordinates where the final shape will be located. 
+The last parameter <span class="code">voxelSize</span> is the size of grid voxel. It defines the resolution of volume rendering. 
+Voxel size 0.1 millimeter corresponds to printing resolution of 3D printer. This paramerer greatly affect speed of all calculations and the best 
+approach is to keep it larger (0.2mm or 0.3mm) during script developing and set to printer resolution only at the final stage. 
+</p>
+<p>
+The primary tool of VSS is <span class="code">GridMaker</span>. GridMaker fills the grid voxels with values calculated by objects which 
+have interface <span class="code">DataSource</span>. <span class="code">Sphere</span> is one of several prebuild objects with DataSource interface. 
+User also can create new DataSource objects directly in script. 
+</p>
+<p>
+Calling <span class="code">maker.makeGrid(grid)</span> does the actual calculations of the grid. Returning that grid from main initiates 
+Volume Sculptor engine does conversion of grid data into triangle mesh which is returned to browser. 
+</p>
+<p>
+Click <a href="http://volumesculptor.com/creators/volume_sculptor/?example=sphere" target="_blank">Simple Sphere</a> to run this example. 
+</p>
+<h2>Controlling parameter of output mesh</h2>
+<p>
+There are few variables which allow user to control behavior of volume sculpting engine. 
+</p>
+<p>
+<span class="code">meshSmoothingWidth</span> Width of gaussian smoothing of the grid before conversion to traingle mesh. 
+The width is given relative the grid voxel size. Default value is 0.5. 
+</p>
+<p>
+<span class="code">meshErrorFactor</span> is maximal errod allowed during mesh decimation (reducing mesh complexity). It is given relative to voxel size. 
+default value is 0.5. Smaller value greatly increase the resultng mesh complexity. 
+</p>
+<p>
+<span class="code">meshMinPartVolume</span> allows to filter out sand size particles from the resulting mesh. All parts of volume less than 
+meshMinPartVolume are discarded. This volume is specified in meters<sup>3</sup>. Default value is 1*MM3 (one cubic millimeter). 
+</p>
+
 
 <H2>Examples</H2>
 <h3>Boolean Operations</h3>
@@ -45,7 +136,7 @@ In this example we'll show a powerful modeling technique creating objects by usi
 by adding and subtracting primitive shapes from them.  In this example we create a cool doodad by subtracting a 3D cross from
 a sphere.  Try the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/?example=subtraction" target="_blank">Boolean Example</a>
 </p>
-<pre>
+<pre class="code">
 function cross3D(size, thickness){
   var union = new Union();
   var boxX = new Box(0,0,0,size,thickness, thickeness);
@@ -85,7 +176,7 @@ likely want higher resolution to get smooth transitions between heights.
 </p>
 
 Run the example here: <a href="http://volumesculptor.com/creators/volume_sculptor/?example=image" target="_blank">Image Popper</a>
-<pre>
+<pre class="code">
 var voxelSize = 0.05*MM;
 
 function makePart(path, width, height, thickness){
@@ -123,7 +214,6 @@ Another useful method of ImageBitMap is setBlurWidth(blurWidth). The blurWidth i
 voxelSize. The blurring eliminates sharp edges in the image. 
 </p>
 
-
 <H3>Web Example</H3>
 <p>
 The web example has several panels.  The top Inspiration panel changes the example shown.  When you click on an image
@@ -148,6 +238,13 @@ encourage you to make a user-interface that's more specific and easier to use.  
 can use a REST call to execute_pipeline that will generate the 3D model.  With this model you can easily use the rest of the
 Shapeways API to store the models, get pricing and add your own markup to the models.
 
-TODO:  Clean up HTML source and document the functions here.
+<h3>Custom DataSource</h3>
+<p>
+User provided objects. 
+</p>
+
+</div>
+</div>
+
 </BODY>
 </HTML>
