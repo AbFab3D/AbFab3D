@@ -293,7 +293,7 @@ public class VolumeSculptorKernel extends HostedKernel {
         // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
         // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
         if (volume == 0.0) {
-        	return new KernelResults(KernelResults.INVALID_PARAMS, "Invalid parameter");
+        	return new KernelResults(KernelResults.NO_GEOMETRY, "Empty scene");
         } else {
         	return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
         }

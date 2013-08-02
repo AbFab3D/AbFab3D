@@ -24,6 +24,7 @@ public class KernelResults {
     public static final int INTERNAL_ERROR = 3;
     public static final int INVALID_SESSION = 4;
     public static final int INTERRUPTED = 5;
+    public static final int NO_GEOMETRY = 6;
 
     /** The failure code if it failed, 0 otherwise */
     public int failureCode;
