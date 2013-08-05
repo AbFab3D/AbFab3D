@@ -89,9 +89,9 @@ public class Cylinder  extends TransformableDataSource {
         raxis.cross(caxis, Yaxis); 
         double sina = raxis.length();
         double cosa = Yaxis.dot(caxis);
-        if(abs(sina) < EPSILON) { // zero angle 
+        if(abs(sina) < EPSILON) { 
             //TODO do something smart 
-            raxis = new Vector3d(0,1,0);
+            raxis = new Vector3d(1,0,0);
         }
         raxis.normalize();
         double angle = atan2(sina, cosa);

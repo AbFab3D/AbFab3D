@@ -39,6 +39,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
+import static abfab3d.util.MathUtil.step01;
 
 import static abfab3d.util.Units.MM;
 
@@ -47,6 +48,9 @@ import static abfab3d.util.Units.MM;
 
    Sphere with given location and radius
 
+   if radius is positive the sae is inside of spehre 
+   if radius is negative - the shape is outside of sphere
+
    @author Vladimir Bulatov
 
  */
@@ -54,12 +58,15 @@ import static abfab3d.util.Units.MM;
 public class Sphere extends TransformableDataSource {
     
     private double R, R2, RR;
-    
+
+    private boolean sign = true; // inside (true) or outside (false) of the sphere 
+
     private double x0, y0, z0;
     
     public Sphere(){
         this(0.,0.,0.,1*MM);
     }
+
     public Sphere(Vector3d c, double r){
         this(c.x, c.y, c.z, r);
     }
@@ -85,8 +92,14 @@ public class Sphere extends TransformableDataSource {
     }
     
     public void setRadius(double r){
+        if( r < 0){
+            R = -r;
+            sign =false;
+        } else {
+            R = r;
+            sign = true;
+        }
         
-        R = r;
         R2 = 2*r;
         RR = r*r;
         
@@ -114,8 +127,11 @@ public class Sphere extends TransformableDataSource {
         // good approximation to the distance to the surface of the ball).x                             
         //double dist = ((x*x + y*y + z*z) - rv*rv)/(2*rv);
         double r = Math.sqrt(x*x + y*y + z*z);//)/(R2);
-        data.v[0] = step10(r, this.R, vs);
-        
+        if(sign){
+            data.v[0] = step10(r, this.R, vs);
+        } else {
+            data.v[0] = step01(r, this.R, vs);
+        }
         return RESULT_OK;
     }
     
