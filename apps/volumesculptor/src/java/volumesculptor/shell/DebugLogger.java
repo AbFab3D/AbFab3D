@@ -22,7 +22,6 @@ public class DebugLogger {
     }
 
     public static void log(Object key, String msg) {
-        System.out.println("Log entry: " + key + " msg: " + msg);
         List<String> entries = logs.get(key);
         if (entries == null) {
             entries = new ArrayList<String>();
