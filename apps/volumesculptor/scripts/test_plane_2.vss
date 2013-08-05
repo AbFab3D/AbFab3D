@@ -1,0 +1,29 @@
+
+function main(){
+
+	var voxelSize = 0.1*MM;
+	var width = 50*MM;
+	var height = 50*MM;
+	var depth = 50*MM;
+	var s = width/2;
+	
+	var grid = createGrid(-s, s, -s, s, -s, s,voxelSize);
+	
+	var union = new Union();
+	var a = 10*MM;
+	var inter = new Intersection();
+	inter.add(new Plane(new Vector3d(a,a,a), new Vector3d(a,-a,-a),new Vector3d(-a,a,-a)));
+	inter.add(new Plane(new Vector3d(a,a,a), new Vector3d(-a,a,-a), new Vector3d(-a,-a,a)));
+	inter.add(new Plane(new Vector3d(a,a,a), new Vector3d(-a,-a,a), new Vector3d(a,-a,-a)));
+	inter.add(new Plane(new Vector3d(-a,a,-a), new Vector3d(a,-a,-a), new Vector3d(-a,-a,a)));
+	
+	//inter.add(new Plane(-1,-1,-1,1*MM));
+	var maker = new GridMaker();	
+	
+	maker.setSource(inter);
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}

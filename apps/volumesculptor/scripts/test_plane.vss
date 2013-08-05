@@ -1,0 +1,24 @@
+
+function main(){
+
+	var voxelSize = 0.1*MM;
+	var width = 50*MM;
+	var height = 50*MM;
+	var depth = 50*MM;
+	
+	var grid = createGrid(-width/2,width/2,-height/2,height/2,-depth/2,depth/2,voxelSize);
+	
+	
+	
+	var inter = new Intersection();
+	inter.add(new Plane(1,1,1,1*MM);
+	inter.add(new Plane(-1,-1,-1,1*MM));
+	var maker = new GridMaker();	
+	
+	maker.setSource(inter);
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}

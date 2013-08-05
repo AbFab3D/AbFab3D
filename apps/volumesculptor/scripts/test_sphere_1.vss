@@ -1,0 +1,33 @@
+
+function main(){
+
+	var voxelSize = 0.1*MM;
+	var width = 50*MM;
+	var height = 50*MM;
+	var depth = 50*MM;
+	var s = width/2;
+	
+	var grid = createGrid(-s, s, -s, s, -s, s,voxelSize);
+	
+	var a = 16.75*MM;
+	var box = new Box(0,0,0,2*a,2*a,2*a);
+	var sphere = new Sphere(a,a,a,-(2*a-0.1*MM));
+	
+	var inter = new Intersection();
+	var union = new Union();
+	
+	inter.add(box);
+	inter.add(sphere);
+	
+	union.add(box);
+	union.add(sphere);
+	
+	var maker = new GridMaker();	
+	
+	maker.setSource(inter);	
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}
