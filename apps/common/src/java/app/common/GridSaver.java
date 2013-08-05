@@ -17,19 +17,14 @@ import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
 
-import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.LaplasianSmooth;
-import abfab3d.mesh.MeshDecimator;
-import abfab3d.mesh.ShellFinder;
+import abfab3d.mesh.*;
 
 import abfab3d.util.MathUtil;
 import abfab3d.util.TriangleCounter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.fmt;
@@ -512,7 +507,59 @@ public class GridSaver {
 
             return new ShellResults(mesh,regions_removed);
         }
-    }        
+    }
+
+    /**
+     * Returns up to numShells shells that are above the minimum volume.
+     *
+     * @param mesh The mesh
+     * @param numShells The maximum number of shells
+     * @param minVolume The minimum volume
+     */
+    public static ShellResults getLargestShells(WingedEdgeTriangleMesh mesh, int numShells, double minVolume){
+
+        ShellFinder shellFinder = new ShellFinder();
+        ShellFinder.ShellInfo shells[] = shellFinder.findShells(mesh);
+        printf("shellsCount: %d\n",shells.length);
+
+        int regions_removed = 0;
+
+        System.out.println("Minimum volume: " + minVolume);
+        ArrayList<ShellData> saved_shells = new ArrayList<ShellData>();
+        int face_count = 0;
+        int cnt = 0;
+        for(int i=0; i < shells.length; i++) {
+            AreaCalculator ac = new AreaCalculator();
+            shellFinder.getShell(mesh, shells[i].startFace, ac);
+            mesh.getTriangles(ac);
+            double volume = ac.getVolume();
+
+            System.out.println("   vol: " + volume);
+            if (volume >= minVolume) {
+                saved_shells.add(new ShellData(shells[i],volume));
+                if (cnt < numShells) {
+                    face_count += shells[i].faceCount;
+                }
+                cnt++;
+            } else {
+                regions_removed++;
+            }
+        }
+
+        Collections.sort(saved_shells, Collections.reverseOrder());
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(face_count);
+        int shell_cnt = 0;
+        for(ShellData sd : saved_shells) {
+            shellFinder.getShell(mesh, sd.info.startFace, its);
+            shell_cnt++;
+            if (shell_cnt >= numShells) break;
+        }
+
+        printf("extracting largest shells: %d\n",face_count);
+        mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+        return new ShellResults(mesh, regions_removed);
+    }
 
     public static WingedEdgeTriangleMesh decimateMesh(WingedEdgeTriangleMesh mesh, double maxCollapseError ){
         
@@ -640,4 +687,20 @@ public class GridSaver {
         return;
     }
     */
+}
+
+class ShellData implements Comparable<ShellData> {
+    public ShellFinder.ShellInfo info;
+    public double volume;
+
+
+    ShellData(ShellFinder.ShellInfo info, double volume) {
+        this.info = info;
+        this.volume = volume;
+    }
+
+    @Override
+    public int compareTo(ShellData o) {
+        return Double.compare(volume, o.volume);
+    }
 }

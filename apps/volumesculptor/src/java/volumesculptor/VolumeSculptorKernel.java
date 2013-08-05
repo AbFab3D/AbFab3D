@@ -290,13 +290,25 @@ public class VolumeSculptorKernel extends HostedKernel {
         System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
         System.out.println("Volume: " + volume);
 
+        KernelResults results = null;
         // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
         // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
         if (volume == 0.0) {
-        	return new KernelResults(KernelResults.NO_GEOMETRY, "Empty scene");
+        	results = new KernelResults(KernelResults.NO_GEOMETRY, "Empty scene");
         } else {
-        	return new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
+        	results = new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
         }
+
+        HashMap<String,Object> out = new HashMap<String, Object>();
+        String prints = result.getPrints();
+        System.out.println("DebugPrints: " + prints);
+        if (prints != null) {
+            if (prints != null) {
+                out.put("debugPrint", prints);
+                results.setOutput(out);
+            }
+        }
+        return results;
     }
 
     /**
