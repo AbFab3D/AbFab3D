@@ -195,7 +195,6 @@ public class Main {
         System.out.println("Show:" + iproxy.show);
         shellContextFactory.call(iproxy);
 
-        iproxy.clear();
         return exitCode;
     }
 
@@ -910,7 +909,6 @@ public class Main {
 
         System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
 
-        System.out.println("Bigger then max?" + (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE));
         if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
             System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
             throw Context.reportRuntimeError(
@@ -920,6 +918,7 @@ public class Main {
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
         System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
+
         if (mv > 0) {
             ShellResults sr = app.common.GridSaver.getLargestShells(mesh, mp, mv);
             mesh = sr.getLargestShell();
@@ -997,7 +996,6 @@ public class Main {
             mp = AbFab3DGlobal.maxParts;
         }
 
-        // TODO:  This error_factor was 0.5 before so this may make much larger files.
         double maxDecimationError = ef * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
@@ -1011,14 +1009,24 @@ public class Main {
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
+        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+
         if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
             System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
             throw Context.reportRuntimeError(
                     "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
         }
 
-        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
+
+        if (mv > 0) {
+            ShellResults sr = app.common.GridSaver.getLargestShells(mesh, mp, mv);
+            mesh = sr.getLargestShell();
+            int regions_removed = sr.getShellsRemoved();
+            System.out.println("Regions removed: " + regions_removed);
+        }
 
         return mesh;
     }
