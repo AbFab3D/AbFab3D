@@ -244,7 +244,6 @@ public class Main {
         if (prints != null) {
             for(String print : prints) {
                 bldr.append(print);
-                bldr.append("\n");
             }
             print_msg = bldr.toString();
         }
