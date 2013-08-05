@@ -84,7 +84,7 @@ public class AbFab3DGlobal  {
         globals.put(ERROR_FACTOR_VAR,0.1);
         globals.put(SMOOTHING_WIDTH_VAR,0.5);
         globals.put(MESH_MIN_PART_VOLUME_VAR,0);
-        globals.put(MESH_MIN_PART_VOLUME_VAR,maxParts);
+        globals.put(MESH_MAX_PART_COUNT_VAR,maxParts);
     }
 
     public String[] getFunctions() {
