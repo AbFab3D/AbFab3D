@@ -12,6 +12,9 @@
 
 package abfab3d.creator;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Results from a Geometry Kernel generate command.
  *
@@ -50,6 +53,8 @@ public class KernelResults {
     /** The number of regions removed from the original design */
     private int regionsRemoved;
 
+    /** Kernel specific output */
+    private HashMap<String,Object> output;
 
     public KernelResults(boolean success, int failureCode, String reason,
         double[] boundsMin, double[] boundsMax, double volume, double surfaceArea, int regionsRemoved) {
@@ -69,6 +74,7 @@ public class KernelResults {
         this.volume = volume;
         this.surfaceArea = surfaceArea;
         this.regionsRemoved = regionsRemoved;
+        this.output = new HashMap<String,Object>();
 
     }
     public KernelResults(boolean success, int failureCode, String reason,
@@ -137,5 +143,13 @@ public class KernelResults {
 
     public int getRegionsRemoved() {
         return regionsRemoved;
+    }
+
+    public void setOutput(Map<String,Object> val) {
+        this.output = new HashMap<String,Object>(val);
+    }
+
+    public Map<String,Object> getOutput() {
+        return output;
     }
 }

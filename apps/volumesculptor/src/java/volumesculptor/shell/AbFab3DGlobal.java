@@ -40,15 +40,19 @@ public class AbFab3DGlobal  {
     public static final int MAX_GRID_SIZE = 2000;
     public static final int MAX_TRIANGLE_SIZE = 3000000;
 
-    private static final String SMOOTHING_WIDTH_VAR = "meshSmoothingWidth";
-    private static final String ERROR_FACTOR_VAR = "meshErrorFactor";
+    public static final String SMOOTHING_WIDTH_VAR = "meshSmoothingWidth";
+    public static final String ERROR_FACTOR_VAR = "meshErrorFactor";
+    public static final String MESH_MIN_PART_VOLUME_VAR = "meshMinPartVolume";
+    public static final String MESH_MAX_PART_COUNT_VAR = "meshMaxPartsCount";
 
-    private static final int maxAttribute = 255;
+    public static final int maxAttribute = 255;
 
-    static double errorFactor = 0.1;
-    static int maxDecimationCount = 10;
-    static double smoothingWidth = 0.5;
-    static int blockSize = 30;
+    public static double errorFactor = 0.1;
+    public static int maxDecimationCount = 10;
+    public static double smoothingWidth = 0.5;
+    public static int blockSize = 30;
+    public static double minimumVolume = 0;
+    public static int maxParts = Integer.MAX_VALUE;
 
 
     public static void setErrorFactor(double value){
@@ -64,7 +68,7 @@ public class AbFab3DGlobal  {
     }    
 
     private static String[] globalFunctions = {
-            "load", "show", "createGrid", "save"
+            "load", "createGrid"
     };
 
     private HashMap<String,Object> globals = new HashMap<String,Object>();
@@ -79,6 +83,8 @@ public class AbFab3DGlobal  {
         globals.put("FT", Units.FT);
         globals.put(ERROR_FACTOR_VAR,0.1);
         globals.put(SMOOTHING_WIDTH_VAR,0.5);
+        globals.put(MESH_MIN_PART_VOLUME_VAR,0);
+        globals.put(MESH_MIN_PART_VOLUME_VAR,maxParts);
     }
 
     public String[] getFunctions() {
@@ -98,10 +104,15 @@ public class AbFab3DGlobal  {
                                  Object[] args, Function funObj) {
         if (args.length < 1) {
             throw Context.reportRuntimeError(
-                    "Expected a file to load");
+                    "No file provided for load() command");
         }
         String filename = Context.toString(args[0]);
         AttributeGrid grid = null;
+
+        if (filename == null || filename.length() == 0) {
+            throw Context.reportRuntimeError(
+                    "No file provided for load() command");
+        }
 
         double vs = 0.1*MM;
         if (args.length > 1) {
@@ -154,17 +165,17 @@ public class AbFab3DGlobal  {
             ioe.printStackTrace();
         }
 
-        System.out.println("Failed to load");
-        return null;
+        throw Context.reportRuntimeError(
+                "Failed to load file: " + filename);
     }
 
     /**
-     * Load a model into a Grid
+     * Stops execution and shows a grid.  TODO:  How to make it stop?
      * <p/>
      * This method is defined as a JavaScript function.
      */
     public static void show(Context cx, Scriptable thisObj,
-                                 Object[] args, Function funObj) {
+                            Object[] args, Function funObj) {
 
 
 
@@ -273,6 +284,7 @@ public class AbFab3DGlobal  {
             ioe.printStackTrace();
         }
 
+        throw new ShowException();
     }
 
     /**

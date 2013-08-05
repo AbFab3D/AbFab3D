@@ -198,16 +198,22 @@ public class Global extends ImporterTopLevel
                                Object[] args, Function funObj)
     {
         PrintStream out = getInstance(funObj).getOut();
+        StringBuilder bldr = new StringBuilder();
         for (int i=0; i < args.length; i++) {
-            if (i > 0)
+            if (i > 0) {
                 out.print(" ");
-
+                bldr.append(" ");
+            }
             // Convert the arbitrary JavaScript value into a string form.
             String s = Context.toString(args[i]);
 
             out.print(s);
+            bldr.append(s);
         }
         out.println();
+        bldr.append("\n");
+
+        DebugLogger.log(cx, bldr.toString());
         return Context.getUndefinedValue();
     }
 

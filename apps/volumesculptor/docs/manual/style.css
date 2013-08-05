@@ -367,3 +367,89 @@ hr {
   height: 1px;
   border: 0;
 }
+
+/*****************************************************/
+
+body.example {
+  color: #4b4a49;
+  background: url(http://www.shapeways.com/rrstatic/img/sw-bg.jpg) top left repeat #eceae8;
+  font-family: calibri,tahoma,arial;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 300;
+  text-shadow: 0px 1px 0 white;
+  -webkit-text-size-adjust: none; 
+}
+
+h1.example {
+  text-align: left;
+  font-weight: bold; font-size: 16pt; color: #24A;
+  padding: 2px 0px 8px 0px;//; padding-bottom: 8px; padding-left: 0px;
+  margin-bottom: 30px;
+  border-bottom: solid #777 1px;
+  clear:both;
+}
+
+a.example-title, a.example-title:visited, a.example-title:active {
+  cursor: pointer;
+  color: #2c9dd2;
+  text-decoration: none; }
+
+a.example-title:hover {
+  color: #0b70a5; }
+
+div.example-text {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 300;
+  text-shadow: 0px 1px 0 white;
+}
+
+.container {
+  width: 740px;
+  margin: 20px auto 20px auto; 
+}
+
+.example-title {
+  font-size: 16px;
+  font-weight: 300;
+  height: 20px;
+  margin-bottom: 8px;
+  color: #444;
+  text-align: left;
+}
+	
+.example-container {
+  float: left;
+  width: 700px;
+  margin-bottom: 20px;
+  text-align: left;
+  position: relative;
+}
+
+.image-container {
+  float: left;
+  width: 150px;
+  height: 150px;
+  padding: 5px;
+  margin-right: 20px;
+  text-align: center;
+  background-color: white;
+  border-radius: 10px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border: 1px solid #CCC;
+  -moz-box-shadow: 0 0 5px #eee;
+  -webkit-box-shadow: 0 0 5px #eee;
+  box-shadow: 0 0 5px #eee;
+  position: relative;
+}
+
+.image-container:hover {
+  border: 1px solid #74c2e8;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-box-shadow: 0 1px 0 #74c2e8, 0 0 7px #74c2e8;
+  -moz-box-shadow: 0 1px 0 #74c2e8, 0 0 7px #74c2e8;
+  box-shadow: 0 1px 0 #74c2e8, 0 0 7px #74c2e8;
+}

@@ -6,11 +6,16 @@
 
 package volumesculptor.shell;
 
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
+import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
+import abfab3d.io.output.SlicesWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import app.common.ShellResults;
+import app.common.X3DViewer;
 import org.apache.commons.io.FilenameUtils;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.commonjs.module.ModuleScope;
@@ -27,6 +32,9 @@ import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 
 /**
  * The shell program.
@@ -68,6 +76,7 @@ public class Main {
         packageWhitelist.add("abfab3d.");
         packageWhitelist.add("javax.vecmath");
         packageWhitelist.add("java.lang");
+        packageWhitelist.add("app.common");
 
         scriptImports = new ArrayList<String>();
 
@@ -96,12 +105,14 @@ public class Main {
         private boolean show;
         String scriptText;
         private TriangleMesh mesh;
+        private Context cx;
 
         IProxy(int type) {
             this.type = type;
         }
 
         public Object run(Context cx) {
+            this.cx = cx;
             if (useRequire) {
                 require = global.installRequire(cx, modulePath, sandboxed);
             }
@@ -127,6 +138,12 @@ public class Main {
 
         public TriangleMesh getMesh() {
             return mesh;
+        }
+
+        public void clear() {
+            cx = null;
+            mesh = null;
+            script_args = null;
         }
     }
 
@@ -170,31 +187,6 @@ public class Main {
         System.out.println("Orig: " + java.util.Arrays.toString(origArgs));
         System.out.println("Args: " + java.util.Arrays.toString(args));
 
-        //  TODO: somewhat dodgy idea but check for none file types and call those files
-        HashSet<String> file_types = new HashSet<String>();
-        file_types.add("stl");
-        file_types.add("x3db");
-        file_types.add("x3dv");
-        file_types.add("x3d");
-        file_types.add("png");
-        file_types.add("jpg");
-        file_types.add("gz");
-
-        ArrayList<String> file_list = new ArrayList<String>();
-        ArrayList<String> param_list = new ArrayList<String>();
-
-        for(int i=0; i < args.length; i++) {
-            if (file_types.contains(FilenameUtils.getExtension(args[i]))) {
-                file_list.add(args[i]);
-            } else {
-                param_list.add(args[i]);
-            }
-        }
-
-        String[] files = new String[file_list.size()];
-        files = file_list.toArray(files);
-        String[] params = new String[param_list.size()];
-        params = param_list.toArray(params);
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = new String[0];
         iproxy.script_args = args;
@@ -203,6 +195,7 @@ public class Main {
         System.out.println("Show:" + iproxy.show);
         shellContextFactory.call(iproxy);
 
+        iproxy.clear();
         return exitCode;
     }
 
@@ -241,8 +234,25 @@ public class Main {
             bldr.append("\n");
         }
 
-        System.out.println("Errors: " + bldr.toString());
-        return new ExecResult(iproxy.getMesh(),bldr.toString(),"");
+        System.out.println("Errors2: " + bldr.toString());
+        String err_msg = bldr.toString();
+
+        System.out.println("Get prints for: " + iproxy.cx);
+        List<String> prints = DebugLogger.getLog(iproxy.cx);
+
+        String print_msg = "";
+        if (prints != null) {
+            for(String print : prints) {
+                bldr.append(print);
+            }
+            print_msg = bldr.toString();
+        }
+
+        System.out.println("Print msgs: " + print_msg);
+        TriangleMesh mesh = iproxy.getMesh();
+        iproxy.clear();
+
+        return new ExecResult(mesh,err_msg,print_msg);
     }
 
     static TriangleMesh processFile(Context cx, String[] args, String[] scriptArgs, boolean show) {
@@ -265,8 +275,19 @@ public class Main {
             } catch (RhinoException rex) {
                 if (rex instanceof WrappedException) {
                     System.out.println("Wrapped exception:");
+                    int cnt = 0;
+                    int max = 5;
+
                     Throwable we = ((WrappedException)rex).getWrappedException();
-                    we.printStackTrace();
+                    while(we instanceof WrappedException) {
+                        we = ((WrappedException)rex).getWrappedException();
+                        cnt++;
+                        if (cnt > max) {
+                            System.out.println("Exceeded maximum wrappings, exiting.");
+                            break;
+                        }
+                    }
+                    we.printStackTrace(System.out);
                 }
                 ToolErrorReporter.reportException(
                         cx.getErrorReporter(), rex);
@@ -437,6 +458,8 @@ public class Main {
                 IProxy iproxy = new IProxy(IProxy.EVAL_INLINE_SCRIPT);
                 iproxy.scriptText = args[i];
                 shellContextFactory.call(iproxy);
+
+                iproxy.clear();
                 continue;
             }
             if (arg.equals("-require")) {
@@ -780,13 +803,158 @@ public class Main {
         }
 
         if (show) {
-            AbFab3DGlobal.show(cx, scope, new Object[]{grid}, null);
+            show(cx, scope, new Object[]{grid}, null);
         }
 
-        return save(grid);
+        return save(grid,scope);
     }
 
-    private static TriangleMesh save(Grid grid) {
+    /**
+     * Stops execution and shows a grid.  TODO:  How to make it stop?
+     * <p/>
+     * This method is defined as a JavaScript function.
+     */
+    public static void show(Context cx, Scriptable thisObj,
+                            Object[] args, Function funObj) {
+
+
+
+        AttributeGrid grid = null;
+
+        boolean show_slices = false;
+
+        if (args.length > 0) {
+            if (args[0] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            } else if (args[0] instanceof AttributeGrid) {
+                grid = (AttributeGrid) args[0];
+            } else if (args[0] instanceof NativeJavaObject) {
+                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+            }
+        }
+
+        if (grid == null) {
+            System.out.println("No grid specified");
+        }
+        if (args.length > 1) {
+            if (args[1] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            }
+        }
+
+        double vs = grid.getVoxelSize();
+
+
+        if (show_slices) {
+            SlicesWriter slicer = new SlicesWriter();
+            slicer.setFilePattern("/tmp/slices2/slice_%03d.png");
+            slicer.setCellSize(5);
+            slicer.setVoxelSize(4);
+
+            slicer.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
+            try {
+                slicer.writeSlices(grid);
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        System.out.println("Saving world: " + grid + " to triangles");
+
+        Object smoothing_width = thisObj.get(AbFab3DGlobal.SMOOTHING_WIDTH_VAR, thisObj);
+        Object error_factor = thisObj.get(AbFab3DGlobal.ERROR_FACTOR_VAR, thisObj);
+        Object min_volume = thisObj.get(AbFab3DGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
+        Object max_parts = thisObj.get(AbFab3DGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
+
+        double sw;
+        double ef;
+        double mv;
+        int mp;
+
+        if (smoothing_width instanceof Number) {
+            sw = ((Number)smoothing_width).doubleValue();
+        } else {
+            sw = AbFab3DGlobal.smoothingWidth;
+        }
+
+        if (smoothing_width instanceof Number) {
+            ef = ((Number)error_factor).doubleValue();
+        } else {
+            ef = AbFab3DGlobal.errorFactor;
+        }
+
+        if (min_volume instanceof Number) {
+            mv = ((Number)min_volume).doubleValue();
+        } else {
+            mv = AbFab3DGlobal.minimumVolume;
+        }
+
+        if (max_parts instanceof Number) {
+            mp = ((Number)max_parts).intValue();
+        } else {
+            mp = AbFab3DGlobal.maxParts;
+        }
+
+        double maxDecimationError = ef * vs * vs;
+        // Write out the grid to an STL file
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(AbFab3DGlobal.blockSize);
+        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        meshmaker.setSmoothingWidth(sw);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCount);
+        meshmaker.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        meshmaker.makeMesh(grid, its);
+
+        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+
+        System.out.println("Bigger then max?" + (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE));
+        if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
+            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
+            throw Context.reportRuntimeError(
+                    "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+        }
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
+        if (mv > 0) {
+            ShellResults sr = app.common.GridSaver.getLargestShells(mesh, mp, mv);
+            mesh = sr.getLargestShell();
+            int regions_removed = sr.getShellsRemoved();
+            System.out.println("Regions removed: " + regions_removed);
+        }
+
+        try {
+            String path = "/tmp";
+            String name = "save.x3d";
+            String out = path + "/" + name  ;
+            double[] bounds_min = new double[3];
+            double[] bounds_max = new double[3];
+
+            grid.getGridBounds(bounds_min,bounds_max);
+            double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+            max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+
+            double z = 2 * max_axis / Math.tan(Math.PI / 4);
+            float[] pos = new float[] {0,0,(float) z};
+
+            GridSaver.writeMesh(mesh, out);
+            X3DViewer.viewX3DOM(name, pos);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    /**
+     * Save used to save during web usage
+     *
+     * @param grid
+     * @return
+     */
+    private static TriangleMesh save(Grid grid, Scriptable thisObj) {
         System.out.println("Save file to handler");
 
         if (grid == null) {
@@ -795,23 +963,54 @@ public class Main {
         double vs = grid.getVoxelSize();
 
 
-        System.out.println("Saving world: " + grid + " to triangles");
-        double errorFactor = 0.5;
-        double maxDecimationError = errorFactor * vs * vs;
+        Object smoothing_width = thisObj.get(AbFab3DGlobal.SMOOTHING_WIDTH_VAR, thisObj);
+        Object error_factor = thisObj.get(AbFab3DGlobal.ERROR_FACTOR_VAR, thisObj);
+        Object min_volume = thisObj.get(AbFab3DGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
+        Object max_parts = thisObj.get(AbFab3DGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
 
+        double sw;
+        double ef;
+        double mv;
+        int mp;
+
+        if (smoothing_width instanceof Number) {
+            sw = ((Number)smoothing_width).doubleValue();
+        } else {
+            sw = AbFab3DGlobal.smoothingWidth;
+        }
+
+        if (smoothing_width instanceof Number) {
+            ef = ((Number)error_factor).doubleValue();
+        } else {
+            ef = AbFab3DGlobal.errorFactor;
+        }
+
+        if (min_volume instanceof Number) {
+            mv = ((Number)min_volume).doubleValue();
+        } else {
+            mv = AbFab3DGlobal.minimumVolume;
+        }
+
+        if (max_parts instanceof Number) {
+            mp = ((Number)max_parts).intValue();
+        } else {
+            mp = AbFab3DGlobal.maxParts;
+        }
+
+        // TODO:  This error_factor was 0.5 before so this may make much larger files.
+        double maxDecimationError = ef * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(50);
+        meshmaker.setBlockSize(AbFab3DGlobal.blockSize);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
-        meshmaker.setSmoothingWidth(0.5);
+        meshmaker.setSmoothingWidth(sw);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(10);
-        meshmaker.setMaxAttributeValue(255);
+        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCount);
+        meshmaker.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
-        System.out.println("Bigger then max?" + (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE));
         if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
             System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
             throw Context.reportRuntimeError(
