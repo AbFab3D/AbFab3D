@@ -406,6 +406,26 @@ public class AbFab3DGlobal  {
                 grid.getGridBounds(grid_bounds);
                 vs = grid.getVoxelSize();
             }
+        } else if (args.length == 4) {
+            if (args[0] instanceof AttributeGrid) {
+                AttributeGrid grid = (AttributeGrid) args[0];
+                grid.getGridBounds(grid_bounds);
+                vs = grid.getVoxelSize();
+            } else if (args[0] instanceof NativeJavaObject) {
+                AttributeGrid grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+                grid.getGridBounds(grid_bounds);
+                vs = grid.getVoxelSize();
+            }
+            double x = (Double) args[1];
+            double y = (Double) args[2];
+            double z = (Double) args[3];
+
+            grid_bounds[0] -= x;
+            grid_bounds[1] += x;
+            grid_bounds[2] -= y;
+            grid_bounds[3] += y;
+            grid_bounds[4] -= z;
+            grid_bounds[5] += z;
         } else if (args.length == 7) {
             grid_bounds[0] = (Double) args[0];
             grid_bounds[1] = (Double) args[1];
