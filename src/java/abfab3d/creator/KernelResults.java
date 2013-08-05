@@ -74,6 +74,7 @@ public class KernelResults {
         this.volume = volume;
         this.surfaceArea = surfaceArea;
         this.regionsRemoved = regionsRemoved;
+        this.output = new HashMap<String,Object>();
 
     }
     public KernelResults(boolean success, int failureCode, String reason,
@@ -148,7 +149,7 @@ public class KernelResults {
         this.output = new HashMap<String,Object>(val);
     }
 
-    private Map<String,Object> getOutput() {
+    public Map<String,Object> getOutput() {
         return output;
     }
 }
