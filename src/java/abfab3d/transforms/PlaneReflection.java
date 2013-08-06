@@ -42,6 +42,18 @@ public class PlaneReflection  implements VecTransform, Initializable  {
     public Vector3d m_pointOnPlane = new Vector3d(0,0,0); 
     public Vector3d m_planeNormal = new Vector3d(1,0,0); 
     
+    public PlaneReflection(Vector3d normal){
+
+        m_planeNormal = new Vector3d(normal);
+
+    }
+
+    public PlaneReflection(Vector3d normal, Vector3d pointOnPlane){
+
+        m_pointOnPlane = new Vector3d(pointOnPlane);
+        m_planeNormal = new Vector3d(normal);
+
+    }
     public int initialize(){
         
         m_planeNormal.normalize();
