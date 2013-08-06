@@ -13,8 +13,6 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
-
 import java.util.Vector;
 
 import javax.vecmath.Vector3d;
@@ -94,7 +92,7 @@ public class Sphere extends TransformableDataSource {
     public void setRadius(double r){
         if( r < 0){
             R = -r;
-            sign =false;
+            sign = false;
         } else {
             R = r;
             sign = true;

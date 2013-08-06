@@ -1,7 +1,7 @@
 
 function main(){
 
-	var voxelSize = 0.2*MM;
+	var voxelSize = 0.1*MM;
 	var width = 50*MM;
 	var height = 50*MM;
 	var depth = 50*MM;

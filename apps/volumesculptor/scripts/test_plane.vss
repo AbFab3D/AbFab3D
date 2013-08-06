@@ -11,7 +11,7 @@ function main(){
 	
 	
 	var inter = new Intersection();
-	inter.add(new Plane(1,1,1,1*MM);
+	inter.add(new Plane(1,1,1,1*MM));
 	inter.add(new Plane(-1,-1,-1,1*MM));
 	var maker = new GridMaker();	
 	
