@@ -1254,9 +1254,7 @@ public class TestGridMaker extends TestCase {
         
         CompositeTransform compTrans = new CompositeTransform();
         
-        PlaneReflection pr = new PlaneReflection();
-        pr.m_pointOnPlane = new Vector3d(0,0,0);
-        pr.m_planeNormal = new Vector3d(0,0,1);
+        PlaneReflection pr = new PlaneReflection(new Vector3d(0,0,1),new Vector3d(0,0,0));
 
         SphereInversion si = new SphereInversion();
         si.m_radius = (sphereDiameter/2)*(Math.sqrt(3));
