@@ -99,8 +99,8 @@ public class ImageBitmap  extends TransformableDataSource {
     
     protected int m_xTilesCount = 1; // number of image tiles in x-direction 
     protected int m_yTilesCount = 1; // number of image tiles in y-direction 
-    protected boolean m_hasSmoothBoundaryX = false; // 
-    protected boolean m_hasSmoothBoundaryY = false;
+    protected boolean m_hasSmoothBoundaryX = false;//
+    protected boolean m_hasSmoothBoundaryY = false;//false;
     
     private BufferedImage m_image;
     private int m_interpolationType = INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
@@ -246,7 +246,12 @@ public class ImageBitmap  extends TransformableDataSource {
         m_interpolationType = type;
         
     }
-    
+
+    public void setSmoothBoundaries(boolean boundaryX, boolean boundaryY){
+        m_hasSmoothBoundaryX = boundaryX;
+        m_hasSmoothBoundaryY = boundaryY;
+    }
+
     /**
        value = 0 - linear resampling for mipmap
        value > 0 - black pixels are givewn heigher weight 

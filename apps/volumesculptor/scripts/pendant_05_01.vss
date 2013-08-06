@@ -1,0 +1,138 @@
+
+var voxelSize = 0.075*MM;
+//var voxelSize = 0.1*MM;
+
+function makeImage(path, width, height, thickness){
+
+  var img = new ImageBitmap(path, width, height, thickness);
+  img.setBaseThickness(0.0);
+  img.setVoxelSize(voxelSize);
+  img.setBlurWidth(2*voxelSize);
+  img.setUseGrayscale(false);
+  img.setSmoothBoundaries(true, true);
+  return img;
+  
+}
+
+function makeBail(x0,y0,z0,internalDiameter,thickness, rotateBail) {
+	
+  var R = internalDiameter/2 + thickness/2;
+  var r = thickness/2;
+  var torus = new Torus(x0,y0+internalDiameter/2,z0,R,r);
+
+  var s = 2*R;
+  
+  //var box = new Box(x0,y0-R,z0,3*R,s,s);
+  //var subtract = new Subtraction(torus,box);
+  if(rotateBail)
+	torus.setTransform(new Rotation(Vector3d(0,1,0),Math.PI/2));
+  //torus.setTransform(new Translation(8*MM, 0,0));
+  //subtract.setTransform(new Rotation(Vector3d(0,1,0),1.5708));
+  
+  return torus;
+
+}
+
+function makeText(str, x0,y0,z0,width,height,depth) {
+
+    var text = new Text(str, "Arial Black", width, height, depth, voxelSize);
+    var trans = new CompositeTransform();
+    trans.add(new Rotation(new Vector3d(0,0,1),Math.PI/2));
+    trans.add(new Rotation(new Vector3d(0,1,0),-Math.PI/2));
+    trans.add(new Translation(x0,y0,z0));
+
+    text.setTransform(trans);
+
+    return text;
+
+}
+
+function getSphereBend(fixedRadius, bendAmount){
+
+	var center = (fixedRadius*fixedRadius - bendAmount*bendAmount)/(2*bendAmount);
+	var radius = Math.sqrt(center*center + fixedRadius*fixedRadius);
+	var cp = new CompositeTransform();
+	cp.add(new SphereInversion(new Vector3d(0,0,center), radius));
+	cp.add(new PlaneReflection(new Vector3d(0,0,1)));
+	return cp;
+}
+
+function getCylinderBend(fixedRadius, bendAmount){
+
+	var center = (fixedRadius*fixedRadius - bendAmount*bendAmount)/(2*bendAmount);
+	var radius = Math.sqrt(center*center + fixedRadius*fixedRadius);
+	var cp = new CompositeTransform();
+	cp.add(new RingWrap(radius));
+	cp.add(new Translation(0,0,-(center+bendAmount)));
+	
+	return cp;
+
+}
+
+
+function main(args) {
+
+
+  // parameters of base image 
+  var imagePath = "../imagepopper/images/CoolChip.jpg";//args[0];
+  var imageWidth = 21*MM;
+  var imageHeight = 45*MM;
+  var imageThickness = 4*MM;
+  
+  // parameters of text 
+  var hasText = true;
+  var textWidth = 15*MM;
+  var textHeight = imageThickness;
+  var textDepth = 2*MM;
+  var textString = "AbFab3D";
+  
+  // parameters of bending 
+  var makeSphereBend = true;
+  var makeCylinderBend = false;  
+  var bendAmount = 1*MM;
+  
+  // parameters of bail 
+  var hasBail = true;
+  var bailLocation = imageHeight/2; 
+  var bailHoleSize = 3*MM;
+  var bailThickness = 1.5*MM;
+  var rotateBail = false;
+  
+  // make 
+  var gridW = imageWidth + 2*MM; // 1 MM margins 
+  var gridH = imageHeight + 2*(bailHoleSize + 2*bailThickness);
+  var gridD = imageThickness + 4*bendAmount;  
+  
+  var grid = createGrid(-gridW/2,gridW/2,-gridH/2,gridH/2,-gridD/2,gridD/2,voxelSize);  
+  
+  var imageBox = makeImage(imagePath, imageWidth, imageHeight, imageThickness);
+    	
+  if(hasText){
+	var text = makeText(textString,-imageWidth/2,0,0, textWidth, textHeight, textDepth);  
+	imageBox = new Subtraction(imageBox, text);	
+  }
+  
+  if(makeSphereBend)
+	imageBox.setTransform(getSphereBend(bailLocation,bendAmount));
+	
+  if(makeCylinderBend)
+	imageBox.setTransform(getCylinderBend(imageWidth/2, bendAmount));
+  
+  var pendant = imageBox;
+  
+  if(hasBail){  
+	pendant = new Union();
+	pendant.add(imageBox);
+	var bail = makeBail(0, bailLocation, 0, bailHoleSize, bailThickness, rotateBail);
+	pendant.add(bail);	
+  }
+
+  var maker = new GridMaker();
+  
+  maker.setSource(pendant);   
+
+  maker.makeGrid(grid);
+  
+  return grid;
+  
+}

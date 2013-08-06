@@ -1,21 +1,26 @@
-<!DOCTYPE html>
-<html>
+<HTML>
 <head>
-    <title>Volume Sculptor - Reference</title>
-    <link rel="stylesheet" href="style.css" type="text/css" media="all" />
-</head>
-<body>
+    <TITLE>Volume Sculptor Reference</TITLE>
+
+	<link rel="stylesheet" href="style.css" type="text/css" media="all" />
+
+	</head>
+<BODY>
 <div id="main">
 <div id="content">
+
+<body>
 <H1>Volume Sculptor - Reference Guide</H1>
 <ul>
 <li><a href="#DataSources">1 Data Sources</a></li>
    <ul>
       <li><a href="#Box">Box</a></li>
+       <li><a href="#Cone">Cone</a></li>
        <li><a href="#Cylinder">Cylinder</a></li>
        <li><a href="#DataSourceGrid">DataSourceGrid</a></li>
        <li><a href="#ImageBitMap">ImageBitMap</a></li>
        <li><a href="#Intersection">Intersection</a></li>
+       <li><a href="#Plane">Plane</a></li>
        <li><a href="#Ring">Ring</a></li>
        <li><a href="#Sphere">Sphere</a></li>
        <li><a href="#Subtraction">Subtraction</a></li>
@@ -46,6 +51,18 @@
 Create a box centered around 0,0,0 with face sizes of sx,sy,sz.
 <h4>Box(x,y,z,sx,sy,sz)</h4>
 Create a box centered around x,y,z with face sizes of sx,sy,sz.
+
+<H3 id="Cone">Cone</H3>
+<h4>Cone(Vector3d apex, Vector3d direction, double angle)</h4>
+<p>
+Makes an infinite cone. 
+</p>
+<p>
+Cone has arbitrary location of apex, directon of the axis and 
+angle between lateral lines and axis. Angle is measured in radians.
+</p>
+
+</p>
 <H3 id="Cylinder">Cylinder</H3>
 <h4>Cylinder(v0,v1,r)</h4>
 Create a cylinder from position v0 to v1.  Cylinder is of radius r.
@@ -81,6 +98,21 @@ Intersects two data object.  The result is any voxels which are shared between o
 <h4>add(DataSource)</h4> 
 Add data source to the array of objects to intersect. 
 
+<H3 id="Plane">Plane</H3>
+<p>Plane is half space bounded by a plane.</p>
+<h4>Plane(Vector3d normal, double distance)</h4> 
+<p>
+Plane is defined via external normal and distance along normal from origin.
+</p>
+<h4>Plane(Vector3d normal, Vector3d pointOnPlane)</h4>
+<p>
+Plane is defined via external normal and single point which belongs to the plane.
+</p>
+<h4>Plane(Vector3d pnt1, Vector3d pnt2, Vector3d pnt3)</h4>
+<p>
+Plane is defined via 3 point in the plane. External normal is defined via right thumb rule. 
+
+</p>
 
 <H3 id="Ring">Ring</H3>
 <h4>Ring(innerRadius, thickness, ymin, ymax)</h4>
@@ -225,8 +257,10 @@ Javadoc.
 <H3 id="Math">Math</H3>
 The java.lang.Math class is available.  This is where you will find the typical min,max,sin,cos functions.
 Please see the posted Javadoc for complete details.  <a href="http://docs.oracle.com/javase/6/docs/api/">Java6 Javadoc</a>
-<br/><br/>
+
+
 </div>
 </div>
-</body>
-</html>
+
+</BODY>
+</HTML>
