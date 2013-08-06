@@ -1,0 +1,89 @@
+var voxelSize = 0.1*MM;
+
+function makeImage(path, width, height, thickness){
+
+  var img = new ImageBitmap(path, width, height, thickness);
+  img.setBaseThickness(0.0);
+  img.setVoxelSize(voxelSize);
+  img.setBlurWidth(0.5*voxelSize);
+  img.setUseGrayscale(false);
+  img.setSmoothBoundaries(true, true);
+  return img;
+  
+}
+
+
+function main(){
+
+	var width = 30*MM;
+	var s = width/2;
+	var imagePath = "../imagepopper/images/circular_sign_1.png";
+	//var imagePath = "../imagepopper/images/black.png";
+	var imageWidth = 14*MM;
+	var imageHeight = 14*MM;
+	var imageThickness = 2*MM;
+	
+	
+	var grid = createGrid(-s, s, -s, s, -s, s,voxelSize);
+	
+	var bezelAngle = Math.PI/8; // good values are between PI/5 and PI/20
+	var innerRadius = 10*MM;
+	var ringThickness = 1.5*MM;
+	var bezelTop = innerRadius + 1.5*ringThickness;
+	var ringOuterRadius = innerRadius + ringThickness;
+	var ringWidth = 5*MM;		
+	var sinA = Math.sin(bezelAngle);
+	
+	var coneCenterY = ringOuterRadius/Math.sin(bezelAngle);
+	var bezelBottom = coneCenterY*sinA*sinA;
+	
+	var image = makeImage(imagePath, imageWidth, imageHeight,imageThickness);
+	var imageTransform = new CompositeTransform();
+	imageTransform.add(new Rotation(new Vector3d(1,0,0), -Math.PI/2));
+	imageTransform.add(new Translation(0,bezelTop, 0));
+	image.setTransform(imageTransform);
+	
+	//var ringBase = new Torus(innerRadius-ringThickness, 2*ringThickness);
+	var ringBase = new Sphere(ringOuterRadius);
+	
+	var bezel = new Intersection();		
+	var coneCenter = new Vector3d(0,coneCenterY, 0);
+	
+	bezel.add(new Cone(coneCenter, new Vector3d(0,-1,0), bezelAngle));
+	bezel.add(new Plane(new Vector3d(0,1,0), bezelTop));
+	bezel.add(new Plane(new Vector3d(0,-1,0), -bezelBottom));
+	
+	var ring = new Union();
+	ring.add(ringBase);
+	ring.add(bezel);
+	ring.add(image);
+	
+	//var cylRadius = 7.5*MM; var cylY = 3*MM;
+	var cylRadius = 12*MM; var cylY = 0*MM;
+	
+	var cylZ = cylRadius + ringWidth/2;
+	
+	
+	var cutoff = new Union();
+	cutoff.add(new Cylinder(new Vector3d(0,0,-s),new Vector3d(0,0,s),innerRadius));
+	cutoff.add(new Cylinder(new Vector3d(-width/2, cylY, cylZ), new Vector3d(width/2, cylY, cylZ), cylRadius));	
+	cutoff.add(new Cylinder(new Vector3d(-width/2, cylY, -cylZ), new Vector3d(width/2, cylY, -cylZ), cylRadius));	
+	cutoff.add(new Box(0,-ringOuterRadius, ringWidth, width, 2*(ringOuterRadius + cylY), ringWidth));	
+	cutoff.add(new Box(0,-ringOuterRadius, -ringWidth, width, 2*(ringOuterRadius + cylY), ringWidth));	
+	
+	var fullRing = new Subtraction(ring, cutoff);
+	
+
+	var ringWithImage = new Subtraction(fullRing, image);
+	
+	var maker = new GridMaker();	
+	//maker.setSource(fullRing);	
+	maker.setSource(ringWithImage);	
+	
+	//maker.setSource(image);	
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}

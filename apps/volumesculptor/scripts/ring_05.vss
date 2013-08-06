@@ -18,7 +18,7 @@ function main(){
 	var coneCenterY = ringOuterRadius/Math.sin(bezelAngle);
 	var bezelBottom = coneCenterY*sinA*sinA;
 	
-	var torus = new Torus(innerRadius-ringThickness, 2*ringThickness);
+	var ringBase = new Torus(innerRadius-ringThickness, 2*ringThickness);
 	
 	var bezel = new Intersection();		
 	var coneCenter = new Vector3d(0,coneCenterY, 0);
@@ -28,8 +28,9 @@ function main(){
 	bezel.add(new Plane(new Vector3d(0,-1,0), -bezelBottom));
 	
 	var ring = new Union();
-	ring.add(torus);
+	ring.add(ringBase);
 	ring.add(bezel);
+	
 	var cutoff = new Union();
 	cutoff.add(new Cylinder(new Vector3d(0,0,-s),new Vector3d(0,0,s),innerRadius));
 	var fullRing = new Subtraction(ring, cutoff);
