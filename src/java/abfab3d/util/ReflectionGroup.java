@@ -129,8 +129,9 @@ public class ReflectionGroup {
         public abstract void reflect(Vec pnt);
     } // class SPlane 
     
+
     //
-    // class to represent plane 
+    // class to represent half space plane with external normal and distance along normal to origin 
     //
     public static class Plane extends SPlane {
         
@@ -145,10 +146,17 @@ public class ReflectionGroup {
             nz = normal.z / len;
             dist = distance; 
         }
+        public Vector3d getNormal(){
+            return new Vector3d(nx, ny, nz);
+        }
+        public double getDistance(){
+            return dist;
+        }
         
+
         public double distance(Vec pnt){
-            // dot(p,normal) - dist:
-            return dot(pnt, nx, ny, nz) - dist; 
+            // dist - dot(p,normal) 
+            return dist - dot(pnt, nx, ny, nz); 
 
         }
 
@@ -187,6 +195,14 @@ public class ReflectionGroup {
             if(DEBUG)
                 printf("Sphere: (%7.5f %7.5f %7.5f), %7.5f\n ", cx, cy, cz, r);
         }
+
+        public Vector3d getCenter(){
+            return new Vector3d(cx, cy, cz);
+        }
+        public double getRadius(){
+            return r;
+        }
+
 
         public double distance(Vec p){
 

@@ -48,7 +48,7 @@ public class GridMipMap extends TransformableDataSource {
     // type of grid downsampling 
     static public final int SCALING_AVERAGE = 0, SCALING_MAX = 1;
 
-    protected int m_interpolationType = INTERPOLATION_BOX;
+    protected int m_interpolationType = INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
     protected int m_repeatType = REPEAT_NONE;
 
     // what algorithm to use for grid downsampling 
@@ -156,9 +156,11 @@ public class GridMipMap extends TransformableDataSource {
         double xg  = (x - xgmin)*scaleFactor;
         double yg  = (y - ygmin)*scaleFactor;
         double zg  = (z - zgmin)*scaleFactor;
-
+        
         double vg = abs(pnt.getScaledVoxelSize()) * scaleFactor;
         
+        //vg = 4.01;
+
         if(vg <= 1.) {        
             dataValue.v[0] = m_normalization*getValue(m_grids[0], xg, yg, zg);
             return RESULT_OK;
@@ -176,9 +178,11 @@ public class GridMipMap extends TransformableDataSource {
                 
         //TODO interpolation between levels 
         double v0 = m_normalization*getValue(m_grids[level], xg/scale, yg/scale, zg/scale);
-        
+        if(false){
+            dataValue.v[0] = v0;
+            return RESULT_OK;
+        }
         if(level < maxLevel && m_interpolationType != INTERPOLATION_BOX){  
-
             // intrerpolate with next level 
             level--; scale /= 2;
             double v1 = m_normalization*getValue(m_grids[level], xg/scale, yg/scale, zg/scale);
@@ -189,7 +193,7 @@ public class GridMipMap extends TransformableDataSource {
             double v = v1* lv + v0*(1-lv);
             
             if(DEBUG && debugCount-- > 0) {
-                printf("vg: %10.6f  v0: %10.6f v1: %10.6f v: %10.6f \n", vg, v0, v1, v);
+                printf("vg: %10.6f lv: %10.6f  v0: %10.6f v1: %10.6f v: %10.6f \n", vg, lv, v0, v1, v);
             }
             dataValue.v[0] = v;
 
@@ -282,17 +286,19 @@ public class GridMipMap extends TransformableDataSource {
 
         for(int y = 0; y < ny1; y++){
             int yy = 2*y;
-            int yy1 = (yy+1) % ny;
-
+            int yy1 = (yy+1);
+            if(yy1 >= ny) yy1 = yy;
             for(int x = 0; x < nx1; x++){
 
                 int xx = 2*x;
-                int xx1 = (xx+1) % nx;
+                int xx1 = (xx+1);
+                if(xx1 >= nx) xx1 = xx;
 
                 for(int z = 0; z < nz1; z++){
 
                     int zz = 2*z;
                     int zz1 = (zz+1) % nz;
+                    if(zz1 >= nz) zz1 = zz;
                     int c = 0;
 
                     att[c++] = inGrid.getAttribute(xx,yy,zz);

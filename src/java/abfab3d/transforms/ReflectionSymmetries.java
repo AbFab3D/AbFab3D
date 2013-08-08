@@ -33,8 +33,8 @@ public class ReflectionSymmetries {
     public static ReflectionGroup getTwoPlanes(double x1, double x2){
         
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
-            new ReflectionGroup.Plane(new Vector3d(1,0,0), x1), // right of  plane 1
-            new ReflectionGroup.Plane(new Vector3d(-1,0,0), -x2), // left of plane 2
+            new ReflectionGroup.Plane(new Vector3d(-1,0,0), -x1), // right of  plane 1
+            new ReflectionGroup.Plane(new Vector3d(1,0,0), x2), // left of plane 2
         };
         return new ReflectionGroup(s);
 
@@ -54,8 +54,8 @@ public class ReflectionSymmetries {
         double y2 = sqrt(r2*r2 + r*r);
         
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
-            new ReflectionGroup.Plane(new Vector3d(1,0,0), 0.), // 
-            new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(-1,0,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(0,-1,0), 0.), // 
             new ReflectionGroup.Sphere(new Vector3d(x1,0,0), -r1), // outside of sphere 1
             new ReflectionGroup.Sphere(new Vector3d(0,y2,0), -r2), // outside of sphere 2           
         };   
@@ -70,8 +70,8 @@ public class ReflectionSymmetries {
         //printf("r1: %7.5f x1: %7.5f r2: %7.5f y2: %7.5f\n", r1, x1, r2, y2);
 
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
-            new ReflectionGroup.Plane(new Vector3d(1,0,0), 0.), // 
-            new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(-1,0,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(0,-1,0), 0.), // 
             new ReflectionGroup.Sphere(new Vector3d(x1,0,0), -r1), // outside of sphere  
             new ReflectionGroup.Sphere(new Vector3d(0,y2,0), -r2), // outside of sphere              
         };   
@@ -94,7 +94,7 @@ public class ReflectionSymmetries {
     }
     
     public static ReflectionGroup getPlaneAndSphere(double x, double r){
-        double n = (r > 0)? (1) : (-1);
+        double n = (r > 0)? (-1) : (1);
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
             new ReflectionGroup.Plane(new Vector3d(n,0,0), 0.), // right of yz plane
             new ReflectionGroup.Sphere(new Vector3d(x,0,0), -r), // outside of sphere  
@@ -107,11 +107,11 @@ public class ReflectionSymmetries {
 
         Vector3d v5 = new Vector3d(1,0,t); // vertex of icosahedron 
         Vector3d v3 = new Vector3d(0,1/t,t); // vertex of dodecahedron 
-        Vector3d p35 = new Vector3d(); p35.cross(v5,v3); p35.normalize();
+        Vector3d p35 = new Vector3d(); p35.cross(v3, v3); p35.normalize();
 
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
-            new ReflectionGroup.Plane(new Vector3d(1,0,0), 0.), 
-            new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.), 
+            new ReflectionGroup.Plane(new Vector3d(-1,0,0), 0.), 
+            new ReflectionGroup.Plane(new Vector3d(0,-1,0), 0.), 
             //new ReflectionGroup.Plane(new Vector3d(0,0,1), 0.), 
             new ReflectionGroup.Plane(p35, 0.),
         };
@@ -125,9 +125,9 @@ public class ReflectionSymmetries {
         double dz = r*cos(az);
         
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
-            new ReflectionGroup.Plane(new Vector3d(1,0,0), 0.), // 
-            new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.), // 
-            new ReflectionGroup.Plane(new Vector3d(0,0,1), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(-1,0,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(0,-1,0), 0.), // 
+            new ReflectionGroup.Plane(new Vector3d(0,0,-1), 0.), // 
             new ReflectionGroup.Sphere(new Vector3d(dx, dy, dz), -r), // outside of sphere  
         };   
         return new ReflectionGroup(s);
@@ -142,8 +142,8 @@ public class ReflectionSymmetries {
         double alpha = PI/order;        
         
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
-            new ReflectionGroup.Plane(new Vector3d(0,1,0), 0.),
-            new ReflectionGroup.Plane(new Vector3d(sin(alpha), -cos(alpha),0), 0.),
+            new ReflectionGroup.Plane(new Vector3d(0,-1,0), 0.),
+            new ReflectionGroup.Plane(new Vector3d(-sin(alpha), cos(alpha),0), 0.),
         };   
         return new ReflectionGroup(s);
         

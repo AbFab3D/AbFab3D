@@ -25,6 +25,7 @@ import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
 import abfab3d.util.ReflectionGroup;
 import abfab3d.util.VecTransform;
+import abfab3d.util.DataSource;
 import abfab3d.util.Units;
 
 import net.jafama.FastMath;
@@ -51,6 +52,12 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
         
     }
     
+    public ReflectionSymmetry(ReflectionGroup.SPlane fundamentalDomain[]){            
+
+        setGroup(fundamentalDomain);
+
+    }
+
     public void setGroup(ReflectionGroup group){
         this.group = group;
     }
@@ -129,6 +136,28 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
     public static ReflectionGroup.SPlane getSphere(Vector3d center, double radius){
         return new ReflectionGroup.Sphere(center, radius);
     }
+
+    public static DataSource getDataSource(ReflectionGroup.SPlane splane){
+        if(splane instanceof ReflectionGroup.Plane){
+
+            ReflectionGroup.Plane plane = (ReflectionGroup.Plane)splane;
+            
+            return new abfab3d.datasources.Plane(plane.getNormal(), plane.getDistance());
+            
+        } else if(splane instanceof ReflectionGroup.Sphere ){
+            ReflectionGroup.Sphere sphere = (ReflectionGroup.Sphere)splane;
+            return new abfab3d.datasources.Sphere(sphere.getCenter(), sphere.getRadius());            
+        }
+        return null;
+    }
     
+    public static DataSource getDataSource(ReflectionGroup.SPlane splanes[]){
+        abfab3d.datasources.Intersection inter = new abfab3d.datasources.Intersection();
+        for(int i = 0; i < splanes.length; i++){
+            inter.add(getDataSource(splanes[i]));
+        }
+        return inter;
+    }
+
 } // class ReflectionSymmetry 
 
