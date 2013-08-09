@@ -36,7 +36,7 @@ public class GridMipMap extends TransformableDataSource {
     
     static final boolean DEBUG = false;
 
-    static public final int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_Z = 4;
+    static public final int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_Z = 4, REPEAT_XYZ = 7;
  
     static int debugCount = 100;
 
@@ -223,7 +223,7 @@ public class GridMipMap extends TransformableDataSource {
             iy = (int)floor(y),
             iz = (int)floor(z);
 
-        //TODO robust way to move point into grid bounds        
+        //TODO robust way to move point into grid bounds  
         if(((m_repeatType & REPEAT_X) == 0) && (ix < 0 || ix >= nx)) return 0;
         if(((m_repeatType & REPEAT_Y) == 0) && (iy < 0 || iy >= ny)) return 0;
         if(((m_repeatType & REPEAT_Z) == 0) && (iz < 0 || iz >= nz)) return 0;
