@@ -57,11 +57,13 @@ function makePart_g(size, thickness){
   var gmm = new GridMipMap(g);
   
   gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
+  gmm.setRepeatType(GridMipMap.REPEAT_NONE);
   //gmm.setScalingType(GridMipMap.SCALING_MAX);  
 
   return gmm;
   
 }
+
 
 function makePart(size, thickeness){
 
@@ -75,7 +77,8 @@ function makePart(size, thickeness){
 
 function main(){
 
-	var a = 25*MM;
+	var sx = 50*MM;
+	var sz = 10*MM;
 	
 	var voxelSize = 0.1*MM;
 		
@@ -83,15 +86,20 @@ function main(){
 	var cx = 5.0*MM;
 	var cy = 5.0*MM;
 	
-	var part = makePart_g(30*MM, 5*MM);
+	var r = 25*MM;
+	var r1 = 30*MM;
 	
-	part.setTransform(new Rotation(new Vector3d(-1,1,0), 3*Math.PI/8));
+	var part = makePart_g(30*MM, 5*MM);	
+	part.setTransform(new Rotation(new Vector3d(-1,1,0), 3*Math.PI/8));	
 	
+	//var part = new Sphere(new Vector3d(5*MM, 5*MM, 0),10*MM);
 	
 	var dt = new DataTransformer();
+	
 	dt.setSource(part);	
 	
-	var sym = new ReflectionSymmetry(getQuad_1(25*MM, 30*MM, Math.PI/3));
+	var sym = new ReflectionSymmetry(getQuad_1(r, r1, Math.PI/3));
+	
 	sym.setMaxCount(50);
 	
 	dt.setTransform(sym);
@@ -99,7 +107,7 @@ function main(){
     var maker = new GridMaker();
 	maker.setSource(dt);
 	
-	var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	var dest = createGrid(-sx/2,sx/2,-sx/2,sx/2,-sz/2, sz/2,voxelSize);
 	
 	maker.makeGrid(dest);
 	
