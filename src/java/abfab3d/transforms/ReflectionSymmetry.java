@@ -136,7 +136,7 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
     public static ReflectionGroup.SPlane getSphere(Vector3d center, double radius){
         return new ReflectionGroup.Sphere(center, radius);
     }
-
+/*
     public static DataSource getDataSource(ReflectionGroup.SPlane splane){
         if(splane instanceof ReflectionGroup.Plane){
 
@@ -150,7 +150,7 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
         }
         return null;
     }
-    
+
     public static DataSource getDataSource(ReflectionGroup.SPlane splanes[]){
         abfab3d.datasources.Intersection inter = new abfab3d.datasources.Intersection();
         for(int i = 0; i < splanes.length; i++){
@@ -158,6 +158,6 @@ public class ReflectionSymmetry  implements VecTransform, Initializable  {
         }
         return inter;
     }
-
+*/
 } // class ReflectionSymmetry 
 
