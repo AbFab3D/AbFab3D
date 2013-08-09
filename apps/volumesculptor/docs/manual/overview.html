@@ -6,23 +6,43 @@
 
 	</head>
 <BODY>
+<H1>Volume Sculptor</H1>
 <div id="main">
 <div id="content">
-<H2>Volume Sculpting Overview</H2>
+<li><a href="#Overview">1 Overview</a></li>
+<li><a href="#Scripts">2 Volume Sculptor Scripts</a></li>
+<ul>
+    <li><a href="#CompositeTransform">CompositeTransform</a></li>
+    <li><a href="#Rotation">Rotation</a></li>
+    <li><a href="#Scale">Scale</a></li>
+    <li><a href="#Translation">Translation</a></li>
+</ul>
+<li><a href="#Javascript Functions">3 Functions</a></li>
+<ul>
+    <li><a href="#createGrid">createGrid</a></li>
+    <li><a href="#load">load</a></li>
+</ul>
+<li><a href="#Java Objects">4 Java Objects</a></li>
+<ul>
+    <li><a href="#Math">Math</a></li>
+</ul>
+</ul>
+
+<H2 id="Overview">Overview</H2>
 <p>
-The Volume Sculptor provides a powerful system for generating 3D printable objects via simple javascript program.  
-The functionality of VS is based on representaion of three dimensional objects via voxels on 3 dimensional regular grid. 
+The Volume Sculptor(VS) provides a powerful system for generating 3D printable objects via a simple Javascript program.
+The functionality of VS is based on a representation of three dimensional objects via voxels on 3 dimensional regular grid.
 </p>
 <p>
-Roughly speaking the value of each voxel represents  the percent of this voxel volume occupied by the shape. 
+Roughly speaking the value of each voxel represents the percent of this voxel volume occupied by the shape.
 More precisely speaking the voxel value is appropriately normalized limited range signed distance function - 
 distance from voxel center to the shape surface. 
 That value is represented internally by default with 8 bit precision which is equivalent to 256 different levels. 
-This more precise representation greatly enchances the quality of generated objects in comparision with more traditional binary values of 0 and 1. 
+This more precise representation greatly enhances the quality of generated objects in comparison with more traditional binary values of 0 and 1.
 The gain in quality is similar to those of grayscale image over black and white image of the same resolution. 
 </p>
 <p>
-The voxel based representation gives Volume Sculptor greater flexibility in shapes generation over traditional representation via triangle meshes. 
+The voxel based representation gives Volume Sculptor greater flexibility in shape generation over traditional representation via triangle meshes.
 It is similar to advantages 2D raster graphics has over 2D vector graphics. Vector graphics is great for drawing diagrams and raster 
 graphics is on practice the tool of choice for anything else. 
 </p>
@@ -34,7 +54,7 @@ The distance function calculations may be very complex task for complex object. 
 composing complex object from many simpler one using several simple operations. 
 </p>
 <p>
-There are several predefines simple object like <span class="code">Sphere</span>,<span class="code">Box</span>, <span class="code">Cylinder</span>.
+There are several predefined simple object like <span class="code">Sphere</span>,<span class="code">Box</span>, <span class="code">Cylinder</span>.
 More complex methods include functionality to convert 2D image to a 3D embossed object using <span class="code">ImageBitmap</span> object and 
 importing user provided 3D object using <span class="code">load()</span> function. 
 </p>
@@ -44,8 +64,8 @@ There are usual boolean operations on objects which include <span class="code">U
 <span class="code">Subtraction</span>, <span class="code">Complement</span>. 
 </p>
 <p>
-There is flexible set of transformations whci can be applied to any <span class="code">DataSource</span> object. Tranformations include standard 
-3D liear transformations like <span class="code">Rotation</span>, <span class="code">Translation</span>, <span class="code">Scale</span>, 
+There is a flexible set of transformations which can be applied to any <span class="code">DataSource</span> object. Transformations include standard
+3D linear transformations like <span class="code">Rotation</span>, <span class="code">Translation</span>, <span class="code">Scale</span>,
 <span class="code">Reflection</span>. Flexibility of using volume based data allows to use arbitrary non linear transformation among those are 
 <span class="code">RingWrap</span>, <span class="code">SphereInversion</span>, <span class="code">FrizeSymmetry</span>,
 <span class="code">WalPaperSymmetry</span>, <span class="code">ReflectionSymmetry</span>. Several 
@@ -54,23 +74,23 @@ A transformation can be applied to any DataSource object via its <span class="co
 </p>
 
 
-<H2>Volume Sculptor Scripts</H2>
+<H2 id="Scripts">Volume Sculptor Scripts</H2>
 <p>
-The sripting language of Volume Sculptor is javascript as implemented by Rhino scripting engine. All standard javasript functionality is 
-supported. 
+Volume Sculptor Scripts are Javascript programs over top the AbFab3D Voxel library. All standard Javascript functionality is
+supported.  In particular we use the Rhino Scripting engine in Java.  You can find the project documentation here: <a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation" >Rhino Documentation</a>
 </p>
 <p>
-Below is the simplest complete VSS (Volume Sculptor Script) program. 
+Below is a simple VSS (Volume Sculptor Script) program.
 <pre class="code">
 function main(args){  // this script will make a sphere
 
-    var radius = 5*MM;       // radius of sphere 5 millimeters 
-    var voxelSize = 0.1*MM;  // size of grid voxel 			
+    var radius = 5*MM;        // radius of sphere 5 millimeters
+    var voxelSize = 0.1*MM;   // size of grid voxel
     var gw = radius*1.1;      // make the grid size a little larger to have some clearance 
 	
     var grid = createGrid(-gw,gw,-gw,gw,-gw,gw,voxelSize); // create the grid 
 	
-    var maker = new GridMaker();            // instance of grid maker
+    var maker = new GridMaker();            // create instance of grid maker
     maker.setSource(new Sphere(radius));    // gives GridMaker object to work on 
     maker.makeGrid(grid);                   // GridMaker fills the grid with data 
 
@@ -78,38 +98,39 @@ function main(args){  // this script will make a sphere
 }
 </pre>
 <p>
-Any vss script should have function <span class="code">main(arg)</span>. This function is executed by Volume Sculptor scripting engine. 
+    Click <a href="http://volumesculptor.com/creators/volume_sculptor/?example=sphere" target="_blank">Simple Sphere</a> to run this example.
+</p>
+<p>
+All vss scripts should have function <span class="code">main(args)</span>. This function is executed by the Volume Sculptor scripting engine.
 It is possible to pass arbitrary arguments (including uploaded files ) to the main(args), but we will explain this later. 
 </p>
 <p>
-Unit of length in Volume Sculptor is <b>meter</b>. 
+Unit of length in Volume Sculptor is <b>meters</b>.
 To avoid awkward numbers there are few useful conversion constants MM=0.001 for millimeters, IN=0.0254 for inches. 
 </p>
 
 <p>
-The primary object of Volume Sculptor script is grid. The result of executing <span class="code">main(args)</span>should be grid filled with scene data. 
-The scripting engine convert grid returned by main() into traditional triangle mesh which is send back to the browser 
+The primary object of Volume Sculptor script is a volumetric grid. The result of executing <span class="code">main(args)</span>should be a grid filled with scene data.
+The scripting engine converts the grid returned by main() into a traditional triangle mesh which is sent back to the browser
 and displayed in the 3D view.  
 </p>
 <p>
-The grid is created via function: <br><span class="code">grid = createGrid(xmin, xmax, ymin, ymax, zmin, zmax, voxelSize);</span>
+The grid is created via this function: <br><span class="code">grid = createGrid(xmin, xmax, ymin, ymax, zmin, zmax, voxelSize);</span>
 </p>
-Here the <span class="code">xmin, xmax ...</span> are the bounds of grid in the space. They define minimal and maximal coordinates where the final shape will be located. 
+Here the <span class="code">xmin, xmax ...</span> are the physical bounds of grid in the space. They define minimal and maximal coordinates where the final shape will be located.
 The last parameter <span class="code">voxelSize</span> is the size of grid voxel. It defines the resolution of volume rendering. 
-Voxel size 0.1 millimeter corresponds to printing resolution of 3D printer. This paramerer greatly affect speed of all calculations and the best 
-approach is to keep it larger (0.2mm or 0.3mm) during script developing and set to printer resolution only at the final stage. 
+A Voxel size of 0.1 millimeter corresponds to the printing resolution of most 3D printers in 2013. This parameter greatly affects speed
+of all calculations and the best approach is to keep it larger (0.2mm or 0.3mm) during script development and set to printer resolution only
+at the final stage.
 </p>
 <p>
-The primary tool of VSS is <span class="code">GridMaker</span>. GridMaker fills the grid voxels with values calculated by objects which 
-have interface <span class="code">DataSource</span>. <span class="code">Sphere</span> is one of several prebuild objects with DataSource interface. 
-User also can create new DataSource objects directly in script. 
+The primary tool of VSS is <span class="code">GridMaker</span>. GridMaker fills the grid voxels with values calculated by objects called
+<span class="code">DataSource</span>. <span class="code">Sphere</span> is one of several prebuilt data sources.
+Users can also create new DataSource objects directly in their script.
 </p>
 <p>
 Calling <span class="code">maker.makeGrid(grid)</span> does the actual calculations of the grid. Returning that grid from main initiates 
-Volume Sculptor engine does conversion of grid data into triangle mesh which is returned to browser. 
-</p>
-<p>
-Click <a href="http://volumesculptor.com/creators/volume_sculptor/?example=sphere" target="_blank">Simple Sphere</a> to run this example. 
+the Volume Sculptor engine conversion of grid data into a triangle mesh which is returned to browser.
 </p>
 <h2>Controlling parameter of output mesh</h2>
 <p>

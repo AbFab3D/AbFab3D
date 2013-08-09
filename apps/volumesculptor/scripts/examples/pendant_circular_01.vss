@@ -1,5 +1,4 @@
 
-//var voxelSize = 0.075*MM;
 var voxelSize = 0.1*MM;
 
 function makeImage(path, width, height, thickness){
@@ -11,22 +10,22 @@ function makeImage(path, width, height, thickness){
   img.setUseGrayscale(false);
   img.setSmoothBoundaries(true, true);
   return img;
-  
+
 }
 
 function makeBail(x0,y0,z0,internalDiameter,thickness, rotateBail) {
-	
+
   var R = internalDiameter/2 + thickness/2;
   var r = thickness/2;
   var torus = new Torus(x0,y0+internalDiameter/2,z0,R,r);
 
   var s = 2*R;
-  
-  var plane = new Plane(new Vector3d(0,1,0), new Vector3d(x0,y0-r/2,z0));
+
+  var plane = new Plane(new Vector3d(0,1,0), new Vector3d(x0,y0-r,z0));
   var subtract = new Subtraction(torus,plane);
   if(rotateBail)
 	torus.setTransform(new Rotation(Vector3d(0,1,0),Math.PI/2));
-  
+
   return subtract;
 
 }
@@ -62,7 +61,7 @@ function getCylinderBend(fixedRadius, bendAmount){
 	var cp = new CompositeTransform();
 	cp.add(new RingWrap(radius));
 	cp.add(new Translation(0,0,-(center+bendAmount)));
-	
+
 	return cp;
 
 }
@@ -71,66 +70,66 @@ function getCylinderBend(fixedRadius, bendAmount){
 function main(args) {
 
 
-  // parameters of base image 
+  // parameters of base image
   var imagePath = args[0];
-  var imageWidth = 21*MM;
-  var imageHeight = 21*MM;
-  var imageThickness = 4*MM;
-  
-  // parameters of text 
+  var imageWidth = 40*MM;
+  var imageHeight = 40*MM;
+  var imageThickness = 2*MM;
+
+  // parameters of text
   var hasText = false;
   var textWidth = 15*MM;
   var textHeight = imageThickness;
   var textDepth = 2*MM;
   var textString = "AbFab3D";
-  
-  // parameters of bending 
+
+  // parameters of bending
   var makeSphereBend = true;
-  var makeCylinderBend = false;  
-  var bendAmount = 1*MM;
-  
-  // parameters of bail 
+  var makeCylinderBend = false;
+  var bendAmount = 2*MM;
+
+  // parameters of bail
   var hasBail = true;
-  var bailLocation = imageHeight/2; 
-  var bailHoleSize = 2*MM;
-  var bailThickness = 1.5*MM;
+  var bailLocation = imageHeight/2;
+  var bailHoleSize = 1.5*MM;
+  var bailThickness = 1*MM;
   var rotateBail = true;
-  
-  // make 
-  var gridW = imageWidth + 2*MM; // 1 MM margins 
+
+  // make
+  var gridW = imageWidth + 2*MM; // 1 MM margins
   var gridH = imageHeight + 2*(bailHoleSize + 2*bailThickness);
-  var gridD = imageThickness + 4*bendAmount;  
-  
-  var grid = createGrid(-gridW/2,gridW/2,-gridH/2,gridH/2,-gridD/2,gridD/2,voxelSize);  
-  
+  var gridD = imageThickness + 4*bendAmount;
+
+  var grid = createGrid(-gridW/2,gridW/2,-gridH/2,gridH/2,-gridD/2,gridD/2,voxelSize);
+
   var imageBox = makeImage(imagePath, imageWidth, imageHeight, imageThickness);
-    	
+
   if(hasText){
-	var text = makeText(textString,-imageWidth/2,0,0, textWidth, textHeight, textDepth);  
-	imageBox = new Subtraction(imageBox, text);	
+	var text = makeText(textString,-imageWidth/2,0,0, textWidth, textHeight, textDepth);
+	imageBox = new Subtraction(imageBox, text);
   }
-  
+
   if(makeSphereBend)
 	imageBox.setTransform(getSphereBend(bailLocation,bendAmount));
-	
+
   if(makeCylinderBend)
 	imageBox.setTransform(getCylinderBend(imageWidth/2, bendAmount));
-  
+
   var pendant = imageBox;
-  
-  if(hasBail){  
+
+  if(hasBail){
 	pendant = new Union();
 	pendant.add(imageBox);
 	var bail = makeBail(0, bailLocation, 0, bailHoleSize, bailThickness, rotateBail);
-	pendant.add(bail);	
+	pendant.add(bail);
   }
 
   var maker = new GridMaker();
-  
-  maker.setSource(pendant);   
+
+  maker.setSource(pendant);
 
   maker.makeGrid(grid);
-  
+
   return grid;
-  
+
 }
