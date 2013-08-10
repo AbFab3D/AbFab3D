@@ -14,6 +14,7 @@ package volume_sculptor;
 
 // External Imports
 
+import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.TriangleMesh;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -23,6 +24,7 @@ import volumesculptor.shell.ExecResult;
 import volumesculptor.shell.Main;
 
 import java.io.File;
+import static abfab3d.util.Units.MM;
 
 /**
  * Tests the functionality of a VolumeSculptor
@@ -30,12 +32,79 @@ import java.io.File;
  * @author Alan Hudson
  */
 public class TestVolumeSculptor extends TestCase {
+    private static final String IMGS_DIR =  "apps/volumesculptor/images/";
+    private static final String MODELS_DIR =  "apps/volumesculptor/models/";
+    private static final String SCRIPTS_DIR =  "apps/volumesculptor/scripts/";
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
         return new TestSuite(TestVolumeSculptor.class);
+    }
+
+    public void testCoinExample() throws Exception {
+        String[] script_args = new String[] {".001", IMGS_DIR + "r5-bird.png", IMGS_DIR + "r5-circle.png" , IMGS_DIR + "r4-unicorn.png"};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/coin_01.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            //var width = 38*MM;
+            //var height = 38*MM;
+            //var layerHeight = 1*MM;
+
+            // If ImageBitmap worked then the final volume should < 3 full layers of material
+            double max_volume = 38 * MM * 38 * MM * 1 * MM * 3;
+
+            assertTrue("Volume", ac.getVolume() < max_volume * 0.9);
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
+    public void testLightswitchExample() throws Exception {
+        String[] script_args = new String[] {MODELS_DIR + "Light_Switch_Plate1.stl",IMGS_DIR + "chinese_lightswitch.png"};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/lightswitch.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            //var width = 38*MM;
+            //var height = 38*MM;
+            //var layerHeight = 1*MM;
+
+            double expected_volume = 2.1195704306735023E-5;
+
+            // I can't see the volume of this changing more then 20% without something being broken
+            double diff = Math.abs(ac.getVolume() - expected_volume);
+
+            assertTrue("Volume", diff < (expected_volume * 0.2));
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
     }
 
     public void testSphere() {
