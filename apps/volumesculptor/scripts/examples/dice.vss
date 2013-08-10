@@ -1,0 +1,92 @@
+var voxelSize = 0.07*MM;
+
+function makeText(str, width, height, depth, translation, rotations) {
+  var text = new Text(str, "Century Schoolbook L", width, height, depth, voxelSize);
+  var trans = new CompositeTransform();
+  
+  for (var i=0; i<rotations.length; i++) {
+    trans.add(rotations[i]);
+  }
+  
+  trans.add(translation);
+  text.setTransform(trans);
+  return text;
+}
+
+// Make numbers and rotate/translate them to where each face would be
+function createNumbers(size, width, height, depth) {
+  var union = new Union();
+  var rotations = new Array();
+  
+  // Example for number 1:
+  // Translate 1 to the front face, no rotation value
+  rotations[0] = new Rotation(new Vector3d(1,0,0), 0);
+  var translation = new Translation(0, 0, (size/2 - depth/2));
+  var text = makeText("1", width, height, depth, translation, rotations);
+  union.add(text);
+  
+  // Example for number 2:
+  // Rotate around the X axis by 90 degrees
+  // Then translate it to the bottom face
+  rotations[0] = new Rotation(new Vector3d(1,0,0), Math.PI/2);
+  translation = new Translation(0, -(size/2 - depth/2), 0);
+  text = makeText("2", width, height, depth, translation, rotations);
+  union.add(text);
+  
+  rotations[0] = new Rotation(new Vector3d(-1,0,0), Math.PI/2);
+  translation = new Translation(0, (size/2 - depth/2), 0);
+  text = makeText("5", width, height, depth, translation, rotations);
+  union.add(text);
+
+  // Example for number 3:
+  // Rotate around the Y axis by -90 degrees
+  // Then rotate around the Z axis by 90 degrees
+  // Then translate it to the left face
+  rotations[0] = new Rotation(new Vector3d(0,-1,0), Math.PI/2);
+  rotations[1] = new Rotation(new Vector3d(1,0,0), Math.PI/2);
+  translation = new Translation(-(size/2 - depth/2), 0, 0);
+  text = makeText("3", width, height, depth, translation, rotations);
+  union.add(text);
+  
+  rotations[0] = new Rotation(new Vector3d(0,1,0), Math.PI);
+  rotations[1] = new Rotation(new Vector3d(0,0,1), Math.PI);
+  translation = new Translation(0, 0, -(size/2 - depth/2));
+  text = makeText("4", width, height, depth, translation, rotations);
+  union.add(text);
+  
+  rotations[0] = new Rotation(new Vector3d(1,0,0), Math.PI/2);
+  rotations[1] = new Rotation(new Vector3d(0,0,1), Math.PI/2);
+  translation = new Translation((size/2 - depth/2), 0, 0);
+  text = makeText("6", width, height, depth, translation, rotations);
+  union.add(text);
+  
+  return union;
+}
+
+function main(args) {
+  // the cube for the dice
+  var size = args[0];
+  var box = new Box(0,0,0,size,size,size);
+  
+  // round the corners and edges by intersecting cube with sphere
+  // sphere with radius 32% of cube length is sufficient
+  var radius = size - 0.32*size;
+  var sphere = new Sphere(radius);
+  var intersect = new Intersection();
+  intersect.add(box);
+  intersect.add(sphere);
+  
+  // add numbers to each face by subtracting number text from the cube
+  var tw = size / 2;
+  var th = size / 2;
+  var td = 0.026 * size;
+  var numbers = createNumbers(size, tw, th, td);
+  var sub = new Subtraction(intersect, numbers);
+  
+  var halfgrid = (size/2) + 2*MM;
+  var grid = createGrid(-halfgrid,halfgrid,-halfgrid,halfgrid,-halfgrid,halfgrid,voxelSize);
+  var maker = new GridMaker();
+  maker.setSource(sub);
+  maker.makeGrid(grid);
+  return grid;
+}
