@@ -97,10 +97,160 @@ public class TestVolumeSculptor extends TestCase {
 
             double expected_volume = 2.1195704306735023E-5;
 
-            // I can't see the volume of this changing more then 20% without something being broken
+            // I can't see the volume of this changing more then 10% without something being broken
             double diff = Math.abs(ac.getVolume() - expected_volume);
 
-            assertTrue("Volume", diff < (expected_volume * 0.2));
+            assertTrue("Volume", diff < (expected_volume * 0.10));
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
+    public void testRingExample() throws Exception {
+        String[] script_args = new String[] {IMGS_DIR + "sw_logo.png"};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/ring_06.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            System.out.println("Volume: " + ac.getVolume());
+            double expected_volume = 5.818707682613973E-7;
+
+            // I can't see the volume of this changing more then 10% without something being broken
+            double diff = Math.abs(ac.getVolume() - expected_volume);
+
+            assertTrue("Volume", diff < (expected_volume * 0.10));
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
+    public void testDiceExample() throws Exception {
+        String[] script_args = new String[] {Double.toString(16 * MM)};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/dice.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            System.out.println("Volume: " + ac.getVolume());
+            double expected_volume = 3.804570609736634E-6;
+
+            // I can't see the volume of this changing more then 10% without something being broken
+            double diff = Math.abs(ac.getVolume() - expected_volume);
+
+            assertTrue("Volume", diff < (expected_volume * 0.10));
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
+    public void testGyroidizeExample() throws Exception {
+        String[] script_args = new String[] {MODELS_DIR + "sphere.stl"};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/gyroidize.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            System.out.println("Volume: " + ac.getVolume());
+            double expected_volume = 1.8076682897585747E-6;
+
+            // I can't see the volume of this changing more then 10% without something being broken
+            double diff = Math.abs(ac.getVolume() - expected_volume);
+
+            assertTrue("Volume", diff < (expected_volume * 0.10));
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
+    public void testPendantCircularExample() throws Exception {
+        String[] script_args = new String[] {IMGS_DIR + "unicursal.png"};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/pendant_circular_01.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            System.out.println("Volume: " + ac.getVolume());
+            double expected_volume = 1.504196129274097E-6;
+
+            // I can't see the volume of this changing more then 10% without something being broken
+            double diff = Math.abs(ac.getVolume() - expected_volume);
+
+            assertTrue("Volume", diff < (expected_volume * 0.10));
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
+    public void testSymmetry09Example() throws Exception {
+        String[] script_args = new String[] {};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/symmetry_09.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            System.out.println("Volume: " + ac.getVolume());
+            double expected_volume = 4.06281920623781E-6;
+
+            // I can't see the volume of this changing more then 10% without something being broken
+            double diff = Math.abs(ac.getVolume() - expected_volume);
+
+            assertTrue("Volume", diff < (expected_volume * 0.10));
         } catch(Exception e) {
             e.printStackTrace();
             fail("Exception");
