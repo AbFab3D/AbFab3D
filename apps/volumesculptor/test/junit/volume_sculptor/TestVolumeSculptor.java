@@ -32,9 +32,9 @@ import static abfab3d.util.Units.MM;
  * @author Alan Hudson
  */
 public class TestVolumeSculptor extends TestCase {
-    private static final String IMGS_DIR =  "apps/volumesculptor/images/";
-    private static final String MODELS_DIR =  "apps/volumesculptor/models/";
-    private static final String SCRIPTS_DIR =  "apps/volumesculptor/scripts/";
+    private static final String IMGS_DIR =  "images/";
+    private static final String MODELS_DIR =  "models/";
+    private static final String SCRIPTS_DIR =  "scripts/";
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -44,6 +44,7 @@ public class TestVolumeSculptor extends TestCase {
     }
 
     public void testCoinExample() throws Exception {
+        System.out.println("Dir: " + new File("foo.txt").getAbsolutePath());
         String[] script_args = new String[] {".001", IMGS_DIR + "r5-bird.png", IMGS_DIR + "r5-circle.png" , IMGS_DIR + "r4-unicorn.png"};
 
         try {

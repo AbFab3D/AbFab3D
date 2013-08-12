@@ -1,9 +1,9 @@
 <?xml version="1.0" standalone="yes"?>
 
-<project basedir="." default="compile" name="VolumeSculptor">
+<project basedir="." default="build" name="VolumeSculptor">
     <import file="build_common.xml"/>
 
-    <description></description>
+    <description>Volume Sculptor Build</description>
 
     <property name="version" value="1.0.0"/>
     <property name="src.dir" value="${basedir}/src"/>
@@ -13,6 +13,7 @@
     <property name="test.dir" value="${basedir}/test/junit"/>
     <property name="abfab3d.classes.dir" value="../../classes"/>
     <property name="classes.dir" value="${basedir}/classes"/>
+    <property name="test.classes.dir" value="${classes.dir}/test" />
     <property name="jar.dir" value="${basedir}/jars"/>
     <property name="lib.dir" value="${basedir}/lib"/>
     <property name="abfab3d.lib.dir" value="../../lib"/>
@@ -44,6 +45,18 @@
 
     <target name="compileCommon">
         <ant antfile="${apps.common.dir}/build.xml" target="build" inheritall="false"/>
+    </target>
+
+    <target name="compileTest" depends="init" description="Compile all Test source files">
+        <mkdir dir="${test.classes.dir}" />
+
+        <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="volume_sculptor" jars="**/*.jar" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
     </target>
 
     <target name="compile" depends="init" description="Compile all Java source files">
@@ -101,6 +114,28 @@
                 <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
             </classpath>
         </java>
+    </target>
+
+    <target name="test" depends="compileTest">
+        <junit dir="${basedir}" printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes" >
+                <fileset dir="${test.dir}">
+                    <include name="**/Test*.java"/>
+                    <exclude name="**/*Performance*.java"/>
+                    <exclude name="**/*Suite*.java"/>
+                </fileset>
+            </batchtest>
+
+            <classpath>
+                <pathelement path="${abfab3d.classes.dir}" />
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${test.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+                <fileset dir="${abfab3d.lib.dir}" includes="**/*.jar" />
+            </classpath>
+        </junit>
     </target>
 
     <target name="run" depends="compile" description="Run the application">

@@ -75,7 +75,7 @@
   
     <target name="build" 
         description="Complete clean, setup, compilation, run" 
-        depends="clean,init,compile,jar" />
+        depends="clean,init,compile,compileApps,jar" />
 
     <!-- Create destination directories -->
     <target name="init" description="Create destination directories">
@@ -165,8 +165,10 @@
     </target>
 
     <target name="compileApps" depends="init" description="Compile all applications">
-       <echo message="Compiling CADFilter" />
-       <ant dir="apps/linkedcube" inheritAll="false" />
+       <echo message="Compiling Common Apps" />
+       <ant dir="apps/common" inheritAll="false" />
+       <echo message="Compiling Volume Sculptor" />
+       <ant dir="apps/volumesculptor" inheritAll="false" />
     </target>
   
     <target name="run" depends="compile" description="Run the application">
@@ -258,7 +260,11 @@
 
 <!-- Normal test without any code coverage -->
   <target name="test" depends="compileTest">
-    <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+      <echo message="Testing Volume Sculptor" />
+      <ant dir="apps/volumesculptor" target="test" inheritAll="false" useNativeBasedir="true"/>
+
+
+      <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
       <jvmarg line="${jvmrunargs}"/>
       <formatter type="plain" usefile="false"/>
       <batchtest fork="yes" >
@@ -286,6 +292,7 @@
          <fileset dir="${lib.dir}" includes="**/*.jar" />
       </classpath>
     </junit>
+
   </target>
 
 <!-- Begin Emma code coverage tasks -->
