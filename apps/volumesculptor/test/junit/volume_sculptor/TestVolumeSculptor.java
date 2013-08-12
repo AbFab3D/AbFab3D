@@ -316,8 +316,9 @@ public class TestVolumeSculptor extends TestCase {
                 "\treturn grid;\n" +
                 "}";
 
-        String[] script_args = new String[] {"C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\volumesculptor\\models\\sphere.stl"};
-
+        File mf = new File(MODELS_DIR);
+        String file = mf.getAbsolutePath();
+        String[] script_args = new String[] {file + File.separator + "sphere.stl"};
 
         try {
             File f = File.createTempFile("script","vss");
@@ -360,7 +361,9 @@ public class TestVolumeSculptor extends TestCase {
                 "\treturn dest;\n" +
                 "}";
 
-        String[] script_args = new String[] {"C:\\cygwin\\home\\giles\\projs\\abfab3d\\code\\trunk\\apps\\volumesculptor\\models\\sphere.stl"};
+        File mf = new File(MODELS_DIR);
+        String file = mf.getAbsolutePath();
+        String[] script_args = new String[] {file + File.separator + "sphere.stl"};
 
         try {
             File f = File.createTempFile("script","vss");
