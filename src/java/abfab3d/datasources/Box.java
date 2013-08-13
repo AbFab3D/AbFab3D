@@ -73,6 +73,14 @@ public class Box extends TransformableDataSource {
         setSize(sx, sy, sz);
     }
 
+    /**
+     * Blah blah
+     *
+     * @noRefGuide
+     * @param boundaryX
+     * @param boundaryY
+     * @param boundaryZ
+     */
     public void setSmoothBoundaries(boolean boundaryX, boolean boundaryY, boolean boundaryZ) {
         m_hasSmoothBoundaryX = boundaryX;
         m_hasSmoothBoundaryY = boundaryY;
@@ -107,7 +115,7 @@ public class Box extends TransformableDataSource {
     }
 
     /**
-     *
+     * @noRefGuide
      */
     public int initialize() {
 
