@@ -127,7 +127,7 @@ public class TestGridMaker extends TestCase {
 
         Box box = new Box();
         box.setSize(ringDiameter*Math.PI,ringWidth, ringThickness);
-        box.setLocation(0,0, ringThickness/2);
+        box.setCenter(0, 0, ringThickness / 2);
         
         ImageBitmap image = new ImageBitmap();
         
@@ -618,7 +618,7 @@ public class TestGridMaker extends TestCase {
 
         Box topBand = new Box();
         topBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
-        topBand.setLocation(0, ringWidth/2, bandThickness/2);
+        topBand.setCenter(0, ringWidth / 2, bandThickness / 2);
 
         //Block bottomBand = new Block();
         ImageBitmap bottomBand = new ImageBitmap();
@@ -1308,7 +1308,7 @@ public class TestGridMaker extends TestCase {
 
         Box box = new Box();
         box.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
-        box.setLocation(0,0,ringThickness/2);
+        box.setCenter(0, 0, ringThickness / 2);
         
         RingWrap rw = new RingWrap();
         rw.m_radius = ringDiameter/2;
