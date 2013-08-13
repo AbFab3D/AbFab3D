@@ -722,7 +722,7 @@ public class RingPopperKernel extends HostedKernel {
         if (hasTopBorder()) {
             Box top_band = new Box();
             top_band.setSize(bandLength, topBorderWidth, ringThickness);
-            top_band.setLocation(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
+            top_band.setCenter(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
             top_band.setSmoothBoundaries(false, true, true);
 
             union.add(top_band);
@@ -731,7 +731,7 @@ public class RingPopperKernel extends HostedKernel {
         if (hasBottomBorder()) {
             Box bottom_band = new Box();
             bottom_band.setSize(bandLength, bottomBorderWidth, ringThickness);
-            bottom_band.setLocation(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
+            bottom_band.setCenter(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
             bottom_band.setSmoothBoundaries(false, true, true);
             union.add(bottom_band);
         }

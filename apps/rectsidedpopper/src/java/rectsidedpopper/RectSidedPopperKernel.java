@@ -507,7 +507,7 @@ public class RectSidedPopperKernel extends HostedKernel {
     private void popImageYUP(Grid grid, double bodyWidth1, double bodyDepth1, double bodyHeight1, double margin, String filename, double[] trans, double[] rot, double[] bounds) {
         ImageBitmapYUP layer1 = new ImageBitmapYUP();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
-        layer1.setLocation(0, 0, bodyDepth1/2);
+        layer1.setCenter(0, 0, bodyDepth1/2);
         layer1.setBaseThickness(0.0);
         layer1.setImageType(ImageBitmapYUP.IMAGE_POSITIVE);
         layer1.setTiles(1, 1);
@@ -524,7 +524,7 @@ public class RectSidedPopperKernel extends HostedKernel {
         if (trans != null && rot != null) {
             System.out.println("**Need to implement combined");
         } else if (trans != null) {
-            layer1.setLocation(trans[0],trans[1],bodyDepth1/2 + trans[2]);
+            layer1.setCenter(trans[0],trans[1],bodyDepth1/2 + trans[2]);
         } else if (rot != null) {
             Rotation rotation = new Rotation();
             rotation.m_axis = new Vector3d(rot[0],rot[1],rot[2]);
