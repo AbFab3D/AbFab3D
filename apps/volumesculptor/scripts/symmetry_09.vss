@@ -57,7 +57,7 @@ function makePart_g(size, thickness){
   var gmm = new GridMipMap(g);
   
   gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
-  gmm.setRepeatType(GridMipMap.REPEAT_NONE);
+  gmm.setRepeatType(GridMipMap.REPEAT_X);
   //gmm.setScalingType(GridMipMap.SCALING_MAX);  
 
   return gmm;

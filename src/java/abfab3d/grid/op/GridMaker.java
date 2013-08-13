@@ -32,6 +32,7 @@ import abfab3d.util.Initializable;
 import abfab3d.util.Units;
 import abfab3d.transforms.Identity;
 
+import abfab3d.util.Output;
 
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
@@ -289,15 +290,18 @@ public class GridMaker implements Operation, AttributeOperation {
         }
         
         public void run(){
-
-            while(true){
-
-                Slice slice = slices.getNextSlice();
-                if(slice == null)
-                    break;
-                makeSlice(slice);
-                
-            }
+            try {
+                while(true){
+                    
+                    Slice slice = slices.getNextSlice();
+                    if(slice == null)
+                        break;
+                    makeSlice(slice);
+                    
+                }
+            } catch(Exception e){
+                e.printStackTrace(Output.out);
+            } 
         }
 
         void makeSlice(Slice slice){
