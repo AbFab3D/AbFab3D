@@ -4,6 +4,7 @@ package doclet;
 
 import com.sun.javadoc.*;
 import com.sun.tools.doclets.formats.html.*;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -66,24 +67,25 @@ public class RefGuideDoclet {
 
             pw.println("<div class=\"span-9 last right\">\n");
 
-            // TODO: need to copy doc-files
             for (ClassDoc classd : root.classes()) {
                 System.out.println("Class: " + classd.name());
 
                 PackageDoc pack = classd.containingPackage();
                 String pname = pack.name();
+
+                copyDocFiles(pname);
                 String display = packageTOCName.get(pname);
                 if (display != null) {
                     pname = display;
                 }
 
-                if (current_package == null || !current_package.equals(display)) {
+                if (current_package == null || !current_package.equals(pname)) {
                     if (current_package != null) {
                         pw.println("</div>");
                     }
 
-                    pw.println("<div class=\"domain-container\" id=\"" + display + "\">");
-                    pw.println("<div class=\"api-domain-header\">" + display + "</div>");
+                    pw.println("<div class=\"domain-container\" id=\"" + pname + "\">");
+                    pw.println("<div class=\"api-domain-header\">" + pname + "</div>");
                     pw.println("<div class=\"api-domain-desc\" ></div>");
                 }
 
@@ -93,7 +95,10 @@ public class RefGuideDoclet {
                 pw.println("<div class=\"api-endpoint-header\">" + classd.name() + "</div>");
 
                 pw.println("<div class=\"api-endpoint-desc\">");
-                pw.println(classd.commentText());
+
+                System.out.println("Here");
+                String upd_comment = updateURL(classd.commentText(), pack.name().replace(".","/") + "/" + "doc-files");
+                pw.println(upd_comment);
                 pw.println("</div>");
 
                 ConstructorDoc[] constructors = classd.constructors();
@@ -116,9 +121,10 @@ public class RefGuideDoclet {
                     }
                     sb.append(")\n");
                     if (cd.commentText() != null) {
-                        sb.append("<p>");
+                        // TODO: make a different css style?
+                        sb.append("<div class=\"api-endpoint-desc\">");
                         sb.append(cd.commentText());
-                        sb.append("</p>");
+                        sb.append("</div>");
                     }
                     pw.println(sb.toString());
                     System.out.println("Comment: " + cd.commentText());
@@ -182,9 +188,10 @@ public class RefGuideDoclet {
                     }
                     sb.append(")\n");
                     if (method.commentText() != null) {
-                        sb.append("<p>");
+                        // TODO: add new css style?
+                        sb.append("<div class=\"api-endpoint-desc\">");
                         sb.append(method.commentText());
-                        sb.append("</p>");
+                        sb.append("</div>");
                     }
                     pw.println(sb.toString());
                     System.out.println("Comment: " + method.commentText());
@@ -243,6 +250,41 @@ public class RefGuideDoclet {
             }
         }
         return true;
+    }
+
+    /**
+     * Update any doc-file urls to package/doc-files form
+     * @param src The src text
+     * @param path
+     * @return
+     */
+    private static String updateURL(String src, String path) {
+        String replace = "src=\"" + path;
+        // search for src="doc-files" attributes
+        String ret_val = src.replace("src=\"doc-files",replace);
+
+        System.out.println("Update URL: " + src + " --> " + ret_val);
+        return ret_val;
+    }
+
+    private static void copyDocFiles(String pack) {
+        System.out.println("Copy dir for: " + pack);
+        String pdir = pack.replace(".",File.separator);
+        File src_dir = new File("src/java/" + pdir + File.separator + "doc-files");
+        System.out.println("Src dir is: " + src_dir);
+        File[] files = src_dir.listFiles();
+
+        if (files != null) {
+            System.out.println("Doc files: " + files.length);
+            File dest_dir = new File(REF_GUIDE_DIR + File.separator + pdir + File.separator + "doc-files");
+            System.out.println("Dest Dir: " + dest_dir);
+            dest_dir.mkdirs();
+            try {
+                FileUtils.copyDirectory(src_dir,dest_dir);
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
     }
 
     private static ParamTag getComment(ParamTag[] tags, String name) {

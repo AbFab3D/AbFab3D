@@ -19,6 +19,7 @@
     <property name="lib.dir" value="${basedir}/lib"/>
     <property name="manifest.dir" value="${basedir}/manifest"/>
     <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
+    <property name="refguide.dir" value="${basedir}/docs/refguide"/>
     <property name="xj3d.dir" value="..\..\..\xj3d\code\trunk" />
     <property name="av3d.dir" value="..\..\..\j3d.org\aviatrix3d-2\aviatrix3d" />    
 
@@ -192,7 +193,39 @@
             author="yes">        
         </javadoc>
     </target>
-  
+    <target name="makeRef" description="Generates VolumeSculptor Reference Guide" depends="compile">
+        <echo message="Generating reference guide..." />
+        <mkdir dir="${classes.dir}/build" />
+        <compilejava srcdir="src/build/java" package="doclet" destdir="${classes.dir}/build"
+                     jars=""
+                />
+
+        <javadoc sourcepath=""
+                 destdir="${refguide.dir}"
+                 version="true"
+                 author="yes" >
+            <fileset dir="${src.dir}" defaultexcludes="yes">
+                <include name="java/abfab3d/datasources/Box.java" />
+                <include name="java/abfab3d/datasources/Cone.java" />
+                <include name="java/abfab3d/datasources/Cylinder.java" />
+                <include name="java/abfab3d/datasources/DataSourceGrid.java" />
+                <include name="java/abfab3d/datasources/ImageBitMap.java" />
+                <include name="java/abfab3d/datasources/Intersection.java" />
+                <include name="java/abfab3d/datasources/Plane.java" />
+                <include name="java/abfab3d/datasources/Ring.java" />
+                <include name="java/abfab3d/datasources/Sphere.java" />
+                <include name="java/abfab3d/datasources/Subtraction.java" />
+                <include name="java/abfab3d/datasources/Text.java" />
+                <include name="java/abfab3d/datasources/Torus.java" />
+                <include name="java/abfab3d/transforms/CompositeTransform.java" />
+                <include name="java/abfab3d/transforms/*.java" />
+            </fileset>
+            <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.4.jar">
+<!--                <param name="-d" value="docs/refguide" /> -->
+            </doclet>
+        </javadoc>
+    </target>
+
     <target name="jar" depends="compile">
         <createjar name="abfab3d_core" 
             version="${version}"
