@@ -18,6 +18,8 @@ package abfab3d.datasources;
 import abfab3d.util.Units;
 import abfab3d.util.Vec;
 
+import javax.vecmath.Vector3d;
+
 import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.Output.printf;
 
@@ -51,15 +53,14 @@ public class Box extends TransformableDataSource {
     /**
      * Box with given center and size
      *
-     * @param x  The center x
-     * @param y  The center y
-     * @param z  The center z
-     * @param sx The size x
-     * @param sy The size y
-     * @param sz The size z
+     * @param x  x coordinate of center
+     * @param y  y coordinate of center
+     * @param z  z coordinate of center
+     * @param sx x size
+     * @param sy y size
+     * @param sz z size
      */
     public Box(double x, double y, double z, double sx, double sy, double sz) {
-
         setCenter(x, y, z);
         setSize(sx, sy, sz);
     }
@@ -67,12 +68,21 @@ public class Box extends TransformableDataSource {
     /**
      * Box with 0,0,0 center and given size
      *
-     * @param sx The size x
-     * @param sy The size y
-     * @param sz The size z
+     * @param sx x size
+     * @param sy y size
+     * @param sz z size
      */
     public Box(double sx, double sy, double sz) {
         setSize(sx, sy, sz);
+    }
+
+    /**
+     * Box with 0,0,0 center and given size
+     *
+     * @param size Size vector
+     */
+    public Box(Vector3d size) {
+        setSize(size.x, size.y, size.z);
     }
 
     /**
@@ -92,9 +102,9 @@ public class Box extends TransformableDataSource {
     /**
      * Set the size of the box
      *
-     * @param sx The size x
-     * @param sy The size y
-     * @param sz The size z
+     * @param sx x size
+     * @param sy y size
+     * @param sz z size
      */
     public void setSize(double sx, double sy, double sz) {
         m_sizeX = sx;
@@ -103,11 +113,22 @@ public class Box extends TransformableDataSource {
     }
 
     /**
+     * Set the size of the box
+     *
+     * @param size Size vector
+     */
+    public void setSize(Vector3d size) {
+        m_sizeX = size.x;
+        m_sizeY = size.y;
+        m_sizeZ = size.z;
+    }
+
+    /**
      * Set the center of the box
      *
-     * @param x The center x
-     * @param y The center y
-     * @param z The center z
+     * @param x  x coordinate of center
+     * @param y  y coordinate of center
+     * @param z  z coordinate of center
      *
      */
     public void setCenter(double x, double y, double z) {

@@ -148,8 +148,8 @@ public class RefGuideDoclet {
                         Parameter param = params[i];
                         System.out.println("      Param: " + param.name() + " type: " + param.type());
                         pw.println("      <tr class=\"api-endpoint-parameters-table-row\">");
-                        pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.name()+ "</td>");
-                        pw.println("         <td class=\"api-endpoint-parameters-table-type-col\">" + param.typeName() + "</td>");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.typeName() + " " + param.name()+ "</td>");
+                        //pw.println("         <td class=\"api-endpoint-parameters-table-type-col\">" + param.typeName() + "</td>");
                         pw.println("         <td class=\"api-endpoint-parameters-table-desc-col\">");
                         ParamTag comment = getComment(tags,param.name());
                         if (comment != null) {
@@ -215,8 +215,11 @@ public class RefGuideDoclet {
                         Parameter param = params[i];
                         System.out.println("      Param: " + param.name() + " type: " + param.type());
                         pw.println("      <tr class=\"api-endpoint-parameters-table-row\">");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.typeName() + " " + param.name()+ "</td>");
+/*
                         pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.name()+ "</td>");
                         pw.println("         <td class=\"api-endpoint-parameters-table-type-col\">" + param.typeName() + "</td>");
+*/
                         pw.println("         <td class=\"api-endpoint-parameters-table-desc-col\">");
                         ParamTag mcomment = getComment(ptags,param.name());
                         if (mcomment != null) {

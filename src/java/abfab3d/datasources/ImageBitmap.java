@@ -63,7 +63,9 @@ import static abfab3d.util.MathUtil.intervalCap;
 /**
    
    DataSourceImageBitmap
-   
+
+ * <embed src="doc-files/ImageBitmap.svg" type="image/svg+xml" />
+
    @author Vladimir Bulatov
    
 */

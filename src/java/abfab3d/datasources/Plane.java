@@ -58,6 +58,12 @@ public class Plane extends TransformableDataSource {
         this(1.,0.,0.,0);
     }
 
+    /**
+     * Plane is defined via external normal and distance along normal from origin.
+     *
+     * @param normal The normal to the plane
+     * @param dist The distance to the plane
+     */
     public Plane(Vector3d normal, double dist){
         init(normal.x,normal.y,normal.z, dist);
     }

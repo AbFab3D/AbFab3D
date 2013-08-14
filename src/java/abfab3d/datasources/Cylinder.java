@@ -13,64 +13,51 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
-
-import java.util.Vector;
-
-import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
-
-
 import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
 
-import abfab3d.util.PointToTriangleDistance;
+import javax.vecmath.AxisAngle4d;
+import javax.vecmath.Matrix3d;
+import javax.vecmath.Vector3d;
 
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
-import static java.lang.Math.abs;
-
-import static abfab3d.util.Output.printf;
-
-
-import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
+import static java.lang.Math.*;
 
 
 /**
-
-   cylinder with given ends and radius 
-
-   @author Vladimir Bulatov
-
+ * Cylinder with given ends and radius
+ *
+ * @author Vladimir Bulatov
  */
-public class Cylinder  extends TransformableDataSource {
-    
+public class Cylinder extends TransformableDataSource {
+
     static final double EPSILON = 1.e-8;
-    
+
     private double R; // cylinder radius 
     private double h2; // cylnder's half height of
     private double scaleFactor = 0;
     private Vector3d center;
     private Matrix3d rotation;
     private Vector3d v0, v1;
-    static final Vector3d Yaxis = new Vector3d(0,1,0);
-    
-    public Cylinder(Vector3d v0, Vector3d v1, double r){
-        
+    static final Vector3d Yaxis = new Vector3d(0, 1, 0);
+
+    /**
+     * Cylinder from given two ends and radius
+     * @param v0 Starting position
+     * @param v1 Ending position
+     * @param r Radius
+     */
+    public Cylinder(Vector3d v0, Vector3d v1, double r) {
+
         this.R = r;
         this.v0 = new Vector3d(v0);
         this.v1 = new Vector3d(v1);
 
     }
-    
-    public int initialize(){
+
+    /*
+     * @noRefGuide
+     */
+    public int initialize() {
 
         super.initialize();
 
@@ -79,19 +66,19 @@ public class Cylinder  extends TransformableDataSource {
         center.scale(0.5);
         Vector3d caxis = new Vector3d(v1); // cylinder axis 
         caxis.sub(center);
-        
+
         this.h2 = caxis.length();
-        
+
         caxis.normalize();
-        
+
         // rotation axis 
         Vector3d raxis = new Vector3d();
-        raxis.cross(caxis, Yaxis); 
+        raxis.cross(caxis, Yaxis);
         double sina = raxis.length();
         double cosa = Yaxis.dot(caxis);
-        if(abs(sina) < EPSILON) { 
+        if (abs(sina) < EPSILON) {
             //TODO do something smart 
-            raxis = new Vector3d(1,0,0);
+            raxis = new Vector3d(1, 0, 0);
         }
         raxis.normalize();
         double angle = atan2(sina, cosa);
@@ -99,52 +86,56 @@ public class Cylinder  extends TransformableDataSource {
         rotation.set(new AxisAngle4d(raxis, angle));
         return RESULT_OK;
     }
-    
-    public void setScaleFactor(double value){
+
+    /*
+     * @noRefGuide
+     */
+    public void setScaleFactor(double value) {
         scaleFactor = value;
     }
-    
+
     /**
      * returns 1 if pnt is inside of cylinder
      * returns intepolated value if point is within voxel size to the boundary
      * returns 0 if pnt is outside the ball
      */
     public int getDataValue(Vec pntIn, Vec data) {
-        
+
         super.transform(pntIn);
 
         Vec pnt = new Vec(pntIn);
-        canonicalTransform(pnt);            
+        canonicalTransform(pnt);
         // cylinder is along Y axis with center at origin 
-        
-        double x = pnt.v[0];            
+
+        double x = pnt.v[0];
         double y = abs(pnt.v[1]);
         double z = pnt.v[2];
         double vs = pnt.getScaledVoxelSize();
-        if(scaleFactor != 0.) {
-            double s = 1/(scaleFactor*pnt.getScaleFactor());
+        if (scaleFactor != 0.) {
+            double s = 1 / (scaleFactor * pnt.getScaleFactor());
             x *= s;
             y *= s;
             z *= s;
         }
-        
-        
+
+
         double baseCap = step10(y, this.h2, vs);
-        if(baseCap == 0.0){
+        if (baseCap == 0.0) {
             data.v[0] = 0;
             return RESULT_OK;
         }
-        
-        double r = sqrt(x*x + z*z);
-        double sideCap = step10(r, this.R, vs);            
-        if(sideCap < baseCap)baseCap = sideCap;
+
+        double r = sqrt(x * x + z * z);
+        double sideCap = step10(r, this.R, vs);
+        if (sideCap < baseCap) baseCap = sideCap;
         data.v[0] = baseCap;
         return RESULT_OK;
     }
-    // move cylinder into canononical position with center at origin and cylinder axis aligned with Y-axis 
-    protected void canonicalTransform(Vec pnt){
+
+    // move cylinder into canononical position with center at origin and cylinder axis aligned with Y-axis
+    protected void canonicalTransform(Vec pnt) {
         pnt.subSet(center);
         pnt.mulSetLeft(rotation);
     }
-    
+
 }  // class Cylinder
