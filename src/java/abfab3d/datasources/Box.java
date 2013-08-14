@@ -24,7 +24,9 @@ import static abfab3d.util.Output.printf;
 
 /**
  * Solid box of given size
- *
+ 
+   <embed src="doc-files/Box.svg" type="image/svg+xml"/> 
+
  * @author Vladimir Bulatov
  */
 public class Box extends TransformableDataSource {
