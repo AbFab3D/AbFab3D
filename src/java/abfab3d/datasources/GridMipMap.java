@@ -16,8 +16,11 @@ import java.util.Vector;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
+import abfab3d.util.Output;
+
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
+
 
 import static java.lang.Math.floor;
 import static java.lang.Math.abs;
@@ -34,7 +37,7 @@ import static abfab3d.util.Output.printf;
  */
 public class GridMipMap extends TransformableDataSource {
     
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 100;
 
     static public final int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_Z = 4, REPEAT_XYZ = 7;
@@ -262,6 +265,7 @@ public class GridMipMap extends TransformableDataSource {
             ix1 = (ix+1),
             iy1 = (iy+1),
             iz1 = (iz+1);
+
         
         double 
             dx = x - ix,
@@ -296,33 +300,27 @@ public class GridMipMap extends TransformableDataSource {
             if(isOutside(iz1,nz)) mask &= MASKZ1;
         }
         
-        if(DEBUG && debugCount-- > 0) {
-            printf("     ix: (%d %d %d) ix1: (%d %d %d) \n", ix, iy, iz, ix1, iy1, iz1);
-        }
-        
-        try {
-            
+        //try {
             long 
-                v000 = ((mask & B000) != 0) ? grid.getAttribute(ix, iy,  iz ): 0,  
-                v100 = ((mask & B100) != 0) ? grid.getAttribute(ix1,iy,  iz ): 0, 
-                v010 = ((mask & B010) != 0) ? grid.getAttribute(ix, iy1, iz ): 0, 
-                v110 = ((mask & B110) != 0) ? grid.getAttribute(ix1,iy1, iz ): 0,
-                v001 = ((mask & B001) != 0) ? grid.getAttribute(ix, iy,  iz1): 0,
-                v101 = ((mask & B101) != 0) ? grid.getAttribute(ix1,iy,  iz1): 0,
-                v011 = ((mask & B011) != 0) ? grid.getAttribute(ix, iy1, iz1): 0,
-                v111 = ((mask & B111) != 0) ? grid.getAttribute(ix1,iy1, iz1): 0;
-            
-            double d = 
-                dx1 *(dy1 * (dz1 * v000 + dz  * v001) +  dy*(dz1 * v010 + dz  * v011)) +   
-                dx  *(dy1 * (dz1 * v100 + dz  * v101) +  dy*(dz1 * v110 + dz  * v111));
-            
-            return d;
-            
-        } catch(Exception e){
-            if(DEBUG && debugCount-- > 0)
-                printf("  ix:(%d %d %d) ix1:(%d %d %d)  nx:(%d, %d %d)\n", ix, iy, iz, ix1, iy1, iz1, nx, ny, nz);
-        }
-        return 0;
+            v000 = ((mask & B000) != 0) ? grid.getAttribute(ix,  iy,  iz ): 0,  
+            v100 = ((mask & B100) != 0) ? grid.getAttribute(ix1, iy,  iz ): 0, 
+            v010 = ((mask & B010) != 0) ? grid.getAttribute(ix,  iy1, iz ): 0, 
+            v110 = ((mask & B110) != 0) ? grid.getAttribute(ix1, iy1, iz ): 0,
+            v001 = ((mask & B001) != 0) ? grid.getAttribute(ix,  iy,  iz1): 0,
+            v101 = ((mask & B101) != 0) ? grid.getAttribute(ix1, iy,  iz1): 0,
+            v011 = ((mask & B011) != 0) ? grid.getAttribute(ix,  iy1, iz1): 0,
+            v111 = ((mask & B111) != 0) ? grid.getAttribute(ix1, iy1, iz1): 0;
+        double d = 
+            dx1 *(dy1 * (dz1 * v000 + dz  * v001) +  dy*(dz1 * v010 + dz  * v011)) +   
+            dx  *(dy1 * (dz1 * v100 + dz  * v101) +  dy*(dz1 * v110 + dz  * v111));
+        
+        return d;
+        //} catch(Exception e){
+            //e.printStackTrace();
+        //    printf("        ix: (%d %d %d), nx: (%d %d %d)  [%s %s %s]\n", ix, iy, iz, nx, ny, nz, 
+        //           ((m_repeatType & REPEAT_X) != 0),((m_repeatType & REPEAT_Y) != 0),((m_repeatType & REPEAT_Z) != 0));
+        //}
+        //return 0;
     }
     
     public int getLevelsCount(){
@@ -419,8 +417,15 @@ public class GridMipMap extends TransformableDataSource {
             return v1-1;
         else return v;
     }
+
     static final int reminder(int x, int n){
-        return (x < 0)?  ((x % n) + n): (x % n);
+
+        int res = (x % n);
+        if(res < 0) {
+            res += n;
+        } 
+        return res;
+        
     }
 
     static final boolean isOutside(int x, int nx){

@@ -85,7 +85,7 @@ public class GridMaker implements Operation, AttributeOperation {
     public void setThreadCount(int count){
 
         m_threadCount = count;
-
+        
     }
 
     /**

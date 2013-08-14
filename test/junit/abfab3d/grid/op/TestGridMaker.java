@@ -125,9 +125,9 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        Box box = new Box();
-        box.setSize(ringDiameter*Math.PI,ringWidth, ringThickness);
-        box.setCenter(0, 0, ringThickness / 2);
+        Box box = new Box(0, 0, ringThickness / 2, ringDiameter*Math.PI,ringWidth, ringThickness);
+        //box.setSize(ringDiameter*Math.PI,ringWidth, ringThickness);
+        //box.setCenter(0, 0, ringThickness / 2);
         
         ImageBitmap image = new ImageBitmap();
         
@@ -258,8 +258,8 @@ public class TestGridMaker extends TestCase {
         tiling.setSource(image);
         tiling.setTransform(compTrans);
         
-        Box box = new Box();
-        box.setSize(rectWidth, rectHeight, rectDepth);
+        Box box = new Box(rectWidth, rectHeight, rectDepth);
+        //box.setSize(rectWidth, rectHeight, rectDepth);
         Intersection clip = new Intersection();
         
         clip.add(box);
@@ -616,9 +616,9 @@ public class TestGridMaker extends TestCase {
         image.setTiles(12, 1);
         image.setImagePath("docs/images/Tile_DecorativeCeiling_1k_h.png");
 
-        Box topBand = new Box();
-        topBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
-        topBand.setCenter(0, ringWidth / 2, bandThickness / 2);
+        Box topBand = new Box(0, ringWidth / 2, bandThickness / 2, ringDiameter*Math.PI,bandWidth, bandThickness);
+        //topBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
+        //topBand.setCenter(0, ringWidth / 2, bandThickness / 2);
 
         //Block bottomBand = new Block();
         ImageBitmap bottomBand = new ImageBitmap();
@@ -1306,9 +1306,9 @@ public class TestGridMaker extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        Box box = new Box();
-        box.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
-        box.setCenter(0, 0, ringThickness / 2);
+        Box box = new Box(0, 0, ringThickness / 2, ringDiameter*Math.PI,ringWidth,ringThickness);
+        //box.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
+        //box.setCenter(0, 0, ringThickness / 2);
         
         RingWrap rw = new RingWrap();
         rw.m_radius = ringDiameter/2;

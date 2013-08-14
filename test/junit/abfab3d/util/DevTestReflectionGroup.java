@@ -94,8 +94,20 @@ public class DevTestReflectionGroup {
                 };
     }
 
+
+    static void testReminder(){
+        int n = 2;
+        for(int k = -20; k <= 20; k++){
+
+            //int i = (k < 0) ? ((k % n) + n): k % n;
+            int i =                 k % n;
+            printf("k: %3d -> i: %2d\n", k,i);
+        }
+    }
+
     public static void main(String arg[]){
-        testInvesion();
+        //testInvesion();
+        testReminder();
     }
 
 }

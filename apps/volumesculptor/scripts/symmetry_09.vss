@@ -23,6 +23,26 @@ function getQuad_1( r, r1, alpha){
 
 	print("x1:", x1/MM);
 	print("r1:", r1/MM);
+	print("y2:", y2/MM);
+	print("r2:", r2/MM);
+	
+	var splanes = new Array();
+	var count = 0;
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(0,-1,0), 0.);
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(-1,0,0), 0.);
+	splanes[count++] = new ReflectionSymmetry.getSphere(new Vector3d(x1,0,0), -r1);
+	splanes[count++] = new ReflectionSymmetry.getSphere(new Vector3d(0,y2,0), -r2);
+	
+	return splanes;
+	
+}
+
+function getQuad_2( r1,  r2,  x1,  alpha){
+
+    var y2 = Math.sqrt(r1*r1 + r2*r2 + 2*r1*r2*Math.cos(alpha) - x1*x1);
+
+	print("x1:", x1/MM);
+	print("r1:", r1/MM);
 
 	print("y2:", y2/MM);
 	print("r2:", r2/MM);
@@ -38,47 +58,54 @@ function getQuad_1( r, r1, alpha){
 	
 }
 
-
-function makePart_g(size, thickness){
-
-  var t = (thickness/2) * 1.5;
-  var s = size/2;
-  //var g = createGrid(-t, t, -t, t, -s, s,voxelSize);
-  var b = 20*MM;
-  var g = createGrid(-b,b,-b,b,-b,b,0.5*MM);
-  
-  var boxZ = new Box(0,0,0,thickness, thickness, size);
-  
-  var mm = new GridMaker();
-  mm.setSource(boxZ);
-  mm.setMaxAttributeValue(255);
-  mm.makeGrid(g);
-  
-  var gmm = new GridMipMap(g);
-  
-  gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
-  gmm.setRepeatType(GridMipMap.REPEAT_X);
-  //gmm.setScalingType(GridMipMap.SCALING_MAX);  
-
-  return gmm;
-  
-}
-
-
 function makePart(size, thickeness){
 
   var union = new Union();
   
   var boxX = new Box(0,0,0,thickeness, thickeness, size);
   union.add(boxX);  
+  boxX.setTransform(new Rotation(new Vector3d(-1,1,0), 3*Math.PI/8));	
   return union;
 }
 
+function makePart_g(size, thickness, voxelSize){
 
+  //var t = (thickness/2) * 1.5;
+  //var s = size/2;
+  //var g = createGrid(-t, t, -t, t, -s, s,voxelSize);
+  var b = size/2;
+  var g = createGrid(-b*0.1,b,-0.1*b,b,-b*0.7,b*0.7,voxelSize);
+  
+  //var boxZ = new Box(0,0,0,thickness, thickness, size);
+  
+  var mm = new GridMaker();
+  mm.setSource(makePart(size, thickness));
+  mm.setMaxAttributeValue(255);
+  mm.makeGrid(g);
+  
+  var gmm = new GridMipMap(g);
+  
+  gmm.setScalingType(GridMipMap.SCALING_MAX);  
+  gmm.setRepeatType(GridMipMap.REPEAT_NONE);
+  gmm.setScalingType(GridMipMap.SCALING_MAX);  
+  //gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
+
+  return gmm;
+  
+}
+
+function makeLimitSet(){
+
+	var inter = new Intersection();
+	inter.add(new LimitSet(1*MM, 0.007));
+	//inter.add(new Sphere(5*MM,5*MM,3*MM,8*MM));
+	inter.add(new Box(5*MM,5*MM,2*MM,15*MM, 15*MM, 10*MM));
+	return inter;
+}
 function main(){
 
-	var sx = 50*MM;
-	var sz = 10*MM;
+	var sx = 52*MM;
+	var sz = 20*MM;
 	
 	var voxelSize = 0.1*MM;
 		
@@ -89,16 +116,19 @@ function main(){
 	var r = 25*MM;
 	var r1 = 30*MM;
 	
-	var part = makePart_g(30*MM, 5*MM);	
-	part.setTransform(new Rotation(new Vector3d(-1,1,0), 3*Math.PI/8));	
-	
-	//var part = new Sphere(new Vector3d(5*MM, 5*MM, 0),10*MM);
+	//var part = makePart_g(30*MM, 5*MM, voxelSize);	
+	var union = new Union();
+	//union.add(fd);
+	union.add(makeLimitSet());
+	var fd = makePart(30*MM, 5*MM);	
+	union.add(fd);
 	
 	var dt = new DataTransformer();
 	
-	dt.setSource(part);	
+	dt.setSource(union);	
 	
-	var sym = new ReflectionSymmetry(getQuad_1(r, r1, Math.PI/3));
+	//var sym = new ReflectionSymmetry(getQuad_1(r, r1, Math.PI/3));
+	var sym = new ReflectionSymmetry(getQuad_2(r, r1, 35*MM, Math.PI/3));
 	
 	sym.setMaxCount(50);
 	
