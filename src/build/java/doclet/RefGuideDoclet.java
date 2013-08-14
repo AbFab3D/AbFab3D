@@ -13,6 +13,13 @@ import java.util.Map;
 
 public class RefGuideDoclet {
     private static final String REF_GUIDE_DIR = "docs/refguide";
+    private static final HashMap<String,String> packageTOCName;
+
+    static {
+        packageTOCName = new HashMap<String,String>();
+        packageTOCName.put("abfab3d.datasources","Data Sources");
+        packageTOCName.put("abfab3d.transforms","Transformations");
+    }
 
     public RefGuideDoclet() {
         super();
@@ -40,8 +47,11 @@ public class RefGuideDoclet {
             for (ClassDoc classd : root.classes()) {
                 PackageDoc pack = classd.containingPackage();
                 String pname = pack.name();
-                int idx = pname.lastIndexOf(".");
-                pname = pname.substring(idx+1);
+
+                String display = packageTOCName.get(pname);
+                if (display != null) {
+                    pname = display;
+                }
                 System.out.println("package name:" + pname);
                 List<String> classes = package_list.get(pname);
                 if (classes == null) {
@@ -52,24 +62,101 @@ public class RefGuideDoclet {
             }
 
             writeTOC(pw, package_list);
+            String current_package = null;
+
+            pw.println("<div class=\"span-9 last right\">\n");
+
             // TODO: need to copy doc-files
             for (ClassDoc classd : root.classes()) {
                 System.out.println("Class: " + classd.name());
-                System.out.println("Comment: " + classd.commentText());
+
+                PackageDoc pack = classd.containingPackage();
+                String pname = pack.name();
+                String display = packageTOCName.get(pname);
+                if (display != null) {
+                    pname = display;
+                }
+
+                if (current_package == null || !current_package.equals(display)) {
+                    if (current_package != null) {
+                        pw.println("</div>");
+                    }
+
+                    pw.println("<div class=\"domain-container\" id=\"" + display + "\">");
+                    pw.println("<div class=\"api-domain-header\">" + display + "</div>");
+                    pw.println("<div class=\"api-domain-desc\" ></div>");
+                }
+
+                current_package = display;
+
+                pw.println("   <div class=\"domain-endpoint\" id=\"" + classd.name() + "\">");
+                pw.println("<div class=\"api-endpoint-header\">" + classd.name() + "</div>");
+
+                pw.println("<div class=\"api-endpoint-desc\">");
+                pw.println(classd.commentText());
+                pw.println("</div>");
 
                 ConstructorDoc[] constructors = classd.constructors();
                 System.out.println(classd);
                 System.out.println("Constructors:");
+
                 for(ConstructorDoc cd : constructors) {
-                    System.out.println("   " + cd);
-                    System.out.println("      Name: " + cd.name());
-                    for(Parameter param : cd.parameters()) {
+                    pw.println("<div class=\"api-endpoint-parameters\">");
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(cd.name());
+                    sb.append("(");
+                    Parameter[] params = cd.parameters();
+                    for(int i=0; i < params.length; i++) {
+                        Parameter param = params[i];
                         System.out.println("      Param: " + param.name() + " type: " + param.type());
+                        sb.append(param.name());
+                        if (i != params.length - 1) {
+                            sb.append(",");
+                        }
                     }
+                    sb.append(")\n");
+                    if (cd.commentText() != null) {
+                        sb.append("<p>");
+                        sb.append(cd.commentText());
+                        sb.append("</p>");
+                    }
+                    pw.println(sb.toString());
                     System.out.println("Comment: " + cd.commentText());
+
+                    System.out.println("Printing method annots");
+                    AnnotationDesc[] annots = cd.annotations();
+                    System.out.println(java.util.Arrays.toString(annots));
+
+                    ParamTag[] tags = cd.paramTags();
+
+                    pw.println("   <table class=\"api-endpoint-parameters-table\">");
+                    for(int i=0; i < params.length; i++) {
+                        /*
+                        <tr class="api-endpoint-parameters-table-row">
+                        <td class="api-endpoint-parameters-table-name-col">x</td>
+                        <td class="api-endpoint-parameters-table-type-col">double</td>
+                        <td class="api-endpoint-parameters-table-desc-col">
+                                The center x</td>
+                        </tr>
+                        */
+                        Parameter param = params[i];
+                        System.out.println("      Param: " + param.name() + " type: " + param.type());
+                        pw.println("      <tr class=\"api-endpoint-parameters-table-row\">");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.name()+ "</td>");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-type-col\">" + param.typeName() + "</td>");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-desc-col\">");
+                        ParamTag comment = getComment(tags,param.name());
+                        if (comment != null) {
+                            pw.println(comment.parameterComment());
+                        }
+                        pw.println("         </td>");
+                        pw.println("      </tr>");
+                    }
+
+                    pw.println("</table>");
+                    pw.println("</div>");
                 }
 
-                // uncommented methods will not be displayed
                 System.out.println("Methods:");
                 for(MethodDoc method : classd.methods()) {
                     String comment = method.commentText();
@@ -79,10 +166,69 @@ public class RefGuideDoclet {
                         System.out.println("Skipping method: " + classd.name() + "." + method.name());
                         continue;
                     }
+
+                    pw.println("<div class=\"api-endpoint-parameters\">");
+                    StringBuilder sb = new StringBuilder();
+                    sb.append(method.name());
+                    sb.append("(");
+                    Parameter[] params = method.parameters();
+                    for(int i=0; i < params.length; i++) {
+                        Parameter param = params[i];
+                        System.out.println("      Param: " + param.name() + " type: " + param.type());
+                        sb.append(param.name());
+                        if (i != params.length - 1) {
+                            sb.append(",");
+                        }
+                    }
+                    sb.append(")\n");
+                    if (method.commentText() != null) {
+                        sb.append("<p>");
+                        sb.append(method.commentText());
+                        sb.append("</p>");
+                    }
+                    pw.println(sb.toString());
+                    System.out.println("Comment: " + method.commentText());
+
+                    System.out.println("Printing method annots");
+                    AnnotationDesc[] annots = method.annotations();
+                    System.out.println(java.util.Arrays.toString(annots));
+
+                    ParamTag[] ptags = method.paramTags();
+
+                    pw.println("   <table class=\"api-endpoint-parameters-table\">");
+                    for(int i=0; i < params.length; i++) {
+                        /*
+                        <tr class="api-endpoint-parameters-table-row">
+                        <td class="api-endpoint-parameters-table-name-col">x</td>
+                        <td class="api-endpoint-parameters-table-type-col">double</td>
+                        <td class="api-endpoint-parameters-table-desc-col">
+                                The center x</td>
+                        </tr>
+                        */
+                        Parameter param = params[i];
+                        System.out.println("      Param: " + param.name() + " type: " + param.type());
+                        pw.println("      <tr class=\"api-endpoint-parameters-table-row\">");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.name()+ "</td>");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-type-col\">" + param.typeName() + "</td>");
+                        pw.println("         <td class=\"api-endpoint-parameters-table-desc-col\">");
+                        ParamTag mcomment = getComment(ptags,param.name());
+                        if (mcomment != null) {
+                            pw.println(mcomment.parameterComment());
+                        }
+                        pw.println("         </td>");
+                        pw.println("      </tr>");
+                    }
+
+                    pw.println("</table>");
+                    pw.println("</div>");
+
                     System.out.println("   " + method);
                 }
+
+                pw.println("   </div>");    // domain endpoint
             }
 
+            pw.println("</div>");
             writePostamble(pw);
 
         } catch(IOException ioe) {
@@ -99,39 +245,37 @@ public class RefGuideDoclet {
         return true;
     }
 
+    private static ParamTag getComment(ParamTag[] tags, String name) {
+        System.out.println("Checking for: " + name);
+        for(int i=0; i < tags.length; i++) {
+            System.out.println("   checking: " + tags[i].parameterName());
+            if (tags[i].parameterName().equals(name)) {
+                return tags[i];
+            }
+        }
+
+        return null;
+    }
+
     public static void writeTOC(PrintWriter pw,Map<String, List<String>> package_list) {
-    /*
-        <div class="span-3">
-
-    <div class="api-toc" id="toc">
-        <div class="api-toc-domain-container"
-             id="OAuth1toc">
-            <div class="api-toc-domain-name"><a href="#DataSources">Data Sources</a></div>
-            <div class="api-toc-endpoint" id="GET_-oauth1-request_token-v1toc"><a href="#Box">Box</a></div>
-        </div>
-    </div>
-</div>
-
-         */
-
         pw.println("<div class=\"span-3\">");
         pw.println("<div class=\"api-toc\" id=\"toc\">");
         for(Map.Entry<String, List<String>> entry : package_list.entrySet()) {
             String id = entry.getKey();
-            pw.println("<div class=\"api-toc-domain-container\" id=\"" + id + "\">");
+            pw.println("<div class=\"api-toc-domain-container\" id=\"" + id + "_toc\">");
             pw.println("   <div class=\"api-toc-domain-name\"><a href=\"#" + id + "\">" + id + "</a></div>");
 
             List<String> classes = entry.getValue();
             System.out.println("Package has: " + classes.size());
             for(String st : classes) {
-                pw.println("   <div class=\"api-toc-endpoint\" id=\"" + st + "\"><a href=\"#" + st + "\">" + st + "</a></div>");
+                pw.println("   <div class=\"api-toc-endpoint\" id=\"" + st + "_toc\"><a href=\"#" + st + "\">" + st + "</a></div>");
             }
             pw.println("</div>");
         }
         pw.println("</div></div>");
     }
 
-    public static void writePreamble(PrintWriter pw) {
+    private static void writePreamble(PrintWriter pw) {
 
         String txt = "<!DOCTYPE html>\n" +
                 "\n" +
@@ -176,7 +320,7 @@ public class RefGuideDoclet {
         pw.println(txt);
     }
 
-    public static void writePostamble(PrintWriter pw) {
+    private static void writePostamble(PrintWriter pw) {
         String txt = "</body>\n" +
                 "</html>";
 
