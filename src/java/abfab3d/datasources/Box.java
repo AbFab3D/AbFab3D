@@ -137,6 +137,8 @@ public class Box extends TransformableDataSource {
     /**
      * Get the data value for a pnt
      *
+     * @noRefGuide
+     *
      * @return 1 if pnt is inside of box of given size and center 0 otherwise
      */
     public int getDataValue(Vec pnt, Vec data) {
