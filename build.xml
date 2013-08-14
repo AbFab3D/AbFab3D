@@ -206,6 +206,7 @@
                  author="yes" >
             <fileset dir="${src.dir}" defaultexcludes="yes">
                 <include name="java/abfab3d/datasources/Box.java" />
+                <include name="java/abfab3d/datasources/Complement.java" />
                 <include name="java/abfab3d/datasources/Cone.java" />
                 <include name="java/abfab3d/datasources/Cylinder.java" />
                 <include name="java/abfab3d/datasources/DataSourceGrid.java" />
