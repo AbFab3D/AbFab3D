@@ -46,6 +46,8 @@ import static abfab3d.util.Units.MM;
    the shape is half space bounded by that plane. 
    plane normal is pointing outside of that half space 
 
+   <embed src="doc-files/Plane.svg" type="image/svg+xml"/> 
+
    @author Vladimir Bulatov
 
  */

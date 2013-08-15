@@ -45,8 +45,11 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   subtracts (dataSource1 - dataSource2)
-   can be used for boolean difference
+   Boolean difference between dataSource1 and dataSource2 
+   <br/>
+
+   <embed src="doc-files/Subtraction.svg" type="image/svg+xml"/> 
+
    
    @author Vladimir Bulatov
 
@@ -80,6 +83,8 @@ public class Subtraction extends TransformableDataSource {
     }
     
     /**
+     * @noRefGuide
+       
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
      */

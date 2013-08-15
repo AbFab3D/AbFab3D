@@ -403,9 +403,9 @@ public class GridMipMap extends TransformableDataSource {
     protected static long average(long att[]){
         
         long s = 0;
-        for(int k = 0; k < 8; k++)
-
+        for(int k = 0; k < 8; k++){
             s += att[k];
+        }
         return  (s + 4) >> 3;
         
     }

@@ -19,8 +19,9 @@ import abfab3d.util.Vec;
 
 
 /**
- * Boolean complement.  The datasource is the opposite of the input.
- *
+   Boolean complement.  The datasource is the opposite of the input.
+   <embed src="doc-files/Complement.svg" type="image/svg+xml"/> 
+ 
  * @author Vladimir Bulatov
  */
 public class Complement extends TransformableDataSource {
@@ -29,10 +30,10 @@ public class Complement extends TransformableDataSource {
 
     /**
      * Complement of the given datasource.
-     * @param ds Datasource
+     * @param source  object to which the complement is generated
      */
-    public Complement(DataSource ds) {
-        dataSource = ds;
+    public Complement(DataSource source) {
+        dataSource = source;
     }
 
     /**

@@ -26,6 +26,7 @@ import static java.lang.Math.*;
 /**
  * Cone with point at apex, axis along given direction and given half angle.  This
  * Cone goes infinitely in the axis direction.
+   <embed src="doc-files/Cone.svg" type="image/svg+xml"/> 
  *
  * @author Vladimir Bulatov
  */

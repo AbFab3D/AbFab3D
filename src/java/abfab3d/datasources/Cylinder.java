@@ -26,6 +26,7 @@ import static java.lang.Math.*;
 /**
  * Cylinder with given ends and radius
  *
+   <embed src="doc-files/Cylinder.svg" type="image/svg+xml"/> 
  * @author Vladimir Bulatov
  */
 public class Cylinder extends TransformableDataSource {

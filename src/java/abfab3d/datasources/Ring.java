@@ -47,6 +47,8 @@ import static abfab3d.util.Units.MM;
 
    ring in XZ plane
 
+   <embed src="doc-files/Ring.svg" type="image/svg+xml"/> 
+
    @author Vladimir Bulatov
 */
 
@@ -58,7 +60,7 @@ public class Ring  extends TransformableDataSource{
     protected double exteriorRadius;
     protected double exteriorRadius2;
     
-    public Ring(double innerRadius, double thickness, double ymin, double ymax){
+    public Ring(double radius, double thickness, double ymin, double ymax){
         
         this.ymin = ymin;
         this.ymax = ymax;
@@ -79,6 +81,8 @@ public class Ring  extends TransformableDataSource{
     
     
     /**
+     * @noRefGuide
+
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
      */

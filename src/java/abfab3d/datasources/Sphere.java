@@ -44,10 +44,12 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   Sphere with given location and radius
+   Sphere with given location and radius. 
+   <br/>
+   If radius is positive the shape is interior of the sphere, if radius is negative - the shape is exterior of the sphere.  
 
-   if radius is positive the sae is inside of spehre 
-   if radius is negative - the shape is outside of sphere
+   <embed src="doc-files/Sphere.svg" type="image/svg+xml"/> 
+   
 
    @author Vladimir Bulatov
 
@@ -61,26 +63,43 @@ public class Sphere extends TransformableDataSource {
 
     private double x0, y0, z0;
     
+    /**
+     * @noRefGuide
+     */
     public Sphere(){
+
         this(0.,0.,0.,1*MM);
     }
 
-    public Sphere(Vector3d c, double r){
-        this(c.x, c.y, c.z, r);
+    /**
+     * sphere with given radius centered at origin
+     */
+    public Sphere(double radius){
+        
+        setRadius(radius);
     }
     
-    public Sphere(double r){
-        
-        setRadius(r);
+
+    /**
+     * sphere with given center and radius
+     */
+    public Sphere(Vector3d center, double radius){
+        this(center.x, center.y, center.z, radius);
     }
     
-    public Sphere(double x0, double y0, double z0, double r){
+    /**
+     * sphere with given center and radius
+     */
+    public Sphere(double cx, double cy, double cz, double radius){
         
-        setCenter(x0, y0, z0);
-        setRadius(r);
+        setCenter(cx, cy, cz);
+        setRadius(radius);
         
     }
     
+    /**
+     * @noRefGuide
+     */
     public void setCenter(double x, double y, double z){
         
         this.x0 = x;
@@ -89,6 +108,9 @@ public class Sphere extends TransformableDataSource {
         
     }
     
+    /**
+     * @noRefGuide
+     */
     public void setRadius(double r){
         if( r < 0){
             R = -r;
@@ -104,6 +126,8 @@ public class Sphere extends TransformableDataSource {
     }
     
     /**
+     * @noRefGuide
+
      * returns 1 if pnt is inside of ball
      * returns intepolated value if poiunt is within voxel size to the boundary
      * returns 0 if pnt is outside the ball

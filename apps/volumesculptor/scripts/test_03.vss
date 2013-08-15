@@ -1,0 +1,82 @@
+importPackage(Packages.abfab3d.grid);
+importPackage(Packages.abfab3d.datasources);
+importPackage(Packages.abfab3d.transforms);
+
+function makeRing(length, rad1, rad2, channelWidth, channelDepth,bracketWidth){
+
+    var cyl1 = new Cylinder(new Vector3d(-length/2,0,0), new Vector3d(length/2,0,0), rad1);
+    var cyl2 = new Cylinder(new Vector3d(-length/2,0,0), new Vector3d(length/2,0,0), rad2);
+    var diff1 = new Subtraction(cyl1, cyl2);
+
+    if (channelWidth === 0) {
+        return diff1;
+    }
+
+    var cyl3 = new Cylinder(new Vector3d(-channelWidth/2,0,0), new Vector3d(channelWidth/2,0,0), rad1);
+    var cyl4 = new Cylinder(new Vector3d(-channelWidth/2,0,0), new Vector3d(channelWidth/2,0,0), rad1 - channelDepth);
+
+    var diff2 = new Subtraction(cyl3, cyl4);
+
+    var diff3 = new Subtraction();
+    diff3.setDataSources(diff1,diff2);
+
+    var boxX = new Box(0,0,0,length*2,bracketWidth, rad1*2);
+    var boxY = new Box(0,0,0,length*2,rad1*2, bracketWidth);
+    var union1 = new Union(boxX,boxY);
+
+    var diff4 = new Subtraction(diff3,union1);
+
+    return diff4;
+}
+
+function makeRing2(length, rad1, rad2, channelWidth, channelDepth,bracketWidth){
+
+    var cyl1 = new Cylinder(new Vector3d(-length/2,0,0), new Vector3d(length/2,0,0), rad1);
+
+    return cyl1;
+}
+
+function gyroidize(src,period,thickness) {
+    var intersect = new Intersection();
+    intersect.add(src);
+
+    var gyroid = new VolumePatterns.Gyroid(period, thickness);
+	gyroid.setLevel(-1.4);
+	gyroid.setVoxelScale(0.0);
+	gyroid.setTransform(new Rotation(new Vector3d(0,1,-1), Math.acos(1/Math.sqrt(3))));
+	
+    intersect.add(gyroid);
+
+    return intersect;
+}
+
+function main(){
+
+    var scale = 1.0/8.0;
+	var FT = 12*25.4*MM;
+	var IN = 25.4*MM;
+	
+    var b = 4*FT;
+    var voxelSize = 0.1*MM * 1 / scale;
+	//dest = createGrid(-b,b,-b,b,-b,b,voxelSize);
+    dest = createGrid(-2*IN,2*IN,0,b,0, b,voxelSize);
+
+    var num_rings = 5;
+    var largest = 3*FT;
+    var width = 3*IN;
+    var spacing = 3*IN;
+
+    var union = new Union();
+
+    //for(var i=0; i < num_rings; i++) {
+    for(var i=num_rings-1; i < num_rings; i++) {
+        var outer = largest - (width + spacing) * i;
+        var inner = outer - width;
+        union.add(makeRing2(width, outer, inner,0.75*IN,0.75*IN,1.5*IN));
+    }
+
+    maker.setSource(gyroidize(union,1.*IN,0.025*IN));
+    maker.makeGrid(dest);
+
+    return dest;
+}

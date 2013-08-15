@@ -45,10 +45,10 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   Intersection of multiple data sourrces
-   return 1 if all data sources return 1
-   return 0 otherwise
+   Intersection of multiple data sources
    
+   <embed src="doc-files/Intersection.svg" type="image/svg+xml"/> 
+
    @author Vladimir Bulatov
 */ 
 public class Intersection extends TransformableDataSource{
