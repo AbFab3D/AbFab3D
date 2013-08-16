@@ -29,7 +29,7 @@ public abstract class TransformableDataSource implements DataSource, Initializab
 
     /**
      * Transform the data source
-     * @param transform The transformation
+     * @param transform General transformation to apply to the object before it is rendered
      */
     public void setTransform(VecTransform transform){
         m_transform = transform; 
