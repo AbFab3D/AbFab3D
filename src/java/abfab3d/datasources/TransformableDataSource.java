@@ -18,7 +18,7 @@ import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 
 /**
-   base class for DataSOurces which wnat to be transformable 
+   Base class for DataSources which want to be transformable
  */
 public abstract class TransformableDataSource implements DataSource, Initializable {
 
@@ -26,11 +26,18 @@ public abstract class TransformableDataSource implements DataSource, Initializab
 
     protected TransformableDataSource(){
     }
-    
+
+    /**
+     * Transform the data source
+     * @param transform The transformation
+     */
     public void setTransform(VecTransform transform){
         m_transform = transform; 
     }
-    
+
+    /**
+     * @noRefGuide
+     */
     public int initialize(){
         if(m_transform != null && m_transform instanceof Initializable){
             return ((Initializable)m_transform).initialize();
@@ -39,9 +46,15 @@ public abstract class TransformableDataSource implements DataSource, Initializab
         return RESULT_OK;
     }
 
+    /**
+     * @noRefGuide
+     */
     public abstract int getDataValue(Vec pnt, Vec data);
 
 
+    /**
+     * @noRefGuide
+     */
     protected final int transform(Vec pnt){
         if(m_transform != null){
             return m_transform.inverse_transform(pnt, pnt);

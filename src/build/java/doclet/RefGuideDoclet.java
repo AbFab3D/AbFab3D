@@ -94,9 +94,8 @@ public class RefGuideDoclet {
                     toc_map.put(pname, classes);
 
                     toc_list.add(classes);
-                } else {
-                    classes.add(new Heading(classd.name(),classd.name()));
                 }
+                classes.add(new Heading(classd.name(),classd.name()));
             }
 
 
@@ -109,6 +108,9 @@ public class RefGuideDoclet {
             writeStaticFile(pw, USER_GUIDE);
 
             for (ClassDoc classd : root.classes()) {
+                if (classd.isAbstract()) {
+                    continue;
+                }
                 System.out.println("Class: " + classd.name());
 
                 PackageDoc pack = classd.containingPackage();
@@ -205,75 +207,24 @@ public class RefGuideDoclet {
                 }
 
                 System.out.println("Methods:");
+
                 for(MethodDoc method : classd.methods()) {
-                    String comment = method.commentText();
-                    Tag[] tags = method.tags("noRefGuide");
+                    writeMethod(pw, method, classd);
+                }
 
-                    if (tags != null && tags.length > 0) {
-                        System.out.println("Skipping method: " + classd.name() + "." + method.name());
-                        continue;
+
+                ClassDoc parent = classd.superclass();
+                while(parent != null) {
+                    System.out.println("Parent: " + parent);
+                    System.out.println("Parent is: " + parent + " methods: " + parent.methods().length);
+                    for(MethodDoc method : parent.methods()) {
+                        writeMethod(pw, method, classd);
                     }
+                    parent = parent.superclass();
 
-                    pw.println("<div class=\"api-endpoint-parameters\">");
-                    StringBuilder sb = new StringBuilder();
-                    sb.append(method.name());
-                    sb.append("(");
-                    Parameter[] params = method.parameters();
-                    for(int i=0; i < params.length; i++) {
-                        Parameter param = params[i];
-                        System.out.println("      Param: " + param.name() + " type: " + param.type());
-                        sb.append(param.name());
-                        if (i != params.length - 1) {
-                            sb.append(",");
-                        }
+                    if (parent != null && parent.name().equals("Object")) {
+                        break;
                     }
-                    sb.append(")\n");
-                    if (method.commentText() != null) {
-                        // TODO: add new css style?
-                        sb.append("<div class=\"api-endpoint-desc\">");
-                        sb.append(method.commentText());
-                        sb.append("</div>");
-                    }
-                    pw.println(sb.toString());
-                    System.out.println("Comment: " + method.commentText());
-
-                    System.out.println("Printing method annots");
-                    AnnotationDesc[] annots = method.annotations();
-                    System.out.println(java.util.Arrays.toString(annots));
-
-                    ParamTag[] ptags = method.paramTags();
-
-                    pw.println("   <table class=\"api-endpoint-parameters-table\">");
-                    for(int i=0; i < params.length; i++) {
-                        /*
-                        <tr class="api-endpoint-parameters-table-row">
-                        <td class="api-endpoint-parameters-table-name-col">x</td>
-                        <td class="api-endpoint-parameters-table-type-col">double</td>
-                        <td class="api-endpoint-parameters-table-desc-col">
-                                The center x</td>
-                        </tr>
-                        */
-                        Parameter param = params[i];
-                        System.out.println("      Param: " + param.name() + " type: " + param.type());
-                        pw.println("      <tr class=\"api-endpoint-parameters-table-row\">");
-                        pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.typeName() + " " + param.name()+ "</td>");
-/*
-                        pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.name()+ "</td>");
-                        pw.println("         <td class=\"api-endpoint-parameters-table-type-col\">" + param.typeName() + "</td>");
-*/
-                        pw.println("         <td class=\"api-endpoint-parameters-table-desc-col\">");
-                        ParamTag mcomment = getComment(ptags,param.name());
-                        if (mcomment != null) {
-                            pw.println(mcomment.parameterComment());
-                        }
-                        pw.println("         </td>");
-                        pw.println("      </tr>");
-                    }
-
-                    pw.println("</table>");
-                    pw.println("</div>");
-
-                    System.out.println("   " + method);
                 }
 
                 pw.println("   </div>");    // domain endpoint
@@ -294,6 +245,77 @@ public class RefGuideDoclet {
             }
         }
         return true;
+    }
+
+    private static void writeMethod(PrintWriter pw, MethodDoc method, ClassDoc classd) {
+        Tag[] tags = method.tags("noRefGuide");
+
+        System.out.println("WriteMethod: " + method.name() + " tags: " + java.util.Arrays.toString(tags));
+        if (tags != null && tags.length > 0) {
+            System.out.println("Skipping method: " + classd.name() + "." + method.name());
+            return;
+        }
+
+        pw.println("<div class=\"api-endpoint-parameters\">");
+        StringBuilder sb = new StringBuilder();
+        sb.append(method.name());
+        sb.append("(");
+        Parameter[] params = method.parameters();
+        for(int i=0; i < params.length; i++) {
+            Parameter param = params[i];
+            System.out.println("      Param: " + param.name() + " type: " + param.type());
+            sb.append(param.name());
+            if (i != params.length - 1) {
+                sb.append(",");
+            }
+        }
+        sb.append(")\n");
+        if (method.commentText() != null) {
+            // TODO: add new css style?
+            sb.append("<div class=\"api-endpoint-desc\">");
+            sb.append(method.commentText());
+            sb.append("</div>");
+        }
+        pw.println(sb.toString());
+        System.out.println("Comment: " + method.commentText());
+
+        System.out.println("Printing method annots");
+        AnnotationDesc[] annots = method.annotations();
+        System.out.println(java.util.Arrays.toString(annots));
+
+        ParamTag[] ptags = method.paramTags();
+
+        pw.println("   <table class=\"api-endpoint-parameters-table\">");
+        for(int i=0; i < params.length; i++) {
+                    /*
+                    <tr class="api-endpoint-parameters-table-row">
+                    <td class="api-endpoint-parameters-table-name-col">x</td>
+                    <td class="api-endpoint-parameters-table-type-col">double</td>
+                    <td class="api-endpoint-parameters-table-desc-col">
+                            The center x</td>
+                    </tr>
+                    */
+            Parameter param = params[i];
+            System.out.println("      Param: " + param.name() + " type: " + param.type());
+            pw.println("      <tr class=\"api-endpoint-parameters-table-row\">");
+            pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.typeName() + " " + param.name()+ "</td>");
+/*
+                    pw.println("         <td class=\"api-endpoint-parameters-table-name-col\">" + param.name()+ "</td>");
+                    pw.println("         <td class=\"api-endpoint-parameters-table-type-col\">" + param.typeName() + "</td>");
+*/
+            pw.println("         <td class=\"api-endpoint-parameters-table-desc-col\">");
+            ParamTag mcomment = getComment(ptags,param.name());
+            if (mcomment != null) {
+                pw.println(mcomment.parameterComment());
+            }
+            pw.println("         </td>");
+            pw.println("      </tr>");
+        }
+
+        pw.println("</table>");
+        pw.println("</div>");
+
+        System.out.println("   " + method);
     }
 
     /**

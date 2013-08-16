@@ -1,18 +1,17 @@
 <HTML>
 <head>
-    <TITLE>Volume Sculptor</TITLE>
+    <TITLE>ShapeJS</TITLE>
 
 	<link rel="stylesheet" href="style.css" type="text/css" media="all" />
 
 	</head>
 <BODY>
-<H1>Volume Sculptor</H1>
 <div id="main">
 <div id="content">
 
 <H2 id="Overview">Overview</H2>
 <p>
-The Volume Sculptor(VS) provides a powerful system for generating 3D printable objects via a simple Javascript program.
+ShapeJS provides a powerful system for generating 3D printable objects via a simple Javascript program.
 The functionality of VS is based on a representation of three dimensional objects via voxels on 3 dimensional regular grid.
 </p>
 <p>
@@ -24,7 +23,7 @@ This more precise representation greatly enhances the quality of generated objec
 The gain in quality is similar to those of grayscale image over black and white image of the same resolution. 
 </p>
 <p>
-The voxel based representation gives Volume Sculptor greater flexibility in shape generation over traditional representation via triangle meshes.
+The voxel based representation gives ShapeJS greater flexibility in shape generation over traditional representation via triangle meshes.
 It is similar to advantages 2D raster graphics has over 2D vector graphics. Vector graphics is great for drawing diagrams and raster 
 graphics is on practice the tool of choice for anything else. 
 </p>
@@ -48,22 +47,22 @@ There are usual boolean operations on objects which include <span class="code">U
 </p>
 <p>
 There is a flexible set of transformations which can be applied to any <span class="code">DataSource</span> object. Transformations include standard
-3D linear transformations like <span class="code"><a href="#Rotation">Rotation</a></span>, <span class="code">Translation</span>, <span class="code">Scale</span>,
-<span class="code">Reflection</span>. Flexibility of using volume based data allows to use arbitrary non linear transformation among those are 
-<span class="code">RingWrap</span>, <span class="code">SphereInversion</span>, <span class="code">FrizeSymmetry</span>,
+3D linear transformations like <span class="code"><a href="#Rotation">rotation</a></span>, <span class="code"><a href="#Translation">translation</a></span>, <span class="code"><a href="#Scale">scale</a></span>,
+<span class="code"><a href="#PlaneReflection">reflection</a></span>. Flexibility of using volume based data allows to use arbitrary non linear transformation among those are
+<span class="code"><a href="#RingWarp">RingWrap</a></span>, <span class="code" ><a href="#SphereInversion">SphereInversion</a></span>, <span class="code"><a href="#FriezeSymmetry">FriezeSymmetry</a></span>,
 <span class="code">WalPaperSymmetry</span>, <span class="code">ReflectionSymmetry</span>. Several 
-simple transformations can be composed into more comlex transformation using <span class="code">CompositeTransform</span>. 
+simple transformations can be composed into more complex transformation using <span class="code"><a href="#CompositeTransform">CompositeTransform</a></span>.
 A transformation can be applied to any DataSource object via its <span class="code">setTransform()</span> method. 
 </p>
 
 
-<H2 id="Scripts">Volume Sculptor Scripts</H2>
+<H2 id="Scripts">ShapeJS Scripts</H2>
 <p>
-Volume Sculptor Scripts are Javascript programs over top the AbFab3D Voxel library. All standard Javascript functionality is
+ShapeJS Scripts are Javascript programs over top the AbFab3D Voxel library. All standard Javascript functionality is
 supported.  In particular we use the Rhino Scripting engine in Java.  You can find the project documentation here: <a href="https://developer.mozilla.org/en-US/docs/Rhino_documentation" >Rhino Documentation</a>
 </p>
 <p>
-Below is a simple VSS (Volume Sculptor Script) program.
+Below is a simple ShapeJS program.
 <pre class="code">
 function main(args){  // this script will make a sphere
 
@@ -84,16 +83,16 @@ function main(args){  // this script will make a sphere
     Click <a href="http://volumesculptor.com/creators/volume_sculptor/?example=sphere" target="_blank">Simple Sphere</a> to run this example.
 </p>
 <p>
-All vss scripts should have function <span class="code">main(args)</span>. This function is executed by the Volume Sculptor scripting engine.
+All vss scripts should have function <span class="code">main(args)</span>. This function is executed by the ShapeJS scripting engine.
 It is possible to pass arbitrary arguments (including uploaded files ) to the main(args), but we will explain this later. 
 </p>
 <p>
-Unit of length in Volume Sculptor is <b>meters</b>.
+Unit of length in ShapeJS is <b>meters</b>.
 To avoid awkward numbers there are few useful conversion constants MM=0.001 for millimeters, IN=0.0254 for inches. 
 </p>
 
 <p>
-The primary object of Volume Sculptor script is a volumetric grid. The result of executing <span class="code">main(args)</span>should be a grid filled with scene data.
+The primary object of ShapeJS script is a volumetric grid. The result of executing <span class="code">main(args)</span>should be a grid filled with scene data.
 The scripting engine converts the grid returned by main() into a traditional triangle mesh which is sent back to the browser
 and displayed in the 3D view.  
 </p>
@@ -113,7 +112,7 @@ Users can also create new DataSource objects directly in their script.
 </p>
 <p>
 Calling <span class="code">maker.makeGrid(grid)</span> does the actual calculations of the grid. Returning that grid from main initiates 
-the Volume Sculptor engine conversion of grid data into a triangle mesh which is returned to browser.
+the ShapeJS engine conversion of grid data into a triangle mesh which is returned to browser.
 </p>
 <h2>Controlling parameter of output mesh</h2>
 <p>
@@ -218,24 +217,6 @@ Another useful method of ImageBitMap is setBlurWidth(blurWidth). The blurWidth i
 voxelSize. The blurring eliminates sharp edges in the image. 
 </p>
 
-<H3>Web Example</H3>
-<p>
-The web example has several panels.  The top Inspiration panel changes the example shown.  When you click on an image
-the Editor panel will show the new source, the Parameters and Files panels will revert to the example defaults and the
-3D view will show the result of evaluating the script.
-</p>
-<p>
-If a script's main function references arguments then you'll need to provide values in the Parameters or Files section.  Click
-the Blue Plus buttons to add a value.  TODO:  Maybe name things in examples as radiusParam and imageFile to make it obvious?
-</p>
-<p>
-You can save a model to your local storage with the Save model button.  Currently this generates an X3D binary file.  You can
-view these files with <a href="http://www.instantreality.org/">Instant Reality</a>, <a href="http://www.bitmanagement.com/products/interactive-3d-clients/bs-contact">BS Contact</a> or </a><a href="http://www.netfabb.com/basic.php">NetFabb Studio Basic</a>
-</p>
-<p>
-The upload button will upload the model to Shapeways.  You'll be provided with a link to order the model.  Please be aware these
-are public models so anyone could order them as well.
-</p>
 <H3>Creating your own Creators</H3>
 The underlying engine for the web examples can be used in your own Javascript creator.  Once you have a script you like then we'd
 encourage you to make a user-interface that's more specific and easier to use.  Once you have the parameters ready then you
@@ -248,21 +229,105 @@ User provided objects.
 </p>
 
 <H2 id="Functions">Javascript Functions</H2>
-<H3>createGrid</H3>
-Create a voxel grid
+ShapeJS has global helper functions accessible from your script.
+<div class="domain-endpoint" id="createGrid">
+    <div class="api-endpoint-header">createGrid</div>
+<div class="api-endpoint-desc">
+    Create a voxel grid
+</div>
 
-<h4>Grid createGrid(sx,sy,sz,voxelSize)</h4>
-<H3  id="load">load</H3>
-Description: Load a 3D mesh into a grid.
+<div class="api-endpoint-parameters">
+    createGrid(sx,sy,sz,voxelSize)
+    <div class="api-endpoint-desc">Create a grid of given size and resolution.</div>
+    <table class="api-endpoint-parameters-table">
+        <tr class="api-endpoint-parameters-table-row">
+            <td class="api-endpoint-parameters-table-name-col">double sx</td>
+            <td class="api-endpoint-parameters-table-desc-col">
+                x size of grid
+            </td>
+        </tr>
+        <tr class="api-endpoint-parameters-table-row">
+            <td class="api-endpoint-parameters-table-name-col">double sy</td>
+            <td class="api-endpoint-parameters-table-desc-col">
+                y size of grid
+            </td>
+        </tr>
+        <tr class="api-endpoint-parameters-table-row">
+            <td class="api-endpoint-parameters-table-name-col">double sz</td>
+            <td class="api-endpoint-parameters-table-desc-col">
+                z size of grid
+            </td>
+        </tr>
+        <tr class="api-endpoint-parameters-table-row">
+            <td class="api-endpoint-parameters-table-name-col">double voxelSize</td>
+            <td class="api-endpoint-parameters-table-desc-col">
+                The size of each voxel.
+            </td>
+        </tr>
+    </table>
+</div>
 
-<h4 id="gridLoadFilename">Grid load(filename)</h4>
-Returns a grid from the 3D mesh.  Uses the default voxelSize of 0.1mm
-<h4>Grid load(filename,voxelSize)</h4>
-Returns a grid from the 3D mesh.  Uses the specified voxelSize.
-<h4>load(filename,Grid)</h4>
-Load a 3D mesh into the specified grid.  Uses the Grid's voxel size.
-<p>
-    Supported formats are STL(ASCII and BINARY).
+<div class="domain-endpoint" id="load">
+    <div class="api-endpoint-header">load</div>
+    <div class="api-endpoint-desc">
+        Load a 3D mesh into a grid.  Currently supports ASCII and BINARY STL files.
+    </div>
+
+    <div class="api-endpoint-parameters">
+        Grid load(filename)
+        <div class="api-endpoint-desc">Returns a grid from the 3D mesh.  Uses the default voxelSize of 0.1mm
+        </div>
+        <table class="api-endpoint-parameters-table">
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">String filename</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    The name of file to load
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="api-endpoint-parameters">
+        Grid load(filename,voxelSize)
+        <div class="api-endpoint-desc">Returns a grid from the 3D mesh.  Uses the given voxelSize
+        </div>
+        <table class="api-endpoint-parameters-table">
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">String filename</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    The name of the file to load
+                </td>
+            </tr>
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">double voxelSize</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    The size of voxels to use
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div class="api-endpoint-parameters">
+        load(filename,grid)
+        <div class="api-endpoint-desc">Returns a grid from the 3D mesh.  Uses the given voxelSize
+        </div>
+        <table class="api-endpoint-parameters-table">
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">String filename</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    The name of the file to load
+                </td>
+            </tr>
+            <tr class="api-endpoint-parameters-table-row">
+                <td class="api-endpoint-parameters-table-name-col">Grid grid</td>
+                <td class="api-endpoint-parameters-table-desc-col">
+                    The grid to load the result into.  Will overwrite filled areas with model data, unfilled areas
+                    will not be changed.  The grid must be large enough to contain the object.
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+
 <H2 id="JavaObjects">Java Objects</H2>
 Specific Java objects are exposed to the scripts.  This section lists the objects exposed and provides links to their
 Javadoc.
