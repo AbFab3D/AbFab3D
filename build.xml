@@ -210,7 +210,7 @@
                 <include name="java/abfab3d/datasources/Cone.java" />
                 <include name="java/abfab3d/datasources/Cylinder.java" />
                 <include name="java/abfab3d/datasources/DataSourceGrid.java" />
-                <include name="java/abfab3d/datasources/ImageBitMap.java" />
+                <include name="java/abfab3d/datasources/ImageBitmap.java" />
                 <include name="java/abfab3d/datasources/Intersection.java" />
                 <include name="java/abfab3d/datasources/Plane.java" />
                 <include name="java/abfab3d/datasources/Ring.java" />
