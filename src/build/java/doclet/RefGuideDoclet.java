@@ -17,10 +17,7 @@ import com.sun.tools.doclets.formats.html.*;
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Generate the ShapeJS reference guide.  The guide is a combination of manual pages and auto-generated content
@@ -32,6 +29,8 @@ public class RefGuideDoclet {
     private static final String REF_GUIDE_DIR = "docs/refguide";
     private static final String USER_GUIDE = "apps/volumesculptor/docs/manual/overview.html";
     private static final HashMap<String,String> packageTOCName;
+    private static HashSet<String> ignoreMethods = new HashSet();
+
 
     static {
         packageTOCName = new HashMap<String,String>();
@@ -80,6 +79,10 @@ public class RefGuideDoclet {
 
 
             for (ClassDoc classd : root.classes()) {
+                if (classd.isAbstract()) {
+                    continue;
+                }
+
                 PackageDoc pack = classd.containingPackage();
                 String pname = pack.name();
 
@@ -110,6 +113,10 @@ public class RefGuideDoclet {
             for (ClassDoc classd : root.classes()) {
                 if (classd.isAbstract()) {
                     continue;
+                }
+
+                if (ignoreMethods.size() == 0) {
+                    initIgnoreMethods(classd.findClass("Object"));
                 }
                 System.out.println("Class: " + classd.name());
 
@@ -247,7 +254,20 @@ public class RefGuideDoclet {
         return true;
     }
 
+    /**
+     * Add methods to the ignore list.
+     * @param obj The class obj
+     */
+    private static void initIgnoreMethods(ClassDoc obj) {
+        for(MethodDoc method : obj.methods()) {
+            ignoreMethods.add(method.name());
+        }
+    }
+
     private static void writeMethod(PrintWriter pw, MethodDoc method, ClassDoc classd) {
+        if (ignoreMethods.contains(method.name())) {
+            return;
+        }
         Tag[] tags = method.tags("noRefGuide");
 
         System.out.println("WriteMethod: " + method.name() + " tags: " + java.util.Arrays.toString(tags));
