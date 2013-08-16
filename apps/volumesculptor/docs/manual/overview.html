@@ -9,24 +9,6 @@
 <H1>Volume Sculptor</H1>
 <div id="main">
 <div id="content">
-<li><a href="#Overview">1 Overview</a></li>
-<li><a href="#Scripts">2 Volume Sculptor Scripts</a></li>
-<ul>
-    <li><a href="#CompositeTransform">CompositeTransform</a></li>
-    <li><a href="#Rotation">Rotation</a></li>
-    <li><a href="#Scale">Scale</a></li>
-    <li><a href="#Translation">Translation</a></li>
-</ul>
-<li><a href="#Javascript Functions">3 Functions</a></li>
-<ul>
-    <li><a href="#createGrid">createGrid</a></li>
-    <li><a href="#load">load</a></li>
-</ul>
-<li><a href="#Java Objects">4 Java Objects</a></li>
-<ul>
-    <li><a href="#Math">Math</a></li>
-</ul>
-</ul>
 
 <H2 id="Overview">Overview</H2>
 <p>
@@ -54,9 +36,10 @@ The distance function calculations may be very complex task for complex object. 
 composing complex object from many simpler one using several simple operations. 
 </p>
 <p>
-There are several predefined simple object like <span class="code">Sphere</span>,<span class="code">Box</span>, <span class="code">Cylinder</span>.
-More complex methods include functionality to convert 2D image to a 3D embossed object using <span class="code">ImageBitmap</span> object and 
-importing user provided 3D object using <span class="code">load()</span> function. 
+There are several predefined simple object like <span class="code"><a href="#Sphere">Sphere</a></span>,<span class="code"><a href="#Box">Box</a></span>,
+<span class="code"><a href="#Cylinder">Cylinder</a></span> and <span class="code"><a href="#Cone">Cone</a></span>.
+More complex methods include functionality to convert 2D image to a 3D embossed object using <span class="code"><a href="#ImageBitMap">ImageBitmap</a></span> object and
+importing user provided 3D object using <span class="code"><a href="#load">load()</a></span> function.
 </p>
 <p>
 The real power of volume sculpting is in the flexibility of combining and transforming objects represented as distance function.  
@@ -65,7 +48,7 @@ There are usual boolean operations on objects which include <span class="code">U
 </p>
 <p>
 There is a flexible set of transformations which can be applied to any <span class="code">DataSource</span> object. Transformations include standard
-3D linear transformations like <span class="code">Rotation</span>, <span class="code">Translation</span>, <span class="code">Scale</span>,
+3D linear transformations like <span class="code"><a href="#Rotation">Rotation</a></span>, <span class="code">Translation</span>, <span class="code">Scale</span>,
 <span class="code">Reflection</span>. Flexibility of using volume based data allows to use arbitrary non linear transformation among those are 
 <span class="code">RingWrap</span>, <span class="code">SphereInversion</span>, <span class="code">FrizeSymmetry</span>,
 <span class="code">WalPaperSymmetry</span>, <span class="code">ReflectionSymmetry</span>. Several 
@@ -150,7 +133,7 @@ meshMinPartVolume are discarded. This volume is specified in meters<sup>3</sup>.
 </p>
 
 
-<H2>Examples</H2>
+<H2 id="Examples">Examples</H2>
 <h3>Boolean Operations</h3>
 <p>
 In this example we'll show a powerful modeling technique creating objects by using boolean algebra.  Many objects can be described
@@ -262,6 +245,30 @@ Shapeways API to store the models, get pricing and add your own markup to the mo
 <h3>Custom DataSource</h3>
 <p>
 User provided objects. 
+</p>
+
+<H2 id="Functions">Javascript Functions</H2>
+<H3>createGrid</H3>
+Create a voxel grid
+
+<h4>Grid createGrid(sx,sy,sz,voxelSize)</h4>
+<H3  id="load">load</H3>
+Description: Load a 3D mesh into a grid.
+
+<h4 id="gridLoadFilename">Grid load(filename)</h4>
+Returns a grid from the 3D mesh.  Uses the default voxelSize of 0.1mm
+<h4>Grid load(filename,voxelSize)</h4>
+Returns a grid from the 3D mesh.  Uses the specified voxelSize.
+<h4>load(filename,Grid)</h4>
+Load a 3D mesh into the specified grid.  Uses the Grid's voxel size.
+<p>
+    Supported formats are STL(ASCII and BINARY).
+<H2 id="JavaObjects">Java Objects</H2>
+Specific Java objects are exposed to the scripts.  This section lists the objects exposed and provides links to their
+Javadoc.
+<H3>Math</H3>
+<p>The java.lang.Math class is available.  This is where you will find the typical min,max,sin,cos functions.
+Please see the posted Javadoc for complete details.  <a href="http://docs.oracle.com/javase/6/docs/api/">Java6 Javadoc</a>
 </p>
 
 </div>

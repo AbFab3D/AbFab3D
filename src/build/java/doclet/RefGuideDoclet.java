@@ -1,4 +1,14 @@
-
+/*****************************************************************************
+ *                        Shapeways, Inc Copyright (c) 2013
+ *                               Java Source
+ *
+ * This source is licensed under the GNU LGPL v2.1
+ * Please read http://www.gnu.org/copyleft/lgpl.html for more information
+ *
+ * This software comes with the standard NO WARRANTY disclaimer for any
+ * purpose. Use it at your own risk. If there's a problem you get to fix it.
+ *
+ ****************************************************************************/
 
 package doclet;
 
@@ -12,8 +22,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Generate the ShapeJS reference guide.  The guide is a combination of manual pages and auto-generated content
+ * from the Java source files.
+ *
+ * @author Alan Hudson
+ */
 public class RefGuideDoclet {
     private static final String REF_GUIDE_DIR = "docs/refguide";
+    private static final String USER_GUIDE = "apps/volumesculptor/docs/manual/overview.html";
     private static final HashMap<String,String> packageTOCName;
 
     static {
@@ -37,13 +54,30 @@ public class RefGuideDoclet {
         BufferedOutputStream bos = null;
         PrintWriter pw = null;
 
-        HashMap<String, List<String>> package_list = new HashMap<String, List<String>>();
+
+        List<Heading> toc_list = new ArrayList<Heading>();
+        Map<String, Heading> toc_map = new HashMap<String, Heading>();
         try {
             fos = new FileOutputStream(REF_GUIDE_DIR + "/index.html");
             bos = new BufferedOutputStream(fos);
             pw = new PrintWriter(bos);
 
             writePreamble(pw);
+
+            List<List<Heading>> headings = getHeadings(USER_GUIDE,1);
+            System.out.println("Headings:");
+            Heading user_guide = new Heading("User Guide","User Guide");
+
+            int level = 0;
+            toc_list.add(user_guide);
+            for(List<Heading> list : headings) {
+                for(Heading h : list) {
+                    System.out.println("ID: " + h.getId() + " Text: " + h.getText());
+                    user_guide.add(h);
+                }
+                level++;
+            }
+
 
             for (ClassDoc classd : root.classes()) {
                 PackageDoc pack = classd.containingPackage();
@@ -54,18 +88,25 @@ public class RefGuideDoclet {
                     pname = display;
                 }
                 System.out.println("package name:" + pname);
-                List<String> classes = package_list.get(pname);
+                Heading classes = toc_map.get(pname);
                 if (classes == null) {
-                    classes = new ArrayList<String>();
-                    package_list.put(pname, classes);
+                    classes = new Heading(pname,pname);
+                    toc_map.put(pname, classes);
+
+                    toc_list.add(classes);
+                } else {
+                    classes.add(new Heading(classd.name(),classd.name()));
                 }
-                classes.add(classd.name());
             }
 
-            writeTOC(pw, package_list);
+
+            writeTOC(pw, toc_list);
+
+
             String current_package = null;
 
-            pw.println("<div class=\"span-9 last right\">\n");
+            pw.println("<div class=\"span-9 last right\">");
+            writeStaticFile(pw, USER_GUIDE);
 
             for (ClassDoc classd : root.classes()) {
                 System.out.println("Class: " + classd.name());
@@ -256,6 +297,97 @@ public class RefGuideDoclet {
     }
 
     /**
+     * Write a static file into the stream.  Only write the BODY content.
+     * @param pw
+     * @param file
+     * @throws IOException
+     */
+    private static void writeStaticFile(PrintWriter pw, String file) throws IOException {
+        String st = FileUtils.readFileToString(new File(file));
+
+        int s_idx = st.indexOf("<BODY>");
+        if (s_idx == -1) {
+            s_idx = st.indexOf("<body");
+        }
+        int e_idx = st.indexOf("</BODY>");
+        if (e_idx == -1) {
+            e_idx = st.indexOf("</body");
+        }
+
+        if (s_idx != -1 && e_idx != -1) {
+            st = st.substring(s_idx + 6, e_idx);
+        }
+
+        pw.println("<!-- Begin static file: " + file + " -->");
+        // Strip out
+        pw.println(st);
+        pw.println("<!-- End static file: " + file + " -->");
+    }
+
+    /**
+     * Get the headings out of an HTML file.  This is rather dodgy but I don't want to use a full HTML parser
+     * @param file
+     * @param maxLevels The maximum levels we support
+     * @return Each level of headings.  ie with H2 and H3 it would be [3][n] array.
+     */
+    private static List<List<Heading>> getHeadings(String file, int maxLevels) throws IOException {
+        List<List<Heading>> ret_val = new ArrayList<List<Heading>>();
+        String st = FileUtils.readFileToString(new File(file));
+
+        for(int i=0; i < 5; i++) {
+            int level = i+1;
+            ArrayList<Heading> list = new ArrayList<Heading>();
+            // replace all lowercase with upper for easier parsing
+            st = st.replace("<h" + level,"<H" + level);
+            st = st.replace("</h" + level,"</H" + level);
+            int pos = 0;
+            int idx = st.indexOf("<H"+level,pos);
+
+            System.out.println("Initial idx for: " + ("<H" + level) + " is: " + idx);
+            while(idx != -1) {
+                String id = null;
+                int b_idx = st.indexOf(">",idx);  // find end of H start tag
+                int e_idx = st.indexOf("</H",idx+4);  // find begin of H end tag
+
+                System.out.println("Start of H: " + b_idx + " end: " + e_idx + " Tag: " + st.substring(b_idx+1,e_idx));
+
+                int id_idx = st.indexOf("id=",idx);
+                System.out.println("ID index: " + id_idx);
+                if (id_idx != -1 && id_idx < e_idx) {
+                    int qs_idx = st.indexOf("\"",id_idx);  // assume attributes use "
+                    int qe_idx = st.indexOf("\"",qs_idx+1);
+
+                    System.out.println("end of H tag: " + e_idx + " qs: " + qs_idx + " qe: " + qe_idx);
+                    if (qe_idx > -1 && qe_idx < e_idx) {
+                        id = st.substring(qs_idx+1,qe_idx);
+                    } else {
+                        id = null;
+                    }
+                }
+                String heading = st.substring(b_idx+1,e_idx);
+                if (id != null) {
+                    list.add(new Heading(id,heading));
+                }
+                System.out.println("Heading: " + heading + " id: " + id + " level: " + (i+1));
+                pos = e_idx+1;
+                idx = st.indexOf("<H" + level,pos);
+
+            }
+
+            if (list.size() > 0) {
+                ret_val.add(list);
+
+                if (ret_val.size() == maxLevels) {
+                    return ret_val;
+                }
+            }
+        }
+
+        return ret_val;
+    }
+
+
+    /**
      * Update any doc-file urls to package/doc-files form
      * @param src The src text
      * @param path
@@ -291,9 +423,7 @@ public class RefGuideDoclet {
     }
 
     private static ParamTag getComment(ParamTag[] tags, String name) {
-        System.out.println("Checking for: " + name);
         for(int i=0; i < tags.length; i++) {
-            System.out.println("   checking: " + tags[i].parameterName());
             if (tags[i].parameterName().equals(name)) {
                 return tags[i];
             }
@@ -302,18 +432,19 @@ public class RefGuideDoclet {
         return null;
     }
 
-    public static void writeTOC(PrintWriter pw,Map<String, List<String>> package_list) {
+    public static void writeTOC(PrintWriter pw,List<Heading> package_list) {
         pw.println("<div class=\"span-3\">");
         pw.println("<div class=\"api-toc\" id=\"toc\">");
-        for(Map.Entry<String, List<String>> entry : package_list.entrySet()) {
-            String id = entry.getKey();
+
+        for(Heading heading : package_list) {
+            String id = heading.getId();
             pw.println("<div class=\"api-toc-domain-container\" id=\"" + id + "_toc\">");
             pw.println("   <div class=\"api-toc-domain-name\"><a href=\"#" + id + "\">" + id + "</a></div>");
 
-            List<String> classes = entry.getValue();
-            System.out.println("Package has: " + classes.size());
-            for(String st : classes) {
-                pw.println("   <div class=\"api-toc-endpoint\" id=\"" + st + "_toc\"><a href=\"#" + st + "\">" + st + "</a></div>");
+            List<Heading> children = heading.getChildren();
+            System.out.println("Heading has: " + children.size());
+            for(Heading h2 : children) {
+                pw.println("   <div class=\"api-toc-endpoint\" id=\"" + h2.getId() + "_toc\"><a href=\"#" + h2.getId() + "\">" + h2.getText() + "</a></div>");
             }
             pw.println("</div>");
         }
@@ -330,7 +461,7 @@ public class RefGuideDoclet {
                 "    <meta charset=\"utf-8\">\n" +
                 "    <meta name=\"Author\" content=\"Shapeways Inc.\" />\n" +
                 "    <meta name=\"viewport\" content=\"width=1024\" />\n" +
-                "    <title>Shapeways Developer API Documentation</title>\n" +
+                "    <title>ShapeJS Developer Documentation</title>\n" +
                 "    <link rel=\"shortcut icon\" href=\"/favicon.ico?tag=2013080701\" />\n" +
                 "    <link rel=\"icon\" href=\"/favicon.ico\" type=\"image/png\"/>\n" +
                 "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n" +
@@ -355,10 +486,9 @@ public class RefGuideDoclet {
                 "<div class=\"span-12 last\">\n" +
                 "<div class=\"span-12 last\">\n" +
                 "    <div class=\"section\">\n" +
-                "        <h1>Shapeways API Documentation</h1>\n" +
+                "        <h1>ShapeJS Developer Documentation</h1>\n" +
                 "        <p>\n" +
-                "            Browse the Shapeways API Documentation below or check out our <a href='https://api.shapeways.com'>JSON API Discovery</a> -\n" +
-                "            <a class=\"note\" href=\"https://www.google.com/search?q=JSONView\">Get the JSON View addon for your browser</a>\n" +
+                "            Browse the ShapeJS Documentation below." +
                 "        </p>\n" +
                 "    </div>  </div>\n";
 
@@ -388,3 +518,5 @@ public class RefGuideDoclet {
         return HtmlDoclet.languageVersion();
     }
 }
+
+
