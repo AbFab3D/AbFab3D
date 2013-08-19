@@ -50,8 +50,14 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   makes 3D text string with given font and dimensions 
-       
+   makes 3D text shape from text string 
+
+   <embed src="doc-files/Text.svg" type="image/svg+xml"/> 
+    
+   <p>
+   Text is oriented parallel to xy plane. The bounding box is centered at origin 
+   </p>
+
    @author Vladimir Bulatov
 
  */
@@ -71,11 +77,21 @@ public class Text extends TransformableDataSource {
     private int m_fontStyle = Font.PLAIN;
     private int m_textScale = 5;
 
-    public Text(String text, String fontName, double width, double height, double depth, double voxelSize){
+    /**
+
+       @param text the string to convert intoi 3D text 
+       @param fontName name of font to be used for 3D text
+       @param sx width of the 3D text bounding box
+       @param sy height of the 3D text bounding box
+       @param sz thickness of 3D text bounding box
+
+       @param voxelSize size of voxel used for text rasterizetion
+     */
+    public Text(String text, String fontName, double sx, double sy, double sz, double voxelSize){
         
-        m_sizeX = width;
-        m_sizeY = height;
-        m_sizeZ = depth;
+        m_sizeX = sx;
+        m_sizeY = sy;
+        m_sizeZ = sz;
         m_voxelSize = voxelSize;
         m_text = text;
         m_fontName = fontName;
@@ -83,7 +99,7 @@ public class Text extends TransformableDataSource {
     }
         
     /**
-       
+       @noRefGuide
      */
     public int initialize(){
 
@@ -121,6 +137,7 @@ public class Text extends TransformableDataSource {
     /**
      * returns 1 if pnt is inside of block of given size and location
      * returns 0 otherwise
+     @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
         

@@ -53,15 +53,15 @@ public class Box extends TransformableDataSource {
     /**
      * Box with given center and size
      *
-     * @param x  x coordinate of center
-     * @param y  y coordinate of center
-     * @param z  z coordinate of center
+     * @param cx  x coordinate of center
+     * @param cy  y coordinate of center
+     * @param cz  z coordinate of center
      * @param sx x size
      * @param sy y size
      * @param sz z size
      */
-    public Box(double x, double y, double z, double sx, double sy, double sz) {
-        setCenter(x, y, z);
+    public Box(double cx, double cy, double cz, double sx, double sy, double sz) {
+        setCenter(cx, cy, cz);
         setSize(sx, sy, sz);
     }
 
@@ -131,10 +131,10 @@ public class Box extends TransformableDataSource {
      * @param z  z coordinate of center
      *
      */
-    public void setCenter(double x, double y, double z) {
-        m_centerX = x;
-        m_centerY = y;
-        m_centerZ = z;
+    public void setCenter(double cx, double cy, double cz) {
+        m_centerX = cx;
+        m_centerY = cy;
+        m_centerZ = cz;
     }
 
     /**

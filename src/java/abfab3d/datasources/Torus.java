@@ -45,7 +45,9 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   DataSource representation of torus centered at origin with axis along z-axis
+   Torus centered at given point with axis parallel to z-axis
+
+   <embed src="doc-files/Torus.svg" type="image/svg+xml"/> 
 
    @author Vladimir Bulatov
 
@@ -55,32 +57,56 @@ public class Torus extends TransformableDataSource{
     
     private double R, r;
     private double x0, y0, z0;
+    
+    /**
+       @param center - location of torus center
+       @param Rout - outer radius of torus
+       @param Rin - innter radius of torus
 
-    public Torus(Vector3d c, double R, double r) {
-        this(c.x,c.y,c.z,R,r);
+     */
+    public Torus(Vector3d center, double Rout, double Rin) {
+        this(center.x,center.y,center.z,Rout,Rin);
     }
 
-    public Torus(double R, double r){
-        this.R = R;
-        this.r = r;
+    /**
+       torus centered at origin
+       @param Rout - outer radius of torus
+       @param Rin - innter radius of torus
+
+     */
+    public Torus(double Rout, double Rin){
+        this.R = Rout;
+        this.r = Rin;
     }
 
-    public Torus(double x0, double y0, double z0, double R, double r){
-        setCenter(x0,y0,z0);
-        this.R = R;
-        this.r = r;
+    /**
+       @param cx - x component of center
+       @param cy - y component of center
+       @param cz - z component of center
+       @param Rout - outer radius of torus
+       @param Rin - innter radius of torus
+
+     */
+    public Torus(double cx, double cy, double cz, double Rout, double Rin){
+        setCenter(cx, cy, cz);
+        this.R = Rout;
+        this.r = Rin;
     }
 
-    public void setCenter(double x, double y, double z) {
-        this.x0 = x;
-        this.y0 = y;
-        this.z0 = z;
+    /**
+       @noRefGuide
+     */
+    public void setCenter(double cx, double cy, double cz) {
+        this.x0 = cx;
+        this.y0 = cy;
+        this.z0 = cz;
     }
 
     /**
      * returns 1 if pnt is inside of Torus
-     * returns intepolated value if poiunt is within voxel size to the boundary
+     * returns intepolated value if point is within voxel size to the boundary
      * returns 0 if pnt is outside the Torus
+       @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
         

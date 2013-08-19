@@ -42,21 +42,22 @@ public class Cylinder extends TransformableDataSource {
     static final Vector3d Yaxis = new Vector3d(0, 1, 0);
 
     /**
-     * Cylinder from given two ends and radius
+     * Cylinder which starts at point V0 and ands at point V1
      * @param v0 Starting position
      * @param v1 Ending position
-     * @param r Radius
+     * @param radius Radius of cylinder 
      */
-    public Cylinder(Vector3d v0, Vector3d v1, double r) {
+    public Cylinder(Vector3d v0, Vector3d v1, double radius) {
 
-        this.R = r;
+        this.R = radius;
         this.v0 = new Vector3d(v0);
         this.v1 = new Vector3d(v1);
 
     }
 
-    /*
-     * @noRefGuide
+    /**
+
+      @noRefGuide     
      */
     public int initialize() {
 
@@ -88,8 +89,10 @@ public class Cylinder extends TransformableDataSource {
         return RESULT_OK;
     }
 
-    /*
-     * @noRefGuide
+    /**
+      the scale factor increases thickness of cylinder proportional to scale of transformation 
+      it can be used to thicken the thin parts 
+      @noRefGuide
      */
     public void setScaleFactor(double value) {
         scaleFactor = value;
@@ -99,6 +102,7 @@ public class Cylinder extends TransformableDataSource {
      * returns 1 if pnt is inside of cylinder
      * returns intepolated value if point is within voxel size to the boundary
      * returns 0 if pnt is outside the ball
+     @noRefGuide
      */
     public int getDataValue(Vec pntIn, Vec data) {
 
@@ -133,7 +137,11 @@ public class Cylinder extends TransformableDataSource {
         return RESULT_OK;
     }
 
-    // move cylinder into canononical position with center at origin and cylinder axis aligned with Y-axis
+    /**
+     *  move cylinder into canononical position with center at origin and cylinder axis aligned with Y-axis
+
+     @noRefGuide     
+     */
     protected void canonicalTransform(Vec pnt) {
         pnt.subSet(center);
         pnt.mulSetLeft(rotation);

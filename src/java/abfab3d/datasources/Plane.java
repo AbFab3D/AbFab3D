@@ -70,6 +70,12 @@ public class Plane extends TransformableDataSource {
         init(normal.x,normal.y,normal.z, dist);
     }
     
+    /**
+     * Plane is defined via external normal and a point, which lies in the plane
+     *
+     * @param normal The normal to the plane
+     * @param pointOnPlane the point on the plane
+     */
     public Plane(Vector3d normal, Vector3d pointOnPlane){
 
         Vector3d nn = new Vector3d(normal);
@@ -78,6 +84,14 @@ public class Plane extends TransformableDataSource {
         init(nn.x, nn.y, nn.z, nn.dot(pointOnPlane));
     }
 
+    /**
+     * Plane is defined via 3 points, which lie in the plane. 
+     External normal points into direction from which points pnt0, pnt1, pnt2 look oriented counter clock wise
+     *
+     * @param pnt0 point in the plane
+     * @param pnt1 point in the plane
+     * @param pnt2 point in the plane
+     */
     public Plane(Vector3d pnt0, Vector3d pnt1, Vector3d pnt2 ){
 
         Vector3d v1 = new Vector3d(pnt1);
@@ -91,6 +105,15 @@ public class Plane extends TransformableDataSource {
         init(nn.x, nn.y, nn.z, nn.dot(pnt0));
     }
 
+    /**
+     * Plane is defined via components of normal and distance from origin
+     *
+     * @param nx x component of normal 
+     * @param ny y component of normal 
+     * @param nz z component of normal 
+
+     * @param dist distance from plane to origin
+     */
     public Plane(double nx, double ny, double nz, double dist){
 
         init(nx, ny, nz, dist);
@@ -98,6 +121,11 @@ public class Plane extends TransformableDataSource {
         
     }
 
+    /**
+
+       @noRefGuide
+
+     */
     void init(double nx, double ny, double nz, double dist){
 
         // normalize normal 
@@ -118,6 +146,7 @@ public class Plane extends TransformableDataSource {
      * returns 1 if pnt is inside of half space
      * returns intepolated value on the boundary
      * returns 0 if pnt is outside the half space
+     @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
         

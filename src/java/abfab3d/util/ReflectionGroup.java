@@ -127,6 +127,7 @@ public class ReflectionGroup {
         public abstract double distance(Vec pnt);
         // reflect the point
         public abstract void reflect(Vec pnt);
+        public abstract double getCosAngle(SPlane sp);
     } // class SPlane 
     
 
@@ -149,6 +150,16 @@ public class ReflectionGroup {
         public Vector3d getNormal(){
             return new Vector3d(nx, ny, nz);
         }
+
+        public double getCosAngle(SPlane sp){
+
+            if(sp instanceof Sphere){
+                return getCosAngle((Sphere)sp, this);
+            } else {
+                return getCosAngle(this, (Plane)sp);
+            }
+        }
+
         public double getDistance(){
             return dist;
         }
@@ -203,7 +214,15 @@ public class ReflectionGroup {
             return r;
         }
 
+        public double getCosAngle(SPlane sp){
 
+            if(sp instanceof Sphere){
+                return getCosAngle(this, (Sphere)sp);
+            } else {
+                return getCosAngle(this, (Plane)sp);
+            }
+        }
+        
         public double distance(Vec p){
 
             //v -= s.center; 
@@ -268,4 +287,42 @@ public class ReflectionGroup {
         pnt.v[1] *= f;
         pnt.v[2] *= f;
     }
+
+    public static double getCosAngle(Sphere s1, Sphere s2){
+
+        double r1 = s1.getRadius();
+        double r2 = s2.getRadius();
+        Vector3d c1 = s1.getCenter();
+        Vector3d c2 = s2.getCenter();
+        double dx = c1.x - c2.x;
+        double dy = c1.y - c2.y;
+        double dz = c1.z - c2.z;
+        
+        double d = Math.sqrt(dx*dx + dy*dy + dz*dz);
+
+        return (d*d - r1*r1 - r2*r2)/(2*r1*r2);
+                
+    }
+
+    public static double getCosAngle(Plane p1, Plane p2){
+
+        Vector3d n1 = p1.getNormal();
+        Vector3d n2 = p2.getNormal();
+        return n1.dot(n2);
+
+    }
+    
+    public static double getCosAngle(Sphere s1, Plane p2){
+
+        Vector3d c1 = s1.getCenter();
+        double r1 = s1.getRadius();
+        Vector3d n2 = p2.getNormal();
+        double r2 = p2.getDistance();
+        if(true)
+        throw new IllegalArgumentException("getCosAngle(Sphere s1, Plane p2) not implemented");
+        //TODO 
+        return 0;
+
+    }
+  
 }

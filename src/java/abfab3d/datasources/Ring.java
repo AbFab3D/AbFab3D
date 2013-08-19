@@ -60,6 +60,9 @@ public class Ring  extends TransformableDataSource{
     protected double exteriorRadius;
     protected double exteriorRadius2;
     
+    /**
+       makes ring centered at orign with possible differetn offsets in y directions 
+     */
     public Ring(double radius, double thickness, double ymin, double ymax){
         
         this.ymin = ymin;
@@ -74,6 +77,9 @@ public class Ring  extends TransformableDataSource{
         
     }
     
+    /**
+       makes ring centered at orign
+     */
     public Ring(double innerRadius, double thickeness, double width){
         
         this(innerRadius, thickeness, -width/2, width/2);

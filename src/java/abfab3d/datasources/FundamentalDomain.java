@@ -42,4 +42,10 @@ public class FundamentalDomain {
         return inter;
     }
 
+    public static double getCosAngle(ReflectionGroup.SPlane sp1, ReflectionGroup.SPlane sp2){
+        
+        return sp1.getCosAngle(sp2);
+        
+    }
+
 }

@@ -60,19 +60,28 @@ import static abfab3d.util.MathUtil.step10;
 import static abfab3d.util.MathUtil.getBox;
 import static abfab3d.util.MathUtil.intervalCap;
 
+
 /**
    
-   DataSourceImageBitmap
+   Makes embossed image from given 2D image file. 
+   The shape fits into a box of specified size. The image in places paralles to xy plane. 
+   the bonding box is centered at origin. 
 
- * <embed src="doc-files/ImageBitmap.svg" type="image/svg+xml" />
+   <embed src="doc-files/ImageBitmap.svg" type="image/svg+xml"/> 
+   <p>
+   The image may be placed in 3 diffetent places: on top side, on bottom side and on both sides. 
+   </p>
+   <p>
+   The style of image may be emboss or engrave. 
+   </p>
+
+   <embed src="doc-files/ImageBitmap_options.svg" type="image/svg+xml"/> 
+   <p>
+   The image can by tiled (repeated) in both x and y directions
+   </p>
 
    @author Vladimir Bulatov
-   
-*/
 
-/**
-   
-   makes embossed image from given file of given size 
    
 */
 public class ImageBitmap  extends TransformableDataSource {
@@ -147,10 +156,19 @@ public class ImageBitmap  extends TransformableDataSource {
     //double[] ci = new double[4];
     //double[] cc = new double[4];
     double color[] = new double[4];
-    
+
+    /**
+       
+       @noRefGuide
+     */
     public ImageBitmap(){
+
     }
     
+    /**
+       ImageBitmap with given image path and size
+       
+     */
     public ImageBitmap(String imagePath, double sx, double sy, double sz){
         
         setImagePath(imagePath);
@@ -159,7 +177,7 @@ public class ImageBitmap  extends TransformableDataSource {
     }
         
     /**
-       
+       @noRefGuide
      */
     public void setSize(double sx, double sy, double sz){
         m_sizeX = sx;
@@ -168,7 +186,7 @@ public class ImageBitmap  extends TransformableDataSource {
     }
     
     /**
-       
+       @noRefGuide
      */
     public void setLocation(double x, double y, double z){
         m_centerX = x;
@@ -176,6 +194,9 @@ public class ImageBitmap  extends TransformableDataSource {
         m_centerZ = z;
     }
     
+    /**
+       @noRefGuide
+     */
     public void setTiles(int tx, int ty){
         
         m_xTilesCount = tx;
@@ -183,24 +204,39 @@ public class ImageBitmap  extends TransformableDataSource {
         
     }
     
+    /**
+       Sets thickness of the solid base  relative to the bounding box thickness
+
+       @param baseThickness  thickenss of solid base relative to the thickness of the bounding box. Default value is 0. 
+       
+    */
     public void setBaseThickness(double baseThickness){
         
         m_baseThickness = baseThickness;
         
     }
 
+    /**
+       @noRefGuide
+     */
     public void setBlurWidth(double blurWidth){
         
         m_blurWidth = blurWidth;
         
     }
 
+    /**
+       @noRefGuide
+     */
     public void setBaseThreshold(double baseThreshold){
         
         m_baseThreshold = baseThreshold;
         
     }
 
+    /**
+       @noRefGuide
+     */
     public void setVoxelSize(double vs){
 
         m_voxelSize = vs;
@@ -208,12 +244,18 @@ public class ImageBitmap  extends TransformableDataSource {
     }
 
     
+    /**
+       @noRefGuide
+     */
     public void setImagePath(String path){
         
         m_imagePath = path;
         
     }
     
+    /**
+       @noRefGuide
+     */
     public void setImage(BufferedImage image){
         
         m_image = image;
@@ -222,7 +264,10 @@ public class ImageBitmap  extends TransformableDataSource {
     
     /**
        
-       possible values IMAGE_TYPE_EMBOSS, IMAME_TYPE_ENGRAVE
+       set options to image embossing type
+       @param type Type ot the image. Possible values ImageBitmap.IMAGE_TYPE_EMBOSS, ImageBitmap.IMAGE_TYPE_ENGRAVE.
+       Default value ImageBitmap.IMAGE_TYPE_EMBOSS
+
     */
     public void setImageType(int type){
         
@@ -231,7 +276,10 @@ public class ImageBitmap  extends TransformableDataSource {
     }
     
     /**
-       possible values: IMAGE_PLACE_TOP, IMAGE_PLACE_BOTTOM, IMAGE_PLACE_BOTH
+       set options to place the image 
+       @param place of the image. 
+       Possible values: ImageBitmap.IMAGE_PLACE_TOP, ImageBitmap.IMAGE_PLACE_BOTTOM, ImageBitmap.IMAGE_PLACE_BOTH
+       Default ImageBitmap.IMAGE_PLACE_TOP
     */
     public void setImagePlace(int place){
         
@@ -239,16 +287,27 @@ public class ImageBitmap  extends TransformableDataSource {
         
     }
     
+    /**
+       set option to use grayscale 
+       @param value if true grayscale componenent of the will be used, if false iumage will be converted into black and white. 
+       the black and white option is useful if one want to have image shape with sharp vertical walls. 
+     */
     public void setUseGrayscale(boolean value){
         useGrayscale = value;
     }
     
+    /**
+       @noRefGuide
+     */
     public void setInterpolationType(int type){
         
         m_interpolationType = type;
         
     }
 
+    /**
+       @noRefGuide
+     */
     public void setSmoothBoundaries(boolean boundaryX, boolean boundaryY){
         m_hasSmoothBoundaryX = boundaryX;
         m_hasSmoothBoundaryY = boundaryY;
@@ -258,17 +317,24 @@ public class ImageBitmap  extends TransformableDataSource {
        value = 0 - linear resampling for mipmap
        value > 0 - black pixels are givewn heigher weight 
        value < 0 - white pixels are givewn heigher weight 
+       @noRefGuide       
     */
     public void setPixelWeightNonlinearity(double value){
         m_pixelWeightNonlinearity = value;        
     }
     
+    /**
+       @noRefGuide
+     */
     public void setProbeSize(double size){
         
         m_probeSize = size;
         m_probeSizeImage = m_probeSize*m_probeScale;
     }
     
+    /**
+       @noRefGuide
+     */
     public int initialize(){
 
         super.initialize();
@@ -436,6 +502,7 @@ public class ImageBitmap  extends TransformableDataSource {
     /**
      * returns 1 if pnt is inside of image
      * returns 0 otherwise
+       @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
         
@@ -451,8 +518,8 @@ public class ImageBitmap  extends TransformableDataSource {
     
     /**
        calculation for finite voxel size 
-    */
-    
+       @noRefGuide
+    */    
     public int getDataValueFiniteVoxel(Vec pnt, Vec data){
         
         double
@@ -633,7 +700,10 @@ public class ImageBitmap  extends TransformableDataSource {
         
     }
     
-    double getHeightFieldValue(double x,double y, double probeSize){
+    /**
+       @noRefGuide
+     */
+    private double getHeightFieldValue(double x,double y, double probeSize){
         
         //if(debugCount-- > 0)
         //    printf("ImageBitmap.getHeightFieldValue(%10.5f, %10.5f, %10.5f)\n", x,y,probeSize);
@@ -665,8 +735,9 @@ public class ImageBitmap  extends TransformableDataSource {
     
     /**
        calculation for zero voxel size 
+       @noRefGuide
     */
-    public int getDataValueZeroVoxel(Vec pnt, Vec data){
+    protected int getDataValueZeroVoxel(Vec pnt, Vec data){
         
         double
             x = pnt.v[0],
@@ -754,6 +825,7 @@ public class ImageBitmap  extends TransformableDataSource {
        returns value of pixel at given x,y location. value normalized to (0,1)
        x is inside [0, imageWidth]
        y is inside [0, imageHeight]
+       @noRefGuide 
     */
     double getPixelValue(double x, double y, double probeSize){
         

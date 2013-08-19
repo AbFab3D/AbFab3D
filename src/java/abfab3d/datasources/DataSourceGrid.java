@@ -30,8 +30,9 @@ import static abfab3d.util.Output.time;
 /**
    
    
-   DataSource interface to Grid
+   DataSource interface to Grid. This object shall be used if one want to use generated grid as a general shape. 
    
+
    @author Vladimir Bulatov
    
    
@@ -47,14 +48,25 @@ public class DataSourceGrid extends TransformableDataSource {
     int m_nx, m_ny, m_nz;
     double xmin, ymin, zmin, xscale, yscale, zscale;
         
+    /**
+       constructs DataSoure from the given grid 
+     */
     public DataSourceGrid(AttributeGrid grid){
         this(grid, null, DEFAULT_MAX_ATTRIBUTE_VALUE);
     }
 
+    /**
+
+       @noRefGuide            
+     */
     public DataSourceGrid(AttributeGrid grid, int maxAttributeValue){
         this(grid,null,maxAttributeValue);
     }
 
+    /**
+       @noRefGuide            
+       makes grid with given bounds and max attribute value
+    */
     public DataSourceGrid(AttributeGrid grid, double bounds[], int maxAttributeValue){
         
         m_maxAttributeValue = maxAttributeValue;
@@ -86,6 +98,10 @@ public class DataSourceGrid extends TransformableDataSource {
         }
     }
 
+    /**
+
+       @noRefGuide            
+     */
     public int initialize(){
 
         super.initialize();
@@ -97,6 +113,7 @@ public class DataSourceGrid extends TransformableDataSource {
      * returns 1 if pnt is inside of grid
      * returns 0 if pont is poutsid eof grid
      * returns interpolared value near the boundary 
+      @noRefGuide            
      */
     public int getDataValue(Vec pnt, Vec data) {
 

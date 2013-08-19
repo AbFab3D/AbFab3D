@@ -45,7 +45,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   Boolean difference between dataSource1 and dataSource2 
+   Boolean difference between two data sources 
    <br/>
 
    <embed src="doc-files/Subtraction.svg" type="image/svg+xml"/> 
@@ -59,15 +59,19 @@ public class Subtraction extends TransformableDataSource {
     DataSource dataSource1;
     DataSource dataSource2;
 
-    
-    public Subtraction(DataSource ds1, DataSource ds2){
+    /**
+       shape which is result of subtracting shape2 from shape1
+     */
+    public Subtraction(DataSource shape1, DataSource shape2){
 
-        dataSource1 = ds1;
-        dataSource2 = ds2;
+        dataSource1 = shape1;
+        dataSource2 = shape2;
         
     }
         
-    
+    /**
+       @noRefGuide
+     */
     public int initialize(){
 
         super.initialize();
