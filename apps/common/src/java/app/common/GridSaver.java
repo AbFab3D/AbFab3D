@@ -534,7 +534,7 @@ public class GridSaver {
             mesh.getTriangles(ac);
             double volume = ac.getVolume();
 
-            System.out.println("   vol: " + volume);
+            //System.out.println("   vol: " + volume);
             if (volume >= minVolume) {
                 saved_shells.add(new ShellData(shells[i],volume));
                 if (cnt < numShells) {

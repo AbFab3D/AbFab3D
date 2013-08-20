@@ -69,6 +69,9 @@ public class Main {
     /** Default imports to add to scripts */
     private static final ArrayList<String> scriptImports;
 
+    /** Remap error messages to something readable */
+    private static final HashMap<String,String> errorRemap;
+
     static {
         global.initQuitAction(new IProxy(IProxy.SYSTEM_EXIT));
 
@@ -86,6 +89,9 @@ public class Main {
         scriptImports.add("abfab3d.transforms");
         scriptImports.add("abfab3d.grid.op");
         scriptImports.add("javax.vecmath");
+
+        errorRemap = new HashMap<String,String>();
+        errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException","Execution time exceeded.");
     }
 
 
@@ -229,14 +235,17 @@ public class Main {
 
         StringBuilder bldr = new StringBuilder();
         for(JsError error : errors.getErrors()) {
-            bldr.append(error.toString());
+            String err_st = error.toString();
+            String remap = errorRemap.get(err_st);
+            if (remap != null) {
+                err_st = remap;
+            }
+            bldr.append(err_st);
             bldr.append("\n");
         }
 
-        System.out.println("Errors2: " + bldr.toString());
         String err_msg = bldr.toString();
 
-        System.out.println("Get prints for: " + iproxy.cx);
         List<String> prints = DebugLogger.getLog(iproxy.cx);
 
         String print_msg = "";
@@ -919,7 +928,7 @@ public class Main {
 
         System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
 
-        if (mv > 0) {
+        if (mv > 0 || mp < Integer.MAX_VALUE) {
             ShellResults sr = app.common.GridSaver.getLargestShells(mesh, mp, mv);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
@@ -1021,7 +1030,7 @@ public class Main {
 
         System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
 
-        if (mv > 0) {
+        if (mv > 0 || mp < Integer.MAX_VALUE) {
             ShellResults sr = app.common.GridSaver.getLargestShells(mesh, mp, mv);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();

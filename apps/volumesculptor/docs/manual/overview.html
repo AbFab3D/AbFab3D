@@ -130,7 +130,8 @@ default value is 0.5. Smaller value greatly increase the resultng mesh complexit
 <span class="code">meshMinPartVolume</span> allows to filter out sand size particles from the resulting mesh. All parts of volume less than 
 meshMinPartVolume are discarded. This volume is specified in meters<sup>3</sup>. Default value is 1*MM3 (one cubic millimeter). 
 </p>
-
+<span class="code">meshMaxPartsCount</span> specifies the maximum number of parts to save.  The n largest parts are kept.  By default
+all parts are retained.
 
 <H2 id="Examples">Examples</H2>
 <h3>Boolean Operations</h3>
