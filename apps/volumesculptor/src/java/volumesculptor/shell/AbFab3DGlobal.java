@@ -39,6 +39,7 @@ import java.util.Map;
 public class AbFab3DGlobal  {
     public static final int MAX_GRID_SIZE = 2000;
     public static final int MAX_TRIANGLE_SIZE = 3000000;
+    public static final int MAX_TIME = 120 * 1000;
 
     public static final String SMOOTHING_WIDTH_VAR = "meshSmoothingWidth";
     public static final String ERROR_FACTOR_VAR = "meshErrorFactor";
