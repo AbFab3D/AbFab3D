@@ -34,8 +34,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
 /**
-   makes transformations to reproduce frieze symmetry patterns
-
+   Makes transformations to reproduce <a href="http://en.wikipedia.org/wiki/Frieze_group">Frieze Symmetry</a> patterns
    <embed src="doc-files/frieze_groups.svg" type="image/svg+xml"/> 
    
 */
@@ -58,13 +57,49 @@ public class FriezeSymmetry  implements VecTransform, Initializable  {
     // symmettry group to use 
     Symmetry m_sym;
     
+    /**
+       @noRefGuide
+     */
+    public FriezeSymmetry(){
+        
+    }
+
+    /**
+       Frieze Symmetry wih specified type and domain width
+       @param type the symetry type<br/> 
+       Possible values are 
+       <ul>
+       <li>FriezeSymetry.FRIEZE_II</li>
+       <li>FriezeSymetry.FRIEZE_IX</li>
+       <li>FriezeSymetry.FRIEZE_IS</li>
+       <li>FriezeSymetry.FRIEZE_SII</li>
+       <li>FriezeSymetry.FRIEZE_22I</li>
+       <li>FriezeSymetry.FRIEZE_2SI</li>
+       <li>FriezeSymetry.FRIEZE_S22I</li>
+       </ul>
+       @param domainWidth width of the fundamental domain
+     */
+    public FriezeSymmetry(int type, double domainWidth){
+        
+    }
+
+    /**
+       @noRefGuide
+     */
     public void setFriezeType(int friezeType){
         m_friezeType = friezeType;
     }
+
+    /**
+       @noRefGuide
+     */
     public void setDomainWidth(double width){
         m_domainWidth = width;
     }
     
+    /**
+       @noRefGuide
+     */
     public int initialize(){
         
         switch(m_friezeType){
@@ -84,7 +119,7 @@ public class FriezeSymmetry  implements VecTransform, Initializable  {
     
     
     /**
-     *
+       @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         out.set(in);
@@ -103,7 +138,7 @@ public class FriezeSymmetry  implements VecTransform, Initializable  {
     }                
     
     /**
-     *  composite transform is identical to direct transform
+       @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         out.set(in);

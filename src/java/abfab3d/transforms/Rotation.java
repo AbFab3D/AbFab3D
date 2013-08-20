@@ -45,21 +45,36 @@ public class Rotation implements VecTransform, Initializable {
         mat = new Matrix3d(),
         mat_inv = new Matrix3d();
     
+    
+    /**
+       identity rotation
+     */
     public Rotation(){
     }
-    
+    /**
+       rotation with given axis and angle. Angle is measure in radians. 
+       @param angle  rotation angle is measured in radians
+     */
     public Rotation(Vector3d axis, double angle){
         
         setRotation(axis, angle);
         
     }
 
+    /**
+       rotation with given axis, angle and center. Angle is measure in radians. 
+       @param angle  rotation angle is measured in radians
+     */
     public Rotation(Vector3d axis, double angle, Vector3d center){
         
         setRotation(axis, angle, center);
         
     }
     
+    /**
+       @noRefGuide
+       @param angle  rotation angle is measured in radians
+     */
     public void setRotation(Vector3d axis, double angle){
         
         m_axis = new Vector3d(axis); 
@@ -67,6 +82,10 @@ public class Rotation implements VecTransform, Initializable {
         m_center = null;
    } 
 
+    /**
+       @noRefGuide
+       @param angle  rotation angle is measured in radians
+     */
     public void setRotation(Vector3d axis, double angle, Vector3d center){
         
         m_axis = new Vector3d(axis); 
@@ -75,6 +94,9 @@ public class Rotation implements VecTransform, Initializable {
         
    } 
     
+    /**
+       @noRefGuide
+     */
     public int initialize(){
         
         mat.set(new AxisAngle4d(m_axis.x,m_axis.y,m_axis.z,m_angle));
@@ -84,7 +106,7 @@ public class Rotation implements VecTransform, Initializable {
     }
     
     /**
-     *
+       @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         
@@ -115,7 +137,7 @@ public class Rotation implements VecTransform, Initializable {
     }
     
     /**
-     *
+       @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         

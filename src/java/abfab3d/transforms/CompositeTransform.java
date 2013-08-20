@@ -34,6 +34,8 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
 /**
+
+   Arbitrary long chain of transformation to be applied to the shape. 
    
  */
 public class CompositeTransform implements VecTransform, Initializable {
@@ -42,12 +44,18 @@ public class CompositeTransform implements VecTransform, Initializable {
     
     private VecTransform aTransforms[]; // array used in calculations 
     
+    /**
+       add transform to the chain of transforms
+     */
     public void add(VecTransform transform){
         
         vTransforms.add(transform);
         
     }
     
+    /**
+       @noRefGuide
+     */
     public int initialize(){
         
         int len = vTransforms.size();
@@ -67,7 +75,7 @@ public class CompositeTransform implements VecTransform, Initializable {
     }
     
     /**
-     *
+       @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         
@@ -95,7 +103,7 @@ public class CompositeTransform implements VecTransform, Initializable {
     }                
     
     /**
-     *
+       @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         

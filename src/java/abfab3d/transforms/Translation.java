@@ -34,23 +34,35 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 /**
    
-   performs translation
+   Performs translation in space 
    
 */
 public class Translation  implements VecTransform {
     
     protected double tx = 1, ty = 1, tz = 1; 
-    
+   
+    /**
+       identity transform 
+     */
     public Translation(){
         setTranslation(0,0,0);
     }
     
+    /**
+       translation to given point
+       @param tx  x component of translation 
+       @param ty  y component of translation 
+       @param tz  z component of translation 
+     */
     public Translation(double tx, double ty, double tz){
         
         setTranslation(tx, ty, tz);
         
     }
     
+    /**
+       @noRefGuide
+     */
     public void setTranslation(double tx, double ty, double tz){
         
         this.tx = tx;
@@ -60,7 +72,7 @@ public class Translation  implements VecTransform {
     }
     
     /**
-     *
+       @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         
@@ -74,7 +86,7 @@ public class Translation  implements VecTransform {
     }                
     
     /**
-     *
+       @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         out.set(in);

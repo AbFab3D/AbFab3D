@@ -33,7 +33,12 @@ import static abfab3d.util.Symmetry.getReflection;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 /**
+   <p>
    performs inversion in a sphere of given center and radius 
+   </p>
+   <p>
+   See <a href="http://en.wikipedia.org/wiki/Inversion_in_a_sphere">inversion in a sphere</a>. 
+   </p>
 */
 public class SphereInversion  implements VecTransform, Initializable  {
     
@@ -43,9 +48,17 @@ public class SphereInversion  implements VecTransform, Initializable  {
     private double radius2; 
     static double EPS = 1.e-20;
     
-    // creates default sphere, which interchanges upper half space and unit ball. 
+    /**
+       Creates default sphere which interchanges upper half space and unit ball
+    */
     public SphereInversion(){
-   }
+    }
+    
+    /**
+       Inversion in a sphere of given center and radius 
+       @param center 
+       @param radus 
+     */
     public SphereInversion(Vector3d center, double radius){
 
         setSphere(center, radius); 
@@ -53,6 +66,9 @@ public class SphereInversion  implements VecTransform, Initializable  {
     }
 
 
+    /**
+       @noRefGuide
+     */
     public void setSphere(Vector3d center, double radius){
         
         m_center = new Vector3d(center);
@@ -60,6 +76,9 @@ public class SphereInversion  implements VecTransform, Initializable  {
         
     }
     
+    /**
+       @noRefGuide
+     */
     public int initialize(){
         
         radius2 = m_radius*m_radius; 
@@ -69,7 +88,7 @@ public class SphereInversion  implements VecTransform, Initializable  {
     
     
     /**
-     *
+       @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         
@@ -107,7 +126,7 @@ public class SphereInversion  implements VecTransform, Initializable  {
     }                
     
     /**
-     *  composite transform is identical to direct transform
+       @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         

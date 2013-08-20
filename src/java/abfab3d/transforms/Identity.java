@@ -40,10 +40,16 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    
 */
 public class Identity implements VecTransform {
+    /**
+       @noRefGuide
+     */
     public int transform(Vec in, Vec out) {
         out.set(in);
         return RESULT_OK;
     }
+    /**
+       @noRefGuide
+     */
     public int inverse_transform(Vec in, Vec out) {
         out.set(in);
         return RESULT_OK;

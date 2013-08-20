@@ -45,10 +45,9 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   a DataSource union of several shapes
-
-   return 1 if any of input data sources is 1, return 0 if all data sources are 0
-   can be used to make union of few shapes
+   Union of multiple data sources. It can create union 
+   
+   <embed src="doc-files/Union.svg" type="image/svg+xml"/> 
 
    @author Vladimir Bulatov
 
@@ -61,23 +60,33 @@ public class Union  extends TransformableDataSource {
     DataSource vDataSources[];
     
     
+    /**
+       Create empty union. Use add() method to add arbitrary number of shapes to the union. 
+     */
     public Union(){
         
     }
 
-    public Union(DataSource ds1, DataSource ds2 ){
+    /**
+       union of two shapes 
+     */
+    public Union(DataSource shape1, DataSource shape2 ){
 
-        add(ds1);
-        add(ds2);        
+        add(shape1);
+        add(shape2);        
     }
     
     /**
-       add items to set of data sources
+       add item to union. 
+       @param shape item to add to union of multiple shapes 
     */
-    public void add(DataSource ds){
-        dataSources.add(ds);            
+    public void add(DataSource shape){
+        dataSources.add(shape);            
     }
     
+    /**
+       @noRefGuide
+    */
     public int initialize(){
 
         super.initialize();
@@ -98,6 +107,7 @@ public class Union  extends TransformableDataSource {
     /**
      * calculates values of all data sources and return maximal value
      * can be used to make union of few shapes
+       @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
 

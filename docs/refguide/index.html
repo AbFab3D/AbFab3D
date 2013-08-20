@@ -53,6 +53,7 @@
    <div class="api-toc-endpoint" id="Cone_toc"><a href="#Cone">Cone</a></div>
    <div class="api-toc-endpoint" id="Cylinder_toc"><a href="#Cylinder">Cylinder</a></div>
    <div class="api-toc-endpoint" id="DataSourceGrid_toc"><a href="#DataSourceGrid">DataSourceGrid</a></div>
+   <div class="api-toc-endpoint" id="DataTransformer_toc"><a href="#DataTransformer">DataTransformer</a></div>
    <div class="api-toc-endpoint" id="ImageBitmap_toc"><a href="#ImageBitmap">ImageBitmap</a></div>
    <div class="api-toc-endpoint" id="Intersection_toc"><a href="#Intersection">Intersection</a></div>
    <div class="api-toc-endpoint" id="Plane_toc"><a href="#Plane">Plane</a></div>
@@ -61,14 +62,23 @@
    <div class="api-toc-endpoint" id="Subtraction_toc"><a href="#Subtraction">Subtraction</a></div>
    <div class="api-toc-endpoint" id="Text_toc"><a href="#Text">Text</a></div>
    <div class="api-toc-endpoint" id="Torus_toc"><a href="#Torus">Torus</a></div>
+   <div class="api-toc-endpoint" id="Union_toc"><a href="#Union">Union</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns_toc"><a href="#VolumePatterns">VolumePatterns</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.Balls_toc"><a href="#VolumePatterns.Balls">VolumePatterns.Balls</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.CubicGrid_toc"><a href="#VolumePatterns.CubicGrid">VolumePatterns.CubicGrid</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.Gyroid_toc"><a href="#VolumePatterns.Gyroid">VolumePatterns.Gyroid</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.GyroidGradient_toc"><a href="#VolumePatterns.GyroidGradient">VolumePatterns.GyroidGradient</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.Lidinoid_toc"><a href="#VolumePatterns.Lidinoid">VolumePatterns.Lidinoid</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.SchwarzPrimitive_toc"><a href="#VolumePatterns.SchwarzPrimitive">VolumePatterns.SchwarzPrimitive</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.SchwarzDiamond_toc"><a href="#VolumePatterns.SchwarzDiamond">VolumePatterns.SchwarzDiamond</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.ScherkSecondSurface_toc"><a href="#VolumePatterns.ScherkSecondSurface">VolumePatterns.ScherkSecondSurface</a></div>
+   <div class="api-toc-endpoint" id="VolumePatterns.Enneper_toc"><a href="#VolumePatterns.Enneper">VolumePatterns.Enneper</a></div>
 </div>
 <div class="api-toc-domain-container" id="Transformations_toc">
    <div class="api-toc-domain-name"><a href="#Transformations">Transformations</a></div>
    <div class="api-toc-endpoint" id="CompositeTransform_toc"><a href="#CompositeTransform">CompositeTransform</a></div>
    <div class="api-toc-endpoint" id="FriezeSymmetry_toc"><a href="#FriezeSymmetry">FriezeSymmetry</a></div>
-   <div class="api-toc-endpoint" id="Identity_toc"><a href="#Identity">Identity</a></div>
    <div class="api-toc-endpoint" id="PlaneReflection_toc"><a href="#PlaneReflection">PlaneReflection</a></div>
-   <div class="api-toc-endpoint" id="ReflectionSymmetries_toc"><a href="#ReflectionSymmetries">ReflectionSymmetries</a></div>
    <div class="api-toc-endpoint" id="ReflectionSymmetry_toc"><a href="#ReflectionSymmetry">ReflectionSymmetry</a></div>
    <div class="api-toc-endpoint" id="RingWrap_toc"><a href="#RingWrap">RingWrap</a></div>
    <div class="api-toc-endpoint" id="Rotation_toc"><a href="#Rotation">Rotation</a></div>
@@ -87,7 +97,7 @@
 <H2 id="Overview">Overview</H2>
 <p>
 ShapeJS provides a powerful system for generating 3D printable objects via a simple Javascript program.
-The functionality of VS is based on a representation of three dimensional objects via voxels on 3 dimensional regular grid.
+The functionality of ShapeJS is based on a representation of three dimensional objects via voxels on 3 dimensional regular grid.
 </p>
 <p>
 Roughly speaking the value of each voxel represents the percent of this voxel volume occupied by the shape.
@@ -298,10 +308,46 @@ encourage you to make a user-interface that's more specific and easier to use.  
 can use a REST call to execute_pipeline that will generate the 3D model.  With this model you can easily use the rest of the
 Shapeways API to store the models, get pricing and add your own markup to the models.
 
-<h3>Custom DataSource</h3>
-<p>
-User provided objects. 
-</p>
+<h3 id="Custom DataSource">Custom DataSource</h3>
+You can create your own DataSource inside ShapeJS scripts.  A DataSource must implement the getDataValue function.  This function
+will evaluate the data source at a pnt.  This function should return signed distance to the objects surface.
+Signed distance is positive for exterior points, negative for interior points and zero at the surface. To obtain high quality surface
+the signed distance funtion should be properly normalized to voxel size. See example for a Sphere:
+<pre class="code">
+
+    importPackage(Packages.abfab3d.util);
+
+    var radius;
+
+    var Sphere = {
+       getDataValue : function(pnt, data) {
+          var x = pnt.v[0];
+          var y = pnt.v[1];
+          var z = pnt.v[2];
+
+          var vs = pnt.getScaledVoxelSize();
+
+          var r = r = Math.sqrt(x*x + y*y + z*z);
+          data.v[0] = MathUtil.step10(r, radius, vs);
+
+          return DataSource.RESULT_OK;
+       }
+    }
+
+    function main(args){
+       radius = 5*MM
+       var a = radius*1.1;
+       var voxelSize = 0.1*MM;
+
+       var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+
+       var maker = new GridMaker();
+       maker.setSource(Sphere);
+       maker.makeGrid(dest);
+
+       return dest;
+    }
+ </pre>
 
 <H2 id="Functions">Javascript Functions</H2>
 ShapeJS has global helper functions accessible from your script.
@@ -410,7 +456,14 @@ Javadoc.
 <p>The java.lang.Math class is available.  This is where you will find the typical min,max,sin,cos functions.
 Please see the posted Javadoc for complete details.  <a href="http://docs.oracle.com/javase/6/docs/api/">Java6 Javadoc</a>
 </p>
-
+An example usage is:
+<pre class="code">
+function trigCalcs(radius,angle){
+    var circ = 2 * Math.PI * radius;
+    var sin = Math.sin(angle);
+    var max = Math.max(radius,10);
+}
+</pre>
 </div>
 </div>
 
@@ -766,25 +819,82 @@ General transformation to apply to the object before it is rendered
 </table>
 </div>
    </div>
+   <div class="domain-endpoint" id="DataTransformer">
+<div class="api-endpoint-header">DataTransformer</div>
+<div class="api-endpoint-desc">
+Transform a data source.  This provides a transformable wrapper over top a data source.
+</div>
+<div class="api-endpoint-parameters">
+DataTransformer()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setSource(ds)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">DataSource ds</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+initialize()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
    <div class="domain-endpoint" id="ImageBitmap">
 <div class="api-endpoint-header">ImageBitmap</div>
 <div class="api-endpoint-desc">
-Makes embossed image from given 2D image file. 
-   The shape fits into a box of specified size. The image in places paralles to xy plane. 
-   the bonding box is centered at origin. 
-
-   <embed src="abfab3d/datasources/doc-files/ImageBitmap.svg" type="image/svg+xml"/> 
-   <p>
-   The image may be placed in 3 diffetent places: on top side, on bottom side and on both sides. 
-   </p>
-   <p>
-   The style of image may be emboss or engrave. 
-   </p>
-
-   <embed src="abfab3d/datasources/doc-files/ImageBitmap_options.svg" type="image/svg+xml"/> 
-   <p>
-   The image can by tiled (repeated) in both x and y directions
-   </p>
+Makes embossed image from given 2D image file.
+ The shape fits into a box of the specified size. The image is placed parallel to the xy plane.
+ The bounding box is centered at origin.
+ <p/>
+ <embed src="abfab3d/datasources/doc-files/ImageBitmap.svg" type="image/svg+xml"/>
+ <p>
+ The image may be placed in 3 different places: on top side, on bottom side and on both sides.
+ </p>
+ <p>
+ The style of image may be emboss or engrave.
+ </p>
+ <p/>
+ <embed src="abfab3d/datasources/doc-files/ImageBitmap_options.svg" type="image/svg+xml"/>
+ <p>
+ The image can by tiled (repeated) in both x and y directions
+ </p>
 </div>
 <div class="api-endpoint-parameters">
 ImageBitmap()
@@ -838,7 +948,7 @@ setImageType(type)
          <td class="api-endpoint-parameters-table-name-col">int type</td>
          <td class="api-endpoint-parameters-table-desc-col">
 Type ot the image. Possible values ImageBitmap.IMAGE_TYPE_EMBOSS, ImageBitmap.IMAGE_TYPE_ENGRAVE.
-       Default value ImageBitmap.IMAGE_TYPE_EMBOSS
+             Default value ImageBitmap.IMAGE_TYPE_EMBOSS
          </td>
       </tr>
 </table>
@@ -850,9 +960,9 @@ setImagePlace(place)
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">int place</td>
          <td class="api-endpoint-parameters-table-desc-col">
-of the image. 
-       Possible values: ImageBitmap.IMAGE_PLACE_TOP, ImageBitmap.IMAGE_PLACE_BOTTOM, ImageBitmap.IMAGE_PLACE_BOTH
-       Default ImageBitmap.IMAGE_PLACE_TOP
+of the image.
+              Possible values: ImageBitmap.IMAGE_PLACE_TOP, ImageBitmap.IMAGE_PLACE_BOTTOM, ImageBitmap.IMAGE_PLACE_BOTH
+              Default ImageBitmap.IMAGE_PLACE_TOP
          </td>
       </tr>
 </table>
@@ -864,8 +974,8 @@ setUseGrayscale(value)
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">boolean value</td>
          <td class="api-endpoint-parameters-table-desc-col">
-if true grayscale componenent of the will be used, if false iumage will be converted into black and white. 
-       the black and white option is useful if one want to have image shape with sharp vertical walls.
+if true grayscale componenent of the will be used, if false iumage will be converted into black and white.
+              the black and white option is useful if one want to have image shape with sharp vertical walls.
          </td>
       </tr>
 </table>
@@ -1426,6 +1536,692 @@ General transformation to apply to the object before it is rendered
 </table>
 </div>
    </div>
+   <div class="domain-endpoint" id="Union">
+<div class="api-endpoint-header">Union</div>
+<div class="api-endpoint-desc">
+Union of multiple data sources. It can create union 
+
+   <embed src="abfab3d/datasources/doc-files/Union.svg" type="image/svg+xml"/>
+</div>
+<div class="api-endpoint-parameters">
+Union()
+<div class="api-endpoint-desc">Create empty union. Use add() method to add arbitrary number of shapes to the union.</div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+Union(shape1,shape2)
+<div class="api-endpoint-desc">union of two shapes</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">DataSource shape1</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">DataSource shape2</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+add(shape)
+<div class="api-endpoint-desc">add item to union.</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">DataSource shape</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+item to add to union of multiple shapes
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns">
+<div class="api-endpoint-header">VolumePatterns</div>
+<div class="api-endpoint-desc">
+
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.Balls">
+<div class="api-endpoint-header">VolumePatterns.Balls</div>
+<div class="api-endpoint-desc">
+
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.Balls(period,radius)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double radius</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.CubicGrid">
+<div class="api-endpoint-header">VolumePatterns.CubicGrid</div>
+<div class="api-endpoint-desc">
+
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.CubicGrid(period,radius)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double radius</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.Gyroid">
+<div class="api-endpoint-header">VolumePatterns.Gyroid</div>
+<div class="api-endpoint-desc">
+approximation to Gyroid
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.Gyroid()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.Gyroid(period,thickness)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double thickness</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setPeriod(value)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double value</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setThickness(value)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double value</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setLevel(value)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double value</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setVoxelScale(voxelScale)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double voxelScale</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setOffset(offsetX,offsetY,offsetZ)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double offsetX</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double offsetY</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double offsetZ</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+initialize()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.GyroidGradient">
+<div class="api-endpoint-header">VolumePatterns.GyroidGradient</div>
+<div class="api-endpoint-desc">
+approximation to Gyroid
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.GyroidGradient()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.GyroidGradient(period,thickness,pos,str)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double thickness</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vector3d pos</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double str</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setPeriod(value)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double value</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setThickness(value)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double value</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setLevel(value)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double value</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setOffset(offsetX,offsetY,offsetZ)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double offsetX</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double offsetY</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double offsetZ</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+initialize()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.Lidinoid">
+<div class="api-endpoint-header">VolumePatterns.Lidinoid</div>
+<div class="api-endpoint-desc">
+
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.Lidinoid(period,thickness)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double thickness</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.SchwarzPrimitive">
+<div class="api-endpoint-header">VolumePatterns.SchwarzPrimitive</div>
+<div class="api-endpoint-desc">
+Schwarz Primitive as defined here: http://en.wikipedia.org/wiki/Schwarz_minimal_surface#Schwarz_P_.28.22Primitive.22.29
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.SchwarzPrimitive(period,thickness)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double thickness</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.SchwarzDiamond">
+<div class="api-endpoint-header">VolumePatterns.SchwarzDiamond</div>
+<div class="api-endpoint-desc">
+Schwarz Diamond as defined here: http://en.wikipedia.org/wiki/Schwarz_minimal_surface#Schwarz_P_.28.22Primitive.22.29
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.SchwarzDiamond(period,thickness)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double thickness</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setVoxelScale(voxelScale)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double voxelScale</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+initialize()
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.ScherkSecondSurface">
+<div class="api-endpoint-header">VolumePatterns.ScherkSecondSurface</div>
+<div class="api-endpoint-desc">
+Scherk Second Surface as defined here: http://en.wikipedia.org/wiki/Scherk_surface
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.ScherkSecondSurface(period,thickness)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double thickness</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
+   <div class="domain-endpoint" id="VolumePatterns.Enneper">
+<div class="api-endpoint-header">VolumePatterns.Enneper</div>
+<div class="api-endpoint-desc">
+Enneper Surface as describe here:  http://en.wikipedia.org/wiki/Enneper_surface
+</div>
+<div class="api-endpoint-parameters">
+VolumePatterns.Enneper(period,thickness)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double period</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">double thickness</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+getDataValue(pnt,data)
+<div class="api-endpoint-desc"></div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec pnt</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">Vec data</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+         </td>
+      </tr>
+</table>
+</div>
+<div class="api-endpoint-parameters">
+setTransform(transform)
+<div class="api-endpoint-desc">Transform the data source</div>
+   <table class="api-endpoint-parameters-table">
+      <tr class="api-endpoint-parameters-table-row">
+         <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
+         <td class="api-endpoint-parameters-table-desc-col">
+General transformation to apply to the object before it is rendered
+         </td>
+      </tr>
+</table>
+</div>
+   </div>
 </div>
 <div class="domain-container" id="Transformations">
 <div class="api-domain-header">Transformations</div>
@@ -1433,7 +2229,7 @@ General transformation to apply to the object before it is rendered
    <div class="domain-endpoint" id="CompositeTransform">
 <div class="api-endpoint-header">CompositeTransform</div>
 <div class="api-endpoint-desc">
-
+Arbitrary long chain of transformation to be applied to the shape.
 </div>
 <div class="api-endpoint-parameters">
 CompositeTransform()
@@ -1443,48 +2239,10 @@ CompositeTransform()
 </div>
 <div class="api-endpoint-parameters">
 add(transform)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">add transform to the chain of transforms</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">VecTransform transform</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
          <td class="api-endpoint-parameters-table-desc-col">
          </td>
       </tr>
@@ -1494,7 +2252,8 @@ inverse_transform(in,out)
    <div class="domain-endpoint" id="FriezeSymmetry">
 <div class="api-endpoint-header">FriezeSymmetry</div>
 <div class="api-endpoint-desc">
-makes transformations to reproduce one of frieze symmetry patterns
+Makes transformations to reproduce <a href="http://en.wikipedia.org/wiki/Frieze_group">Frieze Symmetry</a> patterns
+   <embed src="abfab3d/transforms/doc-files/frieze_groups.svg" type="image/svg+xml"/>
 </div>
 <div class="api-endpoint-parameters">
 FriezeSymmetry()
@@ -1503,106 +2262,29 @@ FriezeSymmetry()
 </table>
 </div>
 <div class="api-endpoint-parameters">
-setFriezeType(friezeType)
-<div class="api-endpoint-desc"></div>
+FriezeSymmetry(type,domainWidth)
+<div class="api-endpoint-desc">Frieze Symmetry wih specified type and domain width</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">int friezeType</td>
+         <td class="api-endpoint-parameters-table-name-col">int type</td>
          <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setDomainWidth(width)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double width</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
+the symetry type<br/> 
+       Possible values are 
+       <ul>
+       <li>FriezeSymetry.FRIEZE_II</li>
+       <li>FriezeSymetry.FRIEZE_IX</li>
+       <li>FriezeSymetry.FRIEZE_IS</li>
+       <li>FriezeSymetry.FRIEZE_SII</li>
+       <li>FriezeSymetry.FRIEZE_22I</li>
+       <li>FriezeSymetry.FRIEZE_2SI</li>
+       <li>FriezeSymetry.FRIEZE_S22I</li>
+       </ul>
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
+         <td class="api-endpoint-parameters-table-name-col">double domainWidth</td>
          <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc">composite transform is identical to direct transform</div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-   </div>
-   <div class="domain-endpoint" id="Identity">
-<div class="api-endpoint-header">Identity</div>
-<div class="api-endpoint-desc">
-identity transform, does nothing 
-   only transfers data
-</div>
-<div class="api-endpoint-parameters">
-Identity()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
+width of the fundamental domain
          </td>
       </tr>
 </table>
@@ -1611,11 +2293,11 @@ inverse_transform(in,out)
    <div class="domain-endpoint" id="PlaneReflection">
 <div class="api-endpoint-header">PlaneReflection</div>
 <div class="api-endpoint-desc">
-reflect in a given plane
+Reflection in a plane
 </div>
 <div class="api-endpoint-parameters">
 PlaneReflection(normal)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">Plane via origin is defined via external normal.</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d normal</td>
@@ -1626,7 +2308,7 @@ PlaneReflection(normal)
 </div>
 <div class="api-endpoint-parameters">
 PlaneReflection(normal,pointOnPlane)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">Plane is defined via external normal and point on plane</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d normal</td>
@@ -1640,214 +2322,33 @@ PlaneReflection(normal,pointOnPlane)
       </tr>
 </table>
 </div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc">inverse transform is identical to direct transform</div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-   </div>
-   <div class="domain-endpoint" id="ReflectionSymmetries">
-<div class="api-endpoint-header">ReflectionSymmetries</div>
-<div class="api-endpoint-desc">
-assortmens of various symmetry groups generated by reflections in planes and inversions in spheres
-</div>
-<div class="api-endpoint-parameters">
-ReflectionSymmetries()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getTwoPlanes(x1,x2)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double x1</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double x2</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getQuad_1(r,r1,alpha)
-<div class="api-endpoint-desc">hyperbolic circular quadrilateral made by 2 orthogonal planes and 2 spheres. 
-       angles of quadrilateral are (pi/2, pi/2, pi/2, alpha)
-       r - radius of common sphere to which both spheres are orthogonal 
-       the equator of that sphere will be place where all the tiles accumulate 
-       r1 radius of one sphere 
-       alpha angle between spheres</div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r1</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double alpha</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getQuad_2(r1,r2,x1,alpha)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r1</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r2</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double x1</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double alpha</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getTwoSpheres(r1,r2)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r1</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r2</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getPlaneAndSphere(x,r)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double x</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getIcosahedralKaleidoscope()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getXYZ(r,ax,ay,az)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double r</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double ax</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double ay</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double az</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getDihedralKaleidoscope(order)
-<div class="api-endpoint-desc">two mirrows with angle between them PI/order (order >= 2);</div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">int order</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
    </div>
    <div class="domain-endpoint" id="ReflectionSymmetry">
 <div class="api-endpoint-header">ReflectionSymmetry</div>
 <div class="api-endpoint-desc">
-makes transformations for symmetry groups generated by reflections
+<p>
+   Makes transformations for reflection symmetry group generated by reflections in planes and invesions in spheres.
+   </p>
+   <p>
+   The fundamental domain of the group is represented as intersection of half spaces and spheres. 
+   </p>
+   <p>
+   The generators of the group are reflections and inversions in the sides of the fundamental domain 
+   </p>
+   <p>
+   It can be used to generate <a href="http://en.wikipedia.org/wiki/Reflection_group"> reflection groups </a>
+   in various geometries. See also artice on <a href = "http://en.wikipedia.org/wiki/Inversive_geometry">invesive geomety</a>.
+   </p>
 </div>
 <div class="api-endpoint-parameters">
 ReflectionSymmetry()
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">Reflection symmetry with empty fundamental domain</div>
    <table class="api-endpoint-parameters-table">
 </table>
 </div>
 <div class="api-endpoint-parameters">
 ReflectionSymmetry(fundamentalDomain)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">Reflection symmetry with specified fundamental domain</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">ReflectionGroup.SPlane[] fundamentalDomain</td>
@@ -1857,19 +2358,8 @@ ReflectionSymmetry(fundamentalDomain)
 </table>
 </div>
 <div class="api-endpoint-parameters">
-setGroup(group)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">ReflectionGroup group</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
 setGroup(fundamentalDomain)
-<div class="api-endpoint-desc">sets the reflection group via it's fundamental domain</div>
+<div class="api-endpoint-desc">sets the fundamental fomain of the group</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">ReflectionGroup.SPlane[] fundamentalDomain</td>
@@ -1880,7 +2370,7 @@ setGroup(fundamentalDomain)
 </div>
 <div class="api-endpoint-parameters">
 setMaxCount(count)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">set max count of reflection to be used in group generation. Default value is 100.</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">int count</td>
@@ -1890,89 +2380,41 @@ setMaxCount(count)
 </table>
 </div>
 <div class="api-endpoint-parameters">
-setRiemannSphereRadius(value)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double value</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
 getPlane(normal,distance)
-<div class="api-endpoint-desc">convenience method 
-       returns half space defined by this plane. 
-       plane is defined by normal pointing to positive half space 
-       and distance along that normal
-       distance my be positive or negative</div>
+<div class="api-endpoint-desc">makes plane defined via external normal and distance from origin.</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d normal</td>
          <td class="api-endpoint-parameters-table-desc-col">
+external unit normal to the plane. The extenal normal points outiside of the half space used 
+       for fundamental domain definition.
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double distance</td>
          <td class="api-endpoint-parameters-table-desc-col">
+Distance from plane to origin. Distance may be positive or negative.
          </td>
       </tr>
 </table>
 </div>
 <div class="api-endpoint-parameters">
 getSphere(center,radius)
-<div class="api-endpoint-desc">convenience method 
-       returns spherical SPlane with given center. 
-       if radius > 0 - the inside of sphere is used 
-       if radius < 0 - the outside of sphere is used</div>
+<div class="api-endpoint-desc">makes sphere defined via center and radius</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d center</td>
          <td class="api-endpoint-parameters-table-desc-col">
+sphere center
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double radius</td>
          <td class="api-endpoint-parameters-table-desc-col">
+<ul>
+       <li> if radius is positive - the interior of sphere is used </li>
+       <li> if radius is negative - the exterior of sphere is used   </li>
+       </ul>
          </td>
       </tr>
 </table>
@@ -1981,8 +2423,14 @@ getSphere(center,radius)
    <div class="domain-endpoint" id="RingWrap">
 <div class="api-endpoint-header">RingWrap</div>
 <div class="api-endpoint-desc">
-wraps band in xy plane about a cylinder of given radius
-   see RingSpaceWarp.svg
+<p>
+   Wraps band in XZ plane about a cylinder of given radius.
+   Cylinder axis in parallel to Y axis. 
+   </p>
+   <p>
+   The diagram below is oriented with Y axis toward user. 
+   </p>
+   <embed src="abfab3d/transforms/doc-files/ring_wrap.svg" type="image/svg+xml"/>
 </div>
 <div class="api-endpoint-parameters">
 RingWrap()
@@ -1992,7 +2440,7 @@ RingWrap()
 </div>
 <div class="api-endpoint-parameters">
 RingWrap(r)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">Ring wrap with given radius</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double r</td>
@@ -2003,53 +2451,11 @@ RingWrap(r)
 </div>
 <div class="api-endpoint-parameters">
 setRadius(r)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">set radius of the wrap</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double r</td>
          <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc">Calculate cartesian to polar coordinates</div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc">Calculate polar to cartesian coordinates</div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-
          </td>
       </tr>
 </table>
@@ -2062,13 +2468,13 @@ performs rotation about given axis
 </div>
 <div class="api-endpoint-parameters">
 Rotation()
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">identity rotation</div>
    <table class="api-endpoint-parameters-table">
 </table>
 </div>
 <div class="api-endpoint-parameters">
 Rotation(axis,angle)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">rotation with given axis and angle. Angle is measure in radians.</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d axis</td>
@@ -2078,13 +2484,14 @@ Rotation(axis,angle)
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double angle</td>
          <td class="api-endpoint-parameters-table-desc-col">
+rotation angle is measured in radians
          </td>
       </tr>
 </table>
 </div>
 <div class="api-endpoint-parameters">
 Rotation(axis,angle,center)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">rotation with given axis, angle and center. Angle is measure in radians.</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d axis</td>
@@ -2094,85 +2501,11 @@ Rotation(axis,angle,center)
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double angle</td>
          <td class="api-endpoint-parameters-table-desc-col">
+rotation angle is measured in radians
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d center</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setRotation(axis,angle)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vector3d axis</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double angle</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setRotation(axis,angle,center)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vector3d axis</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double angle</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vector3d center</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
          <td class="api-endpoint-parameters-table-desc-col">
          </td>
       </tr>
@@ -2186,102 +2519,42 @@ performs scaling by given factor
 </div>
 <div class="api-endpoint-parameters">
 Scale()
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">identity transform</div>
    <table class="api-endpoint-parameters-table">
 </table>
 </div>
 <div class="api-endpoint-parameters">
 Scale(s)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">uniform scaling</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double s</td>
          <td class="api-endpoint-parameters-table-desc-col">
+uniform scaling factor
          </td>
       </tr>
 </table>
 </div>
 <div class="api-endpoint-parameters">
 Scale(sx,sy,sz)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">non uniform scaling</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double sx</td>
          <td class="api-endpoint-parameters-table-desc-col">
+x axis scaling factor
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double sy</td>
          <td class="api-endpoint-parameters-table-desc-col">
+y axis scaling factor
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double sz</td>
          <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setScale(s)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double s</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setScale(sx,sy,sz)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double sx</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double sy</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double sz</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
+z axis scaling factor
          </td>
       </tr>
 </table>
@@ -2290,79 +2563,31 @@ inverse_transform(in,out)
    <div class="domain-endpoint" id="SphereInversion">
 <div class="api-endpoint-header">SphereInversion</div>
 <div class="api-endpoint-desc">
-performs inversion in a sphere of given center and radius
+<p>
+   performs inversion in a sphere of given center and radius 
+   </p>
+   <p>
+   See <a href="http://en.wikipedia.org/wiki/Inversion_in_a_sphere">inversion in a sphere</a>. 
+   </p>
 </div>
 <div class="api-endpoint-parameters">
 SphereInversion()
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">Creates default sphere which interchanges upper half space and unit ball</div>
    <table class="api-endpoint-parameters-table">
 </table>
 </div>
 <div class="api-endpoint-parameters">
 SphereInversion(center,radius)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">Inversion in a sphere of given center and radius</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">Vector3d center</td>
          <td class="api-endpoint-parameters-table-desc-col">
+
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double radius</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setSphere(center,radius)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vector3d center</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double radius</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc">composite transform is identical to direct transform</div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
          <td class="api-endpoint-parameters-table-desc-col">
          </td>
       </tr>
@@ -2372,84 +2597,34 @@ inverse_transform(in,out)
    <div class="domain-endpoint" id="Translation">
 <div class="api-endpoint-header">Translation</div>
 <div class="api-endpoint-desc">
-performs translation
+Performs translation in space
 </div>
 <div class="api-endpoint-parameters">
 Translation()
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">identity transform</div>
    <table class="api-endpoint-parameters-table">
 </table>
 </div>
 <div class="api-endpoint-parameters">
 Translation(tx,ty,tz)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">translation to given point</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double tx</td>
          <td class="api-endpoint-parameters-table-desc-col">
+x component of translation
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double ty</td>
          <td class="api-endpoint-parameters-table-desc-col">
+y component of translation
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double tz</td>
          <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setTranslation(tx,ty,tz)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double tx</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double ty</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double tz</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
+z component of translation
          </td>
       </tr>
 </table>
@@ -2458,74 +2633,74 @@ inverse_transform(in,out)
    <div class="domain-endpoint" id="WallpaperSymmetry">
 <div class="api-endpoint-header">WallpaperSymmetry</div>
 <div class="api-endpoint-desc">
-makes transformations to reproduce wallpaper symmetry patterns
+<p>
+   Makes transformations to reproduce 17 two dimensional wallpaper symmetry patterns. 
+   See <a href="http://en.wikipedia.org/wiki/Wallpaper_group"> Wallpaper Group</a>. 
+   Traditional wallpaper patterns are two dimensional. However these tranformations 
+   are acting in three dimension. 
+   </p>
+   <p>
+   The diagram below shows the shapes of fundamental domain used for each of 17 groups. 
+   </p>
+   <embed src="abfab3d/transforms/doc-files/wallpaper_groups.svg" type="image/svg+xml"/>
 </div>
 <div class="api-endpoint-parameters">
 WallpaperSymmetry()
-<div class="api-endpoint-desc">default cponstructor with default symmetry type WP_S2222;</div>
+<div class="api-endpoint-desc">default constructor with default symmetry type WallpaperSymmetry.WP_S2222;</div>
    <table class="api-endpoint-parameters-table">
 </table>
 </div>
 <div class="api-endpoint-parameters">
 WallpaperSymmetry(symmetryType)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">constructor with given symmetry type</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">int symmetryType</td>
          <td class="api-endpoint-parameters-table-desc-col">
+possible values are 
+       <ul>
+       <li>WallpaperSymmetry.WP_O</li>
+       <li>WallpaperSymmetry.WP_XX</li>
+       <li>WallpaperSymmetry.WP_SX</li>
+       <li>WallpaperSymmetry.WP_SS</li>
+       <li>WallpaperSymmetry.WP_632</li>
+       <li>WallpaperSymmetry.WP_S632</li>
+       <li>WallpaperSymmetry.WP_333</li>
+       <li>WallpaperSymmetry.WP_S333</li>
+       <li>WallpaperSymmetry.WP_3S3</li>
+       <li>WallpaperSymmetry.WP_442</li>
+       <li>WallpaperSymmetry.WP_S442</li>
+       <li>WallpaperSymmetry.WP_4S2</li>
+       <li>WallpaperSymmetry.WP_2222</li>
+       <li>WallpaperSymmetry.WP_22X</li>
+       <li>WallpaperSymmetry.WP_22S</li>
+       <li>WallpaperSymmetry.WP_S2222</li>
+       <li>WallpaperSymmetry.WP_2S22</li>
+       </ul>
          </td>
       </tr>
 </table>
 </div>
 <div class="api-endpoint-parameters">
 WallpaperSymmetry(symmetryType,width,height)
-<div class="api-endpoint-desc"></div>
+<div class="api-endpoint-desc">constructor with given symmetry type and size of fundamental domain</div>
    <table class="api-endpoint-parameters-table">
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">int symmetryType</td>
          <td class="api-endpoint-parameters-table-desc-col">
+possible values see above
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double width</td>
          <td class="api-endpoint-parameters-table-desc-col">
+width of fundamental domain
          </td>
       </tr>
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double height</td>
          <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-WallpaperSymmetry(symmetryName,width,height)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">String symmetryName</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double width</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">double height</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-setSymmetryType(symmetryType)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">int symmetryType</td>
-         <td class="api-endpoint-parameters-table-desc-col">
+height of fundamental domain
          </td>
       </tr>
 </table>
@@ -2537,6 +2712,7 @@ setDomainWidth(width)
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double width</td>
          <td class="api-endpoint-parameters-table-desc-col">
+width of fundamental domain.
          </td>
       </tr>
 </table>
@@ -2548,6 +2724,7 @@ setDomainHeight(height)
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double height</td>
          <td class="api-endpoint-parameters-table-desc-col">
+height of fundamental domain (if used).
          </td>
       </tr>
 </table>
@@ -2570,55 +2747,7 @@ setDomainSkew(skew)
       <tr class="api-endpoint-parameters-table-row">
          <td class="api-endpoint-parameters-table-name-col">double skew</td>
          <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-getSymmetryType(symmetryName)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">String symmetryName</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-initialize()
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-</table>
-</div>
-<div class="api-endpoint-parameters">
-transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-</table>
-</div>
-<div class="api-endpoint-parameters">
-inverse_transform(in,out)
-<div class="api-endpoint-desc"></div>
-   <table class="api-endpoint-parameters-table">
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec in</td>
-         <td class="api-endpoint-parameters-table-desc-col">
-         </td>
-      </tr>
-      <tr class="api-endpoint-parameters-table-row">
-         <td class="api-endpoint-parameters-table-name-col">Vec out</td>
-         <td class="api-endpoint-parameters-table-desc-col">
+skew parameter of fundamental domain (if used)
          </td>
       </tr>
 </table>

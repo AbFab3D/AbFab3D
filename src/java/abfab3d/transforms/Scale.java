@@ -40,18 +40,34 @@ public class Scale  implements VecTransform {
     
     protected double sx = 1., sy = 1., sz = 1.; 
     protected double averageScale = 1.;
-    
+
+    /**
+       identity transform 
+     */
     public Scale(){
     }
     
+    /**
+       uniform scaling
+       @param s uniform scaling factor 
+     */
     public Scale(double s){
         setScale(s);
     }
     
+    /**
+       non uniform scaling
+       @param sx x axis scaling factor 
+       @param sy y axis scaling factor 
+       @param sz z axis scaling factor 
+     */
     public Scale(double sx, double sy, double sz){
         setScale(sx,sy,sz);
     }
     
+    /**
+       @noRefGuide
+     */
     public void setScale(double s){
         
         sx = s;
@@ -61,6 +77,9 @@ public class Scale  implements VecTransform {
         
     }
     
+    /**
+       @noRefGuide
+     */
     public void setScale(double sx, double sy, double sz){
         
         this.sx = sx;
@@ -71,7 +90,7 @@ public class Scale  implements VecTransform {
     }
     
     /**
-     *
+       @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         
@@ -87,7 +106,7 @@ public class Scale  implements VecTransform {
     }                
     
     /**
-     *
+       @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         

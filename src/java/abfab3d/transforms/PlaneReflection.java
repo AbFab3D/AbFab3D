@@ -35,25 +35,36 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
 /**
-   reflect in a given plane 
+   Reflection in a plane 
+   
 */
 public class PlaneReflection  implements VecTransform, Initializable  {
     
     public Vector3d m_pointOnPlane = new Vector3d(0,0,0); 
     public Vector3d m_planeNormal = new Vector3d(1,0,0); 
     
+    /**
+       Plane via origin is defined via external normal. 
+     */
     public PlaneReflection(Vector3d normal){
 
         m_planeNormal = new Vector3d(normal);
 
     }
-
+    
+    /**
+       Plane is defined via external normal and point on plane 
+     */
     public PlaneReflection(Vector3d normal, Vector3d pointOnPlane){
 
         m_pointOnPlane = new Vector3d(pointOnPlane);
         m_planeNormal = new Vector3d(normal);
 
     }
+
+    /**
+       @noRefGuide
+     */
     public int initialize(){
         
         m_planeNormal.normalize();
@@ -64,7 +75,7 @@ public class PlaneReflection  implements VecTransform, Initializable  {
     
     
     /**
-     *
+       @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         out.set(in);
@@ -96,6 +107,7 @@ public class PlaneReflection  implements VecTransform, Initializable  {
     }                
     
     /**
+       @noRefGuide
      *  inverse transform is identical to direct transform
      */
     public int inverse_transform(Vec in, Vec out) {

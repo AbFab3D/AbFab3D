@@ -222,8 +222,18 @@
                 <include name="java/abfab3d/datasources/Torus.java" />
                 <include name="java/abfab3d/datasources/Union.java" />
                 <include name="java/abfab3d/datasources/VolumePatterns.java" />
+
                 <include name="java/abfab3d/transforms/CompositeTransform.java" />
-                <include name="java/abfab3d/transforms/*.java" />
+                <include name="java/abfab3d/transforms/FriezeSymmetry.java" />
+                <include name="java/abfab3d/transforms/ReflectionSymmetry.java" />
+                <include name="java/abfab3d/transforms/WallpaperSymmetry.java" />
+                <include name="java/abfab3d/transforms/PlaneReflection.java" />
+                <include name="java/abfab3d/transforms/SphereInversion.java" />
+                <include name="java/abfab3d/transforms/CompositeTransform.java" />
+                <include name="java/abfab3d/transforms/Scale.java" />
+                <include name="java/abfab3d/transforms/Translation.java" />
+                <include name="java/abfab3d/transforms/Rotation.java" />
+                <include name="java/abfab3d/transforms/RingWrap.java" />
             </fileset>
             <doclet name="doclet.RefGuideDoclet" path="${classes.dir}/build;${lib.dir}/commons-io-2.4.jar">
 <!--                <param name="-d" value="docs/refguide" /> -->

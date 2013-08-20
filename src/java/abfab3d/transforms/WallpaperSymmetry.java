@@ -34,7 +34,16 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
 /**
-   makes transformations to reproduce wallpaper symmetry patterns
+   <p>
+   Makes transformations to reproduce 17 two dimensional wallpaper symmetry patterns. 
+   See <a href="http://en.wikipedia.org/wiki/Wallpaper_group"> Wallpaper Group</a>. 
+   Traditional wallpaper patterns are two dimensional. However these tranformations 
+   are acting in three dimension. 
+   </p>
+   <p>
+   The diagram below shows the shapes of fundamental domain used for each of 17 groups. 
+   </p>
+   <embed src="doc-files/wallpaper_groups.svg" type="image/svg+xml"/> 
 */
 public class WallpaperSymmetry  implements VecTransform, Initializable  {
     
@@ -71,50 +80,110 @@ public class WallpaperSymmetry  implements VecTransform, Initializable  {
     protected Symmetry m_sym;
 
     /**
-       default cponstructor with default symmetry type WP_S2222;
+       default constructor with default symmetry type WallpaperSymmetry.WP_S2222;
      */
     public WallpaperSymmetry(){
         setSymmetryType(WP_S2222);
     }
 
+    
+    /**
+       constructor with given symmetry type
+       @param symmetryType possible values are 
+       <ul>
+       <li>WallpaperSymmetry.WP_O</li>
+       <li>WallpaperSymmetry.WP_XX</li>
+       <li>WallpaperSymmetry.WP_SX</li>
+       <li>WallpaperSymmetry.WP_SS</li>
+       <li>WallpaperSymmetry.WP_632</li>
+       <li>WallpaperSymmetry.WP_S632</li>
+       <li>WallpaperSymmetry.WP_333</li>
+       <li>WallpaperSymmetry.WP_S333</li>
+       <li>WallpaperSymmetry.WP_3S3</li>
+       <li>WallpaperSymmetry.WP_442</li>
+       <li>WallpaperSymmetry.WP_S442</li>
+       <li>WallpaperSymmetry.WP_4S2</li>
+       <li>WallpaperSymmetry.WP_2222</li>
+       <li>WallpaperSymmetry.WP_22X</li>
+       <li>WallpaperSymmetry.WP_22S</li>
+       <li>WallpaperSymmetry.WP_S2222</li>
+       <li>WallpaperSymmetry.WP_2S22</li>
+       </ul>
+     */
     public WallpaperSymmetry(int symmetryType){
         setSymmetryType(symmetryType);
     }
+    
+    /**
+       constructor with given symmetry type and size of fundamental domain 
+       @param symmetryType possible values see above
+       @param width width of fundamental domain 
+       @param height height of fundamental domain 
+     */
     public WallpaperSymmetry(int symmetryType, double width, double height){
         setSymmetryType(symmetryType);
         setDomainWidth(width);
         setDomainHeight(height);
     }
 
+    /*
     public WallpaperSymmetry(String symmetryName, double width, double height){
         setSymmetryType(getSymmetryType(symmetryName));
         setDomainWidth(width);
         setDomainHeight(height);
     }
-
+    */
+    /**
+       @noRefGuide
+     */
     public void setSymmetryType(int symmetryType){
         m_symmetryType = symmetryType;
     }
+
+    /**
+       @param width width of fundamental domain. 
+     */
     public void setDomainWidth(double width){
         m_domainWidth = width;
     }
+
+    /**
+       @param height height of fundamental domain (if used). 
+     */
     public void setDomainHeight(double height){
         m_domainHeight = height;
     }
+    /**
+       @param maxCont maximal count of tranformations to use to generate patterns
+       <p>
+       if maxCount = 0 - no transformation is used and only the content of fundamntal domain will be shown 
+       </p>
+     */
     public void setMaxCount(int maxCount){
 
         m_maxCount = maxCount;
 
     }
+
+    /**
+       
+       @param skew skew parameter of fundamental domain (if used) 
+     */
     public void setDomainSkew(double skew){
         m_domainSkew = skew;
     }
 
+    /**
+     @noRefGuide
+     */
     public static int getSymmetryType(String symmetryName){
         //TODO 
         return 0;
     }
     
+    /**
+     @noRefGuide
+     */
     public int initialize(){
         
         switch(m_symmetryType){
@@ -146,7 +215,7 @@ public class WallpaperSymmetry  implements VecTransform, Initializable  {
     }
     
     /**
-     *
+     @noRefGuide
      */
     public int transform(Vec in, Vec out) {
         out.set(in);
@@ -165,7 +234,7 @@ public class WallpaperSymmetry  implements VecTransform, Initializable  {
     }                
 
     /**
-     *  
+     @noRefGuide
      */
     public int inverse_transform(Vec in, Vec out) {
         out.set(in);
