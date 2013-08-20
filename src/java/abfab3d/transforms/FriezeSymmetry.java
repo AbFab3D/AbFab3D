@@ -34,7 +34,10 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 
 /**
-   makes transformations to reproduce one of frieze symmetry patterns
+   makes transformations to reproduce frieze symmetry patterns
+
+   <embed src="doc-files/frieze_groups.svg" type="image/svg+xml"/> 
+   
 */
 public class FriezeSymmetry  implements VecTransform, Initializable  {
     
