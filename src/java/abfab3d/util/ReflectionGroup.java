@@ -154,9 +154,9 @@ public class ReflectionGroup {
         public double getCosAngle(SPlane sp){
 
             if(sp instanceof Sphere){
-                return getCosAngle((Sphere)sp, this);
+                return ReflectionGroup.getCosAngle((Sphere)sp, this);
             } else {
-                return getCosAngle(this, (Plane)sp);
+                return ReflectionGroup.getCosAngle(this, (Plane)sp);
             }
         }
 
@@ -217,9 +217,9 @@ public class ReflectionGroup {
         public double getCosAngle(SPlane sp){
 
             if(sp instanceof Sphere){
-                return getCosAngle(this, (Sphere)sp);
+                return ReflectionGroup.getCosAngle(this, (Sphere)sp);
             } else {
-                return getCosAngle(this, (Plane)sp);
+                return ReflectionGroup.getCosAngle(this, (Plane)sp);
             }
         }
         

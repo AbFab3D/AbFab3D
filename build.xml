@@ -211,6 +211,7 @@
                 <include name="java/abfab3d/datasources/Cone.java" />
                 <include name="java/abfab3d/datasources/Cylinder.java" />
                 <include name="java/abfab3d/datasources/DataSourceGrid.java" />
+                <include name="java/abfab3d/datasources/DataTransformer.java" />
                 <include name="java/abfab3d/datasources/ImageBitmap.java" />
                 <include name="java/abfab3d/datasources/Intersection.java" />
                 <include name="java/abfab3d/datasources/Plane.java" />
@@ -219,6 +220,8 @@
                 <include name="java/abfab3d/datasources/Subtraction.java" />
                 <include name="java/abfab3d/datasources/Text.java" />
                 <include name="java/abfab3d/datasources/Torus.java" />
+                <include name="java/abfab3d/datasources/Union.java" />
+                <include name="java/abfab3d/datasources/VolumePatterns.java" />
                 <include name="java/abfab3d/transforms/CompositeTransform.java" />
                 <include name="java/abfab3d/transforms/*.java" />
             </fileset>

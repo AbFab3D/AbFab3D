@@ -12,7 +12,7 @@
 <H2 id="Overview">Overview</H2>
 <p>
 ShapeJS provides a powerful system for generating 3D printable objects via a simple Javascript program.
-The functionality of VS is based on a representation of three dimensional objects via voxels on 3 dimensional regular grid.
+The functionality of ShapeJS is based on a representation of three dimensional objects via voxels on 3 dimensional regular grid.
 </p>
 <p>
 Roughly speaking the value of each voxel represents the percent of this voxel volume occupied by the shape.
@@ -223,10 +223,46 @@ encourage you to make a user-interface that's more specific and easier to use.  
 can use a REST call to execute_pipeline that will generate the 3D model.  With this model you can easily use the rest of the
 Shapeways API to store the models, get pricing and add your own markup to the models.
 
-<h3>Custom DataSource</h3>
-<p>
-User provided objects. 
-</p>
+<h3 id="Custom DataSource">Custom DataSource</h3>
+You can create your own DataSource inside ShapeJS scripts.  A DataSource must implement the getDataValue function.  This function
+will evaluate the data source at a pnt.  This function should return signed distance to the objects surface.
+Signed distance is positive for exterior points, negative for interior points and zero at the surface. To obtain high quality surface
+the signed distance funtion should be properly normalized to voxel size. See example for a Sphere:
+<pre class="code">
+
+    importPackage(Packages.abfab3d.util);
+
+    var radius;
+
+    var Sphere = {
+       getDataValue : function(pnt, data) {
+          var x = pnt.v[0];
+          var y = pnt.v[1];
+          var z = pnt.v[2];
+
+          var vs = pnt.getScaledVoxelSize();
+
+          var r = r = Math.sqrt(x*x + y*y + z*z);
+          data.v[0] = MathUtil.step10(r, radius, vs);
+
+          return DataSource.RESULT_OK;
+       }
+    }
+
+    function main(args){
+       radius = 5*MM
+       var a = radius*1.1;
+       var voxelSize = 0.1*MM;
+
+       var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+
+       var maker = new GridMaker();
+       maker.setSource(Sphere);
+       maker.makeGrid(dest);
+
+       return dest;
+    }
+ </pre>
 
 <H2 id="Functions">Javascript Functions</H2>
 ShapeJS has global helper functions accessible from your script.
@@ -335,7 +371,14 @@ Javadoc.
 <p>The java.lang.Math class is available.  This is where you will find the typical min,max,sin,cos functions.
 Please see the posted Javadoc for complete details.  <a href="http://docs.oracle.com/javase/6/docs/api/">Java6 Javadoc</a>
 </p>
-
+An example usage is:
+<pre class="code">
+function trigCalcs(radius,angle){
+    var circ = 2 * Math.PI * radius;
+    var sin = Math.sin(angle);
+    var max = Math.max(radius,10);
+}
+</pre>
 </div>
 </div>
 
