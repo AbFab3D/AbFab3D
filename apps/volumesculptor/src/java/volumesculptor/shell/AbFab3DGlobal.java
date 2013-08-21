@@ -119,8 +119,8 @@ public class AbFab3DGlobal  {
         if (args.length > 1) {
             if (args[1] instanceof Grid) {
                 grid = (AttributeGrid) args[1];
-            } else if (args[1] instanceof Double) {
-                vs = (Double) args[1];
+            } else if (args[1] instanceof Number) {
+                vs = ((Number) args[1]).doubleValue();
             }
         }
 
@@ -417,9 +417,9 @@ public class AbFab3DGlobal  {
                 grid.getGridBounds(grid_bounds);
                 vs = grid.getVoxelSize();
             }
-            double x = (Double) args[1];
-            double y = (Double) args[2];
-            double z = (Double) args[3];
+            double x = ((Number) args[1]).doubleValue();
+            double y = ((Number) args[2]).doubleValue();
+            double z = ((Number) args[3]).doubleValue();
 
             grid_bounds[0] -= x;
             grid_bounds[1] += x;
@@ -428,14 +428,14 @@ public class AbFab3DGlobal  {
             grid_bounds[4] -= z;
             grid_bounds[5] += z;
         } else if (args.length == 7) {
-            grid_bounds[0] = (Double) args[0];
-            grid_bounds[1] = (Double) args[1];
-            grid_bounds[2] = (Double) args[2];
-            grid_bounds[3] = (Double) args[3];
-            grid_bounds[4] = (Double) args[4];
-            grid_bounds[5] = (Double) args[5];
+            grid_bounds[0] = ((Number) args[0]).doubleValue();
+            grid_bounds[1] = ((Number) args[1]).doubleValue();
+            grid_bounds[2] = ((Number) args[2]).doubleValue();
+            grid_bounds[3] = ((Number) args[3]).doubleValue();
+            grid_bounds[4] = ((Number) args[4]).doubleValue();
+            grid_bounds[5] = ((Number) args[5]).doubleValue();
 
-            vs = (Double) args[6];
+            vs = ((Number) args[6]).doubleValue();
         }  else {
             throw new IllegalArgumentException("Invalid number of arguments to CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize)");
         }
