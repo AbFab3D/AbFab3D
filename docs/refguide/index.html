@@ -215,7 +215,8 @@ default value is 0.5. Smaller value greatly increase the resultng mesh complexit
 <span class="code">meshMinPartVolume</span> allows to filter out sand size particles from the resulting mesh. All parts of volume less than 
 meshMinPartVolume are discarded. This volume is specified in meters<sup>3</sup>. Default value is 1*MM3 (one cubic millimeter). 
 </p>
-
+<span class="code">meshMaxPartsCount</span> specifies the maximum number of parts to save.  The n largest parts are kept.  By default
+all parts are retained.
 
 <H2 id="Examples">Examples</H2>
 <h3>Boolean Operations</h3>
@@ -2641,6 +2642,25 @@ z component of translation
    </p>
    <p>
    The diagram below shows the shapes of fundamental domain used for each of 17 groups. 
+   Fndamental domain is dark gray shape, which fills the whole plane using symmetry operations marked along the 
+   boundary of fundamental domain
+   </p>
+   <ul>
+   the symmetry operations are the following.
+   <li>Bold lines are mirror (or reflection) lines</li>
+   <li>dotted lines - glide reflection</li>
+
+   <li>Polygons reperesent rotation axes
+      <ul> 
+      <li> rhombus 2-fold rotation</li>
+      <li> triangle 3-fold rotation</li>
+      <li> square 4-fold rotation</li>
+      <li> hexagon 6-fold rotation</li>
+      </ul>
+    </li>
+   </ul>
+   <p>
+   The transformation fills the whole plane with copies of fundamental domain using transformation shown in the diagram.
    </p>
    <embed src="abfab3d/transforms/doc-files/wallpaper_groups.svg" type="image/svg+xml"/>
 </div>

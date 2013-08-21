@@ -42,7 +42,33 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    </p>
    <p>
    The diagram below shows the shapes of fundamental domain used for each of 17 groups. 
+   Fndamental domain is dark gray shape, which fills the whole plane using symmetry operations marked along the 
+   boundary of fundamental domain
    </p>
+
+   <p>
+   <ul>
+   the symmetry operations are the following.
+   <li>Bold lines are mirror (or reflection) lines</li>
+   <li>dotted lines - glide reflection</li>
+
+   <li>Polygons reperesent rotation axes
+      <ul> 
+      <li> rhombus 2-fold rotation</li>
+      <li> triangle 3-fold rotation</li>
+      <li> square 4-fold rotation</li>
+      <li> hexagon 6-fold rotation</li>
+      </ul>
+    </li>
+   </ul>
+   </p>
+   <p>
+   The WallpaperSymmetry fills the whole plane with copies of fundamental domain using transformation shown in the diagram.
+   </p>
+   <p>
+   The notations used for wallpaper groups are orbifold notations. 
+   </p>
+
    <embed src="doc-files/wallpaper_groups.svg" type="image/svg+xml"/> 
 */
 public class WallpaperSymmetry  implements VecTransform, Initializable  {
@@ -188,10 +214,16 @@ public class WallpaperSymmetry  implements VecTransform, Initializable  {
         
         switch(m_symmetryType){
         default: 
+        case WP_O:    m_sym = Symmetry.getO(m_domainWidth,m_domainHeight, m_domainSkew); break;
+
+        case WP_3S3:  m_sym = Symmetry.get3S3(m_domainWidth); break;
+        case WP_4S2:  m_sym = Symmetry.get4S2(m_domainWidth); break;
         case WP_S442:  m_sym = Symmetry.getS442(m_domainWidth); break;
-        case WP_442:  m_sym = Symmetry.get442(m_domainWidth); break;
+        case WP_442:   m_sym = Symmetry.get442(m_domainWidth); break;
         case WP_S632:  m_sym = Symmetry.getS632(m_domainWidth); break;
+        case WP_632:   m_sym = Symmetry.get632(m_domainWidth); break;
         case WP_S333:  m_sym = Symmetry.getS333(m_domainWidth); break;
+        case WP_333:   m_sym = Symmetry.get333(m_domainWidth); break;
 
         case WP_S2222: m_sym = Symmetry.getS2222(m_domainWidth,m_domainHeight); break;
         case WP_2222:  m_sym = Symmetry.get2222(m_domainWidth,m_domainHeight); break;
@@ -201,14 +233,9 @@ public class WallpaperSymmetry  implements VecTransform, Initializable  {
         case WP_SX:    m_sym = Symmetry.getSX(m_domainWidth,m_domainHeight); break;
         case WP_22X:   m_sym = Symmetry.get22X(m_domainWidth,m_domainHeight); break;
         case WP_XX:    m_sym = Symmetry.getXX(m_domainWidth,m_domainHeight); break;
-        case WP_O:    m_sym = Symmetry.getO(m_domainWidth,m_domainHeight, m_domainSkew); break;
+
         }
 
-        // missing groups 
-        //WP_632 = 4,   // 632
-        //WP_3S3 = 8,   // 3*3
-        //WP_4S2 = 11,   // 4*2
-        //WP_333
 
         return RESULT_OK;
         

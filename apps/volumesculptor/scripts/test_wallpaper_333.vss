@@ -1,0 +1,63 @@
+var voxelSize = 0.1*MM;
+
+function makeFD( w, h, d){
+	
+	var u = new Union();
+	var ww = 0.75*w/2;
+	var hh =0.75*h/2;
+	var w4 = w/4;
+	var h4 = h/4;
+	
+	var R = new Text( "R", "Arial", ww,hh, d, voxelSize);
+	R.setTransform(new Translation(w4,h4,0));
+	u.add(R);
+	var F = new Text( "F", "Arial", ww, hh, d, voxelSize);
+	F.setTransform(new Translation(-w4,h4,0));
+	u.add(F);
+	
+	var r = new Text( "r", "Arial", w4, h4, d, voxelSize);
+	r.setTransform(new Translation(w4,-h4,0));
+	u.add(r);
+	var f = new Text( "f", "Arial", w4, h4, d, voxelSize);
+	f.setTransform(new Translation(-w4,-h4,0));
+	u.add(f);
+		
+	return u;
+}
+
+function main(){
+
+	var width = 30*MM;
+	var height = 30*MM;
+	var depth = 2*MM;
+	var fdHeight = 8*MM;
+	var fdWidth = 6*MM;
+	var partWidth = 4.5*MM;
+	var partHeight = 4.5*MM;
+	
+	var s = width/2;
+	var d = depth/2+voxelSize;
+	
+	var grid = createGrid(-s, s, -s, s, -d, d,voxelSize);
+	
+	var fundamentalDomain = makeFD(partWidth,partHeight,depth);
+	
+	var symm = new WallpaperSymmetry(WallpaperSymmetry.WP_333, fdWidth, fdHeight);	
+	
+	symm.setMaxCount(10);
+	
+	fundamentalDomain.setTransform(symm);
+	var union = new Union();
+	
+	union.add(new Box(0,0,0,width, height, 0.5*MM));	
+	union.add(fundamentalDomain);
+	
+	var maker = new GridMaker();	
+	maker.setSource(union);
+	
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}
