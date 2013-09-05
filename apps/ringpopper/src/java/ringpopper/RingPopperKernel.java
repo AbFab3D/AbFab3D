@@ -720,18 +720,14 @@ public class RingPopperKernel extends HostedKernel {
         union.add(image_band);
 
         if (hasTopBorder()) {
-            Box top_band = new Box();
-            top_band.setSize(bandLength, topBorderWidth, ringThickness);
-            top_band.setCenter(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2);
+            Box top_band = new Box(0, ringWidth / 2 + topBorderWidth / 2, ringThickness / 2,bandLength, topBorderWidth, ringThickness);
             top_band.setSmoothBoundaries(false, true, true);
 
             union.add(top_band);
         }
 
         if (hasBottomBorder()) {
-            Box bottom_band = new Box();
-            bottom_band.setSize(bandLength, bottomBorderWidth, ringThickness);
-            bottom_band.setCenter(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2);
+            Box bottom_band = new Box(0, -ringWidth / 2 - bottomBorderWidth / 2, ringThickness / 2,bandLength, bottomBorderWidth, ringThickness);
             bottom_band.setSmoothBoundaries(false, true, true);
             union.add(bottom_band);
         }
