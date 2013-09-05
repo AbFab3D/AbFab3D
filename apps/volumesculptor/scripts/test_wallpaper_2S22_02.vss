@@ -1,0 +1,114 @@
+var voxelSize = 0.2*MM;
+
+function makeFD( w, h, d){
+
+	var u = new Union();
+	var ww = 0.75*w/2;
+	var hh =0.75*h/2;
+	var w4 = w/4;
+	var h4 = h/4;
+	
+	var R = new Text( "R", "Arial", ww,hh, d, voxelSize);
+	R.setTransform(new Translation(w4,h4,0));
+	u.add(R);
+	var F = new Text( "F", "Arial", ww, hh, d, voxelSize);
+	F.setTransform(new Translation(-w4,h4,0));
+	u.add(F);
+	
+	var r = new Text( "r", "Arial", w4, h4, d, voxelSize);
+	r.setTransform(new Translation(w4,-h4,0));
+	u.add(r);
+	var f = new Text( "f", "Arial", w4, h4, d, voxelSize);
+	f.setTransform(new Translation(-w4,-h4,0));
+	u.add(f);
+	
+	return u;
+}
+
+function makeFD1( w, h, d, aspect, wireThickeness){
+
+	var u = new Union();
+	var ww = 0.75*w/2;
+	var hh =0.75*h/2;
+	var w4 = w/4;
+	var h4 = h/4;
+
+	var Rt0 = aspect*w;//0.38*w;
+	var rt0 = wireThickeness/2;
+	
+	
+	var t0 = new Torus(Rt0, rt0);
+	t0.setTransform(new Translation(w/2, h/2,0));
+	u.add(t0);
+
+	var t0a = new Torus(Rt0, rt0);
+	t0a.setTransform(new Translation(-w/2, -h/2,0));
+	u.add(t0a);
+
+	
+	var t1 = new Torus(h-Rt0, rt0);
+	var ct1 = new CompositeTransform();	
+	ct1.add(new Rotation(0,1,0,Math.PI/2));
+	ct1.add(new Translation(w/2, -h/2,0));
+	t1.setTransform(ct1);
+	u.add(t1);
+
+
+	var c1 = new Cylinder(new Vector3d((w/2-Rt0),0,0), new Vector3d(0,0,0), rt0);
+	c1.setTransform(new Translation(0, h/2,0));
+	u.add(c1);
+	
+	var c2 = new Cylinder(new Vector3d(-w/2,0,0), new Vector3d(w/2,0,0), rt0);
+	c2.setTransform(new Translation(w/2, -h/2,0));
+	u.add(c2);
+	
+	
+	return u;
+}
+
+function main(){
+
+	var width = 200*MM;
+	var height = 15*MM;
+	var depth = 7*MM;
+	
+	var wireThickness = 1.5*MM;
+	var aspect = 0.5;
+
+	var fdHeight = 3*wireThickness;
+	var fdWidth = fdHeight/2;
+	
+	var partWidth = 2*fdWidth;
+	var partHeight = fdHeight;
+	
+	
+	var s = width/2;
+	var d = depth/2 + voxelSize;
+	var grid = createGrid(-s, s, -s, s, -d, d,voxelSize);
+	
+	var fundamentalDomain = makeFD1(partWidth,partHeight,depth, aspect, wireThickness);
+	
+	var symm = new WallpaperSymmetry(WallpaperSymmetry.WP_2S22, fdWidth, fdHeight);	
+	
+	symm.setMaxCount(100);
+	fundamentalDomain.setTransform(symm);
+	
+	var union = new Union();
+	
+	//union.add(new Box(0,0,0,width, height, 0.5*MM));	
+	var inter = new Intersection();
+
+	inter.add(fundamentalDomain);
+	inter.add(new Box(width, height, depth));
+	//union.setTransform(new SphereInversion(0, 0, height, Math.sqrt(width*width/4 + height*height)));
+	var maker = new GridMaker();	
+	
+	maker.setSource(inter);
+	
+	//maker.setTransform(symm);
+	
+	maker.makeGrid(grid);
+	
+	return grid;
+	
+}

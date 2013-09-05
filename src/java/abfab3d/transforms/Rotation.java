@@ -62,6 +62,21 @@ public class Rotation implements VecTransform, Initializable {
     }
 
     /**
+       rotation with given axis components and angle. 
+       @param ax  x component of rotation axis 
+       @param ay  y component of rotation axis 
+       @param az  z component of rotation axis 
+       @param angle  rotation angle is measured in radians
+       
+     */
+    public Rotation(double ax, double ay, double az, double angle){
+        
+        setRotation(new Vector3d(ax, ay, az), angle);
+        
+    }
+
+
+    /**
        rotation with given axis, angle and center. Angle is measure in radians. 
        @param angle  rotation angle is measured in radians
      */
@@ -89,6 +104,7 @@ public class Rotation implements VecTransform, Initializable {
     public void setRotation(Vector3d axis, double angle, Vector3d center){
         
         m_axis = new Vector3d(axis); 
+        m_axis.normalize();
         m_angle = angle;
         m_center = new Vector3d(center);
         
@@ -98,7 +114,7 @@ public class Rotation implements VecTransform, Initializable {
        @noRefGuide
      */
     public int initialize(){
-        
+
         mat.set(new AxisAngle4d(m_axis.x,m_axis.y,m_axis.z,m_angle));
         mat_inv.set(new AxisAngle4d(m_axis.x,m_axis.y,m_axis.z,-m_angle));
         

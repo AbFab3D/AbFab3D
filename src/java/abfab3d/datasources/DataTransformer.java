@@ -21,7 +21,8 @@ import abfab3d.util.Vec;
 
 
 /**
- * Transform a data source.  This provides a transformable wrapper over top a data source.
+ * Transform a data source.  This provides a transformable wrapper for data source.
+ * It is used when one need appply transformation to a data source which already has its own transformation. 
  *
  * @author Vladimir Bulatov
  */
@@ -29,13 +30,25 @@ public class DataTransformer extends TransformableDataSource {
 
     protected DataSource dataSource;
 
+    /**
+     * empty DataTransformer 
+     * 
+     */
     public DataTransformer() {
     }
 
+    /**
+     *
+     * @param ds  data source to be transformed by this transformer
+     */
     public void setSource(DataSource ds) {
         dataSource = ds;
     }
 
+    /**
+     *
+     * @noRefGuide
+     */
     public int initialize() {
 
         super.initialize();
@@ -49,7 +62,7 @@ public class DataTransformer extends TransformableDataSource {
 
     /**
      *
-     *
+     * @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
 

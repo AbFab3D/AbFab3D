@@ -64,7 +64,20 @@ public class SphereInversion  implements VecTransform, Initializable  {
         setSphere(center, radius); 
 
     }
+    
+    /**
+       
+       Inversion in a sphere with given components of center and radius 
+       @param cx    
+       @param cy
+       @param cz    
+       @param radus 
+     */
+    public SphereInversion(double cx, double cy, double cz, double radius){
 
+        setSphere(new Vector3d(cx, cy, cz), radius);
+
+    }
 
     /**
        @noRefGuide

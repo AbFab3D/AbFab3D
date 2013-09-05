@@ -68,7 +68,7 @@ public class Ring  extends TransformableDataSource{
         this.ymin = ymin;
         this.ymax = ymax;
         
-        this.innerRadius = innerRadius;
+        this.innerRadius = radius;
         this.exteriorRadius = innerRadius + thickness;
         
         this.innerRadius2 = innerRadius*innerRadius;

@@ -1,0 +1,73 @@
+<?xml version="1.0" standalone="yes"?>
+
+<project basedir="." default="build" name="VolumeSculptor">
+    <import file="build_common.xml"/>
+
+    <description>Volume Sculptor Build</description>
+
+    <property name="version" value="1.0.0"/>
+    <property name="src.dir" value="${basedir}/src"/>
+    <property name="apps.dir" value="${basedir}/apps"/>
+    <property name="apps.common.dir" value="../common"/>
+    <property name="volumesculptor.dir" value="../volumesculptor"/>
+    <property name="release.dir" value="${basedir}/release"/>
+    <property name="test.dir" value="${basedir}/test/junit"/>
+    <property name="abfab3d.classes.dir" value="../../classes"/>
+    <property name="classes.dir" value="${basedir}/classes"/>
+    <property name="test.classes.dir" value="${classes.dir}/test" />
+    <property name="jar.dir" value="${basedir}/jars"/>
+    <property name="lib.dir" value="${basedir}/lib"/>
+    <property name="abfab3d.lib.dir" value="../../lib"/>
+    <property name="abfab3d.jars.dir" value="../../jars"/>
+    <property name="manifest.dir" value="${basedir}/manifest"/>
+    <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
+    <property name="app.common.dir" value="../common"/>
+    <property name="xj3d.dir" value="../../../../../xj3d/code/trunk"/>
+    <property name="av3d.dir" value="../../j3d.org/aviatrix3d-2/aviatrix3d"/>
+
+    <property name="entrypoint" value="volumesculptor.VolumeSculptor"/>
+
+    <!--    <property name="runarg0" value="-Xmx4300m"/> -->
+    <property name="runarg0" value="-Xmx8800m"/>
+    <!--
+        <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
+        <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
+    -->
+    <property name="jvmrunargs" value="${runarg0}"/>
+
+    <target name="build"
+            description="Complete clean, setup, compilation, run"
+            depends="clean,compileVolumesculptor,copyjars"/>
+
+    <!-- Create destination directories -->
+    <target name="init" description="Create destination directories">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${javadocs.dir}"/>
+    </target>
+
+    <target name="compileVolumesculptor">
+        <ant antfile="${volumesculptor.dir}/build.xml" target="build" inheritall="false"/>
+    </target>
+	
+    <target name="copyjars" depends="compileVolumesculptor">
+        <copy todir="bin">
+            <fileset dir="${volumesculptor.dir}/jars" includes="shapejs*.jar"/>
+        </copy>		
+        <copy todir="bin/lib">
+            <fileset dir="${app.common.dir}/jars" includes="abfab3d_apps_common*.jar"/>
+            <fileset dir="${abfab3d.lib.dir}" includes="vecmath.jar jafama.jar j3d-org-all*.jar fastinfoset_*.jar"/>
+            <fileset dir="${abfab3d.jars.dir}" includes="abfab3d_core*.jar"/>
+            <fileset dir="${xj3d.dir}/jars" includes="xj3d-all_*.jar"/>
+            <fileset dir="${volumesculptor.dir}/lib" includes="js.jar"/>
+			
+        </copy>		
+    </target>
+
+    <target name="clean" description="Deletes all the generated artifacts.">
+        <delete dir="${javadocs.dir}"/>
+        <delete dir="${classes.dir}"/>
+        <delete dir="bin"/>
+    </target>
+
+</project>
+
