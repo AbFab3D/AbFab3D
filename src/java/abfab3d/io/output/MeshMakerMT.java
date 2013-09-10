@@ -52,6 +52,7 @@ public class MeshMakerMT {
 
     // size of block of grid to make in one chunk 
     protected int m_blockSize = 20;
+    protected int m_noDecimationSize = 100;
 
     //max error of decimation
     protected double m_maxDecimationError = 1.e-9;
@@ -61,6 +62,9 @@ public class MeshMakerMT {
     protected double m_smoothingWidth = 1.;
     protected int m_gridMaxAttributeValue = 0;
     protected int m_maxDecimationCount = 7;
+
+    // Maximum allowed triangles.  Will relax maxDecimationError to achieve
+    protected int m_maxTriangles = Integer.MAX_VALUE;
     protected EdgeTester m_edgeTester;
 
     public MeshMakerMT() {
@@ -74,6 +78,10 @@ public class MeshMakerMT {
 
         this.m_threadCount = count;
 
+    }
+
+    public void setMaxTriangles(int tris) {
+        this.m_maxTriangles = tris;
     }
 
     public void setMaxAttributeValue(int gridMaxAttributeValue) {
@@ -174,6 +182,71 @@ public class MeshMakerMT {
             //       block.timeIsosurface, block.timeDecimation, block.origFaceCount,block.finalFaceCount);
             origFaceCount += block.origFaceCount;
             finalFaceCount += block.finalFaceCount;
+        }
+
+        printf("finalFaceCount: %d\n", finalFaceCount);
+
+        int max_loop = 3;
+        int attempts = 0;
+        int last_tri_count =0;
+
+        while(finalFaceCount > m_maxTriangles && attempts < max_loop) {
+            blocks.rewind();
+            // TODO: Not sure how aggressive to change decimation error;
+            double max_decimation_error = m_maxDecimationError * Math.pow(10.0,attempts + 1);
+            System.out.println("Count is above max triangle limit: " + finalFaceCount + " new decimationError: " + max_decimation_error);
+
+            executor = Executors.newFixedThreadPool(m_threadCount);
+
+            BlockDecimator[] workers = new BlockDecimator[m_threadCount];
+            for (int i = 0; i < m_threadCount; i++) {
+                workers[i] = new BlockDecimator(blocks, max_decimation_error);
+                if (m_edgeTester != null) {
+                    workers[i].setEdgeTester((EdgeTester) (m_edgeTester.clone()));
+                }
+
+                executor.submit(workers[i]);
+            }
+
+            executor.shutdown();
+
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            blocks.rewind();
+
+            finalFaceCount = 0;
+            while ((block = blocks.getNext()) != null) {
+
+                //printf(" isosurface: %d ms, decimation: %d ms  faces: %d -> : %d\n",
+                //       block.timeIsosurface, block.timeDecimation, block.origFaceCount,block.finalFaceCount);
+                finalFaceCount += block.finalFaceCount;
+            }
+
+            System.out.println("Current faceCount: " + finalFaceCount);
+            attempts++;
+
+            if (finalFaceCount == last_tri_count) {
+                System.out.println("No new triangles found, bailing");
+                break;
+            }
+
+            last_tri_count = finalFaceCount;
+        }
+
+        blocks.rewind();
+        origFaceCount = 0;
+        finalFaceCount = 0;
+
+        while ((block = blocks.getNext()) != null) {
+
+            //printf(" isosurface: %d ms, decimation: %d ms  faces: %d -> : %d\n",
+            //       block.timeIsosurface, block.timeDecimation, block.origFaceCount,block.finalFaceCount);
+            origFaceCount += block.origFaceCount;
+            finalFaceCount += block.finalFaceCount;
             block.writeTriangles(tc);
 
         }
@@ -232,6 +305,7 @@ public class MeshMakerMT {
             iy = iy1;
         }
 
+        System.out.println("***Total blocks made: " + blocks.gridBlocks.size() + " min tris is: " + (blocks.gridBlocks.size() * 100));
         return blocks;
 
     } // makeBlocks     
@@ -484,12 +558,15 @@ public class MeshMakerMT {
 
             //printf("faceCount: %d vertexCount: %d\n", faceCount, vertexCount);
 
-            if (faceCount < 100) {
+            if (faceCount < m_noDecimationSize) {
                 // no decimation is needed 
                 block.faces = new int[faceCount * 3];
                 its.getFaces(block.faces);
                 block.vertices = new double[3 * its.getVertexCount()];
                 its.getVertices(block.vertices);
+
+                // TODO: added this, I suspect total faceCount was wrong without this.
+                block.finalFaceCount = faceCount;
                 return;
             }
 
@@ -547,6 +624,125 @@ public class MeshMakerMT {
             block.its = its;
             block.finalFaceCount = fcount;
 
+        }
+
+    } // class BlockProcessor
+
+    /**
+     * Decimate a block further
+     */
+    class BlockDecimator implements Runnable {
+
+        GridBlockSet blocks;
+
+        WingedEdgeTriangleMesh mesh;
+        double vertices[]; // intermediate memory for vertices
+        int faces[];  // intermediate memory for face indexes
+
+        double maxDecimationError;
+        MeshDecimator decimator;
+        EdgeTester edgeTester;
+
+        BlockDecimator(GridBlockSet blocks,
+                       double maxDecimationError
+        ) {
+
+            this.blocks = blocks;
+            this.maxDecimationError = maxDecimationError;
+        }
+
+        void setEdgeTester(EdgeTester edgeTester) {
+            this.edgeTester = edgeTester;
+        }
+
+        public void run() {
+            while (true) {
+
+                GridBlock block = blocks.getNext();
+
+                if (block == null)
+                    break;
+
+                try {
+                    processBlock(block);
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+                    break;
+                }
+            }
+        }
+
+        void processBlock(GridBlock block) {
+            long t1 = nanoTime();
+
+            if (block.its == null) {
+                return;
+            }
+
+            if (block.finalFaceCount < m_noDecimationSize) {
+                // no decimation is needed
+                return;
+            }
+
+
+            vertices = block.its.getVertices(vertices);
+            faces = block.its.getFaces(faces);
+
+            block.origFaceCount = block.finalFaceCount;
+
+            int vertexCount = vertices.length / 3;
+            int faceCount = block.finalFaceCount;
+
+            //printf("decimate faceCount: %d vertexCount: %d\n", faceCount, vertexCount);
+
+            //printf("vertCount: %d faceCont: %d\n", vertexCount, faceCount);
+
+            if (mesh == null) {
+                //printf("new mesh\n");
+                mesh = new WingedEdgeTriangleMesh(vertices, vertexCount, faces, faceCount);
+            } else {
+                //printf("reusing old mesh\n");
+                mesh.clear();
+                mesh.setFaces(vertices, vertexCount, faces, faceCount);
+            }
+
+            //block.mesh =
+            //intf("mesh created: %d ms\n", (time() - t0));
+
+            if (decimator == null) {
+                decimator = new MeshDecimator();
+                decimator.setMaxCollapseError(maxDecimationError);
+                if (edgeTester != null) {
+                    decimator.setEdgeTester(edgeTester);
+                }
+            }
+
+            if (edgeTester != null) {
+                edgeTester.initialize(mesh);
+            }
+
+
+            int count = m_maxDecimationCount;
+
+            int fcount = mesh.getTriangleCount();
+
+            while (count-- > 0) {
+
+                int target = fcount / 2;
+                decimator.processMesh(mesh, target);
+                fcount = mesh.getTriangleCount();
+
+            }
+
+            //printf("decimation done. orig: %d --> fcount: %d\n",block.origFaceCount,fcount);
+
+            if (STATS) block.timeDecimation = (nanoTime() - t1);
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(fcount);
+            mesh.getTriangles(its);
+            block.its = its;
+            block.finalFaceCount = fcount;
         }
 
     } // class BlockProcessor
