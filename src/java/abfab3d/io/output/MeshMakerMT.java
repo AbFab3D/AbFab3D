@@ -170,6 +170,14 @@ public class MeshMakerMT {
             e.printStackTrace();
         }
 
+        long num_tris = 0;
+        for(int i=0; i < threads.length;i++) {
+            num_tris += threads[i].getNumTriangles();
+        }
+
+        printf("Raw number of triangles before decimation: %d\n",num_tris);
+
+
         printf("MESH_EXTRACTION_TIME: %d ms\n", (time() - t0));
 
         blocks.rewind();
@@ -437,6 +445,7 @@ public class MeshMakerMT {
         MeshDecimator decimator;
         IsosurfaceMaker.BlockSmoothingSlices slicer;
         double smoothKernel[];
+        long origNumTriangles;
 
         EdgeTester edgeTester;
 
@@ -467,8 +476,6 @@ public class MeshMakerMT {
             slicer.setGridMaxAttributeValue(gridMaxAttributeValue);
 
             this.smoothKernel = smoothKernel;
-            this.edgeTester = edgeTester;
-
             //smoothKernel = MathUtil.getBoxKernel(0);
 
         }
@@ -480,7 +487,7 @@ public class MeshMakerMT {
         }
 
         public void run() {
-
+            origNumTriangles = 0;
             // make isosurface extrator
 
             while (true) {
@@ -556,6 +563,8 @@ public class MeshMakerMT {
             int vertexCount = its.getVertexCount();
             int faceCount = its.getFaceCount();
 
+            origNumTriangles += faceCount;
+
             //printf("faceCount: %d vertexCount: %d\n", faceCount, vertexCount);
 
             if (faceCount < m_noDecimationSize) {
@@ -624,6 +633,10 @@ public class MeshMakerMT {
             block.its = its;
             block.finalFaceCount = fcount;
 
+        }
+
+        public long getNumTriangles() {
+            return origNumTriangles;
         }
 
     } // class BlockProcessor
