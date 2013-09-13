@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 import static java.lang.System.nanoTime;
@@ -56,6 +57,9 @@ public class MeshMakerMT {
 
     //max error of decimation
     protected double m_maxDecimationError = 1.e-9;
+    final static int VERSION1 = 1, VERSION2 =2;
+    static int version=VERSION2;
+    
 
     protected int m_interpolationAlgorithm = IsosurfaceMaker.INTERPOLATION_LINEAR;
 
@@ -139,6 +143,68 @@ public class MeshMakerMT {
      * creates mesh and feeds it into triangle collector
      */
     public int makeMesh(Grid grid, TriangleCollector tc) {
+        switch(version){
+        default: 
+        case VERSION1:
+            return makeMesh_v1(grid, tc);
+        case VERSION2:
+            return makeMesh_v2(grid, tc);
+        }
+    }
+
+    /**
+       uses octree for block structure 
+     */
+    public int makeMesh_v2(Grid grid, TriangleCollector tc) {
+
+        long t0 = time();
+        GridBlockSet blocks = makeBlocksOctree(grid.getWidth(), grid.getHeight(), grid.getDepth(), m_blockSize);
+                
+        //blocks.dump();
+
+        ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
+
+        BlockProcessor threads[] = new BlockProcessor[m_threadCount];
+        double smoothKernel[] = null;
+        if (m_smoothingWidth > 0.) {
+            smoothKernel = MathUtil.getGaussianKernel(m_smoothingWidth);
+        }
+
+        for (int i = 0; i < m_threadCount; i++) {
+            threads[i] = new BlockProcessor(grid, blocks, smoothKernel, m_gridMaxAttributeValue);
+            if (m_edgeTester != null) {
+                threads[i].setEdgeTester((EdgeTester) (m_edgeTester.clone()));
+            }
+            executor.submit(threads[i]);
+
+        }
+
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        printf("MESH_EXTRACTION_TIME: %d ms\n", (time() - t0));
+
+        // last block has the final mesh 
+        GridBlock block = blocks.getLast(); 
+        if(true){
+            //printf("    lastBlock: %s\n", block);
+            printf("    origFaceCount: %d\n", block.origFaceCount);
+            printf("    finalFaceCount: %d\n", block.finalFaceCount);
+        }
+        block.writeTriangles(tc);        
+        return RESULT_OK;
+
+    }
+
+    /**
+       uses array for block
+     */
+    public int makeMesh_v1(Grid grid, TriangleCollector tc) {
 
         long t0 = time();
 
@@ -154,7 +220,7 @@ public class MeshMakerMT {
         }
 
         for (int i = 0; i < m_threadCount; i++) {
-            threads[i] = new BlockProcessor(grid, blocks, m_maxDecimationError, smoothKernel, m_gridMaxAttributeValue);
+            threads[i] = new BlockProcessor(grid, blocks, smoothKernel, m_gridMaxAttributeValue);
             if (m_edgeTester != null) {
                 threads[i].setEdgeTester((EdgeTester) (m_edgeTester.clone()));
             }
@@ -175,7 +241,8 @@ public class MeshMakerMT {
             num_tris += threads[i].getNumTriangles();
         }
 
-        printf("Raw number of triangles before decimation: %d\n",num_tris);
+        if(DEBUG)
+            printf("Raw number of triangles before decimation: %d\n",num_tris);
 
 
         printf("MESH_EXTRACTION_TIME: %d ms\n", (time() - t0));
@@ -192,7 +259,8 @@ public class MeshMakerMT {
             finalFaceCount += block.finalFaceCount;
         }
 
-        printf("finalFaceCount: %d\n", finalFaceCount);
+        if(DEBUG)
+            printf("finalFaceCount: %d\n", finalFaceCount);
 
         int max_loop = 3;
         int attempts = 0;
@@ -201,14 +269,14 @@ public class MeshMakerMT {
         while(finalFaceCount > m_maxTriangles && attempts < max_loop) {
             blocks.rewind();
             // TODO: Not sure how aggressive to change decimation error;
-            double max_decimation_error = m_maxDecimationError * Math.pow(10.0,attempts + 1);
-            System.out.println("Count is above max triangle limit: " + finalFaceCount + " new decimationError: " + max_decimation_error);
+            m_maxDecimationError *= 10;
+            System.out.println("Count is above max triangle limit: " + finalFaceCount + " new decimationError: " + m_maxDecimationError);
 
             executor = Executors.newFixedThreadPool(m_threadCount);
 
             BlockDecimator[] workers = new BlockDecimator[m_threadCount];
             for (int i = 0; i < m_threadCount; i++) {
-                workers[i] = new BlockDecimator(blocks, max_decimation_error);
+                workers[i] = new BlockDecimator(blocks);
                 if (m_edgeTester != null) {
                     workers[i].setEdgeTester((EdgeTester) (m_edgeTester.clone()));
                 }
@@ -259,9 +327,10 @@ public class MeshMakerMT {
 
         }
 
-        printf("originalFaceCount: %d\n", origFaceCount);
-        printf("finalFaceCount: %d\n", finalFaceCount);
-
+        if(DEBUG){
+            printf("originalFaceCount: %d\n", origFaceCount);
+            printf("finalFaceCount: %d\n", finalFaceCount);
+        }
         return RESULT_OK;
 
     }
@@ -286,7 +355,6 @@ public class MeshMakerMT {
         int rz = nz % blocksZ;
 
         GridBlockSet blocks = new GridBlockSet();
-
         for (int y = 0, iy = 0; y < blocksY; y++) {
 
             int iy1 = iy + by;
@@ -318,8 +386,32 @@ public class MeshMakerMT {
 
     } // makeBlocks     
 
+    /**
+       
+     */
+    GridBlockSet makeBlocksOctree(int nx, int ny, int nz, int blockSize) {
+        
+        printf("makeBlocksOctree(%d %d %d %d)\n", nx, ny, nz, blockSize);
+        GridBlockSet blocks = new GridBlockSet();
+        GridBlock block = new GridBlock(0, nx, 0, ny, 0, nz);
+        
+        block.split(blockSize, blocks);
+                
+        GridBlock gb  = blocks.getFirst();
+        
+        blocks.faceCounts = new AtomicInteger[gb.level + 1];
+        for(int i = 0; i < blocks.faceCounts.length; i++){
+            blocks.faceCounts[i] = new AtomicInteger(0);
+        }
+        blocks.currentLevel = gb.level;
+        
+        return blocks;
+        
+    } // makeBlocksOctree
 
     /**
+     *
+     * 
      * block of grid
      */
     static class GridBlock {
@@ -340,8 +432,39 @@ public class MeshMakerMT {
         int finalFaceCount;
         long timeIsosurface;
         long timeDecimation;
+        // children of octree 
+        GridBlock children[];
+        int childCount;
+        int finishedChildCount;
+        GridBlock parent; // parent in octree 
+        int level; // subdivision level of that block 
 
+        static final int 
+            C000 = 0,
+            C001 = 1,
+            C010 = 2,
+            C011 = 3,
+            C100 = 4,
+            C101 = 5,
+            C110 = 6,
+            C111 = 7;
+
+        static final int SPLITX = 1, SPLITY = 2, SPLITZ = 4;
+
+        
         IndexedTriangleSetBuilder its = null;
+
+        GridBlock(){
+
+        }
+
+        GridBlock(int xmi, int xma, int ymi, int yma, int zmi, int zma ){
+            setBlock(xmi, xma, ymi, yma, zmi, zma);
+        }
+
+        void setParent(GridBlock block){
+            parent = block;
+        }
 
         void setBlock(int x0, int x1, int y0, int y1, int z0, int z1) {
 
@@ -356,6 +479,97 @@ public class MeshMakerMT {
 
         }
 
+        void split(int blockSize, GridBlockSet blocks){
+            if(DEBUG) printf("split %s\n", this);
+            int flags = 0;
+            if(xmax - xmin > blockSize) flags |= SPLITX;
+            if(ymax - ymin > blockSize) flags |= SPLITY;
+            if(zmax - zmin > blockSize) flags |= SPLITZ;
+            
+            if(flags == 0){
+                //if(DEBUG) printf(" NOSPLIT %s\n", this);
+                // no split is needed 
+                blocks.add(this);
+                return;
+            }
+            
+            children = new GridBlock[8];
+
+            int x1 = 0, y1 = 0, z1 = 0;
+            switch(flags){
+            default: 
+                // should not happens
+                break;
+            case C001:
+                x1 = (xmin+xmax)/2;
+                children[C000] = new GridBlock(xmin,   x1, ymin, ymax, zmin, zmax);
+                children[C001] = new GridBlock(x1,   xmax, ymin, ymax, zmin, zmax);
+                break;
+
+            case C010:
+                y1 = (ymin+ymax)/2;
+                children[C000] = new GridBlock(xmin, xmax, ymin,   y1, zmin, zmax);
+                children[C010] = new GridBlock(xmin, xmax, y1,   ymax, zmin, zmax);
+                break;
+            case C100:
+                z1 = (zmin+zmax)/2;
+                children[C000] = new GridBlock(xmin, xmax, ymin, ymax, zmin, z1);
+                children[C100] = new GridBlock(xmin, xmax, ymin, ymax, z1, zmax);
+                break;
+
+            case C011:
+                x1 = (xmin+xmax)/2;
+                y1 = (ymin+ymax)/2;
+                children[C000] = new GridBlock(xmin,   x1, ymin,   y1, zmin, zmax);
+                children[C001] = new GridBlock(x1,   xmax, ymin,   y1, zmin, zmax);
+                children[C010] = new GridBlock(xmin,   x1, y1,   ymax, zmin, zmax);
+                children[C011] = new GridBlock(x1,   xmax, y1,   ymax, zmin, zmax);
+                break;
+            case C101:
+                x1 = (xmin+xmax)/2;
+                z1 = (zmin+zmax)/2;
+                children[C000] = new GridBlock(xmin,   x1, ymin, ymax, zmin, z1);
+                children[C001] = new GridBlock(x1,   xmax, ymin, ymax, zmin, z1);
+                children[C100] = new GridBlock(xmin,   x1, ymin, ymax, z1, zmax);
+                children[C101] = new GridBlock(x1,   xmax, ymin, ymax, z1, zmax);
+                break;
+            case C110:
+                y1 = (ymin+ymax)/2;
+                z1 = (zmin+zmax)/2;
+                children[C000] = new GridBlock(xmin, xmax, ymin,   y1, zmin, z1);
+                children[C010] = new GridBlock(xmin, xmax, y1,   ymax, zmin, z1);
+                children[C100] = new GridBlock(xmin, xmax, ymin,   y1, z1, zmax);
+                children[C110] = new GridBlock(xmin, xmax, y1,   ymax, z1, zmax);
+                break;
+            case C111:
+                x1 = (xmin+xmax)/2;
+                y1 = (ymin+ymax)/2;
+                z1 = (zmin+zmax)/2;
+                children[C000] = new GridBlock(xmin,   x1, ymin,   y1, zmin, z1);
+                children[C001] = new GridBlock(x1,   xmax, ymin,   y1, zmin, z1);
+                children[C010] = new GridBlock(xmin,   x1, y1,   ymax, zmin, z1);
+                children[C011] = new GridBlock(x1,   xmax, y1,   ymax, zmin, z1);
+                children[C100] = new GridBlock(xmin,   x1, ymin,   y1, z1, zmax);
+                children[C101] = new GridBlock(x1,   xmax, ymin,   y1, z1, zmax);
+                children[C110] = new GridBlock(xmin,   x1, y1,   ymax, z1, zmax);
+                children[C111] = new GridBlock(x1,   xmax, y1,   ymax, z1, zmax);
+
+            }
+
+            int childLevel = this.level+1;
+            for(int i = 0; i < children.length; i++){
+                GridBlock child = children[i];
+                if(child != null){
+                    childCount++;
+                    child.level = childLevel;
+                    child.split(blockSize, blocks);
+                    child.setParent(this);
+                }                    
+                   
+            }
+                
+        }
+        
         void writeTriangles(TriangleCollector tc) {
 
             if (its != null) {
@@ -386,44 +600,118 @@ public class MeshMakerMT {
             }
         }
 
-    }
+        synchronized void childFinished(GridBlockSet blocks){
+            finishedChildCount++;
+            if(DEBUG)                        
+                printf("     finished: %s child %3d of %3d\n", this,finishedChildCount,childCount);
+            if(finishedChildCount >= childCount){
+                
+                if(DEBUG)
+                    printf("     adding to processing %s\n", this);
+                blocks.add(this);
+            }
+        }
+
+        void informParent(GridBlockSet blocks){
+
+            blocks.faceCounts[level].addAndGet(finalFaceCount);
+
+            if(parent != null)
+                parent.childFinished(blocks);
+        }
+        boolean hasChildren(){
+            return (children != null);
+        }
+        
+        public String toString(){
+            return fmt("block(%3d %3d %3d %3d %3d %3d)children: %s", xmin,xmax,ymin,ymax,zmin,zmax, (children != null));
+        }
+
+    } // class GridBlock 
 
     /**
+     *
+     * class GridBlockSet
+     *
      * collection of grid blocks
+     *
      */
-    static class GridBlockSet {
+    class GridBlockSet {
 
         Vector<GridBlock> gridBlocks;
         AtomicInteger currentBlock = new AtomicInteger(0);
+        int currentLevel;
+        AtomicInteger faceCounts[];
 
         GridBlockSet() {
             gridBlocks = new Vector<GridBlock>();
         }
-
+        
         public void rewind() {
             currentBlock.set(0);
         }
 
-        public GridBlock getNext() {
+        public synchronized GridBlock getNext() {
 
             int next = currentBlock.getAndIncrement();
-            if (next >= gridBlocks.size())
+            if (next >= gridBlocks.size()){
+                // thread finished, but may be there is another thread running which will add new jobs 
+                // so we have to revert 
+                currentBlock.getAndDecrement();
                 return null;
-            else
-                return gridBlocks.get(next);
+
+            } else {
+                
+                GridBlock block = gridBlocks.get(next);
+                if(block.level != currentLevel){
+                    int currentCount = faceCounts[currentLevel].get();
+                    if(true)
+                        printf("fcount[%d]:%d\n", currentLevel, faceCounts[currentLevel].get());
+                    if(currentCount > (int)(m_maxTriangles*1.5)){
+                        m_maxDecimationError *= 4;
+                        if(true)
+                            printf("new decimation error: %g\n", m_maxDecimationError);
+                    }
+                    currentLevel = block.level;
+                }
+                return block;
+            }
         }
 
-        public void add(GridBlock block) {
+        public synchronized void add(GridBlock block) {
+            if(DEBUG)
+                printf("add(%s)\n", block);
             gridBlocks.add(block);
         }
+
+        public int getSize(){
+            return gridBlocks.size();
+        }
+
+        public GridBlock getLast(){
+            return gridBlocks.get(gridBlocks.size()-1);
+        }
+
+        public GridBlock getFirst(){
+            return gridBlocks.get(0);
+        }
+
+        public void dump(){
+            for(int i = 0; i < gridBlocks.size(); i++){
+                printf("%3d: %s\n", i, gridBlocks.get(i));
+            }
+        }
+
     } // class GridBlockSet
 
+    static AtomicInteger threadCount = new AtomicInteger(0);
 
     /**
      * extract mesh from a block of the grid
      */
     class BlockProcessor implements Runnable {
 
+        String threadName;
         Grid grid;
         // physical bounds of the grid 
         double gridBounds[] = new double[6];
@@ -440,7 +728,7 @@ public class MeshMakerMT {
         int gnx, gny, gnz;
         double gxmin, gymin, gzmin;
         double gdx, gdy, gdz;
-        double maxDecimationError;
+        //double maxDecimationError;
         IsosurfaceMaker imaker;
         MeshDecimator decimator;
         IsosurfaceMaker.BlockSmoothingSlices slicer;
@@ -451,14 +739,14 @@ public class MeshMakerMT {
 
         BlockProcessor(Grid grid,
                        GridBlockSet blocks,
-                       double maxDecimationError,
+                       //double maxDecimationError,
                        double smoothKernel[],
                        int gridMaxAttributeValue
         ) {
 
             this.grid = grid;
             this.blocks = blocks;
-            this.maxDecimationError = maxDecimationError;
+            //this.maxDecimationError = maxDecimationError;
             this.gridBounds = new double[6];
             grid.getGridBounds(gridBounds);
 
@@ -476,8 +764,8 @@ public class MeshMakerMT {
             slicer.setGridMaxAttributeValue(gridMaxAttributeValue);
 
             this.smoothKernel = smoothKernel;
-            //smoothKernel = MathUtil.getBoxKernel(0);
-
+            
+            this.threadName = "thread" + threadCount.getAndIncrement();
         }
 
         void setEdgeTester(EdgeTester edgeTester) {
@@ -493,12 +781,16 @@ public class MeshMakerMT {
             while (true) {
 
                 GridBlock block = blocks.getNext();
-
+                if(DEBUG)
+                    printf(" %s block: %s\n", threadName, block);
                 if (block == null)
                     break;
-
+                
                 try {
-                    processBlock(block);
+                    if(block.hasChildren())
+                        joinAndDecimate(block);
+                    else 
+                        buildAndDecimate(block);
 
                 } catch (Exception e) {
 
@@ -508,8 +800,10 @@ public class MeshMakerMT {
             }
         }
 
-        void processBlock(GridBlock block) {
+        void buildAndDecimate(GridBlock block) {
 
+            if(DEBUG)
+                printf("buildAndDecimate(%s)\n", block);
             blockBounds[0] = gxmin + block.xmin * gdx + gdx / 2;
             blockBounds[1] = blockBounds[0] + (block.xmax - block.xmin) * gdx;
             blockBounds[2] = gymin + block.ymin * gdy + gdy / 2;
@@ -544,14 +838,11 @@ public class MeshMakerMT {
             slicer.initBlock(block.xmin, block.xmax, block.ymin, block.ymax, block.zmin, block.zmax, smoothKernel);
             if (!slicer.containsIsosurface()) {
                 if (DEBUG) System.out.println("Nothing here");
+                block.informParent(blocks);
                 return;
             }
             imaker.makeIsosurface(slicer, its);
 
-            //imaker.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, gridBounds, 2), its);
-
-
-            //printf("isosurface done %d ms\n", (nanoTime() - t0));
 
             long t1;
             if (STATS) {
@@ -576,6 +867,8 @@ public class MeshMakerMT {
 
                 // TODO: added this, I suspect total faceCount was wrong without this.
                 block.finalFaceCount = faceCount;
+
+                block.informParent(blocks);
                 return;
             }
 
@@ -601,7 +894,6 @@ public class MeshMakerMT {
 
             if (decimator == null) {
                 decimator = new MeshDecimator();
-                decimator.setMaxCollapseError(maxDecimationError);
                 if (edgeTester != null) {
                     decimator.setEdgeTester(edgeTester);
                 }
@@ -617,6 +909,7 @@ public class MeshMakerMT {
 
             int fcount = mesh.getTriangleCount();
 
+            decimator.setMaxCollapseError(m_maxDecimationError);
             while (count-- > 0) {
 
                 int target = fcount / 2;
@@ -632,6 +925,81 @@ public class MeshMakerMT {
             mesh.getTriangles(its);
             block.its = its;
             block.finalFaceCount = fcount;
+            
+            if(DEBUG)
+                printf("%s informParent()\n", threadName);
+            block.informParent(blocks);
+            if(DEBUG)
+                printf("%s parent informed blocks: %d\n", threadName, blocks.getSize());
+        }
+
+        //
+        // joining faces of children blocks 
+        //
+        void joinAndDecimate(GridBlock block) {
+
+            if(DEBUG)
+                printf("joinAndDecimate(%s)\n", block);
+
+            its.clear();
+
+            for(int i = 0; i < block.children.length; i++){
+                GridBlock child = block.children[i];
+                if(child != null){
+                    if(DEBUG)
+                        printf("  child %s origFaces: %d finalFaces: %d\n", child, child.origFaceCount, child.finalFaceCount);
+                    child.writeTriangles(its);
+                    block.origFaceCount += child.origFaceCount;
+                }
+            }
+
+            int vertexCount = its.getVertexCount();
+            int faceCount = its.getFaceCount();
+
+            if(DEBUG)
+                printf("    fcount before decimation: %d\n", faceCount);
+            
+            if (faceCount < m_noDecimationSize) {
+                // no decimation is needed - store result 
+                block.faces = new int[faceCount * 3];
+                its.getFaces(block.faces);
+                block.vertices = new double[3 * its.getVertexCount()];
+                its.getVertices(block.vertices);
+                block.finalFaceCount = faceCount;
+                block.informParent(blocks);
+                return;
+            }
+
+            // will do decimation 
+            vertices = its.getVertices(vertices);
+            faces = its.getFaces(faces);
+            
+            mesh.clear();
+            mesh.setFaces(vertices, vertexCount, faces, faceCount);
+            
+            int iterations = 5;
+
+            int fcount = mesh.getTriangleCount();
+            if(DEBUG)
+                printf("  decimating fcount: %d\n", fcount); 
+            decimator.setMaxCollapseError(m_maxDecimationError);
+            while(iterations-- > 0){
+                //TODO better algorithm to deal with block boundaries
+                decimator.processMesh(mesh, fcount/2);
+                int fc = mesh.getTriangleCount();
+                if(DEBUG)
+                    printf("        fcount: %d\n", fc);                        
+                if(fc > (int)(fcount*0.99))
+                    break;
+                fcount = fc;
+            }
+            IndexedTriangleSetBuilder ts = new IndexedTriangleSetBuilder(fcount);
+            mesh.getTriangles(ts);
+            block.its = ts;
+            block.finalFaceCount = fcount; 
+            //TODO - release children memory
+
+            block.informParent(blocks);
 
         }
 
@@ -652,16 +1020,14 @@ public class MeshMakerMT {
         double vertices[]; // intermediate memory for vertices
         int faces[];  // intermediate memory for face indexes
 
-        double maxDecimationError;
+        //double maxDecimationError;
         MeshDecimator decimator;
         EdgeTester edgeTester;
 
-        BlockDecimator(GridBlockSet blocks,
-                       double maxDecimationError
-        ) {
+        BlockDecimator(GridBlockSet blocks){
 
             this.blocks = blocks;
-            this.maxDecimationError = maxDecimationError;
+            //this.maxDecimationError = maxDecimationError;
         }
 
         void setEdgeTester(EdgeTester edgeTester) {
@@ -726,7 +1092,7 @@ public class MeshMakerMT {
 
             if (decimator == null) {
                 decimator = new MeshDecimator();
-                decimator.setMaxCollapseError(maxDecimationError);
+                decimator.setMaxCollapseError(m_maxDecimationError);
                 if (edgeTester != null) {
                     decimator.setEdgeTester(edgeTester);
                 }
