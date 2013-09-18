@@ -1,0 +1,551 @@
+//
+// maker of polyhedra compounds 
+//
+// author Vladimir Bulatov
+//
+var TAU = (Math.sqrt(5)+1)/2; // golden ratio 
+var PI = Math.PI; 
+
+// transformation types 
+// single component 
+var TT_SINGLE = 0;  
+// this are transforms to make compound with cubical symmetry
+var TT_3CUBE = 1;
+var TT_4CUBE = 2;
+var TT_6CUBE = 3;
+var TT_4ICOSA1 = 4;
+var TT_4ICOSA2 = 5;
+var TT_2ICOSA = 6;
+var TT_6ICOSAO = 7;
+// these are transforms id to make compount with icosahedral symmetry
+var TT_5TETRA = 9;
+var TT_5ICOSA = 9;
+var TT_6ICOSAI = 10;
+
+// polyhedron types 
+// polyhedra with symmetry of tetrahedron 
+var PT_TETRA = 1;
+var PT_TRUNCATEDTETRA = 2;
+// polyhedra with symmetry of cube 
+var PT_CUBE = 3;
+var PT_OCTA = 4;
+var PT_RD = 5;
+var PT_2TETRA = 6;
+var PT_CUBE_OCTA_COMPOUND = 7;
+var PT_CUBOCTA = 8;
+// polyhedra with symmetry of icosahedron
+var PT_ICOSA = 9;
+var PT_DODECA = 10;
+var PT_RTC = 11;
+
+
+// returns plane via 3 points (v1, 0, v2)
+// external normal points in the direction from where points are ordered  counter clockwise 
+function getPlane(v1,v2){
+	var n = new Vector3d();
+	n.cross(v2,v1);
+	n.normalize();
+	return ReflectionSymmetry.getPlane(n, 0);
+	
+}
+
+//
+// takes aray of transforms and single part and makes union of copies of transformed by transfomations from array
+//
+function makeCompound(transforms, part){
+	var union = new Union();
+	for(var i = 0; i < transforms.length; i++){
+		var dt = new DataTransformer();
+		dt.setTransform(transforms[i]);
+		dt.setSource(part);
+		union.add(dt);
+	}
+	return union;
+}
+	
+function makeDodecahedronEdge(size, thickness){
+
+	var v3 = new Vector3d(0,1/TAU,TAU); // vertex of dodecahedron 
+	
+	v3.normalize();
+	
+	v3.scale(size);
+	var union = new Union();
+	union.add(new Cylinder(v3, new Vector3d(0, -v3.y, v3.z), thickness/2));
+	union.add(new Sphere(v3, thickness/2));
+	return union;
+	
+}	
+
+function makeIcosahedronEdge(size, thickness){
+
+    var v5 = new Vector3d(1,0,TAU); // vertex of icosahedron 
+	
+	v5.normalize();
+	
+	v5.scale(size);
+	var union = new Union();
+	union.add(new Cylinder(v5, new Vector3d(-v5.x, v5.y, v5.z), thickness/2));
+	union.add(new Sphere(v5, thickness/2));
+	return union;
+	
+}	
+
+
+function makeOctahedronEdge( size, thickness){
+
+    var v4 = new Vector3d(0,0,size); // vertex of cube
+	
+	var union = new Union();
+	union.add(new Cylinder(v4, new Vector3d(0, v4.z, v4.y), thickness/2));
+	union.add(new Sphere(v4, thickness/2));
+	return union;
+
+}	
+
+function makeCubeEdge( size, thickness){
+	
+    var v3 = new Vector3d(1,1,1); // vertex of cube
+	v3.normalize();	
+	v3.scale(size);
+	
+	var union = new Union();
+	union.add(new Cylinder(v3, new Vector3d(-v3.x, v3.y, v3.z), thickness/2));
+	union.add(new Sphere(v3, thickness/2));
+	return union;
+
+}	
+
+function getOctahedralSymmetry( ){
+
+    var v3 = new Vector3d(1,1,1); // vertex of cube
+    var v4 = new Vector3d(0,0,1); // vertex of octahedron	
+    var ve = new Vector3d(0,1,1); // vertex on edge of cube
+	
+    var n34 = new Vector3d();  // normal to (0, v3 v4), 
+	n34.cross(v3, v4); n34.normalize();
+
+    var ne3 = new Vector3d(); // normal to (0, vr, v3)
+	ne3.cross(ve, v3); 	ne3.normalize();
+	
+    var splanes = new Array();
+	var count = 0;
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(-1,0,0), 0.);
+    splanes[count++] = new ReflectionSymmetry.getPlane(n34, 0.);
+	splanes[count++] = new ReflectionSymmetry.getPlane(ne3, 0.);
+	
+	return new ReflectionSymmetry(splanes);
+	
+}
+
+function getTetrahedralSymmetry( ){
+
+    var v3 = new Vector3d(1,1,1); // vertex of cube
+    var v2 = new Vector3d(0,0,1); // vertex of octahedron	
+    var v3a = new Vector3d(-1,1,1); // anoher vertex of cube
+		
+    var splanes = new Array();
+	var count = 0;
+	splanes[count++] = getPlane(v2,v3); 
+    splanes[count++] = getPlane(v3,v3a); 
+	splanes[count++] = getPlane(v3a,v2); 
+	
+	return new ReflectionSymmetry(splanes);
+	
+}
+
+function getIcosahedralSymmetry( ){
+
+
+    var v5 = new Vector3d(1,0,TAU); // vertex of icosahedron 
+    var v3 = new Vector3d(0,1/TAU,TAU); // vertex of dodecahedron 
+    var p35 = new Vector3d(); // normal to plane via (0, v3, v5)
+	
+	p35.cross(v3, v5); 
+	p35.normalize();
+	
+    var splanes = new Array();
+	var count = 0;
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(-1,0,0), 0.);
+    splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(0,-1,0), 0.);
+	splanes[count++] = new ReflectionSymmetry.getPlane(p35, 0.);
+	
+	return new ReflectionSymmetry(splanes);
+	
+}
+
+function getTetrahedron(radius, thickness){
+
+	var s = radius/Math.sqrt(3);
+	
+	var v1 = new Vector3d(s,s,s);
+	var v2 = new Vector3d(-s,-s,s);
+	
+	var edge = new Union();	
+	edge.add(new Cylinder(v1, v2, thickness/2));	
+	edge.add(new Sphere(v1, thickness/2));	
+	
+	edge.setTransform(getTetrahedralSymmetry());
+	var tetra = new DataTransformer();
+	tetra.setSource(edge);	
+	
+	return tetra;
+	
+}	
+
+function getTruncatedTetrahedron(radius, thickness){
+
+	var s = 1;
+	var p = 1/2; 
+	//var p = 1./3; // true truncated tetrahedron 
+	//var p = 1/5.;
+	
+	var len = Math.sqrt(2*p*p + 1);
+	s *= radius/len;
+	p *= radius/len;
+	
+	var v1 = new Vector3d(p,p,s);
+	var v2 = new Vector3d(-p,-p,s);
+	var v3 = new Vector3d(p,s, p);
+	
+	var edge = new Union();	
+	edge.add(new Cylinder(v1, v2, thickness/2));	
+	edge.add(new Cylinder(v1, v3, thickness/2));	
+	edge.add(new Sphere(v1, thickness/2));	
+	
+	edge.setTransform(getTetrahedralSymmetry());
+	var tetra = new DataTransformer();
+	tetra.setSource(edge);	
+	
+	return tetra;
+	
+}	
+
+function getCube(radius, thickness){
+
+	var edge = makeCubeEdge(radius, thickness);
+	edge.setTransform(getOctahedralSymmetry());
+	var cube = new DataTransformer();
+	cube.setSource(edge);	
+	return cube;
+	
+}	
+
+function getOctahedron(radius, thickness){
+
+	var edge = makeOctahedronEdge(radius, thickness);
+	edge.setTransform(getOctahedralSymmetry());
+	var octahedron = new DataTransformer();
+	octahedron.setSource(edge);	
+	return octahedron;
+	
+}	
+
+function getCuboctahedron(radius, thickness){
+
+	var r = radius/Math.sqrt(2);
+	var v1 = new Vector3d(r,0,r);
+	var v2 = new Vector3d(0,r,r);
+	var edge = new Union();
+	edge.add(new Cylinder(v1, v2,thickness/2));
+	edge.add(new Sphere(v2, thickness/2));
+	edge.setTransform(getOctahedralSymmetry());
+	var co = new DataTransformer();
+	co.setSource(edge);	
+	return co;
+	
+}	
+
+function getIcosahedron(radius, thickness){
+
+	var edge = makeIcosahedronEdge(radius, thickness);
+	edge.setTransform(getIcosahedralSymmetry());
+	var icosa = new DataTransformer();
+	icosa.setSource(edge);	
+	return icosa;
+	
+}	
+
+function getDodecahedron(radius, thickness){
+
+	var edge = makeDodecahedronEdge(radius, thickness);
+	edge.setTransform(getIcosahedralSymmetry());
+	var dodeca = new DataTransformer();
+	dodeca.setSource(edge);	
+	return dodeca;
+	
+}	
+
+// rhombic triacontahedron 
+function getRTC(radius, thickness){
+
+	var s = radius/Math.sqrt(1 + 1./(TAU*TAU));
+    var v5 = new Vector3d(s/TAU,0,s); // vertex of icosahedron 
+    var v3 = new Vector3d(0,s/(TAU*TAU),s); // vertex of dodecahedron 
+
+	var union = new Union();
+	union.add(new Cylinder(v3, v5, thickness/2));	
+	union.add(new Sphere(v3, thickness/2));	
+	union.add(new Sphere(v5, thickness/2));	
+	
+	union.setTransform(getIcosahedralSymmetry());
+	var rtc = new DataTransformer();
+	rtc.setSource(union);	
+	return rtc;
+	
+}
+
+// rhombic dodecahedron
+function getRD(radius, thickness){
+
+	var s = radius;
+    var v4 = new Vector3d(0,0,s); // vertex of icosahedron 
+    var v3 = new Vector3d(s/2,s/2,s/2); // vertex of dodecahedron 
+
+	var union = new Union();
+	union.add(new Cylinder(v3, v4, thickness/2));	
+	union.add(new Sphere(v3, thickness/2));	
+	union.add(new Sphere(v4, thickness/2));	
+	
+	union.setTransform(getOctahedralSymmetry());
+	var rd = new DataTransformer();
+	rd.setSource(union);	
+	return rd;
+	
+}
+
+function getIcosaDodeca(radius, thickness){
+	var union = new Union();
+	
+	union.add(getIcosahedron(radius, thickness));
+	union.add(getDodecahedron(radius*0.91, thickness));
+	return union;
+}
+
+function getIcosaOctaCompound(radius, thickness){
+	var union = new Union();
+	
+	union.add(getIcosahedron(0.727*radius, thickness));
+	union.add(getOctahedron(radius, thickness));
+	return union;
+}
+
+function getCubeOctaCompound(radius, thickness){
+	var union = new Union();
+	
+	union.add(getCube(0.865*radius, thickness));
+	union.add(getOctahedron(radius, thickness));
+	return union;
+}
+
+function get2Tetra(radius, thickness){
+	
+	var union = new Union();
+	var t = getTetrahedron(radius, thickness);
+	union.add(t);
+	var t1 = getTetrahedron(radius, thickness);
+	t1.setTransform(new Rotation(new Vector3d(0,0,1), PI/2));
+	union.add(t1);
+	return union;
+}
+
+
+function getIdentity(){
+	
+	var trans = new Array();
+	var c = 0;
+	trans[0] = new Identity();
+	return trans;
+	
+}
+
+function get4TetraTransforms(){
+	var trans = new Array();
+	var c = 0;
+	trans[c++] = new Rotation( 1,  1, 1, PI/3);
+	trans[c++] = new Rotation(-1, -1, 1, PI/3);
+	trans[c++] = new Rotation( 1, -1,-1, PI/3);
+	trans[c++] = new Rotation(-1,  1,-1, PI/3);
+	return trans;
+ }
+
+function get5TetraTransforms(){
+	
+	var trans = new Array();
+	var c = 0;
+	
+    var v5 = new Vector3d(1,0,TAU); // vertex of icosahedron 
+	for(var i = 0; i < 5; i++){
+		trans[i] = new Rotation(v5, i*2*PI/5);
+	}	
+	
+	return trans;
+	
+}
+
+function get3CubeTransforms(){
+
+	var trans = new Array();
+	var c = 0;
+	trans[c++] = new Rotation(1, 0, 0, PI/4);
+	trans[c++] = new Rotation(0, 1, 0, PI/4);
+	trans[c++] = new Rotation(0, 0, 1, PI/4);
+	
+	return trans;
+	
+}
+
+ function get4CubeTransforms(){
+	var trans = new Array();
+	var c = 0;
+	trans[c++] = new Rotation( 1, 1, 1, PI/3);
+	trans[c++] = new Rotation(-1,-1, 1, PI/3);
+	trans[c++] = new Rotation( 1,-1,-1, PI/3);
+	trans[c++] = new Rotation(-1, 1,-1, PI/3);
+	return trans;
+ }
+
+function get6CubeTransforms(){
+
+	var trans = new Array();
+	var c = 0;
+	trans[c++] = new Rotation(1, 1, 0, PI/2);
+	trans[c++] = new Rotation(-1, 1, 0, PI/2);
+	trans[c++] = new Rotation(0, 1, 1, PI/2);
+	trans[c++] = new Rotation(0, -1, 1, PI/2);
+	trans[c++] = new Rotation(1, 0, 1, PI/2);
+	trans[c++] = new Rotation(-1,0, 1, PI/2);
+	
+	return trans;
+ }
+	 
+ 
+function get2IcosaTransforms(){
+	var trans = new Array();
+	var c= 0;
+	trans[c++] = new Rotation(0,0,1,0);
+	trans[c++] = new Rotation(0,0,1,PI/2);
+	return trans;	
+}
+
+function get5IcosaTransforms(){
+	var trans = new Array();
+	var c= 0;
+	trans[c++] = new Rotation(0,0,1,PI/2);
+	trans[c++] = new Rotation(1,-TAU, (1+TAU),PI/2);
+	trans[c++] = new Rotation((1+TAU), 1, TAU,PI/2);
+	trans[c++] = new Rotation((1+TAU),-1, TAU,PI/2);
+	trans[c++] = new Rotation(1, TAU, (1+TAU),PI/2);
+	return trans;	
+}
+
+function get4Icosa1Transforms(){
+
+	var trans = new Array();
+	var c= 0;
+	var a = -0.659058;
+	trans[c++] = new Rotation(1, 1, 1,a);
+	trans[c++] = new Rotation(1,-1,-1,a);
+	trans[c++] = new Rotation(-1,1,-1,a);
+	trans[c++] = new Rotation(-1,-1,1,a);
+	return trans;	
+}
+
+function get4Icosa2Transforms(){
+
+	var trans = new Array();
+	var c= 0;
+	var a = 0.3927;
+	trans[c++] = new Rotation(1, 1, 1,a);
+	trans[c++] = new Rotation(1,-1,-1,a);
+	trans[c++] = new Rotation(-1,1,-1,a);
+	trans[c++] = new Rotation(-1,-1,1,a);
+	return trans;	
+}
+
+function get6IcosaITransforms(){
+
+	var trans = new Array();
+	var c= 0;
+	var a = 0.62831;
+	trans[c++] = new Rotation(1, 0, TAU, a);
+	trans[c++] = new Rotation(-1, 0, TAU, a);
+	trans[c++] = new Rotation(0, TAU, 1, a);
+	trans[c++] = new Rotation(0, TAU, -1, a);
+	trans[c++] = new Rotation(TAU, 1, 0, a);
+	trans[c++] = new Rotation(TAU, -1, 0, a);
+	
+	return trans;	
+}
+
+function get6IcosaOTransforms(){
+
+	var trans = new Array();
+	var c= 0;
+	var a = 0.7854;
+	trans[c++] = new Rotation(1, 0, 0, a);
+	trans[c++] = new Rotation(1, 0, 0, -a);
+	trans[c++] = new Rotation(0, 1, 0, a);
+	trans[c++] = new Rotation(0, 1, 0, -a);
+	trans[c++] = new Rotation(0, 0, 1, a);
+	trans[c++] = new Rotation(0, 0, 1, -a);
+		
+	return trans;	
+}
+	
+function main(){
+
+	var radius = 10*MM;	
+	var thickness = 1*MM;	
+	var voxelSize = 0.1*MM;
+	var a = radius + 2*thickness;
+		
+		
+	var transType = TT_4CUBE;
+	var partType = PT_TETRA;
+	
+	var trans;
+	var part;
+	
+	switch(transType){
+		default:
+		case TT_SINGLE: trans = getIdentity(); break;		
+		case TT_5TETRA: trans = get5TetraTransforms(); break;		
+		case TT_3CUBE: trans = get3CubeTransforms(); break;		
+		case TT_4CUBE: trans = get4CubeTransforms(); break;		
+		case TT_6CUBE: trans = get6CubeTransforms(); break;		
+		case TT_2ICOSA: trans = get2IcosaTransforms(); break;		
+		case TT_4ICOSA1:trans = get4Icosa1Transforms(); break;		
+		case TT_4ICOSA2:trans = get4Icosa2Transforms(); break;		
+		case TT_5ICOSA:trans = get5IcosaTransforms(); break;		
+		case TT_6ICOSAI: trans = get6IcosaITransforms(); break;		
+		case TT_6ICOSAO: trans = get6IcosaOTransforms(); break;		
+	}
+	switch(partType){		
+		case PT_TETRA:  part = getTetrahedron(radius, thickness); break;		
+		case PT_CUBE:   part = getCube(radius, thickness); break;		
+		case PT_OCTA:   part = getOctahedron(radius, thickness); break;		
+		case PT_RD:     part = getRD(radius, thickness); break;		
+		case PT_ICOSA:  part = getIcosahedron(radius, thickness); break;		
+		case PT_DODECA: part = getDodecahedron(radius, thickness); break;		
+		case PT_RTC:    part = getRTC(radius, thickness); break;		
+		case PT_2TETRA:  part = get2Tetra(radius, thickness); break;		
+		case PT_CUBE_OCTA_COMPOUND: part = getCubeOctaCompound(radius, thickness); break;
+		case PT_CUBOCTA: part = getCuboctahedron(radius, thickness); break;
+		case PT_TRUNCATEDTETRA: part = getTruncatedTetrahedron(radius, thickness); break;
+	}
+		
+	var union = new Union();
+	union.add(makeCompound(trans, part));
+	
+    var maker = new GridMaker();
+	
+	maker.setSource(union);
+	
+	var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	
+	maker.makeGrid(dest);
+	
+	return dest;
+	
+}

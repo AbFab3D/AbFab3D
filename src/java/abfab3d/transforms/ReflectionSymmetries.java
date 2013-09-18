@@ -107,7 +107,7 @@ public class ReflectionSymmetries {
 
         Vector3d v5 = new Vector3d(1,0,t); // vertex of icosahedron 
         Vector3d v3 = new Vector3d(0,1/t,t); // vertex of dodecahedron 
-        Vector3d p35 = new Vector3d(); p35.cross(v3, v3); p35.normalize();
+        Vector3d p35 = new Vector3d(); p35.cross(v3, v5); p35.normalize();
 
         ReflectionGroup.SPlane[] s = new ReflectionGroup.SPlane[] {
             new ReflectionGroup.Plane(new Vector3d(-1,0,0), 0.), 
