@@ -80,9 +80,9 @@ public class Ring  extends TransformableDataSource{
     /**
        makes ring centered at orign
      */
-    public Ring(double innerRadius, double thickeness, double width){
+    public Ring(double innerRadius, double thickness, double width){
         
-        this(innerRadius, thickeness, -width/2, width/2);
+        this(innerRadius, thickness, -width/2, width/2);
     }
     
     
