@@ -496,13 +496,13 @@ function get6IcosaOTransforms(){
 function main(){
 
 	var radius = 10*MM;	
-	var thickness = 1*MM;	
+	var thickness = 1.2*MM;	
 	var voxelSize = 0.1*MM;
 	var a = radius + 2*thickness;
 		
 		
-	var transType = TT_4CUBE;
-	var partType = PT_TETRA;
+	var transType = TT_2ICOSA;
+	var partType = PT_RTC;
 	
 	var trans;
 	var part;

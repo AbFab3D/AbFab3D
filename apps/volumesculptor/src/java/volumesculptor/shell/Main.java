@@ -11,6 +11,7 @@ import abfab3d.grid.Grid;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SlicesWriter;
+import abfab3d.io.output.STLWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
@@ -49,6 +50,7 @@ public class Main {
             shellContextFactory = new ShellContextFactory();
 
     public static Global global = new Global();
+
     static protected ToolErrorReporter errorReporter;
     static protected int exitCode = 0;
     static private final int EXITCODE_RUNTIME_ERROR = 3;
@@ -444,6 +446,22 @@ public class Main {
                 shellContextFactory.setCharacterEncoding(enc);
                 continue;
             }
+            if (arg.equals("-outputType")) {
+                if (++i == args.length) {
+                    usageError = arg;
+                    break goodUsage;
+                }
+                AbFab3DGlobal.setOutputType(args[i]);
+                continue;
+            }
+            if (arg.equals("-outputFolder")) {
+                if (++i == args.length) {
+                    usageError = arg;
+                    break goodUsage;
+                }
+                AbFab3DGlobal.setOutputFolder(args[i]);
+                continue;
+            }
             if (arg.equals("-strict")) {
                 shellContextFactory.setStrictMode(true);
                 shellContextFactory.setAllowReservedKeywords(false);
@@ -696,7 +714,8 @@ public class Main {
     static TriangleMesh processFileSecure(Context cx, Scriptable scope,
                                           String path, Object securityDomain, String[] args, boolean show)
             throws IOException {
-
+        printf("processing file: %s\n", path);
+        AbFab3DGlobal.setInputFilePath(path);
         boolean isClass = path.endsWith(".class");
         Object source = readFileOrUrl(path, !isClass);
 
@@ -874,6 +893,8 @@ public class Main {
         Object min_volume = thisObj.get(AbFab3DGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
         Object max_parts = thisObj.get(AbFab3DGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
 
+        printf("max_parts: %s\n", max_parts);
+        
         double sw;
         double ef;
         double mv;
@@ -936,21 +957,31 @@ public class Main {
         }
 
         try {
-            String path = "/tmp";
-            String name = "save.x3d";
-            String out = path + "/" + name  ;
-            double[] bounds_min = new double[3];
-            double[] bounds_max = new double[3];
+            String outputType = AbFab3DGlobal.getOutputType();
+            
+            if(outputType.equals("x3d")){
 
-            grid.getGridBounds(bounds_min,bounds_max);
-            double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
-            max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
-
-            double z = 2 * max_axis / Math.tan(Math.PI / 4);
-            float[] pos = new float[] {0,0,(float) z};
-
-            GridSaver.writeMesh(mesh, out);
-            X3DViewer.viewX3DOM(name, pos);
+                String path = AbFab3DGlobal.getOutputFolder();
+                String name = "save.x3d";//AbFab3DGlobal.getOutputName();
+                String out = path + "/" + name;
+                double[] bounds_min = new double[3];
+                double[] bounds_max = new double[3];
+                
+                grid.getGridBounds(bounds_min,bounds_max);
+                double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+                max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+                
+                double z = 2 * max_axis / Math.tan(Math.PI / 4);
+                float[] pos = new float[] {0,0,(float) z};
+                
+                GridSaver.writeMesh(mesh, out);
+                X3DViewer.viewX3DOM(name, pos);
+            } else if(outputType.equals("stl")){
+                STLWriter stl = new STLWriter(AbFab3DGlobal.getOutputFolder() + "/" + AbFab3DGlobal.getInputFileName() + ".stl");
+                mesh.getTriangles(stl);
+                stl.close();
+            }
+            
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }

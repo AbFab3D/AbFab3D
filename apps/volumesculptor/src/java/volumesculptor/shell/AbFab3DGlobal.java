@@ -55,6 +55,47 @@ public class AbFab3DGlobal  {
     public static double minimumVolume = 0;
     public static int maxParts = Integer.MAX_VALUE;
 
+    private static String outputFolder = "/tmp";
+    private static String inputFilePath= "shape.js";
+    private static String inputFileName = "shape.js";
+    private static String outputType = "x3d";
+    private static String outputFileName = "save.x3d";
+
+    public static String getOutputFolder(){
+        return outputFolder;
+    }
+    public static void setOutputFolder(String folder){
+        outputFolder = folder;
+    }
+
+    public static String getInputFileName(){
+        return inputFileName;
+    }
+
+    public static void setInputFilePath(String path){
+
+        inputFilePath = path;
+        int index = path.lastIndexOf('/');
+        if(index >= 0){
+            inputFileName = path.substring(index,path.length());
+        } else {
+            inputFileName = path;
+        }
+    }
+
+    public static void setOutputType(String type){
+        outputType = type;
+    }
+
+    public static String getOutputType(){
+
+        return outputType;
+
+    }
+
+    public static String getOutputName(){
+        return outputFileName;
+    }
 
     public static void setErrorFactor(double value){
         errorFactor = value;
@@ -82,6 +123,8 @@ public class AbFab3DGlobal  {
         globals.put("CM", Units.CM);
         globals.put("IN", Units.IN);
         globals.put("FT", Units.FT);
+        globals.put("PI", Math.PI);
+
         globals.put(ERROR_FACTOR_VAR,0.1);
         globals.put(SMOOTHING_WIDTH_VAR,0.5);
         globals.put(MESH_MIN_PART_VOLUME_VAR,0);
