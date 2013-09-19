@@ -663,7 +663,11 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
             if (DEBUG) printf("   after  he: %s; next: %s\n", he, next);
             if (--maxcount < 0) {
                 printf("!!!!!error: maxcount exceeded!!!!! for vertex: %d\n", Vertex.getID(vertices, v0));
-                throw new IllegalArgumentException("Mesh is invalid, aborting operation.");
+
+                // Comment out for testing
+                //throw new IllegalArgumentException("Mesh is invalid, aborting operation.");
+
+                break;
             }
             he = HalfEdge.getTwin(hedges,next);
         } while (he != end);
