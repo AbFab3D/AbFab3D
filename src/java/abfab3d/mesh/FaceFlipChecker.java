@@ -22,7 +22,7 @@ public class FaceFlipChecker {
     static final double FACE_FLIP_EPSILON = 1.e-20;
     
     // minimal dot product allowed between normals.     
-    double m_faceFlipThreshold = 0.01; 
+    double m_faceFlipThreshold = 0.001; 
 
     Vector3d
             // p0 = new Vector3d(), // we move origin to p0

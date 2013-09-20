@@ -19,6 +19,9 @@ import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.MathUtil;
 import abfab3d.util.TriangleCollector;
 
+import java.util.Comparator;
+import java.util.Arrays;
+
 import javax.vecmath.Vector3d;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
@@ -396,12 +399,20 @@ public class MeshMakerMT {
         GridBlock block = new GridBlock(0, nx, 0, ny, 0, nz);
         
         block.split(blockSize, blocks);
-                
+
+        blocks.sort();
+        
+        //for(int i = 0; i < blocks.size(); i++){
+        //    printf("block: %s\n,", blocks.get(i));
+        //}
+
         GridBlock gb  = blocks.getFirst();
         
         blocks.faceCounts = new AtomicInteger[gb.level + 1];
         for(int i = 0; i < blocks.faceCounts.length; i++){
+            
             blocks.faceCounts[i] = new AtomicInteger(0);
+            printf("blocks.faceCounts[%d]: %s\n", i, blocks.faceCounts[i]);
         }
         blocks.currentLevel = gb.level;
         
@@ -624,7 +635,7 @@ public class MeshMakerMT {
         }
         
         public String toString(){
-            return fmt("block(%3d %3d %3d %3d %3d %3d)children: %s", xmin,xmax,ymin,ymax,zmin,zmax, (children != null));
+            return fmt("block(%3d %3d %3d %3d %3d %3d)children: %s level: %d", xmin,xmax,ymin,ymax,zmin,zmax, (children != null), level);
         }
 
     } // class GridBlock 
@@ -666,7 +677,7 @@ public class MeshMakerMT {
                 if(block.level != currentLevel){
                     int currentCount = faceCounts[currentLevel].get();
                     if(true)
-                        printf("fcount[%d]:%d\n", currentLevel, currentCount);
+                        printf("fcount[%d]:%d (%d)\n", currentLevel, currentCount, m_maxTriangles);
                     if(currentCount > (int)(m_maxTriangles)){
                         if(true){
                             printf("   face count: %d exceeded max count: %d\n",currentCount,m_maxTriangles);
@@ -689,8 +700,12 @@ public class MeshMakerMT {
             gridBlocks.add(block);
         }
 
-        public int getSize(){
+        public int size(){
             return gridBlocks.size();
+        }
+
+        public GridBlock get(int i){
+            return gridBlocks.get(i);
         }
 
         public GridBlock getLast(){
@@ -700,6 +715,14 @@ public class MeshMakerMT {
         public GridBlock getFirst(){
             return gridBlocks.get(0);
         }
+        
+        public void sort(){
+            // sort blocks in order of descenting level 
+            GridBlock blk[]= gridBlocks.toArray(new GridBlock[0]);
+            Arrays.sort(blk, new GridBlockComparator());
+            for(int i =0; i < blk.length; i++)
+                gridBlocks.setElementAt(blk[i], i);
+        }
 
         public void dump(){
             for(int i = 0; i < gridBlocks.size(); i++){
@@ -708,6 +731,17 @@ public class MeshMakerMT {
         }
 
     } // class GridBlockSet
+
+    class GridBlockComparator implements Comparator<GridBlock>{
+        public int compare(GridBlock b1, GridBlock b2) {
+            return b2.level - b1.level;            
+        }
+        public boolean equals(Object o) {            
+            return (o == this);
+        }
+        
+    }
+
 
     static AtomicInteger threadCount = new AtomicInteger(0);
 
@@ -935,7 +969,7 @@ public class MeshMakerMT {
                 printf("%s informParent()\n", threadName);
             block.informParent(blocks);
             if(DEBUG)
-                printf("%s parent informed blocks: %d\n", threadName, blocks.getSize());
+                printf("%s parent informed blocks: %d\n", threadName, blocks.size());
         }
 
         //
