@@ -22,6 +22,7 @@ import java.util.Random;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
+import static abfab3d.util.Units.MM;
 
 /**
    decimator to reduce face count of triangle mesh    
@@ -44,7 +45,7 @@ public class MeshDecimator {
 
     static boolean DEBUG = false;
     static boolean m_printStat = false;
-    static final double MM = 1000.; // mm per meter
+    //static final double MM = 1000.; // mm per meter
     long m_randomSeed = 101;
 
     // mesh we are working on
@@ -63,6 +64,8 @@ public class MeshDecimator {
 
     // current count of faces in mesh
     int m_faceCount;
+    // origonal face count 
+    int m_origFaceCount;
     // count of collapseEdge() calls
     int m_collapseCount;
     // count of surface pinch prevented
@@ -71,8 +74,11 @@ public class MeshDecimator {
     int m_faceFlipCount;
     // count of long edge creation prevented
     int m_longEdgeCount;
-
+    // count of colapses prevented by edge tester
+    int m_edgeTestCount; 
     int m_ignoreCount;
+    // count of attempts to collapse 
+    int m_attemptCount;
 
     double m_maxEdgeLength2=0.; // square of maximal allowed edge length (if positive)
     double m_maxError=0.;
@@ -157,11 +163,13 @@ public class MeshDecimator {
                         
         m_faceCount = m_mesh.getFaceCount();
 
+        m_origFaceCount = m_faceCount;
         m_surfacePinchCount = 0;
         m_faceFlipCount = 0;
         m_longEdgeCount = 0;
         m_ignoreCount = 0;
-
+        m_edgeTestCount = 0;
+        m_attemptCount = 0;
 
         long ts = time();
         doInitialization();
@@ -230,13 +238,16 @@ public class MeshDecimator {
     
     public void printStat() {
 
-        printf(" final face count: %d\n", m_faceCount);
-        printf("surface pinch count: %d\n", m_surfacePinchCount);
-        printf("face flip count: %d\n", m_faceFlipCount);
-        printf("long edge count: %d\n", m_longEdgeCount);
-        printf("edges collapsed: %d\n", m_collapseCount);
-        printf("Ignored Count: %d\n", m_ignoreCount);
-        printf("MAX_COLLAPSE_ERROR: %10.5e\n", m_maxError);
+        printf("***orig faces: %d\n", m_origFaceCount);
+        printf("   final faces: %d\n", m_faceCount);
+        printf("   attempts: %d\n", m_attemptCount);
+        printf("   pinch: %d\n", m_surfacePinchCount);
+        printf("   flip: %d\n", m_faceFlipCount);
+        printf("   edges collapsed: %d\n", m_collapseCount);
+        //printf("   long edge count: %d\n", m_longEdgeCount);
+        //printf("Ignored Count: %d\n", m_ignoreCount);
+        //printf("Edge Test Count: %d\n", m_edgeTestCount);
+        //printf("MAX_COLLAPSE_ERROR: %10.5e\n", m_maxError);
         
     }
 
@@ -376,6 +387,8 @@ public class MeshDecimator {
             if(m_edgeTester != null){
                 if(!m_edgeTester.canCollapse(ed.edge)){
                     continue;
+                } else {
+                    m_edgeTestCount++;
                 }
             }
             m_errorFunction.calculateError(ed);
@@ -427,7 +440,7 @@ public class MeshDecimator {
         m_ecp.maxEdgeLength2 = m_maxEdgeLength2;
 
         if(DEBUG) printf("collapseCount: %d, edge before: %d\n", m_collapseCount, m_mesh.getEdgeCount());    
-
+        m_attemptCount++;
         if(!m_mesh.collapseEdge(ed.edge, ed.point, m_ecp, m_ecr)){
 
             if(DEBUG) printf("failed to collapse\n");  
@@ -447,7 +460,6 @@ public class MeshDecimator {
             return false;
             
         } 
-
         
         if(DEBUG) printf("edge after: %d\n", m_mesh.getEdgeCount());  
         m_faceCount -= m_ecr.faceCount;  //
@@ -861,8 +873,8 @@ public class MeshDecimator {
         int he = start;
         Vertex.getPoint(mesh.getVertices(), HalfEdge.getStart(mesh.getHalfEdges(), he), p0);
 
-        printf("p0: (%10.7f,%10.7f,%10.7f) \n", 
-               p0.x*MM,p0.y*MM,p0.z*MM);
+        printf("p0: (%10.7f,%10.7f,%10.7f)mm \n", 
+               p0.x/MM,p0.y/MM,p0.z/MM);
         
         do {
             int end = HalfEdge.getEnd(mesh.getHalfEdges(), he);
@@ -871,9 +883,9 @@ public class MeshDecimator {
             Vertex.getPoint(mesh.getVertices(), end, p1);
             Vertex.getPoint(mesh.getVertices(), next_end, p2);
 
-            printf("  p1: (%10.7f,%10.7f,%10.7f),  p2: (%10.7f,%10.7f,%10.7f), \n", 
-                   (p1.x-p0.x)*MM,(p1.y-p0.y)*MM,(p1.z-p0.z)*MM,
-                   (p2.x-p0.x)*MM,(p2.y-p0.y)*MM,(p2.z-p0.z)*MM);
+            printf("  p1: (%10.7f,%10.7f,%10.7f),  p2: (%10.7f,%10.7f,%10.7f) mm, \n", 
+                   (p1.x-p0.x)/MM,(p1.y-p0.y)/MM,(p1.z-p0.z)/MM,
+                   (p2.x-p0.x)/MM,(p2.y-p0.y)/MM,(p2.z-p0.z)/MM);
 
             he = HalfEdge.getNext(mesh.getHalfEdges(), HalfEdge.getTwin(mesh.getHalfEdges(), he));
 

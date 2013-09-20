@@ -564,7 +564,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                     return false;
                 }
 
-                if (faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)) {
+                if (faceFlipChecker.hasFlip(p0, p1, pv1, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }
@@ -579,7 +579,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                 Vertex.getPoint(vertices,start,p0);
                 Vertex.getPoint(vertices,HalfEdge.getEnd(hedges,next),p1);
 
-                if (faceFlipChecker.checkFaceFlip(p0, p1, pv1, pos)) {
+                if (faceFlipChecker.hasFlip(p0, p1, pv1, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }
@@ -605,7 +605,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                     return false;
                 }
 
-                if (faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)) {
+                if (faceFlipChecker.hasFlip(p0, p1, pv0, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }
@@ -619,7 +619,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
                 Vertex.getPoint(vertices,start,p0);
                 Vertex.getPoint(vertices,HalfEdge.getEnd(hedges,next),p1);
 
-                if (faceFlipChecker.checkFaceFlip(p0, p1, pv0, pos)) {
+                if (faceFlipChecker.hasFlip(p0, p1, pv0, pos)) {
                     ecr.returnCode = EdgeCollapseResult.FAILURE_FACE_FLIP;
                     return false;
                 }

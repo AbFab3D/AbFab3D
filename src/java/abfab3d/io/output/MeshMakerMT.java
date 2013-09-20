@@ -982,7 +982,7 @@ public class MeshMakerMT {
             mesh.clear();
             mesh.setFaces(vertices, vertexCount, faces, faceCount);
             
-            int iterations = 5;
+            int iterations = m_maxDecimationCount;
 
             int fcount = mesh.getTriangleCount();
             if(DEBUG)

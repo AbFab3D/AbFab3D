@@ -20,6 +20,9 @@ import javax.vecmath.Point3d;
  */
 public class FaceFlipChecker {
     static final double FACE_FLIP_EPSILON = 1.e-20;
+    
+    // minimal dot product allowed between normals.     
+    double m_faceFlipThreshold = 0.01; 
 
     Vector3d
             // p0 = new Vector3d(), // we move origin to p0
@@ -30,10 +33,10 @@ public class FaceFlipChecker {
             m_n1 = new Vector3d();
 
     /**
-     * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
+     * return true if deforming triangle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
      * return false otherwise
      */
-    public boolean checkFaceFlip(Point3d p0, Point3d p1, Point3d v0, Point3d v1) {
+    public boolean hasFlip(Point3d p0, Point3d p1, Point3d v0, Point3d v1) {
 
         m_p1.set(p1);
         m_v0.set(v0);
@@ -43,13 +46,25 @@ public class FaceFlipChecker {
         m_v0.sub(p0);
         m_v1.sub(p0);
 
+        double lenp1 = m_p1.length();
+        double lenv0 = m_v0.length();
+        double norm = lenp1;
+        if(lenv0 > lenp1)
+            norm = lenv0;
+        // norm is he length of longes side of orig triangle 
+        double s = 1./norm;
+        m_p1.scale(s);
+        m_v0.scale(s);
+        m_v1.scale(s);
+        //both triangles have size around 1 
+        
         m_n0.cross(m_p1, m_v0);
 
         m_n1.cross(m_p1, m_v1);
 
         double dot = m_n0.dot(m_n1);
 
-        if (dot < FACE_FLIP_EPSILON) // face flip
+        if (dot < m_faceFlipThreshold) // face flip
             return true;
         else
             return false;
@@ -57,8 +72,9 @@ public class FaceFlipChecker {
     /**
      * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
      * return false otherwise
+     * NOT USED 
      */
-    public boolean checkFaceFlip(double[] p0, double[] p1, double[] v0, double[] v1) {
+    public boolean _checkFaceFlip(double[] p0, double[] p1, double[] v0, double[] v1) {
 
         m_p1.set(p1);
         m_v0.set(v0);
