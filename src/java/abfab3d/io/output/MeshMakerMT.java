@@ -666,11 +666,16 @@ public class MeshMakerMT {
                 if(block.level != currentLevel){
                     int currentCount = faceCounts[currentLevel].get();
                     if(true)
-                        printf("fcount[%d]:%d\n", currentLevel, faceCounts[currentLevel].get());
-                    if(currentCount > (int)(m_maxTriangles*1.5)){
-                        m_maxDecimationError *= 4;
-                        if(true)
-                            printf("new decimation error: %g\n", m_maxDecimationError);
+                        printf("fcount[%d]:%d\n", currentLevel, currentCount);
+                    if(currentCount > (int)(m_maxTriangles)){
+                        if(true){
+                            printf("   face count: %d exceeded max count: %d\n",currentCount,m_maxTriangles);
+                            printf("   current decimation error: %9.2e\n", m_maxDecimationError);
+                        }
+                        m_maxDecimationError *= 2;
+                        if(true){
+                            printf("   new decimation error: %9.2e\n", m_maxDecimationError);
+                        }
                     }
                     currentLevel = block.level;
                 }
