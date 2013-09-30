@@ -12,6 +12,6 @@ import org.mozilla.javascript.*;
 public abstract class SecurityProxy extends SecurityController
 {
     protected abstract TriangleMesh callProcessFileSecure(Context cx, Scriptable scope,
-                                                  String filename, String[] args, boolean show);
+                                                  String filename, Object[] args, boolean show);
 
 }

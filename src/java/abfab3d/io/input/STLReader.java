@@ -45,7 +45,7 @@ public class STLReader implements TriangleProducer {
 
     static final boolean DEBUG = false;
 
-    public static final double SCALE = 1. / 1000.; //to convert form STL standard millimeters into meters
+    public double scale = 1. / 1000.; //to convert form STL standard millimeters into meters
     private TriangleCollector out;
 
     /**
@@ -58,7 +58,11 @@ public class STLReader implements TriangleProducer {
      */
     private String m_path;
 
-    public static int readInt(DataInputStream data) throws IOException {
+    public void setScale(double scale) {
+        this.scale = scale;
+    }
+
+    private int readInt(DataInputStream data) throws IOException {
 
         int i = data.readUnsignedByte() | (data.readUnsignedByte() << 8) |
                 (data.readUnsignedByte() << 16) | (data.readUnsignedByte() << 24);
@@ -66,7 +70,7 @@ public class STLReader implements TriangleProducer {
         return i;
     }
 
-    public static float readFloat(DataInputStream data) throws IOException {
+    private float readFloat(DataInputStream data) throws IOException {
 
         //return data.readFloat();
         int i = data.readUnsignedByte() | (data.readUnsignedByte() << 8) |
@@ -75,20 +79,20 @@ public class STLReader implements TriangleProducer {
 
     }
 
-    public static void readVector3Df(DataInputStream data, Vec v) throws IOException {
+    private void readVector3Df(DataInputStream data, Vec v) throws IOException {
 
-        double x = readFloat(data) * SCALE;
-        double y = readFloat(data) * SCALE;
-        double z = readFloat(data) * SCALE;
+        double x = readFloat(data) * scale;
+        double y = readFloat(data) * scale;
+        double z = readFloat(data) * scale;
 
         v.set(x, y, z);
     }
 
-    public static void readVector3Df(DataInputStream data, Vector3d v) throws IOException {
+    private void readVector3Df(DataInputStream data, Vector3d v) throws IOException {
 
-        v.x = readFloat(data) * SCALE;
-        v.y = readFloat(data) * SCALE;
-        v.z = readFloat(data) * SCALE;
+        v.x = readFloat(data) * scale;
+        v.y = readFloat(data) * scale;
+        v.z = readFloat(data) * scale;
     }
 
     public STLReader() {
@@ -126,19 +130,31 @@ public class STLReader implements TriangleProducer {
 
         boolean ascii = isAscii(path);
 
-        if (!ascii) {
-            if (transform == null) {
-                readNoTransformBinary(path, out);
+        try {
+            if (!ascii) {
+                if (transform == null) {
+                    readNoTransformBinary(path, out);
+                } else {
+                    readTransformBinary(path, out);
+                }
             } else {
-                readTransformBinary(path, out);
-            }
-        } else {
-            if (transform == null) {
-                readNoTransformAscii(path, out);
-            } else {
-                readTransformAscii(path, out);
-            }
+                if (transform == null) {
+                    readNoTransformAscii(path, out);
+                } else {
+                    readTransformAscii(path, out);
+                }
 
+            }
+        } catch(InvalidFormatException ife) {
+            if (ascii) {
+                // try binary as some binary files have solid in their header
+                if (transform == null) {
+                    readNoTransformBinary(path, out);
+                } else {
+                    readTransformBinary(path, out);
+                }
+
+            }
         }
     }
 
@@ -303,7 +319,7 @@ public class STLReader implements TriangleProducer {
      * @param out  Destination
      * @throws IOException
      */
-    private void readNoTransformAscii(String path, TriangleCollector out) throws IOException {
+    private void readNoTransformAscii(String path, TriangleCollector out) throws IOException, InvalidFormatException {
         long t0;
 
         if (DEBUG) {
@@ -325,15 +341,8 @@ public class STLReader implements TriangleProducer {
         */
         STLFileReader reader = null;
 
-        try {
-            File f = new File(path);
-            reader = new STLFileReader(new URL(f.toURI().toString()), false);
-        } catch (InvalidFormatException ife) {
-            String msg = ife.getMessage();
-            System.out.println("Error: " + msg);
-
-            return;
-        }
+        File f = new File(path);
+        reader = new STLFileReader(new URL(f.toURI().toString()), false);
 
         generateTriangles(reader, out);
     }
@@ -392,6 +401,9 @@ public class STLReader implements TriangleProducer {
         String[] obj_names = rdr.getObjectNames();
         int max_tris = 0;
 
+        // Copy locally for speed and avoid any MT weirdness
+        double unit_scale = scale;
+
         for (int j = 0; j < num_objects; j++) {
             if (num_tris[j] > max_tris)
                 max_tris = num_tris[j];
@@ -429,9 +441,10 @@ public class STLReader implements TriangleProducer {
                 if (!rdr.getNextFacet(in_normal, in_coords)) {
                     break;
                 }
-                dv0.set(in_coords[0][0], in_coords[0][1], in_coords[0][2]);
-                dv1.set(in_coords[1][0], in_coords[1][1], in_coords[1][2]);
-                dv2.set(in_coords[2][0], in_coords[2][1], in_coords[2][2]);
+
+                dv0.set(in_coords[0][0] * unit_scale, in_coords[0][1] * unit_scale, in_coords[0][2] * unit_scale);
+                dv1.set(in_coords[1][0] * unit_scale, in_coords[1][1] * unit_scale, in_coords[1][2] * unit_scale);
+                dv2.set(in_coords[2][0] * unit_scale, in_coords[2][1] * unit_scale, in_coords[2][2] * unit_scale);
 
                 v0.set(dv0);
                 v1.set(dv1);
@@ -464,6 +477,10 @@ public class STLReader implements TriangleProducer {
         String[] obj_names = rdr.getObjectNames();
         int max_tris = 0;
 
+        // Copy locally for speed and avoid any MT weirdness
+        double unit_scale = scale;
+
+        System.out.println("Generating triangles with scale: " + unit_scale);
         for (int j = 0; j < num_objects; j++) {
             if (num_tris[j] > max_tris)
                 max_tris = num_tris[j];
@@ -495,9 +512,9 @@ public class STLReader implements TriangleProducer {
                 if (!rdr.getNextFacet(in_normal, in_coords)) {
                     break;
                 }
-                dv0.set(in_coords[0][0], in_coords[0][1], in_coords[0][2]);
-                dv1.set(in_coords[1][0], in_coords[1][1], in_coords[1][2]);
-                dv2.set(in_coords[2][0], in_coords[2][1], in_coords[2][2]);
+                dv0.set(in_coords[0][0] * unit_scale, in_coords[0][1] * unit_scale, in_coords[0][2] * unit_scale);
+                dv1.set(in_coords[1][0] * unit_scale, in_coords[1][1] * unit_scale, in_coords[1][2] * unit_scale);
+                dv2.set(in_coords[2][0] * unit_scale, in_coords[2][1] * unit_scale, in_coords[2][2] * unit_scale);
 
                 out.addTri(dv0, dv1, dv2);
             }
@@ -523,6 +540,11 @@ public class STLReader implements TriangleProducer {
 
             String line = reader.readLine();
             line = line.trim();  // "Spec" says whitespace maybe anywhere except within numbers or words.  Great design!
+
+            while(line.length() == 0) {
+                line = reader.readLine();
+                line = line.trim();  // "Spec" says whitespace maybe anywhere except within numbers or words.  Great design!
+            }
 
             // check if ASCII format
             if (line.startsWith("solid")) {

@@ -113,7 +113,7 @@ public class JavaPolicySecurity extends SecurityProxy
     @Override
     protected TriangleMesh callProcessFileSecure(final Context cx,
                                          final Scriptable scope,
-                                         final String filename, final String[] args, final boolean show)
+                                         final String filename, final Object[] args, final boolean show)
     {
         return (TriangleMesh) AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
