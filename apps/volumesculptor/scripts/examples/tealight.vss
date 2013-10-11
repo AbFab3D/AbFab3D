@@ -1,0 +1,127 @@
+//
+// Tealight example using polyhedra reflection
+//
+// author Vladimir Bulatov
+// author Alan Hudson
+//
+var TAU = (Math.sqrt(5)+1)/2; // golden ratio 
+var PI = Math.PI; 
+
+// Returns plane via 3 points (v1, 0, v2)
+// external normal points in the direction from where points are ordered  counter clockwise 
+function getPlane(v1,v2){
+    var n = new Vector3d();
+    n.cross(v2,v1);
+    n.normalize();
+    return ReflectionSymmetry.getPlane(n, 0);	
+}
+	
+function getIcosahedralSymmetry( ){
+    var v5 = new Vector3d(1,0,TAU); // vertex of icosahedron 
+    var v3 = new Vector3d(0,1/TAU,TAU); // vertex of dodecahedron 
+    var p35 = new Vector3d(); // normal to plane via (0, v3, v5)
+	
+	p35.cross(v3, v5); 
+	p35.normalize();
+	
+    var splanes = new Array();
+	var count = 0;
+	splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(-1,0,0), 0.);
+    splanes[count++] = new ReflectionSymmetry.getPlane(new Vector3d(0,-1,0), 0.);
+	splanes[count++] = new ReflectionSymmetry.getPlane(p35, 0.);
+	
+    return new ReflectionSymmetry(splanes);	
+}
+
+function getSphereBend(fixedRadius, bendAmount, offset){
+	
+	var center = fixedRadius*fixedRadius/bendAmount;
+	var radius = Math.sqrt(center*center + fixedRadius*fixedRadius);
+		
+    var cp = new CompositeTransform();
+    cp.add(new PlaneReflection(new Vector3d(0,0,1), new Vector3d(0,0,offset)));
+    cp.add(new SphereInversion(new Vector3d(0,0,-center + offset), radius));
+    return cp;
+}
+
+function getImage(radius, thickness, path){
+
+	var s = radius/Math.sqrt(1 + 1./(TAU*TAU));
+    var v5 = new Vector3d(s/TAU,0,s); // vertex of icosahedron 
+    var v3 = new Vector3d(0,s/(TAU*TAU),s); // vertex of dodecahedron 
+
+	var union = new Union();
+
+	var correction = 1.1; // correction to get
+	var ypnt = v3.y*correction;
+	var xpnt = v5.x;
+	var image = new ImageBitmap(path, xpnt, ypnt, thickness);
+	var vs = 0.1*MM;
+	image.setBaseThickness(0);
+	image.setVoxelSize(vs);
+	image.setUseGrayscale(false);
+	image.setBlurWidth(vs);
+	image.setTransform(new Translation(xpnt/2,ypnt/2,v5.z));
+	
+	union.add(image);
+	
+	union.setTransform(getSphereBend(v5.x, radius - v5.z, v5.z));
+	
+	var dt = new DataTransformer();
+	dt.setSource(union);
+	return dt;
+}
+
+// Create a hole for the tea light to be placed through
+function getLightHole(hole,outside) {
+	var cyl = new Cylinder(new Vector3d(0,0,0), new Vector3d(0,-outside,0), hole);
+	
+	return cyl;
+}
+
+// Create a rim around the light hole
+function getRim(hole,radius,thickness) {
+	var cr = hole + thickness;
+	
+	// Calculate intersection location of cylinder with sphere
+	var loc = -radius +(radius - Math.sqrt(radius * radius - cr * cr)) - thickness;
+	var outer = new Cylinder(new Vector3d(0,loc,0), new Vector3d(0,loc-thickness,0), hole + thickness);
+	var inner = new Cylinder(new Vector3d(0,loc,0), new Vector3d(0,loc-thickness,0), hole);
+	var rim = new Subtraction(outer,inner);
+	
+	return rim;
+}
+
+function main(arg){
+
+	var radius = 31.1*MM;	
+	var thickness = 1.0*MM;	
+	var voxelSize = 0.2*MM;
+    var holeRadius = 20*MM;  // a bit larger then a typical 1.5" / 38.1mm tea light
+    var rimThickness = 1.25*MM;
+  
+	var a = radius + 2*thickness;
+		
+	var path = arg[0];
+	var image = getImage(radius,thickness, path,voxelSize);
+		
+	var reflectedImage = new Union();
+	
+	reflectedImage.add(image);
+	reflectedImage.setTransform(getIcosahedralSymmetry( ));
+	
+	var subtract = new Subtraction(reflectedImage, getLightHole(holeRadius,a));
+
+    var rim = getRim(holeRadius,radius,rimThickness);
+    
+	var tealight = new Union(subtract, rim);
+	var maker = new GridMaker();
+	
+	maker.setSource(tealight);
+	
+	var dest = createGrid(-a,a,-a,a,-a,a,voxelSize);
+	
+	maker.makeGrid(dest);
+	
+	return dest;	
+}

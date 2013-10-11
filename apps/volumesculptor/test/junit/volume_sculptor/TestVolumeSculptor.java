@@ -228,6 +228,35 @@ public class TestVolumeSculptor extends TestCase {
         }
     }
 
+    public void testTealightExample() throws Exception {
+        String[] script_args = new String[] {IMGS_DIR + "icosa_sphere_part.png"};
+
+        try {
+            File f = new File(SCRIPTS_DIR + "examples/tealight.vss");
+
+            String[] args = new String[] {f.toString()};
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            assertNotNull("Mesh",mesh);
+            assertTrue("Triangle Count", mesh.getFaceCount() > 0);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+
+            double expected_volume = 6.9837122827302415E-6;
+
+            // I can't see the volume of this changing more then 10% without something being broken
+            double diff = Math.abs(ac.getVolume() - expected_volume);
+
+            assertTrue("Volume", diff < (expected_volume * 0.10));
+        } catch(Exception e) {
+            e.printStackTrace();
+            fail("Exception");
+        }
+    }
+
     public void testSymmetry09Example() throws Exception {
         String[] script_args = new String[] {};
 

@@ -108,7 +108,7 @@ public class Main {
 
         private int type;
         String[] args;
-        String[] script_args;
+        Object[] script_args;
         String[] params;
         private boolean show;
         String scriptText;
@@ -229,7 +229,7 @@ public class Main {
         }
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = args;
-        iproxy.script_args = scriptArgs;
+        iproxy.script_args = typeArgs(scriptArgs);
         iproxy.show = false;
 
         shellContextFactory.call(iproxy);
@@ -265,7 +265,38 @@ public class Main {
         return new ExecResult(mesh,err_msg,print_msg);
     }
 
-    static TriangleMesh processFile(Context cx, String[] args, String[] scriptArgs, boolean show) {
+    /**
+     * Assign a datatype to a param so normal operations will work right
+     *
+     * @param args
+     * @return
+     */
+    static Object[] typeArgs(Object[] args) {
+        Object[] ret_val = new Object[args.length];
+
+        for(int i=0; i < args.length; i++) {
+            try {
+                if (args[i] instanceof String) {
+                    Double d = new Double((String)args[i]);
+                    ret_val[i] = d;
+                    System.out.println("Munged arg: " + i + " into Double: " + d);
+
+                    continue;
+                } else {
+                    ret_val[i] = args[i];
+                }
+            } catch(Exception e) {
+                // ignore
+            }
+
+            ret_val[i] = args[i];
+        }
+
+        return ret_val;
+    }
+
+
+    static TriangleMesh processFile(Context cx, String[] args, Object[] scriptArgs, boolean show) {
         // define "arguments" array in the top-level object:
         // need to allocate new array since newArray requires instances
         // of exactly Object[], not ObjectSubclass[]
@@ -315,7 +346,7 @@ public class Main {
         return null;
     }
 
-    static TriangleMesh evalInlineScript(Context cx, String scriptText, String[] args, boolean show) {
+    static TriangleMesh evalInlineScript(Context cx, String scriptText, Object[] args, boolean show) {
         try {
             Script script = cx.compileString(scriptText, "<command>", 1, null);
             if (script != null) {
@@ -587,7 +618,7 @@ public class Main {
      * @throws IOException    if the source could not be read
      * @throws RhinoException thrown during evaluation of source
      */
-    public static TriangleMesh processSource(Context cx, String filename, String[] args, boolean show)
+    public static TriangleMesh processSource(Context cx, String filename, Object[] args, boolean show)
             throws IOException {
         if (filename == null || filename.equals("-")) {
             Scriptable scope = getShellScope();
@@ -702,7 +733,7 @@ public class Main {
         return null;
     }
 
-    public static TriangleMesh processFile(Context cx, Scriptable scope, String filename, String[] args, boolean show)
+    public static TriangleMesh processFile(Context cx, Scriptable scope, String filename, Object[] args, boolean show)
             throws IOException {
         if (securityImpl == null) {
             return processFileSecure(cx, scope, filename, null, args, show);
@@ -712,7 +743,7 @@ public class Main {
     }
 
     static TriangleMesh processFileSecure(Context cx, Scriptable scope,
-                                          String path, Object securityDomain, String[] args, boolean show)
+                                          String path, Object securityDomain, Object[] args, boolean show)
             throws IOException {
         printf("processing file: %s\n", path);
         AbFab3DGlobal.setInputFilePath(path);
@@ -747,6 +778,7 @@ public class Main {
                 }
 
                 strSrc = addImports(strSrc);
+                strSrc = addParseFloats(strSrc, args);
                 System.out.println("Compiling: \n" + strSrc);
                 script = cx.compileString(strSrc, path, 1, securityDomain);
             }
@@ -783,12 +815,53 @@ public class Main {
     }
 
     /**
+     * Add parse float to float params
+     * @return
+     */
+    private static String addParseFloats(String script, Object[] args) {
+        StringBuilder bldr = new StringBuilder();
+        int cnt = 0;
+
+        int s_idx = script.indexOf("function main");
+        if (s_idx == -1) {
+            System.out.println("Cannot find main");
+            return script;
+        }
+
+        int e_idx = script.indexOf("{", s_idx);
+
+        if (e_idx == -1) {
+            System.out.println("Cannot find main");
+            return script;
+        }
+
+        bldr.append(script.substring(0,e_idx+1));
+
+        for(int i=0; i < args.length; i++) {
+            Object o = args[i];
+            if (o instanceof Number) {
+                bldr.append("args[");
+                bldr.append(i);
+                bldr.append("] = -(-args[");
+                bldr.append(i);
+                bldr.append("]);");
+                cnt++;
+            }
+        }
+        bldr.append(script.substring(e_idx+2));
+
+        System.out.println("Added ParseFloats: " + cnt);
+        System.out.println("final: " + bldr.toString());
+        return bldr.toString();
+    }
+
+    /**
      * Execute the main function.  We expect a Grid back.
      *
      * @param cx
      * @param scope
      */
-    private static TriangleMesh executeMain(Context cx, Scriptable scope, boolean show, String[] args) {
+    private static TriangleMesh executeMain(Context cx, Scriptable scope, boolean show, Object[] args) {
 
         System.out.println("ExecMain.  show: " + show);
 
@@ -819,6 +892,10 @@ public class Main {
 
         System.out.println("Func Args: " + java.util.Arrays.toString(args));
 
+        for(int i=0; i < args.length; i++) {
+            System.out.println("class: " + args[i].getClass());
+        }
+        System.out.println("Main is: " + main.getClass());
         Object result = main.call(cx, scope, scope, new Object[] {args});
 
         Grid grid = null;

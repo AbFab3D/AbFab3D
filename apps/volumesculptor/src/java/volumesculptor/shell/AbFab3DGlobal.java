@@ -27,6 +27,7 @@ import static abfab3d.util.Units.MM;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.IllegalArgumentException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -163,7 +164,7 @@ public class AbFab3DGlobal  {
             if (args[1] instanceof Grid) {
                 grid = (AttributeGrid) args[1];
             } else if (args[1] instanceof Number) {
-                vs = ((Number) args[1]).doubleValue();
+                vs = getDouble(args[1]);
             }
         }
 
@@ -172,8 +173,22 @@ public class AbFab3DGlobal  {
             STLReader stl = new STLReader();
             BoundingBoxCalculator bb = new BoundingBoxCalculator();
             stl.read(filename, bb);
+
             double bounds[] = new double[6];
             bb.getBounds(bounds);
+
+            // if any measurement is over 1M then the file "must" be in m instead of mm.  God I hate unspecified units
+            double sx = bounds[1] - bounds[0];
+            double sy = bounds[3] - bounds[2];
+            double sz = bounds[5] - bounds[4];
+            if (sx > 1 || sy > 1 | sz > 1) {
+                stl.setScale(1);
+
+                double factor = 1.0 / 1000;
+                for(int i=0; i < 6; i++) {
+                    bounds[i] *= factor;
+                }
+            }
 
             // Add a 1 voxel margin around the model
             MathUtil.roundBounds(bounds, vs);
@@ -183,6 +198,24 @@ public class AbFab3DGlobal  {
             int nz = (int) Math.round((bounds[5] - bounds[4]) / vs);
             System.out.println("   Bounds: " + java.util.Arrays.toString(bounds) + " vs: " + vs);
 
+            // range check bounds and voxelSized
+            for(int i = 0; i < bounds.length; i++) {
+                Float f = new Float(bounds[i]);
+                if (f.isNaN()) {
+                    throw new IllegalArgumentException("Grid size[" + i + "] is Not a Number.");
+                }
+
+            }
+
+            if (nx <= 0) {
+                throw new IllegalArgumentException("Grid x size <= 0: " + nx);
+            }
+            if (ny <= 0) {
+                throw new IllegalArgumentException("Grid y size <= 0" + ny);
+            }
+            if (nz <= 0) {
+                throw new IllegalArgumentException("Grid z size <= 0" + nz);
+            }
 
             AttributeGrid dest = null;
 
@@ -207,8 +240,9 @@ public class AbFab3DGlobal  {
             return dest;
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        } catch(Throwable t) {
+            t.printStackTrace();
         }
-
         throw Context.reportRuntimeError(
                 "Failed to load file: " + filename);
     }
@@ -440,6 +474,17 @@ public class AbFab3DGlobal  {
         double[] grid_bounds = new double[6];
         double vs = 0.1*MM;
 
+        for(int i=0; i < args.length; i++) {
+            String st = null;
+
+            if (args[i] instanceof NativeJavaObject) {
+                Object o = ((NativeJavaObject)args[i]).unwrap();
+                st = "JNO class=" + o.getClass() + " val: " + (o.toString());
+            } else {
+                st = args[i].toString();
+            }
+            System.out.println("arg: " + i + " val: " + st);
+        }
         if (args.length == 1) {
             if (args[0] instanceof AttributeGrid) {
                 AttributeGrid grid = (AttributeGrid) args[0];
@@ -460,9 +505,9 @@ public class AbFab3DGlobal  {
                 grid.getGridBounds(grid_bounds);
                 vs = grid.getVoxelSize();
             }
-            double x = ((Number) args[1]).doubleValue();
-            double y = ((Number) args[2]).doubleValue();
-            double z = ((Number) args[3]).doubleValue();
+            double x = getDouble(args[1]);
+            double y = getDouble(args[2]);
+            double z = getDouble(args[3]);
 
             grid_bounds[0] -= x;
             grid_bounds[1] += x;
@@ -471,27 +516,67 @@ public class AbFab3DGlobal  {
             grid_bounds[4] -= z;
             grid_bounds[5] += z;
         } else if (args.length == 7) {
-            grid_bounds[0] = ((Number) args[0]).doubleValue();
-            grid_bounds[1] = ((Number) args[1]).doubleValue();
-            grid_bounds[2] = ((Number) args[2]).doubleValue();
-            grid_bounds[3] = ((Number) args[3]).doubleValue();
-            grid_bounds[4] = ((Number) args[4]).doubleValue();
-            grid_bounds[5] = ((Number) args[5]).doubleValue();
+            grid_bounds[0] = getDouble(args[0]);
+            grid_bounds[1] = getDouble(args[1]);
+            grid_bounds[2] = getDouble(args[2]);
+            grid_bounds[3] = getDouble(args[3]);
+            grid_bounds[4] = getDouble(args[4]);
+            grid_bounds[5] = getDouble(args[5]);
 
-            vs = ((Number) args[6]).doubleValue();
+            vs = getDouble(args[6]);
         }  else {
             throw new IllegalArgumentException("Invalid number of arguments to CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize)");
         }
 
+        // range check bounds and voxelSized
+        for(int i = 0; i < grid_bounds.length; i++) {
+            Float f = new Float(grid_bounds[i]);
+            if (f.isNaN()) {
+                throw new IllegalArgumentException("Grid size[" + i + "] is Not a Number.");
+            }
+        }
 
         grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
         int[] gs = MathUtil.getGridSize(grid_bounds, vs);
+
+        // range check bounds and voxelSized
+        for(int i = 0; i < gs.length; i++) {
+            if (gs[i] <= 0) {
+                throw new IllegalArgumentException("Grid size[" + i + "] <= 0");
+            }
+        }
 
         AttributeGrid dest = makeEmptyGrid(gs,vs);
 
         System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs);
         dest.setGridBounds(grid_bounds);
+
         return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
+    }
+
+    /**
+     * A number in Javascript might be of several forms.  Handle all of them here
+     * @param o
+     * @return
+     */
+    private static Double getDouble(Object o) {
+        if (o instanceof Double) {
+            return (Double)o;
+        }
+
+        if (o instanceof NativeJavaObject) {
+            return getDouble(((NativeJavaObject) o).unwrap());
+        }
+
+        if (o instanceof Number) {
+            return ((Number)o).doubleValue();
+        }
+
+        if (o instanceof String) {
+            return Double.parseDouble((String)o);
+        }
+
+        return null;
     }
 
     private static AttributeGrid makeEmptyGrid(int[] gs, double vs) {
