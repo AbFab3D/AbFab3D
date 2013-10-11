@@ -42,14 +42,16 @@ public class SlicesWriter {
     static final int COLOR_WHITE = makeColor(0xFF);
     static final int COLOR_BLACK = makeColor(0);
     static final int COLOR_GRAY = makeColor(127);
-
+    
 
     String m_filePattern = "slice_%04d.png";
     String m_imageFileType = "png";
     
     int imgCellSize = 1;  // size of grid cell to write to 
     int imgVoxelSize = 1; // 
-    int m_maxAttributeValue=0; 
+    int m_maxAttributeValue=0;
+    int m_backgroundColor = 0xFFFFFFFF; // solid white 
+    int m_foregroundColor = 0xFF000000; // solid black
 
     int xmin=-1, xmax=-1, ymin=-1, ymax=-1, zmin=-1, zmax=-1;
 
@@ -72,6 +74,13 @@ public class SlicesWriter {
 
     }
 
+    public void setBackgroundColor(int color){
+        m_backgroundColor = color;
+    }
+
+    public void setForegroundColor(int color){
+        m_foregroundColor = color;
+    }
     public void setCellSize(int size){
         imgCellSize = size;
     }
@@ -171,16 +180,21 @@ public class SlicesWriter {
                 switch(m_grid.getState(x,y,z)){
                 default:
                 case Grid.OUTSIDE:
-                    return COLOR_WHITE;
+                    return m_backgroundColor;
                 case Grid.INSIDE:
-                    return COLOR_BLACK;
+                    return m_foregroundColor;
                 }
             }
         default: // use grid attribute 
 
             long a = clamp(((AttributeGrid)m_grid).getAttribute(x,y,z), 0, m_maxAttributeValue);
 
-            return makeColor( (int)(((m_maxAttributeValue - a) * 255)/m_maxAttributeValue));
+            int  level = (int)(((m_maxAttributeValue - a) * 255)/m_maxAttributeValue);
+            
+            if(level == 255) // return background color for max value 
+                return m_backgroundColor;
+            else 
+                return makeColor(level);
             
         }
     }
