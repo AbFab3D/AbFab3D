@@ -63,6 +63,10 @@ import static abfab3d.util.Units.MM;
  */
 public class Text extends TransformableDataSource {
 
+    static public final int BOLD = Font.BOLD; 
+    static public final int ITALIC = Font.ITALIC; 
+    static public final int PLAIN = Font.PLAIN; 
+
     static final boolean DEBUG = false;
     static int debugCount = 1000;
 
@@ -74,7 +78,7 @@ public class Text extends TransformableDataSource {
     private ImageBitmap m_bitmap = null; 
     private int m_fontSize = 50; // arbitrary font size, text is scaled to fit box anyway
     private double m_textBlurWidth = 1.;
-    private int m_fontStyle = Font.PLAIN;
+    private int m_fontStyle = PLAIN;
     private int m_textScale = 5;
 
     /**
@@ -96,6 +100,10 @@ public class Text extends TransformableDataSource {
         m_text = text;
         m_fontName = fontName;
         
+    }
+
+    public void setFontStyle(int fontStyle){
+        m_fontStyle = fontStyle;
     }
         
     /**

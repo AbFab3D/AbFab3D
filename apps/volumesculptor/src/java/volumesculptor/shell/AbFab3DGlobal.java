@@ -6,20 +6,30 @@
 
 package volumesculptor.shell;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
+
 import abfab3d.io.input.STLReader;
 import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.SlicesWriter;
+import abfab3d.io.output.STLWriter;
+
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.MathUtil;
 import abfab3d.util.Units;
+
+import abfab3d.datasources.ImageWrapper;
+
 import app.common.X3DViewer;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
@@ -30,6 +40,11 @@ import java.io.IOException;
 import java.lang.IllegalArgumentException;
 import java.util.HashMap;
 import java.util.Map;
+
+import java.util.Map;
+
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 /**
  * This class provides for sharing functions across multiple threads.
@@ -46,6 +61,7 @@ public class AbFab3DGlobal  {
     public static final String ERROR_FACTOR_VAR = "meshErrorFactor";
     public static final String MESH_MIN_PART_VOLUME_VAR = "meshMinPartVolume";
     public static final String MESH_MAX_PART_COUNT_VAR = "meshMaxPartsCount";
+    public static final String MESH_MAX_TRI_COUNT_VAR = "meshMaxTriCount";
 
     public static final int maxAttribute = 255;
 
@@ -55,18 +71,28 @@ public class AbFab3DGlobal  {
     public static int blockSize = 30;
     public static double minimumVolume = 0;
     public static int maxParts = Integer.MAX_VALUE;
+    public static int maxTriCount = Integer.MAX_VALUE;
 
     private static String outputFolder = "/tmp";
     private static String inputFilePath= "shape.js";
     private static String inputFileName = "shape.js";
     private static String outputType = "x3d";
     private static String outputFileName = "save.x3d";
+    
+    private static boolean isLocalRun = false;
 
     public static String getOutputFolder(){
         return outputFolder;
     }
     public static void setOutputFolder(String folder){
         outputFolder = folder;
+    }
+
+    /**
+       switch on full set of functionality for application running locally 
+     */
+    public static void setLocalRun(boolean value){
+        isLocalRun = value;
     }
 
     public static String getInputFileName(){
@@ -110,8 +136,11 @@ public class AbFab3DGlobal  {
         smoothingWidth = value;
     }    
 
-    private static String[] globalFunctions = {
-            "load", "createGrid"
+    private static String[] globalFunctionsSecure = {
+        "load", "loadImage","createGrid"
+    };
+    private static String[] globalFunctionsAll = {
+        "load", "loadImage","createGrid", "writeAsMesh"
     };
 
     private HashMap<String,Object> globals = new HashMap<String,Object>();
@@ -130,10 +159,15 @@ public class AbFab3DGlobal  {
         globals.put(SMOOTHING_WIDTH_VAR,0.5);
         globals.put(MESH_MIN_PART_VOLUME_VAR,0);
         globals.put(MESH_MAX_PART_COUNT_VAR,maxParts);
+        globals.put(MESH_MAX_TRI_COUNT_VAR,maxTriCount);
     }
 
     public String[] getFunctions() {
-        return globalFunctions;
+        if(isLocalRun)
+            return globalFunctionsAll;
+        else 
+            return globalFunctionsSecure;
+        
     }
 
     public Map<String,Object> getProperties() {
@@ -248,219 +282,107 @@ public class AbFab3DGlobal  {
     }
 
     /**
-     * Stops execution and shows a grid.  TODO:  How to make it stop?
-     * <p/>
-     * This method is defined as a JavaScript function.
+       js function to load image
+       returns BufferedImage 
      */
-    public static void show(Context cx, Scriptable thisObj,
-                            Object[] args, Function funObj) {
-
-
-
-        AttributeGrid grid = null;
-
-        boolean show_slices = false;
-
-        if (args.length > 0) {
-            if (args[0] instanceof Boolean) {
-                show_slices = (Boolean) args[0];
-            } else if (args[0] instanceof AttributeGrid) {
-                grid = (AttributeGrid) args[0];
-            } else if (args[0] instanceof NativeJavaObject) {
-                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
-            }
-        }
-
-        if (grid == null) {
-            System.out.println("No grid specified");
-        }
-        if (args.length > 1) {
-            if (args[1] instanceof Boolean) {
-                show_slices = (Boolean) args[0];
-            }
-        }
-
-        double vs = grid.getVoxelSize();
-
-
-        if (show_slices) {
-            SlicesWriter slicer = new SlicesWriter();
-            slicer.setFilePattern("/tmp/slices2/slice_%03d.png");
-            slicer.setCellSize(5);
-            slicer.setVoxelSize(4);
-
-            slicer.setMaxAttributeValue(maxAttribute);
-            try {
-                slicer.writeSlices(grid);
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-
-        System.out.println("Saving world: " + grid + " to triangles");
-
-        Object smoothing_width = thisObj.get(SMOOTHING_WIDTH_VAR, thisObj);
-        double sw;
-        double ef;
-
-        if (smoothing_width instanceof Number) {
-            sw = ((Number)smoothing_width).doubleValue();
-        } else {
-            sw = smoothingWidth;
-        }
-
-        Object error_factor = thisObj.get(ERROR_FACTOR_VAR, thisObj);
-
-        if (smoothing_width instanceof Number) {
-            ef = ((Number)error_factor).doubleValue();
-        } else {
-            ef = errorFactor;
-        }
-
-        double maxDecimationError = ef * vs * vs;
-        // Write out the grid to an STL file
-        MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(blockSize);
-        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
-        meshmaker.setSmoothingWidth(sw);
-        meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(maxDecimationCount);
-        meshmaker.setMaxAttributeValue(maxAttribute);
-
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
-        meshmaker.makeMesh(grid, its);
-
-        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
-
-        System.out.println("Bigger then max?" + (its.getFaceCount() > MAX_TRIANGLE_SIZE));
-        if (its.getFaceCount() > MAX_TRIANGLE_SIZE) {
-            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
+    public static Object loadImage(Context cx, Scriptable thisObj,
+                                 Object[] args, Function funObj) {
+        if (args.length < 1) {
             throw Context.reportRuntimeError(
-                    "Maximum triangle count exceeded.  Max is: " + MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+                    "No file provided for loadImage() command");
         }
+        String filename = Context.toString(args[0]);
 
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-
-
-        try {
-            String path = "/tmp";
-            String name = "save.x3d";
-            String out = path + "/" + name  ;
-            double[] bounds_min = new double[3];
-            double[] bounds_max = new double[3];
-
-            grid.getGridBounds(bounds_min,bounds_max);
-            double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
-            max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
-
-            double z = 2 * max_axis / Math.tan(Math.PI / 4);
-            float[] pos = new float[] {0,0,(float) z};
-
-            GridSaver.writeMesh(mesh, out);
-            X3DViewer.viewX3DOM(name, pos);
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-        throw new ShowException();
-    }
-
-    /**
-     * Save a grid to a file.  save(grid,filename)
-     * <p/>
-     * This method is defined as a JavaScript function.
-     */
-    public static void save(Context cx, Scriptable thisObj,
-                            Object[] args, Function funObj) {
-
-
-
-        AttributeGrid grid = null;
-
-        boolean show_slices = false;
-
-        if (args.length > 0) {
-            if (args[0] instanceof Boolean) {
-                show_slices = (Boolean) args[0];
-            } else if (args[0] instanceof AttributeGrid) {
-                grid = (AttributeGrid) args[0];
-            } else if (args[0] instanceof NativeJavaObject) {
-                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
-            }
-        }
-
-        if (grid == null) {
-            System.out.println("No grid specified");
-        }
-        if (args.length > 1) {
-            if (args[1] instanceof Boolean) {
-                show_slices = (Boolean) args[0];
-            }
-        }
-
-        double vs = grid.getVoxelSize();
-
-
-        if (show_slices) {
-            SlicesWriter slicer = new SlicesWriter();
-            slicer.setFilePattern("/tmp/slices2/slice_%03d.png");
-            slicer.setCellSize(5);
-            slicer.setVoxelSize(4);
-
-            slicer.setMaxAttributeValue(maxAttribute);
-            try {
-                slicer.writeSlices(grid);
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
+        if (filename == null || filename.length() == 0) {
+            throw Context.reportRuntimeError("No file provided for load() command");
         }
         
-        System.out.println("Saving world2: " + grid + " to triangles");
+        printf("loading image file: %s\n", filename);
 
+        BufferedImage image = null;
+
+        try {
+            image = ImageIO.read(new File(filename));
+            
+        } catch (Exception e) {
+                        
+        }
+        if(image == null){
+            throw Context.reportRuntimeError(fmt("failed to load image file: %s\n",filename)); 
+        }
+
+        return new ImageWrapper(image);
+
+    }
+
+
+    /**
+       write grid to a file as a decimated mesh 
+     */
+    public static void writeAsMesh(Context cx, Scriptable thisObj,
+                            Object[] args, Function funObj) {
+
+        AttributeGrid grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+        String fname = (String)args[1];
+
+        printf("writeAsMesh(%s, %s)\n", grid,fname);        
+       
+        double vs = grid.getVoxelSize();
+
+        readGlobalVariables(thisObj);
 
         double maxDecimationError = errorFactor * vs * vs;
-
-        Object smoothing_width = thisObj.get("SMOOTHING_WIDTH", thisObj);
-
-        if (smoothing_width instanceof Number) {
-            smoothingWidth = ((Number)smoothing_width).doubleValue();
-        }
-        System.out.println("Smoothing width: " + smoothingWidth);
-        // Write out the grid to an STL file
+        
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(blockSize);
+        meshmaker.setBlockSize(AbFab3DGlobal.blockSize);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
         meshmaker.setSmoothingWidth(smoothingWidth);
         meshmaker.setMaxDecimationError(maxDecimationError);
         meshmaker.setMaxDecimationCount(maxDecimationCount);
         meshmaker.setMaxAttributeValue(maxAttribute);
+        meshmaker.setMaxTriangles(maxTriCount);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
-        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+        printf("output mesh vertices %d faces: %d\n", its.getVertexCount(), its.getFaceCount());
+        
+        if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
+            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
+            throw Context.reportRuntimeError(
+                    "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+        }
+
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
-        String path = "/tmp";
-        String name = "save.x3d";
-        String out = path + "/" + name  ;
-        double[] bounds_min = new double[3];
-        double[] bounds_max = new double[3];
-
-        grid.getGridBounds(bounds_min,bounds_max);
-        double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
-        max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
-
-        double z = 2 * max_axis / Math.tan(Math.PI / 4);
-        float[] pos = new float[] {0,0,(float) z};
-
         try {
-            GridSaver.writeMesh(mesh, out);
-            X3DViewer.viewX3DOM(name, pos);
+            if(fname.endsWith(".stl")){
+                STLWriter stl = new STLWriter(fname);
+                mesh.getTriangles(stl);
+                stl.close();                
+            } else if(fname.endsWith(".x3d")){
+                GridSaver.writeMesh(mesh, fname);                
+            }
+            
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
+               
+    }
 
+
+    /**
+       read in global varaibles set by script 
+     */
+    public static void readGlobalVariables(Scriptable thisObj){
+                        
+        smoothingWidth = getDouble(thisObj.get(SMOOTHING_WIDTH_VAR, thisObj));
+        errorFactor = getDouble(thisObj.get(ERROR_FACTOR_VAR, thisObj));
+        minimumVolume = getDouble(thisObj.get(MESH_MIN_PART_VOLUME_VAR, thisObj));
+        maxParts = getInteger(thisObj.get(MESH_MAX_PART_COUNT_VAR, thisObj));
+        maxTriCount = getInteger(thisObj.get(MESH_MAX_TRI_COUNT_VAR, thisObj));
+        
+        
     }
 
     /**
@@ -579,6 +501,26 @@ public class AbFab3DGlobal  {
         return null;
     }
 
+    private static Integer getInteger(Object o) {
+        if (o instanceof Integer) {
+            return (Integer)o;
+        }
+
+        if (o instanceof NativeJavaObject) {
+            return getInteger(((NativeJavaObject) o).unwrap());
+        }
+
+        if (o instanceof Number) {
+            return ((Number)o).intValue();
+        }
+
+        if (o instanceof String) {
+            return Integer.parseInt((String)o);
+        }
+
+        return null;
+    }
+
     private static AttributeGrid makeEmptyGrid(int[] gs, double vs) {
         AttributeGrid dest = null;
 
@@ -600,6 +542,232 @@ public class AbFab3DGlobal  {
 
         return dest;
     }
+
 }
+
+// unused stuff 
+
+    /**
+     * <p/>
+     * This method is defined as a JavaScript function.
+     not used 
+     */
+    /*
+    public static void _save(Context cx, Scriptable thisObj,
+                            Object[] args, Function funObj) {
+
+
+
+        AttributeGrid grid = null;
+
+        boolean show_slices = false;
+
+        if (args.length > 0) {
+            if (args[0] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            } else if (args[0] instanceof AttributeGrid) {
+                grid = (AttributeGrid) args[0];
+            } else if (args[0] instanceof NativeJavaObject) {
+                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+            }
+        }
+
+        if (grid == null) {
+            System.out.println("No grid specified");
+        }
+        if (args.length > 1) {
+            if (args[1] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            }
+        }
+
+        double vs = grid.getVoxelSize();
+
+
+        if (show_slices) {
+            SlicesWriter slicer = new SlicesWriter();
+            slicer.setFilePattern("/tmp/slices2/slice_%03d.png");
+            slicer.setCellSize(5);
+            slicer.setVoxelSize(4);
+
+            slicer.setMaxAttributeValue(maxAttribute);
+            try {
+                slicer.writeSlices(grid);
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+        
+        System.out.println("Saving world2: " + grid + " to triangles");
+
+
+        double maxDecimationError = errorFactor * vs * vs;
+
+        Object smoothing_width = thisObj.get("SMOOTHING_WIDTH", thisObj);
+
+        if (smoothing_width instanceof Number) {
+            smoothingWidth = ((Number)smoothing_width).doubleValue();
+        }
+        System.out.println("Smoothing width: " + smoothingWidth);
+        // Write out the grid to an STL file
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        meshmaker.setSmoothingWidth(smoothingWidth);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
+        meshmaker.setMaxAttributeValue(maxAttribute);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        meshmaker.makeMesh(grid, its);
+
+        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        String path = "/tmp";
+        String name = "save.x3d";
+        String out = path + "/" + name  ;
+        double[] bounds_min = new double[3];
+        double[] bounds_max = new double[3];
+
+        grid.getGridBounds(bounds_min,bounds_max);
+        double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+        max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+
+        double z = 2 * max_axis / Math.tan(Math.PI / 4);
+        float[] pos = new float[] {0,0,(float) z};
+
+        try {
+            GridSaver.writeMesh(mesh, out);
+            X3DViewer.viewX3DOM(name, pos);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+    }
+    */
+
+
+    /**
+     * Stops execution and shows a grid.  TODO:  How to make it stop?
+     * <p/>
+     * This method is defined as a JavaScript function.
+     not used 
+     */
+    /*
+    public static void _show(Context cx, Scriptable thisObj,
+                            Object[] args, Function funObj) {
+
+
+
+        AttributeGrid grid = null;
+
+        boolean show_slices = false;
+
+        if (args.length > 0) {
+            if (args[0] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            } else if (args[0] instanceof AttributeGrid) {
+                grid = (AttributeGrid) args[0];
+            } else if (args[0] instanceof NativeJavaObject) {
+                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+            }
+        }
+
+        if (grid == null) {
+            System.out.println("No grid specified");
+        }
+        if (args.length > 1) {
+            if (args[1] instanceof Boolean) {
+                show_slices = (Boolean) args[0];
+            }
+        }
+
+        double vs = grid.getVoxelSize();
+
+
+        if (show_slices) {
+            SlicesWriter slicer = new SlicesWriter();
+            slicer.setFilePattern("/tmp/slices2/slice_%03d.png");
+            slicer.setCellSize(5);
+            slicer.setVoxelSize(4);
+
+            slicer.setMaxAttributeValue(maxAttribute);
+            try {
+                slicer.writeSlices(grid);
+            } catch(IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        System.out.println("Saving world: " + grid + " to triangles");
+
+        Object smoothing_width = thisObj.get(SMOOTHING_WIDTH_VAR, thisObj);
+        double sw;
+        double ef;
+
+        if (smoothing_width instanceof Number) {
+            sw = ((Number)smoothing_width).doubleValue();
+        } else {
+            sw = smoothingWidth;
+        }
+
+        Object error_factor = thisObj.get(ERROR_FACTOR_VAR, thisObj);
+
+        if (smoothing_width instanceof Number) {
+            ef = ((Number)error_factor).doubleValue();
+        } else {
+            ef = errorFactor;
+        }
+
+        double maxDecimationError = ef * vs * vs;
+        // Write out the grid to an STL file
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setBlockSize(blockSize);
+        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        meshmaker.setSmoothingWidth(sw);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(maxDecimationCount);
+        meshmaker.setMaxAttributeValue(maxAttribute);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        meshmaker.makeMesh(grid, its);
+
+        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+
+        System.out.println("Bigger then max?" + (its.getFaceCount() > MAX_TRIANGLE_SIZE));
+        if (its.getFaceCount() > MAX_TRIANGLE_SIZE) {
+            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
+            throw Context.reportRuntimeError(
+                    "Maximum triangle count exceeded.  Max is: " + MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+        }
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+
+        try {
+            String path = "/tmp";
+            String name = "save.x3d";
+            String out = path + "/" + name  ;
+            double[] bounds_min = new double[3];
+            double[] bounds_max = new double[3];
+
+            grid.getGridBounds(bounds_min,bounds_max);
+            double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+            max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+
+            double z = 2 * max_axis / Math.tan(Math.PI / 4);
+            float[] pos = new float[] {0,0,(float) z};
+
+            GridSaver.writeMesh(mesh, out);
+            X3DViewer.viewX3DOM(name, pos);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        throw new ShowException();
+    }
+    */
+
 
 

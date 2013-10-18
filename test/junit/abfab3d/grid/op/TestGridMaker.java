@@ -1,6 +1,6 @@
 /*****************************************************************************
  *                        Shapeways, Inc Copyright (c) 2011
- *                               Java Source
+ *                              Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
  * Please read http://www.gnu.org/copyleft/lgpl.html for more information
@@ -132,7 +132,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
-        image.setLocation(0,0,0);
+        image.setCenter(0,0,0);
 
         image.setBaseThickness(0.1);
         image.setImagePath("docs/images/numbers_1.png");
@@ -234,7 +234,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(tileWidth, tileHeight, imageDepth);
-        image.setLocation(0,0,0);
+        image.setCenter(0,0,0);
 
         image.setBaseThickness(baseThichness);
         image.setImagePath(imagePath);
@@ -312,7 +312,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
-        image.setLocation(0,0,ringThickness/2);
+        image.setCenter(0,0,ringThickness/2);
         image.setBaseThickness(0.4);
         image.setImagePath("docs/images/numbers_1.png");
         
@@ -372,18 +372,18 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(bandLength, ringWidth, ringThickness);
-        image.setLocation(0,0,ringThickness/2);
+        image.setCenter(0,0,ringThickness/2);
         image.setBaseThickness(0.);
         image.setTiles(12,1);
         image.setUseGrayscale(true);        
         image.setImagePath("apps/ringpopper/images/tile_02.png");
         image.setInterpolationType(ImageBitmap.INTERPOLATION_MIPMAP);
         image.setPixelWeightNonlinearity(-1.);
-        image.setProbeSize(0.5*MM);
+        //image.setProbeSize(0.5*MM);
 
         ImageBitmap crossSect = new ImageBitmap();
         crossSect.setSize(ringWidth, ringThickness,bandLength);
-        crossSect.setLocation(0,ringThickness/2,0);
+        crossSect.setCenter(0,ringThickness/2,0);
         crossSect.setBaseThickness(0.);
         crossSect.setUseGrayscale(false);        
         crossSect.setImagePath("apps/ringpopper/images/crosssection_01.png");
@@ -462,7 +462,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth,  ringThickness);
-        image.setLocation(0,0, ringThickness/2);
+        image.setCenter(0,0, ringThickness/2);
         image.setBaseThickness(0.5);
         image.setTiles(12,1);
         image.setImagePath("docs/images/Tile_DecorativeCeiling_2.png");
@@ -531,7 +531,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(tileWidth, tileHeight, ringThickness);
-        image.setLocation(0,0,-ringThickness);
+        image.setCenter(0,0,-ringThickness);
         image.setBaseThickness(0.);
         image.setTiles(1,1);
         image.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
@@ -611,7 +611,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI,ringWidth,ringThickness);
-        image.setLocation(0,0,ringThickness/2);
+        image.setCenter(0,0,ringThickness/2);
         image.setBaseThickness(0.5);
         image.setTiles(12, 1);
         image.setImagePath("docs/images/Tile_DecorativeCeiling_1k_h.png");
@@ -623,7 +623,7 @@ public class TestGridMaker extends TestCase {
         //Block bottomBand = new Block();
         ImageBitmap bottomBand = new ImageBitmap();
         bottomBand.setSize(ringDiameter*Math.PI,bandWidth, bandThickness);
-        bottomBand.setLocation(0, -ringWidth/2, bandThickness/2);
+        bottomBand.setCenter(0, -ringWidth/2, bandThickness/2);
         bottomBand.setTiles((int)(ringDiameter*Math.PI/bandWidth), 1);
         bottomBand.setImagePath("docs/images/circle.png");
 
@@ -690,7 +690,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringWidth, ringWidth, ringDiameter*Math.PI);
-        image.setLocation (0,0,0);
+        image.setCenter (0,0,0);
         image.setBaseThickness(0);
         image.setTiles(1,1);
         image.setImagePath( "docs/images/star_4_arms_1.png");
@@ -753,7 +753,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(ringDiameter*Math.PI, ringWidth, ringThickness);
-        image.setLocation(0,0,0);
+        image.setCenter(0,0,0);
         image.setBaseThickness(0.7);
         image.setTiles(20,4);
         //image.setImagePath("docs/images/star_4_arms_1.png");
@@ -833,7 +833,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(cupDiameter/2, cupHeight, cupDiameter*Math.PI);
-        image.setLocation(-cupDiameter/4,0,0);
+        image.setCenter(-cupDiameter/4,0,0);
         image.setBaseThickness(0.0);
         image.setTiles(1,1);
         image.setImagePath("docs/images/cup_profile.png");
@@ -894,7 +894,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize(cupDiameter/2, cupHeight, cupDiameter*Math.PI);
-        image.setLocation(-cupDiameter/4,0,0);
+        image.setCenter(-cupDiameter/4,0,0);
         image.setBaseThickness(0.0);
         image.setTiles(1,1);
         image.setImagePath("docs/images/plate_profile.png");
@@ -948,7 +948,7 @@ public class TestGridMaker extends TestCase {
 
         ImageBitmap textBand = new ImageBitmap();        
         textBand.setSize(textWidth, textHeight, textDepth);
-        textBand.setLocation(0,0,0); 
+        textBand.setCenter(0,0,0); 
         textBand.setBaseThickness(0.0);
         textBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
@@ -998,7 +998,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap block = new ImageBitmap();        
         block.setSize(blockWidth, blockHeight, blockDepth);
         block.setImagePath("docs/images/circles.png");                
-        block.setLocation(0,0,0); 
+        block.setCenter(0,0,0); 
         block.setBaseThickness(0.);
         //block.setImageType(ImageBitmap.IMAGE_POSITIVE);
         block.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
@@ -1090,7 +1090,7 @@ public class TestGridMaker extends TestCase {
                 
         ImageBitmap ringBand = new ImageBitmap();        
         ringBand.setSize(Math.PI*ringDiameter, ringWidth, ringThickness);
-        ringBand.setLocation(0,0,ringThickness/2); // make z-offset to have band in positive z halfspace 
+        ringBand.setCenter(0,0,ringThickness/2); // make z-offset to have band in positive z halfspace 
         ringBand.setBaseThickness(0.5);
         ringBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         ringBand.setTiles(20,1); 
@@ -1099,7 +1099,7 @@ public class TestGridMaker extends TestCase {
         
         ImageBitmap textBand = new ImageBitmap();        
         textBand.setSize(Math.PI*ringDiameter, ringWidth, textDepth);
-        textBand.setLocation(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
+        textBand.setCenter(0,0,-textDepth/2); // text is offset in opposite z-direction because we have to rotate 180 around Y
         textBand.setBaseThickness(0.);
         textBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
@@ -1172,7 +1172,7 @@ public class TestGridMaker extends TestCase {
 
         ImageBitmap image = new ImageBitmap();
         image.setSize(ringWidth, ringWidth, ringThickness);
-        image.setLocation(0,0,0);
+        image.setCenter(0,0,0);
         image.setBaseThickness(0.5);
         image.setTiles(1,1);
         image.setImagePath("docs/images/R.png");
@@ -1248,7 +1248,7 @@ public class TestGridMaker extends TestCase {
         ImageBitmap image = new ImageBitmap();
         
         image.setSize( sphereDiameter, sphereDiameter,sphereThickness);
-        image.setLocation(0,0,0);
+        image.setCenter(0,0,0);
         image.setBaseThickness( 0.);
         image.setImagePath("docs/images/spiral.png");
         
@@ -1365,7 +1365,7 @@ public class TestGridMaker extends TestCase {
                 
                 ImageBitmap image = new ImageBitmap();       
                 image.setSize(width,height,thickness);
-                image.setLocation(0,0,0);
+                image.setCenter(0,0,0);
                 image.setBaseThickness(baseThickness);
                 image.setImageType(type[i]);
                 image.setImagePlace(place[k]);

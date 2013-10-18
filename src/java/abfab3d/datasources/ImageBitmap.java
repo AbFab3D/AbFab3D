@@ -20,7 +20,12 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 
 import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
-import static abfab3d.util.MathUtil.*;
+import static abfab3d.util.MathUtil.intervalCap;
+import static abfab3d.util.MathUtil.clamp;
+import static abfab3d.util.MathUtil.step01;
+import static abfab3d.util.MathUtil.step10;
+import static abfab3d.util.MathUtil.step;
+import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 
@@ -47,8 +52,6 @@ import static abfab3d.util.Output.time;
  */
 public class ImageBitmap extends TransformableDataSource {
 
-    double MM = 0.001; //
-
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2;
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
@@ -59,7 +62,12 @@ public class ImageBitmap extends TransformableDataSource {
     static double EPSILON = 1.e-3;
     static final double MAX_PIXELS_PER_VOXEL = 3.;
 
-    protected double m_sizeX = 0.1, m_sizeY = 0.1, m_sizeZ = 0.001, m_centerX = 0, m_centerY = 0, m_centerZ = 0;
+    public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
+
+    // siz eof the box 
+    protected double m_sizeX = 0., m_sizeY = 0., m_sizeZ = 10*DEFAULT_VOXEL_SIZE;
+    // location of the box
+    protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
     protected double m_baseThickness = 0.5; // relative thickness of solid base 
     protected String m_imagePath;
@@ -76,18 +84,12 @@ public class ImageBitmap extends TransformableDataSource {
 
     private BufferedImage m_image;
     private int m_interpolationType = INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
-    // probe size in world units
-    private double m_probeSize = 1.e-4; // 0.1mm
-    // probe size in image pixels, initiliazed in init()
-    private double m_probeSizeImage = 0;
-    // scaling to convert probe size into pixels of image 
-    private double m_probeScale;
     // width of optional blur of the the image 
     private double m_blurWidth = 0.;
     private double m_voxelSize = 0.;
 
     private double xmin, xmax, ymin, ymax, zmin, zmax;
-    private double imageZmin;// location of lowest poiunt of thge image 
+    private double imageZmin;// location of lowest point of thge image 
     private double baseBottom;
     private double imageZScale; // conversion form (0,1) to (0, imageZsize)
 
@@ -127,6 +129,10 @@ public class ImageBitmap extends TransformableDataSource {
 
     /**
      * ImageBitmap with given image path and size
+     @param imagePath path to the image file 
+     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param sz depth of the box. 
      */
     public ImageBitmap(String imagePath, double sx, double sy, double sz) {
 
@@ -136,7 +142,54 @@ public class ImageBitmap extends TransformableDataSource {
     }
 
     /**
-     * @noRefGuide
+     * ImageBitmap with given image path and size
+     @param imagePath path to the image file 
+     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param sz depth of the box. 
+     @param voxelSize size of voxel to be used for image voxelization 
+     */
+    public ImageBitmap(String imagePath, double sx, double sy, double sz, double voxelSize) {
+
+        setImagePath(imagePath);
+        setSize(sx, sy, sz);
+        setVoxelSize(voxelSize);
+
+    }
+
+    /**
+     * ImageBitmap with given image path and size
+     @param imagePath path to the image file 
+     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param sz depth of the box. 
+     @param voxelSize size of voxel to be used for image voxelization 
+     */
+    public ImageBitmap(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
+
+        setImage(image);
+        setSize(sx, sy, sz);
+        setVoxelSize(voxelSize);
+
+    }
+
+    /**
+     * ImageBitmap with given image path and size
+     @param imagePath path to the image file 
+     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param sz depth of the box. 
+     @param voxelSize size of voxel to be used for image voxelization 
+     */
+    public ImageBitmap(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
+
+        setImage(imwrapper.getImage());
+        setSize(sx, sy, sz);
+        setVoxelSize(voxelSize);
+
+    }
+    /**
+     * set size of imagebox 
      */
     public void setSize(double sx, double sy, double sz) {
         m_sizeX = sx;
@@ -145,21 +198,21 @@ public class ImageBitmap extends TransformableDataSource {
     }
 
     /**
-     * @noRefGuide
+     * set center of imagebox 
      */
-    public void setLocation(double x, double y, double z) {
-        m_centerX = x;
-        m_centerY = y;
-        m_centerZ = z;
+    public void setCenter(double cx, double cy, double cz) {
+        m_centerX = cx;
+        m_centerY = cy;
+        m_centerZ = cz;
     }
 
     /**
-     * @noRefGuide
+     * set image tiling 
      */
-    public void setTiles(int tx, int ty) {
+    public void setTiles(int tilesX, int tilesY) {
 
-        m_xTilesCount = tx;
-        m_yTilesCount = ty;
+        m_xTilesCount = tilesX;
+        m_yTilesCount = tilesY;
 
     }
 
@@ -283,14 +336,6 @@ public class ImageBitmap extends TransformableDataSource {
         m_pixelWeightNonlinearity = value;
     }
 
-    /**
-     * @noRefGuide
-     */
-    public void setProbeSize(double size) {
-
-        m_probeSize = size;
-        m_probeSizeImage = m_probeSize * m_probeScale;
-    }
 
     /**
      * @noRefGuide
@@ -298,6 +343,29 @@ public class ImageBitmap extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
+        int res = prepareImage();
+
+        if(res != RESULT_OK){ 
+            // something wrong with the image 
+            imageWidth = 2;
+            imageHeight = 2; 
+            throw new IllegalArgumentException("undefined image");
+        }
+ 
+        
+        if(m_sizeX == 0.){ // width undefined - get it from image aspect ratio 
+            if(m_sizeY == 0.){ 
+                // both sizes are undefined - do something reasonable 
+                m_sizeX = imageWidth*DEFAULT_VOXEL_SIZE;
+                m_sizeY = imageHeight*DEFAULT_VOXEL_SIZE;
+            } else {
+                
+                m_sizeX = (m_sizeY * imageWidth) / imageHeight;
+            }            
+        } else if(m_sizeY == 0.0){ // height is undefined - get it from the image aspect ratio 
+            m_sizeY = (m_sizeX * imageHeight) / imageWidth;            
+        }
+        
         xmin = m_centerX - m_sizeX / 2.;
         xmax = m_centerX + m_sizeX / 2.;
         xscale = 1. / (xmax - xmin);
@@ -325,6 +393,15 @@ public class ImageBitmap extends TransformableDataSource {
 
         //int imageData[] = null;
 
+        
+        return RESULT_OK;
+    }
+
+    /**
+     * @noRefGuide
+     */
+    int prepareImage(){
+
         long t0 = time();
 
         BufferedImage image = null;
@@ -332,10 +409,11 @@ public class ImageBitmap extends TransformableDataSource {
             // image was supplied via memory 
             image = m_image;
             m_imagePath = MEMORY_IMAGE;
+
         } else if (m_imagePath == null) {
             //imageDataByte = null; 
-
-            return RESULT_OK;
+            return RESULT_ERROR;
+            
         } else {
             try {
                 image = ImageIO.read(new File(m_imagePath));
@@ -426,37 +504,8 @@ public class ImageBitmap extends TransformableDataSource {
 
         }
 
-        
-        /*
-          
-          t0 = time();
-          imageWidth = image.getWidth();
-          imageHeight = image.getHeight();
-          printf("image: [%d x %d]\n", imageWidth, imageHeight);
-          
-          // convert probe size in meters into image units 
-          m_probeScale = xscale*imageWidth;
-          m_probeSizeImage = m_probeSize*m_probeScale;
-          
-          //DataBuffer dataBuffer = image.getRaster().getDataBuffer();          
-          imageData = new int[imageWidth * imageHeight];
-          image.getRGB(0,0,imageWidth, imageHeight, imageData, 0, imageWidth);
-          
-          printf("image.getRGB() %d ms\n", (time() - t0));
-          t0 = time();
-          
-          int len = imageData.length; 
-          imageDataByte = new byte[len];
-          
-          for(int i = 0; i < len; i++){
-          // convert data into grayscale 
-          imageDataByte[i] = (byte)ImageUtil.getCombinedGray(m_backgroundColorInt, imageData[i]);                
-          }
-          printf("gray scale data initialization %d ms\n", (time() - t0));
-          
-          imageData = null;
-        */
         return RESULT_OK;
+
     }
 
     /**
@@ -473,7 +522,7 @@ public class ImageBitmap extends TransformableDataSource {
         if (vs == 0.)
             return getDataValueZeroVoxel(pnt, data);
         else
-            return getDataValueFiniteVoxel(pnt, data);
+            return getDataValueFiniteVoxel(pnt, data, vs);
     }
 
 
@@ -482,14 +531,14 @@ public class ImageBitmap extends TransformableDataSource {
      *
      * @noRefGuide
      */
-    public int getDataValueFiniteVoxel(Vec pnt, Vec data) {
+    public int getDataValueFiniteVoxel(Vec pnt, Vec data, double vs) {
 
         double
                 x = pnt.v[0],
                 y = pnt.v[1],
                 z = pnt.v[2];
 
-        double vs = pnt.getScaledVoxelSize();
+        //double vs = pnt.getScaledVoxelSize();
 
         if (x <= xmin - vs || x >= xmax + vs ||
                 y <= ymin - vs || y >= ymax + vs ||

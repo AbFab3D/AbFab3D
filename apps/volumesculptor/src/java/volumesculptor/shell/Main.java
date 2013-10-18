@@ -165,7 +165,7 @@ public class Main {
      */
     public static void main(String args[]) {
         try {
-            System.out.println("Initializing Java security model");
+            printf("Initializing Java security model");
             initJavaPolicySecuritySupport();
         } catch (SecurityException ex) {
             ex.printStackTrace(System.err);
@@ -491,6 +491,14 @@ public class Main {
                     break goodUsage;
                 }
                 AbFab3DGlobal.setOutputFolder(args[i]);
+                continue;
+            }
+            if (arg.equals("-allowWrite")) {
+                if (++i == args.length) {
+                    usageError = arg;
+                    break goodUsage;
+                }
+                AbFab3DGlobal.setLocalRun(Boolean.parseBoolean(args[i]));
                 continue;
             }
             if (arg.equals("-strict")) {
@@ -899,6 +907,9 @@ public class Main {
         Object result = main.call(cx, scope, scope, new Object[] {args});
 
         Grid grid = null;
+        if(result == null)
+            return null;
+
         if (result instanceof Grid) {
             grid = (Grid) result;
         } else {
@@ -922,7 +933,7 @@ public class Main {
                             Object[] args, Function funObj) {
 
 
-
+        printf("show()\n");
         AttributeGrid grid = null;
 
         boolean show_slices = false;
@@ -1071,7 +1082,8 @@ public class Main {
      * @return
      */
     private static TriangleMesh save(Grid grid, Scriptable thisObj) {
-        System.out.println("Save file to handler");
+
+        printf("save()\n");
 
         if (grid == null) {
             System.out.println("No grid specified");
