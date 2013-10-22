@@ -65,13 +65,13 @@ public class AbFab3DGlobal  {
 
     public static final int maxAttribute = 255;
 
-    public static double errorFactor = 0.1;
-    public static int maxDecimationCount = 10;
-    public static double smoothingWidth = 0.5;
-    public static int blockSize = 30;
-    public static double minimumVolume = 0;
-    public static int maxParts = Integer.MAX_VALUE;
-    public static int maxTriCount = Integer.MAX_VALUE;
+    public static double errorFactorDefault = 0.1;
+    public static int maxDecimationCountDefault = 10;
+    public static double smoothingWidthDefault = 0.5;
+    public static int blockSizeDefault = 30;
+    public static double minimumVolumeDefault = 0;
+    public static int maxPartsDefault = Integer.MAX_VALUE;
+    public static int maxTriCountDefault = Integer.MAX_VALUE;
 
     private static String outputFolder = "/tmp";
     private static String inputFilePath= "shape.js";
@@ -124,6 +124,7 @@ public class AbFab3DGlobal  {
         return outputFileName;
     }
 
+    /*
     public static void setErrorFactor(double value){
         errorFactor = value;
     }
@@ -135,7 +136,7 @@ public class AbFab3DGlobal  {
     public static void setSmoothingWidth(double value){
         smoothingWidth = value;
     }    
-
+    */
     private static String[] globalFunctionsSecure = {
         "load", "loadImage","createGrid"
     };
@@ -155,11 +156,11 @@ public class AbFab3DGlobal  {
         globals.put("FT", Units.FT);
         globals.put("PI", Math.PI);
 
-        globals.put(ERROR_FACTOR_VAR,0.1);
-        globals.put(SMOOTHING_WIDTH_VAR,0.5);
-        globals.put(MESH_MIN_PART_VOLUME_VAR,0);
-        globals.put(MESH_MAX_PART_COUNT_VAR,maxParts);
-        globals.put(MESH_MAX_TRI_COUNT_VAR,maxTriCount);
+        globals.put(ERROR_FACTOR_VAR,errorFactorDefault);
+        globals.put(SMOOTHING_WIDTH_VAR,smoothingWidthDefault);
+        globals.put(MESH_MIN_PART_VOLUME_VAR,minimumVolumeDefault);
+        globals.put(MESH_MAX_PART_COUNT_VAR,maxPartsDefault);
+        globals.put(MESH_MAX_TRI_COUNT_VAR,maxTriCountDefault);
     }
 
     public String[] getFunctions() {
@@ -329,16 +330,21 @@ public class AbFab3DGlobal  {
        
         double vs = grid.getVoxelSize();
 
-        readGlobalVariables(thisObj);
+        double smoothingWidth = getDouble(thisObj.get(SMOOTHING_WIDTH_VAR, thisObj));
+        double errorFactor = getDouble(thisObj.get(ERROR_FACTOR_VAR, thisObj));
+        double minimumVolume = getDouble(thisObj.get(MESH_MIN_PART_VOLUME_VAR, thisObj));
+        double maxParts = getInteger(thisObj.get(MESH_MAX_PART_COUNT_VAR, thisObj));
+        int maxTriCount = getInteger(thisObj.get(MESH_MAX_TRI_COUNT_VAR, thisObj));
+
 
         double maxDecimationError = errorFactor * vs * vs;
         
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(AbFab3DGlobal.blockSize);
+        meshmaker.setBlockSize(blockSizeDefault);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
         meshmaker.setSmoothingWidth(smoothingWidth);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(maxDecimationCount);
+        meshmaker.setMaxDecimationCount(maxDecimationCountDefault);
         meshmaker.setMaxAttributeValue(maxAttribute);
         meshmaker.setMaxTriangles(maxTriCount);
 
@@ -370,20 +376,6 @@ public class AbFab3DGlobal  {
                
     }
 
-
-    /**
-       read in global varaibles set by script 
-     */
-    public static void readGlobalVariables(Scriptable thisObj){
-                        
-        smoothingWidth = getDouble(thisObj.get(SMOOTHING_WIDTH_VAR, thisObj));
-        errorFactor = getDouble(thisObj.get(ERROR_FACTOR_VAR, thisObj));
-        minimumVolume = getDouble(thisObj.get(MESH_MIN_PART_VOLUME_VAR, thisObj));
-        maxParts = getInteger(thisObj.get(MESH_MAX_PART_COUNT_VAR, thisObj));
-        maxTriCount = getInteger(thisObj.get(MESH_MAX_TRI_COUNT_VAR, thisObj));
-        
-        
-    }
 
     /**
      * Create a new grid

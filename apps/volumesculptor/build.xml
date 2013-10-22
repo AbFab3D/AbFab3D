@@ -159,6 +159,27 @@
             </classpath>
         </junit>
     </target>
+    <target name="testSpecific" depends="compileTest">
+        <echo message="running testSpecific ${test} jvmargs: ${jvmrunargs}" />
+        <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="yes">
+            <jvmarg line="${jvmrunargs}"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes" >
+                <fileset dir="${test.dir}">
+                    <include name="**/${test}.java"/>
+                </fileset>
+            </batchtest>
+
+            <classpath>
+                <pathelement path="${abfab3d.classes.dir}" />
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${test.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+                <fileset dir="${abfab3d.lib.dir}" includes="**/*.jar" />
+            </classpath>
+        </junit>
+    </target>
+
 
     <target name="run" depends="compile" description="Run the application">
         <echo message="jvmargs: ${jvmrunargs}"/>

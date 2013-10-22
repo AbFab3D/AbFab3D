@@ -991,35 +991,35 @@ public class Main {
         if (smoothing_width instanceof Number) {
             sw = ((Number)smoothing_width).doubleValue();
         } else {
-            sw = AbFab3DGlobal.smoothingWidth;
+            sw = AbFab3DGlobal.smoothingWidthDefault;
         }
 
         if (smoothing_width instanceof Number) {
             ef = ((Number)error_factor).doubleValue();
         } else {
-            ef = AbFab3DGlobal.errorFactor;
+            ef = AbFab3DGlobal.errorFactorDefault;
         }
 
         if (min_volume instanceof Number) {
             mv = ((Number)min_volume).doubleValue();
         } else {
-            mv = AbFab3DGlobal.minimumVolume;
+            mv = AbFab3DGlobal.minimumVolumeDefault;
         }
 
         if (max_parts instanceof Number) {
             mp = ((Number)max_parts).intValue();
         } else {
-            mp = AbFab3DGlobal.maxParts;
+            mp = AbFab3DGlobal.maxPartsDefault;
         }
 
         double maxDecimationError = ef * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(AbFab3DGlobal.blockSize);
+        meshmaker.setBlockSize(AbFab3DGlobal.blockSizeDefault);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
         meshmaker.setSmoothingWidth(sw);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCount);
+        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCountDefault);
         meshmaker.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
@@ -1104,35 +1104,35 @@ public class Main {
         if (smoothing_width instanceof Number) {
             sw = ((Number)smoothing_width).doubleValue();
         } else {
-            sw = AbFab3DGlobal.smoothingWidth;
+            sw = AbFab3DGlobal.smoothingWidthDefault;
         }
 
         if (smoothing_width instanceof Number) {
             ef = ((Number)error_factor).doubleValue();
         } else {
-            ef = AbFab3DGlobal.errorFactor;
+            ef = AbFab3DGlobal.errorFactorDefault;
         }
 
         if (min_volume instanceof Number) {
             mv = ((Number)min_volume).doubleValue();
         } else {
-            mv = AbFab3DGlobal.minimumVolume;
+            mv = AbFab3DGlobal.minimumVolumeDefault;
         }
 
         if (max_parts instanceof Number) {
             mp = ((Number)max_parts).intValue();
         } else {
-            mp = AbFab3DGlobal.maxParts;
+            mp = AbFab3DGlobal.maxPartsDefault;
         }
 
         double maxDecimationError = ef * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(AbFab3DGlobal.blockSize);
+        meshmaker.setBlockSize(AbFab3DGlobal.blockSizeDefault);
         meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
         meshmaker.setSmoothingWidth(sw);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCount);
+        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCountDefault);
         meshmaker.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
