@@ -853,6 +853,71 @@ public class DevTestSliceWriter extends TestCase {
         
     }
 
+    public static void testLevels()throws Exception {
+
+        printf("testLevels()");
+
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
+
+        double s = 1.5*MM;
+        double rs = 0.5*MM;
+        double surfareThickness = sqrt(3)/2;
+
+        double xmin = -s;
+        double xmax = s;
+
+        double bounds[] = new double[]{xmin, xmax, xmin, xmax, xmin, xmax};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+
+        int maxAttributeValue = 255;
+        double surfLevel = maxAttributeValue/2.;
+        double levels[] = new double[]{surfLevel};
+
+        printf("grid: [%d x %d x %d]\n", nx,ny, nz);
+        Union union = new Union();
+        double vs2 = voxelSize/2;
+        union.add(new Sphere(vs2,vs2, vs2,rs));
+        //union.add(new Cylinder(new Vector3d(-ss,-ss,-ss), new Vector3d(ss, ss, ss), rs));
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+
+        GridMaker gm = new GridMaker();  
+        gm.setSource(union);        
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfareThickness);
+        
+        long t0 = time();
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done in %d ms\n", (time() - t0));
+
+
+        SlicesWriter slicer = new SlicesWriter();
+        slicer.setFilePattern("/tmp/levels/slice_%03d.png");
+        slicer.setCellSize(30);
+        slicer.setVoxelSize(29);        
+        slicer.setBackgroundColor(0xFFFFFF);
+        slicer.setMaxAttributeValue(maxAttributeValue);
+        int z = nz/2;
+        slicer.setBounds(0, nx, 0, ny, z, z+1);
+        slicer.setWriteLevels(false);
+        slicer.setWriteVoxels(true);
+        //slicer.setLevels(new double[]{0.25, 0.5, 0.75});
+        //slicer.setLevels(new double[]{30.01, 50.,70.01 });
+        slicer.setLevels(levels);
+        //slicer.setLevels(new double[]{40.1, 50.1, 60.1});
+        slicer.writeSlices(grid);
+
+        
+    }
+
 
     public static void main(String[] args) throws Exception {
 
@@ -861,6 +926,7 @@ public class DevTestSliceWriter extends TestCase {
         //hyperBall();
 
         //makeIcosahedron();
-        testTransformableSphere();
+        //testTransformableSphere();
+        testLevels();
     }
 }
