@@ -192,6 +192,7 @@ public class Main {
             global.init(shellContextFactory);
         }
 
+        global.initAbFab3D(shellContextFactory);
         System.out.println("Orig: " + java.util.Arrays.toString(origArgs));
         System.out.println("Args: " + java.util.Arrays.toString(args));
 
@@ -227,6 +228,8 @@ public class Main {
         if (!global.initialized) {
             global.init(shellContextFactory);
         }
+        global.initAbFab3D(shellContextFactory);
+
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = args;
         iproxy.script_args = typeArgs(scriptArgs);
@@ -520,6 +523,8 @@ public class Main {
                 if (!global.initialized) {
                     global.init(shellContextFactory);
                 }
+                global.initAbFab3D(shellContextFactory);
+
                 IProxy iproxy = new IProxy(IProxy.EVAL_INLINE_SCRIPT);
                 iproxy.scriptText = args[i];
                 shellContextFactory.call(iproxy);
