@@ -14,8 +14,15 @@ package abfab3d.io.output;
 import java.io.IOException;
 import java.io.File;
 
+import java.awt.Color;
+import java.awt.BasicStroke;
+import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.RenderingHints;
+
 
 import java.util.Arrays;
 
@@ -37,7 +44,8 @@ import static abfab3d.util.Output.printf;
  */
 public class SlicesWriter {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
+    static int debugCount = 0;
 
     static final int COLOR_WHITE = makeColor(0xFF);
     static final int COLOR_BLACK = makeColor(0);
@@ -50,13 +58,20 @@ public class SlicesWriter {
     int imgCellSize = 1;  // size of grid cell to write to 
     int imgVoxelSize = 1; // 
     int m_maxAttributeValue=0;
-    int m_backgroundColor = 0xFFFFFFFF; // solid white 
-    int m_foregroundColor = 0xFF000000; // solid black
+    int m_backgroundColor = COLOR_WHITE; // solid white 
+    int m_foregroundColor = COLOR_BLACK; // solid black
 
     int xmin=-1, xmax=-1, ymin=-1, ymax=-1, zmin=-1, zmax=-1;
-
+    double m_levels[] = new double[0];
     Grid m_grid;
-    
+
+    Color m_levelsColor = Color.RED;
+
+    boolean m_writeVoxels = true;
+    boolean m_writeLevels = false;
+
+    double m_levelLineWidth = 3.;
+
     public void setBounds(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax){
 
         this.xmin = xmin;
@@ -67,6 +82,23 @@ public class SlicesWriter {
         this.zmax = zmax;
 
     }
+
+    /**
+       set level for topographical map output 
+     */
+    public void setLevels(double levels[]){
+        m_levels = new double[levels.length];
+        System.arraycopy(levels, 0, m_levels, 0, levels.length);
+    }
+
+    public void setWriteVoxels(boolean value){
+        m_writeVoxels = value;
+    }
+
+    public void setWriteLevels(boolean value){
+        m_writeLevels = value;
+    }
+
 
     public void setMaxAttributeValue(int value){
 
@@ -131,35 +163,79 @@ public class SlicesWriter {
         if(DEBUG) printf("slice image size:[%d x %d]\n", imgWidth, imgHeight);
             
         BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = null;
+        if(m_writeLevels){
+            graphics = outImage.createGraphics();
+            graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            graphics.setStroke(new BasicStroke((float)m_levelLineWidth, BasicStroke.CAP_ROUND,  BasicStroke.JOIN_ROUND));
+        }
 
         DataBufferInt dbi = (DataBufferInt)(outImage.getRaster().getDataBuffer());
         int[] imageData = dbi.getData();
         
         for(int z = zmin; z < zmax; z++){
 
-            Arrays.fill(imageData, COLOR_WHITE);
-            for(int y = ymin; y < ymax; y++){
+            Arrays.fill(imageData, m_backgroundColor);
 
-                for(int x = xmin; x < xmax; x++){
+            if(m_writeVoxels){
+                for(int y = ymin; y < ymax; y++){
+                    for(int x = xmin; x < xmax; x++){                        
+                        int cc = getVoxelColor(x,y,z);
+                        
+                        int ix = x-xmin;
+                        int iy = y-ymin;
 
-                    int cc = getVoxelColor(x,y,z);
-
-                    int ix = x-xmin;
-                    int iy = y-ymin;
-
-                    int ix0 = ix*imgCellSize;
-                    int ix1 = ix0 + imgVoxelSize;
-                    int iy0 = iy*imgCellSize;
-                    int iy1 = iy0 + imgVoxelSize;
-                    
-                    for(int yy = iy0; yy < iy1; yy++) {
-                        int yy0 = yy*imgWidth;
-                        for(int xx = ix0; xx < ix1; xx++) {
-                            imageData[xx + yy0] = cc;
+                        int ix0 = ix*imgCellSize;
+                        int ix1 = ix0 + imgVoxelSize;
+                        int iy0 = iy*imgCellSize;
+                        int iy1 = iy0 + imgVoxelSize;
+                        
+                        for(int yy = iy0; yy < iy1; yy++) {
+                            int yy0 = yy*imgWidth;
+                            for(int xx = ix0; xx < ix1; xx++) {
+                                imageData[xx + yy0] = cc;
+                            }
                         }
                     }
+                } // y cycle
+            } // if(m_writeVoxels)
+            
+            
+            if(m_writeLevels){
+
+                graphics.setPaint(m_levelsColor);
+                double values[] = new double[4];
+                int ymax1 = ymax-1; // no processing of the last raw and column 
+                Point2D points[] = new Point2D[4];
+                for(int i = 0; i < 4; i++){
+                    points[i] = new Point2D.Double();
                 }
-            } // y cycle
+                int xmax1 = xmax-1;
+                
+                for(int y = ymin; y < ymax1; y++){
+                    for(int x = xmin; x < xmax1; x++){
+                        
+                        values[0] = getVoxelValue(x,y,z);
+                        values[1] = getVoxelValue(x+1,y,z);
+                        values[2] = getVoxelValue(x+1,y+1,z);
+                        values[3] = getVoxelValue(x,y+1,z);
+                        
+                        
+                        double ix0 = (x-xmin)*imgCellSize + imgCellSize/2;
+                        double iy0 = (y-ymin)*imgCellSize + imgCellSize/2;
+                        double ix1 = ix0 + imgCellSize;
+                        double iy1 = iy0 + imgCellSize;
+                        points[0].setLocation(ix0, iy0);
+                        points[1].setLocation(ix1, iy0);
+                        points[2].setLocation(ix1, iy1);
+                        points[3].setLocation(ix0, iy1);
+                        drawLevels(graphics, values, points, m_levels);
+                        //graphics.drawLine(ix0, iy0, ix1, iy1);
+                        
+                    }
+                }                
+            }
+
             String fileName = fmt(m_filePattern, (z-zmin));
             if(DEBUG)printf("slice: %s\n", fileName);
 
@@ -168,6 +244,59 @@ public class SlicesWriter {
         } // zcycle 
                 
     } //    writeSlices(AttributeGtrid grid){   
+
+    /**
+       draw contours in rectangle 
+     */
+    void drawLevels(Graphics2D graphics, double values[], Point2D points[], double levels[]){
+
+        for(int i = 0; i < levels.length; i++){
+            drawLevel(graphics, values, points, levels[i]);
+        }                                        
+    }
+
+    
+    void drawLevel(Graphics2D graphics, double v[], Point2D p[], double level){
+                    
+        int count = 0;
+        Point2D pnts[] = null;
+
+        for(int i = 0; i < 4; i++){
+            
+            int i1 = (i+1)%4;
+            
+            if((v[i] - level) * (level - v[i1])  >= 0.){
+                
+                if(pnts == null){
+                    pnts = new Point2D[2];
+                    count = 0;
+                }
+                pnts[count++] = lerp(p[i], p[i1], v[i], v[i1], level);
+                
+                if(DEBUG && v[0] > 0 &&  debugCount-- > 0){
+                    printf("[%7.3f %7.3f %7.3f  ->(%7.3f %7.3f)\n", v[i], v[i1], level,pnts[count-1].getX(),pnts[count-1].getY());
+                }
+                
+                if(count == 2){
+                    Line2D line = new Line2D.Double(pnts[0].getX(), pnts[0].getY(), pnts[1].getX(), pnts[1].getY());
+                    graphics.draw(line);
+                    count = 0;
+                }                
+            }
+        }                                           
+    }
+    
+    /**
+       
+     */
+    static Point2D lerp(Point2D p0, Point2D p1, double v0, double v1, double v){
+
+        double t0 = (v1 - v)/(v1 - v0);
+        double t1 = (v - v0)/(v1 - v0);
+
+        return new Point2D.Double(t0*p0.getX() + t1*p1.getX(), t0*p0.getY() + t1*p1.getY());
+
+    }
 
     /**
        returns color to be used for given vocxel
@@ -199,6 +328,23 @@ public class SlicesWriter {
         }
     }
 
+    long getVoxelValue(int x, int y, int z){
+
+        switch(m_maxAttributeValue){
+        case 0: // use grid state 
+            {
+                switch(m_grid.getState(x,y,z)){
+                default:
+                case Grid.OUTSIDE:
+                    return 0;
+                case Grid.INSIDE:
+                    return 1;
+                }
+            }
+        default: // use grid attribute 
+            return ((AttributeGrid)m_grid).getAttribute(x,y,z);            
+        }
+    }
     
     static final int makeColor(int gray){
 
