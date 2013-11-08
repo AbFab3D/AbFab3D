@@ -12,7 +12,7 @@ var EPS = 1.e-7; // small epsilon to compare fp numbers
 var triangleX = 1; // dimension of fundamental domain triangle
 var triangleY = 1;
  
-var voxelSize = 0.2*MM;
+var voxelSize = 0.1*MM;
 
 // angle at x-axis vertex is pi/m
 // angle at y-axis vertex is pi/n
@@ -72,25 +72,47 @@ function getSymmetry(m,n, radius, escale ){
 	
 }
 
-function getImage(sizeX, sizeY, sizeZ, path){
+function getBareImage(sizeX, sizeY, sizeZ, path){
 
-	var union = new Union();
-
-	var box = new Box(sizeY, sizeY, sizeZ);
-	
 	var image = new ImageBitmap(path, sizeX, sizeY, sizeZ, voxelSize);
 	image.setBaseThickness(0);
 	image.setUseGrayscale(true);
 	image.setBlurWidth(voxelSize);
 	image.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
-	union.add(image);
-	
-	union.setTransform(new Translation(sizeX/2, sizeY/2, 0));
-	
+	return image;
+}
+
+function getBareImage_mm(sizeX, sizeY, sizeZ, path){
+
+  var sx = sizeX/2 + voxelSize;
+  var sy = sizeY/2 + voxelSize;
+  var sz = sizeZ/2 + voxelSize;
+  
+  var g = createGrid(-sx, sx, -sy, sy, -sz, sz,voxelSize);
+    
+  var mm = new GridMaker();
+  mm.setSource(getBareImage(sizeX, sizeY, sizeZ, path));
+  mm.makeGrid(g);
+  
+  var gmm = new GridMipMap(g);  
+  //gmm.setScalingType(GridMipMap.SCALING_AVERAGE);  
+  gmm.setScalingType(GridMipMap.SCALING_MAX);  
+
+  return gmm;
+  
+}
+
+function getImage(sizeX, sizeY, sizeZ, path){
+
+	var union = new Union();	
+	var image = getBareImage_mm(sizeX, sizeY, sizeZ, path); 	
+	union.add(image);	
+	union.setTransform(new Translation(sizeX/2, sizeY/2, 0));	
 	var dt = new DataTransformer();
 	dt.setSource(union);
 	return dt;
 }
+
 
 //
 // bend - relative size of bend 
@@ -125,7 +147,7 @@ function main(arg){
 	//var angleX = 2; var angleY = 2;
 	//var angleX = 3; var angleY = 3;
 	//var angleX = 3; var angleY = 4;
-	var angleX = 3; var angleY = 5;
+	//var angleX = 3; var angleY = 5;
 	//var angleX = 6; var angleY = 2;
 
 	// euclidean cases 
@@ -134,7 +156,7 @@ function main(arg){
 	//var angleX = 3; var angleY = 6;
 
 	// hyperbolic cases 
-	//var angleX = 4; var angleY = 6;
+	var angleX = 4; var angleY = 6;
 	//var angleX = 4; var angleY = 5;
 	//var angleX = 3; var angleY = 7;
 	
