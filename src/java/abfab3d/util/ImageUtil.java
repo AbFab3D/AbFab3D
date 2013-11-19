@@ -32,7 +32,7 @@ import static abfab3d.util.Output.fmt;
 public class ImageUtil {
 
     public static final int RESULT_OK = 1, RESULT_FAILURE = -1;
-
+    public static int MAXC = 0xFF; //  maximal value of color component as int 
     public static final double CNORM = 255.; // maximal value of color component
     public static final double CNORM1 = 1./255.;
     // indices of component in the array of colors
@@ -54,7 +54,15 @@ public class ImageUtil {
         return ((rgb) & 0xFF);
     }
     
-    static final int makeRGB(int r, int g, int b, int a ){
+    public static final int makeRGB(int r, int g, int b){
+        return 
+            0xFF000000 |
+            ((r & 0xFF) << 16) |
+            ((g & 0xFF) << 8) |
+            ((b & 0xFF) );            
+    }
+
+    public static final int makeRGBA(int r, int g, int b, int a ){
         return 
             ((a & 0xFF) << 24 )|
             ((r & 0xFF) << 16) |
@@ -124,7 +132,7 @@ public class ImageUtil {
         int b = combinePremultInt(getBlue(c1),  getBlue(c2), a);
         int a1 = combinePremultInt(getAlpha(c1),  a, a);
 
-        return makeRGB(r,g,b,a1);
+        return makeRGBA(r,g,b,a1);
 
     }
         
@@ -151,7 +159,7 @@ public class ImageUtil {
         int r = mul255(getRed(c),a);
         int g = mul255(getGreen(c),a);
         int b = mul255(getBlue(c),a);
-        return makeRGB(r, g, b, a );
+        return makeRGBA(r, g, b, a );
     }
 
     public static final int getGray(int c){
@@ -232,7 +240,7 @@ public class ImageUtil {
                 gs /= ws;
                 bs /= ws;
                 as /= ws;
-                outImage.setRGB(x,y, makeRGB(rs,gs,bs,as));
+                outImage.setRGB(x,y, makeRGBA(rs,gs,bs,as));
                 
             }
         }

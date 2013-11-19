@@ -58,9 +58,6 @@ public class IsosurfaceMaker {
     protected double m_bounds[] = new double[]{-1, 1, -1, 1, -1, 1}; // bounds of the area 
     int m_nx=10, m_ny=10, m_nz=10;
 
-    SliceFunction m_sfunction = null;
-    TriangleCollector m_tcollector = null;
-
     /**
        set bounds of area where isosurface is made
      */
@@ -113,7 +110,7 @@ public class IsosurfaceMaker {
     }
 
     /**
-       generates isosurface from given @sfunction and passes triangles to @tcollector
+       generates isosurface from given @scalculator and passes triangles to @tcollector
        
        slice calculator is called sequentially from zmin to zmax and is expected to fill 
        the slice data 
@@ -210,10 +207,11 @@ public class IsosurfaceMaker {
         }  // for(iz...           
     }
 
+    
     static final double ISOEPS = 1.e-2;
 
     /**
-       shifts values close to zeto to EPS distance above zero 
+       shifts values close to zero to EPS distance above zero 
      */
     public static void shiftFromZero(double v[]){
 
@@ -742,7 +740,7 @@ public class IsosurfaceMaker {
     }
 
     /**
-       inteface to calculate one scice of data in x,y plane 
+       inteface to calculate one slice of data in x,y plane 
 
      */
     public static interface SliceCalculator {
@@ -850,8 +848,6 @@ public class IsosurfaceMaker {
      */
     public static class SliceGrid implements SliceCalculator {
         
-        // minimal value of distance from zero 
-        static double MIN_DISTANCE = 1.e-3; 
 
         Grid grid;
         double bounds[];
@@ -946,15 +942,6 @@ public class IsosurfaceMaker {
                 sum /= 6;
                 
                 return sum;
-                /*
-                  this makes some odd sharp corners 
-                if(orig > 0 && sum < 0)
-                    return MIN_DISTANCE;
-                else if(orig < 0 && sum > 0)
-                    return -MIN_DISTANCE;
-                else 
-                    return sum;
-                */
             }
         }
     } // class SliceGrid 
@@ -1120,7 +1107,7 @@ public class IsosurfaceMaker {
         //  outside voxles have attribute value 0  
         //  and linear interpolation on the boundary 
         int gridMaxAttributeValue = 0;
-        
+        double dGridMaxAttributeValue = 1.;
         boolean containsIsosurface = false;
         /**
            
@@ -1150,6 +1137,7 @@ public class IsosurfaceMaker {
         public void setGridMaxAttributeValue(int value){
 
             gridMaxAttributeValue = value;
+            dGridMaxAttributeValue = value;
             
         }
         /**
@@ -1402,7 +1390,11 @@ public class IsosurfaceMaker {
                 default: 
                     {
                         long att = (agrid.getAttribute(gx,gy,gz));
-                        return 1. - (2.*att / gridMaxAttributeValue);
+                        
+                        // normalize output to interval (-1, 1) 
+                        // -1 - inside 
+                        // 1 - outside
+                        return 1 - (att << 1)/dGridMaxAttributeValue;
                     }
                     
                 }            

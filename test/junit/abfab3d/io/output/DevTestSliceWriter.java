@@ -860,8 +860,8 @@ public class DevTestSliceWriter extends TestCase {
         double voxelSize = 0.1*MM;
         double margin = 1*voxelSize;
 
-        double s = 1.5*MM;
-        double rs = 0.5*MM;
+        double s = 51*MM;
+        double rs = 50*MM;
         double surfareThickness = sqrt(3)/2;
 
         double xmin = -s;
@@ -874,8 +874,8 @@ public class DevTestSliceWriter extends TestCase {
         int nx = (int)((bounds[1] - bounds[0])/voxelSize);
         int ny = (int)((bounds[3] - bounds[2])/voxelSize);
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
-
-        int maxAttributeValue = 255;
+        int cSize = 1, vSize = 1;
+        int maxAttributeValue = 0;
         double surfLevel = maxAttributeValue/2.;
         double levels[] = new double[]{surfLevel};
 
@@ -898,11 +898,11 @@ public class DevTestSliceWriter extends TestCase {
         gm.makeGrid(grid);               
         printf("gm.makeGrid() done in %d ms\n", (time() - t0));
 
-
         SlicesWriter slicer = new SlicesWriter();
         slicer.setFilePattern("/tmp/levels/slice_%03d.png");
-        slicer.setCellSize(30);
-        slicer.setVoxelSize(29);        
+        //slicer.setCellSize(30); slicer.setVoxelSize(29);        
+        slicer.setCellSize(cSize); 
+        slicer.setVoxelSize(vSize);        
         slicer.setBackgroundColor(0xFFFFFF);
         slicer.setMaxAttributeValue(maxAttributeValue);
         int z = nz/2;

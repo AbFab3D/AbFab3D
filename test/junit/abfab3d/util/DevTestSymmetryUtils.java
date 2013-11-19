@@ -80,6 +80,6 @@ public class DevTestSymmetryUtils {
     
     public static void main(String arg[]) throws Exception {
 
-        drawInversiveTrianges(2, 7,7, "/tmp/tri/tri_%d_%d_%d.png", 1000);
+        drawInversiveTrianges(7, 7,7, "/tmp/tri/tri_%d_%d_%d.png", 1000);
     }
 }

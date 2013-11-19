@@ -67,6 +67,9 @@ public class ArrayInt implements RowOfInt {
             size--;
     }
 
+    /**
+       add 3 values at once 
+     */
     public void add(int x, int y, int z){
         
         if((size+2) >= maxSize){

@@ -15,7 +15,7 @@ package abfab3d.grid;
 import static abfab3d.util.Output.printf;
 
 /**
-   class repredsent queue of points 
+   class represent FIFO style queue of points stored in circular manner in array of fixed size 
  */
 public class QueueInt {
 

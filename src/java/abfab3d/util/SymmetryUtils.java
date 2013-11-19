@@ -127,7 +127,7 @@ public class SymmetryUtils {
                     out.setWindingRule(Path2D.WIND_EVEN_ODD);                    
 
                     //out.append(new Rectangle2D.Double(-len2, -len2, 4*len2,4*len2),false);
-                    out.append(new Rectangle2D.Double(cx-2*r, cy-2*r, 4*r, 4*r), false); // larger rect
+                    out.append(new Rectangle2D.Double(cy-4*r, cy-4*r, 8*r, 8*r), false); // larger rect
                     out.append(new Ellipse2D.Double(cx-r, cy-r, 2*r, 2*r), false);
 
                     g.fill(out);                    

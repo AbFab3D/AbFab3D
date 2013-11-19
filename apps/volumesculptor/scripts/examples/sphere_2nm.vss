@@ -144,7 +144,7 @@ function main(arg){
 	// if factor < 1/2 we have hyperbolic kaleidoscope (3,7), (3,8)..., (4,5), (4,6), ... 
 
 	// spherical cases
-	//var angleX = 2; var angleY = 2;
+	var angleX = 2; var angleY = 2;
 	//var angleX = 3; var angleY = 3;
 	//var angleX = 3; var angleY = 4;
 	//var angleX = 3; var angleY = 5;
@@ -156,7 +156,7 @@ function main(arg){
 	//var angleX = 3; var angleY = 6;
 
 	// hyperbolic cases 
-	var angleX = 4; var angleY = 6;
+	//var angleX = 4; var angleY = 6;
 	//var angleX = 4; var angleY = 5;
 	//var angleX = 3; var angleY = 7;
 	
