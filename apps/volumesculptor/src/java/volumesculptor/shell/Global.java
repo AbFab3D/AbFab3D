@@ -81,34 +81,61 @@ public class Global extends ImporterTopLevel
             });
     }
 
+    public void initAbFab3D(ContextFactory factory)
+    {
+        factory.call(new ContextAction() {
+            public Object run(Context cx)
+            {
+                initAbFab3D(cx);
+                return null;
+            }
+        });
+    }
+
     public void init(Context cx)
     {
         // Define some global functions particular to the shell. Note
         // that these functions are not part of ECMA.
         initStandardObjects(cx, sealedStdLib);
         String[] names = {
-            "defineClass",
-            "deserialize",
-            "doctest",
-            "gc",
-            "help",
-            "load",
-            "loadClass",
-            "print",
-            "quit",
-            "readFile",
-            "readUrl",
-            "runCommand",
-            "seal",
-            "serialize",
-            "spawn",
-            "sync",
-            "toint32",
-            "version",
+                "defineClass",
+                "deserialize",
+                "doctest",
+                "gc",
+                "help",
+                "load",
+                "loadClass",
+                "print",
+                "quit",
+                "readFile",
+                "readUrl",
+                "runCommand",
+                "seal",
+                "serialize",
+                "spawn",
+                "sync",
+                "toint32",
+                "version",
         };
         defineFunctionProperties(names, Global.class,
-                                 ScriptableObject.DONTENUM);
+                ScriptableObject.DONTENUM);
 
+        initAbFab3D(cx);
+
+        // Set up "environment" in the global scope to provide access to the
+        // System environment variables.
+        Environment.defineClass(this);
+        Environment environment = new Environment(this);
+        defineProperty("environment", environment,
+                ScriptableObject.DONTENUM);
+
+        history = (NativeArray) cx.newArray(this, 0);
+        defineProperty("history", history, ScriptableObject.DONTENUM);
+
+        initialized = true;
+    }
+
+    public void initAbFab3D(Context cx) {
         AbFab3DGlobal globals = new AbFab3DGlobal();
 
         // Initialize AbFab3D specific globals
@@ -120,18 +147,6 @@ public class Global extends ImporterTopLevel
             defineProperty(e.getKey(), e.getValue(),
                     ScriptableObject.DONTENUM);
         }
-
-        // Set up "environment" in the global scope to provide access to the
-        // System environment variables.
-        Environment.defineClass(this);
-        Environment environment = new Environment(this);
-        defineProperty("environment", environment,
-                       ScriptableObject.DONTENUM);
-
-        history = (NativeArray) cx.newArray(this, 0);
-        defineProperty("history", history, ScriptableObject.DONTENUM);
-
-        initialized = true;
     }
 
     public Require installRequire(Context cx, List<String> modulePath,

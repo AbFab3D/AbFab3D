@@ -30,6 +30,7 @@ import javax.imageio.ImageIO;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
+import abfab3d.util.LongConverter;
 
 
 import static abfab3d.util.MathUtil.clamp;
@@ -71,6 +72,10 @@ public class SlicesWriter {
     boolean m_writeLevels = false;
 
     double m_levelLineWidth = 3.;
+    
+    LongConverter m_dataConverter = new DefaultDataConverter();
+    LongConverter m_colorMaker = new DefaultColorMaker();
+
 
     public void setBounds(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax){
 
@@ -99,6 +104,12 @@ public class SlicesWriter {
         m_writeLevels = value;
     }
 
+    public void setDataConverter(LongConverter dataConverter){
+        m_dataConverter = dataConverter;
+    }
+    public void setColorMaker(LongConverter colorMaker){
+        m_colorMaker = colorMaker;
+    }
 
     public void setMaxAttributeValue(int value){
 
@@ -309,27 +320,21 @@ public class SlicesWriter {
                 switch(m_grid.getState(x,y,z)){
                 default:
                 case Grid.OUTSIDE:
-                    return m_backgroundColor;
+                    return (int)m_colorMaker.get(0);
                 case Grid.INSIDE:
-                    return m_foregroundColor;
+                    return (int)m_colorMaker.get(1);
                 }
             }
         default: // use grid attribute 
 
-            long a = clamp(((AttributeGrid)m_grid).getAttribute(x,y,z), 0, m_maxAttributeValue);
-
-            int  level = (int)(((m_maxAttributeValue - a) * 255)/m_maxAttributeValue);
-            
-            if(level == 255) // return background color for max value 
-                return m_backgroundColor;
-            else 
-                return makeColor(level);
-            
+            long a = m_dataConverter.get(((AttributeGrid)m_grid).getAttribute(x,y,z));
+            return (int)m_colorMaker.get(a);
         }
     }
 
     long getVoxelValue(int x, int y, int z){
-
+        
+        
         switch(m_maxAttributeValue){
         case 0: // use grid state 
             {
@@ -342,7 +347,7 @@ public class SlicesWriter {
                 }
             }
         default: // use grid attribute 
-            return ((AttributeGrid)m_grid).getAttribute(x,y,z);            
+            return m_dataConverter.get(((AttributeGrid)m_grid).getAttribute(x,y,z));            
         }
     }
     
@@ -352,4 +357,31 @@ public class SlicesWriter {
 
     }
 
+    static final int makeNegativeColor(int gray){
+
+        return 0xFF000000 | gray;
+
+    }
+
+    //
+    //  default data converter - does nothing 
+    //
+    static class DefaultDataConverter implements LongConverter {
+        
+        public final long get(long data){
+            return data;
+        }
+    }
+
+
+    class DefaultColorMaker  implements LongConverter {
+
+        public final long get(long a){
+            int  level = (int)(((m_maxAttributeValue - a) * 255)/m_maxAttributeValue);                
+            if(level == 255) // return background color for max value 
+                return m_backgroundColor;
+            else 
+                return makeColor(level);
+        }
+    }
 }

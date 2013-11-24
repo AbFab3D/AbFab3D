@@ -1,0 +1,32 @@
+
+function main(arg){
+
+	var voxelSize = 0.1*MM;
+	
+	var img = loadImage(arg[0]);
+	print("image width: " + img.getWidth());
+	print("image height: " + img.getHeight());
+	
+	var boxDepth = 2*MM;
+	var boxWidth = 20*MM;
+	
+	var boxHeight = img.getHeight() * boxWidth /img.getWidth();
+	
+	var image = ImageBitmap(img, boxWidth, boxHeight, boxDepth, voxelSize);
+
+	image.setBaseThickness(0.0);
+	image.setUseGrayscale(false);
+	image.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
+	
+	var w = boxWidth/2 + voxelSize;
+	var h = boxHeight/2 + voxelSize;
+	var d = boxDepth/2 + voxelSize;
+	
+	dest = createGrid(-w,w,-h,h,-d,d,voxelSize);	
+    var maker = new GridMaker();
+	maker.setSource(image);
+	
+	maker.makeGrid(dest);
+	return dest;
+	
+}
