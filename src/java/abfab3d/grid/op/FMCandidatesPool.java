@@ -30,33 +30,32 @@ import static abfab3d.util.Output.fmt;
 */
 public class FMCandidatesPool {
     
-    int counts[];
     Set buckets[];
     int maxValue;
 
     int minBucket;
     int maxBucket;
 
-    public FMCandidatesPool(int maxValue){
+    public FMCandidatesPool(int maxValue, int maxIter){
 
         this.maxValue = maxValue;
-        counts = new int[maxValue*20];
         
-        buckets = new Set[maxValue*20];
+        buckets = new Set[maxValue*(maxIter+2)];
         minBucket = buckets.length;
         maxBucket = -1;
     }
     
     public void printStat(){
-        printf("%s .printStat()\n", this);
-        printf(" maxValue: %d\n", maxValue);        
-        printf(" minBucket: %d maxBucket: %d\n", minBucket,maxBucket);
+        //printf("%s .printStat()\n", this);
+        //printf(" maxValue: %d\n", maxValue);        
         int total = 0;
         for(int i = minBucket; i <= maxBucket; i++){
-            printf(" %4d : %5d\n", i, counts[i]);
-            total += counts[i];
+            Set bucket = buckets[i];
+            int count = (bucket != null)? bucket.size(): 0;
+            //printf(" %4d : %5d\n", i, count);
+            total += count;
         }
-        printf(" total count: %5d\n", total);
+        printf("  FMCandidates stat:  minBucket: %d maxBucket: %d coount: %d\n", minBucket,maxBucket, total);
 
     }
 
@@ -104,9 +103,10 @@ public class FMCandidatesPool {
     }
 
     public void add(int x, int y, int z, int value){
-        if(value < 0 || value > counts.length)
+        
+        if(value < 0 || value > buckets.length)
             throw new IllegalArgumentException(fmt("x: %d y: %d z: %d, value: %d",x,y,z,value));
-        counts[value]++;
+
         
         Set bucket = buckets[value];
         if(bucket == null){

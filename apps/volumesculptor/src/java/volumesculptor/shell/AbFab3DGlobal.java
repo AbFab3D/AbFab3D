@@ -203,7 +203,8 @@ public class AbFab3DGlobal  {
             }
         }
 
-        System.out.println("Load(file,vs): " + filename + " vs: " + vs);
+        printf("load(%s, %7.3f mm)\n",filename, vs/MM);
+        
         try {
             STLReader stl = new STLReader();
             BoundingBoxCalculator bb = new BoundingBoxCalculator();
@@ -213,25 +214,32 @@ public class AbFab3DGlobal  {
             bb.getBounds(bounds);
 
             // if any measurement is over 1M then the file "must" be in m instead of mm.  God I hate unspecified units
-            double sx = bounds[1] - bounds[0];
-            double sy = bounds[3] - bounds[2];
-            double sz = bounds[5] - bounds[4];
-            if (sx > 1 || sy > 1 | sz > 1) {
-                stl.setScale(1);
-
-                double factor = 1.0 / 1000;
-                for(int i=0; i < 6; i++) {
-                    bounds[i] *= factor;
+            if(false){
+                // guessing units is bad and may be wrong 
+                double sx = bounds[1] - bounds[0];
+                double sy = bounds[3] - bounds[2];
+                double sz = bounds[5] - bounds[4];
+                if (sx > 1 || sy > 1 | sz > 1) {
+                    stl.setScale(1);
+                    
+                    double factor = 1.0 / 1000;
+                    for(int i=0; i < 6; i++) {
+                        bounds[i] *= factor;
+                    }
                 }
             }
-
-            // Add a 1 voxel margin around the model
+            //
+            // round up to the nearest voxel 
+            //
             MathUtil.roundBounds(bounds, vs);
+            // Add a 1 voxel margin around the model to get some space 
             bounds = MathUtil.extendBounds(bounds, 1 * vs);
             int nx = (int) Math.round((bounds[1] - bounds[0]) / vs);
             int ny = (int) Math.round((bounds[3] - bounds[2]) / vs);
             int nz = (int) Math.round((bounds[5] - bounds[4]) / vs);
-            System.out.println("   Bounds: " + java.util.Arrays.toString(bounds) + " vs: " + vs);
+            printf("   grid bounds: [ %7.3f, %7.3f], [%7.3f, %7.3f], [%7.3f, %7.3f] mm; vs: %7.3f mm\n", 
+                   bounds[0]/MM, bounds[1]/MM, bounds[2]/MM, bounds[3]/MM, bounds[4]/MM, bounds[5]/MM, vs/MM);
+            printf("  grid size: [%d x %d x %d]\n", nx, ny, nz);
 
             // range check bounds and voxelSized
             for(int i = 0; i < bounds.length; i++) {
@@ -262,7 +270,6 @@ public class AbFab3DGlobal  {
 
             dest.setGridBounds(bounds);
 
-            System.out.println("   voxels: " + nx + " " + ny + " " + nz);
             WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
             rasterizer.setMaxAttributeValue(maxAttribute);
 
@@ -278,8 +285,7 @@ public class AbFab3DGlobal  {
         } catch(Throwable t) {
             t.printStackTrace();
         }
-        throw Context.reportRuntimeError(
-                "Failed to load file: " + filename);
+        throw Context.reportRuntimeError("Failed to load file: " + filename);
     }
 
     /**

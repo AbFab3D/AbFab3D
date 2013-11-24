@@ -101,6 +101,8 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
     GridBit m_candGrid; // current candidates 
     GridBit m_fixedGrid; // fixed voxels 
     FMCandidatesPool m_candPool; // pool of candidates 
+    // factory to create output distance grid 
+    AttributeGrid m_distGridFactory = new ArrayAttributeGridShort(1, 1, 1, 1.,1.);
 
     /**
        @param maxAttribute maximal attribute value for inside voxels 
@@ -119,6 +121,13 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
         this.gridWriter = writer;
     }
     
+    /**
+       grid factory to be used for output distanceGrid       
+     */
+    public void setDistanceGridFactory(AttributeGrid distGridFactory){
+        m_distGridFactory = distGridFactory;
+    }
+
     /**
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
@@ -144,51 +153,61 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
         voxelSizeY = grid.getSliceHeight();
 
         int maxDistance = max(m_maxInDistance, m_maxOutDistance);
-        m_defaultValue = m_maxAttribute*maxDistance + 1;
+        m_defaultValue = Short.MAX_VALUE;//m_maxAttribute*(2*maxDistance) + 1;
         
         sliceStart = nz/2;
         sliceEnd = sliceStart + 1;
         if(gridWriter != null)gridWriter.writeSlices(grid, 2*m_maxAttribute, "/tmp/slices/01_grid_%03d.png", sliceStart, sliceEnd, null);
 
+        long t0 = time();
         //TODO what grid to allocate here 
-        m_distGrid = new ArrayAttributeGridShort(nx, ny, nz, voxelSizeX, voxelSizeY);
+        m_distGrid = (AttributeGrid)m_distGridFactory.createEmpty(nx, ny, nz, voxelSizeX, voxelSizeY);
         initDistances(grid, m_distGrid);        
 
         if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/02_init_%03d.png", sliceStart, sliceEnd, new DistanceColorizer(m_maxAttribute));
 
+        //TODO we may want use different GirdBit (for memory efficienty or for speed)
         m_fixedGrid = new GridBitIntervals(nx, ny, nz);
-        scanSurface(grid, m_distGrid, m_fixedGrid);        
+        scanSurface(grid, m_distGrid, m_fixedGrid);   
+
         if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/03_start_%03d.png", sliceStart, sliceEnd, new DistanceColorizer(m_maxAttribute));
         //if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/03_start_%03d.png", 0, nz, new DistanceColorizer(m_maxAttribute));
-        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_fixedGrid, 0, fmt("/tmp/slices/04_fixed_%2d_%%03d.png",1), sliceStart, sliceEnd, new BitColorizer());
+        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_fixedGrid, 0, fmt("/tmp/slices/04_fixed_%2d_%%03d.png",0), sliceStart, sliceEnd, new BitColorizer());
+
 
         m_candGrid = new GridBitIntervals(nx, ny, nz);
-        m_candPool = new FMCandidatesPool(m_maxAttribute);
+        m_candPool = new FMCandidatesPool(m_maxAttribute, maxDistance);
         
         initCandidates();        
         
 
-        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_candGrid, 0, fmt("/tmp/slices/05_cand_%2d_%%03d.png",1), sliceStart, sliceEnd, new BitColorizer());
+        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_candGrid, 0, fmt("/tmp/slices/05_cand_%2d_%%03d.png",0), sliceStart, sliceEnd, new BitColorizer());
         m_candPool.printStat();
         
-        for(int k = 2; k < 8; k++){
+        printf("  DistanceTransformFM initialization: %d ms\n", time() - t0);
+
+        for(int k = 1; k <= m_maxInDistance; k++){
+            long tt = time();
             int maxValue = k*m_maxAttribute;
             doIteration(maxValue);
+            printf("  iteration %d %d ms\n", k,(time()-tt));
+
+            m_candPool.printStat();
+
             if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_distGrid, 2*m_maxAttribute,fmt("/tmp/slices/07_dist_%02d_%%03d.png", k), sliceStart, sliceEnd, new DistanceColorizer(maxValue));
             if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_candGrid, 0, fmt("/tmp/slices/05_cand_%2d_%%03d.png",k), sliceStart, sliceEnd, new BitColorizer());
             if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_fixedGrid, 0, fmt("/tmp/slices/04_fixed_%2d_%%03d.png",k), sliceStart, sliceEnd, new BitColorizer());
 
-            m_candPool.printStat();
         }
 
-        return grid;
+        return m_distGrid;
 
     }
 
     void doIteration(int maxValue){
         
         FMCandidate cand = new FMCandidate();
-        printf("start iterations\n");
+        //printf("start iterations\n");
         long icount = 0;
         while( m_candPool.getNext(cand) ){
             if(cand.value > maxValue) {
@@ -215,7 +234,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
             //printf("cand: (%3d %3d %3d): %3d\n", cand.x,cand.y,cand.z,cand.value);
         }
 
-        printf("end iterations icount: %d\n", icount);
+        //printf("end iterations icount: %d\n", icount);
 
     }
 
@@ -518,8 +537,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
                 return COLOR_BLACK;
             else 
                 return COLOR_TRANSPARENT;
-        }
-        
+        }        
     }
 
     static final int COLOR_WHITE = makeRGB(MAXC,MAXC,MAXC);

@@ -123,7 +123,7 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
         scanSurface(grid,distanceGrid);
         
 
-        return grid;
+        return distanceGrid;
 
     }
 
@@ -278,7 +278,7 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
             for(int y = -radius; y <= radius; y++){
                 for(int z = -radius; z <= radius; z++){
                     double d2 = x*x + y*y + z*z;
-                    if(d2 <= radius)
+                    if(d2 <= radius2)
                         count += 3;
                 }
             }
