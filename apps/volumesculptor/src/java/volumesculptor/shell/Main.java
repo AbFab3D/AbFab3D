@@ -250,6 +250,7 @@ public class Main {
         }
 
         String err_msg = bldr.toString();
+        System.out.println("Err msgs: " + err_msg);
 
         List<String> prints = DebugLogger.getLog(iproxy.cx);
 
@@ -331,8 +332,9 @@ public class Main {
                             break;
                         }
                     }
-                    we.printStackTrace(System.out);
+                    if (we != null) we.printStackTrace(System.out);
                 }
+
                 ToolErrorReporter.reportException(
                         cx.getErrorReporter(), rex);
                 exitCode = EXITCODE_RUNTIME_ERROR;
