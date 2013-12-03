@@ -200,7 +200,22 @@
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="volumesculptor.shell.Main" fork="true">
             <jvmarg line="${jvmrunargs}"/>
+            <arg value="-allowWrite" />
+            <arg value="true" />
+            <arg value="-outputType" />
+            <arg value="stl" />
+            <arg value="-outputFolder"/>
+            <arg value="." />
             <arg value="${script}" />
+            <arg value="${arg0}" />
+            <arg value="${arg1}" />
+            <arg value="${arg2}" />
+            <arg value="${arg3}" />
+            <arg value="${arg4}" />
+            <arg value="${arg5}" />
+            <arg value="${arg6}" />
+            <arg value="${arg7}" />
+            <arg value="${arg8}" />
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
