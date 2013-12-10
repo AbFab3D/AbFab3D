@@ -13,8 +13,6 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
-
 import abfab3d.util.Units;
 import abfab3d.util.Vec;
 
@@ -107,6 +105,10 @@ public class Box extends TransformableDataSource {
      * @param sz z size
      */
     public void setSize(double sx, double sy, double sz) {
+
+        if (sx < 0 || sy < 0 || sz < 0) {
+            throw new IllegalArgumentException("Box size < 0. Value: " + sx + " " + sy + " " + sz);
+        }
         m_sizeX = sx;
         m_sizeY = sy;
         m_sizeZ = sz;
@@ -118,6 +120,9 @@ public class Box extends TransformableDataSource {
      * @param size Size vector
      */
     public void setSize(Vector3d size) {
+        if (size.x < 0 || size.y < 0 || size.z < 0) {
+            throw new IllegalArgumentException("Box size < 0. Value: " + size.x + " " + size.y + " " + size.z);
+        }
         m_sizeX = size.x;
         m_sizeY = size.y;
         m_sizeZ = size.z;
@@ -126,9 +131,9 @@ public class Box extends TransformableDataSource {
     /**
      * Set the center of the box
      *
-     * @param x  x coordinate of center
-     * @param y  y coordinate of center
-     * @param z  z coordinate of center
+     * @param cx  x coordinate of center
+     * @param cy  y coordinate of center
+     * @param cz  z coordinate of center
      *
      */
     public void setCenter(double cx, double cy, double cz) {

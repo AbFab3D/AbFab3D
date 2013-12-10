@@ -49,6 +49,9 @@ public class Cylinder extends TransformableDataSource {
      */
     public Cylinder(Vector3d v0, Vector3d v1, double radius) {
 
+        if (radius < 0) {
+            throw new IllegalArgumentException("Cylinder radius < 0.  Value: " + radius);
+        }
         this.R = radius;
         this.v0 = new Vector3d(v0);
         this.v1 = new Vector3d(v1);
