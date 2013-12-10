@@ -62,10 +62,82 @@ public class TriangulatedModels {
     
     public static final double DEFAULT_PRECISION = 0.001*MM;
 
-    /**
-       class takes a set of TriangleProducers and one VecTransform and generates 
-       stream of transformed triangles, which are sent to TriangleCollector 
 
+    /**
+       makes multiple copies of single TriangleProducer by applying array of different VecTransforms to it 
+       Produces single stream of triangles
+       Triangles are produced in the same order as VecTransforms are added 
+     */
+    public static class Multiplier implements TriangleProducer, Initializable {
+
+        TriangleProducer source;
+        Vector<VecTransform> transforms = new Vector<VecTransform>();
+
+        public Multiplier(TriangleProducer producer){ 
+            this.source = producer;
+        }
+        public int initialize(){
+            if(source instanceof Initializable)
+                ((Initializable)source).initialize();
+            return 0;
+        }
+
+        /**
+           append transform to the array of transforms 
+         */
+        public void append(VecTransform transform){
+            transforms.add(transform);
+        }
+
+        public boolean getTriangles(TriangleCollector collector){
+
+            boolean result = true;
+            for(int i = 0; i < transforms.size(); i++){
+                VecTransform vt = transforms.get(i);
+                if(vt instanceof Initializable)
+                    ((Initializable)vt).initialize();
+
+                TC tc = new TC(collector, vt);
+                result = result && source.getTriangles(tc);
+            }
+            return result;
+
+        }
+        
+        class TC implements TriangleCollector {
+            
+            TriangleCollector tc;
+            VecTransform trans;
+            Vec 
+                vv0 = new Vec(3),
+                vv1 = new Vec(3),
+                vv2 = new Vec(3);
+                
+            TC(TriangleCollector tc, VecTransform trans){
+                this.tc = tc;
+                this.trans = trans;
+            }
+
+            public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
+                if(trans != null){
+                    vv0.set(v0);
+                    vv1.set(v1);
+                    vv2.set(v2);
+                    trans.transform(vv0, vv0);
+                    trans.transform(vv1, vv1);
+                    trans.transform(vv2, vv2);
+                    vv0.get(v0);
+                    vv1.get(v1);
+                    vv2.get(v2);
+                }
+                return tc.addTri(v0, v1, v2);
+            }
+        }        
+    } // Multiplier 
+
+    /**
+       combines several TriangleProducers into single TriangleProducer 
+       
      */
     public static class Combiner implements TriangleProducer, TriangleCollector, Initializable, Transformer {
 
@@ -93,7 +165,10 @@ public class TriangulatedModels {
         public void setTransform(VecTransform trans){
             transform = trans;
         }
-        public void addProducer(TriangleProducer producer){
+        /**
+           appends producer to the arrays of triangle sources 
+         */
+        public void append(TriangleProducer producer){
             producers.add(producer);
         }
 
