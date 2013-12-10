@@ -25,6 +25,7 @@ import javax.vecmath.AxisAngle4d;
 import abfab3d.util.Vec;
 import abfab3d.util.TriangleCollector;
 import abfab3d.util.TriangleProducer;
+import abfab3d.util.Transformer;
 import abfab3d.util.Initializable;
 import abfab3d.util.ResultCodes;
 import abfab3d.util.ImageGray16;
@@ -66,12 +67,12 @@ public class TriangulatedModels {
        stream of transformed triangles, which are sent to TriangleCollector 
 
      */
-    public static class Transformer implements TriangleProducer, TriangleCollector, Initializable {
+    public static class Combiner implements TriangleProducer, TriangleCollector, Initializable, Transformer {
 
         VecTransform transform;
         Vector<TriangleProducer> producers = new Vector<TriangleProducer>(); 
 
-        public Transformer(){
+        public Combiner(){
         }
 
         public int initialize(){
@@ -88,7 +89,7 @@ public class TriangulatedModels {
             }  
             return ResultCodes.RESULT_OK;
         }
-
+        
         public void setTransform(VecTransform trans){
             transform = trans;
         }
@@ -108,10 +109,10 @@ public class TriangulatedModels {
             return true;
         }
 
-        // currently used triangle collecor
+        // currently used triangle collector
         TriangleCollector m_tc; 
 
-        // this called by triangle each producers         
+        // this called by each TriangleProducer         
         public boolean addTri(Vector3d v0, Vector3d v1, Vector3d v2){
             
             Vec in = new Vec(3);
@@ -142,6 +143,7 @@ public class TriangulatedModels {
     // class to generate stars with parameters
     // parameters are illustrated in file docs/images/mesh_star.svg
     public static class Star  implements TriangleProducer {
+
         double armCount;
         double armBaseWidth;
         double armEndWidth;
@@ -653,5 +655,3 @@ public class TriangulatedModels {
     } // Torus     
     
 } // class TriangulatedModels
-
-

@@ -12,6 +12,8 @@
 
 package abfab3d.util;
 
+import org.web3d.vrml.sav.Locator;
+
 // External imports
 // None
 
@@ -26,7 +28,7 @@ import org.j3d.util.ErrorReporter;
  * @author Russell Dodds
  * @version $Revision: 1.4 $
  */
-public class SysErrorReporter implements ErrorReporter {
+public class SysErrorReporter implements ErrorReporter, org.web3d.vrml.sav.ErrorHandler {
 
     /** The log level needed to get all messages printed out. */
     public static final int PRINT_ALL = 0;
@@ -187,6 +189,11 @@ public class SysErrorReporter implements ErrorReporter {
                 e.printStackTrace(System.err);
         }
     }
+
+    public void setDocumentLocator(Locator loc){
+        
+    }
+
 
     //-----------------------------------------------------------------------
     // Local Methods
