@@ -210,6 +210,7 @@ public class DownsampleAlphaMT implements Operation {
             int width = src.getWidth();
             int depth = src.getDepth();
 
+            // TODO: we should structure this so it doesn't need a y / factor.  Suspect edge cases are bad too.
             int len_x = width / factor;
             int len_y = ymax;
             int len_z = depth / factor;
