@@ -37,15 +37,6 @@ import abfab3d.util.LongConverter;
  * @author Alan Hudson
  */
 public class DownsampleAlpha implements Operation, AttributeOperation {
-    /** Width of the grid under operation */
-    private int width;
-
-    /** Height of the grid under operation */
-    private int height;
-
-    /** Depth of the grid under operation */
-    private int depth;
-
     /** The weight of voxel when averaging */
     private double coeff;
 
@@ -140,17 +131,8 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
 
         VoxelData vd = dest.getVoxelData();
 
-        /*
-         * weight voxelWeight = 1 + coeff * voxelFill (or alpha)
- * coeff - arbitrary number.
- * coeff = 0 - simple average
- * coeff = 100 - darkest voxel gives fil to the result
- * voxelFill is assumed to be float between (0., 1.)
- * So, it should be calculated attribute/maxAttribute
- * (double)attribute/maxAttribute
-
-         */
-        int voxels = factor * factor * factor;
+        // TODO: for some grids this traversal will be very slow.  Should this type
+        // of skip traversal be part of the grid interface?
 
         for(int y = 0, y1 = 0; y < ny1; y++, y1 += factor) {
             for(int x = 0, x1 = 0; x <  nx1; x++, x1 += factor) {
@@ -195,9 +177,9 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid executeBoxAverage(AttributeGrid dest, int factor) {
-        width = dest.getWidth();
-        depth = dest.getDepth();
-        height = dest.getHeight();
+        int width = dest.getWidth();
+        int depth = dest.getDepth();
+        int height = dest.getHeight();
 
         int len_x = width / factor;
         int len_y = height / factor;
@@ -209,8 +191,8 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
 
         VoxelData vd = ret_val.getVoxelData();
 
-        for(int x=0; x < len_x; x++) {
-            for(int y=0; y < len_y; y++) {
+        for(int y=0; y < len_y; y++) {
+            for(int x=0; x < len_x; x++) {
                 for(int z=0; z < len_z; z++) {
                     long att_avg = avgAttribute(dest, x*2, y*2, z*2,vd);
                     byte state = Grid.OUTSIDE;

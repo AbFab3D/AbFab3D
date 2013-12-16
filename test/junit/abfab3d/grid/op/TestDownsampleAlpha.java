@@ -42,6 +42,7 @@ import static abfab3d.util.Output.printf;
  * @version
  */
 public class TestDownsampleAlpha extends BaseTestAttributeGrid {
+    private static final boolean DEBUG = true;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -55,6 +56,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
      */
     public void testSimpleAverageMaxed() {
         int size = 4;
+        int factor = 2;
 
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
 
@@ -78,6 +80,13 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
                 }
             }
         }
+
+        // Test grid is factor sized
+
+        assertEquals("Grid factor w", size / factor, dest.getWidth());
+        assertEquals("Grid factor h", size / factor, dest.getHeight());
+        assertEquals("Grid factor d", size / factor, dest.getDepth());
+
     }
 
     /**
@@ -108,6 +117,11 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
                 }
             }
         }
+
+        assertEquals("Grid factor w", size / factor, dest.getWidth());
+        assertEquals("Grid factor h", size / factor, dest.getHeight());
+        assertEquals("Grid factor d", size / factor, dest.getDepth());
+
     }
 
     /**
@@ -142,10 +156,10 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         }
 
 
-        writeSlices("/tmp/slices_in",grid,max);
+        //writeSlices("/tmp/slices_in",grid,max);
         DownsampleAlpha ds = new DownsampleAlpha(coeff,factor,max);
         AttributeGrid dest = ds.execute(grid);
-        writeSlices("/tmp/slices_out",dest,max);
+        //writeSlices("/tmp/slices_out",dest,max);
 
         double EPS = 1;
         assertTrue("Dest value000", (Math.abs(dest.getAttribute(0,0,0) - b) < EPS));
@@ -335,9 +349,9 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
     /**
      * Speed tests, manual enable.
      */
-    public void _testSpeed() {
+    public void testSpeed() {
 
-        double voxelSize = 0.03*Units.MM;
+        double voxelSize = 0.01*Units.MM;
         double margin = 0*voxelSize;
 
         double sizex = 1*Units.CM;
@@ -381,6 +395,73 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         for(int i=0; i < TIMES; i++) {
             long t0 = System.nanoTime();
             DownsampleAlpha ds = new DownsampleAlpha(0,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            System.out.println("Total time: " + (System.nanoTime() - t0) / 1000);
+        }
+          /*
+        printf("Coeff not 0 path\n");
+        // Test coeff no 0
+        for(int i=0; i < TIMES; i++) {
+            long t0 = System.nanoTime();
+            DownsampleAlpha ds = new DownsampleAlpha(1e-9,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            System.out.println("Total time: " + (System.nanoTime() - t0) / 1000);
+        }
+            */
+        //writeSlices("/tmp/slices_out", dest, maxAttributeValue);
+    }
+
+    /**
+     * Speed tests, manual enable.
+     */
+    public void testSpeedMT() {
+
+        double voxelSize = 0.01*Units.MM;
+        double margin = 0*voxelSize;
+
+        double sizex = 1*Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        //writeSlices("/tmp/slices_in", grid, maxAttributeValue);
+
+        int TIMES = 20;
+        int factor = 2;
+
+        // Test coeff == 0 path
+        printf("Coeff 0 path\n");
+        for(int i=0; i < TIMES; i++) {
+            long t0 = System.nanoTime();
+            DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
             AttributeGrid dest = ds.execute(grid);
 
             System.out.println("Total time: " + (System.nanoTime() - t0) / 1000);
@@ -450,7 +531,137 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         //writeSlices("/tmp/slices_out", dest, maxAttributeValue);
     }
 
+    /**
+     * Simple average of all maxes using MT code
+     */
+    public void testSimpleAverageMaxedMT() {
+        int size = 4;
+        int factor = 2;
+
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
+
+        int max = 127;
+
+        for(int y=0; y < size; y++) {
+            for(int x=0; x < size; x++) {
+                for(int z=0; z < size; z++) {
+                    grid.setData(x,y,z,Grid.INSIDE,max);
+                }
+            }
+        }
+        DownsampleAlphaMT ds = new DownsampleAlphaMT(0,2,max);
+        AttributeGrid dest = ds.execute(grid);
+
+        int new_size = dest.getWidth();
+        for(int y=0; y < new_size; y++) {
+            for(int x=0; x < new_size; x++) {
+                for(int z=0; z < new_size; z++) {
+                    assertEquals("Dest value",max, dest.getAttribute(x,y,z));
+                }
+            }
+        }
+
+        assertEquals("Grid factor w", size / factor, dest.getWidth());
+        assertEquals("Grid factor h", size / factor, dest.getHeight());
+        assertEquals("Grid factor d", size / factor, dest.getDepth());
+
+    }
+
+    /**
+     * Simple average of all zeros
+     */
+    public void testSimpleAverageZeroMT() {
+        int size = 4;
+        int factor = 2;
+        int max = 127;
+
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
+
+        for(int y=0; y < size; y++) {
+            for(int x=0; x < size; x++) {
+                for(int z=0; z < size; z++) {
+                    grid.setData(x,y,z,Grid.OUTSIDE,0);
+                }
+            }
+        }
+        DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,max);
+        AttributeGrid dest = ds.execute(grid);
+
+        int new_size = dest.getWidth();
+        for(int y=0; y < new_size; y++) {
+            for(int x=0; x < new_size; x++) {
+                for(int z=0; z < new_size; z++) {
+                    assertEquals("Dest value",0, dest.getAttribute(x,y,z));
+                }
+            }
+        }
+
+        assertEquals("Grid factor w", size / factor, dest.getWidth());
+        assertEquals("Grid factor h", size / factor, dest.getHeight());
+        assertEquals("Grid factor d", size / factor, dest.getDepth());
+
+    }
+
+    /**
+     * Test downsampling on a sphere.
+     *
+     * Mostly visually compared using SliceWriter.  Analytical would check that the
+     * edges were not totally black.
+     */
+    public void testBallMT() {
+
+        double voxelSize = 0.1*Units.MM;
+        double margin = 0*voxelSize;
+
+        double sizex = 1*Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        writeSlices("/tmp/slices_in", grid, maxAttributeValue);
+
+        int factor = 2;
+        DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
+        AttributeGrid dest = ds.execute(grid);
+
+        writeSlices("/tmp/slices_out", dest, maxAttributeValue);
+    }
+
+    /**
+     * Write out slices for debugging.  Ignore if debug if FALSE
+     * @param dir
+     * @param grid
+     * @param maxAttributeValue
+     */
     private void writeSlices(String dir, Grid grid, int maxAttributeValue) {
+        if (!DEBUG) return;
+
         try {
             File f = new File(dir);
             f.mkdirs();

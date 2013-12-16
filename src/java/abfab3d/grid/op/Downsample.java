@@ -96,8 +96,8 @@ public class Downsample implements Operation, AttributeOperation {
         int state;
 
         System.out.println("Downsample to: " + len_x + " " + len_y + " " + len_z);
-        for(int x=0; x < len_x; x++) {
-            for(int y=0; y < len_y; y++) {
+        for(int y=0; y < len_y; y++) {
+            for(int x=0; x < len_x; x++) {
                 for(int z=0; z < len_z; z++) {
                     ret_val.setState(x,y,z,
                         avgState(dest, x*2, y*2,z*2));
@@ -131,8 +131,8 @@ public class Downsample implements Operation, AttributeOperation {
 
         byte[][][] tmp = new byte[2][2][2];
 
-        for(int x=0; x < len_x; x++) {
-            for(int y=0; y < len_y; y++) {
+        for(int y=0; y < len_y; y++) {
+            for(int x=0; x < len_x; x++) {
                 for(int z=0; z < len_z; z++) {
                     ret_val.setState(x,y,z,
                             preferMarked(dest, x*2, y*2,z*2, tmp));
@@ -166,8 +166,8 @@ public class Downsample implements Operation, AttributeOperation {
 
         byte[][][] tmp = new byte[2][2][2];
 
-        for(int x=0; x < len_x; x++) {
-            for(int y=0; y < len_y; y++) {
+        for(int y=0; y < len_y; y++) {
+            for(int x=0; x < len_x; x++) {
                 for(int z=0; z < len_z; z++) {
                     ret_val.setState(x,y,z,
                             preferMarked(dest, x*2, y*2,z*2, tmp));
@@ -200,8 +200,8 @@ public class Downsample implements Operation, AttributeOperation {
         int state;
 
         System.out.println("Downsample to: " + len_x + " " + len_y + " " + len_z);
-        for(int x=0; x < len_x; x++) {
-            for(int y=0; y < len_y; y++) {
+        for(int y=0; y < len_y; y++) {
+            for(int x=0; x < len_x; x++) {
                 for(int z=0; z < len_z; z++) {
                     ret_val.setData(x,y,z,
                             avgState(dest, x*2, y*2,z*2), avgMaterial(dest, x*2, y*2, z*2));
