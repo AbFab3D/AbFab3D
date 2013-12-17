@@ -90,6 +90,44 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
     }
 
     /**
+     * Binary coeff of all inside
+     */
+    public void testBinaryCoeffMaxed() {
+        int size = 4;
+        int factor = 2;
+
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
+
+        int max = 127;
+
+        for(int y=0; y < size; y++) {
+            for(int x=0; x < size; x++) {
+                for(int z=0; z < size; z++) {
+                    grid.setState(x,y,z,Grid.INSIDE);
+                }
+            }
+        }
+        DownsampleAlpha ds = new DownsampleAlpha(true,1,2,max);
+        AttributeGrid dest = ds.execute(grid);
+
+        int new_size = dest.getWidth();
+        for(int y=0; y < new_size; y++) {
+            for(int x=0; x < new_size; x++) {
+                for(int z=0; z < new_size; z++) {
+                    assertEquals("Dest value",max, dest.getAttribute(x,y,z));
+                }
+            }
+        }
+
+        // Test grid is factor sized
+
+        assertEquals("Grid factor w", size / factor, dest.getWidth());
+        assertEquals("Grid factor h", size / factor, dest.getHeight());
+        assertEquals("Grid factor d", size / factor, dest.getDepth());
+
+    }
+
+    /**
      * Simple average of all zeros
      */
     public void testSimpleAverageZero() {
@@ -347,140 +385,6 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
     }
 
     /**
-     * Speed tests, manual enable.
-     */
-    public void testSpeed() {
-
-        double voxelSize = 0.01*Units.MM;
-        double margin = 0*voxelSize;
-
-        double sizex = 1*Units.CM;
-        double sizey = 1*Units.CM;
-        double sizez = 1*Units.CM;
-        double ballRadius = 4.5*Units.MM;
-        double surfaceThickness = Math.sqrt(3)/2;
-
-        double gridWidth = sizex + 2*margin;
-        double gridHeight = sizey + 2*margin;
-        double gridDepth = sizez + 2*margin;
-        int maxAttributeValue = 127;
-
-        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
-
-        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
-        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
-        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
-        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
-
-        Sphere sphere = new Sphere(0,0,0,ballRadius);
-
-        GridMaker gm = new GridMaker();
-        gm.setBounds(bounds);
-        gm.setSource(sphere);
-        gm.setMaxAttributeValue(maxAttributeValue);
-        gm.setVoxelSize(voxelSize*surfaceThickness);
-
-
-        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
-
-        gm.makeGrid(grid);
-
-        //writeSlices("/tmp/slices_in", grid, maxAttributeValue);
-
-        int TIMES = 20;
-        int factor = 2;
-
-        // Test coeff == 0 path
-        printf("Coeff 0 path\n");
-        for(int i=0; i < TIMES; i++) {
-            long t0 = System.nanoTime();
-            DownsampleAlpha ds = new DownsampleAlpha(0,factor,maxAttributeValue);
-            AttributeGrid dest = ds.execute(grid);
-
-            System.out.println("Total time: " + (System.nanoTime() - t0) / 1000);
-        }
-          /*
-        printf("Coeff not 0 path\n");
-        // Test coeff no 0
-        for(int i=0; i < TIMES; i++) {
-            long t0 = System.nanoTime();
-            DownsampleAlpha ds = new DownsampleAlpha(1e-9,factor,maxAttributeValue);
-            AttributeGrid dest = ds.execute(grid);
-
-            System.out.println("Total time: " + (System.nanoTime() - t0) / 1000);
-        }
-            */
-        //writeSlices("/tmp/slices_out", dest, maxAttributeValue);
-    }
-
-    /**
-     * Speed tests, manual enable.
-     */
-    public void testSpeedMT() {
-
-        double voxelSize = 0.01*Units.MM;
-        double margin = 0*voxelSize;
-
-        double sizex = 1*Units.CM;
-        double sizey = 1*Units.CM;
-        double sizez = 1*Units.CM;
-        double ballRadius = 4.5*Units.MM;
-        double surfaceThickness = Math.sqrt(3)/2;
-
-        double gridWidth = sizex + 2*margin;
-        double gridHeight = sizey + 2*margin;
-        double gridDepth = sizez + 2*margin;
-        int maxAttributeValue = 127;
-
-        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
-
-        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
-        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
-        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
-        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
-
-        Sphere sphere = new Sphere(0,0,0,ballRadius);
-
-        GridMaker gm = new GridMaker();
-        gm.setBounds(bounds);
-        gm.setSource(sphere);
-        gm.setMaxAttributeValue(maxAttributeValue);
-        gm.setVoxelSize(voxelSize*surfaceThickness);
-
-
-        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
-
-        gm.makeGrid(grid);
-
-        //writeSlices("/tmp/slices_in", grid, maxAttributeValue);
-
-        int TIMES = 20;
-        int factor = 2;
-
-        // Test coeff == 0 path
-        printf("Coeff 0 path\n");
-        for(int i=0; i < TIMES; i++) {
-            long t0 = System.nanoTime();
-            DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
-            AttributeGrid dest = ds.execute(grid);
-
-            System.out.println("Total time: " + (System.nanoTime() - t0) / 1000);
-        }
-          /*
-        printf("Coeff not 0 path\n");
-        // Test coeff no 0
-        for(int i=0; i < TIMES; i++) {
-            long t0 = System.nanoTime();
-            DownsampleAlpha ds = new DownsampleAlpha(1e-9,factor,maxAttributeValue);
-            AttributeGrid dest = ds.execute(grid);
-
-            System.out.println("Total time: " + (System.nanoTime() - t0) / 1000);
-        }
-            */
-        //writeSlices("/tmp/slices_out", dest, maxAttributeValue);
-    }
-
-    /**
      * Test downsampling on a sphere.
      *
      * Mostly visually compared using SliceWriter.  Analytical would check that the
@@ -651,6 +555,477 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         AttributeGrid dest = ds.execute(grid);
 
         writeSlices("/tmp/slices_out", dest, maxAttributeValue);
+    }
+
+    /**
+     * Test that MT is faster then ST.  Assumes we always run on a MT box
+     */
+    public void testMTFasterCoeffZero() {
+        double voxelSize = 0.01*Units.MM;
+        int maxAttributeValue = 127;
+        AttributeGrid grid = getSphereGrid(voxelSize);
+
+        int WARMUP = 5;
+        int factor = 2;
+
+        for(int i=0; i < WARMUP; i++) {
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            long mt_time = System.currentTimeMillis() - t0;
+            t0 = System.currentTimeMillis();
+            DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
+            Grid dest2 = op2.execute(grid);
+            long st_time = System.currentTimeMillis() - t0;
+
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
+        }
+
+        int TIMES = 3;
+
+        int cores = Runtime.getRuntime().availableProcessors();
+        float expected_speedup = 0.5f * cores;
+
+        for(int i=0; i < TIMES; i++) {
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            long mt_time = System.currentTimeMillis() - t0;
+            t0 = System.currentTimeMillis();
+            DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
+            Grid dest2 = op2.execute(grid);
+            long st_time = System.currentTimeMillis() - t0;
+
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
+
+            float speedup = (float)st_time / mt_time;
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,speedup);
+
+            assertTrue("Speedup factor > " + expected_speedup, speedup >= expected_speedup);
+        }
+    }
+
+    /**
+     * Test that MT is faster then ST.  Assumes we always run on a MT box
+     */
+    public void testMTFasterCoeffNonZero() {
+        double voxelSize = 0.01*Units.MM;
+        int maxAttributeValue = 127;
+        double coeff = 1;
+        AttributeGrid grid = getSphereGrid(voxelSize);
+
+        int WARMUP = 5;
+        int factor = 2;
+
+        for(int i=0; i < WARMUP; i++) {
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            DownsampleAlphaMT ds = new DownsampleAlphaMT(coeff,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            long mt_time = System.currentTimeMillis() - t0;
+            t0 = System.currentTimeMillis();
+            DownsampleAlpha op2 = new DownsampleAlpha(coeff,factor,maxAttributeValue);
+            Grid dest2 = op2.execute(grid);
+            long st_time = System.currentTimeMillis() - t0;
+
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
+        }
+
+        int TIMES = 3;
+
+        int cores = Runtime.getRuntime().availableProcessors();
+        float expected_speedup = 0.5f * cores;
+
+        for(int i=0; i < TIMES; i++) {
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            DownsampleAlphaMT ds = new DownsampleAlphaMT(coeff,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            long mt_time = System.currentTimeMillis() - t0;
+            t0 = System.currentTimeMillis();
+            DownsampleAlpha op2 = new DownsampleAlpha(coeff,factor,maxAttributeValue);
+            Grid dest2 = op2.execute(grid);
+            long st_time = System.currentTimeMillis() - t0;
+
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
+
+            float speedup = (float)st_time / mt_time;
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,speedup);
+
+            assertTrue("Speedup factor > " + expected_speedup, speedup >= expected_speedup);
+        }
+    }
+
+    /**
+     * Test that MT is faster then ST.  Assumes we always run on a MT box
+     */
+    public void testMTFasterIntervalCoeffZero() {
+        double voxelSize = 0.01*Units.MM;
+        int maxAttributeValue = 127;
+        AttributeGrid grid = getSphereGrid(voxelSize);
+
+        int WARMUP = 5;
+        int factor = 2;
+
+        for(int i=0; i < WARMUP; i++) {
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            long mt_time = System.currentTimeMillis() - t0;
+            t0 = System.currentTimeMillis();
+            DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
+            Grid dest2 = op2.execute(grid);
+            long st_time = System.currentTimeMillis() - t0;
+
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
+        }
+
+        int TIMES = 3;
+
+        int cores = Runtime.getRuntime().availableProcessors();
+        float expected_speedup = 0.5f * cores;
+
+        for(int i=0; i < TIMES; i++) {
+            long t0 = System.currentTimeMillis();
+            // get the subtraction of grid1 from grid2
+            DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
+            AttributeGrid dest = ds.execute(grid);
+
+            long mt_time = System.currentTimeMillis() - t0;
+            t0 = System.currentTimeMillis();
+            DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
+            Grid dest2 = op2.execute(grid);
+            long st_time = System.currentTimeMillis() - t0;
+
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
+
+            float speedup = (float)st_time / mt_time;
+            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,speedup);
+
+            assertTrue("Speedup factor > " + expected_speedup, speedup >= expected_speedup);
+        }
+    }
+
+    /**
+     * Bias towards keeping marked voxels
+     *
+     * xz plane, copied in y
+     *
+     * 8000
+     * 8800 ==> 80
+     * 8000     80
+     * 8800
+     */
+    public void testWeightedAverageMT() {
+        int size = 8;
+        int max = 63;
+        int factor = 2;
+        double coeff = 1.0;
+
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,0.001, 0.001);
+
+        for(int i=0; i < 2; i++) {
+            grid.setData(0,i,0,Grid.INSIDE, 8);
+            grid.setData(0,i,1,Grid.INSIDE, 8);
+            grid.setData(1,i,1,Grid.INSIDE, 8);
+            grid.setData(0,i,2,Grid.INSIDE, 8);
+            grid.setData(0,i,3,Grid.INSIDE, 8);
+            grid.setData(1,i,3,Grid.INSIDE, 8);
+        }
+
+        DownsampleAlphaMT ds = new DownsampleAlphaMT(coeff,factor,max);
+        AttributeGrid dest = ds.execute(grid);
+
+        assertEquals("Dest value000", 8, dest.getAttribute(0, 0, 0));
+        assertEquals("Dest value100", 0, dest.getAttribute(1,0,0));
+        assertEquals("Dest value001", 8, dest.getAttribute(0,0,1));
+        assertEquals("Dest value101", 0, dest.getAttribute(1,0,1));
+
+        // Test bounds are within a factor * voxel size
+
+        double EPS = grid.getVoxelSize() * factor;
+
+        double[] orig_bounds = new double[6];
+        grid.getGridBounds(orig_bounds);
+
+        double[] new_bounds = new double[6];
+        dest.getGridBounds(new_bounds);
+
+        for(int i=0; i < orig_bounds.length; i++) {
+            assertTrue("Grid bounds", Math.abs(orig_bounds[i] - new_bounds[i]) <= EPS);
+        }
+
+        // Test grid is factor sized
+
+        assertEquals("Grid factor w", 4, dest.getWidth());
+        assertEquals("Grid factor h", 4, dest.getHeight());
+        assertEquals("Grid factor d", 4, dest.getDepth());
+    }
+
+    private AttributeGrid getSphereGrid(double voxelSize) {
+        double margin = 0*voxelSize;
+
+        double sizex = 1*Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        return grid;
+
+    }
+
+    private AttributeGrid getSphereIntervalGrid(double voxelSize) {
+        double margin = 0*voxelSize;
+
+        double sizex = 1*Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        AttributeGrid grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        return grid;
+
+    }
+
+    /**
+     * Test that the downsample of ST and MT are the same
+     */
+    public void testSTAndMTEqualsBall() {
+        int factor = 2;
+        double coeff = 1.5;
+
+        double voxelSize = 0.1*Units.MM;
+        double margin = 0*voxelSize;
+
+        double sizex = 1*Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        if (gridWidth % factor == 0) gridWidth++;
+        if (gridHeight % factor == 0) gridHeight++;
+        if (gridDepth % factor == 0) gridDepth++;
+
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(1);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        //writeSlices("/tmp/slices_in", grid, maxAttributeValue);
+
+        DownsampleAlpha ds = new DownsampleAlpha(true,coeff,factor,maxAttributeValue);
+        AttributeGrid dest1 = ds.execute(grid);
+
+        DownsampleAlphaMT ds2 = new DownsampleAlphaMT(true,coeff,factor,maxAttributeValue);
+        AttributeGrid dest2 = ds2.execute(grid);
+
+        int w = dest1.getWidth();
+        int h = dest1.getHeight();
+        int d = dest1.getDepth();
+
+        for(int y=0; y < h; y++) {
+            for(int x=0; x < w; x++) {
+                for(int z=0; z < d; z++) {
+                    long mat1 = dest1.getAttribute(x,y,z);
+                    long mat2 = dest2.getAttribute(x,y,z);
+                    assertEquals("Mat compare",mat1,mat2);
+
+                    byte state1 = dest1.getState(x,y,z);
+                    byte state2 = dest2.getState(x,y,z);
+
+                    assertEquals("State compare", state1,state2);
+                }
+            }
+        }
+
+        double EPS = grid.getVoxelSize() * factor;
+
+        System.out.println("EPS: " + EPS);
+        double[] orig_bounds = new double[6];
+        dest1.getGridBounds(orig_bounds);
+
+        double[] new_bounds = new double[6];
+        dest2.getGridBounds(new_bounds);
+
+        System.out.println("ST bounds: " + java.util.Arrays.toString(orig_bounds));
+        System.out.println("MT bounds: " + java.util.Arrays.toString(new_bounds));
+
+        for(int i=0; i < orig_bounds.length; i++) {
+            assertTrue("Grid bounds", Math.abs(orig_bounds[i] - new_bounds[i]) <= EPS);
+        }
+
+    }
+
+    /**
+     * Test that the downsample of ST and MT are the same
+     */
+    public void testSTAndMTEqualsBallFactor3() {
+        int factor = 3;
+        double coeff = 1.5;
+
+        double voxelSize = 0.1*Units.MM;
+        double margin = 0*voxelSize;
+
+        double sizex = 1*Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+
+        if (gridWidth % factor == 0) gridWidth++;
+        if (gridHeight % factor == 0) gridHeight++;
+        if (gridDepth % factor == 0) gridDepth++;
+
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(1);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        //writeSlices("/tmp/slices_in", grid, maxAttributeValue);
+
+        DownsampleAlpha ds = new DownsampleAlpha(true,coeff,factor,maxAttributeValue);
+        AttributeGrid dest1 = ds.execute(grid);
+
+        DownsampleAlphaMT ds2 = new DownsampleAlphaMT(true,coeff,factor,maxAttributeValue);
+        AttributeGrid dest2 = ds2.execute(grid);
+
+        int w = dest1.getWidth();
+        int h = dest1.getHeight();
+        int d = dest1.getDepth();
+
+        for(int y=0; y < h; y++) {
+            for(int x=0; x < w; x++) {
+                for(int z=0; z < d; z++) {
+                    long mat1 = dest1.getAttribute(x,y,z);
+                    long mat2 = dest2.getAttribute(x,y,z);
+                    assertEquals("Mat compare",mat1,mat2);
+
+                    byte state1 = dest1.getState(x,y,z);
+                    byte state2 = dest2.getState(x,y,z);
+
+                    assertEquals("State compare", state1,state2);
+                }
+            }
+        }
+
+        double EPS = grid.getVoxelSize() * factor;
+
+        System.out.println("EPS: " + EPS);
+        double[] orig_bounds = new double[6];
+        dest1.getGridBounds(orig_bounds);
+
+        double[] new_bounds = new double[6];
+        dest2.getGridBounds(new_bounds);
+
+        System.out.println("ST bounds: " + java.util.Arrays.toString(orig_bounds));
+        System.out.println("MT bounds: " + java.util.Arrays.toString(new_bounds));
+
+        for(int i=0; i < orig_bounds.length; i++) {
+            assertTrue("Grid bounds", Math.abs(orig_bounds[i] - new_bounds[i]) <= EPS);
+        }
+
     }
 
     /**

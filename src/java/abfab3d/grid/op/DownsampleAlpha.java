@@ -52,7 +52,15 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
     /** Number of voxels in a kernel */
     private int kernelSize;
 
+    /** Is the input a binary grid */
+    private boolean binaryInput;
+
     public DownsampleAlpha(double coeff, int factor, long maxAttributeValue) {
+        this(false,coeff,factor,maxAttributeValue);
+    }
+
+    public DownsampleAlpha(boolean binary, double coeff, int factor, long maxAttributeValue) {
+        this.binaryInput = binary;
         this.coeff = coeff;
         this.factor = factor;
         this.maxAttributeValue = maxAttributeValue;
@@ -89,7 +97,9 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid execute(AttributeGrid dest) {
-        if (coeff != 0.0) {
+        if (binaryInput) {
+            return executeBinaryCoeffBoxAverage(dest);
+        } else if (coeff != 0.0) {
             return executeCoeffBoxAverage(dest);
         } else {
             return executeBoxAverage(dest,factor);
@@ -129,8 +139,6 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
 
         g1.setGridBounds(bounds);
 
-        VoxelData vd = dest.getVoxelData();
-
         // TODO: for some grids this traversal will be very slow.  Should this type
         // of skip traversal be part of the grid interface?
 
@@ -143,15 +151,15 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
                     for(int yy = 0; yy < factor; yy++) {
                         for(int xx = 0; xx < factor; xx++) {
                             for(int zz = 0; zz < factor; zz++) {
-                                dest.getData(x1 + xx,y1 + yy,z1 + zz,vd);
-                                if(vd.getState() != Grid.OUTSIDE) {
-                                    double fill = (double) vd.getMaterial() / maxAttributeValue;
+                                long mat = dataConverter.get(dest.getAttribute(x1 + xx,y1 + yy,z1 + zz));
+
+                                if (mat == 0) {
+                                    total += 1.0 - coeff;
+                                } else {
+                                    double fill = (double) mat / maxAttributeValue;
                                     double vw = 1.0 + coeff * fill;
                                     sum += vw * fill;
                                     total += vw;
-                                } else {
-                                    //total += 1.0;
-                                    total += 1.0 - coeff;
                                 }
                             }
                         }
@@ -167,6 +175,73 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
 
         return g1;
 
+    }
+
+    /**
+     * Execute using a coeff which is slower then doing a simple avg.
+     * @param dest
+     * @return
+     */
+    public AttributeGrid executeBinaryCoeffBoxAverage(AttributeGrid dest) {
+        int
+                nx = dest.getWidth(),
+                ny = dest.getHeight(),
+                nz = dest.getDepth(),
+                nx1 = nx/factor,
+                ny1 = ny/factor,
+                nz1 = nz/factor;
+
+        double bounds[] = new double[6];
+        dest.getGridBounds(bounds);
+
+        double dx = (bounds[1] - bounds[0] )/nx;
+        double dy = (bounds[3] - bounds[2] )/ny;
+        double dz = (bounds[5] - bounds[4] )/nz;
+        double
+                dx1 = dx * factor,
+                dy1 = dy * factor,
+                dz1 = dz * factor;
+
+        AttributeGrid g1 = (AttributeGrid) dest.createEmpty(nx1, ny1, nz1, dx1, dz1);
+
+        bounds[1] = bounds[0] + dx1 * nx1;
+        bounds[3] = bounds[2] + dy1 * ny1;
+        bounds[5] = bounds[4] + dy1 * nz1;
+
+        g1.setGridBounds(bounds);
+
+        // TODO: for some grids this traversal will be very slow.  Should this type
+        // of skip traversal be part of the grid interface?
+
+        for(int y = 0, y1 = 0; y < ny1; y++, y1 += factor) {
+            for(int x = 0, x1 = 0; x <  nx1; x++, x1 += factor) {
+
+                for(int z = 0, z1 = 0; z <  nz1; z++, z1 += factor) {
+                    double sum = 0, total = 0;
+
+                    for(int yy = 0; yy < factor; yy++) {
+                        for(int xx = 0; xx < factor; xx++) {
+                            for(int zz = 0; zz < factor; zz++) {
+                                if(dest.getState(x1 + xx,y1 + yy,z1 + zz) != Grid.OUTSIDE){
+                                    sum += coeff;
+                                    total += coeff;
+                                } else {
+                                    total += 1.;
+                                }
+
+                            }
+                        }
+                    }
+
+                    // rounding is more accurate but expensive, favor speed.
+//                    long avg = Math.round((float)sum / total * maxAttributeValue);
+                    long avg = (long) (sum / total * maxAttributeValue);
+                    g1.setAttribute(x,y,z,avg);
+                }
+            }
+        }
+
+        return g1;
     }
 
     /**
@@ -189,17 +264,11 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
                 dest.getVoxelSize() * factor, dest.getSliceHeight() * factor);
 
 
-        VoxelData vd = ret_val.getVoxelData();
-
         for(int y=0; y < len_y; y++) {
             for(int x=0; x < len_x; x++) {
                 for(int z=0; z < len_z; z++) {
-                    long att_avg = avgAttribute(dest, x*2, y*2, z*2,vd);
-                    byte state = Grid.OUTSIDE;
-                    if (att_avg != 0) {
-                        state = Grid.INSIDE;
-                    }
-                    ret_val.setData(x,y,z, state, att_avg);
+                    long att_avg = avgAttribute(dest, x*2, y*2, z*2);
+                    ret_val.setAttribute(x,y,z, att_avg);
                 }
             }
         }
@@ -214,18 +283,16 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
      * @param x
      * @param y
      * @param z
-     * @param vd - scratch voxel data aligned with grid type
      * @return
      */
-    private long avgAttribute(AttributeGrid grid, int x, int y, int z, VoxelData vd) {
+    private long avgAttribute(AttributeGrid grid, int x, int y, int z) {
         long sum = 0;
 
         for(int yy = 0; yy < factor; yy++) {
             for(int xx = 0; xx < factor; xx++) {
                 for(int zz = 0; zz < factor; zz++) {
-                    grid.getData(x + xx,y + yy,z + zz,vd);
+                    long mat = dataConverter.get(grid.getAttribute(x + xx,y + yy,z + zz));
 
-                    long mat = dataConverter.get(vd.getMaterial());
                     sum += mat;
                 }
             }
@@ -233,4 +300,5 @@ public class DownsampleAlpha implements Operation, AttributeOperation {
 
         return sum / kernelSize;
     }
+
 }
