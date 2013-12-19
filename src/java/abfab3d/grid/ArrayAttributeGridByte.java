@@ -175,7 +175,12 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         int s_z = (int) (z / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
-        
+
+        // TODO: remove me
+        if (idx < 0 || idx > data.length - 1) {
+            System.out.println("****problem iob");
+            System.out.flush();
+        }
         return ioFunc.getState(data[idx] & 0xFF);
     }
 

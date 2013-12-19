@@ -1138,11 +1138,21 @@ class FindAttributeIterateTester implements ClassAttributeTraverser {
      *
      * @param vc
      */
-    public FindAttributeIterateTester(HashSet<VoxelCoordinate> vc) {
+    public FindAttributeIterateTester(HashSet<VoxelCoordinate> vc, boolean threadSafe) {
         this.vcSet = (HashSet<VoxelCoordinate>) vc.clone();
         foundCorrect = true;
         iterateCount = 0;
         vcSetCount = vcSet.size();
+    }
+
+    /**
+     * Constructor that takes in a HashSet of VoxelCoordinates known to be
+     * in the VoxelClass to find
+     *
+     * @param vc
+     */
+    public FindAttributeIterateTester(HashSet<VoxelCoordinate> vc) {
+        this(vc,false);
     }
 
     /**
