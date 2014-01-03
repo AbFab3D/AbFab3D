@@ -135,43 +135,58 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
     /**
      * Test traversal across a grid using multiple threads
      */
-    public void _testMTTraversal() {
+    public void testMTTraversal() {
 
-        long voxels = 1000 * 1000 * 1000;
-        int size = 250;
-        int sizez = (int) (voxels / (size * size));
+        long voxels = 1200 * 1200 * 1200;
+        int size = 800;
+        int sizey = (int) (voxels / (size * size));
 
-        Grid grid = new ArrayGridByte(size, size, sizez, 0.001, 0.001);
+        Grid grid = new ArrayGridByte(size, sizey, size, 0.001, 0.001);
 
-        int expected_count = 6880;
+        boolean fill = true;
+        long expected_count = (long) (voxels * 0.50);
 
-        Random rnd = new Random(42);
-        for (int i = 0; i < expected_count; i++) {
-            int x = rnd.nextInt(size);
-            int y = rnd.nextInt(size);
-            int z = rnd.nextInt(sizez);
+        if (fill) {
+            expected_count = (long) size * size * sizey;
+            for(int y=0; y < sizey; y++) {
+                for(int x=0; x < size; x++) {
+                    for(int z=0; z < size; z++) {
+                        grid.setState(x,y,z,Grid.INSIDE);
+                    }
+                }
+            }
+        } else {
 
-            if (grid.getState(x,y,z) != Grid.INSIDE) {
-                grid.setState(x,y,z,Grid.INSIDE);
+            Random rnd = new Random(42);
+            for (int i = 0; i < expected_count;) {
+                int x = rnd.nextInt(size);
+                int y = rnd.nextInt(sizey);
+                int z = rnd.nextInt(size);
+
+                if (grid.getState(x,y,z) != Grid.INSIDE) {
+                    grid.setState(x,y,z,Grid.INSIDE);
+                    i++;
+                }
             }
         }
 
         //saveDebug(grid,"/tmp/out.x3db",false);
 
         int maxThreads = Runtime.getRuntime().availableProcessors();
-        int warmup = 4;
+        int warmup = 6;
         long start_time;
 
         for (int i = 0; i < warmup; i++) {
             start_time = System.nanoTime();
-            long cnt = getNumMarked(grid, 0, grid.getWidth() - 1, 0, grid.getHeight() - 1);
+            long cnt = getNumMarked2(grid, 0, grid.getWidth() - 1, 0, grid.getHeight() - 1);
             System.out.println("Time: " + ((int) ((System.nanoTime() - start_time) / 1000000)));
 
             assertEquals("Count", expected_count, cnt);
         }
 
-
+        int sliceHeight = 1;
         System.out.println("Warmup done");
+        System.out.println("Slices: " + (grid.getHeight() / sliceHeight));
         long first = 0;
         double[] factors = new double[maxThreads];
         boolean yslice = true;
@@ -182,7 +197,6 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
                 continue;
             }
 
-            int sliceHeight = 1;
             int ny = grid.getHeight();
             int nx = grid.getWidth();
             Slice[] slices = new Slice[ny / sliceHeight];
@@ -259,14 +273,15 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
     }
 
     public void testPureCPU() {
-        long total_ops = (long) 1e7;
+        long warmup_ops = (long) 1e7;
+        long total_ops = (long) 2e7;
         int maxThreads = Runtime.getRuntime().availableProcessors();
         int warmup = 4;
         long start_time;
 
         for (int i = 0; i < warmup; i++) {
             start_time = System.nanoTime();
-            long cnt = getCPUTime(total_ops);
+            long cnt = getCPUTime(warmup_ops);
             //System.out.println("Total Ops: " + cnt);
             System.out.println("Time: " + ((int) ((System.nanoTime() - start_time) / 1000000)));
         }
@@ -353,6 +368,29 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
     /**
      * Sum the number of marked voxels
      *
+     * @param grid The grid
+     * @return True if the material can move away from the target material
+     */
+    private long getNumMarked2(Grid grid, int xmin, int xmax, int ymin, int ymax) {
+        long cnt = 0;
+        int depth = grid.getDepth();
+
+        for (int y = ymin; y <= ymax; y++) {
+            for (int x = xmin; x <= xmax; x++) {
+                for (int z = 0; z < depth; z++) {
+                    if (grid.getState(x, y, z) == Grid.INSIDE) {
+                        cnt++;
+                    }
+                }
+            }
+        }
+
+        return cnt;
+    }
+
+    /**
+     * Sum the number of marked voxels
+     *
      * @return True if the material can move away from the target material
      */
     private long getCPUTime(long ops) {
@@ -401,7 +439,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
 
                 long cnt = 0;
 
-                cnt = getNumMarked(src, slice.xmin, slice.xmax, slice.ymin, slice.ymax);
+                cnt = getNumMarked2(src, slice.xmin, slice.xmax, slice.ymin, slice.ymax);
                 total += cnt;
             }
         }
