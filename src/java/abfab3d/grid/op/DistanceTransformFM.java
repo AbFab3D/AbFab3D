@@ -36,6 +36,9 @@ import static abfab3d.util.ImageUtil.MAXC;
 
 import static abfab3d.grid.Grid.OUTSIDE;
 import static java.lang.Math.round;
+import static java.lang.Math.ceil;
+import static java.lang.Math.min;
+import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 
 /**
@@ -51,7 +54,7 @@ import static java.lang.Math.sqrt;
 
  the surface of the shape is isosurface with value ((double)maxAttribute/2.)  
 
- "inside boundary voxels" are those with value >= maxAttribute/2 and have 6 neighgbour with value < maxAttribute/2
+ "inside boundary voxels" are those with value >= maxAttribute/2 and have at leasdt one 6-neighgbor with value < maxAttribute/2
  outide neighbours of inside boundary voxels are "outside boundary voxels"
   
  output distances are normalized to maxAttribute, 
@@ -87,6 +90,9 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
     static final int AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2; // direction  of surface offset from the interior surface point 
 	    
     int m_maxAttribute = 255; 
+    double m_inDistance = 0;
+    double m_outDistance = 0;
+
     int m_maxInDistance = 0;
     int m_maxOutDistance = 0;
     int m_defaultValue = Short.MAX_VALUE;
@@ -106,14 +112,14 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
 
     /**
        @param maxAttribute maximal attribute value for inside voxels 
-       @param maxInDistance maximal distance to calculate inside of the shape. Measured in voxels. 
-       @param maxOutDistance maximal distance to calculate outsoide of the shape. Measured in voxels. 
+       @param inDistance maximal distance to calculate inside of the shape. Measured in voxels. 
+       @param outDistance maximal distance to calculate outsoide of the shape. Measured in voxels. 
     */
-    public DistanceTransformFM(int maxAttribute, int maxInDistance, int maxOutDistance) {
+    public DistanceTransformFM(int maxAttribute, double inDistance, double outDistance) {
 
         m_maxAttribute = maxAttribute; 
-        m_maxInDistance = maxInDistance;
-        m_maxOutDistance = maxOutDistance;
+        m_inDistance = inDistance;
+        m_outDistance = outDistance;
         
     }    
 
@@ -145,60 +151,79 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
         printf("DistanceTransformFM.execute(%s)\n", grid); 
         
 
-        m_surfaceValue = m_maxAttribute;
+        m_surfaceValue = m_maxAttribute/2;
+
+        double vs = grid.getVoxelSize();
+
+        m_maxInDistance = (int)round(m_inDistance*m_maxAttribute/vs);
+        m_maxOutDistance = (int)round(m_outDistance*m_maxAttribute/vs);
+
         nx = grid.getWidth();
         ny = grid.getHeight();
         nz = grid.getDepth();
         voxelSizeX = grid.getVoxelSize();
         voxelSizeY = grid.getSliceHeight();
 
-        int maxDistance = max(m_maxInDistance, m_maxOutDistance);
-        m_defaultValue = Short.MAX_VALUE;//m_maxAttribute*(2*maxDistance) + 1;
+        // how many iteration to do inside 
+        int maxInIterations = (int)ceil(m_inDistance/vs);
+        // how many iteration to do outside
+        int maxOutIterations = (int)ceil(m_outDistance/vs);
+
+        m_defaultValue = Short.MAX_VALUE;
         
         sliceStart = nz/2;
         sliceEnd = sliceStart + 1;
-        if(gridWriter != null)gridWriter.writeSlices(grid, 2*m_maxAttribute, "/tmp/slices/01_grid_%03d.png", sliceStart, sliceEnd, null);
+        if(gridWriter != null)gridWriter.writeSlices(grid, 2*m_maxAttribute, "/tmp/slices/01_grid_%03d.png", 
+                                                     sliceStart, sliceEnd, null);
 
         long t0 = time();
         //TODO what grid to allocate here 
         m_distGrid = (AttributeGrid)m_distGridFactory.createEmpty(nx, ny, nz, voxelSizeX, voxelSizeY);
         initDistances(grid, m_distGrid);        
 
-        if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/02_init_%03d.png", sliceStart, sliceEnd, new DistanceColorizer(m_maxAttribute));
+        if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/02_init_%03d.png", 
+                                                     sliceStart, sliceEnd, new DistanceColorizer(m_maxAttribute));
 
-        //TODO we may want use different GirdBit (for memory efficienty or for speed)
+        //TODO we may want use different GridBit (for memory efficienty or for speed)
         m_fixedGrid = new GridBitIntervals(nx, ny, nz);
         scanSurface(grid, m_distGrid, m_fixedGrid);   
 
-        if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/03_start_%03d.png", sliceStart, sliceEnd, new DistanceColorizer(m_maxAttribute));
-        //if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/03_start_%03d.png", 0, nz, new DistanceColorizer(m_maxAttribute));
-        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_fixedGrid, 0, fmt("/tmp/slices/04_fixed_%2d_%%03d.png",0), sliceStart, sliceEnd, new BitColorizer());
+        if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/03_start_%03d.png", 
+                                                     sliceStart, sliceEnd, new DistanceColorizer(m_maxAttribute));
+        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_fixedGrid, 0, fmt("/tmp/slices/04_fixed_%2d_%%03d.png",0), 
+                                                     sliceStart, sliceEnd, new BitColorizer());
 
 
         m_candGrid = new GridBitIntervals(nx, ny, nz);
-        m_candPool = new FMCandidatesPool(m_maxAttribute, maxDistance);
+        m_candPool = new FMCandidatesPool(m_maxAttribute, max(maxInIterations,maxOutIterations));
         
         initCandidates();        
         
-
-        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_candGrid, 0, fmt("/tmp/slices/05_cand_%2d_%%03d.png",0), sliceStart, sliceEnd, new BitColorizer());
+        if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_candGrid, 0, fmt("/tmp/slices/05_cand_%2d_%%03d.png",0), 
+                                                     sliceStart, sliceEnd, new BitColorizer());
         m_candPool.printStat();
         
         printf("  DistanceTransformFM initialization: %d ms\n", time() - t0);
-
-        for(int k = 1; k <= m_maxInDistance; k++){
+        // propagate distance inside of shape 
+        for(int k = 1; k <= maxInIterations; k++){
+            // do don't really need to do it in steps. 
+            // it is only for convenience of monitoring progress 
             long tt = time();
-            int maxValue = k*m_maxAttribute;
+            int maxValue = min(k*m_maxAttribute,m_maxInDistance);
             doIteration(maxValue);
-            printf("  iteration %d %d ms\n", k,(time()-tt));
-
-            m_candPool.printStat();
-
-            if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_distGrid, 2*m_maxAttribute,fmt("/tmp/slices/07_dist_%02d_%%03d.png", k), sliceStart, sliceEnd, new DistanceColorizer(maxValue));
-            if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_candGrid, 0, fmt("/tmp/slices/05_cand_%2d_%%03d.png",k), sliceStart, sliceEnd, new BitColorizer());
-            if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_fixedGrid, 0, fmt("/tmp/slices/04_fixed_%2d_%%03d.png",k), sliceStart, sliceEnd, new BitColorizer());
+            if(false){
+                printf("  iteration %d %d ms\n", k,(time()-tt));
+                m_candPool.printStat();
+            }
+            if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_distGrid, m_maxAttribute,fmt("/tmp/slices/07_dist_%02d_%%03d.png", k), 
+                                                         sliceStart, sliceEnd, new DistanceColorizer(maxValue));
+            if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_candGrid, 0, fmt("/tmp/slices/05_cand_%2d_%%03d.png",k), 
+                                                         sliceStart, sliceEnd, new BitColorizer());
+            if(gridWriter != null)gridWriter.writeSlices((AttributeGrid)m_fixedGrid, 0, fmt("/tmp/slices/04_fixed_%2d_%%03d.png",k), sliceStart, 
+                                                         sliceEnd, new BitColorizer());
 
         }
+        
 
         return m_distGrid;
 
@@ -240,7 +265,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
 
     /**
 
-       set distanceGrid values to bes to -max inside and max outside 
+       set distanceGrid values to m_defaultValue inside and -m_defaultValue outside 
        
     */
     void initDistances(AttributeGrid grid, AttributeGrid distanceGrid){
@@ -278,7 +303,8 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
             nz1 = nz-1;
 
         int vs = m_surfaceValue;
-        double dvs = (double)vs; // to make FP calculations 
+        double dvs = (double)vs; // to enforce FP calculations 
+
         for(int y = 1; y < ny1; y++){
             for(int x = 1; x < nx1; x++){
                 for(int z = 1; z < nz1; z++){
@@ -293,9 +319,9 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
                     if(z < nz1)vz = (int)grid.getAttribute(x,y,z+1);
 
                     if(v0 < vs ) {
-                        // point is outside outside 
+                        // voxe is outside 
                         if((grid.getAttribute(x+1,y,z) >= vs)||
-                           (grid.getAttribute(x-1,y,z) >=  vs)||
+                           (grid.getAttribute(x-1,y,z) >= vs)||
                            (grid.getAttribute(x,y+1,z) >= vs)||
                            (grid.getAttribute(x,y-1,z) >= vs)||
                            (grid.getAttribute(x,y,z+1) >= vs)||
@@ -305,7 +331,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
                             fixedGrid.set(x,y,z, 1);
                         }
                     } else {
-                        // inside 
+                        // voxel is inside 
                         if((grid.getAttribute(x+1,y,z) < vs)||
                            (grid.getAttribute(x-1,y,z) < vs)||
                            (grid.getAttribute(x,y+1,z) < vs)||
@@ -315,8 +341,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
                             
                             distanceGrid.setAttribute(x,y,z,(v0-vs)); 
                             fixedGrid.set(x,y,z, 1);
-                        }
-                        
+                        }                        
                     }                    
                 }
             }
@@ -324,7 +349,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
     }    
 
     /**
-       scan 6-neig of each fixed voxel and calculate candidate values of candidates 
+       scan 6-neighbors of each fixed voxel and calculate candidate distance values of candidates voxels 
      */
     void initCandidates(){
 

@@ -61,6 +61,7 @@ import static abfab3d.util.ImageUtil.makeRGBA;
 import static abfab3d.util.ImageUtil.MAXC;
 
 import static java.lang.Math.sin;
+import static java.lang.Math.round;
 import static java.lang.Math.PI;
 
 /**
@@ -70,7 +71,7 @@ import static java.lang.Math.PI;
  */
 public class DevTestDistanceTransformFM {
     
-    double surfareThickness = Math.sqrt(3)/2;
+    double surfaceThickness = 0.5;//Math.sqrt(3)/2;
     int maxAttribute = 100;
     double voxelSize = 0.1*MM;
 
@@ -129,35 +130,37 @@ public class DevTestDistanceTransformFM {
 
     void testBoxExact(){
         
-        int nx = 500;
+        int nx = 200;
         AttributeGrid grid = makeBox(nx, 4.0*MM);
-        MyGridWriter gw = new MyGridWriter(1,1);
-        int maxInDistance = 10;
-        int maxOutDistance = 10;
+        MyGridWriter gw = new MyGridWriter();
+        double maxInDistance = 1*MM;
+        double maxOutDistance = 0*MM;
 
-        gw.writeSlices(grid, 2*maxAttribute, "/tmp/slices/egrid_%03d.png",nx/2, nx/2+1, null);
+        gw.writeSlices(grid, maxAttribute, "/tmp/slices/ex_grid_%03d.png",nx/2, nx/2+1, null);
         DistanceTransformExact dt = new DistanceTransformExact(maxAttribute, maxInDistance, maxOutDistance);
         long t0 = time();
         AttributeGrid dg = dt.execute(grid);        
         printf("DistanceTransformExact done: %d ms\n", time() - t0); 
-        gw.writeSlices(dg, maxAttribute*maxInDistance, "/tmp/slices/edist_%03d.png",nx/2, nx/2+1, new DistanceColorizer(maxAttribute*maxInDistance));
+        int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
+        gw.writeSlices(dg, norm, "/tmp/slices/ex_dist_%03d.png",nx/2, nx/2+1, new DistanceColorizer(norm));
+        printRow(dg, 0, nx, nx/2, nx/2);
         
         
     }
 
     void testBoxFM(){
 
-        int nx = 500;
+        int nx = 200;
         AttributeGrid grid = makeBox(nx, 4.0*MM);
 
-        MyGridWriter gw = new MyGridWriter(1,1);
-        gw.writeSlices(grid, 2*maxAttribute, "/tmp/slices/grid_%03d.png",nx/2, nx/2+1, null);
+        MyGridWriter gw = new MyGridWriter();
+        gw.writeSlices(grid, maxAttribute, "/tmp/slices/fm_grid_%03d.png",nx/2, nx/2+1, null);
         
-        int maxInDistance = 10;
-        int maxOutDistance = 0;
+        double maxInDistance = 1*MM;
+        double maxOutDistance = 0*MM;
         
         printf("grid: [%d x %d x %d]\n", grid.getWidth(), grid.getHeight(), grid.getDepth()); 
-        printf("starting DistanceTransformFM (%d %d %d)\n", maxAttribute, maxInDistance, maxOutDistance); 
+        printf("starting DistanceTransformFM (%d %7.3f mm %7.3f mm)\n", maxAttribute, maxInDistance/MM, maxOutDistance/MM); 
 
         long t0 = time();
 
@@ -167,7 +170,9 @@ public class DevTestDistanceTransformFM {
         AttributeGrid dg = dt.execute(grid);
         
         printf("DistanceTransformFM done: %d ms\n", time() - t0); 
-        gw.writeSlices(dg, maxAttribute*maxInDistance, "/tmp/slices/dist_%03d.png",nx/2, nx/2+1, new DistanceColorizer(maxAttribute*maxInDistance));
+        int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
+        gw.writeSlices(dg,norm , "/tmp/slices/fm_dist_%03d.png",nx/2, nx/2+1, new DistanceColorizer(norm));
+        printRow(dg, 0, nx, nx/2, nx/2);
     }
 
 
@@ -178,10 +183,12 @@ public class DevTestDistanceTransformFM {
         int nx = gridSize;
         int ny = nx;
         int nz = nx;
+
         double sx = nx*voxelSize;
         double sy = ny*voxelSize;
         double sz = nz*voxelSize;
-        double xoff = voxelSize/2;
+
+        double xoff = 0;//voxelSize/2;
         double yoff = 0;
         double zoff = 0;
 
@@ -191,28 +198,26 @@ public class DevTestDistanceTransformFM {
 
         //Box box = new Box((nx - 4)*voxelSize, (ny - 4) * voxelSize, (nz-30)*voxelSize);
         Box box = new Box(xoff,yoff,zoff,boxWidth, 0.8*ny * voxelSize, (nz-30)*voxelSize);
-        box.setTransform(new Rotation(0,0,1,Math.PI/20));
+        box.setTransform(new Rotation(0,0,1,Math.PI*0.1));
         //box.setTransform(new Rotation(0,0,1,Math.PI/4+0.01));
         GridMaker gm = new GridMaker();
-        gm.setMaxAttributeValue(2*maxAttribute); // correct normalization is 2* 
-        gm.setVoxelScale(surfareThickness);
+        gm.setMaxAttributeValue(maxAttribute); 
+        gm.setVoxelScale(surfaceThickness);
 
         gm.setSource(box);
         gm.makeGrid(grid);
         return grid;
     }
 
-
+    // special slice writer 
     static class MyGridWriter implements SliceExporter {
 
-        int cellSize = 1;
-        int voxelSize = 1;
-        MyGridWriter(int cellSize, int voxelSize){
-            this.cellSize = cellSize;
-            this.voxelSize = voxelSize;
+        int cellSize = 8;
+        int voxelSize = 7;
+        MyGridWriter(){
         }
         public void writeSlices(Grid grid, long maxAttribute, String filePattern, int start, int end, LongConverter colorMaker ){
-            
+            printf("%s.writeSlices(%s, %d %d %d)\n", this, filePattern, start, end, maxAttribute);
             SlicesWriter slicer = new SlicesWriter();
             slicer.setDataConverter(new Long2Short());
             slicer.setCellSize(cellSize);
@@ -240,13 +245,35 @@ public class DevTestDistanceTransformFM {
             }                
         }
     }
+    
+    static void printRow(AttributeGrid grid, int xmin, int xmax, int y, int z){
+        printf("printRow(%d %d %d %d)\n",xmin, xmax, y,z);
+        for(int x = xmin; x < xmax; x++){
+            short v = (short)(grid.getAttribute(x,y,z));
+            if(v == Short.MAX_VALUE)
+                printf("  + ");
+            else if(v == -Short.MAX_VALUE)
+                printf("  . ");
+            else
+                printf("%4d",v);
+            if((x+1)%25 == 0)
+                printf("\n");        
+        }        
+
+    }
 
 
+
+    /**
+       
+     */
     static class DistanceColorizer implements LongConverter {
 
         int maxvalue = 100;
         int undefined = Short.MAX_VALUE;
+
         DistanceColorizer(int maxvalue){
+            
             this.maxvalue = maxvalue;
         }
 
@@ -260,7 +287,7 @@ public class DevTestDistanceTransformFM {
             if( value >= 0){
                 int v = (int)(MAXC  - (value * MAXC / maxvalue) & MAXC); 
                 return makeRGB(v, v, v);
-            } else {
+            } else {                 
                 return makeRGBA(0,0,0,0);                 
             }
         }
@@ -273,8 +300,7 @@ public class DevTestDistanceTransformFM {
         //dt.testUpwindSolver();
 
         dt.testBoxFM();
-        //dt.testBoxExact();
+        dt.testBoxExact();
 
     }
 }
-

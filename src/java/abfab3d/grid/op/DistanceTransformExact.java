@@ -27,21 +27,21 @@ import static abfab3d.util.Output.time;
 
 import static abfab3d.grid.Grid.OUTSIDE;
 import static java.lang.Math.max;
+import static java.lang.Math.round;
 
 /**
  * 
- calculates Distance Transform on the given AttributeGrid to a specified distance
+ calculates Distance Transform on the given AttributeGrid to a specified distance inside and outside of shape 
  
- voxel values are stored in grid attribute 
+ voxel values are stored in grid's attribute 
  the input grid is supposed to contain truncated distance data near surface layer 
  outside voxels should have values 0 
  inside voxels should have values maxAttribute  
 
  the surface of the shape is isosurface with value ((double)maxAttribute/2.)  
 
-
- "inside boundary voxels" are those with value >= maxAttribute/2 and have 6 neighgbour with value < maxAttribute/2
- outide neighbours of inside boundary voxels are "outside boundary voxels"
+ "inside boundary voxels" are those with value >= maxAttribute/2 and have at least one 6-neighbor with value < maxAttribute/2
+ outside neighbours of inside boundary voxels are "outside boundary voxels"
   
  output distances are normalized to maxAttribute, 
  this meand that a voxel on distance K from the surface will have distance value K*maxAttribute
@@ -52,16 +52,15 @@ import static java.lang.Math.max;
  
 
  algorithm works as follows 
- initilize teh distanceGrid to m_defaultInValue for inside voxels and m_defaultOutValue
- 
+ - initiliaze the distanceGrid to m_defaultValue for inside voxels and -m_defaultValue for outtside voxels 
  scan the grid for inside surface voxels 
- for each "inside surface voxels" calculate possible isosurface points in all 6 directions  
- for each isosurface point calculate distance to each grid point inside of sphere of radius maxDistance 
- update distance value if calculated distance is smaller than current distance value 
+ - for each "inside surface voxels" calculate possible isosurface points in all 6 directions  
+ - for each isosurface point calculate distance to each grid point inside of a sphere of radius max(inDistance, outDistance)
+ - update distance value if calculated distance is smaller than the currently stored distance value at that grid voxel 
 
  This approach is not absolutely precise. 
  Better is to calculate actual surface triangles and calculate distances to triangles, not points.
- The maximal error of calculations is near the surface. 
+ The maximal error of current calculations is near the surface. 
 
  * @author Vladimir Bulatov
  */
@@ -72,27 +71,29 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
 
     static final int AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2; // direction  of surface offset from the interior surface point 
 	    
-    int m_maxAttribute = 255; 
-    int m_maxInDistance = 0;
-    int m_maxOutDistance = 0;
+    int m_maxAttribute = 100; // distance normalization 
+    double m_inDistance = 0;
+    double m_outDistance = 0;
+    
+    int m_maxInDistance = 0; // maximal outside distance (expressed in units of voxelSize/m_maxAttribute)
+    int m_maxOutDistance = 0; // maximal inside distance (expressed in units of voxelSize/m_maxAttribute)
     int m_defaultValue = Short.MAX_VALUE;
     int nx, ny, nz;
     int m_surfaceValue;
-    protected int m_ballNeighbors[];// coordinates of neighbors point inside of sphere of m_maxDistance
+    protected int m_ballNeighbors[];// coordinates of neighbors point inside of the sphere of radius m_maxDistance
     /**
        @param maxAttribute maximal attribute value for inside voxels 
-       @param maxInDistance maximal distance to calculate inside of the shape. Measured in voxels. 
-       @param maxOutDistance maximal distance to calculate outsoide of the shape. Measured in voxels. 
+       @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
+       @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters 
     */
-    public DistanceTransformExact(int maxAttribute, int maxInDistance, int maxOutDistance) {
+    public DistanceTransformExact(int maxAttribute, double inDistance, double outDistance) {
 
         m_maxAttribute = maxAttribute; 
-        m_maxInDistance = maxInDistance;
-        m_maxOutDistance = maxOutDistance;
+        m_inDistance = inDistance;
+        m_outDistance = outDistance;
         
     }
-    
-    
+        
     /**
      * Execute an operation on a grid.  If the operation changes the grid
      * dimensions then a new one will be returned from the call.
@@ -110,12 +111,25 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
         printf("DistanceTransformExact.execute(%s)\n", grid); 
        
         m_surfaceValue = m_maxAttribute/2;
+        double vs = grid.getVoxelSize();
+
+        m_maxInDistance = (int)round(m_inDistance*m_maxAttribute/vs);
+        m_maxOutDistance = (int)round(m_outDistance*m_maxAttribute/vs);
+
+        
         nx = grid.getWidth();
         ny = grid.getHeight();
         nz = grid.getDepth();
-        int maxDistance = max(m_maxInDistance, m_maxOutDistance);
-        m_defaultValue = m_maxAttribute*maxDistance + 1;
-        m_ballNeighbors = makeNeighbors(maxDistance);
+
+        m_defaultValue = Short.MAX_VALUE;
+
+        // bal radius normalized to maxAttribute 
+        int ballRadius = max(m_maxInDistance, m_maxOutDistance);
+        
+        
+        m_ballNeighbors = makeBallNeighbors((ballRadius+m_maxAttribute-1)/m_maxAttribute);
+
+
         //TODO what grid to allocate here 
         AttributeGrid distanceGrid = new ArrayAttributeGridShort(nx, ny, nz, grid.getVoxelSize(), grid.getSliceHeight());
         initDistances(grid, distanceGrid);
@@ -168,7 +182,7 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
             ny1 = ny-1,
             nz1 = nz-1;
         int vs = m_surfaceValue;
-        double dvs = (double)vs; // to make FP calculations 
+        double dvs = (double)vs; // to enforce FP calculations 
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
@@ -213,7 +227,7 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
             z0 = z;
         double norm = m_maxAttribute;
         int neigbours[] = m_ballNeighbors;
-
+        
         for(int k = 0; k < neigbours.length; k+= 3){
 
             int dx = neigbours[k];
@@ -242,8 +256,8 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
 
                 if(curDist > 0){
                     // we are inside 
-                    if(newDist < curDist){
-                        // new distance is shorter - replace current distance with new distance 
+                    if(newDist <= m_maxInDistance && newDist < curDist){
+                        // new distance is smaller -> replace current distance with new distance 
                         distanceGrid.setAttribute(xx,yy,zz, newDist);
                         if(false && debugCount-- > 0){
                             printf("(%2d %2d %2d ) %4d -> %4d \n", x,y,z, curDist, newDist);
@@ -251,9 +265,9 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
                     }
                 } else if(curDist < 0){
                     // we are outside 
-                    curDist = (short)(-curDist); // make it positive 
-                    if(newDist < curDist){
-                        // new distance is shorter - replace current distance with new distance 
+                    curDist = (short)(-curDist); // outside distances are negative -> make it positive 
+                    if(newDist <= m_maxOutDistance && newDist < curDist){
+                        // new distance is smaller - replace current distance with new distance 
                         distanceGrid.setAttribute(xx,yy,zz, -newDist);
                         if(false && debugCount-- > 0){
                             printf("(%2d %2d %2d ) %4d -> %4d \n", x,y,z, (-curDist), (-newDist));
@@ -266,8 +280,9 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
     
     /**
        returns array of neighbors of a point in a ball or radius @radius 
+       radius is expressed in voxel size 
     */
-    public static int[] makeNeighbors(int radius){
+    public static int[] makeBallNeighbors(int radius){
 
         radius++; // increment to take into account possible offset along one axis 
         int radius2 = radius*radius; // compare agains radius squared
