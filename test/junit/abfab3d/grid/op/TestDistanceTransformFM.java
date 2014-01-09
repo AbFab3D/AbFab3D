@@ -45,11 +45,12 @@ public class TestDistanceTransformFM extends TestCase {
     int maxAttribute = 100;
     double voxelSize = 0.1*MM;
 
-    public void _testBox(){
+    public void testBox(){
 
         int max_attribute = 128;
         int nx = 100;
-        AttributeGrid grid = makeBox(nx, 4.0 * MM);
+//        AttributeGrid grid = makeBox(nx, 4.0 * MM);
+        AttributeGrid grid = makeSphere(nx, 2.0 * MM);
         double maxInDistance = 1*MM;
         double maxOutDistance = 0;
 
@@ -67,10 +68,14 @@ public class TestDistanceTransformFM extends TestCase {
         int width = grid.getWidth();
         int height = grid.getHeight();
         int depth = grid.getDepth();
-        int init_diffs = 0;
+        int diffs_in_exact = 0;
+        int diffs_in_fm = 0;
 
-        long not_calced_inside = dt_exact.getInsideDefault();
-        long not_calced_outside = dt_exact.getOutsideDefault();
+//        long not_calced_inside = dt_exact.getInsideDefault();
+//        long not_calced_outside = dt_exact.getOutsideDefault();
+
+        long not_calced_inside = Short.MAX_VALUE;
+        long not_calced_outside = -Short.MAX_VALUE;
 
         long total_error = 0;
         long max_error = 0;
@@ -90,12 +95,16 @@ public class TestDistanceTransformFM extends TestCase {
                     long att_exact = (short) dg_exact.getAttribute(x,y,z);
                     long att_fm = (short) dg_fm.getAttribute(x,y,z);
 
-                    if (att_exact == not_calced_outside || att_exact == not_calced_inside ||
-                        att_fm == not_calced_outside || att_fm == not_calced_inside) {
-                        if (att_fm != att_exact) {
-                            init_diffs++;
-                            diff_grid.setAttribute(x,y,z,Short.MAX_VALUE);
-                        }
+                    if ((att_exact == not_calced_outside || att_exact == not_calced_inside) &&
+                        att_fm != not_calced_outside && att_fm != not_calced_inside) {
+                        diffs_in_fm++;
+                        // view as blue
+                        diff_grid.setAttribute(x,y,z,-Short.MAX_VALUE);
+                    } else if ((att_fm == not_calced_outside || att_fm == not_calced_inside) &&
+                                att_exact != not_calced_outside && att_exact != not_calced_inside) {
+                        diffs_in_exact++;
+                        // view as red
+                        diff_grid.setAttribute(x,y,z,Short.MAX_VALUE);
                     } else {
                         long diff = Math.abs(att_exact - att_fm);
 
@@ -112,14 +121,14 @@ public class TestDistanceTransformFM extends TestCase {
             }
         }
 
-        printf("Total error: %d  Per Error: %f  Max error: %d  Init Diffs: %d\n",total_error,((double) total_error / ma / err_cnt * 100.0),max_error,init_diffs);
+        printf("Total error: %d  Per Error: %f  Max error: %d  Init Diffs  in exact: %d  in_fm: %d\n",total_error,((double) total_error / ma / err_cnt * 100.0),max_error,diffs_in_exact, diffs_in_fm);
 
-        // viz:  difference greyscale.  single color for init_diffs
+        // viz:  difference greyscale.  blue for not in exact but in compare, red for in exact but not in compare
 
         int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
 
         MyGridWriter gw = new MyGridWriter(8,8);
-        gw.writeSlices(diff_grid,norm , "/tmp/slices/distance/exact_%03d.png",0, nx, new DistanceColorizer(norm));
+        gw.writeSlices(diff_grid,norm , "/tmp/slices/distance/exact_%03d.png",0, nx, new ErrorColorizer(norm));
         printRow(diff_grid, 0, nx, nx/2, nx/2);
 
 
@@ -150,7 +159,8 @@ public class TestDistanceTransformFM extends TestCase {
         GridMaker gm = new GridMaker();
 
         // TODO:  not sure why but changing this to maxAttribute raises the error rate from 0.56 to 2
-        gm.setMaxAttributeValue(2*maxAttribute);
+//        gm.setMaxAttributeValue(2*maxAttribute);
+        gm.setMaxAttributeValue(maxAttribute);
         gm.setVoxelScale(surfareThickness);
 
         gm.setSource(box);
@@ -166,9 +176,9 @@ public class TestDistanceTransformFM extends TestCase {
         double sx = nx*voxelSize;
         double sy = ny*voxelSize;
         double sz = nz*voxelSize;
-        double xoff = sx / 2;
-        double yoff = sy / 2;
-        double zoff = sz / 2;
+        double xoff = voxelSize / 2;
+        double yoff = 0;
+        double zoff = 0;
 
         double bounds[] = new double[]{-sx/2, sx/2, -sy/2, sy/2, -sz/2, sz/2};
         AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
@@ -183,6 +193,8 @@ public class TestDistanceTransformFM extends TestCase {
         gm.makeGrid(grid);
         return grid;
     }
+
+    // makeCylinder --> Vlad said Cylinder would be the worst case
 
     static class MyGridWriter implements SliceExporter {
 
@@ -204,8 +216,8 @@ public class TestDistanceTransformFM extends TestCase {
                 slicer.setColorMaker(colorMaker);
             }
             int sliceMin = grid.getDepth()/2;
-            int sliceMax = sliceMin+1;
-            //int sliceMax = grid.getDepth() -1;
+            //int sliceMax = sliceMin+1;
+            int sliceMax = grid.getDepth() -1;
             
             slicer.setFilePattern(filePattern);            
             slicer.setBounds(0, grid.getWidth(), 0, grid.getHeight(), start, end);
@@ -266,6 +278,36 @@ public class TestDistanceTransformFM extends TestCase {
                 return makeRGB(v, v, v);
             } else {
                 return makeRGBA(0,0,0,0);
+            }
+        }
+    }
+
+    /**
+
+     */
+    static class ErrorColorizer implements LongConverter {
+
+        int maxvalue = 100 * 2;  // compress range
+        int min = 128;
+        int undefined = Short.MAX_VALUE;
+
+        ErrorColorizer(int maxvalue){
+
+            this.maxvalue = maxvalue;
+        }
+
+        public long get(long value){
+            if(value == undefined) {
+                return makeRGB(MAXC, 0,0);
+            } else if(value == -undefined) {
+                return makeRGB(0,0,MAXC);
+            }
+
+            if( value > 0){
+                int v = (int)(min + (MAXC - value * MAXC / maxvalue) & MAXC);
+                return makeRGB(v, v, v);
+            } else {
+                return makeRGB(MAXC,MAXC,MAXC);
             }
         }
     }
