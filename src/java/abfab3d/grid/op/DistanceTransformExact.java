@@ -142,6 +142,24 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
     }
 
     /**
+     * Get the default value for distances inside the object.  The value will remain this for voxels past the maximal
+     * inside distance
+     * @return
+     */
+    public long getInsideDefault() {
+        return m_defaultValue;
+    }
+
+    /**
+     * Get the default value for distances outside the object.  The value will remain this for voxels past the maximal
+     * outside distance
+     * @return
+     */
+    public long getOutsideDefault() {
+        return -m_defaultValue;
+    }
+
+    /**
 
        set distanceGrid values to bes to -max inside and max outside 
        
@@ -315,7 +333,8 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
                 }
             }
         }
-        
+
+        printf("Neighbors count: %d\n",neig.length);
         return neig;
     }
 

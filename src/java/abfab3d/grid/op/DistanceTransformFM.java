@@ -233,7 +233,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
         
         FMCandidate cand = new FMCandidate();
         //printf("start iterations\n");
-        long icount = 0;
+
         while( m_candPool.getNext(cand) ){
             if(cand.value > maxValue) {
                 break;
@@ -242,8 +242,6 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
             int y = cand.y;
             int z = cand.z;
             int value = cand.value;
-
-            icount++;
 
             m_fixedGrid.set(x,y,z,1);
             m_candGrid.set(x,y,z,0);
@@ -287,6 +285,24 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
         }        
     }
 
+    /**
+     * Get the default value for distances inside the object.  The value will remain this for voxels past the maximal
+     * inside distance
+     * @return
+     */
+    public long getInsideDefault() {
+        return m_defaultValue;
+    }
+
+    /**
+     * Get the default value for distances outside the object.  The value will remain this for voxels past the maximal
+     * outside distance
+     * @return
+     */
+    public long getOutsideDefault() {
+        return -m_defaultValue;
+    }
+
     //
     // scan the grid
     // for every iniside point near surface calculate distances of inside and outside points 
@@ -319,7 +335,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
                     if(z < nz1)vz = (int)grid.getAttribute(x,y,z+1);
 
                     if(v0 < vs ) {
-                        // voxe is outside 
+                        // voxel is outside
                         if((grid.getAttribute(x+1,y,z) >= vs)||
                            (grid.getAttribute(x-1,y,z) >= vs)||
                            (grid.getAttribute(x,y+1,z) >= vs)||
