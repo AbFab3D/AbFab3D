@@ -76,6 +76,8 @@ public class SlicesWriter {
     LongConverter m_dataConverter = new DefaultDataConverter();
     LongConverter m_colorMaker = new DefaultColorMaker();
 
+    /** Skip if the slice % modSkip == 0 and modeSkip != 0 */
+    int m_modSkip;
 
     public void setBounds(int xmin, int xmax, int ymin, int ymax, int zmin, int zmax){
 
@@ -85,7 +87,11 @@ public class SlicesWriter {
         this.xmax = xmax;
         this.ymax = ymax;
         this.zmax = zmax;
+    }
 
+    public void setModSkip(int skip) {
+        System.out.println("Set skip: " + skip + " this: " + this);
+        m_modSkip = skip;
     }
 
     /**
@@ -183,8 +189,18 @@ public class SlicesWriter {
 
         DataBufferInt dbi = (DataBufferInt)(outImage.getRaster().getDataBuffer());
         int[] imageData = dbi.getData();
-        
+
+        int skip = 0;
         for(int z = zmin; z < zmax; z++){
+
+            if (m_modSkip != 0 && (skip > 0)) {
+                skip--;
+                continue;
+            }
+            if (m_modSkip != 0 && (skip == 0)) {
+                skip = m_modSkip;
+            }
+
 
             Arrays.fill(imageData, m_backgroundColor);
 
