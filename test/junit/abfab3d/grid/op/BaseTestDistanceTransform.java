@@ -129,7 +129,8 @@ public class BaseTestDistanceTransform extends TestCase {
         double sx = nx*voxelSize;
         double sy = ny*voxelSize;
         double sz = nz*voxelSize;
-        double xoff = voxelSize / 2;
+//        double xoff = voxelSize / 2;
+        double xoff = 0;
         double yoff = 0;
         double zoff = 0;
 
@@ -140,7 +141,7 @@ public class BaseTestDistanceTransform extends TestCase {
         Torus torus = new Torus(xoff,yoff,zoff,rout,rin);
         GridMaker gm = new GridMaker();
         gm.setMaxAttributeValue(maxAttribute);
-        gm.setVoxelScale(surfaceThickness);
+        //gm.setVoxelScale(surfaceThickness);
 
         gm.setSource(torus);
         gm.makeGrid(grid);
@@ -200,7 +201,7 @@ public class BaseTestDistanceTransform extends TestCase {
      */
     public void checkLowToHighToLow(long val, int y, int z, long notCalcedInside, long notCalcedOutside, AttributeGrid grid) {
         int dir = 1;
-        long curr = (long) (short) grid.getAttribute(0,y,z);
+        long curr = -Short.MAX_VALUE;
         int nx = grid.getWidth();
         boolean changed = false;
 
@@ -222,6 +223,43 @@ public class BaseTestDistanceTransform extends TestCase {
                     fail("Non monotonic change.  Curr: " + curr + " new: " + att + " dir: " + dir);
                 }
             }
+
+            curr = att;
+        }
+    }
+
+    /**
+     * Check that attribute values go from high to low to high without changing direction
+     * @param val
+     * @param notCalcedInside
+     * @param notCalcedOutside
+     * @param grid
+     */
+    public void checkHightToLowToHigh(long val, int y, int z, long notCalcedInside, long notCalcedOutside, AttributeGrid grid) {
+        int dir = -1;
+        long curr = Short.MAX_VALUE;
+        int nx = grid.getWidth();
+        boolean changed = false;
+
+        for(int x=1; x < nx; x++) {
+            long att = (long) (short) grid.getAttribute(x,y,z);
+
+            if (dir == 1) {
+                if (att < curr) {
+                    fail("Non monotonic change.  Curr: " + curr + " new: " + att + " dir: " + dir);
+                }
+            } else if (dir == -1) {
+                if (att > curr) {
+                    if (!changed) {
+                        dir = 1;
+                        changed = true;
+                    } else {
+                        fail("Non monotonic change.  Curr: " + curr + " new: " + att + " dir: " + dir);
+                    }
+                }
+            }
+
+            curr = att;
         }
     }
 
@@ -287,7 +325,7 @@ public class BaseTestDistanceTransform extends TestCase {
                 printf("   .");
             else
                 printf("%4d",v);
-            if((x+1)%width == 0)
+            if((x-xmin+1)%width == 0)
                 printf("\n");
         }
 
@@ -321,9 +359,9 @@ public class BaseTestDistanceTransform extends TestCase {
 
         public long get(long value){
 
-            if(value == undefined) {
+            if(value == -undefined) {
                 return makeRGB(MAXC, MAXC,0);
-            } else if(value == -undefined) {
+            } else if(value == undefined) {
                 return makeRGB(0,MAXC,MAXC);
             }
 
@@ -338,14 +376,9 @@ public class BaseTestDistanceTransform extends TestCase {
                 //int v = (int)(MAXC  - (value * MAXC / maxvalue) & MAXC);
                 byte v = (byte) (map((int)value, -maxvalue,maxvalue,-MAXC,MAXC));
                 if (value < 0) {
-                    b = (byte) (-v);
+                    r = (byte) (-v);
                 }
-                else r = (byte) (v);
-/*
-                if (value > -6 && value < 0) {
-                    printf("val: %d --> %d\n", value, v);
-                }
-                */
+                else b = (byte) (v);
             }
 
 

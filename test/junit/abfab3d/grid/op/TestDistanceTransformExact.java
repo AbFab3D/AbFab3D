@@ -24,11 +24,12 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         int nx = 128;
         double boxWidth = 2.0 * MM;
         AttributeGrid grid = makeBox(nx, boxWidth, voxelSize, max_attribute, surfaceThickness);
-        double maxInDistance = 1.2*MM;
+//        double maxInDistance = 1.2*MM;
+        double maxInDistance = 0.9*MM;
         double maxOutDistance = 0;
 
         MyGridWriter gw = new MyGridWriter(8,8);
-        if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1, new DistanceColorizer(max_attribute,0,0,255));
+        if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2-1, nx/2, null);
 
         long t0 = time();
         DistanceTransformExact dt_exact = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
@@ -38,7 +39,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
 
         if (DEBUG) {
-            gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, nx/2, new DistanceColorizer(norm,0,0,255));
+            gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, nx/2, new DistanceColorizer(norm,0,0,0));
             for(int i=0; i < 27; i++) {
                 printRow(dg_exact, 50, 90, i, nx / 2, false, 50);
                 printf("\n");
@@ -46,12 +47,14 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         }
 
         // check that the distance never exceeds half the box size
-        int max = (int)(Math.ceil(boxWidth/2.0*max_attribute/grid.getVoxelSize() + 0.5));
+        int max = 0;
+        int min = -(int)(Math.ceil(boxWidth/2.0*max_attribute/grid.getVoxelSize() + 0.5));
 
-        printf("Max att is: %d",max);
+        printf("Max att is: %d  Min att: %d",max,min);
         long not_calced_inside = dt_exact.getInsideDefault();
         long not_calced_outside = dt_exact.getOutsideDefault();
 
+        checkMinValue(min, not_calced_inside, not_calced_outside, dg_exact);
         checkMaxValue(max, not_calced_inside, not_calced_outside, dg_exact);
     }
 
@@ -65,7 +68,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         double maxOutDistance = 0.5 * MM;
 
         MyGridWriter gw = new MyGridWriter(8,8);
-        if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1, new DistanceColorizer(max_attribute,255,0,0));
+        if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1,null);
 
         long t0 = time();
         DistanceTransformExact dt_exact = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
@@ -75,7 +78,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         int norm = (int)round(maxAttribute*maxOutDistance/voxelSize);
 
         if (DEBUG) {
-            gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, 17, new DistanceColorizer(norm,255,0,0));
+            gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, 17, new DistanceColorizer(norm,0,0,0));
             for(int i=0; i < 18; i++) {
                 printRow(dg_exact, 50, 90, i, 15, false, 50);
                 printf("\n");
@@ -83,12 +86,14 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         }
 
         // check that the distance never exceeds half the box size
-        int min = -(int)(Math.ceil(boxWidth/2.0*max_attribute/grid.getVoxelSize() + 0.5));
+        int min = 0;
+        int max = (int)(Math.ceil(boxWidth/2.0*max_attribute/grid.getVoxelSize() + 0.5));
 
         long not_calced_inside = dt_exact.getInsideDefault();
         long not_calced_outside = dt_exact.getOutsideDefault();
 
         checkMinValue(min, not_calced_inside, not_calced_outside, dg_exact);
+        checkMaxValue(max, not_calced_inside, not_calced_outside, dg_exact);
     }
 
     public void testBoxBoth(){
@@ -117,19 +122,21 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         if (DEBUG) {
             gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, 27, colorizer);
             for(int i=70; i < nx; i++) {
-                printRow(dg_exact, 50, 90, i, 20, false, 50);
+                printRow(dg_exact, 40, 70, i, 20, false, 50);
                 printf("\n");
             }
         }
 
         // check that the distance never exceeds half the box size
         int min = -(int)(Math.ceil(boxWidth/2.0*max_attribute/grid.getVoxelSize() + 0.5));
+        int max = (int)(Math.ceil(boxWidth/2.0*max_attribute/grid.getVoxelSize() + 0.5));
 
         long not_calced_inside = dt_exact.getInsideDefault();
         long not_calced_outside = dt_exact.getOutsideDefault();
 
         checkMinValue(min, not_calced_inside, not_calced_outside, dg_exact);
-        checkLowToHighToLow(nx/2, nx/2, nx/2, not_calced_inside, not_calced_outside, dg_exact);
+        checkMaxValue(max, not_calced_inside, not_calced_outside, dg_exact);
+        checkHightToLowToHigh(nx/2, nx/2, nx/2, not_calced_inside, not_calced_outside, dg_exact);
     }
 
     public void testSphereBoth(){
@@ -144,7 +151,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         int max_grid_att = (int) (Math.ceil(max_attribute * (maxInDistance + maxOutDistance) / voxelSize / 2.0));
         MyGridWriter gw = new MyGridWriter(8,8);
         DistanceColorizer colorizer =new DistanceColorizer(max_grid_att,0,0,0);
-        gw.writeSlices(grid, maxAttribute, "/tmp/slices/sphere_%03d.png",nx/2, nx/2+1, colorizer);
+        if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/sphere_%03d.png",nx/2, nx/2+1, colorizer);
 //        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",0, nx, new DistanceColorizer(max_attribute));
 
         long t0 = time();
@@ -154,19 +161,23 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
 
         int norm = (int)round(maxAttribute*maxOutDistance/voxelSize);
 
-        gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, 27, colorizer);
-        for(int i=nx / 2 - 20; i < nx / 2 + 20; i++) {
-            printRow(dg_exact, 50, 90, i, 20, false, 50);
-            printf("\n");
+        if (DEBUG) {
+            gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, 27, colorizer);
+            for(int i=nx / 2 - 20; i < nx / 2 + 20; i++) {
+                printRow(dg_exact, 50, 90, i, 20, false, 50);
+                printf("\n");
+            }
         }
         // check that the distance never exceeds half the box size
+        int max = (int)(Math.ceil(sphereRadius*max_attribute/grid.getVoxelSize() + 0.5));
         int min = -(int)(Math.ceil(sphereRadius*max_attribute/grid.getVoxelSize() + 0.5));
 
         long not_calced_inside = dt_exact.getInsideDefault();
         long not_calced_outside = dt_exact.getOutsideDefault();
 
         checkMinValue(min, not_calced_inside, not_calced_outside, dg_exact);
-        checkLowToHighToLow(nx/2, nx/2, nx/2, not_calced_inside, not_calced_outside, dg_exact);
+        checkMaxValue(max, not_calced_inside, not_calced_outside, dg_exact);
+        checkHightToLowToHigh(nx/2, nx/2, nx/2, not_calced_inside, not_calced_outside, dg_exact);
     }
 
     public void testTorusBoth(){
@@ -181,7 +192,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         int max_grid_att = (int) (Math.ceil(max_attribute * (maxInDistance + maxOutDistance) / voxelSize / 2.0));
         MyGridWriter gw = new MyGridWriter(8,8);
         DistanceColorizer colorizer =new DistanceColorizer(max_grid_att,0,0,0);
-        gw.writeSlices(grid, maxAttribute, "/tmp/slices/torus_%03d.png",nx/2, nx/2+1, colorizer);
+        if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/torus_%03d.png",nx/2, nx/2+1, colorizer);
 //        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",0, nx, new DistanceColorizer(max_attribute));
 
         long t0 = time();
@@ -191,19 +202,21 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
 
         int norm = (int)round(maxAttribute*(maxInDistance + maxOutDistance)/voxelSize);
 
-        gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, 128, colorizer);
-        for(int i=50; i < 78; i++) {
-            printRow(dg_exact, 0, 40, i, 55, false, 50);
-            printf("\n");
+        if (DEBUG) {
+            gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, 128, colorizer);
+            for(int i=50; i < 78; i++) {
+                printRow(dg_exact, 0, 40, i, 55, false, 50);
+                printf("\n");
+            }
         }
-        // check that the distance never exceeds half the box size
+        int max = (int)(Math.ceil(sphereRadius*max_attribute/grid.getVoxelSize() + 0.5));
         int min = -(int)(Math.ceil(sphereRadius*max_attribute/grid.getVoxelSize() + 0.5));
 
         long not_calced_inside = dt_exact.getInsideDefault();
         long not_calced_outside = dt_exact.getOutsideDefault();
 
         checkMinValue(min, not_calced_inside, not_calced_outside, dg_exact);
-        //checkLowToHighToLow(nx/2, nx/2, nx/2, not_calced_inside, not_calced_outside, dg_exact);
+        checkMaxValue(max, not_calced_inside, not_calced_outside, dg_exact);
     }
 
     public void _testGyroidBoth(){
@@ -218,7 +231,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         int max_grid_att = (int) (Math.ceil(max_attribute * (maxInDistance + maxOutDistance) / voxelSize / 2.0));
         MyGridWriter gw = new MyGridWriter(1,1,2);
         DistanceColorizer colorizer =new DistanceColorizer(max_grid_att,0,0,0);
-        gw.writeSlices(grid, maxAttribute, "/tmp/slices/gyroid_exact_%03d.png",0, nx/2+1, colorizer);
+        if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/gyroid_exact_%03d.png",0, nx/2+1, colorizer);
 //        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",0, nx, new DistanceColorizer(max_attribute));
 
         long t0 = time();
@@ -229,7 +242,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
 
         int norm = (int)round(maxAttribute*maxOutDistance/voxelSize);
 
-        gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, nx, colorizer);
+        if (DEBUG) gw.writeSlices(dg_exact,norm , "/tmp/slices/distance/exact_%03d.png",0, nx, colorizer);
         /*
         for(int i=nx / 2 - 20; i < nx / 2 + 20; i++) {
             printRow(dg_exact, 50, 90, i, 20, false, 50);
@@ -244,5 +257,4 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
 
         checkMinValue(min, not_calced_inside, not_calced_outside, dg_exact);
     }
-
 }

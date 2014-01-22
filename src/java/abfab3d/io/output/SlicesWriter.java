@@ -90,7 +90,6 @@ public class SlicesWriter {
     }
 
     public void setModSkip(int skip) {
-        System.out.println("Set skip: " + skip + " this: " + this);
         m_modSkip = skip;
     }
 
