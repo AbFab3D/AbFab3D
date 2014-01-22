@@ -71,24 +71,24 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
 
     static final int AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2; // direction  of surface offset from the interior surface point 
 
-    int m_maxAttribute = 100; // distance normalization 
+    int m_subvoxelResolution = 100; // distance normalization 
     double m_inDistance = 0;
     double m_outDistance = 0;
 
-    int m_maxInDistance = 0; // maximal outside distance (expressed in units of voxelSize/m_maxAttribute)
-    int m_maxOutDistance = 0; // maximal inside distance (expressed in units of voxelSize/m_maxAttribute)
+    int m_maxInDistance = 0; // maximal outside distance (expressed in units of voxelSize/m_subvoxelResolution)
+    int m_maxOutDistance = 0; // maximal inside distance (expressed in units of voxelSize/m_subvoxelResolution)
     int m_defaultValue = Short.MAX_VALUE;
     int nx, ny, nz;
     int m_surfaceValue;
     protected int m_ballNeighbors[];// coordinates of neighbors point inside of the sphere of radius m_maxDistance
     /**
-     @param maxAttribute maximal attribute value for inside voxels
+     @param subvoxelResolution sub voxel resolution 
      @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
      @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
      */
-    public DistanceTransformExact(int maxAttribute, double inDistance, double outDistance) {
+    public DistanceTransformExact(int subvoxelResolution, double inDistance, double outDistance) {
 
-        m_maxAttribute = maxAttribute;
+        m_subvoxelResolution = subvoxelResolution;
         m_inDistance = inDistance;
         m_outDistance = outDistance;
 
@@ -110,11 +110,11 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
 
         printf("DistanceTransformExact.execute(%s)\n", grid);
 
-        m_surfaceValue = m_maxAttribute/2;
+        m_surfaceValue = m_subvoxelResolution/2;
         double vs = grid.getVoxelSize();
 
-        m_maxInDistance = (int)round(m_inDistance*m_maxAttribute/vs);
-        m_maxOutDistance = (int)round(m_outDistance*m_maxAttribute/vs);
+        m_maxInDistance = (int)round(m_inDistance*m_subvoxelResolution/vs);
+        m_maxOutDistance = (int)round(m_outDistance*m_subvoxelResolution/vs);
 
 
         nx = grid.getWidth();
@@ -127,7 +127,7 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
         int ballRadius = max(m_maxInDistance, m_maxOutDistance);
 
 
-        m_ballNeighbors = makeBallNeighbors((ballRadius+m_maxAttribute-1)/m_maxAttribute);
+        m_ballNeighbors = makeBallNeighbors((ballRadius+m_subvoxelResolution-1)/m_subvoxelResolution);
 
 
         //TODO what grid to allocate here 
@@ -243,7 +243,7 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
                 x0 = x,
                 y0 = y,
                 z0 = z;
-        double norm = m_maxAttribute;
+        double norm = m_subvoxelResolution;
         int neigbours[] = m_ballNeighbors;
 
         for(int k = 0; k < neigbours.length; k+= 3){
