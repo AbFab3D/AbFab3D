@@ -59,6 +59,61 @@ public class DensityGridExtractor implements AttributeOperation {
         int nz = distanceGrid.getDepth();
 
         // 5 intervals for distance values
+
+        int inDistanceMinus = (int) (-inDistance * distanceLevels / vs - distanceLevels / 2);
+        int inDistancePlus = (int) (-inDistance * distanceLevels / vs + distanceLevels / 2);
+        int outDistanceMinus = (int) (outDistance * distanceLevels / vs - distanceLevels / 2);
+        int outDistancePlus = (int) (outDistance * distanceLevels / vs + distanceLevels / 2);
+
+        for(int y=0; y < ny; y++) {
+            for(int x=0; x < nx; x++) {
+                for(int z=0; z < nz; z++) {
+                    if (y==62 && z==64 && x > 13) {
+                        int j= 4;
+                    }
+                    long att = (long) (short) distanceGrid.getAttribute(x,y,z);
+
+                    short dest_att;
+
+                    if (att < inDistanceMinus) {
+                        dest.setState(x,y,z,Grid.OUTSIDE);
+                    } else if (att <= inDistanceMinus && att < inDistancePlus) {
+                        dest_att = (short) (att - inDistanceMinus);
+                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+                    } else if (att >= inDistancePlus && att < outDistanceMinus || att == -Short.MAX_VALUE) {
+                        dest_att = (short) distanceLevels;
+                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+                    } else if (att >= outDistanceMinus && att <= outDistancePlus) {
+                        dest_att = (short) (outDistancePlus - att);
+                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+                    } else {
+                        dest.setState(x,y,z,Grid.OUTSIDE);
+                    }
+                }
+            }
+        }
+
+        return dest;
+    }
+
+    public AttributeGrid executeOld(AttributeGrid dest) {
+
+        if (dest.getWidth() != distanceGrid.getWidth() || dest.getHeight() != distanceGrid.getHeight() ||
+                dest.getDepth() != distanceGrid.getDepth()) {
+            throw new IllegalArgumentException("DistanceGrid and DensityGrid must be the same dimensions");
+        }
+
+        double vs = distanceGrid.getVoxelSize();
+
+        int maxInAtt = (int)round(inDistance*distanceLevels/vs);
+        int maxOutAtt = -(int)round(outDistance*distanceLevels/vs);
+
+        int nx = distanceGrid.getWidth();
+        int ny = distanceGrid.getHeight();
+        int nz = distanceGrid.getDepth();
+
+        // 5 intervals for distance values
+
         int inDistanceMinus = (int) (inDistance - distanceLevels / 2);
         int inDistancePlus = (int) (inDistance + distanceLevels / 2);
         int outDistanceMinus = (int) (outDistance - distanceLevels / 2);
@@ -67,6 +122,9 @@ public class DensityGridExtractor implements AttributeOperation {
         for(int y=0; y < ny; y++) {
             for(int x=0; x < nx; x++) {
                 for(int z=0; z < nz; z++) {
+                    if (y==64 && z==64 && x > 12) {
+                        int j= 4;
+                    }
                     long att = (long) (short) distanceGrid.getAttribute(x,y,z);
 
                     if (att >= maxOutAtt && att <= maxInAtt) {
@@ -77,8 +135,18 @@ public class DensityGridExtractor implements AttributeOperation {
                             dest_att = (short) (outDistancePlus + att);
                         } else if (att >= inDistanceMinus && att < inDistancePlus) {
                             dest_att = (short) (att + inDistanceMinus);
-                        } else {
-                            dest_att = 100;
+                        }
+                        /*
+                        else if (att < outDistancePlus) {
+                            dest_att = 0;
+                        }
+                        */
+                        else if (att < inDistanceMinus) {
+                            dest_att = 0;
+                        }
+
+                        else {
+                            dest_att = 127;  // TODO: Stop hardcoding this
                         }
 
                         dest.setData(x,y,z, Grid.INSIDE,dest_att);
@@ -104,4 +172,5 @@ public class DensityGridExtractor implements AttributeOperation {
 
         return dest;
     }
+
 }
