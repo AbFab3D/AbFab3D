@@ -37,10 +37,10 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    
    <p>
    Wraps band in XZ plane about a cylinder of given radius.
-   Cylinder axis in parallel to Y axis. 
+   Cylinder axis is parallel to Y axis. 
    </p>
    <p>
-   The diagram below is oriented with Y axis toward user. 
+   The diagram below is oriented with Y axis toward the user. 
    </p>
    <embed src="doc-files/ring_wrap.svg" type="image/svg+xml"/> 
    

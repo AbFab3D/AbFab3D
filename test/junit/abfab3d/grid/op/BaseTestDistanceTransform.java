@@ -362,23 +362,28 @@ public class BaseTestDistanceTransform extends TestCase {
             if(value == -undefined) {
                 return makeRGB(MAXC, MAXC,0);
             } else if(value == undefined) {
-                return makeRGB(0,MAXC,MAXC);
+                return makeRGB(0, MAXC,MAXC);
             }
 
             byte r = 0;
             byte g = 0;
             byte b = 0;
+
             if (value == 0) {
+
                 r = zr;
                 g = zg;
                 b = zb;
+
             } else {
+
                 //int v = (int)(MAXC  - (value * MAXC / maxvalue) & MAXC);
                 byte v = (byte) (map((int)value, -maxvalue,maxvalue,-MAXC,MAXC));
                 if (value < 0) {
                     r = (byte) (-v);
+                } else {
+                    b = (byte) (v);
                 }
-                else b = (byte) (v);
             }
 
 

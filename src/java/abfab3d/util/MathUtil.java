@@ -741,7 +741,7 @@ public class MathUtil {
     }
 
     /**
-       solves general linear equation with 3 variables
+       solves system of 3 linear equation with 3 variables
        M X = C
        stores result in X 
        @param M - matrix stored as linear array 

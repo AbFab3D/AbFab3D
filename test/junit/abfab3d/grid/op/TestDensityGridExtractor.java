@@ -328,4 +328,10 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
         return null;
     }
 
+    public static void main(String arg[]){
+
+        //new TestDensityGridExtractor().testTorusBumpy();
+        new TestDensityGridExtractor().testDeerHollow();
+    }
+
 }
