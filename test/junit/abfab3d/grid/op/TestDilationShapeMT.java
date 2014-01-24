@@ -39,7 +39,8 @@ import static abfab3d.util.Output.time;
  * @author Vladimir Bulatov
  * @version
  */
-public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
+public class TestDilationShapeMT extends TestCase {
+    private static final boolean DEBUG = false;
 
 
     /**
@@ -143,7 +144,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
         int cores = Runtime.getRuntime().availableProcessors();
 
-        int TIMES = 3;
+        int TIMES = 1;
 
         for(int i=0; i < TIMES; i++) {
         for(int k = maxDilation-1; k < maxDilation; k++){
@@ -320,6 +321,8 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
     }
 
     private void writeFile(Grid grid, String filename) {
+
+        if (!DEBUG) return;
 
         try {
 
