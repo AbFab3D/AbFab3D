@@ -42,7 +42,7 @@ import static abfab3d.util.Output.printf;
  * @version
  */
 public class TestDownsampleAlpha extends BaseTestAttributeGrid {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -565,7 +565,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int maxAttributeValue = 127;
         AttributeGrid grid = getSphereGrid(voxelSize);
 
-        int WARMUP = 5;
+        int WARMUP = 3;
         int factor = 2;
 
         for(int i=0; i < WARMUP; i++) {
@@ -583,24 +583,25 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
             printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
         }
 
-        int TIMES = 3;
+        int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
+        cores = Math.min(cores,16); // I expect after 16 for it to level off
         float expected_speedup = 0.5f * cores;
 
+        long t0 = System.currentTimeMillis();
+        DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
+        Grid dest2 = op2.execute(grid);
+        long st_time = System.currentTimeMillis() - t0;
+
         for(int i=0; i < TIMES; i++) {
-            long t0 = System.currentTimeMillis();
+            t0 = System.currentTimeMillis();
             // get the subtraction of grid1 from grid2
             DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
+            ds.setThreadCount(cores);
             AttributeGrid dest = ds.execute(grid);
 
             long mt_time = System.currentTimeMillis() - t0;
-            t0 = System.currentTimeMillis();
-            DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
-            Grid dest2 = op2.execute(grid);
-            long st_time = System.currentTimeMillis() - t0;
-
-            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
 
             float speedup = (float)st_time / mt_time;
             printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,speedup);
@@ -618,7 +619,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         double coeff = 1;
         AttributeGrid grid = getSphereGrid(voxelSize);
 
-        int WARMUP = 5;
+        int WARMUP = 3;
         int factor = 2;
 
         for(int i=0; i < WARMUP; i++) {
@@ -636,24 +637,25 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
             printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
         }
 
-        int TIMES = 3;
+        int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
+        cores = Math.min(cores,16); // I expect after 16 for it to level off
         float expected_speedup = 0.5f * cores;
+        long t0 = System.currentTimeMillis();
+        DownsampleAlpha op2 = new DownsampleAlpha(coeff,factor,maxAttributeValue);
+        Grid dest2 = op2.execute(grid);
+        long st_time = System.currentTimeMillis() - t0;
 
         for(int i=0; i < TIMES; i++) {
-            long t0 = System.currentTimeMillis();
+            t0 = System.currentTimeMillis();
             // get the subtraction of grid1 from grid2
             DownsampleAlphaMT ds = new DownsampleAlphaMT(coeff,factor,maxAttributeValue);
+            ds.setThreadCount(cores);
+
             AttributeGrid dest = ds.execute(grid);
 
             long mt_time = System.currentTimeMillis() - t0;
-            t0 = System.currentTimeMillis();
-            DownsampleAlpha op2 = new DownsampleAlpha(coeff,factor,maxAttributeValue);
-            Grid dest2 = op2.execute(grid);
-            long st_time = System.currentTimeMillis() - t0;
-
-            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
 
             float speedup = (float)st_time / mt_time;
             printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,speedup);
@@ -670,7 +672,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int maxAttributeValue = 127;
         AttributeGrid grid = getSphereGrid(voxelSize);
 
-        int WARMUP = 5;
+        int WARMUP = 3;
         int factor = 2;
 
         for(int i=0; i < WARMUP; i++) {
@@ -688,24 +690,25 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
             printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
         }
 
-        int TIMES = 3;
+        int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
+        cores = Math.min(cores,16); // I expect after 16 for it to level off
         float expected_speedup = 0.5f * cores;
 
+        long t0 = System.currentTimeMillis();
+        DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
+        Grid dest2 = op2.execute(grid);
+        long st_time = System.currentTimeMillis() - t0;
+
         for(int i=0; i < TIMES; i++) {
-            long t0 = System.currentTimeMillis();
+            t0 = System.currentTimeMillis();
             // get the subtraction of grid1 from grid2
             DownsampleAlphaMT ds = new DownsampleAlphaMT(0,factor,maxAttributeValue);
+            ds.setThreadCount(cores);
             AttributeGrid dest = ds.execute(grid);
 
             long mt_time = System.currentTimeMillis() - t0;
-            t0 = System.currentTimeMillis();
-            DownsampleAlpha op2 = new DownsampleAlpha(0,factor,maxAttributeValue);
-            Grid dest2 = op2.execute(grid);
-            long st_time = System.currentTimeMillis() - t0;
-
-            printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,(float)st_time / mt_time);
 
             float speedup = (float)st_time / mt_time;
             printf("MT time: %6d  ST time: %6d  SpeedUp: %6.2f\n",mt_time,st_time,speedup);
