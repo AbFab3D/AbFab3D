@@ -14,14 +14,24 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.datasources.*;
+import abfab3d.grid.op.GridMaker;
+import abfab3d.util.MathUtil;
+import static abfab3d.util.Units.MM;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import javax.vecmath.Vector3d;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
+import static abfab3d.util.Units.MM;
+import static java.lang.Math.sqrt;
 
 // Internal Imports
 
@@ -91,13 +101,13 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
             }
 
             ExecutorService executor = Executors.newFixedThreadPool(threadCount);
-            SliceRunner[] runners = new SliceRunner[threadCount];
+            SliceRunnerFind[] runners = new SliceRunnerFind[threadCount];
 
             AtomicInteger idx = new AtomicInteger(0);
 
             for (int i = 0; i < threadCount; i++) {
 
-                runners[i] = new SliceRunner(grid, slices, idx);
+                runners[i] = new SliceRunnerFind(grid, slices, idx);
                 executor.submit(runners[i]);
             }
             executor.shutdown();
@@ -132,19 +142,167 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
 
     }
 
-    /**
-     * Test traversal across a grid using multiple threads
-     */
+    private void exerciseGridRunnable(Grid grid, Summable[] runners, AtomicInteger sharedIdx, long expectedCount) {
+        int maxThreads = Runtime.getRuntime().availableProcessors();
+        int warmup = 6;
+        long start_time;
+
+        for (int i = 0; i < warmup; i++) {
+            start_time = System.nanoTime();
+
+            sharedIdx.set(0);
+            runners[0].reset();
+            runners[0].run();
+            long cnt = runners[0].getTotal();
+            System.out.println("Time: " + ((int) ((System.nanoTime() - start_time) / 1000000)));
+
+            double EPS_PERCENT = 0.05;
+            long delta = Math.abs(expectedCount - cnt);
+            //printf("Expected Count: %d   Actual: %d  Error: %f\n",expectedCount,cnt,((float)delta/expectedCount));
+            float error = (float) delta / expectedCount;
+            assertTrue("Count.  Error: " + error + " Expected: " + expectedCount + " Actual: " + cnt,error  <= EPS_PERCENT);
+        }
+
+        double[] factors = new double[maxThreads];
+        int fixed = -1;
+        int skip = 0;
+        long first = 0;
+
+        for (int threadCount = 1; threadCount <= maxThreads; threadCount++) {
+            if (fixed > 0 && threadCount != 1 && threadCount != fixed) {
+                continue;
+            }
+
+            sharedIdx.set(0);
+            runners[threadCount].reset();
+            long stime = System.nanoTime();
+
+            ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+
+            for (int i = 0; i < threadCount; i++) {
+                executor.submit(runners[i]);
+            }
+            executor.shutdown();
+
+            try {
+                executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            long total = 0;
+            for (int i = 0; i < threadCount; i++) {
+                total += runners[i].getTotal();
+            }
+
+            long totalTime = System.nanoTime() - stime;
+
+            if (threadCount == 1) {
+                first = totalTime;
+            }
+            factors[threadCount - 1] = (double) first / totalTime;
+            System.out.println("Threads: " + threadCount + " time: " + ((int) (totalTime / 1000000)) + " scaling: " + (factors[threadCount - 1]));
+
+            threadCount += skip;
+        }
+
+    }
+
+    public void testMTTraversalFindArray() {
+        long voxels = 1200 * 1200 * 1200;
+        int size = 1200;
+/*
+        long voxels = 1200 * 1200 * 1200;
+        int size = 1200;
+        */
+        int sizey = (int) (voxels / (size * size));
+
+        AttributeGrid grid = new ArrayAttributeGridByte(size, sizey, size, 0.001, 0.001);
+        grid.setGridBounds(new double[] {-16*MM, 16*MM, -16*MM, 16*MM, -16*MM, 16*MM});
+
+        double density = 5.0 / 100;
+        fillGridDensity(grid, density);
+
+        AtomicInteger idx = new AtomicInteger(0);
+
+        int ny = grid.getHeight();
+        Slice[] slices = new Slice[ny];
+
+        int s_idx = 0;
+        for (int y = 0; y < ny; y += 1) {
+            int ymax = y + 1;
+            if (ymax > ny)
+                ymax = ny;
+
+            if (ymax > y) {
+                // non zero slice
+                slices[s_idx++] = new Slice(0, grid.getWidth() - 1, y, ymax - 1);
+            }
+        }
+
+        int threadCount = Runtime.getRuntime().availableProcessors();
+
+        Summable[] runners = new Summable[threadCount+1];
+
+        for (int i = 0; i <= threadCount; i++) {
+            runners[i] = new SliceRunnerFind(grid, slices, idx);
+        }
+
+        exerciseGridRunnable(grid,runners,idx,(long)(voxels * density));
+    }
+
+    private void fillGridDensity(Grid grid, double density) {
+        double voxelSize = grid.getVoxelSize();
+        int maxAttributeValue = 127;
+
+
+        // Gyroid Thickness to density mapping, solved using http://www.xuru.org/rt/PR.asp
+        // Done using 1200x1200x1200 grid, not certain if it matters.
+        // .002 = 0.864
+        // .0015 = 0.637
+        // .001 = 0.4686
+        // .0005 = 0.218
+        // .00025 = 0.118
+        // .000125 = 0.068
+        // .0000625 0.043
+        // .00003125 = 0.
+
+        double t = 8.85744622e-5 * (density * density * density) - 2.011785553e-5 * (density * density) + 2.313078492e-3 * density - 3.174920916e-5;
+
+        //t =  2 * MM;
+        double expected_density = 2047518.992 * (t * t * t) - 14311.27818 * (t * t) + 443.9375564 * t + 1.283856015e-2;
+
+        double s = 2.0 * Math.max(grid.getWidth(),grid.getDepth()) * grid.getVoxelSize();
+        Box box = new Box(s,s,s);
+        VolumePatterns.Gyroid pattern = new VolumePatterns.Gyroid(10*MM, t);
+
+        Intersection combined = new Intersection(box,pattern);
+
+        GridMaker gm = new GridMaker();
+
+        gm.setSource(combined);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize);
+
+        gm.makeGrid(grid);
+
+        long filled = grid.findCount(Grid.VoxelClasses.INSIDE);
+        long voxels = ((long) grid.getWidth() * grid.getHeight() * grid.getDepth());
+        printf("Filled: %d  Total: %d   Density Actual: %f Requested: %f Expected: %f\n", filled, voxels, (float) filled / voxels, density, expected_density);
+    }
+        /**
+         * Test traversal across a grid using multiple threads
+         */
     public void testMTTraversal() {
 
         long voxels = 1200 * 1200 * 1200;
-        int size = 800;
+        int size = 1200;
         int sizey = (int) (voxels / (size * size));
 
         Grid grid = new ArrayGridByte(size, sizey, size, 0.001, 0.001);
 
-        boolean fill = true;
-        long expected_count = (long) (voxels * 0.50);
+        boolean fill = false;
+        long expected_count = (long) (voxels * 0.10);
 
         if (fill) {
             expected_count = (long) size * size * sizey;
@@ -191,6 +349,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
         double[] factors = new double[maxThreads];
         boolean yslice = true;
         int fixed = -1;
+        int skip = 3;
 
         for (int threadCount = 1; threadCount <= maxThreads; threadCount++) {
             if (fixed > 0 && threadCount != 1 && threadCount != fixed) {
@@ -231,13 +390,13 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
 
             ExecutorService executor = Executors.newFixedThreadPool(threadCount);
 
-            SliceRunner[] runners = new SliceRunner[threadCount];
+            SliceRunnerFind[] runners = new SliceRunnerFind[threadCount];
 
             AtomicInteger idx = new AtomicInteger(0);
 
             for (int i = 0; i < threadCount; i++) {
 
-                runners[i] = new SliceRunner(grid, slices, idx);
+                runners[i] = new SliceRunnerFind(grid, slices, idx);
                 executor.submit(runners[i]);
             }
             executor.shutdown();
@@ -261,6 +420,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
             factors[threadCount - 1] = (double) first / totalTime;
             System.out.println("Threads: " + threadCount + " time: " + ((int) (totalTime / 1000000)) + " scaling: " + (factors[threadCount - 1]));
 
+            threadCount += skip;
         }
         /*
         double min_factor = 1.5;
@@ -297,7 +457,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
                 continue;
             }
 
-            int num_slices = 100;
+            int num_slices = 200;
             SliceCPU[] slices = new SliceCPU[num_slices];
 
             for(int i=0; i < num_slices; i++) {
@@ -411,17 +571,22 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
         return cnt;
     }
 
+    interface Summable extends Runnable {
+        public long getTotal();
+        public void reset();
+    }
+
     /**
      * class processes one slice of grid from the array of slices
      */
-    class SliceRunner implements Runnable {
+    class SliceRunnerFind implements Summable {
 
         Grid src;
         Slice[] que;
         AtomicInteger idx;
         long total;
 
-        SliceRunner(Grid src, Slice[] slices, AtomicInteger idx) {
+        SliceRunnerFind(Grid src, Slice[] slices, AtomicInteger idx) {
             this.src = src;
             this.que = slices;
             this.idx = idx;
@@ -439,13 +604,122 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
 
                 long cnt = 0;
 
-                cnt = getNumMarked2(src, slice.xmin, slice.xmax, slice.ymin, slice.ymax);
+                cnt = getNumMarked(src, slice.xmin, slice.xmax, slice.ymin, slice.ymax);
                 total += cnt;
             }
         }
 
-        long getTotal() {
+        public long getTotal() {
             return total;
+        }
+
+        public void reset() {
+            total = 0;
+        }
+    }
+
+    class SliceRunnerGetNextIdx implements Summable {
+
+        Grid src;
+        Slice[] que;
+        AtomicInteger idx;
+        long total;
+
+        SliceRunnerGetNextIdx(Grid src, Slice[] slices, AtomicInteger idx) {
+            this.src = src;
+            this.que = slices;
+            this.idx = idx;
+        }
+
+        public void run() {
+
+            VoxelCoordinate vc = new VoxelCoordinate();
+
+            while (true) {
+                int val = idx.getAndIncrement();
+
+                if (val == que.length) {
+                    break;
+                }
+                Slice slice = que[val];
+
+                long cnt = 0;
+
+                if (src instanceof ArrayAttributeGridByte) {
+                    ArrayAttributeGridByte grid = (ArrayAttributeGridByte) src;
+                    grid.startFindInside(0, grid.getWidth(), slice.ymin, slice.ymax);
+                    while(grid.getNextIdx(vc)) {
+                        cnt++;
+                    }
+                } else {
+                    cnt = getNumMarked(src, slice.xmin, slice.xmax, slice.ymin, slice.ymax);
+                }
+
+                printf("Slice done: %d",slice.ymin);
+                total += cnt;
+            }
+        }
+
+        public long getTotal() {
+            return total;
+        }
+
+        public void reset() {
+            total = 0;
+        }
+    }
+
+    class SliceRunnerDirectForLoop implements Summable {
+
+        Grid src;
+        Slice[] que;
+        AtomicInteger idx;
+        long total;
+
+        SliceRunnerDirectForLoop(Grid src, Slice[] slices, AtomicInteger idx) {
+            this.src = src;
+            this.que = slices;
+            this.idx = idx;
+        }
+
+        public void run() {
+
+            int depth = src.getDepth();
+
+            while (true) {
+                int val = idx.getAndIncrement();
+
+                if (val == que.length) {
+                    break;
+                }
+                Slice slice = que[val];
+
+                long cnt = 0;
+
+
+                // Calling this in a method makes the first passes less expensive
+                cnt = getNumMarked2(src, slice.xmin, slice.xmax, slice.ymin, slice.ymax);
+/*
+                for (int y = slice.ymin; y <= slice.ymax; y++) {
+                    for (int x = slice.xmin; x <= slice.xmax; x++) {
+                        for (int z = 0; z < depth; z++) {
+                            if (src.getState(x, y, z) == Grid.INSIDE) {
+                                cnt++;
+                            }
+                        }
+                    }
+                }
+ */
+                total += cnt;
+            }
+        }
+
+        public long getTotal() {
+            return total;
+        }
+
+        public void reset() {
+            total = 0;
         }
     }
 

@@ -1100,7 +1100,7 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
      * feeds all triangular faces into TriangleCollector
      */
     @Override
-    public void getTriangles(TriangleCollector tc) {
+    public boolean getTriangles(TriangleCollector tc) {
         Vector3d
                 p0 = new Vector3d(),
                 p1 = new Vector3d(),
@@ -1128,6 +1128,8 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
 
             f = Face.getNext(faces, f);
         }
+
+        return true;
     }
 
 

@@ -17,6 +17,7 @@ package abfab3d.grid.op;
 
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Torus;
 import abfab3d.grid.*;
 import abfab3d.io.output.SlicesWriter;
 import abfab3d.transforms.Rotation;
@@ -39,20 +40,25 @@ import static java.lang.Math.round;
  * @author Alan Hudson
  * @version
  */
-public class TestDistanceTransformFM extends TestCase {
+public class TestDistanceTransformFM extends BaseTestDistanceTransform {
     
-    double surfareThickness = Math.sqrt(3)/2;
+    double surfaceThickness = Math.sqrt(3)/2;
     int maxAttribute = 100;
     double voxelSize = 0.1*MM;
 
     public void testBox(){
 
         int max_attribute = 128;
-        int nx = 100;
-//        AttributeGrid grid = makeBox(nx, 4.0 * MM);
-        AttributeGrid grid = makeSphere(nx, 2.0 * MM);
+        int nx = 128;
+        AttributeGrid grid = makeBox(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness);
+//        AttributeGrid grid = makeSphere(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness);
+//        AttributeGrid grid = makeTorus(nx, 4.0 * MM, 2.0 * MM, voxelSize, max_attribute, surfaceThickness);
         double maxInDistance = 1*MM;
         double maxOutDistance = 0;
+
+        MyGridWriter gw = new MyGridWriter(8,8);
+        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1, new DistanceColorizer(max_attribute,0,0,255));
+//        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",0, nx, new DistanceColorizer(max_attribute));
 
         long t0 = time();
         DistanceTransformExact dt_exact = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
@@ -127,48 +133,15 @@ public class TestDistanceTransformFM extends TestCase {
 
         int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
 
-        MyGridWriter gw = new MyGridWriter(8,8);
-        gw.writeSlices(diff_grid,norm , "/tmp/slices/distance/exact_%03d.png",0, nx, new ErrorColorizer(norm));
+        gw.writeSlices(diff_grid,norm , "/tmp/slices/distance/exact_%03d.png",0, nx/2, new ErrorColorizer(norm));
         printRow(diff_grid, 0, nx, nx/2, nx/2);
 
 
     }
 
-    AttributeGrid makeBox(int gridSize, double boxWidth){
-        
-        double width = gridSize*voxelSize;
-        
-        int nx = gridSize;
-        int ny = nx;
-        int nz = nx;
-        double sx = nx*voxelSize;
-        double sy = ny*voxelSize;
-        double sz = nz*voxelSize;
-        double xoff = voxelSize/2;
-        double yoff = 0;
-        double zoff = 0;
 
-        double bounds[] = new double[]{-sx/2, sx/2, -sy/2, sy/2, -sz/2, sz/2};        
-        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);        
-        grid.setGridBounds(bounds);
-
-        //Box box = new Box((nx - 4)*voxelSize, (ny - 4) * voxelSize, (nz-30)*voxelSize);
-        Box box = new Box(xoff,yoff,zoff,boxWidth, 0.8*ny * voxelSize, (nz-30)*voxelSize);
-        box.setTransform(new Rotation(0,0,1,Math.PI/20));
-        //box.setTransform(new Rotation(0,0,1,Math.PI/4+0.01));
-        GridMaker gm = new GridMaker();
-
-        // TODO:  not sure why but changing this to maxAttribute raises the error rate from 0.56 to 2
-//        gm.setMaxAttributeValue(2*maxAttribute);
-        gm.setMaxAttributeValue(maxAttribute);
-        gm.setVoxelScale(surfareThickness);
-
-        gm.setSource(box);
-        gm.makeGrid(grid);
-        return grid;
-    }
-
-    AttributeGrid makeSphere(int gridSize, double radius){
+    /*
+    AttributeGrid makeTorus(int gridSize, double radius){
 
         int nx = gridSize;
         int ny = nx;
@@ -184,132 +157,19 @@ public class TestDistanceTransformFM extends TestCase {
         AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
         grid.setGridBounds(bounds);
 
-        Sphere sphere = new Sphere(xoff,yoff,zoff,radius);
+        Torus torus = new Torus(xoff,yoff,zoff,radius);
         GridMaker gm = new GridMaker();
-        gm.setMaxAttributeValue(maxAttribute); // correct normalization is 2*
+        gm.setMaxAttributeValue(maxAttribute);
         gm.setVoxelScale(surfareThickness);
 
         gm.setSource(sphere);
         gm.makeGrid(grid);
         return grid;
     }
+    */
 
+    // makeGyroid
     // makeCylinder --> Vlad said Cylinder would be the worst case
 
-    static class MyGridWriter implements SliceExporter {
-
-        int cellSize = 1;
-        int voxelSize = 1;
-        MyGridWriter(int cellSize, int voxelSize){
-            this.cellSize = cellSize;
-            this.voxelSize = voxelSize;
-        }
-        public void writeSlices(Grid grid, long maxAttribute, String filePattern, int start, int end, LongConverter colorMaker ){
-            
-            SlicesWriter slicer = new SlicesWriter();
-            slicer.setDataConverter(new Long2Short());
-            slicer.setCellSize(cellSize);
-            slicer.setVoxelSize(voxelSize);
-            
-            slicer.setMaxAttributeValue((int)maxAttribute);
-            if(colorMaker != null){
-                slicer.setColorMaker(colorMaker);
-            }
-            int sliceMin = grid.getDepth()/2;
-            //int sliceMax = sliceMin+1;
-            int sliceMax = grid.getDepth() -1;
-            
-            slicer.setFilePattern(filePattern);            
-            slicer.setBounds(0, grid.getWidth(), 0, grid.getHeight(), start, end);
-            // make transparent background 
-            //slicer.setBackgroundColor(0xFFFFFF);  // transparent 
-            //slicer.setBackgroundColor(0xFFFFFFFF);  // solid white 
-            //slicer.setForegroundColor(0xFF0000FF); // solid blue
-            
-            try {
-                slicer.writeSlices(grid);
-            } catch(Exception e){
-                e.printStackTrace();
-            }                
-        }
-    }
-
-
-    static void printRow(AttributeGrid grid, int xmin, int xmax, int y, int z){
-        printf("printRow(%d %d %d %d)\n",xmin, xmax, y,z);
-        for(int x = xmin; x < xmax; x++){
-            short v = (short)(grid.getAttribute(x,y,z));
-            if(v == Short.MAX_VALUE)
-                printf("   +");
-            else if(v == -Short.MAX_VALUE)
-                printf("   .");
-            else
-                printf("%4d",v);
-            if((x+1)%25 == 0)
-                printf("\n");
-        }
-
-    }
-
-
-
-    /**
-
-     */
-    static class DistanceColorizer implements LongConverter {
-
-        int maxvalue = 100;
-        int undefined = Short.MAX_VALUE;
-
-        DistanceColorizer(int maxvalue){
-
-            this.maxvalue = maxvalue;
-        }
-
-        public long get(long value){
-            if(value == undefined) {
-                return makeRGB(MAXC, 0,0);
-            } else if(value == -undefined) {
-                return makeRGB(0,0,MAXC);
-            }
-
-            if( value >= 0){
-                int v = (int)(MAXC  - (value * MAXC / maxvalue) & MAXC);
-                return makeRGB(v, v, v);
-            } else {
-                return makeRGBA(0,0,0,0);
-            }
-        }
-    }
-
-    /**
-
-     */
-    static class ErrorColorizer implements LongConverter {
-
-        int maxvalue = 100 * 2;  // compress range
-        int min = 128;
-        int undefined = Short.MAX_VALUE;
-
-        ErrorColorizer(int maxvalue){
-
-            this.maxvalue = maxvalue;
-        }
-
-        public long get(long value){
-            if(value == undefined) {
-                return makeRGB(MAXC, 0,0);
-            } else if(value == -undefined) {
-                return makeRGB(0,0,MAXC);
-            }
-
-            if( value > 0){
-                int v = (int)(min + (MAXC - value * MAXC / maxvalue) & MAXC);
-                return makeRGB(v, v, v);
-            } else {
-                return makeRGB(MAXC,MAXC,MAXC);
-            }
-        }
-    }
 }
 

@@ -129,7 +129,7 @@ public class DevTestDistanceTransformFM {
     }
 
     void testBoxExact(){
-        
+
         int nx = 200;
         AttributeGrid grid = makeBox(nx, 4.0*MM);
         MyGridWriter gw = new MyGridWriter();
@@ -144,7 +144,7 @@ public class DevTestDistanceTransformFM {
         int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
         gw.writeSlices(dg, norm, "/tmp/slices/ex_dist_%03d.png",nx/2, nx/2+1, new DistanceColorizer(norm));
         printRow(dg, 0, nx, nx/2, nx/2);
-        
+
         
     }
 
@@ -213,7 +213,7 @@ public class DevTestDistanceTransformFM {
     static class MyGridWriter implements SliceExporter {
 
         int cellSize = 8;
-        int voxelSize = 7;
+        int voxelSize = 8;
         MyGridWriter(){
         }
         public void writeSlices(Grid grid, long maxAttribute, String filePattern, int start, int end, LongConverter colorMaker ){
@@ -299,8 +299,7 @@ public class DevTestDistanceTransformFM {
         DevTestDistanceTransformFM dt = new DevTestDistanceTransformFM();
         //dt.testUpwindSolver();
 
-        dt.testBoxFM();
+        //dt.testBoxFM();
         dt.testBoxExact();
-
     }
 }

@@ -2,6 +2,7 @@ package abfab3d.mesh;
 
 import abfab3d.util.StructMixedData;
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.TriangleProducer;
 
 import javax.vecmath.Point3d;
 
@@ -10,7 +11,7 @@ import javax.vecmath.Point3d;
  *
  * @author Alan Hudson
  */
-public interface TriangleMesh {
+public interface TriangleMesh extends TriangleProducer {
     int getVertexCount();
 
     int getTriangleCount();
@@ -23,7 +24,7 @@ public interface TriangleMesh {
 
     double[] getBounds();
 
-    void getTriangles(TriangleCollector tc);
+    boolean getTriangles(TriangleCollector tc);
 
     /**
      * Get the edges
