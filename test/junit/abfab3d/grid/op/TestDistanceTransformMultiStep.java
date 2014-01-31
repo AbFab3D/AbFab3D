@@ -17,7 +17,7 @@ import static java.lang.Math.round;
 
  */
 public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     double surfaceThickness = Math.sqrt(3)/2;
     int maxAttribute = 100;
     double voxelSize = 0.1*MM;
@@ -38,6 +38,7 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
         long t0 = time();
         DistanceTransformExact dt_ms = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
         //DistanceTransformMultiStep dt_ms = new DistanceTransformMultiStep(max_attribute, maxInDistance, maxOutDistance);
+        //DistanceTransformFM dt_ms = new DistanceTransformFM(max_attribute, maxInDistance, maxOutDistance);
         AttributeGrid dg_ms = dt_ms.execute(grid);
         printf("DistanceTransformMultiStep done: %d ms\n", time() - t0);
 
@@ -325,11 +326,11 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
 
     public static void main(String arg[]){
         
-        //for(int k  = 0; k < 10; k++){
-        //new TestDistanceTransformMultiStep().testBoxInside();
+        for(int k  = 0; k < 4; k++)
+        new TestDistanceTransformMultiStep().testBoxInside();
         //new TestDistanceTransformMultiStep().testBoxOutside();
         //new TestDistanceTransformMultiStep().testBoxInside();
-        new TestDistanceTransformMultiStep().testSphereBoth();
+        //new TestDistanceTransformMultiStep().testSphereBoth();
         //new TestDistanceTransformMultiStep().testTorusBoth();
         //new TestDistanceTransformMultiStep().testMakeAllNeighbors();
         //new TestDistanceTransformMultiStep().testBoxBoth();
