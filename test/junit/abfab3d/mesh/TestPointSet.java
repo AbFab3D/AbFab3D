@@ -63,6 +63,7 @@ import static java.lang.System.currentTimeMillis;
  * @version
  */
 public class TestPointSet extends TestCase {
+    private static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -108,9 +109,11 @@ public class TestPointSet extends TestCase {
         double[] points = ps.getPoints();
         assertEquals("Array lengths", points.length, 3);
 
-        System.out.println("Values: " + java.util.Arrays.toString(points));
-        for(int i=0; i < points.length; i++) {
-            assertEquals("val: " + i, pos[i], points[i]);
+        if (DEBUG) {
+            System.out.println("Values: " + java.util.Arrays.toString(points));
+            for(int i=0; i < points.length; i++) {
+                assertEquals("val: " + i, pos[i], points[i]);
+            }
         }
     }
 
@@ -133,7 +136,7 @@ public class TestPointSet extends TestCase {
         double[] points = ps.getPoints();
         assertEquals("Array lengths", 9, points.length);
 
-        System.out.println("Values: " + java.util.Arrays.toString(points));
+        if (DEBUG) System.out.println("Values: " + java.util.Arrays.toString(points));
     }
 
     public void testGetPoints2() {
@@ -146,7 +149,7 @@ public class TestPointSet extends TestCase {
 
         double[] points = ps.getPoints();
 
-        System.out.println("Values: " + java.util.Arrays.toString(points));
+        if (DEBUG) System.out.println("Values: " + java.util.Arrays.toString(points));
 
         int len = points.length / 3;
 
@@ -177,7 +180,7 @@ public class TestPointSet extends TestCase {
 
         double[] points = ps.getPoints();
 
-        System.out.println("Values: " + java.util.Arrays.toString(points));
+        if (DEBUG) System.out.println("Values: " + java.util.Arrays.toString(points));
 
         int len = points.length / 3;
 
@@ -552,7 +555,7 @@ public class TestPointSet extends TestCase {
         ps.add(-0.007499999999999999,-0.0508,-0.0059);
         double[] points = ps.getPoints();
 
-        System.out.println("Values: " + java.util.Arrays.toString(points));
+        if (DEBUG) System.out.println("Values: " + java.util.Arrays.toString(points));
 
         int len = points.length / 3;
 

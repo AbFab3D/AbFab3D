@@ -392,6 +392,14 @@ public class SlicesWriter {
     class DefaultColorMaker  implements LongConverter {
 
         public final long get(long a){
+            if (m_maxAttributeValue == 0) {
+                if (a == Grid.INSIDE) {
+                    return makeColor(0);
+                } else {
+                    return m_backgroundColor;
+                }
+            }
+
             int  level = (int)(((m_maxAttributeValue - a) * 255)/m_maxAttributeValue);                
             if(level == 255) // return background color for max value 
                 return m_backgroundColor;

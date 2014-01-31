@@ -92,20 +92,20 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
         printRow(subsurface, 0, nx, 62, nx / 2, false, 50);
     }
 
-    public void testTorusBumpy(){
+    public void _testTorusBumpy(){
 
         int max_attribute = 127;
         int nx = 400;
-        double sphereRadius = 17.0 * MM;
+        double sphereRadius = 16.0 * MM;
         AttributeGrid grid = makeTorus(nx, sphereRadius, 2 * MM, voxelSize, max_attribute, surfaceThickness);
         double[] bounds = new double[6];
         grid.getGridBounds(bounds);
 
         double maxInDistance = 0*MM;
-        double maxOutDistance = 0.5*MM + voxelSize;
+        double maxOutDistance = 2.1*MM + voxelSize;
 
         long t0 = time();
-        DistanceTransformExact dt_exact = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
+        DistanceTransformMultiStep dt_exact = new DistanceTransformMultiStep(max_attribute, maxInDistance, maxOutDistance);
         AttributeGrid dg_exact = dt_exact.execute(grid);
         printf("DistanceTransformExact done: %d ms\n", time() - t0);
 
@@ -124,10 +124,14 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
         DataSourceGrid dsg1 = new DataSourceGrid(grid,max_attribute);
 
         DataSourceGrid dsg2 = new DataSourceGrid(supersurface,max_attribute);
-        DataSource gyroid = new VolumePatterns.Gyroid(3*MM,0.4*MM);
-        Intersection pattern = new Intersection(dsg2, gyroid);
+//        DataSource gyroid = new VolumePatterns.Gyroid(3*MM,0.4*MM);
+//        DataSource cubes = new VolumePatterns.CubicGrid(2*MM,0.4*MM);
+        DataSource schwarz = new VolumePatterns.SchwarzPrimitive(2*MM,0.5*MM);
+        Intersection pattern = new Intersection(dsg2, schwarz);
 
-        Union result = new Union(dsg1,pattern);
+//        Union result = new Union(dsg1,pattern);
+        Union result = new Union();
+        result.add(pattern);
         Subtraction subtract = new Subtraction(result, new Plane(new Vector3d(0,1,0), new Vector3d(0,0,0)));
 
         //gm.setSource(dsg2);
@@ -189,7 +193,7 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
         }
     }
 
-    public void testDeerHollow(){
+    public void _testDeerHollow(){
 
         int max_attribute = 127;
         int nx = 400;
@@ -198,7 +202,7 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
         double[] bounds = new double[6];
         grid.getGridBounds(bounds);
 
-        double maxInDistance = 2*MM;
+        double maxInDistance = 2*MM + voxelSize;
         double maxOutDistance = voxelSize;
 
         long t0 = time();
@@ -223,6 +227,53 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
 
         Intersection result = new Intersection(dsg1,dsg2);
         Subtraction subtract = new Subtraction(result, new Plane(new Vector3d(0,1,0), new Vector3d(0,0.01,0)));
+
+        //gm.setSource(new DataSourceGrid(subsurface,max_attribute));
+        gm.setSource(subtract);
+//        gm.setSource(pattern);
+        gm.makeGrid(dest);
+
+        try {
+            writeGrid(dest, "/tmp/deer_hollow.stl", max_attribute);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    public void _testDeerHollow2(){
+
+        int max_attribute = 127;
+        int nx = 400;
+        double sphereRadius = 17.0 * MM;
+        AttributeGrid grid = loadSTL("test/models/Deer.stl",0.2*MM,max_attribute);
+        double[] bounds = new double[6];
+        grid.getGridBounds(bounds);
+
+        double maxInDistance = 16*MM + voxelSize;
+        double maxOutDistance = voxelSize;
+
+        long t0 = time();
+        DistanceTransformMultiStep dt_exact = new DistanceTransformMultiStep(max_attribute, maxInDistance, maxOutDistance);
+        AttributeGrid dg_exact = dt_exact.execute(grid);
+        printf("DistanceTransformExact done: %d ms\n", time() - t0);
+
+        DensityGridExtractor dge = new DensityGridExtractor(16*MM, -1*MM,dg_exact,maxInDistance,maxOutDistance, max_attribute);
+        AttributeGrid subsurface = (AttributeGrid) grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getSliceHeight(), grid.getVoxelSize());
+        subsurface.setGridBounds(bounds);
+
+        subsurface = dge.execute(subsurface);
+
+        AttributeGrid dest = (AttributeGrid) grid.createEmpty(grid.getWidth(), grid.getHeight(), grid.getDepth(), grid.getSliceHeight(), grid.getVoxelSize());
+        dest.setGridBounds(bounds);
+
+        GridMaker gm = new GridMaker();
+        gm.setMaxAttributeValue(max_attribute);
+
+        DataSourceGrid dsg1 = new DataSourceGrid(grid,max_attribute);
+        DataSourceGrid dsg2 = new DataSourceGrid(subsurface,max_attribute);
+
+        Subtraction result = new Subtraction(dsg1,dsg2);
+        Subtraction subtract = new Subtraction(result, new Plane(new Vector3d(0,1,0), new Vector3d(0,-0.025,0)));
 
         //gm.setSource(new DataSourceGrid(subsurface,max_attribute));
         gm.setSource(subtract);
@@ -331,7 +382,6 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
     public static void main(String arg[]){
 
         //new TestDensityGridExtractor().testTorusBumpy();
-        new TestDensityGridExtractor().testDeerHollow();
+        //new TestDensityGridExtractor().testDeerHollow();
     }
-
 }

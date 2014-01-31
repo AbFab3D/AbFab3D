@@ -36,9 +36,8 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
         if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2-1, nx/2, null);
 
         long t0 = time();
-        DistanceTransformExact dt_ms = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
-        //DistanceTransformMultiStep dt_ms = new DistanceTransformMultiStep(max_attribute, maxInDistance, maxOutDistance);
-        //DistanceTransformFM dt_ms = new DistanceTransformFM(max_attribute, maxInDistance, maxOutDistance);
+        //DistanceTransformExact dt_ms = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
+        DistanceTransformMultiStep dt_ms = new DistanceTransformMultiStep(max_attribute, maxInDistance, maxOutDistance);
         AttributeGrid dg_ms = dt_ms.execute(grid);
         printf("DistanceTransformMultiStep done: %d ms\n", time() - t0);
 
@@ -227,6 +226,108 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
         checkMaxValue(max, not_calced_inside, not_calced_outside, dg_ms);
     }
 
+    public void testAccuracy(){
+
+        int max_attribute = 128;
+        int nx = 128;
+        double[] expected_max_error_percent = new double[] {0.03,0.06,0.05,.001};
+        int test_margin_factor = 2;
+        int[] expected_max_error = new int[] {15,58,57,1};
+        AttributeGrid[] grids = new AttributeGrid[4];
+        grids[0] = makeBox(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness);
+        grids[1] = makeSphere(nx, 5.0 * MM, voxelSize, max_attribute, surfaceThickness);
+        grids[2] = makeTorus(nx, 4.0 * MM, 2.0 * MM, voxelSize, max_attribute, surfaceThickness);
+        grids[3] = makeGyroid(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness, nx * voxelSize / 3.0, 0.1);
+
+        double maxInDistance = 1*MM;
+        double maxOutDistance = 0;
+
+        for(int i=0; i < grids.length; i++) {
+            AttributeGrid grid = grids[i];
+            MyGridWriter gw = new MyGridWriter(8,8);
+            if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1, new DistanceColorizer(max_attribute,0,0,255));
+    //        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",0, nx, new DistanceColorizer(max_attribute));
+
+            long t0 = time();
+            DistanceTransformExact dt_exact = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
+            AttributeGrid dg_exact = dt_exact.execute(grid);
+            printf("DistanceTransformExact done: %d ms\n", time() - t0);
+
+            t0 = time();
+            DistanceTransformMultiStep dt_fm = new DistanceTransformMultiStep(max_attribute, maxInDistance, maxOutDistance);
+
+            AttributeGrid dg_fm = dt_fm.execute(grid);
+            printf("DistanceTransformMultiStep done: %d ms\n", time() - t0);
+
+            int width = grid.getWidth();
+            int height = grid.getHeight();
+            int depth = grid.getDepth();
+            int diffs_in_exact = 0;
+            int diffs_in_fm = 0;
+
+            long not_calced_inside = dt_exact.getInsideDefault();
+            long not_calced_outside = dt_exact.getOutsideDefault();
+
+            long total_error = 0;
+            long max_error = 0;
+            long err_cnt = 0;
+
+            long ma = (long) ((double) max_attribute * maxInDistance / grid.getVoxelSize());
+
+            AttributeGrid diff_grid = (AttributeGrid) dg_exact.createEmpty(dg_exact.getWidth(),dg_exact.getHeight(),dg_exact.getDepth(),
+                    dg_exact.getVoxelSize(), dg_exact.getSliceHeight());
+
+            for(int y=0; y < height; y++) {
+                for(int x=0; x < width; x++) {
+                    for(int z=0; z < depth; z++) {
+                        // TODO: do we want caller to have to know this?
+
+                        long att_exact = (short) dg_exact.getAttribute(x,y,z);
+                        long att_fm = (short) dg_fm.getAttribute(x,y,z);
+
+                        if ((att_exact == not_calced_outside || att_exact == not_calced_inside) &&
+                                att_fm != not_calced_outside && att_fm != not_calced_inside) {
+                            diffs_in_fm++;
+                            // view as blue
+                            diff_grid.setAttribute(x,y,z,Short.MAX_VALUE);
+                        } else if ((att_fm == not_calced_outside || att_fm == not_calced_inside) &&
+                                att_exact != not_calced_outside && att_exact != not_calced_inside) {
+                            diffs_in_exact++;
+                            // view as red
+                            diff_grid.setAttribute(x,y,z,-Short.MAX_VALUE);
+                        } else {
+                            long diff = Math.abs(att_exact - att_fm);
+
+                            diff_grid.setAttribute(x,y,z,diff);
+
+                            if (diff > max_error) {
+                                printf("new max error: %d  exact: %d  fm: %d\n", diff, att_exact, att_fm);
+                                max_error = diff;
+                            }
+                            total_error += diff;
+                            err_cnt++;
+                        }
+                    }
+                }
+            }
+
+            double error_rate = ((double) total_error / ma / err_cnt * 100.0);
+            printf("Total error: %d  Per Error: %f  Max error: %d  Init Diffs  in exact: %d  in_fm: %d\n",total_error,error_rate,max_error,diffs_in_exact, diffs_in_fm);
+
+            // viz:  difference grayscale.  blue for not in exact but in compare, red for in exact but not in compare
+
+            int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
+
+            if (DEBUG) gw.writeSlices(diff_grid,norm , "/tmp/slices/distance/multistep_diff_%03d.png",0, nx/2, new ErrorColorizer(norm));
+            if (DEBUG) printRow(diff_grid, 0, nx, nx/2, nx/2);
+
+            // For now just use this unit test as confirmation errors don't crop up.  Right now this
+            // test for a Gyroid is .001% error.  Confirm it doesn't go above .002%
+            assertTrue("Error rate, error: " + error_rate, error_rate < test_margin_factor * expected_max_error_percent[i]);
+            assertTrue("Error max, error: " + max_error, max_error < test_margin_factor * expected_max_error[i]);
+        }
+    }
+
     public void _testGyroidBoth(){
 
         int max_attribute = 100;
@@ -326,11 +427,11 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
 
     public static void main(String arg[]){
         
-        for(int k  = 0; k < 4; k++)
-        new TestDistanceTransformMultiStep().testBoxInside();
+        //for(int k  = 0; k < 10; k++){
+        //new TestDistanceTransformMultiStep().testBoxInside();
         //new TestDistanceTransformMultiStep().testBoxOutside();
         //new TestDistanceTransformMultiStep().testBoxInside();
-        //new TestDistanceTransformMultiStep().testSphereBoth();
+        new TestDistanceTransformMultiStep().testSphereBoth();
         //new TestDistanceTransformMultiStep().testTorusBoth();
         //new TestDistanceTransformMultiStep().testMakeAllNeighbors();
         //new TestDistanceTransformMultiStep().testBoxBoth();
