@@ -82,7 +82,7 @@ SetOfVoxels provides fast methods to add and remove point
 
  * @author Vladimir Bulatov
  */
-public class DistanceTransformFM implements Operation, AttributeOperation {
+public class DistanceTransformFM  extends DistanceTransform implements Operation, AttributeOperation {
 
     public static boolean DEBUG = false;
     static int debugCount = 0;
@@ -107,8 +107,6 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
     GridBit m_candGrid; // current candidates 
     GridBit m_fixedGrid; // fixed voxels 
     FMCandidatesPool m_candPool; // pool of candidates 
-    // factory to create output distance grid 
-    AttributeGrid m_distGridFactory = new ArrayAttributeGridShort(1, 1, 1, 1.,1.);
 
     /**
        @param maxAttribute maximal attribute value for inside voxels 
@@ -130,9 +128,9 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
     /**
        grid factory to be used for output distanceGrid       
      */
-    public void setDistanceGridFactory(AttributeGrid distGridFactory){
-        m_distGridFactory = distGridFactory;
-    }
+    //public void setDistanceGridFactory(AttributeGrid distGridFactory){
+    //    m_distGridFactory = distGridFactory;
+    //}
 
     /**
      * Execute an operation on a grid.  If the operation changes the grid
@@ -178,7 +176,7 @@ public class DistanceTransformFM implements Operation, AttributeOperation {
 
         long t0 = time();
         //TODO what grid to allocate here 
-        m_distGrid = (AttributeGrid)m_distGridFactory.createEmpty(nx, ny, nz, voxelSizeX, voxelSizeY);
+        m_distGrid = createDistanceGrid(grid);
         initDistances(grid, m_distGrid);        
 
         if(gridWriter != null)gridWriter.writeSlices(m_distGrid, m_maxAttribute, "/tmp/slices/02_init_%03d.png", 

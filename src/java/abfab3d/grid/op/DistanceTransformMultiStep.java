@@ -76,7 +76,7 @@ import static java.lang.Math.ceil;
  * @author Vladimir Bulatov
  * @author Alan Hudson
  */
-public class DistanceTransformMultiStep implements Operation, AttributeOperation {
+public class DistanceTransformMultiStep  extends DistanceTransform implements Operation, AttributeOperation {
 
     public static boolean DEBUG = false;
     static int debugCount = 1000;
@@ -172,8 +172,7 @@ public class DistanceTransformMultiStep implements Operation, AttributeOperation
         
         printf("ballNeighbors count: %d\n",m_allBallNeighbors[0].length/4);
         
-        //TODO what grid to allocate here 
-        AttributeGrid distanceGrid = new ArrayAttributeGridShort(nx, ny, nz, grid.getVoxelSize(), grid.getSliceHeight());
+        AttributeGrid distanceGrid = createDistanceGrid(grid);
         initDistances(grid, distanceGrid);
         
         scanSurface(grid,distanceGrid);

@@ -64,7 +64,7 @@ import static java.lang.Math.round;
 
  * @author Vladimir Bulatov
  */
-public class DistanceTransformExact implements Operation, AttributeOperation {
+public class DistanceTransformExact extends DistanceTransform implements Operation, AttributeOperation {
 
     public static boolean DEBUG = false;
     static int debugCount = 0;
@@ -131,7 +131,7 @@ public class DistanceTransformExact implements Operation, AttributeOperation {
 
 
         //TODO what grid to allocate here 
-        AttributeGrid distanceGrid = new ArrayAttributeGridShort(nx, ny, nz, grid.getVoxelSize(), grid.getSliceHeight());
+        AttributeGrid distanceGrid = createDistanceGrid(grid);
         initDistances(grid, distanceGrid);
 
         scanSurface(grid,distanceGrid);
