@@ -618,6 +618,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
         }
     }
 
+/*
     class SliceRunnerGetNextIdx implements Summable {
 
         Grid src;
@@ -668,7 +669,7 @@ public class TestTraversalPerformance extends BaseTestAttributeGrid {
             total = 0;
         }
     }
-
+  */
     class SliceRunnerDirectForLoop implements Summable {
 
         Grid src;
