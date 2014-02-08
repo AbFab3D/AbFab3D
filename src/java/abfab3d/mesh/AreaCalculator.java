@@ -62,6 +62,14 @@ public class AreaCalculator implements TriangleCollector {
     }
 
     /**
+     * Reset all variables so this class can be reused;
+     */
+    public void reset() {
+        area = 0;
+        volume = 0;
+    }
+
+    /**
      * Returns the volume of triangle mesh
      */
     public static double getVolume(int triangles[], double coords[]){
