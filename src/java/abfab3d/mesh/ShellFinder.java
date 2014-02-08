@@ -274,7 +274,7 @@ public class ShellFinder {
 
 
     /**
-       represents one shell of given WETriangleMesh
+     * Represents one shell of given WETriangleMesh
      */
     public static class ShellInfo {
         public int startFace; 
@@ -282,6 +282,9 @@ public class ShellFinder {
 
         /** The shell volume or 0 if not calculated.  m^3 */
         public double volume;
+
+        /** The bounds or null if not calculated */
+        public double[] bounds;
     }
 
     static class ShellVolumeComparator implements Comparator<ShellInfo> {
