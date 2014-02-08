@@ -11,10 +11,7 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
-import java.util.Hashtable;
-import java.util.Vector;
-import java.util.Enumeration;
-import java.util.ArrayDeque;
+import java.util.*;
 
 import javax.vecmath.Vector3d;
 
@@ -25,28 +22,28 @@ import abfab3d.util.TriangleCollector;
 import static abfab3d.util.Output.printf;
 
 /**
-   finder of shells in WingedEdgeTriangleMesh 
-
-   @author Vladimir Bulatov
-
+ * Shell finding utilities for WingedEdgeMesh.
+ *
+ * @author Vladimir Bulatov
+ * @author Alan Hudson
  */
 public class ShellFinder {
     
     public ShellFinder(){        
     }
 
+    /**
+     * Find shells in a mesh.
+     *
+     * @param mesh
+     * @return
+     */
     public ShellInfo[] findShells(WingedEdgeTriangleMesh mesh){     
         
-        printf("ShellFinder findShells()\n");
-
-        int fcount = mesh.getFaceCount();
-
-                
         Hashtable<Integer,Integer> hfaces = makeUnmarkedFaces(mesh);
 
-        Vector<ShellInfo> vsi = new Vector<ShellInfo>();
+        ArrayList<ShellInfo> vsi = new ArrayList<ShellInfo>();
 
-        //int count  = 5;
         while(true){
             
             Enumeration<Integer> e = hfaces.elements(); 
@@ -56,12 +53,39 @@ public class ShellFinder {
             ShellInfo si = markShell(mesh, shellFace, hfaces);
             vsi.add(si);
         }
-                                
-        
+
         return (ShellInfo[])vsi.toArray(new ShellInfo[vsi.size()]);
-        
     }
 
+    /**
+     * Find shells sorted by volume.  ShellInfo will contain the volume.
+     *
+     * @param mesh
+     * @return
+     */
+    public ShellInfo[] findShellsSorted(WingedEdgeTriangleMesh mesh, boolean naturalOrder){
+
+        Hashtable<Integer,Integer> hfaces = makeUnmarkedFaces(mesh);
+        ArrayList<ShellInfo> vsi = new ArrayList<ShellInfo>();
+        AreaCalculator ac = new AreaCalculator();
+
+        while(true){
+
+            Enumeration<Integer> e = hfaces.elements();
+            if(!e.hasMoreElements())
+                break;
+            int shellFace = e.nextElement();
+            ShellInfo si = markShell(mesh, shellFace, hfaces);
+            vsi.add(si);
+
+            ac.reset();
+            getShell(mesh, si.startFace, ac);
+            si.volume = ac.getVolume();
+        }
+
+        Collections.sort(vsi, new ShellVolumeComparator(naturalOrder));
+        return (ShellInfo[])vsi.toArray(new ShellInfo[vsi.size()]);
+    }
 
     /**
 
@@ -255,6 +279,25 @@ public class ShellFinder {
     public static class ShellInfo {
         public int startFace; 
         public int faceCount;
+
+        /** The shell volume or 0 if not calculated.  m^3 */
+        public double volume;
     }
 
+    static class ShellVolumeComparator implements Comparator<ShellInfo> {
+        private boolean naturalOrder;
+
+        public ShellVolumeComparator(boolean naturalOrder) {
+            this.naturalOrder = naturalOrder;
+        }
+
+        @Override
+        public int compare(ShellInfo o1, ShellInfo o2) {
+            if (naturalOrder) {
+                return Double.compare(o1.volume,o2.volume);
+            } else {
+                return -Double.compare(o1.volume,o2.volume);
+            }
+        }
+    }
 }
