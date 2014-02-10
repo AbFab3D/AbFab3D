@@ -456,7 +456,10 @@ public class AbFab3DGlobal  {
             }
         }
 
-        grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
+        if (args.length != 1) {
+            // When passed a grid make sure its exactly the same size
+            grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
+        }
         int[] gs = MathUtil.getGridSize(grid_bounds, vs);
 
         // range check bounds and voxelSized
