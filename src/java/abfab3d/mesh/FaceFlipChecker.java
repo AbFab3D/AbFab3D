@@ -20,12 +20,12 @@ import javax.vecmath.Point3d;
  */
 public class FaceFlipChecker {
     static final double FACE_FLIP_EPSILON = 1.e-20;
-    static final double TRIANGLE_QUALITY_FACTOR = 0.5;
+    static final double TRIANGLE_QUALITY_FACTOR = 0.5; // good value 0.5
     static final boolean m_testTriangleQuality = true;
     // minimal dot product allowed between normals.     
     double m_faceFlipThreshold = 0.001; 
     double m_triangleQuality = 0.02;
-
+    double m_cosAngleThreshold = 0.5; // angle which is considered as face flip
 
     Vector3d
             // p0 = new Vector3d(), // we move origin to p0
@@ -63,6 +63,7 @@ public class FaceFlipChecker {
         
         m_n0.cross(m_p1, m_v0);        
         m_n1.cross(m_p1, m_v1);
+
         if(m_testTriangleQuality){
             double n0_len2 = m_n0.lengthSquared();
             double n1_len2 = m_n1.lengthSquared();
@@ -70,13 +71,20 @@ public class FaceFlipChecker {
                 //if(n1_len2 < m_triangleQuality) { // avoid low quality triangle 
                 return true;
             }
+            double dot = m_n0.dot(m_n1)/Math.sqrt(n0_len2*n1_len2);
+            if(dot < m_cosAngleThreshold)
+                return true;
+            else 
+                return false;
+        } else {
+            
+            double dot = m_n0.dot(m_n1);
+            
+            if (dot < m_faceFlipThreshold) // face flip
+                return true;
+            else
+                return false;
         }
-        double dot = m_n0.dot(m_n1);
-        
-        if (dot < m_faceFlipThreshold) // face flip
-            return true;
-        else
-            return false;
     }
     /**
      * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal
