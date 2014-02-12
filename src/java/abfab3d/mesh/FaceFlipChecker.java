@@ -20,7 +20,7 @@ import javax.vecmath.Point3d;
  */
 public class FaceFlipChecker {
     static final double FACE_FLIP_EPSILON = 1.e-20;
-    static final double TRIANGLE_QUALITY_FACTOR = 0.5; // good value 0.5
+    static final double TRIANGLE_QUALITY_FACTOR = 0.3; // good value 0.5
     static final boolean m_testTriangleQuality = true;
     // minimal dot product allowed between normals.     
     double m_faceFlipThreshold = 0.001; 
