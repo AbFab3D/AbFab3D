@@ -21,6 +21,7 @@ import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.GridMask;
 import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
+import abfab3d.grid.util.ExecutionStoppedException;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -187,6 +188,10 @@ public class DistanceTransformMultiStep  extends DistanceTransform implements Op
             updateBoundary(distanceGrid, boundary);       
             if(k+1 < m_inSteps)
                 boundary.clear();
+
+            if (Thread.currentThread().isInterrupted()) {
+                throw new ExecutionStoppedException();
+            }
         }     
         return distanceGrid;
 

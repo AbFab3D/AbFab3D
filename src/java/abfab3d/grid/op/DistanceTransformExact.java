@@ -20,6 +20,7 @@ import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
+import abfab3d.grid.util.ExecutionStoppedException;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -228,6 +229,10 @@ public class DistanceTransformExact extends DistanceTransform implements Operati
                             updateDistances(x, y, z, (dvs - v0)/(vz-v0), AXIS_Z,distanceGrid);
                     }
                 }
+            }
+
+            if (Thread.currentThread().isInterrupted()) {
+                throw new ExecutionStoppedException();
             }
         }
     }

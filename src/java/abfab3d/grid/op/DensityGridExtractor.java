@@ -5,6 +5,7 @@ import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.Grid;
 
 import static java.lang.Math.round;
+import static abfab3d.util.Output.printf;
 
 /**
  * Creates a density grid from a distance grid.  The density grid is useful for further boolean operations.
@@ -46,6 +47,8 @@ public class DensityGridExtractor implements AttributeOperation {
 
         if (dest.getWidth() != distanceGrid.getWidth() || dest.getHeight() != distanceGrid.getHeight() ||
                 dest.getDepth() != distanceGrid.getDepth()) {
+            printf("Distance grid: %d %d %d\n",distanceGrid.getWidth(), distanceGrid.getHeight(),distanceGrid.getDepth());
+            printf("Dest grid: %d %d %d\n",dest.getWidth(), dest.getHeight(),dest.getDepth());
             throw new IllegalArgumentException("DistanceGrid and DensityGrid must be the same dimensions");
         }
 
@@ -68,9 +71,6 @@ public class DensityGridExtractor implements AttributeOperation {
         for(int y=0; y < ny; y++) {
             for(int x=0; x < nx; x++) {
                 for(int z=0; z < nz; z++) {
-                    if (y==62 && z==64 && x > 13) {
-                        int j= 4;
-                    }
                     long att = (long) (short) distanceGrid.getAttribute(x,y,z);
 
                     short dest_att;
