@@ -42,7 +42,15 @@ public class Output{
     }
     
     public static void printf(String s,Object... args){
-        out.printf(s, args);
+        try {
+            out.printf(s, args);
+        } catch(Exception e) {
+            println("bad format string in printf(): " + s );
+            for(int k = 0; k < args.length; k++){                
+                print(" " + args[k].toString());
+            }
+            println("");
+        }
     }
     
     public static void printf(PrintStream ps, String s,Object... args){
