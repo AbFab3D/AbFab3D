@@ -39,13 +39,9 @@ public class Spring extends TransformableDataSource{
     /** Radius of the tube */
     private double r;
 
-    /** Speed of the movement along z axis.  Value is the distance traveled for a half spring.
-     * Positive for right handed, negative for left.  */
-    private double P;
-
-    /** The number of rounds in the circle */
-    private int n;
-
+    /** distance between consequtive coils of the spring. Positive for right handed, negative for left.  */
+    private double springPeriod;
+    
     private double x0,y0,z0;
     private double zmin,zmax;
 
@@ -53,13 +49,13 @@ public class Spring extends TransformableDataSource{
      * Spring with specified center, outer radius, tube radius, speed and number of turns
      *
      * @param center - location of helix center
-     * @param R -  Distance from the center of the tube
+     * @param R -  Distance from the center of the tube 
      * @param r - Radius of the tube
-     * @param P - Speed of the movement along z axis.  Positive for right handed, negative for left.
-     * @param n - The number of rounds in the circle
+     * @param springPeriod - z-distance between coils of spirng.  Positive for right handed, negative for left.
+     * @param springLength - the length of the spring along z axis
      */
-    public Spring(Vector3d center, double R, double r, double P, int n) {
-        this(center.x,center.y,center.z,R,r,P,n);
+    public Spring(Vector3d center, double R, double r, double springPeriod, double springLength) {
+        this(center.x,center.y,center.z,R,r, springPeriod, springLength);
     }
 
     /**
@@ -67,12 +63,12 @@ public class Spring extends TransformableDataSource{
      *
      * @param R -  Distance from the center of the tube
      * @param r - Radius of the tube
-     * @param P - Speed of the movement along z axis.  Positive for right handed, negative for left.
-     * @param n - The number of rounds in the circle
+     * @param springPeriod - z-distance between coils of spirng.  Positive for right handed, negative for left.
+     * @param springLength - the length of the spring along z axis
      * Spring centered at origin
      */
-    public Spring(double R, double r, double P, int n){
-        this(0,0,0,R,r,P,n);
+    public Spring(double R, double r, double springPeriod, double springLength){
+        this(0,0,0,R,r,springPeriod, springLength);
     }
 
     /**
@@ -81,20 +77,18 @@ public class Spring extends TransformableDataSource{
      * @param cx - x component of center
      * @param cy - y component of center
      * @param cz - z component of center
-     * @param R -  Distance from the center of the tube
+     * @param R -  Distance from the center of the tube to center of coil  
      * @param r - Radius of the tube
-     * @param P - Speed of the movement along z axis.  Positive for right handed, negative for left.
-     * @param n - The number of rounds in the circle
+     * @param springPeriod - z-distance between coils of spirng.  Positive for right handed, negative for left.
+     * @param springLength - the length of the spring along z axis
      */
-    public Spring(double cx, double cy, double cz, double R,double r, double P, int n){
+    public Spring(double cx, double cy, double cz, double R,double r, double springPeriod, double springLength){
         setCenter(cx, cy, cz);
         this.R = R;
         this.r = r;
-        this.P = P;
-        this.n = n;
-
-        zmin = n * -P - r;
-        zmax = n * P + r;
+        this.springPeriod = springPeriod;
+        zmin = -springLength/2;
+        zmax =  springLength/2;
     }
 
     /**
@@ -121,29 +115,35 @@ public class Spring extends TransformableDataSource{
                 y = pnt.v[1] - y0,
                 z = pnt.v[2] - z0;
 
-        if (z < zmin || z > zmax) {
+        if (zmin != zmax && (z < zmin || z > zmax)){
             data.v[0] = 0;
             return RESULT_OK;
         }
 
-        double period = 2 * (P + r);
-        z -= (period)*floor(z/(period));
-        z -= period/2;
+        double period = springPeriod;
+        z -= (period)*(floor(z/period));
 
-        /*
-        // Closest to working for n=2
-        if (z > (P + r)) {
-            z = (z % (P + r)) - (P + r);
-        }
-        */
+        double rxy = sqrt(x*x + y*y) - R;        
 
-        //z = z % (P + r);
-        //z = (z + (P + r) / 2.0) % (P + r);
-
-        double rxy = sqrt(x*x + y*y) - R;
-        double zloc = z + P * Math.atan2(x,y) / Math.PI;
         
-        data.v[0] = step10((rxy*rxy + (zloc*zloc) - r*r) / (2*r), 0, pnt.getScaledVoxelSize());
+        double z0 = z - period * (0.5*Math.atan2(y,x) / Math.PI); 
+        double z1 = z0-period; 
+        double z2 = z0+period;
+        
+        double d0 = (rxy*rxy + z0*z0 - r*r)/(2*r); 
+        double d1 = (rxy*rxy + z1*z1 - r*r)/(2*r); 
+        double d2 = (rxy*rxy + z2*z2 - r*r)/(2*r); 
+
+        double vs = pnt.getScaledVoxelSize();
+        
+        d0 = step10(d0, 0, vs);
+        d1 = step10(d1, 0, vs);
+        d2 = step10(d2, 0, vs);
+        
+        double dist = Math.max(d0, d1);
+        dist = Math.max(dist, d2);
+        
+        data.v[0] = dist;
 
         return RESULT_OK;
     }
