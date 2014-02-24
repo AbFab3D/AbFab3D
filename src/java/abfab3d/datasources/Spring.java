@@ -19,6 +19,8 @@ import javax.vecmath.Vector3d;
 
 import static abfab3d.util.MathUtil.step10;
 import static java.lang.Math.floor;
+import static java.lang.Math.pow;
+import static java.lang.Math.abs;
 import static java.lang.Math.sqrt;
 
 
@@ -30,6 +32,7 @@ import static java.lang.Math.sqrt;
  * Working from this definition: http://en.wikipedia.org/wiki/Spring_(math)
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public class Spring extends TransformableDataSource{
 
@@ -42,8 +45,13 @@ public class Spring extends TransformableDataSource{
     /** distance between consequtive coils of the spring. Positive for right handed, negative for left.  */
     private double springPeriod;
     
+    private double crossSectionPower = 2;
+    private double rpower; //r^power
+    private double rpower1; //r^(power-1)
+
     private double x0,y0,z0;
     private double zmin,zmax;
+
 
     /**
      * Spring with specified center, outer radius, tube radius, speed and number of turns
@@ -101,6 +109,30 @@ public class Spring extends TransformableDataSource{
     }
 
     /**
+       sets power of the crossection shape (x^p + y^p = r^p) 
+       for p = 2 we have circle 
+       for p > 2 we have square with rounded corners 
+       for p < 2 we have rhombus with rounded corners 
+
+     */
+    public void setCrossSectionPower(double value){
+        this.crossSectionPower = value;
+    }
+    
+    /**
+     * @noRefGuide
+     */
+    public int initialize(){
+
+        super.initialize();
+
+        this.rpower = pow(r, crossSectionPower);
+        this.rpower1 = pow(r, crossSectionPower-1);
+        
+        return RESULT_OK;
+    }
+
+    /**
      * returns 1 if pnt is inside of Spring
      * returns interpolated value if point is within voxel size to the boundary
      * returns 0 if pnt is outside the Spring
@@ -125,25 +157,21 @@ public class Spring extends TransformableDataSource{
 
         double rxy = sqrt(x*x + y*y) - R;        
 
+        double helixOffset = Math.atan2(y,x) / Math.PI;        
+        double z0 = z - period * (0.5*Math.atan2(y,x) / Math.PI);         
+        // select the closestpnt.getScaledVoxelSize() branch of helix
+        if(z0 > period/2) z0 -= period; 
+        if(z0 < -period/2) z0 += period;
         
-        double z0 = z - period * (0.5*Math.atan2(y,x) / Math.PI); 
-        double z1 = z0-period; 
-        double z2 = z0+period;
+        //double d0 = (rxy*rxy + z0*z0 - r*r)/(2*r); 
         
-        double d0 = (rxy*rxy + z0*z0 - r*r)/(2*r); 
-        double d1 = (rxy*rxy + z1*z1 - r*r)/(2*r); 
-        double d2 = (rxy*rxy + z2*z2 - r*r)/(2*r); 
+        double p = crossSectionPower;
+        
+        double d0 = (pow(abs(rxy), p) + pow(abs(z0), p) - rpower)/(p*rpower1); 
+        
 
-        double vs = pnt.getScaledVoxelSize();
-        
-        d0 = step10(d0, 0, vs);
-        d1 = step10(d1, 0, vs);
-        d2 = step10(d2, 0, vs);
-        
-        double dist = Math.max(d0, d1);
-        dist = Math.max(dist, d2);
-        
-        data.v[0] = dist;
+        d0 = step10(d0, 0, pnt.getScaledVoxelSize());
+        data.v[0] = d0;
 
         return RESULT_OK;
     }
