@@ -202,7 +202,13 @@ public class AbFab3DGlobal  {
                 vs = getDouble(args[1]);
             }
         }
-
+        double margin = vs;
+        if (args.length > 2) {
+            if (args[2] instanceof Number) {
+                margin = getDouble(args[2]);
+            }
+        }
+        
         printf("load(%s, %7.3f mm)\n",filename, vs/MM);
         
         try {
@@ -228,12 +234,12 @@ public class AbFab3DGlobal  {
                     }
                 }
             }
+            // Add a margin around the model to get some space 
+            bounds = MathUtil.extendBounds(bounds, margin);            
             //
             // round up to the nearest voxel 
             //
             MathUtil.roundBounds(bounds, vs);
-            // Add a 1 voxel margin around the model to get some space 
-            bounds = MathUtil.extendBounds(bounds, 1 * vs);
             int nx = (int) Math.round((bounds[1] - bounds[0]) / vs);
             int ny = (int) Math.round((bounds[3] - bounds[2]) / vs);
             int nz = (int) Math.round((bounds[5] - bounds[4]) / vs);

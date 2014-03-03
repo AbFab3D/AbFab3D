@@ -288,6 +288,9 @@ public class ReflectionGroup {
         pnt.v[2] *= f;
     }
 
+    /**
+       angle is defined as angle between external normals 
+     */
     public static double getCosAngle(Sphere s1, Sphere s2){
 
         double r1 = s1.getRadius();
@@ -300,10 +303,13 @@ public class ReflectionGroup {
         
         double d = Math.sqrt(dx*dx + dy*dy + dz*dz);
 
-        return (d*d - r1*r1 - r2*r2)/(2*r1*r2);
+        return -(d*d - r1*r1 - r2*r2)/(2*r1*r2);
                 
     }
 
+    /**
+       angle is defined as angle between external normals 
+     */
     public static double getCosAngle(Plane p1, Plane p2){
 
         Vector3d n1 = p1.getNormal();
@@ -312,16 +318,16 @@ public class ReflectionGroup {
 
     }
     
+    /**
+       angle is defined as angle between external normals 
+     */
     public static double getCosAngle(Sphere s1, Plane p2){
 
         Vector3d c1 = s1.getCenter();
         double r1 = s1.getRadius();
         Vector3d n2 = p2.getNormal();
-        double r2 = p2.getDistance();
-        if(true)
-        throw new IllegalArgumentException("getCosAngle(Sphere s1, Plane p2) not implemented");
-        //TODO 
-        return 0;
+        double d2 = p2.getDistance();
+        return  -(c1.dot(n2) - d2)/r1;
 
     }
   

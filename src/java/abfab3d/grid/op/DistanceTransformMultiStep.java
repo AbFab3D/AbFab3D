@@ -88,8 +88,8 @@ public class DistanceTransformMultiStep  extends DistanceTransform implements Op
     double m_inDistance = 0; 
     double m_outDistance = 0;
     
-    int m_maxInDistance = 0; // maximal outside distance (expressed in units of voxelSize/m_maxAttribute)
-    int m_maxOutDistance = 0; // maximal inside distance (expressed in units of voxelSize/m_maxAttribute)
+    int m_maxInDistance = 0; // maximal outside distance ( in subvoxels )
+    int m_maxOutDistance = 0; // maximal inside distance ( in subvoxels )
     int m_defaultValue = Short.MAX_VALUE;
     int nx, ny, nz;
     int m_surfaceValue;
