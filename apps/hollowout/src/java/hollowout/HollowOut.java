@@ -74,16 +74,15 @@ public class HollowOut {
         TriangleModelCreator tmc = null;
 
         double rx = 0,ry = 1,rz = 0,rangle = 0;
-        int outerMaterial = 1;
-        int innerMaterial = 1;
+        long innerMaterial = 1;
 
 
         tmc = new TriangleModelCreator(geom,x,y,z,
-            rx,ry,rz,rangle,outerMaterial,innerMaterial,false);
+            rx,ry,rz,rangle,innerMaterial,false);
 
         tmc.generate(grid);
 
-        ThickenUniform op = new ThickenUniform(outerMaterial);
+        ThickenUniform op = new ThickenUniform(innerMaterial);
 
         for(int i=0; i < thickenPasses; i++) {
             op.execute(grid);
