@@ -325,8 +325,9 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * Clone the object.
      */
     public Object clone() {
-        ArrayAttributeGridByte ret_val = new ArrayAttributeGridByte(this);
 
+        ArrayAttributeGridByte ret_val = new ArrayAttributeGridByte(this);
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }

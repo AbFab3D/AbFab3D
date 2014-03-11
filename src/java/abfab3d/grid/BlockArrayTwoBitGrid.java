@@ -337,7 +337,10 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	 * Clone factory.
 	 */
 	public BlockArrayTwoBitGrid clone() {
-		return new BlockArrayTwoBitGrid(this);
+            BlockArrayTwoBitGrid ret_val = new BlockArrayTwoBitGrid(this);
+            BaseGrid.copyBounds(this, ret_val);
+            return ret_val;
+
 	}
 }
 

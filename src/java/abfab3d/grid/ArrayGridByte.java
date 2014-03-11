@@ -196,7 +196,7 @@ public class ArrayGridByte extends BaseGrid {
      */
     public Object clone() {
         ArrayGridByte ret_val = new ArrayGridByte(this);
-
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 

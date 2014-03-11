@@ -289,6 +289,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
     public Object clone() {
         ArrayAttributeGridShortIndexLong ret_val = new ArrayAttributeGridShortIndexLong(this);
 
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }

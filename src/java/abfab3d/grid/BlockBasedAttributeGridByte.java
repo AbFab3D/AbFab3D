@@ -564,7 +564,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      */
     public Object clone() {
         BlockBasedAttributeGridByte ret_val = new BlockBasedAttributeGridByte(this);
-
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 

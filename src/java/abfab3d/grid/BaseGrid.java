@@ -506,6 +506,18 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     /**
+       copy grid bounds from srcGrid to destGrid
+     */
+    public static void copyBounds(Grid srcGrid, Grid destGrid){
+
+        double bounds[] = new double[6];
+        srcGrid.getGridBounds(bounds);
+        destGrid.setGridBounds(bounds);
+
+    }
+
+
+    /**
      * Get the grid bounds in world coordinates.
      *
      * @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}

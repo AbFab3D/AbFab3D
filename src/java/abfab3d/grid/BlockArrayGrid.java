@@ -525,7 +525,10 @@ public class BlockArrayGrid extends BaseGrid {
      * Clone factory.
      */
     public Object clone() {
-        return new BlockArrayGrid(this);
+
+        BlockArrayGrid ret_val = new BlockArrayGrid(this);        
+        BaseGrid.copyBounds(this, ret_val);
+        return ret_val;
     }
 
     /**

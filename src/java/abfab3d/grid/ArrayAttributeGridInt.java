@@ -311,6 +311,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public Object clone() {
         ArrayAttributeGridInt ret_val = new ArrayAttributeGridInt(this);
 
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }
