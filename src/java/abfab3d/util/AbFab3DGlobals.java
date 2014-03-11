@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2012
+ *                        Shapeways, Inc Copyright (c) 2014
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -19,21 +19,17 @@ import java.util.HashMap;
 // None
 
 /**
- * A holder and manager of application parameters
+ * A holder and manager of global parameters
  * <p>
  *
- * Parameters are, typically, read in during the class start up time from
- * whatever environment started the app. This can then be queried at any
- * time during the running of the application for the values of those
- * properties.
- *
- * @author Russell Dodds
- * @version $Revision: 1.4 $
+ * @author Alan Hudson
  */
-public class ApplicationParams {
+public class AbFab3DGlobals {
+    public static final String MAX_PROCESSOR_COUNT_KEY = "maxProcessorCount";
+    public static final int MAX_PROCESSOR_COUNT_DEFAULT = 8;
 
     /** The singleton class */
-    private static ApplicationParams applicationParams;
+    private static AbFab3DGlobals globals;
 
     /** Map of application parameters name = value */
     private static HashMap<String, Object> params;
@@ -41,8 +37,10 @@ public class ApplicationParams {
     /**
      * Private constructor to prevent direct instantiation.
      */
-    private ApplicationParams() {
+    private AbFab3DGlobals() {
         params = new HashMap<String, Object>();
+
+        params.put(MAX_PROCESSOR_COUNT_KEY, MAX_PROCESSOR_COUNT_DEFAULT);
     }
 
     /**
@@ -52,8 +50,8 @@ public class ApplicationParams {
      * @param value
      */
     public static void put(String name, Object value) {
-        if (applicationParams == null) {
-            applicationParams = new ApplicationParams();
+        if (globals == null) {
+            globals = new AbFab3DGlobals();
         }
 
         params.put(name, value);
@@ -65,7 +63,7 @@ public class ApplicationParams {
      * @param name
      */
     public static void remove(String name) {
-        if (applicationParams == null) {
+        if (globals == null) {
             return;
         }
 
@@ -79,7 +77,7 @@ public class ApplicationParams {
      * @return
      */
     public static Object get(String name) {
-        if (applicationParams == null) {
+        if (globals == null) {
             return null;
         }
 
@@ -94,7 +92,7 @@ public class ApplicationParams {
      * @return true when the parameter is defined, false otherwise
      */
     public static boolean contains(String name) {
-        if (applicationParams == null) {
+        if (globals == null) {
             return false;
         }
 
@@ -107,7 +105,7 @@ public class ApplicationParams {
      * @return
      */
     public static HashMap<String, Object> getAll() {
-        if (applicationParams == null) {
+        if (globals == null) {
             return null;
         }
 

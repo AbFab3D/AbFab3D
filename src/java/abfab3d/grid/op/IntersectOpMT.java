@@ -18,6 +18,7 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.Grid;
 import abfab3d.grid.Operation;
+import abfab3d.util.AbFab3DGlobals;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -71,11 +72,15 @@ public class IntersectOpMT implements Operation, AttributeOperation {
     }
 
     public void setThreadCount(int count) {
-        threadCount = count;
-
-        if (threadCount < 1) {
-            threadCount = 1;
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
         }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
+
+        threadCount = count;
     }
 
     /**
