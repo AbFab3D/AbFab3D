@@ -78,7 +78,7 @@ public class AbFab3DGlobals {
      */
     public static Object get(String name) {
         if (globals == null) {
-            return null;
+            globals = new AbFab3DGlobals();
         }
 
         return params.get(name);
@@ -93,7 +93,7 @@ public class AbFab3DGlobals {
      */
     public static boolean contains(String name) {
         if (globals == null) {
-            return false;
+            globals = new AbFab3DGlobals();
         }
 
         return params.containsKey(name);
@@ -106,7 +106,7 @@ public class AbFab3DGlobals {
      */
     public static HashMap<String, Object> getAll() {
         if (globals == null) {
-            return null;
+            globals = new AbFab3DGlobals();
         }
 
         return params;
