@@ -539,7 +539,9 @@ public class ShapeJSGlobal {
     private static AttributeGrid makeEmptyGrid(int[] gs, double vs) {
         AttributeGrid dest = null;
 
-        long voxels = (long) gs[0] * gs[1] * gs[2];
+        long voxels = (long) ((gs[0] / vs) * (gs[1] / vs) * (gs[2] / vs));
+
+        printf("Creating grid: %d %d %d",gs[0],gs[1],gs[2]);
         long max_voxels = (long) MAX_GRID_SIZE * MAX_GRID_SIZE * MAX_GRID_SIZE;
 
         if (voxels > max_voxels) {

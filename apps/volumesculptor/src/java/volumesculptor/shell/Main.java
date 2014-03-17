@@ -900,9 +900,6 @@ public class Main {
 
         System.out.println("Func Args: " + java.util.Arrays.toString(args));
 
-        for(int i=0; i < args.length; i++) {
-            System.out.println("class: " + args[i].getClass());
-        }
         System.out.println("Main is: " + main.getClass());
         Object result = main.call(cx, scope, scope, new Object[] {args});
 
