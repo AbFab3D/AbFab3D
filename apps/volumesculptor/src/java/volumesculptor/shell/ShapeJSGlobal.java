@@ -539,15 +539,15 @@ public class ShapeJSGlobal {
     private static AttributeGrid makeEmptyGrid(int[] gs, double vs) {
         AttributeGrid dest = null;
 
-        long voxels = (long) ((gs[0] / vs) * (gs[1] / vs) * (gs[2] / vs));
+        long voxels = ((long) (gs[0])) * gs[1] * gs[2];
 
-        printf("Creating grid: %d %d %d",gs[0],gs[1],gs[2]);
+        printf("Creating grid: %d %d %d\n",gs[0],gs[1],gs[2],voxels);
         long max_voxels = (long) MAX_GRID_SIZE * MAX_GRID_SIZE * MAX_GRID_SIZE;
 
         if (voxels > max_voxels) {
-            System.out.println("Maximum voxel size exceeded.  Max is: " + MAX_GRID_SIZE + " grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+            System.out.println("Maximum grid size exceeded.  Max is: " + MAX_GRID_SIZE + "^3 grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
             throw Context.reportRuntimeError(
-                    "Maximum voxel size exceeded.  Max is: " + MAX_GRID_SIZE + " grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+                    "Maximum grid size exceeded.  Max is: " + MAX_GRID_SIZE + "^3 grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
         }
 
         long MAX_MEMORY = Integer.MAX_VALUE;
