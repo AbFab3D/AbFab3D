@@ -13,8 +13,6 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
-
 import java.util.Vector;
 
 import javax.vecmath.Vector3d;
@@ -58,8 +56,7 @@ public class Union  extends TransformableDataSource {
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
     DataSource vDataSources[];
-    
-    
+
     /**
        Create empty union. Use add() method to add arbitrary number of shapes to the union. 
      */
@@ -75,13 +72,20 @@ public class Union  extends TransformableDataSource {
         add(shape1);
         add(shape2);        
     }
-    
+
+    /**
+     * Union Constructor
+     */
+    public Union(DataSource shape1){
+        add(shape1);
+    }
+
     /**
        add item to union. 
        @param shape item to add to union of multiple shapes 
     */
     public void add(DataSource shape){
-        dataSources.add(shape);            
+        dataSources.add(shape);
     }
     
     /**
@@ -91,7 +95,7 @@ public class Union  extends TransformableDataSource {
 
         super.initialize();
         vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
-        
+
         for(int i = 0; i < vDataSources.length; i++){
             
             DataSource ds = vDataSources[i];
@@ -99,8 +103,9 @@ public class Union  extends TransformableDataSource {
                 ((Initializable)ds).initialize();
             }
         }
+
+
         return RESULT_OK;
-        
     }
     
     
@@ -120,10 +125,10 @@ public class Union  extends TransformableDataSource {
         for(int i = 0; i < len; i++){
             
             DataSource ds = dss[i];
-            //TODO garbage generation 
+
             Vec pnt1 = new Vec(pnt);
             int res = ds.getDataValue(pnt1, data);
-            
+
             if(res != RESULT_OK){
                 // outside of domain
                 continue;
