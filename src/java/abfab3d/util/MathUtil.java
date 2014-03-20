@@ -740,4 +740,205 @@ public class MathUtil {
         
     }
 
+    /**
+       solves system of 3 linear equation with 3 variables
+       M X = C
+       stores result in X 
+       @param M - matrix stored as linear array 
+       
+       m00*x0  + m01*x1 + m02*x2 = c0
+       m10*x0  + m11*x1 + m12*x2 = c1
+       m20*x0  + m21*x1 + m22*x2 = c2        
+       
+       return false if equation has no unique solution exists (determinant is 0) 
+       
+     */
+    public static final int M00 = 0, M01 = 1, M02 = 2, M10 = 3, M11 = 4, M12 = 5, M20 = 6, M21 = 7, M22 = 8;
+    static final double EPS = 1.e-9;
+    public static boolean solveLinear3(double m[], double c[], double x[]){
+        double det = 
+            + m[M00] * (m[M11]*m[M22] - m[M12]*m[M21])
+            - m[M10] * (m[M01]*m[M22] - m[M21]*m[M02]) 
+            + m[M20] * (m[M01]*m[M12] - m[M11]*m[M02]);
+        if(Math.abs(det) < EPS) 
+            return false;
+            
+        // calculate minors 
+        double d0 = 
+            + c[0] * (m[M11]*m[M22] - m[M21]*m[M12])
+            - c[1] * (m[M01]*m[M22] - m[M21]*m[M02]) 
+            + c[2] * (m[M01]*m[M12] - m[M11]*m[M02]);
+        double d1 = 
+            - c[0] * (m[M10]*m[M22] - m[M20]*m[M12])
+            + c[1] * (m[M00]*m[M22] - m[M20]*m[M02]) 
+            - c[2] * (m[M00]*m[M12] - m[M10]*m[M02]);
+        
+        double d2 = 
+            + c[0] * (m[M10]*m[M21] - m[M20]*m[M11])
+            - c[1] * (m[M00]*m[M21] - m[M20]*m[M01]) 
+            + c[2] * (m[M00]*m[M11] - m[M10]*m[M01]);
+
+        x[0] = d0/det;
+        x[1] = d1/det;
+        x[2] = d2/det;
+
+        return true;
+    }
+
+    /**
+       calcyulated result of multiplication of 3x3 matrix and vector 3 vector
+       y = M x 
+       y0 = m00*x0 + m01*x1 + m02*x2 
+       y1 = m10*x0 + m11*x1 + m12*x2 
+       y2 = m20*x0 + m21*x1 + m22*x2 
+
+     */
+    public static void multMV3(double m[], double x[], double y[]){
+
+        y[0] = m[M00] * x[0] + m[M01] * x[1] + m[M02] * x[2];
+        y[1] = m[M10] * x[0] + m[M11] * x[1] + m[M12] * x[2];
+        y[2] = m[M20] * x[0] + m[M21] * x[1] + m[M22] * x[2];
+        
+    }
+    
+    public static double maxDistance(double x[], double y[]){
+
+        int n = x.length;
+        double maxDist = 0;
+        for(int i = 0; i < n; i++){
+            double d = Math.abs(x[i] - y[i]);
+            if(d > maxDist) 
+                maxDist = d;
+        }
+        return maxDist;
+    }
+
+    /**
+       calculates best plane via given 3D points 
+       @param coord - coordinates of points stored in flat array x0,y0,z0,x1,y,1,z1,...
+       @param m - working array of length 9 
+       @param c - working array of length 3 
+       @param - coefficients of of equation of plane: px * x + py * y + pz * z + 1 = 0;
+
+       we minimize the sum of distances of point to the plane 
+       sum_i( px * xi + py * yi + pz * zi + 1)^2 = minimum 
+       
+       
+    */
+    public static boolean getBestPlane(double coord[], double m[], double c[], double plane[]){
+
+        double sxx = 0,sxy = 0, sxz = 0, syy = 0, syz = 0, szz = 0, sx = 0, sy = 0, sz = 0;
+        int n = coord.length/3;
+        
+        if(n < 3) {
+            return false;
+        }
+
+        for(int i = 0, k = 0; i < n; i++, k += 3){
+            
+            double x = 
+                coord[k],
+                y = coord[k+1],
+                z = coord[k+2];
+            
+            sx += x;
+            sy += y;
+            sz += z;
+            sxx += x*x;
+            sxy += x*y;
+            sxz += x*z;
+            syy += y*y;
+            syz += y*z;
+            szz += z*z;
+
+        }
+
+        // try plane equation ax + by + cz + 1 = 0;
+        c[0] = -sx;
+        c[1] = -sy;
+        c[2] = -sz;
+        m[M00] = sxx; m[M01] = sxy; m[M02] = sxz;
+        m[M10] = sxy; m[M11] = syy; m[M12] = syz;
+        m[M20] = sxz; m[M21] = syz; m[M22] = szz;
+
+        if(solveLinear3(m, c, plane)){            
+            plane[3] = 1;
+            normalizePlane(plane);
+            return true;
+        }
+
+        // try plane equation ax + by + z + d = 0;
+
+        c[0] = -sxz;
+        c[1] = -syz;
+        c[2] = -sz;
+        m[M00] = sxx; m[M01] = sxy; m[M02] = sx;
+        m[M10] = sxy; m[M11] = syy; m[M12] = sy;
+        m[M20] = sx;  m[M21] = sy;  m[M22] = n;
+        if(solveLinear3(m, c, plane)){  
+            double d = plane[2];
+            plane[2] = 1;
+            plane[3] = d;
+            normalizePlane(plane);
+            return true;
+        }
+
+        // try plane equation ax + y + cz + d = 0;
+        c[0] = -sxy;
+        c[1] = -sy;
+        c[2] = -syz;
+        m[M00] = sxx; m[M01] = sx; m[M02] = sxz;
+        m[M10] = sx;  m[M11] = n;   m[M12] = sz;
+        m[M20] = sxz; m[M21] = sz; m[M22] = szz;
+        
+        if(solveLinear3(m, c, plane)){  
+            double d = plane[1];
+            plane[1] = 1;
+            plane[3] = d;
+            normalizePlane(plane);
+            return true;
+        }
+
+        // try plane equation x + by + cz + d = 0;
+        c[0] = -sx;
+        c[1] = -sxy;
+        c[2] = -sxz;
+        m[M00] = n;  m[M01] = sy; m[M02] = sz;
+        m[M10] = sy; m[M11] = syy; m[M12] = syz;
+        m[M20] = sz; m[M21] = syz; m[M22] = szz;
+        
+        if(solveLinear3(m, c, plane)){  
+            double d = plane[0];
+            plane[0] = 1;
+            plane[3] = d;
+            normalizePlane(plane);
+            return true;
+        }
+        plane[0] = plane[1] = plane[2] = plane[3] = 0;
+        return false;
+        
+    }
+
+
+    /**
+       make plane coefficients normaliuzed 
+     */
+    public static void normalizePlane(double plane[]){
+
+        double s0 = plane[0]*plane[0];
+        double s1 = plane[1]*plane[1];
+        double s2 = plane[2]*plane[2];
+        double s3 = plane[3]*plane[3];
+        
+        double s = sqrt(s0 + s1 + s2 + s3);
+
+        plane[0] /= s;
+        plane[1] /= s;
+        plane[2] /= s;
+        plane[3] /= s;
+
+    }
+    
+
+
 }

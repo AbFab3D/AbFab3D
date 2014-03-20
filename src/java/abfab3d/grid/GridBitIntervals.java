@@ -14,6 +14,10 @@ package abfab3d.grid;
 
 
 import java.io.Serializable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -25,7 +29,7 @@ import static abfab3d.util.Output.fmt;
    @author Vladimir Bulatov
 */
 public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, GridIntervals, Serializable {
-
+    private static final boolean STATS = false;
     public static final int ORIENTATION_X=0, ORIENTATION_Y=1, ORIENTATION_Z = 2; // orientation of intervals
 
     protected int m_orientation;
@@ -372,7 +376,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             break;
         }
 
-        //printf(" find() custom procesing\n");
+        //printf(" find() custom procesing: y: %d x: %d\n",m_ny,m_nx);
 
         for(int y = 0; y < m_ny; y++){
             for(int x = 0; x < m_nx; x++){
@@ -383,6 +387,124 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             }
         }
     }
+
+    public void findMT(VoxelClasses vc, ClassTraverser t, int threadCount){
+
+        //printf("%s.find(%s)\n",this, vc);
+
+        RowProcesser rp = new RowProcesser(t);
+        int data;
+
+        switch(vc){
+            default:
+                //printf(" find() default procesing\n");
+                // go to default routine
+                super.find(vc,  t);
+                return;
+            case INSIDE:
+                data = 1;
+                break;
+        }
+
+        ConcurrentLinkedQueue<MTSlice> slices = new ConcurrentLinkedQueue<MTSlice>();
+
+        int sliceHeight = 1;
+
+        for (int y = 0; y < height; y += sliceHeight) {
+            int ymax = y + sliceHeight;
+            if (ymax > height)
+                ymax = height;
+
+            if (ymax > y) {
+                // non zero slice
+                slices.add(new MTSlice(y, ymax - 1));
+            }
+        }
+
+        if (STATS) {
+            printf("GridBitIntervals.findMT.  STATS mode.  slices: %d\n",slices.size());
+        }
+        if (threadCount == 0) {
+            threadCount = Runtime.getRuntime().availableProcessors();
+        }
+        if (threadCount < 1) {
+            threadCount = 1;
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            Runnable runner = new findMTVoxelClasses(vc,slices,this,t);
+
+            executor.submit(runner);
+        }
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static class findMTVoxelClasses implements Runnable {
+
+        private ConcurrentLinkedQueue<MTSlice> slices;
+        private VoxelClasses vc;
+        private GridBitIntervals grid;
+        private ClassTraverser t;
+
+        /** How many slices where processed.  Only collected with STATS true */
+        private long slicesProcessed;
+
+        public findMTVoxelClasses(VoxelClasses vc, ConcurrentLinkedQueue<MTSlice> slices, GridBitIntervals grid, ClassTraverser t) {
+            this.vc = vc;
+            this.slices = slices;
+            this.grid = grid;
+            this.t = t;
+        }
+
+        public void run() {
+            int width = grid.getWidth();
+            int depth = grid.getDepth();
+            RowProcesser rp = new RowProcesser(t);
+
+            while (true) {
+                MTSlice slice = slices.poll();
+
+                if (slice == null) {
+                    // end of processing
+                    break;
+                }
+
+                if (STATS) {
+                    slicesProcessed++;
+                }
+
+                int len_x = width;
+                int len_y = slice.ymax;
+                int len_z = depth;
+
+                int m_nx = grid.m_nx;
+                for(int y = slice.ymin; y <= len_y; y++){
+                    for(int x = 0; x <= len_x; x++){
+                        RowOfInt row = grid.m_data[x + m_nx*y];
+                        if(row == null)
+                            continue;
+                        rp.setXY(x,y);
+                        row.find(1, rp);
+                    }
+                }
+
+
+            }
+
+            if (STATS) {
+                printf("GridBitIntervals.findMT stats.  Thread: %s  SlicesProcessed: %6d\n",Thread.currentThread().getName(),slicesProcessed);
+            }
+
+        }
+    }
+
 
     public void find(VoxelClasses vc, ClassTraverser t, int xmin, int xmax, int ymin, int ymax){
 
@@ -488,7 +610,10 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
      */
     public Object clone(){
 
-        return new GridBitIntervals(this);
+        GridBitIntervals ret_val = new GridBitIntervals(this);
+        
+        BaseGrid.copyBounds(this, ret_val);
+        return ret_val;
 
     }
 

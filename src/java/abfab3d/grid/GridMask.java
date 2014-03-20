@@ -44,7 +44,7 @@ public class GridMask implements GridBit {
         int offset = xint + y*lenx + z * lenxy;
         
         int w = data[offset];
-        return ((w & (1 << bit)));
+        return ((w >> bit) & 1);
         
     }
     

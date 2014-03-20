@@ -175,7 +175,12 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         int s_z = (int) (z / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
-        
+
+        // TODO: remove me
+        if (idx < 0 || idx > data.length - 1) {
+            System.out.println("****problem iob");
+            System.out.flush();
+        }
         return ioFunc.getState(data[idx] & 0xFF);
     }
 
@@ -320,8 +325,9 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * Clone the object.
      */
     public Object clone() {
-        ArrayAttributeGridByte ret_val = new ArrayAttributeGridByte(this);
 
+        ArrayAttributeGridByte ret_val = new ArrayAttributeGridByte(this);
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }

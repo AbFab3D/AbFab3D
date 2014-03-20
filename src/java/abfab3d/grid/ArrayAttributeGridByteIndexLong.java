@@ -290,6 +290,7 @@ public class ArrayAttributeGridByteIndexLong extends BaseAttributeGrid {
     public Object clone() {
         ArrayAttributeGridByteIndexLong ret_val = new ArrayAttributeGridByteIndexLong(this);
 
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }

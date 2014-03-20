@@ -16,6 +16,8 @@ import abfab3d.util.TriangleCollector;
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
+import abfab3d.util.Transformer;
+
 import org.j3d.loaders.InvalidFormatException;
 import org.j3d.loaders.stl.STLFileReader;
 import org.web3d.vrml.lang.VRMLException;
@@ -41,7 +43,7 @@ import static java.lang.System.currentTimeMillis;
  *
  * @author Vladimir Bulatov
  */
-public class STLReader implements TriangleProducer {
+public class STLReader implements TriangleProducer, Transformer {
 
     static final boolean DEBUG = false;
 
@@ -131,19 +133,18 @@ public class STLReader implements TriangleProducer {
         boolean ascii = isAscii(path);
 
         try {
-            if (!ascii) {
-                if (transform == null) {
-                    readNoTransformBinary(path, out);
-                } else {
-                    readTransformBinary(path, out);
-                }
-            } else {
+            if (ascii) {
                 if (transform == null) {
                     readNoTransformAscii(path, out);
                 } else {
                     readTransformAscii(path, out);
                 }
-
+            } else { // binary 
+                if (transform == null) {
+                    readNoTransformBinary(path, out);
+                } else {
+                    readTransformBinary(path, out);
+                }
             }
         } catch(InvalidFormatException ife) {
             if (ascii) {

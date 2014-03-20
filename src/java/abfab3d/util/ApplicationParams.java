@@ -46,6 +46,7 @@ public class ApplicationParams {
     }
 
     /**
+     * Put a value.
      *
      * @param name
      * @param value
@@ -59,9 +60,9 @@ public class ApplicationParams {
     }
 
     /**
+     * Remove a value.
      *
      * @param name
-     * @param value
      */
     public static void remove(String name) {
         if (applicationParams == null) {
@@ -72,6 +73,7 @@ public class ApplicationParams {
     }
 
     /**
+     * Get a value.
      *
      * @param name
      * @return
@@ -100,8 +102,8 @@ public class ApplicationParams {
     }
 
     /**
+     * Get all the parameters.
      *
-     * @param name
      * @return
      */
     public static HashMap<String, Object> getAll() {

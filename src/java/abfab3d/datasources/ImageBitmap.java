@@ -276,8 +276,8 @@ public class ImageBitmap extends TransformableDataSource {
     /**
      * set options to image embossing type
      *
-     * @param type Type ot the image. Possible values ImageBitmap.IMAGE_TYPE_EMBOSS, ImageBitmap.IMAGE_TYPE_ENGRAVE.
-     *             Default value ImageBitmap.IMAGE_TYPE_EMBOSS
+     * @param type Type ot the image. Possible values ImageBitmap.IMAGE_TYPE_EMBOSSED (default value), ImageBitmap.IMAGE_TYPE_ENGRAVED.
+     *             
      */
     public void setImageType(int type) {
 

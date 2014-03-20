@@ -15,6 +15,10 @@ package abfab3d.grid;
 // External Imports
 
 import java.io.Serializable;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
@@ -31,6 +35,8 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public abstract class BaseGrid implements Grid, Cloneable, Serializable {
+    private static final boolean STATS = false;
+
     // Empty voxel data value
     protected static final VoxelData EMPTY_VOXEL;
 
@@ -104,6 +110,10 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         this.hsheight = sheight / 2.0;
 
         sliceSize = w * d;
+
+        if (STATS) {
+            System.out.println("WARNING:  BaseGrid started in STATS mode");
+        }
     }
 
     /**
@@ -160,6 +170,137 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
                     }
                 }
                 break;
+        }
+    }
+
+    /**
+     * Traverse a class of voxels types.  May be much faster then
+     * full grid traversal for some implementations. Uses multiple threads to partition the grid.
+     *
+     * @param vc The class of voxels to traverse
+     * @param t  The traverer to call for each voxel
+     */
+    public void findMT(VoxelClasses vc, ClassTraverser t, int threadCount) {
+        ConcurrentLinkedQueue<MTSlice> slices = new ConcurrentLinkedQueue<MTSlice>();
+
+        int sliceHeight = 1;
+
+        for (int y = 0; y < height; y += sliceHeight) {
+            int ymax = y + sliceHeight;
+            if (ymax > height)
+                ymax = height;
+
+            if (ymax > y) {
+                // non zero slice
+                slices.add(new MTSlice(y, ymax - 1));
+            }
+        }
+
+        if (STATS) {
+            printf("findMT.  STATS mode.  slices: %d\n",slices.size());
+        }
+        if (threadCount == 0) {
+            threadCount = Runtime.getRuntime().availableProcessors();
+        }
+        if (threadCount < 1) {
+            threadCount = 1;
+        }
+
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        for (int i = 0; i < threadCount; i++) {
+            Runnable runner = new findMTVoxelClasses(vc,slices,this,t);
+
+            executor.submit(runner);
+        }
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    static class findMTVoxelClasses implements Runnable {
+
+        private ConcurrentLinkedQueue<MTSlice> slices;
+        private VoxelClasses vc;
+        private Grid grid;
+        private ClassTraverser t;
+
+        /** How many slices where processed.  Only collected with STATS true */
+        private long slicesProcessed;
+
+        public findMTVoxelClasses(VoxelClasses vc, ConcurrentLinkedQueue<MTSlice> slices, Grid grid, ClassTraverser t) {
+            this.vc = vc;
+            this.slices = slices;
+            this.grid = grid;
+            this.t = t;
+        }
+
+        public void run() {
+            int width = grid.getWidth();
+            int depth = grid.getDepth();
+
+            while (true) {
+                MTSlice slice = slices.poll();
+
+                if (slice == null) {
+                    // end of processing
+                    break;
+                }
+
+                if (STATS) {
+                    slicesProcessed++;
+                }
+
+                int len_x = width;
+                int len_y = slice.ymax;
+                int len_z = depth;
+
+                switch (vc) {
+                    case ALL:
+                        for (int y = slice.ymin; y <= len_y; y++) {
+                            for (int x = 0; x < len_x; x++) {
+                                for (int z = 0; z < len_z; z++) {
+                                    t.found(x, y, z, grid.getState(x, y, z));
+                                }
+                            }
+                        }
+                        break;
+                    case INSIDE:
+                        for (int y = slice.ymin; y <= len_y; y++) {
+                            for (int x = 0; x < len_x; x++) {
+                                for (int z = 0; z < len_z; z++) {
+                                    byte state = grid.getState(x, y, z);
+
+                                    if (state == Grid.INSIDE) {
+                                        t.found(x, y, z, state);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                    case OUTSIDE:
+                        for (int y = slice.ymin; y <= len_y; y++) {
+                            for (int x = 0; x < len_x; x++) {
+                                for (int z = 0; z < len_z; z++) {
+                                    byte state = grid.getState(x, y, z);
+
+                                    if (state == Grid.OUTSIDE) {
+                                        t.found(x, y, z, state);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+                }
+            }
+
+            if (STATS) {
+                printf("findMT stats.  Thread: %s  SlicesProcessed: %6d\n",Thread.currentThread().getName(),slicesProcessed);
+            }
+
         }
     }
 
@@ -365,6 +506,18 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     /**
+       copy grid bounds from srcGrid to destGrid
+     */
+    public static void copyBounds(Grid srcGrid, Grid destGrid){
+
+        double bounds[] = new double[6];
+        srcGrid.getGridBounds(bounds);
+        destGrid.setGridBounds(bounds);
+
+    }
+
+
+    /**
      * Get the grid bounds in world coordinates.
      *
      * @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
@@ -526,5 +679,6 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     public abstract Object clone();
+
 }
 

@@ -196,8 +196,10 @@ public class GridShortIntervals extends GridBitIntervals {
      * interface Grid
      */
     public Object clone() {
-
-        return new GridShortIntervals(this);
+        
+        GridShortIntervals ret_val = new GridShortIntervals(this);
+        copyBounds(this, ret_val);
+        return ret_val;
 
     }
 

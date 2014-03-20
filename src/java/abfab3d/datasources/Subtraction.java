@@ -116,7 +116,7 @@ public class Subtraction extends TransformableDataSource {
         
         if(res != RESULT_OK){
             data.v[0] = v1;
-            return res;
+            return RESULT_OK;
         }
         
         v2 = data.v[0];

@@ -39,6 +39,7 @@ import static abfab3d.util.Output.time;
  * @version
  */
 public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
+    private static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -174,6 +175,8 @@ public class TestDilationShape extends TestCase {//BaseTestAttributeGrid {
     }
 
     private void writeFile(Grid grid, String filename) {
+
+        if (!DEBUG) return;
 
         try {
 

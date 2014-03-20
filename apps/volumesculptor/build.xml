@@ -27,12 +27,7 @@
 
     <property name="entrypoint" value="volumesculptor.VolumeSculptor"/>
 
-    <!--    <property name="runarg0" value="-Xmx4300m"/> -->
     <property name="runarg0" value="-Xmx8800m"/>
-    <!--
-        <property name="runarg1" value="-Dsun.java2d.noddraw=true"/>
-        <property name="runarg2" value="-Djava.library.path=&quot;./natives/${os.name}/${os.arch}&quot;" />
-    -->
     <property name="jvmrunargs" value="${runarg0}"/>
 
     <target name="build"
@@ -200,7 +195,24 @@
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="volumesculptor.shell.Main" fork="true">
             <jvmarg line="${jvmrunargs}"/>
+            <arg value="-threads" />
+            <arg value="8" />
+            <arg value="-allowWrite" />
+            <arg value="true" />
+            <arg value="-outputType" />
+            <arg value="stl" />
+            <arg value="-outputFolder"/>
+            <arg value="." />
             <arg value="${script}" />
+            <arg value="${arg0}" />
+            <arg value="${arg1}" />
+            <arg value="${arg2}" />
+            <arg value="${arg3}" />
+            <arg value="${arg4}" />
+            <arg value="${arg5}" />
+            <arg value="${arg6}" />
+            <arg value="${arg7}" />
+            <arg value="${arg8}" />
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>

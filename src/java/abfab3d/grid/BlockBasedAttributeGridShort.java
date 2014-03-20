@@ -548,7 +548,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      */
     public Object clone() {
         BlockBasedAttributeGridShort ret_val = new BlockBasedAttributeGridShort(this);
-
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 

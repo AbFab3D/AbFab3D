@@ -21,8 +21,10 @@ import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 // Internal Imports
 
@@ -902,7 +904,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
  */
 class FindIterateTester implements ClassTraverser {
     private boolean foundCorrect;
-    private HashSet<VoxelCoordinate> vcSet;
+    private Set vcSet;
     private int iterateCount;
     private int vcSetCount;
 
@@ -913,7 +915,21 @@ class FindIterateTester implements ClassTraverser {
      * @param vc
      */
     public FindIterateTester(HashSet<VoxelCoordinate> vc) {
-        this.vcSet = (HashSet<VoxelCoordinate>) vc.clone();
+        this(vc,false);
+    }
+
+    /**
+     * Constructor that takes in a HashSet of VoxelCoordinates known to be
+     * in the VoxelClass to find
+     *
+     * @param vc
+     */
+    public FindIterateTester(HashSet<VoxelCoordinate> vc, boolean threadSafe) {
+        if (threadSafe) {
+            this.vcSet = Collections.synchronizedSet((Set)vc.clone());
+        } else {
+            this.vcSet = (HashSet<VoxelCoordinate>) vc.clone();
+        }
         foundCorrect = true;
         iterateCount = 0;
         vcSetCount = vcSet.size();

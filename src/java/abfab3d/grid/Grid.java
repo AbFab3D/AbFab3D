@@ -52,6 +52,8 @@ public interface Grid extends Cloneable {
     /**
      * Get the data for a voxel.
      *
+     * TODO:  some tests have shown this to be 5X slower then getAttribute!
+     *
      * @param x The x grid coordinate
      * @param y The y grid coordinate
      * @param z The z grid coordinate

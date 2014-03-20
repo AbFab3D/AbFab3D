@@ -39,7 +39,8 @@ import static abfab3d.util.Output.time;
  * @author Vladimir Bulatov
  * @version
  */
-public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
+public class TestDilationShapeMT extends TestCase {
+    private static final boolean DEBUG = false;
 
 
     /**
@@ -132,19 +133,24 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
     public void testDilationBall() {
 
-        int size = 75;
+        int size = 200;
         //int gridType = GRID_ARRAYBYTE;
-        int gridType = GRID_SHORTINTERVALS;
+        //int gridType = GRID_SHORTINTERVALS;
+        int gridType = GRID_BITINTERVALS;
+
         printf("testing block shape dilated by different size balls\n");
 
-        int maxDilation = 20;
+        int maxDilation = 10;
 
         int cores = Runtime.getRuntime().availableProcessors();
 
+        int TIMES = 1;
+
+        for(int i=0; i < TIMES; i++) {
         for(int k = maxDilation-1; k < maxDilation; k++){
             int s = size+2*(maxDilation+1);
             AttributeGrid grid = makeBlock(gridType,s,s,s, maxDilation);
-            printf("dilation size: %d\n",k);
+            printf("dilation size: %d  volume: %d \n",k,grid.findCount(Grid.VoxelClasses.INSIDE));
             DilationShapeMT dilm = new DilationShapeMT();
             dilm.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
             dilm.setThreadCount(cores);
@@ -152,7 +158,8 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
             long t0 = time();
             grid = dilm.execute(grid);
             printf("DilationShapeMT: %dms\n",(time() - t0));
-            int dilatedVolumeMT =  grid.findCount(Grid.INSIDE);
+            int dilatedVolumeMT =  grid.findCount(Grid.VoxelClasses.INSIDE);
+            printf("DilationShape DilationShapeMT: %d\n",dilatedVolumeMT);
 
             grid = makeBlock(gridType,s,s,s, maxDilation);
 
@@ -165,23 +172,77 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
 
             printf("DilationShape volume: %d, DilationShapeMT: %d\n",dilatedVolume, dilatedVolumeMT);
             assertTrue("DilationShapeMT and DilationShape volumes test", (dilatedVolume == dilatedVolumeMT));
-
+        }
         }
     }
+
+    public void _testScaling() {
+
+        int size = 400;
+        int gridType = GRID_ARRAYBYTE;
+        //int gridType = GRID_SHORTINTERVALS;
+        //int gridType = GRID_BITINTERVALS;
+
+        printf("testing block shape dilated by different size balls\n");
+
+        int maxDilation = 10;
+
+        int cores = Runtime.getRuntime().availableProcessors();
+
+        int WARMUP = 4;
+
+        for(int i=0; i < WARMUP; i++) {
+            for(int k = maxDilation-1; k < maxDilation; k++){
+                int s = size+2*(maxDilation+1);
+                AttributeGrid grid = makeBlock(gridType,s,s,s, maxDilation);
+                DilationShapeMT dilm = new DilationShapeMT();
+                dilm.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
+                dilm.setThreadCount(cores);
+                dilm.setSliceSize(1);
+                long t0 = time();
+                grid = dilm.execute(grid);
+                if (grid.getWidth() > 1000) { System.out.println("avoid optimization"); }
+                printf("DilationShapeMT: %dms\n",(time() - t0));
+            }
+        }
+
+        double[] factors = new double[cores];
+        long first = 0;
+
+        for(int threadCount = 1; threadCount <= cores; threadCount++) {
+            for(int k = maxDilation-1; k < maxDilation; k++){
+                int s = size+2*(maxDilation+1);
+                AttributeGrid grid = makeBlock(gridType,s,s,s, maxDilation);
+                DilationShapeMT dilm = new DilationShapeMT();
+                dilm.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
+                dilm.setThreadCount(threadCount);
+                dilm.setSliceSize(1);
+                long t0 = time();
+                grid = dilm.execute(grid);
+                long totalTime = time() - t0;
+                if (threadCount == 1) {
+                    first = totalTime;
+                }
+                factors[threadCount - 1] = (double) first / totalTime;
+                printf("Threads: %d  DilationShapeMT: %dms %6.2f\n",threadCount,(time() - t0), factors[threadCount - 1]);
+            }
+        }
+    }
+
 
     public void _testSpeed() {
 
         printEnv();
 
-        int gridType = GRID_ARRAYBYTE;
+        //int gridType = GRID_ARRAYBYTE;
         //int gridType = GRID_SHORTINTERVALS;
-        //int gridType = GRID_BITINTERVALS;
+        int gridType = GRID_BITINTERVALS;
 
         int size = 100;
         //int nx = 100, ny = 200, nz = 300;
-        int nx = 500, ny = 500, nz = 500;
+        int nx = 2200, ny = 2200, nz = 2200;
         int dilationSize = 4;
-        int threadCount = 4;
+        int threadCount = Runtime.getRuntime().availableProcessors();
 
         VoxelShape shape = VoxelShapeFactory.getBall(dilationSize,0,0);
 
@@ -197,7 +258,7 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
         printf("DilationShape time: %d ms\n", (time() - t0));
         //writeFile(grid, fmt("/tmp/dilationShape.x3d"));
 
-        for(int t = 1; t <= 1; t++){
+        for(int t = 1; t <= 4; t++){
 
             grid = makeBlock(gridType, nx, ny, nz, dilationSize+1);
             DilationShapeMT dilm = new DilationShapeMT();
@@ -260,6 +321,8 @@ public class TestDilationShapeMT extends TestCase {//BaseTestAttributeGrid {
     }
 
     private void writeFile(Grid grid, String filename) {
+
+        if (!DEBUG) return;
 
         try {
 

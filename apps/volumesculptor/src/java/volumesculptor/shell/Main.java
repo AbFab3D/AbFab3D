@@ -15,9 +15,9 @@ import abfab3d.io.output.STLWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.util.AbFab3DGlobals;
 import app.common.ShellResults;
 import app.common.X3DViewer;
-import org.apache.commons.io.FilenameUtils;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.commonjs.module.ModuleScope;
 import org.mozilla.javascript.commonjs.module.Require;
@@ -35,7 +35,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
 
 /**
  * The shell program.
@@ -250,6 +249,7 @@ public class Main {
         }
 
         String err_msg = bldr.toString();
+        System.out.println("Err msgs: " + err_msg);
 
         List<String> prints = DebugLogger.getLog(iproxy.cx);
 
@@ -331,8 +331,9 @@ public class Main {
                             break;
                         }
                     }
-                    we.printStackTrace(System.out);
+                    if (we != null) we.printStackTrace(System.out);
                 }
+
                 ToolErrorReporter.reportException(
                         cx.getErrorReporter(), rex);
                 exitCode = EXITCODE_RUNTIME_ERROR;
@@ -448,8 +449,7 @@ public class Main {
                 }
                 shellContextFactory.setLanguageVersion(version);
                 continue;
-            }
-            if (arg.equals("-opt") || arg.equals("-O")) {
+            } else if (arg.equals("-opt") || arg.equals("-O")) {
                 if (++i == args.length) {
                     usageError = arg;
                     break goodUsage;
@@ -470,8 +470,7 @@ public class Main {
                 }
                 shellContextFactory.setOptimizationLevel(opt);
                 continue;
-            }
-            if (arg.equals("-encoding")) {
+            } else if (arg.equals("-encoding")) {
                 if (++i == args.length) {
                     usageError = arg;
                     break goodUsage;
@@ -479,42 +478,46 @@ public class Main {
                 String enc = args[i];
                 shellContextFactory.setCharacterEncoding(enc);
                 continue;
-            }
-            if (arg.equals("-outputType")) {
+            } else if (arg.equals("-outputType")) {
                 if (++i == args.length) {
                     usageError = arg;
                     break goodUsage;
                 }
-                AbFab3DGlobal.setOutputType(args[i]);
+                ShapeJSGlobal.setOutputType(args[i]);
                 continue;
-            }
-            if (arg.equals("-outputFolder")) {
+            } else if (arg.equals("-threads")) {
                 if (++i == args.length) {
                     usageError = arg;
                     break goodUsage;
                 }
-                AbFab3DGlobal.setOutputFolder(args[i]);
+                int max_threads = Integer.parseInt(args[i]);
+                System.out.println("Setting max threads to: " + max_threads);
+                AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, max_threads);
+                ShapeJSGlobal.setMaximumThreadCount(max_threads);
                 continue;
-            }
-            if (arg.equals("-allowWrite")) {
+            } else if (arg.equals("-outputFolder")) {
                 if (++i == args.length) {
                     usageError = arg;
                     break goodUsage;
                 }
-                AbFab3DGlobal.setLocalRun(Boolean.parseBoolean(args[i]));
+                ShapeJSGlobal.setOutputFolder(args[i]);
                 continue;
-            }
-            if (arg.equals("-strict")) {
+            } else if (arg.equals("-allowWrite")) {
+                if (++i == args.length) {
+                    usageError = arg;
+                    break goodUsage;
+                }
+                ShapeJSGlobal.setLocalRun(Boolean.parseBoolean(args[i]));
+                continue;
+            } else if (arg.equals("-strict")) {
                 shellContextFactory.setStrictMode(true);
                 shellContextFactory.setAllowReservedKeywords(false);
                 errorReporter.setIsReportingWarnings(true);
                 continue;
-            }
-            if (arg.equals("-fatal-warnings")) {
+            } else if (arg.equals("-fatal-warnings")) {
                 shellContextFactory.setWarningAsError(true);
                 continue;
-            }
-            if (arg.equals("-e")) {
+            } else if (arg.equals("-e")) {
                 processStdin = false;
                 if (++i == args.length) {
                     usageError = arg;
@@ -531,17 +534,14 @@ public class Main {
 
                 iproxy.clear();
                 continue;
-            }
-            if (arg.equals("-require")) {
+            } else if (arg.equals("-require")) {
                 useRequire = true;
                 continue;
-            }
-            if (arg.equals("-sandbox")) {
+            } else if (arg.equals("-sandbox")) {
                 sandboxed = true;
                 useRequire = true;
                 continue;
-            }
-            if (arg.equals("-modules")) {
+            } else if (arg.equals("-modules")) {
                 if (++i == args.length) {
                     usageError = arg;
                     break goodUsage;
@@ -552,12 +552,10 @@ public class Main {
                 modulePath.add(args[i]);
                 useRequire = true;
                 continue;
-            }
-            if (arg.equals("-w")) {
+            } else if (arg.equals("-w")) {
                 errorReporter.setIsReportingWarnings(true);
                 continue;
-            }
-            if (arg.equals("-f")) {
+            } else if (arg.equals("-f")) {
                 processStdin = false;
                 if (++i == args.length) {
                     usageError = arg;
@@ -570,16 +568,13 @@ public class Main {
                     mainModule = args[i];
                 }
                 continue;
-            }
-            if (arg.equals("-sealedlib")) {
+            } else if (arg.equals("-sealedlib")) {
                 global.setSealedStdLib(true);
                 continue;
-            }
-            if (arg.equals("-debug")) {
+            } else if (arg.equals("-debug")) {
                 shellContextFactory.setGeneratingDebug(true);
                 continue;
-            }
-            if (arg.equals("-?") ||
+            } else if (arg.equals("-?") ||
                     arg.equals("-help")) {
                 // print usage message
                 global.getOut().println(
@@ -759,7 +754,7 @@ public class Main {
                                           String path, Object securityDomain, Object[] args, boolean show)
             throws IOException {
         printf("processing file: %s\n", path);
-        AbFab3DGlobal.setInputFilePath(path);
+        ShapeJSGlobal.setInputFilePath(path);
         boolean isClass = path.endsWith(".class");
         Object source = readFileOrUrl(path, !isClass);
 
@@ -905,9 +900,6 @@ public class Main {
 
         System.out.println("Func Args: " + java.util.Arrays.toString(args));
 
-        for(int i=0; i < args.length; i++) {
-            System.out.println("class: " + args[i].getClass());
-        }
         System.out.println("Main is: " + main.getClass());
         Object result = main.call(cx, scope, scope, new Object[] {args});
 
@@ -971,7 +963,7 @@ public class Main {
             slicer.setCellSize(5);
             slicer.setVoxelSize(4);
 
-            slicer.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
+            slicer.setMaxAttributeValue(ShapeJSGlobal.maxAttribute);
             try {
                 slicer.writeSlices(grid);
             } catch(IOException ioe) {
@@ -981,10 +973,10 @@ public class Main {
 
         System.out.println("Saving world: " + grid + " to triangles");
 
-        Object smoothing_width = thisObj.get(AbFab3DGlobal.SMOOTHING_WIDTH_VAR, thisObj);
-        Object error_factor = thisObj.get(AbFab3DGlobal.ERROR_FACTOR_VAR, thisObj);
-        Object min_volume = thisObj.get(AbFab3DGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
-        Object max_parts = thisObj.get(AbFab3DGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
+        Object smoothing_width = thisObj.get(ShapeJSGlobal.SMOOTHING_WIDTH_VAR, thisObj);
+        Object error_factor = thisObj.get(ShapeJSGlobal.ERROR_FACTOR_VAR, thisObj);
+        Object min_volume = thisObj.get(ShapeJSGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
+        Object max_parts = thisObj.get(ShapeJSGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
 
         printf("max_parts: %s\n", max_parts);
         
@@ -996,46 +988,50 @@ public class Main {
         if (smoothing_width instanceof Number) {
             sw = ((Number)smoothing_width).doubleValue();
         } else {
-            sw = AbFab3DGlobal.smoothingWidthDefault;
+            sw = ShapeJSGlobal.smoothingWidthDefault;
         }
 
         if (smoothing_width instanceof Number) {
             ef = ((Number)error_factor).doubleValue();
         } else {
-            ef = AbFab3DGlobal.errorFactorDefault;
+            ef = ShapeJSGlobal.errorFactorDefault;
         }
 
         if (min_volume instanceof Number) {
             mv = ((Number)min_volume).doubleValue();
         } else {
-            mv = AbFab3DGlobal.minimumVolumeDefault;
+            mv = ShapeJSGlobal.minimumVolumeDefault;
         }
 
         if (max_parts instanceof Number) {
             mp = ((Number)max_parts).intValue();
         } else {
-            mp = AbFab3DGlobal.maxPartsDefault;
+            mp = ShapeJSGlobal.maxPartsDefault;
         }
 
         double maxDecimationError = ef * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(AbFab3DGlobal.blockSizeDefault);
-        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        meshmaker.setBlockSize(ShapeJSGlobal.blockSizeDefault);
+        int max_threads = ShapeJSGlobal.getMaxThreadCount();
+        if (max_threads == 0) {
+            max_threads = Runtime.getRuntime().availableProcessors();
+        }
+        meshmaker.setThreadCount(max_threads);
         meshmaker.setSmoothingWidth(sw);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCountDefault);
-        meshmaker.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
+        meshmaker.setMaxDecimationCount(ShapeJSGlobal.maxDecimationCountDefault);
+        meshmaker.setMaxAttributeValue(ShapeJSGlobal.maxAttribute);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
         System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
 
-        if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
+        if (its.getFaceCount() > ShapeJSGlobal.MAX_TRIANGLE_SIZE) {
             System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
             throw Context.reportRuntimeError(
-                    "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+                    "Maximum triangle count exceeded.  Max is: " + ShapeJSGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
         }
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
@@ -1050,12 +1046,12 @@ public class Main {
         }
 
         try {
-            String outputType = AbFab3DGlobal.getOutputType();
+            String outputType = ShapeJSGlobal.getOutputType();
             
             if(outputType.equals("x3d")){
 
-                String path = AbFab3DGlobal.getOutputFolder();
-                String name = "save.x3d";//AbFab3DGlobal.getOutputName();
+                String path = ShapeJSGlobal.getOutputFolder();
+                String name = "save.x3d";
                 String out = path + "/" + name;
                 double[] bounds_min = new double[3];
                 double[] bounds_max = new double[3];
@@ -1070,7 +1066,7 @@ public class Main {
                 GridSaver.writeMesh(mesh, out);
                 X3DViewer.viewX3DOM(name, pos);
             } else if(outputType.equals("stl")){
-                STLWriter stl = new STLWriter(AbFab3DGlobal.getOutputFolder() + "/" + AbFab3DGlobal.getInputFileName() + ".stl");
+                STLWriter stl = new STLWriter(ShapeJSGlobal.getOutputFolder() + "/" + ShapeJSGlobal.getInputFileName() + ".stl");
                 mesh.getTriangles(stl);
                 stl.close();
             }
@@ -1096,10 +1092,10 @@ public class Main {
         double vs = grid.getVoxelSize();
 
 
-        Object smoothing_width = thisObj.get(AbFab3DGlobal.SMOOTHING_WIDTH_VAR, thisObj);
-        Object error_factor = thisObj.get(AbFab3DGlobal.ERROR_FACTOR_VAR, thisObj);
-        Object min_volume = thisObj.get(AbFab3DGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
-        Object max_parts = thisObj.get(AbFab3DGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
+        Object smoothing_width = thisObj.get(ShapeJSGlobal.SMOOTHING_WIDTH_VAR, thisObj);
+        Object error_factor = thisObj.get(ShapeJSGlobal.ERROR_FACTOR_VAR, thisObj);
+        Object min_volume = thisObj.get(ShapeJSGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
+        Object max_parts = thisObj.get(ShapeJSGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
 
         double sw;
         double ef;
@@ -1109,46 +1105,50 @@ public class Main {
         if (smoothing_width instanceof Number) {
             sw = ((Number)smoothing_width).doubleValue();
         } else {
-            sw = AbFab3DGlobal.smoothingWidthDefault;
+            sw = ShapeJSGlobal.smoothingWidthDefault;
         }
 
         if (smoothing_width instanceof Number) {
             ef = ((Number)error_factor).doubleValue();
         } else {
-            ef = AbFab3DGlobal.errorFactorDefault;
+            ef = ShapeJSGlobal.errorFactorDefault;
         }
 
         if (min_volume instanceof Number) {
             mv = ((Number)min_volume).doubleValue();
         } else {
-            mv = AbFab3DGlobal.minimumVolumeDefault;
+            mv = ShapeJSGlobal.minimumVolumeDefault;
         }
 
         if (max_parts instanceof Number) {
             mp = ((Number)max_parts).intValue();
         } else {
-            mp = AbFab3DGlobal.maxPartsDefault;
+            mp = ShapeJSGlobal.maxPartsDefault;
         }
 
         double maxDecimationError = ef * vs * vs;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(AbFab3DGlobal.blockSizeDefault);
-        meshmaker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        meshmaker.setBlockSize(ShapeJSGlobal.blockSizeDefault);
+        int max_threads = ShapeJSGlobal.getMaxThreadCount();
+        if (max_threads == 0) {
+            max_threads = Runtime.getRuntime().availableProcessors();
+        }
+        meshmaker.setThreadCount(max_threads);
         meshmaker.setSmoothingWidth(sw);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(AbFab3DGlobal.maxDecimationCountDefault);
-        meshmaker.setMaxAttributeValue(AbFab3DGlobal.maxAttribute);
+        meshmaker.setMaxDecimationCount(ShapeJSGlobal.maxDecimationCountDefault);
+        meshmaker.setMaxAttributeValue(ShapeJSGlobal.maxAttribute);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
 
         System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
 
-        if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
+        if (its.getFaceCount() > ShapeJSGlobal.MAX_TRIANGLE_SIZE) {
             System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
             throw Context.reportRuntimeError(
-                    "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+                    "Maximum triangle count exceeded.  Max is: " + ShapeJSGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
         }
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());

@@ -134,16 +134,16 @@ public class DevTestMeshDistance extends TestCase {
         TriangulatedModels.Parallelepiped block1 = new TriangulatedModels.Parallelepiped(-s, -s, -s, s, s, s);
         TriangulatedModels.Parallelepiped block2 = new TriangulatedModels.Parallelepiped(-s1, -s1, -s1, s1, s1, s1);
 
-        TriangulatedModels.Transformer model = new TriangulatedModels.Transformer();
+        TriangulatedModels.Combiner combiner = new TriangulatedModels.Combiner();
         Rotation rot = new Rotation(new Vector3d(1,0,0), Math.PI/4);
-        model.setTransform(rot);
-        model.addProducer(block1);
+        combiner.setTransform(rot);
+        combiner.append(block1);
         
-        model.initialize();
+        combiner.initialize();
 
         STLWriter stl = new STLWriter("/tmp/rotated_block.stl");
         
-        model.getTriangles(stl);
+        combiner.getTriangles(stl);
         block2.getTriangles(stl);
         
         stl.close();

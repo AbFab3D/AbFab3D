@@ -14,8 +14,15 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.datasources.Sphere;
+import abfab3d.grid.op.GridMaker;
+import abfab3d.util.Units;
 import junit.framework.Test;
 import junit.framework.TestSuite;
+
+import java.util.HashSet;
+import static abfab3d.util.Output.time;
+import static abfab3d.util.Output.printf;
 
 // Internal Imports
 
@@ -31,6 +38,197 @@ public class TestArrayAttributeGridByte extends BaseTestAttributeGrid {
      */
     public static Test suite() {
         return new TestSuite(TestArrayAttributeGridByte.class);
+    }
+
+    /**
+     * Test MT find operation.  Prototype move to base class when done.
+     */
+    public void testFindMTVoxelClass() {
+        int size = 200;
+        final ArrayAttributeGridByte grid = new ArrayAttributeGridByte(size, size+1, size+2, 0.001, 0.001);
+        //final GridShortIntervals grid = new GridShortIntervals(size,size+1,size+2, 0.001, 0.001);
+
+        HashSet<VoxelCoordinate> vcSetMat1 = new HashSet<VoxelCoordinate>();
+
+        for (int x = 0; x < grid.getWidth(); x++) {
+            grid.setState(x, 2, 2, Grid.INSIDE);
+            vcSetMat1.add(new VoxelCoordinate(x, 2, 2));
+            grid.setState(x, 5, 6, Grid.INSIDE);
+            vcSetMat1.add(new VoxelCoordinate(x, 5, 6));
+        }
+
+        FindIterateTester ft = new FindIterateTester(vcSetMat1,true);
+
+        long t0 = time();
+        grid.findMT(Grid.VoxelClasses.INSIDE,ft, 0);
+
+        System.out.println("Count: " + ft.getIterateCount() + " time: " + (time() - t0));
+        assertEquals("Total count", grid.getWidth() * 2, ft.getIterateCount());
+        assertTrue("Found all", ft.foundAllVoxels());
+    }
+
+    private void fillGrid(Grid grid, int skipx, int skipy, int skipz) {
+        int w = grid.getWidth();
+        int h = grid.getHeight();
+        int d = grid.getDepth();
+
+        for(int y=0; y < h; y++) {
+            if (skipy != 0 && y % skipy == 0) continue;
+            for(int x=0; x < w; x++) {
+                if (skipx != 0 && x % skipx == 0) continue;
+                for(int z=0; z < w; z++) {
+                    if (skipz != 0 && z % skipz == 0) continue;
+                    grid.setState(x,y,z,Grid.INSIDE);
+                }
+            }
+        }
+    }
+
+    public void _testFindMTVoxelClassSpeed() {
+        int size = 800;
+
+        //final ArrayAttributeGridByte grid = new ArrayAttributeGridByte(size,size,size, 0.001, 0.001);
+        //final ArrayAttributeGridByteIndexLong grid = new ArrayAttributeGridByteIndexLong(size,size,size, 0.001, 0.001);
+        final GridShortIntervals grid = new GridShortIntervals(size,size,size, 0.001, 0.001);
+
+        /*
+        for (int x = 0; x < grid.getWidth(); x++) {
+            for(int y=0; y < grid.getHeight(); y++) {
+                grid.setState(x, y, 2, Grid.INSIDE);
+                grid.setState(x, y, 6, Grid.INSIDE);
+                grid.setState(x, y, 16, Grid.INSIDE);
+                grid.setState(x, y, 56, Grid.INSIDE);
+            }
+        }
+*/
+
+        fillGrid(grid,2,2,2);
+/*
+        //GridShortIntervals grid = getSphereIntervalGrid(0.01*Units.MM);
+        ArrayAttributeGridByte grid = getSphereGrid(0.01*Units.MM);
+*/
+        long count = grid.findCount(Grid.VoxelClasses.INSIDE);
+        long voxels =  (long) grid.getWidth()* grid.getHeight() * grid.getDepth();
+        printf("Inside count: %d filled: %3.2f\n",count,(((float)count / voxels) * 100.0f));
+
+
+        System.out.println("Grid size: " + grid.getWidth());
+        ClassTraverser ft_ct = new ClassTraverser() {
+            long sum;
+            private Grid grid;
+
+            public ClassTraverser init(Grid grid) {
+                this.grid = grid;
+
+                return this;
+            }
+
+            @Override
+            public void found(int x, int y, int z, byte state) {
+                sum += (long) (2.1 * grid.getState(x,y,z)) / 1.5;
+            }
+
+            @Override
+            public boolean foundInterruptible(int x, int y, int z, byte state) {
+                System.out.println("Should not be here");
+                return true;
+            }
+        }.init(grid);
+
+        int TIMES = 5;
+
+        float max_speedup = 0;
+        for(int i=0; i < TIMES; i++) {
+            long t0 = time();
+            grid.findMT(Grid.VoxelClasses.INSIDE,ft_ct, 0);
+            long mt_time = time() - t0;
+
+            t0 = time();
+            grid.find(Grid.VoxelClasses.INSIDE,ft_ct);
+            long st_time = time() - t0;
+
+            float speedup = (float) st_time / mt_time;
+            if (speedup > max_speedup) {
+                max_speedup = speedup;
+            }
+            printf("MT time: %d st_time: %d   speedup: %4.2f\n",mt_time,st_time,speedup);
+        }
+    }
+
+    private ArrayAttributeGridByte getSphereGrid(double voxelSize) {
+        double margin = 1*voxelSize;
+
+        double sizex = 1* Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        return grid;
+
+    }
+
+    private GridShortIntervals getSphereIntervalGrid(double voxelSize) {
+        double margin = 0*voxelSize;
+
+        double sizex = 1*Units.CM;
+        double sizey = 1*Units.CM;
+        double sizez = 1*Units.CM;
+        double ballRadius = 4.5*Units.MM;
+        double surfaceThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        int maxAttributeValue = 127;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+
+        GridMaker gm = new GridMaker();
+        gm.setBounds(bounds);
+        gm.setSource(sphere);
+        gm.setMaxAttributeValue(maxAttributeValue);
+        gm.setVoxelSize(voxelSize*surfaceThickness);
+
+
+        GridShortIntervals grid = new GridShortIntervals(nx, ny, nz, voxelSize, voxelSize);
+
+        gm.makeGrid(grid);
+
+        return grid;
+
     }
 
     /**

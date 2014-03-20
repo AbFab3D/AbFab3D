@@ -196,8 +196,79 @@ public class ArrayGridByte extends BaseGrid {
      */
     public Object clone() {
         ArrayGridByte ret_val = new ArrayGridByte(this);
-
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
+    }
+
+    //-----PROTOTYPE ---
+
+    // Possible 2 styles, keep x,y,z or idx
+    // Grid density will affect which approach is faster likely
+    private int tIdx;
+    private int minx;
+    private int maxx;
+    private int miny;
+    private int maxy;
+    private int tx;
+    private int ty;
+    private int tz;
+
+    private void startFindInside(int minx, int maxx, int miny, int maxy) {
+        this.minx = minx;
+        this.maxx = maxx;
+        this.miny = miny;
+        this.maxy = maxy;
+        tIdx = 0;
+    }
+
+    /**
+     *
+     */
+    public boolean getNextIdx(VoxelCoordinate vc) {
+        while(data[tIdx] != Grid.INSIDE) {
+            tIdx++;
+            if (tIdx > data.length) {
+                return false;
+            }
+        }
+
+        int x = tIdx;
+        int y = tIdx / sliceSize;
+        int z = tIdx;
+
+        vc.setValue(x,y,z);
+        return true;
+    }
+
+    /**
+     *
+     */
+    public boolean getNextXYZ(VoxelCoordinate vc) {
+        if (getState(tx,ty,tz) == Grid.INSIDE) {
+            vc.setValue(tx,ty,tz);
+            return true;
+        }
+
+        while(true) {
+            tz++;
+            if (tz >= depth) {
+                tz = 0;
+                tx++;
+                if (tx >= width) {
+                    tx = 0;
+                    ty++;
+
+                    if (ty >= height) {
+                        return false;
+                    }
+                }
+            }
+
+            if (getState(tx,ty,tz) == Grid.INSIDE) {
+                vc.setValue(tx,ty,tz);
+                return true;
+            }
+        }
     }
 }
 

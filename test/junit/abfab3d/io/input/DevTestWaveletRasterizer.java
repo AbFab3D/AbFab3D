@@ -24,6 +24,9 @@ import abfab3d.io.output.SlicesWriter;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
+
+import abfab3d.transforms.Scale;
+
 import abfab3d.mesh.MeshDistance;
 
 import abfab3d.geom.TriangulatedModels;
@@ -162,13 +165,37 @@ public class DevTestWaveletRasterizer {
         //writeSTL(target, "/tmp/mesh_target.stl");
     }
 
+    public static void testX3DReader()throws Exception {
+        
+        
+        MeshReader tp = new MeshReader("/tmp/wtfix/tooth.x3db");
+        
+        tp.setTransform(new Scale(0.5));
+
+        //writeSTL(torus, "/tmp/torus_orig.stl");
+        //tri2grid2tri(tp, "/tmp/test.stl");
+        long t0 = time();
+        writeSTL(tp, "/tmp/wtfix/tooth_orig.stl");
+        printf("stl conversion: %d ms\n", time() - t0);
+        t0 = time();
+
+        tri2grid2tri(tp, "/tmp/wtfix/tooth_t2g.stl", 0.2*MM, 1.5);
+        printf("grid conversion: %d ms\n", time() - t0);
+        
+    }
 
     // convert triangle set into voxels and back into triangles 
     static TriangleProducer tri2grid2tri(TriangleProducer tp, String path) throws Exception {
+
+        return tri2grid2tri(tp, path, 0.1*MM, 0.3);
+        
+    }
+
+    static TriangleProducer tri2grid2tri(TriangleProducer tp, String path, double voxelSize, double smoothWidth) throws Exception {
         printf("tri2grid2tri()\n");
         int maxAttribute = 255;
 
-        double voxelSize = 0.1*MM;
+       
         BoundingBoxCalculator bb = new BoundingBoxCalculator();
         tp.getTriangles(bb);
         double bounds[] = bb.getRoundedBounds(voxelSize);
@@ -196,9 +223,8 @@ public class DevTestWaveletRasterizer {
         printf("grid calculation: %d ms\n", (time() - t0));
         
         if(true){
-            int blockSize = 50;
-            double errorFactor = 0.08;
-            double smoothWidth = 0.0;
+            int blockSize = 30;
+            double errorFactor = 0.1;
             int maxDecimationCount= 10;
             int threadsCount = 4;
             //double voxelSize = 2*s/grid.getWidth();
@@ -221,6 +247,7 @@ public class DevTestWaveletRasterizer {
         return null;
         
     }
+
     
     static void writeSTL(TriangleProducer tp, String path) throws Exception {
         STLWriter stl = new STLWriter(path);
@@ -231,8 +258,9 @@ public class DevTestWaveletRasterizer {
     public static void main(String arg[]) throws Exception {
         //testSTLfile();
         //testSphere();
-        testTorus();
+        //testTorus();
         //testTetra();
+        testX3DReader();
     }
 
 }
