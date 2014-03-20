@@ -17,6 +17,7 @@ package abfab3d.grid;
 import java.io.Serializable;
 
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
 
 /**
  * Base class implementation of Grids.  Includes common code that
@@ -369,11 +370,9 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      * @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void getGridBounds(double[] bounds) {
-
         bounds[0] = xorig;
         bounds[2] = yorig;
         bounds[4] = zorig;
-
         bounds[1] = xorig + width * pixelSize;
         bounds[3] = yorig + height * sheight;
         bounds[5] = zorig + depth * pixelSize;
