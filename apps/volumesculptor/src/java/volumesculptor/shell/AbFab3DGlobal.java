@@ -393,6 +393,7 @@ public class AbFab3DGlobal  {
 
         double[] grid_bounds = new double[6];
         double vs = 0.1*MM;
+        boolean preserve_size = false;
 
         for(int i=0; i < args.length; i++) {
             String st = null;
@@ -403,7 +404,6 @@ public class AbFab3DGlobal  {
             } else {
                 st = args[i].toString();
             }
-            System.out.println("arg: " + i + " val: " + st);
         }
         if (args.length == 1) {
             if (args[0] instanceof AttributeGrid) {
@@ -415,6 +415,7 @@ public class AbFab3DGlobal  {
                 grid.getGridBounds(grid_bounds);
                 vs = grid.getVoxelSize();
             }
+            preserve_size = true;
         } else if (args.length == 4) {
             if (args[0] instanceof AttributeGrid) {
                 AttributeGrid grid = (AttributeGrid) args[0];
@@ -435,6 +436,7 @@ public class AbFab3DGlobal  {
             grid_bounds[3] += y;
             grid_bounds[4] -= z;
             grid_bounds[5] += z;
+            preserve_size = true;
         } else if (args.length == 7) {
             grid_bounds[0] = getDouble(args[0]);
             grid_bounds[1] = getDouble(args[1]);
@@ -456,7 +458,9 @@ public class AbFab3DGlobal  {
             }
         }
 
-        grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
+        if (!preserve_size) {
+            grid_bounds = MathUtil.roundBounds(grid_bounds, vs);
+        }
         int[] gs = MathUtil.getGridSize(grid_bounds, vs);
 
         // range check bounds and voxelSized
