@@ -643,6 +643,30 @@ public class MathUtil {
     }
 
     /*
+      step from 0 to 1
+
+    1                          _____________________
+                              /
+                             /
+                            .
+                           /.
+     0 ___________________/ .
+
+                            0
+     */
+    public static final double step01(double x, double vs){
+
+        if(x <= -vs)
+            return 0.;
+
+        if(x >=  vs)
+            return 1.;
+
+        return (x+vs)/(2*vs);
+
+    }
+
+    /*
       step from 1 to 0
 
     1     _________
@@ -663,6 +687,30 @@ public class MathUtil {
             return 0.;
 
         return ((x0+vs)-x)/(2*vs);
+
+    }
+
+    /*
+      step from 1 to 0
+
+    1     _________
+                   \
+                    \
+                     .
+                      \
+     0               . \_______________
+
+                     0
+    */
+    public static final double step10(double x, double vs){
+
+        if(x <=  -vs)
+            return 1.;
+
+        if(x >=  vs)
+            return 0.;
+
+        return (vs-x)/(2*vs);
 
     }
 

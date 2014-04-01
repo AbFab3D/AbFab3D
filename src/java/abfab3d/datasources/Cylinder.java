@@ -22,6 +22,8 @@ import javax.vecmath.Vector3d;
 import static abfab3d.util.MathUtil.step10;
 import static java.lang.Math.*;
 
+import static abfab3d.util.Output.fmt;
+
 
 /**
  * Cylinder with given ends and radius
@@ -33,18 +35,22 @@ public class Cylinder extends TransformableDataSource {
 
     static final double EPSILON = 1.e-8;
 
-    private double R; // cylinder radius 
+    private double R0,R1; // cylinder radiuses 
+    private boolean uniform = true;
     private double h2; // cylnder's half height of
     private double scaleFactor = 0;
     private Vector3d center;
     private Matrix3d rotation;
     private Vector3d v0, v1;
+    // params for non uniform cylinder 
+    private double R01, normalR, normalY;
+
     static final Vector3d Yaxis = new Vector3d(0, 1, 0);
 
     /**
-     * Cylinder which starts at point V0 and ands at point V1
-     * @param v0 Starting position
-     * @param v1 Ending position
+     * Circular cylinder of uniform radius
+     * @param v0 center of first base
+     * @param v1 center of second base
      * @param radius Radius of cylinder 
      */
     public Cylinder(Vector3d v0, Vector3d v1, double radius) {
@@ -52,9 +58,31 @@ public class Cylinder extends TransformableDataSource {
         if (radius < 0) {
             throw new IllegalArgumentException("Cylinder radius < 0.  Value: " + radius);
         }
-        this.R = radius;
+        this.R0 = radius;
+        this.R1 = radius;
         this.v0 = new Vector3d(v0);
         this.v1 = new Vector3d(v1);
+        this.uniform = true;
+
+    }
+
+    /**
+     * Circular cylinder of variable radius from point v0 to point v1
+     * @param v0 center of first base
+     * @param v1 center of second base
+     * @param radius0 radius of base centered at v0
+     * @param radius1 radius of base centered at v1
+     */
+    public Cylinder(Vector3d v0, Vector3d v1, double radius0, double radius1  ) {
+
+        if (radius0 < 0 || radius1 < 0) {
+            throw new IllegalArgumentException(fmt("Cylinder radius < 0.  radius0: %15.8g radius1: %15.8g ",radius0,radius1));
+        }
+        this.R0 = radius0;
+        this.R1 = radius1;
+        this.v0 = new Vector3d(v0);
+        this.v1 = new Vector3d(v1);
+        this.uniform = false;
 
     }
 
@@ -89,11 +117,24 @@ public class Cylinder extends TransformableDataSource {
         double angle = atan2(sina, cosa);
         rotation = new Matrix3d();
         rotation.set(new AxisAngle4d(raxis, angle));
+
+        if(!uniform){
+            // cylinder has different bases 
+            this.R01 = (R0 + R1)/2;
+            double nY = (R0 - R1);
+            double nR = h2*2;
+            double ss = sqrt(nY*nY + nR*nR);
+            this.normalY = nY/ss;
+            this.normalR = nR/ss;
+
+        }
+
         return RESULT_OK;
     }
 
     /**
       the scale factor increases thickness of cylinder proportional to scale of transformation 
+
       it can be used to thicken the thin parts 
       @noRefGuide
      */
@@ -113,10 +154,10 @@ public class Cylinder extends TransformableDataSource {
 
         Vec pnt = new Vec(pntIn);
         canonicalTransform(pnt);
-        // cylinder is along Y axis with center at origin 
+        // cylinder is along Y axis with midpoint at origin 
 
         double x = pnt.v[0];
-        double y = abs(pnt.v[1]);
+        double y = pnt.v[1];
         double z = pnt.v[2];
         double vs = pnt.getScaledVoxelSize();
         if (scaleFactor != 0.) {
@@ -127,14 +168,21 @@ public class Cylinder extends TransformableDataSource {
         }
 
 
-        double baseCap = step10(y, this.h2, vs);
+        double baseCap = step10(abs(y), this.h2, vs);
         if (baseCap == 0.0) {
             data.v[0] = 0;
             return RESULT_OK;
         }
 
         double r = sqrt(x * x + z * z);
-        double sideCap = step10(r, this.R, vs);
+        double distanceToSide;
+
+        if(uniform)
+            distanceToSide = r-R0;
+        else 
+            distanceToSide = (r-R01)*normalR + y * normalY;
+
+        double sideCap = step10(distanceToSide, vs);
         if (sideCap < baseCap) baseCap = sideCap;
         data.v[0] = baseCap;
         return RESULT_OK;
