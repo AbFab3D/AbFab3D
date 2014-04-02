@@ -12,6 +12,7 @@
 package abfab3d.grid.op;
 
 import abfab3d.grid.*;
+import abfab3d.util.AbFab3DGlobals;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -61,11 +62,15 @@ public class SubtractOpMT implements Operation {
     }
 
     public void setThreadCount(int count) {
-        threadCount = count;
-
-        if (threadCount < 1) {
-            threadCount = 1;
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
         }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
+
+        threadCount = count;
     }
 
     /**

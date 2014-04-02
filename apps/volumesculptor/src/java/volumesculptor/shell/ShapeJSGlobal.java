@@ -18,7 +18,6 @@ import abfab3d.io.input.STLReader;
 import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
-import abfab3d.io.output.SlicesWriter;
 import abfab3d.io.output.STLWriter;
 
 import abfab3d.mesh.IndexedTriangleSetBuilder;
@@ -30,17 +29,14 @@ import abfab3d.util.Units;
 
 import abfab3d.datasources.ImageWrapper;
 
-import app.common.X3DViewer;
 import org.mozilla.javascript.*;
-import org.mozilla.javascript.tools.ToolErrorReporter;
+
 import static abfab3d.util.Units.MM;
 
 import java.io.File;
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
 import java.util.HashMap;
-import java.util.Map;
-
 import java.util.Map;
 
 import static abfab3d.util.Output.printf;
@@ -52,7 +48,7 @@ import static abfab3d.util.Output.fmt;
  *
  * @author Alan Hudson
  */
-public class AbFab3DGlobal  {
+public class ShapeJSGlobal {
     public static final int MAX_GRID_SIZE = 2000;
     public static final int MAX_TRIANGLE_SIZE = 3000000;
     public static final int MAX_TIME = 120 * 1000;
@@ -80,6 +76,7 @@ public class AbFab3DGlobal  {
     private static String outputFileName = "save.x3d";
     
     private static boolean isLocalRun = false;
+    private static int maxThreadCount;
 
     public static String getOutputFolder(){
         return outputFolder;
@@ -93,6 +90,17 @@ public class AbFab3DGlobal  {
      */
     public static void setLocalRun(boolean value){
         isLocalRun = value;
+    }
+
+    /**
+     * Set the maximum threads to use
+     */
+    public static void setMaximumThreadCount(int value){
+        maxThreadCount = value;
+    }
+
+    public static int getMaxThreadCount() {
+        return maxThreadCount;
     }
 
     public static String getInputFileName(){
@@ -146,7 +154,7 @@ public class AbFab3DGlobal  {
 
     private HashMap<String,Object> globals = new HashMap<String,Object>();
 
-    public AbFab3DGlobal() {
+    public ShapeJSGlobal() {
         WorldWrapper ww = new WorldWrapper();
         World world = ww.getWorld();
         globals.put("MM", Units.MM);
@@ -365,10 +373,10 @@ public class AbFab3DGlobal  {
 
         printf("output mesh vertices %d faces: %d\n", its.getVertexCount(), its.getFaceCount());
         
-        if (its.getFaceCount() > AbFab3DGlobal.MAX_TRIANGLE_SIZE) {
+        if (its.getFaceCount() > ShapeJSGlobal.MAX_TRIANGLE_SIZE) {
             System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
             throw Context.reportRuntimeError(
-                    "Maximum triangle count exceeded.  Max is: " + AbFab3DGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
+                    "Maximum triangle count exceeded.  Max is: " + ShapeJSGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
         }
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
@@ -531,13 +539,15 @@ public class AbFab3DGlobal  {
     private static AttributeGrid makeEmptyGrid(int[] gs, double vs) {
         AttributeGrid dest = null;
 
-        long voxels = (long) gs[0] * gs[1] * gs[2];
+        long voxels = ((long) (gs[0])) * gs[1] * gs[2];
+
+        printf("Creating grid: %d %d %d\n",gs[0],gs[1],gs[2],voxels);
         long max_voxels = (long) MAX_GRID_SIZE * MAX_GRID_SIZE * MAX_GRID_SIZE;
 
         if (voxels > max_voxels) {
-            System.out.println("Maximum voxel size exceeded.  Max is: " + MAX_GRID_SIZE + " grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+            System.out.println("Maximum grid size exceeded.  Max is: " + MAX_GRID_SIZE + "^3 grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
             throw Context.reportRuntimeError(
-                    "Maximum voxel size exceeded.  Max is: " + MAX_GRID_SIZE + " grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+                    "Maximum grid size exceeded.  Max is: " + MAX_GRID_SIZE + "^3 grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
         }
 
         long MAX_MEMORY = Integer.MAX_VALUE;

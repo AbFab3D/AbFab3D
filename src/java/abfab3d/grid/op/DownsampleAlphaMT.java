@@ -12,6 +12,7 @@
 package abfab3d.grid.op;
 
 import abfab3d.grid.*;
+import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.DefaultLongConverter;
 import abfab3d.util.LongConverter;
 
@@ -85,16 +86,15 @@ public class DownsampleAlphaMT implements Operation {
     }
 
     public void setThreadCount(int count) {
-
-        if (count == 0) {
+        if (count < 1) {
             count = Runtime.getRuntime().availableProcessors();
         }
 
-        threadCount = count;
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
 
-        if (threadCount < 1) {
-            threadCount = 1;
-        }
+        threadCount = count;
     }
 
     /**

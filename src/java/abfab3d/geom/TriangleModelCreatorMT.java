@@ -3,6 +3,7 @@ package abfab3d.geom;
 import abfab3d.grid.ArrayInt;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridIntervals;
+import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.BoundingBoxUtilsFloat;
 import abfab3d.util.MatrixUtil;
 import org.j3d.geom.GeometryData;
@@ -105,9 +106,15 @@ public class TriangleModelCreatorMT {
 
 
     public void setThreadCount(int count) {
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
 
         m_threadCount = count;
-
     }
 
     private void calcTransform(Grid grid, GeometryData geom) {

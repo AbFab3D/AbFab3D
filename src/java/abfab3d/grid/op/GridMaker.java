@@ -25,14 +25,8 @@ import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
 
 import abfab3d.grid.util.ExecutionStoppedException;
-import abfab3d.util.DataSource;
-import abfab3d.util.Vec;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Initializable;
-import abfab3d.util.Units;
+import abfab3d.util.*;
 import abfab3d.transforms.Identity;
-
-import abfab3d.util.Output;
 
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
@@ -68,6 +62,10 @@ public class GridMaker implements Operation, AttributeOperation {
     private boolean boundsSet = false;
     private double voxelScale = Math.sqrt(3) / 2.0;
 
+    public GridMaker() {
+        m_threadCount = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+    }
+
     public void setSource(DataSource dataSource){
         m_dataSource = dataSource;
     }
@@ -83,9 +81,15 @@ public class GridMaker implements Operation, AttributeOperation {
     }
 
     public void setThreadCount(int count){
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number)AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
 
         m_threadCount = count;
-        
     }
 
     /**
@@ -152,7 +156,7 @@ public class GridMaker implements Operation, AttributeOperation {
         }
         
         voxelSize = grid.getVoxelSize() * voxelScale;
-        printf("gridMaker vcoxleSize: %7.3f mm\n", voxelSize/Units.MM);
+        printf("gridMaker voxelSize: %7.3f mm\n", voxelSize/Units.MM);
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }

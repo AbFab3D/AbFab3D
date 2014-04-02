@@ -136,10 +136,10 @@ public class Global extends ImporterTopLevel
     }
 
     public void initAbFab3D(Context cx) {
-        AbFab3DGlobal globals = new AbFab3DGlobal();
+        ShapeJSGlobal globals = new ShapeJSGlobal();
 
         // Initialize AbFab3D specific globals
-        defineFunctionProperties(globals.getFunctions(), AbFab3DGlobal.class,
+        defineFunctionProperties(globals.getFunctions(), ShapeJSGlobal.class,
                 ScriptableObject.DONTENUM);
 
         Map<String,Object> props = globals.getProperties();

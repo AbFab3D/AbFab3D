@@ -16,6 +16,7 @@ import abfab3d.mesh.EdgeTester;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.MeshDecimator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.MathUtil;
 import abfab3d.util.TriangleCollector;
 
@@ -75,16 +76,19 @@ public class MeshMakerMT {
     protected EdgeTester m_edgeTester;
 
     public MeshMakerMT() {
-
+        m_threadCount = ((Number)AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
     }
 
     public void setThreadCount(int count) {
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
 
-        if (count < 1)
-            count = 1;
+        int max_threads = ((Number)AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
 
-        this.m_threadCount = count;
-
+        m_threadCount = count;
     }
 
     public void setMaxTriangles(int tris) {
@@ -160,6 +164,7 @@ public class MeshMakerMT {
      */
     public int makeMesh_v2(Grid grid, TriangleCollector tc) {
 
+        printf("Mesh maker using threads: %d\n",m_threadCount);
         long t0 = time();
         GridBlockSet blocks = makeBlocksOctree(grid.getWidth(), grid.getHeight(), grid.getDepth(), m_blockSize);
                 
