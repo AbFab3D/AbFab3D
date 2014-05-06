@@ -146,10 +146,45 @@ public class TestTriangulatedModels extends TestCase {
        
     }
 
+    public void testCylinder()throws Exception {
+        
+        STLWriter stl = new STLWriter("/tmp/cylinder.stl");
+        
+        double r0 = 0.5*MM;
+        double r1 = 1.0*MM;
+
+        double L = 10*MM;
+
+        TriangulatedModels.Combiner comb = new TriangulatedModels.Combiner();
+        
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,0), new Vector3d(L,0,0), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,0), new Vector3d(L,L,0), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,0), new Vector3d(0,L,0), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,0), new Vector3d(0,0,0), r0, r1));
+
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,L), new Vector3d(L,0,L), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,L), new Vector3d(L,L,L), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,L), new Vector3d(0,L,L), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,L), new Vector3d(0,0,L), r0, r1));
+
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, 0,0), new Vector3d(0,0,L), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, 0,0), new Vector3d(L,0,L), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(L, L,0), new Vector3d(L,L,L), r0, r1));
+        comb.append(new  TriangulatedModels.CylinderT(new Vector3d(0, L,0), new Vector3d(0,L,L), r0, r1));
+
+        comb.initialize();        
+        comb.getTriangles(stl);        
+
+        stl.close();              
+       
+    }
+
 
     public static void main(String[] arg) throws Exception {
 
-        makeUnitSphere();
+        //makeUnitSphere();
+        new TestTriangulatedModels().testCylinder();
+        
 
     }
 }

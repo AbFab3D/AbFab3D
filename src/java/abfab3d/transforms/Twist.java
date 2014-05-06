@@ -35,7 +35,7 @@ import static abfab3d.util.Symmetry.getReflection;
 import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 /**
-   performs twist of space rotation about given z-axis 
+   performs twist of space via rotation about z-axis 
    @author Vladimir Bulatov 
 */
 public class Twist implements VecTransform, Initializable {

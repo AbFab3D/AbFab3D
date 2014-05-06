@@ -31,6 +31,7 @@ import abfab3d.util.ResultCodes;
 import abfab3d.util.ImageGray16;
 import abfab3d.util.VecTransform;
 
+import abfab3d.transforms.Identity;
 
 import static abfab3d.util.MathUtil.distance;
 import static abfab3d.util.MathUtil.midPoint;
@@ -38,6 +39,8 @@ import static abfab3d.util.Units.MM;
 
 import static java.lang.Math.sqrt;
 import static java.lang.Math.max;
+import static java.lang.Math.abs;
+import static java.lang.Math.atan2;
 
 
 // Internal Imports
@@ -141,7 +144,7 @@ public class TriangulatedModels {
      */
     public static class Combiner implements TriangleProducer, TriangleCollector, Initializable, Transformer {
 
-        VecTransform transform;
+        VecTransform transform = new Identity();
         Vector<TriangleProducer> producers = new Vector<TriangleProducer>(); 
 
         public Combiner(){
@@ -200,6 +203,7 @@ public class TriangulatedModels {
             in.set(v0);
             transform.transform(in, out);
             out.get(tv0);
+            
             in.set(v1);
             transform.transform(in, out);
             out.get(tv1);
@@ -721,7 +725,7 @@ public class TriangulatedModels {
         }
 
         public boolean getTriangles(TriangleCollector tc){
-            
+
             ParametricSurfaces.Torus torus = new ParametricSurfaces.Torus(m_rin, m_rout);
             ParametricSurfaceMaker maker = new ParametricSurfaceMaker(torus, m_precision);
             return maker.getTriangles(tc);
@@ -729,4 +733,131 @@ public class TriangulatedModels {
         }
     } // Torus     
     
+    //
+    // makes cylnder with given ends and radius 
+    //
+    public static class CylinderT  implements TriangleProducer, Initializable {        
+
+        static final Vector3d Yaxis = new Vector3d(0,1,0);
+        static final double EPSILON  = 1.e-10;
+
+        //TODO 
+        double m_defTriangleSize = 1.e-3; // 1mm 
+        double r0;
+        double r1; 
+        Vector3d v0 = new Vector3d();
+        Vector3d v1 = new Vector3d();
+        double h; // cylinder height 
+        Vector3d center; // cylinder center 
+        Matrix3d rotation; // rotation to bring cylinder into canonical position 
+
+        int nfacets = 20; // count of facets at  cylinder side 
+        // working vectors
+        Vector3d tv0 = new Vector3d(),tv1 = new Vector3d(),tv2 = new Vector3d();
+
+        public CylinderT(Vector3d v0, Vector3d v1, double radius) {
+            this(v0, v1, radius, radius);
+        }
+
+        public CylinderT(Vector3d v0, Vector3d v1, double r0, double r1) {
+
+            this.v0.set(v0);
+            this.v1.set(v1);
+            this.r0 = r0;
+            this.r1 = r1;
+        }
+
+        public int initialize(){
+            //TODO make transform 
+            Vector3d s = new Vector3d();
+            s.sub(v0, v1);
+            
+            this.h = s.length();
+
+            this.center = new Vector3d(v0);
+            this.center.add(v1);
+            this.center.scale(0.5);
+
+            Vector3d caxis = new Vector3d(v1); // cylinder axis 
+            caxis.sub(center);
+            double len = caxis.length();
+            if(h > 0)
+                caxis.normalize();
+            else 
+                caxis.set(0,1,0);
+
+            // rotation axis 
+            Vector3d raxis = new Vector3d();
+            raxis.cross(caxis, Yaxis);
+            double sina = raxis.length();
+            double cosa = Yaxis.dot(caxis);
+            if (abs(sina) < EPSILON) {
+                //TODO do something smarter 
+                raxis = new Vector3d(1, 0, 0);
+            }
+            raxis.normalize();
+            double angle = atan2(sina, cosa);
+            this.rotation = new Matrix3d();
+            rotation.set(new AxisAngle4d(raxis, -angle));
+
+            return 0;
+        }
+
+        public boolean getTriangles(TriangleCollector tc){ 
+            double h2 = h/2;
+            Vector3d c0 = new Vector3d(0,-h2,0);
+            Vector3d c1 = new Vector3d(0,h2,0);            
+            Vector3d base0[] = new Vector3d[nfacets];
+            Vector3d base1[] = new Vector3d[nfacets];
+
+            double delta = 2*Math.PI/nfacets;
+
+            for(int i = 0; i < nfacets; i++){
+                double angle = i * delta;
+
+                double cosa = Math.cos(angle);
+                double sina = Math.sin(angle);
+
+                base0[i] = new Vector3d(r0*cosa, -h2, -r0*sina);
+                base1[i] = new Vector3d(r1*cosa, h2, -r1*sina);
+            }
+            for(int i = 0; i < nfacets; i++){
+                int i1 = (i+1)%nfacets;
+
+                // bottom                
+                addTri(tc,c0,base0[i1],base0[i]);
+                // top
+                addTri(tc,c1,base1[i],base1[i1]);
+                // side 
+                if(h > 0) {
+                    // has non zero length
+                    addTri(tc,base0[i], base0[i1], base1[i1]);                
+                    addTri(tc,base0[i], base1[i1], base1[i]);                
+                }
+            } 
+            return true;
+        }        
+        void addTri(TriangleCollector tc, Vector3d v0, Vector3d v1, Vector3d v2){
+            
+            // TODO transform triangle
+            tv0.set(v0);
+            tv2.set(v2);
+            tv1.set(v1);
+            canonicalTransform(tv0);
+            canonicalTransform(tv1);
+            canonicalTransform(tv2);
+
+            
+            tc.addTri(tv0,tv1,tv2);
+
+        }                
+
+        void canonicalTransform(Vector3d pnt){
+            
+            rotation.transform(pnt);
+            pnt.add(center);
+            
+        }
+
+    }
 } // class TriangulatedModels
