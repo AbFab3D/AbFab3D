@@ -104,7 +104,7 @@ public class VoxelDataShort implements VoxelData {
     /**
      * Compares this object with the specified object to check for equivalence.
      *
-     * @param ta The geometry instance to be compared
+     * @param vd The voxel data instance to compare
      * @return true if the objects represent identical values
      */
     public boolean equals(VoxelData vd) {
