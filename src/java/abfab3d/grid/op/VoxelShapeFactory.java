@@ -106,17 +106,14 @@ public class VoxelShapeFactory {
                 
     }
 
-    public static VoxelShape getCube(int x, int y, int z){
+    public static VoxelShape getCube(int size){
 
-        int radius2 = x*x + y*y + z*z;
-        int radius = (int)Math.ceil(Math.sqrt(radius2));
-
-        int w = (int)(2*radius + 1);
+        int w = (2 * size + 1);
         int a[] = new int[w*w*w*3];
         int index = 0;
-        for(int iy = -radius; iy <= radius; iy++){
-            for(int ix = -radius; ix <= radius; ix++){
-                for(int iz = -radius; iz <= radius; iz++){
+        for(int iy = -size; iy <= size; iy++){
+            for(int ix = -size; ix <= size; ix++){
+                for(int iz = -size; iz <= size; iz++){
                     a[index++] = ix;
                     a[index++] = iy;
                     a[index++] = iz;
@@ -124,12 +121,7 @@ public class VoxelShapeFactory {
             }
         }
 
-        int newarray[] = new int[index];
-        // make exact array of data
-        System.arraycopy(a, 0, newarray, 0, index);
-
-        return new VoxelShapeBase(newarray);
-
+        return new VoxelShapeBase(a);
     }
 
     /**
