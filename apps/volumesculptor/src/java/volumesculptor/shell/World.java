@@ -27,7 +27,11 @@ public class World {
         //maker.setVoxelSize(grid.getVoxelSize() * Math.sqrt(3.0)/2.0);
         maker.setMaxAttributeValue(255);
         //maker.setBounds(bounds);
-        maker.setThreadCount(Runtime.getRuntime().availableProcessors());
+        int max_threads = ShapeJSGlobal.getMaxThreadCount();
+        if (max_threads == 0) {
+            max_threads = Runtime.getRuntime().availableProcessors();
+        }
+        maker.setThreadCount(max_threads);
     }
 
     public GridMaker getMaker() {

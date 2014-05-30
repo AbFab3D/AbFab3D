@@ -610,7 +610,10 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
      */
     public Object clone(){
 
-        return new GridBitIntervals(this);
+        GridBitIntervals ret_val = new GridBitIntervals(this);
+        
+        BaseGrid.copyBounds(this, ret_val);
+        return ret_val;
 
     }
 

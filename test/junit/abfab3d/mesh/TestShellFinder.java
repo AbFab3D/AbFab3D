@@ -29,7 +29,7 @@ import static abfab3d.util.Output.*;
 // External Imports
 
 /**
- * Tests the functionality of MeshDecimatorMT
+ * Tests the functionality of ShellFinder
  *
  * @author Vladimir Bulatov
  */
@@ -44,7 +44,7 @@ public class TestShellFinder extends TestCase {
         return new TestSuite(TestShellFinder.class);
     }
 
-    public void _testOpenBox() throws Exception {
+    public void testOpenBox() throws Exception {
 
         double vert[] = new double[]{
                 1, -1, 1,
@@ -82,14 +82,15 @@ public class TestShellFinder extends TestCase {
 
         ShellFinder.ShellInfo si[] = sf.findShells(mesh);
 
+        assertEquals("Detect 2 shells", 2, si.length);
     }
 
-    public void _testFile() throws Exception {
+    public void testFile() throws Exception {
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
 
         STLReader sr = new STLReader();
-        sr.read("/tmp/multishell_test.stl", its);
+        sr.read("test/models/Deer.stl", its);
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
@@ -99,16 +100,78 @@ public class TestShellFinder extends TestCase {
 
         printf("shells count: %d\n", si.length);
 
+        assertEquals("Detect 4 shells", 4,si.length);
+
         for (int i = 0; i < si.length; i++) {
 
-            printf("face: %7d count: %7d\n", si[i].startFace, si[i].faceCount);
-            STLWriter stl = new STLWriter(fmt("/tmp/00_shell_%05d.stl", i));
-            sf.getShell(mesh, si[i].startFace, stl);
-            stl.close();
+            AreaCalculator ac = new AreaCalculator();
+            sf.getShell(mesh, si[i].startFace, ac);
+            printf("face: %7d count: %7d  vol: %f cm^3\n", si[i].startFace, si[i].faceCount, ac.getVolume() * 1e6);
         }
 
     }
 
+    public void testSorting() throws Exception {
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+
+        STLReader sr = new STLReader();
+        sr.read("test/models/Deer.stl", its);
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        ShellFinder sf = new ShellFinder();
+
+        ShellFinder.ShellInfo si[] = sf.findShellsSorted(mesh, true);
+
+        printf("shells count: %d\n", si.length);
+
+        assertEquals("Detect 4 shells", 4,si.length);
+
+        for (int i = 0; i < si.length; i++) {
+            printf("face: %7d count: %7d  vol: %f cm^3\n", si[i].startFace, si[i].faceCount, si[i].volume * 1e6);
+        }
+
+        assertTrue("Ordered1", si[0].volume <= si[1].volume);
+        assertTrue("Ordered2", si[1].volume <= si[2].volume);
+        assertTrue("Ordered2", si[2].volume <= si[3].volume);
+
+        for (int i = 0; i < si.length; i++) {
+            printf("face: %7d count: %7d  vol: %f cm^3\n", si[i].startFace, si[i].faceCount, si[i].volume * 1e6);
+        }
+
+    }
+
+    public void testSortingReversed() throws Exception {
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
+
+        STLReader sr = new STLReader();
+        sr.read("test/models/Deer.stl", its);
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        ShellFinder sf = new ShellFinder();
+
+        ShellFinder.ShellInfo si[] = sf.findShellsSorted(mesh, false);
+
+        printf("shells count: %d\n", si.length);
+
+        assertEquals("Detect 4 shells", 4,si.length);
+
+        for (int i = 0; i < si.length; i++) {
+            printf("face: %7d count: %7d  vol: %f cm^3\n", si[i].startFace, si[i].faceCount, si[i].volume * 1e6);
+        }
+
+        assertTrue("Ordered1", si[0].volume >= si[1].volume);
+        assertTrue("Ordered2", si[1].volume >= si[2].volume);
+        assertTrue("Ordered2", si[2].volume >= si[3].volume);
+
+        for (int i = 0; i < si.length; i++) {
+            printf("face: %7d count: %7d  vol: %f cm^3\n", si[i].startFace, si[i].faceCount, si[i].volume * 1e6);
+        }
+
+    }
 
     public void _testSpheres() throws Exception {
         for (int i = 0; i < 5; i++)

@@ -13,6 +13,7 @@
 package abfab3d.grid.op;
 
 import abfab3d.grid.*;
+import abfab3d.util.AbFab3DGlobals;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -53,9 +54,15 @@ public class DilationShapeAttributeMT implements Operation, AttributeOperation {
     }
     
     public void setThreadCount(int count){
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
 
         m_threadCount = count;
-
     }
 
     public void setSliceSize(int size){

@@ -106,7 +106,24 @@ public class VoxelShapeFactory {
                 
     }
 
-    
+    public static VoxelShape getCube(int size){
+
+        int w = (2 * size + 1);
+        int a[] = new int[w*w*w*3];
+        int index = 0;
+        for(int iy = -size; iy <= size; iy++){
+            for(int ix = -size; ix <= size; ix++){
+                for(int iz = -size; iz <= size; iz++){
+                    a[index++] = ix;
+                    a[index++] = iy;
+                    a[index++] = iz;
+                }
+            }
+        }
+
+        return new VoxelShapeBase(a);
+    }
+
     /**
        returns xmin, xmax, ymin, ymax, zmin, zmax of coords array 
      */

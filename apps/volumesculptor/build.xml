@@ -195,6 +195,8 @@
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="volumesculptor.shell.Main" fork="true">
             <jvmarg line="${jvmrunargs}"/>
+            <arg value="-threads" />
+            <arg value="8" />
             <arg value="-allowWrite" />
             <arg value="true" />
             <arg value="-outputType" />

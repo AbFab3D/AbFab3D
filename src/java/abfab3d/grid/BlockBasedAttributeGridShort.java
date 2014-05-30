@@ -384,13 +384,13 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
 
         if (block != null) {
 
-            byte encoded = (byte) ioFunc.combineStateAndAttribute(state,material);
+            short encoded = (short) ioFunc.combineStateAndAttribute(state,material);
 
             block.setValue(encoded, vcoord, blockOrder);
         } else {
             block = new BlockShort(blockOrder);
             data[id] = block;
-            byte encoded = (byte) ioFunc.combineStateAndAttribute(state,material);
+            short encoded = (short) ioFunc.combineStateAndAttribute(state,material);
             block.setValue(encoded, vcoord, blockOrder);
         }
     }
@@ -496,7 +496,12 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
             block = new BlockShort(blockOrder);
             data[id] = block;
 
-            block.setValue((short)Grid.NO_MATERIAL, vcoord, blockOrder);
+            if (state == INSIDE) {
+                long att = block.getValue(vcoord, blockOrder) & 0xFFFF;
+                block.setValue((short)ioFunc.combineStateAndAttribute(state,att), vcoord, blockOrder);
+            } else {
+                block.setValue((short)Grid.NO_MATERIAL, vcoord, blockOrder);
+            }
         }
     }
 
@@ -539,7 +544,12 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
             block = new BlockShort(blockOrder);
             data[id] = block;
 
-            block.setValue((short)Grid.NO_MATERIAL, vcoord, blockOrder);
+            if (state == INSIDE) {
+                long att = block.getValue(vcoord, blockOrder) & 0xFFFF;
+                block.setValue((short)ioFunc.combineStateAndAttribute(state,att), vcoord, blockOrder);
+            } else {
+                block.setValue((short)Grid.NO_MATERIAL, vcoord, blockOrder);
+            }
         }
     }
 
@@ -548,7 +558,7 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
      */
     public Object clone() {
         BlockBasedAttributeGridShort ret_val = new BlockBasedAttributeGridShort(this);
-
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 

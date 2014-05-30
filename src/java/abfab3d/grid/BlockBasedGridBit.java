@@ -443,7 +443,7 @@ public class BlockBasedGridBit extends BaseGrid {
      */
     public Object clone() {
         BlockBasedGridBit ret_val = new BlockBasedGridBit(this);
-
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 

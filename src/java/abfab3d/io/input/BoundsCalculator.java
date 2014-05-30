@@ -80,5 +80,16 @@ public class BoundsCalculator implements TriangleCollector {
 
     }
 
+    /**
+     * Reset all variables so this class can be reused;
+     */
+    public void reset() {
+        xmin = Double.MAX_VALUE;
+        xmax = -Double.MAX_VALUE;
+        ymin = Double.MAX_VALUE;
+        ymax = -Double.MAX_VALUE;
+        zmin = Double.MAX_VALUE;
+        zmax = -Double.MAX_VALUE;
+    }
 }
 

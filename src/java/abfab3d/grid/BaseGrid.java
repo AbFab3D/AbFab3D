@@ -506,16 +506,26 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     /**
+       copy grid bounds from srcGrid to destGrid
+     */
+    public static void copyBounds(Grid srcGrid, Grid destGrid){
+
+        double bounds[] = new double[6];
+        srcGrid.getGridBounds(bounds);
+        destGrid.setGridBounds(bounds);
+
+    }
+
+
+    /**
      * Get the grid bounds in world coordinates.
      *
      * @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void getGridBounds(double[] bounds) {
-
         bounds[0] = xorig;
         bounds[2] = yorig;
         bounds[4] = zorig;
-
         bounds[1] = xorig + width * pixelSize;
         bounds[3] = yorig + height * sheight;
         bounds[5] = zorig + depth * pixelSize;
@@ -539,6 +549,8 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         double zpixelSize = (bounds[5] - bounds[4]) / depth;
 
         if (Math.abs((pixelSize - zpixelSize) / pixelSize) > 0.01) {
+            printf("Grid size: %d %d %d\n", width,height,depth);
+            printf("Grid pixelSize: %f sheight: %f\n", pixelSize, sheight);
             throw new IllegalArgumentException(fmt("attempt to set non square pixel: [%12.5g x %12.5g]", pixelSize, zpixelSize));
         }
 

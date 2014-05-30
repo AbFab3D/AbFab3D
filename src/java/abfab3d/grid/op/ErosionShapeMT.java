@@ -24,6 +24,7 @@ import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
+import abfab3d.util.AbFab3DGlobals;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -59,9 +60,15 @@ public class ErosionShapeMT implements Operation, AttributeOperation {
     }
     
     public void setThreadCount(int count){
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
 
         m_threadCount = count;
-
     }
 
     public void setSliceSize(int size){

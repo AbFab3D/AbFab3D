@@ -142,7 +142,7 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
         int idx = y * sliceSize + x * depth + z;
 
         long encoded = data[idx] & 0xFFFF;
-        byte mat = (byte) ioFunc.getAttribute(encoded);
+        long mat = ioFunc.getAttribute(encoded);
         byte state = ioFunc.getState(encoded);
 
         vd.setData(state,mat);
@@ -274,6 +274,41 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
     public void setAttribute(int x, int y, int z, long material) {
         int idx = y * sliceSize + x * depth + z;
 
+        // TODO: Not sure which form is correct
+//        data[idx] = (short) ioFunc.updateAttribute(data[idx] & 0xFFFF, material);
+//        data[idx] = (short)  (0xFFFF & ioFunc.updateAttribute(data[idx], material));
+
+
+        data[idx] = (short) ioFunc.updateAttribute(data[idx] & 0xFFFF, material);
+        /*
+        // TODO:  I suspect this indicates a bug but not positive.
+        if (data[idx] != material) {
+            // TODO: remove me
+            System.out.println("How possible: " + material + " --> " + data[idx]);
+        }
+        */
+    }
+
+    /**
+     * Set the material value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @param material The materialID
+     */
+    public void setAttribute(double x, double y, double z, long material) {
+        int slice = (int) (y / sheight);
+        int s_x = (int) (x / pixelSize);
+        int s_z = (int) (z / pixelSize);
+
+        int idx = slice * sliceSize + s_x * depth + s_z;
+
+        // TODO: Not sure which form is correct
+//        data[idx] = (short) ioFunc.updateAttribute(data[idx] & 0xFFFF, material);
+//        data[idx] = (short)  (0xFFFF & ioFunc.updateAttribute(data[idx], material));
+
+
         data[idx] = (short) ioFunc.updateAttribute(data[idx] & 0xFFFF, material);
     }
 
@@ -308,7 +343,7 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
         int idx = slice * sliceSize + s_x * depth + s_z;
 
         long att = ioFunc.getAttribute(data[idx] & 0xFFFF);
-        data[idx] = (byte) ioFunc.combineStateAndAttribute(state,att);
+        data[idx] = (short) ioFunc.combineStateAndAttribute(state,att);
     }
 
     /**
@@ -317,6 +352,7 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
     public Object clone() {
         ArrayAttributeGridShort ret_val = new ArrayAttributeGridShort(this);
 
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }

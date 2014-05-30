@@ -20,9 +20,12 @@ import javax.vecmath.Point3d;
  */
 public class FaceFlipChecker {
     static final double FACE_FLIP_EPSILON = 1.e-20;
-    
+    static final double TRIANGLE_QUALITY_FACTOR = 0.3; // good value 0.5
+    static final boolean m_testTriangleQuality = true;
     // minimal dot product allowed between normals.     
     double m_faceFlipThreshold = 0.001; 
+    double m_triangleQuality = 0.02;
+    double m_cosAngleThreshold = 0.5; // angle which is considered as face flip
 
     Vector3d
             // p0 = new Vector3d(), // we move origin to p0
@@ -51,23 +54,37 @@ public class FaceFlipChecker {
         double norm = lenp1;
         if(lenv0 > lenp1)
             norm = lenv0;
-        // norm is he length of longes side of orig triangle 
+        // norm is the length of longest side of original triangle 
         double s = 1./norm;
         m_p1.scale(s);
         m_v0.scale(s);
         m_v1.scale(s);
         //both triangles have size around 1 
         
-        m_n0.cross(m_p1, m_v0);
-
+        m_n0.cross(m_p1, m_v0);        
         m_n1.cross(m_p1, m_v1);
 
-        double dot = m_n0.dot(m_n1);
-
-        if (dot < m_faceFlipThreshold) // face flip
-            return true;
-        else
-            return false;
+        if(m_testTriangleQuality){
+            double n0_len2 = m_n0.lengthSquared();
+            double n1_len2 = m_n1.lengthSquared();
+            if(n1_len2 < TRIANGLE_QUALITY_FACTOR*n0_len2) { // triangle quality becomes much worse 
+                //if(n1_len2 < m_triangleQuality) { // avoid low quality triangle 
+                return true;
+            }
+            double dot = m_n0.dot(m_n1)/Math.sqrt(n0_len2*n1_len2);
+            if(dot < m_cosAngleThreshold)
+                return true;
+            else 
+                return false;
+        } else {
+            
+            double dot = m_n0.dot(m_n1);
+            
+            if (dot < m_faceFlipThreshold) // face flip
+                return true;
+            else
+                return false;
+        }
     }
     /**
      * return true if deforrming trinagle (p0, p1, v0) into (p0, p1, v1) will flip triangle normal

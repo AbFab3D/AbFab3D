@@ -41,13 +41,23 @@ public interface AttributeGrid extends Grid {
     /**
      * Set the value of a voxel.
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
      * @param state The value.  0 = nothing. > 0 attributeID
      * @param attribute The attributeID
      */
     public void setData(int x, int y, int z, byte state, long attribute);
+
+    /**
+     * Set the attribute value of a voxel.  Leaves the state unchanged.
+     *
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
+     * @param attribute The attributeID
+     */
+    public void setAttribute(int x, int y, int z, long attribute);
 
     /**
      * Set the attribute value of a voxel.  Leaves the state unchanged.
@@ -57,8 +67,9 @@ public interface AttributeGrid extends Grid {
      * @param z The z world coordinate
      * @param attribute The attributeID
      */
-    public void setAttribute(int x, int y, int z, long attribute);
-
+/*   // Need to add for completeness
+    public void setAttribute(double x, double y, double z, long attribute);
+*/
     /**
      * Count a class of attribute types.  May be much faster then
      * full grid traversal for some implementations.

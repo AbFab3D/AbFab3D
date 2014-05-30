@@ -441,6 +441,7 @@ public class BlockBasedGridByte extends BaseGrid {
      */
     public Object clone() {
         BlockBasedGridByte ret_val = new BlockBasedGridByte(this);
+        BaseGrid.copyBounds(this, ret_val);
 
         return ret_val;
     }

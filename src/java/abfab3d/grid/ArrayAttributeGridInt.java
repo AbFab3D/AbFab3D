@@ -283,7 +283,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         int idx = y * sliceSize + x * depth + z;
 
         long att = ioFunc.getAttribute(data[idx]);
-        data[idx] = (byte) ioFunc.combineStateAndAttribute(state,att);
+        data[idx] = (int) ioFunc.combineStateAndAttribute(state,att);
     }
 
     /**
@@ -302,7 +302,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         int idx = slice * sliceSize + s_x * depth + s_z;
 
         long att = ioFunc.getAttribute(data[idx]);
-        data[idx] = (byte) ioFunc.combineStateAndAttribute(state,att);
+        data[idx] = (int) ioFunc.combineStateAndAttribute(state,att);
     }
 
     /**
@@ -311,6 +311,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     public Object clone() {
         ArrayAttributeGridInt ret_val = new ArrayAttributeGridInt(this);
 
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }

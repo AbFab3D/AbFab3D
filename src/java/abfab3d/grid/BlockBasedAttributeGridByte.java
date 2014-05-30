@@ -500,7 +500,8 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             switch (state) {
                 case INSIDE:
                     long att = block.getValue(vcoord, blockOrder) & 0xFF;
-                    block.setValue((byte)ioFunc.combineStateAndAttribute(state,att), vcoord, blockOrder);
+                    byte csa = (byte)ioFunc.combineStateAndAttribute(state,att);
+                    block.setValue(csa, vcoord, blockOrder);
                     break;
                 case OUTSIDE:
                     block.setValue((byte)Grid.NO_MATERIAL, vcoord, blockOrder);
@@ -512,7 +513,13 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             block = new BlockByte(blockOrder);
             data[id] = block;
 
-            block.setValue((byte)Grid.NO_MATERIAL, vcoord, blockOrder);
+            if (state == INSIDE) {
+                long att = block.getValue(vcoord, blockOrder) & 0xFF;
+                byte csa = (byte)ioFunc.combineStateAndAttribute(state,att);
+                block.setValue(csa, vcoord, blockOrder);
+            } else {
+                block.setValue((byte)Grid.NO_MATERIAL, vcoord, blockOrder);
+            }
         }
     }
 
@@ -555,7 +562,13 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
             block = new BlockByte(blockOrder);
             data[id] = block;
 
-            block.setValue((byte)Grid.NO_MATERIAL, vcoord, blockOrder);
+            if (state == INSIDE) {
+                long att = block.getValue(vcoord, blockOrder) & 0xFF;
+                byte csa = (byte)ioFunc.combineStateAndAttribute(state,att);
+                block.setValue(csa, vcoord, blockOrder);
+            } else {
+                block.setValue((byte)Grid.NO_MATERIAL, vcoord, blockOrder);
+            }
         }
     }
 
@@ -564,7 +577,7 @@ public class BlockBasedAttributeGridByte extends BaseAttributeGrid {
      */
     public Object clone() {
         BlockBasedAttributeGridByte ret_val = new BlockBasedAttributeGridByte(this);
-
+        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 

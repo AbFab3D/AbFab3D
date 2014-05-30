@@ -21,6 +21,7 @@ import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.GridMask;
 import abfab3d.grid.ClassTraverser;
 import abfab3d.grid.GridBit;
+import abfab3d.grid.util.ExecutionStoppedException;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -76,7 +77,7 @@ import static java.lang.Math.ceil;
  * @author Vladimir Bulatov
  * @author Alan Hudson
  */
-public class DistanceTransformMultiStep implements Operation, AttributeOperation {
+public class DistanceTransformMultiStep  extends DistanceTransform implements Operation, AttributeOperation {
 
     public static boolean DEBUG = false;
     static int debugCount = 1000;
@@ -87,8 +88,8 @@ public class DistanceTransformMultiStep implements Operation, AttributeOperation
     double m_inDistance = 0; 
     double m_outDistance = 0;
     
-    int m_maxInDistance = 0; // maximal outside distance (expressed in units of voxelSize/m_maxAttribute)
-    int m_maxOutDistance = 0; // maximal inside distance (expressed in units of voxelSize/m_maxAttribute)
+    int m_maxInDistance = 0; // maximal outside distance ( in subvoxels )
+    int m_maxOutDistance = 0; // maximal inside distance ( in subvoxels )
     int m_defaultValue = Short.MAX_VALUE;
     int nx, ny, nz;
     int m_surfaceValue;
@@ -122,7 +123,7 @@ public class DistanceTransformMultiStep implements Operation, AttributeOperation
      * @return new grid with distance transform data
      */
     public Grid execute(Grid grid) {
-        throw new IllegalArgumentException(fmt("DistanceTransformExact.execute(%d) not implemented!\n", grid));  
+        throw new IllegalArgumentException(fmt("DistanceTransformExact.execute(%s) not implemented!\n", grid));
     }
     
     /**
@@ -172,8 +173,7 @@ public class DistanceTransformMultiStep implements Operation, AttributeOperation
         
         printf("ballNeighbors count: %d\n",m_allBallNeighbors[0].length/4);
         
-        //TODO what grid to allocate here 
-        AttributeGrid distanceGrid = new ArrayAttributeGridShort(nx, ny, nz, grid.getVoxelSize(), grid.getSliceHeight());
+        AttributeGrid distanceGrid = createDistanceGrid(grid);
         initDistances(grid, distanceGrid);
         
         scanSurface(grid,distanceGrid);
@@ -188,6 +188,10 @@ public class DistanceTransformMultiStep implements Operation, AttributeOperation
             updateBoundary(distanceGrid, boundary);       
             if(k+1 < m_inSteps)
                 boundary.clear();
+
+            if (Thread.currentThread().isInterrupted()) {
+                throw new ExecutionStoppedException();
+            }
         }     
         return distanceGrid;
 

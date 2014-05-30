@@ -229,86 +229,92 @@ public class VolumeSculptorKernel extends HostedKernel {
         }
 
 
-        int lines = script.split(System.getProperty("line.separator")).length;
-        System.out.println("Number of lines at generate: " + lines);
-        File temp = File.createTempFile("script", ".vss");
-        FileUtils.write(temp, script);
+        File temp = null;
 
-        System.out.println("Loading script2: " + script);
+        try {
+            int lines = script.split(System.getProperty("line.separator")).length;
+            System.out.println("Number of lines at generate: " + lines);
+            temp = File.createTempFile("script", ".vss");
+            FileUtils.write(temp, script);
 
-        String[] args = new String[] {temp.toString() };
-        String[] script_args = new String[files.length + this.params.length];
-        int idx = 0;
-        for(int i=0; i < this.params.length; i++) {
-            script_args[idx++] = this.params[i];
-        }
-        for(int i=0; i < this.files.length; i++) {
-            script_args[idx++] = this.files[i];
-        }
+            System.out.println("Loading script2: " + script);
 
-        System.out.println("Files: " + files + " params: " + this.params);
-
-        ExecResult result = Main.execMesh(args, script_args);
-        TriangleMesh mesh = result.getMesh();
-
-        // Script compile error
-        if (mesh == null) {
-        	return new KernelResults(KernelResults.INVALID_PARAMS, result.getErrors());
-        }
-
-        HashMap<String, Object> out_params = new HashMap<String, Object>();
-        MeshExporter.writeMesh(mesh, handler, out_params, true);
-
-        BoundsCalculator bc = new BoundsCalculator();
-        mesh.getTriangles(bc);
-        double[] bounds = new double[6];
-        bc.getBounds(bounds);
-
-        AreaCalculator ac = new AreaCalculator();
-        mesh.getTriangles(ac);
-        double volume = ac.getVolume();
-        double surface_area = ac.getArea();
-
-        // Do not shorten the accuracy of these prints they need to be high
-        printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
-        printf("final volume: %12.8f cm^3\n", volume * 1.e6);
-
-        printf("Total time: %d ms\n", (time() - start));
-        printf("-------------------------------------------------\n");
-
-        double min_bounds[] = new double[3];
-        double max_bounds[] = new double[3];
-
-        System.out.println("Bounds: " + java.util.Arrays.toString(bounds));
-        min_bounds[0] = bounds[0];
-        max_bounds[0] = bounds[1];
-        min_bounds[1] = bounds[2];
-        max_bounds[1] = bounds[3];
-        min_bounds[2] = bounds[4];
-        max_bounds[2] = bounds[5];
-        System.out.println("MinBounds: " + java.util.Arrays.toString(min_bounds));
-        System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
-        System.out.println("Volume: " + volume);
-
-        KernelResults results = null;
-        // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
-        // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
-        if (volume == 0.0) {
-        	results = new KernelResults(KernelResults.NO_GEOMETRY, "Empty scene");
-        } else {
-        	results = new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
-        }
-
-        HashMap<String,Object> out = new HashMap<String, Object>();
-        String prints = result.getPrints();
-        System.out.println("DebugPrints: " + prints);
-        if (prints != null) {
-            if (prints != null) {
-                out.put("debugPrint", prints);
-                results.setOutput(out);
+            String[] args = new String[] {temp.toString() };
+            String[] script_args = new String[files.length + this.params.length];
+            int idx = 0;
+            for(int i=0; i < this.params.length; i++) {
+                script_args[idx++] = this.params[i];
             }
+            for(int i=0; i < this.files.length; i++) {
+                script_args[idx++] = this.files[i];
+            }
+
+            System.out.println("Files: " + files + " params: " + this.params);
+
+            ExecResult result = Main.execMesh(args, script_args);
+            TriangleMesh mesh = result.getMesh();
+
+            // Script compile error
+            if (mesh == null) {
+                return new KernelResults(KernelResults.INVALID_PARAMS, result.getErrors());
+            }
+
+            HashMap<String, Object> out_params = new HashMap<String, Object>();
+            MeshExporter.writeMesh(mesh, handler, out_params, true);
+
+            BoundsCalculator bc = new BoundsCalculator();
+            mesh.getTriangles(bc);
+            double[] bounds = new double[6];
+            bc.getBounds(bounds);
+
+            AreaCalculator ac = new AreaCalculator();
+            mesh.getTriangles(ac);
+            double volume = ac.getVolume();
+            double surface_area = ac.getArea();
+
+            // Do not shorten the accuracy of these prints they need to be high
+            printf("final surface area: %12.8f cm^2\n", surface_area * 1.e4);
+            printf("final volume: %12.8f cm^3\n", volume * 1.e6);
+
+            printf("Total time: %d ms\n", (time() - start));
+            printf("-------------------------------------------------\n");
+
+            double min_bounds[] = new double[3];
+            double max_bounds[] = new double[3];
+
+            System.out.println("Bounds: " + java.util.Arrays.toString(bounds));
+            min_bounds[0] = bounds[0];
+            max_bounds[0] = bounds[1];
+            min_bounds[1] = bounds[2];
+            max_bounds[1] = bounds[3];
+            min_bounds[2] = bounds[4];
+            max_bounds[2] = bounds[5];
+            System.out.println("MinBounds: " + java.util.Arrays.toString(min_bounds));
+            System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
+            System.out.println("Volume: " + volume);
+
+            KernelResults results = null;
+            // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
+            // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
+            if (volume == 0.0) {
+                results = new KernelResults(KernelResults.NO_GEOMETRY, "Empty scene");
+            } else {
+                results = new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
+            }
+
+            HashMap<String,Object> out = new HashMap<String, Object>();
+            String prints = result.getPrints();
+            System.out.println("DebugPrints: " + prints);
+            if (prints != null) {
+                if (prints != null) {
+                    out.put("debugPrint", prints);
+                    results.setOutput(out);
+                }
+            }
+            return results;
+        } finally {
+            if (temp != null) temp.delete();
         }
-        return results;
     }
 
     /**
