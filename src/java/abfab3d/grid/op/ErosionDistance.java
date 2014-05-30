@@ -20,7 +20,6 @@ import abfab3d.datasources.DataSourceGrid;
 import abfab3d.datasources.Plane;
 import abfab3d.datasources.Subtraction;
 import abfab3d.grid.*;
-import abfab3d.io.output.SlicesWriter;
 import abfab3d.util.Long2Short;
 import abfab3d.util.LongConverter;
 import abfab3d.util.Units;
@@ -97,11 +96,13 @@ public class ErosionDistance implements Operation, AttributeOperation {
 //        DistanceTransformExact dt = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
         AttributeGrid dg = dt.execute(dest);
 
+        /*
         if (DEBUG) {
             MyGridWriter gw = new MyGridWriter(8,8);
             DistanceColorizer colorizer =new DistanceColorizer(subvoxelResolution,0,0,0);
             gw.writeSlices(dg, subvoxelResolution, "/tmp/slices/ed_%03d.png",0, dg.getWidth(), colorizer);
         }
+        */
 
         int nx = dest.getWidth();
         int ny = dest.getHeight();
@@ -195,12 +196,13 @@ public class ErosionDistance implements Operation, AttributeOperation {
         AttributeGrid dg = dt_exact.execute(dest);
         printf("DistanceTransformMultiStep done: %d ms\n", time() - t0);
 
+        /*
         if (DEBUG) {
             MyGridWriter gw = new MyGridWriter(8,8);
             DistanceColorizer colorizer =new DistanceColorizer(subvoxelResolution,0,0,0);
             gw.writeSlices(dg, subvoxelResolution, "/tmp/slices/ed_%03d.png",0, dg.getWidth(), colorizer);
         }
-
+        */
 
         double[] bounds = new double[6];
         dest.getGridBounds(bounds);
@@ -228,7 +230,7 @@ public class ErosionDistance implements Operation, AttributeOperation {
         printf("Done making grid");
         return new_dest;
     }
-
+/*
     static class MyGridWriter implements SliceExporter {
 
         int cellSize = 1;
@@ -274,7 +276,9 @@ public class ErosionDistance implements Operation, AttributeOperation {
                 e.printStackTrace();
             }
         }
+
     }
+*/
 
     /**
      * Color attributes based on a grayscale distance
