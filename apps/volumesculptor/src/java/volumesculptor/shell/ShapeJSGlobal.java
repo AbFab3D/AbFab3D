@@ -16,6 +16,7 @@ import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.io.input.STLReader;
 import abfab3d.io.input.WaveletRasterizer;
+import abfab3d.io.input.X3DReader;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
@@ -25,6 +26,7 @@ import abfab3d.mesh.WingedEdgeTriangleMesh;
 
 import abfab3d.util.BoundingBoxCalculator;
 import abfab3d.util.MathUtil;
+import abfab3d.util.TriangleProducer;
 import abfab3d.util.Units;
 
 import abfab3d.datasources.ImageWrapper;
@@ -220,14 +222,22 @@ public class ShapeJSGlobal {
         printf("load(%s, %7.3f mm)\n",filename, vs/MM);
         
         try {
-            STLReader stl = new STLReader();
             BoundingBoxCalculator bb = new BoundingBoxCalculator();
-            stl.read(filename, bb);
+            TriangleProducer tp = null;
+
+            if (filename.endsWith(".x3d") || filename.endsWith(".x3db") || filename.endsWith(".x3dv")) {
+                tp = new X3DReader(filename);
+                tp.getTriangles(bb);
+            } else {
+                tp = new STLReader(filename);
+                tp.getTriangles(bb);
+            }
 
             double bounds[] = new double[6];
             bb.getBounds(bounds);
 
             // if any measurement is over 1M then the file "must" be in m instead of mm.  God I hate unspecified units
+            /*
             if(false){
                 // guessing units is bad and may be wrong 
                 double sx = bounds[1] - bounds[0];
@@ -242,6 +252,7 @@ public class ShapeJSGlobal {
                     }
                 }
             }
+            */
             // Add a margin around the model to get some space 
             bounds = MathUtil.extendBounds(bounds, margin);            
             //
@@ -287,15 +298,13 @@ public class ShapeJSGlobal {
             WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
             rasterizer.setMaxAttributeValue(maxAttribute);
 
-            stl.read(filename, rasterizer);
+            tp.getTriangles(rasterizer);
 
             rasterizer.getRaster(dest);
 
             System.out.println("Loaded: " + filename);
 
             return dest;
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
         } catch(Throwable t) {
             t.printStackTrace();
         }
