@@ -208,7 +208,7 @@ public class DilationDistance implements Operation, AttributeOperation {
         gm.setSource(result);
         gm.makeGrid(new_dest);
 
-        printf("Done making grid");
+        printf("Done making grid\n");
         return new_dest;
     }
 
