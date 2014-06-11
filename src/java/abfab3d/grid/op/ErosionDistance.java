@@ -177,6 +177,7 @@ public class ErosionDistance implements Operation, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid execute(AttributeGrid dest) {
+        printf("Using new code\n");
 
         // Nothing to do if distance is 0
         if (distance <= 0) {
@@ -189,45 +190,24 @@ public class ErosionDistance implements Operation, AttributeOperation {
 
         // TODO:  allow user specified DistanceTransform class
 
-        double maxInDistance = distance + dest.getVoxelSize();
         double maxOutDistance = dest.getVoxelSize();
+        double maxInDistance = (distance + dest.getVoxelSize());
 
-        DistanceTransformMultiStep dt_exact = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
+//        DistanceTransformMultiStep dt_exact = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
+        DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
         AttributeGrid dg = dt_exact.execute(dest);
         printf("DistanceTransformMultiStep done: %d ms\n", time() - t0);
 
-        /*
-        if (DEBUG) {
-            MyGridWriter gw = new MyGridWriter(8,8);
-            DistanceColorizer colorizer =new DistanceColorizer(subvoxelResolution,0,0,0);
-            gw.writeSlices(dg, subvoxelResolution, "/tmp/slices/ed_%03d.png",0, dg.getWidth(), colorizer);
-        }
-        */
-
         double[] bounds = new double[6];
         dest.getGridBounds(bounds);
-        DensityGridExtractor dge = new DensityGridExtractor(-distance, 0*MM,dg,maxInDistance,maxOutDistance, subvoxelResolution);
-        AttributeGrid subsurface = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
-        subsurface.setGridBounds(bounds);
 
-        subsurface = dge.execute(subsurface);
+        DensityGridExtractor dge = new DensityGridExtractor(-3 * distance, -distance,dg,-maxInDistance,maxOutDistance, subvoxelResolution);
 
-        printf("Done extracting subsurface");
         AttributeGrid new_dest = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
         new_dest.setGridBounds(bounds);
 
-        GridMaker gm = new GridMaker();
-        gm.setMaxAttributeValue(subvoxelResolution);
+        new_dest = dge.execute(new_dest);
 
-        DataSourceGrid dsg1 = new DataSourceGrid(dest,subvoxelResolution);
-        DataSourceGrid dsg2 = new DataSourceGrid(subsurface,subvoxelResolution);
-
-        Subtraction result = new Subtraction(dsg1,dsg2);
-
-        gm.setSource(result);
-        gm.makeGrid(new_dest);
-
-        printf("Done making grid");
         return new_dest;
     }
 /*

@@ -30,14 +30,14 @@ public class DensityGridExtractor implements AttributeOperation {
     private AttributeGrid distanceGrid;
 
     /** The maximum inDistance of the distanceGrid */
-    private double maxInDistance;
+    private double maxInDistanceValue;
 
     /** The maximum outDistance of the distanceGrid */
-    private double maxOutDistance;
+    private double maxOutDistanceValue;
 
     /** The number of sub-voxel distance levels used in the distanceGrid */
     private int subvoxelResolution;
-    // this is temprorary hack to store max in and out not calculated values of distance grid 
+    // this is temporary hack to store max in and out not calculated values of distance grid
     // the actual default values may be different. They may depend in actual distance grid implementation  
     static final int DEFAULT_IN_VALUE = -Short.MAX_VALUE;
     static final int DEFAULT_OUT_VALUE = Short.MAX_VALUE;
@@ -47,20 +47,20 @@ public class DensityGridExtractor implements AttributeOperation {
        inDistance - value for internal surface
        outDistace - value for external surface 
        distanceGrid - input distance grid to be used for density extraction 
-       maxInDistance - maximal interior distance actualy stored in the distance grid
-       maxOutDistance - maximal exterior distance stored in the distance grid
+       maxInDistanceValue - maximal interior distance actually stored in the distance grid
+       maxOutDistanceValue - maximal exterior distance stored in the distance grid
                        these params are used only to make correct threshold. 
-       if inDistance < maxInDistance the object will have no internal surface
-       if outDistance > maxOutDistance the density grid will have no exterior surfaceas 
+       if inDistanceVal < maxInDistanceValue the object will have no internal surface
+       if outDistanceVal > maxOutDistanceValue the density grid will have no exterior surfaces
        
     */
-    public DensityGridExtractor(double inDistance, double outDistance, AttributeGrid distanceGrid,
-                                double maxInDistance, double maxOutDistance, int subvoxelResolution) {
-        this.inDistanceValue = inDistance;
-        this.outDistanceValue = outDistance;
+    public DensityGridExtractor(double inDistanceValue, double outDistanceValue, AttributeGrid distanceGrid,
+                                double maxInDistanceValue, double maxOutDistanceValue, int subvoxelResolution) {
+        this.inDistanceValue = inDistanceValue;
+        this.outDistanceValue = outDistanceValue;
         this.distanceGrid = distanceGrid;
-        this.maxInDistance = maxInDistance;
-        this.maxOutDistance = maxOutDistance;
+        this.maxInDistanceValue = maxInDistanceValue;
+        this.maxOutDistanceValue = maxOutDistanceValue;
         this.subvoxelResolution = subvoxelResolution;
     }
 
@@ -86,11 +86,11 @@ public class DensityGridExtractor implements AttributeOperation {
         int inDistancePlus = (int) (inDistanceValue * subvoxelResolution / vs + subvoxelResolution / 2);
         int outDistanceMinus = (int) (outDistanceValue * subvoxelResolution / vs - subvoxelResolution / 2);
         int outDistancePlus = (int) (outDistanceValue * subvoxelResolution / vs + subvoxelResolution / 2);
-        if(inDistanceValue < maxInDistance) {
+        if(inDistanceValue < maxInDistanceValue) {
             // no interior shell will be generated 
             inDistanceMinus = inDistancePlus = DEFAULT_IN_VALUE;
         } 
-        if(outDistanceValue > maxOutDistance){
+        if(outDistanceValue > maxOutDistanceValue){
             // no exterior shell will be generated 
             outDistanceMinus = outDistancePlus = DEFAULT_OUT_VALUE;
         }
@@ -102,18 +102,23 @@ public class DensityGridExtractor implements AttributeOperation {
                     short dest_att;
                     
                     if (att < inDistanceMinus) {
-                        dest.setData(x,y,z,Grid.OUTSIDE, subvoxelResolution);
+//                        dest.setData(x, y, z, Grid.OUTSIDE, 0);
+                        dest.setAttribute(x, y, z, 0);
                     } else if (att >= inDistanceMinus && att < inDistancePlus) {
                         dest_att = (short) (att - inDistanceMinus);
-                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+//                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+                        dest.setAttribute(x,y,z,dest_att);
                     } else if (att >= inDistancePlus && att < outDistanceMinus || att == -Short.MAX_VALUE) {
                         dest_att = (short) subvoxelResolution;
-                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+//                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+                        dest.setAttribute(x,y,z,dest_att);
                     } else if (att >= outDistanceMinus && att <= outDistancePlus) {
                         dest_att = (short) (outDistancePlus - att);
-                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+//                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
+                        dest.setAttribute(x,y,z,dest_att);
                     } else {
-                        dest.setData(x,y,z,Grid.OUTSIDE, 0);
+//                        dest.setData(x, y, z, Grid.OUTSIDE, 0);
+                        dest.setAttribute(x, y, z, 0);
                     }
                 }
             }

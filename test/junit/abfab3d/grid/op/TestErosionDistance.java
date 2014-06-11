@@ -23,12 +23,13 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
-import static abfab3d.util.Output.printf;
-import static abfab3d.util.Units.*;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.MM;
 
 // Internal Imports
 
@@ -38,50 +39,13 @@ import java.util.HashMap;
  * @author Alan Hudson
  * @version
  */
-public class TestDilationDistance extends BaseTestAttributeGrid {
+public class TestErosionDistance extends BaseTestAttributeGrid {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestDilationDistance.class);
-    }
-
-    /**
-     * Test basic operation
-     */
-    public void testBasic() {
-        int size = 10;
-        int subvoxelResolution = 100;
-        double vs = 0.1 * MM;
-
-        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,vs,vs);
-
-        grid.setAttribute(5,5,4,20);
-        grid.setAttribute(5,5,5,subvoxelResolution);
-        grid.setAttribute(5,5,6,20);
-
-        double distance = 2 * vs;
-
-        DilationDistance ec = new DilationDistance(distance,subvoxelResolution);
-        AttributeGrid dilatedGrid = ec.execute(grid);
-
-        for(int z=0; z < 11; z++) {
-            printf("%3d ",z);
-        }
-        printf("\n");
-        for(int y=2; y < 9; y++) {
-            for (int z = 0; z < 11; z++) {
-                printf("%3d ", dilatedGrid.getAttribute(5, y, z));
-            }
-            printf("\n");
-        }
-
-        printf("\n");
-        assertTrue("5,5,3 value",dilatedGrid.getAttribute(5,5,3) < subvoxelResolution);
-        assertEquals("5,5,4 value",subvoxelResolution,dilatedGrid.getAttribute(5,5,4));
-        assertEquals("5,5,6 value",subvoxelResolution,dilatedGrid.getAttribute(5,5,6));
-        assertTrue("5,5,7 value",dilatedGrid.getAttribute(5,5,7) < subvoxelResolution);
+        return new TestSuite(TestErosionDistance.class);
     }
 
     /**
@@ -92,36 +56,91 @@ public class TestDilationDistance extends BaseTestAttributeGrid {
         int subvoxelResolution = 100;
         double vs = 0.1 * MM;
 
+        int steps = 2;
+        int alpha = 80;
         AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,vs,vs);
 
-        for(int y=5; y < 8; y++) {
-            for(int z=5; z < 8; z++) {
-                grid.setAttribute(4,y,z,20);
-                grid.setAttribute(5,y,z,subvoxelResolution);
-                grid.setAttribute(6,y,z,20);
+        for(int y=5-steps; y <= 5+steps; y++) {
+            for(int z=5-steps; z <= 5+steps; z++) {
+                grid.setAttribute(5-steps-1,y,z,alpha);
+                for(int x=5-steps; x <= 5+steps; x++) {
+                    grid.setAttribute(x, y, z, subvoxelResolution);
+                }
+                grid.setAttribute(5+steps+1,y,z,alpha);
             }
+        }
+
+        for(int i=5-steps; i <= 5 + steps; i++) {
+            printGrid(grid, i, "Original");
         }
 
         double distance = 1 * vs;
 
-        DilationDistance ec = new DilationDistance(distance,subvoxelResolution);
-        AttributeGrid dilatedGrid = ec.execute(grid);
+        ErosionDistance ec = new ErosionDistance(distance,subvoxelResolution);
+        AttributeGrid erodedGrid = ec.execute(grid);
 
-        for(int z=2; z < 10; z++) {
-            printf("%3d ",z);
+        for(int i=5-steps; i <= 5 + steps; i++) {
+            printGrid(erodedGrid, i, "ErodedGrid");
         }
-        printf("\n");
-        for(int x=2; x < 10; x++) {
-            printf("%3d ",dilatedGrid.getAttribute(x,6,6));
-        }
-
-        printf("\n");
-        assertTrue("5,5,3 value",dilatedGrid.getAttribute(5,5,3) < subvoxelResolution);
-        assertEquals("5,5,4 value",subvoxelResolution,dilatedGrid.getAttribute(5,5,4));
-        assertEquals("5,5,6 value",subvoxelResolution,dilatedGrid.getAttribute(5,5,6));
-        assertTrue("5,5,7 value",dilatedGrid.getAttribute(5,5,7) < subvoxelResolution);
     }
 
+    /**
+     * Test basic operation
+     */
+    public void testDilateErode() {
+        int size = 10;
+        int subvoxelResolution = 100;
+        double vs = 0.1 * MM;
+
+        int steps = 1;
+        int steps1 = steps+1;
+        int alpha = 80;
+        AttributeGrid grid = new ArrayAttributeGridByte(size,size,size,vs,vs);
+
+        for(int y=5-steps; y <= 5+steps; y++) {
+            for(int z=5-steps; z <= 5+steps; z++) {
+                grid.setAttribute(5-steps-1,y,z,alpha);
+                for(int x=5-steps; x <= 5+steps; x++) {
+                    grid.setAttribute(x, y, z, subvoxelResolution);
+                }
+                grid.setAttribute(5+steps+1,y,z,alpha);
+            }
+        }
+
+        for(int i=5-steps; i <= 5 + steps; i++) {
+            printGrid(grid, i, "Original");
+        }
+
+        double distance = steps * vs;
+
+        DilationDistance dc = new DilationDistance(distance,subvoxelResolution);
+        AttributeGrid dilatedGrid = dc.execute(grid);
+
+        for(int i=5-steps1; i <= 5 + steps1; i++) {
+            printGrid(dilatedGrid, i, "Dilated");
+        }
+
+        ErosionDistance ec = new ErosionDistance(distance,subvoxelResolution);
+        AttributeGrid erodedGrid = ec.execute(dilatedGrid);
+
+        for(int i=5-steps; i <= 5 + steps; i++) {
+            printGrid(erodedGrid, i, "Final");
+        }
+    }
+
+    public void printGrid(AttributeGrid grid, int y, String label) {
+        printf("%s\n", label);
+        for (int z = 0; z < grid.getDepth(); z++) {
+            printf("%3d ", z);
+        }
+        printf("\n");
+        for (int z = 0; z < grid.getDepth(); z++) {
+            for (int x = 0; x < grid.getWidth(); x++) {
+                printf("%3d ", grid.getAttribute(x, y, z));
+            }
+            printf("\n");
+        }
+    }
     /*
     public void testSphere2D() {
         int size = 10;
@@ -304,7 +323,7 @@ public class TestDilationDistance extends BaseTestAttributeGrid {
 
 
     public static void main(String[] args) {
-        TestDilationDistance ec = new TestDilationDistance();
+        TestErosionDistance ec = new TestErosionDistance();
 //        ec.dilateCube();
 //        ec.dilateTorus();
     }
