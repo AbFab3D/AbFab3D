@@ -123,7 +123,7 @@ public class DistanceTransformMultiStep  extends DistanceTransform implements Op
      * @return new grid with distance transform data
      */
     public Grid execute(Grid grid) {
-        throw new IllegalArgumentException(fmt("DistanceTransformExact.execute(%d) not implemented!\n", grid));  
+        throw new IllegalArgumentException(fmt("DistanceTransformExact.execute(%s) not implemented!\n", grid));
     }
     
     /**

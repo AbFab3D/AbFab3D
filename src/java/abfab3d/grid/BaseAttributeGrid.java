@@ -13,6 +13,7 @@
 package abfab3d.grid;
 
 import java.io.Serializable;
+import static abfab3d.util.Output.printf;
 // External Imports
 
 /**
@@ -79,7 +80,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
      *
      * @param vc The class of voxels to traverse
      * @param mat The material to traverse
-     * @param t The traverer to call for each voxel
+     * @param t The traverser to call for each voxel
      */
     public void findAttribute(VoxelClasses vc, long mat, ClassAttributeTraverser t) {
 

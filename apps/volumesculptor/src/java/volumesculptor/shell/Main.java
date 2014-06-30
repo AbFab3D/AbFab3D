@@ -491,6 +491,10 @@ public class Main {
                     break goodUsage;
                 }
                 int max_threads = Integer.parseInt(args[i]);
+
+                if (max_threads == 0) {
+                    max_threads = Runtime.getRuntime().availableProcessors();
+                }
                 System.out.println("Setting max threads to: " + max_threads);
                 AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, max_threads);
                 ShapeJSGlobal.setMaximumThreadCount(max_threads);

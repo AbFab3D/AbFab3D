@@ -31,7 +31,7 @@ public class CountMaterials implements ClassAttributeTraverser {
     private int count;
 
     /** The materials seen */
-    private HashMap<Long,Integer> seen;
+    private HashMap<Long,Long> seen;
 
     public CountMaterials() {
     }
@@ -42,8 +42,8 @@ public class CountMaterials implements ClassAttributeTraverser {
      * @param grid The grid to use for grid src
      * @return Material counts
      */
-    public Map<Long,Integer> execute(Grid grid) {
-        seen = new HashMap<Long,Integer>();
+    public Map<Long,Long> execute(Grid grid) {
+        seen = new HashMap<Long,Long>();
 
         ((AttributeGrid)grid).findAttribute(VoxelClasses.INSIDE,this);
 
@@ -63,12 +63,12 @@ public class CountMaterials implements ClassAttributeTraverser {
     public void found(int x, int y, int z, VoxelData start) {
         Long i = new Long(start.getMaterial());
 
-        Integer cnt = seen.get(i);
+        Long cnt = seen.get(i);
 
         if (cnt == null) {
-            seen.put(i, new Integer(1));
+            seen.put(i, new Long(1));
         } else {
-            cnt = new Integer(cnt.intValue() + 1);
+            cnt = new Long(cnt.longValue() + 1);
             seen.put(i, cnt);
         }
     }
@@ -85,6 +85,15 @@ public class CountMaterials implements ClassAttributeTraverser {
      */
     public boolean foundInterruptible(int x, int y, int z, VoxelData start) {
         return true;
+    }
+
+    public String printResults(Map<Long, Long> results) {
+        StringBuilder ret_val = new StringBuilder();
+
+        for(Map.Entry<Long, Long> entry : results.entrySet()) {
+            ret_val.append("MAT: " + entry.getKey() + " Cnt: " + entry.getValue() + "\n");
+        }
+        return ret_val.toString();
     }
 
 }

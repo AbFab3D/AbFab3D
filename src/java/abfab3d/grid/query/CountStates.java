@@ -82,4 +82,7 @@ public class CountStates implements ClassTraverser {
         return true;
     }
 
+    public String printResults(Map<Byte,Long> results) {
+        return "OUTSIDE: " + results.get(Grid.OUTSIDE) + " INSIDE: " + results.get(Grid.INSIDE);
+    }
 }
