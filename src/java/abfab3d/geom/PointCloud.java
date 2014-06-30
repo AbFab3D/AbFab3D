@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2012-2014
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -13,19 +13,22 @@
 package abfab3d.geom;
 
 import javax.vecmath.Vector3d;
+import javax.vecmath.Tuple3d;
 
 import java.util.Vector;
 
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.PointSet;
 
 import static abfab3d.util.Units.MM;
 
 /**
-   generates a cloud of small objects to represent unstructured cloud of 3D points 
+   creates a set of small objects (octahedra) to represent unstructured cloud of 3D points 
 
+   @author Vladimir Bulatov
  */
-public class PointCloud implements TriangleProducer {
+public class PointCloud implements TriangleProducer, PointSet  {
     
     
     // points are represented via 3 coordinates 
@@ -93,6 +96,29 @@ public class PointCloud implements TriangleProducer {
         return true;
         
     }
+
+    public void init(){
+        if(vpoints != null){
+            this.coord = getCoord(vpoints);
+            vpoints = null;
+        }        
+    }
+
+    /**
+       interface PointSet 
+     */
+    public int size(){
+        return this.coord.length/3;
+    }
+
+    public void getPoint(int index, Tuple3d point){
+
+        int start = index*3;
+        point.x = coord[start];
+        point.y = coord[start+1];
+        point.z = coord[start+2];
+    }
+
 
     private double [] getCoord(Vector<Vector3d> points){
 

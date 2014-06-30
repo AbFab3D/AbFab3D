@@ -24,6 +24,7 @@ import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
+import junit.framework.TestCase;
 
 // Internal Imports
 import abfab3d.geom.TorusCreator;

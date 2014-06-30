@@ -1,5 +1,5 @@
 /* -*- Mode: java; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2012-2014
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -32,7 +32,10 @@ import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
 
 /**
-   class takes premade grid, transfromation and data source and fills the grid's voxel if data according to value of data source 
+   class takes existing grid, a Transformation and a DataSource and fills the grid's voxel if data according to value of data source 
+
+   @author Vladimir Bilatov
+   
  */
 public class GridMaker implements Operation, AttributeOperation {
     
@@ -55,8 +58,8 @@ public class GridMaker implements Operation, AttributeOperation {
 
     AttributeGrid m_grid; 
     int m_nx, m_ny, m_nz;
-    int gridMaxAttributeValue = 255;
-    // this is width of transitional layer neatr surfgace of the object.
+    int m_subvoxelResolution = 255;
+    // this is width of transitional layer near surface of the object.
     // data sources are supposed to return transitional value inside of that layer
     double voxelSize = 0;
     private boolean boundsSet = false;
@@ -93,15 +96,17 @@ public class GridMaker implements Operation, AttributeOperation {
     }
 
     /**
-       set width of transitional surface area for shape calculations 
+       set width of transitional surface area for shape calculations.
+       it is obsolete and value is ignored 
      */
     public void setVoxelSize(double vs){
 
-        this.voxelSize = vs; 
+        //this.voxelSize = vs; 
     }
 
     /**
-     set width of transitional surface area for shape calculations
+       set width of transitional surface area for shape calculations
+       default value sqrt(3)/2 - half of large diagonal of unit cube 
      */
     public void setVoxelScale(double vs){
 
@@ -113,7 +118,16 @@ public class GridMaker implements Operation, AttributeOperation {
      */
     public void setMaxAttributeValue(int value){
 
-        gridMaxAttributeValue = value;
+        m_subvoxelResolution = value;
+
+    }
+
+    /**
+       sets subvoxel resolution used for antialiased grids 
+     */
+    public void setSubvoxelResolutiuon(int value){
+
+        m_subvoxelResolution = value;
 
     }
 
@@ -252,7 +266,7 @@ public class GridMaker implements Operation, AttributeOperation {
                     if(res != VecTransform.RESULT_OK)
                         continue;
                     
-                    switch(gridMaxAttributeValue){
+                    switch(m_subvoxelResolution){
                         
                     case 0: // use grid state 
                         if(dataValue.v[0] > 0.5){
@@ -260,7 +274,7 @@ public class GridMaker implements Operation, AttributeOperation {
                         }
                         break;
                     default: // use grid attribute
-                        int v = (int)(gridMaxAttributeValue * dataValue.v[0] + 0.5);
+                        int v = (int)(m_subvoxelResolution * dataValue.v[0] + 0.5);
                         if(v > 0){
                             m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
                         }
@@ -345,7 +359,7 @@ public class GridMaker implements Operation, AttributeOperation {
                         if(res != VecTransform.RESULT_OK)
                             continue;
                         
-                        switch(gridMaxAttributeValue){
+                        switch(m_subvoxelResolution){
                             
                         case 0: // use grid state 
                             if(dataValue.v[0] > 0.5){
@@ -353,7 +367,7 @@ public class GridMaker implements Operation, AttributeOperation {
                             }
                             break;
                         default: // use grid attribute
-                            int v = (int)(gridMaxAttributeValue * dataValue.v[0] + 0.5);
+                            int v = (int)(m_subvoxelResolution * dataValue.v[0] + 0.5);
                             if(v > 0){
                                 m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
                             }
