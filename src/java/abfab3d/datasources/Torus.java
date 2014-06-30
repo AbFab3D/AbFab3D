@@ -45,7 +45,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   Torus centered at given point with axis parallel to z-axis
+   Torus centered at the given point with axis parallel to z-axis
 
    <embed src="doc-files/Torus.svg" type="image/svg+xml"/> 
 
