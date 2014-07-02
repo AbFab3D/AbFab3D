@@ -13,6 +13,7 @@
 package abfab3d.grid.op;
 
 import javax.vecmath.Tuple3d; 
+import javax.vecmath.Point3d; 
 
 import java.util.concurrent.ExecutorService; 
 import java.util.concurrent.Executors; 
@@ -22,13 +23,19 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
+import abfab3d.grid.GridBit;
+import abfab3d.grid.GridMask;
+import abfab3d.grid.GridBitIntervals;
+import abfab3d.grid.ArrayAttributeGridInt;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.PointSet;
 import abfab3d.transforms.Identity;
 
+import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.MathUtil.L2S;
 
 
 /**
@@ -40,7 +47,13 @@ import static abfab3d.util.Output.printf;
  */
 public class DistanceToPointSet implements Operation, AttributeOperation {
     
-    public static final boolean DEBUG = true;
+    int m_algorithm = ALG_LAYERED;
+
+    static public final int ALG_EXACT = 1; // straitforward exact calculation
+    static public final int ALG_LAYERED = 2; // building distance in layers 
+
+    static final boolean DEBUG = true;
+    static final boolean DEBUG_GRID = false;
 
     int m_subvoxelResolution = 100;
     int defaultInValue = -Short.MAX_VALUE;
@@ -55,11 +68,21 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     private int m_nx, m_ny, m_nz;
     // coefficients of convesion from world coord to grid coord 
     private double m_gsx,m_gsy,m_gsz,m_gtx,m_gty,m_gtz;
+    AttributeGrid m_grid;
     
+    double m_maxInDistance;
+    double m_maxOutDistance;
+    //int m_neighbors[]; // spherical neighbors 
+    double m_maxDistVoxels;
+
     /**
        
      */
-    public DistanceToPointSet(PointSet points, double maxInDistance, double maxOutDistance){
+    public DistanceToPointSet(PointSet points, double maxInDistance, double maxOutDistance, int subvoxelResolution){
+        m_points = points;
+        m_subvoxelResolution = subvoxelResolution;
+        m_maxInDistance = maxInDistance;
+        m_maxOutDistance = maxOutDistance;
         
     }
     
@@ -69,6 +92,10 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
      */
     public void setInsideTester(InsideTester tester){
         m_insideTester = tester;
+    }
+
+    public void setAlgorithm(int algorithm){
+        m_algorithm = algorithm;
     }
 
     public Grid execute(Grid grid) {
@@ -81,8 +108,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         return grid;
     }
     
-    void init(AttributeGrid grid){
+    void commonInit(AttributeGrid grid){
 
+        m_grid = grid;
         grid.getGridBounds(m_bounds);
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
@@ -95,34 +123,281 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         m_gsx = 1/vs;
         m_gsy = m_gsx;
         m_gsz = m_gsx;
-        m_gtx = -m_bounds[0]/vs;
-        m_gty = -m_bounds[2]/vs;
-        m_gtz = -m_bounds[4]/vs;
-                
+
+        m_gtx = -m_bounds[0]/vs - 0.5; // half voxel shift 
+        m_gty = -m_bounds[2]/vs - 0.5;
+        m_gtz = -m_bounds[4]/vs - 0.5;
+        
+        double maxOut = m_maxOutDistance/m_voxelSize;
+        double maxIn = m_maxOutDistance/m_voxelSize;
+        m_maxDistVoxels = Math.max(maxOut, maxIn);
+        if(DEBUG)printf("maxDist: %6.2f\n",m_maxDistVoxels);
+        
+        
     }
 
     public void makeDistanceGrid(AttributeGrid grid){
+        if(DEBUG) printf("makeDistanceGrid(%s)\n",grid);
 
-        init(grid);
-        if(DEBUG) printf("makeDistanceGrid(%d %d %d)\n",m_nx, m_ny, m_nz);
+        commonInit(grid);
+
+
+        fillInOut();
+        switch(m_algorithm){
+        default: 
+        case ALG_EXACT: 
+            makeDistanceExact();
+            break;
+        case ALG_LAYERED: 
+            makeDistanceLayered();
+            break;
+        }
+    }
+
+    void makeDistanceExact(){
+
+        if(DEBUG)printf("makeDistanceExact()\n");
+
+        int neig[] = makeBallNeighbors((int)Math.ceil(m_maxDistVoxels));
+        if(DEBUG)printf("neighbors count: %d\n",neig.length/3);
+        int count = m_points.size();
+        Point3d pnt = new Point3d();
+
+        int kmax = neig.length;
+
+        for(int i = 0; i < count; i++){
+
+            m_points.getPoint(i, pnt);
+            getGridCoord(pnt);
+            int 
+                cx = ifloor(pnt.x),
+                cy = ifloor(pnt.y),
+                cz = ifloor(pnt.z);
+
+            for(int k = 0; k < kmax; k += 3){
+
+                int 
+                    ix = cx+neig[k],
+                    iy = cy+neig[k+1],
+                    iz = cz+neig[k+2];
+                if(!isInsideGrid(ix,iy,iz))
+                    continue;
+
+                int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+                int d = L2S(m_grid.getAttribute(ix, iy, iz));
+                if(d >=0){
+                    // outside 
+                    if(dist < d){
+                        m_grid.setAttribute(ix, iy, iz, dist);
+                    }
+                } else {
+                    // inside 
+                    if(dist > d){
+                        m_grid.setAttribute(ix, iy, iz, dist);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+       build distance in layer around PointSet
+       closestPoints grid keeps new added point has associated index to the closest point from the PointSet 
+       
+     */
+    void makeDistanceLayered(){
+
+        if(DEBUG) printf("makeDistanceLayered()\n");
+        AttributeGrid closestPoints = new ArrayAttributeGridInt(m_nx, m_ny, m_nz, m_voxelSize,m_voxelSize);
+        fillGrid(closestPoints, -1);
+        GridBit freshLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
+        GridBit nextLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
+        
+        double layerThickness = 2;
+
+        int neig[] = makeBallNeighbors(layerThickness);
+        if(DEBUG) printf("neig count: %d\n", neig.length/3);
             
-        if(DEBUG) printf("init outside\n");
+        // 1) make fresh layer around PointSet         
+        // 2) for each point in fresh layer make fresh layer around PointSet 
+        makeFirstLayer(neig, closestPoints, freshLayer);        
+        
+        if(DEBUG_GRID){
+            printf("distance after first layer:\n");
+            printSlice(m_grid,m_nz/2);
+            printf("fresh layer:\n");
+            printSlice((AttributeGrid)freshLayer,m_nz/2);
+            printf("closest points:\n");
+            printSlice(closestPoints,m_nz/2);
+        }
+        int iter = (int)Math.ceil(m_maxDistVoxels/layerThickness);
+        printf("iter: %d\n", iter);
+        for(int k = 0; k < iter; k++){
+            printf("iteration: %d\n", (k+1));
+            makeNextLayer(neig, closestPoints, freshLayer, nextLayer);
+            if(DEBUG_GRID){
+                printf("distance after next layer:\n");
+                printSlice(m_grid,m_nz/2);
+                printf("next layer:\n");
+                printSlice((AttributeGrid)nextLayer,m_nz/2);
+                printf("closest points:\n");
+                printSlice(closestPoints,m_nz/2);
+            }             
+            GridBit t = freshLayer;
+            freshLayer = nextLayer;
+            nextLayer = t;
+            nextLayer.clear();
+        }
+    }
+
+    /**
+       creates first fresh layer around original points 
+     */
+    void makeFirstLayer(int neig[], AttributeGrid closestPoints, GridBit freshLayer){
+
+        int kmax = neig.length;
+        int count = m_points.size();
+        Point3d pnt = new Point3d();
+
+        for(int pntIndex = 0; pntIndex < count; pntIndex++){
+            m_points.getPoint(pntIndex, pnt);
+            getGridCoord(pnt);
+            int 
+                cx = ifloor(pnt.x),
+                cy = ifloor(pnt.y),
+                cz = ifloor(pnt.z);
+
+            for(int k = 0; k < kmax; k += 3){
+
+                int 
+                    ix = cx+neig[k],
+                    iy = cy+neig[k+1],
+                    iz = cz+neig[k+2];
+                if(!isInsideGrid(ix,iy,iz))
+                    continue;
+
+                int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+                int d = L2S(m_grid.getAttribute(ix, iy, iz));
+                if(d >=0){
+                    // outside 
+                    if(dist < d){
+                        m_grid.setAttribute(ix, iy, iz, dist);
+                        closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                        freshLayer.set(ix, iy, iz, 1);
+                    }
+                } else {
+                    // inside 
+                    if(dist > d){
+                        m_grid.setAttribute(ix, iy, iz, dist);
+                        closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                        freshLayer.set(ix, iy, iz, 1);
+                    }
+                }
+            }
+        }
+    }
+
+    void makeNextLayer(int neig[], AttributeGrid closestPoints, GridBit oldLayer, GridBit freshLayer){
+
+        int kmax = neig.length;
+        int count = m_points.size();
+        Point3d pnt = new Point3d();
+
+        // for each point old layer build ball neighborhood 
+        // and update distances in grid point 
+        // distance in each point s calculated to the closest boundary point stored in closestPoints
+        //
+        for(int y = 0; y < m_ny; y++){
+            for(int x = 0; x < m_nx; x++){
+                for(int z = 0; z < m_nz; z++){
+                    if(oldLayer.get(x,y,z) == 0) continue; // empty point 
+                    int pntIndex = (int)closestPoints.getAttribute(x,y,z);
+                    m_points.getPoint(pntIndex, pnt);
+                    getGridCoord(pnt);
+                    for(int k = 0; k < kmax; k += 3){                        
+                        int 
+                            ix = x+neig[k],
+                            iy = y+neig[k+1],
+                            iz = z+neig[k+2];
+                        if(!isInsideGrid(ix,iy,iz))
+                            continue;
+                        int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+                        int d = L2S(m_grid.getAttribute(ix, iy, iz));
+                        if(d >=0){
+                            // outside 
+                            if(dist < d){
+                                m_grid.setAttribute(ix, iy, iz, dist);
+                                closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                                freshLayer.set(ix, iy, iz, 1);
+                            }
+                        } else {
+                            // inside 
+                            if(dist > d){
+                                m_grid.setAttribute(ix, iy, iz, dist);
+                                closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                                freshLayer.set(ix, iy, iz, 1);
+                            }
+                        }                        
+                    }                        
+                }
+            }
+        }
+    }
+
+    final boolean isInsideGrid(int x, int y, int z){
+
+        return (x >= 0) && (y >= 0) && (z >= 0) && (x < m_nx) && (y < m_ny) && (z < m_nz); 
+
+    }
+
+    /*
+      calculates distance between 2 points in subvoxel units
+     */
+    final int distance(double x,double y, double z, int x0, int y0, int z0){
+
+        x -= x0; 
+        y -= y0; 
+        z -= z0; 
+
+        return iround(sqrt(x*x + y*y + z*z)*m_subvoxelResolution);
+        
+    }
+    
+    static final int ifloor(double x){
+        if(x >= 0)
+            return (int)x;
+        else 
+            return (int)x - 1;            
+    }
+
+    static final int iround(double x){
+        x += 0.5;
+        if(x >= 0)
+            return (int)x;
+        else 
+            return (int)x - 1;            
+    }
+
+    void fillInOut(){
+
+        if(DEBUG) printf("fillInOut start\n");
         for(int y = 0; y < m_ny; y++){
             for(int x = 0; x < m_nx; x++){
                 for(int z = 0; z < m_nz; z++){
                     if(m_insideTester != null){
                         if(m_insideTester.isInside(x,y,z))
-                            grid.setAttribute(x,y,z,defaultInValue);
+                            m_grid.setAttribute(x,y,z,defaultInValue);
                         else 
-                            grid.setAttribute(x,y,z,defaultOutValue);
+                            m_grid.setAttribute(x,y,z,defaultOutValue);
                     } else { // no tester - default outside 
-                        grid.setAttribute(x,y,z,defaultOutValue);                        
+                        m_grid.setAttribute(x,y,z,defaultOutValue);                        
                     }                        
                 }
             }
         }
-        if(DEBUG) printf("done init outside\n");
+        if(DEBUG) printf("fillInOut done\n");
     }
+
 
     /**
        convert point world coordinates into grid coordinates 
@@ -134,4 +409,81 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         pnt.z = m_gsz * pnt.z + m_gtz;
 
     }
+
+    /**
+     returns array of neighbors of a point in a ball or radius @radius
+     radius is expressed in voxels
+     */
+    static int[] makeBallNeighbors(double radius){
+
+        int radius2 = (int)(radius*radius); // compare against radius squared
+        int iradius = (int)(radius+1);
+
+        // calculate size needed 
+        int count = 0;
+        for(int x = -iradius; x <= iradius; x++){
+            for(int y = -iradius; y <= iradius; y++){
+                for(int z = -iradius; z <= iradius; z++){
+                    double d2 = x*x + y*y + z*z;
+                    if(d2 <= radius2)
+                        count += 3;
+                }
+            }
+        }
+        int neig[] = new int[count];
+
+        // store data in array
+        count = 0;
+        for(int x = -iradius; x <= iradius; x++){
+            for(int y = -iradius; y <= iradius; y++){
+                for(int z = -iradius; z <= iradius; z++){
+                    double d2 = x*x + y*y + z*z;
+                    if(d2 <= radius2){
+                        neig[count] = x;
+                        neig[count+1] = y;
+                        neig[count+2] = z;
+                        count += 3;
+                    }
+                }
+            }
+        }
+        return neig;
+    }
+
+    static void fillGrid(AttributeGrid grid, int value){
+        int 
+            nx = grid.getWidth(), 
+            ny = grid.getHeight(),
+            nz = grid.getDepth();        
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    grid.setAttribute(x,y,z,value);
+                }
+            }
+        }
+    }
+
+    static void printSlice(AttributeGrid grid, int z){
+        int 
+            nx = grid.getWidth(), 
+            ny = grid.getHeight(),
+            nz = grid.getDepth();
+
+        printf("grid:[ %d x %d x %d] slice %d\n",nx,ny,nz,z);
+
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                int d = L2S(grid.getAttribute(x,y,z));
+                switch(d){
+                case Short.MAX_VALUE: printf("    +"); break;
+                case -Short.MAX_VALUE: printf("    -"); break;
+                default:printf("%5d", d); break;
+                }
+            }
+            printf("\n");
+        }
+    }
+
+
 }

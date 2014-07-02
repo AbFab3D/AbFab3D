@@ -339,8 +339,8 @@ public class DistanceTransformExact extends DistanceTransform implements Operati
                 }
             }
         }
-
-        printf("Neighbors count: %d\n",neig.length);
+        if(DEBUG)
+            printf("Neighbors count: %d\n",neig.length);
         return neig;
     }
 
@@ -353,8 +353,8 @@ public class DistanceTransformExact extends DistanceTransform implements Operati
     }
 
     /**
-     makes signed int from short stored as 2 low bytes in long
-     */
+       makes signed int from short stored as 2 low bytes in long
+    */
     static final int L2S(long v){
         return (int)((short)v);
     }

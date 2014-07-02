@@ -987,6 +987,11 @@ public class MathUtil {
 
     }
     
-
+    /**
+       makes signed int from short stored as 2 low bytes in long
+    */
+    public static final int L2S(long v){
+        return (int)((short)v);
+    }
 
 }

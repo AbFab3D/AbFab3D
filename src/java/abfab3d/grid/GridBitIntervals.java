@@ -47,7 +47,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
      */
     public GridBitIntervals(GridBitIntervals grid){
 
-        this(grid.m_nx,grid.m_ny,grid.m_nz,grid.m_orientation, grid.pixelSize, grid.sheight);
+        this(grid.m_nx,grid.m_ny,grid.m_nz,grid.m_orientation, grid.pixelSize, grid.sheight, null);
         for(int i = 0; i < m_data.length; i++){
             RowOfInt dataItem = grid.m_data[i];
             if(dataItem != null)
@@ -63,21 +63,22 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public GridBitIntervals(int nx, int ny, int nz, int orientation ){
-        this(nx, ny, nz, orientation, 1., 1.);
+        this(nx, ny, nz, orientation, 1., 1.,null);
     }
 
     public GridBitIntervals(int nx, int ny, int nz){
-        this(nx, ny, nz, ORIENTATION_Z, 1., 1.);
+        this(nx, ny, nz, ORIENTATION_Z, 1., 1.,null);
     }
 
+    //
+    // these constructors should not be used VB. They create a mess with conversions to int 
+    //public GridBitIntervals(double width, double height, double depth, int orientation, double pixelSize, double sliceHeight){
+    //    this((int) (width/pixelSize) + 1, (int) (height / sliceHeight) + 1, (int) (depth / pixelSize) + 1, orientation, pixelSize, sliceHeight, null);
+    //}
 
-    public GridBitIntervals(double width, double height, double depth, int orientation, double pixelSize, double sliceHeight){
-        this((int) (width/pixelSize) + 1, (int) (height / sliceHeight) + 1, (int) (depth / pixelSize) + 1, orientation, pixelSize, sliceHeight, null);
-    }
-
-    public GridBitIntervals(double width, double height, double depth, int orientation, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc){
-        this((int) (width/pixelSize) + 1, (int) (height / sliceHeight) + 1, (int) (depth / pixelSize) + 1, orientation, pixelSize, sliceHeight, ioFunc);
-    }
+    //public GridBitIntervals(double width, double height, double depth, int orientation, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc){
+    //    this((int) (width/pixelSize) + 1, (int) (height / sliceHeight) + 1, (int) (depth / pixelSize) + 1, orientation, pixelSize, sliceHeight, ioFunc);
+    //}
 
     public GridBitIntervals(int nx, int ny, int nz, int orientation, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc){
 
@@ -258,9 +259,9 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
      */
 
     public void getData(double x, double y, double z, VoxelData data){
-        int iy = (int) (y / sheight);
-        int ix = (int) (x / pixelSize);
-        int iz = (int) (z / pixelSize);
+        int iy = (int) ((y-yorig) / sheight);
+        int ix = (int) ((x-xorig) / pixelSize);
+        int iz = (int) ((z-zorig) / pixelSize);
 
         long encoded = get(ix,iy,iz);
         long att = ioFunc.getAttribute(encoded);
@@ -279,9 +280,9 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public byte getState(double x, double y, double z){
-        int iy = (int) (y / sheight);
-        int ix = (int) (x / pixelSize);
-        int iz = (int) (z / pixelSize);
+        int iy = (int) ((y-yorig) / sheight);
+        int ix = (int) ((x-xorig) / pixelSize);
+        int iz = (int) ((z-zorig) / pixelSize);
 
         return ioFunc.getState(get(ix,iy,iz));
     }
@@ -304,9 +305,9 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public void setState(double x, double y, double z, byte state){
-        int iy = (int) (y / sheight);
-        int ix = (int) (x / pixelSize);
-        int iz = (int) (z / pixelSize);
+        int iy = (int) ((y - yorig)/ sheight);
+        int ix = (int) ((x - xorig)/ pixelSize);
+        int iz = (int) ((z - zorig)/ pixelSize);
 
         long curCode = get(ix,iy,iz);
 
@@ -624,20 +625,27 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public long getAttribute(int x, int y, int z){
+        // attribute is the same as state in bit grid 
+        return get(x,y,z);
         // no attribute in bit grid
-        return Grid.NO_MATERIAL;
+        //return Grid.NO_MATERIAL;
     }
 
     public long getAttribute(double x, double y, double z){
+        // attribute and state are the same for bit grid 
+        int iy = (int) ((y-yorig) / sheight);
+        int ix = (int) ((x-xorig) / pixelSize);
+        int iz = (int) ((z-zorig) / pixelSize);
+        return get(ix,iy,iz);
         // no attribute in bit grid
-        return Grid.NO_MATERIAL;
+        //return Grid.NO_MATERIAL;
     }
 
     public void setData(double x, double y, double z, byte state, long attribute){
 
-        int iy = (int) (y / sheight);
-        int ix = (int) (x / pixelSize);
-        int iz = (int) (z / pixelSize);
+        int iy = (int) ((y-yorig) / sheight);
+        int ix = (int) ((x-xorig) / pixelSize);
+        int iz = (int) ((z-zorig) / pixelSize);
         set(ix,iy,iz,ioFunc.combineStateAndAttribute(state,attribute));
 
     }

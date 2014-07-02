@@ -32,24 +32,40 @@ public class PointCloud implements TriangleProducer, PointSet  {
     
     
     // points are represented via 3 coordinates 
-    double coord[];
+    double coord[] = null;
+
+    int m_size=0; // points count 
+    int m_arrayCapacity = 0;
+
+    // size of geometrical shape to represent each point 
     double pointSize = 0.05*MM;
-
-    // vector to accumulate points 
-    Vector<Vector3d> vpoints;
-
+    
     /**
        makes empty point cloud.
        Pount can be added using add() method
      */
     public PointCloud(){
-        vpoints = new Vector<Vector3d>();
+        this(10);
     }
+
+    public PointCloud(int initialCapacity){
+
+        // avoid wrong behavior 
+        if(initialCapacity < 1) initialCapacity = 1;
+            
+        m_arrayCapacity = initialCapacity;
+        coord = new double[3*m_arrayCapacity];
+        
+    }
+
     /**
        accept coordinates as flat array of double
      */
     public PointCloud(double coord[]){
         this.coord = coord;
+        m_arrayCapacity = coord.length/3;
+        m_size = m_arrayCapacity;
+
     }
     
     /**
@@ -58,6 +74,8 @@ public class PointCloud implements TriangleProducer, PointSet  {
     public PointCloud(Vector<Vector3d> points){
         
         this.coord = getCoord(points);
+        m_size = coord.length/3;
+        m_arrayCapacity = m_size;
     }
 
 
@@ -68,47 +86,43 @@ public class PointCloud implements TriangleProducer, PointSet  {
         pointSize = size;
     }
 
-
     
-    public void addPoint(double x, double y, double z){
-        if(vpoints == null){
-            vpoints = new Vector<Vector3d>();
-        }
-        vpoints.add(new Vector3d(x,y,z));
+    public final void addPoint(double x, double y, double z){
+        if(m_size >= m_arrayCapacity)
+            reallocArray();
+
+        int start = m_size*3;
+        coord[start] = x;
+        coord[start+1]= y;
+        coord[start+2]= z;
+        m_size++;
     }
 
     public boolean getTriangles(TriangleCollector collector){
         
-        if(vpoints != null){
-            this.coord = getCoord(vpoints);
-        }
-
-        int count = coord.length/3;
+        int count = m_size;
         Octa shape = new Octa(pointSize/2);
         
         for(int i = 0; i < count; i++){
+            int start  = i*3;
             double 
-                x = coord[3*i],
-                y = coord[3*i+1],
-                z = coord[3*i+2];
+                x = coord[start],
+                y = coord[start+1],
+                z = coord[start+2];
             shape.makeShape(collector, x,y,z);
         }
         return true;
         
     }
 
-    public void init(){
-        if(vpoints != null){
-            this.coord = getCoord(vpoints);
-            vpoints = null;
-        }        
-    }
 
     /**
        interface PointSet 
      */
     public int size(){
-        return this.coord.length/3;
+
+        return m_size;
+
     }
 
     public void getPoint(int index, Tuple3d point){
@@ -117,10 +131,21 @@ public class PointCloud implements TriangleProducer, PointSet  {
         point.x = coord[start];
         point.y = coord[start+1];
         point.z = coord[start+2];
+
+    }
+    
+    private void reallocArray(){
+
+        int ncapacity = 2*m_arrayCapacity;
+        double ncoord[] = new double[ncapacity*3];
+        System.arraycopy(coord, 0, ncoord,0,coord.length);
+        m_arrayCapacity = ncapacity;
+        coord = ncoord;
+
     }
 
 
-    private double [] getCoord(Vector<Vector3d> points){
+    private static double [] getCoord(Vector<Vector3d> points){
 
         int count = points.size();
         double coord[] = new double[count*3];
