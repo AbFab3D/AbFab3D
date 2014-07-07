@@ -99,8 +99,13 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         m_insideTester = tester;
     }
 
-    public void setVectorIndexerTemplate(VectorIndexer m_vectorIndexerTemplate){
-        
+    /**
+       sets template to be used for VectorIndexer 
+     */
+    public void setVectorIndexerTemplate(VectorIndexer vectorIndexerTemplate){
+        m_vectorIndexerTemplate = vectorIndexerTemplate;
+        if(m_vectorIndexerTemplate == null)
+            m_vectorIndexerTemplate = new VectorIndexerArray(1,1,1);
     }
 
     public void setAlgorithm(int algorithm){
