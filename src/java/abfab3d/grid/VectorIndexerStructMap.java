@@ -20,7 +20,7 @@ import abfab3d.util.StructDataDefinition;
 import abfab3d.util.StructMap;
 import abfab3d.util.StructMixedData;
 
-import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
 
 /**
  * Implementation of VectorIndexer as StructMap.  This implementation should
@@ -32,7 +32,6 @@ public class VectorIndexerStructMap implements VectorIndexer {
 
 
     int nx, ny, nz; // dimensions of 3D grid
-    int nxz;
 
     StructMixedData src;
     StructMap data;
@@ -48,12 +47,15 @@ public class VectorIndexerStructMap implements VectorIndexer {
         this.ny = ny;
         this.nz = nz;
 
-        src = new StructMixedData(IndexValue.DEFINITION,(int) ((long) nx * ny * nz * 0.01));
+        int cap1 = (int) ((long) nx * ny * nz * 0.02);
+        if (cap1 < 20) {
+            cap1 = 20;
+        }
 
-        data = new StructMap(src, new LocationHashFunction());
+        src = new StructMixedData(IndexValue.DEFINITION,cap1);
+        data = new StructMap(cap1, 0.75f, src, new LocationHashFunction());
 
         key = IndexValue.create(src);
-
     }
 
     /**
@@ -75,7 +77,7 @@ public class VectorIndexerStructMap implements VectorIndexer {
         if (loc != -1) {
             return IndexValue.getVal(src,loc);
         } else {
-            return 0;   // TODO: do we need a different value?
+            return 0;
         }
     }
 
@@ -83,7 +85,9 @@ public class VectorIndexerStructMap implements VectorIndexer {
         return new VectorIndexerStructMap(nx, ny, nz);
     }
 
-
+    public String getStats() {
+        return data.getStats();
+    }
 }
 
 /**
@@ -178,8 +182,8 @@ class LocationHashFunction implements HashFunction {
         // to keep thread safe
 
         int x = IndexValue.getX(src,srcIdx);
-        int y = IndexValue.getY(src, srcIdx);
-        int z = IndexValue.getZ(src, srcIdx);
+        int y = IndexValue.getY(src,srcIdx);
+        int z = IndexValue.getZ(src,srcIdx);
 
         return 31 * 31 * x + 31 * y + z;
     }

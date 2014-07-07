@@ -14,6 +14,7 @@ package abfab3d.grid.op;
 
 import java.util.Random;
 
+import abfab3d.grid.VectorIndexerStructMap;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
@@ -283,10 +284,48 @@ public class TestDistanceToPointSet extends TestCase {
         }        
     }
 
+    /**
+     makes point set distributed on a sphere and test the distance calculations
+     */
+    public void testSpeed(){
+        double vs = 0.1*MM;
+        double x0 = -20*MM,y0 = -20*MM, z0 = -20*MM;
+        double x1 = 20*MM,y1 = 20*MM, z1 = 20*MM;
+        int nx = (int)ceil((x1 - x0)/vs);
+        int ny = (int)ceil((y1 - y0)/vs);
+        int nz = (int)ceil((z1 - z0)/vs);
+        printf("grid: [%d x %d  x %d]\n", nx, ny, nz);
+        int maxDistVoxels = 30;
+
+        x1 = x0 + nx*vs;
+        y1 = y0 + ny*vs;
+        z1 = z0 + nz*vs;
+
+
+        double cx = 0.0*MM,cy = 0.0*MM, cz= 0.0*MM;
+        double radius = 1.9*MM;
+        DistanceData dd = new DistanceDataSphere(radius, cx, cy, cz);
+        double dmax = 0;
+        PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
+
+        printf("point count: %d\n", pnts.size());
+
+        DistanceToPointSet dps = new DistanceToPointSet(pnts, 0, maxDistVoxels*vs, subvoxelResolution);
+        dps.setVectorIndexerTemplate(new VectorIndexerStructMap(1,1,1));
+
+        long t0 = time();
+        AttributeGrid gridl = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);
+        gridl.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
+        t0 = time();
+
+        dps.setAlgorithm(DistanceToPointSet.ALG_LAYERED);
+        dps.execute(gridl);
+        printf("DistanceToPointSet LAYERED done %d ms\n", time() - t0);
+    }
 
     static PointCloud makePointCloud(double x0, double y0, double z0, int nx, int ny, int nz, double vs, DistanceData dd){
                 
-        PointCloud pnts = new PointCloud(nx*ny*nz);
+        PointCloud pnts = new PointCloud((nx * ny + ny * nz + nz * nx) * 2);
         
         for(int iy = 0; iy < ny; iy++){
             for(int ix = 0; ix < nx; ix++){
