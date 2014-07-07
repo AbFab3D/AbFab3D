@@ -27,6 +27,8 @@ import abfab3d.grid.GridBit;
 import abfab3d.grid.GridMask;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.grid.VectorIndexer;
+import abfab3d.grid.VectorIndexerArray;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.PointSet;
@@ -52,7 +54,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     static public final int ALG_EXACT = 1; // straitforward exact calculation
     static public final int ALG_LAYERED = 2; // building distance in layers 
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static final boolean DEBUG_GRID = false;
 
     int m_subvoxelResolution = 100;
@@ -75,6 +77,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     //int m_neighbors[]; // spherical neighbors 
     double m_maxDistVoxels;
 
+    // vector indexer template used to store indices to neares points
+    VectorIndexer m_vectorIndexerTemplate = new VectorIndexerArray(1,1,1);
+
     /**
        
      */
@@ -92,6 +97,10 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
      */
     public void setInsideTester(InsideTester tester){
         m_insideTester = tester;
+    }
+
+    public void setVectorIndexerTemplate(VectorIndexer m_vectorIndexerTemplate){
+        
     }
 
     public void setAlgorithm(int algorithm){
@@ -208,40 +217,43 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     void makeDistanceLayered(){
 
         if(DEBUG) printf("makeDistanceLayered()\n");
-        AttributeGrid closestPoints = new ArrayAttributeGridInt(m_nx, m_ny, m_nz, m_voxelSize,m_voxelSize);
-        fillGrid(closestPoints, -1);
+        VectorIndexer closestPoints = m_vectorIndexerTemplate.createEmpty(m_nx, m_ny, m_nz);
+        //fillGrid(closestPoints, -1);
         GridBit freshLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
         GridBit nextLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
         
-        double layerThickness = 2;
+        double layerThickness = 1.9;//2.9;//1.9;  // to make 26 neig
+        double firstLayerThickness = 1.9;
 
+        int neigFirst[] = makeBallNeighbors(firstLayerThickness);
         int neig[] = makeBallNeighbors(layerThickness);
         if(DEBUG) printf("neig count: %d\n", neig.length/3);
             
         // 1) make fresh layer around PointSet         
         // 2) for each point in fresh layer make fresh layer around PointSet 
-        makeFirstLayer(neig, closestPoints, freshLayer);        
+        makeFirstLayer(neigFirst, closestPoints, freshLayer);        
         
         if(DEBUG_GRID){
             printf("distance after first layer:\n");
             printSlice(m_grid,m_nz/2);
-            printf("fresh layer:\n");
-            printSlice((AttributeGrid)freshLayer,m_nz/2);
-            printf("closest points:\n");
-            printSlice(closestPoints,m_nz/2);
+            //printf("fresh layer:\n");
+            //printSlice((AttributeGrid)freshLayer,m_nz/2);
+            //printf("closest points:\n");
+            //printSlice(closestPoints,m_nx, m_ny, m_nz, m_nz/2);
         }
-        int iter = (int)Math.ceil(m_maxDistVoxels/layerThickness);
-        printf("iter: %d\n", iter);
+        int iter = (int)Math.ceil(m_maxDistVoxels/layerThickness)+5;
+        //int iter = iround(m_maxDistVoxels/2);
+        if(DEBUG)printf("iterations: %d\n", iter);
         for(int k = 0; k < iter; k++){
-            printf("iteration: %d\n", (k+1));
+            if(DEBUG)printf("iteration: %d\n", (k+1));
             makeNextLayer(neig, closestPoints, freshLayer, nextLayer);
             if(DEBUG_GRID){
                 printf("distance after next layer:\n");
                 printSlice(m_grid,m_nz/2);
-                printf("next layer:\n");
-                printSlice((AttributeGrid)nextLayer,m_nz/2);
-                printf("closest points:\n");
-                printSlice(closestPoints,m_nz/2);
+                //printf("next layer:\n");
+                //printSlice((AttributeGrid)nextLayer,m_nz/2);
+                //printf("closest points:\n");
+                //printSlice(closestPoints,m_nx, m_ny, m_nz, m_nz/2);
             }             
             GridBit t = freshLayer;
             freshLayer = nextLayer;
@@ -253,7 +265,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     /**
        creates first fresh layer around original points 
      */
-    void makeFirstLayer(int neig[], AttributeGrid closestPoints, GridBit freshLayer){
+    void makeFirstLayer(int neig[], VectorIndexer closestPoints, GridBit freshLayer){
 
         int kmax = neig.length;
         int count = m_points.size();
@@ -282,14 +294,14 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                     // outside 
                     if(dist < d){
                         m_grid.setAttribute(ix, iy, iz, dist);
-                        closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                        closestPoints.set(ix, iy, iz, pntIndex);
                         freshLayer.set(ix, iy, iz, 1);
                     }
                 } else {
                     // inside 
                     if(dist > d){
                         m_grid.setAttribute(ix, iy, iz, dist);
-                        closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                        closestPoints.set(ix, iy, iz, pntIndex);
                         freshLayer.set(ix, iy, iz, 1);
                     }
                 }
@@ -297,7 +309,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         }
     }
 
-    void makeNextLayer(int neig[], AttributeGrid closestPoints, GridBit oldLayer, GridBit freshLayer){
+    void makeNextLayer(int neig[], VectorIndexer closestPoints, GridBit oldLayer, GridBit freshLayer){
 
         int kmax = neig.length;
         int count = m_points.size();
@@ -311,7 +323,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             for(int x = 0; x < m_nx; x++){
                 for(int z = 0; z < m_nz; z++){
                     if(oldLayer.get(x,y,z) == 0) continue; // empty point 
-                    int pntIndex = (int)closestPoints.getAttribute(x,y,z);
+                    int pntIndex = closestPoints.get(x,y,z);
                     m_points.getPoint(pntIndex, pnt);
                     getGridCoord(pnt);
                     for(int k = 0; k < kmax; k += 3){                        
@@ -327,14 +339,14 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                             // outside 
                             if(dist < d){
                                 m_grid.setAttribute(ix, iy, iz, dist);
-                                closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                                closestPoints.set(ix, iy, iz, pntIndex);
                                 freshLayer.set(ix, iy, iz, 1);
                             }
                         } else {
                             // inside 
                             if(dist > d){
                                 m_grid.setAttribute(ix, iy, iz, dist);
-                                closestPoints.setAttribute(ix, iy, iz, pntIndex);
+                                closestPoints.set(ix, iy, iz, pntIndex);
                                 freshLayer.set(ix, iy, iz, 1);
                             }
                         }                        
@@ -352,7 +364,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
     /*
       calculates distance between 2 points in subvoxel units
-     */
+    */
     final int distance(double x,double y, double z, int x0, int y0, int z0){
 
         x -= x0; 
@@ -480,6 +492,19 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 case -Short.MAX_VALUE: printf("    -"); break;
                 default:printf("%5d", d); break;
                 }
+            }
+            printf("\n");
+        }
+    }
+
+    static void printSlice(VectorIndexer vi, int nx, int ny, int nz, int z){
+
+        printf("vi:[ %d x %d x %d] slice %d\n",nx,ny,nz,z);
+
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                int d = vi.get(x,y,z);
+                printf("%5d", d); break;                
             }
             printf("\n");
         }

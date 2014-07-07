@@ -12,6 +12,8 @@
 
 package abfab3d.grid.op;
 
+import java.util.Random;
+
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
@@ -92,6 +94,124 @@ public class TestDistanceToPointSet extends TestCase {
         }
     }
 
+    public void testAnisotropy(){
+
+        printf("testAnisotropy()\n");
+        double vs = 0.1*MM;
+        double x0 = -2*MM,y0 = -2*MM, z0 = -2*MM;
+        double x1 = 2*MM,y1 = 2*MM, z1 = 2*MM;
+
+        int nx = (int)((x1-x0)/vs), ny = (int)((y1-y0)/vs), nz = (int)((z1-z0)/vs); 
+        // recalculate bounds to voxels boundary 
+        x1 = x0 + nx*vs;
+        y1 = y0 + ny*vs;
+        z1 = z0 + nz*vs;
+        printf("grid size: [%d x %d x %d]\n",nx, ny, nz);
+
+
+        PointCloud pnts = new PointCloud(1);
+
+        // center of a voxel near grid center 
+        double xc = x0 + ((nx/2) + 0.5)*vs;
+        double yc = y0 + ((ny/2) + 0.5)*vs;
+        double zc = z0 + ((nz/2) + 0.5)*vs;
+
+        int m = 19;
+
+        pnts.addPoint(xc+m*vs, yc-m*vs, zc);
+        pnts.addPoint(xc, yc-m*vs, zc);
+        pnts.addPoint(xc-m*vs/2, yc, zc);
+        //pnts.addPoint(xc+m*vs, yc+m*vs, zc);
+         
+        if(DEBUG) printf("points count: %d\n", pnts.size());
+        
+        DistanceToPointSet dps = new DistanceToPointSet(pnts, 0, 50*vs, subvoxelResolution);
+        AttributeGrid gride = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);        
+        gride.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
+        long t0 = time();
+        dps.setAlgorithm(DistanceToPointSet.ALG_EXACT);
+        dps.execute(gride);
+        printf("exact DistanceToPointSet done %d ms\n", time() - t0);
+        if(true){
+            printf("exact\n");
+            printSlice(gride, nz/2);
+        }
+
+        AttributeGrid gridl = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);   
+        gridl.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
+        t0 = time();
+
+        dps.setAlgorithm(DistanceToPointSet.ALG_LAYERED);
+        dps.execute(gridl);
+        printf("layered DistanceToPointSet done %d ms\n", time() - t0);
+        if(true){
+            // print slices 
+            //printSlice(grid, nz/2-1);
+            printf("layered\n");
+            printSlice(gridl, nz/2);
+            printf("diff\n");
+            printDiff(gride,gridl, nz/2);
+        }
+    }
+
+
+    public void testCompare(){
+
+        printf("testAnisotropy()\n");
+        double vs = 0.025*MM;
+        double x0 = -2*MM,y0 = -2*MM, z0 = -2*MM;
+        double x1 = 2*MM,y1 = 2*MM, z1 = 2*MM;
+
+        int nx = (int)((x1-x0)/vs), ny = (int)((y1-y0)/vs), nz = (int)((z1-z0)/vs); 
+        // recalculate bounds to voxels boundary 
+        x1 = x0 + nx*vs;
+        y1 = y0 + ny*vs;
+        z1 = z0 + nz*vs;
+        printf("grid size: [%d x %d x %d]\n",nx, ny, nz);
+        int maxDistVoxels = 30;
+        // center of a voxel near grid center 
+        double xc = x0 + ((nx/2) + 0.5)*vs;
+        double yc = y0 + ((ny/2) + 0.5)*vs;
+        double zc = z0 + ((nz/2) + 0.5)*vs;
+        int totalError = 0;
+        int pntCount = 20000;
+        Random rnd = new Random(101);
+        for( int m = 0; m < 10; m++){
+            PointCloud pnts = new PointCloud(1);
+            printf("try: %d\n",m);
+            for(int k = 0; k < pntCount; k++){
+                double x = x0 + rnd.nextDouble()*(x1-x0);
+                double y = y0 + rnd.nextDouble()*(y1-y0);
+                double z = z0 + rnd.nextDouble()*(y1-y0);
+                pnts.addPoint(x,y, z);
+            }         
+            //if(DEBUG) printf("points count: %d\n", pnts.size());
+            
+            DistanceToPointSet dps = new DistanceToPointSet(pnts, 0, maxDistVoxels*vs, subvoxelResolution);
+            AttributeGrid gride = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);        
+            gride.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
+            long t0 = time();
+            dps.setAlgorithm(DistanceToPointSet.ALG_EXACT);
+            dps.execute(gride);
+            printf("exact DistanceToPointSet done %d ms\n", time() - t0);
+            AttributeGrid gridl = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);   
+            gridl.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
+            t0 = time();
+            
+            dps.setAlgorithm(DistanceToPointSet.ALG_LAYERED);
+            dps.execute(gridl);
+            printf("layered DistanceToPointSet done %d ms\n", time() - t0);
+            if(true){
+                int err = compareGrids(gride, gridl);
+                printf("err: %d\n",err);
+                totalError += err;
+            }
+            if(false)
+                printSlice(gridl, 18);
+        }
+        printf("totalError: %d\n", totalError);
+    }
+
     static void printSlice(AttributeGrid grid, int z){
         int 
             nx = grid.getWidth(), 
@@ -112,9 +232,65 @@ public class TestDistanceToPointSet extends TestCase {
         }
     }
 
+    static void printDiff(AttributeGrid grid, AttributeGrid grid1, int z){
+        int 
+            nx = grid.getWidth(), 
+            ny = grid.getHeight(),
+            nz = grid.getDepth();
+        printf("grid:[ %d x %d x %d] slice %d\n",nx,ny,nz,z);
+
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                int d = L2S(grid.getAttribute(x,y,z));
+                int d1 = L2S(grid1.getAttribute(x,y,z));
+                if(d == d1){
+                    printf("  .  ");
+                    continue;
+                } else {
+                    printf("%5d", (d1-d));
+                }
+                //switch(d){
+                //case Short.MAX_VALUE: printf("    +"); break;
+                //case -Short.MAX_VALUE: printf("    -"); break;
+                //default:printf("%5d", d); break;
+                //}
+            }
+            printf("\n");
+        }
+    }
+
+    static int compareGrids(AttributeGrid grid, AttributeGrid grid1){
+        int 
+            nx = grid.getWidth(), 
+            ny = grid.getHeight(),
+            nz = grid.getDepth();
+        //printf("compare grids:[ %d x %d x %d]\n",nx,ny,nz);
+        int errorCount  = 0;
+        
+        for(int z = 0; z < nz; z++){
+            for(int y = 0; y < ny; y++){
+                for(int x = 0; x < nx; x++){
+                    int d = L2S(grid.getAttribute(x,y,z));
+                    int d1 = L2S(grid1.getAttribute(x,y,z));
+                    if(d != d1 ){
+                        if(d != Short.MAX_VALUE && d1 != Short.MAX_VALUE){
+                            printf("(%3d %3d %3d]: %4d - %4d\n", x,y,z,d,d1);
+                            errorCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return errorCount;
+
+    }
+
     public static void main(String arg[]){
 
-        new TestDistanceToPointSet().testPoints();
+        //new TestDistanceToPointSet().testPoints();
+        //new TestDistanceToPointSet().testAnisotropy();
+        new TestDistanceToPointSet().testCompare();
         
     }
 
