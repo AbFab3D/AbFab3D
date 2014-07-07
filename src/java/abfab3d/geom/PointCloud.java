@@ -80,6 +80,15 @@ public class PointCloud implements TriangleProducer, PointSet  {
 
 
     /**
+     * Clear all point and triangle data.
+     */
+    public void clear() {
+        m_size = 0;
+        m_arrayCapacity = 10;
+        coord = new double[3*m_arrayCapacity];
+    }
+
+    /**
        
      */
     public void setPointSize(double size){
