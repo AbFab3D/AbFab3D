@@ -28,4 +28,17 @@ public interface PointSet {
      */
     public void getPoint(int index, Tuple3d point);
 
+    /**
+     * Add a point to the set.
+     *
+     * @param x
+     * @param y
+     * @param z
+     */
+    public void addPoint(double x, double y, double z);
+
+    /**
+     * Clear all point and triangle data.
+     */
+    public void clear();
 }
