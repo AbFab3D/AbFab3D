@@ -286,7 +286,7 @@ public class TestDistanceToPointSet extends TestCase {
 
     static PointCloud makePointCloud(double x0, double y0, double z0, int nx, int ny, int nz, double vs, DistanceData dd){
                 
-        PointCloud pnts = new PointCloud(nx*ny*nz);
+        PointCloud pnts = new PointCloud(2*(nx*ny + ny*nz + nz*nx));
         
         for(int iy = 0; iy < ny; iy++){
             for(int ix = 0; ix < nx; ix++){
@@ -375,7 +375,7 @@ public class TestDistanceToPointSet extends TestCase {
                 for(int z = 0; z < nz; z++){
                     int d = L2S(grid.getAttribute(x,y,z));
                     int d1 = L2S(grid1.getAttribute(x,y,z));
-                    if(d != d1 && abs(d) != Short.MAX_VALUE && abs(d1) != Short.MAX_VALUE){
+                    if(d != d1){
                         diff = Math.abs(d - d1);
                         if(diff >= hist.length)
                             hist[hist.length-1]++;
