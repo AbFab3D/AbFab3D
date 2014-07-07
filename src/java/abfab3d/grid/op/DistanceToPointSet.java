@@ -76,6 +76,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     double m_maxOutDistance;
     //int m_neighbors[]; // spherical neighbors 
     double m_maxDistVoxels;
+    int m_maxDistSubvoxels;
 
     // vector indexer template used to store indices to neares points
     VectorIndexer m_vectorIndexerTemplate = new VectorIndexerArray(1,1,1);
@@ -145,7 +146,12 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         double maxOut = m_maxOutDistance/m_voxelSize;
         double maxIn = m_maxOutDistance/m_voxelSize;
         m_maxDistVoxels = Math.max(maxOut, maxIn);
-        if(DEBUG)printf("maxDist: %6.2f\n",m_maxDistVoxels);
+        m_maxDistSubvoxels = (int)Math.ceil(m_maxDistVoxels*m_subvoxelResolution);
+
+        if(DEBUG){
+            printf("maxDist: %6.2f voxels\n",m_maxDistVoxels);
+            printf("maxDist: %d subvoxels\n",m_maxDistSubvoxels);
+        }
         
         
     }
@@ -172,7 +178,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
         if(DEBUG)printf("makeDistanceExact()\n");
 
-        int neig[] = makeBallNeighbors((int)Math.ceil(m_maxDistVoxels));
+        int neig[] = makeBallNeighbors((int)Math.ceil(m_maxDistVoxels)+2);
         if(DEBUG)printf("neighbors count: %d\n",neig.length/3);
         int count = m_points.size();
         Point3d pnt = new Point3d();
@@ -198,6 +204,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                     continue;
 
                 int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+                if(dist > m_maxDistSubvoxels)
+                    continue;
                 int d = L2S(m_grid.getAttribute(ix, iy, iz));
                 if(d >=0){
                     // outside 
@@ -227,8 +235,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         GridBit freshLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
         GridBit nextLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
         
-        double layerThickness = 1.9;//2.9;//1.9;  // to make 26 neig
-        double firstLayerThickness = 1.9;
+        double layerThickness = 1.8;//2.9;//1.9;  // to make 26 neig
+        double firstLayerThickness = 1.8;
 
         int neigFirst[] = makeBallNeighbors(firstLayerThickness);
         int neig[] = makeBallNeighbors(layerThickness);
@@ -236,6 +244,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             
         // 1) make fresh layer around PointSet         
         // 2) for each point in fresh layer make fresh layer around PointSet 
+        if(DEBUG)printf("fist layer\n");
         makeFirstLayer(neigFirst, closestPoints, freshLayer);        
         
         if(DEBUG_GRID){
@@ -246,12 +255,14 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             //printf("closest points:\n");
             //printSlice(closestPoints,m_nx, m_ny, m_nz, m_nz/2);
         }
-        int iter = (int)Math.ceil(m_maxDistVoxels/layerThickness)+5;
+        
+        int iter = (int)Math.ceil(m_maxDistVoxels/Math.floor(layerThickness));
         //int iter = iround(m_maxDistVoxels/2);
         if(DEBUG)printf("iterations: %d\n", iter);
         for(int k = 0; k < iter; k++){
-            if(DEBUG)printf("iteration: %d\n", (k+1));
-            makeNextLayer(neig, closestPoints, freshLayer, nextLayer);
+            int setCount = makeNextLayer(k, neig, closestPoints, freshLayer, nextLayer);
+            if(setCount == 0)
+                break;
             if(DEBUG_GRID){
                 printf("distance after next layer:\n");
                 printSlice(m_grid,m_nz/2);
@@ -275,6 +286,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         int kmax = neig.length;
         int count = m_points.size();
         Point3d pnt = new Point3d();
+        int distCalcCount = 0, distSetCount = 0;
 
         for(int pntIndex = 0; pntIndex < count; pntIndex++){
             m_points.getPoint(pntIndex, pnt);
@@ -294,6 +306,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                     continue;
 
                 int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+                distCalcCount++;
+                if(dist > m_maxDistSubvoxels)
+                    continue;
                 int d = L2S(m_grid.getAttribute(ix, iy, iz));
                 if(d >=0){
                     // outside 
@@ -301,6 +316,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                         m_grid.setAttribute(ix, iy, iz, dist);
                         closestPoints.set(ix, iy, iz, pntIndex);
                         freshLayer.set(ix, iy, iz, 1);
+                        distSetCount++;
                     }
                 } else {
                     // inside 
@@ -308,17 +324,20 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                         m_grid.setAttribute(ix, iy, iz, dist);
                         closestPoints.set(ix, iy, iz, pntIndex);
                         freshLayer.set(ix, iy, iz, 1);
+                        distSetCount++;
                     }
                 }
             }
         }
+        if(DEBUG)printf("dist calc count: %d dist set count: %d\n", distCalcCount, distSetCount);
     }
 
-    void makeNextLayer(int neig[], VectorIndexer closestPoints, GridBit oldLayer, GridBit freshLayer){
+    int makeNextLayer(int iteration, int neig[], VectorIndexer closestPoints, GridBit oldLayer, GridBit freshLayer){
 
         int kmax = neig.length;
         int count = m_points.size();
         Point3d pnt = new Point3d();
+        int distCalcCount = 0, distSetCount = 0;
 
         // for each point old layer build ball neighborhood 
         // and update distances in grid point 
@@ -339,6 +358,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                         if(!isInsideGrid(ix,iy,iz))
                             continue;
                         int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+                        distCalcCount++;
+                        if(dist > m_maxDistSubvoxels)
+                            continue;
                         int d = L2S(m_grid.getAttribute(ix, iy, iz));
                         if(d >=0){
                             // outside 
@@ -346,6 +368,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                                 m_grid.setAttribute(ix, iy, iz, dist);
                                 closestPoints.set(ix, iy, iz, pntIndex);
                                 freshLayer.set(ix, iy, iz, 1);
+                                distSetCount++;
                             }
                         } else {
                             // inside 
@@ -353,12 +376,15 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                                 m_grid.setAttribute(ix, iy, iz, dist);
                                 closestPoints.set(ix, iy, iz, pntIndex);
                                 freshLayer.set(ix, iy, iz, 1);
+                                distSetCount++;
                             }
                         }                        
                     }                        
                 }
             }
         }
+        if(DEBUG)printf("iter: %3d, calc count: %d set count: %d\n", iteration, distCalcCount, distSetCount);
+        return distSetCount;
     }
 
     final boolean isInsideGrid(int x, int y, int z){
@@ -514,6 +540,5 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             printf("\n");
         }
     }
-
 
 }

@@ -18,13 +18,20 @@ import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
+import javax.vecmath.Point3d;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 
+import abfab3d.intersect.DistanceData;
+import abfab3d.intersect.DistanceDataSphere;
+
+
 import abfab3d.geom.PointCloud;
 
 import static java.lang.Math.round;
+import static java.lang.Math.ceil;
+import static java.lang.Math.abs;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
@@ -69,7 +76,8 @@ public class TestDistanceToPointSet extends TestCase {
         double yc = y0 + ((ny/2) + 0.5)*vs;
         double zc = z0 + ((nz/2) + 0.5)*vs;
 
-        int iterCount = 1000;
+        //int iterCount = 1000;
+        int iterCount = 500;
         for(int k = 0; k < iterCount; k++){
             pnts.addPoint(xc+2*vs, yc+vs, zc);
             pnts.addPoint(xc-3*vs, yc+vs, zc);
@@ -157,7 +165,7 @@ public class TestDistanceToPointSet extends TestCase {
 
     public void testCompare(){
 
-        printf("testAnisotropy()\n");
+        printf("testCompare()\n");
         double vs = 0.025*MM;
         double x0 = -2*MM,y0 = -2*MM, z0 = -2*MM;
         double x1 = 2*MM,y1 = 2*MM, z1 = 2*MM;
@@ -174,9 +182,10 @@ public class TestDistanceToPointSet extends TestCase {
         double yc = y0 + ((ny/2) + 0.5)*vs;
         double zc = z0 + ((nz/2) + 0.5)*vs;
         int totalError = 0;
-        int pntCount = 20000;
+        int pntCount = 1000;
+        int iterCount = 10;
         Random rnd = new Random(101);
-        for( int m = 0; m < 10; m++){
+        for( int m = 0; m < iterCount; m++){
             PointCloud pnts = new PointCloud(1);
             printf("try: %d\n",m);
             for(int k = 0; k < pntCount; k++){
@@ -193,14 +202,14 @@ public class TestDistanceToPointSet extends TestCase {
             long t0 = time();
             dps.setAlgorithm(DistanceToPointSet.ALG_EXACT);
             dps.execute(gride);
-            printf("exact DistanceToPointSet done %d ms\n", time() - t0);
+            printf("DistanceToPointSet EXACT done %d ms\n", time() - t0);
             AttributeGrid gridl = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);   
             gridl.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
             t0 = time();
             
             dps.setAlgorithm(DistanceToPointSet.ALG_LAYERED);
             dps.execute(gridl);
-            printf("layered DistanceToPointSet done %d ms\n", time() - t0);
+            printf("DistanceToPointSet LAYERED done %d ms\n", time() - t0);
             if(true){
                 int err = compareGrids(gride, gridl);
                 printf("err: %d\n",err);
@@ -210,6 +219,100 @@ public class TestDistanceToPointSet extends TestCase {
                 printSlice(gridl, 18);
         }
         printf("totalError: %d\n", totalError);
+    }
+
+    /**
+       makes point set distributed on a sphere and test the distance calculations 
+     */
+    public void testSphere(){
+        double vs = 0.1*MM;
+        double x0 = -2*MM,y0 = -2*MM, z0 = -2*MM;
+        double x1 = 2*MM,y1 = 2*MM, z1 = 2*MM;
+        int nx = (int)ceil((x1 - x0)/vs); 
+        int ny = (int)ceil((y1 - y0)/vs); 
+        int nz = (int)ceil((z1 - z0)/vs); 
+        printf("grid: [%d x %d  x %d]\n", nx, ny, nz);
+        int maxDistVoxels = 20;
+
+        x1 = x0 + nx*vs;
+        y1 = y0 + ny*vs;
+        z1 = z0 + nz*vs;
+
+
+        double cx = 0.0*MM,cy = 0.0*MM, cz= 0.0*MM;        
+        double radius = 1.9*MM;
+        DistanceData dd = new DistanceDataSphere(radius, cx, cy, cz);
+        double dmax = 0;
+        PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
+        
+        printf("point count: %d\n", pnts.size());
+        Point3d pnt = new Point3d();
+        for(int k = 0; k < pnts.size(); k++){
+
+            pnts.getPoint(k, pnt);
+            double d = Math.abs(dd.get(pnt.x, pnt.y, pnt.z)/vs);            
+            if(d > dmax) {
+                dmax = d; 
+                //printf("dmax: %7.4f vs pnt: (%7.3f, %7.3f, %7.3f)\n", dmax, pnt.x/vs, pnt.y/vs, pnt.z/vs );
+                
+            }
+        }
+        //printf("max error: %7.4f vs\n", dmax);
+
+        DistanceToPointSet dps = new DistanceToPointSet(pnts, 0, maxDistVoxels*vs, subvoxelResolution);
+        AttributeGrid gride = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);        
+        gride.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
+        long t0 = time();
+        dps.setAlgorithm(DistanceToPointSet.ALG_EXACT);
+        dps.execute(gride);
+        printf("DistanceToPointSet EXACT done %d ms\n", time() - t0);
+        AttributeGrid gridl = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);   
+        gridl.setGridBounds(new double[]{x0,x1, y0, y1, z0, z1});
+        t0 = time();
+        
+        dps.setAlgorithm(DistanceToPointSet.ALG_LAYERED);
+        dps.execute(gridl);
+        printf("DistanceToPointSet LAYERED done %d ms\n", time() - t0);
+        if(true){
+            long errors[] = getMaxDiff(gride, gridl);
+            printf("err cnt\n");
+            for(int k = 0; k < errors.length; k++){
+                if(errors[k] != 0)
+                    printf("%3d %3d\n",k, errors[k]);
+            }
+        }        
+    }
+
+
+    static PointCloud makePointCloud(double x0, double y0, double z0, int nx, int ny, int nz, double vs, DistanceData dd){
+                
+        PointCloud pnts = new PointCloud(nx*ny*nz);
+        
+        for(int iy = 0; iy < ny; iy++){
+            for(int ix = 0; ix < nx; ix++){
+                for(int iz = 0; iz < ny; iz++){
+                    double x = x0 + ix*vs;
+                    double y = y0 + iy*vs;
+                    double z = x0 + iz*vs;
+                    double d0 = dd.get(x,y,z);
+                    double dx = dd.get(x+vs,y,z);
+                    double dy = dd.get(x,y+vs,z);
+                    double dz = dd.get(x,y,z+vs);
+                    if(dx * d0 <= 0) pnts.addPoint(x + vs * root(d0, dx), y,z); 
+                    if(dy * d0 <= 0) pnts.addPoint(x, y + vs * root(d0, dy), z); 
+                    if(dz * d0 <= 0) pnts.addPoint(x, y, z + vs * root(d0, dz)); 
+                }
+            }
+        }
+
+        return pnts;
+    }
+    
+    /**
+       return a solution of linear equation (v1-v0)*x + v0 = 0. 
+     */
+    static double root(double v0, double v1){
+        return (- v0 / (v1 - v0));
     }
 
     static void printSlice(AttributeGrid grid, int z){
@@ -259,6 +362,37 @@ public class TestDistanceToPointSet extends TestCase {
         }
     }
 
+    static long[] getMaxDiff(AttributeGrid grid, AttributeGrid grid1){
+        int 
+            nx = grid.getWidth(), 
+            ny = grid.getHeight(),
+            nz = grid.getDepth();
+        int maxDiff = 0;
+        int diff = 0;
+        long hist[] = new long[100];
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    int d = L2S(grid.getAttribute(x,y,z));
+                    int d1 = L2S(grid1.getAttribute(x,y,z));
+                    if(d != d1 && abs(d) != Short.MAX_VALUE && abs(d1) != Short.MAX_VALUE){
+                        diff = Math.abs(d - d1);
+                        if(diff >= hist.length)
+                            hist[hist.length-1]++;
+                        else 
+                            hist[diff]++;
+                        if(diff > maxDiff)
+                            maxDiff = diff;
+                    } else {
+                        hist[0]++;
+                    }
+                }
+            }
+        }
+        printf("maxDiff: %3d\n", maxDiff);
+        return hist;
+    }
+
     static int compareGrids(AttributeGrid grid, AttributeGrid grid1){
         int 
             nx = grid.getWidth(), 
@@ -290,7 +424,8 @@ public class TestDistanceToPointSet extends TestCase {
 
         //new TestDistanceToPointSet().testPoints();
         //new TestDistanceToPointSet().testAnisotropy();
-        new TestDistanceToPointSet().testCompare();
+        //new TestDistanceToPointSet().testCompare();
+        new TestDistanceToPointSet().testSphere();
         
     }
 
