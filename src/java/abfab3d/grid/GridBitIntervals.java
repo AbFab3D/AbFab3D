@@ -66,6 +66,10 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         this(nx, ny, nz, orientation, 1., 1.,null);
     }
 
+    public GridBitIntervals(int nx, int ny, int nz, int orientation,double pixelSize, double sliceHeight ){
+        this(nx, ny, nz, orientation, pixelSize, sliceHeight,null);
+    }
+
     public GridBitIntervals(int nx, int ny, int nz){
         this(nx, ny, nz, ORIENTATION_Z, 1., 1.,null);
     }
