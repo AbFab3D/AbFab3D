@@ -17,6 +17,7 @@ import static abfab3d.util.ImageUtil.makeRGB;
 import static abfab3d.util.ImageUtil.makeRGBA;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Units.MM;
+import static abfab3d.util.MathUtil.L2S;
 
 /**
  * Common code for testing distance transforms
@@ -332,6 +333,52 @@ public class BaseTestDistanceTransform extends TestCase {
     }
 
 
+    static void printSlice(AttributeGrid grid, int xmin, int xmax, int ymin, int ymax, int z){
+
+        for(int y = ymin; y < ymax; y++){
+            for(int x = xmin; x < xmax; x++){
+                int v = L2S(grid.getAttribute(x,y,z));
+                if(v == Short.MAX_VALUE)
+                    printf("  +  ");
+                else if(v == -Short.MAX_VALUE)
+                    printf("  -  ");
+                else
+                    printf("%4d ",v);
+            }
+            printf("\n");
+        }        
+    }
+
+    static long[] getDiffHistogram(AttributeGrid grid, AttributeGrid grid1){
+        int 
+            nx = grid.getWidth(), 
+            ny = grid.getHeight(),
+            nz = grid.getDepth();
+        int maxDiff = 0;
+        int diff = 0;
+        long hist[] = new long[100];
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    int d = L2S(grid.getAttribute(x,y,z));
+                    int d1 = L2S(grid1.getAttribute(x,y,z));
+                    if(d != d1){
+                        diff = Math.abs(d - d1);
+                        if(diff >= hist.length)
+                            hist[hist.length-1]++;
+                        else 
+                            hist[diff]++;
+                        if(diff > maxDiff)
+                            maxDiff = diff;
+                    } else {
+                        hist[0]++;
+                    }
+                }
+            }
+        }
+        printf("maxDiff: %3d\n", maxDiff);
+        return hist;
+    }
 
     public void showColorMapping(LongConverter conv) {
         for(int i=-512; i < 12; i++) {
@@ -346,15 +393,19 @@ public class BaseTestDistanceTransform extends TestCase {
 
         int maxvalue = 100;
         int undefined = Short.MAX_VALUE;
-        byte zr = 0;
-        byte zg = 0;
-        byte zb = 0;
+        int zr = 0;
+        int zg = 0;
+        int zb = 0;
 
         DistanceColorizer(int maxvalue,int zr, int zg, int zb){
             this.maxvalue = maxvalue;
             this.zr = (byte) zr;
             this.zg = (byte) zg;
             this.zb = (byte) zb;
+        }
+
+        DistanceColorizer(int maxvalue){
+            this.maxvalue = maxvalue;
         }
 
         public long get(long value){
@@ -365,9 +416,9 @@ public class BaseTestDistanceTransform extends TestCase {
                 return makeRGB(0, MAXC,MAXC);
             }
 
-            byte r = 0;
-            byte g = 0;
-            byte b = 0;
+            int r = 0;
+            int g = 0;
+            int b = 0;
 
             if (value == 0) {
 
@@ -378,11 +429,11 @@ public class BaseTestDistanceTransform extends TestCase {
             } else {
 
                 //int v = (int)(MAXC  - (value * MAXC / maxvalue) & MAXC);
-                byte v = (byte) (map((int)value, -maxvalue,maxvalue,-MAXC,MAXC));
+                int v = (map((int)value, -maxvalue,maxvalue,-MAXC,MAXC));
                 if (value < 0) {
-                    r = (byte) (-v);
+                    r =  (-v);
                 } else {
-                    b = (byte) (v);
+                    b =  (v);
                 }
             }
 
@@ -435,6 +486,22 @@ public class BaseTestDistanceTransform extends TestCase {
             }
         }
     }
+    /**
 
+     */
+    static class DensityColorizer implements LongConverter {
 
+        int maxvalue = 100;
+        DensityColorizer(int maxvalue){
+
+            this.maxvalue = maxvalue;
+        }
+
+        public long get(long value){
+
+            int v = (int)((MAXC -  MAXC*value/ maxvalue) & MAXC);
+            return makeRGB(v, v, v);
+            
+        }
+    }
 }

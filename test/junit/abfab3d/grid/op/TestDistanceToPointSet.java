@@ -274,7 +274,7 @@ public class TestDistanceToPointSet extends TestCase {
         dps.execute(gridl);
         printf("DistanceToPointSet LAYERED done %d ms\n", time() - t0);
         if(true){
-            long errors[] = getMaxDiff(gride, gridl);
+            long errors[] = getDiffHistogram(gride, gridl);
             printf("err cnt\n");
             for(int k = 0; k < errors.length; k++){
                 if(errors[k] != 0)
@@ -362,7 +362,7 @@ public class TestDistanceToPointSet extends TestCase {
         }
     }
 
-    static long[] getMaxDiff(AttributeGrid grid, AttributeGrid grid1){
+    static long[] getDiffHistogram(AttributeGrid grid, AttributeGrid grid1){
         int 
             nx = grid.getWidth(), 
             ny = grid.getHeight(),

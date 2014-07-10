@@ -52,7 +52,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     
     int m_algorithm = ALG_LAYERED;
 
-    static public final int ALG_EXACT = 1; // straitforward exact calculation
+    static public final int ALG_EXACT = 1; // straightforward exact calculation
     static public final int ALG_LAYERED = 2; // building distance in layers 
 
     static final boolean DEBUG = true;
@@ -78,18 +78,20 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     //int m_neighbors[]; // spherical neighbors 
     double m_maxDistVoxels;
     int m_maxDistSubvoxels;
+    boolean m_fillInGrid = false;
 
     // vector indexer template used to store indices to neares points
     VectorIndexer m_vectorIndexerTemplate = new VectorIndexerArray(1,1,1);
 
     /**
-       
+     @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
+     @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
      */
-    public DistanceToPointSet(PointSet points, double maxInDistance, double maxOutDistance, int subvoxelResolution){
+    public DistanceToPointSet(PointSet points, double inDistance, double outDistance, int subvoxelResolution){
         m_points = points;
         m_subvoxelResolution = subvoxelResolution;
-        m_maxInDistance = maxInDistance;
-        m_maxOutDistance = maxOutDistance;
+        m_maxInDistance = inDistance;
+        m_maxOutDistance = outDistance;
         
     }
     
@@ -105,7 +107,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
        sets template to be used for VectorIndexer 
      */
     public void setVectorIndexerTemplate(VectorIndexer vectorIndexerTemplate){
+
         m_vectorIndexerTemplate = vectorIndexerTemplate;
+
         if(m_vectorIndexerTemplate == null)
             m_vectorIndexerTemplate = new VectorIndexerArray(1,1,1);
     }
@@ -145,7 +149,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         m_gtz = -m_bounds[4]/vs - 0.5;
         
         double maxOut = m_maxOutDistance/m_voxelSize;
-        double maxIn = m_maxOutDistance/m_voxelSize;
+        double maxIn = m_maxInDistance/m_voxelSize;
         m_maxDistVoxels = Math.max(maxOut, maxIn);
         m_maxDistSubvoxels = (int)Math.ceil(m_maxDistVoxels*m_subvoxelResolution);
 
@@ -162,8 +166,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
         commonInit(grid);
 
-
-        fillInOut();
+        if(m_fillInGrid)
+            fillInOut();
         switch(m_algorithm){
         default: 
         case ALG_EXACT: 
@@ -205,8 +209,10 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                     continue;
 
                 int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+
                 if(dist > m_maxDistSubvoxels)
                     continue;
+
                 int d = L2S(m_grid.getAttribute(ix, iy, iz));
                 if(d >=0){
                     // outside 
@@ -215,8 +221,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                     }
                 } else {
                     // inside 
-                    if(dist > d){
-                        m_grid.setAttribute(ix, iy, iz, dist);
+                    if(dist < -d){
+                        m_grid.setAttribute(ix, iy, iz, -dist);
                     }
                 }
             }
@@ -313,18 +319,17 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 if(dist > maxLayerDistance)
                     continue;
                 int d = L2S(m_grid.getAttribute(ix, iy, iz));
-                if(d >=0){
-                    // outside 
+                if(d >=0){// outside 
+
                     if(dist < d){
                         m_grid.setAttribute(ix, iy, iz, dist);
                         closestPoints.set(ix, iy, iz, pntIndex);
                         freshLayer.set(ix, iy, iz, 1);
                         distSetCount++;
                     }
-                } else {
-                    // inside 
-                    if(dist > d){
-                        m_grid.setAttribute(ix, iy, iz, dist);
+                } else { // d < 0 - inside 
+                    if(dist < -d){
+                        m_grid.setAttribute(ix, iy, iz, -dist);
                         closestPoints.set(ix, iy, iz, pntIndex);
                         freshLayer.set(ix, iy, iz, 1);
                         distSetCount++;
@@ -375,10 +380,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                                 freshLayer.set(ix, iy, iz, 1);
                                 distSetCount++;
                             }
-                        } else {
-                            // inside 
-                            if(dist > d){
-                                m_grid.setAttribute(ix, iy, iz, dist);
+                        } else { // d < 0 inside 
+                            if(dist < -d){
+                                m_grid.setAttribute(ix, iy, iz, -dist);
                                 closestPoints.set(ix, iy, iz, pntIndex);
                                 freshLayer.set(ix, iy, iz, 1);
                                 distSetCount++;
