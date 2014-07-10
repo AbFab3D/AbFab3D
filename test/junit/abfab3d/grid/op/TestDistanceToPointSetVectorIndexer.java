@@ -263,6 +263,8 @@ public class TestDistanceToPointSetVectorIndexer extends TestCase {
                 }
             }
         }
+
+        printf("Stats: %s\n", va.getStats());
     }
 
     public static void main(String arg[]){

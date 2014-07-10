@@ -14,6 +14,7 @@ package abfab3d.grid.op;
 
 import java.util.Random;
 
+import abfab3d.grid.VectorIndexerStructMap;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
