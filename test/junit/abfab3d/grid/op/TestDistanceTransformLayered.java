@@ -18,6 +18,8 @@ import static java.lang.Math.round;
 import static java.lang.Math.abs;
 
 import static java.lang.Math.min;
+import static java.lang.Math.max;
+import static java.lang.Math.abs;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
@@ -35,7 +37,7 @@ import static abfab3d.util.MathUtil.L2S;
 public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
     private static final boolean DEBUG = false;
-    private static final boolean DEBUG_SLICES = false;
+    private static final boolean DEBUG_SLICES = true;
 
     double surfaceThickness = Math.sqrt(3)/2;
     int subvoxelResolution = 100;
@@ -43,15 +45,15 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
     public void testAccuracy(){
 
-        int nx = 50;
+        int nx = 100;
  
         int test_margin_factor = 2;
 
         AttributeGrid[] grids = new AttributeGrid[1];
-        //grids[0] = makeBox(nx, 4.0 * MM, voxelSize, subvoxelResolution, surfaceThickness);
-        grids[0] = makeSphere(nx, 2.5 * MM, voxelSize, subvoxelResolution, surfaceThickness);
-        //grids[2] = makeTorus(nx, 4.0 * MM, 2.0 * MM, voxelSize, subvoxelResolution, surfaceThickness);
-        //grids[3] = makeGyroid(nx, 4.0 * MM, voxelSize, max_attribute, subvoxelResolution, nx * voxelSize / 3.0, 0.1);
+        //grids[0] = makeBox(nx, 5.0 * MM, voxelSize, subvoxelResolution, surfaceThickness);
+        //grids[0] = makeSphere(nx, 2.5 * MM, voxelSize, subvoxelResolution, surfaceThickness);
+        //grids[0] = makeTorus(nx, 2.7 * MM, 2.2 * MM, voxelSize, subvoxelResolution, surfaceThickness);
+        grids[0] = makeGyroid(nx, 4.0 * MM, voxelSize, subvoxelResolution, 10*MM, nx * voxelSize / 2.0, 0.1);
 
         double maxInDistance = 2*MM;
         double maxOutDistance = 0.*MM;
@@ -71,8 +73,8 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
 
             long t0 = time();
-            //DistanceTransformLayered dt_fm = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
-            DistanceTransformMultiStep dt_fm = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
+            DistanceTransformLayered dt_fm = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+            //DistanceTransformMultiStep dt_fm = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
 
             AttributeGrid dg_fm = dt_fm.execute(grid);
             printf("DistanceTransformLayered done: %d ms\n", time() - t0);
@@ -114,8 +116,12 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
     }
 
     public static void main(String arg[]){
-        
-        new TestDistanceTransformLayered().testAccuracy();
+
+        for(int k = 0; k < 2; k++){
+            printf("try: %d\n", k);
+            new TestDistanceTransformLayered().testAccuracy();
+            
+        }
 
     }
     

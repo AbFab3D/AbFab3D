@@ -35,9 +35,12 @@ import abfab3d.util.PointSet;
 import abfab3d.transforms.Identity;
 
 import static java.lang.Math.sqrt;
+import static java.lang.Math.max;
+import static java.lang.Math.abs;
 import static java.lang.Math.min;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.L2S;
 
 
@@ -61,6 +64,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     int m_subvoxelResolution = 100;
     int defaultInValue = -Short.MAX_VALUE;
     int defaultOutValue = Short.MAX_VALUE;
+
+    double m_layerThickness = 2.9;//1.8, 2.1, 3.1; increases time by factor 2 and reduces errors 
+
     InsideTester m_insideTester;
     PointSet m_points;
 
@@ -70,14 +76,15 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     // grid sizes
     private int m_nx, m_ny, m_nz;
     // coefficients of convesion from world coord to grid coord 
-    private double m_gsx,m_gsy,m_gsz,m_gtx,m_gty,m_gtz;
+    private double m_gs,m_gtx,m_gty,m_gtz;
     AttributeGrid m_grid;
     
     double m_maxInDistance;
     double m_maxOutDistance;
     //int m_neighbors[]; // spherical neighbors 
-    double m_maxDistVoxels;
-    int m_maxDistSubvoxels;
+    int m_maxOutDistSubvoxels;
+    int m_maxInDistSubvoxels;
+
     boolean m_fillInGrid = false;
 
     // vector indexer template used to store indices to neares points
@@ -140,22 +147,20 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         m_voxelSize = vs;
 
         // scale is isotropic 
-        m_gsx = 1/vs;
-        m_gsy = m_gsx;
-        m_gsz = m_gsx;
+        m_gs = 1/vs;
 
         m_gtx = -m_bounds[0]/vs - 0.5; // half voxel shift 
         m_gty = -m_bounds[2]/vs - 0.5;
         m_gtz = -m_bounds[4]/vs - 0.5;
         
-        double maxOut = m_maxOutDistance/m_voxelSize;
-        double maxIn = m_maxInDistance/m_voxelSize;
-        m_maxDistVoxels = Math.max(maxOut, maxIn);
-        m_maxDistSubvoxels = (int)Math.ceil(m_maxDistVoxels*m_subvoxelResolution);
+        //double maxOut = m_maxOutDistance/m_voxelSize;
+        //double maxIn = m_maxInDistance/m_voxelSize;
+        m_maxOutDistSubvoxels = (int)Math.ceil(m_maxOutDistance*m_subvoxelResolution/m_voxelSize);
+        m_maxInDistSubvoxels = (int)Math.ceil(m_maxInDistance*m_subvoxelResolution/m_voxelSize);
 
         if(DEBUG){
-            printf("maxDist: %6.2f voxels\n",m_maxDistVoxels);
-            printf("maxDist: %d subvoxels\n",m_maxDistSubvoxels);
+            printf("maxOutDist: %d subvoxels\n",m_maxOutDistSubvoxels);
+            printf("maxInDist: %d subvoxels\n",m_maxInDistSubvoxels);
         }
         
         
@@ -182,8 +187,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     void makeDistanceExact(){
 
         if(DEBUG)printf("makeDistanceExact()\n");
-
-        int neig[] = makeBallNeighbors((int)Math.ceil(m_maxDistVoxels)+2);
+        double maxDistVoxels = max(m_maxOutDistance, m_maxInDistance)/m_voxelSize;
+        int neig[] = makeBallNeighbors((int)Math.ceil(maxDistVoxels)+2);
         if(DEBUG)printf("neighbors count: %d\n",neig.length/3);
         int count = m_points.size();
         Point3d pnt = new Point3d();
@@ -210,17 +215,19 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
                 int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
 
-                if(dist > m_maxDistSubvoxels)
-                    continue;
 
                 int d = L2S(m_grid.getAttribute(ix, iy, iz));
-                if(d >=0){
+                if(d >=0){                    
+                    if(dist > m_maxOutDistSubvoxels)
+                        continue;
                     // outside 
                     if(dist < d){
                         m_grid.setAttribute(ix, iy, iz, dist);
                     }
                 } else {
                     // inside 
+                    if(dist > m_maxInDistSubvoxels)
+                        continue;
                     if(dist < -d){
                         m_grid.setAttribute(ix, iy, iz, -dist);
                     }
@@ -239,17 +246,22 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         if(DEBUG) printf("makeDistanceLayered()\n");
         VectorIndexer closestPoints = m_vectorIndexerTemplate.createEmpty(m_nx, m_ny, m_nz);
         //fillGrid(closestPoints, -1);
-        GridBit freshLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
-        GridBit nextLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
+        //GridBit freshLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
+        //GridBit nextLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
+        GridBit freshLayer = new GridMask(m_nx, m_ny, m_nz);
+        GridBit nextLayer = new GridMask(m_nx, m_ny, m_nz);
         
-        double nextLayerThickness = 3.1;//3.1; increases time by factor2 and reduces errors 
-        double firstLayerThickness = 3.1;
-
+        double nextLayerThickness = m_layerThickness;
+        double firstLayerThickness = m_layerThickness;
+        if(DEBUG)printf("firstLayerThickness: %4.2f nextLayerThickness: %4.2f\n", firstLayerThickness, nextLayerThickness);
         int firstNeig[] = makeBallNeighbors(firstLayerThickness);
         int nextNeig[] = makeBallNeighbors(nextLayerThickness);
         if(DEBUG) printf("first neig count: %d\n", firstNeig.length/3);
         if(DEBUG) printf("next neig count: %d\n", nextNeig.length/3);
-        int iter = (int)Math.ceil(m_maxDistVoxels/Math.floor(nextLayerThickness));
+
+        double maxDistVoxels = max(m_maxOutDistance, m_maxInDistance)/m_voxelSize;
+
+        int iter = (int)Math.ceil(maxDistVoxels/Math.floor(nextLayerThickness));
         if(DEBUG) printf("iter count: %d\n", iter);
             
         // 1) make fresh layer around PointSet         
@@ -268,7 +280,10 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         
         if(DEBUG)printf("iterations: %d\n", iter);
         for(int k = 0; k < iter; k++){
-            int setCount = makeNextLayer(k, nextNeig, closestPoints, freshLayer, nextLayer);
+
+            //int setCount = makeNextLayer(k, nextNeig, closestPoints, freshLayer, nextLayer);            
+            int setCount = makeNextLayerSlices(k, nextNeig, closestPoints, freshLayer, nextLayer);            
+                
             if(setCount == 0)
                 break;
             if(DEBUG_GRID){
@@ -291,11 +306,12 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
      */
     void makeFirstLayer(int neig[], VectorIndexer closestPoints, GridBit freshLayer){
 
+        long t0 = 0;
+        if(DEBUG) t0 = time();
         int kmax = neig.length;
         int count = m_points.size();
         Point3d pnt = new Point3d();
         int distCalcCount = 0, distSetCount = 0;
-        int maxLayerDistance = m_maxDistSubvoxels;
 
         for(int pntIndex = 0; pntIndex < count; pntIndex++){
             m_points.getPoint(pntIndex, pnt);
@@ -316,11 +332,11 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
                 int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
                 distCalcCount++;
-                if(dist > maxLayerDistance)
-                    continue;
                 int d = L2S(m_grid.getAttribute(ix, iy, iz));
-                if(d >=0){// outside 
 
+                if(d >=0){// outside 
+                    if(dist > m_maxOutDistSubvoxels)
+                        continue;
                     if(dist < d){
                         m_grid.setAttribute(ix, iy, iz, dist);
                         closestPoints.set(ix, iy, iz, pntIndex);
@@ -328,6 +344,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                         distSetCount++;
                     }
                 } else { // d < 0 - inside 
+                    if(dist > m_maxInDistSubvoxels)
+                        continue;
                     if(dist < -d){
                         m_grid.setAttribute(ix, iy, iz, -dist);
                         closestPoints.set(ix, iy, iz, pntIndex);
@@ -337,18 +355,98 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 }
             }
         }
-        if(DEBUG)printf("dist calc count: %d dist set count: %d\n", distCalcCount, distSetCount);
+        if(DEBUG)printf("first layer: calc count: %7d set count: %7d time: %5d ms\n", distCalcCount, distSetCount, (time() - t0));
     }
 
-    int makeNextLayer(int iteration, int neig[], VectorIndexer closestPoints, GridBit oldLayer, GridBit freshLayer){
-
+    int makeNextLayerSlice(int iteration, int ymin, int ymax, int neig[], VectorIndexer closestPoints, GridBit oldLayer, GridBit freshLayer){
+        long t0 = 0;
+        if(DEBUG) t0 = time();
         int kmax = neig.length;
         int count = m_points.size();
         Point3d pnt = new Point3d();
         int distCalcCount = 0, distSetCount = 0;
-        // maximal distance to calculate in this layer 
-        //int maxLayerDist = min(m_maxDistSubvoxels, (iteration+6)*m_subvoxelResolution);
-        int maxLayerDist = m_maxDistSubvoxels;
+        int maxInDistSubvoxels = m_maxInDistSubvoxels;
+        int maxOutDistSubvoxels = m_maxOutDistSubvoxels;
+
+        // for each point old layer build ball neighborhood 
+        // and update distances in grid point 
+        // distance in each point s calculated to the closest boundary point stored in closestPoints
+        //
+        for(int y = ymin; y < ymax; y++){
+            for(int x = 0; x < m_nx; x++){
+                for(int z = 0; z < m_nz; z++){
+                    if(oldLayer.get(x,y,z) == 0) continue; // empty point 
+                    int pntIndex = closestPoints.get(x,y,z);
+                    m_points.getPoint(pntIndex, pnt);
+                    getGridCoord(pnt);
+                    for(int k = 0; k < kmax; k += 3){                        
+                        int 
+                            ix = x+neig[k],
+                            iy = y+neig[k+1],
+                            iz = z+neig[k+2];
+                        if(!isInsideGrid(ix,iy,iz))
+                            continue;
+                        //if(oldLayer.get(ix,iy,iz) == 1) continue; // point in old layer
+                        int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
+                        distCalcCount++;
+                        int d = L2S(m_grid.getAttribute(ix, iy, iz));
+                        if(d >=0){
+                            // outside 
+                            if(dist > maxOutDistSubvoxels)
+                                continue;
+                            if(dist < d){
+                                m_grid.setAttribute(ix, iy, iz, dist);
+                                closestPoints.set(ix, iy, iz, pntIndex);
+                                freshLayer.set(ix, iy, iz, 1);
+                                distSetCount++;
+                            }
+                        } else { // d < 0 inside 
+                            if(dist > maxInDistSubvoxels)
+                                continue;
+                            if(dist < -d){
+                                m_grid.setAttribute(ix, iy, iz, -dist);
+                                closestPoints.set(ix, iy, iz, pntIndex);
+                                freshLayer.set(ix, iy, iz, 1);
+                                distSetCount++;
+                            }
+                        }                        
+                    }                        
+                }
+            }
+        }        
+        return distSetCount;
+    }
+
+    /**
+       do calculations on series of slabs stacked along y-axis 
+     */
+    int makeNextLayerSlices(int iteration, int neig[], VectorIndexer closestPoints, GridBit oldLayer, GridBit freshLayer){
+        long t0 = time();
+        int slabHeight = 3;
+        int slabCount = (m_ny + slabHeight-1) / slabHeight;
+        int count = 0;
+        for(int s = 0; s < slabCount; s++){
+            int ymin = s*slabHeight;
+            int ymax = ymin + slabHeight;
+            if(ymax > m_ny) ymax = m_ny;
+            count += makeNextLayerSlice(iteration, ymin, ymax, neig, closestPoints, oldLayer, freshLayer);            
+        }
+        if(DEBUG)printf("iter: %3d, count: %7d time: %5d ms\n", iteration, count, (time() - t0));
+        return count;            
+    }
+
+
+    int makeNextLayer(int iteration, int neig[], VectorIndexer closestPoints, GridBit oldLayer, GridBit freshLayer){
+
+        long t0 = 0;
+        if(DEBUG) t0 = time();
+        int kmax = neig.length;
+        int count = m_points.size();
+        Point3d pnt = new Point3d();
+        int distCalcCount = 0, distSetCount = 0;
+        int maxInDistSubvoxels = m_maxInDistSubvoxels;
+        int maxOutDistSubvoxels = m_maxOutDistSubvoxels;
+
         // for each point old layer build ball neighborhood 
         // and update distances in grid point 
         // distance in each point s calculated to the closest boundary point stored in closestPoints
@@ -369,11 +467,11 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                             continue;
                         int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
                         distCalcCount++;
-                        if(dist > maxLayerDist)
-                            continue;
                         int d = L2S(m_grid.getAttribute(ix, iy, iz));
                         if(d >=0){
                             // outside 
+                            if(dist > maxOutDistSubvoxels)
+                                continue;
                             if(dist < d){
                                 m_grid.setAttribute(ix, iy, iz, dist);
                                 closestPoints.set(ix, iy, iz, pntIndex);
@@ -381,6 +479,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                                 distSetCount++;
                             }
                         } else { // d < 0 inside 
+                            if(dist > maxInDistSubvoxels)
+                                continue;
                             if(dist < -d){
                                 m_grid.setAttribute(ix, iy, iz, -dist);
                                 closestPoints.set(ix, iy, iz, pntIndex);
@@ -392,7 +492,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 }
             }
         }
-        if(DEBUG)printf("iter: %3d, calc count: %d set count: %d\n", iteration, distCalcCount, distSetCount);
+        if(DEBUG)printf("iter: %3d, calc count: %7d set count: %7d time: %5d ms\n", iteration, distCalcCount, distSetCount, (time() - t0));
         return distSetCount;
     }
 
@@ -406,15 +506,19 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
       calculates distance between 2 points in subvoxel units
     */
     final int distance(double x,double y, double z, int x0, int y0, int z0){
-
+        
         x -= x0; 
         y -= y0; 
         z -= z0; 
-
+        
         return iround(sqrt(x*x + y*y + z*z)*m_subvoxelResolution);
         
     }
-    
+
+    static final int iabs(int x){
+        return (x < 0)? (-x): x;
+    }
+        
     static final int ifloor(double x){
         if(x >= 0)
             return (int)x;
@@ -456,9 +560,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
      */
     void getGridCoord(Tuple3d pnt){
 
-        pnt.x = m_gsx * pnt.x + m_gtx;
-        pnt.y = m_gsy * pnt.y + m_gty;
-        pnt.z = m_gsz * pnt.z + m_gtz;
+        pnt.x = m_gs * pnt.x + m_gtx;
+        pnt.y = m_gs * pnt.y + m_gty;
+        pnt.z = m_gs * pnt.z + m_gtz;
 
     }
 
@@ -547,6 +651,157 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 printf("%5d", d); break;                
             }
             printf("\n");
+        }
+    }
+
+    /**
+       runner for MT processing 
+     */
+    class SliceProcessorRunner implements Runnable {
+
+        SliceManager slicer; 
+
+        SliceProcessorRunner(SliceManager slicer){
+            this.slicer = slicer; 
+        }
+
+        public void run(){
+            
+        }
+    }
+
+
+    /**
+       manages set of slices for MT processing 
+       locks slice and it's neigbors from processing by other threads 
+       thread calls getNextSlice() to get slice for procesing
+       and call releaseSlice() to release neighbors from lock
+     */
+    static class SliceManager {
+
+        int gridWidth;
+        int sliceWidth;
+        Slice slices[];
+        int scount;
+
+        SliceManager(int gridWidth, int sliceWidth){
+
+            this.gridWidth = gridWidth;
+            this.sliceWidth = sliceWidth;
+            scount = (gridWidth + sliceWidth-1)/sliceWidth;
+            slices = new Slice[scount];
+
+            for(int k = 0; k < scount; k++){
+                int smin = k*sliceWidth;
+                int smax = smin + sliceWidth;
+                if(smax > gridWidth) smax = gridWidth;                    
+                slices[k] = new Slice(smin, smax, k);
+            }
+        }
+        
+        synchronized Slice getNextSlice(Slice slice){
+
+            if(slice != null){
+                slice.processed = true;
+                slice.locked = false;
+                int index = slice.index;
+                if(index > 0)
+                    slices[index-1].locked = false;
+                index++;
+                if(index < slices.length)
+                    slices[index].locked = false;
+            }
+
+            int startIndex = 0;
+            if(slice != null)
+                startIndex = (slice.index+1) % scount;
+            // do search next unprocessed unlocked slice             
+            int index = findSlice(startIndex); 
+            if(index < 0)
+                return null;
+
+            Slice s0 = null;
+            Slice s1 = slices[index];
+            Slice s2 = null;
+            if(index > 0)
+                s0 = slices[index-1];
+            if(index < scount-1)
+                s2 = slices[index+1];
+            if(s0 != null)
+                s0.locked = true;
+            if(s2 != null)
+                s2.locked = true;
+            s1.locked = true;
+            return s1;                
+        }
+
+        int findSlice(int start){
+            
+            // find unprocessed unlocked slice with 2 unlocked neighbors
+            int index = start;
+            for(int k = 0; k < scount; k++, index++){
+                index %= scount;
+
+                if(slices[index].processed)
+                    continue;
+
+                if(index > 0 && slices[index-1].locked) 
+                    continue;
+
+                if(index < scount-1 && slices[index+1].locked) 
+                    continue;
+
+                return index;
+            }            
+            return -1;
+        }
+
+        void printSlices(){
+            for(int k = 0; k < scount; k++){
+                printf("%s\n", slices[k]);
+            }
+        }
+
+        int getUnprocessedCount(){
+            int count = 0;
+            for(int k = 0; k < scount; k++){
+                if(!slices[k].processed)
+                    count++;
+            }
+            return count;
+        }
+    }
+
+    /**
+       represents single slice to be processed by thread 
+     */
+    static class Slice {
+        int smin;
+        int smax;
+        int index; 
+
+        int voxelCount;
+        boolean locked = false;
+        boolean processed = false;
+
+        Slice(int smin, int smax, int index){
+            this.smin = smin;
+            this.smax = smax;
+            this.index = index; 
+           
+            this.voxelCount = 0;
+            this.locked = false;
+            this.processed = false;                        
+        }
+
+        void setLocked(boolean value){
+            locked = value;
+        }
+        boolean getLocked(boolean value){
+            return locked;
+        }
+        public String toString(){
+            return fmt("slice[%3d](%3d-%3d), {%s : %s}", index, smin, smax, locked, processed);
         }
     }
 

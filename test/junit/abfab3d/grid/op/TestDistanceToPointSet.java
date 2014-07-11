@@ -421,12 +421,63 @@ public class TestDistanceToPointSet extends TestCase {
 
     }
 
+    // simulation of using SliceManager by multiple threads 
+    void testSliceManager(){
+        
+        DistanceToPointSet.SliceManager sm = new DistanceToPointSet.SliceManager(201,2);
+        DistanceToPointSet.Slice slices[] = new  DistanceToPointSet.Slice[8];
+        
+        printf("start\n");
+        int treadCount = slices.length;        
+        for(int k = 0; k < slices.length; k++){
+            slices[k] = sm.getNextSlice(slices[k]);
+            if(slices[k] == null){
+                treadCount--;
+                printf("%d finished\n", k);
+            } else {
+                printf("%d %s\n", k, slices[k]);
+            }
+        }
+
+        printf("continue\n");
+
+        Random rnd = new Random(101);
+
+        int m = rnd.nextInt(slices.length); 
+        // simulate several threads doing processing 
+        while(true){
+            if(slices[m] == null){
+                m = rnd.nextInt(slices.length); 
+                // dead thread 
+                continue;
+            }
+            slices[m] = sm.getNextSlice(slices[m]);
+            if(slices[m] != null){
+                printf("%2d %s\n", m, slices[m]);
+            } else {
+                printf("%2d finished\n", m);                
+                treadCount--;
+                if(treadCount <= 0)
+                    break;
+            }                
+            m = rnd.nextInt(slices.length); 
+        }
+        
+        printf("result\n");        
+        sm.printSlices();
+        
+        int count = sm.getUnprocessedCount();
+        printf("unprocessed slices count: %d\n", count);
+
+    }
+
     public static void main(String arg[]){
 
         //new TestDistanceToPointSet().testPoints();
         //new TestDistanceToPointSet().testAnisotropy();
         //new TestDistanceToPointSet().testCompare();
-        new TestDistanceToPointSet().testSphere();
+        //new TestDistanceToPointSet().testSphere();
+        new TestDistanceToPointSet().testSliceManager();
         
     }
 
