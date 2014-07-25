@@ -12,6 +12,8 @@ import abfab3d.util.Long2Short;
 import abfab3d.util.LongConverter;
 import junit.framework.TestCase;
 
+import static java.lang.Math.abs;
+
 import static abfab3d.util.ImageUtil.MAXC;
 import static abfab3d.util.ImageUtil.makeRGB;
 import static abfab3d.util.ImageUtil.makeRGBA;
@@ -349,6 +351,15 @@ public class BaseTestDistanceTransform extends TestCase {
         }        
     }
 
+    static void printDiffHistogram(long errors[]){
+
+        printf("err cnt\n");
+        for(int k = 0; k < errors.length; k++){
+                if(errors[k] != 0)
+                    printf("%3d %3d\n",k, errors[k]);
+        }
+    }
+
     static long[] getDiffHistogram(AttributeGrid grid, AttributeGrid grid1){
         int 
             nx = grid.getWidth(), 
@@ -356,20 +367,26 @@ public class BaseTestDistanceTransform extends TestCase {
             nz = grid.getDepth();
         int maxDiff = 0;
         int diff = 0;
-        long hist[] = new long[100];
+        int maxlen = 100;
+        long hist[] = new long[maxlen + 2];
         for(int y = 0; y < ny; y++){
             for(int x = 0; x < nx; x++){
                 for(int z = 0; z < nz; z++){
                     int d = L2S(grid.getAttribute(x,y,z));
                     int d1 = L2S(grid1.getAttribute(x,y,z));
                     if(d != d1){
-                        diff = Math.abs(d - d1);
-                        if(diff >= hist.length)
-                            hist[hist.length-1]++;
-                        else 
-                            hist[diff]++;
-                        if(diff > maxDiff)
-                            maxDiff = diff;
+                        if(abs(d1) == Short.MAX_VALUE || 
+                           abs(d) == Short.MAX_VALUE){
+                            hist[maxlen+1]++;
+                        } else {
+                            diff = Math.abs(d - d1);
+                            if(diff >= maxlen)
+                                hist[maxlen]++;
+                            else 
+                                hist[diff]++;
+                            if(diff > maxDiff)
+                                maxDiff = diff;
+                        }
                     } else {
                         hist[0]++;
                     }

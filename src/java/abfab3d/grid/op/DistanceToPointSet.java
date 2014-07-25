@@ -41,7 +41,7 @@ import abfab3d.grid.ArrayInt;
 import abfab3d.grid.util.ExecutionStoppedException;
 
 import abfab3d.util.PointSet;
-import abfab3d.geom.PointCloud;
+import abfab3d.util.PointSetArray;
 
 import abfab3d.transforms.Identity;
 
@@ -71,7 +71,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
     static final boolean DEBUG = false;
     static final boolean DEBUG_GRID = false;
-    static final boolean DEBUG_TIMING = true;
+    static final boolean DEBUG_TIMING = false;
     int m_debugCount = 200;
     int m_subvoxelResolution = 100;
     int defaultInValue = -Short.MAX_VALUE;
@@ -335,7 +335,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             setCount = makeFirstLayerST(m_points, firstNeig, closestPoints, freshLayer);        
         }
 
-        if(DEBUG_TIMING)printf("fist layer set count: %6d %6d ms\n", setCount, time() - t0);
+        if(DEBUG_TIMING)printf("first layer set count: %6d %6d ms\n", setCount, time() - t0);
         
         if(DEBUG_GRID){
             printf("distance after first layer:\n");
@@ -512,7 +512,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         Slice slices[] = sliceManager.getSlices();
         int pcount = points.size();
 
-        PointCloud pnts[] = new PointCloud[slices.length]; // points split between slices 
+        PointSetArray pnts[] = new PointSetArray[slices.length]; // points split between slices 
         ArrayInt inds[] = new ArrayInt[slices.length];    // original indices of points  
 
         int sliceCount = (m_ny + m_sliceHeight-1)/ m_sliceHeight;
@@ -528,7 +528,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
             int sliceIndex = cy/m_sliceHeight;
             if(sliceIndex >= 0 && sliceIndex < sliceCount){
                 if(pnts[sliceIndex] == null){
-                    pnts[sliceIndex] = new PointCloud(pointsPerSlice);
+                    pnts[sliceIndex] = new PointSetArray(pointsPerSlice);
                     inds[sliceIndex] = new ArrayInt(pointsPerSlice);
                 }
                 pnts[sliceIndex].addPoint(pnt.x,pnt.y,pnt.z);

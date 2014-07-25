@@ -37,7 +37,8 @@ import static abfab3d.util.MathUtil.L2S;
 public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
     private static final boolean DEBUG = false;
-    private static final boolean DEBUG_SLICES = true;
+    private static final boolean DEBUG_TIMING = true;
+    private static final boolean DEBUG_SLICES = false;
 
     double surfaceThickness = Math.sqrt(3)/2;
     int subvoxelResolution = 100;
@@ -74,7 +75,6 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
             long t0 = time();
             DistanceTransformLayered dt_fm = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
-            //DistanceTransformMultiStep dt_fm = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
 
             AttributeGrid dg_fm = dt_fm.execute(grid);
             printf("DistanceTransformLayered done: %d ms\n", time() - t0);
@@ -90,38 +90,78 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
             if (DEBUG_SLICES) gw.writeSlices(dg_exact, dist_norm , "/tmp/slices/exact/dist_exact_%03d.png", 0, nx,new DistanceColorizer(dist_norm));
 
 
-            int diffs_in_exact = 0;
-            int diffs_in_fm = 0;
-            
-            long defaultInside = dt_exact.getInsideDefault();
-            long defaultOutside = dt_exact.getOutsideDefault();
-
-            long total_error = 0;
-            long max_error = 0;
-            long err_cnt = 0;
-
-            long ma = (long) ((double) subvoxelResolution * maxInDistance / voxelSize);
-            
             long errors[] = getDiffHistogram( dg_exact, dg_fm);
-            printf("err cnt\n");
-            for(int k = 0; k < errors.length; k++){
-                if(errors[k] != 0)
-                    printf("%3d %3d\n",k, errors[k]);
-            }
-            // viz:  difference grayscale.  blue for not in exact but in compare, red for in exact but not in compare
-
-            //if (DEBUG_SLICES) gw.writeSlices(diff_grid,dist_norm, "/tmp/slices/diff/layered_diff_%03d.png",0, nx/2, new ErrorColorizer(dist_norm));
+            printDiffHistogram(errors);
 
         }
     }
 
+
+    public void testMT(){
+
+        int nx = 200;
+ 
+        //int test_margin_factor = 2;
+
+        AttributeGrid[] grids = new AttributeGrid[1];
+        grids[0] = makeSphere(nx, nx*voxelSize/2, voxelSize, subvoxelResolution, surfaceThickness);
+
+        //double maxInDistance = 2*MM;
+        double maxInDistance = 2*MM;
+        double maxOutDistance = 0.*MM;
+
+        for(int i=0; i < grids.length; i++) {
+
+            AttributeGrid grid = grids[i];
+            
+            int ny = grid.getHeight();
+            int nz = grid.getDepth();
+
+            if(DEBUG_TIMING)printf("processing grid: [%d x %d X %d]\n",nx, ny, nz);
+            MyGridWriter gw = new MyGridWriter(8,8);
+
+            if (DEBUG_SLICES) gw.writeSlices(grid, subvoxelResolution, "/tmp/slices/grid_%03d.png",nx/2, nx/2+1, new DensityColorizer(subvoxelResolution));
+
+            int dist_norm  = (int)(subvoxelResolution * maxInDistance/voxelSize);
+
+            long t0 = time();
+            if(false){
+                DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
+                AttributeGrid dg_exact = dt_exact.execute(grid);
+                if(DEBUG_TIMING)printf("DistanceTransformExact done: %d ms\n", time() - t0);
+                //if (DEBUG_SLICES) gw.writeSlices(dg_exact, dist_norm , "/tmp/slices/exact/dist_exact_%03d.png", 0, nx,new DistanceColorizer(dist_norm));
+            }
+
+            t0 = time();
+            DistanceTransformLayered dt_st = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);            
+            dt_st.setThreadCount(1);            
+            AttributeGrid dg_st = dt_st.execute(grid);
+            if(DEBUG_TIMING)printf("DistanceTransformLayered ST done: %d ms\n", time() - t0);
+
+
+            DistanceTransformLayered dt_mt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+            dt_mt.setThreadCount(4);            
+            t0 = time();
+            AttributeGrid dg_mt = dt_mt.execute(grid);
+            printf("DistanceTransformLayered MT done: %d ms\n", time() - t0);
+            
+            if (DEBUG_SLICES) gw.writeSlices(dg_mt, dist_norm , "/tmp/slices/layered/dist_layered_%03d.png", 0, nx,new DistanceColorizer(dist_norm));
+            if (false) printSlice(dg_mt, 0, nx/2, 0, nx/2, nx/2);
+
+            if(false)return;
+
+
+            long errors[] = getDiffHistogram( dg_st, dg_mt);
+            printDiffHistogram(errors);
+        }
+    }
+
+
     public static void main(String arg[]){
 
-        for(int k = 0; k < 2; k++){
-            printf("try: %d\n", k);
-            new TestDistanceTransformLayered().testAccuracy();
-            
-        }
+        //new TestDistanceTransformLayered().testAccuracy();
+        new TestDistanceTransformLayered().testMT();
+                    
 
     }
     

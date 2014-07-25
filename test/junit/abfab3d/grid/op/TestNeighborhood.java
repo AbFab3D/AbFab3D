@@ -55,7 +55,7 @@ public class TestNeighborhood extends TestCase {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestNeigborhood.class);
+        return new TestSuite(TestNeighborhood.class);
     }
 
     /**
