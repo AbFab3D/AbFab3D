@@ -24,37 +24,37 @@ public class GridMask implements GridBit {
 
     int data[];
     int nx, ny, nz;
-    int lenx, lenxy;
+    int lenz, lenxz;
     static final int INTLEN = 32;
     
     public GridMask(int nx, int ny, int nz){
         this.nx = nx;
         this.ny = ny;
         this.nz = nz;
-        this.lenx = ((nx+INTLEN-1)/INTLEN);
-        this.lenxy = lenx * ny;
+        this.lenz = ((nz+INTLEN-1)/INTLEN);
+        this.lenxz = lenz * nx;
         
-        data = new int[nz*ny*lenx];
+        data = new int[nx*ny*lenz];
     }
     
     public long get(int x, int y, int z){
 
-        int xint = x/INTLEN;
-        int bit = x%INTLEN;
-        int offset = xint + y*lenx + z * lenxy;
+        int zint = z/INTLEN;
+        int bit = z % INTLEN;           
+        int offset = zint + x*lenz + y * lenxz;
         
         int w = data[offset];
         return ((w >> bit) & 1);
-        
+
     }
     
     public void set(int x, int y, int z, long value){
         
         //printf("mask.set(%d,%d,%d)\n", x,y,z);
         
-        int xint = x/INTLEN;
-        int bit = x % INTLEN;           
-        int offset = xint + y*lenx + z * lenxy;
+        int zint = z/INTLEN;
+        int bit = z % INTLEN;           
+        int offset = zint + x*lenz + y * lenxz;
         if(value != 0){
             // set bit 
             data[offset] |= (1 << bit);

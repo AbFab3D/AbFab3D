@@ -255,7 +255,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
 
         /**
            checks 6 neighbours of this model voxel 
-           turn ON tyhe voxel if any neighbours are empty
+           turn voxel ON if any of neighbours is empty
         */ 
         void processVoxel(int x,int y,int z){
 

@@ -94,8 +94,7 @@
         />  
         <compilejava package="abfab3d/intersect"
                      jars=""
-                            />
-                                                                                                
+                            />                                                                                             
         <compilejava package="abfab3d/path"
             jars=""
         />  
