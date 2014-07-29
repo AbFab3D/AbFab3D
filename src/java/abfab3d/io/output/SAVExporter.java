@@ -13,15 +13,18 @@
 package abfab3d.io.output;
 
 // External Imports
+
 import java.util.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
-import abfab3d.mesh.VertexAttribs1;
-import abfab3d.mesh.VertexAttribs3;
+import abfab3d.mesh.*;
 import abfab3d.util.StructMixedData;
-import toxi.geom.mesh.*;
+import static abfab3d.util.Output.printf;
 
 import org.web3d.vrml.sav.*;
+import toxi.geom.mesh.Face;
+import toxi.geom.mesh.TriangleMesh;
+import toxi.geom.mesh.Vertex;
 
 import javax.vecmath.Vector3d;
 import java.util.Collection;
@@ -39,17 +42,17 @@ public class SAVExporter {
     public static final String MATERIAL = "MATERIAL";
     public static final String FINISH = "FINISH";
 
-    public enum GeometryType {INDEXEDTRIANGLESET,INDEXEDFACESET,INDEXEDLINESET, POINTSET}
+    public enum GeometryType {INDEXEDTRIANGLESET, INDEXEDFACESET, INDEXEDLINESET, POINTSET}
 
     /**
      * Output a WingedEdgeTriangleMesh to an X3D stream.  By default this exporter exports
      * coordinates and normals.
-     *
+     * <p/>
      * Supported params are:
-     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
-     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
      *
-     * @param mesh The mesh
+     * @param mesh   The mesh
      * @param params Output parameters
      * @param stream The SAV stream
      */
@@ -59,7 +62,7 @@ public class SAVExporter {
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
-            finish = new String[] {(String) params.get(FINISH)};
+            finish = new String[]{(String) params.get(FINISH)};
         }
         outputX3D(mesh, params, material, finish, stream, defName);
     }
@@ -67,12 +70,12 @@ public class SAVExporter {
     /**
      * Output a PointSet to an X3D stream.  By default this exporter exports
      * coordinates and normals.
-     *
+     * <p/>
      * Supported params are:
-     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
-     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
      *
-     * @param verts The mesh
+     * @param verts  The mesh
      * @param params Output parameters
      * @param stream The SAV stream
      */
@@ -82,7 +85,7 @@ public class SAVExporter {
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
-            finish = new String[] {(String) params.get(FINISH)};
+            finish = new String[]{(String) params.get(FINISH)};
         }
         outputX3D(verts, params, material, finish, stream, defName);
     }
@@ -91,16 +94,16 @@ public class SAVExporter {
     /**
      * Output a WingedEdgeTriangleMesh to an X3D stream.  By default this exporter exports
      * coordinates and normals.
-     *
+     * <p/>
      * Supported params are:
-     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
-     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
      *
-     * @param mesh The mesh
-     * @param params Output parameters
+     * @param mesh     The mesh
+     * @param params   Output parameters
      * @param material The material from MaterialMapper for the appearance
-     * @param finish The finish.
-     * @param stream The SAV stream
+     * @param finish   The finish.
+     * @param stream   The SAV stream
      */
     public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
                           BinaryContentHandler stream, String defName) {
@@ -145,8 +148,10 @@ public class SAVExporter {
         float[] coords = new float[mesh.getVertexCount() * 3];
         float[] normals = null;
         float[] colors = null;
+        float[] texCoords = null;
         int num_coords = mesh.getVertexCount();
         int color_channel = mesh.getColorChannel();
+        int tex0_channel = mesh.getAttributeChannel(abfab3d.mesh.TriangleMesh.VA_TEXCOORD0);
 
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
@@ -155,10 +160,12 @@ public class SAVExporter {
         StructMixedData vertices = mesh.getVertices();
 
         if (export_normals && !vertex_normals) {
+
             normals = new float[faces.length];
             int idx = 0;
             int n_idx = 0;
             int color_idx = 0;
+            int texCoord_idx = 0;
 
             int len = faces.length / 3;
             int f_idx = 0;
@@ -167,15 +174,15 @@ public class SAVExporter {
             double[] pnt = new double[3];
             double[] pnt2 = new double[3];
 
-            for(int i=0; i < len; i++) {
+            for (int i = 0; i < len; i++) {
                 int va = faces[f_idx++];
                 int vb = faces[f_idx++];
                 int vc = faces[f_idx++];
 
                 if (gtype != GeometryType.POINTSET) {
-                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices,va);
-                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices,vb);
-                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices,vc);
+                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices, va);
+                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices, vb);
+                    indices[idx++] = abfab3d.mesh.Vertex.getID(vertices, vc);
                 }
 
                 if (gtype == GeometryType.INDEXEDFACESET || gtype == GeometryType.INDEXEDLINESET) {
@@ -185,13 +192,13 @@ public class SAVExporter {
                 // TODO: These don't look right
                 abfab3d.mesh.Vertex.getPoint(vertices, va, pnt);
                 abfab3d.mesh.Vertex.getPoint(vertices, vc, pnt2);
-                ac.set(pnt[0] - pnt2[0],pnt[1] - pnt2[1],pnt[2] - pnt2[2]);
+                ac.set(pnt[0] - pnt2[0], pnt[1] - pnt2[1], pnt[2] - pnt2[2]);
 
                 abfab3d.mesh.Vertex.getPoint(vertices, va, pnt);
                 abfab3d.mesh.Vertex.getPoint(vertices, vb, pnt2);
-                ab.set(pnt[0] - pnt2[0],pnt[1] - pnt2[1],pnt[2] - pnt2[2]);
+                ab.set(pnt[0] - pnt2[0], pnt[1] - pnt2[1], pnt[2] - pnt2[2]);
 
-                ac.cross(ac,ab);
+                ac.cross(ac, ab);
                 ac.normalize();
 
                 normals[n_idx++] = (float) ac.x;
@@ -205,18 +212,18 @@ public class SAVExporter {
                 throw new ExecutionStoppedException();
             }
 
-            if (color_channel == -1) {
+            if (color_channel == -1 && tex0_channel == -1) {
                 int v = mesh.getStartVertex();
 
                 while (v != -1) {
-                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                    abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
                     coords[idx++] = (float) pnt[0];
                     coords[idx++] = (float) pnt[1];
                     coords[idx++] = (float) pnt[2];
 
                     v = abfab3d.mesh.Vertex.getNext(vertices, v);
                 }
-            } else {
+            } else if (color_channel != -1 && tex0_channel == -1) {
                 int v = mesh.getStartVertex();
                 colors = new float[mesh.getVertexCount() * 3];
                 float[] color = new float[3];
@@ -226,7 +233,7 @@ public class SAVExporter {
 
                     while (v != -1) {
 
-                        abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                        abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
                         coords[idx++] = (float) pnt[0];
                         coords[idx++] = (float) pnt[1];
                         coords[idx++] = (float) pnt[2];
@@ -242,7 +249,7 @@ public class SAVExporter {
                 } else if (numAttribs == 3) {
                     while (v != -1) {
 
-                        abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                        abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
                         coords[idx++] = (float) pnt[0];
                         coords[idx++] = (float) pnt[1];
                         coords[idx++] = (float) pnt[2];
@@ -259,10 +266,52 @@ public class SAVExporter {
                 } else {
                     throw new IllegalArgumentException("Unsupported number of colors");
                 }
+            } else if (tex0_channel != -1 && color_channel == -1) {
+                int v = mesh.getStartVertex();
+                texCoords = new float[mesh.getVertexCount() * 2];
+                float[] att = new float[3];
+                int numAttribs = mesh.getSemantics().length;
+
+                if (numAttribs == 1) {
+
+                    while (v != -1) {
+
+                        abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
+                        coords[idx++] = (float) pnt[0];
+                        coords[idx++] = (float) pnt[1];
+                        coords[idx++] = (float) pnt[2];
+
+                        VertexAttribs1.getAttrib(tex0_channel, vertices, v, att);
+
+                        texCoords[texCoord_idx++] = att[0];
+                        texCoords[texCoord_idx++] = att[1];
+
+                        v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                    }
+                } else if (numAttribs == 3) {
+                    while (v != -1) {
+
+                        abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
+                        coords[idx++] = (float) pnt[0];
+                        coords[idx++] = (float) pnt[1];
+                        coords[idx++] = (float) pnt[2];
+
+                        VertexAttribs3.getAttrib(tex0_channel, vertices, v, att);
+
+                        texCoords[texCoord_idx++] = att[0];
+                        texCoords[texCoord_idx++] = att[1];
+
+                        v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                    }
+
+                } else {
+                    throw new IllegalArgumentException("Unsupported number of colors");
+                }
+            } else {
+                throw new IllegalArgumentException("No support for writing colors and texCoords");
             }
 
         } else {
-
             int len = faces.length / 3;
             int f_idx = 0;
 
@@ -272,16 +321,16 @@ public class SAVExporter {
             int display_max = 10;
             int bad_cnt = 0;
 
-            for(int i=0; i < len; i++) {
+            for (int i = 0; i < len; i++) {
                 int va = faces[f_idx++];
                 int vb = faces[f_idx++];
                 int vc = faces[f_idx++];
 
-                int va_id = abfab3d.mesh.Vertex.getID(vertices,va);
-                int vb_id = abfab3d.mesh.Vertex.getID(vertices,vb);
-                int vc_id = abfab3d.mesh.Vertex.getID(vertices,vc);
+                int va_id = abfab3d.mesh.Vertex.getID(vertices, va);
+                int vb_id = abfab3d.mesh.Vertex.getID(vertices, vb);
+                int vc_id = abfab3d.mesh.Vertex.getID(vertices, vc);
 
-                if (va_id > max_coord ||  vb_id > max_coord || vc_id > max_coord) {
+                if (va_id > max_coord || vb_id > max_coord || vc_id > max_coord) {
                     if (bad_cnt < display_max) {
                         System.out.println("Invalid face: " + faces[i]);
                     }
@@ -313,9 +362,9 @@ public class SAVExporter {
             }
 
             if (bad_cnt > 0) {
-                System.out.println("Bad faces.  Removed: " + bad_cnt + " left: " + (idx -1));
-                int[] new_indices = new int[idx-1];
-                System.arraycopy(indices,0,new_indices,0,idx-1);
+                System.out.println("Bad faces.  Removed: " + bad_cnt + " left: " + (idx - 1));
+                int[] new_indices = new int[idx - 1];
+                System.arraycopy(indices, 0, new_indices, 0, idx - 1);
 
                 indices = new_indices;
             }
@@ -328,19 +377,18 @@ public class SAVExporter {
 
             double[] pnt = new double[3];
 
-            if (color_channel == -1) {
+            if (color_channel == -1 && tex0_channel == -1) {
                 int v = mesh.getStartVertex();
 
                 while (v != -1) {
-                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                    abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
                     coords[idx++] = (float) pnt[0];
                     coords[idx++] = (float) pnt[1];
                     coords[idx++] = (float) pnt[2];
 
                     v = abfab3d.mesh.Vertex.getNext(vertices, v);
                 }
-            } else {
-
+            } else if (color_channel != -1 && tex0_channel == -1) {
                 colors = new float[mesh.getVertexCount() * 3];
 
                 int v = mesh.getStartVertex();
@@ -351,7 +399,7 @@ public class SAVExporter {
 
                 while (v != -1) {
 
-                    abfab3d.mesh.Vertex.getPoint(vertices,v,pnt);
+                    abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
                     coords[idx++] = (float) pnt[0];
                     coords[idx++] = (float) pnt[1];
                     coords[idx++] = (float) pnt[2];
@@ -381,7 +429,40 @@ public class SAVExporter {
                     v = abfab3d.mesh.Vertex.getNext(vertices, v);
                 }
 
+            } else if (tex0_channel != -1 && color_channel == -1) {
+                texCoords = new float[mesh.getVertexCount() * 2];
+
+                int v = mesh.getStartVertex();
+
+                int texCoord_idx = 0;
+                float[] att = new float[3];
+                int numAttribs = mesh.getSemantics().length;
+
+                while (v != -1) {
+
+                    abfab3d.mesh.Vertex.getPoint(vertices, v, pnt);
+                    coords[idx++] = (float) pnt[0];
+                    coords[idx++] = (float) pnt[1];
+                    coords[idx++] = (float) pnt[2];
+
+                    if (numAttribs == 1) {
+                        VertexAttribs1.getAttrib(tex0_channel, vertices, v, att);
+
+                        texCoords[texCoord_idx++] = att[0];
+                        texCoords[texCoord_idx++] = att[1];
+                    } else if (numAttribs == 3) {
+                        VertexAttribs3.getAttrib(tex0_channel, vertices, v, att);
+
+                        texCoords[texCoord_idx++] = att[0];
+                        texCoords[texCoord_idx++] = att[1];
+                    } else {
+                        throw new IllegalArgumentException("Unsupported number of colors");
+                    }
+
+                    v = abfab3d.mesh.Vertex.getNext(vertices, v);
+                }
             }
+
             if (export_normals && vertex_normals) {
                 System.out.println("***Need to implement normal export");
                 /*
@@ -459,6 +540,15 @@ public class SAVExporter {
             stream.endNode();   // Color
         }
 
+        if (texCoords != null) {
+            stream.startField("texCoord");
+            stream.startNode("TextureCoordinate", null);
+            stream.startField("point");
+
+            stream.fieldValue(texCoords, num_coords * 2);
+            stream.endNode();   // TextureCoordinate
+        }
+
         if (export_normals) {
             stream.startField("normal");
             stream.startNode("Normal", null);
@@ -474,16 +564,16 @@ public class SAVExporter {
     /**
      * Output a PointSet to an X3D stream.  By default this exporter exports
      * coordinates and normals.
-     *
+     * <p/>
      * Supported params are:
-     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
-     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
      *
-     * @param verts The mesh
-     * @param params Output parameters
+     * @param verts    The mesh
+     * @param params   Output parameters
      * @param material The material from MaterialMapper for the appearance
-     * @param finish The finish.
-     * @param stream The SAV stream
+     * @param finish   The finish.
+     * @param stream   The SAV stream
      */
     public void outputX3D(double[] verts, Map<String, Object> params, String material, String[] finish,
                           BinaryContentHandler stream, String defName) {
@@ -492,7 +582,7 @@ public class SAVExporter {
 
 
         int len = verts.length;
-        for(int i=0; i < len; i++) {
+        for (int i = 0; i < len; i++) {
             coords[i] = (float) verts[i];
         }
         stream.startNode("Shape", defName);
@@ -523,32 +613,32 @@ public class SAVExporter {
     /**
      * Output a toxiclibs TriangleMesh to an X3D stream.  By default this exporter exports
      * coordinates and normals.
-     *
+     * <p/>
      * Supported params are:
-     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
-     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
      *
-     * @param mesh The mesh
+     * @param mesh   The mesh
      * @param params Output parameters
      * @param stream The SAV stream
      */
     public void outputX3D(TriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream) {
         outputX3D(mesh, params, null, null, stream);
     }
-    
+
     /**
      * Output a toxiclibs TriangleMesh to an X3D stream.  By default this exporter exports
      * coordinates and normals.
-     *
+     * <p/>
      * Supported params are:
-     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
-     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
      *
-     * @param mesh The mesh
-     * @param params Output parameters
+     * @param mesh     The mesh
+     * @param params   Output parameters
      * @param material The material from MaterialMapper for the appearance
-     * @param finish The finish.
-     * @param stream The SAV stream
+     * @param finish   The finish.
+     * @param stream   The SAV stream
      */
     public void outputX3D(TriangleMesh mesh, Map<String, Object> params, String material, String[] finish, BinaryContentHandler stream) {
 
@@ -562,12 +652,12 @@ public class SAVExporter {
             if (val != null) {
                 export_normals = val.booleanValue();
             }
-            
+
             val = (Boolean) params.get(VERTEX_NORMALS);
             if (val != null) {
                 vertex_normals = val.booleanValue();
             }
-            
+
             val = (Boolean) params.get(COMPACT_VERTICES);
             if (val != null) {
                 compact_vertices = val.booleanValue();
@@ -602,8 +692,8 @@ public class SAVExporter {
             normals = new float[faces.size() * 3];
             int idx = 0;
             int n_idx = 0;
-            
-            for(Face face : faces) {
+
+            for (Face face : faces) {
                 Vertex va = face.a;
                 Vertex vb = face.b;
                 Vertex vc = face.c;
@@ -622,7 +712,7 @@ public class SAVExporter {
             }
 
             idx = 0;
-            for(Vertex vert : vertices) {
+            for (Vertex vert : vertices) {
                 coords[idx++] = vert.x;
                 coords[idx++] = vert.y;
                 coords[idx++] = vert.z;
@@ -636,21 +726,21 @@ public class SAVExporter {
                 int last_vertex = 0;
                 int c_idx = 0;
 
-                for(Face face : faces) {
+                for (Face face : faces) {
                     Vertex va = face.a;
                     Vertex vb = face.b;
                     Vertex vc = face.c;
-            
+
                     Integer va_idx = reassigned.get(va);
                     Integer vb_idx = reassigned.get(vb);
                     Integer vc_idx = reassigned.get(vc);
-                 
+
                     if (va_idx == null) {
                         va_idx = new Integer(last_vertex++);
                         coords[c_idx++] = va.x;
                         coords[c_idx++] = va.y;
                         coords[c_idx++] = va.z;
-                        
+
                         reassigned.put(va, va_idx);
                     }
                     if (vb_idx == null) {
@@ -683,11 +773,11 @@ public class SAVExporter {
                 int display_max = 10;
                 int bad_cnt = 0;
 
-                for(Face face : faces) {
+                for (Face face : faces) {
                     Vertex va = face.a;
                     Vertex vb = face.b;
                     Vertex vc = face.c;
-    
+
                     if (va.id > max_coord || vb.id > max_coord || vc.id > max_coord) {
                         if (bad_cnt < display_max) {
                             System.out.println("Invalid face: " + face);
@@ -716,15 +806,15 @@ public class SAVExporter {
                 }
 
                 if (bad_cnt > 0) {
-                    System.out.println("Bad faces.  Removed: " + bad_cnt + " left: " + (idx -1));
-                    int[] new_indices = new int[idx-1];
-                    System.arraycopy(indices,0,new_indices,0,idx-1);
+                    System.out.println("Bad faces.  Removed: " + bad_cnt + " left: " + (idx - 1));
+                    int[] new_indices = new int[idx - 1];
+                    System.arraycopy(indices, 0, new_indices, 0, idx - 1);
 
                     indices = new_indices;
                 }
-                
+
                 idx = 0;
-                for(Vertex vert : vertices) {
+                for (Vertex vert : vertices) {
                     coords[idx++] = vert.x;
                     coords[idx++] = vert.y;
                     coords[idx++] = vert.z;
@@ -734,14 +824,14 @@ public class SAVExporter {
                     normals = new float[vertices.size() * 3];
                     idx = 0;
 
-                    for(Vertex vert : vertices) {
+                    for (Vertex vert : vertices) {
                         normals[idx++] = vert.normal.x;
                         normals[idx++] = vert.normal.y;
                         normals[idx++] = vert.normal.z;
                     }
                 }
 
-            }                
+            }
         }
 
 //System.out.println("indices: " + java.util.Arrays.toString(indices));
@@ -789,12 +879,12 @@ public class SAVExporter {
     /**
      * Output a toxiclibs TriangleMesh Array to an X3D stream.  Places all meshes into one Shape.
      * By default this exporter exports coordinates and normals.
-     *
+     * <p/>
      * Supported params are:
-     *    EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
-     *    VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
+     * EXPORT_NORMALS, Boolean, TRUE -- Should we export normals
+     * VERTEX_NORMALS, Boolean, TRUE -- Should we use per-vertex normals
      *
-     * @param mesh The mesh
+     * @param mesh   The mesh
      * @param params Output parameters
      * @param stream The SAV stream
      */

@@ -7,11 +7,22 @@ import abfab3d.util.TriangleProducer;
 import javax.vecmath.Point3d;
 
 /**
- * TODO: Add docs
+ * Mesh description using triangles.
  *
  * @author Alan Hudson
  */
 public interface TriangleMesh extends TriangleProducer {
+    public static final int VA_NORMAL = 0;
+    public static final int VA_COLOR = 1;
+    public static final int VA_TEXCOORD0 = 2;
+    public static final int VA_TEXCOORD1 = 3;
+    public static final int VA_TEXCOORD2 = 4;
+    public static final int VA_TEXCOORD3 = 5;
+    public static final int VA_TEXCOORD4 = 6;
+    public static final int VA_TEXCOORD5 = 7;
+    public static final int VA_TEXCOORD6 = 8;
+    public static final int VA_TEXCOORD7 = 9;
+
     int getVertexCount();
 
     int getTriangleCount();
@@ -77,4 +88,11 @@ public interface TriangleMesh extends TriangleProducer {
      * @return The channelID or -1 if not available
      */
     public int getColorChannel();
+
+    /**
+     * Get the attribute channel.
+     *
+     * @return The channelID or -1 if not available
+     */
+    public int getAttributeChannel(int channel);
 }
