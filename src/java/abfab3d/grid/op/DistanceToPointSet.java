@@ -137,7 +137,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     }
 
     /**
-       set order of y-layers processing (for tests)
+       set order of y-layers processing (for tests) unused 
      */
     public void setProcessingDirection(int value){
         m_processingDirection = value;

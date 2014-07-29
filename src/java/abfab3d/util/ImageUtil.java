@@ -446,6 +446,26 @@ public class ImageUtil {
         return RESULT_OK;
     }
 
+
+    /**
+     * Map one range of numbers to another range.
+     *
+     * @param x
+     * @param inMin
+     * @param inMax
+     * @param outMin
+     * @param outMax
+     * @return
+     */
+    public static int linearmap(int x, int inMin, int inMax, int outMin, int outMax) {
+        
+        if(x <= inMin) return outMin;
+        if(x >= inMax) return outMax;
+        int ret_val = (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
+        return ret_val;
+        
+    }
+
     // unsigned byte to unsignes short conversion 
     // with scaling to map 0xFF to 0xFFFF 
     final static short ub2us(int ub){
