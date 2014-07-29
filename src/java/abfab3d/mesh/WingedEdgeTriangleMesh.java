@@ -32,17 +32,6 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class WingedEdgeTriangleMesh implements TriangleMesh {
-    public static final int VA_NORMAL = 0;
-    public static final int VA_COLOR = 1;
-    public static final int VA_TEXCOORD0 = 2;
-    public static final int VA_TEXCOORD1 = 3;
-    public static final int VA_TEXCOORD2 = 4;
-    public static final int VA_TEXCOORD3 = 5;
-    public static final int VA_TEXCOORD4 = 6;
-    public static final int VA_TEXCOORD5 = 7;
-    public static final int VA_TEXCOORD6 = 8;
-    public static final int VA_TEXCOORD7 = 9;
-
     static boolean DEBUG = false;
 
     private final StructMixedData vertices;  // of Vertex
@@ -322,6 +311,24 @@ public class WingedEdgeTriangleMesh implements TriangleMesh {
         }
         for(int i=0; i < semantics.length; i++) {
             if (semantics[i] == VA_COLOR) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    /**
+     * Get the attribute channel.
+     *
+     * @return The channelID or -1 if not available
+     */
+    public int getAttributeChannel(int channel) {
+        if (semantics == null) {
+            return -1;
+        }
+        for(int i=0; i < semantics.length; i++) {
+            if (semantics[i] == channel) {
                 return i;
             }
         }
