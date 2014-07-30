@@ -20,6 +20,7 @@ import abfab3d.datasources.DataSourceGrid;
 import abfab3d.datasources.Plane;
 import abfab3d.datasources.Subtraction;
 import abfab3d.grid.*;
+import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.Long2Short;
 import abfab3d.util.LongConverter;
 import abfab3d.util.Units;
@@ -44,9 +45,18 @@ import static abfab3d.util.Units.MM;
 public class ErosionDistance implements Operation, AttributeOperation {
     private static final boolean DEBUG = false;
 
+    public static final int
+            DISTANCE_TRANSFORM_EXACT = 0,
+            DISTANCE_TRANSFORM_MULTI_STEP = 1,
+            DISTANCE_TRANSFORM_FAST_MARCHING = 2,
+            DISTANCE_TRANSFORM_LAYERED = 3;
+
     /** The erosion distance in meters */
     private double distance;
     private int subvoxelResolution;
+    private int threadCount = 1;
+    int m_distanceTransformAlgorithm = DISTANCE_TRANSFORM_LAYERED;
+
 
     public ErosionDistance(double distance, int subvoxelResolution) {
         this.distance = distance;
@@ -92,7 +102,8 @@ public class ErosionDistance implements Operation, AttributeOperation {
 
         // TODO:  allow user specified DistanceTransform class
         // TODO: change back to use multistep
-        DistanceTransformMultiStep dt = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
+//        DistanceTransformMultiStep dt = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
+        DistanceTransformLayered dt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
 //        DistanceTransformExact dt = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
         AttributeGrid dg = dt.execute(dest);
 
@@ -193,22 +204,21 @@ public class ErosionDistance implements Operation, AttributeOperation {
         double maxOutDistance = dest.getVoxelSize();
         double maxInDistance = (distance + dest.getVoxelSize());
 
-//        DistanceTransformMultiStep dt_exact = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
-        DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
+        DistanceTransformLayered dt_exact = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+//        DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
+        dt_exact.setThreadCount(threadCount);
         AttributeGrid dg = dt_exact.execute(dest);
-        printf("DistanceTransformMultiStep done: %d ms\n", time() - t0);
+        printf("Erosion done: %d ms\n", time() - t0);
 
         double[] bounds = new double[6];
         dest.getGridBounds(bounds);
 
         DensityGridExtractor dge = new DensityGridExtractor(-3 * distance, -distance,dg,-maxInDistance,maxOutDistance, subvoxelResolution);
 
-        AttributeGrid new_dest = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
-        new_dest.setGridBounds(bounds);
+        //AttributeGrid new_dest = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
+        //new_dest.setGridBounds(bounds);
 
-        new_dest = dge.execute(new_dest);
-
-        return new_dest;
+        return dge.execute(dest);
     }
 /*
     static class MyGridWriter implements SliceExporter {
@@ -259,6 +269,29 @@ public class ErosionDistance implements Operation, AttributeOperation {
 
     }
 */
+
+    public void setThreadCount(int count){
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
+
+        threadCount = count;
+    }
+
+    /**
+     * Set the distance transform algorithm to use.
+     *
+     * @param distanceTransformAlgorithm Possible values: DISTANCE_TRANSFORM_EXACT, DISTANCE_TRANSFORM_MULTI_STEP,
+     *      DISTANCE_TRANSFORM_FAST_MARCHING, DISTANCE_TRANSFORM_LAYERED
+     */
+    public void setDistanceTransformAlgorithm(int distanceTransformAlgorithm){
+
+        m_distanceTransformAlgorithm = distanceTransformAlgorithm;
+    }
 
     /**
      * Color attributes based on a grayscale distance

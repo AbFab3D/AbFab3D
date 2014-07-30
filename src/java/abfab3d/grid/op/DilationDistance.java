@@ -23,6 +23,7 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.Grid;
 import abfab3d.grid.Operation;
+import abfab3d.util.AbFab3DGlobals;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -39,10 +40,17 @@ import static abfab3d.util.Units.MM;
  */
 public class DilationDistance implements Operation, AttributeOperation {
     private static final boolean DEBUG = false;
+    public static final int
+            DISTANCE_TRANSFORM_EXACT = 0,
+            DISTANCE_TRANSFORM_MULTI_STEP = 1,
+            DISTANCE_TRANSFORM_FAST_MARCHING = 2,
+            DISTANCE_TRANSFORM_LAYERED = 3;
 
     /** The dilation distance in meters */
     private double distance;
     private int subvoxelResolution;
+    private int threadCount = 1;
+    int m_distanceTransformAlgorithm = DISTANCE_TRANSFORM_LAYERED;
 
     public DilationDistance(double distance, int subvoxelResolution) {
         this.distance = distance;
@@ -68,8 +76,6 @@ public class DilationDistance implements Operation, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid execute(AttributeGrid dest) {
-        printf("Using new code\n");
-
         // Nothing to do if distance is 0
         if (distance <= 0) {
             return dest;
@@ -85,23 +91,43 @@ public class DilationDistance implements Operation, AttributeOperation {
         double maxOutDistance = distance + dest.getVoxelSize();
 
 //        DistanceTransformMultiStep dt_exact = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
-        DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
+        DistanceTransformLayered dt_exact = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+//        DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
+        dt_exact.setThreadCount(threadCount);
         AttributeGrid dg = dt_exact.execute(dest);
-        printf("DistanceTransformMultiStep done: %d ms\n", time() - t0);
+        printf("Dilation Distance done: %d ms  threads: %d\n", time() - t0,threadCount);
 
         double[] bounds = new double[6];
         dest.getGridBounds(bounds);
 
         DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance * 2, distance,dg,-maxInDistance,maxOutDistance, subvoxelResolution);
-        AttributeGrid subsurface = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
-        subsurface.setGridBounds(bounds);
 
-        AttributeGrid new_dest = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
-        new_dest.setGridBounds(bounds);
+        //AttributeGrid new_dest = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
+        //new_dest.setGridBounds(bounds);
 
-        new_dest = dge.execute(new_dest);
-
-        return new_dest;
+        return dge.execute(dest);
     }
 
+    public void setThreadCount(int count){
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number) AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
+
+        threadCount = count;
+    }
+
+    /**
+     * Set the distance transform algorithm to use.
+     *
+     * @param distanceTransformAlgorithm Possible values: DISTANCE_TRANSFORM_EXACT, DISTANCE_TRANSFORM_MULTI_STEP,
+     *      DISTANCE_TRANSFORM_FAST_MARCHING, DISTANCE_TRANSFORM_LAYERED
+     */
+    public void setDistanceTransformAlgorithm(int distanceTransformAlgorithm){
+
+        m_distanceTransformAlgorithm = distanceTransformAlgorithm;
+    }
 }
