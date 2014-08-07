@@ -561,7 +561,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
      * Test that MT is faster then ST.  Assumes we always run on a MT box
      */
     public void testMTFasterCoeffZero() {
-        double voxelSize = 0.01*Units.MM;
+        double voxelSize = 0.02*Units.MM;
         int maxAttributeValue = 127;
         AttributeGrid grid = getSphereGrid(voxelSize);
 
@@ -586,7 +586,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
-        cores = Math.min(cores,12); // I expect after 12 for it to level off
+        cores = Math.min(cores,8); // I expect after 8 for it to level off
         float expected_speedup = 0.5f * cores;
 
         long t0 = System.currentTimeMillis();
@@ -614,7 +614,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
      * Test that MT is faster then ST.  Assumes we always run on a MT box
      */
     public void testMTFasterCoeffNonZero() {
-        double voxelSize = 0.01*Units.MM;
+        double voxelSize = 0.02*Units.MM;
         int maxAttributeValue = 127;
         double coeff = 1;
         AttributeGrid grid = getSphereGrid(voxelSize);
@@ -640,7 +640,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
-        cores = Math.min(cores,12); // I expect after 16 for it to level off
+        cores = Math.min(cores,8); // I expect after 8 for it to level off
         float expected_speedup = 0.5f * cores;
         long t0 = System.currentTimeMillis();
         DownsampleAlpha op2 = new DownsampleAlpha(coeff,factor,maxAttributeValue);
@@ -668,7 +668,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
      * Test that MT is faster then ST.  Assumes we always run on a MT box
      */
     public void testMTFasterIntervalCoeffZero() {
-        double voxelSize = 0.01*Units.MM;
+        double voxelSize = 0.02*Units.MM;
         int maxAttributeValue = 127;
         AttributeGrid grid = getSphereGrid(voxelSize);
 
@@ -693,7 +693,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int TIMES = 1;
 
         int cores = Runtime.getRuntime().availableProcessors();
-        cores = Math.min(cores,12); // I expect after 16 for it to level off
+        cores = Math.min(cores,8); // I expect after 8 for it to level off
         float expected_speedup = 0.5f * cores;
 
         long t0 = System.currentTimeMillis();
