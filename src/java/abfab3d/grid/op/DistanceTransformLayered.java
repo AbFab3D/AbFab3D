@@ -16,16 +16,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
-import javax.vecmath.Point3d; 
+import javax.vecmath.Point3d;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.GridBitIntervals;
-import abfab3d.grid.ClassTraverser;
-import abfab3d.grid.GridBit;
+import abfab3d.grid.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 
@@ -163,6 +156,13 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
 
         DistanceToPointSet dps = new DistanceToPointSet(pnts, m_inDistance, m_outDistance, m_subvoxelResolution);
         dps.setThreadCount(m_threadCount);
+
+        long voxels = (long) nx * ny *nz;
+        long bigGrid = (long) Math.pow(1000,3);
+
+        if (voxels > bigGrid) {
+            dps.setVectorIndexerTemplate(new VectorIndexerStructMap(1,1,1));
+        }
         dps.execute(distanceGrid);
 
         if(DEBUG_TIMING)printf("distanceToPointSet: %d ms\n",(time()-t0));

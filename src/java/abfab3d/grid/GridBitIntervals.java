@@ -597,12 +597,12 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
             this.y = y;
         }
 
-        public boolean foundInterruptible(int z, int data){
+        public boolean foundInterruptible(int z, long data){
 
             return m_t.foundInterruptible(x,y,z, (byte)data);
 
         }
-        public void found(int z, int data){
+        public void found(int z, long data){
 
             m_t.found(x,y,z, (byte)data);
 

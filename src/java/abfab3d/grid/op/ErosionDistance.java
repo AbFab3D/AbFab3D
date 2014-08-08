@@ -188,8 +188,6 @@ public class ErosionDistance implements Operation, AttributeOperation {
      * @return The new grid
      */
     public AttributeGrid execute(AttributeGrid dest) {
-        printf("Using new code\n");
-
         // Nothing to do if distance is 0
         if (distance <= 0) {
             return dest;
@@ -199,15 +197,12 @@ public class ErosionDistance implements Operation, AttributeOperation {
 
         long t0 = time();
 
-        // TODO:  allow user specified DistanceTransform class
-
         double maxOutDistance = dest.getVoxelSize();
         double maxInDistance = (distance + dest.getVoxelSize());
 
-        DistanceTransformLayered dt_exact = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
-//        DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
-        dt_exact.setThreadCount(threadCount);
-        AttributeGrid dg = dt_exact.execute(dest);
+        DistanceTransformLayered dt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+        dt.setThreadCount(threadCount);
+        AttributeGrid dg = dt.execute(dest);
         printf("Erosion done: %d ms\n", time() - t0);
 
         double[] bounds = new double[6];

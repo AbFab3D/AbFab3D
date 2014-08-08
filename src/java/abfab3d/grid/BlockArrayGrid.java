@@ -185,6 +185,7 @@ public class BlockArrayGrid extends BaseGrid {
              1.0/grid.scale[1],
              grid.BLOCK_TWOS_ORDER,
              grid.GRID_BLOCK_TYPE);
+
         offset = grid.offset.clone();
         blocks = grid.blocks.clone();
     }
