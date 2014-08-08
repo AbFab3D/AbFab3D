@@ -23,7 +23,8 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
 */
-public class ArrayInt implements RowOfInt {
+//public class ArrayInt implements RowOfInt {
+    public class ArrayInt {
 
     int data[];
     int maxSize = 0;
@@ -92,7 +93,7 @@ public class ArrayInt implements RowOfInt {
     public void add(ArrayInt array){
         int s = array.size();
         for(int i = 0; i < s; i++){
-            add(array.get(i));
+            add((int)array.get(i));
         }
     }
 

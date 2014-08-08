@@ -61,7 +61,7 @@ public class BitIntervals implements RowOfInt, Serializable {
     /**
 
      */
-    public int get(int x){
+    public long get(int x){
 
         //find interval which contains x 
         //
@@ -293,7 +293,7 @@ public class BitIntervals implements RowOfInt, Serializable {
      * @param data The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */    
-    public boolean findInterruptible(int data, IntervalTraverser t) {  
+    public boolean findInterruptible(long data, IntervalTraverser t) {
         
         if(data != 0){
             // scan interval of 1s 
@@ -322,7 +322,7 @@ public class BitIntervals implements RowOfInt, Serializable {
      * @param data The class of voxels to traverse
      * @param t The traverer to call for each voxel
      */
-    public void find(int data, IntervalTraverser t) {
+    public void find(long data, IntervalTraverser t) {
 
         if(data != 0){
             // scan interval of 1s

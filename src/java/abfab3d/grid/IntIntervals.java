@@ -32,37 +32,36 @@ import static abfab3d.util.Output.printf;
    @author Vladimir Bulatov
 
  */
-public class ShortIntervals implements RowOfInt {
+public class IntIntervals implements RowOfInt {
 
-    public static final int MASK  = 0xffff;
-    public static final int SHIFT = 16;
+    public static final long MASK  = 0xffffffff;
+    public static final long SHIFT = 32;
 
-    static final int MIN_VALUE = makeCode(Short.MIN_VALUE, 0);
-    static final int MAX_VALUE = makeCode(Short.MAX_VALUE, 0);
+    static final long MIN_VALUE = makeCode(Integer.MIN_VALUE, 0);
+    static final long MAX_VALUE = makeCode(Integer.MAX_VALUE, 0);
 
-    int m_intervals[];
+    long m_intervals[];
 
     int m_curcount = 0; // current count of inteval starts
 
     /**
        copy constructor
      */
-    public ShortIntervals(ShortIntervals si){
+    public IntIntervals(IntIntervals si){
 
         m_curcount = si.m_curcount;
         m_intervals = si.m_intervals.clone();
-
     }
-
-    public ShortIntervals(int intervals[]){
+/*
+    public IntIntervals(int intervals[]){
 
         m_intervals = intervals.clone();
         m_curcount = m_intervals.length;
     }
+*/
+    public IntIntervals(){
 
-    public ShortIntervals(){
-
-        m_intervals = new int[4];
+        m_intervals = new long[4];
         m_intervals[0] = MIN_VALUE;//0;//makeCode(0, 0);
         m_intervals[1] = MAX_VALUE;//makeCode(Short.MAX_VALUE, 0);
         m_curcount = 2;
@@ -72,19 +71,19 @@ public class ShortIntervals implements RowOfInt {
     /**
        encode interval and material into int
      */
-    static final int makeCode(int start, long data){
+    static final long makeCode(int start, long data){
         return (start & MASK) | (((int)data & MASK) << SHIFT);
     }
     /**
        decode material
      */
-    static final int getData(int code){
-        return (code >> SHIFT) & MASK;
+    static final int getData(long code){
+        return (int)((code >> SHIFT) & MASK);
     }
     /**
        decode interval
     */
-    static final int getStart(int code){
+    static final int getStart(long code){
         return (int)((short)(code & MASK));
     }
 
@@ -142,7 +141,7 @@ public class ShortIntervals implements RowOfInt {
 
             //    000aaaaabbbb000
             //            ^
-            int code_b = m_intervals[i];
+            long code_b = m_intervals[i];
             int start_b = getStart(code_b);
 
             //
@@ -197,7 +196,7 @@ public class ShortIntervals implements RowOfInt {
             } else if(start_b > x) {  // x is inside or on right end of existing interval
 
                 long mat_b = getData(code_b);
-                int code_a = m_intervals[i-1];
+                long code_a = m_intervals[i-1];
                 long mat_a = getData(code_a);
                 int start_a = getStart(code_a);
                 if(mat_a == material){ // material is the same
@@ -253,7 +252,7 @@ public class ShortIntervals implements RowOfInt {
        inserts single pont of data after ind
 
      */
-    void insertPointAfter(int ind, int code){
+    void insertPointAfter(int ind, long code){
 
         if(m_curcount+1 > m_intervals.length) reallocArray(m_curcount+1);
 
@@ -269,7 +268,7 @@ public class ShortIntervals implements RowOfInt {
        inserts single pont of data after ind
 
      */
-    void insertIntervalAfter(int ind, int code1, int code2){
+    void insertIntervalAfter(int ind, long code1, long code2){
 
         if(m_curcount+2 > m_intervals.length) reallocArray(m_curcount+2);
 
@@ -325,7 +324,7 @@ public class ShortIntervals implements RowOfInt {
     void reallocArray(int newSize){
 
         newSize += 2; // alocate a little more to reduce reallocations
-        int d[]= new int[newSize];
+        long d[]= new long[newSize];
         int len = m_intervals.length;
         if(newSize < len)
             len = newSize;
@@ -360,7 +359,7 @@ public class ShortIntervals implements RowOfInt {
 
     public Object clone(){
 
-        return new ShortIntervals(this);
+        return new IntIntervals(this);
 
     }
 
@@ -416,7 +415,7 @@ public class ShortIntervals implements RowOfInt {
             // scan interval of data
             for(int i = 1; i < m_curcount-1; i++){
 
-                int code = m_intervals[i];
+                long code = m_intervals[i];
                 int curData = getData(code);
 
                 if(curData != 0){
@@ -455,7 +454,7 @@ public class ShortIntervals implements RowOfInt {
             // scan interval of data
             for(int i = 1; i < m_curcount-1; i++){
 
-                int code = m_intervals[i];
+                long code = m_intervals[i];
                 int curData = getData(code);
 
                 if(curData != 0){
@@ -484,7 +483,7 @@ public class ShortIntervals implements RowOfInt {
         // we have to transform intervals of values into codes
         // we assume for now, that values are 1s and 0s, as it should be ideally
 
-        m_intervals = new int[count + 2];
+        m_intervals = new long[count + 2];
 
         m_curcount = m_intervals.length;
         // first and last points are special
@@ -505,7 +504,7 @@ public class ShortIntervals implements RowOfInt {
         // we have to transform intervals of values into codes
         // we assume for now, that values are 1s and 0s, as it should be ideally
 
-        m_intervals = new int[count + 2];
+        m_intervals = new long[count + 2];
 
         m_curcount = m_intervals.length;
         // first and last points are special

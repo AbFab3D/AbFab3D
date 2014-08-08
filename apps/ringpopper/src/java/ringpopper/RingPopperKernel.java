@@ -662,7 +662,7 @@ public class RingPopperKernel extends HostedKernel {
 
         ImageBitmap image_src = new ImageBitmap();
        
-        image_src.setLocation(0, 0, ringThickness / 2);
+        image_src.setCenter(0, 0, ringThickness / 2);
         image_src.setImagePath(imagePath);
         image_src.setBaseThickness(baseThickness);
         image_src.setUseGrayscale(useGrayscale);
@@ -770,7 +770,7 @@ public class RingPopperKernel extends HostedKernel {
 
         textBand.setSize(Math.PI * innerDiameter, width, textDepth);
         // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
-        textBand.setLocation(0, (ymax + ymin)/2, -textDepth / 2);
+        textBand.setCenter(0, (ymax + ymin)/2, -textDepth / 2);
         textBand.setBaseThickness(0.);
         textBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1, 1);
@@ -835,7 +835,7 @@ public class RingPopperKernel extends HostedKernel {
 
         double center = -(ringYmin+ringYmax)/2;
 
-        crossSect.setLocation(center, ringThickness / 2, 0);
+        crossSect.setCenter(center, ringThickness / 2, 0);
 
         printf("cross center: %7.3f mm cross size : %7.3f mm\n", center/MM,size/MM);
 

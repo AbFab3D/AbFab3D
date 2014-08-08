@@ -1,10 +1,7 @@
 package abfab3d.grid.op;
 
 import abfab3d.datasources.*;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Grid;
-import abfab3d.grid.SliceExporter;
+import abfab3d.grid.*;
 import abfab3d.io.output.SlicesWriter;
 import abfab3d.transforms.Rotation;
 import abfab3d.util.ImageUtil;

@@ -200,8 +200,24 @@ public class Main {
         iproxy.script_args = args;
         iproxy.show = true;
 
-        System.out.println("Show:" + iproxy.show);
+        ErrorReporterWrapper errors = new ErrorReporterWrapper(errorReporter);
+        shellContextFactory.setErrorReporter(errors);
+
         shellContextFactory.call(iproxy);
+
+        StringBuilder bldr = new StringBuilder();
+        for(JsError error : errors.getErrors()) {
+            String err_st = error.toString();
+            String remap = errorRemap.get(err_st);
+            if (remap != null) {
+                err_st = remap;
+            }
+            bldr.append(err_st);
+            bldr.append("\n");
+        }
+
+        String err_msg = bldr.toString();
+        System.out.println("Err msgs: " + err_msg);
 
         return exitCode;
     }

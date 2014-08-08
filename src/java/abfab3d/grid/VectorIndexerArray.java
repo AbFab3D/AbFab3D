@@ -18,7 +18,7 @@ package abfab3d.grid;
 import static abfab3d.util.Output.fmt;
 
 /**
- * implementation of VectorIndexer as unconpressed array of int
+ * implementation of VectorIndexer as uncompressed array of int
  *
  * 
  * @author Vladimir Bulatov 

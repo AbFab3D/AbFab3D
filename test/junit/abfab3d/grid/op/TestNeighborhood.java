@@ -58,6 +58,9 @@ public class TestNeighborhood extends TestCase {
         return new TestSuite(TestNeighborhood.class);
     }
 
+    public void testNothing() {
+        // TODO: sad place holder
+    }
     /**
        testing the properties of ball neigborhood
      */

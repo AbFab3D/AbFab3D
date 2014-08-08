@@ -249,7 +249,7 @@ public class TestDistanceToPointSet extends TestCase {
         double dmax = 0;
         PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
         
-        printf("point count: %d\n", pnts.size());
+        printf("sphere point count: %d\n", pnts.size());
         Point3d pnt = new Point3d();
         for(int k = 0; k < pnts.size(); k++){
 
@@ -287,7 +287,7 @@ public class TestDistanceToPointSet extends TestCase {
     }
 
     public void testCylinderZ(){
-        double vs = 0.01*MM;
+        double vs = 0.05*MM;
         double x0 = -2*MM,y0 = -2*MM, z0 = -2*MM;
         double x1 = 2*MM,y1 = 2*MM, z1 = 2*MM;
         int nx = (int)ceil((x1 - x0)/vs); 
@@ -308,7 +308,7 @@ public class TestDistanceToPointSet extends TestCase {
 
         PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
         
-        printf("point count: %d\n", pnts.size());
+        printf("cylinder point count: %d\n", pnts.size());
         Point3d pnt = new Point3d();
 
         DistanceToPointSet dps = new DistanceToPointSet(pnts, 0, maxDistVoxels*vs, subvoxelResolution);
@@ -360,7 +360,7 @@ public class TestDistanceToPointSet extends TestCase {
         double dmax = 0;
         PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
         
-        printf("point count: %d\n", pnts.size());
+        printf("sphereMT point count: %d\n", pnts.size());
         Point3d pnt = new Point3d();
         for(int k = 0; k < pnts.size(); k++){
 
@@ -423,7 +423,7 @@ public class TestDistanceToPointSet extends TestCase {
         double dmax = 0;
         PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
         
-        printf("point count: %d\n", pnts.size());
+        printf("PO point count: %d\n", pnts.size());
         Point3d pnt = new Point3d();
         for(int k = 0; k < pnts.size(); k++){
 
@@ -620,7 +620,7 @@ public class TestDistanceToPointSet extends TestCase {
     }
 
     // simulation of using SliceManager by multiple threads 
-    void testSliceManager(){
+    public void testSliceManager(){
         
         DistanceToPointSet.SliceManager sm = new DistanceToPointSet.SliceManager(201,2);
         DistanceToPointSet.Slice slices[] = new  DistanceToPointSet.Slice[8];
@@ -698,7 +698,7 @@ public class TestDistanceToPointSet extends TestCase {
         
     }
 
-    void testNaN(){
+    public void testNaN(){
         
         double x = 0., y = 0., z = x/y;
         printf("x: %5.2f, y: %5.2f, z: %5.2f\n",x,y,z);

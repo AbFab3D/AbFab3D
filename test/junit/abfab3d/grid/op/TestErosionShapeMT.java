@@ -46,6 +46,10 @@ public class TestErosionShapeMT extends TestCase {
         return new TestSuite(TestErosionShapeMT.class);
     }
 
+    public void testNothing() {
+        // place holder till tests fixed
+    }
+
     public void testBlockErosion() {
 
         int nx = 50, ny = 60, nz = 70;
@@ -54,7 +58,7 @@ public class TestErosionShapeMT extends TestCase {
 
         AttributeGrid grid;
 
-        int cores = Runtime.getRuntime().availableProcessors();
+        int cores = Math.max(8,Runtime.getRuntime().availableProcessors());
 
         for(int k = 2; k <= 6; k++){
 
