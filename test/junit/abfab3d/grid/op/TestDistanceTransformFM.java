@@ -42,6 +42,8 @@ import static java.lang.Math.round;
  */
 public class TestDistanceTransformFM extends BaseTestDistanceTransform {
     
+    static final boolean WRITE_SLICES = false;
+
     double surfaceThickness = Math.sqrt(3)/2;
     int maxAttribute = 100;
     double voxelSize = 0.1*MM;
@@ -57,7 +59,7 @@ public class TestDistanceTransformFM extends BaseTestDistanceTransform {
         double maxOutDistance = 0;
 
         MyGridWriter gw = new MyGridWriter(8,8);
-        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1, new DistanceColorizer(max_attribute,0,0,255));
+        if(WRITE_SLICES)gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1, new DistanceColorizer(max_attribute,0,0,255));
 //        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",0, nx, new DistanceColorizer(max_attribute));
 
         long t0 = time();
@@ -133,7 +135,7 @@ public class TestDistanceTransformFM extends BaseTestDistanceTransform {
 
         int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
 
-        gw.writeSlices(diff_grid,norm , "/tmp/slices/distance/exact_%03d.png",0, nx/2, new ErrorColorizer(norm));
+        if(WRITE_SLICES)gw.writeSlices(diff_grid,norm , "/tmp/slices/distance/exact_%03d.png",0, nx/2, new ErrorColorizer(norm));
         printRow(diff_grid, 0, nx, nx/2, nx/2);
 
 

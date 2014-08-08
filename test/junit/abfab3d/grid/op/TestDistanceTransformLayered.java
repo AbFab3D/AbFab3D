@@ -46,17 +46,17 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
     public void testAccuracy(){
 
-        int nx = 100;
+        int nx = 50;
  
         int test_margin_factor = 2;
 
         AttributeGrid[] grids = new AttributeGrid[1];
         //grids[0] = makeBox(nx, 5.0 * MM, voxelSize, subvoxelResolution, surfaceThickness);
-        //grids[0] = makeSphere(nx, 2.5 * MM, voxelSize, subvoxelResolution, surfaceThickness);
+        grids[0] = makeSphere(nx, 2.5 * MM, voxelSize, subvoxelResolution, surfaceThickness);
         //grids[0] = makeTorus(nx, 2.7 * MM, 2.2 * MM, voxelSize, subvoxelResolution, surfaceThickness);
-        grids[0] = makeGyroid(nx, 4.0 * MM, voxelSize, subvoxelResolution, 10*MM, nx * voxelSize / 2.0, 0.1);
+        //grids[0] = makeGyroid(nx, 4.0 * MM, voxelSize, subvoxelResolution, 10*MM, nx * voxelSize / 2.0, 0.1);
 
-        double maxInDistance = 2*MM;
+        double maxInDistance = 1*MM;
         double maxOutDistance = 0.*MM;
 
         for(int i=0; i < grids.length; i++) {
@@ -92,15 +92,16 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
             long errors[] = getDiffHistogram( dg_exact, dg_fm);
             printDiffHistogram(errors);
-
+            for(int k = 9; k < errors.length-1; k++){
+                assertTrue(fmt("error[%d] = %d (but should be 0)\n", k, errors[k]), (errors[k] == 0));
+            }
         }
     }
 
 
     public void testMT(){
 
-        int nx = 200;
-        int WARMUP = 2;
+        int nx = 50;
         //int test_margin_factor = 2;
 
         AttributeGrid[] grids = new AttributeGrid[1];
@@ -111,8 +112,9 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
         double maxOutDistance = 0.*MM;
         long st_time = 0;
         long mt_time = 0;
-        int max_threads = 12;
+        int max_threads = 4;
 
+        int WARMUP = 0;
         for(int n=0; n < WARMUP; n++) {
             for(int i=0; i < grids.length; i++) {
 
@@ -158,7 +160,6 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
 
                 long errors[] = getDiffHistogram( dg_st, dg_mt);
-                //printDiffHistogram(errors);
             }
         }
 
@@ -205,14 +206,17 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
 
             long errors[] = getDiffHistogram( dg_st, dg_mt);
-            //printDiffHistogram(errors);
+            printDiffHistogram(errors);
+            for(int k = 8; k < errors.length-1; k++){
+                assertTrue(fmt("error[%d] = %d (but should be 0)\n", k, errors[k]), (errors[k] == 0));
+            }
         }
     }
 
 
     public static void main(String arg[]){
 
-        //new TestDistanceTransformLayered().testAccuracy();
+        //new TestDistanceTransformLayered().dtestAccuracy();
         new TestDistanceTransformLayered().testMT();
                     
 

@@ -13,7 +13,9 @@ import static java.lang.Math.round;
  * @author Alan Hudson
  */
 public class TestDistanceTransformExact extends BaseTestDistanceTransform {
-    private static final boolean DEBUG = true;
+
+    private static final boolean DEBUG = false;
+    
     double surfaceThickness = Math.sqrt(3)/2;
     int maxAttribute = 100;
     double voxelSize = 0.1*MM;
@@ -186,7 +188,7 @@ public class TestDistanceTransformExact extends BaseTestDistanceTransform {
         int nx = 128;
         double sphereRadius = 5.0 * MM;
         AttributeGrid grid = makeTorus(nx, sphereRadius, 1*MM, voxelSize, max_attribute, surfaceThickness);
-        double maxInDistance = 2*MM;
+        double maxInDistance = 1*MM;
         double maxOutDistance = 0*MM;
 
         int max_grid_att = (int) (Math.ceil(max_attribute * (maxInDistance + maxOutDistance) / voxelSize / 2.0));
