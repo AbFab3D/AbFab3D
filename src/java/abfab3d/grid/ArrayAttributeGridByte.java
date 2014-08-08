@@ -88,7 +88,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
 
         long dataLength = (long)height * width * depth;
         if(dataLength >= Integer.MAX_VALUE){
-            throw new IllegalArgumentException("Size exceeds integer, use ArrayAttributeGridByteLongIndex");
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayAttributeGridByteLongIndex.  w: " + w + " h: " + h + " d: " + d);
         }
         data = new byte[height * width * depth];
 
