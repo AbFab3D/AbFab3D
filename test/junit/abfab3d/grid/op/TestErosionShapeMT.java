@@ -52,7 +52,7 @@ public class TestErosionShapeMT extends TestCase {
 
     public void testBlockErosion() {
 
-        int nx = 100, ny = 150, nz = 200;
+        int nx = 50, ny = 60, nz = 70;
 
         int offset = 10;
 
@@ -187,6 +187,7 @@ public class TestErosionShapeMT extends TestCase {
 
     public static void main(String[] args) {
 
+        new TestErosionShapeMT().testBlockErosion();
 
     }
 }

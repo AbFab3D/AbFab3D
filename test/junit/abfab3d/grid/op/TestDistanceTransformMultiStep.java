@@ -228,17 +228,18 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
 
     public void testAccuracy(){
 
-        int max_attribute = 128;
-        int nx = 128;
+        int max_attribute = 100;
+        int nx = 50;
         double[] expected_max_error_percent = new double[] {0.03,0.06,0.05,.001};
         int test_margin_factor = 2;
         int[] expected_max_error = new int[] {15,58,57,1};
-        AttributeGrid[] grids = new AttributeGrid[4];
-        grids[0] = makeBox(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness);
-        grids[1] = makeSphere(nx, 5.0 * MM, voxelSize, max_attribute, surfaceThickness);
-        grids[2] = makeTorus(nx, 4.0 * MM, 2.0 * MM, voxelSize, max_attribute, surfaceThickness);
-        grids[3] = makeGyroid(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness, nx * voxelSize / 3.0, 0.1);
-
+        AttributeGrid[] grids = new AttributeGrid[]{
+            makeBox(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness),
+            makeSphere(nx, 5.0 * MM, voxelSize, max_attribute, surfaceThickness),
+            makeTorus(nx, 4.0 * MM, 2.0 * MM, voxelSize, max_attribute, surfaceThickness),
+            //makeGyroid(nx, 4.0 * MM, voxelSize, max_attribute, surfaceThickness, nx * voxelSize / 3.0, 0.1)
+        };
+        int maxError[] = new int[]{12,0,39,1};
         double maxInDistance = 1*MM;
         double maxOutDistance = 0;
 
@@ -246,7 +247,6 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
             AttributeGrid grid = grids[i];
             MyGridWriter gw = new MyGridWriter(8,8);
             if (DEBUG) gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",nx/2, nx/2+1, new DistanceColorizer(max_attribute,0,0,255));
-    //        gw.writeSlices(grid, maxAttribute, "/tmp/slices/box_%03d.png",0, nx, new DistanceColorizer(max_attribute));
 
             long t0 = time();
             DistanceTransformExact dt_exact = new DistanceTransformExact(max_attribute, maxInDistance, maxOutDistance);
@@ -311,9 +311,15 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
                 }
             }
 
+            
             double error_rate = ((double) total_error / ma / err_cnt * 100.0);
             printf("Total error: %d  Per Error: %f  Max error: %d  Init Diffs  in exact: %d  in_fm: %d\n",total_error,error_rate,max_error,diffs_in_exact, diffs_in_fm);
-
+            long errors[] = getDiffHistogram( dg_exact, dg_fm);
+            printDiffHistogram(errors);
+            for(int k = maxError[i]+1; k < errors.length-1; k++){
+                assertTrue(fmt("error[%d] = %d (but should be 0)\n", k, errors[k]), (errors[k] == 0));
+            }
+            
             // viz:  difference grayscale.  blue for not in exact but in compare, red for in exact but not in compare
 
             int norm = (int)round(maxAttribute*maxInDistance/voxelSize);
@@ -323,8 +329,8 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
 
             // For now just use this unit test as confirmation errors don't crop up.  Right now this
             // test for a Gyroid is .001% error.  Confirm it doesn't go above .002%
-            assertTrue("Error rate, error: " + error_rate, error_rate < test_margin_factor * expected_max_error_percent[i]);
-            assertTrue("Error max, error: " + max_error, max_error < test_margin_factor * expected_max_error[i]);
+            //assertTrue("Error rate, error: " + error_rate, error_rate < test_margin_factor * expected_max_error_percent[i]);
+            //assertTrue("Error max, error: " + max_error, max_error < test_margin_factor * expected_max_error[i]);
         }
     }
 
@@ -431,7 +437,8 @@ public class TestDistanceTransformMultiStep extends BaseTestDistanceTransform {
         //new TestDistanceTransformMultiStep().testBoxInside();
         //new TestDistanceTransformMultiStep().testBoxOutside();
         //new TestDistanceTransformMultiStep().testBoxInside();
-        new TestDistanceTransformMultiStep().testSphereBoth();
+        //new TestDistanceTransformMultiStep().testSphereBoth();
+        new TestDistanceTransformMultiStep().testAccuracy();
         //new TestDistanceTransformMultiStep().testTorusBoth();
         //new TestDistanceTransformMultiStep().testMakeAllNeighbors();
         //new TestDistanceTransformMultiStep().testBoxBoth();

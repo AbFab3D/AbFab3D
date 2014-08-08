@@ -20,6 +20,7 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferUShort;
 import java.awt.image.DataBufferByte;
 
+import static java.lang.Math.max;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 
@@ -464,6 +465,69 @@ public class ImageUtil {
         int ret_val = (x - inMin) * (outMax - outMin) / (inMax - inMin) + outMin;
         return ret_val;
         
+    }
+
+    /**
+       get RGB color for given hue, saturation, luminance
+       color components are returned in the [0,1] range 
+     */
+    public static double[] getColorHSL(double hue, double saturation, double luminance, double rgb[]){
+        double q = 0;        
+        if (luminance < 0.5)
+            q = luminance * (1 + saturation);
+        else
+            q = (luminance + saturation) - (saturation * luminance);
+        
+        double p = 2 * luminance - q;
+        if(rgb == null)
+            rgb = new double[3];
+
+        rgb[0] = max(0, hueToRGB(p, q, hue + (1./3.)));
+        rgb[1] = max(0, hueToRGB(p, q, hue));
+        rgb[2] = max(0, hueToRGB(p, q, hue - (1./3.)));
+        return rgb;
+    }
+
+    /**
+       get RGB color for given hue, saturation, luminance
+     */
+    public static int getColorHSL(double hue, double saturation, double luminance){
+        
+        double q = 0;        
+        if (luminance < 0.5)
+            q = luminance * (1 + saturation);
+        else
+            q = (luminance + saturation) - (saturation * luminance);
+        
+        double p = 2 * luminance - q;
+        
+        double r = max(0, hueToRGB(p, q, hue + (1./3.)));
+        double g = max(0, hueToRGB(p, q, hue));
+        double b = max(0, hueToRGB(p, q, hue - (1./3.)));
+        
+        return makeRGB((int)(r*MAXC),(int)(g*MAXC),(int)(b*MAXC));
+    }
+    
+    private static double hueToRGB(double p, double q, double h)  {
+
+        if (h < 0) h += 1;
+
+        
+        if (h > 1 ) h -= 1;
+        
+        if (6 * h < 1){
+            return p + ((q - p) * 6 * h);
+        }
+        
+        if (2 * h < 1 ){
+            return  q;
+        }
+
+        if (3 * h < 2){
+            return p + ( (q - p) * 6 * ((2.0f / 3.0f) - h) );
+        }
+        
+        return p;
     }
 
     // unsigned byte to unsignes short conversion 
