@@ -19,6 +19,7 @@ import java.util.Map;
 
 
 // external imports
+import abfab3d.grid.query.CountMaterials;
 import abfab3d.grid.query.CountStates;
 import abfab3d.util.*;
 import junit.framework.Test;
@@ -159,7 +160,114 @@ public class TestWaveletRasterizer extends TestCase {
             
         }
     }
-        
+
+    /**
+     makes a set of boxes and checks volume
+     */
+    public void testBoxLargeAtt() throws Exception {
+
+        printf("testBox()\n");
+
+        boolean writeFiles = false;
+        int maxAttribute = 1000;  // can be used for GridShortIntervals
+        double precision = 1; // this is relative presision of volume calculations
+        // volume presizion is within (voxelSize / maxAttribute)
+        //AttributeGrid gridType = new ArrayAttributeGridByte(1,1,1,0.1, 0.1);
+        AttributeGrid gridType = new GridShortIntervals(1,1,1,0.1, 0.1);
+
+        for(int level = 6; level <=9; level++){
+
+            int gridSize = 1 << level;
+            double bounds[] = new double[]{0.,2.,0.,2.,0.,2.};
+            double originX = 0.1, originY = 0.3, originZ = 0.35;  double boxSizeX = 0.7, boxSizeY = 0.85, boxSizeZ = 1.2;
+            //double originX = 0.1234, originY = 0.35657, originZ = 0.35555;  double boxSizeX = 0.76456456, boxSizeY = 0.854566, boxSizeZ = 1.2236457;
+
+            double voxelSize = (bounds[1]- bounds[0])/gridSize;
+            double voxelVolume = voxelSize*voxelSize*voxelSize;
+
+            printf("grid size: %d\n", gridSize);
+
+            printf("running WaveletRasterizer\n");
+            WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, gridSize, gridSize, gridSize);
+            rasterizer.setMaxAttributeValue(maxAttribute);
+
+            TriangulatedModels.Parallelepiped box = new  TriangulatedModels.Parallelepiped(originX, originY, originZ, originX+boxSizeX, originY+boxSizeY, originZ+boxSizeZ);
+            long t0 = time();
+            box.getTriangles(rasterizer);
+            printf("WaveletRasterizer octree build time: %d ms\n", (time() - t0));
+            t0 = time();
+            AttributeGrid grid1 = (AttributeGrid)gridType.createEmpty(gridSize,gridSize,gridSize,voxelSize, voxelSize);
+            grid1.setGridBounds(bounds);
+
+            rasterizer.getRaster(grid1);
+            printf("WaveletRasterizer rasterization time: %d ms\n", (time() - t0));
+
+            double volumeWR = voxelVolume*getAttributeGridVolume(grid1, maxAttribute);
+            double exactVolume = boxSizeX * boxSizeY * boxSizeZ;
+            double differentceWR = ((volumeWR-exactVolume)/voxelSize)*maxAttribute;
+            printf("WRvolume: %18.15f  WRdiff: %18.15f\n", volumeWR, differentceWR);
+
+            assertTrue("Test of WR grid volume presision", Math.abs(differentceWR) < precision);
+
+            if(writeFiles){
+                MeshMakerMT meshmaker1 = new MeshMakerMT();
+                meshmaker1.setBlockSize(30);
+                meshmaker1.setThreadCount(1);
+                meshmaker1.setSmoothingWidth(0);
+                meshmaker1.setMaxDecimationError(0);
+                meshmaker1.setMaxDecimationCount(0);
+                meshmaker1.setMaxAttributeValue(maxAttribute);
+                STLWriter stlw1 = new STLWriter(fmt("/tmp/grid1_%03d.stl", gridSize));
+                meshmaker1.makeMesh(grid1, stlw1);
+                stlw1.close();
+            }
+
+            printf("running MeshRasterizer\n");
+            t0 = time();
+
+            MeshRasterizer rasterizer2 = new MeshRasterizer(bounds, gridSize, gridSize, gridSize);
+
+            TriangulatedModels.Parallelepiped box2 = new  TriangulatedModels.Parallelepiped(originX, originY, originZ, originX+boxSizeX, originY+boxSizeY, originZ+boxSizeZ);
+            box2.getTriangles(rasterizer2);
+
+            AttributeGrid grid2 = (AttributeGrid)gridType.createEmpty(gridSize,gridSize,gridSize,voxelSize, voxelSize);
+            grid2.setGridBounds(bounds);
+            rasterizer2.getRaster(grid2);
+            printf("MeshRasterizer rasterization time: %d ms\n", (time() - t0));
+
+            CountStates counter = new CountStates();
+            Map<Byte,Long> counts = counter.execute(grid2);
+            double volumeZB = voxelVolume*counts.get(Grid.INSIDE);
+            double differenceZB = ((volumeZB-exactVolume)/voxelSize);
+            printf("ZBvolume: %18.15f  ZBdiff: %18.15f\n", volumeZB, differenceZB);
+
+            assertTrue("Test of ZB grid volume presision", Math.abs(differentceWR) < precision);
+
+            CountMaterials counter2 = new CountMaterials();
+            Map<Long,Long> counts2 = counter2.execute(grid2);
+            for(Map.Entry<Long,Long> entry : counts2.entrySet()) {
+                if (entry.getKey() < 0 || entry.getKey() > maxAttribute) {
+                    fail("Invalid attribute: " + entry.getKey());
+                }
+            }
+
+            if(writeFiles){
+                MeshMakerMT meshmaker = new MeshMakerMT();
+                meshmaker.setBlockSize(30);
+                meshmaker.setThreadCount(4);
+                meshmaker.setSmoothingWidth(0);
+                meshmaker.setMaxDecimationError(0.1*voxelSize*voxelSize);
+                meshmaker.setMaxDecimationCount(5);
+                meshmaker.setMaxAttributeValue(0);
+
+                STLWriter stlw = new STLWriter(fmt("/tmp/gridWR_%03d.stl", gridSize));
+                meshmaker.makeMesh(grid2, stlw);
+                stlw.close();
+            }
+
+        }
+    }
+
     public void _testParalelepiped() throws Exception {
         
         

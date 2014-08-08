@@ -190,6 +190,25 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         setAttribute(grid);
     }
 
+    public void testSetAttributeShort() {
+        AttributeGrid grid = new ArrayAttributeGridShort(78, 112, 26, 0.001, 0.001);
+
+        grid.setAttribute(0, 0, 0, 1);
+        grid.setAttribute(9, 9, 9, 256);
+        grid.setAttribute(63, 111, 24, 1000);
+
+        System.out.println("Val: " + grid.getAttribute(63,111,24));
+        // check that the material changed, but the state did not
+        assertEquals("Material should be ", 1, grid.getAttribute(0, 0, 0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
+
+        assertEquals("Material should be ", 256, grid.getAttribute(9, 9, 9));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(9, 9, 9));
+
+        assertEquals("Material should be ", 1000, grid.getAttribute(63, 111, 24));
+        assertEquals("State should be ", Grid.INSIDE, grid.getState(63, 111, 24));
+    }
+
     /**
      * Test setState.
      */

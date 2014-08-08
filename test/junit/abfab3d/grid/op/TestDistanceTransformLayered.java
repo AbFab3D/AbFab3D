@@ -100,7 +100,7 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
     public void testMT(){
 
         int nx = 200;
- 
+        int WARMUP = 2;
         //int test_margin_factor = 2;
 
         AttributeGrid[] grids = new AttributeGrid[1];
@@ -109,11 +109,63 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
         //double maxInDistance = 2*MM;
         double maxInDistance = 2*MM;
         double maxOutDistance = 0.*MM;
+        long st_time = 0;
+        long mt_time = 0;
+        int max_threads = 12;
+
+        for(int n=0; n < WARMUP; n++) {
+            for(int i=0; i < grids.length; i++) {
+
+                AttributeGrid grid = grids[i];
+
+                int ny = grid.getHeight();
+                int nz = grid.getDepth();
+
+                if(DEBUG_TIMING)printf("processing grid: [%d x %d X %d]\n",nx, ny, nz);
+                MyGridWriter gw = new MyGridWriter(8,8);
+
+                if (DEBUG_SLICES) gw.writeSlices(grid, subvoxelResolution, "/tmp/slices/grid_%03d.png",nx/2, nx/2+1, new DensityColorizer(subvoxelResolution));
+
+                int dist_norm  = (int)(subvoxelResolution * maxInDistance/voxelSize);
+
+                long t0 = time();
+                if(false){
+                    DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
+                    AttributeGrid dg_exact = dt_exact.execute(grid);
+                    if(DEBUG_TIMING)printf("DistanceTransformExact done: %d ms\n", time() - t0);
+                    //if (DEBUG_SLICES) gw.writeSlices(dg_exact, dist_norm , "/tmp/slices/exact/dist_exact_%03d.png", 0, nx,new DistanceColorizer(dist_norm));
+                }
+
+                t0 = time();
+                DistanceTransformLayered dt_st = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+                dt_st.setThreadCount(1);
+                AttributeGrid dg_st = dt_st.execute(grid);
+                st_time = (time() - t0);
+                if(DEBUG_TIMING)printf("DistanceTransformLayered ST done: %d ms\n", st_time);
+
+
+                DistanceTransformLayered dt_mt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+                dt_mt.setThreadCount(max_threads);
+                t0 = time();
+                AttributeGrid dg_mt = dt_mt.execute(grid);
+                mt_time = time() - t0;
+                printf("DistanceTransformLayered MT done: %d ms  multi: %4.2f\n", mt_time,((float)st_time / mt_time));
+
+                if (DEBUG_SLICES) gw.writeSlices(dg_mt, dist_norm , "/tmp/slices/layered/dist_layered_%03d.png", 0, nx,new DistanceColorizer(dist_norm));
+                if (false) printSlice(dg_mt, 0, nx/2, 0, nx/2, nx/2);
+
+                if(false)return;
+
+
+                long errors[] = getDiffHistogram( dg_st, dg_mt);
+                //printDiffHistogram(errors);
+            }
+        }
 
         for(int i=0; i < grids.length; i++) {
 
             AttributeGrid grid = grids[i];
-            
+
             int ny = grid.getHeight();
             int nz = grid.getDepth();
 
@@ -133,18 +185,19 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
             }
 
             t0 = time();
-            DistanceTransformLayered dt_st = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);            
-            dt_st.setThreadCount(1);            
+            DistanceTransformLayered dt_st = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+            dt_st.setThreadCount(1);
             AttributeGrid dg_st = dt_st.execute(grid);
-            if(DEBUG_TIMING)printf("DistanceTransformLayered ST done: %d ms\n", time() - t0);
-
+            st_time = (time() - t0);
+            if(DEBUG_TIMING)printf("DistanceTransformLayered ST done: %d ms\n", st_time);
 
             DistanceTransformLayered dt_mt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
-            dt_mt.setThreadCount(4);            
+            dt_mt.setThreadCount(max_threads);
             t0 = time();
             AttributeGrid dg_mt = dt_mt.execute(grid);
-            printf("DistanceTransformLayered MT done: %d ms\n", time() - t0);
-            
+            mt_time = time() - t0;
+            printf("DistanceTransformLayered MT done: %d ms  multi: %4.2f\n", mt_time,((float)st_time / mt_time));
+
             if (DEBUG_SLICES) gw.writeSlices(dg_mt, dist_norm , "/tmp/slices/layered/dist_layered_%03d.png", 0, nx,new DistanceColorizer(dist_norm));
             if (false) printSlice(dg_mt, 0, nx/2, 0, nx/2, nx/2);
 
@@ -152,7 +205,7 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
 
 
             long errors[] = getDiffHistogram( dg_st, dg_mt);
-            printDiffHistogram(errors);
+            //printDiffHistogram(errors);
         }
     }
 
