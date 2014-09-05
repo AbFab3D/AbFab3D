@@ -88,7 +88,7 @@ public class TestSlicesWriter extends TestCase {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestSliceWriter.class);
+        return new TestSuite(TestSlicesWriter.class);
     }
 
     public void testDumb(){

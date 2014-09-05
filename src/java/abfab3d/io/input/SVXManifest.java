@@ -12,6 +12,7 @@
 
 package abfab3d.io.input;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -107,7 +108,7 @@ public class SVXManifest {
     }
 
     public void setChannels(List<Channel> channels) {
-        this.channels = channels;
+        this.channels = new ArrayList<Channel>(channels);
     }
 
     public List<MaterialReference> getMaterials() {
@@ -144,7 +145,7 @@ public class SVXManifest {
 }
 
 class Channel {
-    /** Definiton of channel types */
+    /** Definition of channel types */
     public enum Type {
         DENSITY(0), COLOR(1), NORMAL(2), CUSTOM(3),
         MATERIAL_ID_1(4), MATERIAL_DENSITY_1(5), MATERIAL_ID_2(6), MATERIAL_DENSITY_2(7),
@@ -167,6 +168,19 @@ class Channel {
 
     /** The naming pattern for the image slices, can include the directory */
     private String slices;
+
+    Channel(Type type, String slices) {
+        this.type = type;
+        this.slices = slices;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public String getSlices() {
+        return slices;
+    }
 }
 
 class MaterialReference {

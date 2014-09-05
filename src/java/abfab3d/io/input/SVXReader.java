@@ -17,12 +17,15 @@ import abfab3d.grid.AttributeGrid;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
+import org.web3d.util.spatial.SliceRegion;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -70,6 +73,14 @@ public class SVXReader {
             bounds[5] = mf.getOriginZ() + mf.getGridSizeZ() * mf.getVoxelSize();
             ret_val.setGridBounds(bounds);
 
+            List<Channel> channels = mf.getChannels();
+
+            for(Channel chan : channels) {
+                if (chan.getType().getId() == Channel.Type.DENSITY.getId()) {
+                    SlicesReader sr = new SlicesReader();
+                    sr.readSlices(ret_val,zip,chan.getSlices(),0,0,mf.getGridSizeY());
+                }
+            }
             return ret_val;
         } finally {
             if (zip != null) zip.close();
@@ -84,6 +95,7 @@ public class SVXReader {
     private SVXManifest parseManifest(InputStream src) throws IOException {
 
         String field = null;
+        String val = null;
 
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -106,20 +118,53 @@ public class SVXReader {
             SVXManifest ret_val = new SVXManifest();
 
             field = "gridSizeX";
-            ret_val.setGridSizeX(Integer.parseInt(grid.getAttribute(field)));
+            val = grid.getAttribute(field);
+            ret_val.setGridSizeX(Integer.parseInt(val));
             field = "gridSizeY";
-            ret_val.setGridSizeY(Integer.parseInt(grid.getAttribute(field)));
+            val = grid.getAttribute(field);
+            ret_val.setGridSizeY(Integer.parseInt(val));
             field = "gridSizeZ";
-            ret_val.setGridSizeZ(Integer.parseInt(grid.getAttribute(field)));
+            val = grid.getAttribute(field);
+            ret_val.setGridSizeZ(Integer.parseInt(val));
             field = "voxelSize";
-            ret_val.setVoxelSize(Double.parseDouble(grid.getAttribute(field)));
+            val = grid.getAttribute(field);
+            ret_val.setVoxelSize(Double.parseDouble(val));
             field = "originX";
-            ret_val.setOriginX(Double.parseDouble(grid.getAttribute(field)));
+            val = grid.getAttribute(field);
+            ret_val.setOriginX(Double.parseDouble(val));
             field = "originY";
-            ret_val.setOriginY(Double.parseDouble(grid.getAttribute(field)));
+            val = grid.getAttribute(field);
+            ret_val.setOriginY(Double.parseDouble(val));
             field = "originZ";
-            ret_val.setOriginZ(Double.parseDouble(grid.getAttribute(field)));
+            val = grid.getAttribute(field);
+            ret_val.setOriginZ(Double.parseDouble(val));
 
+            field = "channels";
+
+            NodeList channel_list = doc.getElementsByTagName("channel");
+
+            if (channel_list == null) {
+                throw new IllegalArgumentException("File contains no channels element");
+            }
+
+            int len = channel_list.getLength();
+
+            ArrayList<Channel> clist = new ArrayList<Channel>();
+            for(int i=0; i < len; i++) {
+                Element channel = (Element) channel_list.item(i);
+
+                field = "type";
+                val = channel.getAttribute(field);
+                String type = val;
+
+                field = "slices";
+                val = channel.getAttribute(field);
+                String slices = val;
+
+                clist.add(new Channel(Channel.Type.valueOf(type),slices));
+            }
+
+            ret_val.setChannels(clist);
 
             return ret_val;
         } catch(ParserConfigurationException pce) {
@@ -127,7 +172,7 @@ public class SVXReader {
         } catch(SAXException saxe) {
             saxe.printStackTrace();
         } catch(Exception e) {
-            printf("Cannot parse field: %s\n",field);
+            printf("Cannot parse field: %s  val: %s\n",field,val);
             e.printStackTrace();
         }
 
