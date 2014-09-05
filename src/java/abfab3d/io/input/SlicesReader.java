@@ -13,8 +13,14 @@
 package abfab3d.io.input;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import abfab3d.grid.AttributeGrid;
+import abfab3d.util.Output;
+import static abfab3d.util.Output.printf;
 
 /**
  * Slces Reader.
@@ -39,14 +45,37 @@ public class SlicesReader {
     }
 
     /**
-       reads a set of PNG image files into a grid 
-       start first 
+     reads a set of PNG image files into a grid
+     start first
      */
-    public int readSlices(AttributeGrid grid, String fileTemplate, 
+    public int readSlices(AttributeGrid grid, String fileTemplate,
+                          int fromIndex, int toIndex,
+                          int sliceCount) throws IOException {
+
+        return 0;
+    }
+
+    /**
+       reads a set of PNG image files into a grid
+       start first
+     */
+    public int readSlices(AttributeGrid grid, ZipFile zip, String fileTemplate,
                           int fromIndex, int toIndex, 
                           int sliceCount) throws IOException {
-        
+
+        for(int i=fromIndex; i < toIndex; i++) {
+            String fname = Output.fmt(fileTemplate, i);
+            ZipEntry entry = zip.getEntry(fname);
+
+            if (entry == null) {
+                printf("Cannot find slice file: %s\n",fname);
+            }
+
+            InputStream is = zip.getInputStream(entry);
+
+            // TODO: Process the slice
+        }
+
         return 0;
-        
     }
 }
