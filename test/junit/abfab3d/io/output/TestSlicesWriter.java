@@ -550,8 +550,6 @@ public class TestSlicesWriter extends TestCase {
         printf("gm.makeGrid() done\n");
         SlicesWriter slicer = new SlicesWriter();
         slicer.setFilePattern("/tmp/slices/slice%04d.png");
-        slicer.setCellSize(1);
-        slicer.setVoxelSize(1);
         slicer.setSubvoxelResolution(subvoxelResolution);
         slicer.writeSlices(grid);
                 
