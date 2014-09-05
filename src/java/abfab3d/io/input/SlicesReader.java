@@ -48,7 +48,14 @@ public class SlicesReader {
 
     /**
      reads a set of PNG image files into a grid
-     start first
+     
+     @param grid grid to read slices into 
+     @param fileTemplate printf style template to generate slice file names
+     @param firstFile index of first file in the list 
+     @param firstSlice index of first slice of the grid to read slice into 
+     @param count number of slices to read 
+     
+     
      */
     public int readSlices(AttributeGrid grid, String fileTemplate,
                           int firstFile, int firstSlice, 
@@ -57,7 +64,7 @@ public class SlicesReader {
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
             InputStream is = new FileInputStream(fname);
-            // TODO: Process the slice
+            readSlice(is, grid, i + fistsSlice);
             
         }
         return 0;
@@ -65,7 +72,13 @@ public class SlicesReader {
 
     /**
        reads a set of PNG image files into a grid
-       start first
+     @param grid grid to read slices into 
+     @param zip zip file to read slices from 
+     @param fileTemplate printf style template to generate slice file names
+     @param firstFile index of first file in the list 
+     @param firstSlice index of first slice of the grid to read slice into 
+     @param count number of slices to read 
+       
      */
     public int readSlices(AttributeGrid grid, ZipFile zip, String fileTemplate,
                           int firstFile, int firstSlice, 
@@ -80,10 +93,18 @@ public class SlicesReader {
             }
 
             InputStream is = zip.getInputStream(entry);
-
-            // TODO: Process the slice
+            readSlice(is, grid, i + fistsSlice);
         }
 
         return 0;
     }
+
+    /**
+       read single slice from input stream 
+     */
+    void readSlice(InputStream is, AttributeGrid grid, int slice){
+        
+        //TODO 
+    } 
+
 }
