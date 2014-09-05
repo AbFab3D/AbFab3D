@@ -132,8 +132,14 @@ public class SlicesReader {
         
         switch(image.getType()){
 
+        case BufferedImage.TYPE_BYTE_GRAY:
+            {                
+                componentData = ((DataBufferByte)dataBuffer).getData(); 
+                break;
+            }
         case BufferedImage.TYPE_4BYTE_ABGR:
             {                
+                componentData = new byte[imgWidth*imgHeight];
                 ImageUtil.getABGRcomponent(((DataBufferByte)dataBuffer).getData(), 3, componentData);            
                 break;
                 

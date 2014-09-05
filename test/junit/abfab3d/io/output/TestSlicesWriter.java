@@ -548,10 +548,15 @@ public class TestSlicesWriter extends TestCase {
         gm.makeGrid(grid);        
        
         printf("gm.makeGrid() done\n");
-        SlicesWriter slicer = new SlicesWriter();
-        slicer.setFilePattern("/tmp/slices/slice%04d.png");
-        slicer.setSubvoxelResolution(subvoxelResolution);
-        slicer.writeSlices(grid);
+
+        SlicesWriter writer = new SlicesWriter();
+        writer.writeSlices(grid, "/tmp/slices/density/slice%04d.png", 0, 0, ny);
+
+        
+        //SlicesWriter slicer = new SlicesWriter();
+        //slicer.setFilePattern("/tmp/slices/slice%04d.png");
+        //slicer.setSubvoxelResolution(subvoxelResolution);
+        //slicer.writeSlices(grid);
                 
     }
 

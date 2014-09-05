@@ -85,9 +85,7 @@ public class TestSlicesReader extends TestCase {
         reader.readSlices(grid, template, 0, 0, ny);
         
         SlicesWriter writer = new SlicesWriter();
-        writer.setFilePattern("/tmp/slices/dens/slice%04d.png");
-        writer.setSubvoxelResolution(subvoxelResolution);
-        writer.writeSlices(grid);
+        writer.writeSlices(grid, "/tmp/slices/dens/slice%04d.png", 0, 0, ny );
         
         
 

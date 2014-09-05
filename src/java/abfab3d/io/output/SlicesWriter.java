@@ -21,6 +21,7 @@ import java.awt.geom.Point2D;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.awt.image.DataBufferByte;
 import java.awt.RenderingHints;
 
 
@@ -153,17 +154,33 @@ public class SlicesWriter {
     /**
        writes single pixel slices into a bunch of files 
      */
-    public void writeSlices(AttributeGrid grid, String fileTemplate, int firstSlice, int fistFile, int sliceCount) throws IOException {
+    public void writeSlices(AttributeGrid grid, String fileTemplate, int firstSlice, int firstFile, int sliceCount) throws IOException {
+        
         int nx = grid.getWidth();
         int ny = grid.getHeight();
         int nz = grid.getDepth();
-
-        BufferedImage outImage = new BufferedImage(nx, ny, BufferedImage.TYPE_INT_ARGB);
-
-        DataBufferInt dbi = (DataBufferInt)(outImage.getRaster().getDataBuffer());
-        int[] imageData = dbi.getData();
-
         
+        int imgWidth = nx; 
+        int imgHeight = nz; 
+
+        BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_BYTE_GRAY);
+        
+        DataBufferByte dbi = (DataBufferByte)(outImage.getRaster().getDataBuffer());
+
+
+        byte[] imageData = dbi.getData();
+        for(int i = 0; i < sliceCount; i++){
+            int slice = i + firstSlice; 
+            int findex = i + firstFile;
+            String fname = fmt(fileTemplate, findex);
+
+            for(int y = 0; y < imgHeight; y++){
+                for(int x = 0; x < imgWidth; x++){
+                    imageData[x + y * imgWidth] = (byte)grid.getAttribute(x,slice, y);
+                }
+            }
+            ImageIO.write(outImage, m_imageFileType, new File(fname));
+        }        
     }
     
     public void writeSlices(Grid grid) throws IOException {
