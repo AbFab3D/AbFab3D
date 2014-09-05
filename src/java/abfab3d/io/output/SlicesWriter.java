@@ -150,6 +150,22 @@ public class SlicesWriter {
 
     }
 
+    /**
+       writes single pixel slices into a bunch of files 
+     */
+    public void writeSlices(AttributeGrid grid, String fileTemplate, int firstSlice, int fistFile, int sliceCount) throws IOException {
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+
+        BufferedImage outImage = new BufferedImage(nx, ny, BufferedImage.TYPE_INT_ARGB);
+
+        DataBufferInt dbi = (DataBufferInt)(outImage.getRaster().getDataBuffer());
+        int[] imageData = dbi.getData();
+
+        
+    }
+    
     public void writeSlices(Grid grid) throws IOException {
 
         if(DEBUG) printf("%s.writeSlices()\n", this.getClass().getName());
@@ -174,7 +190,7 @@ public class SlicesWriter {
         zmax = clamp(zmax, 0, nz);
 
         if(xmin >= xmax || ymin >= ymax || zmin >= zmax){
-            throw new IllegalArgumentException(fmt("band grid export bounds[xmin:%d xmax:%d, ymin:%d ymax:%d zimn:%d, zmax:%d]\n",
+            throw new IllegalArgumentException(fmt("bad grid export bounds[xmin:%d xmax:%d, ymin:%d ymax:%d zimn:%d, zmax:%d]\n",
                                                    xmin, xmax, ymin, ymax, zmin, zmax));
         }
 

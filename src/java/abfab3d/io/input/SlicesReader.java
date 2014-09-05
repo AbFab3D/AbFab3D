@@ -14,6 +14,8 @@ package abfab3d.io.input;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -49,9 +51,15 @@ public class SlicesReader {
      start first
      */
     public int readSlices(AttributeGrid grid, String fileTemplate,
-                          int fromIndex, int toIndex,
-                          int sliceCount) throws IOException {
+                          int firstFile, int firstSlice, 
+                          int count) throws IOException {
 
+        for(int i=0; i < count; i++) {
+            String fname = Output.fmt(fileTemplate, i+firstFile);
+            InputStream is = new FileInputStream(fname);
+            // TODO: Process the slice
+            
+        }
         return 0;
     }
 
@@ -60,11 +68,11 @@ public class SlicesReader {
        start first
      */
     public int readSlices(AttributeGrid grid, ZipFile zip, String fileTemplate,
-                          int fromIndex, int toIndex, 
-                          int sliceCount) throws IOException {
+                          int firstFile, int firstSlice, 
+                          int count) throws IOException {
 
-        for(int i=fromIndex; i < toIndex; i++) {
-            String fname = Output.fmt(fileTemplate, i);
+        for(int i=0; i < count; i++) {
+            String fname = Output.fmt(fileTemplate, i+firstFile);
             ZipEntry entry = zip.getEntry(fname);
 
             if (entry == null) {
