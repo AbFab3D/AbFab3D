@@ -16,12 +16,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.awt.image.BufferedImage;
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.imageio.ImageIO;
+
 import abfab3d.grid.AttributeGrid;
 import abfab3d.util.Output;
+
 import static abfab3d.util.Output.printf;
 
 /**
@@ -64,7 +68,7 @@ public class SlicesReader {
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
             InputStream is = new FileInputStream(fname);
-            readSlice(is, grid, i + fistsSlice);
+            readSlice(is, grid, i + firstSlice);
             
         }
         return 0;
@@ -93,7 +97,7 @@ public class SlicesReader {
             }
 
             InputStream is = zip.getInputStream(entry);
-            readSlice(is, grid, i + fistsSlice);
+            readSlice(is, grid, i + firstSlice);
         }
 
         return 0;
@@ -102,9 +106,13 @@ public class SlicesReader {
     /**
        read single slice from input stream 
      */
-    void readSlice(InputStream is, AttributeGrid grid, int slice){
+    void readSlice(InputStream is, AttributeGrid grid, int slice) throws IOException{
         
-        //TODO 
+        BufferedImage image = ImageIO.read(is);
+        if(image == null)throw new IOException("unsuported image file format");
+        
+        
+
     } 
 
 }
