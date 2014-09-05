@@ -22,13 +22,13 @@ import java.util.Map;
  */
 public class SVXManifest {
     /** The number of x voxels */
-    private int nx;
+    private int gridSizeX;
 
     /** The number of y voxels */
-    private int ny;
+    private int gridSizeY;
 
     /** The number of z voxels */
-    private int nz;
+    private int gridSizeZ;
 
     /** The voxel size in meters */
     private double voxelSize;
@@ -44,6 +44,103 @@ public class SVXManifest {
 
     /** The material mappings */
     private List<MaterialReference> materials;
+
+    /** The lower left corner of the grid in world coordinates */
+    private double originX;
+
+    /** The lower left corner of the grid in world coordinates */
+    private double originY;
+
+    /** The lower left corner of the grid in world coordinates */
+    private double originZ;
+
+    public int getGridSizeX() {
+        return gridSizeX;
+    }
+
+    public void setGridSizeX(int x) {
+        this.gridSizeX = x;
+    }
+
+    public int getGridSizeY() {
+        return gridSizeY;
+    }
+
+    public void setGridSizeY(int y) {
+        this.gridSizeY = y;
+    }
+
+    public int getGridSizeZ() {
+        return gridSizeZ;
+    }
+
+    public void setGridSizeZ(int z) {
+        this.gridSizeZ = z;
+    }
+
+    public double getVoxelSize() {
+        return voxelSize;
+    }
+
+    public void setVoxelSize(double voxelSize) {
+        this.voxelSize = voxelSize;
+    }
+
+    public int getSubvoxelBits() {
+        return subvoxelBits;
+    }
+
+    public void setSubvoxelBits(int subvoxelBits) {
+        this.subvoxelBits = subvoxelBits;
+    }
+
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    public List<Channel> getChannels() {
+        return channels;
+    }
+
+    public void setChannels(List<Channel> channels) {
+        this.channels = channels;
+    }
+
+    public List<MaterialReference> getMaterials() {
+        return materials;
+    }
+
+    public void setMaterials(List<MaterialReference> materials) {
+        this.materials = materials;
+    }
+
+    public double getOriginX() {
+        return originX;
+    }
+
+    public void setOriginX(double originX) {
+        this.originX = originX;
+    }
+
+    public double getOriginY() {
+        return originY;
+    }
+
+    public void setOriginY(double originY) {
+        this.originY = originY;
+    }
+
+    public double getOriginZ() {
+        return originZ;
+    }
+
+    public void setOriginZ(double originZ) {
+        this.originZ = originZ;
+    }
 }
 
 class Channel {
