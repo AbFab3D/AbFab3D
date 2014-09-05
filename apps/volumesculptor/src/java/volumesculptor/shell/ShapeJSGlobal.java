@@ -38,6 +38,7 @@ import static abfab3d.util.Units.MM;
 import java.io.File;
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -215,7 +216,11 @@ public class ShapeJSGlobal {
         double margin = vs;
         if (args.length > 2) {
             if (args[2] instanceof Number) {
-                margin = getDouble(args[2]);
+                double m = getDouble(args[2]);
+
+                if (!Double.isNaN(m)) {
+                    margin = getDouble(args[2]);
+                }
             }
         }
         
@@ -235,6 +240,9 @@ public class ShapeJSGlobal {
 
             double bounds[] = new double[6];
             bb.getBounds(bounds);
+
+            printf("   orig bounds: [ %7.3f, %7.3f], [%7.3f, %7.3f], [%7.3f, %7.3f] mm; vs: %7.3f mm\n",
+                    bounds[0]/MM, bounds[1]/MM, bounds[2]/MM, bounds[3]/MM, bounds[4]/MM, bounds[5]/MM, vs/MM);
 
             // if any measurement is over 1M then the file "must" be in m instead of mm.  God I hate unspecified units
             /*

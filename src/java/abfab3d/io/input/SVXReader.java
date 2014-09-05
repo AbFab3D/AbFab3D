@@ -13,13 +13,14 @@
 package abfab3d.io.input;
 
 import abfab3d.grid.AttributeGrid;
+import org.w3c.dom.Element;
 
 import java.io.IOException;
 
 /**
  * SVX Reader.
  *
- * Reads the Shapeways voxel transmital format.
+ * Reads the Shapeways voxel transmittal format.
  *
  * @author Alan Hudson
  */
@@ -32,6 +33,15 @@ public class SVXReader {
      * @throws IOException
      */
     public AttributeGrid load(String file) throws IOException {
+        return null;
+    }
+
+    /**
+     * Parse the manifest file
+     * @param root The root grid
+     * @return
+     */
+    private SVXManifest parseManifest(Element root) {
         return null;
     }
 }
