@@ -12,6 +12,8 @@
 
 package abfab3d.io.input;
 
+import java.io.IOException;
+
 import abfab3d.grid.AttributeGrid;
 
 /**
@@ -21,16 +23,28 @@ import abfab3d.grid.AttributeGrid;
  *
  * @author Vladimir Bulatov
  */
-public class SVXReader {
+public class SlicesReader {
 
-    String fileTemplate = "";
+    static final int ORIENTATION_X = 1, ORIENTATION_Y = 2, ORIENTATION_Z= 3;
+
+    int m_orientation = ORIENTATION_Y;
+    String fileTemplate = "slice%04d.png";    
+    
+    public SlicesReader(){        
+
+    }
+
+    public void setOrientation(){
+        
+    }
 
     /**
        reads a set of PNG image files into a grid 
        start first 
      */
     public int readSlices(AttributeGrid grid, String fileTemplate, 
-                          int fromIndex, int toIndex, int sliceCount) throws IOException {
+                          int fromIndex, int toIndex, 
+                          int sliceCount) throws IOException {
         
         return 0;
         
