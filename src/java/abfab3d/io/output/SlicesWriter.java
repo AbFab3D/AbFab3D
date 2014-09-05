@@ -58,7 +58,7 @@ public class SlicesWriter {
     
     int imgCellSize = 1;  // size of grid cell to write to 
     int imgVoxelSize = 1; // 
-    int m_maxAttributeValue=0;
+    int m_subvoxelResolution=0;
     int m_backgroundColor = COLOR_WHITE; // solid white 
     int m_foregroundColor = COLOR_BLACK; // solid black
 
@@ -118,8 +118,14 @@ public class SlicesWriter {
 
     public void setMaxAttributeValue(int value){
 
-        m_maxAttributeValue = value;
+        m_subvoxelResolution = value;
 
+    }
+
+    public void setSubvoxelResolution(int value){
+
+        m_subvoxelResolution = value;
+        
     }
 
     public void setBackgroundColor(int color){
@@ -329,7 +335,7 @@ public class SlicesWriter {
     */
     int getVoxelColor(int x, int y, int z){
 
-        switch(m_maxAttributeValue){
+        switch(m_subvoxelResolution){
         case 0: // use grid state 
             {
                 switch(m_grid.getState(x,y,z)){
@@ -350,7 +356,7 @@ public class SlicesWriter {
     long getVoxelValue(int x, int y, int z){
         
         
-        switch(m_maxAttributeValue){
+        switch(m_subvoxelResolution){
         case 0: // use grid state 
             {
                 switch(m_grid.getState(x,y,z)){
@@ -392,7 +398,7 @@ public class SlicesWriter {
     class DefaultColorMaker  implements LongConverter {
 
         public final long get(long a){
-            if (m_maxAttributeValue == 0) {
+            if (m_subvoxelResolution == 0) {
                 if (a == Grid.INSIDE) {
                     return makeColor(0);
                 } else {
@@ -400,7 +406,7 @@ public class SlicesWriter {
                 }
             }
 
-            int  level = (int)(((m_maxAttributeValue - a) * 255)/m_maxAttributeValue);                
+            int  level = (int)(((m_subvoxelResolution - a) * 255)/m_subvoxelResolution);                
             if(level == 255) // return background color for max value 
                 return m_backgroundColor;
             else 

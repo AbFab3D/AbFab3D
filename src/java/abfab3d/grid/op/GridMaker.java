@@ -115,6 +115,7 @@ public class GridMaker implements Operation, AttributeOperation {
 
     /**
        sets scaling value for attributes
+       obsolete
      */
     public void setMaxAttributeValue(int value){
 
@@ -125,7 +126,7 @@ public class GridMaker implements Operation, AttributeOperation {
     /**
        sets subvoxel resolution used for antialiased grids 
      */
-    public void setSubvoxelResolutiuon(int value){
+    public void setSubvoxelResolution(int value){
 
         m_subvoxelResolution = value;
 

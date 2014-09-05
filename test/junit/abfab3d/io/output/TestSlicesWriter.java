@@ -79,7 +79,7 @@ import static java.lang.Math.sqrt;
  *
  * @version
  */
-public class TestSliceWriter extends TestCase {
+public class TestSlicesWriter extends TestCase {
 
     static final double CM = 0.01; // cm -> meters
     static final double MM = 0.001; // mm -> meters
@@ -497,7 +497,67 @@ public class TestSliceWriter extends TestCase {
         return i;
     }
   
-    public static void main(String[] args) {
+    /**
+       makes a test slices set 
+     */
+    void makeBall() throws IOException{
+        
+        printf("makeBall()\n");
+    
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
 
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double ballRadius = 5.0*MM;
+        double surfareThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        int subvoxelResolution = 255;
+
+        int threadsCount = 1;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0,0,0,ballRadius);
+        Torus torus = new Torus(0.34*CM, 0.15*CM);
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
+
+        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        //gm.setDataSource(gyroid);
+        //gm.setDataSource(torus);
+        gm.setSource(sphere);
+        // gm.setTransform(rotation);
+
+        gm.setSubvoxelResolution(subvoxelResolution);
+        gm.setVoxelScale(surfareThickness);
+        
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);        
+       
+        printf("gm.makeGrid() done\n");
+        SlicesWriter slicer = new SlicesWriter();
+        slicer.setFilePattern("/tmp/slices/slice%04d.png");
+        slicer.setCellSize(1);
+        slicer.setVoxelSize(1);
+        slicer.setSubvoxelResolution(subvoxelResolution);
+        slicer.writeSlices(grid);
+                
+    }
+
+    public static void main(String[] args) throws IOException {
+        new TestSlicesWriter().makeBall();
     }
 }

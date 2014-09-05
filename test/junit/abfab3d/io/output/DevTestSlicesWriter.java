@@ -73,7 +73,7 @@ import static java.lang.Math.PI;
  *
  * @version
  */
-public class DevTestSliceWriter extends TestCase {
+public class DevTestSlicesWriter extends TestCase {
 
     public static void gyroCube() throws Exception {
 

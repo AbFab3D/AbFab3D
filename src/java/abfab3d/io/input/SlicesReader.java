@@ -19,7 +19,7 @@ import abfab3d.grid.AttributeGrid;
 /**
  * Slces Reader.
  *
- * Reads the a bunch of spices images into a grid
+ * Reads the a bunch of slices images into a grid
  *
  * @author Vladimir Bulatov
  */
