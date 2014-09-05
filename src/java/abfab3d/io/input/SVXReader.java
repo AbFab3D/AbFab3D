@@ -14,6 +14,8 @@ package abfab3d.io.input;
 
 import abfab3d.grid.AttributeGrid;
 
+import java.io.IOException;
+
 /**
  * SVX Reader.
  *
@@ -22,7 +24,14 @@ import abfab3d.grid.AttributeGrid;
  * @author Alan Hudson
  */
 public class SVXReader {
-    public AttributeGrid load(String file) {
+    /**
+     * Load a SVX file into a grid.
+     *
+     * @param file The zip file
+     * @return
+     * @throws IOException
+     */
+    public AttributeGrid load(String file) throws IOException {
         return null;
     }
 }
