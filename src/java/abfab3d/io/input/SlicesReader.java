@@ -17,6 +17,10 @@ import java.io.InputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferUShort;
+import java.awt.image.DataBufferByte;
+
 import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -25,6 +29,7 @@ import javax.imageio.ImageIO;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.util.Output;
+import abfab3d.util.ImageUtil;
 
 import static abfab3d.util.Output.printf;
 
@@ -36,6 +41,8 @@ import static abfab3d.util.Output.printf;
  * @author Vladimir Bulatov
  */
 public class SlicesReader {
+
+    static final boolean DEBUG = true;
 
     static final int ORIENTATION_X = 1, ORIENTATION_Y = 2, ORIENTATION_Z= 3;
 
@@ -67,6 +74,7 @@ public class SlicesReader {
 
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
+            if(DEBUG) printf("reading: %s\n", fname);
             InputStream is = new FileInputStream(fname);
             readSlice(is, grid, i + firstSlice);
             
@@ -90,8 +98,9 @@ public class SlicesReader {
 
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
+            if(DEBUG) printf("reading: %s\n", fname);
             ZipEntry entry = zip.getEntry(fname);
-
+            
             if (entry == null) {
                 printf("Cannot find slice file: %s\n",fname);
             }
@@ -109,10 +118,36 @@ public class SlicesReader {
     void readSlice(InputStream is, AttributeGrid grid, int slice) throws IOException{
         
         BufferedImage image = ImageIO.read(is);
-        if(image == null)throw new IOException("unsuported image file format");
+        if(image == null)throw new IOException("unsupported image file format");
+        int imgWidth = image.getWidth();
+        int imgHeight = image.getHeight();
         
+        if(DEBUG){
+            
+            printf("image type: %s\n",ImageUtil.getImageTypeName(image.getType()));
+        }
         
+        DataBuffer dataBuffer = image.getRaster().getDataBuffer();
+        byte componentData[] = new byte[imgWidth*imgHeight];
+        
+        switch(image.getType()){
 
+        case BufferedImage.TYPE_4BYTE_ABGR:
+            {                
+                ImageUtil.getABGRcomponent(((DataBufferByte)dataBuffer).getData(), 3, componentData);            
+                break;
+                
+            }
+        default: 
+            throw new IOException("unsupported image data format");
+        }  
+
+        for(int x = 0; x < imgWidth; x++){
+            for(int y = 0; y < imgHeight; y++){
+                grid.setAttribute(x,slice, y,componentData[x + y*imgWidth]);
+            }
+        }
+        
     } 
 
 }

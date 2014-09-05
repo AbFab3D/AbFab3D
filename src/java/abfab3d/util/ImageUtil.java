@@ -385,7 +385,10 @@ public class ImageUtil {
         }
     }        
 
-    static void byteABGR2gray16(byte imageData[], short grayData[]){
+    /**
+       convert array of byte data in ABGR form into 16 bit gray data 
+     */
+    public static void byteABGR2gray16(byte imageData[], short grayData[]){
 
         int len = grayData.length;
         for(int i = 0, k = 0; i < len; i++, k += 4){
@@ -407,6 +410,17 @@ public class ImageUtil {
         }        
     }
 
+    /**
+       convert array of byte data in ABGR form into 8 bit 
+     */
+    public static void getABGRcomponent(byte imageData[], int componentOffset, byte componentData[]){
+
+        int len = componentData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 4){            
+            componentData[i] = imageData[k + componentOffset];
+        }        
+    }
+    
     // array of BGR bytes to gray16 conversion 
     static void byteBGR2gray16(byte imageData[], short grayData[]){
 
