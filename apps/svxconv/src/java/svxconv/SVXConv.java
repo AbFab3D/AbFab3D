@@ -18,6 +18,7 @@ import abfab3d.io.input.STLReader;
 import abfab3d.io.input.SVXReader;
 import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.input.X3DReader;
+import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
 import abfab3d.io.output.SVXWriter;
@@ -189,6 +190,8 @@ public class SVXConv {
             mesh.getTriangles(stl);
             stl.close();
         } else if (ext.startsWith("x3d") || ext.startsWith("X3D")) {
+            WingedEdgeTriangleMesh mesh = (WingedEdgeTriangleMesh) getMesh(grid,subvoxelResolution);
+            GridSaver.writeMesh(mesh, output);
         }
     }
 
