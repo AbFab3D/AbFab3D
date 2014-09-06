@@ -1,4 +1,14 @@
-Class-Path: 
+Main-Class: svxconv.SVXConv
+Class-Path: xj3d-core_2.0.0.jar \
+            j3d-org-all_2.0.0.jar \
+            abfab3d_core_1.0.0.jar \
+            xj3d-parser_2.0.0.jar \
+            commons-io-2.4.jar \
+            xj3d-common_2.0.0.jar \
+            xj3d-norender_2.0.0.jar \
+            xj3d-config_2.0.0.jar \
+            vecmath.jar \
+            fastinfoset_1.2.9.jar
 Extension-Name: AbFab3D SVX Format Converter
 Specification-Vendor: Shapeways, Inc
 Specification-Version: 1.0
