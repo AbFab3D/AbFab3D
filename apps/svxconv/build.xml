@@ -72,17 +72,9 @@
         <createjar name="abfab3d_apps_svxconv" 
             version="${version}"
             manifest="abfab3d_apps_svxconv.mf"
-            includes="svxconv/VolumeSculptorKernel*
-                svxconv/shell/*
+            includes="svxconv/*
             "
         />
-        <createjar name="shapejs" 
-            version="${version}"
-            manifest="shapejs.mf"
-            includes="svxconv/VolumeSculptorKernel*
-                svxconv/shell/*
-            "
-        />		
     </target>
 
     <target name="test" depends="compileTest">
@@ -129,9 +121,12 @@
 
 
     <target name="run" depends="compile" description="Run the application">
-        <echo message="jvmargs: ${jvmrunargs}"/>
-        <java classname="svxconv.ui.Editor" fork="true">
+        <java classname="svxconv.SVXConv" fork="true">
             <jvmarg line="${jvmrunargs}"/>
+            <arg value="-input" />
+            <arg value="../../test/models/Santa.stl" />
+            <arg value="-output" />
+            <arg value="santa.stl" />
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
