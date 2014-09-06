@@ -24,6 +24,8 @@ import java.awt.image.DataBufferInt;
 import java.awt.image.DataBufferByte;
 import java.awt.RenderingHints;
 
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import java.util.Arrays;
 
@@ -164,23 +166,54 @@ public class SlicesWriter {
         int imgHeight = nz; 
 
         BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_BYTE_GRAY);
-        
-        DataBufferByte dbi = (DataBufferByte)(outImage.getRaster().getDataBuffer());
-
-
-        byte[] imageData = dbi.getData();
+       
         for(int i = 0; i < sliceCount; i++){
             int slice = i + firstSlice; 
             int findex = i + firstFile;
             String fname = fmt(fileTemplate, findex);
-
-            for(int y = 0; y < imgHeight; y++){
-                for(int x = 0; x < imgWidth; x++){
-                    imageData[x + y * imgWidth] = (byte)grid.getAttribute(x,slice, y);
-                }
-            }
+            getSliceData(imgWidth, imgHeight, slice, grid, outImage);
             ImageIO.write(outImage, m_imageFileType, new File(fname));
         }        
+    }
+
+    /**
+       write single pizel slices to zip 
+     */
+    public void writeSlices(AttributeGrid grid, ZipOutputStream zipOut, String fileTemplate, int firstSlice, int firstFile, int sliceCount) throws IOException {
+        
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        
+        int imgWidth = nx; 
+        int imgHeight = nz; 
+
+        BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_BYTE_GRAY);
+       
+        for(int i = 0; i < sliceCount; i++){
+            
+            int slice = i + firstSlice; 
+            int findex = i + firstFile;
+            String fname = fmt(fileTemplate, findex);
+            getSliceData(imgWidth, imgHeight, slice, grid,outImage);
+            ZipEntry ze = new ZipEntry(fname);
+            zipOut.putNextEntry(ze);
+            ImageIO.write(outImage, m_imageFileType, zipOut);
+            zipOut.closeEntry();            
+
+        }        
+    }
+   
+
+    void getSliceData(int  width, int height, int slice, AttributeGrid grid, BufferedImage image) {
+
+        DataBufferByte dbi = (DataBufferByte)(image.getRaster().getDataBuffer());
+        byte[] imageData = dbi.getData();
+        for(int y = 0; y < height; y++){
+            for(int x = 0; x < width; x++){
+                imageData[x + y * width] = (byte)grid.getAttribute(x,slice, y);
+            }        
+        }                
     }
     
     public void writeSlices(Grid grid) throws IOException {
