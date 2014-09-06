@@ -39,6 +39,9 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class SVXReader {
+    /** The manifest for the last load call */
+    private SVXManifest mf;
+
     /**
      * Load a SVX file into a grid.
      *
@@ -55,7 +58,7 @@ public class SVXReader {
 
             ZipEntry entry = zip.getEntry("manifest.xml");
             InputStream is = zip.getInputStream(entry);
-            SVXManifest mf = parseManifest(is);
+            mf = parseManifest(is);
 
             if (mf == null) {
                 throw new IOException("Could not parse manifest file");
@@ -85,6 +88,10 @@ public class SVXReader {
         } finally {
             if (zip != null) zip.close();
         }
+    }
+
+    public SVXManifest getManifest() {
+        return mf;
     }
 
     /**
@@ -138,6 +145,9 @@ public class SVXReader {
             field = "originZ";
             val = grid.getAttribute(field);
             ret_val.setOriginZ(Double.parseDouble(val));
+            field = "subvoxelBits";
+            val = grid.getAttribute(field);
+            ret_val.setSubvoxelBits(Integer.parseInt(val));
 
             field = "channels";
 
