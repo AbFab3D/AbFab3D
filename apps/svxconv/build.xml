@@ -126,7 +126,7 @@
             <arg value="-input" />
             <arg value="../../test/models/Santa.stl" />
             <arg value="-output" />
-            <arg value="santa.stl" />
+            <arg value="santa.svx" />
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
