@@ -47,8 +47,9 @@ public class SVXConv {
                     " -input <input file path>\n" +
                     " -output string (output + extension(svx,stl,x3d*))\n" +
                     " -voxelSize float, voxel size in meters\n" +
-                    " -meshSmoothingWidth float[0.52], width of output smooth in voxel size\n" +
-                    " -meshErrorFactor float [0.02], max decimation error factor\n" +
+                    " -meshSmoothingWidth float[0.5], width of output smooth in voxel size\n" +
+                    " -meshErrorFactor float [0.1], max decimation error factor\n" +
+                    " -maxTriangles int [1800000], maximum triangle count\n" +
                     " -threadCount int [0]  number of threads to use. 0 - number of available cores\n";
 
     static final String
@@ -57,13 +58,15 @@ public class SVXConv {
             INPUT = "-input",
             MESH_SMOOTHING_WIDTH = "-meshSmoothingWidth",
             MESH_ERROR_FACTOR = "-meshErrorFactor",
+            MAX_TRIANGLES = "-maxTriangles",
             THREAD_COUNT = "-threadCount";
 
     private String input;
     private String output;
     private double voxelSize = 0.1 * Units.MM;
-    private double meshSmoothingWidth;
-    private double meshErrorFactor;
+    private double meshSmoothingWidth = 0.5;
+    private double meshErrorFactor = 0.1;
+    private int maxTriangles = 1800000;
     private int maxRunTime;
     private int threadCount;
 
@@ -94,6 +97,10 @@ public class SVXConv {
 
     public void setThreadCount(int threadCount) {
         this.threadCount = threadCount;
+    }
+
+    public void setMaxTriangles(int maxTriangles) {
+        this.maxTriangles = maxTriangles;
     }
 
     public void execute() throws IOException {
@@ -211,21 +218,20 @@ public class SVXConv {
     }
     
     private TriangleMesh getMesh(AttributeGrid grid, int subvoxelResolution) {
-        double sw = 0.2;
-        double ef = 0.1;
         double mv = 0;
         double voxelSize = grid.getVoxelSize();
 
-        double maxDecimationError = ef * voxelSize * voxelSize;
+        double maxDecimationError = meshErrorFactor * voxelSize * voxelSize;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
         int max_threads = 8;
 
         meshmaker.setThreadCount(max_threads);
-        meshmaker.setSmoothingWidth(sw);
+        meshmaker.setSmoothingWidth(meshSmoothingWidth);
         meshmaker.setMaxDecimationError(maxDecimationError);
-        //meshmaker.setMaxDecimationCount(ShapeJSGlobal.maxDecimationCountDefault);
+        meshmaker.setMaxDecimationCount(10);
         meshmaker.setMaxAttributeValue(subvoxelResolution);
+        meshmaker.setMaxTriangles(maxTriangles);
 
         IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
         meshmaker.makeMesh(grid, its);
@@ -267,6 +273,8 @@ public class SVXConv {
                     conv.setOutput(args[++i]);
                 } else if (arg.equals(MESH_ERROR_FACTOR)){
                     conv.setMeshErrorFactor(Double.parseDouble(args[++i]));
+                } else if (arg.equals(MAX_TRIANGLES)){
+                    conv.setMaxTriangles(Integer.parseInt(args[++i]));
                 } else if (arg.equals(THREAD_COUNT)){
                     conv.setThreadCount(Integer.parseInt(args[++i]));
                 } else if (arg.equals(MESH_SMOOTHING_WIDTH)){
