@@ -27,7 +27,7 @@ import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.*;
 import org.apache.commons.io.FilenameUtils;
-
+import javax.imageio.ImageIO;
 import java.io.IOException;
 
 import static abfab3d.util.Output.printf;
@@ -140,10 +140,10 @@ public class SVXConv {
             printf("   orig bounds: [ %7.3f, %7.3f], [%7.3f, %7.3f], [%7.3f, %7.3f] mm; voxelSize: %7.3f mm\n",
                     bounds[0]/MM, bounds[1]/MM, bounds[2]/MM, bounds[3]/MM, bounds[4]/MM, bounds[5]/MM, voxelSize/MM);
 
-            // Add a margin around the model to get some space 
+            // Add a margin around the model to get some space
             bounds = MathUtil.extendBounds(bounds, 1 * voxelSize);
             //
-            // round up to the nearest voxel 
+            // round up to the nearest voxel
             //
             MathUtil.roundBounds(bounds, voxelSize);
             int nx = (int) Math.round((bounds[1] - bounds[0]) / voxelSize);
@@ -173,7 +173,7 @@ public class SVXConv {
             }
 
             grid = makeEmptyGrid(new int[] {nx,ny,nz},voxelSize);
-            
+
             grid.setGridBounds(bounds);
 
             WaveletRasterizer rasterizer = new WaveletRasterizer(bounds, nx, ny, nz);
@@ -216,7 +216,7 @@ public class SVXConv {
 
         return grid;
     }
-    
+
     private TriangleMesh getMesh(AttributeGrid grid, int subvoxelResolution) {
         double mv = 0;
         double voxelSize = grid.getVoxelSize();
@@ -253,6 +253,7 @@ public class SVXConv {
             System.exit(6);
         }
 
+		ImageIO.setUseCache(false);
         SVXConv conv = new SVXConv();
 
         try {
