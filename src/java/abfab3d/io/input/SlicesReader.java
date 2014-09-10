@@ -42,7 +42,7 @@ import static abfab3d.util.Output.printf;
  */
 public class SlicesReader {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
 
     static final int ORIENTATION_X = 1, ORIENTATION_Y = 2, ORIENTATION_Z= 3;
 
