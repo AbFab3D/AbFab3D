@@ -47,29 +47,29 @@ public class SlicesReader {
     static final int ORIENTATION_X = 1, ORIENTATION_Y = 2, ORIENTATION_Z= 3;
 
     int m_orientation = ORIENTATION_Y;
-    String fileTemplate = "slice%04d.png";    
-    
-    public SlicesReader(){        
+    String fileTemplate = "slice%04d.png";
+
+    public SlicesReader(){
 
     }
 
     public void setOrientation(){
-        
+
     }
 
     /**
      reads a set of PNG image files into a grid
-     
-     @param grid grid to read slices into 
+
+     @param grid grid to read slices into
      @param fileTemplate printf style template to generate slice file names
-     @param firstFile index of first file in the list 
-     @param firstSlice index of first slice of the grid to read slice into 
-     @param count number of slices to read 
-     
-     
+     @param firstFile index of first file in the list
+     @param firstSlice index of first slice of the grid to read slice into
+     @param count number of slices to read
+
+
      */
     public int readSlices(AttributeGrid grid, String fileTemplate,
-                          int firstFile, int firstSlice, 
+                          int firstFile, int firstSlice,
                           int count) throws IOException {
 
         for(int i=0; i < count; i++) {
@@ -77,30 +77,30 @@ public class SlicesReader {
             if(DEBUG) printf("reading: %s\n", fname);
             InputStream is = new FileInputStream(fname);
             readSlice(is, grid, i + firstSlice);
-            
+
         }
         return 0;
     }
 
     /**
        reads a set of PNG image files into a grid
-     @param grid grid to read slices into 
-     @param zip zip file to read slices from 
+     @param grid grid to read slices into
+     @param zip zip file to read slices from
      @param fileTemplate printf style template to generate slice file names
-     @param firstFile index of first file in the list 
-     @param firstSlice index of first slice of the grid to read slice into 
-     @param count number of slices to read 
-       
+     @param firstFile index of first file in the list
+     @param firstSlice index of first slice of the grid to read slice into
+     @param count number of slices to read
+
      */
     public int readSlices(AttributeGrid grid, ZipFile zip, String fileTemplate,
-                          int firstFile, int firstSlice, 
+                          int firstFile, int firstSlice,
                           int count) throws IOException {
 
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
             if(DEBUG) printf("reading: %s\n", fname);
             ZipEntry entry = zip.getEntry(fname);
-            
+
             if (entry == null) {
                 printf("Cannot find slice file: %s\n",fname);
             }
@@ -113,47 +113,47 @@ public class SlicesReader {
     }
 
     /**
-       read single slice from input stream 
+       read single slice from input stream
      */
     void readSlice(InputStream is, AttributeGrid grid, int slice) throws IOException{
-        
+
         BufferedImage image = ImageIO.read(is);
         if(image == null)throw new IOException("unsupported image file format");
         int imgWidth = image.getWidth();
         int imgHeight = image.getHeight();
-        
+
         if(DEBUG){
-            
+
             printf("image type: %s\n",ImageUtil.getImageTypeName(image.getType()));
         }
-        
+
         DataBuffer dataBuffer = image.getRaster().getDataBuffer();
         byte componentData[] = new byte[imgWidth*imgHeight];
-        
+
         switch(image.getType()){
 
         case BufferedImage.TYPE_BYTE_GRAY:
-            {                
-                componentData = ((DataBufferByte)dataBuffer).getData(); 
+            {
+                componentData = ((DataBufferByte)dataBuffer).getData();
                 break;
             }
         case BufferedImage.TYPE_4BYTE_ABGR:
-            {                
+            {
                 componentData = new byte[imgWidth*imgHeight];
-                ImageUtil.getABGRcomponent(((DataBufferByte)dataBuffer).getData(), 3, componentData);            
+                ImageUtil.getABGRcomponent(((DataBufferByte)dataBuffer).getData(), 3, componentData);
                 break;
-                
+
             }
-        default: 
+        default:
             throw new IOException("unsupported image data format");
-        }  
+        }
 
         for(int x = 0; x < imgWidth; x++){
             for(int y = 0; y < imgHeight; y++){
                 grid.setAttribute(x,slice, y,componentData[x + y*imgWidth]);
             }
         }
-        
-    } 
+
+    }
 
 }
