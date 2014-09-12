@@ -57,6 +57,10 @@ public class SVXReader {
             zip = new ZipFile(file);
 
             ZipEntry entry = zip.getEntry("manifest.xml");
+            if (entry == null) {
+                throw new IOException("Cannot find manifest.xml in top level");
+            }
+
             InputStream is = zip.getInputStream(entry);
             mf = parseManifest(is);
 
@@ -138,13 +142,19 @@ public class SVXReader {
             ret_val.setVoxelSize(Double.parseDouble(val));
             field = "originX";
             val = grid.getAttribute(field);
-            ret_val.setOriginX(Double.parseDouble(val));
+            if (val != null && val.length() > 0) {
+                ret_val.setOriginX(Double.parseDouble(val));
+            }
             field = "originY";
             val = grid.getAttribute(field);
-            ret_val.setOriginY(Double.parseDouble(val));
+            if (val != null && val.length() > 0) {
+                ret_val.setOriginY(Double.parseDouble(val));
+            }
             field = "originZ";
             val = grid.getAttribute(field);
-            ret_val.setOriginZ(Double.parseDouble(val));
+            if (val != null && val.length() > 0) {
+                ret_val.setOriginZ(Double.parseDouble(val));
+            }
             field = "subvoxelBits";
             val = grid.getAttribute(field);
             ret_val.setSubvoxelBits(Integer.parseInt(val));
