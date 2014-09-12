@@ -156,22 +156,24 @@ public class SlicesWriter {
     /**
        writes single pixel slices into a bunch of files 
      */
-    public void writeSlices(AttributeGrid grid, String fileTemplate, int firstSlice, int firstFile, int sliceCount) throws IOException {
-        
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
-        
-        int imgWidth = nx; 
-        int imgHeight = nz; 
+    public void writeSlices(AttributeGrid grid, String fileTemplate, int firstSlice, int firstFile, int sliceCount) throws IOException {        
+        writeSlices(grid, fileTemplate, firstSlice, firstFile, sliceCount, 1);
+    }
 
-        BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_BYTE_GRAY);
+    /**
+       orientation - axis orthogonal to the slices 
+     */
+    public void writeSlices(AttributeGrid grid, String fileTemplate, int firstSlice, int firstFile, int sliceCount, int orientation) throws IOException {
+        
+        int imgSize[] = getImageSize(grid, orientation);
+
+        BufferedImage outImage = new BufferedImage(imgSize[0], imgSize[1], BufferedImage.TYPE_BYTE_GRAY);
        
         for(int i = 0; i < sliceCount; i++){
             int slice = i + firstSlice; 
             int findex = i + firstFile;
             String fname = fmt(fileTemplate, findex);
-            getSliceData(imgWidth, imgHeight, slice, grid, outImage);
+            getSliceData(imgSize[0], imgSize[1], slice, grid, outImage, orientation);
             ImageIO.write(outImage, m_imageFileType, new File(fname));
         }        
     }
@@ -180,22 +182,20 @@ public class SlicesWriter {
        write single pizel slices to zip 
      */
     public void writeSlices(AttributeGrid grid, ZipOutputStream zipOut, String fileTemplate, int firstSlice, int firstFile, int sliceCount) throws IOException {
+        writeSlices(grid, zipOut, fileTemplate, firstSlice, firstFile, sliceCount, 1);
+    }
+    public void writeSlices(AttributeGrid grid, ZipOutputStream zipOut, String fileTemplate, int firstSlice, int firstFile, int sliceCount, int orientation) throws IOException {
         
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
+        int imgSize[] = getImageSize(grid, orientation);
         
-        int imgWidth = nx; 
-        int imgHeight = nz; 
-
-        BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_BYTE_GRAY);
+        BufferedImage outImage = new BufferedImage(imgSize[0], imgSize[1], BufferedImage.TYPE_BYTE_GRAY);
        
         for(int i = 0; i < sliceCount; i++){
             
             int slice = i + firstSlice; 
             int findex = i + firstFile;
             String fname = fmt(fileTemplate, findex);
-            getSliceData(imgWidth, imgHeight, slice, grid,outImage);
+            getSliceData(imgSize[0], imgSize[1], slice, grid,outImage, orientation);
             ZipEntry ze = new ZipEntry(fname);
             zipOut.putNextEntry(ze);
             ImageIO.write(outImage, m_imageFileType, zipOut);
@@ -205,17 +205,40 @@ public class SlicesWriter {
     }
    
 
-    void getSliceData(int  width, int height, int slice, AttributeGrid grid, BufferedImage image) {
+    void getSliceData(int  width, int height, int slice, AttributeGrid grid, BufferedImage image, int orientation) {
 
         DataBufferByte dbi = (DataBufferByte)(image.getRaster().getDataBuffer());
         byte[] imageData = dbi.getData();
+        int coord[] = new int[3];
         for(int y = 0; y < height; y++){
             for(int x = 0; x < width; x++){
-                imageData[x + y * width] = (byte)grid.getAttribute(x,slice, y);
+                getVoxelCoord(slice, x,y,coord, orientation);
+                imageData[x + y * width] = (byte)grid.getAttribute(coord[0],coord[1],coord[2]);
             }        
         }                
     }
-    
+
+    static final int[] getImageSize(AttributeGrid grid, int orientation){
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        switch(orientation){
+        default:
+        case 0: return new int[]{ny,nz};
+        case 1: return new int[]{nx,nz};
+        case 2: return new int[]{nx,ny};
+        }
+    }
+
+    static final void getVoxelCoord(int slice, int i, int j, int coord[], int orientation){
+        switch(orientation){
+        case 0: coord[0] = slice; coord[1] = i; coord[2] = j; break;
+        case 1: coord[0] = i; coord[1] = slice; coord[2] = j; break;
+        case 2: coord[0] = i; coord[1] = j; coord[2] = slice; break;
+        }            
+    }
+
     public void writeSlices(Grid grid) throws IOException {
 
         if(DEBUG) printf("%s.writeSlices()\n", this.getClass().getName());

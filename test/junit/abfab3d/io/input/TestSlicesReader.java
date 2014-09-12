@@ -77,15 +77,15 @@ public class TestSlicesReader extends TestCase {
         int nx = 102; 
         int ny = 102; 
         int nz = 102; 
-        String template = "/tmp/slices/density/slice%04d.png";
+
         int subvoxelResolution = 255;
 
         SlicesReader reader = new SlicesReader();
         AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, vs, vs);        
-        reader.readSlices(grid, template, 0, 0, ny);
+        reader.readSlices(grid, "/tmp/slices/density/slicex%04d.png", 0, 0, nx,0);
         
         SlicesWriter writer = new SlicesWriter();
-        writer.writeSlices(grid, "/tmp/slices/dens/slice%04d.png", 0, 0, ny );
+        writer.writeSlices(grid, "/tmp/slices/dens/slicez%04d.png", 0, 0, nz,2 );
         
         
 

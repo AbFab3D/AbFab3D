@@ -71,12 +71,29 @@ public class SlicesReader {
     public int readSlices(AttributeGrid grid, String fileTemplate,
                           int firstFile, int firstSlice,
                           int count) throws IOException {
+        return readSlices(grid, fileTemplate,firstFile, firstSlice, count, 1);
+    }
+
+
+    /**
+     reads a set of PNG image files into a grid
+
+     @param grid grid to read slices into
+     @param fileTemplate printf style template to generate slice file names
+     @param firstFile index of first file in the list
+     @param firstSlice index of first slice of the grid to read slice into
+     @param count number of slices to read
+     @param orientation (0,1,2) axis orthogonel to the slices 
+     */
+    public int readSlices(AttributeGrid grid, String fileTemplate,
+                          int firstFile, int firstSlice,
+                          int count, int orientation) throws IOException {
 
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
             if(DEBUG) printf("reading: %s\n", fname);
             InputStream is = new FileInputStream(fname);
-            readSlice(is, grid, i + firstSlice);
+            readSlice(is, grid, i + firstSlice, orientation);
 
         }
         return 0;
@@ -95,6 +112,23 @@ public class SlicesReader {
     public int readSlices(AttributeGrid grid, ZipFile zip, String fileTemplate,
                           int firstFile, int firstSlice,
                           int count) throws IOException {
+        return readSlices(grid, zip, fileTemplate, firstFile, firstSlice,count, 1);
+
+    }
+
+    /**
+       reads a set of PNG image files into a grid
+     @param grid grid to read slices into
+     @param zip zip file to read slices from
+     @param fileTemplate printf style template to generate slice file names
+     @param firstFile index of first file in the list
+     @param firstSlice index of first slice of the grid to read slice into
+     @param count number of slices to read
+     @param orientation 0,1,2 - axis orthogonal to the slices 
+     */
+    public int readSlices(AttributeGrid grid, ZipFile zip, String fileTemplate,
+                          int firstFile, int firstSlice,
+                          int count, int orientation) throws IOException {
 
         for(int i=0; i < count; i++) {
             String fname = Output.fmt(fileTemplate, i+firstFile);
@@ -106,7 +140,7 @@ public class SlicesReader {
             }
 
             InputStream is = zip.getInputStream(entry);
-            readSlice(is, grid, i + firstSlice);
+            readSlice(is, grid, i + firstSlice, orientation);
         }
 
         return 0;
@@ -115,7 +149,7 @@ public class SlicesReader {
     /**
        read single slice from input stream
      */
-    void readSlice(InputStream is, AttributeGrid grid, int slice) throws IOException{
+    void readSlice(InputStream is, AttributeGrid grid, int slice, int orientation) throws IOException{
 
         BufferedImage image = ImageIO.read(is);
         if(image == null)throw new IOException("unsupported image file format");
@@ -148,12 +182,22 @@ public class SlicesReader {
             throw new IOException("unsupported image data format");
         }
 
+        int coord[] = new int[3];
+
         for(int x = 0; x < imgWidth; x++){
             for(int y = 0; y < imgHeight; y++){
-                grid.setAttribute(x,slice, y,componentData[x + y*imgWidth]);
+                getVoxelCoord(slice, x,y, coord, orientation);
+                grid.setAttribute(coord[0],coord[1],coord[2],componentData[x + y*imgWidth]);
             }
         }
+    }
 
+    static final void getVoxelCoord(int slice, int i, int j, int coord[], int orientation){
+        switch(orientation){
+        case 0: coord[0] = slice; coord[1] = i; coord[2] = j; break;
+        case 1: coord[0] = i; coord[1] = slice; coord[2] = j; break;
+        case 2: coord[0] = i; coord[1] = j; coord[2] = slice; break;
+        }            
     }
 
 }

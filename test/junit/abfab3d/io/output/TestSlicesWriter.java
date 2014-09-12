@@ -527,7 +527,8 @@ public class TestSlicesWriter extends TestCase {
         int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        Sphere sphere = new Sphere(0,0,0,ballRadius);
+        Sphere sphere = new Sphere(0, 0, 0,ballRadius);
+
         Torus torus = new Torus(0.34*CM, 0.15*CM);
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
 
@@ -535,8 +536,8 @@ public class TestSlicesWriter extends TestCase {
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
         //gm.setDataSource(gyroid);
-        //gm.setDataSource(torus);
-        gm.setSource(sphere);
+        gm.setSource(torus);
+        //gm.setSource(sphere);
         // gm.setTransform(rotation);
 
         gm.setSubvoxelResolution(subvoxelResolution);
@@ -550,14 +551,11 @@ public class TestSlicesWriter extends TestCase {
         printf("gm.makeGrid() done\n");
 
         SlicesWriter writer = new SlicesWriter();
-        writer.writeSlices(grid, "/tmp/slices/density/slice%04d.png", 0, 0, ny);
-
         
-        //SlicesWriter slicer = new SlicesWriter();
-        //slicer.setFilePattern("/tmp/slices/slice%04d.png");
-        //slicer.setSubvoxelResolution(subvoxelResolution);
-        //slicer.writeSlices(grid);
-                
+        writer.writeSlices(grid, "/tmp/slices/density/slicex%04d.png", 0, 0, nx, 0);
+        writer.writeSlices(grid, "/tmp/slices/density/slicey%04d.png", 0, 0, ny, 1);
+        writer.writeSlices(grid, "/tmp/slices/density/slicez%04d.png", 0, 0, nz, 2);
+                       
     }
 
     public static void main(String[] args) throws IOException {
