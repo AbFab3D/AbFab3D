@@ -16,6 +16,7 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.web3d.util.spatial.SliceRegion;
 import org.xml.sax.SAXException;
@@ -25,6 +26,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -185,6 +187,24 @@ public class SVXReader {
             }
 
             ret_val.setChannels(clist);
+
+            NodeList metadata_list = doc.getElementsByTagName("entry");
+
+            if (metadata_list != null) {
+                HashMap<String,String> map = new HashMap<String,String>();
+                len = metadata_list.getLength();
+
+                for(int i=0; i < len; i++) {
+                    Element entry = (Element) metadata_list.item(i);
+                    String key = entry.getAttribute("key");
+                    String value = entry.getAttribute("value");
+
+                    if (key != null && key.length() > 0 && value != null && value.length() > 0) {
+                        map.put(key, value);
+                    }
+                }
+                ret_val.setMetadata(map);
+            }
 
             return ret_val;
         } catch(ParserConfigurationException pce) {

@@ -13,6 +13,7 @@
 package abfab3d.io.input;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,6 +55,10 @@ public class SVXManifest {
 
     /** The lower left corner of the grid in world coordinates */
     private double originZ;
+
+    public SVXManifest() {
+        metadata = new HashMap<String,String>();
+    }
 
     public int getGridSizeX() {
         return gridSizeX;
