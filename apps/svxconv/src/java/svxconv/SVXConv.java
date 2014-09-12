@@ -14,10 +14,7 @@ package svxconv;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.GridShortIntervals;
-import abfab3d.io.input.STLReader;
-import abfab3d.io.input.SVXReader;
-import abfab3d.io.input.WaveletRasterizer;
-import abfab3d.io.input.X3DReader;
+import abfab3d.io.input.*;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
@@ -29,6 +26,7 @@ import abfab3d.util.*;
 import org.apache.commons.io.FilenameUtils;
 import javax.imageio.ImageIO;
 import java.io.IOException;
+import java.util.Map;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Units.MM;
@@ -122,6 +120,23 @@ public class SVXConv {
         if (ext.equalsIgnoreCase("svx")) {
             SVXReader reader = new SVXReader();
             grid = reader.load(input);
+
+            SVXManifest manifest = reader.getManifest();
+            Map<String,String> map = manifest.getMetadata();
+
+            String meshErrorFactor_st = map.get("meshErrorFactor");
+            String meshSmoothingWidth_st = map.get("meshSmoothingWidth");
+
+            if (meshErrorFactor_st != null) {
+                meshErrorFactor = Double.parseDouble(meshErrorFactor_st);
+
+                printf("Using user specified meshErrorFactor: %4.3f\n",meshErrorFactor);
+            }
+
+            if (meshSmoothingWidth_st != null) {
+                meshSmoothingWidth = Double.parseDouble(meshSmoothingWidth_st);
+                printf("Using user specified meshSmoothingWidth: %4.3f\n",meshSmoothingWidth);
+            }
         } else if (ext.equalsIgnoreCase("stl") || ext.startsWith("x3d") || ext.startsWith("X3D")) {
             BoundingBoxCalculator bb = new BoundingBoxCalculator();
             TriangleProducer tp = null;
