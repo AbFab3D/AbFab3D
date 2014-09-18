@@ -34,11 +34,15 @@ import junit.framework.TestSuite;
 // Internal Imports
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
+import abfab3d.grid.ArrayAttributeGridInt;
+import abfab3d.grid.ArrayAttributeGridLong;
 
 import abfab3d.geom.TriangulatedModels;
 
 import abfab3d.util.MathUtil;
 import abfab3d.util.ImageGray16;
+import abfab3d.util.DefaultLongConverter;
+import abfab3d.util.LongConverter;
 
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
@@ -500,7 +504,7 @@ public class TestSlicesWriter extends TestCase {
     /**
        makes a test slices set 
      */
-    void makeBall() throws IOException{
+    void multichannelTest() throws IOException{
         
         printf("makeBall()\n");
     
@@ -516,7 +520,10 @@ public class TestSlicesWriter extends TestCase {
         double gridWidth = sizex + 2*margin;
         double gridHeight = sizey + 2*margin;
         double gridDepth = sizez + 2*margin;
-        int subvoxelResolution = 255;
+
+        int bitCount = 32;
+
+        long subvoxelResolution = ((1L << bitCount)-1);
 
         int threadsCount = 1;
 
@@ -535,6 +542,7 @@ public class TestSlicesWriter extends TestCase {
         Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
         GridMaker gm = new GridMaker();  
         gm.setBounds(bounds);
+        gm.setThreadCount(1);
         //gm.setDataSource(gyroid);
         gm.setSource(torus);
         //gm.setSource(sphere);
@@ -543,7 +551,7 @@ public class TestSlicesWriter extends TestCase {
         gm.setSubvoxelResolution(subvoxelResolution);
         gm.setVoxelScale(surfareThickness);
         
-        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);
+        AttributeGrid grid = new ArrayAttributeGridLong(nx, ny, nz, voxelSize, voxelSize);
         
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);        
@@ -551,14 +559,29 @@ public class TestSlicesWriter extends TestCase {
         printf("gm.makeGrid() done\n");
 
         SlicesWriter writer = new SlicesWriter();
-        
-        writer.writeSlices(grid, "/tmp/slices/density/slicex%04d.png", 0, 0, nx, 0);
-        writer.writeSlices(grid, "/tmp/slices/density/slicey%04d.png", 0, 0, ny, 1);
-        writer.writeSlices(grid, "/tmp/slices/density/slicez%04d.png", 0, 0, nz, 2);
+        // write slices in different orientation 
+        String folder = fmt("/tmp/slices/density%d/", bitCount);
+        new File(folder).mkdirs();
+        //writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0,bitCount, new DefaultLongConverter());
+        writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0, 2, new BitsExtractor(30, 0xFF));
                        
     }
 
     public static void main(String[] args) throws IOException {
-        new TestSlicesWriter().makeBall();
+        new TestSlicesWriter().multichannelTest();
     }
+    
+    static class BitsExtractor implements LongConverter {
+        
+        int shift = 0;
+        long mask = 0xFF;
+        public BitsExtractor(int shift, long mask){
+            this.shift = shift;
+            this.mask = mask;
+        }
+        public final long get(long v){
+            return mask & (v >> shift);
+        }
+    }
+
 }

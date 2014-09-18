@@ -151,9 +151,10 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public void getData(double x, double y, double z, VoxelData vd) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
@@ -171,9 +172,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public byte getState(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
@@ -201,9 +202,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public long getAttribute(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
@@ -233,9 +234,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param material The material
      */
     public void setData(double x, double y, double z, byte state, long material) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 
@@ -295,9 +296,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
      * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(double x, double y, double z, byte state) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         int idx = slice * sliceSize + s_x * depth + s_z;
 

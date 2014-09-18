@@ -85,7 +85,7 @@ public class TestSlicesReader extends TestCase {
         reader.readSlices(grid, "/tmp/slices/density/slicex%04d.png", 0, 0, nx,0);
         
         SlicesWriter writer = new SlicesWriter();
-        writer.writeSlices(grid, "/tmp/slices/dens/slicez%04d.png", 0, 0, nz,2 );
+        writer.writeSlices(grid, "/tmp/slices/dens/slicez%04d.png", 0, 0, nz,2,8, new DefaultLongConverter());
         
         
 

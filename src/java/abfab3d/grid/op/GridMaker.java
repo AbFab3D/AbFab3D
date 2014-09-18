@@ -58,7 +58,7 @@ public class GridMaker implements Operation, AttributeOperation {
 
     AttributeGrid m_grid; 
     int m_nx, m_ny, m_nz;
-    int m_subvoxelResolution = 255;
+    long m_subvoxelResolution = 255;
     // this is width of transitional layer near surface of the object.
     // data sources are supposed to return transitional value inside of that layer
     double voxelSize = 0;
@@ -117,7 +117,7 @@ public class GridMaker implements Operation, AttributeOperation {
        sets scaling value for attributes
        obsolete
      */
-    public void setMaxAttributeValue(int value){
+    public void setMaxAttributeValue(long value){
 
         m_subvoxelResolution = value;
 
@@ -126,10 +126,10 @@ public class GridMaker implements Operation, AttributeOperation {
     /**
        sets subvoxel resolution used for antialiased grids 
      */
-    public void setSubvoxelResolution(int value){
-
+    public void setSubvoxelResolution(long value){
+        
         m_subvoxelResolution = value;
-
+        
     }
 
     public void setBounds(double bounds[]){
@@ -202,7 +202,7 @@ public class GridMaker implements Operation, AttributeOperation {
         }
 
         t0 = time();
-        if(m_threadCount > 0)
+        if(m_threadCount > 1)
             makeGridMT();
         else 
             makeGridST();
@@ -234,7 +234,7 @@ public class GridMaker implements Operation, AttributeOperation {
             pntWorld = new Vec(3),            
             pntData = new Vec(3),
             dataValue = new Vec(3);
-        
+        if(DEBUG) printf("GridMaker.makeGridST(%d x %d x %d)\n", m_nx, m_ny, m_nz );
         int margin = m_margin; 
         int nx = m_nx, ny = m_ny, nz = m_nz;
         
@@ -254,7 +254,7 @@ public class GridMaker implements Operation, AttributeOperation {
                     pntWorld.setVoxelSize(voxelSize);
 
                     int res = m_transform.inverse_transform(pntWorld, pntData);
-                    if(DEBUG){                        
+                    if(false){                        
                         double s = pntData.getScaleFactor();
                         if(s != 1.0 && debugCount-- > 0)
                             printf("scale: %10.5f\n", s);
@@ -267,19 +267,18 @@ public class GridMaker implements Operation, AttributeOperation {
                     if(res != VecTransform.RESULT_OK)
                         continue;
                     
-                    switch(m_subvoxelResolution){
-                        
-                    case 0: // use grid state 
+                    if(m_subvoxelResolution == 0) {
+                        // use grid state 
                         if(dataValue.v[0] > 0.5){
                             m_grid.setState(ix, iy, iz, Grid.INSIDE);
                         }
-                        break;
-                    default: // use grid attribute
-                        int v = (int)(m_subvoxelResolution * dataValue.v[0] + 0.5);
-                        if(v > 0){
+                    } else { 
+                        // use grid attribute
+                        long v = (long)(m_subvoxelResolution * dataValue.v[0] + 0.5);
+                        if(DEBUG && iy == 31 && v != 0 && debugCount-- > 0) printf("gm[%3d %3d %3d]: 0x%X\n",ix, iy, iz,v);
+                        if(v != 0){
                             m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
                         }
-                        break;
                     }
                 }
             }
@@ -347,7 +346,7 @@ public class GridMaker implements Operation, AttributeOperation {
                         pntWorld.setVoxelSize(voxelSize);
                         
                         int res = m_transform.inverse_transform(pntWorld, pntData);
-                        if(DEBUG){
+                        if(false){
                             double s = pntData.getScaleFactor();
                             if(s != 1.0 &&  debugCount-- > 0) {
                                 printf("scale: %10.5f\n", s);
@@ -360,19 +359,17 @@ public class GridMaker implements Operation, AttributeOperation {
                         if(res != VecTransform.RESULT_OK)
                             continue;
                         
-                        switch(m_subvoxelResolution){
-                            
-                        case 0: // use grid state 
+                        if(m_subvoxelResolution == 0){                            
+                            // use grid state 
                             if(dataValue.v[0] > 0.5){
                                 m_grid.setState(ix, iy, iz, Grid.INSIDE);
                             }
-                            break;
-                        default: // use grid attribute
-                            int v = (int)(m_subvoxelResolution * dataValue.v[0] + 0.5);
-                            if(v > 0){
+                        } else {
+                            //default: // use grid attribute
+                            long v = (long)(m_subvoxelResolution * dataValue.v[0] + 0.5);
+                            if(v != 0){
                                 m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
                             }
-                            break;
                         }
                     }
                 }

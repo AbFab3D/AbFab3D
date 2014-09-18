@@ -102,6 +102,10 @@ public class GridMipMap extends TransformableDataSource {
     public void setMaxAttribute(long value){
         m_maxAttribute  = value;
     }
+
+    public void setSubvoxelResolution(long value){
+        m_maxAttribute  = value;
+    }
     
 
     protected void createMipMap(AttributeGrid grid){
