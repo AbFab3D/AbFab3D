@@ -30,6 +30,8 @@ import static abfab3d.util.Output.printf;
 public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGrid, Cloneable, Serializable {
     protected InsideOutsideFunc ioFunc;
 
+    protected AttributeDesc m_attributeDesc;
+
     /**
      * Constructor.
      *
@@ -444,6 +446,25 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
 
 
     public abstract Object clone();
+
+
+
+    /**
+       assign to the grid a description of a voxel attributes
+       @param description The attirbute description 
+       @override 
+    */
+    public void setAttributeDesc(AttributeDesc description){
+        m_attributeDesc = description;
+    }
+
+    /**
+       @return voxel attribute description assigned to the grid
+       @override 
+    */
+    public AttributeDesc getAttributeDesc(){
+        return m_attributeDesc; 
+    }
 
 }
 

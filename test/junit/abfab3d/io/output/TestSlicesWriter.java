@@ -36,6 +36,9 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridLong;
+import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.AttributeChannel;
+
 
 import abfab3d.geom.TriangulatedModels;
 
@@ -520,8 +523,9 @@ public class TestSlicesWriter extends TestCase {
         double gridWidth = sizex + 2*margin;
         double gridHeight = sizey + 2*margin;
         double gridDepth = sizez + 2*margin;
-
-        int bitCount = 32;
+        boolean useSVXWriter = true;
+        
+        int bitCount = 8;
 
         long subvoxelResolution = ((1L << bitCount)-1);
 
@@ -552,19 +556,30 @@ public class TestSlicesWriter extends TestCase {
         gm.setVoxelScale(surfareThickness);
         
         AttributeGrid grid = new ArrayAttributeGridLong(nx, ny, nz, voxelSize, voxelSize);
-        
+        grid.setGridBounds(bounds);
         printf("gm.makeGrid()\n");
         gm.makeGrid(grid);        
        
         printf("gm.makeGrid() done\n");
+        if(useSVXWriter) {
+            AttributeDesc attDesc = new AttributeDesc();
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"1", "mat1", 1,7));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"2", "mat2", 1,6));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"3", "mat3", 1,5));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"4", "mat4", 1,4));            
+            grid.setAttributeDesc(attDesc);
+            new SVXWriter().write(grid, "/tmp/slices/torus.svx");
 
-        SlicesWriter writer = new SlicesWriter();
-        // write slices in different orientation 
-        String folder = fmt("/tmp/slices/density%d/", bitCount);
-        new File(folder).mkdirs();
-        //writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0,bitCount, new DefaultLongConverter());
-        writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0, 2, new BitsExtractor(30, 0xFF));
-                       
+        } else {
+
+            SlicesWriter writer = new SlicesWriter();
+            // write slices in different orientation 
+            String folder = fmt("/tmp/slices/density%d/", bitCount);
+            new File(folder).mkdirs();
+            //writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0,bitCount, new DefaultLongConverter());
+            writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0, 2, new BitsExtractor(30, 0xFF));
+        }
     }
 
     public static void main(String[] args) throws IOException {

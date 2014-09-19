@@ -13,10 +13,15 @@ package abfab3d.io.output;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.AttributeChannel;
+
 
 import java.io.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
+
+import static abfab3d.util.Output.printf;
 
 /**
  * Writes a grid out in the svx format.
@@ -40,16 +45,26 @@ public class SVXWriter {
             bos = new BufferedOutputStream(fos);
             zos = new ZipOutputStream(bos);
 
-            String format = "density/slice%4d.png";
+
             ZipEntry zentry = new ZipEntry("manifest.xml");
             zos.putNextEntry(zentry);
-            writeManifest(grid,8,format,zos);
+            writeManifest(grid,zos);
             zos.closeEntry();
 
             SlicesWriter sw = new SlicesWriter();
-            sw.writeSlices(grid,zos,format,0,0,grid.getHeight());
+            int orientation = 1;
+            AttributeDesc attDesc = grid.getAttributeDesc();
+
+            for(int i = 0; i < attDesc.size(); i++){
+                
+                AttributeChannel channel = attDesc.getChannel(i);                
+                String channelPattern = channel.getName() + "/" + "slice%04d.png";                
+                sw.writeSlices(grid,zos,channelPattern,0,0,grid.getHeight(), orientation, channel.getBitCount(), channel);                
+            }
         } catch(IOException ioe) {
+
             ioe.printStackTrace();
+            
         } finally {
             try {
                 if (zos != null) zos.close();
@@ -62,42 +77,39 @@ public class SVXWriter {
 
     }
 
-    private void writeManifest(AttributeGrid grid, int subvoxelBits, String format, OutputStream os) {
-        PrintWriter pw = new PrintWriter(os);
+    private void writeManifest(AttributeGrid grid, OutputStream os) {
+
+        int subvoxelBits = 8; // where it should came from? 
+
+        AttributeDesc attDesc = grid.getAttributeDesc();        
+
+        PrintStream ps = new PrintStream(os);
 
         double[] bounds = new double[6];
 
         grid.getGridBounds(bounds);
-        pw.println("<?xml version=\"1.0\"?>");
 
-        pw.print("<grid gridSizeX=\"");
-        pw.print(grid.getWidth());
-        pw.print("\" gridSizeY=\"");
-        pw.print(grid.getHeight());
-        pw.print("\" gridSizeZ=\"");
-        pw.print(grid.getDepth());
-        pw.print("\" voxelSize=\"");
-        pw.print(grid.getVoxelSize());
-        pw.print("\" subvoxelBits=\"");
-        pw.print(subvoxelBits);
-        pw.print("\" originX=\"");
-        pw.print(bounds[0]);
-        pw.print("\" originY=\"");
-        pw.print(bounds[2]);
-        pw.print("\" originZ=\"");
-        pw.print(bounds[4]);
-        pw.println("\" >");
+        printf(ps,"<?xml version=\"1.0\"?>\n");
+        printf(ps, "<grid gridSizeX=\"%d\" gridSizeY=\"%d\" gridSizeZ=\"%d\" voxelSize=\"%f\" subvoxelBits=\"%d\" originX=\"%f\" originY=\"%f\" originZ=\"%f\">\n", 
+               grid.getWidth(), grid.getHeight(),grid.getDepth(),
+               grid.getVoxelSize(), subvoxelBits,bounds[0],bounds[2],bounds[4]);
 
         String indent = "    ";
-        pw.print(indent + "<channels>");
-        pw.print(indent + "<channel type=\"");
-        pw.print("DENSITY\" slices=\"");
-        pw.print(format);
-        pw.println("\" />");
-        pw.print(indent + "</channels>");
+        String indent2 = indent+indent;
 
-        pw.println("</grid>");
+        printf(ps, indent+"<channels>\n");
 
-        pw.flush();
+        for(int i = 0; i < attDesc.size(); i++){
+
+            AttributeChannel channel = attDesc.getChannel(i);
+
+            String channelPattern = channel.getName() + "/" + "slice%04d.png";
+            int bits = channel.getBitCount(); 
+            printf("channel type: %s name: %s\n", channel.getType(), channel.getName());
+            printf(ps, indent2 + "<channel type=\"%s\" slices=\"%s\" bits=\"%d\">\n",channel.getType(), channelPattern, bits);
+        }        
+        printf(ps, indent + "</channels>\n");
+        printf(ps, "</grid>\n");
+        ps.flush();
     }
 }

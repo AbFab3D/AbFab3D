@@ -994,4 +994,15 @@ public class MathUtil {
         return (int)((short)v);
     }
 
+    /**
+       makes mask with given bit count 
+     */
+    public static final long getBitMask(int bitCount){
+        
+        long mask = 0;
+        for(int i = 0; i < bitCount; i++){
+            mask |= (1L << i);
+        }
+        return mask;
+    }
 }
