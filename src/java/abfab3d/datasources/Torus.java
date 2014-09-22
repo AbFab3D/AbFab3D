@@ -61,7 +61,7 @@ public class Torus extends TransformableDataSource{
     /**
        @param center - location of torus center
        @param Rout - outer radius of torus
-       @param Rin - innter radius of torus
+       @param Rin - inner radius of torus
 
      */
     public Torus(Vector3d center, double Rout, double Rin) {
@@ -84,7 +84,7 @@ public class Torus extends TransformableDataSource{
        @param cy - y component of center
        @param cz - z component of center
        @param Rout - outer radius of torus
-       @param Rin - innter radius of torus
+       @param Rin - inner radius of torus
 
      */
     public Torus(double cx, double cy, double cz, double Rout, double Rin){
@@ -104,7 +104,7 @@ public class Torus extends TransformableDataSource{
 
     /**
      * returns 1 if pnt is inside of Torus
-     * returns intepolated value if point is within voxel size to the boundary
+     * returns intepolated value if point is within voxel size distance from the boundary
      * returns 0 if pnt is outside the Torus
        @noRefGuide
      */

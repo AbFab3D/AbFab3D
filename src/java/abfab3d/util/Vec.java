@@ -20,8 +20,8 @@ import static abfab3d.util.Output.printf;
 
 
 /**
- * Wrapper for arbitrary vector of floating point data array
- *
+ * Wrapper for array of floating point data of arbitrary length 
+ * it is used as values holder for both calculation of transformations using VecTransform and calculation of data values using DataSource 
  * @author Vladimir Bulatov
  */
 public class Vec {
@@ -108,7 +108,7 @@ public class Vec {
 
     // multiply vector to given matrix from the left 
     public void mulSetLeft(Matrix3d m){
-        //TODO 
+
         double x = m.m00 * v[0] + m.m01 * v[1] + m.m02 * v[2];
         double y = m.m10 * v[0] + m.m11 * v[1] + m.m12 * v[2];
         double z = m.m20 * v[0] + m.m21 * v[1] + m.m22 * v[2];

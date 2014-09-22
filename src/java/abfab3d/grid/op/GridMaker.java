@@ -20,6 +20,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeDesc;
+import abfab3d.grid.AttributeMaker;
+import abfab3d.grid.AttributeMakerDensity;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
@@ -32,15 +35,24 @@ import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
 
 /**
-   class takes existing grid, a Transformation and a DataSource and fills the grid's voxel if data according to value of data source 
+   class accept Grid , VecTransform, DataSource and AttributeMaker and fills voxel attributes of the grid. 
 
-   @author Vladimir Bilatov
+   For each Grid voxel the cordinates of the voxel are transformed using inverse of VecTransform 
+   The data value is calculated in the transformed point using DataSource 
+   All the channels of the DataSource are converted into voxel attibutes using AttributeMaker.
+   This allows calculation of multi color and multimaterial grids with custom meaning and 
+   resolutiuon of each AttributeChannel. 
+
+   @author Vladimir Bulatov
    
  */
 public class GridMaker implements Operation, AttributeOperation {
+
     
+    static final int POINT_DIMENSION = 3;
+
     static final boolean DEBUG = false;
-    static int debugCount = 100;
+    static int debugCount = 0;
     
     protected VecTransform m_transform;
     protected DataSource m_dataSource;
@@ -56,13 +68,23 @@ public class GridMaker implements Operation, AttributeOperation {
     private double voxelX, voxelY, voxelZ, offsetX, offsetY, offsetZ;
     private int m_slizeSize = 2;
 
-    AttributeGrid m_grid; 
-    int m_nx, m_ny, m_nz;
+    // custom converter of Vec into long attribute
+    AttributeMaker m_attributeMaker; 
+    // dimension of the data channel 
+    int m_dataChannelsCount = 1;
+    // number of gray levels in the calculations this is being replaces by universal m_attributeMaker
     long m_subvoxelResolution = 255;
-    // this is width of transitional layer near surface of the object.
-    // data sources are supposed to return transitional value inside of that layer
+
+    //
+    AttributeGrid m_grid; 
+    // diimensions of the grid 
+    int m_nx, m_ny, m_nz;
+
+    // actual voxel size of the grid 
     double voxelSize = 0;
     private boolean boundsSet = false;
+    // this is thickness of surface transitional layer (relastive to the voxel size) 
+    // data sources are expected to return transitional value inside of that layer
     private double voxelScale = Math.sqrt(3) / 2.0;
 
     public GridMaker() {
@@ -97,7 +119,7 @@ public class GridMaker implements Operation, AttributeOperation {
 
     /**
        set width of transitional surface area for shape calculations.
-       it is obsolete and value is ignored 
+       it is obsolete and the value is ignored 
      */
     public void setVoxelSize(double vs){
 
@@ -105,8 +127,8 @@ public class GridMaker implements Operation, AttributeOperation {
     }
 
     /**
-       set width of transitional surface area for shape calculations
-       default value sqrt(3)/2 - half of large diagonal of unit cube 
+       set relative width of transitional surface area for antialised density grid calculations
+       default value sqrt(3)/2 - half of large diagonal of the unit cube 
      */
     public void setVoxelScale(double vs){
 
@@ -115,16 +137,19 @@ public class GridMaker implements Operation, AttributeOperation {
 
     /**
        sets scaling value for attributes
-       obsolete
+       obsolete 
+       setAttributeMaker(AttributeMaker attributeMaker) should be used instead 
      */
     public void setMaxAttributeValue(long value){
 
-        m_subvoxelResolution = value;
-
+        setSubvoxelResolution(value);
+        
     }
 
     /**
        sets subvoxel resolution used for antialiased grids 
+       obsolete 
+       setAttributeMaker(AttributeMaker attributeMaker) should be used instead 
      */
     public void setSubvoxelResolution(long value){
         
@@ -132,6 +157,17 @@ public class GridMaker implements Operation, AttributeOperation {
         
     }
 
+    /**
+       sets converter from Vec into long for grid attributes 
+     */
+    public void setAttributeMaker(AttributeMaker attributeMaker){
+
+        m_attributeMaker = attributeMaker; 
+    }
+
+    /**
+       obsolete. Bounds are stored in Grid 
+     */
     public void setBounds(double bounds[]){
 
         initBounds(bounds);
@@ -162,6 +198,9 @@ public class GridMaker implements Operation, AttributeOperation {
         return grid;
     }
 
+    /**
+       perform the calculation of Grid voxel attributes 
+     */
     public void makeGrid(Grid grid){
 
         if (!boundsSet) {
@@ -176,12 +215,24 @@ public class GridMaker implements Operation, AttributeOperation {
             throw new ExecutionStoppedException();
         }
 
+        
         m_grid = (AttributeGrid)grid;
          
         m_nx = grid.getWidth();
         m_ny = grid.getHeight();
         m_nz = grid.getDepth();
-
+        
+        if(m_attributeMaker == null){
+            // no attibute maker given -> try to make one             
+            AttributeDesc attDesc = m_grid.getAttributeDesc();        
+            if(attDesc == null) {
+                // unknow grid 
+                m_attributeMaker = new AttributeMakerDensity((int)m_subvoxelResolution);
+            } else {
+                m_attributeMaker = attDesc.getAttributeMaker();
+            }
+        }
+        
         long t0 = time();
 
         makeTransform();
@@ -195,7 +246,9 @@ public class GridMaker implements Operation, AttributeOperation {
             ((Initializable)m_dataSource).initialize();
         }
 
-        //printf("data initialization %d ms\n", (time() - t0));
+        m_dataChannelsCount = m_dataSource.getChannelsCount();
+
+        if(DEBUG) printf("GridMaker data initialization %d ms\n", (time() - t0));
 
         if (m_threadCount == 0) {
             m_threadCount = Runtime.getRuntime().availableProcessors();
@@ -206,9 +259,12 @@ public class GridMaker implements Operation, AttributeOperation {
             makeGridMT();
         else 
             makeGridST();
-        //printf("grid rendering: %d ms\n", (time() - t0));
+        if(DEBUG) printf("GridMaker grid rendering: %d ms\n", (time() - t0));
     } 
 
+    /**
+       multi thread version of makeGrid()
+     */
     void makeGridMT(){
 
         SliceSet slices = new SliceSet(m_margin, m_grid.getHeight()-m_margin, m_slizeSize);
@@ -227,13 +283,16 @@ public class GridMaker implements Operation, AttributeOperation {
         
     }
 
+    /**
+       single thread version of makeGrid()
+     */
     void makeGridST(){
         
         Vec 
-            pntGrid = new Vec(3),
-            pntWorld = new Vec(3),            
-            pntData = new Vec(3),
-            dataValue = new Vec(3);
+            pntGrid = new Vec(POINT_DIMENSION),
+            pntWorld = new Vec(POINT_DIMENSION),            
+            pntData = new Vec(POINT_DIMENSION),
+            dataValue = new Vec(m_dataChannelsCount);
         if(DEBUG) printf("GridMaker.makeGridST(%d x %d x %d)\n", m_nx, m_ny, m_nz );
         int margin = m_margin; 
         int nx = m_nx, ny = m_ny, nz = m_nz;
@@ -266,20 +325,10 @@ public class GridMaker implements Operation, AttributeOperation {
                     res = m_dataSource.getDataValue(pntData, dataValue);
                     if(res != VecTransform.RESULT_OK)
                         continue;
-                    
-                    if(m_subvoxelResolution == 0) {
-                        // use grid state 
-                        if(dataValue.v[0] > 0.5){
-                            m_grid.setState(ix, iy, iz, Grid.INSIDE);
-                        }
-                    } else { 
-                        // use grid attribute
-                        long v = (long)(m_subvoxelResolution * dataValue.v[0] + 0.5);
-                        if(DEBUG && iy == 31 && v != 0 && debugCount-- > 0) printf("gm[%3d %3d %3d]: 0x%X\n",ix, iy, iz,v);
-                        if(v != 0){
-                            m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
-                        }
-                    }
+                    long vd = m_attributeMaker.makeAttribute(dataValue);
+                    if(vd != 0)
+                    m_grid.setData(ix, iy, iz, Grid.INSIDE, vd);
+
                 }
             }
 
@@ -291,15 +340,18 @@ public class GridMaker implements Operation, AttributeOperation {
     }
     
 
+    /**
+       processof of single slice of grid 
+     */
     class SliceMaker implements Runnable{
         
         SliceSet slices;
 
         Vec // storage for calculations 
-            pntGrid = new Vec(3),
-            pntWorld = new Vec(3),            
-            pntData = new Vec(3),
-            dataValue = new Vec(3);
+            pntGrid = new Vec(POINT_DIMENSION),
+            pntWorld = new Vec(POINT_DIMENSION),            
+            pntData = new Vec(POINT_DIMENSION),
+            dataValue = new Vec(m_dataChannelsCount);
 
         SliceMaker(SliceSet slices ){
 
@@ -358,19 +410,10 @@ public class GridMaker implements Operation, AttributeOperation {
 
                         if(res != VecTransform.RESULT_OK)
                             continue;
-                        
-                        if(m_subvoxelResolution == 0){                            
-                            // use grid state 
-                            if(dataValue.v[0] > 0.5){
-                                m_grid.setState(ix, iy, iz, Grid.INSIDE);
-                            }
-                        } else {
-                            //default: // use grid attribute
-                            long v = (long)(m_subvoxelResolution * dataValue.v[0] + 0.5);
-                            if(v != 0){
-                                m_grid.setData(ix, iy, iz, Grid.INSIDE, v);
-                            }
-                        }
+
+                        long vd = m_attributeMaker.makeAttribute(dataValue);
+                        if(vd != 0)
+                            m_grid.setData(ix, iy, iz, Grid.INSIDE, vd);
                     }
                 }
             }              

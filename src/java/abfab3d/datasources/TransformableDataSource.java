@@ -18,11 +18,17 @@ import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 
 /**
-   Base class for DataSources which want to be transformable
+   Base class for DataSources which want to be Transformable
+
+   @author Vladimir Bulatov
+
  */
 public abstract class TransformableDataSource implements DataSource, Initializable {
 
+    // transformation which is aplied to the data point before the calculation of data value 
     protected VecTransform m_transform; 
+    // count of data channels 
+    protected int m_channelsCount = 1;
 
     protected TransformableDataSource(){
     }
@@ -62,5 +68,12 @@ public abstract class TransformableDataSource implements DataSource, Initializab
         return RESULT_OK;
     }
     
+    /**
+       @override
+     * @noRefGuide
+     */
+    public int getChannelsCount(){
+        return m_channelsCount;
+    }
 
 }

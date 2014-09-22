@@ -15,12 +15,16 @@ package abfab3d.grid;
 
 import java.util.Vector;
 
+import abfab3d.util.Vec;
+
 /**
  * A description of a grid attribute
  *
  * @author Vladimir Bulatov
  */
 public class AttributeDesc  {
+
+    AttributeMaker m_attributeMaker; 
 
     Vector<AttributeChannel> m_channels = new Vector<AttributeChannel>();
 
@@ -48,6 +52,29 @@ public class AttributeDesc  {
 
     }
 
+    public AttributeMaker getAttributeMaker(){
+
+        if(m_attributeMaker == null) 
+            m_attributeMaker = new DefaultAttributeMaker(this);
+
+        return m_attributeMaker;
+
+    }
+
+    public static class DefaultAttributeMaker implements AttributeMaker {
+        int resolution[];
+        public DefaultAttributeMaker(AttributeDesc attDesc){
+            resolution = new int[attDesc.size()];
+            for(int i = 0; i < resolution.length;i++){
+                //TODO 
+            }
+        }
+        
+        public long makeAttribute(Vec v){
+            //TODO 
+            return 0;
+        }        
+    }
 
 }
 

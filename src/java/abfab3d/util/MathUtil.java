@@ -999,10 +999,18 @@ public class MathUtil {
      */
     public static final long getBitMask(int bitCount){
         
+        if(bitCount < 1) 
+            return 0;
+        if(bitCount >= 64)
+            return 0xFFFFFFFFL;
+        return ((1L << bitCount)-1);
+        /*
         long mask = 0;
         for(int i = 0; i < bitCount; i++){
             mask |= (1L << i);
         }
-        return mask;
+
+        return ((1L << bitCount)-1);
+        */
     }
 }
