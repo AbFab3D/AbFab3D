@@ -210,7 +210,7 @@ public class GridMaker implements Operation, AttributeOperation {
         }
         
         voxelSize = grid.getVoxelSize() * voxelScale;
-        printf("gridMaker voxelSize: %7.3f mm\n", voxelSize/Units.MM);
+        if(DEBUG)printf("gridMaker voxelSize: %7.3f mm\n", voxelSize/Units.MM);
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();
         }

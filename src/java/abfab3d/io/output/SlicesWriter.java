@@ -607,7 +607,11 @@ public class SlicesWriter {
     }
     
     /**
+       linear interpolation between 2 points of linear function
+       linear function:P(v0) = p0, P(v1) = p1. 
        
+       @return value P(v) 
+      
      */
     static Point2D lerp(Point2D p0, Point2D p1, double v0, double v1, double v){
 

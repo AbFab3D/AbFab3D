@@ -19,6 +19,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import java.util.Random;
+import javax.vecmath.Matrix3d;
 
 import static java.lang.Math.abs;
 
@@ -37,6 +38,102 @@ public class TestMathUtil extends TestCase {
     public static Test suite() {
         return new TestSuite(TestMathUtil.class);
     }
+
+    public void testInversion3() {
+
+        printf("testInversion3\n");
+
+        //double m[] = new double[]{1,0,0,0,2,0,0,0,3};
+        double m[] = new double[]{1,2,3,4,5,6,7,8,10};
+        double n[] = MathUtil.copyMatrix3(m, new double[9]); 
+        
+        if(MathUtil.invertMatrix3(m) == 0)
+            throw new RuntimeException(fmt("non invertible matrix:(%7.5f %7.5f %7.5f;%7.5f %7.5f %7.5f; %7.5f, %7.5f, %7.5f)",
+                                           m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8] ));
+        double r[] = new double[9];
+        MathUtil.multMM3(m,n,r);
+        printf("n:\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n",n[0],n[1],n[2],n[3],n[4],n[5],n[6],n[7],n[8]);
+        printf("m:\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n",m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8]);
+        printf("n*m:\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n",r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8]);
+        double dd = MathUtil.maxDistance(r, MathUtil.getUnitMatrix3(null));
+        printf("max distance from unit maxtix: %9.5g\n",dd );                                       
+               assertTrue(fmt("failed invertMatrix maxDIstance: %9.5g", dd), dd < EPS );
+                
+    }
+
+    public void testInversion3a() {
+
+        printf("testInversion3a\n");
+
+        double m[] = new double[9];
+        double n[] = new double[9];
+        double r[] = new double[9];
+
+        Random rnd = new Random(101);
+        int N = 10000000;
+        long t0 = time();
+        double maxDist = 0;
+        for(int t = 0; t < N; t++){
+            for(int k = 0; k < 9; k++){
+                m[k] = rnd.nextDouble();
+            }
+            MathUtil.copyMatrix3(m, n);         
+            if(MathUtil.invertMatrix3(m) == 0){
+                printf("uninvertible\n");                                                   
+            } else {
+                MathUtil.multMM3(m,n,r);
+                double dd = MathUtil.maxDistance(r, MathUtil.getUnitMatrix3(null));
+                if(dd > maxDist) 
+                    maxDist = dd;
+            }
+        }                
+        printf("count: %d time: %d ms max error: %9.5g\n",N, (time() - t0),maxDist);                                       
+    }
+
+    
+    public void testInversion3b() {
+
+        printf("testInversion3a\n");
+
+        double m[] = new double[9];
+        double n[] = new double[9];
+        double r[] = new double[9];
+
+        double result[] = new double[9];
+        int row_perm[] = new int[3];
+        double row_scale[] = new double[3];
+        double tmp [] = new double[9];
+        Matrix3d mm = new Matrix3d();
+
+
+        Random rnd = new Random(101);
+        int N = 10000000;
+        long t0 = time();
+        double maxDist = 0;
+        for(int t = 0; t < N; t++){
+            for(int k = 0; k < 9; k++){
+                m[k] = rnd.nextDouble();
+            }
+            MathUtil.copyMatrix3(m, mm);
+            MathUtil.copyMatrix3(m, n);
+
+            MathUtil.invertGeneral(mm, result, row_perm, row_scale, tmp);
+
+            MathUtil.copyMatrix3(mm, m);
+                    
+            MathUtil.multMM3(m,n,r);
+
+            //printf("n:\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n",n[0],n[1],n[2],n[3],n[4],n[5],n[6],n[7],n[8]);
+            //printf("m:\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n",m[0],m[1],m[2],m[3],m[4],m[5],m[6],m[7],m[8]);
+            //printf("n*m:\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n(%7.5f, %7.5f, %7.5f)\n",r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8]);
+
+            double dd = MathUtil.maxDistance(r, MathUtil.getUnitMatrix3(null));
+            if(dd > maxDist) 
+                maxDist = dd;        
+        }                
+        printf("count: %d time: %d ms max error: %9.5g\n",N, (time() - t0),maxDist);                                       
+    }
+
 
     public void testSolveLinear3() {
 
@@ -57,7 +154,6 @@ public class TestMathUtil extends TestCase {
     }
 
     public void testSolveLinear3a() {
-
         
         printf("testSolveLinear3a()\n");
 
@@ -175,8 +271,11 @@ public class TestMathUtil extends TestCase {
         
     }
 
+
     public static void main(String arg[]){
 
+        new TestMathUtil().testInversion3b();
+        //new TestMathUtil().testInversion3a();
         //new TestMathUtil().testSolveLinear3();
         //new TestMathUtil().testSolveLinear3a();
         //new TestMathUtil().testGetBestPlane();
