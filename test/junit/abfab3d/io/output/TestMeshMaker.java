@@ -19,7 +19,9 @@ import javax.vecmath.Vector3d;
 
 
 // external imports
+import junit.framework.Test;
 import junit.framework.TestCase;
+import junit.framework.TestSuite;
 
 
 // Internal Imports
@@ -42,7 +44,7 @@ import abfab3d.util.Vec;
 import abfab3d.grid.op.GridMaker;
 
 import abfab3d.datasources.TransformableDataSource;
-import abfab3d.datasources.DataChannelMuxer;
+import abfab3d.datasources.DataChannelMixer;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Sphere;
@@ -87,8 +89,21 @@ import static java.lang.Math.PI;
  *
  * @version
  */
-public class TestMeshMaker {
+public class TestMeshMaker extends TestCase {
 
+    /**
+     * Creates a test suite consisting of all the methods that start with "test".
+     */
+    public static Test suite() {
+        return new TestSuite(TestMeshMaker.class);
+    }
+
+    /**
+       to make test happy 
+     */
+    public void testNothing(){
+        
+    }
 
     public static void makeColorSphere() throws Exception {
         
@@ -126,7 +141,7 @@ public class TestMeshMaker {
 
         DataSource color1 = new HalfGyroid(0.3*s);
 
-        DataChannelMuxer mux = new DataChannelMuxer(density, color1);
+        DataChannelMixer mux = new DataChannelMixer(density, color1);
 
         AttributeMaker attdens = new AttributeMakerDensity(subvoxelResolution);
         AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});

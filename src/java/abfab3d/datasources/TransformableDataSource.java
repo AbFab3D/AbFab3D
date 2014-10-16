@@ -29,6 +29,9 @@ public abstract class TransformableDataSource implements DataSource, Initializab
     protected VecTransform m_transform; 
     // count of data channels 
     protected int m_channelsCount = 1;
+    // material used for this shape 
+    // he maerial is potential multichannel data source and it adds channels to the current data source
+    protected DataSource m_material; 
 
     protected TransformableDataSource(){
     }
@@ -41,15 +44,27 @@ public abstract class TransformableDataSource implements DataSource, Initializab
         m_transform = transform; 
     }
 
+    public void setMaterial(DataSource material){
+        m_material = material; 
+    }
+    
     /**
      * @noRefGuide
      */
     public int initialize(){
+
+        int res = RESULT_OK;
+
         if(m_transform != null && m_transform instanceof Initializable){
-            return ((Initializable)m_transform).initialize();
+            res = ((Initializable)m_transform).initialize();
         }
 
-        return RESULT_OK;
+        if(m_material != null &&  m_material instanceof Initializable){
+            res = res | ((Initializable)m_material).initialize();
+        }
+
+        m_channelsCount = 1 + m_material.getChannelsCount();
+        return res;
     }
 
     /**
@@ -69,11 +84,18 @@ public abstract class TransformableDataSource implements DataSource, Initializab
     }
     
     /**
-       @override
+     *  @return number of channes this data source generates 
+     *  
      * @noRefGuide
      */
     public int getChannelsCount(){
         return m_channelsCount;
+    }
+
+    int getMaterialData(Vec pnt, Vec data){
+
+        //TODO 
+        return RESULT_OK;
     }
 
 }

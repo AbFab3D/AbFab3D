@@ -44,13 +44,13 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   Data Multiplexer combines several channels of data channels into single multidemensional data sourec
+   Data multiplexer combines several channels of data channels into single multidemensional data source
    
    @author Vladimir Bulatov
 
  */
 
-public class DataChannelMuxer extends TransformableDataSource {
+public class DataChannelMixer extends TransformableDataSource {
         
     
     protected Vector<DataSource> m_vchannels = new Vector<DataSource>();
@@ -62,22 +62,22 @@ public class DataChannelMuxer extends TransformableDataSource {
     /**
      *
      */
-    public DataChannelMuxer(){
+    public DataChannelMixer(){
 
     }
 
-    public DataChannelMuxer(DataSource channel1, DataSource channel2){
+    public DataChannelMixer(DataSource channel1, DataSource channel2){
         m_vchannels.add(channel1);
         m_vchannels.add(channel2);
     }
 
-    public DataChannelMuxer(DataSource channel1, DataSource channel2,DataSource channel3){
+    public DataChannelMixer(DataSource channel1, DataSource channel2,DataSource channel3){
         m_vchannels.add(channel1);
         m_vchannels.add(channel2);
         m_vchannels.add(channel3);
     }
 
-    public DataChannelMuxer(DataSource channel1, DataSource channel2,DataSource channel3,DataSource channel4){
+    public DataChannelMixer(DataSource channel1, DataSource channel2,DataSource channel3,DataSource channel4){
         m_vchannels.add(channel1);
         m_vchannels.add(channel2);
         m_vchannels.add(channel3);
@@ -130,7 +130,8 @@ public class DataChannelMuxer extends TransformableDataSource {
     public int getDataValue(Vec pnt, Vec data) {
         
         super.transform(pnt);
-        
+
+        // TODO - reduce garbage collection 
         Vec channelData = new Vec(m_count);
 
         for(int i = 0, channel = 0; i < m_count; i++){

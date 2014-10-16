@@ -48,7 +48,8 @@ import abfab3d.util.ImageGray16;
 import abfab3d.util.DefaultLongConverter;
 import abfab3d.util.LongConverter;
 
-import abfab3d.datasources.DataChannelMuxer;
+import abfab3d.datasources.DataChannelMixer;
+import abfab3d.datasources.SolidColor;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
@@ -100,7 +101,7 @@ public class TestSlicesWriter extends TestCase {
         return new TestSuite(TestSlicesWriter.class);
     }
 
-    public void testDumb(){
+    public void testNothing(){
         //this test here is to make Test happy. 
     }
 
@@ -543,7 +544,7 @@ public class TestSlicesWriter extends TestCase {
         Sphere sphere = new Sphere(0, 0, 0,ballRadius);
         Torus torus = new Torus(0.34*CM, 0.15*CM);
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);
-        DataChannelMuxer mux = new DataChannelMuxer(sphere, torus, gyroid);
+        DataChannelMixer mux = new DataChannelMixer(sphere, torus, gyroid);
         
         GridMaker gm = new GridMaker();  
 
@@ -552,9 +553,6 @@ public class TestSlicesWriter extends TestCase {
 
         //gm.setSource(sphere);
         // gm.setTransform(rotation);
-
-        gm.setSubvoxelResolution(subvoxelResolution);
-        gm.setVoxelScale(surfareThickness);
         
         AttributeGrid grid = new ArrayAttributeGridLong(nx, ny, nz, voxelSize, voxelSize);
         grid.setGridBounds(bounds);
@@ -573,9 +571,56 @@ public class TestSlicesWriter extends TestCase {
     }
 
 
-    void mutichannelTest() throws IOException{
+    void colorTest2() throws IOException{
         
-        printf("mutichannelTest()\n");
+        printf("colorTest()\n");
+    
+        double voxelSize = 0.1*MM;
+        double margin = voxelSize;
+
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double s = 5*MM;
+
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+
+
+        int ng[] = MathUtil.getGridSize(bounds, voxelSize);
+
+
+        double ballRadius = s;
+        
+        printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
+
+        Sphere sphere = new Sphere(0, 0, 0,ballRadius);
+        sphere.setMaterial(new SolidColor(1.,0.,0.));
+
+        GridMaker gm = new GridMaker();  
+
+        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
+        gm.setSource(sphere);
+        
+        AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);        
+       
+        printf("gm.makeGrid() done\n");
+        AttributeDesc attDesc = new AttributeDesc();
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
+        grid.setAttributeDesc(attDesc);
+        new SVXWriter().write(grid, "/tmp/slices/sphere_box.svx");        
+    }
+
+
+    void multichannelTest() throws IOException{
+        
+        printf("multichannelTest()\n");
     
         double voxelSize = 0.1*MM;
         double margin = 1*voxelSize;
@@ -665,7 +710,8 @@ public class TestSlicesWriter extends TestCase {
 
     public static void main(String[] args) throws IOException {
         //new TestSlicesWriter().multichannelTest();
-        new TestSlicesWriter().colorTest();
+        //new TestSlicesWriter().colorTest();
+        new TestSlicesWriter().colorTest2();
     }
     
 

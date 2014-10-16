@@ -51,7 +51,7 @@ import abfab3d.util.ImageGray16;
 import abfab3d.util.DefaultLongConverter;
 import abfab3d.util.LongConverter;
 
-import abfab3d.datasources.DataChannelMuxer;
+import abfab3d.datasources.DataChannelMixer;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
@@ -181,7 +181,7 @@ public class TestTextureRenderer extends TestCase {
         Sphere sphere3 = new Sphere(-0.1*sx, 0, 0, 0.35*sx);
         //VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.3*sx, 0.1*sx);
         //Torus torus = new Torus(0.2*sx, 0.1*sx);
-        DataChannelMuxer mux = new DataChannelMuxer(sphere1, sphere2, sphere3);
+        DataChannelMixer mux = new DataChannelMixer(sphere1, sphere2, sphere3);
         
         GridMaker gm = new GridMaker();  
         gm.setBounds(dataBounds);
