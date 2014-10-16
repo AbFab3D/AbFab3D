@@ -19,6 +19,9 @@ import javax.vecmath.Vector4d;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
+import abfab3d.grid.DensityMaker;
+import abfab3d.grid.DensityMakerSubvoxel;
+
 import abfab3d.util.TriangleCollector;
 
 import static java.lang.Math.abs;
@@ -119,11 +122,14 @@ public class IsosurfaceMaker {
        
      */
     public void makeIsosurface(SliceCalculator scalculator, TriangleCollector tcollector){
-        double xmin = m_bounds[0];        double xmax = m_bounds[1];
-        double ymin = m_bounds[2];
-        double ymax = m_bounds[3];
-        double zmin = m_bounds[4];
-        double zmax = m_bounds[5];
+
+        double 
+            xmin = m_bounds[0],
+            xmax = m_bounds[1],
+            ymin = m_bounds[2],
+            ymax = m_bounds[3],
+            zmin = m_bounds[4],
+            zmax = m_bounds[5];
 
         int nx1 = m_nx-1;
         int ny1 = m_ny-1;
@@ -1106,8 +1112,10 @@ public class IsosurfaceMaker {
         //  inside voxels have attribute value gridMaxAttributeValue an 
         //  outside voxles have attribute value 0  
         //  and linear interpolation on the boundary 
-        int gridMaxAttributeValue = 0;
-        double dGridMaxAttributeValue = 1.;
+        //int gridMaxAttributeValue = 0;
+        //double dGridMaxAttributeValue = 1.;
+        DensityMaker m_densityMaker = new DensityMakerSubvoxel(1);
+
         boolean containsIsosurface = false;
         /**
            
@@ -1133,12 +1141,23 @@ public class IsosurfaceMaker {
             gzmin = bounds[4];
 
         }
-
+        
+        /**
+           @obsolete            
+         */
         public void setGridMaxAttributeValue(int value){
 
-            gridMaxAttributeValue = value;
-            dGridMaxAttributeValue = value;
+            m_densityMaker = new DensityMakerSubvoxel(value);
+
+            //gridMaxAttributeValue = value;
+            //dGridMaxAttributeValue = value;
             
+        }
+
+        public void setDensityMaker(DensityMaker densityMaker){
+
+            m_densityMaker = densityMaker;
+
         }
         /**
            
@@ -1378,6 +1397,14 @@ public class IsosurfaceMaker {
             if(gx <  0 || gy < 0 || gz < 0 || gx >= gnx || gy >= gny || gz >= gnz){
                 return 1.; // outside
             } else {
+                
+                // normalize output to interval (-1, 1) 
+                // -1 - inside 
+                // 1 - outside
+                
+                return 1-2*m_densityMaker.makeDensity(agrid.getAttribute(gx,gy,gz));
+
+                /*
                 switch(gridMaxAttributeValue){
                 case 0: 
                     {
@@ -1397,7 +1424,8 @@ public class IsosurfaceMaker {
                         return 1 - (att << 1)/dGridMaxAttributeValue;
                     }
                     
-                }            
+                } 
+                */
             }
         }
     } // class BlockSmoothingSlices

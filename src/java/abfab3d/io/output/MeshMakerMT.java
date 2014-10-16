@@ -11,15 +11,6 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
-import abfab3d.grid.Grid;
-import abfab3d.mesh.EdgeTester;
-import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.MeshDecimator;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
-import abfab3d.util.AbFab3DGlobals;
-import abfab3d.util.MathUtil;
-import abfab3d.util.TriangleCollector;
-
 import java.util.Comparator;
 import java.util.Arrays;
 
@@ -30,15 +21,31 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
+import abfab3d.grid.Grid;
+import abfab3d.grid.DensityMaker;
+import abfab3d.grid.DensityMakerSubvoxel;
+
+import abfab3d.mesh.EdgeTester;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.MeshDecimator;
+import abfab3d.mesh.WingedEdgeTriangleMesh;
+
+import abfab3d.util.AbFab3DGlobals;
+import abfab3d.util.MathUtil;
+import abfab3d.util.TriangleCollector;
+
+
+
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 import static java.lang.System.nanoTime;
 
 /**
- * takes grid extract isosurface and decimates mesh in one operation.
+ * MeshMakerMT takes grid, extract isosurface and decimates mesh in one operation.
  * <p/>
- * Uses multihreaded pipeline by convertig grid into array of small blocks, which fit into processor cache
+ * Uses multihreaded pipeline by converting grid into array of small blocks, which fit into processor cache
  *
  * @author Vladimir Bulatov
  */
@@ -68,7 +75,11 @@ public class MeshMakerMT {
     protected int m_interpolationAlgorithm = IsosurfaceMaker.INTERPOLATION_LINEAR;
 
     protected double m_smoothingWidth = 1.;
-    protected int m_gridMaxAttributeValue = 0;
+    
+    // converter from grid attribute into density 
+    protected DensityMaker m_densityMaker = new DensityMakerSubvoxel(255); 
+
+
     protected int m_maxDecimationCount = 7;
 
     // Maximum allowed triangles.  Will relax maxDecimationError to achieve
@@ -95,9 +106,20 @@ public class MeshMakerMT {
         this.m_maxTriangles = tris;
     }
 
-    public void setMaxAttributeValue(int gridMaxAttributeValue) {
+    /**
+       @deprecated, replaced with setDensityMaker()
+     */
+    public void setMaxAttributeValue(int value) {
+        
+        m_densityMaker = new DensityMakerSubvoxel(value);
+    }
 
-        m_gridMaxAttributeValue = gridMaxAttributeValue;
+    /**
+       sets the instance of DensityMaker used for conversion grid attribute into density value
+     */
+    public void setDensityMaker(DensityMaker densityMaker) {
+
+        m_densityMaker = densityMaker;
 
     }
 
@@ -179,7 +201,7 @@ public class MeshMakerMT {
         }
 
         for (int i = 0; i < m_threadCount; i++) {
-            threads[i] = new BlockProcessor(grid, blocks, smoothKernel, m_gridMaxAttributeValue);
+            threads[i] = new BlockProcessor(grid, blocks, smoothKernel);
             if (m_edgeTester != null) {
                 threads[i].setEdgeTester((EdgeTester) (m_edgeTester.clone()));
             }
@@ -228,7 +250,7 @@ public class MeshMakerMT {
         }
 
         for (int i = 0; i < m_threadCount; i++) {
-            threads[i] = new BlockProcessor(grid, blocks, smoothKernel, m_gridMaxAttributeValue);
+            threads[i] = new BlockProcessor(grid, blocks, smoothKernel);
             if (m_edgeTester != null) {
                 threads[i].setEdgeTester((EdgeTester) (m_edgeTester.clone()));
             }
@@ -783,14 +805,11 @@ public class MeshMakerMT {
 
         BlockProcessor(Grid grid,
                        GridBlockSet blocks,
-                       //double maxDecimationError,
-                       double smoothKernel[],
-                       int gridMaxAttributeValue
+                       double smoothKernel[]
         ) {
 
             this.grid = grid;
             this.blocks = blocks;
-            //this.maxDecimationError = maxDecimationError;
             this.gridBounds = new double[6];
             grid.getGridBounds(gridBounds);
 
@@ -805,7 +824,7 @@ public class MeshMakerMT {
             gdz = (gridBounds[5] - gridBounds[4]) / gnz;
 
             slicer = new IsosurfaceMaker.BlockSmoothingSlices(grid);
-            slicer.setGridMaxAttributeValue(gridMaxAttributeValue);
+            slicer.setDensityMaker(m_densityMaker);
 
             this.smoothKernel = smoothKernel;
             

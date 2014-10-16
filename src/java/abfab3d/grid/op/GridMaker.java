@@ -137,8 +137,8 @@ public class GridMaker implements Operation, AttributeOperation {
 
     /**
        sets scaling value for attributes
-       obsolete 
-       setAttributeMaker(AttributeMaker attributeMaker) should be used instead 
+       @deprecated 
+       is replaced by setAttributeMaker(AttributeMaker attributeMaker) should be used instead 
      */
     public void setMaxAttributeValue(long value){
 
@@ -148,7 +148,7 @@ public class GridMaker implements Operation, AttributeOperation {
 
     /**
        sets subvoxel resolution used for antialiased grids 
-       obsolete 
+       @deprecated 
        setAttributeMaker(AttributeMaker attributeMaker) should be used instead 
      */
     public void setSubvoxelResolution(long value){
