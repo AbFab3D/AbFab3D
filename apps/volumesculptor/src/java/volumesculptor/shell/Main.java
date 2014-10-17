@@ -933,6 +933,10 @@ public class Main {
         System.out.println("Func Args: " + java.util.Arrays.toString(args));
 
         System.out.println("Main is: " + main.getClass());
+
+        Object result = main.call(cx, scope, scope, new Object[] {args});
+        /*
+           // TODO: this breaks coin.vss example.  Example is wrong but need to coordinate change with portal release
         NativeObject argsMap = new NativeObject();
         
         for(int i = 0; i < args.length; i++) {
@@ -950,6 +954,7 @@ public class Main {
         
         Object[] argsForMain = new Object[] {argForMain};
         Object result = main.call(cx, scope, scope, argsForMain);
+        */
 
         Grid grid = null;
         if(result == null)
