@@ -17,12 +17,14 @@ import abfab3d.mesh.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.AbFab3DGlobals;
 import app.common.ShellResults;
-import app.common.X3DViewer;
+import com.google.gson.Gson;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.commonjs.module.ModuleScope;
 import org.mozilla.javascript.commonjs.module.Require;
 import org.mozilla.javascript.tools.SourceReader;
 import org.mozilla.javascript.tools.ToolErrorReporter;
+import org.mozilla.javascript.json.*;
+
 
 import java.io.*;
 import java.lang.ref.ReferenceQueue;
@@ -56,6 +58,7 @@ public class Main {
     static private final int EXITCODE_FILE_NOT_FOUND = 4;
     static boolean processStdin = true;
     static List<String> fileList = new ArrayList<String>();
+    static Map<String,Object> namedParams = new HashMap<String, Object>();
     static List<String> modulePath;
     static String mainModule;
     static boolean sandboxed = false;
@@ -594,6 +597,15 @@ public class Main {
             } else if (arg.equals("-debug")) {
                 shellContextFactory.setGeneratingDebug(true);
                 continue;
+            } else if (arg.equals("-namedParams")) {
+                if (++i == args.length) {
+                    usageError = arg;
+                    break goodUsage;
+                }
+                if (args[i].equals("${namedParams}")) continue;
+                Gson gson = new Gson();
+                namedParams = gson.fromJson(args[i], HashMap.class);
+                continue;
             } else if (arg.equals("-?") ||
                     arg.equals("-help")) {
                 // print usage message
@@ -921,7 +933,28 @@ public class Main {
         System.out.println("Func Args: " + java.util.Arrays.toString(args));
 
         System.out.println("Main is: " + main.getClass());
+
         Object result = main.call(cx, scope, scope, new Object[] {args});
+        /*
+           // TODO: this breaks coin.vss example.  Example is wrong but need to coordinate change with portal release
+        NativeObject argsMap = new NativeObject();
+        
+        for(int i = 0; i < args.length; i++) {
+            argsMap.defineProperty(Integer.toString(i), args[i].toString(), NativeObject.READONLY);
+        }
+        
+        for(Map.Entry<String, Object> entry : namedParams.entrySet()){
+            argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), NativeObject.READONLY);
+        }
+        
+        Object argForMain = argsMap;
+        try {
+            argForMain = new JsonParser(cx,scope).parseValue(new Gson().toJson(argsMap));
+        } catch (Exception e) {e.printStackTrace();}
+        
+        Object[] argsForMain = new Object[] {argForMain};
+        Object result = main.call(cx, scope, scope, argsForMain);
+        */
 
         Grid grid = null;
         if(result == null)
@@ -1068,23 +1101,23 @@ public class Main {
         try {
             String outputType = ShapeJSGlobal.getOutputType();
             
-            if(outputType.equals("x3d")){
+            if(outputType.equals("x3d") || outputType.equals("x3dv") || outputType.equals("x3db")){
 
                 String path = ShapeJSGlobal.getOutputFolder();
-                String name = "save.x3d";
+                String name = ShapeJSGlobal.getOutputFolder() + "/" + ShapeJSGlobal.getInputFileName() + "." + outputType;
                 String out = path + "/" + name;
                 double[] bounds_min = new double[3];
                 double[] bounds_max = new double[3];
-                
+
                 grid.getGridBounds(bounds_min,bounds_max);
                 double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
                 max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
-                
+
                 double z = 2 * max_axis / Math.tan(Math.PI / 4);
                 float[] pos = new float[] {0,0,(float) z};
-                
+
                 GridSaver.writeMesh(mesh, out);
-                X3DViewer.viewX3DOM(name, pos);
+                //X3DViewer.viewX3DOM(name, pos);
             } else if(outputType.equals("stl")){
                 STLWriter stl = new STLWriter(ShapeJSGlobal.getOutputFolder() + "/" + ShapeJSGlobal.getInputFileName() + ".stl");
                 mesh.getTriangles(stl);
@@ -1100,7 +1133,7 @@ public class Main {
      * Save used to save during web usage
      *
      * @param grid
-     * @return
+     * @return                                         save(
      */
     private static TriangleMesh save(Grid grid, Scriptable thisObj) {
 
