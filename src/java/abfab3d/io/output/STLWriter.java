@@ -49,6 +49,7 @@ public class STLWriter implements TriangleCollector {
     static final double SCALE = 1000; // to convert to MM standard for STL 
 
     static final byte STLHeader[] = new byte[STL_HEADER_LENGTH];    
+    private boolean triCountWritten = false;
 
     Vector3d defaultNormal = new Vector3d(0.,0.,0.);
     OutputStream m_output; 
@@ -132,7 +133,7 @@ public class STLWriter implements TriangleCollector {
        constructor to write to specified file
        
      */
-    public STLWriter(String filePath) throws IOException {
+    public STLWriter(String filePath, int triangleCount) throws IOException {
         
 
         m_path = filePath;
@@ -140,10 +141,43 @@ public class STLWriter implements TriangleCollector {
         isOpened = true;
         
         m_output = new BufferedOutputStream(m_fileStream);
-        
-        m_output.write(STLHeader); 
-        writeInt4(m_output, 0);        
-        
+
+        m_output.write(STLHeader);
+
+        writeInt4(m_output, triangleCount);
+        triCountWritten = true;
+    }
+
+    /**
+
+     constructor to write to specified file
+
+     */
+    public STLWriter(OutputStream os, int triangleCount) throws IOException {
+
+
+        isOpened = true;
+        m_output = os;
+
+        m_output.write(STLHeader);
+
+        writeInt4(m_output, triangleCount);
+        triCountWritten = true;
+    }
+
+    public STLWriter(String filePath) throws IOException {
+
+
+        m_path = filePath;
+        m_fileStream = new FileOutputStream(m_path);
+        isOpened = true;
+
+        m_output = new BufferedOutputStream(m_fileStream);
+
+        m_output.write(STLHeader);
+        triCountWritten = false;
+
+        writeInt4(m_output, 0);
     }
 
     public void finalize(){
@@ -163,17 +197,18 @@ public class STLWriter implements TriangleCollector {
     public void close() throws IOException{
 
         isOpened = false;
-        m_output.flush();
-        m_fileStream.flush();
-        m_output.close();
-        m_fileStream.close();
+        if (m_output != null) m_output.flush();
+        if (m_fileStream != null) m_fileStream.flush();
+        if (m_output != null) m_output.close();
+        if (m_fileStream != null) m_fileStream.close();
 
-        // write tricount after STL header 
-        RandomAccessFile raf = new RandomAccessFile(m_path,"rw");
-        raf.seek(STL_HEADER_LENGTH);
-        raf.write(getBytes(m_triCount));
-        raf.close();
-
+        if (!triCountWritten) {
+            // write tricount after STL header
+            RandomAccessFile raf = new RandomAccessFile(m_path, "rw");
+            raf.seek(STL_HEADER_LENGTH);
+            raf.write(getBytes(m_triCount));
+            raf.close();
+        }
     }
 
     /**

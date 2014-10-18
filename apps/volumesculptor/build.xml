@@ -200,9 +200,11 @@
             <arg value="-allowWrite" />
             <arg value="true" />
             <arg value="-outputType" />
-            <arg value="stl" />
+            <arg value="svx" />
             <arg value="-outputFolder"/>
             <arg value="." />
+            <arg value="-namedParams" />
+            <arg value="${namedParams}" />
             <arg value="${script}" />
             <arg value="${arg0}" />
             <arg value="${arg1}" />

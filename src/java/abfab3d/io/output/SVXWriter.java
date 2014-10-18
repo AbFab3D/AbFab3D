@@ -15,6 +15,7 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
+import org.apache.commons.io.IOUtils;
 
 
 import java.io.*;
@@ -37,14 +38,33 @@ public class SVXWriter {
     public void write(AttributeGrid grid, String file) {
         FileOutputStream fos = null;
         BufferedOutputStream bos = null;
+
+        try {
+            fos = new FileOutputStream(file);
+            bos = new BufferedOutputStream(fos);
+            write(grid,bos);
+        } catch(IOException ioe) {
+
+            ioe.printStackTrace();
+            
+        } finally {
+            IOUtils.closeQuietly(bos);
+            IOUtils.closeQuietly(fos);
+        }
+
+    }
+
+    /**
+     * Writes a grid out to an svx file
+     * @param grid
+     * @param os
+     */
+    public void write(AttributeGrid grid, OutputStream os) {
         ZipOutputStream zos = null;
 
         try {
 
-            fos = new FileOutputStream(file);
-            bos = new BufferedOutputStream(fos);
-            zos = new ZipOutputStream(bos);
-
+            zos = new ZipOutputStream(os);
 
             ZipEntry zentry = new ZipEntry("manifest.xml");
             zos.putNextEntry(zentry);
@@ -56,23 +76,17 @@ public class SVXWriter {
             AttributeDesc attDesc = grid.getAttributeDesc();
 
             for(int i = 0; i < attDesc.size(); i++){
-                
-                AttributeChannel channel = attDesc.getChannel(i);                
-                String channelPattern = channel.getName() + "/" + "slice%04d.png";                
-                sw.writeSlices(grid,zos,channelPattern,0,0,grid.getHeight(), orientation, channel.getBitCount(), channel);                
+
+                AttributeChannel channel = attDesc.getChannel(i);
+                String channelPattern = channel.getName() + "/" + "slice%04d.png";
+                sw.writeSlices(grid,zos,channelPattern,0,0,grid.getHeight(), orientation, channel.getBitCount(), channel);
             }
         } catch(IOException ioe) {
 
             ioe.printStackTrace();
-            
+
         } finally {
-            try {
-                if (zos != null) zos.close();
-                if (bos != null) bos.close();
-                if (fos != null) fos.close();
-            } catch(Exception e) {
-                // ignore
-            }
+            IOUtils.closeQuietly(zos);
         }
 
     }

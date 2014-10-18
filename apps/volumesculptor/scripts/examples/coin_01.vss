@@ -19,7 +19,8 @@ function main(args) {
   var union = new Union();
   var x = 20*MM;
   var y = 20*MM;
-  var z = layerHeight * (args.length - 1);
+//  var z = layerHeight * (args.length - 1);
+  var z = layerHeight * 3;
   var dest = createGrid(-x,x,-y,y,-z,z,voxelSize);
   
   var top = args[1];

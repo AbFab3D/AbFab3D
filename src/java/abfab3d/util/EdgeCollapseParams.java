@@ -9,7 +9,7 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.mesh;
+package abfab3d.util;
 
 //import java.util.Set;
 //import java.util.HashSet;

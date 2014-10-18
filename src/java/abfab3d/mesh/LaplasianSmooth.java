@@ -12,10 +12,9 @@
 package abfab3d.mesh;
 
 import abfab3d.util.StructMixedData;
+import abfab3d.util.TriangleMesh;
 
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.fmt; 
-import static java.lang.System.currentTimeMillis; 
 
 /**
    performs smoothing operation on WingedEdgeTriangeMesh

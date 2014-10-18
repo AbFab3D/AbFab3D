@@ -16,9 +16,7 @@ import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.web3d.util.spatial.SliceRegion;
 import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;

@@ -14,8 +14,10 @@ package volume_sculptor;
 
 // External Imports
 
+import abfab3d.grid.Model;
+import abfab3d.grid.ModelWriter;
 import abfab3d.mesh.AreaCalculator;
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.util.TriangleMesh;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -53,7 +55,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -85,7 +89,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -118,7 +124,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -148,7 +156,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -178,7 +188,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -208,7 +220,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -238,7 +252,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -267,7 +283,9 @@ public class TestVolumeSculptor extends TestCase {
             String[] args = new String[] {f.toString()};
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -314,7 +332,9 @@ public class TestVolumeSculptor extends TestCase {
             FileUtils.write(f,script);
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -362,7 +382,9 @@ public class TestVolumeSculptor extends TestCase {
             FileUtils.write(f,script1);
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -379,7 +401,9 @@ public class TestVolumeSculptor extends TestCase {
             FileUtils.write(f,script2);
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -426,7 +450,9 @@ public class TestVolumeSculptor extends TestCase {
             FileUtils.write(f,script);
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter writer = model.getWriter();
+            TriangleMesh mesh = writer.getGeneratedMesh();
 
             assertNotNull("Mesh",mesh);
             assertTrue("Triangle Count", mesh.getFaceCount() > 0);
@@ -471,7 +497,11 @@ public class TestVolumeSculptor extends TestCase {
             FileUtils.write(f,script);
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            if (model != null) {
+                ModelWriter writer = model.getWriter();
+                TriangleMesh mesh = writer.getGeneratedMesh();
+            }
             String error = result.getErrors();
             System.out.println("Error String: " + error);
             assertTrue("Error String not empty",error.length() > 0);
@@ -508,7 +538,11 @@ public class TestVolumeSculptor extends TestCase {
             FileUtils.write(f,script);
 
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            if (model != null) {
+                ModelWriter writer = model.getWriter();
+                TriangleMesh mesh = writer.getGeneratedMesh();
+            }
             String error = result.getErrors();
             System.out.println("Error String: " + error);
             assertTrue("Error String not empty",error.length() > 0);

@@ -8,22 +8,21 @@ package volumesculptor.shell;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
-import abfab3d.io.output.GridSaver;
-import abfab3d.io.output.MeshMakerMT;
-import abfab3d.io.output.SlicesWriter;
-import abfab3d.io.output.STLWriter;
+import abfab3d.grid.Model;
+import abfab3d.grid.ModelWriter;
+import abfab3d.io.output.*;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.util.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.AbFab3DGlobals;
-import app.common.ShellResults;
 import com.google.gson.Gson;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.commonjs.module.ModuleScope;
 import org.mozilla.javascript.commonjs.module.Require;
 import org.mozilla.javascript.tools.SourceReader;
 import org.mozilla.javascript.tools.ToolErrorReporter;
-import org.mozilla.javascript.json.*;
 
 
 import java.io.*;
@@ -72,6 +71,7 @@ public class Main {
 
     /** Default imports to add to scripts */
     private static final ArrayList<String> scriptImports;
+    private static final ArrayList<String> classImports;
 
     /** Remap error messages to something readable */
     private static final HashMap<String,String> errorRemap;
@@ -87,12 +87,17 @@ public class Main {
 
         scriptImports = new ArrayList<String>();
 
-        //scriptImports.add("abfab3d.grid.op");
-        //scriptImports.add("abfab3d.grid");
         scriptImports.add("abfab3d.datasources");
         scriptImports.add("abfab3d.transforms");
         scriptImports.add("abfab3d.grid.op");
         scriptImports.add("javax.vecmath");
+
+        classImports = new ArrayList<String>();
+        classImports.add("abfab3d.grid.Model");
+
+        // Do not make abfab3d.io.output exposed as a package big security hole
+        classImports.add("abfab3d.io.output.SingleMaterialModelWriter");
+        classImports.add("abfab3d.io.output.VoxelModelWriter");
 
         errorRemap = new HashMap<String,String>();
         errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException","Execution time exceeded.");
@@ -112,9 +117,8 @@ public class Main {
         String[] args;
         Object[] script_args;
         String[] params;
-        private boolean show;
         String scriptText;
-        private TriangleMesh mesh;
+        private Model model;
         private Context cx;
 
         IProxy(int type) {
@@ -127,13 +131,17 @@ public class Main {
                 require = global.installRequire(cx, modulePath, sandboxed);
             }
             if (type == PROCESS_FILES) {
-                mesh = processFile(cx, args, script_args,show);
+                model = processFile(cx, args, script_args);
             } else if (type == EVAL_INLINE_SCRIPT) {
-                mesh = evalInlineScript(cx, scriptText, script_args, show);
+                model = evalInlineScript(cx, scriptText, script_args);
             } else {
                 throw Kit.codeBug();
             }
-            return null;
+
+            if (model == null) {
+                return null;
+            }
+            return model;
         }
 
         public void quit(Context cx, int exitCode) {
@@ -146,13 +154,13 @@ public class Main {
             throw Kit.codeBug();
         }
 
-        public TriangleMesh getMesh() {
-            return mesh;
+        public Model getModel() {
+            return model;
         }
 
         public void clear() {
             cx = null;
-            mesh = null;
+            model = null;
             script_args = null;
         }
     }
@@ -201,12 +209,55 @@ public class Main {
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = new String[0];
         iproxy.script_args = args;
-        iproxy.show = true;
 
         ErrorReporterWrapper errors = new ErrorReporterWrapper(errorReporter);
         shellContextFactory.setErrorReporter(errors);
 
         shellContextFactory.call(iproxy);
+
+        Model model = iproxy.model;
+
+        if (model != null) {
+            FileOutputStream fos = null;
+            BufferedOutputStream bos = null;
+
+            try {
+
+                String outputType = ShapeJSGlobal.getOutputType();
+
+                fos = new FileOutputStream(ShapeJSGlobal.getOutputFolder() + "/" + ShapeJSGlobal.getInputFileName() + "." + outputType);
+                bos = new BufferedOutputStream(fos);
+
+                ModelWriter writer = model.getWriter();
+
+                if (writer == null) {
+                    // TODO: this doesn't take into account the user specified versions in the script
+                    SingleMaterialModelWriter smwriter = new SingleMaterialModelWriter();
+                    model.setWriter(writer);
+                    smwriter.setErrorFactor(ShapeJSGlobal.errorFactorDefault);
+                    smwriter.setMaxPartsCount(ShapeJSGlobal.maxPartsDefault);
+                    smwriter.setMinPartVolume(ShapeJSGlobal.minimumVolumeDefault);
+                    smwriter.setSmoothingWidth(ShapeJSGlobal.smoothingWidthDefault);
+                    writer = smwriter;
+                }
+
+                // We as the wrapper control these
+                writer.setOutputFormat(outputType);
+                writer.setOutputStream(bos);
+
+                writer.execute(model.getGrid());
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+
+                Context.reportError(ToolErrorReporter.getMessage(
+                        "msg.couldnt.read.source", "unknown", ioe.getMessage()));
+                exitCode = EXITCODE_RUNTIME_ERROR;
+
+            } finally {
+                IOUtils.closeQuietly(bos);
+                IOUtils.closeQuietly(fos);
+            }
+        }
 
         StringBuilder bldr = new StringBuilder();
         for(JsError error : errors.getErrors()) {
@@ -251,7 +302,6 @@ public class Main {
         IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
         iproxy.args = args;
         iproxy.script_args = typeArgs(scriptArgs);
-        iproxy.show = false;
 
         shellContextFactory.call(iproxy);
 
@@ -281,10 +331,28 @@ public class Main {
         }
 
         System.out.println("Print msgs: " + print_msg);
-        TriangleMesh mesh = iproxy.getMesh();
-        iproxy.clear();
+        Model model = iproxy.getModel();
 
-        return new ExecResult(mesh,err_msg,print_msg);
+        // empty model means we had an error
+        if (model != null) {
+            ModelWriter writer = model.getWriter();
+            if (model.getWriter() == null) {
+                writer = createDefaultWriter("x3db", new NullOutputStream(), getShellScope());
+                model.setWriter(writer);
+            } else {
+                writer.setOutputFormat("x3db");
+                writer.setOutputStream(new NullOutputStream());
+            }
+            iproxy.clear();
+
+            try {
+                writer.execute(model.getGrid());
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        return new ExecResult(model,err_msg,print_msg);
     }
 
     /**
@@ -318,7 +386,7 @@ public class Main {
     }
 
 
-    static TriangleMesh processFile(Context cx, String[] args, Object[] scriptArgs, boolean show) {
+    static Model processFile(Context cx, String[] args, Object[] scriptArgs) {
         // define "arguments" array in the top-level object:
         // need to allocate new array since newArray requires instances
         // of exactly Object[], not ObjectSubclass[]
@@ -330,7 +398,7 @@ public class Main {
 
         for (String file : fileList) {
             try {
-                return processSource(cx, file, scriptArgs, show);
+                return processSource(cx, file, scriptArgs);
             } catch (IOException ioex) {
                 Context.reportError(ToolErrorReporter.getMessage(
                         "msg.couldnt.read.source", file, ioex.getMessage()));
@@ -369,12 +437,12 @@ public class Main {
         return null;
     }
 
-    static TriangleMesh evalInlineScript(Context cx, String scriptText, Object[] args, boolean show) {
+    static Model evalInlineScript(Context cx, String scriptText, Object[] args) {
         try {
             Script script = cx.compileString(scriptText, "<command>", 1, null);
             if (script != null) {
                 script.exec(cx, getShellScope());
-                return executeMain(cx, getShellScope(), show, args);
+                return executeMain(cx, getShellScope(),args);
             }
         } catch (RhinoException rex) {
             ToolErrorReporter.reportException(
@@ -658,7 +726,7 @@ public class Main {
      * @throws IOException    if the source could not be read
      * @throws RhinoException thrown during evaluation of source
      */
-    public static TriangleMesh processSource(Context cx, String filename, Object[] args, boolean show)
+    public static Model processSource(Context cx, String filename, Object[] args)
             throws IOException {
         if (filename == null || filename.equals("-")) {
             Scriptable scope = getShellScope();
@@ -725,7 +793,7 @@ public class Main {
                         }
                         NativeArray h = global.history;
                         h.put((int) h.getLength(), h, source);
-                        return executeMain(cx, scope, show, args);
+                        return executeMain(cx, scope, args);
                     }
                 } catch (RhinoException rex) {
                     ToolErrorReporter.reportException(
@@ -744,15 +812,15 @@ public class Main {
         } else if (useRequire && filename.equals(mainModule)) {
             require.requireMain(cx, filename);
         } else {
-            return processFile(cx, getScope(filename), filename, args, show);
+            return processFile(cx, getScope(filename), filename, args);
         }
 
         return null;
     }
 
-    public static TriangleMesh processFileNoThrow(Context cx, Scriptable scope, String filename, String[] args, boolean show) {
+    public static Model processFileNoThrow(Context cx, Scriptable scope, String filename, String[] args) {
         try {
-            return processFile(cx, scope, filename, args, show);
+            return processFile(cx, scope, filename, args);
         } catch (IOException ioex) {
             Context.reportError(ToolErrorReporter.getMessage(
                     "msg.couldnt.read.source", filename, ioex.getMessage()));
@@ -773,17 +841,17 @@ public class Main {
         return null;
     }
 
-    public static TriangleMesh processFile(Context cx, Scriptable scope, String filename, Object[] args, boolean show)
+    public static Model processFile(Context cx, Scriptable scope, String filename, Object[] args)
             throws IOException {
         if (securityImpl == null) {
-            return processFileSecure(cx, scope, filename, null, args, show);
+            return processFileSecure(cx, scope, filename, null, args);
         } else {
-            return securityImpl.callProcessFileSecure(cx, scope, filename, args, show);
+            return securityImpl.callProcessFileSecure(cx, scope, filename, args);
         }
     }
 
-    static TriangleMesh processFileSecure(Context cx, Scriptable scope,
-                                          String path, Object securityDomain, Object[] args, boolean show)
+    static Model processFileSecure(Context cx, Scriptable scope,
+                                          String path, Object securityDomain, Object[] args)
             throws IOException {
         printf("processing file: %s\n", path);
         ShapeJSGlobal.setInputFilePath(path);
@@ -830,7 +898,7 @@ public class Main {
         if (script != null) {
             script.exec(cx, scope);
 
-            return executeMain(cx, scope, show, args);
+            return executeMain(cx, scope, args);
         }
 
         return null;
@@ -845,6 +913,12 @@ public class Main {
 
         for(String pack : scriptImports) {
             bldr.append("importPackage(Packages.");
+            bldr.append(pack);
+            bldr.append(");\n");
+        }
+
+        for(String pack : classImports) {
+            bldr.append("importClass(Packages.");
             bldr.append(pack);
             bldr.append(");\n");
         }
@@ -901,9 +975,7 @@ public class Main {
      * @param cx
      * @param scope
      */
-    private static TriangleMesh executeMain(Context cx, Scriptable scope, boolean show, Object[] args) {
-
-        System.out.println("ExecMain.  show: " + show);
+    private static Model executeMain(Context cx, Scriptable scope, Object[] args) {
 
         cx.setClassShutter(new ClassShutter() {
 
@@ -956,24 +1028,88 @@ public class Main {
         Object result = main.call(cx, scope, scope, argsForMain);
         */
 
-        Grid grid = null;
+        AttributeGrid grid = null;
+        Model model = null;
+
         if(result == null)
             return null;
 
-        if (result instanceof Grid) {
-            grid = (Grid) result;
+        // We can either get a Grid or a ModelWriter back.  If we don't get a ModelWriter then use SingleMaterial version
+        // for backwards compatibility
+        if (result instanceof AttributeGrid) {
+            grid = (AttributeGrid) result;
+        } else if (result instanceof Model) {
+            model = (Model) result;
         } else {
             NativeJavaObject njo = (NativeJavaObject) result;
-            grid = (Grid) njo.unwrap();
+
+            Object no = njo.unwrap();
+
+            if (no instanceof AttributeGrid) {
+                grid = (AttributeGrid) no;
+            } else if (no instanceof Model) {
+                model = (Model) no;
+            }
         }
 
-        if (show) {
-            show(cx, scope, new Object[]{grid}, null);
+
+        if (model == null) {
+            model = new Model();
+            model.setGrid(grid);
+
+            // Create a writer based on scope variable
+            model.setWriter(createDefaultWriter("x3db", new NullOutputStream(),scope));
+            return model;
         }
 
-        return save(grid,scope);
+        ModelWriter writer = model.getWriter();
+
+        if (writer == null) {
+            model.setWriter(createDefaultWriter("x3db", new NullOutputStream(),scope));
+        }
+
+        return model;
     }
 
+    private static ModelWriter createDefaultWriter(String format, OutputStream os, Scriptable thisObj) {
+        Object smoothing_width = thisObj.get(ShapeJSGlobal.SMOOTHING_WIDTH_VAR, thisObj);
+        Object error_factor = thisObj.get(ShapeJSGlobal.ERROR_FACTOR_VAR, thisObj);
+        Object min_volume = thisObj.get(ShapeJSGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
+        Object max_parts = thisObj.get(ShapeJSGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
+        double sw;
+        double ef;
+        double mv;
+        int mp;
+        if (smoothing_width instanceof Number) {
+            sw = ((Number)smoothing_width).doubleValue();
+        } else {
+            sw = ShapeJSGlobal.smoothingWidthDefault;
+        }
+        if (smoothing_width instanceof Number) {
+            ef = ((Number)error_factor).doubleValue();
+        } else {
+            ef = ShapeJSGlobal.errorFactorDefault;
+        }
+        if (min_volume instanceof Number) {
+            mv = ((Number)min_volume).doubleValue();
+        } else {
+            mv = ShapeJSGlobal.minimumVolumeDefault;
+        }
+        if (max_parts instanceof Number) {
+            mp = ((Number)max_parts).intValue();
+        } else {
+            mp = ShapeJSGlobal.maxPartsDefault;
+        }
+        SingleMaterialModelWriter smwriter = new SingleMaterialModelWriter();
+        smwriter.setErrorFactor(ef);
+        smwriter.setMaxPartsCount(mp);
+        smwriter.setMinPartVolume(mv);
+        smwriter.setSmoothingWidth(sw);
+        smwriter.setOutputFormat(format);
+        smwriter.setOutputStream(os);
+
+        return smwriter;
+    }
     /**
      * Stops execution and shows a grid.  TODO:  How to make it stop?
      * <p/>
@@ -1092,7 +1228,7 @@ public class Main {
         System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
 
         if (mv > 0 || mp < Integer.MAX_VALUE) {
-            ShellResults sr = app.common.GridSaver.getLargestShells(mesh, mp, mv);
+            ShellResults sr = GridSaver.getLargestShells(mesh, mp, mv);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
             System.out.println("Regions removed: " + regions_removed);
@@ -1133,7 +1269,7 @@ public class Main {
      * Save used to save during web usage
      *
      * @param grid
-     * @return                                         save(
+     * @return
      */
     private static TriangleMesh save(Grid grid, Scriptable thisObj) {
 
@@ -1209,7 +1345,7 @@ public class Main {
         System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
 
         if (mv > 0 || mp < Integer.MAX_VALUE) {
-            ShellResults sr = app.common.GridSaver.getLargestShells(mesh, mp, mv);
+            ShellResults sr = GridSaver.getLargestShells(mesh, mp, mv);
             mesh = sr.getLargestShell();
             int regions_removed = sr.getShellsRemoved();
             System.out.println("Regions removed: " + regions_removed);
