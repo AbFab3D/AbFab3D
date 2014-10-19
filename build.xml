@@ -123,7 +123,7 @@
             jars="vecmath.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar commons-io-2.4.jar"
         />
         <compilejava package="abfab3d/io/output"
-            jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar"
+            jars="vecmath.jar toxiclibscore.jar volumeutils.jar vlc.jar uri.jar xj3d-core_2.0.0.jar xj3d.cadfilter_2.0.0.jar commons-io-2.4.jar"
         />
         <compilejava package="abfab3d/io/soap"
             jars=""
