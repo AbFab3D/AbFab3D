@@ -11,8 +11,7 @@
  ****************************************************************************/
 package abfab3d.io.output;
 
-import abfab3d.mesh.TriangleMesh;
-import abfab3d.mesh.WingedEdgeTriangleMesh;
+import abfab3d.util.TriangleMesh;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
@@ -38,7 +37,7 @@ public class MeshExporter {
      * @param filename
      * @throws IOException
      */
-    public static void writeMesh(TriangleMesh we, String filename, HashMap<String, Object> params) throws IOException {
+    public static void writeMesh(TriangleMesh we, String filename, Map<String, Object> params) throws IOException {
         writeMesh(we,filename, -1, params);
     }
         /**
@@ -48,7 +47,7 @@ public class MeshExporter {
         * @param filename
         * @throws IOException
         */
-    public static void writeMesh(TriangleMesh we, String filename, int sigDigits, HashMap<String, Object> params) throws IOException {
+    public static void writeMesh(TriangleMesh we, String filename, int sigDigits, Map<String, Object> params) throws IOException {
 
         SAVExporter se = new SAVExporter();
 

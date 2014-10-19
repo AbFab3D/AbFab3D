@@ -6,12 +6,13 @@
 
 package volumesculptor.shell;
 
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.grid.Model;
+import abfab3d.util.TriangleMesh;
 import org.mozilla.javascript.*;
 
 public abstract class SecurityProxy extends SecurityController
 {
-    protected abstract TriangleMesh callProcessFileSecure(Context cx, Scriptable scope,
-                                                  String filename, Object[] args, boolean show);
+    protected abstract Model callProcessFileSecure(Context cx, Scriptable scope,
+                                                  String filename, Object[] args);
 
 }

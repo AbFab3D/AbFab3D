@@ -11,13 +11,15 @@
  ****************************************************************************/
 package abfab3d.mesh;
 
+import abfab3d.util.EdgeCollapseParams;
+import abfab3d.util.EdgeCollapseResult;
 import abfab3d.util.StructMixedData;
+import abfab3d.util.TriangleMesh;
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
-import java.util.Random;
 
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;

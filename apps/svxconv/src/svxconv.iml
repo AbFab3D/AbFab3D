@@ -18,6 +18,7 @@
         <jarDirectory url="file://$MODULE_DIR$/../../../lib" recursive="false" />
       </library>
     </orderEntry>
+    <orderEntry type="module" module-name="AppCommon" />
   </component>
 </module>
 

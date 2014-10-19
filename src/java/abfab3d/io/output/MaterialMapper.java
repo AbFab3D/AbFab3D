@@ -13,8 +13,8 @@
 package abfab3d.io.output;
 
 // External Imports
-import java.util.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
+import static abfab3d.util.Output.printf;
 
 // Internal Imports
 
@@ -35,6 +35,8 @@ import org.web3d.vrml.sav.BinaryContentHandler;
  * @author Alan Hudson
  */
 public class MaterialMapper {
+    private static final boolean DEBUG = false;
+
     /** What type of shading technology should we use */
     public enum Shading {FIXED, SHADER};
 
@@ -50,6 +52,9 @@ public class MaterialMapper {
     public void createAppearance(String material, String[] finish, Shading shading,
         int quality, BinaryContentHandler handler) {
 
+        if (DEBUG) {
+            printf("Material Mapper: Material: %s  Finish: %s\n",material, finish.length == 0 ? "None" : finish[0]);
+        }
         if (material == null || material.equals("None")) {
             // Do not issue any appearance commands
             applyDefaultMaterial(handler,quality);

@@ -94,7 +94,7 @@ public class ShellFinder {
      */
     public void getShell(WingedEdgeTriangleMesh mesh, int startFace, TriangleCollector tc){
         
-        Hashtable<Integer,Integer> unmarkedFaces = makeUnmarkedFaces(mesh);
+        Hashtable<Integer,Integer> unmarkedFaces = makeUnmarkedFaces(mesh); // Why table not Map?
         StackOfInt facesToCheck = new StackOfInt(100000);                
 
         StructMixedData faces = mesh.getFaces();
@@ -103,7 +103,7 @@ public class ShellFinder {
 
         while(currentFace != -1){
             
-            unmarkedFaces.remove(new Integer(currentFace));
+            unmarkedFaces.remove(new Integer(currentFace));   // TODO: garbage
             sendFace(currentFace, mesh, tc);
             
             

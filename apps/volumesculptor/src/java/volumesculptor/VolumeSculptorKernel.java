@@ -14,29 +14,23 @@ package volumesculptor;
 
 // External Imports
 
-import abfab3d.creator.GeometryKernel;
 import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
-import abfab3d.creator.util.ParameterUtil;
-import abfab3d.grid.Grid;
+import abfab3d.grid.Model;
+import abfab3d.grid.ModelWriter;
 import abfab3d.io.input.BoundsCalculator;
-import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshExporter;
+import abfab3d.io.output.SingleMaterialModelWriter;
 import abfab3d.mesh.AreaCalculator;
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.util.TriangleMesh;
 import app.common.RegionPrunner;
 import org.apache.commons.io.FileUtils;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
-import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 import volumesculptor.shell.ExecResult;
 import volumesculptor.shell.Main;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -251,8 +245,18 @@ public class VolumeSculptorKernel extends HostedKernel {
 
             System.out.println("Files: " + files + " params: " + this.params);
 
+            KernelResults results = null;
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter mw = model.getWriter();
+            TriangleMesh mesh = null;
+            if (mw instanceof SingleMaterialModelWriter) {
+                mesh = ((SingleMaterialModelWriter)mw).getGeneratedMesh();
+            } else {
+                results = new KernelResults(KernelResults.NO_GEOMETRY, "Unhandled ModelWriter: " + mw);
+
+                return results;
+            }
 
             // Script compile error
             if (mesh == null) {
@@ -293,7 +297,6 @@ public class VolumeSculptorKernel extends HostedKernel {
             System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
             System.out.println("Volume: " + volume);
 
-            KernelResults results = null;
             // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
             // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
             if (volume == 0.0) {
@@ -306,11 +309,10 @@ public class VolumeSculptorKernel extends HostedKernel {
             String prints = result.getPrints();
             System.out.println("DebugPrints: " + prints);
             if (prints != null) {
-                if (prints != null) {
-                    out.put("debugPrint", prints);
-                    results.setOutput(out);
-                }
+                out.put("debugPrint", prints);
+                results.setOutput(out);
             }
+
             return results;
         } finally {
             if (temp != null) temp.delete();

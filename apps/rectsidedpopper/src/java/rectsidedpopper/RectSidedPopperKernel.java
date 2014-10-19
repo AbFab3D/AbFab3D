@@ -29,9 +29,9 @@ import abfab3d.io.output.SAVExporter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import app.common.GridSaver;
+import abfab3d.io.output.GridSaver;
+import abfab3d.io.output.ShellResults;
 import app.common.RegionPrunner;
-import app.common.ShellResults;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -457,7 +457,7 @@ public class RectSidedPopperKernel extends HostedKernel {
 
         ImageBitmap layer = new ImageBitmap();
         layer.setSize(bodyWidth, bodyHeight, bodyDepth);
-        layer.setLocation(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane
+        layer.setCenter(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane
         layer.setBaseThickness(0.0);
         layer.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer.setTiles(1, 1);
@@ -467,7 +467,7 @@ public class RectSidedPopperKernel extends HostedKernel {
         if (USE_MIP_MAPPING) {
             layer.setInterpolationType(ImageBitmap.INTERPOLATION_MIPMAP);
             layer.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
-            layer.setProbeSize(resolution * 2.);
+            //layer.setProbeSize(resolution * 2.);
         }
 
         GridMaker gm = new GridMaker();

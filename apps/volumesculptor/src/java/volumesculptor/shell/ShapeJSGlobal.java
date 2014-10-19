@@ -15,12 +15,14 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.io.input.STLReader;
+import abfab3d.io.input.SVXReader;
 import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.input.X3DReader;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
 
+import abfab3d.io.output.SingleMaterialModelWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 
@@ -64,12 +66,12 @@ public class ShapeJSGlobal {
 
     public static final int maxAttribute = 255;
 
-    public static double errorFactorDefault = 0.1;
+    public static double errorFactorDefault = SingleMaterialModelWriter.errorFactorDefault;
     public static int maxDecimationCountDefault = 10;
-    public static double smoothingWidthDefault = 0.5;
+    public static double smoothingWidthDefault = SingleMaterialModelWriter.smoothingWidthDefault;
     public static int blockSizeDefault = 30;
-    public static double minimumVolumeDefault = 0;
-    public static int maxPartsDefault = Integer.MAX_VALUE;
+    public static double minimumVolumeDefault = SingleMaterialModelWriter.minimumVolumeDefault;
+    public static int maxPartsDefault = SingleMaterialModelWriter.maxPartsDefault;
     public static int maxTriCountDefault = Integer.MAX_VALUE;
 
     private static String outputFolder = "/tmp";
@@ -233,6 +235,9 @@ public class ShapeJSGlobal {
             if (filename.endsWith(".x3d") || filename.endsWith(".x3db") || filename.endsWith(".x3dv")) {
                 tp = new X3DReader(filename);
                 tp.getTriangles(bb);
+            } else if (filename.endsWith(".svx")) {
+                SVXReader reader = new SVXReader();
+                return reader.load(filename);
             } else {
                 tp = new STLReader(filename);
                 tp.getTriangles(bb);

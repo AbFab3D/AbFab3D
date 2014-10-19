@@ -13,7 +13,7 @@
 package abfab3d.mesh;
 
 
-import abfab3d.util.StructMixedData;
+import abfab3d.util.TriangleMesh;
 
 /**
    interface return true if it is OK to collapse the Edge

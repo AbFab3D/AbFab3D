@@ -27,7 +27,7 @@
 
     <property name="entrypoint" value="svxconv.SVXConv"/>
 
-    <property name="runarg0" value="-Xmx8800m"/>
+    <property name="runarg0" value="-Xmx16000m"/>
     <property name="jvmrunargs" value="${runarg0}"/>
 
     <target name="build"
@@ -124,9 +124,18 @@
         <java classname="svxconv.SVXConv" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
-            <arg value="../../test/models/Santa.stl" />
+            <arg value="cf6_1024.svx" />
             <arg value="-output" />
-            <arg value="santa.svx" />
+            <arg value="v6_1024_ef0.5_sw_1.0.x3db" />
+
+            <arg value="-meshErrorFactor" />
+            <arg value="0.5" />
+            <arg value="-meshSmoothingWidth" />
+            <arg value="1.0" />
+            <arg value="-maxTriangles" />
+            <arg value="20000000" />
+            <arg value="-meshMaxPartsCount" />
+            <arg value="1" />
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>

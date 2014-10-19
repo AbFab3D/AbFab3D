@@ -16,11 +16,12 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.GridShortIntervals;
 import abfab3d.io.input.*;
 import abfab3d.io.output.GridSaver;
+import abfab3d.io.output.ShellResults;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
 import abfab3d.io.output.SVXWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.util.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.*;
 import org.apache.commons.io.FilenameUtils;
@@ -47,6 +48,8 @@ public class SVXConv {
                     " -voxelSize float, voxel size in meters\n" +
                     " -meshSmoothingWidth float[0.5], width of output smooth in voxel size\n" +
                     " -meshErrorFactor float [0.1], max decimation error factor\n" +
+                    " -meshMaxPartsCount int [MAX], maximum number of parts\n" +
+                    " -meshMinPartVolume float [0], minimum volume per part\n" +
                     " -maxTriangles int [1800000], maximum triangle count\n" +
                     " -threadCount int [0]  number of threads to use. 0 - number of available cores\n";
 
@@ -56,6 +59,8 @@ public class SVXConv {
             INPUT = "-input",
             MESH_SMOOTHING_WIDTH = "-meshSmoothingWidth",
             MESH_ERROR_FACTOR = "-meshErrorFactor",
+            MESH_MAX_PARTS_COUNT = "-meshMaxPartsCount",
+            MESH_MIN_PART_VOLUME = "-meshMinPartVolume",
             MAX_TRIANGLES = "-maxTriangles",
             THREAD_COUNT = "-threadCount";
 
@@ -64,6 +69,8 @@ public class SVXConv {
     private double voxelSize = 0.1 * Units.MM;
     private double meshSmoothingWidth = 0.5;
     private double meshErrorFactor = 0.1;
+    private double meshMinVolume = 0;
+    private int meshMaxPartsCount = Integer.MAX_VALUE;
     private int maxTriangles = 1800000;
     private int maxRunTime;
     private int threadCount;
@@ -86,6 +93,7 @@ public class SVXConv {
     }
 
     public void setMeshErrorFactor(double errorFactor) {
+        printf("Setting error factor: %f\n",errorFactor);
         this.meshErrorFactor = errorFactor;
     }
 
@@ -99,6 +107,22 @@ public class SVXConv {
 
     public void setMaxTriangles(int maxTriangles) {
         this.maxTriangles = maxTriangles;
+    }
+
+    public double getMeshMinVolume() {
+        return meshMinVolume;
+    }
+
+    public void setMeshMinVolume(double meshMinVolume) {
+        this.meshMinVolume = meshMinVolume;
+    }
+
+    public int getMeshMaxPartsCount() {
+        return meshMaxPartsCount;
+    }
+
+    public void setMeshMaxPartsCount(int meshMaxPartsCount) {
+        this.meshMaxPartsCount = meshMaxPartsCount;
     }
 
     public void execute() throws IOException {
@@ -206,13 +230,13 @@ public class SVXConv {
             SVXWriter writer = new SVXWriter();
             writer.write(grid, output);
         } else if (ext.equalsIgnoreCase("stl")) {
-            TriangleMesh mesh = getMesh(grid,subvoxelResolution);
+            TriangleMesh mesh = getMesh(grid,subvoxelResolution,meshMinVolume,meshMaxPartsCount);
 
             STLWriter stl = new STLWriter(output);
             mesh.getTriangles(stl);
             stl.close();
         } else if (ext.startsWith("x3d") || ext.startsWith("X3D")) {
-            WingedEdgeTriangleMesh mesh = (WingedEdgeTriangleMesh) getMesh(grid,subvoxelResolution);
+            WingedEdgeTriangleMesh mesh = (WingedEdgeTriangleMesh) getMesh(grid,subvoxelResolution,meshMinVolume,meshMaxPartsCount);
             GridSaver.writeMesh(mesh, output);
         }
     }
@@ -232,10 +256,10 @@ public class SVXConv {
         return grid;
     }
 
-    private TriangleMesh getMesh(AttributeGrid grid, int subvoxelResolution) {
-        double mv = 0;
+    private TriangleMesh getMesh(AttributeGrid grid, int subvoxelResolution, double mv, int mp) {
         double voxelSize = grid.getVoxelSize();
 
+        printf("error factor: %f\n",meshErrorFactor);
         double maxDecimationError = meshErrorFactor * voxelSize * voxelSize;
         // Write out the grid to an STL file
         MeshMakerMT meshmaker = new MeshMakerMT();
@@ -254,6 +278,13 @@ public class SVXConv {
         System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        if (mv > 0 || mp < Integer.MAX_VALUE) {
+            ShellResults sr = GridSaver.getLargestShells(mesh, mp, mv);
+            mesh = sr.getLargestShell();
+            int regions_removed = sr.getShellsRemoved();
+            System.out.println("Regions removed: " + regions_removed);
+        }
 
         return mesh;
     }
@@ -289,6 +320,10 @@ public class SVXConv {
                     conv.setOutput(args[++i]);
                 } else if (arg.equals(MESH_ERROR_FACTOR)){
                     conv.setMeshErrorFactor(Double.parseDouble(args[++i]));
+                } else if (arg.equals(MESH_MIN_PART_VOLUME)){
+                    conv.setMeshMinVolume(Double.parseDouble(args[++i]));
+                } else if (arg.equals(MESH_MAX_PARTS_COUNT)){
+                    conv.setMeshMaxPartsCount(Integer.parseInt(args[++i]));
                 } else if (arg.equals(MAX_TRIANGLES)){
                     conv.setMaxTriangles(Integer.parseInt(args[++i]));
                 } else if (arg.equals(THREAD_COUNT)){
