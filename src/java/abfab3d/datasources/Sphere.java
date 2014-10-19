@@ -154,7 +154,7 @@ public class Sphere extends TransformableDataSource {
         } else {
             data.v[0] = step01(r, this.R, vs);
         }
-        super.getMaterialData(pnt, data);
+        super.getMaterialDataValue(pnt, data);
         return RESULT_OK;
     }
     

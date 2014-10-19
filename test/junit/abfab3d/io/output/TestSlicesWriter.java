@@ -597,7 +597,7 @@ public class TestSlicesWriter extends TestCase {
         printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
 
         Sphere sphere = new Sphere(0, 0, 0,ballRadius);
-        sphere.setMaterial(new SolidColor(1.,0.,0.));
+        sphere.setMaterial(new SolidColor(1.,0.,0.5));
 
         GridMaker gm = new GridMaker();  
 

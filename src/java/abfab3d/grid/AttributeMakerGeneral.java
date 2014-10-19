@@ -29,8 +29,8 @@ public class AttributeMakerGeneral implements AttributeMaker{
     long  m_resolution[];
     int m_shift[];
     
-    // if this is true, and value of first channel is 0, all channelas are set to 0 
-    // this is needed to optimize memory used by grid in case if first channel is density 
+    // if this is true, and value of first channel is 0, all channels are set to 0 
+    // this is usefull to optimize memory used by grid in case if first channel is density (most common case)
     boolean m_controlByDensity = true;
     /**
        
@@ -38,6 +38,7 @@ public class AttributeMakerGeneral implements AttributeMaker{
     public AttributeMakerGeneral(int bits[]){
         this(bits, true);
     }
+
     public AttributeMakerGeneral(int bits[], boolean controlByDensity){
         m_controlByDensity =  controlByDensity;
         m_length = bits.length;
