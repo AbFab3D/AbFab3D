@@ -51,6 +51,7 @@ import abfab3d.util.LongConverter;
 import abfab3d.datasources.DataChannelMixer;
 import abfab3d.datasources.SolidColor;
 import abfab3d.datasources.Box;
+import abfab3d.datasources.Cone;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
 import abfab3d.datasources.Torus;
@@ -58,6 +59,7 @@ import abfab3d.datasources.ImageBitmap;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;
+import abfab3d.datasources.Composition;
 import abfab3d.datasources.Subtraction;
 import abfab3d.datasources.Triangle;
 import abfab3d.datasources.Cylinder;
@@ -83,6 +85,8 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 
 import static java.lang.Math.sqrt;
+import static java.lang.Math.sin;
+import static java.lang.Math.cos;
 
 /**
  * Tests the functionality of SlicesWriter
@@ -105,6 +109,80 @@ public class TestSlicesWriter extends TestCase {
         //this test here is to make Test happy. 
     }
 
+    void multichannelTest() throws IOException{
+        
+        printf("multichannelTest()\n");
+    
+        double voxelSize = 0.1*MM;
+        double margin = 1*voxelSize;
+
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double ballRadius = 5.0*MM;
+        double surfareThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        boolean useSVXWriter = true;
+        
+        int bitCount = 8;
+
+        long subvoxelResolution = ((1L << bitCount)-1);
+
+        int threadsCount = 1;
+
+        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
+
+        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
+        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
+        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
+        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+
+        Sphere sphere = new Sphere(0, 0, 0,ballRadius);
+
+        Torus torus = new Torus(0.34*CM, 0.15*CM);
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
+
+        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
+        GridMaker gm = new GridMaker();  
+        gm.setBounds(bounds);
+        gm.setThreadCount(1);
+        //gm.setDataSource(gyroid);
+        gm.setSource(torus);
+        //gm.setSource(sphere);
+        // gm.setTransform(rotation);
+
+        gm.setSubvoxelResolution(subvoxelResolution);
+        gm.setVoxelScale(surfareThickness);
+        
+        AttributeGrid grid = new ArrayAttributeGridLong(nx, ny, nz, voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);        
+       
+        printf("gm.makeGrid() done\n");
+        if(useSVXWriter) {
+            AttributeDesc attDesc = new AttributeDesc();
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"1", "mat1", 1,7));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"2", "mat2", 1,6));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"3", "mat3", 1,5));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"4", "mat4", 1,4));            
+            grid.setAttributeDesc(attDesc);
+            new SVXWriter().write(grid, "/tmp/slices/torus.svx");
+
+        } else {
+
+            SlicesWriter writer = new SlicesWriter();
+            // write slices in different orientation 
+            String folder = fmt("/tmp/slices/density%d/", bitCount);
+            new File(folder).mkdirs();
+            //writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0,bitCount, new DefaultLongConverter());
+            writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0, 2, new BitsExtractor(30, 0xFF));
+        }
+    }
   
     public void _testBall() throws Exception {
         
@@ -592,17 +670,20 @@ public class TestSlicesWriter extends TestCase {
         int ng[] = MathUtil.getGridSize(bounds, voxelSize);
 
 
-        double ballRadius = s;
+        double ballRadius = 3*MM;
         
         printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
 
-        Sphere sphere = new Sphere(0, 0, 0,ballRadius);
-        sphere.setMaterial(new SolidColor(1.,0.,0.5));
+        Sphere sphere1 = new Sphere(-2*MM, 0, 0,ballRadius);
+        sphere1.setMaterial(new SolidColor(1.,0.,0.0));
+
+        Sphere sphere2 = new Sphere(2*MM, 0, 0,ballRadius);
+        sphere2.setMaterial(new SolidColor(0.,0.,1.0));
 
         GridMaker gm = new GridMaker();  
 
         gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
-        gm.setSource(sphere);
+        gm.setSource(new Composition(Composition.AoutB, sphere1, sphere2));
         
         AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
         grid.setGridBounds(bounds);
@@ -614,82 +695,178 @@ public class TestSlicesWriter extends TestCase {
         attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
         attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
         grid.setAttributeDesc(attDesc);
-        new SVXWriter().write(grid, "/tmp/slices/sphere_box.svx");        
+        new SVXWriter().write(grid, "/tmp/slices/compositionAoutB.svx");        
     }
 
 
-    void multichannelTest() throws IOException{
+    void colorTest3() throws IOException{
         
-        printf("multichannelTest()\n");
+        printf("colorTest()\n");
     
         double voxelSize = 0.1*MM;
-        double margin = 1*voxelSize;
+        double margin = voxelSize;
 
         double sizex = 10*MM; 
         double sizey = 10*MM; 
         double sizez = 10*MM;
-        double ballRadius = 5.0*MM;
-        double surfareThickness = Math.sqrt(3)/2;
+        double s = 5*MM;
 
-        double gridWidth = sizex + 2*margin;
-        double gridHeight = sizey + 2*margin;
-        double gridDepth = sizez + 2*margin;
-        boolean useSVXWriter = true;
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
         
-        int bitCount = 8;
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
 
-        long subvoxelResolution = ((1L << bitCount)-1);
 
-        int threadsCount = 1;
+        int ng[] = MathUtil.getGridSize(bounds, voxelSize);
 
-        double bounds[] = new double[]{-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2};
 
-        int nx = (int)((bounds[1] - bounds[0])/voxelSize);
-        int ny = (int)((bounds[3] - bounds[2])/voxelSize);
-        int nz = (int)((bounds[5] - bounds[4])/voxelSize);        
-        printf("grid: [%d x %d x %d]\n", nx, ny, nz);
+        double ballRadius = 3*MM;
+        
+        printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
+        double r = 2*MM;
 
-        Sphere sphere = new Sphere(0, 0, 0,ballRadius);
+        double phi = Math.PI*2./3.;
 
-        Torus torus = new Torus(0.34*CM, 0.15*CM);
-        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*CM, 0.05*CM);  
+        Sphere sphere1 = new Sphere(r, 0, 0,ballRadius);
+        sphere1.setMaterial(new SolidColor(1.,0.,0.0));
 
-        Rotation rotation = new Rotation(new Vector3d(1,1,0), Math.PI/10);
+        Sphere sphere2 = new Sphere(r*cos(phi), 0, r*sin(phi), ballRadius);
+        sphere2.setMaterial(new SolidColor(0.,0.,1.0));
+
+        Sphere sphere3 = new Sphere(r*cos(phi), 0, -r*sin(phi), ballRadius);
+        sphere3.setMaterial(new SolidColor(0.,1.,0.0));
+
         GridMaker gm = new GridMaker();  
-        gm.setBounds(bounds);
-        gm.setThreadCount(1);
-        //gm.setDataSource(gyroid);
-        gm.setSource(torus);
-        //gm.setSource(sphere);
-        // gm.setTransform(rotation);
 
-        gm.setSubvoxelResolution(subvoxelResolution);
-        gm.setVoxelScale(surfareThickness);
+        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
         
-        AttributeGrid grid = new ArrayAttributeGridLong(nx, ny, nz, voxelSize, voxelSize);
+        gm.setSource(new Composition(Composition.BoutA, sphere1, sphere2, sphere3));        
+        //gm.setSource(new Composition(Composition.AoverB, sphere1, sphere3));        
+        AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
         grid.setGridBounds(bounds);
         printf("gm.makeGrid()\n");
-        gm.makeGrid(grid);        
-       
+        gm.makeGrid(grid);               
         printf("gm.makeGrid() done\n");
-        if(useSVXWriter) {
+        AttributeDesc attDesc = new AttributeDesc();
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
+        grid.setAttributeDesc(attDesc);
+        new SVXWriter().write(grid, "/tmp/slices/comp3BoutA.svx");        
+    }
+
+    void colorTestBoxSphere() throws IOException{
+        
+        printf("colorTest()\n");
+    
+        double voxelSize = 0.1*MM;
+        double margin = voxelSize;
+
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double s = 5*MM;
+
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+
+
+        int ng[] = MathUtil.getGridSize(bounds, voxelSize);
+
+
+        double ballRadius = 3*MM;
+        double boxSize = 4*MM;
+
+        printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
+        double r = 1.5*MM;
+
+        Box box = new Box(-r, 0,0, boxSize,boxSize,boxSize);
+        box.setMaterial(new SolidColor(0.,0.,1.0));
+
+        Sphere sphere = new Sphere(r, 0, 0,ballRadius);
+        sphere.setMaterial(new SolidColor(1.,0.,0.0));
+
+        GridMaker gm = new GridMaker();  
+
+        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
+        
+        //int types[]= new int[]{Composition.AoverB};
+        int types[]= Composition.allTypes;
+
+        for(int i = 0; i < types.length; i++){
+            gm.setSource(new Composition(types[i], box, sphere));        
+            AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
+            grid.setGridBounds(bounds);
+            gm.makeGrid(grid);               
+
+
             AttributeDesc attDesc = new AttributeDesc();
             attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
-            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"1", "mat1", 1,7));
-            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"2", "mat2", 1,6));
-            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"3", "mat3", 1,5));
-            attDesc.addChannel(new AttributeChannel(AttributeChannel.MATERIAL+"4", "mat4", 1,4));            
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
+
             grid.setAttributeDesc(attDesc);
-            new SVXWriter().write(grid, "/tmp/slices/torus.svx");
 
-        } else {
+            new SVXWriter().write(grid, "/tmp/slices/BoxSphere_"+Composition.getTypeName(types[i])+".svx");       
+            
+        }
+    }
 
-            SlicesWriter writer = new SlicesWriter();
-            // write slices in different orientation 
-            String folder = fmt("/tmp/slices/density%d/", bitCount);
-            new File(folder).mkdirs();
-            //writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0,bitCount, new DefaultLongConverter());
-            writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0, 2, new BitsExtractor(30, 0xFF));
+    void colorTestConeSphere() throws IOException{
+        
+        printf("colorTest()\n");
+    
+        double voxelSize = 0.05*MM;
+        double margin = voxelSize;
+
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double s = 5*MM;
+
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+
+
+        int ng[] = MathUtil.getGridSize(bounds, voxelSize);
+
+
+        double ballRadius = 4.5*MM;
+        double boxSize = 4*MM;
+
+        printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
+        double coneCenter = 3*MM;
+        double sphereCenter = 0; 
+
+        Cone cone = new Cone(new Vector3d(coneCenter,0,0), new Vector3d(-1,0,-1),Math.PI/6);
+        cone.setMaterial(new SolidColor(0.,0.,1.0));
+
+        Sphere sphere = new Sphere(sphereCenter, 0, 0,ballRadius);
+        sphere.setMaterial(new SolidColor(1.,0.,0.0));
+
+        GridMaker gm = new GridMaker();  
+
+        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
+        
+        int types[]= Composition.allTypes;
+
+        for(int i = 0; i < types.length; i++){
+            gm.setSource(new Composition(types[i], cone, sphere));        
+            AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
+            grid.setGridBounds(bounds);
+            gm.makeGrid(grid);               
+
+
+            AttributeDesc attDesc = new AttributeDesc();
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+            attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
+
+            grid.setAttributeDesc(attDesc);
+
+            new SVXWriter().write(grid, "/tmp/slices/ConeSphere_"+Composition.getTypeName(types[i])+".svx");       
+            
         }
     }
 
@@ -711,7 +888,10 @@ public class TestSlicesWriter extends TestCase {
     public static void main(String[] args) throws IOException {
         //new TestSlicesWriter().multichannelTest();
         //new TestSlicesWriter().colorTest();
-        new TestSlicesWriter().colorTest2();
+        //new TestSlicesWriter().colorTest2();
+        //new TestSlicesWriter().colorTest3();
+        //new TestSlicesWriter().colorTestBoxSphere();
+        new TestSlicesWriter().colorTestConeSphere();
     }
     
 

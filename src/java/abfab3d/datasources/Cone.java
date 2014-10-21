@@ -122,10 +122,12 @@ public class Cone extends TransformableDataSource {
         // cone is in canonical orientation along positive X axis
         double w = sqrt(y * y + z * z); // coordinate in direction
         double dist = x * nx + w * nw;
-        // TODO better handling of 
+
         data.v[0] = step10(dist, 0., vs);
 
-        return RESULT_OK;
+        super.getMaterialDataValue(pnt, data);        
+        return RESULT_OK;        
+
     }
 
 }  // class Cone

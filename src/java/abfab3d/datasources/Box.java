@@ -83,6 +83,7 @@ public class Box extends TransformableDataSource {
         setSize(size.x, size.y, size.z);
     }
 
+
     /**
      * Blah blah
      *
@@ -188,15 +189,12 @@ public class Box extends TransformableDataSource {
                     y < ymin || y > ymax ||
                     z < zmin || z > zmax) {
                 data.v[0] = 0.;
-                return RESULT_OK;
             } else {
                 data.v[0] = 1.;
-                return RESULT_OK;
             }
         } else {
 
             // finite voxel size
-
             if (x <= xmin - vs || x >= xmax + vs ||
                     y <= ymin - vs || y >= ymax + vs ||
                     z <= zmin - vs || z >= zmax + vs) {
@@ -213,8 +211,11 @@ public class Box extends TransformableDataSource {
                 finalValue = Math.min(finalValue, intervalCap(z, zmin, zmax, vs));
 
             data.v[0] = finalValue;
-            return RESULT_OK;
         }
+
+        super.getMaterialDataValue(pnt, data);        
+        return RESULT_OK;        
+
     }
 
 }  // class Box

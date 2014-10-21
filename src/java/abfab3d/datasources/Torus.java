@@ -121,6 +121,7 @@ public class Torus extends TransformableDataSource{
         
         data.v[0] = step10(((rxy*rxy + z*z) - r*r)/(2*r), 0, pnt.getScaledVoxelSize());
         
+        super.getMaterialDataValue(pnt, data);        
         return RESULT_OK;
     }
 }  // class Torus

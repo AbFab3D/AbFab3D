@@ -110,7 +110,7 @@ public class DataSourceGrid extends TransformableDataSource {
        @param type or interpolation (INTERPOLATION_BOX or INTERPOLATION_LINEAR)
        
      */
-    public void setINterpolationType(int value){
+    public void setInterpolationType(int value){
 
         m_interpolationType = value;
 
@@ -146,11 +146,16 @@ public class DataSourceGrid extends TransformableDataSource {
         switch(m_interpolationType){
         default:
         case INTERPOLATION_BOX:
-            return getBoxInterpolatedValue(pnt, data);
-
+            getBoxInterpolatedValue(pnt, data);
+            break;
         case INTERPOLATION_LINEAR:
-            return getLinearInterpolatedValue(pnt, data);
+            getLinearInterpolatedValue(pnt, data);
+            break;
         }
+
+        super.getMaterialDataValue(pnt, data);        
+        return RESULT_OK;
+        
     }
 
     private int getBoxInterpolatedValue(Vec pnt, Vec data){
@@ -171,7 +176,7 @@ public class DataSourceGrid extends TransformableDataSource {
         }
 
         data.v[0] = getGridValue(ix, iy, iz)*m_dataScaling;
-
+        
         return RESULT_OK; 
             
     }
@@ -224,7 +229,7 @@ public class DataSourceGrid extends TransformableDataSource {
             dx  *(dy1 * (dz1 * v100 + dz  * v101) +  dy*(dz1 * v110 + dz  * v111));
 
         data.v[0] = d*m_dataScaling;
-
+        
         return RESULT_OK; 
         
     }

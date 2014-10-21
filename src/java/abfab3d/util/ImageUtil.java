@@ -97,7 +97,7 @@ public class ImageUtil {
     */
     public static final double combinePremultDouble(double c1, double c2, double alpha){
         
-        return c1 + c2 - alpha * c1 * CNORM1;
+        return c1 - c1 * alpha * CNORM1 + c2;
         
     }
 

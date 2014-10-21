@@ -523,9 +523,13 @@ public class ImageBitmap extends TransformableDataSource {
 
         double vs = pnt.getScaledVoxelSize();
         if (vs == 0.)
-            return getDataValueZeroVoxel(pnt, data);
+            getDataValueZeroVoxel(pnt, data);
         else
-            return getDataValueFiniteVoxel(pnt, data, vs);
+            getDataValueFiniteVoxel(pnt, data, vs);
+
+        super.getMaterialDataValue(pnt, data);        
+        return RESULT_OK;        
+        
     }
 
 

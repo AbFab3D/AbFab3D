@@ -54,7 +54,6 @@ public class Complement extends TransformableDataSource {
     /**
      * Get the data value for a pnt
      *
-     * @return 1 if pnt is inside of box of given size and center 0 otherwise
      * @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
