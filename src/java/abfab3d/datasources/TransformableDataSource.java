@@ -27,7 +27,7 @@ import abfab3d.util.VecTransform;
    int getDataValue(Vec pnt, Vec data) {
       super.transform(pnt);
       //
-      ...  do own coalculations ...
+      ...  do own calculations ...
       //
       super.getMaterialDataValue(pnt, data);      
    }
