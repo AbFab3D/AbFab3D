@@ -55,7 +55,7 @@
         </copy>		
         <copy todir="bin/lib">
             <fileset dir="${app.common.dir}/jars" includes="abfab3d_apps_common*.jar"/>
-            <fileset dir="${abfab3d.lib.dir}" includes="vecmath.jar jafama.jar j3d-org-all*.jar fastinfoset_*.jar"/>
+            <fileset dir="${abfab3d.lib.dir}" includes="vecmath.jar jafama.jar j3d-org-all*.jar fastinfoset_*.jar  commons-io-*.jar"/>
             <fileset dir="${abfab3d.jars.dir}" includes="abfab3d_core*.jar"/>
             <fileset dir="${xj3d.dir}/jars" includes="xj3d-all_*.jar"/>
             <fileset dir="${volumesculptor.dir}/lib" includes="js.jar"/>

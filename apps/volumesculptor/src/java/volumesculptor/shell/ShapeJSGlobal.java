@@ -21,6 +21,7 @@ import abfab3d.io.input.X3DReader;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.output.ShellResults;
 
 import abfab3d.io.output.SingleMaterialModelWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
@@ -375,7 +376,7 @@ public class ShapeJSGlobal {
         double smoothingWidth = getDouble(thisObj.get(SMOOTHING_WIDTH_VAR, thisObj));
         double errorFactor = getDouble(thisObj.get(ERROR_FACTOR_VAR, thisObj));
         double minimumVolume = getDouble(thisObj.get(MESH_MIN_PART_VOLUME_VAR, thisObj));
-        double maxParts = getInteger(thisObj.get(MESH_MAX_PART_COUNT_VAR, thisObj));
+        int maxParts = getInteger(thisObj.get(MESH_MAX_PART_COUNT_VAR, thisObj));
         int maxTriCount = getInteger(thisObj.get(MESH_MAX_TRI_COUNT_VAR, thisObj));
 
 
@@ -402,6 +403,15 @@ public class ShapeJSGlobal {
         }
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        printf("Mesh Min Volume: %g meshMaxParts: %d \n", minimumVolume, maxParts);
+
+        if (minimumVolume > 0 || maxParts < Integer.MAX_VALUE) {
+            ShellResults sr = GridSaver.getLargestShells(mesh,maxParts, minimumVolume);
+            mesh = sr.getLargestShell();
+            int regions_removed = sr.getShellsRemoved();
+            System.out.println("Regions removed: " + regions_removed);
+        }
 
         try {
             if(fname.endsWith(".stl")){
