@@ -1,11 +1,9 @@
 package abfab3d.grid;
 
 import abfab3d.util.TriangleMesh;
-import org.web3d.vrml.sav.BinaryContentHandler;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Map;
 
 /**
  * Writes a model out.
@@ -38,4 +36,10 @@ public interface ModelWriter {
      * @return
      */
     public TriangleMesh getGeneratedMesh();
+
+    /**
+     * Get a string name for this writer.
+     * @return
+     */
+    public String getStyleName();
 }

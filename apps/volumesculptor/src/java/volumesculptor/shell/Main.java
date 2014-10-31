@@ -339,6 +339,9 @@ public class Main {
             if (model.getWriter() == null) {
                 writer = createDefaultWriter("x3db", new NullOutputStream(), getShellScope());
                 model.setWriter(writer);
+            } if (model.getWriter() instanceof VoxelModelWriter) {
+                writer.setOutputFormat("svx");
+                writer.setOutputStream(new NullOutputStream());
             } else {
                 writer.setOutputFormat("x3db");
                 writer.setOutputStream(new NullOutputStream());
@@ -349,6 +352,75 @@ public class Main {
                 writer.execute(model.getGrid());
             } catch (IOException ioe) {
                 ioe.printStackTrace();
+            }
+        }
+
+        return new ExecResult(model,err_msg,print_msg);
+    }
+
+    /**
+     * Execute the given arguments, but don't System.exit at the end.
+     */
+    public static ExecResult execModel(String origArgs[], String[] scriptArgs) {
+        fileList = new ArrayList<String>();
+
+        System.out.println("Execute model.  args: ");
+        for (int i = 0; i < origArgs.length; i++) {
+            System.out.println(origArgs[i]);
+        }
+
+        errorReporter = new ToolErrorReporter(false, global.getErr());
+        ErrorReporterWrapper errors = new ErrorReporterWrapper(errorReporter);
+        shellContextFactory.setErrorReporter(errors);
+        String[] args = processOptions(origArgs);
+        if (processStdin) {
+            fileList.add(null);
+        }
+        if (!global.initialized) {
+            global.init(shellContextFactory);
+        }
+        global.initAbFab3D(shellContextFactory);
+
+        IProxy iproxy = new IProxy(IProxy.PROCESS_FILES);
+        iproxy.args = args;
+        iproxy.script_args = typeArgs(scriptArgs);
+
+        shellContextFactory.call(iproxy);
+
+
+        StringBuilder bldr = new StringBuilder();
+        for(JsError error : errors.getErrors()) {
+            String err_st = error.toString();
+            String remap = errorRemap.get(err_st);
+            if (remap != null) {
+                err_st = remap;
+            }
+            bldr.append(err_st);
+            bldr.append("\n");
+        }
+
+        String err_msg = bldr.toString();
+        System.out.println("Err msgs: " + err_msg);
+
+        List<String> prints = DebugLogger.getLog(iproxy.cx);
+
+        String print_msg = "";
+        if (prints != null) {
+            for(String print : prints) {
+                bldr.append(print);
+            }
+            print_msg = bldr.toString();
+        }
+
+        System.out.println("Print msgs: " + print_msg);
+        Model model = iproxy.getModel();
+
+        // empty model means we had an error
+        if (model != null) {
+            ModelWriter writer = model.getWriter();
+            if (model.getWriter() == null) {
+                writer = createDefaultWriter("x3db", new NullOutputStream(), getShellScope());
+                model.setWriter(writer);
             }
         }
 
@@ -1110,161 +1182,6 @@ public class Main {
 
         return smwriter;
     }
-    /**
-     * Stops execution and shows a grid.  TODO:  How to make it stop?
-     * <p/>
-     * This method is defined as a JavaScript function.
-     */
-    public static void show(Context cx, Scriptable thisObj,
-                            Object[] args, Function funObj) {
-
-
-        printf("show()\n");
-        AttributeGrid grid = null;
-
-        boolean show_slices = false;
-
-        if (args.length > 0) {
-            if (args[0] instanceof Boolean) {
-                show_slices = (Boolean) args[0];
-            } else if (args[0] instanceof AttributeGrid) {
-                grid = (AttributeGrid) args[0];
-            } else if (args[0] instanceof NativeJavaObject) {
-                grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
-            }
-        }
-
-        if (grid == null) {
-            System.out.println("No grid specified");
-        }
-        if (args.length > 1) {
-            if (args[1] instanceof Boolean) {
-                show_slices = (Boolean) args[0];
-            }
-        }
-
-        double vs = grid.getVoxelSize();
-
-
-        if (show_slices) {
-            SlicesWriter slicer = new SlicesWriter();
-            slicer.setFilePattern("/tmp/slices2/slice_%03d.png");
-            slicer.setCellSize(5);
-            slicer.setVoxelSize(4);
-
-            slicer.setMaxAttributeValue(ShapeJSGlobal.maxAttribute);
-            try {
-                slicer.writeSlices(grid);
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-
-        System.out.println("Saving world: " + grid + " to triangles");
-
-        Object smoothing_width = thisObj.get(ShapeJSGlobal.SMOOTHING_WIDTH_VAR, thisObj);
-        Object error_factor = thisObj.get(ShapeJSGlobal.ERROR_FACTOR_VAR, thisObj);
-        Object min_volume = thisObj.get(ShapeJSGlobal.MESH_MIN_PART_VOLUME_VAR, thisObj);
-        Object max_parts = thisObj.get(ShapeJSGlobal.MESH_MAX_PART_COUNT_VAR, thisObj);
-
-        printf("max_parts: %s\n", max_parts);
-        
-        double sw;
-        double ef;
-        double mv;
-        int mp;
-
-        if (smoothing_width instanceof Number) {
-            sw = ((Number)smoothing_width).doubleValue();
-        } else {
-            sw = ShapeJSGlobal.smoothingWidthDefault;
-        }
-
-        if (smoothing_width instanceof Number) {
-            ef = ((Number)error_factor).doubleValue();
-        } else {
-            ef = ShapeJSGlobal.errorFactorDefault;
-        }
-
-        if (min_volume instanceof Number) {
-            mv = ((Number)min_volume).doubleValue();
-        } else {
-            mv = ShapeJSGlobal.minimumVolumeDefault;
-        }
-
-        if (max_parts instanceof Number) {
-            mp = ((Number)max_parts).intValue();
-        } else {
-            mp = ShapeJSGlobal.maxPartsDefault;
-        }
-
-        double maxDecimationError = ef * vs * vs;
-        // Write out the grid to an STL file
-        MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(ShapeJSGlobal.blockSizeDefault);
-        int max_threads = ShapeJSGlobal.getMaxThreadCount();
-        if (max_threads == 0) {
-            max_threads = Runtime.getRuntime().availableProcessors();
-        }
-        meshmaker.setThreadCount(max_threads);
-        meshmaker.setSmoothingWidth(sw);
-        meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(ShapeJSGlobal.maxDecimationCountDefault);
-        meshmaker.setMaxAttributeValue(ShapeJSGlobal.maxAttribute);
-
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
-        meshmaker.makeMesh(grid, its);
-
-        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
-
-        if (its.getFaceCount() > ShapeJSGlobal.MAX_TRIANGLE_SIZE) {
-            System.out.println("Maximum triangle count exceeded: " + its.getFaceCount());
-            throw Context.reportRuntimeError(
-                    "Maximum triangle count exceeded.  Max is: " + ShapeJSGlobal.MAX_TRIANGLE_SIZE + " count is: " + its.getFaceCount());
-        }
-
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-
-        System.out.println("Mesh Min Volume: " + mv + " max Parts: " + mp);
-
-        if (mv > 0 || mp < Integer.MAX_VALUE) {
-            ShellResults sr = GridSaver.getLargestShells(mesh, mp, mv);
-            mesh = sr.getLargestShell();
-            int regions_removed = sr.getShellsRemoved();
-            System.out.println("Regions removed: " + regions_removed);
-        }
-
-        try {
-            String outputType = ShapeJSGlobal.getOutputType();
-            
-            if(outputType.equals("x3d") || outputType.equals("x3dv") || outputType.equals("x3db")){
-
-                String path = ShapeJSGlobal.getOutputFolder();
-                String name = ShapeJSGlobal.getOutputFolder() + "/" + ShapeJSGlobal.getInputFileName() + "." + outputType;
-                String out = path + "/" + name;
-                double[] bounds_min = new double[3];
-                double[] bounds_max = new double[3];
-
-                grid.getGridBounds(bounds_min,bounds_max);
-                double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
-                max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
-
-                double z = 2 * max_axis / Math.tan(Math.PI / 4);
-                float[] pos = new float[] {0,0,(float) z};
-
-                GridSaver.writeMesh(mesh, out);
-                //X3DViewer.viewX3DOM(name, pos);
-            } else if(outputType.equals("stl")){
-                STLWriter stl = new STLWriter(ShapeJSGlobal.getOutputFolder() + "/" + ShapeJSGlobal.getInputFileName() + ".stl");
-                mesh.getTriangles(stl);
-                stl.close();
-            }
-            
-        } catch(IOException ioe) {
-            ioe.printStackTrace();
-        }
-    }
-
     /**
      * Save used to save during web usage
      *

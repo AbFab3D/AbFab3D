@@ -1,9 +1,6 @@
 package volumesculptor.shell;
 
 import abfab3d.grid.Model;
-import abfab3d.util.TriangleMesh;
-
-import java.io.IOException;
 
 /**
  * Result container for execute commands
