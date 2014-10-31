@@ -411,7 +411,7 @@ public class ImageUtil {
     }
 
     /**
-       convert array of byte data in ABGR form into 8 bit 
+       extract array of byte from array of byte in ABGR form into 8 bit 
      */
     public static void getABGRcomponent(byte imageData[], int componentOffset, byte componentData[]){
 

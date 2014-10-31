@@ -32,6 +32,7 @@ import abfab3d.util.Output;
 import abfab3d.util.ImageUtil;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 /**
  * Slces Reader.
@@ -162,24 +163,35 @@ public class SlicesReader {
         }
 
         DataBuffer dataBuffer = image.getRaster().getDataBuffer();
-        byte componentData[] = new byte[imgWidth*imgHeight];
+
+        byte componentData[] = null;
 
         switch(image.getType()){
 
         case BufferedImage.TYPE_BYTE_GRAY:
             {
+                //TODO - proccess non DataBufferShort 
                 componentData = ((DataBufferByte)dataBuffer).getData();
                 break;
             }
+
         case BufferedImage.TYPE_4BYTE_ABGR:
             {
                 componentData = new byte[imgWidth*imgHeight];
-                ImageUtil.getABGRcomponent(((DataBufferByte)dataBuffer).getData(), 3, componentData);
+                //ImageUtil.getABGRcomponent(((DataBufferByte)dataBuffer).getData(), 3, componentData);
+                getChannelData(((DataBufferByte)dataBuffer).getData(), 4, componentData);
+                break;
+
+            }
+        case BufferedImage.TYPE_3BYTE_BGR:
+            {
+                componentData = new byte[imgWidth*imgHeight];
+                getChannelData(((DataBufferByte)dataBuffer).getData(), 3, componentData);
                 break;
 
             }
         default:
-            throw new IOException("unsupported image data format");
+            throw new IOException(fmt("unsupported image data format: %s", ImageUtil.getImageTypeName(image.getType())));
         }
 
         int coord[] = new int[3];
@@ -199,5 +211,21 @@ public class SlicesReader {
         case 2: coord[0] = i; coord[1] = j; coord[2] = slice; break;
         }            
     }
+
+
+    /**
+       get channel data form byte array of imageData of byte data into  ABGR form into 8 bit 
+     */
+    static void getChannelData(byte imageData[], int bytesPerPixel, byte channelData[]){
+
+        int len = channelData.length;
+        // take only last bytes from pixel 
+        int offset = bytesPerPixel-1;
+
+        for(int i = 0, k = 0; i < len; i++, k += bytesPerPixel){
+            channelData[i] = imageData[k+offset];
+        }        
+    }
+
 
 }

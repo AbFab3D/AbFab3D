@@ -74,18 +74,17 @@ public class TestSlicesReader extends TestCase {
     public void readSlices() throws Exception {
 
         double vs = 0.1*MM;
-        int nx = 102; 
-        int ny = 102; 
-        int nz = 102; 
+        int nx = 101;  int ny = 316; int nz = 132; 
 
-        int subvoxelResolution = 255;
+        //int subvoxelResolution = 255;
+
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, vs, vs);        
 
         SlicesReader reader = new SlicesReader();
-        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, vs, vs);        
-        reader.readSlices(grid, "/tmp/slices/density/slicex%04d.png", 0, 0, nx,0);
+        reader.readSlices(grid, "/tmp/slices/layers/image%04d.png", 0, 0, nz, 2);
         
         SlicesWriter writer = new SlicesWriter();
-        writer.writeSlices(grid, "/tmp/slices/dens/slicez%04d.png", 0, 0, nz,2,8, new DefaultLongConverter());
+        writer.writeSlices(grid, "/tmp/slices/dens/slicez%04d.png", 0, 0, nz, 2, 8, new DefaultLongConverter());
         
         
 
@@ -94,5 +93,6 @@ public class TestSlicesReader extends TestCase {
     public static void main(String[] args) throws Exception{
 
         new TestSlicesReader().readSlices();
+
     }
 }
