@@ -17,11 +17,13 @@ package volumesculptor;
 import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Model;
 import abfab3d.grid.ModelWriter;
 import abfab3d.io.input.BoundsCalculator;
 import abfab3d.io.output.MeshExporter;
 import abfab3d.io.output.SingleMaterialModelWriter;
+import abfab3d.io.output.VoxelModelWriter;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.util.TriangleMesh;
 import app.common.RegionPrunner;
@@ -46,6 +48,8 @@ import static abfab3d.util.Output.time;
  * @author Vladimir Bulatov
  */
 public class VolumeSculptorKernel extends HostedKernel {
+    private static final String OUTPUT_STYLE = "outputStyle";
+
     private static final int NUM_FILES = 10;
     private static final int NUM_PARAMS = 10;
 
@@ -231,8 +235,6 @@ public class VolumeSculptorKernel extends HostedKernel {
             temp = File.createTempFile("script", ".vss");
             FileUtils.write(temp, script);
 
-            System.out.println("Loading script2: " + script);
-
             String[] args = new String[] {temp.toString() };
             String[] script_args = new String[files.length + this.params.length];
             int idx = 0;
@@ -243,14 +245,42 @@ public class VolumeSculptorKernel extends HostedKernel {
                 script_args[idx++] = this.files[i];
             }
 
-            System.out.println("Files: " + files + " params: " + this.params);
+            System.out.println("Files: " + files.length + " params: " + this.params.length);
 
             KernelResults results = null;
             ExecResult result = Main.execMesh(args, script_args);
             Model model = result.getModel();
             ModelWriter mw = model.getWriter();
             TriangleMesh mesh = null;
-            if (mw instanceof SingleMaterialModelWriter) {
+            if (mw instanceof VoxelModelWriter) {
+                System.out.println("Got a voxel result");
+                // TODO: Should we make this more accurate
+                // approximate KernelResults from voxel grid
+
+                double min_bounds[] = new double[3];
+                double max_bounds[] = new double[3];
+
+                AttributeGrid grid = model.getGrid();
+                grid.getGridBounds(min_bounds,max_bounds);
+
+                // TODO: remember we need to remove internal voids to make this accurate
+                double volume = 0;
+                double surface_area = 0;
+
+                results = new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
+
+                HashMap<String,Object> out = new HashMap<String, Object>();
+                String prints = result.getPrints();
+                if (prints != null) {
+                    out.put("debugPrint", prints);
+                }
+
+                out.put(OUTPUT_STYLE, mw.getStyleName());
+
+                results.setOutput(out);
+
+                return results;
+            } else if (mw instanceof SingleMaterialModelWriter) {
                 mesh = ((SingleMaterialModelWriter)mw).getGeneratedMesh();
             } else {
                 results = new KernelResults(KernelResults.NO_GEOMETRY, "Unhandled ModelWriter: " + mw);
@@ -307,11 +337,13 @@ public class VolumeSculptorKernel extends HostedKernel {
 
             HashMap<String,Object> out = new HashMap<String, Object>();
             String prints = result.getPrints();
-            System.out.println("DebugPrints: " + prints);
             if (prints != null) {
                 out.put("debugPrint", prints);
-                results.setOutput(out);
             }
+
+            out.put(OUTPUT_STYLE, mw.getStyleName());
+
+            results.setOutput(out);
 
             return results;
         } finally {

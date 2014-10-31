@@ -42,4 +42,12 @@ public class VoxelModelWriter implements ModelWriter {
     public TriangleMesh getGeneratedMesh() {
         return null;
     }
+
+    /**
+     * Get a string name for this writer.
+     * @return
+     */
+    public String getStyleName() {
+        return "voxels";
+    }
 }

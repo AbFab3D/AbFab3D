@@ -1,11 +1,12 @@
 package abfab3d.io.output;
 
 import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.DensityMaker;
 import abfab3d.grid.ModelWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
-import abfab3d.util.TriangleMesh;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.AbFab3DGlobals;
+import abfab3d.util.TriangleMesh;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
@@ -14,13 +15,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 /**
- * Writes a model out as a single material.  Caller is responsible for closing the provided output stream.
+ * Writes a model out as a set of multi material files.  Caller is responsible for closing the provided output stream.
  *
  * @author Alan Hudson
  */
-public class SingleMaterialModelWriter implements ModelWriter {
+public class MultiMaterialModelWriter implements ModelWriter {
     public static double errorFactorDefault = 0.1;
     public static double smoothingWidthDefault = 0.5;
     public static double minimumVolumeDefault = 0;
@@ -28,7 +31,6 @@ public class SingleMaterialModelWriter implements ModelWriter {
 
     private String format;
     private OutputStream os;
-    private BinaryContentHandler x3dWriter;
     private Map<String,Object> x3dParams;
     private double smoothingWidth = smoothingWidthDefault;
     private double errorFactor = errorFactorDefault;
@@ -36,6 +38,8 @@ public class SingleMaterialModelWriter implements ModelWriter {
     private double minPartVolume = minimumVolumeDefault;
     private int threadCount;
     private TriangleMesh mesh;
+
+    private DensityMaker[] makers;
 
     private static HashSet<String> SUPPORTED_FORMATS;
 
@@ -61,66 +65,77 @@ public class SingleMaterialModelWriter implements ModelWriter {
 
     /**
      * Set the X3D content handler to use.  For X3D content writes will go through this writer.
-     *
-     * @param writer
      */
-    public void setX3DWriter(BinaryContentHandler writer,Map<String,Object> params) {
-        this.x3dWriter = writer;
+    public void setX3DParams(Map<String,Object> params) {
         this.x3dParams = params;
+    }
+
+    public void setMakers(DensityMaker[] makers) {
+        this.makers = makers.clone();
     }
 
     @Override
     public void execute(AttributeGrid grid) throws IOException {
         double maxDecimationError = errorFactor * grid.getVoxelSize() * grid.getVoxelSize();
 
-        MeshMakerMT meshmaker = new MeshMakerMT();
-        meshmaker.setBlockSize(30);
-        meshmaker.setThreadCount(threadCount);
-        meshmaker.setSmoothingWidth(smoothingWidth);
-        meshmaker.setMaxDecimationError(maxDecimationError);
-        meshmaker.setMaxDecimationCount(10);
-        meshmaker.setMaxAttributeValue(255);
+        int len = makers.length;
 
-        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
-        meshmaker.makeMesh(grid, its);
+        for(int i=0; i < len; i++) {
+            if (os instanceof ZipOutputStream) {
+                ZipEntry ze = new ZipEntry("channel" + i + "." + format);
+                ((ZipOutputStream)os).putNextEntry(ze);
+            }
+            MeshMakerMT meshmaker = new MeshMakerMT();
+            meshmaker.setBlockSize(30);
+            meshmaker.setThreadCount(threadCount);
+            meshmaker.setSmoothingWidth(smoothingWidth);
+            meshmaker.setMaxDecimationError(maxDecimationError);
+            meshmaker.setMaxDecimationCount(10);
+            meshmaker.setMaxAttributeValue(255);
+            meshmaker.setDensityMaker(makers[i]);
 
-        System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
+            IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+            meshmaker.makeMesh(grid, its);
 
-        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+            System.out.println("Vertices: " + its.getVertexCount() + " faces: " + its.getFaceCount());
 
-        if (minPartVolume > 0 || maxPartsCount < Integer.MAX_VALUE) {
-            ShellResults sr = GridSaver.getLargestShells(mesh, maxPartsCount, minPartVolume);
-            mesh = sr.getLargestShell();
-            int regions_removed = sr.getShellsRemoved();
-            System.out.println("Regions removed: " + regions_removed);
-        }
+            WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
 
-        this.mesh = mesh;
+            if (minPartVolume > 0 || maxPartsCount < Integer.MAX_VALUE) {
+                ShellResults sr = GridSaver.getLargestShells(mesh, maxPartsCount, minPartVolume);
+                mesh = sr.getLargestShell();
+                int regions_removed = sr.getShellsRemoved();
+                System.out.println("Regions removed: " + regions_removed);
+            }
 
-        if(format.equals("x3d") || format.equals("x3dv") || format.equals("x3db")){
+            this.mesh = mesh;
 
-            double[] bounds_min = new double[3];
-            double[] bounds_max = new double[3];
+            if (format.equals("x3d") || format.equals("x3dv") || format.equals("x3db")) {
 
-            grid.getGridBounds(bounds_min,bounds_max);
-            double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
-            max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+                double[] bounds_min = new double[3];
+                double[] bounds_max = new double[3];
 
-            double z = 2 * max_axis / Math.tan(Math.PI / 4);
-            float[] pos = new float[] {0,0,(float) z};
+                grid.getGridBounds(bounds_min, bounds_max);
+                double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+                max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
 
-            if (x3dWriter == null) createX3DWriter();
+                double z = 2 * max_axis / Math.tan(Math.PI / 4);
+                float[] pos = new float[]{0, 0, (float) z};
 
-            GridSaver.writeMesh(mesh, 10,x3dWriter,x3dParams,true);
+                BinaryContentHandler x3dWriter = createX3DWriter();
 
-            // TODO: not certain who should call this yet
-            // TODO: and this makes the passed in x3dWriter invalid for future usage
-            x3dWriter.endDocument();
+                GridSaver.writeMesh(mesh, 10, x3dWriter, x3dParams, true);
+                x3dWriter.endDocument();
+            } else if (format.equals("stl")) {
+                STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
+                mesh.getTriangles(stl);
+                stl.close();
+            }
 
-        } else if(format.equals("stl")){
-            STLWriter stl = new STLWriter(os,mesh.getTriangleCount());
-            mesh.getTriangles(stl);
-            stl.close();
+            if (os instanceof ZipOutputStream) {
+                ((ZipOutputStream)os).closeEntry();
+
+            }
         }
     }
 
@@ -137,10 +152,12 @@ public class SingleMaterialModelWriter implements ModelWriter {
      * @return
      */
     public String getStyleName() {
-        return "singleMaterialMesh";
+        return "multiMaterialMesh";
     }
 
-    private void createX3DWriter() {
+    private BinaryContentHandler createX3DWriter() {
+        BinaryContentHandler x3dWriter = null;
+
         ErrorReporter console = new PlainTextErrorReporter();
 
         int sigDigits = 6; // TODO: was -1 but likely needed
@@ -172,6 +189,8 @@ public class SingleMaterialModelWriter implements ModelWriter {
         x3dWriter.startField("avatarSize");
         x3dWriter.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
         x3dWriter.endNode(); // NavigationInfo
+
+        return x3dWriter;
     }
 
     /**
