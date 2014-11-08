@@ -23,13 +23,33 @@ import static java.lang.Math.sqrt;
 
 /**
  *
+ * represents parametric surface in (u,v) -> (x,y,z)
  * @author Vladimir Bulatov
  */
 public interface ParametricSurface { 
 
+    /**
+       @returns bounds of the domain rectangle in UV space
+       return bounds[4] = {umin, umax, vmin, vmax};
+     */
     public double[] getDomainBounds();
+
+    /**
+       @return count of grid cells in each diraction in uv space
+       the domain is divided into nu*nv equal cells 
+       surface point is calculated in each vertex of the grid        
+       count of the grid points is (nu + 1)*(nv+1)
+     */
     public int[] getGridSize();
-    public Vector3d getPoint(Vector3d v, Vector3d out);
+
+    /**
+       return point with given coordinate 
+
+       @param puv - point in uv space. z-coordinates is ignored 
+       @param pxy - point on surface in xyz space. 
+       
+     */
+    public Vector3d getPoint(Vector3d puv, Vector3d pxyz);
 
 }
 

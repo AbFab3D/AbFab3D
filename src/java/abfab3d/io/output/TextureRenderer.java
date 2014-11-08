@@ -23,7 +23,7 @@ import static abfab3d.util.Output.fmt;
 
 
 /**
-   class responsible for rendering 3D grid data into 2D texture 
+   class responsible for rendering triangles coored by 3D grid data into 2D texture 
 
    @author Vladimir Bulatov
  */
@@ -47,7 +47,7 @@ public class TextureRenderer {
 
     /**
        @param dataGrid - grid which contains source data for rendering 
-       @param textureGrid - grid where the texure is being rendered. The texture is stored at single a slice of the grid 
+       @param textureGrid - grid where the texure is being rendered. The texture is stored at single y-slice in the texture grid
        
      */    
     public TextureRenderer(AttributeGrid dataGrid, AttributeGrid textureGrid){
@@ -57,10 +57,11 @@ public class TextureRenderer {
 
     /**
        renders three dimensional source into two dimensional textured triangle. 
-       @param gridpnt vertices of source trianle in the grid 
-       @param texpnt  vertices of textured triangle
+       @param tri vertices of source 3D triangle in the grid 
+       @param tex  vertices of textured 2D triangle
        <p>
        all coordinates should be given in voxel units 
+       the physical origin and size of the grid is ignored 
        </p>      
        <p>
        Algorithm works as follows 
@@ -68,7 +69,7 @@ public class TextureRenderer {
        <p>
        texTri is rasterized using TriangleRasterizer 
        each 2D pixel in texTri is mapped into 3D point in the plane of srcTri using linear transformation 
-       the color of the 3D point is calculated from nearest voxels of the srcGrid via biliar interpolation 
+       the color of the 3D point is calculated from nearest voxels of the srcGrid via bilinear interpolation 
        that color is assigned to the 2D pixel of texture triangle. 
        </p>
      */
@@ -98,14 +99,16 @@ public class TextureRenderer {
         public void setPixel(int u, int v){
 
             // transform pixel into 3D space 
-            m_triInterpolator.interpolate(u,v, pnt);
+            m_triInterpolator.interpolate(u+0.5, v+0.5, pnt);
             // read voxel from dataGrid 
-            double x = pnt[0], y = pnt[1], z = pnt[2];            
+
+            // do half voxel shift to the center of voxels 
+            double x = pnt[0]-0.5, y = pnt[1]-0.5, z = pnt[2]-0.5;           
             //double x = u/4., y = 25, z = v/4.;
             int 
-                ix = (int)x,
-                iy = (int)y,
-                iz = (int)z;
+                ix = (int)(x),
+                iy = (int)(y),
+                iz = (int)(z);
             double 
                 dx = x - ix,
                 dy = y - iy,

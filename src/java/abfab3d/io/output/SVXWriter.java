@@ -30,6 +30,22 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class SVXWriter {
+
+    public static final String m_orientationNames[] = {"X","Y","Z"};
+
+    static final int DEFAULT_ORIENTATION = 1;
+
+
+    int m_orientation = DEFAULT_ORIENTATION;
+
+    public SVXWriter(){
+        this(DEFAULT_ORIENTATION);
+    }
+
+    public SVXWriter(int orientation){
+        m_orientation = orientation;
+    }
+
     /**
      * Writes a grid out to an svx file
      * @param grid
@@ -72,14 +88,13 @@ public class SVXWriter {
             zos.closeEntry();
 
             SlicesWriter sw = new SlicesWriter();
-            int orientation = 1;
             AttributeDesc attDesc = grid.getAttributeDesc();
 
             for(int i = 0; i < attDesc.size(); i++){
 
                 AttributeChannel channel = attDesc.getChannel(i);
                 String channelPattern = channel.getName() + "/" + "slice%04d.png";
-                sw.writeSlices(grid,zos,channelPattern,0,0,grid.getHeight(), orientation, channel.getBitCount(), channel);
+                sw.writeSlices(grid,zos,channelPattern,0,0,grid.getHeight(), m_orientation, channel.getBitCount(), channel);
             }
         } catch(IOException ioe) {
 
@@ -104,9 +119,9 @@ public class SVXWriter {
         grid.getGridBounds(bounds);
 
         printf(ps,"<?xml version=\"1.0\"?>\n");
-        printf(ps, "<grid gridSizeX=\"%d\" gridSizeY=\"%d\" gridSizeZ=\"%d\" voxelSize=\"%f\" subvoxelBits=\"%d\" originX=\"%f\" originY=\"%f\" originZ=\"%f\">\n", 
+        printf(ps, "<grid gridSizeX=\"%d\" gridSizeY=\"%d\" gridSizeZ=\"%d\" voxelSize=\"%f\" subvoxelBits=\"%d\" originX=\"%f\" originY=\"%f\" originZ=\"%f\" slicesOrientation=\"%s\">\n", 
                grid.getWidth(), grid.getHeight(),grid.getDepth(),
-               grid.getVoxelSize(), subvoxelBits,bounds[0],bounds[2],bounds[4]);
+               grid.getVoxelSize(), subvoxelBits,bounds[0],bounds[2],bounds[4], m_orientationNames[m_orientation]);
 
         String indent = "    ";
         String indent2 = indent+indent;

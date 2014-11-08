@@ -471,6 +471,11 @@ public class TriangulatedModels {
         double x1, y1, z1;
         int type = 0; // two possible types 0 and 1 
         
+        /**
+           x0, y0, z0 - coordinates of first cornwer of parallelepiped 
+           x1, y1, z1 - coordinates of second cornwer of parallelepiped 
+
+         */
         public TetrahedronInParallelepiped(double x0, double y0, double z0, double x1, double y1, double z1, int type){
 
             this.x0 = x0;
