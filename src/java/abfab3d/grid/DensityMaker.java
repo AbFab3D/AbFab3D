@@ -12,8 +12,6 @@
 
 package abfab3d.grid;
 
-import abfab3d.util.Vec;
-
 /**
    interface to convert a grid attribute into voxel density
 

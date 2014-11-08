@@ -2,6 +2,7 @@ package abfab3d.io.output;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.DensityMaker;
+import abfab3d.grid.MaterialMaker;
 import abfab3d.grid.ModelWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
@@ -39,7 +40,8 @@ public class MultiMaterialModelWriter implements ModelWriter {
     private int threadCount;
     private TriangleMesh mesh;
 
-    private DensityMaker[] makers;
+    private MaterialMaker[] makers;
+    private String[] finish;
 
     private static HashSet<String> SUPPORTED_FORMATS;
 
@@ -70,8 +72,18 @@ public class MultiMaterialModelWriter implements ModelWriter {
         this.x3dParams = params;
     }
 
-    public void setMakers(DensityMaker[] makers) {
+    public void setMaterialMakers(MaterialMaker[] makers) {
         this.makers = makers.clone();
+    }
+
+    /**
+     * Set any post processing finish steps done to the model.  This includes things like
+     * polishing, dyeing, metal plating etc.
+     *
+     * @param finish  URN to the finishing process
+     */
+    public void setFinish(String[] finish) {
+        this.finish = finish.clone();
     }
 
     @Override
@@ -92,7 +104,7 @@ public class MultiMaterialModelWriter implements ModelWriter {
             meshmaker.setMaxDecimationError(maxDecimationError);
             meshmaker.setMaxDecimationCount(10);
             meshmaker.setMaxAttributeValue(255);
-            meshmaker.setDensityMaker(makers[i]);
+            meshmaker.setDensityMaker(makers[i].getDensityMaker());
 
             IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
             meshmaker.makeMesh(grid, its);
@@ -129,7 +141,7 @@ public class MultiMaterialModelWriter implements ModelWriter {
             } else if (format.equals("stl")) {
                 STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
                 mesh.getTriangles(stl);
-                stl.close();
+                //stl.close();
             }
 
             if (os instanceof ZipOutputStream) {

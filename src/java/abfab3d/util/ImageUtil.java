@@ -420,7 +420,18 @@ public class ImageUtil {
             componentData[i] = imageData[k + componentOffset];
         }        
     }
-    
+
+    /**
+     convert array of byte data in BGR form into 8 bit
+     */
+    public static void getBGRcomponent(byte imageData[], int componentOffset, byte componentData[]){
+
+        int len = componentData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 3){
+            componentData[i] = imageData[k + componentOffset];
+        }
+    }
+
     // array of BGR bytes to gray16 conversion 
     static void byteBGR2gray16(byte imageData[], short grayData[]){
 

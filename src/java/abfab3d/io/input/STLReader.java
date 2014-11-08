@@ -59,6 +59,7 @@ public class STLReader implements TriangleProducer, Transformer {
      * path to file to read from
      */
     private String m_path;
+    private InputStream m_is;
 
     public void setScale(double scale) {
         this.scale = scale;
@@ -102,6 +103,10 @@ public class STLReader implements TriangleProducer, Transformer {
 
     public STLReader(String path) {
         m_path = path;
+    }
+
+    public STLReader(InputStream is) {
+        m_is = is;
     }
 
     public void setPath(String path) {
@@ -160,17 +165,98 @@ public class STLReader implements TriangleProducer, Transformer {
     }
 
     /**
+     * Read an STL file and output triangles to the collector. Assumes binary
+     *
+     * @param is File to read
+     * @param out  Destination
+     * @throws IOException
+     */
+    public void read(InputStream is, TriangleCollector out) throws IOException {
+
+        if (out == null) {
+            return;
+        }
+
+        try {
+            if (transform == null) {
+                readNoTransformBinary(is, out);
+            } else {
+                readTransformBinary(is, out);
+            }
+        } catch(InvalidFormatException ife) {
+            throw new IOException("Cannot parse file: " + ife.getMessage());
+        }
+    }
+
+    /**
      * interface TriangleProducer
      */
     public boolean getTriangles(TriangleCollector out) {
         try {
 
-            read(m_path, out);
+            if (m_is != null) {
+                read(m_is,out);
+            } else {
+                read(m_path, out);
+            }
             return true;
 
         } catch (Exception e) {
             throw new RuntimeException(fmt("Exception while reading STL file:%s\n", m_path), e);
         }
+    }
+
+    /**
+     * Read in a file.
+     *
+     * @param bis File to read
+     * @param out  Destination
+     * @throws IOException
+     */
+    private void readNoTransformBinary(InputStream bis, TriangleCollector out) throws IOException {
+        long t0;
+
+        if (DEBUG) {
+            printf("STLReader.read(%s, %s)\n",bis, out);
+            t0 = currentTimeMillis();
+        }
+
+        this.out = out;
+
+        DataInputStream data = new DataInputStream(bis);
+
+        data.skip(80);
+
+        int fcount = readInt(data);
+        if (DEBUG)
+            printf("fcount: %d\n", fcount);
+        int faces = 0;
+
+        Vector3d
+                v0 = new Vector3d(),
+                v1 = new Vector3d(),
+                v2 = new Vector3d();
+
+        try {
+            while (true) {
+                // ignore normal
+                data.skip(3 * 4);
+                readVector3Df(data, v0);
+                readVector3Df(data, v1);
+                readVector3Df(data, v2);
+                out.addTri(v0, v1, v2);
+
+                data.skip(2); // unsused stuff
+                faces++;
+            }
+        } catch (Exception e) {
+            data.close();
+
+            if (DEBUG)
+                printf("faces read: %d\n", faces);
+        }
+        if (DEBUG)
+            printf("STLReader.read() done in %d ms\n", (currentTimeMillis() - t0));
     }
 
     /**
@@ -257,6 +343,79 @@ public class STLReader implements TriangleProducer, Transformer {
         } else {
             bis = new BufferedInputStream(new FileInputStream(path), (1 << 14));
         }
+        DataInputStream data = new DataInputStream(bis);
+
+        data.skip(80);
+
+        int fcount = readInt(data);
+        if (DEBUG)
+            printf("fcount: %d\n", fcount);
+        int faces = 0;
+
+        Vec
+                v0 = new Vec(3),
+                v1 = new Vec(3),
+                v2 = new Vec(3);
+
+        Vector3d
+                dv0 = new Vector3d(),
+                dv1 = new Vector3d(),
+                dv2 = new Vector3d();
+
+        try {
+            while (true) {
+                // ignore normal
+                data.skip(3 * 4);
+                readVector3Df(data, dv0);
+                readVector3Df(data, dv1);
+                readVector3Df(data, dv2);
+
+                v0.set(dv0);
+                v1.set(dv1);
+                v2.set(dv2);
+
+                transform.transform(v0, v0);
+                transform.transform(v1, v1);
+                transform.transform(v2, v2);
+
+                // TODO: I don't like having to change vector reps
+                v0.get(dv0);
+                v1.get(dv1);
+                v2.get(dv2);
+
+                out.addTri(dv0, dv1, dv2);
+
+                data.skip(2); // unsused stuff
+                faces++;
+            }
+        } catch (Exception e) {
+            data.close();
+
+            if (DEBUG)
+                printf("faces read: %d\n", faces);
+        }
+        if (DEBUG)
+            printf("STLReader.read() done in %d ms\n", (currentTimeMillis() - t0));
+
+    }
+
+    /**
+     * Read in a file and apply the specified transform.
+     *
+     * @param bis File to read
+     * @param out  Destination
+     * @throws IOException
+     */
+    private void readTransformBinary(InputStream bis, TriangleCollector out) throws IOException {
+        long t0;
+
+        if (DEBUG) {
+            printf("STLReader.read(%s, %s)\n", bis, out);
+            t0 = currentTimeMillis();
+        }
+
+        this.out = out;
+
         DataInputStream data = new DataInputStream(bis);
 
         data.skip(80);
