@@ -62,7 +62,12 @@ public class SAVExporter {
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
-            finish = new String[]{(String) params.get(FINISH)};
+            Object o = params.get(FINISH);
+            if (o instanceof String) {
+                finish = new String[]{(String) params.get(FINISH)};
+            } else {
+                finish = (String[]) o;
+            }
         }
         outputX3D(mesh, params, material, finish, stream, defName);
     }
@@ -85,7 +90,12 @@ public class SAVExporter {
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
-            finish = new String[]{(String) params.get(FINISH)};
+            Object o = params.get(FINISH);
+            if (o instanceof String) {
+                finish = new String[]{(String) params.get(FINISH)};
+            } else {
+                finish = (String[]) o;
+            }
         }
         outputX3D(verts, params, material, finish, stream, defName);
     }

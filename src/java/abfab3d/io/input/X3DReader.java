@@ -59,9 +59,15 @@ public class X3DReader implements TriangleProducer, Transformer {
      * path to file to read from
      */
     private String m_path;
+    private InputStream m_is;
+    private String m_baseURL;
 
     public X3DReader(String path) {
         m_path = path;
+    }
+    public X3DReader(InputStream is, String baseURL) {
+        m_is = is;
+        m_baseURL = baseURL;
     }
 
     /**
@@ -80,7 +86,12 @@ public class X3DReader implements TriangleProducer, Transformer {
 
         if(m_fileLoader == null){
             m_fileLoader = new X3DFileLoader(new SysErrorReporter(SysErrorReporter.PRINT_ERRORS));
-            m_fileLoader.loadFile(new File(m_path));
+
+            if (m_is != null) {
+                m_fileLoader.load(m_baseURL,m_is);
+            } else {
+                m_fileLoader.loadFile(new File(m_path));
+            }
         }
                 
         List<CommonEncodable> shapes = m_fileLoader.getShapes();

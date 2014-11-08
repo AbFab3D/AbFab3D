@@ -17,8 +17,6 @@ import java.io.BufferedOutputStream;
 import java.io.OutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 
 import abfab3d.util.TriangleCollector;
 
@@ -26,9 +24,7 @@ import javax.vecmath.Vector3f;
 import javax.vecmath.Vector3d;
 
 
-import static java.lang.System.currentTimeMillis;
-
-import static abfab3d.util.Output.printf; 
+import static abfab3d.util.Output.printf;
 
 
 /**
@@ -57,7 +53,8 @@ public class STLWriter implements TriangleCollector {
     FileOutputStream m_fileStream;
     String m_path; // file path to write to 
 
-    boolean isOpened = false; // if output file is opened 
+    boolean isOpened = false; // if output file is opened
+    boolean osPassedIn = false;  // don't close streams passed in
 
     static void writeInt4(OutputStream out, int value) throws IOException{
         
@@ -158,6 +155,7 @@ public class STLWriter implements TriangleCollector {
 
         isOpened = true;
         m_output = os;
+        osPassedIn = true;
 
         m_output.write(STLHeader);
 
@@ -199,7 +197,7 @@ public class STLWriter implements TriangleCollector {
         isOpened = false;
         if (m_output != null) m_output.flush();
         if (m_fileStream != null) m_fileStream.flush();
-        if (m_output != null) m_output.close();
+        if (!osPassedIn && m_output != null) m_output.close();
         if (m_fileStream != null) m_fileStream.close();
 
         if (!triCountWritten) {

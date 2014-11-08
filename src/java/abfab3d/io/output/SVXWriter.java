@@ -135,7 +135,7 @@ public class SVXWriter {
             String channelPattern = channel.getName() + "/" + "slice%04d.png";
             int bits = channel.getBitCount(); 
             printf("channel type: %s name: %s\n", channel.getType(), channel.getName());
-            printf(ps, indent2 + "<channel type=\"%s\" slices=\"%s\" bits=\"%d\">\n",channel.getType(), channelPattern, bits);
+            printf(ps, indent2 + "<channel type=\"%s\" slices=\"%s\" bits=\"%d\" />\n",channel.getType(), channelPattern, bits);
         }        
         printf(ps, indent + "</channels>\n");
         printf(ps, "</grid>\n");

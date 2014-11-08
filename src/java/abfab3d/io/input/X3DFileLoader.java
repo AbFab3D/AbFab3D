@@ -13,6 +13,7 @@
 package abfab3d.io.input;
 
 // External Imports
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -76,7 +77,6 @@ public class X3DFileLoader extends CommonEncodedBaseFilter {
     public void loadFile(File input) throws IOException, IllegalArgumentException {
         int export_major_version = DEFAULT_OUPUT_MAJOR_VERSION;
         int export_minor_version = DEFAULT_OUPUT_MINOR_VERSION;
-        String style = null;
 
         InputSource is = new InputSource(input);
 
@@ -116,7 +116,66 @@ public class X3DFileLoader extends CommonEncodedBaseFilter {
         // Assume the scenegraph is flat via visual_mesh_conversion.sh
 
         int len = nodes.size();
-        for(int i=0; i < nodes.size(); i++) {
+        for(int i=0; i < len; i++) {
+            CommonEncodable enc = nodes.get(i);
+            if (enc.getNodeName().equals("Shape")) {
+                processShape(enc);
+                shapes.add(enc);
+            }
+        }
+
+        Iterator<CommonEncodable> itr2 = shapes.iterator();
+        while(itr2.hasNext()) {
+            CommonEncodable n = itr2.next();
+            parsedScene.removeRootNode(n);
+        }
+    }
+
+    /**
+     * Load the specified file X3D file.
+     */
+    public void load(String baseURL, InputStream input) throws IOException, IllegalArgumentException {
+        int export_major_version = DEFAULT_OUPUT_MAJOR_VERSION;
+        int export_minor_version = DEFAULT_OUPUT_MINOR_VERSION;
+
+        InputSource is = new InputSource(baseURL,input);
+
+        Exporter writer = new NullExporter(export_major_version,
+                export_minor_version,
+                console);
+
+        X3DReader reader = new X3DReader();
+
+        AbstractFilter filter = this;
+
+        reader.setContentHandler(filter);
+        reader.setRouteHandler(filter);
+        reader.setScriptHandler(filter);
+        reader.setProtoHandler(filter);
+        reader.setErrorReporter(console);
+
+        filter.setContentHandler(writer);
+        filter.setRouteHandler(writer);
+        filter.setScriptHandler(writer);
+        filter.setProtoHandler(writer);
+
+
+        reader.parse(is);
+
+        try {
+            // clean up...
+            is.close();
+        } catch (IOException ioe) {
+            // ignore
+        }
+
+        // Convert all supported geometry to ITS
+        List<CommonEncodable> nodes = parsedScene.getRootNodes();
+
+        // Assume the scenegraph is flat via visual_mesh_conversion.sh
+
+        int len = nodes.size();
+        for(int i=0; i < len; i++) {
             CommonEncodable enc = nodes.get(i);
             if (enc.getNodeName().equals("Shape")) {
                 processShape(enc);
@@ -203,7 +262,7 @@ public class X3DFileLoader extends CommonEncodedBaseFilter {
      * Assumes that the IFS index list is constructed as triangles (every 4th
      * index is the -1 separator); otherwise an IllegalArgumentException is thrown.
      * 
-     * @param index The IndexedFaceSet index
+     * @param coord_index The IndexedFaceSet index
      * @return newly ordered IndexedTriangleSet index
      * @throws IllegalArgumentException
      */

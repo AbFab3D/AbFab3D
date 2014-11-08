@@ -19,27 +19,14 @@ import javax.vecmath.Vector3d;
 
 
 // external imports
+import abfab3d.grid.*;
+import abfab3d.util.*;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 
 // Internal Imports
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ArrayAttributeGridInt;
-
-import abfab3d.grid.AttributeMaker;
-import abfab3d.grid.AttributeMakerDensity;
-import abfab3d.grid.AttributeMakerGeneral;
-
-import abfab3d.grid.DensityMaker;
-import abfab3d.grid.DensityMakerSubvoxel;
-
-import abfab3d.util.ReflectionGroup;
-import abfab3d.util.DataSource;
-import abfab3d.util.MathUtil;
-import abfab3d.util.Vec;
 
 import abfab3d.grid.op.GridMaker;
 
@@ -69,6 +56,11 @@ import abfab3d.transforms.Scale;
 import abfab3d.transforms.SphereInversion;
 import abfab3d.transforms.Translation;
 import abfab3d.transforms.PlaneReflection;
+
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
+import java.util.zip.ZipOutputStream;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -183,7 +175,134 @@ public class TestMeshMaker extends TestCase {
 
 
         
-    }    
+    }
+
+    public void testMeshOutput() throws Exception {
+
+        double vs = 0.1*MM;
+        double margin = vs;
+        int subvoxelResolution = 255;
+        int threadCount = 4;
+
+        double s = 20*MM;
+
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+
+        MathUtil.roundBounds(bounds, vs);
+        bounds = MathUtil.extendBounds(bounds, margin);
+
+        double surfareThickness = sqrt(3)/2;
+
+        int nx[] = MathUtil.getGridSize(bounds, vs);
+
+        printf("grid: [%d x %d x %d]\n", nx[0],nx[1],nx[2]);
+
+        //Union union = new Union();
+        Intersection density = new Intersection();
+
+        density.add(new Sphere(new Vector3d(0,0,0), s));
+        density.add(new Sphere(new Vector3d(0,0,0), -(s-1*MM)));
+        density.add(new Plane(new Vector3d(1,0,0), 0));
+
+
+        //Intersection color1 = new Intersection();
+        //color1.add(new Plane(new Vector3d(0,1,0), 0.5*MM));
+        //color1.add(new Plane(new Vector3d(0,-1,0), 0.5*MM));
+
+        DataSource color1 = new HalfGyroid(0.3*s);
+
+        DataChannelMixer mux = new DataChannelMixer(density, color1);
+
+        AttributeMaker attdens = new AttributeMakerDensity(subvoxelResolution);
+        AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
+
+        GridMaker gm = new GridMaker();
+
+        gm.setSource(mux);
+        gm.setThreadCount(threadCount);
+
+        gm.setAttributeMaker(attmuxer);
+
+        AttributeGrid grid = new ArrayAttributeGridInt(nx[0], nx[1], nx[2], vs, vs);
+        grid.setGridBounds(bounds);
+
+        long t0 = time();
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);
+        printf("gm.makeGrid() done in %d ms\n", (time() - t0));
+
+        MultiMaterialModelWriter writer = new MultiMaterialModelWriter();
+        FileOutputStream fos = new FileOutputStream("/tmp/foo.sts");
+        //ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        ZipOutputStream zos = new ZipOutputStream(bos);
+        writer.setOutputStream(zos);
+        writer.setOutputFormat("x3db");
+        writer.setMaterialMakers(new MaterialMaker[]{new MaterialMaker(new ChannelDensityMaker(0), MaterialURN.SHAPEWAYS_STRONG_AND_FLEXIBLE_PLASTIC),
+                new MaterialMaker(new ChannelDensityMaker(1),MaterialURN.SHAPEWAYS_SILVER)});
+
+        writer.execute(grid);
+        zos.close();
+        fos.close();
+    }
+
+    public void testSTSOutput() throws Exception {
+
+        double vs = 0.1*MM;
+        double margin = vs;
+        int subvoxelResolution = 255;
+        int threadCount = 8;
+
+        double s = 20*MM;
+
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+
+        MathUtil.roundBounds(bounds, vs);
+        bounds = MathUtil.extendBounds(bounds, margin);
+
+        int nx[] = MathUtil.getGridSize(bounds, vs);
+
+        printf("grid: [%d x %d x %d]\n", nx[0],nx[1],nx[2]);
+
+        //Union union = new Union();
+        Intersection density = new Intersection();
+
+        density.add(new Sphere(new Vector3d(0,0,0), s));
+        density.add(new Sphere(new Vector3d(0,0,0), -(s-1*MM)));
+        density.add(new Plane(new Vector3d(1,0,0), 0));
+
+
+        //Intersection color1 = new Intersection();
+        //color1.add(new Plane(new Vector3d(0,1,0), 0.5*MM));
+        //color1.add(new Plane(new Vector3d(0,-1,0), 0.5*MM));
+
+        DataSource color1 = new HalfGyroid(0.3*s);
+
+        DataChannelMixer mux = new DataChannelMixer(density, color1);
+
+        AttributeMaker attmuxer = new AttributeMakerGeneral(new int[]{8,8});
+
+        GridMaker gm = new GridMaker();
+
+        gm.setSource(mux);
+        gm.setThreadCount(threadCount);
+
+        gm.setAttributeMaker(attmuxer);
+
+        AttributeGrid grid = new ArrayAttributeGridInt(nx[0], nx[1], nx[2], vs, vs);
+        grid.setGridBounds(bounds);
+
+        long t0 = time();
+        printf("gm.makeGrid()\n");
+        gm.makeGrid(grid);
+        printf("gm.makeGrid() done in %d ms\n", (time() - t0));
+
+        MaterialMaker[] makers = new MaterialMaker[]{new MaterialMaker(new ChannelDensityMaker(0), MaterialURN.SHAPEWAYS_STRONG_AND_FLEXIBLE_PLASTIC),
+                new MaterialMaker(new ChannelDensityMaker(1),MaterialURN.SHAPEWAYS_SILVER)};
+
+        STSWriter writer = new STSWriter();
+        writer.write(grid,makers,new String[] {FinishURN.SHAPEWAYS_POLISHED_HAND},"/tmp/sts/foo2.sts");
+    }
 
     static class ChannelDensityMaker implements DensityMaker {
 
