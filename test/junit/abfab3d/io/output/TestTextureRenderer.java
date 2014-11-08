@@ -15,17 +15,32 @@ package abfab3d.io.output;
 // External Imports
 
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Vector2d;
-
 
 import java.util.Random;
+
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.BasicStroke;
+
+import java.awt.geom.GeneralPath;
+import java.awt.image.BufferedImage;
+
 
 import java.io.File;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.IOException;
+
+import java.util.Vector;
+
+
+
+import javax.vecmath.Vector3d;
+import javax.vecmath.Vector2d;
+
+import javax.imageio.ImageIO;
 
 
 // external imports
@@ -43,8 +58,13 @@ import abfab3d.grid.ArrayAttributeGridLong;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
 
+import abfab3d.util.TriangleProducer;
+import abfab3d.util.TriangleCollector;
+import abfab3d.util.RectPacking;
 
 import abfab3d.geom.TriangulatedModels;
+import abfab3d.geom.ParametricSurfaces;
+import abfab3d.geom.ParametricSurfaceMaker;
 
 import abfab3d.util.MathUtil;
 import abfab3d.util.ImageGray16;
@@ -75,6 +95,8 @@ import abfab3d.transforms.Scale;
 import abfab3d.transforms.SphereInversion;
 import abfab3d.transforms.Translation;
 import abfab3d.transforms.PlaneReflection;
+
+import abfab3d.mesh.IndexedTriangleSetBuilder;
 
 import abfab3d.datasources.VolumePatterns;
 
@@ -154,7 +176,7 @@ public class TestTextureRenderer extends TestCase {
         // normally maxDist is below 1.e-14, but if 2D triangle is almost degenerate, there is larger error
     }
 
-    public void checkTextureRendering(){
+    public void makeTextureRendering(){
 
         double vs = 0.1*MM;
         int subvoxelResolution = 255;
@@ -222,9 +244,188 @@ public class TestTextureRenderer extends TestCase {
         
     }
 
+    /**
+       testing textured triangles output 
+     */
+    public void makeTexturedMesh() throws IOException{
+
+        printf("makeTexturedTetrahedron()\n");
+        
+        double vs = 0.1*MM;
+
+        double s = 10*MM;
+        double bounds[] = new double[]{-s/2,s/2,-s/2,s/2,-s/2,s/2};
+
+        double gs = s/vs; // size of grid 
+        double gap = 1.;
+        double center = gs/2;
+
+        String baseDir = "/tmp/tex/";
+        TriangleProducer mesh = new ParametricSurfaceMaker(new ParametricSurfaces.Patch(new Vector3d(2,2,center),new Vector3d(gs-2,2,center),
+                                                                                        new Vector3d(gs-2,gs-2,center),new Vector3d(2,gs-2,center),
+                                                                                        3,3));
+        //TriangleProducer mesh = new TriangulatedModels.TetrahedronInParallelepiped(2.,2.,2., gs-2, gs-2, gs-2,0);
+        //TriangleProducer mesh = new TriangulatedModels.Parallelepiped(2.,2.,2., gs-2, 0.7*gs-2, 0.5*gs-2);
+        //TriangleProducer mesh = new TriangulatedModels.Sphere(gs/2-2, new Vector3d(gs/2,gs/2,gs/2), 1);
+        //TriangleProducer mesh = new TriangulatedModels.Torus(gs/4, gs/2, 0.02);
+        
+        STLWriter writer = new STLWriter(baseDir + "mesh.stl");
+        mesh.getTriangles(writer);
+        writer.close();            
+        
+        //IndexedTriangleSetBuilder itsb = new IndexedTriangleSetBuilder();
+        //mesh.getTriangles(itsb);
+        //printf("vert count: %d\n", itsb.getVertexCount());
+        //printf("tri count: %d\n", itsb.getFaceCount());
+
+        //double vert[] = itsb.getVertices();
+        
+        TrianglePacker tp = new TrianglePacker(gap);
+        mesh.getTriangles(tp);
+   
+        int rc = tp.getTriCount();
+        printf("tripacker count: %d\n", tp.getTriCount());        
+        tp.packTriangles();
+        
+        Vector2d area = tp.getPackedSize();
+
+        printf("packedSize: [%7.2f x %7.2f] \n", area.x, area.y); 
+               
+        int imgWidth = (int)(area.x+2*gap);
+        int imgHeight = (int)(area.y+2*gap);
+
+        BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D graphics = outImage.createGraphics();
+        graphics.setRenderingHint( RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graphics.setStroke(new BasicStroke(1.f, BasicStroke.CAP_ROUND,  BasicStroke.JOIN_ROUND));        
+        graphics.setColor(new Color(220,220,220));         
+        graphics.fillRect(0,0, imgWidth, imgHeight);         
+        
+        tp.drawTriangles(graphics);
+                    
+        ImageIO.write(outImage, "png", new File(baseDir + "texture.png"));
+
+        int ngx = (int)gs;        
+        AttributeGrid colorGrid = makeColorGrid_2(bounds, vs);
+
+        AttributeDesc attDesc = new AttributeDesc();
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
+        colorGrid.setAttributeDesc(attDesc);
+        new SVXWriter(2).write(colorGrid, "/tmp/tex/colorGrid.svx");
+
+        double texBounds[] = new double[]{0, imgWidth*vs, 0, vs, 0, imgHeight*vs};
+        AttributeGrid texGrid = new ArrayAttributeGridInt(imgWidth,1,imgHeight, vs, vs);
+        texGrid.setGridBounds(texBounds);
+        texGrid.setAttributeDesc(attDesc);
+        
+        tp.renderTexturedTriangles(colorGrid, texGrid);
+
+        new SVXWriter().write(texGrid, "/tmp/tex/texGrid.svx");
+
+        double coord[] = tp.getCoord();
+        int coordIndex[] = tp.getCoordIndex();
+
+        printf("		coord Coordinate{\n"+
+               "			point[\n");
+        for(int k = 0; k < coord.length; k += 3){
+            printf("\t\t\t%7.5f %7.5f %7.5f\n",coord[k],coord[k+1],coord[k+2]);
+        }        
+        printf("			]\n"+
+               "		}\n"+
+               "		coordIndex[\n");
+        for(int k = 0; k < coordIndex.length; k += 3){
+            printf("\t\t\t%d %d %d -1\n",coordIndex[k],coordIndex[k+1],coordIndex[k+2]);
+        }                
+        printf("		]\n");
+        double texCoord[] = tp.getTexCoord();
+        int texCoordIndex[] = tp.getTexCoordIndex();
+        printf("		texCoord TextureCoordinate {\n"+
+               "			point [\n");
+        for(int k = 0; k < texCoord.length; k += 2){
+            printf("\t\t\t%7.5f %7.5f\n",texCoord[k]/imgWidth, (imgHeight - texCoord[k+1])/imgHeight);
+        }
+        printf("			]\n"+
+               "		}\n"+
+               "		texCoordIndex[\n");
+        for(int k = 0; k < texCoordIndex.length; k += 3){
+            printf("\t\t\t%d %d %d -1\n",texCoordIndex[k],texCoordIndex[k+1],texCoordIndex[k+2]);
+        }                        
+        printf("		]\n");        
+        
+    }  //makeTexturedMesh()
+
+
+    AttributeGrid makeColorGrid_1(double bounds[], double vs){
+
+        
+        int ng[] = MathUtil.getGridSize(bounds, vs);
+        
+        AttributeGrid dataGrid = new ArrayAttributeGridInt(ng[0],ng[1],ng[2], vs, vs);
+
+        dataGrid.setGridBounds(bounds);        
+        
+        double sx = bounds[1] - bounds[0];
+
+        Sphere sphere1 = new Sphere(-0.1*sx, 0, 0, 1.55*sx);
+        Sphere sphere2 = new Sphere(-0.1*sx, 0, 0, 0.45*sx);
+        Sphere sphere3 = new Sphere(-0.1*sx, 0, 0, 0.35*sx);
+
+        //VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.3*sx, 0.1*sx);
+        //Torus torus = new Torus(0.2*sx, 0.1*sx);
+
+        DataChannelMixer mux = new DataChannelMixer(sphere1, sphere2, sphere3);
+        
+        GridMaker gm = new GridMaker();  
+        gm.setThreadCount(1);
+        gm.setMargin(0);
+        gm.setSource(mux);
+
+        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8}, true));
+         
+        printf("gm.makeGrid(%d x %d x %d)\n", ng[0],ng[1],ng[2]);
+        gm.makeGrid(dataGrid);        
+        printf("gm.makeGrid() done\n");
+
+        return dataGrid;
+    }
+    
+
+    AttributeGrid makeColorGrid_2(double bounds[], double vs){
+
+        
+        int ng[] = MathUtil.getGridSize(bounds, vs);
+        
+        AttributeGrid dataGrid = new ArrayAttributeGridInt(ng[0],ng[1],ng[2], vs, vs);
+
+        dataGrid.setGridBounds(bounds);        
+        
+        double sx = bounds[1] - bounds[0];
+
+        Sphere sphere1 = new Sphere(-0.1*sx, 0, 0, 1.55*sx);
+        Sphere sphere2 = new Sphere(-0.1*sx, 0, 0, 0.45*sx);
+        VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(0.5*sx, 0.02*sx);
+
+        DataChannelMixer mux = new DataChannelMixer(sphere1, sphere2, gyroid);
+        
+        GridMaker gm = new GridMaker();  
+        gm.setThreadCount(1);
+        gm.setMargin(0);
+        gm.setSource(mux);
+
+        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8}, true));
+         
+        printf("gm.makeGrid(%d x %d x %d)\n", ng[0],ng[1],ng[2]);
+        gm.makeGrid(dataGrid);        
+        printf("gm.makeGrid() done\n");
+
+        return dataGrid;
+    }
+
+
     public static void main(String[] args) throws IOException {
         //new TestSlicesWriter().multichannelTest();
         //new TestTextureRenderer().checkLinearTransform();
-        new TestTextureRenderer().checkTextureRendering();
+        //new TestTextureRenderer().checkTextureRendering();
+        new TestTextureRenderer().makeTexturedMesh();
     }    
 }

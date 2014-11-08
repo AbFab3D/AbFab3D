@@ -156,4 +156,64 @@ public class ParametricSurfaces {
         }
 
     } // Sphere
+
+    
+    /**
+       quadrilateral patch with given corners
+       internal points are bi-linearly interpolated 
+     */
+    public static class Patch implements ParametricSurface {
+
+        Vector3d v00, v01, v11, v10;        
+        int nu, nv;
+
+        // work vectors 
+        Vector3d v0 = new Vector3d();
+        Vector3d v1 = new Vector3d();
+
+        /**
+           
+         */
+        public Patch (Vector3d p00, Vector3d p10, Vector3d p11, Vector3d p01){            
+            this(p00, p10, p11, p01, 1, 1);
+        }
+
+        public Patch (Vector3d p00, Vector3d p10, Vector3d p11, Vector3d p01, int nu, int nv){ 
+
+            this.nu = nu;
+            this.nv = nv;
+            this.v00 = new Vector3d(p00);
+            this.v10 = new Vector3d(p10);
+            this.v01 = new Vector3d(p01);
+            this.v11 = new Vector3d(p11);
+
+        }
+
+    
+        public double[] getDomainBounds(){
+            // the domain is unit square
+            return new double[]{0,1,0,1};            
+        }
+
+        public int[] getGridSize(){
+
+            return new int[]{nu, nv};
+
+        }
+
+        public Vector3d getPoint(Vector3d in, Vector3d out){
+            
+            double u = in.x;
+            double v = in.y;
+            
+            v0.interpolate(v00, v10, u);
+            v1.interpolate(v01, v11, u);
+            out.interpolate(v0, v1, v);
+
+            return out;
+        }
+        
+    } // Patch 
+        
+
 }
