@@ -77,6 +77,8 @@ public class VolumePatterns {
             if(DEBUG && debugCount-- > 0)
                 printf("(%10.5f %10.5f %10.5f) -> %10.5f\n", x,y,z,data.v[0]);
 
+            super.getMaterialDataValue(pnt, data);
+
             return RESULT_OK;
         }
         
@@ -125,6 +127,8 @@ public class VolumePatterns {
             if( dzx > d) d = dzx;
 
             data.v[0] = d;
+
+            super.getMaterialDataValue(pnt, data);
 
             return RESULT_OK;
         }
@@ -198,6 +202,8 @@ public class VolumePatterns {
             double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - level)/factor) - (thickness + voxelScale*vs);
             
             data.v[0] = step10(d, 0, vs);
+
+            super.getMaterialDataValue(pnt, data);
 
             return RESULT_OK;
         }
@@ -288,6 +294,8 @@ public class VolumePatterns {
 
             data.v[0] = step10(d, 0, vs);
 
+            super.getMaterialDataValue(pnt, data);
+
             return RESULT_OK;
         }
 
@@ -324,6 +332,7 @@ public class VolumePatterns {
                     0.5 * (cos(2*x) * cos(2*y) + cos(2*y) * cos(2*z) + cos(2*z) * cos(2*x)) + 0.15 - thickness;
             data.v[0] = step10(d, 0, (vs));
 
+            super.getMaterialDataValue(pnt, data);
             return RESULT_OK;
         }
 
@@ -361,6 +370,7 @@ public class VolumePatterns {
             double d = cos(x) + cos(y) + cos(z) - thickness;
 
             data.v[0] = step10(d, 0, (vs));
+            super.getMaterialDataValue(pnt, data);
 
             return RESULT_OK;
         }
@@ -413,6 +423,7 @@ public class VolumePatterns {
             double d = sin(x) * sin(y) * sin(z) + sin(x) * cos(y) * cos(z) + cos(x) * sin(x) * cos(z) + cos(x) * cos(y) * sin(z) - (thickness + voxelScale * vs);
 
             data.v[0] = step10(d, 0, (vs));
+            super.getMaterialDataValue(pnt, data);
 
             return RESULT_OK;
         }
@@ -450,6 +461,8 @@ public class VolumePatterns {
             double vs = pnt.getScaledVoxelSize();
 
             data.v[0] = step10(d, 0, (vs));
+
+            super.getMaterialDataValue(pnt, data);
 
             return RESULT_OK;
         }
@@ -491,6 +504,8 @@ public class VolumePatterns {
             double vs = pnt.getScaledVoxelSize();
 
             data.v[0] = step10(d, 0, (vs));
+
+            super.getMaterialDataValue(pnt, data);
 
             return RESULT_OK;
         }

@@ -27,7 +27,7 @@ import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 import abfab3d.util.BoundingBoxUtilsFloat;
-import app.common.GridSaver;
+import abfab3d.io.output.GridSaver;
 import org.j3d.geom.BoxGenerator;
 import org.j3d.geom.CylinderGenerator;
 import org.j3d.geom.GeometryData;
@@ -511,7 +511,10 @@ public class BooleanOps {
         // assume ArrayGridByte uses 1 byte per voxel.
 
         if (voxels > maxRam) {
-            return new GridBitIntervals(width, height, depth, GridBitIntervals.ORIENTATION_Z, RESOLUTION, RESOLUTION);
+            int w = (int) (width/pixelSize) + 1;
+            int h = (int) (height/sliceHeight) + 1;
+            int d = (int) (depth/pixelSize) + 1;
+            return new GridBitIntervals(w, h, d, GridBitIntervals.ORIENTATION_Z, RESOLUTION, RESOLUTION);
         } else {
             return new ArrayGridByte(width, height, depth, RESOLUTION, RESOLUTION);
         }

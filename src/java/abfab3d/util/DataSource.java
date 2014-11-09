@@ -14,20 +14,29 @@ package abfab3d.util;
 
 /**
    
-   interface to implements general source of data at given Vec point 
-   
+   interface to implements calculation of general multidimensional data at the given point 
+
+   @author Vladimir Bulatov 
  */
 public interface DataSource {
 
     public static int 
         RESULT_OK = 0,     // success
         RESULT_ERROR = 1,  // error occurs 
-        RESULT_OUTSIDE = 2; // argument is outside of domain of definition 
+        RESULT_OUTSIDE = 2; // argument is outside of the domain of data definition 
 
     /**
-       data value at given point 
-       return result code 
+       data value at the given point 
+       @param pnt Point where the data is calculated 
+       @param dataValue - storage for returned calculated data 
+       @return result code 
      */
     public int getDataValue(Vec pnt, Vec dataValue);
-        
+
+    /**
+       @returns count of data channels, 
+       it is the count of data values returned in  getDataValue()        
+     */
+    public int getChannelsCount();
+
 }

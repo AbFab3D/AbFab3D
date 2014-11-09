@@ -14,12 +14,13 @@ package abfab3d.util;
 
 
 /**
-   interface to convert data stored in long attribute int long result 
+   interface to convert data stored in long attribute into long result 
+   can be used to get some component of data stored as bits in the grid attribute
  */
 public interface LongConverter  {
 
     /**
-       return data custom data componenbt stored in long attribute
+       return data custom data component stored in long attribute
      */
     public long get(long data);
     

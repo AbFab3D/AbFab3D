@@ -16,7 +16,8 @@ package abfab3d.mesh;
 
 import abfab3d.io.input.IndexedTriangleSetLoader;
 import abfab3d.io.output.SAVExporter;
-import abfab3d.mesh.*;
+import abfab3d.util.EdgeCollapseParams;
+import abfab3d.util.EdgeCollapseResult;
 import abfab3d.util.StructMixedData;
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -33,8 +34,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Random;
 
 import static abfab3d.util.Output.printf;

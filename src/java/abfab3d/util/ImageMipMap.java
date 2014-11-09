@@ -40,7 +40,7 @@ public class ImageMipMap {
     static final boolean DEBUG = false;
 
 
-    MapEntry m_data[];
+    MipMapEntry m_data[];
     double m_width, m_height;
     
     //static final int 
@@ -77,7 +77,7 @@ public class ImageMipMap {
         
         BufferedImage img = image;
         
-        Vector<MapEntry> data = new Vector<MapEntry>();
+        Vector<MipMapEntry> data = new Vector<MipMapEntry>();
         
         while(width > 0 && height > 0){
             
@@ -89,7 +89,7 @@ public class ImageMipMap {
                 
                 DataBufferInt  dbi = (DataBufferInt)db;
                 int[] b = dbi.getData();
-                MapEntry me = new MapEntryInt(b, width, height, m_width/width);
+                MipMapEntry me = new MipMapEntryInt(b, width, height, m_width/width);
                 data.add(me);
                 //printf("INT b.lengt: %d - %d\n", b.length, width*height);
                 
@@ -97,7 +97,7 @@ public class ImageMipMap {
                 
                 DataBufferByte dbb = (DataBufferByte)db;
                 byte[] b = dbb.getData();
-                MapEntry me = new MapEntryByte(b, width, height, m_width/width);
+                MipMapEntry me = new MipMapEntryByte(b, width, height, m_width/width);
                 data.add(me);
                 //printf("BYTE b.lengt: %d - %d\n", b.length, width*height);
             }
@@ -116,13 +116,13 @@ public class ImageMipMap {
           
         }
         
-        m_data = (MapEntry[])data.toArray(new MapEntry[data.size()]);
+        m_data = (MipMapEntry[])data.toArray(new MipMapEntry[data.size()]);
         
     }
 
   public void printData(int ind, int start, int count){
 
-    MapEntry me = m_data[ind];
+    MipMapEntry me = m_data[ind];
     me.printData(start, count);
 
   }
@@ -144,7 +144,7 @@ public class ImageMipMap {
         int lowerIndex = -1;
         
         for(int i = 0; i < m_data.length; i++){
-            MapEntry me = m_data[i];
+            MipMapEntry me = m_data[i];
             if(probesize < me.pixelSize){
                 upperIndex = i;
                 break;
@@ -156,7 +156,7 @@ public class ImageMipMap {
             {
                 // probe is smaler than pixel size of the first image
                 // no interpolation between maps 
-                MapEntry me = m_data[0];
+                MipMapEntry me = m_data[0];
                 //printf("map: %s\n", me);
                 me.getPixel(x,y,color);
                 return;
@@ -167,7 +167,7 @@ public class ImageMipMap {
             // no interpolation between maps 
             {
                 
-                MapEntry me = m_data[m_data.length-1];      
+                MipMapEntry me = m_data[m_data.length-1];      
                 
                 //printf("map: %s\n", me);
                 me.getPixel(me.width*x/m_width, me.height*y/m_height,color);      
@@ -177,8 +177,8 @@ public class ImageMipMap {
         default:
             {
                 // we are btween the maps
-                MapEntry me0 = m_data[upperIndex-1]; 
-                MapEntry me1 = m_data[upperIndex];
+                MipMapEntry me0 = m_data[upperIndex-1]; 
+                MipMapEntry me1 = m_data[upperIndex];
                 //printf("map0: %s\n", me0);
                 //printf("map1: %s\n", me1);
                 
@@ -203,8 +203,10 @@ public class ImageMipMap {
         
     }
 
-    
-    static abstract class MapEntry {
+    /**
+       data representation for one level of mipmap
+     */
+    static abstract class MipMapEntry {
         
         double pixelSize; 
         int width, height; 
@@ -224,12 +226,12 @@ public class ImageMipMap {
         
     }
     
-    static class MapEntryByte extends MapEntry {
+    static class MipMapEntryByte extends MipMapEntry {
         
         byte data[];
         int unitlength;
         
-        MapEntryByte(byte data[], int width, int height, double pixelSize){
+        MipMapEntryByte(byte data[], int width, int height, double pixelSize){
             this.data = data;
             init(width, height, pixelSize);
             unitlength = data.length/(width*height);
@@ -299,7 +301,7 @@ public class ImageMipMap {
                 
                 color[3] = alpha;
                 if(hasAlpha){
-                    // premultipy by alpha 
+                    // premultiply by alpha 
                     alpha /= 255;
                     color[0] *= alpha; color[1] *= alpha; color[2] *= alpha; 
                 }    
@@ -310,10 +312,10 @@ public class ImageMipMap {
         }
     }
     
-    static class MapEntryInt extends MapEntry {
+    static class MipMapEntryInt extends MipMapEntry {
         
         int data[];
-        MapEntryInt(int data[], int width, int height, double pixelSize){
+        MipMapEntryInt(int data[], int width, int height, double pixelSize){
             this.data = data;
             init(width, height, pixelSize);
         }
@@ -347,7 +349,7 @@ public class ImageMipMap {
             double alpha = dy1*(dx1*getAlpha(rgb00) + dx * getAlpha(rgb10)) + dy*(dx1*getAlpha(rgb01) + dx * getAlpha(rgb11));
             color[3] = alpha;
             
-            // premultipy by alpha 
+            // premultiply by alpha 
             alpha /= 255;
             color[0] *= alpha; color[1] *= alpha; color[2] *= alpha; 
             

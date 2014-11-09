@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.mesh;
+package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Point3d;

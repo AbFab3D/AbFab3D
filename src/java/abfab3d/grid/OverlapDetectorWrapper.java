@@ -25,6 +25,7 @@ import java.util.*;
  * will not be stopped and all sets will happen to the underlying grid.
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public class OverlapDetectorWrapper implements AttributeGridWrapper {
     /** The wrapper grid */
@@ -573,6 +574,24 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
      */
     public boolean insideGrid(double wx, double wy, double wz) {
         return grid.insideGrid(wx,wy,wz);
+    }
+
+    /**
+       assign to the grid a description of a voxel attributes
+       @param description The attirbute description 
+       @override 
+    */
+
+    public void setAttributeDesc(AttributeDesc description){
+        grid.setAttributeDesc(description);
+    }
+
+    /**
+       @return voxel attribute description assigned to the grid
+       @override 
+    */
+    public AttributeDesc getAttributeDesc(){
+        return grid.getAttributeDesc(); 
     }
 
 }

@@ -32,9 +32,9 @@ import abfab3d.io.output.SAVExporter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.AreaCalculator;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
-import app.common.GridSaver;
+import abfab3d.io.output.GridSaver;
+import abfab3d.io.output.ShellResults;
 import app.common.RegionPrunner;
-import app.common.ShellResults;
 import org.web3d.util.ErrorReporter;
 import org.web3d.vrml.export.PlainTextErrorReporter;
 import org.web3d.vrml.export.X3DXMLRetainedExporter;
@@ -405,7 +405,7 @@ public class ImagePopperKernel extends HostedKernel {
 
         ImageBitmap layer1 = new ImageBitmap();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
-        layer1.setLocation(0, 0, layer1z);
+        layer1.setCenter(0, 0, layer1z);
         layer1.setBaseThickness(0.0);
         layer1.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
@@ -428,7 +428,7 @@ public class ImagePopperKernel extends HostedKernel {
             ImageBitmap layer2 = new ImageBitmap();
             layer2.setSize(bodyWidth2, bodyHeight2, bodyDepth2);
 
-            layer2.setLocation(0, 0, layer2z);
+            layer2.setCenter(0, 0, layer2z);
             layer2.setBaseThickness(0.0);
             layer2.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer2.setTiles(1, 1);
@@ -452,7 +452,7 @@ public class ImagePopperKernel extends HostedKernel {
             ImageBitmap layer3 = new ImageBitmap();
             layer3.setSize(bodyWidth3, bodyHeight3, bodyDepth3);
 
-            layer3.setLocation(0, 0, layer3z);
+            layer3.setCenter(0, 0, layer3z);
             layer3.setBaseThickness(0.0);
             layer3.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
             layer3.setTiles(1, 1);

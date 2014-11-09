@@ -84,8 +84,8 @@ public class DistanceTransformExact extends DistanceTransform implements Operati
     protected int m_ballNeighbors[];// coordinates of neighbors point inside of the sphere of radius m_maxDistance
     /**
      @param subvoxelResolution sub voxel resolution 
-     @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters
-     @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters
+     @param inDistance maximal distance to calculate transform inside of the shape. Measured in meters, positive value.
+     @param outDistance maximal distance to calculate transform outside of the shape. Measured in meters, positive value.
      */
     public DistanceTransformExact(int subvoxelResolution, double inDistance, double outDistance) {
 

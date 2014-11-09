@@ -5,6 +5,7 @@ package abfab3d.grid;
  * is > 0 and is OUTSIDE if it equals 0.
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public interface AttributeGrid extends Grid {
     /**
@@ -165,5 +166,17 @@ public interface AttributeGrid extends Grid {
      * @param matID The new attributeID
      */
     public void reassignAttribute(long[] attributes, long matID);
+
+    /**
+       assign to the grid a description of a voxel attributes
+       @param description The attirbute description 
+     */
+    public void setAttributeDesc(AttributeDesc description);
+
+    /**
+       @return voxel attribute description assigned to the grid
+    */
+    public AttributeDesc getAttributeDesc();
+        
 
 }

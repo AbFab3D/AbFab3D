@@ -15,12 +15,15 @@ import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.io.input.STLReader;
+import abfab3d.io.input.SVXReader;
 import abfab3d.io.input.WaveletRasterizer;
 import abfab3d.io.input.X3DReader;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.output.ShellResults;
 
+import abfab3d.io.output.SingleMaterialModelWriter;
 import abfab3d.mesh.IndexedTriangleSetBuilder;
 import abfab3d.mesh.WingedEdgeTriangleMesh;
 
@@ -38,6 +41,7 @@ import static abfab3d.util.Units.MM;
 import java.io.File;
 import java.io.IOException;
 import java.lang.IllegalArgumentException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -63,12 +67,12 @@ public class ShapeJSGlobal {
 
     public static final int maxAttribute = 255;
 
-    public static double errorFactorDefault = 0.1;
+    public static double errorFactorDefault = SingleMaterialModelWriter.errorFactorDefault;
     public static int maxDecimationCountDefault = 10;
-    public static double smoothingWidthDefault = 0.5;
+    public static double smoothingWidthDefault = SingleMaterialModelWriter.smoothingWidthDefault;
     public static int blockSizeDefault = 30;
-    public static double minimumVolumeDefault = 0;
-    public static int maxPartsDefault = Integer.MAX_VALUE;
+    public static double minimumVolumeDefault = SingleMaterialModelWriter.minimumVolumeDefault;
+    public static int maxPartsDefault = SingleMaterialModelWriter.maxPartsDefault;
     public static int maxTriCountDefault = Integer.MAX_VALUE;
 
     private static String outputFolder = "/tmp";
@@ -215,7 +219,11 @@ public class ShapeJSGlobal {
         double margin = vs;
         if (args.length > 2) {
             if (args[2] instanceof Number) {
-                margin = getDouble(args[2]);
+                double m = getDouble(args[2]);
+
+                if (!Double.isNaN(m)) {
+                    margin = getDouble(args[2]);
+                }
             }
         }
         
@@ -228,6 +236,9 @@ public class ShapeJSGlobal {
             if (filename.endsWith(".x3d") || filename.endsWith(".x3db") || filename.endsWith(".x3dv")) {
                 tp = new X3DReader(filename);
                 tp.getTriangles(bb);
+            } else if (filename.endsWith(".svx")) {
+                SVXReader reader = new SVXReader();
+                return reader.load(filename);
             } else {
                 tp = new STLReader(filename);
                 tp.getTriangles(bb);
@@ -235,6 +246,9 @@ public class ShapeJSGlobal {
 
             double bounds[] = new double[6];
             bb.getBounds(bounds);
+
+            printf("   orig bounds: [ %7.3f, %7.3f], [%7.3f, %7.3f], [%7.3f, %7.3f] mm; vs: %7.3f mm\n",
+                    bounds[0]/MM, bounds[1]/MM, bounds[2]/MM, bounds[3]/MM, bounds[4]/MM, bounds[5]/MM, vs/MM);
 
             // if any measurement is over 1M then the file "must" be in m instead of mm.  God I hate unspecified units
             /*
@@ -362,7 +376,7 @@ public class ShapeJSGlobal {
         double smoothingWidth = getDouble(thisObj.get(SMOOTHING_WIDTH_VAR, thisObj));
         double errorFactor = getDouble(thisObj.get(ERROR_FACTOR_VAR, thisObj));
         double minimumVolume = getDouble(thisObj.get(MESH_MIN_PART_VOLUME_VAR, thisObj));
-        double maxParts = getInteger(thisObj.get(MESH_MAX_PART_COUNT_VAR, thisObj));
+        int maxParts = getInteger(thisObj.get(MESH_MAX_PART_COUNT_VAR, thisObj));
         int maxTriCount = getInteger(thisObj.get(MESH_MAX_TRI_COUNT_VAR, thisObj));
 
 
@@ -389,6 +403,15 @@ public class ShapeJSGlobal {
         }
 
         WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+
+        printf("Mesh Min Volume: %g meshMaxParts: %d \n", minimumVolume, maxParts);
+
+        if (minimumVolume > 0 || maxParts < Integer.MAX_VALUE) {
+            ShellResults sr = GridSaver.getLargestShells(mesh,maxParts, minimumVolume);
+            mesh = sr.getLargestShell();
+            int regions_removed = sr.getShellsRemoved();
+            System.out.println("Regions removed: " + regions_removed);
+        }
 
         try {
             if(fname.endsWith(".stl")){

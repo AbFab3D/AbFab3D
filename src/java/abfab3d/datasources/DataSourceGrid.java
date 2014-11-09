@@ -31,7 +31,7 @@ import static abfab3d.util.Output.time;
    
    
    DataSource interface to Grid. This object shall be used if one want to use generated grid as a general shape. 
-   
+   by default grid uses linear interpolation of values between voxels. 
 
    @author Vladimir Bulatov
    
@@ -40,14 +40,20 @@ import static abfab3d.util.Output.time;
 public class DataSourceGrid extends TransformableDataSource {
 
     static final boolean DEBUG = false;
-    static int debugCount = 0;
+    static int debugCount = 100;
     static final int DEFAULT_MAX_ATTRIBUTE_VALUE = 255;
+
+    static public final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1;
+    protected int m_interpolationType = INTERPOLATION_LINEAR;
+
     AttributeGrid m_grid;
-    int m_maxAttributeValue;
+    // default subvoxelResolution 
+    int m_subvoxelResolution=DEFAULT_MAX_ATTRIBUTE_VALUE; 
     double m_bounds[] = new double[6];
     int m_nx, m_ny, m_nz;
     double xmin, ymin, zmin, xscale, yscale, zscale;
-        
+    double m_dataScaling = 1./m_subvoxelResolution;
+
     /**
        constructs DataSoure from the given grid 
      */
@@ -59,17 +65,17 @@ public class DataSourceGrid extends TransformableDataSource {
 
        @noRefGuide            
      */
-    public DataSourceGrid(AttributeGrid grid, int maxAttributeValue){
-        this(grid,null,maxAttributeValue);
+    public DataSourceGrid(AttributeGrid grid, int subvoxelResolution){
+        this(grid,null,subvoxelResolution);
     }
 
     /**
        @noRefGuide            
        makes grid with given bounds and max attribute value
     */
-    public DataSourceGrid(AttributeGrid grid, double bounds[], int maxAttributeValue){
+    public DataSourceGrid(AttributeGrid grid, double bounds[], int subvoxelResolution){
         
-        m_maxAttributeValue = maxAttributeValue;
+        m_subvoxelResolution = subvoxelResolution;
         m_grid = grid;
         if(bounds == null){
             m_grid.getGridBounds(m_bounds);
@@ -99,12 +105,30 @@ public class DataSourceGrid extends TransformableDataSource {
     }
 
     /**
+       
+       sets type iused for intervoxel interplation 
+       @param type or interpolation (INTERPOLATION_BOX or INTERPOLATION_LINEAR)
+       
+     */
+    public void setInterpolationType(int value){
+
+        m_interpolationType = value;
+
+    }
+
+
+    /**
 
        @noRefGuide            
      */
     public int initialize(){
 
         super.initialize();
+        if(m_subvoxelResolution > 0) 
+            m_dataScaling = 1./m_subvoxelResolution;
+        else 
+            m_dataScaling = 1.;
+
         return RESULT_OK;
 
     }
@@ -118,59 +142,113 @@ public class DataSourceGrid extends TransformableDataSource {
     public int getDataValue(Vec pnt, Vec data) {
 
         super.transform(pnt);
+                                                                
+        switch(m_interpolationType){
+        default:
+        case INTERPOLATION_BOX:
+            getBoxInterpolatedValue(pnt, data);
+            break;
+        case INTERPOLATION_LINEAR:
+            getLinearInterpolatedValue(pnt, data);
+            break;
+        }
+
+        super.getMaterialDataValue(pnt, data);        
+        return RESULT_OK;
+        
+    }
+
+    private int getBoxInterpolatedValue(Vec pnt, Vec data){
+        
+        // values normalized to voxel size 
         double 
-            x = pnt.v[0],
-            y = pnt.v[1],
-            z = pnt.v[2];
+            x = (pnt.v[0]-xmin)*xscale,
+            y = (pnt.v[1]-ymin)*yscale,
+            z = (pnt.v[2]-zmin)*zscale;        
+        
+        int ix = (int)x;
+        int iy = (int)y;
+        int iz = (int)z;
+
+        if(ix < 0 || iy < 0 || iz < 0 || ix >= m_nx || iy >= m_ny || iz >= m_nz) {
+            data.v[0] = 0;
+            return RESULT_OUTSIDE; 
+        }
+
+        data.v[0] = getGridValue(ix, iy, iz)*m_dataScaling;
+        
+        return RESULT_OK; 
             
-        int ix = (int)((x - xmin)*xscale);
-        int iy = (int)((y - ymin)*yscale);
-        int iz = (int)((z - zmin)*zscale);
-
-        if(DEBUG && debugCount > 0){
-            debugCount--;
-            //printf("x:[%8.5f %8.5f %8.5f ] -> [%3d, %3d %3d]\n", x,y,z,ix, iy, iz);
-        }
-
-        if(ix < 0 || ix >= m_nx){
-            data.v[0] = 0.;
+    }
+    private int getLinearInterpolatedValue(Vec pnt, Vec data){
+        
+        // values normalized to voxel size 
+        double 
+            x = (pnt.v[0]-xmin)*xscale,
+            y = (pnt.v[1]-ymin)*yscale,
+            z = (pnt.v[2]-zmin)*zscale;        
+        int ix = (int)x;
+        int iy = (int)y;
+        int iz = (int)z;
+        if(ix < 0 || iy < 0 || iz < 0 || ix >= m_nx || iy >= m_ny || iz >= m_nz) {
+            data.v[0] = 0;
             return RESULT_OUTSIDE; 
         }
-        if(iy < 0 || iy >= m_ny){
-            data.v[0] = 0.;
-            return RESULT_OUTSIDE; 
-        }
-        if(iz < 0 || iz >= m_nz){
-            data.v[0] = 0.;
+        int ix1 = (ix + 1);
+        int iy1 = (iy + 1);
+        int iz1 = (iz + 1);
+        if(ix1 >= m_nx || iy1 >= m_ny || iz1 >= m_nz ) {
+            data.v[0] = 0;
             return RESULT_OUTSIDE; 
         }
 
-        //if(true){
-        //    data.v[0] = 1.;
-        //    return RESULT_OK;                                
-        //}
+        double 
+            dx = x - ix,
+            dy = y - iy,
+            dz = z - iz,
+            dx1 = 1. - dx,
+            dy1 = 1. - dy,
+            dz1 = 1. - dz;
 
-        switch(m_maxAttributeValue){
-            
+        
+        long 
+            v000 = getGridValue(ix,  iy,  iz ),  
+            v100 = getGridValue(ix1, iy,  iz ), 
+            v010 = getGridValue(ix,  iy1, iz ), 
+            v110 = getGridValue(ix1, iy1, iz ),
+            v001 = getGridValue(ix,  iy,  iz1),
+            v101 = getGridValue(ix1, iy,  iz1),
+            v011 = getGridValue(ix,  iy1, iz1),
+            v111 = getGridValue(ix1, iy1, iz1);
+
+        if(DEBUG && debugCount-- > 0) printf("[%3d, %3d, %3d]: %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d\n",ix, iy, iz, 
+                                             v000,v100, v010, v110, 
+                                             v001,v101, v011, v111);
+        double d = 
+            dx1 *(dy1 * (dz1 * v000 + dz  * v001) +  dy*(dz1 * v010 + dz  * v011)) +   
+            dx  *(dy1 * (dz1 * v100 + dz  * v101) +  dy*(dz1 * v110 + dz  * v111));
+
+        data.v[0] = d*m_dataScaling;
+        
+        return RESULT_OK; 
+        
+    }
+
+    private final long getGridValue(int x, int y, int z){
+
+        switch(m_subvoxelResolution){            
         case 0:  // grid value is in state 
-            byte state = m_grid.getState(ix, iy, iz);
-            
+            byte state = m_grid.getState(x, y, z);            
             switch(state){
             case Grid.OUTSIDE:
-                data.v[0] = 0.;
-                return RESULT_OK;                                
+                return 0;
+                
             default:
-                data.v[0] = 1.;
-                return RESULT_OK;                                
+                return 1;
             }             
-
-        default:  
-            // grid value is in attribute 
-            long att = m_grid.getAttribute(ix, iy, iz);
-            data.v[0] = ((double)att)/m_maxAttributeValue;
-            return RESULT_OK;                
-        }
-
+        default:
+            return m_grid.getAttribute(x, y, z);
+        }        
     }
     
 }

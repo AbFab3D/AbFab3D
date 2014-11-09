@@ -148,9 +148,9 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public void getData(double x, double y, double z, VoxelData vd) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         long d = data[slice][s_x][s_z] & 0xFFFF;
         long att = ioFunc.getAttribute(d);
@@ -167,9 +167,9 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public byte getState(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         return ioFunc.getState(data[slice][s_x][s_z] & 0xFFFF);
     }
@@ -193,9 +193,9 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param z The z world coordinate
      */
     public long getAttribute(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         return ioFunc.getAttribute(data[slice][s_x][s_z] & 0xFFFF);
     }
@@ -221,9 +221,9 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param material The material
      */
     public void setData(double x, double y, double z, byte state, long material) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         data[slice][s_x][s_z] = (short) ioFunc.combineStateAndAttribute(state,material);
     }
@@ -275,9 +275,9 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param state The value.  0 = nothing. > 0 materialID
      */
     public void setState(double x, double y, double z, byte state) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
+        int slice = (int)((y-yorig) / sheight);
+        int s_x =   (int)((x-xorig) / pixelSize);
+        int s_z =   (int)((z-zorig) / pixelSize);
 
         long att = ioFunc.getAttribute(data[slice][s_x][s_z] & 0xFFFF);
         data[slice][s_x][s_z] = (short) ioFunc.combineStateAndAttribute(state,att);

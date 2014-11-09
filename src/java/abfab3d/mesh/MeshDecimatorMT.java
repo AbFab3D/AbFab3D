@@ -21,8 +21,7 @@ import java.util.Random;
 
 import javax.vecmath.Point3d;
 
-import abfab3d.util.StructMixedData;
-import abfab3d.util.StackOfInt;
+import abfab3d.util.*;
 
 
 import static abfab3d.util.Output.printf;
@@ -228,8 +227,8 @@ public class MeshDecimatorMT extends MeshDecimator {
         // source of random edges 
         EdgeSelector edgeSelector;
      
-        EdgeCollapseResult ecresult = new EdgeCollapseResult();        
-        EdgeCollapseParams ecparam = new EdgeCollapseParams();        
+        EdgeCollapseResult ecresult = new EdgeCollapseResult();
+        EdgeCollapseParams ecparam = new EdgeCollapseParams();
         
         ErrorFunction errorFunction;
         

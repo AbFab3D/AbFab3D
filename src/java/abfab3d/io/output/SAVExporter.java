@@ -56,13 +56,18 @@ public class SAVExporter {
      * @param params Output parameters
      * @param stream The SAV stream
      */
-    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream, String defName) {
+    public void outputX3D(abfab3d.util.TriangleMesh mesh, Map<String, Object> params, BinaryContentHandler stream, String defName) {
         String material = null;
         String finish[] = null;
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
-            finish = new String[]{(String) params.get(FINISH)};
+            Object o = params.get(FINISH);
+            if (o instanceof String) {
+                finish = new String[]{(String) params.get(FINISH)};
+            } else {
+                finish = (String[]) o;
+            }
         }
         outputX3D(mesh, params, material, finish, stream, defName);
     }
@@ -85,7 +90,12 @@ public class SAVExporter {
 
         if (params != null) {
             material = (String) params.get(MATERIAL);
-            finish = new String[]{(String) params.get(FINISH)};
+            Object o = params.get(FINISH);
+            if (o instanceof String) {
+                finish = new String[]{(String) params.get(FINISH)};
+            } else {
+                finish = (String[]) o;
+            }
         }
         outputX3D(verts, params, material, finish, stream, defName);
     }
@@ -105,7 +115,7 @@ public class SAVExporter {
      * @param finish   The finish.
      * @param stream   The SAV stream
      */
-    public void outputX3D(abfab3d.mesh.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
+    public void outputX3D(abfab3d.util.TriangleMesh mesh, Map<String, Object> params, String material, String[] finish,
                           BinaryContentHandler stream, String defName) {
 
         boolean export_normals = false;
@@ -151,7 +161,7 @@ public class SAVExporter {
         float[] texCoords = null;
         int num_coords = mesh.getVertexCount();
         int color_channel = mesh.getColorChannel();
-        int tex0_channel = mesh.getAttributeChannel(abfab3d.mesh.TriangleMesh.VA_TEXCOORD0);
+        int tex0_channel = mesh.getAttributeChannel(abfab3d.util.TriangleMesh.VA_TEXCOORD0);
 
         if (Thread.currentThread().isInterrupted()) {
             throw new ExecutionStoppedException();

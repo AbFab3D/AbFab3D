@@ -12,10 +12,7 @@
 
 package abfab3d.mesh;
 
-import abfab3d.util.StructSet;
-import abfab3d.util.StructMixedData;
-import abfab3d.util.StructMap;
-import abfab3d.util.TriangleCollector;
+import abfab3d.util.*;
 //import abfab3d.util.DefaultHashFunction;
 
 import javax.vecmath.Point3d;

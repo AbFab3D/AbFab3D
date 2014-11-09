@@ -16,29 +16,52 @@ import abfab3d.util.TriangleCollector;
 import abfab3d.util.TriangleProducer;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Transformer;
+import org.apache.commons.io.FilenameUtils;
 
+import java.io.InputStream;
 
 /**
-   
-   reads triangle mesh from a file in various formats  
-   currently supported are STL, x3db, x3d
-   
+ * Reads triangle mesh from a file/stream into various formats
+ * Currently supported are STL, x3db, x3d, x3dv
+ *
+ * @author Vladimir Bulatov
+ * @author Alan Hudson
  */
 public class MeshReader implements TriangleProducer, Transformer {
     
     public static final String 
-        EXT_STL = ".stl",
-        EXT_X3DB = ".x3db",
-        EXT_X3D = ".x3d";
-    
+        EXT_STL = "stl",
+        EXT_X3DB = "x3db",
+        EXT_X3D = "x3d",
+        EXT_X3DV = "x3dv";
 
-    String m_path;
-    VecTransform m_transform;
-    TriangleProducer m_producer;
-    
+
+    private String m_path;
+    private InputStream m_is;
+    private String m_format;
+    private String m_baseURL;
+    private VecTransform m_transform;
+    private TriangleProducer m_producer;
+
+
+    public MeshReader(String path) {
+        m_path = path;
+        m_format = FilenameUtils.getExtension(path);
+    }
+
     /**
-       
+     * Load stream versions.  For the STL path we only support binary STL
+     *
+     * @param is
+     * @param format
      */
+    public MeshReader(InputStream is, String baseURL, String format) {
+        m_is = is;
+        m_format = format;
+        m_baseURL = baseURL;
+    }
+
+
     public boolean getTriangles(TriangleCollector out) {
         
         if(m_producer == null){
@@ -54,23 +77,26 @@ public class MeshReader implements TriangleProducer, Transformer {
          
     }
     
-    protected TriangleProducer createReader(){
-        String path = m_path.toLowerCase();
-        if(path.endsWith(EXT_STL))
-            return new STLReader(m_path);
-        if(path.endsWith(EXT_X3DB) || path.endsWith(EXT_X3D))
-            return new X3DReader(m_path);
+    protected TriangleProducer createReader() {
+        if(m_format.equalsIgnoreCase(EXT_STL)) {
+            if (m_is != null) {
+                return new STLReader(m_is);
+            } else {
+                return new STLReader(m_path);
+            }
+        } else if(m_format.equalsIgnoreCase(EXT_X3DB) || m_format.equalsIgnoreCase(EXT_X3D) || m_format.equalsIgnoreCase(EXT_X3DV)) {
+
+            if (m_is != null) {
+                return new X3DReader(m_is,m_baseURL);
+            } else {
+                return new X3DReader(m_path);
+            }
+        }
         return null;
     }
         
-    public void setTransform(VecTransform trans){
+    public void setTransform(VecTransform trans) {
         m_transform = trans;
     }
-    
-
-    public MeshReader(String path){
-        m_path = path;
-    }
-
     
 }

@@ -441,6 +441,9 @@ public class TestMeshDecimatorMT extends TestCase {
             return RESULT_OK;
 
         }
+        public int getChannelsCount() {
+            return 1;
+        }
 
     } // class ArrayOfSpheres
 

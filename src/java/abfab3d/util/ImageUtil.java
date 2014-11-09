@@ -97,7 +97,7 @@ public class ImageUtil {
     */
     public static final double combinePremultDouble(double c1, double c2, double alpha){
         
-        return c1 + c2 - alpha * c1 * CNORM1;
+        return c1 - c1 * alpha * CNORM1 + c2;
         
     }
 
@@ -385,7 +385,10 @@ public class ImageUtil {
         }
     }        
 
-    static void byteABGR2gray16(byte imageData[], short grayData[]){
+    /**
+       convert array of byte data in ABGR form into 16 bit gray data 
+     */
+    public static void byteABGR2gray16(byte imageData[], short grayData[]){
 
         int len = grayData.length;
         for(int i = 0, k = 0; i < len; i++, k += 4){
@@ -405,6 +408,28 @@ public class ImageUtil {
             //grayData[i] = (short)((0xFFFF & (r + g + b)/3) << 8);
     
         }        
+    }
+
+    /**
+       extract array of byte from array of byte in ABGR form into 8 bit 
+     */
+    public static void getABGRcomponent(byte imageData[], int componentOffset, byte componentData[]){
+
+        int len = componentData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 4){            
+            componentData[i] = imageData[k + componentOffset];
+        }        
+    }
+
+    /**
+     convert array of byte data in BGR form into 8 bit
+     */
+    public static void getBGRcomponent(byte imageData[], int componentOffset, byte componentData[]){
+
+        int len = componentData.length;
+        for(int i = 0, k = 0; i < len; i++, k += 3){
+            componentData[i] = imageData[k + componentOffset];
+        }
     }
 
     // array of BGR bytes to gray16 conversion 

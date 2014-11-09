@@ -51,11 +51,21 @@ public class DilationDistance implements Operation, AttributeOperation {
     private int subvoxelResolution;
     private int threadCount = 1;
     int m_distanceTransformAlgorithm = DISTANCE_TRANSFORM_LAYERED;
+    // template to be used for distance grid creation
+    protected AttributeGrid m_distanceGridTemplate;
 
     public DilationDistance(double distance, int subvoxelResolution) {
         this.distance = distance;
         this.subvoxelResolution = subvoxelResolution;
     }
+
+    /**
+      * Set template to be used for distance grid creation
+     */
+    public void setDistanceGridTemplate(AttributeGrid gridTemplate){
+        m_distanceGridTemplate = gridTemplate;
+    }
+
 
     /**
      * Execute an operation on a grid.  If the operation changes the grid
@@ -85,16 +95,14 @@ public class DilationDistance implements Operation, AttributeOperation {
 
         long t0 = time();
 
-        // TODO:  allow user specified DistanceTransform class
-
         double maxInDistance = dest.getVoxelSize();
         double maxOutDistance = distance + dest.getVoxelSize();
 
-//        DistanceTransformMultiStep dt_exact = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
-        DistanceTransformLayered dt_exact = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
-//        DistanceTransformExact dt_exact = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
-        dt_exact.setThreadCount(threadCount);
-        AttributeGrid dg = dt_exact.execute(dest);
+        printf("Dilation Distance  in: %5.2f mm  out: %5.2f mm\n",maxInDistance / MM, maxOutDistance / MM);
+        DistanceTransformLayered dt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+        dt.setDistanceGridTemplate(m_distanceGridTemplate);
+        dt.setThreadCount(threadCount);
+        AttributeGrid dg = dt.execute(dest);
         printf("Dilation Distance done: %d ms  threads: %d\n", time() - t0,threadCount);
 
         double[] bounds = new double[6];

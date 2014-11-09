@@ -1,6 +1,6 @@
 package volumesculptor.shell;
 
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.grid.Model;
 
 /**
  * Result container for execute commands
@@ -8,20 +8,31 @@ import abfab3d.mesh.TriangleMesh;
  * @author Alan Hudson
  */
 public class ExecResult {
-    private TriangleMesh mesh;
+    private Model model;
     private String errors;
     private String prints;
 
-    public ExecResult(TriangleMesh mesh, String errors, String prints) {
-        this.mesh = mesh;
+    public ExecResult(Model model, String errors, String prints) {
+        this.model = model;
         this.errors = errors;
         this.prints = prints;
     }
 
-    public TriangleMesh getMesh() {
-        return mesh;
+    public Model getModel() {
+        return model;
     }
 
+    /*
+    public TriangleMesh getMesh() {
+        try {
+            return model.getMesh();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        return null;
+    }
+    */
     public String getErrors() {
         return errors;
     }

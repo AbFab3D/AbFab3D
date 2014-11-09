@@ -14,29 +14,25 @@ package volumesculptor;
 
 // External Imports
 
-import abfab3d.creator.GeometryKernel;
 import abfab3d.creator.KernelResults;
 import abfab3d.creator.Parameter;
 import abfab3d.creator.shapeways.HostedKernel;
-import abfab3d.creator.util.ParameterUtil;
-import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
+import abfab3d.grid.Model;
+import abfab3d.grid.ModelWriter;
 import abfab3d.io.input.BoundsCalculator;
-import abfab3d.io.output.BoxesX3DExporter;
 import abfab3d.io.output.MeshExporter;
+import abfab3d.io.output.SingleMaterialModelWriter;
+import abfab3d.io.output.VoxelModelWriter;
 import abfab3d.mesh.AreaCalculator;
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.util.TriangleMesh;
 import app.common.RegionPrunner;
 import org.apache.commons.io.FileUtils;
-import org.web3d.util.ErrorReporter;
-import org.web3d.vrml.export.PlainTextErrorReporter;
-import org.web3d.vrml.export.X3DXMLRetainedExporter;
 import org.web3d.vrml.sav.BinaryContentHandler;
 import volumesculptor.shell.ExecResult;
 import volumesculptor.shell.Main;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,6 +48,8 @@ import static abfab3d.util.Output.time;
  * @author Vladimir Bulatov
  */
 public class VolumeSculptorKernel extends HostedKernel {
+    private static final String OUTPUT_STYLE = "outputStyle";
+
     private static final int NUM_FILES = 10;
     private static final int NUM_PARAMS = 10;
 
@@ -237,8 +235,6 @@ public class VolumeSculptorKernel extends HostedKernel {
             temp = File.createTempFile("script", ".vss");
             FileUtils.write(temp, script);
 
-            System.out.println("Loading script2: " + script);
-
             String[] args = new String[] {temp.toString() };
             String[] script_args = new String[files.length + this.params.length];
             int idx = 0;
@@ -249,10 +245,48 @@ public class VolumeSculptorKernel extends HostedKernel {
                 script_args[idx++] = this.files[i];
             }
 
-            System.out.println("Files: " + files + " params: " + this.params);
+            System.out.println("Files: " + files.length + " params: " + this.params.length);
 
+            KernelResults results = null;
             ExecResult result = Main.execMesh(args, script_args);
-            TriangleMesh mesh = result.getMesh();
+            Model model = result.getModel();
+            ModelWriter mw = model.getWriter();
+            TriangleMesh mesh = null;
+            if (mw instanceof VoxelModelWriter) {
+                System.out.println("Got a voxel result");
+                // TODO: Should we make this more accurate
+                // approximate KernelResults from voxel grid
+
+                double min_bounds[] = new double[3];
+                double max_bounds[] = new double[3];
+
+                AttributeGrid grid = model.getGrid();
+                grid.getGridBounds(min_bounds,max_bounds);
+
+                // TODO: remember we need to remove internal voids to make this accurate
+                double volume = 0;
+                double surface_area = 0;
+
+                results = new KernelResults(true, min_bounds, max_bounds, volume, surface_area, 0);
+
+                HashMap<String,Object> out = new HashMap<String, Object>();
+                String prints = result.getPrints();
+                if (prints != null) {
+                    out.put("debugPrint", prints);
+                }
+
+                out.put(OUTPUT_STYLE, mw.getStyleName());
+
+                results.setOutput(out);
+
+                return results;
+            } else if (mw instanceof SingleMaterialModelWriter) {
+                mesh = ((SingleMaterialModelWriter)mw).getGeneratedMesh();
+            } else {
+                results = new KernelResults(KernelResults.NO_GEOMETRY, "Unhandled ModelWriter: " + mw);
+
+                return results;
+            }
 
             // Script compile error
             if (mesh == null) {
@@ -293,7 +327,6 @@ public class VolumeSculptorKernel extends HostedKernel {
             System.out.println("MaxBounds: " + java.util.Arrays.toString(max_bounds));
             System.out.println("Volume: " + volume);
 
-            KernelResults results = null;
             // Invalid parameter isn't caught. Instead a file is generated with no coordinates.
             // Assumes a volume of 0 is caused by invalid parameter, but may not always be the case.
             if (volume == 0.0) {
@@ -304,13 +337,14 @@ public class VolumeSculptorKernel extends HostedKernel {
 
             HashMap<String,Object> out = new HashMap<String, Object>();
             String prints = result.getPrints();
-            System.out.println("DebugPrints: " + prints);
             if (prints != null) {
-                if (prints != null) {
-                    out.put("debugPrint", prints);
-                    results.setOutput(out);
-                }
+                out.put("debugPrint", prints);
             }
+
+            out.put(OUTPUT_STYLE, mw.getStyleName());
+
+            results.setOutput(out);
+
             return results;
         } finally {
             if (temp != null) temp.delete();

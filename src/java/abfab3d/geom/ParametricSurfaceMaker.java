@@ -37,13 +37,17 @@ public class ParametricSurfaceMaker implements TriangleProducer {
     static final boolean DEBUG = false;
 
     ParametricSurface surface; 
-    double tolerance;     
+    double m_tolerance;     
     double bounds[] = new double[4];
+
+    public ParametricSurfaceMaker(ParametricSurface surface){
+        this(surface, 0.);
+    }
 
     public ParametricSurfaceMaker(ParametricSurface surface, double  tolerance){
 
         this.surface = surface; 
-        this.tolerance = tolerance;
+        this.m_tolerance = tolerance;
 
         System.arraycopy(surface.getDomainBounds(), 0, bounds, 0, 4);
     }
@@ -78,6 +82,7 @@ public class ParametricSurfaceMaker implements TriangleProducer {
                     v10 = new Vector3d(u1,v0,0),
                     v01 = new Vector3d(u0,v1,0),
                     v11 = new Vector3d(u1,v1,0);
+
                 Vector3d 
                     p00 = surface.getPoint(v00, new Vector3d()),
                     p10 = surface.getPoint(v10, new Vector3d()),
@@ -112,10 +117,13 @@ public class ParametricSurfaceMaker implements TriangleProducer {
             p20 = surface.getPoint(v20, new Vector3d());        
         
         int selector = 0;
-        if(distance(p01, pp01) > tolerance) { selector += 1;}
-        if(distance(p12, pp12) > tolerance) { selector += 2; }
-        if(distance(p20, pp20) > tolerance) { selector += 4; }
-        
+
+        if(m_tolerance > 0.0) {
+            if(distance(p01, pp01) > m_tolerance) { selector += 1;}
+            if(distance(p12, pp12) > m_tolerance) { selector += 2; }
+            if(distance(p20, pp20) > m_tolerance) { selector += 4; }
+        }
+
         switch(selector){                
             
         case 0: // no splits 

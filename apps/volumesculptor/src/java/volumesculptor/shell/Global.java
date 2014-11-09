@@ -278,7 +278,7 @@ public class Global extends ImporterTopLevel
         for (Object arg : args) {
             String file = Context.toString(arg);
             try {
-                Main.processFile(cx, thisObj, file, new String[0], false);
+                Main.processFile(cx, thisObj, file, new String[0]);
             } catch (IOException ioex) {
                 String msg = ToolErrorReporter.getMessage(
                         "msg.couldnt.read.source", file, ioex.getMessage());

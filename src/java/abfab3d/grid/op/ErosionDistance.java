@@ -56,11 +56,19 @@ public class ErosionDistance implements Operation, AttributeOperation {
     private int subvoxelResolution;
     private int threadCount = 1;
     int m_distanceTransformAlgorithm = DISTANCE_TRANSFORM_LAYERED;
+    protected AttributeGrid m_distanceGridTemplate;
 
 
     public ErosionDistance(double distance, int subvoxelResolution) {
         this.distance = distance;
         this.subvoxelResolution = subvoxelResolution;
+    }
+
+    /**
+     * Set template to be used for distance grid creation
+     */
+    public void setDistanceGridTemplate(AttributeGrid gridTemplate){
+        m_distanceGridTemplate = gridTemplate;
     }
 
     /**
@@ -105,6 +113,8 @@ public class ErosionDistance implements Operation, AttributeOperation {
 //        DistanceTransformMultiStep dt = new DistanceTransformMultiStep(subvoxelResolution, maxInDistance, maxOutDistance);
         DistanceTransformLayered dt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
 //        DistanceTransformExact dt = new DistanceTransformExact(subvoxelResolution, maxInDistance, maxOutDistance);
+        dt.setDistanceGridTemplate(m_distanceGridTemplate);
+
         AttributeGrid dg = dt.execute(dest);
 
         /*
@@ -201,6 +211,7 @@ public class ErosionDistance implements Operation, AttributeOperation {
         double maxInDistance = (distance + dest.getVoxelSize());
 
         DistanceTransformLayered dt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
+        dt.setDistanceGridTemplate(m_distanceGridTemplate);
         dt.setThreadCount(threadCount);
         AttributeGrid dg = dt.execute(dest);
         printf("Erosion done: %d ms\n", time() - t0);

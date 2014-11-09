@@ -45,12 +45,15 @@ import static abfab3d.util.Output.time;
  * <p/>
  * <embed src="doc-files/ImageBitmap_options.svg" type="image/svg+xml"/>
  * <p>
- * The image can by tiled (repeated) in both x and y directions
+ * The image can by tiled (repeated) in both x and y directions finite number of times 
+ * The size is a
  * </p>
  *
  * @author Vladimir Bulatov
  */
 public class ImageBitmap extends TransformableDataSource {
+
+    final static boolean DEBUG = false;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2;
@@ -64,7 +67,7 @@ public class ImageBitmap extends TransformableDataSource {
 
     public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
 
-    // siz eof the box 
+    // size of the box 
     protected double m_sizeX = 0., m_sizeY = 0., m_sizeZ = 10*DEFAULT_VOXEL_SIZE;
     // location of the box
     protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;
@@ -131,7 +134,7 @@ public class ImageBitmap extends TransformableDataSource {
      * ImageBitmap with given image path and size
      @param imagePath path to the image file 
      @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sz depth of the box. 
      */
     public ImageBitmap(String imagePath, double sx, double sy, double sz) {
@@ -175,11 +178,11 @@ public class ImageBitmap extends TransformableDataSource {
 
     /**
      * ImageBitmap with given image path and size
-     @param imagePath path to the image file 
-     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param sz depth of the box. 
-     @param voxelSize size of voxel to be used for image voxelization 
+     * @param imwrapper holder of BufferedImage 
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box. 
+     * @param voxelSize size of voxel to be used for image voxelization 
      */
     public ImageBitmap(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
 
@@ -400,7 +403,7 @@ public class ImageBitmap extends TransformableDataSource {
     /**
      * @noRefGuide
      */
-    int prepareImage(){
+    private int prepareImage(){
 
         long t0 = time();
 
@@ -430,7 +433,7 @@ public class ImageBitmap extends TransformableDataSource {
             }
         }
 
-        printf("image %s [%d x %d ] reading done in %d ms\n", m_imagePath, image.getWidth(), image.getHeight(), (time() - t0));
+        if(DEBUG)printf("image %s [%d x %d ] reading done in %d ms\n", m_imagePath, image.getWidth(), image.getHeight(), (time() - t0));
 
         t0 = time();
         short imageDataShort[] = ImageUtil.getGray16Data(image);
@@ -520,9 +523,13 @@ public class ImageBitmap extends TransformableDataSource {
 
         double vs = pnt.getScaledVoxelSize();
         if (vs == 0.)
-            return getDataValueZeroVoxel(pnt, data);
+            getDataValueZeroVoxel(pnt, data);
         else
-            return getDataValueFiniteVoxel(pnt, data, vs);
+            getDataValueFiniteVoxel(pnt, data, vs);
+
+        super.getMaterialDataValue(pnt, data);        
+        return RESULT_OK;        
+        
     }
 
 

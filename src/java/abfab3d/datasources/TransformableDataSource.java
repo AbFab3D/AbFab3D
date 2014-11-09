@@ -18,11 +18,36 @@ import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 
 /**
-   Base class for DataSources which want to be transformable
+   Base class for DataSources which want to be Transformable
+
+   the TransformableDataSource may have it's own Transform and Material
+   
+   subclasses are responsible to implement getDataValue() 
+   according to template 
+   int getDataValue(Vec pnt, Vec data) {
+      super.transform(pnt);
+      //
+      ...  do own calculations ...
+      //
+      super.getMaterialDataValue(pnt, data);      
+   }
+   
+
+   @author Vladimir Bulatov
+
  */
 public abstract class TransformableDataSource implements DataSource, Initializable {
 
+    // transformation which is aplied to the data point before the calculation of data value 
     protected VecTransform m_transform; 
+    // count of data channels 
+    protected int m_channelsCount = 1;
+    // count of channels of material 
+    protected int m_materialChannelsCount = 0;
+    // material used for this shape 
+
+    // the material is potential multichannel data source and it adds channels to the total channels count
+    protected DataSource m_material = null; 
 
     protected TransformableDataSource(){
     }
@@ -35,15 +60,28 @@ public abstract class TransformableDataSource implements DataSource, Initializab
         m_transform = transform; 
     }
 
+    public void setMaterial(DataSource material){
+        m_material = material; 
+    }
+    
     /**
      * @noRefGuide
      */
     public int initialize(){
+
+        int res = RESULT_OK;
+
         if(m_transform != null && m_transform instanceof Initializable){
-            return ((Initializable)m_transform).initialize();
+            res = ((Initializable)m_transform).initialize();
         }
 
-        return RESULT_OK;
+        if(m_material != null){
+            if( m_material instanceof Initializable){
+                res = res | ((Initializable)m_material).initialize();
+            }
+            m_materialChannelsCount = m_material.getChannelsCount();
+        }        
+        return res;
     }
 
     /**
@@ -62,5 +100,43 @@ public abstract class TransformableDataSource implements DataSource, Initializab
         return RESULT_OK;
     }
     
+    /**
+     *  @return number of channes this data source generates 
+     *  
+     * @noRefGuide
+     */
+    public int getChannelsCount(){
+        return m_channelsCount + m_materialChannelsCount;
+    }
+
+    /**
+       fills data with values from he material channel
+     */
+    int getMaterialDataValue(Vec pnt, Vec data){
+
+        if(m_material == null)
+            return RESULT_OK;
+
+        // TODO - garbage generation !
+        Vec mdata = new Vec(m_materialChannelsCount);
+        
+        m_material.getDataValue(pnt, mdata);
+
+        // copy material into data 
+        switch(m_materialChannelsCount){
+        default: 
+            for(int k = 0; k < m_materialChannelsCount; k++)
+                data.v[m_channelsCount + k] = mdata.v[k];
+            break;
+            
+        case 3: data.v[m_channelsCount + 2] = mdata.v[2]; // no break here 
+        case 2: data.v[m_channelsCount + 1] = mdata.v[1]; // no break here 
+        case 1: data.v[m_channelsCount ] = mdata.v[0];    // no break here 
+        case 0: break;
+        }
+
+        //TODO 
+        return RESULT_OK;
+    }
 
 }

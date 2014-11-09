@@ -22,6 +22,7 @@ package abfab3d.grid;
  * for non-critical code where code maintenance if more important then speed.
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public class DualWrapper implements AttributeGridWrapper {
     private int width;
@@ -696,6 +697,23 @@ public class DualWrapper implements AttributeGridWrapper {
      */
     public boolean insideGrid(double wx, double wy, double wz) {
         return grid.insideGrid(wx,wy,wz);
+    }
+
+    /**
+       assign to the grid a description of a voxel attributes
+       @param description The attirbute description 
+       @override 
+    */
+    public void setAttributeDesc(AttributeDesc description){
+        gridAtt.setAttributeDesc(description);
+    }
+
+    /**
+       @return voxel attribute description assigned to the grid
+       @override 
+    */
+    public AttributeDesc getAttributeDesc(){
+        return gridAtt.getAttributeDesc(); 
     }
 
 }

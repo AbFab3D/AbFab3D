@@ -162,7 +162,9 @@ public class Plane extends TransformableDataSource {
         
         data.v[0] = step10(dot, this.dist, vs);
         
-        return RESULT_OK;
+        super.getMaterialDataValue(pnt, data);        
+        return RESULT_OK;        
+
     }
     
 }  // class Plane

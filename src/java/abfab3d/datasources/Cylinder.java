@@ -148,17 +148,17 @@ public class Cylinder extends TransformableDataSource {
      * returns 0 if pnt is outside the ball
      @noRefGuide
      */
-    public int getDataValue(Vec pntIn, Vec data) {
+    public int getDataValue(Vec pnt, Vec data) {
 
-        super.transform(pntIn);
+        super.transform(pnt);
 
-        Vec pnt = new Vec(pntIn);
-        canonicalTransform(pnt);
+        Vec pntc = new Vec(pnt);
+        canonicalTransform(pntc);
         // cylinder is along Y axis with midpoint at origin 
 
-        double x = pnt.v[0];
-        double y = pnt.v[1];
-        double z = pnt.v[2];
+        double x = pntc.v[0];
+        double y = pntc.v[1];
+        double z = pntc.v[2];
         double vs = pnt.getScaledVoxelSize();
         if (scaleFactor != 0.) {
             double s = 1 / (scaleFactor * pnt.getScaleFactor());
@@ -167,24 +167,26 @@ public class Cylinder extends TransformableDataSource {
             z *= s;
         }
 
-
         double baseCap = step10(abs(y), this.h2, vs);
         if (baseCap == 0.0) {
+
             data.v[0] = 0;
-            return RESULT_OK;
+
+        } else {
+
+            double r = sqrt(x * x + z * z);
+            double distanceToSide;            
+            if(uniform)
+                distanceToSide = r-R0;
+            else 
+                distanceToSide = (r-R01)*normalR + y * normalY;        
+            double sideCap = step10(distanceToSide, vs);
+            if (sideCap < baseCap) baseCap = sideCap;
+            data.v[0] = baseCap;
         }
 
-        double r = sqrt(x * x + z * z);
-        double distanceToSide;
+        super.getMaterialDataValue(pnt, data);
 
-        if(uniform)
-            distanceToSide = r-R0;
-        else 
-            distanceToSide = (r-R01)*normalR + y * normalY;
-
-        double sideCap = step10(distanceToSide, vs);
-        if (sideCap < baseCap) baseCap = sideCap;
-        data.v[0] = baseCap;
         return RESULT_OK;
     }
 

@@ -22,6 +22,7 @@ import abfab3d.grid.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 
+import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.PointSet;
 import abfab3d.util.PointSetArray;
 
@@ -97,13 +98,19 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
         m_inDistance = inDistance;
         m_outDistance = outDistance;
 
+        m_threadCount = ((Number)AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
     }
 
-    
-    /**
-       set threads count for MT processing 
-     */
-    public void setThreadCount(int count){
+
+    public void setThreadCount(int count) {
+        if (count < 1) {
+            count = Runtime.getRuntime().availableProcessors();
+        }
+
+        int max_threads = ((Number)AbFab3DGlobals.get(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY)).intValue();
+        if (count > max_threads)
+            count = max_threads;
+
         m_threadCount = count;
     }
 

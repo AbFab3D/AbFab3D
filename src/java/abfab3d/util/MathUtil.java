@@ -23,6 +23,7 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.SingularMatrixException;
 
 import static java.lang.Math.sqrt;
+import static abfab3d.util.Output.fmt;
 
 /**
  * Math utilities.
@@ -160,6 +161,17 @@ public class MathUtil {
             return xmax;
         return x;
     }
+
+    
+    // small number to detect degenerate matrix 
+    static final double EPS = 1.e-9;
+
+    static final int // elements of 3x3 matrix stored in array 
+        M00 = 0, M01 = 1, M02 = 2, 
+        M10 = 3, M11 = 4, M12 = 5, 
+        M20 = 6, M21 = 7, M22 = 8; 
+
+
 
     /**
      * General invert routine.  Inverts m1 and places the result in "this".
@@ -789,6 +801,18 @@ public class MathUtil {
     }
 
     /**
+       calculate determinant of 3x3 matix represented as 1D array 
+     */
+    static double determinant3(double m[]){
+        return 
+            + m[M00] * (m[M11]*m[M22] - m[M12]*m[M21])
+            - m[M10] * (m[M01]*m[M22] - m[M21]*m[M02]) 
+            + m[M20] * (m[M01]*m[M12] - m[M11]*m[M02]);
+        
+    }
+
+
+    /**
        solves system of 3 linear equation with 3 variables
        M X = C
        stores result in X 
@@ -801,13 +825,9 @@ public class MathUtil {
        return false if equation has no unique solution exists (determinant is 0) 
        
      */
-    public static final int M00 = 0, M01 = 1, M02 = 2, M10 = 3, M11 = 4, M12 = 5, M20 = 6, M21 = 7, M22 = 8;
-    static final double EPS = 1.e-9;
+
     public static boolean solveLinear3(double m[], double c[], double x[]){
-        double det = 
-            + m[M00] * (m[M11]*m[M22] - m[M12]*m[M21])
-            - m[M10] * (m[M01]*m[M22] - m[M21]*m[M02]) 
-            + m[M20] * (m[M01]*m[M12] - m[M11]*m[M02]);
+        double det = determinant3(m);
         if(Math.abs(det) < EPS) 
             return false;
             
@@ -834,12 +854,12 @@ public class MathUtil {
     }
 
     /**
-       calcyulated result of multiplication of 3x3 matrix and vector 3 vector
+       calculated result of multiplication of 3x3 matrix and vector 3 vector
        y = M x 
        y0 = m00*x0 + m01*x1 + m02*x2 
        y1 = m10*x0 + m11*x1 + m12*x2 
        y2 = m20*x0 + m21*x1 + m22*x2 
-
+       
      */
     public static void multMV3(double m[], double x[], double y[]){
 
@@ -849,6 +869,125 @@ public class MathUtil {
         
     }
     
+    /**
+       multiply two matrices M and N and place result in R
+       r = m  * n 
+     */
+    public static void multMM3(double m[], double n[], double r[]){
+
+        r[M00] = m[M00]*n[M00] + m[M01]*n[M10] + m[M02]*n[M20];
+        r[M10] = m[M10]*n[M00] + m[M11]*n[M10] + m[M12]*n[M20];
+        r[M20] = m[M20]*n[M00] + m[M21]*n[M10] + m[M22]*n[M20];
+
+        r[M01] = m[M00]*n[M01] + m[M01]*n[M11] + m[M02]*n[M21];
+        r[M11] = m[M10]*n[M01] + m[M11]*n[M11] + m[M12]*n[M21];
+        r[M21] = m[M20]*n[M01] + m[M21]*n[M11] + m[M22]*n[M21];
+
+        r[M02] = m[M00]*n[M02] + m[M01]*n[M12] + m[M02]*n[M22];
+        r[M12] = m[M10]*n[M02] + m[M11]*n[M12] + m[M12]*n[M22];
+        r[M22] = m[M20]*n[M02] + m[M21]*n[M12] + m[M22]*n[M22];
+        
+    }
+
+    /**
+       copies matrix m into n x
+     */
+    public static final double[] copyMatrix3(double m[], double n[]) {
+        
+        if(n == null) n = new double[m.length];
+        System.arraycopy(m, 0, n, 0, m.length);
+        return n;
+    }
+
+    public static final double[] copyMatrix3(Matrix3d m, double n[]) {
+        
+        if(n == null) n = new double[9];
+        n[M00] = m.m00; n[M01] = m.m01; n[M02] = m.m02;
+        n[M10] = m.m10; n[M11] = m.m11; n[M12] = m.m12;
+        n[M20] = m.m20; n[M21] = m.m21; n[M22] = m.m22;
+        return n;
+    }
+
+    public static final Matrix3d copyMatrix3(double n[], Matrix3d m) {
+        if(m == null) m = new Matrix3d(); 
+        m.m00 = n[M00]; m.m01 = n[M01]; m.m02 = n[M02]; 
+        m.m10 = n[M10]; m.m11 = n[M11]; m.m12 = n[M12]; 
+        m.m20 = n[M20]; m.m21 = n[M21]; m.m22 = n[M22]; 
+        return m;
+    }
+
+    public static final double[] copyVector3(Vector3d v, double c[]) {
+        if(c == null)
+            c = new double[3];
+        c[0] = v.x;
+        c[1] = v.y;
+        c[2] = v.z;
+        return c;
+    }
+
+    /**
+       invert 3x3 matrix represented as linear array 
+       stores result in the same matrix 
+       @return 1 if success or 0 if matrix is non invertible 
+     */
+    public static final int invertMatrix3(double m[]) {
+        
+        double det = determinant3(m);
+        if(det == 0.0){ // it is probably safe enough to compare with 0.0  
+            return 0;
+        }
+        det = 1./det;
+        double 
+            m00 = (m[M11]*m[M22] - m[M21]*m[M12])*det,
+            m01 = (m[M02]*m[M21] - m[M22]*m[M01])*det,
+            m02 = (m[M01]*m[M12] - m[M11]*m[M02])*det,
+
+            m10 = (m[M12]*m[M20] - m[M22]*m[M10])*det,
+            m11 = (m[M00]*m[M22] - m[M20]*m[M02])*det,
+            m12 = (m[M02]*m[M10] - m[M12]*m[M00])*det,
+
+            m20 = (m[M10]*m[M21] - m[M20]*m[M11])*det,
+            m21 = (m[M01]*m[M20] - m[M21]*m[M00])*det,
+            m22 = (m[M00]*m[M11] - m[M10]*m[M01])*det;
+
+        m[M00] = m00;
+        m[M01] = m01;
+        m[M02] = m02;
+        m[M10] = m10;
+        m[M11] = m11;
+        m[M12] = m12;
+        m[M20] = m20;
+        m[M21] = m21;
+        m[M22] = m22;
+
+        return 1;
+    }
+
+
+    /**
+       set m to be unit matrix and return it.
+     */
+    public static final double[] getUnitMatrix3(double m[]) {
+        if(m == null) m = new double[9];
+        
+        m[M00] = 1; m[M01] = 0; m[M02] = 0;
+        m[M10] = 0; m[M11] = 1; m[M12] = 0;
+        m[M20] = 0; m[M21] = 0; m[M22] = 1;
+
+        return m;
+    }
+
+    public static final String fmtMatrix3(String format, double m[]) {
+        return fmt("(%s %s %s;%s %s %s;%s %s %s)",
+                   fmt(format, m[0]),fmt(format, m[1]),fmt(format, m[2]),
+                   fmt(format, m[3]),fmt(format, m[4]),fmt(format, m[5]),
+                   fmt(format, m[6]),fmt(format, m[7]),fmt(format, m[8])
+                   );
+    }
+
+    /**
+       calculates maximal distance between 2 arrays 
+     */
     public static double maxDistance(double x[], double y[]){
 
         int n = x.length;
@@ -994,4 +1133,23 @@ public class MathUtil {
         return (int)((short)v);
     }
 
+    /**
+       makes mask with given bit count 
+     */
+    public static final long getBitMask(int bitCount){
+        
+        if(bitCount < 1) 
+            return 0;
+        if(bitCount >= 64)
+            return 0xFFFFFFFFL;
+        return ((1L << bitCount)-1);
+        /*
+        long mask = 0;
+        for(int i = 0; i < bitCount; i++){
+            mask |= (1L << i);
+        }
+
+        return ((1L << bitCount)-1);
+        */
+    }
 }

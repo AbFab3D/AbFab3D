@@ -1,8 +1,4 @@
-package abfab3d.mesh;
-
-import abfab3d.util.StructMixedData;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.TriangleProducer;
+package abfab3d.util;
 
 import javax.vecmath.Point3d;
 

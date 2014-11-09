@@ -12,7 +12,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
 
-import abfab3d.mesh.TriangleMesh;
+import abfab3d.grid.Model;
+import abfab3d.util.TriangleMesh;
 import org.mozilla.javascript.*;
 
 public class JavaPolicySecurity extends SecurityProxy
@@ -111,17 +112,17 @@ public class JavaPolicySecurity extends SecurityProxy
     }
 
     @Override
-    protected TriangleMesh callProcessFileSecure(final Context cx,
+    protected Model callProcessFileSecure(final Context cx,
                                          final Scriptable scope,
-                                         final String filename, final Object[] args, final boolean show)
+                                         final String filename, final Object[] args)
     {
-        return (TriangleMesh) AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        return (Model) AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 URL url = getUrlObj(filename);
                 ProtectionDomain staticDomain = getUrlDomain(url);
                 try {
                     return Main.processFileSecure(cx, scope, url.toExternalForm(),
-                                           staticDomain, args, show);
+                                           staticDomain, args);
                 } catch (IOException ioex) {
                     throw new RuntimeException(ioex);
                 }
