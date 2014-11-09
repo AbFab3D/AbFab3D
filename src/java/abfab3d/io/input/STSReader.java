@@ -222,6 +222,14 @@ public class STSReader {
                 throw new IllegalArgumentException("File contains no model element");
             }
 
+            field = "units";
+            val = model.getAttribute(field);
+            String units = val;
+
+            if (units != null) {
+                mf.setUnits(Double.parseDouble(units));
+            }
+
             STSManifest ret_val = new STSManifest();
             int len;
             field = "parts";
