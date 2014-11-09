@@ -816,7 +816,8 @@ public class TestSlicesWriter extends TestCase {
         
         printf("colorTest()\n");
     
-        double voxelSize = 0.05*MM;
+        boolean useSVXWriter = false;        
+        double voxelSize = 0.1*MM;
         double margin = voxelSize;
 
         double sizex = 10*MM; 
@@ -833,40 +834,48 @@ public class TestSlicesWriter extends TestCase {
         int ng[] = MathUtil.getGridSize(bounds, voxelSize);
 
 
-        double ballRadius = 4.5*MM;
+        double ballRadius = 3.5*MM;
         double boxSize = 4*MM;
 
         printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
-        double coneCenter = 3*MM;
-        double sphereCenter = 0; 
+        double coneCenter = 2*MM;
+        double sphereCenter = 1*MM; 
 
-        Cone cone = new Cone(new Vector3d(coneCenter,0,0), new Vector3d(-1,0,-1),Math.PI/6);
-        cone.setMaterial(new SolidColor(0.,0.,1.0));
+        Cone cone = new Cone(new Vector3d(coneCenter,0,0), new Vector3d(-1,0,0),Math.PI/6);
+        cone.setMaterial(new SolidColor(1.0,0.2,0.3));
 
         Sphere sphere = new Sphere(sphereCenter, 0, 0,ballRadius);
-        sphere.setMaterial(new SolidColor(1.,0.,0.0));
+        sphere.setMaterial(new SolidColor(0., 0.5, 1.));
 
         GridMaker gm = new GridMaker();  
+        gm.setMargin(2);
 
         gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8,8,8,8}, true));
         
         int types[]= Composition.allTypes;
 
         for(int i = 0; i < types.length; i++){
+        //for(int i = 0; i < 1; i++){
             gm.setSource(new Composition(types[i], cone, sphere));        
             AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
             grid.setGridBounds(bounds);
             gm.makeGrid(grid);               
-
 
             AttributeDesc attDesc = new AttributeDesc();
             attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
             attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
 
             grid.setAttributeDesc(attDesc);
-
-            new SVXWriter().write(grid, "/tmp/slices/ConeSphere_"+Composition.getTypeName(types[i])+".svx");       
-            
+            if(useSVXWriter){
+                new SVXWriter().write(grid, "/tmp/slices/ConeSphere_"+Composition.getTypeName(types[i])+".svx");       
+            } else {
+                SlicesWriter writer = new SlicesWriter();
+                //writer.writeSlices(grid, folder+"slicex%04d.png", 0, 0, nx, 0,bitCount, new DefaultLongConverter());
+                //int firstSlice, int firstFile, int sliceCount, int orientation, 
+                //           int voxelBitCount, LongConverter voxelDataConverter) throws IOException {
+                writer.writeSlices(grid, "/tmp/slices/ConeSphere_"+Composition.getTypeName(types[i])+"_color.png", ng[0]/2, ng[0]/2, 1, 2, 24, new BitsExtractor(8, 0xFFFFFF));
+                writer.writeSlices(grid, "/tmp/slices/ConeSphere_"+Composition.getTypeName(types[i])+"_dens.png", ng[0]/2, ng[0]/2, 1, 2, 8, new BitsExtractor(0, 0xFF));
+            }            
         }
     }
 
