@@ -26,7 +26,16 @@ public class STSManifest {
     private List<STSPart> parts;
     /** The user metadata */
     private Map<String,String> metadata;
+    private double units;
 
+
+    public double getUnits() {
+        return units;
+    }
+
+    public void setUnits(double units) {
+        this.units = units;
+    }
 
     public List<STSPart> getParts() {
         return parts;
