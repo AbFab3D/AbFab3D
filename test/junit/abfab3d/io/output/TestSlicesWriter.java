@@ -51,6 +51,7 @@ import abfab3d.util.LongConverter;
 import abfab3d.datasources.DataChannelMixer;
 import abfab3d.datasources.SolidColor;
 import abfab3d.datasources.Box;
+import abfab3d.datasources.SimplexNoise;
 import abfab3d.datasources.Cone;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
@@ -816,7 +817,7 @@ public class TestSlicesWriter extends TestCase {
         
         printf("colorTest()\n");
     
-        boolean useSVXWriter = false;        
+        boolean useSVXWriter = true;        
         double voxelSize = 0.1*MM;
         double margin = voxelSize;
 
@@ -879,6 +880,62 @@ public class TestSlicesWriter extends TestCase {
         }
     }
 
+    void colorTestSimplexNoise() throws IOException{
+        
+        printf("colorTest()\n");
+    
+        boolean useSVXWriter = true;        
+        double voxelSize = 0.05*MM;
+        double margin = voxelSize;
+
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double s = 5*MM;
+
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+        
+        MathUtil.roundBounds(bounds, voxelSize);
+        bounds = MathUtil.extendBounds(bounds, margin);                
+
+
+        int ng[] = MathUtil.getGridSize(bounds, voxelSize);
+
+
+        double ballRadius = 3.5*MM;
+        double boxSize = 4*MM;
+
+        printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
+        double coneCenter = 2*MM;
+        double sphereCenter = 1*MM; 
+
+       SimplexNoise noise = new SimplexNoise(1*MM, 1);
+
+        GridMaker gm = new GridMaker();  
+        gm.setMargin(2);
+        
+        gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8}, true));
+        
+        gm.setSource(noise);
+
+        AttributeGrid grid = new ArrayAttributeGridLong(ng[0],ng[1],ng[2], voxelSize, voxelSize);
+        grid.setGridBounds(bounds);
+        gm.makeGrid(grid);               
+        
+        AttributeDesc attDesc = new AttributeDesc();
+        attDesc.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        //attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24,8));
+        
+        grid.setAttributeDesc(attDesc);
+        
+        if(useSVXWriter){
+            new SVXWriter().write(grid, "/tmp/slices/simplexNoise.svx");       
+        } else {
+            SlicesWriter writer = new SlicesWriter();
+            writer.writeSlices(grid, "/tmp/slices/simplexNoise%04d.png", ng[0]/2, ng[0]/2, 1, 2, 24, new BitsExtractor(0, 0xFFFFFF));           
+        }
+    }
+
     static class BitsExtractor implements LongConverter {
         
         int shift = 0;
@@ -900,7 +957,8 @@ public class TestSlicesWriter extends TestCase {
         //new TestSlicesWriter().colorTest2();
         //new TestSlicesWriter().colorTest3();
         //new TestSlicesWriter().colorTestBoxSphere();
-        new TestSlicesWriter().colorTestConeSphere();
+        //new TestSlicesWriter().colorTestConeSphere();
+        new TestSlicesWriter().colorTestSimplexNoise();
     }
     
 
