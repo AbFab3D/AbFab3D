@@ -253,14 +253,17 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
        
        @param dataGrid 3D grid used to make colors
        @param texGrid 2D grid (3D grid with single y-slice) to accept the texture 
-       
+       @param extendWidth width of extension of rendered triangles
      */
-    public void renderTexturedTriangles(AttributeGrid dataGrid, AttributeGrid texGrid){
+    public void renderTexturedTriangles(AttributeGrid dataGrid, AttributeGrid texGrid, double extendWidth){
         
         TextureRenderer tr = new TextureRenderer(dataGrid, texGrid);
 
         double tri[][] = new double[3][3];
         double tex[][] = new double[3][2];
+        double extTri[][] = new double[3][2];
+        double triLines[][] = new double[3][3];
+
 
         for(int k = 0; k < m_triCount; k++){
             int tindex = 3*k;
@@ -280,7 +283,10 @@ public class TrianglePacker implements TriangleCollector, TriangleProducer {
             tex[2][0] = m_texCoord[texindex+4];
             tex[2][1] = m_texCoord[texindex+5];
 
-            tr.renderTriangle(tri, tex);
+            if(extendWidth == 0.0)
+                tr.renderTriangle(tri, tex);
+            else 
+                tr.renderTriangleExtended(tri, tex, extendWidth, extTri, triLines);
         }
     }
     

@@ -43,6 +43,8 @@ public class TriangleInterpolator {
     
     /**
        creates matrix of linear transform interpolates maps 3 points of 2D triangle t[3][2] into 3 points of 3D triangle p[3][3]
+       @param t - 2D triangle 
+       @param p - 3D triangle 
     */
     void init(double t[][], double p[][]){
         //

@@ -9,10 +9,18 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
+package abfab3d.util;
 
-package abfab3d.datasources;
 
-/*
+import abfab3d.util.Vec;
+import abfab3d.util.DataSource;
+import abfab3d.util.Initializable;
+import abfab3d.util.VecTransform;
+
+
+import static abfab3d.util.Units.MM;
+
+/**
  * A speed-improved simplex noise algorithm for 2D, 3D and 4D in Java.
  *
  * Based on example code by Stefan Gustavson (stegu@itn.liu.se).
@@ -27,31 +35,17 @@ package abfab3d.datasources;
  * Stefan Gustavson. You may use it as you see fit, but
  * attribution is appreciated.
  *
+ *
+ *
+ *
  */
+public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
 
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
+    // seed for random numbers generator 
+    protected double m_seed = 1;
 
-
-import static abfab3d.util.Units.MM;
-
-
-
-public class SimplexNoise extends TransformableDataSource {  // Simplex noise in 2D, 3D and 4D
-
-    protected double m_scale = 1*MM;
-    public SimplexNoise(double scale, int seed){
-        m_scale = scale;
-    }
-
-    public int getDataValue(Vec pnt, Vec value){
-        
-        super.transform(pnt);
-        value.v[0] = noise(pnt.v[0]/m_scale,pnt.v[1]/m_scale,pnt.v[2]/m_scale);
-
-        return RESULT_OK;
+    public SimplexNoise(int seed){
+        m_seed = seed;
     }
 
   private static Grad grad3[] = {new Grad(1,1,0),new Grad(-1,1,0),new Grad(1,-1,0),new Grad(-1,-1,0),

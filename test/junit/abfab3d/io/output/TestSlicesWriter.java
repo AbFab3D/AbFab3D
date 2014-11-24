@@ -51,7 +51,7 @@ import abfab3d.util.LongConverter;
 import abfab3d.datasources.DataChannelMixer;
 import abfab3d.datasources.SolidColor;
 import abfab3d.datasources.Box;
-import abfab3d.datasources.SimplexNoise;
+import abfab3d.datasources.Noise;
 import abfab3d.datasources.Cone;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
@@ -880,7 +880,7 @@ public class TestSlicesWriter extends TestCase {
         }
     }
 
-    void colorTestSimplexNoise() throws IOException{
+    void colorTestNoise() throws IOException{
         
         printf("colorTest()\n");
     
@@ -909,7 +909,7 @@ public class TestSlicesWriter extends TestCase {
         double coneCenter = 2*MM;
         double sphereCenter = 1*MM; 
 
-       SimplexNoise noise = new SimplexNoise(1*MM, 1);
+        Noise noise = new Noise(2*MM, 5);
 
         GridMaker gm = new GridMaker();  
         gm.setMargin(2);
@@ -929,10 +929,10 @@ public class TestSlicesWriter extends TestCase {
         grid.setAttributeDesc(attDesc);
         
         if(useSVXWriter){
-            new SVXWriter().write(grid, "/tmp/slices/simplexNoise.svx");       
+            new SVXWriter().write(grid, "/tmp/slices/simplexNoiseP5.svx");       
         } else {
             SlicesWriter writer = new SlicesWriter();
-            writer.writeSlices(grid, "/tmp/slices/simplexNoise%04d.png", ng[0]/2, ng[0]/2, 1, 2, 24, new BitsExtractor(0, 0xFFFFFF));           
+            writer.writeSlices(grid, "/tmp/slices/simplexNoiseP%04d.png", ng[0]/2, ng[0]/2, 1, 2, 24, new BitsExtractor(0, 0xFFFFFF));           
         }
     }
 
@@ -958,7 +958,7 @@ public class TestSlicesWriter extends TestCase {
         //new TestSlicesWriter().colorTest3();
         //new TestSlicesWriter().colorTestBoxSphere();
         //new TestSlicesWriter().colorTestConeSphere();
-        new TestSlicesWriter().colorTestSimplexNoise();
+        new TestSlicesWriter().colorTestNoise();
     }
     
 

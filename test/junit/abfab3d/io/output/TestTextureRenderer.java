@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2011-2014
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -120,6 +120,9 @@ import static abfab3d.util.Units.MM;
  * @author Vladimir Bulatov
  */
 public class TestTextureRenderer extends TestCase {
+
+
+    static final double EPS = 1.e-10;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -244,6 +247,22 @@ public class TestTextureRenderer extends TestCase {
         
     }
 
+    static void testExtendedTriangle(){
+        
+        double tri[][] = new double[][]{{0,0},{10,0},{0,10}};
+        double etri[][] = new double[3][2];
+        double lines[][] = new double[3][3];
+        double edist = 1;
+
+        TextureRenderer.extendTriangle(tri, etri, edist, lines);
+
+        printf(" tri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",tri[0][0],tri[0][1], tri[1][0],tri[1][1], tri[2][0],tri[2][1]);
+        printf("etri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",etri[0][0],etri[0][1], etri[1][0],etri[1][1], etri[2][0],etri[2][1]);
+        
+        assertTrue(fmt("bad extended triangle vertex: (%10.8f, %10.8f)", etri[0][0],etri[0][1]), Math.abs(etri[0][0]+1.) < 0);        
+
+    }
+
     /**
        testing textured triangles output 
      */
@@ -252,22 +271,22 @@ public class TestTextureRenderer extends TestCase {
         printf("makeTexturedTetrahedron()\n");
         
         double vs = 0.1*MM;
-
+        
+        double triExtWidth = 1.5; // extension of textured triangles 
         double s = 10*MM;
         double bounds[] = new double[]{-s/2,s/2,-s/2,s/2,-s/2,s/2};
 
         double gs = s/vs; // size of grid 
-        double gap = 1.;
+        double triGap = 2;
         double center = gs/2;
 
         String baseDir = "/tmp/tex/";
-        TriangleProducer mesh = new ParametricSurfaceMaker(new ParametricSurfaces.Patch(new Vector3d(2,2,center),new Vector3d(gs-2,2,center),
-                                                                                        new Vector3d(gs-2,gs-2,center),new Vector3d(2,gs-2,center),
-                                                                                        3,3));
+
+        //TriangleProducer mesh = new ParametricSurfaceMaker(new ParametricSurfaces.Patch(new Vector3d(2,2,center),new Vector3d(gs-2,2,center),new Vector3d(gs-2,gs-2,center),new Vector3d(2,gs-2,center),3,3));
         //TriangleProducer mesh = new TriangulatedModels.TetrahedronInParallelepiped(2.,2.,2., gs-2, gs-2, gs-2,0);
         //TriangleProducer mesh = new TriangulatedModels.Parallelepiped(2.,2.,2., gs-2, 0.7*gs-2, 0.5*gs-2);
-        //TriangleProducer mesh = new TriangulatedModels.Sphere(gs/2-2, new Vector3d(gs/2,gs/2,gs/2), 1);
-        //TriangleProducer mesh = new TriangulatedModels.Torus(gs/4, gs/2, 0.02);
+        TriangleProducer mesh = new TriangulatedModels.Sphere(gs/2-2, new Vector3d(gs/2,gs/2,gs/2), 3);
+        //TriangleProducer mesh = new TriangulatedModels.Torus(gs/4, gs/2, 0.5);
         
         STLWriter writer = new STLWriter(baseDir + "mesh.stl");
         mesh.getTriangles(writer);
@@ -280,7 +299,7 @@ public class TestTextureRenderer extends TestCase {
 
         //double vert[] = itsb.getVertices();
         
-        TrianglePacker tp = new TrianglePacker(gap);
+        TrianglePacker tp = new TrianglePacker(triGap);
         mesh.getTriangles(tp);
    
         int rc = tp.getTriCount();
@@ -291,8 +310,8 @@ public class TestTextureRenderer extends TestCase {
 
         printf("packedSize: [%7.2f x %7.2f] \n", area.x, area.y); 
                
-        int imgWidth = (int)(area.x+2*gap);
-        int imgHeight = (int)(area.y+2*gap);
+        int imgWidth = (int)(area.x+2*triGap);
+        int imgHeight = (int)(area.y+2*triGap);
 
         BufferedImage outImage = new BufferedImage(imgWidth, imgHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D graphics = outImage.createGraphics();
@@ -311,14 +330,14 @@ public class TestTextureRenderer extends TestCase {
         AttributeDesc attDesc = new AttributeDesc();
         attDesc.addChannel(new AttributeChannel(AttributeChannel.COLOR, "color", 24, 0));
         colorGrid.setAttributeDesc(attDesc);
-        new SVXWriter(2).write(colorGrid, "/tmp/tex/colorGrid.svx");
+        new SVXWriter(2).write(colorGrid, baseDir + "colorGrid.svx");
 
         double texBounds[] = new double[]{0, imgWidth*vs, 0, vs, 0, imgHeight*vs};
         AttributeGrid texGrid = new ArrayAttributeGridInt(imgWidth,1,imgHeight, vs, vs);
         texGrid.setGridBounds(texBounds);
         texGrid.setAttributeDesc(attDesc);
         
-        tp.renderTexturedTriangles(colorGrid, texGrid);
+        tp.renderTexturedTriangles(colorGrid, texGrid, triExtWidth);
 
         new SVXWriter().write(texGrid, "/tmp/tex/texGrid.svx");
 
@@ -427,5 +446,6 @@ public class TestTextureRenderer extends TestCase {
         //new TestTextureRenderer().checkLinearTransform();
         //new TestTextureRenderer().checkTextureRendering();
         new TestTextureRenderer().makeTexturedMesh();
+        //new TestTextureRenderer().testExtendedTriangle();
     }    
 }

@@ -18,6 +18,7 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.util.TriangleRenderer; 
 import abfab3d.util.MathUtil;
 
+import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 
@@ -38,12 +39,14 @@ public class TextureRenderer {
     
     AttributeGrid m_dataGrid;
     AttributeGrid m_textureGrid;
-
+    // dimensions of data grid 
+    int m_nx, m_ny, m_nz;
+    // dimensions of texure grid 
+    int m_nu, m_nv;
+    
     TriangleInterpolator m_triInterpolator = new TriangleInterpolator();
     TriangleRenderer m_triRenderer = new TriangleRenderer();
     TexturePixelRenderer m_pixelRenderer = new TexturePixelRenderer();
-
-
 
     /**
        @param dataGrid - grid which contains source data for rendering 
@@ -52,11 +55,18 @@ public class TextureRenderer {
      */    
     public TextureRenderer(AttributeGrid dataGrid, AttributeGrid textureGrid){
         m_dataGrid = dataGrid;
+        m_nx = m_dataGrid.getWidth();
+        m_ny = m_dataGrid.getHeight();
+        m_nz = m_dataGrid.getDepth();
+
         m_textureGrid = textureGrid;
+        m_nu = m_textureGrid.getWidth();
+        m_nv = m_textureGrid.getDepth();
+
     }
 
     /**
-       renders three dimensional source into two dimensional textured triangle. 
+       renders three dimensional source triangle into two dimensional textured triangle. 
        @param tri vertices of source 3D triangle in the grid 
        @param tex  vertices of textured 2D triangle
        <p>
@@ -73,17 +83,122 @@ public class TextureRenderer {
        that color is assigned to the 2D pixel of texture triangle. 
        </p>
      */
-    public void renderTriangle(double tri[][], double tex[][]){
+    public void renderTriangle(double tri[][], double texTri[][]){
         
-        m_triInterpolator.init(tex, tri);
-        
+        m_triInterpolator.init(texTri, tri);
+
+        double tex[][] = texTri;
+
         m_triRenderer.fillTriangle(m_pixelRenderer, 
                                    tex[0][0],tex[0][1],
                                    tex[1][0],tex[1][1],
                                    tex[2][0],tex[2][1]);       
     }
 
-          
+    /**
+       renders three dimensional source triangle into two dimensional textured triangle. 
+       the same as renderTriangle() 
+       with additional exentsion of 2D trinagle by given extendWidth. 
+       this is to make 2D triangle a little bigger to cover boundary effects on the edges of triagle 
+       @param tri[3][3] 3D triangle coords
+       @param texTri[3][2] 2D triangle coords
+       @param extendWidth width of triangle extension 
+       @param extTexTri[3][2] work array for extended triangles 
+       @param lines[3][3] work array for triangle sides equations 
+     */
+    public void renderTriangleExtended(double tri[][], double texTri[][], double extendWidth, double extTexTri[][], double lines[][]){
+        
+        m_triInterpolator.init(texTri, tri);
+
+        extendTriangle(texTri, extTexTri, extendWidth, lines);
+        double tex[][] = extTexTri;        
+        m_triRenderer.fillTriangle(m_pixelRenderer, 
+                                   tex[0][0],tex[0][1],
+                                   tex[1][0],tex[1][1],
+                                   tex[2][0],tex[2][1]);       
+    }
+
+        
+    /**
+     *
+     *  extends 2D texured triangle int all directipons by equal amount 
+     *  
+     *  
+     *           /|
+     *          / |                             
+     *         /  |
+     *        /   |
+     *       -----
+     *            /|
+     *           / |
+     *          //||
+     *         // ||                            
+     *        //  ||
+     *       //   ||
+     *      /----- |
+     *      -------
+     * @param tri[3][2] original triangle 
+     * @param etri[3][2] extended triangle 
+     * @param distance - width of extension 
+     * @param lines[3][3] - working array to store equations of lines of triangle 
+     */
+    static void extendTriangle(double [][] tri, double [][] etri, double distance, double lines[][]){
+        
+        for(int k = 0; k < 3; k++){
+            getLineFromPoints2D(tri[k], tri[(k+1)%3], lines[k]);
+            // shift the line 
+            lines[k][2] += distance;
+        }
+        for(int k = 0; k < 3; k++){
+            getPointFromLines2D(lines[(k+3-1)%3], lines[k], etri[k]);
+        }        
+    }
+
+    /**
+       calculates equation of normalized 2D line via 2D points p, q
+       line equation : line[0]*x + line[1]*y + line[2] = 0;
+       coefficents satisfy: line[0]^2 + line[0]^2 = 1; 
+
+       (line[0],line[1], line[2]) 
+       line with equation  (line[0],line[1], line[2] + D) 
+       is shifted by distance D to the right from original line 
+       
+       @param p - first point 
+       @param q - second point 
+       @param line - line equation 
+       
+     */ 
+    static void getLineFromPoints2D(double p[],double q[], double line[]){
+        
+        line[0] = p[1] - q[1]; 
+        line[1] = -(p[0] - q[0]); 
+        // length of normal 
+        double norm = sqrt(line[0]*line[0] + line[1]*line[1]);
+        // make unit normal 
+        line[0] /= norm;
+        line[1] /= norm;
+        line[2] = -(p[0] * line[0] + p[1] * line[1]);
+        
+    }
+
+    /**
+       calculates intersection of two 2D lines and stores result in p[2] 
+       
+       @param s[3] - first line 
+       @param t[3] - second line equation
+       @param p[2] - pont coordinates 
+     */
+    static void getPointFromLines2D(double s[], double t[], double p[]){
+        // use projective approach 
+        // line 
+        double x = s[1]*t[2] - s[2]*t[1];
+        double y = s[2]*t[0] - s[0]*t[2];
+        double z = s[0]*t[1] - s[1]*t[0];
+        p[0] = x/z;
+        p[1] = y/z;
+        
+        
+    }
 
 
     class TexturePixelRenderer implements TriangleRenderer.PixelRenderer {
@@ -99,6 +214,9 @@ public class TextureRenderer {
         public void setPixel(int u, int v){
 
             // transform pixel into 3D space 
+            if(u < 0 || u >= m_nu || v < 0 || v >= m_nv)
+                return;
+
             m_triInterpolator.interpolate(u+0.5, v+0.5, pnt);
             // read voxel from dataGrid 
 
@@ -115,14 +233,14 @@ public class TextureRenderer {
                 dz = z - iz;
 
             
-            getColor(m_dataGrid.getAttribute(ix,   iy,   iz),color[0]);
-            getColor(m_dataGrid.getAttribute(ix+1, iy,   iz),color[1]);
-            getColor(m_dataGrid.getAttribute(ix,   iy+1, iz),color[2]);
-            getColor(m_dataGrid.getAttribute(ix+1, iy+1, iz),color[3]);
-            getColor(m_dataGrid.getAttribute(ix,   iy,   iz+1),color[4]);
-            getColor(m_dataGrid.getAttribute(ix+1, iy,   iz+1),color[5]);
-            getColor(m_dataGrid.getAttribute(ix,   iy+1, iz+1),color[6]);
-            getColor(m_dataGrid.getAttribute(ix+1, iy+1, iz+1),color[7]);
+            getPointColor(ix,   iy,   iz,color[0]);
+            getPointColor(ix+1, iy,   iz,color[1]);
+            getPointColor(ix,   iy+1, iz,color[2]);
+            getPointColor(ix+1, iy+1, iz,color[3]);
+            getPointColor(ix,   iy,   iz+1,color[4]);
+            getPointColor(ix+1, iy,   iz+1,color[5]);
+            getPointColor(ix,   iy+1, iz+1,color[6]);
+            getPointColor(ix+1, iy+1, iz+1,color[7]);
 
             interpolateColors(dx, dy, dz, color, icolor);
 
@@ -137,6 +255,19 @@ public class TextureRenderer {
 
         long makeAtt(double c[]){         
             return (((int)(c[0]*255))& 0xFF) | ((((int)(c[1]*255))&0xFF)<<8) | ((((int)(c[2]*255))&0xFF)<<16);
+        }
+
+        // get color of the given voxel 
+        void getPointColor(int x, int y, int z, double color[]){
+
+            if(x < 0) x = -x;
+            if(y < 0) y = -y;
+            if(z < 0) z = -z;
+            if(x >= m_nx) x = x % m_nx;
+            if(y >= m_ny) y = y % m_ny;
+            if(z >= m_nz) z = z % m_ny;
+            getColor(m_dataGrid.getAttribute(x,y,z), color); 
+
         }
         
         void getColor(long att, double color[]){
@@ -159,13 +290,9 @@ public class TextureRenderer {
                 x1 = 1-x,
                 y1 = 1-y,
                 z1 = 1-z;
-
+            
             copyColor(c, 0, colorChannel);
             ic[0] = interpolateColor(x, y, z, x1, y1, z1,colorChannel);
-
-            //if(DEBUG && colorChannel[0] != colorChannel[1] && debugCount-- > 0) 
-            //    printf("(%7.5f %7.5f %7.5f): (%4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f %4.2f): %4.2f\n", x, y, z, 
-            //           colorChannel[0],colorChannel[1],colorChannel[2],colorChannel[3],colorChannel[4],colorChannel[5],colorChannel[6],colorChannel[7],ic[0]);
             copyColor(c, 1, colorChannel);
             ic[1] = interpolateColor(x, y, z, x1, y1, z1, colorChannel);
             copyColor(c, 2, colorChannel);
