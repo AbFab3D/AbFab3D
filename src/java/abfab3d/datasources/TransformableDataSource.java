@@ -112,7 +112,7 @@ public abstract class TransformableDataSource implements DataSource, Initializab
     /**
        fills data with values from he material channel
      */
-    int getMaterialDataValue(Vec pnt, Vec data){
+    protected int getMaterialDataValue(Vec pnt, Vec data){
 
         if(m_material == null)
             return RESULT_OK;

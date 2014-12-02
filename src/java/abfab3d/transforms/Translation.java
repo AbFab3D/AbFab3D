@@ -59,6 +59,16 @@ public class Translation  implements VecTransform {
         setTranslation(tx, ty, tz);
         
     }
+
+    /**
+       translation to given point
+       @param p  vector of translation 
+     */
+    public Translation(Vector3d p){
+        
+        setTranslation(p.x, p.y,p.z);
+        
+    }
     
     /**
        @noRefGuide
