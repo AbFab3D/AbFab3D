@@ -15,7 +15,7 @@ import static abfab3d.util.Output.printf;
  *      outside of original shape - positive 
  *  
  *
- * @author Alan Hudson
+ *  @author Alan Hudson
  *  @author Vladimir Bulatov
  */
 public class DensityGridExtractor implements AttributeOperation {
@@ -102,22 +102,17 @@ public class DensityGridExtractor implements AttributeOperation {
                     short dest_att;
                     
                     if (att < inDistanceMinus) {
-//                        dest.setData(x, y, z, Grid.OUTSIDE, 0);
                         dest.setAttribute(x, y, z, 0);
                     } else if (att >= inDistanceMinus && att < inDistancePlus) {
                         dest_att = (short) (att - inDistanceMinus);
-//                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
                         dest.setAttribute(x,y,z,dest_att);
                     } else if (att >= inDistancePlus && att < outDistanceMinus || att == -Short.MAX_VALUE) {
                         dest_att = (short) subvoxelResolution;
-//                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
                         dest.setAttribute(x,y,z,dest_att);
                     } else if (att >= outDistanceMinus && att <= outDistancePlus) {
                         dest_att = (short) (outDistancePlus - att);
-//                        dest.setData(x,y,z, Grid.INSIDE,dest_att);
                         dest.setAttribute(x,y,z,dest_att);
                     } else {
-//                        dest.setData(x, y, z, Grid.OUTSIDE, 0);
                         dest.setAttribute(x, y, z, 0);
                     }
                 }

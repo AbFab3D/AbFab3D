@@ -159,12 +159,13 @@ public class DataSourceGrid extends TransformableDataSource {
     }
 
     private int getBoxInterpolatedValue(Vec pnt, Vec data){
-        
+
+        double v[] = pnt.v;
         // values normalized to voxel size 
         double 
-            x = (pnt.v[0]-xmin)*xscale,
-            y = (pnt.v[1]-ymin)*yscale,
-            z = (pnt.v[2]-zmin)*zscale;        
+            x = (v[0]-xmin)*xscale,
+            y = (v[1]-ymin)*yscale,
+            z = (v[2]-zmin)*zscale;        
         
         int ix = (int)x;
         int iy = (int)y;
@@ -182,11 +183,12 @@ public class DataSourceGrid extends TransformableDataSource {
     }
     private int getLinearInterpolatedValue(Vec pnt, Vec data){
         
+        double v[] = pnt.v;
         // values normalized to voxel size 
         double 
-            x = (pnt.v[0]-xmin)*xscale,
-            y = (pnt.v[1]-ymin)*yscale,
-            z = (pnt.v[2]-zmin)*zscale;        
+            x = (v[0]-xmin)*xscale,
+            y = (v[1]-ymin)*yscale,
+            z = (v[2]-zmin)*zscale;        
         int ix = (int)x;
         int iy = (int)y;
         int iz = (int)z;

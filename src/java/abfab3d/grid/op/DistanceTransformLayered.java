@@ -201,6 +201,8 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
        set distanceGrid values to be to m_defaultInValue and m_defaultOutValue  
 
      */
+    /*
+      // not used. DistanceGrid is initialized in getSurfacePoint
     void initDistances(AttributeGrid grid, AttributeGrid distanceGrid){
 
         long distOut = m_defaultOutValue;
@@ -218,9 +220,8 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
                 }
             }
         }
-
     }
-
+    */
 
     /**
        
@@ -252,39 +253,37 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
         if(DEBUG)printf("getSurfacePointsST()\n");
         if(DEBUG)printf("  surfaceValue: %d\n",sv);
 
-        for(int iy = 0; iy < ny1; iy++){
+        for(int iy = 0; iy < ny; iy++){
 
             double y = m_ymin + iy*vs;
 
-            for(int ix = 0; ix < nx1; ix++){
+            for(int ix = 0; ix < nx; ix++){
 
                 double x = m_xmin + ix*vs;
 
-                for(int iz = 0; iz < nz1; iz++){
+                for(int iz = 0; iz < nz; iz++){
                     
                     double z = m_zmin + iz*vs;
                     
                     int v0 = (int)grid.getAttribute(ix,iy,iz)-sv;
-
+                    
                     if(v0 >= 0) distanceGrid.setAttribute(ix,iy,iz,distIn);
                     else        distanceGrid.setAttribute(ix,iy,iz,distOut);
-                    
-                    int vx = (int)grid.getAttribute(ix+1,iy,iz)-sv;
-
-                    if(v0 * vx <= 0 && v0 != vx)
-                        pnts.addPoint(x+(vs*v0)/(v0-vx), y, z);
-
-                    int vy = (int)grid.getAttribute(ix,iy+1,iz)-sv;
-
-                    if(v0 * vy <= 0 && v0 != vy)
-                        pnts.addPoint(x,y+(vs*v0)/(v0-vy),z);
-
-
-                    int vz = (int)grid.getAttribute(ix,iy,iz+1)-sv;
-
-                    if(v0 * vz <= 0 && v0 != vz )
-                        pnts.addPoint(x, y, z +(vs*v0)/(v0-vz));                    
-
+                    if(ix < nx1){
+                        int vx = (int)grid.getAttribute(ix+1,iy,iz)-sv;                        
+                        if(v0 * vx <= 0 && v0 != vx)
+                            pnts.addPoint(x+(vs*v0)/(v0-vx), y, z);
+                    }
+                    if(iy < ny1){
+                        int vy = (int)grid.getAttribute(ix,iy+1,iz)-sv;
+                        if(v0 * vy <= 0 && v0 != vy)
+                            pnts.addPoint(x,y+(vs*v0)/(v0-vy),z);
+                    }
+                    if(nz < nz1){
+                        int vz = (int)grid.getAttribute(ix,iy,iz+1)-sv;                        
+                        if(v0 * vz <= 0 && v0 != vz )
+                            pnts.addPoint(x, y, z +(vs*v0)/(v0-vz));                    
+                    }
                 }
             }
 
@@ -363,14 +362,14 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
         int sv = m_surfaceValue;
         long distOut = m_defaultOutValue;
         long distIn = m_defaultInValue;
-
+        
         for(int iy = ymin; iy < ymax; iy++){
 
             double y = m_ymin + iy*vs;
-            for(int ix = 0; ix < nx1; ix++){
+            for(int ix = 0; ix < nx; ix++){
 
                 double x = m_xmin + ix*vs;
-                for(int iz = 0; iz < nz1; iz++){                   
+                for(int iz = 0; iz < nz; iz++){                   
 
                     double z = m_zmin + iz*vs;                    
 
@@ -378,19 +377,21 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
 
                     if(v0 >= 0) distanceGrid.setAttribute(ix,iy,iz,distIn);
                     else        distanceGrid.setAttribute(ix,iy,iz,distOut);
-
-                    int vx = (int)grid.getAttribute(ix+1,iy,iz)-sv;
-                    if(v0 * vx <= 0 && v0 != vx)
-                        pnts.addPoint(x+(vs*v0)/(v0-vx), y, z);
-
-                    int vy = (int)grid.getAttribute(ix,iy+1,iz)-sv;
-                    if(v0 * vy <= 0 && v0 != vy)
-                        pnts.addPoint(x,y+(vs*v0)/(v0-vy),z);
-
-                    int vz = (int)grid.getAttribute(ix,iy,iz+1)-sv;
-                    if(v0 * vz <= 0 && v0 != vz )
-                        pnts.addPoint(x, y, z +(vs*v0)/(v0-vz));                    
-
+                    if(ix < nx1){
+                        int vx = (int)grid.getAttribute(ix+1,iy,iz)-sv;
+                        if(v0 * vx <= 0 && v0 != vx)
+                            pnts.addPoint(x+(vs*v0)/(v0-vx), y, z);
+                    }
+                    if(iy < ny1){
+                        int vy = (int)grid.getAttribute(ix,iy+1,iz)-sv;
+                        if(v0 * vy <= 0 && v0 != vy)
+                            pnts.addPoint(x,y+(vs*v0)/(v0-vy),z);
+                    }
+                    if(iz < nz1){
+                        int vz = (int)grid.getAttribute(ix,iy,iz+1)-sv;
+                        if(v0 * vz <= 0 && v0 != vz )
+                            pnts.addPoint(x, y, z +(vs*v0)/(v0-vz));                    
+                    }
                 }
             }
 
@@ -431,7 +432,7 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
     }
 
     /**
-       handles slices for processing 
+       handles slices for MT processing 
      */
     static class SliceManager {
 
@@ -458,7 +459,7 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
 
         synchronized Slice getNextSlice(){
 
-            if(nextSliceIndex < scount-1){
+            if(nextSliceIndex < scount){
                 return slices[nextSliceIndex++];
             } else {
                 return null;

@@ -39,18 +39,15 @@ import static abfab3d.util.Units.MM;
  * @author Alan Hudson
  */
 public class DilationDistance implements Operation, AttributeOperation {
-    private static final boolean DEBUG = false;
-    public static final int
-            DISTANCE_TRANSFORM_EXACT = 0,
-            DISTANCE_TRANSFORM_MULTI_STEP = 1,
-            DISTANCE_TRANSFORM_FAST_MARCHING = 2,
-            DISTANCE_TRANSFORM_LAYERED = 3;
+    private static final boolean DEBUG = true;
 
     /** The dilation distance in meters */
     private double distance;
     private int subvoxelResolution;
     private int threadCount = 1;
-    int m_distanceTransformAlgorithm = DISTANCE_TRANSFORM_LAYERED;
+
+    int m_distanceTransformAlgorithm = 0;
+
     // template to be used for distance grid creation
     protected AttributeGrid m_distanceGridTemplate;
 
@@ -94,21 +91,20 @@ public class DilationDistance implements Operation, AttributeOperation {
         // Calculate DistanceTransform
 
         long t0 = time();
-
-        double maxInDistance = dest.getVoxelSize();
-        double maxOutDistance = distance + dest.getVoxelSize();
-
-        printf("Dilation Distance  in: %5.2f mm  out: %5.2f mm\n",maxInDistance / MM, maxOutDistance / MM);
+        double vs = dest.getVoxelSize();
+        double maxInDistance = vs;
+        double maxOutDistance = distance + vs;
+        if(DEBUG) printf("Dilation Distance  in: %5.2f voxels  out: %5.2f voxels\n",maxInDistance / vs, maxOutDistance / vs);
         DistanceTransformLayered dt = new DistanceTransformLayered(subvoxelResolution, maxInDistance, maxOutDistance);
         dt.setDistanceGridTemplate(m_distanceGridTemplate);
         dt.setThreadCount(threadCount);
-        AttributeGrid dg = dt.execute(dest);
-        printf("Dilation Distance done: %d ms  threads: %d\n", time() - t0,threadCount);
+        AttributeGrid distanceGrid = dt.execute(dest);
+        if(DEBUG)printf("Dilation Distance done: %d ms  threads: %d\n", time() - t0,threadCount);
 
         double[] bounds = new double[6];
         dest.getGridBounds(bounds);
 
-        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance * 2, distance,dg,-maxInDistance,maxOutDistance, subvoxelResolution);
+        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance * 2, distance,distanceGrid,-maxInDistance,maxOutDistance, subvoxelResolution);
 
         //AttributeGrid new_dest = (AttributeGrid) dest.createEmpty(dest.getWidth(), dest.getHeight(), dest.getDepth(), dest.getVoxelSize(), dest.getSliceHeight());
         //new_dest.setGridBounds(bounds);
