@@ -79,7 +79,10 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     
     double m_firstLayerThickness = 2.45;// 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
     double m_nextLayerThickness = 2.45; 
-//
+
+    // this can work with 3D and 2D grids
+    int m_gridDimension = 3;
+
     int m_sliceHeight = 0; // to be initialized 
 
     InsideTester m_insideTester;
@@ -143,6 +146,13 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         m_processingDirection = value;
     }
 
+    /**
+       @param dimension 2 or 3 for 2D or 3D grid 
+     */
+    public void setGridDimension(int dimension){
+        m_gridDimension = dimension;
+    }
+
     public void setNextLayerThickness(double value){
         m_nextLayerThickness = value;
     }
@@ -192,7 +202,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         double vs = (m_bounds[1] - m_bounds[0])/m_nx;
         m_voxelSize = vs;
 
-        // scale is isotropic 
+        // scale is uniform
         m_gs = 1/vs;
 
         m_gtx = -m_bounds[0]/vs - 0.5; // half voxel shift 
@@ -231,13 +241,13 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     }
 
     /**
-       calculate distacnes using exact algorithm 
+       calculate distances using exact algorithm 
      */
     void makeDistanceExact(){
 
         if(DEBUG)printf("makeDistanceExact()\n");
         double maxDistVoxels = max(m_maxOutDistance, m_maxInDistance)/m_voxelSize;
-        int neig[] = Neighborhood.makeBall((int)Math.ceil(maxDistVoxels)+2);
+        int neig[] = getNeighborhood(Math.ceil(maxDistVoxels)+2);
         if(DEBUG)printf("neighbors count: %d\n",neig.length/3);
         int count = m_points.size();
         Point3d pnt = new Point3d();
@@ -285,6 +295,17 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         }
     }
 
+    int[] getNeighborhood(double radius) {
+
+        switch(m_gridDimension){
+        default: 
+        case 3: 
+            return Neighborhood.makeBall(radius);
+        case 2: 
+            return Neighborhood.makeDisk(radius);
+        }
+    }
+
     /**
        build distance using layred algorithm 
        
@@ -298,9 +319,6 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         // closestPoints grid keeps has index of the the closest point from the PointSet to the given voxel 
         //
         VectorIndexer closestPoints = m_vectorIndexerTemplate.createEmpty(m_nx, m_ny, m_nz);
-        //fillGrid(closestPoints, -1);
-        //GridBit freshLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
-        //GridBit nextLayer = new GridBitIntervals(m_nx, m_ny, m_nz);
         GridBit freshLayer = new GridMask(m_nx, m_ny, m_nz);
         GridBit nextLayer = new GridMask(m_nx, m_ny, m_nz);
         
@@ -309,8 +327,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         if(DEBUG)printf("firstLayerThickness: %4.2f nextLayerThickness: %4.2f\n", firstLayerThickness, nextLayerThickness);
 
 
-        int firstNeig[] = Neighborhood.makeBall(firstLayerThickness);
-        int nextNeig[] = Neighborhood.makeBall(nextLayerThickness);
+        int firstNeig[] = getNeighborhood(firstLayerThickness); 
+        int nextNeig[] = getNeighborhood(nextLayerThickness);
 
 
         if(DEBUG) printf("first neig count: %d\n", firstNeig.length/3);
@@ -581,7 +599,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
         // for each point old layer build ball neighborhood 
         // and update distances in grid point 
-        // distance in each point s calculated to the closest boundary point stored in closestPoints
+        // distance in each point is calculated to the closest boundary point stored in closestPoints
         //
         //if(z == m_nz/2)printf("%2d %2d %2d: %2d\n", ix,iy,iz, dist);
         for(int y = ymin; y < ymax; y++){
@@ -693,9 +711,9 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         int maxInDistSubvoxels = m_maxInDistSubvoxels;
         int maxOutDistSubvoxels = m_maxOutDistSubvoxels;
 
-        // for each point old layer build ball neighborhood 
+        // for each point in old layer build ball neighborhood 
         // and update distances in grid point 
-        // distance in each point s calculated to the closest boundary point stored in closestPoints
+        // distance in each point is calculated to the closest boundary point stored in closestPoints
         //
         for(int y = 0; y < m_ny; y++){
             for(int x = 0; x < m_nx; x++){
@@ -830,20 +848,6 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 printf("\n");
             }
             printf("----------\n");        
-        }
-    }
-
-    static void fillGrid(AttributeGrid grid, int value){
-        int 
-            nx = grid.getWidth(), 
-            ny = grid.getHeight(),
-            nz = grid.getDepth();        
-        for(int y = 0; y < ny; y++){
-            for(int x = 0; x < nx; x++){
-                for(int z = 0; z < nz; z++){
-                    grid.setAttribute(x,y,z,value);
-                }
-            }
         }
     }
 

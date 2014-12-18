@@ -11,8 +11,8 @@ import static abfab3d.util.Output.printf;
  * Creates a density grid from a distance grid.  The density grid is useful for further boolean operations.
  * The density grid will be filled in from the inDistanceLevel to the outDistanceLevel.
  *  The values of inDistanceLevel and outDistanceLevel are signed: 
- *      inside of original shape - negative 
- *      outside of original shape - positive 
+ *      inside of the original shape - negative 
+ *      outside of the original shape - positive 
  *  
  *
  *  @author Alan Hudson
@@ -44,12 +44,12 @@ public class DensityGridExtractor implements AttributeOperation {
      
     /**
        the extractor 
-       inDistance - value for internal surface
-       outDistace - value for external surface 
-       distanceGrid - input distance grid to be used for density extraction 
-       maxInDistanceValue - maximal interior distance actually stored in the distance grid
-       maxOutDistanceValue - maximal exterior distance stored in the distance grid
-                       these params are used only to make correct threshold. 
+       @param inDistance - signed distance value for internal surface
+       @param outDistace - signed distance value for external surface 
+       @param distanceGrid - input distance grid to be used for density extraction 
+       @param maxInDistanceValue - maximal interior distance actually stored in the distance grid
+       @param maxOutDistanceValue - maximal exterior distance actually stored in the distance grid
+                       the maxInDistanceValue and maxOutDistanceValue are used only to make correct threshold. 
        if inDistanceVal < maxInDistanceValue the object will have no internal surface
        if outDistanceVal > maxOutDistanceValue the density grid will have no exterior surfaces
        
@@ -82,10 +82,10 @@ public class DensityGridExtractor implements AttributeOperation {
 
         // 5 intervals for distance values
         // -INF,  inDistanceMinus, inDistancePlus, outDistanceMinus, outDistancePlus, +INF
-        int inDistanceMinus = (int) (inDistanceValue * subvoxelResolution / vs - subvoxelResolution / 2);
-        int inDistancePlus = (int) (inDistanceValue * subvoxelResolution / vs + subvoxelResolution / 2);
-        int outDistanceMinus = (int) (outDistanceValue * subvoxelResolution / vs - subvoxelResolution / 2);
-        int outDistancePlus = (int) (outDistanceValue * subvoxelResolution / vs + subvoxelResolution / 2);
+        int inDistanceMinus = (int) ((inDistanceValue/vs - 0.5)* subvoxelResolution);
+        int inDistancePlus = (int) ((inDistanceValue/vs + 0.5)* subvoxelResolution);
+        int outDistanceMinus = (int) ((outDistanceValue/vs - 0.5)* subvoxelResolution);
+        int outDistancePlus = (int) ((outDistanceValue/vs + 0.5)* subvoxelResolution);
         if(inDistanceValue < maxInDistanceValue) {
             // no interior shell will be generated 
             inDistanceMinus = inDistancePlus = DEFAULT_IN_VALUE;
@@ -94,6 +94,9 @@ public class DensityGridExtractor implements AttributeOperation {
             // no exterior shell will be generated 
             outDistanceMinus = outDistancePlus = DEFAULT_OUT_VALUE;
         }
+        //
+        //TODO make it MT 
+        //
         for(int y=0; y < ny; y++) {
             for(int x=0; x < nx; x++) {
                 for(int z=0; z < nz; z++) {
@@ -106,7 +109,7 @@ public class DensityGridExtractor implements AttributeOperation {
                     } else if (att >= inDistanceMinus && att < inDistancePlus) {
                         dest_att = (short) (att - inDistanceMinus);
                         dest.setAttribute(x,y,z,dest_att);
-                    } else if (att >= inDistancePlus && att < outDistanceMinus || att == -Short.MAX_VALUE) {
+                    } else if (att >= inDistancePlus && att < outDistanceMinus || att == DEFAULT_IN_VALUE) {
                         dest_att = (short) subvoxelResolution;
                         dest.setAttribute(x,y,z,dest_att);
                     } else if (att >= outDistanceMinus && att <= outDistancePlus) {

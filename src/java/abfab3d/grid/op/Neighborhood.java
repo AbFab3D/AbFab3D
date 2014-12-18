@@ -58,6 +58,7 @@ public class Neighborhood {
         return neig;
     }
 
+
     /*
       these are first few ball neighborhood 
        pnt     radius  cnt diff                 
@@ -79,5 +80,43 @@ public class Neighborhood {
        0 0 4 :  4.00  257  6
 
     */
+
+
+    /**
+       creates 2D disk with z coordinate is 0 
+     */
+    public static int[] makeDisk(double radius){
+
+        double EPS = 1.e-10;
+        
+        double radius2 = (radius*radius+EPS); // compare against radius squared
+        int iradius = (int)(radius+1);
+
+        // calculate size needed 
+        int count = 0;
+        for(int y = -iradius; y <= iradius; y++){
+            for(int x = -iradius; x <= iradius; x++){
+                double d2 = x*x + y*y;
+                if(d2 <= radius2)
+                    count += 3;            
+            }
+        }
+        int neig[] = new int[count];
+
+        // store data in array
+        count = 0;
+        for(int y = -iradius; y <= iradius; y++){
+            for(int x = -iradius; x <= iradius; x++){
+                double d2 = x*x + y*y;
+                if(d2 <= radius2){
+                    neig[count] = -x;
+                    neig[count+1] = -y;
+                    neig[count+2] = 0; // z - coordinate is 0
+                    count += 3;                
+                }
+            }
+        }
+        return neig;
+    }
 
 }

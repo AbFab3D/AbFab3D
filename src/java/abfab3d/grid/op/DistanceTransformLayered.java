@@ -82,6 +82,7 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
 
     int nx, ny, nz;
     int m_surfaceValue;
+    // center of corner voxel (0,0,0)
     double m_xmin, m_ymin, m_zmin;
     double m_voxelSize;
     // number of threads to use in MT processing 
@@ -143,6 +144,7 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
         double bounds[] = new double[6];
         grid.getGridBounds(bounds);
         m_voxelSize = vs;
+        // center of corner voxel 
         m_xmin = bounds[0] + vs/2;
         m_ymin = bounds[2] + vs/2;
         m_zmin = bounds[4] + vs/2;
@@ -202,7 +204,7 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
 
      */
     /*
-      // not used. DistanceGrid is initialized in getSurfacePoint
+      // not used. DistanceGrid is initialized in getSurfacePoints
     void initDistances(AttributeGrid grid, AttributeGrid distanceGrid){
 
         long distOut = m_defaultOutValue;

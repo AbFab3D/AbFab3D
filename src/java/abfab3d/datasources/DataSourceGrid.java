@@ -248,8 +248,8 @@ public class DataSourceGrid extends TransformableDataSource {
             default:
                 return 1;
             }             
-        default:
-            return m_grid.getAttribute(x, y, z);
+        default:            
+            return (long) (short)m_grid.getAttribute(x, y, z);
         }        
     }
     

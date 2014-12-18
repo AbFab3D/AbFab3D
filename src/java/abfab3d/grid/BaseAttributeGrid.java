@@ -466,5 +466,92 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
         return m_attributeDesc; 
     }
 
+
+    /**
+       deprecated method 
+     */
+    public void setState(double x, double y, double z, byte state) {
+        setState((int)((x-xorig) / pixelSize), 
+                 (int)((y-yorig) / sheight),
+                 (int)((z-zorig) / pixelSize),
+                 state);
+    }
+    
+    /**
+       deprecated method 
+     */
+    public void setData(double x, double y, double z, byte state, long attribute) {
+        setData((int)((x-xorig) / pixelSize), 
+                (int)((y-yorig) / sheight),
+                (int)((z-zorig) / pixelSize),
+                state,
+                attribute);
+        
+    }
+
+    /**
+       deprecated method 
+     */
+    public long getAttribute(double x, double y, double z) {
+        return getAttribute((int)((x-xorig) / pixelSize), 
+                            (int)((y-yorig) / sheight),
+                            (int)((z-zorig) / pixelSize)); 
+
+    }
+
+    /**
+       deprecated method 
+     */
+    public byte getState(double x, double y, double z) {
+        return getState((int)((x-xorig) / pixelSize), 
+                        (int)((y-yorig) / sheight),
+                        (int)((z-zorig) / pixelSize));         
+    }
+
+    /**
+       deprecated method 
+     */
+    public void getData(double x, double y, double z, VoxelData vd) {        
+        getData((int)((x-xorig) / pixelSize), 
+                 (int)((y-yorig) / sheight),
+                 (int)((z-zorig) / pixelSize),
+                 vd);         
+        
+    }
+    /**
+       deprecated method 
+     */
+    public void getData(int x, int y, int z, VoxelData vd) {
+        throw new RuntimeException("not implemented");
+    }
+    /**
+       deprecated method 
+     */
+    public byte getState(int x, int y, int z) {
+        throw new RuntimeException("not implemented");        
+    }
+
+    /**
+       deprecated method 
+     */
+    public void setData(int x, int y, int z, byte state, long material) {
+        throw new RuntimeException("not implemented");        
+    }
+
+    /**
+       deprecated method 
+     */
+    public void setState(int x, int y, int z, byte state) {
+        throw new RuntimeException("not implemented");                
+    }
+
+    /**
+     * deprecated method 
+     *
+     */
+    public VoxelData getVoxelData() {
+        throw new RuntimeException("not implemented");                
+    }
+
 }
 

@@ -755,11 +755,13 @@ public class MathUtil {
     // linear intepolation
     // x < -1 return 1;
     // x >  1 returns 0
-    // smoth cubic polynom between
+    // smooth cubic polynom between 
     public static final double interpolate_cubic(double x){
 
-        return 0.25*x*(x*x - 3.) + 0.5;
-
+        if( x <= -1) return 1;
+        else if( x >= 1)  return 0;
+        else 
+            return 0.25*x*(x*x - 3.) + 0.5;
     }
     
     /**

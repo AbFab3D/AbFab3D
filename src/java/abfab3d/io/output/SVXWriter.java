@@ -94,7 +94,7 @@ public class SVXWriter {
 
                 AttributeChannel channel = attDesc.getChannel(i);
                 String channelPattern = channel.getName() + "/" + "slice%04d.png";
-                sw.writeSlices(grid,zos,channelPattern,0,0,grid.getHeight(), m_orientation, channel.getBitCount(), channel);
+                sw.writeSlices(grid,zos,channelPattern,0,0,getSlicesCount(grid), m_orientation, channel.getBitCount(), channel);
             }
         } catch(IOException ioe) {
 
@@ -106,12 +106,22 @@ public class SVXWriter {
 
     }
 
+    private int getSlicesCount(AttributeGrid grid){
+        switch(m_orientation){
+        default: 
+        case 0: return grid.getWidth();
+        case 1: return grid.getHeight();
+        case 2: return grid.getDepth();
+        }
+    }
+
     private void writeManifest(AttributeGrid grid, OutputStream os) {
 
         int subvoxelBits = 8; // where it should came from? 
 
         AttributeDesc attDesc = grid.getAttributeDesc();        
-
+        if(attDesc == null) 
+            throw new RuntimeException("grid attribute description is null");
         PrintStream ps = new PrintStream(os);
 
         double[] bounds = new double[6];
@@ -127,7 +137,7 @@ public class SVXWriter {
         String indent2 = indent+indent;
 
         printf(ps, indent+"<channels>\n");
-
+        
         for(int i = 0; i < attDesc.size(); i++){
 
             AttributeChannel channel = attDesc.getChannel(i);
