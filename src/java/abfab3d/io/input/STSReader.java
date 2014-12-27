@@ -226,7 +226,7 @@ public class STSReader {
             val = model.getAttribute(field);
             String units = val;
 
-            if (units != null) {
+            if (units != null && units.length() != 0) {
                 mf.setUnits(Double.parseDouble(units));
             }
 

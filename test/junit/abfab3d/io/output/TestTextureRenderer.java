@@ -131,7 +131,7 @@ public class TestTextureRenderer extends TestCase {
         return new TestSuite(TestTextureRenderer.class);
     }
 
-    public void testDumb(){
+    public void testNothing(){
         //this test here is to make Test happy. 
     }
 
@@ -247,7 +247,7 @@ public class TestTextureRenderer extends TestCase {
         
     }
 
-    static void testExtendedTriangle(){
+    public void testExtendedTriangle(){
         
         double tri[][] = new double[][]{{0,0},{10,0},{0,10}};
         double etri[][] = new double[3][2];
@@ -259,7 +259,7 @@ public class TestTextureRenderer extends TestCase {
         printf(" tri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",tri[0][0],tri[0][1], tri[1][0],tri[1][1], tri[2][0],tri[2][1]);
         printf("etri: [(%7.4f,%7.4f) (%7.4f,%7.4f) (%7.4f,%7.4f)\n",etri[0][0],etri[0][1], etri[1][0],etri[1][1], etri[2][0],etri[2][1]);
         
-        assertTrue(fmt("bad extended triangle vertex: (%10.8f, %10.8f)", etri[0][0],etri[0][1]), Math.abs(etri[0][0]+1.) < 0);        
+        assertTrue(fmt("bad extended triangle vertex: (%10.8f, %10.8f)", etri[0][0],etri[0][1]), Math.abs(etri[0][0]+1.) < 1.e-10);        
 
     }
 

@@ -118,7 +118,7 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
         if(DEBUG_SLICES){
             String dirs[] = new String[]{dir_orig, dir_ex, dir_mt, dir_st, dir_diff};
             for(int i = 0; i < dirs.length; i++)
-                    new File(dirs[i]).mkdirs();
+                new File(dirs[i]).mkdirs();
         }
 
         int nx = 50;

@@ -15,6 +15,7 @@ package abfab3d.io.output;
 // External Imports
 
 
+import java.io.File;
 import javax.vecmath.Vector3d;
 
 
@@ -101,7 +102,7 @@ public class TestMeshMaker extends TestCase {
         
         printf("makeColorSphere()\n");    
 
-        double vs = 0.1*MM;
+        double vs = 0.4*MM;
         double margin = vs;
         int subvoxelResolution = 255;
         int threadCount = 4;
@@ -163,6 +164,9 @@ public class TestMeshMaker extends TestCase {
         meshmaker.setDensityMaker(dm1);
 
         meshmaker.setDensityMaker(new ChannelDensityMaker(0));
+
+        new File("/tmp/multimat/").mkdirs();
+
         STLWriter stl = new STLWriter("/tmp/multimat/colorSphere_0.stl");
         meshmaker.makeMesh(grid, stl);
         stl.close();
@@ -179,7 +183,8 @@ public class TestMeshMaker extends TestCase {
 
     public void testMeshOutput() throws Exception {
 
-        double vs = 0.1*MM;
+        printf("testMeshOutput()\n");    
+        double vs = 0.4*MM;
         double margin = vs;
         int subvoxelResolution = 255;
         int threadCount = 4;
@@ -232,6 +237,7 @@ public class TestMeshMaker extends TestCase {
         printf("gm.makeGrid() done in %d ms\n", (time() - t0));
 
         MultiMaterialModelWriter writer = new MultiMaterialModelWriter();
+        new File("/tmp/").mkdirs();
         FileOutputStream fos = new FileOutputStream("/tmp/foo.sts");
         //ByteArrayOutputStream baos = new ByteArrayOutputStream();
         BufferedOutputStream bos = new BufferedOutputStream(fos);
@@ -248,7 +254,8 @@ public class TestMeshMaker extends TestCase {
 
     public void testSTSOutput() throws Exception {
 
-        double vs = 0.1*MM;
+        printf("testSTSOutput()\n");    
+        double vs = 0.4*MM;
         double margin = vs;
         int subvoxelResolution = 255;
         int threadCount = 8;
@@ -300,6 +307,7 @@ public class TestMeshMaker extends TestCase {
         MaterialMaker[] makers = new MaterialMaker[]{new MaterialMaker(new ChannelDensityMaker(0), MaterialURN.SHAPEWAYS_STRONG_AND_FLEXIBLE_PLASTIC),
                 new MaterialMaker(new ChannelDensityMaker(1),MaterialURN.SHAPEWAYS_SILVER)};
 
+        new File("/tmp/sts/").mkdirs();
         STSWriter writer = new STSWriter();
         writer.write(grid,makers,new String[] {FinishURN.SHAPEWAYS_POLISHED_HAND},"/tmp/sts/foo2.sts");
     }

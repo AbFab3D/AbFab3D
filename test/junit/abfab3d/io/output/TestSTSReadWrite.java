@@ -78,7 +78,7 @@ public class TestSTSReadWrite extends TestCase {
 
         STSWriter writer = new STSWriter();
 
-        new File("/tmp/sts/foo2.sts").mkdirs();
+        new File("/tmp/sts").mkdirs();
         // TODO: change this to in memory to avoid filesystem issues
         writer.write(grid,makers,new String[] {FinishURN.SHAPEWAYS_POLISHED_HAND},"/tmp/sts/foo2.sts");
     }
