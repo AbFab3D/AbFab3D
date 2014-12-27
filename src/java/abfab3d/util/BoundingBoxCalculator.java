@@ -18,7 +18,7 @@ import static abfab3d.util.Output.printf;
 
 
 /**
- * Counts triangles via TriangleCollector interface
+ * Counts bounding box of a set of triangles via TriangleCollector interface
  *
  * @author Vladimir Bulatov
  */

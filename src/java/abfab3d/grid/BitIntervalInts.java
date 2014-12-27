@@ -42,9 +42,6 @@ public class BitIntervalInts implements RowOfInt, Serializable {
         
         m_curcount = 0;
         m_intervals = new int[2];
-        //m_intervals = new int[]{7, 10, 11,12, 17,21, 22, 23, 25, 30};m_curcount = m_intervals.length;
-        //m_intervals = new int[]{1,2,3,38};m_curcount = m_intervals.length;
-        //m_intervals = new int[]{-1,39};m_curcount = m_intervals.length;
         
     }
 

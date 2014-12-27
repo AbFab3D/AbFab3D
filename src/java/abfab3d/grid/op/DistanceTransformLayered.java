@@ -67,8 +67,8 @@ import static java.lang.Math.round;
  */
 public class DistanceTransformLayered extends DistanceTransform implements Operation, AttributeOperation {
 
-    public static boolean DEBUG = false;
-    public static boolean DEBUG_TIMING = false;
+    public static boolean DEBUG = true;
+    public static boolean DEBUG_TIMING = true;
     static int debugCount = 100;
 
     static final int AXIS_X = 0, AXIS_Y = 1, AXIS_Z = 2; // direction  of surface offset from the interior surface point 
@@ -242,57 +242,10 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
      */
     PointSet getSurfacePointsST(AttributeGrid grid, AttributeGrid distanceGrid){
         
-        PointSet pnts = new PointSetArray((nx*ny + ny*nz + nz*nx)*2);
-        long distOut = m_defaultOutValue;
-        long distIn = m_defaultInValue;
-
-        int
-                nx1 = nx-1,
-                ny1 = ny-1,
-                nz1 = nz-1;
-        double vs = m_voxelSize; 
-        int sv = m_surfaceValue;
         if(DEBUG)printf("getSurfacePointsST()\n");
-        if(DEBUG)printf("  surfaceValue: %d\n",sv);
-
-        for(int iy = 0; iy < ny; iy++){
-
-            double y = m_ymin + iy*vs;
-
-            for(int ix = 0; ix < nx; ix++){
-
-                double x = m_xmin + ix*vs;
-
-                for(int iz = 0; iz < nz; iz++){
-                    
-                    double z = m_zmin + iz*vs;
-                    
-                    int v0 = (int)grid.getAttribute(ix,iy,iz)-sv;
-                    
-                    if(v0 >= 0) distanceGrid.setAttribute(ix,iy,iz,distIn);
-                    else        distanceGrid.setAttribute(ix,iy,iz,distOut);
-                    if(ix < nx1){
-                        int vx = (int)grid.getAttribute(ix+1,iy,iz)-sv;                        
-                        if(v0 * vx <= 0 && v0 != vx)
-                            pnts.addPoint(x+(vs*v0)/(v0-vx), y, z);
-                    }
-                    if(iy < ny1){
-                        int vy = (int)grid.getAttribute(ix,iy+1,iz)-sv;
-                        if(v0 * vy <= 0 && v0 != vy)
-                            pnts.addPoint(x,y+(vs*v0)/(v0-vy),z);
-                    }
-                    if(nz < nz1){
-                        int vz = (int)grid.getAttribute(ix,iy,iz+1)-sv;                        
-                        if(v0 * vz <= 0 && v0 != vz )
-                            pnts.addPoint(x, y, z +(vs*v0)/(v0-vz));                    
-                    }
-                }
-            }
-
-            if (Thread.currentThread().isInterrupted()) {
-                throw new ExecutionStoppedException();
-            }
-        }
+        PointSet pnts = new PointSetArray((nx*ny + ny*nz + nz*nx)*2);
+        // process the whole grid as single slice
+        getSurfacePointsSlice(grid, distanceGrid, 0, ny,  pnts);
         if(DEBUG)printf("surface point count: %d\n",pnts.size());
         return pnts;
     }

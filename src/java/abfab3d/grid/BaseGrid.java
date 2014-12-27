@@ -117,6 +117,30 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     /**
+     * Constructor.
+     *
+     * @param bounds the bounds of the grid
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public BaseGrid(Bounds bounds, double pixel, double sheight) {
+        
+        width = bounds.getWidth(pixel);
+        height = bounds.getHeight(sheight);
+        depth = bounds.getDepth(pixel);
+        this.pixelSize = pixel;
+        this.hpixelSize = pixelSize / 2.0;
+        this.sheight = sheight;
+        this.hsheight = sheight / 2.0;
+
+        sliceSize = width * depth;
+
+        if (STATS) {
+            System.out.println("WARNING:  BaseGrid started in STATS mode");
+        }
+    }
+
+    /**
      * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
      *
      * @return The voxel data
@@ -514,6 +538,24 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         srcGrid.getGridBounds(bounds);
         destGrid.setGridBounds(bounds);
 
+    }
+    
+    /**
+       copy grid bounds from srcGrid to destGrid
+     */
+    public void copyBounds(Grid srcGrid){
+
+        double bounds[] = new double[6];
+        srcGrid.getGridBounds(bounds);
+        this.setGridBounds(bounds);
+
+    }
+    
+    /**
+       round double to the closest integer
+     */
+    public static int roundSize(double s){
+        return (int)(s+0.5);
     }
 
 

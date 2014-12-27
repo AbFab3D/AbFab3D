@@ -133,7 +133,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     /**
        if this flag is ON the distance grid will initialized with default values inside and outside
        if this flag is OFF the calculation assumes, that the grid is correctly initialized 
-       this can be used to add additional points to the existing caoculated grid 
+       this can be used to add additional points to the existing pre-calculated grid 
      */
     public void setInitializeGrid(boolean value){
         m_initializeGrid = value;

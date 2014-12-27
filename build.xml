@@ -89,6 +89,9 @@
         <compilejava package="abfab3d/util"
             jars="xj3d-core_2.0.0.jar vecmath.jar xj3d.cadfilter_2.0.0.jar j3d-org-all_2.0.0.jar"
         />
+        <compilejava package="abfab3d/geomutil"
+            jars=""
+        />  
         <compilejava package="abfab3d/transforms"
             jars="jafama.jar vecmath.jar"
         />  
@@ -260,6 +263,7 @@
                 abfab3d/io/output/*
                 abfab3d/path/*
                 abfab3d/util/*
+                abfab3d/geomutil/*
                 "
         />
         <createjar name="abfab3d_upload" 
@@ -272,6 +276,7 @@
                 abfab3d/io/shapeways/*
                 abfab3d/transform/*
                 abfab3d/util/*
+                abfab3d/geomutil/*
                 "
         />
         <createjar name="abfab3d_creator" 
@@ -280,6 +285,7 @@
             includes="abfab3d/creator/*
                 abfab3d/creator/ui/*
                 abfab3d/creator/util/*
+                abfab3d/creator/geomutil/*
                 abfab3d/creator/shapeways/*
                 "
         />
@@ -289,6 +295,7 @@
             includes="abfab3d/creator/*
                 abfab3d/creator/ui/*
                 abfab3d/creator/util/*
+                abfab3d/creator/geomutil/*
                 abfab3d/creator/shapeways/*
                 "
             excludes="abfab3d/creator/shapeways/HostedKernel.class"
@@ -580,6 +587,7 @@
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/io/input" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transform" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/util" jars="**/*.jar" />
+     <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geomutil" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/geom" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/datasources" jars="**/*.jar" />
      <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="abfab3d/transforms" jars="**/*.jar" />

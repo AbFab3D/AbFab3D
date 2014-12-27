@@ -43,35 +43,13 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
     /**
      * Constructor.
      *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
+     * @param bounds The grid bounds in world coords
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public ArrayAttributeGridShort(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-             (int) (Math.ceil(h / sheight)) + 1,
-             (int) (Math.ceil(d / pixel)) + 1,
-             pixel,
-             sheight, null);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public ArrayAttributeGridShort(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
-                pixel,
-                sheight, ioFunc);
+    public ArrayAttributeGridShort(Bounds bounds, double pixel, double sheight) {
+        super(bounds, pixel,sheight);
+        allocateData();        
     }
 
     /**
@@ -85,11 +63,15 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
      */
     public ArrayAttributeGridShort(int w, int h, int d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
         super(w,h,d,pixel,sheight,ioFunc);
+        allocateData();
+    }
+
+    protected void allocateData(){
 
         long dataLength = (long)height * width * depth;
 
         if(dataLength >= Integer.MAX_VALUE){
-            throw new IllegalArgumentException("Size exceeds integer, use ArrayGridShortLongIndex.  w: " + w + " h: " + h + " d: " + d);
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayGridShortLongIndex.  w: " + width + " h: " + height + " d: " + depth);
         }
 
         data = new short[height * width * depth];

@@ -32,67 +32,62 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     private static final boolean STATS = false;
     public static final int ORIENTATION_X=0, ORIENTATION_Y=1, ORIENTATION_Z = 2; // orientation of intervals
 
-    protected int m_orientation;
+    protected int m_orientation = ORIENTATION_Z;
     protected int m_nx, m_ny, m_nz;
     protected RowOfInt m_data[];
 
+    /**
+       contructor to make this class subclassable with without penalty of allocating bunch of memory here 
+    */
     public GridBitIntervals(){
         super(1, 1, 1,  1., 1., null);
-        // this is to make subclass GridBitIntervalsBlocks
-        // it is apparently very bad
     }
-
+    
     /**
        create grid of given orientation
      */
     public GridBitIntervals(GridBitIntervals grid){
 
-        this(grid.m_nx,grid.m_ny,grid.m_nz,grid.m_orientation, grid.pixelSize, grid.sheight, null);
+        this(grid.m_nx,grid.m_ny,grid.m_nz,grid.m_orientation, grid.pixelSize, grid.sheight);//, null);
         for(int i = 0; i < m_data.length; i++){
             RowOfInt dataItem = grid.m_data[i];
             if(dataItem != null)
                 m_data[i] = (RowOfInt)dataItem.clone();
         }
     }
-
+    
     public GridBitIntervals(int nx, int ny, int nz, double pixelSize, double sliceHeight ){
-        this(nx, ny, nz, ORIENTATION_Z, pixelSize, sliceHeight,null);
-    }
-    public GridBitIntervals(int nx, int ny, int nz, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc){
-        this(nx, ny, nz, ORIENTATION_Z, pixelSize, sliceHeight,ioFunc);
+        this(nx, ny, nz, ORIENTATION_Z, pixelSize, sliceHeight);
     }
 
     public GridBitIntervals(int nx, int ny, int nz, int orientation ){
-        this(nx, ny, nz, orientation, 1., 1.,null);
+        this(nx, ny, nz, orientation, 1., 1.);
     }
-
-    public GridBitIntervals(int nx, int ny, int nz, int orientation,double pixelSize, double sliceHeight ){
-        this(nx, ny, nz, orientation, pixelSize, sliceHeight,null);
-    }
-
+        
     public GridBitIntervals(int nx, int ny, int nz){
-        this(nx, ny, nz, ORIENTATION_Z, 1., 1.,null);
+        this(nx, ny, nz, ORIENTATION_Z, 1., 1.);
+    }
+    
+    public GridBitIntervals(int nx, int ny, int nz, int orientation, double pixelSize, double sliceHeight) { 
+
+        super(nx, ny, nz,  pixelSize,sliceHeight,null);
+        allocateData();
+
     }
 
-    //
-    // these constructors should not be used VB. They create a mess with conversions to int 
-    //public GridBitIntervals(double width, double height, double depth, int orientation, double pixelSize, double sliceHeight){
-    //    this((int) (width/pixelSize) + 1, (int) (height / sliceHeight) + 1, (int) (depth / pixelSize) + 1, orientation, pixelSize, sliceHeight, null);
-    //}
+    public GridBitIntervals(Bounds bounds, double pixelSize, double sliceHeight) { 
 
-    //public GridBitIntervals(double width, double height, double depth, int orientation, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc){
-    //    this((int) (width/pixelSize) + 1, (int) (height / sliceHeight) + 1, (int) (depth / pixelSize) + 1, orientation, pixelSize, sliceHeight, ioFunc);
-    //}
+        super(bounds,  pixelSize,sliceHeight);
 
-    public GridBitIntervals(int nx, int ny, int nz, int orientation, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc){
+        allocateData();
 
-        super(nx, ny, nz,  pixelSize, sliceHeight,ioFunc);
+    }
+    
+    protected void allocateData(){
 
-        m_nx = nx;
-        m_ny = ny;
-        m_nz = nz;
-
-        m_orientation = orientation;
+        m_nx = width;
+        m_ny = height;
+        m_nz = depth;
 
         switch(m_orientation){
         default:
@@ -245,7 +240,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     protected RowOfInt newInterval(){
 
         return new BitIntervals();
-        //return new BitIntervalInts();
+
     }
 
 
@@ -261,7 +256,6 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     /**
        implementation of interface Grid
      */
-
     public void getData(double x, double y, double z, VoxelData data){
         int iy = (int) ((y-yorig) / sheight);
         int ix = (int) ((x-xorig) / pixelSize);
@@ -624,7 +618,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight){
 
-        return new GridBitIntervals(w, h, d, m_orientation, pixel, sheight, ioFunc);
+        return new GridBitIntervals(w, h, d, m_orientation, pixel,sheight);
 
     }
 

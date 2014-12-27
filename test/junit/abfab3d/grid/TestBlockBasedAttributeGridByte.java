@@ -241,7 +241,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new BlockBasedAttributeGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new BlockBasedAttributeGridByte(0.15, 0.12, 0.20, 0.05, 0.02);
         grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte)2);
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.05));
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
@@ -327,7 +327,7 @@ public class TestBlockBasedAttributeGridByte extends BaseTestAttributeGrid {
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new BlockBasedAttributeGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new BlockBasedAttributeGridByte(0.15, 0.12, 0.20, 0.05, 0.02);
         grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte)2);
         assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.06, 0.05));
         assertEquals("State should be ", 2, grid.getAttribute(0.0999, 0.06, 0.05));

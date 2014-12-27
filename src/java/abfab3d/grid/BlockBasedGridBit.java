@@ -61,8 +61,7 @@ public class BlockBasedGridBit extends BaseGrid {
      * @param sheight The slice height in meters
      */
     public BlockBasedGridBit(double w, double h, double d, double pixel, double sheight) {
-        this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
-           (int) (d / pixel) + 1, pixel, sheight, DEFAULT_BLOCK_ORDER);
+        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, DEFAULT_BLOCK_ORDER);
     }
 
     /**
@@ -88,8 +87,7 @@ public class BlockBasedGridBit extends BaseGrid {
      * @param sheight The slice height in meters
      */
     public BlockBasedGridBit(double w, double h, double d, double pixel, double sheight, int blockOrder) {
-        this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
-           (int) (d / pixel) + 1, pixel, sheight, blockOrder);
+        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, blockOrder);
     }
 
     /**

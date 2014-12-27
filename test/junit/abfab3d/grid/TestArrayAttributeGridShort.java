@@ -49,12 +49,12 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         grid = new ArrayAttributeGridShort(100, 101, 102, 0.001, 0.001);
         assertEquals("Array size is not 1030200", 1030200, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
-        grid = new ArrayAttributeGridShort(1.0, 1.0, 1.0, 0.2, 0.1);
-        assertEquals("Array size is not 396", 396, grid.getWidth() * grid.getHeight() * grid.getDepth());
+        grid = new ArrayAttributeGridShort(new Bounds(1.0, 1.0, 1.0), 0.2, 0.1);
+        assertEquals("Array size is not 250", 250, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
-        // grid size should be 7x7x12
-        grid = new ArrayAttributeGridShort(1.1, 1.1, 1.1, 0.2, 0.1);
-        assertEquals("Array size is not 588", 588, grid.getWidth() * grid.getHeight() * grid.getDepth());
+        // grid size should be 6x6x11
+        grid = new ArrayAttributeGridShort(new Bounds(1.1, 1.1, 1.1), 0.2, 0.1);
+        assertEquals("Array size is not 396", 396, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
         try {
             // test > int index size
@@ -141,7 +141,7 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
      * Test getData by voxels.
      */
     public void testGetDataByCoord() {
-        AttributeGrid grid = new ArrayAttributeGridShort(1.0, 0.4, 0.5, 0.05, 0.01);
+        AttributeGrid grid = new ArrayAttributeGridShort(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
         getDataByCoord(grid);
     }
 
@@ -149,12 +149,12 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
      * Test getState by world coordinates.
      */
     public void testGetStateByCoord() {
-        AttributeGrid grid = new ArrayAttributeGridShort(1.0, 0.4, 0.5, 0.05, 0.01);
+        AttributeGrid grid = new ArrayAttributeGridShort(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
         getStateByCoord1(grid);
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new ArrayAttributeGridShort(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new ArrayAttributeGridShort(new Bounds(0.15, 0.12, 0.20), 0.05, 0.02);
         getStateByCoord2(grid);
     }
 
@@ -170,13 +170,13 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
      * Test getAttribute by world coordinates.
      */
     public void testGetMaterialByCoord() {
-        AttributeGrid grid = new ArrayAttributeGridShort(1.0, 0.4, 0.5, 0.05, 0.01);
+        AttributeGrid grid = new ArrayAttributeGridShort(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
         getMaterialByCoord1(grid);
 
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new ArrayAttributeGridShort(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new ArrayAttributeGridShort(new Bounds(0.15, 0.12, 0.20), 0.05, 0.02);
         getMaterialByCoord2(grid);
     }
 
@@ -372,7 +372,7 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         double voxelWidth = 0.02;
         double sliceHeight = 0.01;
 
-        AttributeGrid grid = new ArrayAttributeGridShort(xWorldCoord, yWorldCoord, zWorldCoord, voxelWidth, sliceHeight);
+        AttributeGrid grid = new ArrayAttributeGridShort(new Bounds(xWorldCoord, yWorldCoord, zWorldCoord), voxelWidth, sliceHeight);
         getGridCoords(grid);
     }
 
@@ -417,9 +417,9 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         // world coordinates
         double xcoord = 0.12;
         double voxelSize = 0.05;
-        width = (int) Math.ceil(xcoord / voxelSize) + 1;
+        width = BaseGrid.roundSize(xcoord / voxelSize);
 
-        grid = new ArrayAttributeGridShort(xcoord, 0.11, 0.16, voxelSize, 0.02);
+        grid = new ArrayAttributeGridShort(new Bounds(xcoord, 0.11, 0.16), voxelSize, 0.02);
         assertEquals("Width is not " + width, width, grid.getWidth());
     }
 
@@ -436,9 +436,9 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         // world coordinates
         double ycoord = 0.11;
         double sliceHeight = 0.02;
-        height = (int) Math.ceil(ycoord / sliceHeight) + 1;
+        height = BaseGrid.roundSize(ycoord / sliceHeight);
 
-        grid = new ArrayAttributeGridShort(0.12, ycoord, 0.16, 0.05, sliceHeight);
+        grid = new ArrayAttributeGridShort(new Bounds(0.12, ycoord, 0.16), 0.05, sliceHeight);
         assertEquals("Height is not " + height, height, grid.getHeight());
     }
 
@@ -455,9 +455,9 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         // world coordinates
         double zcoord = 0.12;
         double voxelSize = 0.05;
-        depth = (int) Math.ceil(zcoord / voxelSize) + 1;
+        depth = BaseGrid.roundSize(zcoord / voxelSize);
 
-        grid = new ArrayAttributeGridShort(0.12, 0.11, zcoord, voxelSize, 0.02);
+        grid = new ArrayAttributeGridShort(new Bounds(0.12, 0.11, zcoord), voxelSize, 0.02);
         assertEquals("Depth is not " + depth, depth, grid.getDepth());
     }
 
@@ -472,7 +472,7 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         assertEquals("Slice height is not " + sliceHeight, sliceHeight, grid.getSliceHeight());
 
         // world coordinates
-        grid = new ArrayAttributeGridShort(0.12, 0.11, 0.12, 0.05, sliceHeight);
+        grid = new ArrayAttributeGridShort(new Bounds(0.12, 0.11, 0.12), 0.05, sliceHeight);
         assertEquals("Slice height is not" + sliceHeight, sliceHeight, grid.getSliceHeight());
     }
 
@@ -487,7 +487,7 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
 
         // world coordinates
-        grid = new ArrayAttributeGridShort(0.12, 0.11, 0.12, voxelSize, 0.01);
+        grid = new ArrayAttributeGridShort(new Bounds(0.12, 0.11, 0.12), voxelSize, 0.01);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
     }
 
@@ -503,5 +503,3 @@ public class TestArrayAttributeGridShort extends BaseTestAttributeGrid {
         removeMaterialIterator(grid);
     }
 }
-
-

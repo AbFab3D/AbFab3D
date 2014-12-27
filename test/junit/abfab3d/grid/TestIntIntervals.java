@@ -49,12 +49,12 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         grid = new GridIntIntervals(100, 101, 102, 0.001, 0.001);
         assertEquals("Array size is not 1030200", 1030200, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
-        grid = new GridIntIntervals(1.0, 1.0, 1.0, 0.2, 0.1);
-        assertEquals("Array size is not 396", 396, grid.getWidth() * grid.getHeight() * grid.getDepth());
+        grid = new GridIntIntervals(new Bounds(1.0, 1.0, 1.0), 0.2, 0.1);
+        assertEquals("Array size is not 250", 250, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
         // grid size should be 7x7x12
-        grid = new GridIntIntervals(1.1, 1.1, 1.1, 0.2, 0.1);
-        assertEquals("Array size is not 588", 588, grid.getWidth() * grid.getHeight() * grid.getDepth());
+        grid = new GridIntIntervals(new Bounds(1.1, 1.1, 1.1), 0.2, 0.1);
+        assertEquals("Array size is not 6*6*11", 6*6*11, grid.getWidth() * grid.getHeight() * grid.getDepth());
     }
 
     /**
@@ -132,7 +132,7 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
      * Test getData by voxels.
      */
     public void testGetDataByCoord() {
-        AttributeGrid grid = new GridIntIntervals(1.0, 0.4, 0.5, 0.05, 0.01);
+        AttributeGrid grid = new GridIntIntervals(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
         getDataByCoord(grid);
     }
 
@@ -140,12 +140,12 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
      * Test getState by world coordinates.
      */
     public void testGetStateByCoord() {
-        AttributeGrid grid = new GridIntIntervals(1.0, 0.4, 0.5, 0.05, 0.01);
+        AttributeGrid grid = new GridIntIntervals(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
         getStateByCoord1(grid);
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new GridIntIntervals(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new GridIntIntervals(new Bounds(0.15, 0.12, 0.20), 0.05, 0.02);
         getStateByCoord2(grid);
     }
 
@@ -153,7 +153,7 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
      * Test getState by world coordinates.
      */
     public void testSetSameTwice() {
-        AttributeGrid grid = new GridIntIntervals(1.0, 0.4, 0.5, 0.05, 0.01);
+        AttributeGrid grid = new GridIntIntervals(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
         grid.setData(0,0,0,Grid.INSIDE,2);
         grid.setData(0,0,0,Grid.INSIDE,2);
     }
@@ -170,13 +170,13 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
      * Test getAttribute by world coordinates.
      */
     public void testGetMaterialByCoord() {
-        AttributeGrid grid = new GridIntIntervals(1.0, 0.4, 0.5, 0.05, 0.01);
+        AttributeGrid grid = new GridIntIntervals(new Bounds(1.0, 0.4, 0.5), 0.05, 0.01);
         getMaterialByCoord1(grid);
 
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new GridIntIntervals(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new GridIntIntervals(new Bounds(0.15, 0.12, 0.20), 0.05, 0.02);
         getMaterialByCoord2(grid);
     }
 
@@ -353,7 +353,7 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         double voxelWidth = 0.02;
         double sliceHeight = 0.01;
 
-        AttributeGrid grid = new GridIntIntervals(xWorldCoord, yWorldCoord, zWorldCoord, voxelWidth, sliceHeight);
+        AttributeGrid grid = new GridIntIntervals(new Bounds(xWorldCoord, yWorldCoord, zWorldCoord), voxelWidth, sliceHeight);
         getGridCoords(grid);
     }
 
@@ -398,9 +398,9 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         // world coordinates
         double xcoord = 0.12;
         double voxelSize = 0.05;
-        width = (int) Math.ceil(xcoord / voxelSize) + 1;
+        width = BaseGrid.roundSize(xcoord / voxelSize);
 
-        grid = new GridIntIntervals(xcoord, 0.11, 0.16, voxelSize, 0.02);
+        grid = new GridIntIntervals(new Bounds(xcoord, 0.11, 0.16), voxelSize, 0.02);
         assertEquals("Width is not " + width, width, grid.getWidth());
     }
 
@@ -417,9 +417,9 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         // world coordinates
         double ycoord = 0.11;
         double sliceHeight = 0.02;
-        height = (int) Math.ceil(ycoord / sliceHeight) + 1;
+        height = BaseGrid.roundSize(ycoord / sliceHeight);
 
-        grid = new GridIntIntervals(0.12, ycoord, 0.16, 0.05, sliceHeight);
+        grid = new GridIntIntervals(new Bounds(0.12, ycoord, 0.16), 0.05, sliceHeight);
         assertEquals("Height is not " + height, height, grid.getHeight());
     }
 
@@ -436,9 +436,9 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         // world coordinates
         double zcoord = 0.12;
         double voxelSize = 0.05;
-        depth = (int) Math.ceil(zcoord / voxelSize) + 1;
+        depth = BaseGrid.roundSize(zcoord / voxelSize);
 
-        grid = new GridIntIntervals(0.12, 0.11, zcoord, voxelSize, 0.02);
+        grid = new GridIntIntervals(new Bounds(0.12, 0.11, zcoord), voxelSize, 0.02);
         assertEquals("Depth is not " + depth, depth, grid.getDepth());
     }
 
@@ -453,7 +453,7 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         assertEquals("Slice height is not " + sliceHeight, sliceHeight, grid.getSliceHeight());
 
         // world coordinates
-        grid = new GridIntIntervals(0.12, 0.11, 0.12, 0.05, sliceHeight);
+        grid = new GridIntIntervals(new Bounds(0.12, 0.11, 0.12), 0.05, sliceHeight);
         assertEquals("Slice height is not" + sliceHeight, sliceHeight, grid.getSliceHeight());
     }
 
@@ -468,7 +468,7 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
 
         // world coordinates
-        grid = new GridIntIntervals(0.12, 0.11, 0.12, voxelSize, 0.01);
+        grid = new GridIntIntervals(new Bounds(0.12, 0.11, 0.12), voxelSize, 0.01);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, grid.getVoxelSize());
     }
 

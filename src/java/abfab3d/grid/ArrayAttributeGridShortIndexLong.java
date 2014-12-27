@@ -37,9 +37,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public ArrayAttributeGridShortIndexLong(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
+        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel),
                 pixel,
                 sheight, null);
     }
@@ -67,9 +65,7 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public ArrayAttributeGridShortIndexLong(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
+        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel),
                 pixel,
                 sheight, ioFunc);
     }

@@ -21,6 +21,7 @@ import abfab3d.io.input.X3DReader;
 import abfab3d.io.output.GridSaver;
 import abfab3d.io.output.MeshMakerMT;
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.output.SVXWriter;
 import abfab3d.io.output.ShellResults;
 
 import abfab3d.io.output.SingleMaterialModelWriter;
@@ -155,7 +156,7 @@ public class ShapeJSGlobal {
         "load", "loadImage","createGrid"
     };
     private static String[] globalFunctionsAll = {
-        "load", "loadImage","createGrid", "writeAsMesh"
+        "load", "loadImage","createGrid", "writeAsMesh", "writeAsSVX", 
     };
 
     private HashMap<String,Object> globals = new HashMap<String,Object>();
@@ -428,6 +429,23 @@ public class ShapeJSGlobal {
                
     }
 
+
+    /**
+       write grid to a SVX file
+     */
+    public static void writeAsSVX(Context cx, Scriptable thisObj,
+                            Object[] args, Function funObj) {
+
+        AttributeGrid grid = (AttributeGrid) ((NativeJavaObject)args[0]).unwrap();
+        String fname = (String)args[1];
+
+        printf("writeAsSVX(%s, %s)\n", grid,fname);        
+       
+        
+        SVXWriter writer = new SVXWriter();
+        writer.write(grid, fname);  
+              
+    }
 
     /**
      * Create a new grid

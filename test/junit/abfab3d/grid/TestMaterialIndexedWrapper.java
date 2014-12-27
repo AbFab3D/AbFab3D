@@ -53,17 +53,17 @@ public class TestMaterialIndexedWrapper extends BaseTestAttributeGrid implements
         wrapper = new MaterialIndexedWrapper(grid);
         assertEquals("Array size is not 1030200", 1030200, wrapper.getWidth()*wrapper.getHeight()*wrapper.getDepth());
 
-        grid = new ArrayAttributeGridByte(1.0, 1.0, 1.0, 0.2, 0.1);
+        grid = new ArrayAttributeGridByte(new Bounds(1.0, 1.0, 1.0), 0.2, 0.1);
+        wrapper = new MaterialIndexedWrapper(grid);
+        assertEquals("Array size is not 250", 250, wrapper.getWidth()*wrapper.getHeight()*wrapper.getDepth());
+
+        grid = new ArrayAttributeGridByte(new Bounds(1.1, 1.1, 1.1), 0.2, 0.1);
         wrapper = new MaterialIndexedWrapper(grid);
         assertEquals("Array size is not 396", 396, wrapper.getWidth()*wrapper.getHeight()*wrapper.getDepth());
 
-        grid = new ArrayAttributeGridByte(1.1, 1.1, 1.1, 0.2, 0.1);
-        wrapper = new MaterialIndexedWrapper(grid);
-        assertEquals("Array size is not 588", 588, wrapper.getWidth()*wrapper.getHeight()*wrapper.getDepth());
-
         // pass a MaterialIndexedWrapper into a new MaterialIndexedWrapper
         MaterialIndexedWrapper wrapper2 = new MaterialIndexedWrapper(wrapper);
-        assertEquals("Array size is not 588", 588, wrapper2.getWidth()*wrapper2.getHeight()*wrapper2.getDepth());
+        assertEquals("Array size is not 396", 396, wrapper2.getWidth()*wrapper2.getHeight()*wrapper2.getDepth());
     }
 
     /**

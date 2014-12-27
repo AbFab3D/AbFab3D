@@ -237,7 +237,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         double vres = 0.002;
         long mat = 1;
 
-        Grid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
+        Grid grid = new ArrayAttributeGridByte(new Bounds(width, height, depth), hres, vres);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
 
         //-------------------------------------------------------
@@ -443,7 +443,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         double vres = 0.002;
         long mat = 1;
 
-        Grid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
+        Grid grid = new ArrayAttributeGridByte(new Bounds(width, height, depth), hres, vres);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
         wrapper.setState(0.0, 0.0, 0.0, Grid.INSIDE);
         wrapper.setState(width, 0.0, 0.0, Grid.INSIDE);
@@ -634,7 +634,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         double vres = 0.01;
         int[] coords = {-999, -999, -999};
 
-        Grid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
+        Grid grid = new ArrayAttributeGridByte(new Bounds(width, height, depth), hres, vres);
         RangeCheckWrapper wrapper = new RangeCheckWrapper(grid);
 
         //-------------------------------------------------------
@@ -839,9 +839,9 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         // world coordinates
         double xcoord = 0.12;
         double voxelSize = 0.05;
-        width = (int)Math.ceil(xcoord/voxelSize) + 1;
+        width = BaseGrid.roundSize(xcoord/voxelSize);
 
-        grid = new ArrayAttributeGridByte(xcoord, 0.11, 0.16, voxelSize, 0.02);
+        grid = new ArrayAttributeGridByte(new Bounds(xcoord, 0.11, 0.16), voxelSize, 0.02);
         wrapper = new RangeCheckWrapper(grid);
         assertEquals("Width is not " + width, width, wrapper.getWidth());
     }
@@ -871,9 +871,9 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         // world coordinates
         double ycoord = 0.11;
         double sliceHeight = 0.02;
-        height = (int)Math.ceil(ycoord/sliceHeight) + 1;
+        height = BaseGrid.roundSize(ycoord/sliceHeight);
 
-        grid = new ArrayAttributeGridByte(0.12, ycoord, 0.16, 0.05, sliceHeight);
+        grid = new ArrayAttributeGridByte(new Bounds(0.12, ycoord, 0.16), 0.05, sliceHeight);
         wrapper = new RangeCheckWrapper(grid);
         assertEquals("Height is not " + height, height, wrapper.getHeight());
     }
@@ -903,9 +903,9 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         // world coordinates
         double zcoord = 0.12;
         double voxelSize = 0.05;
-        depth = (int)Math.ceil(zcoord/voxelSize) + 1;
+        depth = BaseGrid.roundSize(zcoord/voxelSize);
 
-        grid = new ArrayAttributeGridByte(0.12, 0.11, zcoord, voxelSize, 0.02);
+        grid = new ArrayAttributeGridByte(new Bounds(0.12, 0.11, zcoord), voxelSize, 0.02);
         wrapper = new RangeCheckWrapper(grid);
         assertEquals("Depth is not " + depth, depth, wrapper.getDepth());
     }
@@ -933,7 +933,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         assertEquals("Slice height is not " + sliceHeight, sliceHeight, wrapper.getSliceHeight());
 
         // world coordinates
-        grid = new ArrayAttributeGridByte(0.12, 0.11, 0.12, 0.05, sliceHeight);
+        grid = new ArrayAttributeGridByte(new Bounds(0.12, 0.11, 0.12), 0.05, sliceHeight);
         wrapper = new RangeCheckWrapper(grid);
         assertEquals("Slice height is not" + sliceHeight, sliceHeight, wrapper.getSliceHeight());
     }
@@ -961,7 +961,7 @@ public class TestRangeCheckWrapper extends BaseTestGrid {
         assertEquals("Voxel size is not " + voxelSize, voxelSize, wrapper.getVoxelSize());
 
         // world coordinates
-        grid = new ArrayAttributeGridByte(0.12, 0.11, 0.12, voxelSize, 0.01);
+        grid = new ArrayAttributeGridByte(new Bounds(0.12, 0.11, 0.12), voxelSize, 0.01);
         wrapper = new RangeCheckWrapper(grid);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, wrapper.getVoxelSize());
     }

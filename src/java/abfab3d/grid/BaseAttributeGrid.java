@@ -50,6 +50,24 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
             this.ioFunc = ioFunc;
         }
     }
+    
+    
+    /**
+     * Constructor.
+     *
+     * @param bounds the bounds of the grid
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public BaseAttributeGrid(Bounds bounds, double pixel, double sheight) {
+        super(bounds, pixel,sheight);
+
+        if (ioFunc == null) {
+            this.ioFunc = new DefaultInsideOutsideFunc();
+        } else {
+            this.ioFunc = ioFunc;
+        }
+    }
 
     /**
      * Traverse a class of material types.  May be much faster then
@@ -519,34 +537,29 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
         
     }
     /**
-       deprecated method 
      */
     public void getData(int x, int y, int z, VoxelData vd) {
         throw new RuntimeException("not implemented");
     }
     /**
-       deprecated method 
      */
     public byte getState(int x, int y, int z) {
         throw new RuntimeException("not implemented");        
     }
 
     /**
-       deprecated method 
      */
     public void setData(int x, int y, int z, byte state, long material) {
         throw new RuntimeException("not implemented");        
     }
 
     /**
-       deprecated method 
      */
     public void setState(int x, int y, int z, byte state) {
         throw new RuntimeException("not implemented");                
     }
 
     /**
-     * deprecated method 
      *
      */
     public VoxelData getVoxelData() {

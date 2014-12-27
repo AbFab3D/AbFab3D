@@ -51,8 +51,7 @@ public class MaterialIndexedAttributeGridShort extends BaseAttributeGrid {
      * @param sheight The slice height in meters
      */
     public MaterialIndexedAttributeGridShort(double w, double h, double d, double pixel, double sheight) {
-        this((int) (w / pixel) + 1, (int) (h / sheight) + 1,
-           (int) (d / pixel) + 1, pixel, sheight);
+        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight);
     }
 
     /**

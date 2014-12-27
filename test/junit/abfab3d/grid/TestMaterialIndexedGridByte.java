@@ -45,10 +45,10 @@ public class TestMaterialIndexedGridByte extends BaseTestAttributeGrid {
         assertEquals("Array size is not 1030200", 1030200, grid.getWidth()*grid.getHeight()*grid.getDepth());
 
         grid = new MaterialIndexedAttributeGridByte(1.0, 1.0, 1.0, 0.2, 0.1);
-        assertEquals("Array size is not 396", 396, grid.getWidth()*grid.getHeight()*grid.getDepth());
+        assertEquals("Array size is not 250", 250, grid.getWidth()*grid.getHeight()*grid.getDepth());
 
         grid = new MaterialIndexedAttributeGridByte(1.1, 1.1, 1.1, 0.2, 0.1);
-        assertEquals("Array size is not 432", 432, grid.getWidth()*grid.getHeight()*grid.getDepth());
+        assertEquals("Array size is not 396", 396, grid.getWidth()*grid.getHeight()*grid.getDepth());
     }
 
     /**
@@ -126,7 +126,7 @@ System.out.println("test3");
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new MaterialIndexedAttributeGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new MaterialIndexedAttributeGridByte(0.15, 0.12, 0.20, 0.05, 0.02);
         grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte)2);
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.05));
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
@@ -209,7 +209,7 @@ System.out.println("test3");
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid = new MaterialIndexedAttributeGridByte(0.12, 0.11, 0.16, 0.05, 0.02);
+        grid = new MaterialIndexedAttributeGridByte(0.15, 0.12, 0.20, 0.05, 0.02);
         grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte)2);
         assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.06, 0.05));
         assertEquals("State should be ", 2, grid.getAttribute(0.0999, 0.06, 0.05));
@@ -569,7 +569,7 @@ System.out.println("test3");
         // world coordinates
         double xcoord = 0.12;
         double voxelSize = 0.05;
-        width = (int)(xcoord/voxelSize) + 1;
+        width = BaseGrid.roundSize(xcoord/voxelSize);
 
         grid = new MaterialIndexedAttributeGridByte(xcoord, 0.11, 0.16, voxelSize, 0.02);
         assertEquals("Width is not " + width, width, grid.getWidth());
@@ -588,7 +588,7 @@ System.out.println("test3");
         // world coordinates
         double ycoord = 0.11;
         double sliceHeight = 0.02;
-        height = (int)(ycoord/sliceHeight) + 1;
+        height = BaseGrid.roundSize(ycoord/sliceHeight);
 
         grid = new MaterialIndexedAttributeGridByte(0.12, ycoord, 0.16, 0.05, sliceHeight);
         assertEquals("Height is not " + height, height, grid.getHeight());
@@ -607,7 +607,7 @@ System.out.println("test3");
         // world coordinates
         double zcoord = 0.12;
         double voxelSize = 0.05;
-        depth = (int)(zcoord/voxelSize) + 1;
+        depth = BaseGrid.roundSize(zcoord/voxelSize);
 
         grid = new MaterialIndexedAttributeGridByte(0.12, 0.11, zcoord, voxelSize, 0.02);
         assertEquals("Depth is not " + depth, depth, grid.getDepth());

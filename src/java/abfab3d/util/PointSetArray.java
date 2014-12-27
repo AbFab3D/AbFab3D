@@ -107,6 +107,14 @@ public class PointSetArray implements TriangleProducer, PointSet  {
         m_size++;
     }
 
+    public final void addPoints(Vector<Tuple3d> pnts){
+
+        for(int k = 0; k < pnts.size(); k++){
+            Tuple3d p = pnts.get(k);
+            addPoint(p.x,p.y,p.z);
+        }
+    }
+
     public boolean getTriangles(TriangleCollector collector){
         
         int count = m_size;

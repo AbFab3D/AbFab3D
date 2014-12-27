@@ -59,11 +59,7 @@ public class GridShortIntervals extends GridBitIntervals {
      * @param sheight The slice height in meters
      */
     public GridShortIntervals(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
-                pixel,
-                sheight);
+        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel),  pixel, sheight);
     }
 
     /**
@@ -76,15 +72,11 @@ public class GridShortIntervals extends GridBitIntervals {
      * @param sheight The slice height in meters
      */
     public GridShortIntervals(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
-                pixel,
-                sheight, ioFunc);
+        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, ioFunc);
     }
 
     public GridShortIntervals(int nx, int ny, int nz, int orientation, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc) {
-        super(nx, ny, nz, orientation, pixelSize, sliceHeight, ioFunc);
+        super(nx, ny, nz, orientation, pixelSize, sliceHeight);
     }
 
     /**

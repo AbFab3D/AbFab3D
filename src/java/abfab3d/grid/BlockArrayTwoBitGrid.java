@@ -117,7 +117,7 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	 * @param blockTwosOrder, the [x,y,z] scale of a block in voxels as 2^n
 	 */
 	public BlockArrayTwoBitGrid(double w, double h, double d, double pixel, double sheight, int[] blockTwosOrder) {
-		this((int) (w/pixel)+1, (int) (h/sheight)+1, (int) (d/pixel)+1, pixel, sheight, blockTwosOrder);
+		this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, blockTwosOrder);
 	}
 	
 	/**
@@ -143,7 +143,7 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	 * @param sheight, the y height of a voxel
 	 */
 	public BlockArrayTwoBitGrid(double w, double h, double d, double pixel, double sheight) {
-		this((int) (w/pixel)+1, (int) (h/sheight)+1, (int) (d/pixel)+1, pixel, sheight, new int[] {4,4,4});
+		this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, new int[] {4,4,4});
 	}
 	
 	/**

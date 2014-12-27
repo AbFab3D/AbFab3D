@@ -240,7 +240,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         double vres = 0.002;
         long mat = 1;
 
-        AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
+        AttributeGrid grid = new ArrayAttributeGridByte(new Bounds(width, height, depth), hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
 
         //-------------------------------------------------------
@@ -446,7 +446,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         double vres = 0.002;
         long mat = 1;
 
-        AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
+        AttributeGrid grid = new ArrayAttributeGridByte(new Bounds(width, height, depth), hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
         wrapper.setData(0.0, 0.0, 0.0, Grid.INSIDE, mat);
         wrapper.setData(width, 0.0, 0.0, Grid.INSIDE, mat);
@@ -615,7 +615,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         double vres = 0.002;
         Long mat = new Long(5);
 
-        AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
+        AttributeGrid grid = new ArrayAttributeGridByte(new Bounds(width, height, depth), hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
         wrapper.setData(0.0, 0.0, 0.0, Grid.INSIDE, mat);
         wrapper.setData(width, 0.0, 0.0, Grid.INSIDE, mat);
@@ -849,7 +849,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         double vres = 0.01;
         int[] coords = {-999, -999, -999};
 
-        AttributeGrid grid = new ArrayAttributeGridByte(width, height, depth, hres, vres);
+        AttributeGrid grid = new ArrayAttributeGridByte(new Bounds(width, height, depth), hres, vres);
         RangeCheckAttributeWrapper wrapper = new RangeCheckAttributeWrapper(grid);
 
         //-------------------------------------------------------
@@ -1082,9 +1082,9 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         // world coordinates
         double xcoord = 0.12;
         double voxelSize = 0.05;
-        width = (int)Math.ceil(xcoord/voxelSize) + 1;
+        width = BaseGrid.roundSize(xcoord/voxelSize);
 
-        grid = new ArrayAttributeGridByte(xcoord, 0.11, 0.16, voxelSize, 0.02);
+        grid = new ArrayAttributeGridByte(new Bounds(xcoord, 0.11, 0.16), voxelSize, 0.02);
         wrapper = new RangeCheckAttributeWrapper(grid);
         assertEquals("Width is not " + width, width, wrapper.getWidth());
     }
@@ -1114,9 +1114,9 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         // world coordinates
         double ycoord = 0.11;
         double sliceHeight = 0.02;
-        height = (int)Math.ceil(ycoord/sliceHeight) + 1;
+        height = BaseGrid.roundSize(ycoord/sliceHeight);
 
-        grid = new ArrayAttributeGridByte(0.12, ycoord, 0.16, 0.05, sliceHeight);
+        grid = new ArrayAttributeGridByte(new Bounds(0.12, ycoord, 0.16), 0.05, sliceHeight);
         wrapper = new RangeCheckAttributeWrapper(grid);
         assertEquals("Height is not " + height, height, wrapper.getHeight());
     }
@@ -1146,9 +1146,9 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         // world coordinates
         double zcoord = 0.12;
         double voxelSize = 0.05;
-        depth = (int)Math.ceil(zcoord/voxelSize) + 1;
+        depth = BaseGrid.roundSize(zcoord/voxelSize);
 
-        grid = new ArrayAttributeGridByte(0.12, 0.11, zcoord, voxelSize, 0.02);
+        grid = new ArrayAttributeGridByte(new Bounds(0.12, 0.11, zcoord), voxelSize, 0.02);
         wrapper = new RangeCheckAttributeWrapper(grid);
         assertEquals("Depth is not " + depth, depth, wrapper.getDepth());
     }
@@ -1176,7 +1176,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         assertEquals("Slice height is not " + sliceHeight, sliceHeight, wrapper.getSliceHeight());
 
         // world coordinates
-        grid = new ArrayAttributeGridByte(0.12, 0.11, 0.12, 0.05, sliceHeight);
+        grid = new ArrayAttributeGridByte(new Bounds(0.15, 0.11, 0.12), 0.05, sliceHeight);
         wrapper = new RangeCheckAttributeWrapper(grid);
         assertEquals("Slice height is not" + sliceHeight, sliceHeight, wrapper.getSliceHeight());
     }
@@ -1204,7 +1204,7 @@ public class TestRangeCheckAttributeWrapper extends BaseTestAttributeGrid {
         assertEquals("Voxel size is not " + voxelSize, voxelSize, wrapper.getVoxelSize());
 
         // world coordinates
-        grid = new ArrayAttributeGridByte(0.12, 0.11, 0.12, voxelSize, 0.01);
+        grid = new ArrayAttributeGridByte(new Bounds(0.12, 0.11, 0.12), voxelSize, 0.01);
         wrapper = new RangeCheckAttributeWrapper(grid);
         assertEquals("Voxel size is not " + voxelSize, voxelSize, wrapper.getVoxelSize());
     }

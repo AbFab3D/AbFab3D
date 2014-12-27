@@ -51,7 +51,7 @@ import static abfab3d.util.Output.printf;
  */
 public class SlicesWriter {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
     static int debugCount = 100;
 
     static final int COLOR_WHITE = makeColor(0xFF);

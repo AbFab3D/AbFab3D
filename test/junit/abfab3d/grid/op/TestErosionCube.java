@@ -144,7 +144,7 @@ public class TestErosionCube extends BaseTestAttributeGrid {
         double bounds = TriangleModelCreator.findMaxBounds(geom);
         double size = 2.1 * bounds;  // Slightly over allocate
 
-        Grid grid = new ArrayAttributeGridByte(size,size,size,0.0005, 0.0005);
+        Grid grid = new ArrayAttributeGridByte(new Bounds(size,size,size),0.0005, 0.0005);
 
         double x = bounds;
         double y = x;

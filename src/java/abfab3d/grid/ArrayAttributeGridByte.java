@@ -49,12 +49,24 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
-                pixel,
-                sheight, null);
+    
+    //public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
+    //    this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel,sheight, null);
+    //}
+    
+
+    /**
+     * Constructor.
+     *
+     * @param bounds The bounds of grid in world coords
+     * @param h The height in world coords
+     * @param d The depth in world coords
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public ArrayAttributeGridByte(Bounds bounds, double pixel, double sheight) {
+        super(bounds, pixel,sheight);
+        allocateData();
     }
 
     /**
@@ -66,13 +78,9 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      * @param pixel The size of the pixels
      * @param sheight The slice height in meters
      */
-    public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
-                pixel,
-                sheight, ioFunc);
-    }
+    //public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
+    //    this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, ioFunc);
+    //}
 
     /**
      * Constructor.
@@ -85,13 +93,16 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      */
     public ArrayAttributeGridByte(int w, int h, int d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
         super(w,h,d,pixel,sheight,ioFunc);
+        allocateData();
+    }
 
+    protected void allocateData(){
+        
         long dataLength = (long)height * width * depth;
         if(dataLength >= Integer.MAX_VALUE){
-            throw new IllegalArgumentException("Size exceeds integer, use ArrayAttributeGridByteLongIndex.  w: " + w + " h: " + h + " d: " + d);
+            throw new IllegalArgumentException("Size exceeds integer, use ArrayAttributeGridByteLongIndex.  w: " + width + " h: " + height + " d: " + depth);
         }
         data = new byte[height * width * depth];
-
     }
 
     /**
