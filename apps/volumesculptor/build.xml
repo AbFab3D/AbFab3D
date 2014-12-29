@@ -199,8 +199,10 @@
             <arg value="8" />
             <arg value="-allowWrite" />
             <arg value="true" />
+            <arg value="-debugViz" />
+            <arg value="true" />
             <arg value="-outputType" />
-            <arg value="svx" />
+            <arg value="stl" />
             <arg value="-outputFolder"/>
             <arg value="." />
             <arg value="-namedParams" />

@@ -672,6 +672,13 @@ public class Main {
                 }
                 ShapeJSGlobal.setLocalRun(Boolean.parseBoolean(args[i]));
                 continue;
+            } else if (arg.equals("-debugViz")) {
+                if (++i == args.length) {
+                    usageError = arg;
+                    break goodUsage;
+                }
+                ShapeJSGlobal.setDebugViz(Boolean.parseBoolean(args[i]));
+                continue;
             } else if (arg.equals("-strict")) {
                 shellContextFactory.setStrictMode(true);
                 shellContextFactory.setAllowReservedKeywords(false);
@@ -959,6 +966,9 @@ public class Main {
 
                 strSrc = addImports(strSrc);
                 strSrc = addParseFloats(strSrc, args);
+                if (ShapeJSGlobal.isDebugViz()) {
+                    strSrc = addDebugViz("debugviz",0,strSrc);
+                }
                 System.out.println("Compiling: \n" + strSrc);
                 script = cx.compileString(strSrc, path, 1, securityDomain);
             }
@@ -1042,7 +1052,62 @@ public class Main {
     }
 
     /**
-     * Execute the main function.  We expect a Grid back.
+     * Add debug viz.  Change maker.makeGrid into createDebug calls
+     * @return
+     */
+    private static String addDebugViz(String prefix,int cnt, String script) {
+        // find foo.makeGrid(dest);
+        // identify GridMaker(foo) by finding previous ;
+        // identify Grid(dest);
+
+        StringBuilder bldr = new StringBuilder();
+
+        int s_idx = script.indexOf(".makeGrid(");
+        if (s_idx == -1) {
+            System.out.println("Cannot find makeGrid call");
+            return script;
+        }
+
+        int sc_idx = script.substring(0,s_idx).lastIndexOf(";");
+
+        if (sc_idx == -1) {
+            System.out.println("Cannot find previous sc");
+            return script;
+        }
+
+        int gs_idx = script.indexOf("(",s_idx);
+        int ge_idx = script.indexOf(")",gs_idx+1);
+
+        if (ge_idx == -1) {
+            System.out.println("Cannot find end of grid param");
+            return script;
+        }
+
+        String filename = prefix + cnt + ".x3db";
+        String grid_maker = script.substring(sc_idx+1,s_idx).trim();
+        String grid = script.substring(gs_idx+1,ge_idx).trim();
+
+        System.out.printf("grid_maker: %s\n",grid_maker);
+        System.out.printf("grid: %s\n",grid);
+        bldr.append(script.substring(0,sc_idx+1));
+        bldr.append("\n\tcreateDebug(\"");
+        bldr.append(filename);
+        bldr.append("\",");
+        bldr.append(grid);
+        bldr.append(",");
+        bldr.append(grid_maker);
+        bldr.append(");");
+
+        String ret = addDebugViz(prefix,cnt+1,script.substring(ge_idx+1));
+        if (ret != null) {
+            bldr.append(ret);
+        }
+
+        return bldr.toString();
+    }
+
+    /**
+     * Execute the main function.
      *
      * @param cx
      * @param scope

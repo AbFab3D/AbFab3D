@@ -54,7 +54,7 @@ import static abfab3d.util.Units.MM;
    @author Vladimir Bulatov
 
  */
-public class Subtraction extends TransformableDataSource {
+public class Subtraction extends TransformableDataSource implements GroupingNode {
     
     DataSource dataSource1;
     DataSource dataSource2;
@@ -128,5 +128,9 @@ public class Subtraction extends TransformableDataSource {
         
         return RESULT_OK;
     }
-    
+
+    @Override
+    public DataSource[] getChildren() {
+        return new DataSource[] {dataSource1,dataSource2};
+    }
 } // class Subtraction

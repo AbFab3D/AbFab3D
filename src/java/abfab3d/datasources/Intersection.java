@@ -51,7 +51,7 @@ import static abfab3d.util.Units.MM;
 
    @author Vladimir Bulatov
 */ 
-public class Intersection extends TransformableDataSource{
+public class Intersection extends TransformableDataSource implements GroupingNode {
     
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
@@ -130,5 +130,9 @@ public class Intersection extends TransformableDataSource{
         data.v[0] = value;
         return RESULT_OK;
     }
-    
+
+    @Override
+    public DataSource[] getChildren() {
+        return vDataSources;
+    }
 } // class Intersection
