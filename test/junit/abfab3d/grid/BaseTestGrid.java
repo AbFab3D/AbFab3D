@@ -50,8 +50,8 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
         assertFalse("Outside grid", grid.insideGrid(-1,1,1));
         assertFalse("Outside grid", grid.insideGrid(1,26,1));
 
-        assertTrue("Really Inside grid", grid.insideGrid(voxelSize * 1, voxelSize * 1, voxelSize * 1));
-        assertFalse("Outside grid", grid.insideGrid(voxelSize * 1,voxelSize * 26,voxelSize * 1));
+        assertTrue("Really Inside grid", grid.insideGridWorld(voxelSize * 1, voxelSize * 1, voxelSize * 1));
+        assertFalse("Outside grid", grid.insideGridWorld(voxelSize * 1, voxelSize * 26, voxelSize * 1));
     }
 
     public void runToString(Grid grid) {
@@ -109,15 +109,15 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      * Test getData by voxels.
      */
     public void getDataByCoord(Grid grid) {
-        grid.setState(0.0, 0.0, 0.0, Grid.OUTSIDE);
-        grid.setState(0.95, 0.39, 0.45, Grid.INSIDE);
-        grid.setState(0.6, 0.1, 0.4, Grid.INSIDE);
+        grid.setStateWorld(0.0, 0.0, 0.0, Grid.OUTSIDE);
+        grid.setStateWorld(0.95, 0.39, 0.45, Grid.INSIDE);
+        grid.setStateWorld(0.6, 0.1, 0.4, Grid.INSIDE);
         VoxelData vd = grid.getVoxelData();
-        grid.getData(0.0, 0.0, 0.0, vd);
+        grid.getDataWorld(0.0, 0.0, 0.0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
-        grid.getData(0.95, 0.39, 0.45, vd);
+        grid.getDataWorld(0.95, 0.39, 0.45, vd);
         assertEquals("State should be ", Grid.INSIDE, vd.getState());
-        grid.getData(0.6, 0.1, 0.4, vd);
+        grid.getDataWorld(0.6, 0.1, 0.4, vd);
         assertEquals("State should be ", Grid.INSIDE, vd.getState());
     }
 
@@ -386,41 +386,41 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid.setState(0.06, 0.07, 0.08, Grid.INSIDE);
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0999, 0.0799, 0.0999));
-        assertEquals("State should be ", 0, grid.getState(0.0499, 0.06, 0.05));
-        assertEquals("State should be ", 0, grid.getState(0.05, 0.0599, 0.05));
-        assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.0499));
-        assertEquals("State should be ", 0, grid.getState(0.1, 0.06, 0.05));
-        assertEquals("State should be ", 0, grid.getState(0.05, 0.08, 0.05));
-        assertEquals("State should be ", 0, grid.getState(0.05, 0.06, 0.1));
+        grid.setStateWorld(0.06, 0.07, 0.08, Grid.INSIDE);
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.05, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.0999, 0.06, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.05, 0.0799, 0.05));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.05, 0.06, 0.0999));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.0999, 0.0799, 0.0999));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.0499, 0.06, 0.05));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.05, 0.0599, 0.05));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.05, 0.06, 0.0499));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.1, 0.06, 0.05));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.05, 0.08, 0.05));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setState(0.0, 0.0, 0.0, Grid.INSIDE);
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.0499, 0.0199, 0.0499));
-        assertEquals("State should be ", 0, grid.getState(0.05, 0.0, 0.0));
-        assertEquals("State should be ", 0, grid.getState(0.0, 0.02, 0.0));
-        assertEquals("State should be ", 0, grid.getState(0.0, 0.0, 0.05));
+        grid.setStateWorld(0.0, 0.0, 0.0, Grid.INSIDE);
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.0, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.0499, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.0, 0.0199, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.0, 0.0, 0.0499));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.0499, 0.0199, 0.0499));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.05, 0.0, 0.0));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.0, 0.02, 0.0));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setState(0.149, 0.119, 0.199, Grid.INSIDE);
+        grid.setStateWorld(0.149, 0.119, 0.199, Grid.INSIDE);
 //        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.15));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.1, 0.151));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.119, 0.151));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.1, 0.1, 0.199));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.149, 0.119, 0.199));
-        assertEquals("State should be ", 0, grid.getState(0.0999, 0.1, 0.1501));
-        assertEquals("State should be ", 0, grid.getState(0.1, 0.0999, 0.1501));
-        assertEquals("State should be ", 0, grid.getState(0.1, 0.1, 0.1499));
-        assertEquals("State should be ", 0, grid.getState(0.0999, 0.0999, 0.1499));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.149, 0.1, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.1, 0.119, 0.151));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.1, 0.1, 0.199));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.149, 0.119, 0.199));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.0999, 0.1, 0.1501));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.1, 0.0999, 0.1501));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.1, 0.1, 0.1499));
+        assertEquals("State should be ", 0, grid.getStateWorld(0.0999, 0.0999, 0.1499));
     }
 
 
@@ -429,12 +429,12 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
      */
     public void getStateByCoord1(Grid grid) {
         // set and test get on some random world coordinates
-        grid.setState(0.0, 0.0, 0.0, Grid.OUTSIDE);
-        grid.setState(0.95, 0.39, 0.45, Grid.INSIDE);
-        grid.setState(0.6, 0.1, 0.4, Grid.INSIDE);
-        assertEquals("State should be ", Grid.OUTSIDE, grid.getState(0.0, 0.0, 0.0));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.95, 0.39, 0.45));
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(0.6, 0.1, 0.4));
+        grid.setStateWorld(0.0, 0.0, 0.0, Grid.OUTSIDE);
+        grid.setStateWorld(0.95, 0.39, 0.45, Grid.INSIDE);
+        grid.setStateWorld(0.6, 0.1, 0.4, Grid.INSIDE);
+        assertEquals("State should be ", Grid.OUTSIDE, grid.getStateWorld(0.0, 0.0, 0.0));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.95, 0.39, 0.45));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(0.6, 0.1, 0.4));
 
     }
 
@@ -710,7 +710,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
                 ycoord = (double) (y) * sliceHeight + sliceHeight / 2.0;
                 for (int z = 0; z < depth; z++) {
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
-                    grid.setState(xcoord, ycoord, zcoord, Grid.INSIDE);
+                    grid.setStateWorld(xcoord, ycoord, zcoord, Grid.INSIDE);
                 }
             }
         }
@@ -723,7 +723,7 @@ public class BaseTestGrid extends TestCase implements ClassTraverser {
                 ycoord = (double) (y) * sliceHeight + sliceHeight / 2.0;
                 for (int z = 0; z < depth; z++) {
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
-                    grid.getData(xcoord, ycoord, zcoord, vd);
+                    grid.getDataWorld(xcoord, ycoord, zcoord, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                 }

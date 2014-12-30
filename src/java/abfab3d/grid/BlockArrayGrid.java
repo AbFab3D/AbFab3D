@@ -210,7 +210,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @param wz The z world coordinate
      * @return The voxel state
      */
-    public void getData(double wx, double wy, double wz, VoxelData vd) {
+    public void getDataWorld(double wx, double wy, double wz, VoxelData vd) {
         coord = worldToGrid(wx,wy,wz);
         vd.setData(get(coord[0],coord[1],coord[2]),0);
     }
@@ -223,7 +223,7 @@ public class BlockArrayGrid extends BaseGrid {
      * @param wz The z world coordinate
      * @return The voxel state
      */
-    public byte getState(double wx, double wy, double wz) {
+    public byte getStateWorld(double wx, double wy, double wz) {
         return get(wx,wy,wz);
     }
 
@@ -330,13 +330,12 @@ public class BlockArrayGrid extends BaseGrid {
 
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
-     *
-     * @param wx The x world coordinate
+     *  @param wx The x world coordinate
      * @param wy The y world coordinate
      * @param wz The z world coordinate
      * @param state The value.
      */
-    public void setState(double wx, double wy, double wz, byte state) {
+    public void setStateWorld(double wx, double wy, double wz, byte state) {
         set(wx,wy,wz,state);
     }
 

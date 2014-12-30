@@ -225,8 +225,8 @@ public class RingSpaceWarp implements Operation, AttributeOperation {
                             System.out.println("final pos: " + java.util.Arrays.toString(pos));
                             System.out.println("final wc: " + java.util.Arrays.toString(wc));
                         }
-                        if (dest.insideGrid(wc[0],wc[1],wc[2])) {
-                            dest.setData(wc[0], wc[1], wc[2], vd.getState(), vd.getMaterial());
+                        if (dest.insideGridWorld(wc[0], wc[1], wc[2])) {
+                            dest.setDataWorld(wc[0], wc[1], wc[2], vd.getState(), vd.getMaterial());
                         } else {
                             dest.getGridCoords(wc[0], wc[1], wc[2], pos);
                             System.out.println("Reject: " + java.util.Arrays.toString(pos));

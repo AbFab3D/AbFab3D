@@ -488,7 +488,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
        deprecated method 
      */
-    public void setState(double x, double y, double z, byte state) {
+    public void setStateWorld(double x, double y, double z, byte state) {
         setState((int)((x-xorig) / pixelSize), 
                  (int)((y-yorig) / sheight),
                  (int)((z-zorig) / pixelSize),
@@ -498,7 +498,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
        deprecated method 
      */
-    public void setData(double x, double y, double z, byte state, long attribute) {
+    public void setDataWorld(double x, double y, double z, byte state, long attribute) {
         setData((int)((x-xorig) / pixelSize), 
                 (int)((y-yorig) / sheight),
                 (int)((z-zorig) / pixelSize),
@@ -510,7 +510,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
        deprecated method 
      */
-    public long getAttribute(double x, double y, double z) {
+    public long getAttributeWorld(double x, double y, double z) {
         return getAttribute((int)((x-xorig) / pixelSize), 
                             (int)((y-yorig) / sheight),
                             (int)((z-zorig) / pixelSize)); 
@@ -520,7 +520,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
        deprecated method 
      */
-    public byte getState(double x, double y, double z) {
+    public byte getStateWorld(double x, double y, double z) {
         return getState((int)((x-xorig) / pixelSize), 
                         (int)((y-yorig) / sheight),
                         (int)((z-zorig) / pixelSize));         
@@ -529,7 +529,7 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
        deprecated method 
      */
-    public void getData(double x, double y, double z, VoxelData vd) {        
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
         getData((int)((x-xorig) / pixelSize), 
                  (int)((y-yorig) / sheight),
                  (int)((z-zorig) / pixelSize),

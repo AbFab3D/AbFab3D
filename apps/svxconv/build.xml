@@ -124,14 +124,19 @@
         <java classname="svxconv.SVXConv" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
+            <arg value="stony/stony.svx" />
+            <arg value="-output" />
+            <arg value="stony.x3db" />
+<!--
+            <arg value="-input" />
             <arg value="cf6_1024.svx" />
             <arg value="-output" />
-            <arg value="v6_1024_ef0.5_sw_1.0.x3db" />
-
+            <arg value="v6_1024_ef0.85_sw_0.4.x3db" />
+-->
             <arg value="-meshErrorFactor" />
-            <arg value="0.5" />
+            <arg value="0.1" />
             <arg value="-meshSmoothingWidth" />
-            <arg value="1.0" />
+            <arg value="1" />
             <arg value="-maxTriangles" />
             <arg value="20000000" />
             <arg value="-meshMaxPartsCount" />

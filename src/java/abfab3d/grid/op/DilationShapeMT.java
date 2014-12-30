@@ -42,6 +42,7 @@ import static abfab3d.grid.Grid.OUTSIDE;
  * @author Vladimir Bulatov
  */
 public class DilationShapeMT implements Operation, AttributeOperation {
+    private static final boolean STATS = false;
 
     public static int sm_debug = 0;
 	
@@ -54,7 +55,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
 
     private Slice[] m_slices;
     private AtomicInteger m_slicesIdx;
-    
+
     public DilationShapeMT() {
         
     }
@@ -101,15 +102,101 @@ public class DilationShapeMT implements Operation, AttributeOperation {
      * @return original grid modified
      */
     public Grid execute(Grid grid) {
-        //TODO - not implemented 
-        printf("DilationShapeMT.execute(Grid) not implemented!\n");        
+        printf("DilationShapeMT.execute()\n");
+        if (STATS) {
+            printf("   ****Running in STATS mode");
+        }
+
+        long t0 = time();
+
+        m_nx = grid.getWidth();
+        m_ny = grid.getHeight();
+        m_nz = grid.getDepth();
+
+        GridBitIntervals surface = new GridBitIntervals(m_nx, m_ny, m_nz);
+        //GridShortIntervals surface = new GridShortIntervals(m_nx, m_ny, m_nz, 1., 1.);
+
+        m_slices = new Slice[(int) Math.ceil(m_ny / m_sliceSize) + 1];
+        int idx = 0;
+        int sliceHeight = m_sliceSize;
+
+        for(int y = 0; y < m_ny; y+= sliceHeight){
+            int ymax = y + sliceHeight;
+            if(ymax > m_ny)
+                ymax = m_ny;
+
+            if(ymax > y){
+                // non zero slice
+                m_slices[idx++] = new Slice(y, ymax-1);
+            }
+        }
+
+        m_slicesIdx = new AtomicInteger(0);
+
+        ExecutorService executor = Executors.newFixedThreadPool(m_threadCount);
+        for(int i = 0; i < m_threadCount; i++){
+
+            Runnable runner = new SurfaceFinderRunner(grid, surface);
+            executor.submit(runner);
+        }
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        printf("surface: %d ms\n", (time()-t0));
+        if (STATS) {
+            printf("   surface count: %d\n",surface.findCount(Grid.INSIDE));
+        }
+        t0 = time();
+
+        m_dilationSlices = new Slice[(int) Math.ceil(m_ny / m_sliceSize) + 1];
+        idx = 0;
+
+        for(int y = 0; y < m_ny; y+= sliceHeight){
+            int ymax = y + sliceHeight;
+            if(ymax > m_ny)
+                ymax = m_ny;
+            if(ymax > y){
+                // non zero slice
+                m_dilationSlices[idx++] = new Slice(y, ymax-1);
+            }
+        }
+
+        m_dsIdx = new AtomicInteger(0);
+
+        executor = Executors.newFixedThreadPool(m_threadCount);
+        for(int i = 0; i < m_threadCount; i++){
+
+            Runnable runner = new ShapeDilaterRunner(surface, grid, m_voxelShape, m_voxelChecker);
+            executor.submit(runner);
+        }
+        executor.shutdown();
+
+        try {
+            executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+
+        printf("dilation: %d ms\n", (time()-t0));
+
+        surface.release();
+        surface = null;
         return grid;
     }
 
     
     public AttributeGrid execute(AttributeGrid grid) {
 
-        printf("DilationShapeMT.execute()\n"); 
+        printf("DilationShapeMT.execute()\n");
+        if (STATS) {
+            printf("   ****Running in STATS mode");
+        }
 
         long t0 = time();
 
@@ -152,6 +239,9 @@ public class DilationShapeMT implements Operation, AttributeOperation {
         }
         
         printf("surface: %d ms\n", (time()-t0));
+        if (STATS) {
+            printf("   surface count: %d\n",surface.findCount(Grid.INSIDE));
+        }
         t0 = time();
 
         m_dilationSlices = new Slice[(int) Math.ceil(m_ny / m_sliceSize) + 1];
@@ -206,7 +296,7 @@ public class DilationShapeMT implements Operation, AttributeOperation {
     final static int RESULT_OK = 0, RESULT_BUSY = -1, RESULT_EMPTY = 1;
 
     int getNextDilationSlice(Slice slice){
-        
+
         if(m_dsIdx.intValue() >= m_dilationSlices.length)
             return RESULT_EMPTY;
 

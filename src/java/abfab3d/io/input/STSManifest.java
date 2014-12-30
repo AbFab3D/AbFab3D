@@ -21,11 +21,13 @@ import java.util.Map;
  * @author Alan Hudson
  */
 public class STSManifest {
+
     /** The material mappings */
     private Map<String,String> materials;
     private List<STSPart> parts;
     /** The user metadata */
     private Map<String,String> metadata;
+    /** Conversion to meters for embedded files */
     private double units;
 
 

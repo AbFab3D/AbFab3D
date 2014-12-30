@@ -45,6 +45,7 @@ public class DilationShapeAttributeMT implements Operation, AttributeOperation {
     int m_nx, m_ny, m_nz;
     int m_threadCount = 1;
     int m_sliceSize = 1;
+    int m_subvoxelResolution = 255;
 
     private Slice[] m_slices;
     private AtomicInteger m_slicesIdx;
@@ -52,7 +53,11 @@ public class DilationShapeAttributeMT implements Operation, AttributeOperation {
     public DilationShapeAttributeMT() {
         
     }
-    
+
+    public DilationShapeAttributeMT(int subvoxelResolution) {
+        this.m_subvoxelResolution = subvoxelResolution;
+    }
+
     public void setThreadCount(int count){
         if (count < 1) {
             count = Runtime.getRuntime().availableProcessors();
@@ -103,7 +108,7 @@ public class DilationShapeAttributeMT implements Operation, AttributeOperation {
     
     public AttributeGrid execute(AttributeGrid grid) {
 
-        printf("DilationShapeMT.execute()\n"); 
+        printf("DilationShapeAttributeMT.execute()\n");
 
         long t0 = time();
 
@@ -366,9 +371,13 @@ public class DilationShapeAttributeMT implements Operation, AttributeOperation {
                 int yy = y + iy; 
                 int zz = z + iz; 
                 if(xx >= 0 && xx < nx && yy >= 0 && yy < ny && zz >= 0 && zz < nz ){
+
+                    // TODO: not sure this is thread safe
                     grid.setData(xx, yy, zz, Grid.INSIDE, vd.getMaterial());
                 }                    
             }
+
+            grid.setData(x,y,z,Grid.INSIDE,m_subvoxelResolution);
         }        
     } //class ShapeDilaterRunner 
 

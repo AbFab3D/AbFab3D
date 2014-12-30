@@ -180,7 +180,7 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
     /**
      * Get the VoxelData of a voxel given world coordinates.
      */
-    public void getData(double x, double y, double z, VoxelData vd) {
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
         switch(getState(func.w2v(x,pixelSize),func.w2v(y,sheight),func.w2v(z,pixelSize))) {
             case Grid.OUTSIDE:
                 vd.setState(Grid.OUTSIDE);
@@ -204,7 +204,7 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	/**
 	 * Get the state of a voxel using world coordinates.
 	 */
-	public byte getState(double x, double y, double z) {
+	public byte getStateWorld(double x, double y, double z) {
 		return getState(func.w2v(x,pixelSize),func.w2v(y,sheight),func.w2v(z,pixelSize));
 	}
 	
@@ -237,7 +237,7 @@ public class BlockArrayTwoBitGrid extends BaseGrid {
 	/**
 	 * Set the state of a voxel using world coordinates.
 	 */
-	public void setState(double x, double y, double z, byte state) {
+	public void setStateWorld(double x, double y, double z, byte state) {
 		setState(func.w2v(x,pixelSize),func.w2v(y,sheight),func.w2v(z,pixelSize),state);
 	}
 	

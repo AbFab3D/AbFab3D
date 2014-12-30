@@ -104,14 +104,44 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
 
         // TODO: just use material and say class only moves external?
 //        gridAtt.findInterruptible(VoxelClasses.INSIDE, material, this);
-        gridAtt.findAttributeInterruptible(material, this);
 
+        int skip = 1; // 100
+
+        if (skip > 1 && grid instanceof MaterialIndexedWrapper) {
+            //System.out.println("Sampled Route1");
+            ((MaterialIndexedWrapper)gridAtt).findAttributeInterruptibleSampled(material, skip, this);
+        } else {
+            // New way is it faster?
+        gridAtt.findAttributeInterruptible(material, this);
+/*
+            System.out.println("Grid type1: " + grid);
+            VoxelData vd = grid.getVoxelData();
+            int height = grid.getHeight();
+            int width = grid.getWidth();
+            int depth = grid.getDepth();
+
+            loop:
+            for (int y = 0; y < height; y = y + 2) {
+                for (int x = 0; x < width; x = x + 2) {
+                    for (int z = 0; z < depth; z = z + 2) {
+                        grid.getData(x, y, z, vd);
+
+                        if (vd.getMaterial() == material && vd.getState() != Grid.OUTSIDE) {
+                            if (!this.foundInterruptible(x, y, z, vd))
+                                break loop;
+                        }
+                    }
+                }
+            }
+        */
+        }
         if (DEBUG) {
             if (DEBUG) {
 //                System.out.println("CMMTB: " + material + " t: " + target + " min: " + Arrays.toString(targetMinBounds) + " max: " + Arrays.toString(targetMaxBounds) + " path: " + Arrays.toString(path.getDir()));
                 System.out.println("CMMTB: " + material + " t: " + target + " min: " + Arrays.toString(targetMinBounds) + " max: " + Arrays.toString(targetMaxBounds) + " path: " + Arrays.toString(path.getDir()) + " calcs: " + calcs + " ignored: " + ignoreSet.size());
             }
         }
+
         return allEscaped;
     }
 
@@ -140,14 +170,22 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
      * @param start The voxel data
      */
     public boolean foundInterruptible(int x, int y, int z, VoxelData start) {
+
+        // TODO: would skipping odd voxels really change the answer?
+/*
+        if (x % 2 == 0 || y % 2 == 0 || z % 2 == 0) {
+            return true;
+        }
+*/
         // All should be exterior voxels.
 
 //System.out.println("Move voxel: " + x + " " + y + " " + z);
-
+/*
+// TODO: removed to test for MT
         if (canIgnore(x,y,z)) {
             return true;
         }
-
+*/
         pos[0] = x;
         pos[1] = y;
         pos[2] = z;
@@ -184,9 +222,11 @@ public class CanMoveMaterialTargetedBounds implements ClassAttributeTraverser {
             return false;
         }
 
+        // TODO: removed to test for MT
+        /*
         // walk along negative path, stop at first outside
         addIgnoredVoxels(x, y, z);
-
+        */
         return true;
     }
 

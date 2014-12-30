@@ -175,6 +175,14 @@ public class GridMaker implements Operation, AttributeOperation {
         
     }
 
+    public VecTransform getTransform() {
+        return m_transform;
+    }
+
+    public DataSource getDataSource() {
+        return m_dataSource;
+    }
+
     protected void initBounds(double bounds[]){
 
         m_centerX = (bounds[0] + bounds[1])/2;

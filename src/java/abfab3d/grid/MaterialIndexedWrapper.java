@@ -246,24 +246,22 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
 
     /**
      * Get the data for a voxel
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public void getData(double x, double y, double z,VoxelData vd) {
-        grid.getData(x,y,z,vd);
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
+        grid.getDataWorld(x, y, z, vd);
     }
 
     /**
      * Get the state of the voxel
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public byte getState(double x, double y, double z) {
-        return grid.getState(x,y,z);
+    public byte getStateWorld(double x, double y, double z) {
+        return grid.getStateWorld(x, y, z);
     }
 
     /**
@@ -279,13 +277,12 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
 
     /**
      * Get the state of the voxel
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public long getAttribute(double x, double y, double z) {
-        return grid.getAttribute(x, y, z);
+    public long getAttributeWorld(double x, double y, double z) {
+        return grid.getAttributeWorld(x, y, z);
     }
 
     /**
@@ -301,14 +298,13 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
 
     /**
      * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, long material) {
+    public void setDataWorld(double x, double y, double z, byte state, long material) {
         Long b = new Long(material);
 
         Set<VoxelCoordinate> coords = index.get(b);
@@ -410,14 +406,13 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
 
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
      */
-    public void setState(double x, double y, double z, byte state) {
-        grid.setState(x,y,z,state);
+    public void setStateWorld(double x, double y, double z, byte state) {
+        grid.setStateWorld(x, y, z, state);
     }
 
     /**
@@ -804,6 +799,58 @@ public class MaterialIndexedWrapper implements AttributeGridWrapper {
     }
 
     /**
+     * Traverse a class of material types.  May be much faster then
+     * full grid traversal for some implementations.
+     *
+     * @param mat The material to traverse
+     * @param t The traverer to call for each voxel
+     */
+    public void findAttributeInterruptibleSampled(long mat, int skip,ClassAttributeTraverser t) {
+        Long b = new Long(mat);
+
+// TODO: add optRead enhancements
+
+        Set<VoxelCoordinate> coords = index.get(b);
+
+        if (coords == null) {
+            return;
+        }
+
+
+        int factor = 250;
+        // Never allow skip to be > 1/10 of the # coordinates
+        if (skip > 1 && skip > coords.size() / factor) {
+            skip = coords.size() / factor;
+
+            if (skip < 1) skip = 1;
+        }
+
+        Iterator<VoxelCoordinate> itr = coords.iterator();
+        int x,y,z;
+
+        VoxelData vd = grid.getVoxelData();
+        long cnt = 0;
+        while(itr.hasNext()) {
+            VoxelCoordinate vc = itr.next();
+
+            cnt++;
+
+            if (cnt % skip == 0) {
+                x = vc.getX();
+                y = vc.getY();
+                z = vc.getZ();
+
+                grid.getData(x, y, z, vd);
+
+                if (vd.getState() != Grid.OUTSIDE) {
+                    if (!t.foundInterruptible(x, y, z, vd))
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
      * Traverse a class of voxels types.  May be much faster then
      * full grid traversal for some implementations.
      *
@@ -989,8 +1036,8 @@ System.out.println("Speed opt: " + (System.currentTimeMillis() - startTime));
      * @param wz The z world coordinate
      * @return True if the coordinate is inside the grid space
      */
-    public boolean insideGrid(double wx, double wy, double wz) {
-        return grid.insideGrid(wx,wy,wz);
+    public boolean insideGridWorld(double wx, double wy, double wz) {
+        return grid.insideGridWorld(wx, wy, wz);
     }
 
     /**

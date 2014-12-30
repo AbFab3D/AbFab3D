@@ -229,7 +229,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param z The z world coordinate
      * @return The voxel state
      */
-    public void getData(double x, double y, double z, VoxelData vd) {
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -261,7 +261,7 @@ public class BlockBasedGridByte extends BaseGrid {
      * @param z The z world coordinate
      * @return The voxel state
      */
-    public byte getState(double x, double y, double z) {
+    public byte getStateWorld(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -403,13 +403,12 @@ public class BlockBasedGridByte extends BaseGrid {
 
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
      */
-    public void setState(double x, double y, double z, byte state) {
+    public void setStateWorld(double x, double y, double z, byte state) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);

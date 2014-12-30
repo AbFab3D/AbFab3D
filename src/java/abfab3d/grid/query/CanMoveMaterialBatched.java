@@ -141,7 +141,7 @@ System.out.println("Not aligned: " + path);
 
             VoxelData[] voxels = new VoxelData[len];
 
-System.out.println("getData method not implemented");
+System.out.println("method not implemented");
 //            grid.getData(extents[0], extents[1], extents[2], extents[3], extents[4], extents[5], voxels);
 
 //System.out.println("len: " + len);

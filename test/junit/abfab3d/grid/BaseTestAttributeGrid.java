@@ -538,7 +538,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         grid.setState(0, 0, 0, Grid.INSIDE);
         grid.setState(9, 9, 9, Grid.INSIDE);
         grid.setState(5, 0, 7, Grid.INSIDE);
-        grid.setState(6 * vs, 0, 7 * vs , Grid.INSIDE);
+        grid.setStateWorld(6 * vs, 0, 7 * vs, Grid.INSIDE);
 
         // check that the state changed, but the material did not
         assertEquals("State should be ", Grid.INSIDE, grid.getState(0, 0, 0));
@@ -550,7 +550,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         assertEquals("State should be ", Grid.INSIDE, grid.getState(5, 0, 7));
         assertEquals("Material should be ", 3, grid.getAttribute(5, 0, 7));
 
-        assertEquals("State should be ", Grid.INSIDE, grid.getState(6 * vs, 0, 7 * vs));
+        assertEquals("State should be ", Grid.INSIDE, grid.getStateWorld(6 * vs, 0, 7 * vs));
     }
 
     /**
@@ -629,11 +629,11 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
         //grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, (byte) 3);
 
         // set and test get on some random world coordinates
-        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 2);
-        grid.setData(0.6, 0.1, 0.4, Grid.INSIDE, (byte) 1);
+        grid.setDataWorld(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 2);
+        grid.setDataWorld(0.6, 0.1, 0.4, Grid.INSIDE, (byte) 1);
         //assertEquals("State should be ", 3, grid.getAttribute(0.0, 0.0, 0.0));
-        assertEquals("State should be ", 2, grid.getAttribute(0.95, 0.39, 0.45));
-        assertEquals("State should be ", 1, grid.getAttribute(0.6, 0.1, 0.4));
+        assertEquals("State should be ", 2, grid.getAttributeWorld(0.95, 0.39, 0.45));
+        assertEquals("State should be ", 1, grid.getAttributeWorld(0.6, 0.1, 0.4));
 
     }
 
@@ -644,41 +644,41 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
 
         // should expect width=3, height=6, depth=4
         // set data for a mid-voxel and test the bounds
-        grid.setData(0.06, 0.07, 0.08, Grid.INSIDE, (byte) 2);
-        assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.06, 0.05));
-        assertEquals("State should be ", 2, grid.getAttribute(0.0999, 0.06, 0.05));
-        assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.0799, 0.05));
-        assertEquals("State should be ", 2, grid.getAttribute(0.05, 0.06, 0.0999));
-        assertEquals("State should be ", 2, grid.getAttribute(0.0999, 0.0799, 0.0999));
-        assertEquals("State should be ", 0, grid.getAttribute(0.0499, 0.06, 0.05));
-        assertEquals("State should be ", 0, grid.getAttribute(0.05, 0.0599, 0.05));
-        assertEquals("State should be ", 0, grid.getAttribute(0.05, 0.06, 0.0499));
-        assertEquals("State should be ", 0, grid.getAttribute(0.1, 0.06, 0.05));
-        assertEquals("State should be ", 0, grid.getAttribute(0.05, 0.08, 0.05));
-        assertEquals("State should be ", 0, grid.getAttribute(0.05, 0.06, 0.1));
+        grid.setDataWorld(0.06, 0.07, 0.08, Grid.INSIDE, (byte) 2);
+        assertEquals("State should be ", 2, grid.getAttributeWorld(0.05, 0.06, 0.05));
+        assertEquals("State should be ", 2, grid.getAttributeWorld(0.0999, 0.06, 0.05));
+        assertEquals("State should be ", 2, grid.getAttributeWorld(0.05, 0.0799, 0.05));
+        assertEquals("State should be ", 2, grid.getAttributeWorld(0.05, 0.06, 0.0999));
+        assertEquals("State should be ", 2, grid.getAttributeWorld(0.0999, 0.0799, 0.0999));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.0499, 0.06, 0.05));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.05, 0.0599, 0.05));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.05, 0.06, 0.0499));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.1, 0.06, 0.05));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.05, 0.08, 0.05));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.05, 0.06, 0.1));
 
         // set data for beginning voxel 0,0,0 and test the bounds
-        grid.setData(0.0, 0.0, 0.0, Grid.INSIDE, (byte) 5);
-        assertEquals("State should be ", 5, grid.getAttribute(0.0, 0.0, 0.0));
-        assertEquals("State should be ", 5, grid.getAttribute(0.0499, 0.0, 0.0));
-        assertEquals("State should be ", 5, grid.getAttribute(0.0, 0.0199, 0.0));
-        assertEquals("State should be ", 5, grid.getAttribute(0.0, 0.0, 0.0499));
-        assertEquals("State should be ", 5, grid.getAttribute(0.0499, 0.0199, 0.0499));
-        assertEquals("State should be ", 0, grid.getAttribute(0.05, 0.0, 0.0));
-        assertEquals("State should be ", 0, grid.getAttribute(0.0, 0.02, 0.0));
-        assertEquals("State should be ", 0, grid.getAttribute(0.0, 0.0, 0.05));
+        grid.setDataWorld(0.0, 0.0, 0.0, Grid.INSIDE, (byte) 5);
+        assertEquals("State should be ", 5, grid.getAttributeWorld(0.0, 0.0, 0.0));
+        assertEquals("State should be ", 5, grid.getAttributeWorld(0.0499, 0.0, 0.0));
+        assertEquals("State should be ", 5, grid.getAttributeWorld(0.0, 0.0199, 0.0));
+        assertEquals("State should be ", 5, grid.getAttributeWorld(0.0, 0.0, 0.0499));
+        assertEquals("State should be ", 5, grid.getAttributeWorld(0.0499, 0.0199, 0.0499));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.05, 0.0, 0.0));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.0, 0.02, 0.0));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.0, 0.0, 0.05));
 
         // set data for last voxel 2,5,3 and test the bounds
-        grid.setData(0.149, 0.119, 0.199, Grid.INSIDE, (byte) 12);
+        grid.setDataWorld(0.149, 0.119, 0.199, Grid.INSIDE, (byte) 12);
 //        assertEquals("State should be ", 12, grid.getAttribute(0.1, 0.1, 0.15)); //failing because 0.15/0.05=2.999997
-        assertEquals("State should be ", 12, grid.getAttribute(0.1499, 0.1, 0.1501));
-        assertEquals("State should be ", 12, grid.getAttribute(0.1, 0.119, 0.1501));
-        assertEquals("State should be ", 12, grid.getAttribute(0.1, 0.1, 0.199));
-        assertEquals("State should be ", 12, grid.getAttribute(0.1499, 0.1199, 0.1999));
-        assertEquals("State should be ", 0, grid.getAttribute(0.0999, 0.1, 0.1501));
-        assertEquals("State should be ", 0, grid.getAttribute(0.1, 0.0999, 0.1501));
-        assertEquals("State should be ", 0, grid.getAttribute(0.1, 0.1, 0.1499));
-        assertEquals("State should be ", 0, grid.getAttribute(0.0999, 0.0999, 0.1499));
+        assertEquals("State should be ", 12, grid.getAttributeWorld(0.1499, 0.1, 0.1501));
+        assertEquals("State should be ", 12, grid.getAttributeWorld(0.1, 0.119, 0.1501));
+        assertEquals("State should be ", 12, grid.getAttributeWorld(0.1, 0.1, 0.199));
+        assertEquals("State should be ", 12, grid.getAttributeWorld(0.1499, 0.1199, 0.1999));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.0999, 0.1, 0.1501));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.1, 0.0999, 0.1501));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.1, 0.1, 0.1499));
+        assertEquals("State should be ", 0, grid.getAttributeWorld(0.0999, 0.0999, 0.1499));
     }
 
     /**
@@ -726,13 +726,13 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
      * Test getData by voxels.
      */
     public void getDataByCoord(AttributeGrid grid) {
-        grid.setData(0.0, 0.0, 0.0, Grid.OUTSIDE, 0);
-        grid.setData(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 1);
+        grid.setDataWorld(0.0, 0.0, 0.0, Grid.OUTSIDE, 0);
+        grid.setDataWorld(0.95, 0.39, 0.45, Grid.INSIDE, (byte) 1);
 
         VoxelData vd = grid.getVoxelData();
-        grid.getData(0.0, 0.0, 0.0, vd);
+        grid.getDataWorld(0.0, 0.0, 0.0, vd);
         assertEquals("State should be ", Grid.OUTSIDE, vd.getState());
-        grid.getData(0.95, 0.39, 0.45, vd);
+        grid.getDataWorld(0.95, 0.39, 0.45, vd);
         assertEquals("State should be ", Grid.INSIDE, vd.getState());
     }
 
@@ -949,7 +949,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                 ycoord = (double) (y) * sliceHeight + sliceHeight / 2.0;
                 for (int z = 0; z < depth; z++) {
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
-                    grid.setData(xcoord, ycoord, zcoord, Grid.INSIDE, (byte) 1);
+                    grid.setDataWorld(xcoord, ycoord, zcoord, Grid.INSIDE, (byte) 1);
                 }
             }
         }
@@ -962,7 +962,7 @@ public class BaseTestAttributeGrid extends BaseTestGrid implements ClassAttribut
                 ycoord = (double) (y) * sliceHeight + sliceHeight / 2.0;
                 for (int z = 0; z < depth; z++) {
                     zcoord = (double) (z) * voxelSize + voxelSize / 2.0;
-                    grid.getData(xcoord, ycoord, zcoord, vd);
+                    grid.getDataWorld(xcoord, ycoord, zcoord, vd);
 //System.out.println(x + ", " + y + ", " + z + ": " + vd.getState());
                     assertTrue("State wrong", vd.getState() == Grid.INSIDE);
                     assertTrue("Material wrong", vd.getMaterial() == 1);

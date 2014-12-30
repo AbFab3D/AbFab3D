@@ -256,7 +256,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     /**
        implementation of interface Grid
      */
-    public void getData(double x, double y, double z, VoxelData data){
+    public void getDataWorld(double x, double y, double z, VoxelData data){
         int iy = (int) ((y-yorig) / sheight);
         int ix = (int) ((x-xorig) / pixelSize);
         int iz = (int) ((z-zorig) / pixelSize);
@@ -277,7 +277,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         data.setData(state,att);
     }
 
-    public byte getState(double x, double y, double z){
+    public byte getStateWorld(double x, double y, double z){
         int iy = (int) ((y-yorig) / sheight);
         int ix = (int) ((x-xorig) / pixelSize);
         int iz = (int) ((z-zorig) / pixelSize);
@@ -302,7 +302,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         ioFunc.combineStateAndAttribute(state,att);
     }
 
-    public void setState(double x, double y, double z, byte state){
+    public void setStateWorld(double x, double y, double z, byte state){
         int iy = (int) ((y - yorig)/ sheight);
         int ix = (int) ((x - xorig)/ pixelSize);
         int iz = (int) ((z - zorig)/ pixelSize);
@@ -629,7 +629,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         //return Grid.NO_MATERIAL;
     }
 
-    public long getAttribute(double x, double y, double z){
+    public long getAttributeWorld(double x, double y, double z){
         // attribute and state are the same for bit grid 
         int iy = (int) ((y-yorig) / sheight);
         int ix = (int) ((x-xorig) / pixelSize);
@@ -639,7 +639,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         //return Grid.NO_MATERIAL;
     }
 
-    public void setData(double x, double y, double z, byte state, long attribute){
+    public void setDataWorld(double x, double y, double z, byte state, long attribute){
 
         int iy = (int) ((y-yorig) / sheight);
         int ix = (int) ((x-xorig) / pixelSize);

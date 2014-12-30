@@ -84,8 +84,40 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
 
         // TODO: just use material and say class only moves external?
 //        gridAtt.findInterruptible(VoxelClasses.INSIDE, material, this);
-        grid.findAttributeInterruptible(material, this);
 
+        // New way is it faster?
+//        grid.findAttributeInterruptible(material, this);
+
+        int skip = 1;  // 100
+
+        if (skip > 1 && grid instanceof MaterialIndexedWrapper) {
+            //System.out.println("Sampled Route2");
+            ((MaterialIndexedWrapper)gridAtt).findAttributeInterruptibleSampled(material, skip, this);
+        } else {
+        grid.findAttributeInterruptible(material, this);
+/*
+            System.out.println("Grid type2: " + grid);
+
+            VoxelData vd = grid.getVoxelData();
+            int height = grid.getHeight();
+            int width = grid.getWidth();
+            int depth = grid.getDepth();
+
+            loop:
+            for (int y = 0; y < height; y = y + 2) {
+                for (int x = 0; x < width; x = x + 2) {
+                    for (int z = 0; z < depth; z = z + 2) {
+                        grid.getData(x, y, z, vd);
+
+                        if (vd.getMaterial() == material && vd.getState() != Grid.OUTSIDE) {
+                            if (!this.foundInterruptible(x, y, z, vd))
+                                break loop;
+                        }
+                    }
+                }
+            }
+*/
+        }
         return allEscaped;
     }
 
@@ -115,13 +147,20 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
      */
     public boolean foundInterruptible(int x, int y, int z, VoxelData start) {
         // All should be exterior voxels.
+/*
+        // TODO: would skipping odd voxels really change the answer?
 
+        if (x % 2 == 0 || y % 2 == 0 || z % 2 == 0) {
+            return true;
+        }
+        */
 //System.out.println("Move voxel: " + x + " " + y + " " + z);
-
+// TODO: removed
+        /*
         if (canIgnore(x,y,z)) {
             return true;
         }
-
+        */
         pos[0] = x;
         pos[1] = y;
         pos[2] = z;
@@ -151,9 +190,11 @@ public class CanMoveMaterial implements ClassAttributeTraverser {
             return false;
         }
 
+        // TODO: removed
+        /*
         // walk along negative path, stop at first outside
         addIgnoredVoxels(x, y, z);
-
+        */
         return true;
     }
 

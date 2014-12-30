@@ -13,7 +13,6 @@
 package abfab3d.grid.op;
 
 // External Imports
-import java.util.Iterator;
 import javax.vecmath.*;
 
 // Internal Imports
@@ -86,7 +85,7 @@ public class TransformPosition implements Operation, ClassTraverser {
 
         dest.setState(x,y,z,Grid.OUTSIDE);
 
-        if (DEBUG && !dest.insideGrid(p.x,p.y,p.z)) {
+        if (DEBUG && !dest.insideGridWorld(p.x, p.y, p.z)) {
             System.out.println("Point outside grid: " + x + " " + y + " " + z);
             System.out.println("   dest: " + p);
             int[] pos = new int[3];
@@ -95,7 +94,7 @@ public class TransformPosition implements Operation, ClassTraverser {
             return;
         }
 
-        dest.setState(p.x, p.y, p.z, state);
+        dest.setStateWorld(p.x, p.y, p.z, state);
      }
 
     /**

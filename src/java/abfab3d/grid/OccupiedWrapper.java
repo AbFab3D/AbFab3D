@@ -105,8 +105,8 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @return The voxel data
      */
-    public void getData(double x, double y, double z,VoxelData vd) {
-        grid.getData(x,y,z,vd);
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
+        grid.getDataWorld(x, y, z, vd);
     }
 
     /**
@@ -129,8 +129,8 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @return The voxel state
      */
-    public byte getState(double x, double y, double z) {
-        return grid.getState(x,y,z);
+    public byte getStateWorld(double x, double y, double z) {
+        return grid.getStateWorld(x, y, z);
     }
 
     /**
@@ -153,8 +153,8 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param z The z world coordinate
      * @return The voxel material
      */
-    public long getAttribute(double x, double y, double z) {
-        return grid.getAttribute(x, y, z);
+    public long getAttributeWorld(double x, double y, double z) {
+        return grid.getAttributeWorld(x, y, z);
     }
 
     /**
@@ -171,22 +171,21 @@ public class OccupiedWrapper implements AttributeGridWrapper {
 
     /**
      * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
      * @param material The materialID
      */
-    public void setData(double x, double y, double z, byte state, long material) {
-        grid.getData(x,y,z,vd);
+    public void setDataWorld(double x, double y, double z, byte state, long material) {
+        grid.getDataWorld(x, y, z, vd);
 
         if (vd.getState() != Grid.OUTSIDE && state != Grid.OUTSIDE
             && vd.getMaterial() != material ) {
             throw new IllegalArgumentException("Invalid state change at pos: " + x + " " + y + " " + z);
         }
 
-        grid.setData(x,y,z,state,material);
+        grid.setDataWorld(x, y, z, state, material);
     }
 
     /**
@@ -242,18 +241,17 @@ public class OccupiedWrapper implements AttributeGridWrapper {
 
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.  0 = nothing. > 0 materialID
      */
-    public void setState(double x, double y, double z, byte state) {
-        if (grid.getState(x,y,z) != Grid.OUTSIDE && state != Grid.OUTSIDE) {
+    public void setStateWorld(double x, double y, double z, byte state) {
+        if (grid.getStateWorld(x, y, z) != Grid.OUTSIDE && state != Grid.OUTSIDE) {
             throw new IllegalArgumentException("Invalid state change at index: " + x + " " + y + " " + z);
         }
 
-        grid.setState(x,y,z,state);
+        grid.setStateWorld(x, y, z, state);
     }
 
     /**
@@ -571,8 +569,8 @@ public class OccupiedWrapper implements AttributeGridWrapper {
      * @param wz The z world coordinate
      * @return True if the coordinate is inside the grid space
      */
-    public boolean insideGrid(double wx, double wy, double wz) {
-        return grid.insideGrid(wx,wy,wz);
+    public boolean insideGridWorld(double wx, double wy, double wz) {
+        return grid.insideGridWorld(wx, wy, wz);
     }
 
     /**

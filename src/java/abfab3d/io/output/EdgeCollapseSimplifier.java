@@ -6,12 +6,10 @@ import org.web3d.vrml.export.X3DBinaryRetainedDirectExporter;
 import org.web3d.vrml.export.X3DBinarySerializer;
 import org.web3d.vrml.sav.BinaryContentHandler;
 import toxi.geom.Line3D;
-import toxi.geom.Ray3D;
 import toxi.geom.Vec3D;
 import toxi.geom.mesh.*;
 import toxi.math.MathUtils;
 
-import javax.vecmath.Vector3d;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.*;
@@ -1002,16 +1000,16 @@ public class EdgeCollapseSimplifier implements MeshSimplifier {
      * @return
      */
     private boolean canCollapseMidPoint(WingedEdge edge, WEVertex mid, Grid grid) {
-        if (!grid.insideGrid(mid.x,mid.y,mid.z)) {
+        if (!grid.insideGridWorld(mid.x, mid.y, mid.z)) {
             return false;
         }
 
-        byte state = grid.getState(mid.x,  mid.y,  mid.z);
+        byte state = grid.getStateWorld(mid.x, mid.y, mid.z);
 
         if (state == Grid.OUTSIDE) {
 System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + edge.b);
-            System.out.println("   a: " + grid.getState(edge.a.x,  edge.a.y,  edge.a.z));
-            System.out.println("   b: " + grid.getState(edge.b.x,  edge.b.y,  edge.b.z));
+            System.out.println("   a: " + grid.getStateWorld(edge.a.x, edge.a.y, edge.a.z));
+            System.out.println("   b: " + grid.getStateWorld(edge.b.x, edge.b.y, edge.b.z));
             return false;
         }
 
@@ -1037,7 +1035,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
         Vec3D emid = null;
         int ratio = 2;  // out_cnt > ratio * in_cnt fails
 
-        if (!grid.insideGrid(mid.x,mid.y,mid.z)) {
+        if (!grid.insideGridWorld(mid.x, mid.y, mid.z)) {
             return false;
         }
 
@@ -1241,7 +1239,7 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
     private boolean canCollapseMidPoint(WingedEdge edge, int dist, Vec3D mid, Grid grid) {
         int[] coords = new int[3];
 
-        if (!grid.insideGrid(mid.x,mid.y,mid.z)) {
+        if (!grid.insideGridWorld(mid.x, mid.y, mid.z)) {
             return false;
         }
 
@@ -1255,8 +1253,8 @@ System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + e
             System.out.println("in_cnt: " + counts[0] + " out: " + counts[1]);
 
             System.out.println("Ignoring outside mid: " + mid + " a: " + edge.a + " b: " + edge.b);
-            System.out.println("   a: " + grid.getState(edge.a.x,  edge.a.y,  edge.a.z));
-            System.out.println("   b: " + grid.getState(edge.b.x,  edge.b.y,  edge.b.z));
+            System.out.println("   a: " + grid.getStateWorld(edge.a.x, edge.a.y, edge.a.z));
+            System.out.println("   b: " + grid.getStateWorld(edge.b.x, edge.b.y, edge.b.z));
 
             return false;
         }

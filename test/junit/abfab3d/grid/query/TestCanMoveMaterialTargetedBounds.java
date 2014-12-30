@@ -342,7 +342,10 @@ public class TestCanMoveMaterialTargetedBounds extends BaseTestAttributeGrid {
 
     /**
      * Test basic operation
+     *
+     * The ignored voxel route was slower, turned test off for now
      */
+/*
     public void testGetIgnoredCount() {
         int size = 20;
 
@@ -384,7 +387,7 @@ public class TestCanMoveMaterialTargetedBounds extends BaseTestAttributeGrid {
         assertTrue("Negative X Axis move of material 3 is not true", escaped == true);
         assertEquals("Ignored voxel count is not 6", 6, query.getIgnoredCount());
     }
-
+*/
     /**
      * Test performance between can move with and without using target bounds.
      */

@@ -623,7 +623,7 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      * @param wz The z world coordinate
      * @return True if the coordinate is inside the grid space
      */
-    public boolean insideGrid(double wx, double wy, double wz) {
+    public boolean insideGridWorld(double wx, double wy, double wz) {
 
         int x = (int) ((wx - xorig) / pixelSize);
         int y = (int) ((wy - yorig) / sheight);

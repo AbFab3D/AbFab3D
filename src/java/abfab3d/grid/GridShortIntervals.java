@@ -123,7 +123,7 @@ public class GridShortIntervals extends GridBitIntervals {
         return ioFunc.getAttribute(get(x,y,z));
     }
 
-    public long getAttribute(double x, double y, double z) {
+    public long getAttributeWorld(double x, double y, double z) {
         int iy = (int) (y / sheight);
         int ix = (int) (x / pixelSize);
         int iz = (int) (z / pixelSize);

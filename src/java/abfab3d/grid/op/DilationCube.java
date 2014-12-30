@@ -27,9 +27,15 @@ public class DilationCube implements Operation, AttributeOperation {
 
     /** The distance from a voxel to dilate */
     private int distance;
+    private boolean keepSize;
 
     public DilationCube(int distance) {
         this.distance = distance;
+    }
+
+    public DilationCube(int distance, boolean keepSize) {
+        this.distance = distance;
+        this.keepSize = keepSize;
     }
 
     /**
@@ -50,13 +56,24 @@ public class DilationCube implements Operation, AttributeOperation {
         int width = dest.getWidth();
         int depth = dest.getDepth();
 
+        Grid dilatedGrid = null;
+
+        if (keepSize) {
+            dilatedGrid = dest.createEmpty(width,
+                    height,
+                    depth,
+                    dest.getVoxelSize(),
+                    dest.getSliceHeight());
+
+        } else {
         // Create an empty copy of the grid, increased by twice the size of
         // the dilation distance
-        Grid dilatedGrid = dest.createEmpty(width + 2 * distance,
+            dilatedGrid = dest.createEmpty(width + 2 * distance,
                                             height + 2 * distance,
                                             depth + 2 * distance,
                                             dest.getVoxelSize(),
                                             dest.getSliceHeight());
+        }
 
         // Loop through original grid to find filled voxels and apply dilation
         for(int y=0; y < height; y++) {

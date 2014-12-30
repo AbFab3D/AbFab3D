@@ -213,12 +213,11 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
 
     /**
      * Get the data of the voxel
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public void getData(double x, double y, double z, VoxelData vd) {
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -246,12 +245,11 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
 
     /**
      * Get the state of the voxel
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public byte getState(double x, double y, double z) {
+    public byte getStateWorld(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -302,12 +300,11 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
 
     /**
      * Get the state of the voxel
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      */
-    public long getAttribute(double x, double y, double z) {
+    public long getAttributeWorld(double x, double y, double z) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -358,14 +355,13 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
 
     /**
      * Set the value of a voxel.
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The voxel state
      * @param material The material
      */
-    public void setData(double x, double y, double z, byte state, long material) {
+    public void setDataWorld(double x, double y, double z, byte state, long material) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);
@@ -505,13 +501,12 @@ public class BlockBasedAttributeGridShort extends BaseAttributeGrid {
 
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
-     *
-     * @param x The x world coordinate
+     *  @param x The x world coordinate
      * @param y The y world coordinate
      * @param z The z world coordinate
      * @param state The value.
      */
-    public void setState(double x, double y, double z, byte state) {
+    public void setStateWorld(double x, double y, double z, byte state) {
         int slice = (int) (y / sheight);
         int s_x = (int) (x / pixelSize);
         int s_z = (int) (z / pixelSize);

@@ -47,7 +47,7 @@ public interface Grid extends Cloneable {
      * @param z The z world coordinate
      * @return The voxel data
      */
-    public void getData(double x, double y, double z, VoxelData data);
+    public void getDataWorld(double x, double y, double z, VoxelData data);
 
     /**
      * Get the data for a voxel.
@@ -85,7 +85,7 @@ public interface Grid extends Cloneable {
      * @param z The z world coordinate
      * @return The voxel state
      */
-    public byte getState(double x, double y, double z);
+    public byte getStateWorld(double x, double y, double z);
 
     /**
      * Get the state of the voxel.
@@ -117,7 +117,7 @@ public interface Grid extends Cloneable {
      * @param state The value.  0 = nothing. > 0 materialID
      * @return material The materialID
      */
-    public void setState(double x, double y, double z, byte state);
+    public void setStateWorld(double x, double y, double z, byte state);
 
     /**
      * Get the grid coordinates for a world coordinate.
@@ -298,7 +298,7 @@ public interface Grid extends Cloneable {
      * @param wz The z world coordinate
      * @return True if the coordinate is inside the grid space
      */
-    public boolean insideGrid(double wx, double wy, double wz);
+    public boolean insideGridWorld(double wx, double wy, double wz);
 
 }
 

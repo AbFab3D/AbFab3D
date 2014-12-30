@@ -162,10 +162,10 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z world coordinate
      * @return The voxel data
      */
-    public void getData(double x, double y, double z, VoxelData vd) {
+    public void getDataWorld(double x, double y, double z, VoxelData vd) {
         verifyRange(x,y,z);
 
-        grid.getData(x,y,z,vd);
+        grid.getDataWorld(x, y, z, vd);
     }
 
     /**
@@ -176,10 +176,10 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param z The z world coordinate
      * @return The voxel state
      */
-    public byte getState(double x, double y, double z) {
+    public byte getStateWorld(double x, double y, double z) {
         verifyRange(x,y,z);
 
-        return grid.getState(x,y,z);
+        return grid.getStateWorld(x, y, z);
     }
 
     /**
@@ -219,10 +219,10 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param state The value.  0 = nothing. > 0 materialID
      * @return material The materialID
      */
-    public void setState(double x, double y, double z, byte state) {
+    public void setStateWorld(double x, double y, double z, byte state) {
         verifyRange(x,y,z);
 
-        grid.setState(x,y,z,state);
+        grid.setStateWorld(x, y, z, state);
     }
 
     /**
@@ -546,8 +546,8 @@ public class RangeCheckWrapper implements GridWrapper {
      * @param wz The z world coordinate
      * @return True if the coordinate is inside the grid space
      */
-    public boolean insideGrid(double wx, double wy, double wz) {
-        return grid.insideGrid(wx,wy,wz);
+    public boolean insideGridWorld(double wx, double wy, double wz) {
+        return grid.insideGridWorld(wx, wy, wz);
     }
 
 }
