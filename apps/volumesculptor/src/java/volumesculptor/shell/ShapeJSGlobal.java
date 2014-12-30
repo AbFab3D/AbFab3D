@@ -14,6 +14,7 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
 import abfab3d.grid.GridShortIntervals;
 
+import abfab3d.grid.op.GridMaker;
 import abfab3d.io.input.STLReader;
 import abfab3d.io.input.SVXReader;
 import abfab3d.io.input.WaveletRasterizer;
@@ -35,12 +36,15 @@ import abfab3d.util.Units;
 
 import abfab3d.datasources.ImageWrapper;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.mozilla.javascript.*;
+import org.web3d.util.*;
+import org.web3d.vrml.export.*;
+import org.web3d.vrml.sav.BinaryContentHandler;
 
 import static abfab3d.util.Units.MM;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.lang.IllegalArgumentException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -83,6 +87,7 @@ public class ShapeJSGlobal {
     private static String outputFileName = "save.x3d";
     
     private static boolean isLocalRun = false;
+    private static boolean isDebugViz = false;
     private static int maxThreadCount;
 
     public static String getOutputFolder(){
@@ -97,6 +102,10 @@ public class ShapeJSGlobal {
      */
     public static void setLocalRun(boolean value){
         isLocalRun = value;
+    }
+
+    public static void setDebugViz(boolean value) {
+        isDebugViz = value;
     }
 
     /**
@@ -135,6 +144,10 @@ public class ShapeJSGlobal {
 
     }
 
+    public static boolean isDebugViz() {
+        return isDebugViz;
+    }
+
     public static String getOutputName(){
         return outputFileName;
     }
@@ -153,7 +166,7 @@ public class ShapeJSGlobal {
     }    
     */
     private static String[] globalFunctionsSecure = {
-        "load", "loadImage","createGrid"
+        "load", "loadImage","createGrid", "createDebug"
     };
     private static String[] globalFunctionsAll = {
         "load", "loadImage","createGrid", "writeAsMesh", "writeAsSVX", 
@@ -162,8 +175,6 @@ public class ShapeJSGlobal {
     private HashMap<String,Object> globals = new HashMap<String,Object>();
 
     public ShapeJSGlobal() {
-        WorldWrapper ww = new WorldWrapper();
-        World world = ww.getWorld();
         globals.put("MM", Units.MM);
         globals.put("MM3", Units.MM3);
         globals.put("CM", Units.CM);
@@ -445,6 +456,104 @@ public class ShapeJSGlobal {
         SVXWriter writer = new SVXWriter();
         writer.write(grid, fname);  
               
+    }
+
+    /**
+     * Create a debug version of the ShapeJS tree
+     * <p/>
+     * This method is defined as a JavaScript function.
+     */
+    public static Object createDebug(Context cx, Scriptable thisObj,
+                                    Object[] args, Function funObj) {
+
+        String filename;
+        AttributeGrid grid;
+        GridMaker maker;
+
+        if (args.length == 3) {
+            if (args[0] instanceof String) {
+                filename = (String) args[0];
+            } else if (args[0] instanceof NativeJavaObject) {
+                filename = (String) ((NativeJavaObject)args[0]).unwrap();
+            } else {
+                throw new IllegalArgumentException("Unhandled type for filename: " + args[0]);
+            }
+            if (args[1] instanceof AttributeGrid) {
+                grid = (AttributeGrid) args[1];
+            } else if (args[1] instanceof NativeJavaObject) {
+                grid = (AttributeGrid) ((NativeJavaObject)args[1]).unwrap();
+            } else {
+                throw new IllegalArgumentException("Unhandled type for grid: " + args[1]);
+            }
+
+            if (args[2] instanceof AttributeGrid) {
+                maker = (GridMaker) args[2];
+            } else if (args[1] instanceof NativeJavaObject) {
+                maker = (GridMaker) ((NativeJavaObject)args[2]).unwrap();
+            } else {
+                throw new IllegalArgumentException("Unhandled type for gridMaker: " + args[2]);
+            }
+        }   else {
+            throw new IllegalArgumentException("Invalid number of arguments to createDebug(filename,Grid,GridMaker)");
+        }
+
+        DataSourceX3DViewer viewer = new DataSourceX3DViewer(maker.getDataSource(),maker.getTransform());
+        FileOutputStream fos = null;
+        BufferedOutputStream bos = null;
+
+        try {
+            fos = new FileOutputStream(filename);
+            bos = new BufferedOutputStream(fos);
+            BinaryContentHandler stream = createX3DWriter("x3dv",bos);
+
+            viewer.generate(grid,stream);
+            stream.endDocument();
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+            return null;
+        } finally {
+            IOUtils.closeQuietly(bos);
+            IOUtils.closeQuietly(fos);
+        }
+        return null;
+    }
+
+    private static BinaryContentHandler createX3DWriter(String format, OutputStream os) {
+        org.web3d.util.ErrorReporter console = new PlainTextErrorReporter();
+
+        int sigDigits = 6; // TODO: was -1 but likely needed
+
+        BinaryContentHandler x3dWriter = null;
+
+        if (format.equals("x3db")) {
+            x3dWriter = new X3DBinaryRetainedDirectExporter(os,
+                    3, 0, console,
+                    X3DBinarySerializer.METHOD_FASTEST_PARSING,
+                    0.001f, true);
+        } else if (format.equals("x3dv")) {
+            if (sigDigits > -1) {
+                x3dWriter = new X3DClassicRetainedExporter(os, 3, 0, console, sigDigits);
+            } else {
+                x3dWriter = new X3DClassicRetainedExporter(os, 3, 0, console);
+            }
+        } else if (format.equals("x3d")) {
+            if (sigDigits > -1) {
+                x3dWriter = new X3DXMLRetainedExporter(os, 3, 0, console, sigDigits);
+            } else {
+                x3dWriter = new X3DXMLRetainedExporter(os, 3, 0, console);
+            }
+        } else {
+            throw new IllegalArgumentException("Unhandled file format: " + format);
+        }
+
+        x3dWriter.startDocument("", "", "utf8", "#X3D", "V3.0", "");
+        x3dWriter.profileDecl("Immersive");
+        x3dWriter.startNode("NavigationInfo", null);
+        x3dWriter.startField("avatarSize");
+        x3dWriter.fieldValue(new float[]{0.01f, 1.6f, 0.75f}, 3);
+        x3dWriter.endNode(); // NavigationInfo
+
+        return x3dWriter;
     }
 
     /**

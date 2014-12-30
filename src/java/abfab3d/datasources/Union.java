@@ -51,7 +51,7 @@ import static abfab3d.util.Units.MM;
 
  */
 
-public class Union  extends TransformableDataSource {
+public class Union  extends TransformableDataSource implements GroupingNode {
     
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
@@ -146,5 +146,9 @@ public class Union  extends TransformableDataSource {
         
         return RESULT_OK;
     }
-    
+
+    @Override
+    public DataSource[] getChildren() {
+        return vDataSources;
+    }
 } // class Union

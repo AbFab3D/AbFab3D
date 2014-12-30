@@ -63,7 +63,11 @@ public abstract class TransformableDataSource implements DataSource, Initializab
     public void setMaterial(DataSource material){
         m_material = material; 
     }
-    
+
+    public VecTransform getTransform() {
+        return m_transform;
+    }
+
     /**
      * @noRefGuide
      */
