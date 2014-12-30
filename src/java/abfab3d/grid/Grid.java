@@ -147,12 +147,24 @@ public interface Grid extends Cloneable {
      */
     public void getGridBounds(double[] min, double[] max);
     
+
+    /**
+     * Get the grid bounds in world coordinates.
+     *
+     */
+    public Bounds getGridBounds();
+
     /**
      * Get the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void getGridBounds(double[] bounds);
 
+    /**
+     * Set the grid bounds in world coordinates.
+     *
+     */
+    public void setGridBounds(Bounds bounds);
     /**
      * Set the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}

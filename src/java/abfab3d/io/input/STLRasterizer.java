@@ -163,6 +163,8 @@ public class STLRasterizer {
 
             grid.setGridBounds(gbounds);
 
+            printf("grid bounds: %s \n",grid.getGridBounds());
+
             mr.getRaster((AttributeGrid)grid);
         }
         return grid;

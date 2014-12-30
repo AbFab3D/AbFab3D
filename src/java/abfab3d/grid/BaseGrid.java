@@ -35,6 +35,9 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public abstract class BaseGrid implements Grid, Cloneable, Serializable {
+
+    static final boolean DEBUG = false;
+
     private static final boolean STATS = false;
 
     // Empty voxel data value
@@ -132,6 +135,9 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         this.hpixelSize = pixelSize / 2.0;
         this.sheight = sheight;
         this.hsheight = sheight / 2.0;
+        this.xorig = bounds.xmin;
+        this.yorig = bounds.ymin;
+        this.zorig = bounds.zmin;
 
         sliceSize = width * depth;
 
@@ -529,35 +535,6 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         max[2] = depth * pixelSize + zorig;
     }
 
-    /**
-       copy grid bounds from srcGrid to destGrid
-     */
-    public static void copyBounds(Grid srcGrid, Grid destGrid){
-
-        double bounds[] = new double[6];
-        srcGrid.getGridBounds(bounds);
-        destGrid.setGridBounds(bounds);
-
-    }
-    
-    /**
-       copy grid bounds from srcGrid to destGrid
-     */
-    public void copyBounds(Grid srcGrid){
-
-        double bounds[] = new double[6];
-        srcGrid.getGridBounds(bounds);
-        this.setGridBounds(bounds);
-
-    }
-    
-    /**
-       round double to the closest integer
-     */
-    public static int roundSize(double s){
-        return (int)(s+0.5);
-    }
-
 
     /**
      * Get the grid bounds in world coordinates.
@@ -565,12 +542,48 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      * @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void getGridBounds(double[] bounds) {
-        bounds[0] = xorig;
-        bounds[2] = yorig;
-        bounds[4] = zorig;
-        bounds[1] = xorig + width * pixelSize;
-        bounds[3] = yorig + height * sheight;
-        bounds[5] = zorig + depth * pixelSize;
+        Bounds b = getGridBounds();
+        bounds[0] = b.xmin;
+        bounds[1] = b.xmax;
+        bounds[2] = b.ymin;
+        bounds[3] = b.ymax;
+        bounds[4] = b.zmin;
+        bounds[5] = b.zmax;
+    }
+
+    /**
+     * Get the grid bounds in world coordinates.
+     */
+    public Bounds getGridBounds() {
+
+        return new Bounds(xorig, xorig + width * pixelSize,
+                          yorig, yorig + height * sheight,
+                          zorig, zorig + depth * pixelSize);
+    }
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *
+     * @param bounds grid bounds 
+     */
+    public void setGridBounds(Bounds bounds) {
+
+        if(DEBUG)printf("setGridBounds(%s)\n", bounds);
+
+        xorig = bounds.xmin;
+        yorig = bounds.ymin;
+        zorig = bounds.zmin;
+
+        pixelSize = (bounds.xmax - bounds.xmin) / width;
+
+        sheight = (bounds.ymax - bounds.ymin) / height;
+
+        double zpixelSize = (bounds.zmax - bounds.zmin) / depth;
+
+        if (Math.abs((pixelSize - zpixelSize) / pixelSize) > 0.01) {
+            throw new IllegalArgumentException(fmt("attempt to set non square pixel in Grid.setBounds(%s): [%12.5g x %12.5g] ", bounds, pixelSize, zpixelSize));
+        }        
+        if(DEBUG)printf("getGridBounds() returns: %s\n", getGridBounds());
     }
 
     /**
@@ -579,24 +592,7 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      * @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void setGridBounds(double[] bounds) {
-
-        xorig = bounds[0];
-        yorig = bounds[2];
-        zorig = bounds[4];
-
-        pixelSize = (bounds[1] - bounds[0]) / width;
-
-        sheight = (bounds[3] - bounds[2]) / height;
-
-        double zpixelSize = (bounds[5] - bounds[4]) / depth;
-
-        if (Math.abs((pixelSize - zpixelSize) / pixelSize) > 0.01) {
-            printf("Grid size: %d %d %d\n", width,height,depth);
-            printf("Grid pixelSize: %f sheight: %f\n", pixelSize, sheight);
-            throw new IllegalArgumentException(fmt("attempt to set non square pixel: [%12.5g x %12.5g]", pixelSize, zpixelSize));
-        }
-
-
+        setGridBounds(new Bounds(bounds));
     }
 
 
@@ -610,8 +606,8 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      */
     public boolean insideGrid(int x, int y, int z) {
         if (x >= 0 && x < width &&
-                y >= 0 && y < height &&
-                z >= 0 && z < depth) {
+            y >= 0 && y < height &&
+            z >= 0 && z < depth) {
 
             return true;
         }
@@ -634,8 +630,8 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
         int z = (int) ((wz - zorig) / pixelSize);
 
         if (x >= 0 && x < width &&
-                y >= 0 && y < height &&
-                z >= 0 && z < depth) {
+            y >= 0 && y < height &&
+            z >= 0 && z < depth) {
 
             return true;
         }
@@ -723,6 +719,32 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     public abstract Object clone();
+
+
+    /**
+       copy grid bounds from srcGrid to destGrid
+     */
+    public static void copyBounds(Grid srcGrid, Grid destGrid){
+
+        destGrid.setGridBounds(srcGrid.getGridBounds());
+
+    }
+    
+    /**
+       copy grid bounds from srcGrid to destGrid
+     */
+    public void copyBounds(Grid srcGrid){
+
+        this.setGridBounds(srcGrid.getGridBounds());
+
+    }
+    
+    /**
+       round double to the closest integer
+     */
+    public static int roundSize(double s){
+        return (int)(s+0.5);
+    }
 
 }
 

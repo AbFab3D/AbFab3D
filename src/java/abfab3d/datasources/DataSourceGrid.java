@@ -186,9 +186,9 @@ public class DataSourceGrid extends TransformableDataSource {
         double v[] = pnt.v;
         // values normalized to voxel size 
         double 
-            x = (v[0]-xmin)*xscale,
-            y = (v[1]-ymin)*yscale,
-            z = (v[2]-zmin)*zscale;        
+            x = (v[0]-xmin)*xscale-0.5, // half voxel shift 
+            y = (v[1]-ymin)*yscale-0.5,
+            z = (v[2]-zmin)*zscale-0.5;        
         int ix = (int)x;
         int iy = (int)y;
         int iz = (int)z;

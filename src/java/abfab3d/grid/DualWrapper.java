@@ -355,12 +355,25 @@ public class DualWrapper implements AttributeGridWrapper {
         grid.getGridBounds(bounds);
 
     }
+    public Bounds getGridBounds(){
+
+        verifyGrid();
+        return grid.getGridBounds();
+
+    }
 
     /**
      * Set the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void setGridBounds(double[] bounds){
+
+        verifyGrid();
+        grid.setGridBounds(bounds);
+
+    }
+
+    public void setGridBounds(Bounds bounds){
 
         verifyGrid();
         grid.setGridBounds(bounds);

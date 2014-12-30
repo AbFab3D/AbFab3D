@@ -12,12 +12,22 @@
 
 package abfab3d.grid;
 
+import static abfab3d.util.Output.fmt;
 
 public class Bounds {
 
     double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
 
     public Bounds(){        
+    }
+
+    public Bounds(double bounds[]){ 
+        this.xmin = bounds[0];
+        this.xmax = bounds[1];
+        this.ymin = bounds[2];
+        this.ymax = bounds[3];
+        this.zmin = bounds[4];
+        this.zmax = bounds[5];    
     }
 
     public Bounds(double sizex, double sizey, double sizez){
@@ -63,5 +73,9 @@ public class Bounds {
 
     public static final int roundSize(double s){        
         return (int)(s + 0.5);
+    }
+
+    public String toString(){
+        return fmt("%9.7f %9.7f %9.7f %9.7f %9.7f %9.7f",xmin, xmax, ymin, ymax, zmin, zmax);
     }
 }

@@ -33,8 +33,12 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
     //int maxAttribute = 100;
     double voxelSize = 0.1*MM;
 
-    public void testSphere(){
+    public void testDummy(){
 
+    }
+
+    public void _testSphere(){
+        printf("testSphere()\n");
         int max_attribute = 100;
         int nx = 128;
         double sphereRadius = 5 * MM;
@@ -91,6 +95,7 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
 
         printf("Hollow grid\n");
         printRow(subsurface, 0, nx, 62, nx / 2, false, 50);
+        printf("\n");
     }
 
     public void _testTorusBumpy(){
@@ -147,8 +152,9 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
         }
     }
 
-    public void testTorusHollow(){
+    public void _testTorusHollow(){
 
+        printf("testTorusHollow()\n");
         int max_attribute = 127;
         int nx = 400;
         double sphereRadius = 17.0 * MM;

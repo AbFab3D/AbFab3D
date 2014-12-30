@@ -26,6 +26,52 @@ public class Subdivider {
     
     static public final int DEFAULTSUBDIVISION = 8;
 
+
+    public static <T> AInterpolator makeInterpolator(Object item, double maxlength){
+
+        AInterpolator<T> interpolator = null;
+        if(item instanceof Vector3d) interpolator = (AInterpolator<T>)new InterpolatorVector3d(maxlength);
+        else if(item instanceof Vector2d) interpolator = (AInterpolator<T>)new InterpolatorVector2d(maxlength);        
+        return interpolator;
+
+    }
+
+
+
+    public static <T> Vector<T> makeQuadricCurve(Vector<T> polyline, boolean closed){
+
+        T item = polyline.get(0);        
+        return makeQuadricCurve(polyline, makeInterpolator(polyline.get(0), 0.), closed);
+
+    }
+
+    /**
+       makes smooth quadric curve from set of points 
+       extra points are inserted at the midpoints of each segment 
+       @param polyline set of imput points 
+       @param interpolator of points        
+       @param closed if true the last point is quadric made closed with smooth connection of ends 
+     */
+    public static <T> Vector<T> makeQuadricCurve(Vector<T> polyline, AInterpolator<T> interpolator, boolean closed){
+        
+        Vector<T> points = new Vector<T>();
+        int count = polyline.size();
+    
+        for(int i = 0; i < count; i++){
+            
+            T p1 = polyline.get(i);           
+            T p2 = polyline.get((i+1)%count);  // closed line 
+            T p12 = interpolator.midpoint(p1,p2);
+            
+            points.add(p12);
+            points.add(p2);
+        }  
+        // add last point
+        points.add(points.get(0));
+        return points;
+        
+    }
+
     /**
        return Vector of points generated from polyline via subdivision procedure 
        @param polyline vector of vertices of polyline 

@@ -310,11 +310,23 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
 
     }
 
+    public Bounds getGridBounds(){
+
+        return grid.getGridBounds();
+
+    }
+
     /**
      * Set the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void setGridBounds(double[] bounds){
+
+        grid.setGridBounds(bounds);
+
+    }
+
+    public void setGridBounds(Bounds bounds){
 
         grid.setGridBounds(bounds);
 

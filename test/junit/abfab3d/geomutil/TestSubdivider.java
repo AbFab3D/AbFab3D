@@ -124,6 +124,25 @@ public class TestSubdivider extends TestCase {
 
     }
 
+    public static void makePolyquad3() {
+
+	double EPS = 0.1;
+
+        Vector<Vector3d> polyline = new Vector<Vector3d>();
+        polyline.add(new Vector3d(0,0,0));
+        polyline.add(new Vector3d(1,0,0));
+        polyline.add(new Vector3d(1,1,0));
+        polyline.add(new Vector3d(1,1,0));
+
+        Vector<Vector3d> points = Subdivider.makeQuadricCurve(polyline, true);
+
+        for(int i = 0; i < points.size(); i++){
+            Vector3d p = points.get(i);
+            printf("%6.3f %6.3f %6.3f\n",p.x,p.y,p.z);
+        }
+
+    }
+
     public static void makePolycubic() {
 
 	double EPS = 0.01;
@@ -147,7 +166,8 @@ public class TestSubdivider extends TestCase {
         //makePolyline();
         //makePolyline1();
         //makePolyquad();
-        makePolyquad2();
+        //makePolyquad2();
+        makePolyquad3();
         //makePolycubic();
 
     }

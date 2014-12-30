@@ -27,6 +27,7 @@ import volumesculptor.shell.Main;
 
 import java.io.File;
 import static abfab3d.util.Units.MM;
+import static abfab3d.util.Output.fmt;
 
 /**
  * Tests the functionality of a VolumeSculptor
@@ -103,12 +104,13 @@ public class TestVolumeSculptor extends TestCase {
             //var height = 38*MM;
             //var layerHeight = 1*MM;
 
-            double expected_volume = 2.1195704306735023E-5;
+            double expected_volume = 2.12E-5;
 
             // I can't see the volume of this changing more then 10% without something being broken
-            double diff = Math.abs(ac.getVolume() - expected_volume);
+            double volume = ac.getVolume();
+            double diff = Math.abs(volume - expected_volume);
 
-            assertTrue("Volume", diff < (expected_volume * 0.10));
+            assertTrue(fmt("wrong volume: expected:%9.7f got:%9.7f",expected_volume, volume), diff < (expected_volume * 0.10));
         } catch(Exception e) {
             e.printStackTrace();
             fail("Exception");

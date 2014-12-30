@@ -301,6 +301,12 @@ public class OccupiedWrapper implements AttributeGridWrapper {
 
     }
 
+    public Bounds getGridBounds(){
+
+        return grid.getGridBounds();
+
+    }
+
     /**
      * Set the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
@@ -310,7 +316,9 @@ public class OccupiedWrapper implements AttributeGridWrapper {
         grid.setGridBounds(bounds);
 
     }
-
+    public void setGridBounds(Bounds bounds){
+        grid.setGridBounds(bounds);
+    }
 
     /**
      * Count a class of voxels types.  May be much faster then

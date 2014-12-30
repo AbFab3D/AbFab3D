@@ -277,10 +277,29 @@ public class RangeCheckWrapper implements GridWrapper {
     }
 
     /**
+     * Get the grid bounds in world coordinates.
+     */
+    public Bounds getGridBounds(){
+
+        return grid.getGridBounds();
+
+    }
+
+    /**
      * Set the grid bounds in world coordinates.
      *  @param bounds array {xmin, xmax, ymin, ymax, zmin, zmax}
      */
     public void setGridBounds(double[] bounds){
+
+        grid.setGridBounds(bounds);
+
+    }
+
+    /**
+     * Set the grid bounds in world coordinates.
+     *  @param bounds griud bounds 
+     */
+    public void setGridBounds(Bounds bounds){
 
         grid.setGridBounds(bounds);
 

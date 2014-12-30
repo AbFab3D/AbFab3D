@@ -39,8 +39,8 @@ function main(args) {
   var baseFile = args[0];
   var img = args[1];
   var grid = load(baseFile,0.2*MM);
-
-  var bounds = java.lang.reflect.Array.newInstance(java.lang.Double.TYPE,6);
+  print("grid bounds: " + grid.getGridBounds());
+  //var bounds = java.lang.reflect.Array.newInstance(java.lang.Double.TYPE,6);
   
   var dest = createGrid(grid,0,0,5*MM);
   var diff = new Union(new DataSourceGrid(grid, 255), makePattern(grid,img));
