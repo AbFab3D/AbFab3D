@@ -1,6 +1,5 @@
 package gpu;
 
-import abfab3d.grid.NIOAttributeGridByte;
 import com.jogamp.opencl.CLCommandQueue;
 import com.jogamp.opencl.CLEvent;
 import com.jogamp.opencl.CLEventList;

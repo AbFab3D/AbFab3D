@@ -1,0 +1,221 @@
+<?xml version="1.0" standalone="yes"?>
+
+<project basedir="." default="build" name="gpu">
+    <import file="build_common.xml"/>
+
+    <description>gpu</description>
+
+    <property name="version" value="1.0.0"/>
+    <property name="src.dir" value="${basedir}/src"/>
+    <property name="apps.dir" value="${basedir}/apps"/>
+    <property name="apps.common.dir" value="../common"/>
+    <property name="shapejs.dir" value="../shapejs"/>
+    <property name="release.dir" value="${basedir}/release"/>
+    <property name="test.dir" value="${basedir}/test/junit"/>
+    <property name="abfab3d.classes.dir" value="../../classes"/>
+    <property name="classes.dir" value="${basedir}/classes"/>
+    <property name="test.classes.dir" value="${classes.dir}/test" />
+    <property name="jar.dir" value="${basedir}/jars"/>
+    <property name="lib.dir" value="${basedir}/lib"/>
+    <property name="abfab3d.lib.dir" value="../../lib"/>
+    <property name="abfab3d.jars.dir" value="../../jars"/>
+    <property name="manifest.dir" value="${basedir}/manifest"/>
+    <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
+    <property name="app.common.dir" value="../common"/>
+    <property name="xj3d.dir" value="../../../../../xj3d/code/trunk"/>
+    <property name="av3d.dir" value="../../j3d.org/aviatrix3d-2/aviatrix3d"/>
+
+    <property name="entrypoint" value="volumesculptor.VolumeSculptor"/>
+
+    <property name="runarg0" value="-Xmx8800m"/>
+    <property name="jvmrunargs" value="${runarg0}"/>
+
+    <target name="build"
+            description="Complete clean, setup, compilation, run"
+            depends="clean,init,kernels,compile,jar"/>
+
+    <!-- Create destination directories -->
+    <target name="init" description="Create destination directories">
+        <mkdir dir="${classes.dir}"/>
+        <mkdir dir="${javadocs.dir}"/>
+    </target>
+
+    <target name="compileCommon">
+        <ant antfile="${apps.common.dir}/build.xml" target="build" inheritall="false"/>
+    </target>
+
+    <target name="compileTest" depends="init" description="Compile all Test source files">
+        <mkdir dir="${test.classes.dir}" />
+
+        <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="gpu" jars="**/*.jar" >
+            <classpath-elements>
+                <pathelement path="${classes.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
+    </target>
+
+    <target name="compile" depends="init" description="Compile all Java source files">
+        <compilejava package="gpu"
+                     jars="jocl.jar commons-pool2-2.3.jar gluegen-rt.jar"
+                >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
+        <compilejava package="gpu"
+                     jars=""
+                >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
+    </target>
+
+    <target name="kernels" >
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}/opencl"/>
+        </copy>
+    </target>
+    <target name="jar" depends="compile">
+        <createjar name="gpu" 
+            version="${version}"
+            manifest="gpu.mf"
+            includes="gpu/*
+            "
+        />		
+    </target>
+    <target name="test" depends="compileTest,kernels">
+        <junit dir="${basedir}" printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes" >
+                <fileset dir="${test.dir}">
+                    <include name="**/Test*.java"/>
+                    <exclude name="**/*Performance*.java"/>
+                    <exclude name="**/*Suite*.java"/>
+                </fileset>
+            </batchtest>
+
+            <classpath>
+                <pathelement path="${abfab3d.classes.dir}" />
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${test.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+                <fileset dir="${abfab3d.lib.dir}" includes="**/*.jar" />
+            </classpath>
+        </junit>
+    </target>
+    <target name="testSpecific" depends="compileTest">
+        <echo message="running testSpecific ${test} jvmargs: ${jvmrunargs}" />
+        <junit printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="yes">
+            <jvmarg line="${jvmrunargs}"/>
+            <formatter type="plain" usefile="false"/>
+            <batchtest fork="yes" >
+                <fileset dir="${test.dir}">
+                    <include name="**/${test}.java"/>
+                </fileset>
+            </batchtest>
+
+            <classpath>
+                <pathelement path="${abfab3d.classes.dir}" />
+                <pathelement path="${classes.dir}" />
+                <pathelement path="${test.classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" />
+                <fileset dir="${abfab3d.lib.dir}" includes="**/*.jar" />
+            </classpath>
+        </junit>
+    </target>
+
+
+    <target name="run" depends="compile" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}"/>
+        <java classname="volumesculptor.ui.Editor" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
+    <target name="runShell" depends="compile" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}"/>
+        <java classname="volumesculptor.shell.Main" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <arg value="-threads" />
+            <arg value="8" />
+            <arg value="-allowWrite" />
+            <arg value="true" />
+            <arg value="-debugViz" />
+            <arg value="true" />
+            <arg value="-outputType" />
+            <arg value="stl" />
+            <arg value="-outputFolder"/>
+            <arg value="." />
+            <arg value="-namedParams" />
+            <arg value="${namedParams}" />
+            <arg value="${script}" />
+            <arg value="${arg0}" />
+            <arg value="${arg1}" />
+            <arg value="${arg2}" />
+            <arg value="${arg3}" />
+            <arg value="${arg4}" />
+            <arg value="${arg5}" />
+            <arg value="${arg6}" />
+            <arg value="${arg7}" />
+            <arg value="${arg8}" />
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
+    <target name="runStandalone" depends="" description="Run the application">
+        <echo message="jvmargs: ${jvmrunargs}"/>
+        <java classname="volumesculptor.ui.Editor" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
+    <target name="javadoc" description="Generates javadoc" depends="compile">
+        <echo message="Generating javadoc..."/>
+        <javadoc sourcepath="${src.dir}/java"
+                 destdir="${javadocs.dir}"
+                 packagenames="*"
+                 version="true"
+                 author="yes">
+        </javadoc>
+    </target>
+
+    <target name="clean" description="Deletes all the generated artifacts.">
+        <delete dir="${javadocs.dir}"/>
+        <delete dir="${classes.dir}"/>
+        <delete file="src/java/volumesculptor/ui/Editor.java" />
+    </target>
+
+</project>
+

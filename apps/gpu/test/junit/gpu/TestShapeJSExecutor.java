@@ -55,7 +55,7 @@ public class TestShapeJSExecutor extends TestCase {
         return new TestSuite(TestShapeJSExecutor.class);
     }
 
-    public void testBasic() {
+    public void _testBasic() {
         ShapeJSExecutor exec = new ShapeJSExecutor();
 
         DataSource source = null;
@@ -136,12 +136,12 @@ public class TestShapeJSExecutor extends TestCase {
         double tot_gpu = 0;
         for (int i = 0; i < Math.max(CPU_ST_TIMES, GPU_TIMES); i++) {
             if (GPU_TIMES >= i + 1) {
-                printf("run: %2d  cpu_st: %7d cpu_mt: %7d gpu: %7d s1: %4.2f  s2: %4.2f\n", i, (long) (cpuSTTimes[i] / 1e6), (long) (cpuMTTimes[i] / 1e6), (long) (gpuTimes[i] / 1e6), ((float) cpuSTTimes[i] / gpuTimes[i]), ((float) cpuMTTimes[i] / gpuTimes[i]));
+                printf("run:%2d  cpu_st: %6d cpu_mt: %6d gpu: %6d s1: %4.2f  s2: %4.2f\n", i, (long) (cpuSTTimes[i] / 1e6), (long) (cpuMTTimes[i] / 1e6), (long) (gpuTimes[i] / 1e6), ((float) cpuSTTimes[i] / gpuTimes[i]), ((float) cpuMTTimes[i] / gpuTimes[i]));
                 tot_gpu += gpuTimes[i] / 1e6;
                 tot_cpu_st += cpuSTTimes[i] / 1e6;
                 tot_cpu_mt += cpuMTTimes[i] / 1e6;
             } else {
-                printf("run: %2d  cpu_st: %7d  cpu_mt: %7d  speedup: %4.2f\n", i, (long) (cpuSTTimes[i] / 1e6), (long) (cpuMTTimes[i] / 1e6), ((float) cpuSTTimes[i] / cpuMTTimes[i]));
+                printf("run:%2d  cpu_st: %6d  cpu_mt: %6d  speedup: %4.2f\n", i, (long) (cpuSTTimes[i] / 1e6), (long) (cpuMTTimes[i] / 1e6), ((float) cpuSTTimes[i] / cpuMTTimes[i]));
                 tot_cpu_st += cpuSTTimes[i] / 1e6;
                 tot_cpu_mt += cpuMTTimes[i] / 1e6;
             }
