@@ -47,40 +47,6 @@ public class NIOAttributeGridByte extends BaseAttributeGrid {
     /**
      * Constructor.
      *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public NIOAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
-                pixel,
-                sheight, null);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public NIOAttributeGridByte(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
-        this((int) (Math.ceil(w / pixel)) + 1,
-                (int) (Math.ceil(h / sheight)) + 1,
-                (int) (Math.ceil(d / pixel)) + 1,
-                pixel,
-                sheight, ioFunc);
-    }
-
-    /**
-     * Constructor.
-     *
      * @param w The number of voxels in width
      * @param h The number of voxels in height
      * @param d The number of voxels in depth
@@ -125,7 +91,6 @@ public class NIOAttributeGridByte extends BaseAttributeGrid {
         //this.data = grid.data.clone();
         ByteBuffer buff = (ByteBuffer) grid.getBuffer();
         buff.rewind();
-        System.out.println("IsDirect:" + buff.isDirect() + "buff: " + buff);
         byte[] bytes = new byte[buff.limit()];
         buff.get(bytes);
         buff.rewind();
@@ -153,45 +118,6 @@ public class NIOAttributeGridByte extends BaseAttributeGrid {
     }
 
     /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public void getDataWorld(double x, double y, double z, VoxelData vd) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-        long d = data.get(idx) & 0xFF;
-        long att = ioFunc.getAttribute(d);
-        byte state = ioFunc.getState(d);
-
-        vd.setData(state, att);
-    }
-
-    /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public byte getStateWorld(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        return ioFunc.getState(data.get(idx) & 0xFF);
-    }
-
-    /**
      * Get the state of the voxel.
      *
      * @param x The x world coordinate
@@ -205,23 +131,6 @@ public class NIOAttributeGridByte extends BaseAttributeGrid {
         return ioFunc.getState(data.get(idx) & 0xFF);
     }
 
-    /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel material
-     */
-    public long getAttributeWorld(double x, double y, double z) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        return ioFunc.getAttribute(data.get(idx) & 0xFF );
-    }
 
     /**
      * Get the material of the voxel.
@@ -235,24 +144,6 @@ public class NIOAttributeGridByte extends BaseAttributeGrid {
         int idx = y * sliceSize + x * depth + z;
 
         return ioFunc.getAttribute((data.get(idx) & 0xFF));
-    }
-
-    /**
-     * Set the value of a voxel.
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The voxel state
-     * @param material The material
-     */
-    public void setDataWorld(double x, double y, double z, byte state, long material) {
-        int slice = (int) (y / sheight);
-        int s_x = (int) (x / pixelSize);
-        int s_z = (int) (z / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        data.put(idx,(byte) ioFunc.combineStateAndAttribute(state,material));
     }
 
     /**
@@ -338,24 +229,6 @@ public class NIOAttributeGridByte extends BaseAttributeGrid {
 
     public Buffer getBuffer() {
         return data;
-    }
-
-    /**
-     * Set the grid bounds in world coordinates.
-     *
-     * @param bounds grid bounds
-     */
-    public void setGridBounds(Bounds bounds) {
-
-        xorig = bounds.xmin;
-        yorig = bounds.ymin;
-        zorig = bounds.zmin;
-
-        pixelSize = (bounds.xmax - bounds.xmin) / width;
-
-        sheight = (bounds.ymax - bounds.ymin) / height;
-
-        // TODO: removed square pixel test as this is just a container.
     }
 
 }

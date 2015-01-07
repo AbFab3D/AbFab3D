@@ -84,6 +84,7 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
             grid.getVoxelSize(), grid.getSliceHeight(),grid.ioFunc);
         this.data = grid.data.clone();
+        copyBounds(grid);
     }
 
     /**
@@ -127,42 +128,6 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     }
 
     /**
-     * Get the data of the voxel
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public void getDataWorld(double x, double y, double z, VoxelData vd) {
-
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        long att = ioFunc.getAttribute(data[idx]);
-        byte state = ioFunc.getState(data[idx]);
-
-        vd.setData(state, att);
-    }
-
-    /**
-     * Get the state of the voxel
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public byte getStateWorld(double x, double y, double z) {
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        return ioFunc.getState(data[idx]);
-    }
-
-    /**
      * Get the state of the voxel.
      *
      * @param x The x world coordinate
@@ -176,22 +141,6 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     }
 
     /**
-     * Get the state of the voxel
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public long getAttributeWorld(double x, double y, double z) {
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        return ioFunc.getAttribute(data[idx]);
-    }
-
-    /**
      * Get the material of the voxel.
      *
      * @param x The x world coordinate
@@ -202,24 +151,6 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
         int idx = y * sliceSize + x * depth + z;
 
         return ioFunc.getAttribute(data[idx]);
-    }
-
-    /**
-     * Set the value of a voxel.
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The voxel state
-     * @param material The material
-     */
-    public void setDataWorld(double x, double y, double z, byte state, long material) {
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        data[idx] = (int) ioFunc.combineStateAndAttribute(state,material);
     }
 
     /**
@@ -267,30 +198,10 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     }
 
     /**
-     * Set the state value of a voxel.  Leaves the material unchanged.
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The value.  0 = nothing. > 0 materialID
-     */
-    public void setStateWorld(double x, double y, double z, byte state) {
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        long att = ioFunc.getAttribute(data[idx]);
-        data[idx] = (int) ioFunc.combineStateAndAttribute(state,att);
-    }
-
-    /**
      * Clone the object.
      */
     public Object clone() {
         ArrayAttributeGridInt ret_val = new ArrayAttributeGridInt(this);
-
-        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }

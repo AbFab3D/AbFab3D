@@ -39,22 +39,7 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
     public ArrayAttributeGridByte(int w, int h, int d, double pixel, double sheight) {
         this(w,h,d,pixel,sheight,null);
     }
-
-    /**
-     * Constructor.
-     *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    
-    //public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight) {
-    //    this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel,sheight, null);
-    //}
-    
-
+        
     /**
      * Constructor.
      *
@@ -68,19 +53,6 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         super(bounds, pixel,sheight);
         allocateData();
     }
-
-    /**
-     * Constructor.
-     *
-     * @param w The width in world coords
-     * @param h The height in world coords
-     * @param d The depth in world coords
-     * @param pixel The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    //public ArrayAttributeGridByte(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
-    //    this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, ioFunc);
-    //}
 
     /**
      * Constructor.
@@ -128,7 +100,8 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
      */
     public ArrayAttributeGridByte(ArrayAttributeGridByte grid) {
         super(grid.getWidth(), grid.getHeight(), grid.getDepth(),
-                grid.getVoxelSize(), grid.getSliceHeight(),grid.ioFunc);
+              grid.getVoxelSize(), grid.getSliceHeight(),grid.ioFunc);
+        copyBounds(grid);
         this.data = grid.data.clone();
     }
 
@@ -152,52 +125,6 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
     }
 
     /**
-     * Get the data of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public void getDataWorld(double x, double y, double z, VoxelData vd) {
-
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-        long d = data[idx] & 0xFF;
-        long att = ioFunc.getAttribute(d);
-        byte state = ioFunc.getState(d);
-
-        vd.setData(state, att);
-    }
-
-    /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel state
-     */
-    public byte getStateWorld(double x, double y, double z) {
-
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        // TODO: remove me
-        if (idx < 0 || idx > data.length - 1) {
-            System.out.println("****problem iob");
-            System.out.flush();
-        }
-        return ioFunc.getState(data[idx] & 0xFF);
-    }
-
-    /**
      * Get the state of the voxel.
      *
      * @param x The x world coordinate
@@ -212,25 +139,6 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
     }
 
     /**
-     * Get the state of the voxel
-     *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @return The voxel material
-     */
-    public long getAttributeWorld(double x, double y, double z) {
-
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        return ioFunc.getAttribute(data[idx] & 0xFF );
-    }
-
-    /**
      * Get the material of the voxel.
      *
      * @param x The x world coordinate
@@ -242,25 +150,6 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
         int idx = y * sliceSize + x * depth + z;
 
         return ioFunc.getAttribute((data[idx] & 0xFF));
-    }
-
-    /**
-     * Set the value of a voxel.
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The voxel state
-     * @param material The material
-     */
-    public void setDataWorld(double x, double y, double z, byte state, long material) {
-
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        data[idx] = (byte) ioFunc.combineStateAndAttribute(state,material);
     }
 
     /**
@@ -295,32 +184,14 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
     /**
      * Set the state value of a voxel.  Leaves the material unchanged.
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
      * @param state The value.
      */
     public void setState(int x, int y, int z, byte state) {
         int idx = y * sliceSize + x * depth + z;
 
-        long att = ioFunc.getAttribute(data[idx] & 0xFF);
-        data[idx] = (byte) ioFunc.combineStateAndAttribute(state,att);
-    }
-
-    /**
-     * Set the state value of a voxel.  Leaves the material unchanged.
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     * @param state The value.
-     */
-    public void setStateWorld(double x, double y, double z, byte state) {
-
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
         long att = ioFunc.getAttribute(data[idx] & 0xFF);
         data[idx] = (byte) ioFunc.combineStateAndAttribute(state,att);
     }
@@ -340,9 +211,6 @@ public class ArrayAttributeGridByte extends BaseAttributeGrid {
     public Object clone() {
 
         ArrayAttributeGridByte ret_val = new ArrayAttributeGridByte(this);
-        BaseGrid.copyBounds(this, ret_val);
         return ret_val;
     }
 }
-
-
