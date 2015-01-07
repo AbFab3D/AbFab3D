@@ -16,7 +16,7 @@ import static abfab3d.util.Output.fmt;
 
 public class Bounds {
 
-    double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
+    public double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
 
     public Bounds(){        
     }

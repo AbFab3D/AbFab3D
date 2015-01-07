@@ -12,6 +12,7 @@
       <module fileurl="file://$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" filepath="$PROJECT_DIR$/apps/ringpopper/src/java/Ringpopper.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" filepath="$PROJECT_DIR$/apps/stemfastener/src/Stemfastener.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/cloth/src/cloth.iml" filepath="$PROJECT_DIR$/apps/cloth/src/cloth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/apps/gpu/src/gpu.iml" filepath="$PROJECT_DIR$/apps/gpu/src/gpu.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/svxconv/src/svxconv.iml" filepath="$PROJECT_DIR$/apps/svxconv/src/svxconv.iml" />
       <module fileurl="file://$PROJECT_DIR$/apps/volumesculptor/src/volumesculptor.iml" filepath="$PROJECT_DIR$/apps/volumesculptor/src/volumesculptor.iml" />
       <module fileurl="file://$PROJECT_DIR$/examples/voxelize/voxelize.iml" filepath="$PROJECT_DIR$/examples/voxelize/voxelize.iml" />

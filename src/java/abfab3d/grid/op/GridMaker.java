@@ -19,13 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
 import java.util.concurrent.TimeUnit;
 
-import abfab3d.grid.Grid;
-import abfab3d.grid.AttributeDesc;
-import abfab3d.grid.AttributeMaker;
-import abfab3d.grid.AttributeMakerDensity;
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.Operation;
-import abfab3d.grid.AttributeOperation;
+import abfab3d.grid.*;
 
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.*;
@@ -168,11 +162,21 @@ public class GridMaker implements Operation, AttributeOperation {
     /**
        obsolete. Bounds are stored in Grid 
      */
-    public void setBounds(double bounds[]){
+    public void setBounds(Bounds bounds){
 
         initBounds(bounds);
         boundsSet = true;
         
+    }
+
+    /**
+     obsolete. Bounds are stored in Grid
+     */
+    public void setBounds(double bounds[]){
+
+        initBounds(bounds);
+        boundsSet = true;
+
     }
 
     public VecTransform getTransform() {
@@ -192,8 +196,17 @@ public class GridMaker implements Operation, AttributeOperation {
         m_sizeX = bounds[1] - bounds[0];
         m_sizeY = bounds[3] - bounds[2];
         m_sizeZ = bounds[5] - bounds[4];
+    }
 
+    protected void initBounds(Bounds bounds){
 
+        m_centerX = (bounds.xmin + bounds.xmax)/2;
+        m_centerY = (bounds.ymin + bounds.ymax)/2;
+        m_centerZ = (bounds.zmin + bounds.zmax)/2;
+
+        m_sizeX = bounds.xmax - bounds.xmin;
+        m_sizeY = bounds.ymax - bounds.ymin;
+        m_sizeZ = bounds.zmax - bounds.zmin;
     }
 
     public Grid execute(Grid grid) {
@@ -428,6 +441,18 @@ public class GridMaker implements Operation, AttributeOperation {
         }
     }
 
+
+    public void getTransform(Grid grid, double[] voxel, double[] offset) {
+        voxel[0] = m_sizeX / grid.getWidth();
+        voxel[1] = m_sizeY / grid.getHeight();
+        voxel[2] = m_sizeZ / grid.getDepth();
+
+        // half voxel shift get coordinate of the center of voxel
+        offset[0] = m_centerX - m_sizeX/2 + voxelX/2;
+        offset[1] = m_centerY - m_sizeY/2 + voxelY/2;
+        offset[2] = m_centerZ - m_sizeZ/2 + voxelZ/2;
+        //printf("size: %6.6f %6.6f %6.6f center: %6.6f %6.6f %6.6f voxel: %6.6f %6.6f %6.6f\n",m_sizeX,m_sizeY,m_sizeZ,m_centerX,m_centerY,m_centerZ,voxelX,voxelY,voxelZ);
+    }
 
     void transformToWorldSpace(Vec gridPnt, Vec worldPnt){
 
