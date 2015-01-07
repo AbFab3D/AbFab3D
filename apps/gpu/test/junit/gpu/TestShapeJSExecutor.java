@@ -96,8 +96,8 @@ public class TestShapeJSExecutor extends TestCase {
         Bounds bnds = new Bounds(bounds);
 
         int CPU_ST_TIMES = 0;
-        int CPU_MT_TIMES = 0;
-        int GPU_TIMES = 8;
+        int CPU_MT_TIMES = 1;
+        int GPU_TIMES = 6;
         int max_cpu_threads = 8;
         if (Runtime.getRuntime().availableProcessors() > max_cpu_threads) max_cpu_threads = Runtime.getRuntime().availableProcessors();
 
