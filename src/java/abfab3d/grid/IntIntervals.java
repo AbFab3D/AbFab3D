@@ -34,7 +34,9 @@ import static abfab3d.util.Output.printf;
  */
 public class IntIntervals implements RowOfInt {
 
-    public static final long MASK  = 0xffffffff;
+    static final boolean DEBUG = false;
+
+    public static final long MASK  = 0xffffffffL;
     public static final long SHIFT = 32;
 
     static final long MIN_VALUE = makeCode(Integer.MIN_VALUE, 0);
@@ -84,7 +86,7 @@ public class IntIntervals implements RowOfInt {
        decode interval
     */
     static final int getStart(long code){
-        return (int)((short)(code & MASK));
+        return (int)(code & MASK);
     }
 
     /**
@@ -119,8 +121,11 @@ public class IntIntervals implements RowOfInt {
     }
 
     public synchronized void set(int x, long material){
-        //if(true) return;
-        //printX(x, material);
+        if(DEBUG) {
+            printf("IntIntervals.set(%d, %d)\n", x, material);
+            dump();
+            printX(x, material);
+        }
 
         if(m_curcount == 0) { // no interval exist (all vaues are 0s)
 
@@ -249,7 +254,7 @@ public class IntIntervals implements RowOfInt {
 
 
     /**
-       inserts single pont of data after ind
+       inserts single point of data after ind
 
      */
     void insertPointAfter(int ind, long code){
@@ -394,7 +399,7 @@ public class IntIntervals implements RowOfInt {
         return 0;
     }
 
-    public static void printX(int x, int value){
+    public static void printX(int x, long value){
 
         for(int k = 0; k < x; k++){
             printf(" ");

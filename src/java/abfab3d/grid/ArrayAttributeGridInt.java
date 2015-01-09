@@ -25,6 +25,9 @@ package abfab3d.grid;
  * @author Alan Hudson
  */
 public class ArrayAttributeGridInt extends BaseAttributeGrid {
+
+    static final long DATA_MASK = 0xFFFFFFFFL;
+
     protected int[] data;
 
     /**
@@ -130,9 +133,9 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     /**
      * Get the state of the voxel.
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
      */
     public byte getState(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
@@ -143,14 +146,14 @@ public class ArrayAttributeGridInt extends BaseAttributeGrid {
     /**
      * Get the material of the voxel.
      *
-     * @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
+     * @param x The x grid coordinate
+     * @param y The y grid coordinate
+     * @param z The z grid coordinate
      */
     public long getAttribute(int x, int y, int z) {
         int idx = y * sliceSize + x * depth + z;
 
-        return ioFunc.getAttribute(data[idx]);
+        return ioFunc.getAttribute(data[idx] & DATA_MASK);
     }
 
     /**

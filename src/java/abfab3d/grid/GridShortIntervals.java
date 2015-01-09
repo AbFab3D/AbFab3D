@@ -22,6 +22,8 @@ import static abfab3d.util.Output.fmt;
  */
 public class GridShortIntervals extends GridBitIntervals {
 
+    // bit mask for maximal data stored in the grid 
+    static final long DATA_MASK = 0xFFFFL;
     /**
      * copy constructor
      */
@@ -37,6 +39,9 @@ public class GridShortIntervals extends GridBitIntervals {
 
     }
 
+    public GridShortIntervals(Bounds bounds, double pixelSize, double sliceHeight) {
+        super(bounds, pixelSize, sliceHeight);
+    }
     public GridShortIntervals(int nx, int ny, int nz, double pixelSize, double sliceHeight) {
         this(nx, ny, nz, pixelSize, sliceHeight, null);
     }
@@ -47,32 +52,6 @@ public class GridShortIntervals extends GridBitIntervals {
 
     public GridShortIntervals(int nx, int ny, int nz, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc) {
         this(nx, ny, nz, ORIENTATION_Z, pixelSize, sliceHeight, ioFunc);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param w       The width in world coords
-     * @param h       The height in world coords
-     * @param d       The depth in world coords
-     * @param pixel   The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public GridShortIntervals(double w, double h, double d, double pixel, double sheight) {
-        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel),  pixel, sheight);
-    }
-
-    /**
-     * Constructor.
-     *
-     * @param w       The width in world coords
-     * @param h       The height in world coords
-     * @param d       The depth in world coords
-     * @param pixel   The size of the pixels
-     * @param sheight The slice height in meters
-     */
-    public GridShortIntervals(double w, double h, double d, double pixel, double sheight, InsideOutsideFunc ioFunc) {
-        this(roundSize(w / pixel),roundSize(h / sheight),roundSize(d / pixel), pixel, sheight, ioFunc);
     }
 
     public GridShortIntervals(int nx, int ny, int nz, int orientation, double pixelSize, double sliceHeight, InsideOutsideFunc ioFunc) {
@@ -123,14 +102,6 @@ public class GridShortIntervals extends GridBitIntervals {
         return ioFunc.getAttribute(get(x,y,z));
     }
 
-    public long getAttributeWorld(double x, double y, double z) {
-        int iy = (int) (y / sheight);
-        int ix = (int) (x / pixelSize);
-        int iz = (int) (z / pixelSize);
-
-        return ioFunc.getAttribute(get(ix,iy,iz));
-    }
-
     public void setData(int x, int y, int z, byte state, long attribute) {
 
         // Optimization as search is expensive
@@ -140,14 +111,13 @@ public class GridShortIntervals extends GridBitIntervals {
 
         if (curState == state && curAtt == attribute)
             return;
-
-        set(x, y, z, ioFunc.combineStateAndAttribute(state,attribute));
+        set(x, y, z, DATA_MASK & ioFunc.combineStateAndAttribute(state,attribute));
     }
 
     /**
      * set raw data at given point
      */
-    public void set(int x, int y, int z, int value) {
+    public void set(int x, int y, int z, long value) {
 
         int ind = x + m_nx * y;
         RowOfInt interval = m_data[ind];

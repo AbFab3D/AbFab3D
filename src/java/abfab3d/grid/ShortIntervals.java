@@ -34,6 +34,8 @@ import static abfab3d.util.Output.printf;
  */
 public class ShortIntervals implements RowOfInt {
 
+    static final boolean DEBUG = false;
+
     public static final int MASK  = 0xffff;
     public static final int SHIFT = 16;
 
@@ -120,9 +122,11 @@ public class ShortIntervals implements RowOfInt {
     }
 
     public synchronized void set(int x, long material){
-        //if(true) return;
-        //printX(x, material);
-
+        if(DEBUG) {
+            printf("IntIntervals.set(%d, %d)\n", x, material);
+            dump();
+            printX(x, material);
+        }
         if(m_curcount == 0) { // no interval exist (all vaues are 0s)
 
             if(material == 0){  // nothing to do
@@ -395,7 +399,7 @@ public class ShortIntervals implements RowOfInt {
         return 0;
     }
 
-    public static void printX(int x, int value){
+    public static void printX(int x, long value){
 
         for(int k = 0; k < x; k++){
             printf(" ");

@@ -182,23 +182,6 @@ public class ArrayAttributeGridShort extends BaseAttributeGrid {
     }
 
     /**
-     * Get the state of the voxel
-     *  @param x The x world coordinate
-     * @param y The y world coordinate
-     * @param z The z world coordinate
-     */
-    public long getAttributeWorld(double x, double y, double z) {
-
-        int slice = (int)((y-yorig) / sheight);
-        int s_x =   (int)((x-xorig) / pixelSize);
-        int s_z =   (int)((z-zorig) / pixelSize);
-
-        int idx = slice * sliceSize + s_x * depth + s_z;
-
-        return ioFunc.getAttribute(data[idx] & 0xFFFF);
-    }
-
-    /**
      * Get the material of the voxel.
      *
      * @param x The x world coordinate

@@ -13,16 +13,21 @@
 package abfab3d.grid;
 
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
+
+
 
 /**
  * grid array to represent int values
- * Implemented as 2D array of intervals of shorts
+ * Implemented as 2D array of intervals of ints
  *  
- * TODO implement it, not implemented  
  * @author Vladimir Bulatov
  */
 public class GridIntIntervals extends GridBitIntervals {
 
+    // bit mask for maximal data stored in the grid 
+    static final long DATA_MASK = 0xFFFFFFFFL;
+    static final boolean DEBUG = false;
     /**
      * copy constructor
      */
@@ -58,9 +63,9 @@ public class GridIntIntervals extends GridBitIntervals {
     /**
      * Constructor.
      *
-     * @param w       The width in world coords
-     * @param h       The height in world coords
-     * @param d       The depth in world coords
+     * @param w       The width in grid coords
+     * @param h       The height in grid coords
+     * @param d       The depth in grid coords
      * @param pixel   The size of the pixels
      * @param sheight The slice height in meters
      */
@@ -105,16 +110,18 @@ public class GridIntIntervals extends GridBitIntervals {
     public void setAttribute(int x, int y, int z, long attribute) {
 
         long curCode = get(x, y, z);
-
+        
         long curAtt = ioFunc.getAttribute(curCode);
         if (curAtt == attribute)
             return;
-
+        
         set(x, y, z, ioFunc.updateAttribute(curCode,attribute));
     }
 
     public long getAttribute(int x, int y, int z) {
-        return ioFunc.getAttribute(get(x,y,z));
+
+        return ioFunc.getAttribute(get(x,y,z) & DATA_MASK);
+
     }
 
 
@@ -128,14 +135,14 @@ public class GridIntIntervals extends GridBitIntervals {
         if (curState == state && curAtt == attribute)
             return;
 
-        set(x, y, z, ioFunc.combineStateAndAttribute(state,attribute));
+        set(x, y, z, DATA_MASK & ioFunc.combineStateAndAttribute(state,attribute));
     }
 
     /**
      * set raw data at given point
      */
-    public void set(int x, int y, int z, int value) {
-
+    public void set(int x, int y, int z, long value) {
+        if(DEBUG)printf("set(%d %d %d %d)\n", x,y,z,value);
         int ind = x + m_nx * y;
         RowOfInt interval = m_data[ind];
         //RowOfInt interval = null;//m_data[ind];
@@ -145,7 +152,7 @@ public class GridIntIntervals extends GridBitIntervals {
         interval.set(z, value);
 
     }
-
+    
     public long get(int x, int y, int z) {
 
         int ind = x + m_nx * y;
