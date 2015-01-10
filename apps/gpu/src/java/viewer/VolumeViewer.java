@@ -130,12 +130,10 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         createUI();
 
-        nav = new ExamineNavigator();
-        addMouseWheelListener((MouseWheelListener) nav);
-        addMouseMotionListener((MouseMotionListener)nav);
         Runtime system_runtime = Runtime.getRuntime();
         system_runtime.addShutdownHook(new Thread(this));
 
+        nav = new ExamineNavigator();
         render = new RenderCanvas(nav);
         add(render.getComponent());
 

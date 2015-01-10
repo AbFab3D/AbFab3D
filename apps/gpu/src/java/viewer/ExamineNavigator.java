@@ -16,10 +16,8 @@ import abfab3d.grid.Bounds;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
+import java.awt.*;
+import java.awt.event.*;
 
 import static abfab3d.util.Output.printf;
 
@@ -29,53 +27,141 @@ import static abfab3d.util.Output.printf;
  *
  * @author Alan Hudson
  */
-public class ExamineNavigator implements Navigator, MouseMotionListener, MouseWheelListener {
+public class ExamineNavigator implements Navigator {
+    private static final float[] DEFAULT_TRANS = new float[] {0,0,-4};
+    private static final float[] DEFAULT_ROT = new float[] {0,0,0,0};
+    private float z = DEFAULT_TRANS[2];
+    private float rotx = 0;
+    private float roty = 0;
+
+    private Point dragstart;
+    private enum MOUSE_MODE { DRAG_ROTATE, DRAG_ZOOM }
+    private MOUSE_MODE dragmode = MOUSE_MODE.DRAG_ROTATE;
+    private transient boolean hasChanged = false;
+
     private Vector3f trans = new Vector3f();
-    private AxisAngle4f rot = new AxisAngle4f();
-    private double vs;
+    private Matrix4f tmat = new Matrix4f();
+    private Matrix4f rxmat = new Matrix4f();
+    private Matrix4f rymat = new Matrix4f();
 
-    /** The grid bounds */
-    private Bounds bounds;
-
-    public void setTranslation(Vector3f trans) {
-        this.trans = trans;
+    public void init(Component component) {
+        initMouseListeners(component);
     }
 
-    public void setRotation(AxisAngle4f rot) {
-        this.rot = rot;
+    private void initMouseListeners(Component component) {
+        component.addMouseMotionListener(new MouseMotionAdapter() {
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+
+                if (dragstart != null) {
+                    switch (dragmode) {
+                        case DRAG_ROTATE:
+                            rotx += e.getY() - dragstart.getY();
+                            roty += e.getX() - dragstart.getX();
+                            hasChanged = true;
+                            break;
+                        case DRAG_ZOOM:
+                            z += (e.getY() - dragstart.getY()) / 5.0f;
+                            hasChanged = true;
+                            break;
+                    }
+                }
+
+                dragstart = e.getPoint();
+            }
+        });
+        component.addMouseWheelListener(new MouseWheelListener() {
+
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                z += e.getWheelRotation()*0.1;
+                hasChanged = true;
+            }
+
+        });
+        component.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                switch (e.getButton()) {
+                    case (MouseEvent.BUTTON1):
+                        dragmode = MOUSE_MODE.DRAG_ROTATE;
+                        break;
+                    case (MouseEvent.BUTTON2):
+                        dragmode = MOUSE_MODE.DRAG_ZOOM;
+                        break;
+                    case (MouseEvent.BUTTON3):
+                        dragmode = MOUSE_MODE.DRAG_ZOOM;
+                        break;
+                }
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                switch (e.getButton()) {
+                    case (MouseEvent.BUTTON1):
+                        dragmode = MOUSE_MODE.DRAG_ZOOM;
+                        break;
+                    case (MouseEvent.BUTTON2):
+                        dragmode = MOUSE_MODE.DRAG_ROTATE;
+                        break;
+                    case (MouseEvent.BUTTON3):
+                        dragmode = MOUSE_MODE.DRAG_ROTATE;
+                        break;
+                }
+
+                dragstart = null;
+            }
+        });
+
+        component.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                if (e.getKeyChar() == 'r') {
+                    printf("Reseting view\n");
+                    // reset navigation
+                    z = DEFAULT_TRANS[2];
+                    rotx = DEFAULT_ROT[0];
+                    roty = DEFAULT_ROT[1];
+                    hasChanged = true;
+                }
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
     }
 
-    public void setBounds(Bounds bounds, double vs) {
-        this.bounds = bounds.clone();
-        this.vs = vs;
 
-        // we'll rotate around the center of the grid.  Initial position is .5 -z size
-        trans.x = bounds.getWidth(vs) / 2;
-        trans.y = bounds.getHeight(vs) / 2;
-        trans.z = -bounds.getDepth(vs) / 2;
+    @Override
+    public boolean hasChanged() {
+        boolean ret_val = hasChanged;
+
+        hasChanged = false;
+
+        return ret_val;
     }
 
     @Override
     public void getViewMatrix(Matrix4f mat) {
+        trans.setZ(z);
+        tmat.set(trans,1.0f);
 
+        rxmat.rotX(rotx);
+        rymat.rotY(roty);
+
+        mat.mul(tmat,rxmat);
+        mat.mul(rymat);
     }
 
     @Override
-    public void mouseWheelMoved(MouseWheelEvent e) {
-    }
+    public void setBounds(Bounds bounds, double vs) {
 
-    @Override
-    public void mouseMoved(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mouseDragged(MouseEvent e) {
-
-    }
-
-    @Override
-    public boolean hasChanged() {
-        return true;
-    }
-}
+    }}

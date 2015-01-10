@@ -3,6 +3,7 @@ package viewer;
 import abfab3d.grid.Bounds;
 
 import javax.vecmath.Matrix4f;
+import java.awt.*;
 
 /**
  * A navigator provides a navigation style.
@@ -18,4 +19,7 @@ public interface Navigator {
 
     /** Set the world bounds */
     public void setBounds(Bounds bounds, double vs);
+
+    /** Initialize AWT component actions */
+    public void init(Component comp);
 }
