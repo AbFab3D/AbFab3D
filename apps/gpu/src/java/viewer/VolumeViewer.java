@@ -69,7 +69,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         int we = 16;
         int he = 62;
 
-        int size = 512;
+        int size = 1024;
         int width = size + we;
         int height = size + he;
 

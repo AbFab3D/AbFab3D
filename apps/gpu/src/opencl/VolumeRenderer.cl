@@ -1,5 +1,5 @@
 #define maxSteps 500
-#define tstep 0.005f
+#define tstep (2.0 / maxSteps)
 
 // intersect ray with a box
 // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
@@ -108,7 +108,7 @@ uint readShapeJS(float4 pos) {
     // Intersection op
     float data3 = subtraction(data2,data1);
 
-    uint v = (uint) (255.0 * data3 + 0.5);
+    uint v = (uint) (255.0 * data2 + 0.5);
 
     return v;
 }
@@ -205,7 +205,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
         uint i =(y * imageW) + x;
 
 /*
-        // fake shading
+        // fake shading shows steps distance
         float color = ((float) (maxSteps - hit))/maxSteps;
         float4 temp = (float4)(color,color,color,0.25f);
 
@@ -213,7 +213,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 */
         // Gradient Calc
         float4 grad;
-        float dist = 0.01f; // TODO: make one voxel size?
+        float dist = tstep; // TODO: make one voxel size?
         // x
         float xd0 = readDensity((float4) (pos.x + dist, pos.y, pos.z, pos.w));
         float xd1 = readDensity((float4) (pos.x, pos.y, pos.z, pos.w));
