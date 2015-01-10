@@ -207,24 +207,7 @@ public class RenderCanvas implements GLEventListener {
         viewData[13] = view.m31;
         viewData[14] = view.m32;
         viewData[15] = view.m33;
-/*
-        viewData[0] = view.m00;
-        viewData[1] = view.m10;
-        viewData[2] = view.m20;
-        viewData[3] = view.m30;
-        viewData[4] = view.m01;
-        viewData[5] = view.m11;
-        viewData[6] = view.m21;
-        viewData[7] = view.m31;
-        viewData[8] = view.m02;
-        viewData[9] = view.m12;
-        viewData[10] = view.m22;
-        viewData[11] = view.m32;
-        viewData[12] = view.m03;
-        viewData[13] = view.m13;
-        viewData[14] = view.m23;
-        viewData[15] = view.m33;
- */
+
         viewBuffer.getBuffer().put(viewData);
         viewBuffer.getBuffer().rewind();
 
@@ -254,7 +237,8 @@ public class RenderCanvas implements GLEventListener {
 
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
         gl.glDisable(GL2.GL_DEPTH_TEST);
-        gl.glRasterPos2i(0, 0);
+//        gl.glRasterPos2i(0,0);
+        gl.glRasterPos2i(-1,-1);  // TODO: different then example not sure why necessary but it does center it
         gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, glPixelBuffer[0]);
         gl.glDrawPixels(width, height, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, 0);
         gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, 0);

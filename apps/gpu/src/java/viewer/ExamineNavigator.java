@@ -57,8 +57,8 @@ public class ExamineNavigator implements Navigator {
                 if (dragstart != null) {
                     switch (dragmode) {
                         case DRAG_ROTATE:
-                            rotx += e.getY() - dragstart.getY();
-                            roty += e.getX() - dragstart.getX();
+                            rotx += (e.getY() - dragstart.getY()) / 20.f;
+                            roty += (e.getX() - dragstart.getX()) / 20.f;
                             hasChanged = true;
                             break;
                         case DRAG_ZOOM:

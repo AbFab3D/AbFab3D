@@ -34,6 +34,17 @@ uint rgbaFloatToInt(float4 rgba)
     return ((uint)(rgba.w*255.0f)<<24) | ((uint)(rgba.z*255.0f)<<16) | ((uint)(rgba.y*255.0f)<<8) | (uint)(rgba.x*255.0f);
 }
 
+float step01(float x, float x0, float vs){
+
+    if(x <= x0 - vs)
+        return 0.;
+
+    if(x >= x0 + vs)
+        return 1.;
+
+    return (x-(x0-vs))/(2*vs);
+}
+
 float step10(float x, float x0, float vs) {
     if(x <= x0 - vs)
         return 1.0;
@@ -44,22 +55,77 @@ float step10(float x, float x0, float vs) {
     return ((x0+vs)-x)/(2*vs);
 }
 
-uint readDensity(float4 pos,uint debug) {
+float gyroid(float vs, float voxelScale, float level, float factor, float thickness, float3 offset, float3 pnt) {
+    pnt = pnt - offset;
+
+    pnt = pnt * factor;
+
+    float d = fabs((sin(pnt.x) * cos(pnt.y) + sin(pnt.y) * cos(pnt.z) + sin(pnt.z) * cos(pnt.x) - level) / factor) - (thickness + voxelScale * vs);
+
+    return step10(d,0,vs);
+}
+
+float sphere(float vs, float radius, float cx, float cy, float cz, bool sign, float3 pnt) {
+    float x = pnt.x - cx;
+    float y = pnt.y - cy;
+    float z = pnt.z - cz;
+
+    float r = sqrt(x * x + y * y + z * z);
+    if (sign) {
+        return step10(r,radius,vs);
+    } else {
+        return step01(r,radius,vs);
+    }
+}
+
+float subtraction(float a, float b) {
+    if (a < 0) {
+        return 0;
+    }
+
+    if (b > 1) {
+        return 0;
+    }
+
+    return (a * (1.0 - b));
+}
+
+// prototype ShapeJS func
+uint readShapeJS(float4 pos) {
+    // gyroid params
+    float factor = 2 * 3.14159265 / 0.013;
+    float vs = 0.0001;
+    float thickness = 0.002;
+    float level = 0;
+    float voxelScale = 1;
+    float radius = 1;
+
+    float3 worldPnt = (float3) (pos.x,pos.y,pos.z);
+
+    float data1 = gyroid(vs,voxelScale,level,factor,thickness, (float3)(0,0,0),worldPnt);
+    float data2 = sphere(vs, radius, 0, 0, 0, true, worldPnt);
+
+    // Intersection op
+    float data3 = subtraction(data2,data1);
+
+    uint v = (uint) (255.0 * data3 + 0.5);
+
+    return v;
+}
+
+uint readDensity(float4 pos) {
+    // TODO: just prototype with a sphere
+
     float r = sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-    //uint ret = step10(r,1,0.0001);
+    //uint ret = step10(r,0.5,0.0001);
     uint ret;
 
     if (r < 1) ret = 1;  else ret =0;
 
-    if (debug) printf((__constant char *)"   r: %6.4f  ret: %d\n",r,ret);
-
     return ret;
 }
 
-//__kernel void render(__global uint *d_output, uint imageW, uint imageH, __constant float* invViewMatrix)
-__kernel void render(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix)
-
-{	
+kernel void render(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
@@ -115,8 +181,8 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
 
         // read from grid
 
-        uint debug = 0;
-        uint density = readDensity(pos,debug);
+//        uint density = readDensity(pos);
+        uint density = readShapeJS(pos);
 
         if (density > 0) {
            hit = i;
@@ -137,6 +203,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
         // write output color
         uint i =(y * imageW) + x;
         float color = ((float) (maxSteps - hit))/maxSteps;
+//        float4 temp = (float4)(color,color,color,0.25f);
         float4 temp = (float4)(color,color,color,0.25f);
 
         d_output[i] = rgbaFloatToInt(temp);
