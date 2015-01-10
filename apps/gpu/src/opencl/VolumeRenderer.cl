@@ -183,10 +183,23 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
         // read from grid
 
 //        uint density = readDensity(pos);
-        uint density = readShapeJS(pos);
+        uint density = readShapeJS(pos);  // TODO: how to use this density info
 
         if (density > 0) {
            hit = i;
+
+           // adjust hit based on density to reduce aliasing
+#ifdef DEBUG
+if (y==79) {
+printf("density: %d  pos: %7.4v4f\n",density,pos);
+}
+#endif
+           pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density / 255.0) * tstep));
+#ifdef DEBUG
+if (y==79) {
+printf("          new pos: %7.4v4f\n",pos);
+}
+#endif
            break;
         }
 
@@ -211,7 +224,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 
         d_output[i] = rgbaFloatToInt(temp);
 */
-        // Gradient Calc
+        // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float4 grad;
         float dist = tstep; // TODO: make one voxel size?
         // x
@@ -232,13 +245,18 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
         grad.w = 0.25;
 
         // TODO: hardcode headlight from eye direction
-        float4 shading = dot(normalize(grad),-eyeRay_d);
+        // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model
+        float ambient = 0.1;
+
+        float4 lm = eyeRay_o - pos;
+        float4 n = normalize(grad);  //  use gradient for normal at the surface
+        float4 shading = dot(lm,n) + ambient;
 
         d_output[i] = rgbaFloatToInt(shading);
 
 #ifdef DEBUG
 if (y==79) {
-printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: %4.1f color: %4.3f\n",x,y,eyeRay_o,eyeRay_d,hit,tnear,tfar,color);
+printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: %4.1f color: %4.3f\n",x,y,eyeRay_o,eyeRay_d,hit,tnear,tfar,shading);
 }
 #endif
 
