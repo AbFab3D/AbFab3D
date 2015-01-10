@@ -171,7 +171,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     /**
        set raw data at given point
      */
-    public final void set(int x, int y, int z, long value){
+    public void set(int x, int y, int z, long value){
 
         switch(m_orientation){
 
@@ -253,21 +253,6 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         return new VoxelDataByte();
     }
 
-    /**
-       implementation of interface Grid
-     */
-    public void getDataWorld(double x, double y, double z, VoxelData data){
-        int iy = (int) ((y-yorig) / sheight);
-        int ix = (int) ((x-xorig) / pixelSize);
-        int iz = (int) ((z-zorig) / pixelSize);
-
-        long encoded = get(ix,iy,iz);
-        long att = ioFunc.getAttribute(encoded);
-        byte state = ioFunc.getState(encoded);
-
-        data.setData(state,att);
-    }
-
     public void getData(int x, int y, int z, VoxelData data){
 
         long encoded = get(x,y,z);
@@ -275,14 +260,6 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         byte state = ioFunc.getState(encoded);
 
         data.setData(state,att);
-    }
-
-    public byte getStateWorld(double x, double y, double z){
-        int iy = (int) ((y-yorig) / sheight);
-        int ix = (int) ((x-xorig) / pixelSize);
-        int iz = (int) ((z-zorig) / pixelSize);
-
-        return ioFunc.getState(get(ix,iy,iz));
     }
 
     public byte getState(int x, int y, int z){
@@ -300,23 +277,6 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         }
         long att = ioFunc.getAttribute(curCode);
         ioFunc.combineStateAndAttribute(state,att);
-    }
-
-    public void setStateWorld(double x, double y, double z, byte state){
-        int iy = (int) ((y - yorig)/ sheight);
-        int ix = (int) ((x - xorig)/ pixelSize);
-        int iz = (int) ((z - zorig)/ pixelSize);
-
-        long curCode = get(ix,iy,iz);
-
-        byte currState = ioFunc.getState(curCode);
-
-        if (state == currState) {
-            return;
-        }
-        long att = ioFunc.getAttribute(curCode);
-
-        set(ix,iy,iz,ioFunc.combineStateAndAttribute(state,att));
     }
 
     public int findCount(VoxelClasses vc){
@@ -619,7 +579,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     public Grid createEmpty(int w, int h, int d, double pixel, double sheight){
 
         return new GridBitIntervals(w, h, d, m_orientation, pixel,sheight);
-
+        
     }
 
     public long getAttribute(int x, int y, int z){
@@ -629,32 +589,12 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
         //return Grid.NO_MATERIAL;
     }
 
-    public long getAttributeWorld(double x, double y, double z){
-        // attribute and state are the same for bit grid 
-        int iy = (int) ((y-yorig) / sheight);
-        int ix = (int) ((x-xorig) / pixelSize);
-        int iz = (int) ((z-zorig) / pixelSize);
-        return get(ix,iy,iz);
-        // no attribute in bit grid
-        //return Grid.NO_MATERIAL;
-    }
-
-    public void setDataWorld(double x, double y, double z, byte state, long attribute){
-
-        int iy = (int) ((y-yorig) / sheight);
-        int ix = (int) ((x-xorig) / pixelSize);
-        int iz = (int) ((z-zorig) / pixelSize);
-        set(ix,iy,iz,ioFunc.combineStateAndAttribute(state,attribute));
-
-    }
-
     public void setData(int x, int y, int z, byte state, long attribute){
         set(x,y,z,ioFunc.combineStateAndAttribute(state,attribute));
     }
 
     public void setAttribute(int x, int y, int z, long attribute){
-        // no attrribute in bit grid
-        return;
+        set(x,y,z,attribute);
     }
 
     public void findAttribute(VoxelClasses vc, ClassAttributeTraverser t){

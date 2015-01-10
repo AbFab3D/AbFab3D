@@ -731,7 +731,7 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
     
     /**
-       copy grid bounds from srcGrid to destGrid
+       copy grid bounds from srcGrid to this
      */
     public void copyBounds(Grid srcGrid){
 
