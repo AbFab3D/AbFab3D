@@ -74,7 +74,7 @@ public class ExamineNavigator implements Navigator {
         component.addMouseWheelListener(new MouseWheelListener() {
 
             public void mouseWheelMoved(MouseWheelEvent e) {
-                z += e.getWheelRotation()*0.1;
+                z += e.getWheelRotation()*0.03;
                 hasChanged = true;
             }
 

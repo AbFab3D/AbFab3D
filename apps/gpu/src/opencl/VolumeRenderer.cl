@@ -1,5 +1,5 @@
-#define maxSteps 100
-#define tstep 0.01f
+#define maxSteps 500
+#define tstep 0.005f
 
 // intersect ray with a box
 // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
@@ -175,8 +175,9 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
     // march along ray from tnear till we hit something
     float t = tnear;
 
+    float4 pos;
     for(uint i=0; i<maxSteps; i++) {
-        float4 pos = eyeRay_o + eyeRay_d*t;
+        pos = eyeRay_o + eyeRay_d*t;
         //pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
 
         // read from grid
@@ -202,11 +203,39 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
     //printf("hit: x: %d y: %d\n",x,y);
         // write output color
         uint i =(y * imageW) + x;
+
+/*
+        // fake shading
         float color = ((float) (maxSteps - hit))/maxSteps;
-//        float4 temp = (float4)(color,color,color,0.25f);
         float4 temp = (float4)(color,color,color,0.25f);
 
         d_output[i] = rgbaFloatToInt(temp);
+*/
+        // Gradient Calc
+        float4 grad;
+        float dist = 0.01f; // TODO: make one voxel size?
+        // x
+        float xd0 = readDensity((float4) (pos.x + dist, pos.y, pos.z, pos.w));
+        float xd1 = readDensity((float4) (pos.x, pos.y, pos.z, pos.w));
+        float xd2 = readDensity((float4) (pos.x - dist, pos.y, pos.z, pos.w));
+        grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
+        // y
+        float yd0 = readDensity((float4) (pos.x,pos.y + dist, pos.z, pos.w));
+        float yd1 = readDensity((float4) (pos.x, pos.y, pos.z, pos.w));
+        float yd2 = readDensity((float4) (pos.x, pos.y - dist, pos.z, pos.w));
+        grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
+        // z
+        float zd0 = readDensity((float4) (pos.x,pos.y, pos.z + dist, pos.w));
+        float zd1 = readDensity((float4) (pos.x, pos.y, pos.z, pos.w));
+        float zd2 = readDensity((float4) (pos.x, pos.y, pos.z - dist, pos.w));
+        grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
+        grad.w = 0.25;
+
+        // TODO: hardcode headlight from eye direction
+        float4 shading = dot(normalize(grad),-eyeRay_d);
+
+        d_output[i] = rgbaFloatToInt(shading);
+
 #ifdef DEBUG
 if (y==79) {
 printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: %4.1f color: %4.3f\n",x,y,eyeRay_o,eyeRay_d,hit,tnear,tfar,color);
