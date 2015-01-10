@@ -155,7 +155,7 @@ public class ShapeJSExecutor {
         for (int i = 0; i < devices.length; i++) {
             out.println("Using device: " + devices[i]);
             out.println("Caps: cores: " + devices[i].getMaxComputeUnits() + " " + devices[i].getMaxClockFrequency() + " MHZ");
-
+            out.println("glCap: " + devices[i].isGLMemorySharingSupported());
 /*
             if (devices[i].getName().contains("GTX 780")) {
                 devices = new CLDevice[] {devices[i]};
