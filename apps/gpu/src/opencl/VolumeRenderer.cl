@@ -262,7 +262,7 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
 
         float3 lm = (float3) (eyeRay_o.x - pos.x,eyeRay_o.y - pos.y, eyeRay_o.z - pos.z);
         float3 n = normalize(grad);  //  use gradient for normal at the surface
-        float3 shading = dot(lm,n) + ambient;
+        float3 shading = dot(normalize(lm),n) + ambient;
         //float3 shading = normalize(grad);
 
         d_output[i] = rgbaFloatToInt(shading);
