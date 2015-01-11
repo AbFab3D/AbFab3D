@@ -224,19 +224,16 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
         // second order precision formula for gradient
         // x
         float xd0 = readShapeJS((float3) (pos.x + dist, pos.y, pos.z));
-        float xd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
         float xd2 = readShapeJS((float3) (pos.x - dist, pos.y, pos.z));
         grad.x = (xd2 - xd0)/(2*dist);
         //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
         float yd0 = readShapeJS((float3) (pos.x,pos.y + dist, pos.z));
-        float yd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
         float yd2 = readShapeJS((float3) (pos.x, pos.y - dist, pos.z));
         grad.y = (yd2 - yd0)/(2*dist);
         //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
         // z
         float zd0 = readShapeJS((float3) (pos.x,pos.y, pos.z + dist));
-        float zd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
         float zd2 = readShapeJS((float3) (pos.x, pos.y, pos.z - dist));
         grad.z = (zd2 - zd0)/(2*dist);
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
@@ -258,14 +255,25 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
         //float3 shading = normalize(grad);
 */
         // matlab style lighting
-        float ambient = 0.2;
+        float ambient = 0;
         float3 n = normalize(grad);  //  use gradient for normal at the surface
-        float3 light1 = (float3)(-1,0,2);
+        float3 light1 = (float3)(-10,0,20);
         float3 light1_color = (float3) (0.8f,0,0);
-        float3 light2 = (float3)(-1,-1,2);
+        float3 light2 = (float3)(-10,-10,20);
         float3 light2_color = (float3) (0,0.8f,0);
-        float3 light3 = (float3)(0,-1,2);
+        float3 light3 = (float3)(0,-10,20);
         float3 light3_color = (float3) (0,0,0.8f);
+
+        light1.x = dot((float4)(light1,1), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
+        light1.y = dot((float4)(light1,1),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
+        light1.z = dot((float4)(light1,1), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+        light2.x = dot((float4)(light2,1), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
+        light2.y = dot((float4)(light2,1),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
+        light2.z = dot((float4)(light2,1), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+        light3.x = dot((float4)(light3,1), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
+        light3.y = dot((float4)(light3,1),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
+        light3.z = dot((float4)(light3,1), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+
         float3 shading = dot(normalize(light1),n) * light1_color + dot(normalize(light2),n) * light2_color + dot(normalize(light3),n) * light3_color + ambient;
 
         d_output[i] = rgbaFloatToInt(shading);
