@@ -25,33 +25,33 @@ int intersectBox(float4 r_o, float4 r_d, float4 boxmin, float4 boxmax, float *tn
 	return smallest_tmax > largest_tmin;
 }
 
-uint rgbaFloatToInt(float4 rgba)
+uint rgbaFloatToInt(float3 rgb)
 {
-    rgba.x = clamp(rgba.x,0.0f,1.0f);  
-    rgba.y = clamp(rgba.y,0.0f,1.0f);  
-    rgba.z = clamp(rgba.z,0.0f,1.0f);  
-    rgba.w = clamp(rgba.w,0.0f,1.0f);  
-    return ((uint)(rgba.w*255.0f)<<24) | ((uint)(rgba.z*255.0f)<<16) | ((uint)(rgba.y*255.0f)<<8) | (uint)(rgba.x*255.0f);
+    rgb.x = clamp(rgb.x,0.0f,1.0f);  
+    rgb.y = clamp(rgb.y,0.0f,1.0f);  
+    rgb.z = clamp(rgb.z,0.0f,1.0f);  
+    return ((uint)(00)<<24) | ((uint)(rgb.z*255.0f)<<16) | ((uint)(rgb.y*255.0f)<<8) | (uint)(rgb.x*255.0f);
 }
 
 float step01(float x, float x0, float vs){
-
+/*
     if(x <= x0 - vs)
         return 0.;
 
     if(x >= x0 + vs)
         return 1.;
-
+*/
     return (x-(x0-vs))/(2*vs);
 }
 
 float step10(float x, float x0, float vs) {
+/*
     if(x <= x0 - vs)
         return 1.0;
 
     if(x >= x0 + vs)
         return 0.0;
-
+*/
     return ((x0+vs)-x)/(2*vs);
 }
 
@@ -71,6 +71,7 @@ float sphere(float vs, float radius, float cx, float cy, float cz, bool sign, fl
     float z = pnt.z - cz;
 
     float r = sqrt(x * x + y * y + z * z);
+
     if (sign) {
         return step10(r,radius,vs);
     } else {
@@ -113,7 +114,7 @@ uint readShapeJSInt(float4 pos) {
     return v;
 }
 
-float readShapeJS(float4 pos) {
+float readShapeJS(float3 pos) {
     // gyroid params
     float factor = 2 * 3.14159265 / 0.1;
 //    float vs = 0.0001;
@@ -123,10 +124,8 @@ float readShapeJS(float4 pos) {
     float voxelScale = 1;
     float radius = 1;
 
-    float3 worldPnt = (float3) (pos.x,pos.y,pos.z);
-
-    float data1 = gyroid(vs,voxelScale,level,factor,thickness, (float3)(0,0,0),worldPnt);
-    float data2 = sphere(vs, radius, 0, 0, 0, true, worldPnt);
+    float data1 = gyroid(vs,voxelScale,level,factor,thickness, (float3)(0,0,0),pos);
+    float data2 = sphere(vs, radius, 0, 0, 0, true, pos);
 
     // Intersection op
     float data3 = subtraction(data2,data1);
@@ -196,9 +195,13 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
     // march along ray from tnear till we hit something
     float t = tnear;
 
-    float4 pos;
+    float4 tpos;
+    float3 pos;
     for(uint i=0; i<maxSteps; i++) {
-        pos = eyeRay_o + eyeRay_d*t;
+        tpos = eyeRay_o + eyeRay_d*t;
+        pos.x = tpos.x;
+        pos.y = tpos.y;
+        pos.z = tpos.z;
         //pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
 
         // read from grid
@@ -206,7 +209,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
 //        uint density = readDensity(pos);
         float density = readShapeJS(pos);  // TODO: how to use this density info
 
-        if (density > 0) {
+        if (density > 0.5) {
            hit = i;
 
            // adjust hit based on density to reduce aliasing
@@ -215,8 +218,7 @@ if (y==79) {
 printf("density: %d  pos: %7.4v4f\n",density,pos);
 }
 #endif
-           //pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density / 255.0) * tstep));
-           pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density) * tstep));
+           //pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density) * tstep));   // no longer necessary?
 #ifdef DEBUG
 if (y==79) {
 printf("          new pos: %7.4v4f\n",pos);
@@ -244,13 +246,13 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
         float color = ((float) (maxSteps - hit))/maxSteps;
         float4 shading = (float4)(color,color,color,0.25f);
 */
-/*
+
         // use exact answer for a sphere
-        float4 grad = normalize(pos);
-*/
+        float3 grad = normalize((float3)(pos.x,pos.y,pos.z));
+/*
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
-        float4 grad;
-        float dist = tstep; // TODO: make one voxel size?
+        float3 grad;
+        float dist = tstep*0.01; // TODO: make one voxel size?
 
         // second order precision formula for gradient
         // x
@@ -271,17 +273,15 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
         float zd2 = readShapeJS((float4) (pos.x, pos.y, pos.z - dist, pos.w));
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
         grad.z = (zd2 - zd0)/(2*dist);
-
-        grad.w = 0.25;
-
+*/
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model
         float ambient = 0.1;
 
-        float4 lm = eyeRay_o - pos;
-        float4 n = normalize(grad);  //  use gradient for normal at the surface
-//        float4 shading = dot(lm,n) + ambient;
-        float4 shading = grad;
+        float3 lm = (float3) (eyeRay_o.x - pos.x,eyeRay_o.y - pos.y, eyeRay_o.z - pos.z);
+        float3 n = normalize(grad);  //  use gradient for normal at the surface
+        float3 shading = dot(lm,n) + ambient;
+//        float3 shading = normalize(grad);
 
         d_output[i] = rgbaFloatToInt(shading);
 
