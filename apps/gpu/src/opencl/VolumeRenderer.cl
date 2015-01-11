@@ -1,3 +1,5 @@
+#pragma OPENCL EXTENSION cl_khr_fp64: enable
+
 #define maxSteps 2048
 #define tstep (2.0 / maxSteps)
 
@@ -133,18 +135,6 @@ float readShapeJS(float3 pos) {
     return data3;
 }
 
-uint readDensity(float4 pos) {
-    // TODO: just prototype with a sphere
-
-    float r = sqrt(pos.x * pos.x + pos.y * pos.y + pos.z * pos.z);
-    //uint ret = step10(r,0.5,0.0001);
-    uint ret;
-
-    if (r < 1) ret = 1;  else ret =0;
-
-    return ret;
-}
-
 kernel void render(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
@@ -206,8 +196,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
 
         // read from grid
 
-//        uint density = readDensity(pos);
-        float density = readShapeJS(pos);  // TODO: how to use this density info
+        float density = readShapeJS(pos);
 
         if (density > 0.5) {
            hit = i;
@@ -248,31 +237,32 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 */
 
         // use exact answer for a sphere
-//        float3 grad = normalize((float3)(pos.x,pos.y,pos.z));
+        //float3 grad = normalize((float3)(pos.x,pos.y,pos.z));
 
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
-        float dist = tstep*0.01; // TODO: make one voxel size?
+        //float dist = tstep*1000; // TODO: make one voxel size?
+        double dist = tstep * 0.001; // TODO: make one voxel size?
 
         // second order precision formula for gradient
         // x
         float xd0 = readShapeJS((float3) (pos.x + dist, pos.y, pos.z));
         float xd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
         float xd2 = readShapeJS((float3) (pos.x - dist, pos.y, pos.z));
-        grad.x = (xd2 - xd0)/(2*dist);
+        grad.x = ((double)xd2 - xd0)/((double)2*dist);
         //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
         float yd0 = readShapeJS((float3) (pos.x,pos.y + dist, pos.z));
         float yd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
         float yd2 = readShapeJS((float3) (pos.x, pos.y - dist, pos.z));
+        grad.y = ((double)yd2 - yd0)/((double)2*dist);
         //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
-        grad.y = (yd2 - yd0)/(2*dist);
         // z
         float zd0 = readShapeJS((float3) (pos.x,pos.y, pos.z + dist));
         float zd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
         float zd2 = readShapeJS((float3) (pos.x, pos.y, pos.z - dist));
+        grad.z = ((double)zd2 - zd0)/((double)2*dist);
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
-        grad.z = (zd2 - zd0)/(2*dist);
 
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model
@@ -280,8 +270,8 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 
         float3 lm = (float3) (eyeRay_o.x - pos.x,eyeRay_o.y - pos.y, eyeRay_o.z - pos.z);
         float3 n = normalize(grad);  //  use gradient for normal at the surface
-        float3 shading = dot(lm,n) + ambient;
-//        float3 shading = normalize(grad);
+//        float3 shading = dot(lm,n) + ambient;
+        float3 shading = normalize(grad);
 
         d_output[i] = rgbaFloatToInt(shading);
 
