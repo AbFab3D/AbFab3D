@@ -228,25 +228,25 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 */
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float4 grad;
-        float dist = tstep; // TODO: make one voxel size?
+        float dist = tstep / 40; // TODO: make one voxel size?
         // x
         float xd0 = readShapeJS((float4) (pos.x + dist, pos.y, pos.z, pos.w));
         float xd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
         float xd2 = readShapeJS((float4) (pos.x - dist, pos.y, pos.z, pos.w));
-        grad.x = (xd2 - xd1)/(2*dist);
+        grad.x = (xd2 - xd0)/(2*dist);
         //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
         float yd0 = readShapeJS((float4) (pos.x,pos.y + dist, pos.z, pos.w));
         float yd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
         float yd2 = readShapeJS((float4) (pos.x, pos.y - dist, pos.z, pos.w));
         //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
-        grad.y = (yd2 - yd1)/(2*dist);
+        grad.y = (yd2 - yd0)/(2*dist);
         // z
         float zd0 = readShapeJS((float4) (pos.x,pos.y, pos.z + dist, pos.w));
         float zd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
         float zd2 = readShapeJS((float4) (pos.x, pos.y, pos.z - dist, pos.w));
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
-        grad.z = (zd2 - zd1)/(2*dist);
+        grad.z = (zd2 - zd0)/(2*dist);
 
         grad.w = 0.25;
 
