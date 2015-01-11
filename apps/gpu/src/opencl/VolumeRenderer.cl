@@ -1,4 +1,4 @@
-#define maxSteps 500
+#define maxSteps 1024
 #define tstep (2.0 / maxSteps)
 
 // intersect ray with a box
@@ -91,7 +91,7 @@ float subtraction(float a, float b) {
 }
 
 // prototype ShapeJS func
-uint readShapeJS(float4 pos) {
+uint readShapeJSInt(float4 pos) {
     // gyroid params
     float factor = 2 * 3.14159265 / 0.013;
     float vs = 0.0001;
@@ -111,6 +111,27 @@ uint readShapeJS(float4 pos) {
     uint v = (uint) (255.0 * data3 + 0.5);
 
     return v;
+}
+
+float readShapeJS(float4 pos) {
+    // gyroid params
+    float factor = 2 * 3.14159265 / 0.1;
+//    float vs = 0.0001;
+    float vs = 2/1024;
+    float thickness = 0.004;
+    float level = 0;
+    float voxelScale = 1;
+    float radius = 1;
+
+    float3 worldPnt = (float3) (pos.x,pos.y,pos.z);
+
+    float data1 = gyroid(vs,voxelScale,level,factor,thickness, (float3)(0,0,0),worldPnt);
+    float data2 = sphere(vs, radius, 0, 0, 0, true, worldPnt);
+
+    // Intersection op
+    float data3 = subtraction(data2,data1);
+
+    return data3;
 }
 
 uint readDensity(float4 pos) {
@@ -183,7 +204,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
         // read from grid
 
 //        uint density = readDensity(pos);
-        uint density = readShapeJS(pos);  // TODO: how to use this density info
+        float density = readShapeJS(pos);  // TODO: how to use this density info
 
         if (density > 0) {
            hit = i;
@@ -194,7 +215,8 @@ if (y==79) {
 printf("density: %d  pos: %7.4v4f\n",density,pos);
 }
 #endif
-           pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density / 255.0) * tstep));
+           //pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density / 255.0) * tstep));
+           pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density) * tstep));
 #ifdef DEBUG
 if (y==79) {
 printf("          new pos: %7.4v4f\n",pos);
@@ -228,7 +250,9 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 */
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float4 grad;
-        float dist = tstep / 40; // TODO: make one voxel size?
+        float dist = tstep; // TODO: make one voxel size?
+
+        // second order precision formula for gradient
         // x
         float xd0 = readShapeJS((float4) (pos.x + dist, pos.y, pos.z, pos.w));
         float xd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
