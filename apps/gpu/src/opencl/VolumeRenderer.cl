@@ -108,7 +108,7 @@ uint readShapeJS(float4 pos) {
     // Intersection op
     float data3 = subtraction(data2,data1);
 
-    uint v = (uint) (255.0 * data2 + 0.5);
+    uint v = (uint) (255.0 * data3 + 0.5);
 
     return v;
 }
@@ -220,28 +220,34 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 /*
         // fake shading shows steps distance
         float color = ((float) (maxSteps - hit))/maxSteps;
-        float4 temp = (float4)(color,color,color,0.25f);
-
-        d_output[i] = rgbaFloatToInt(temp);
+        float4 shading = (float4)(color,color,color,0.25f);
+*/
+/*
+        // use exact answer for a sphere
+        float4 grad = normalize(pos);
 */
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float4 grad;
         float dist = tstep; // TODO: make one voxel size?
         // x
-        float xd0 = readDensity((float4) (pos.x + dist, pos.y, pos.z, pos.w));
-        float xd1 = readDensity((float4) (pos.x, pos.y, pos.z, pos.w));
-        float xd2 = readDensity((float4) (pos.x - dist, pos.y, pos.z, pos.w));
-        grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
+        float xd0 = readShapeJS((float4) (pos.x + dist, pos.y, pos.z, pos.w));
+        float xd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
+        float xd2 = readShapeJS((float4) (pos.x - dist, pos.y, pos.z, pos.w));
+        grad.x = (xd2 - xd1)/(2*dist);
+        //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
-        float yd0 = readDensity((float4) (pos.x,pos.y + dist, pos.z, pos.w));
-        float yd1 = readDensity((float4) (pos.x, pos.y, pos.z, pos.w));
-        float yd2 = readDensity((float4) (pos.x, pos.y - dist, pos.z, pos.w));
-        grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
+        float yd0 = readShapeJS((float4) (pos.x,pos.y + dist, pos.z, pos.w));
+        float yd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
+        float yd2 = readShapeJS((float4) (pos.x, pos.y - dist, pos.z, pos.w));
+        //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
+        grad.y = (yd2 - yd1)/(2*dist);
         // z
-        float zd0 = readDensity((float4) (pos.x,pos.y, pos.z + dist, pos.w));
-        float zd1 = readDensity((float4) (pos.x, pos.y, pos.z, pos.w));
-        float zd2 = readDensity((float4) (pos.x, pos.y, pos.z - dist, pos.w));
-        grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
+        float zd0 = readShapeJS((float4) (pos.x,pos.y, pos.z + dist, pos.w));
+        float zd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
+        float zd2 = readShapeJS((float4) (pos.x, pos.y, pos.z - dist, pos.w));
+        //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
+        grad.z = (zd2 - zd1)/(2*dist);
+
         grad.w = 0.25;
 
         // TODO: hardcode headlight from eye direction
