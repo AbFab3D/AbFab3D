@@ -15,6 +15,8 @@ package abfab3d.grid;
 
 import java.util.LinkedList;
 
+import abfab3d.util.LongTester;
+import abfab3d.util.LongTesterValue;
 import static abfab3d.util.Output.printf;
 
 
@@ -35,7 +37,8 @@ public class ConnectedComponent implements Comparable, Region {
 
 
     protected ArrayInt m_component = null; // array of coordinates of found voxels
-    long material; // material  of the component
+    //long material; // material  of the component
+    LongTester materialTester; // material  of the component
     AttributeGrid grid;
 
     GridBit mask; // mask of visited voxels
@@ -64,15 +67,22 @@ public class ConnectedComponent implements Comparable, Region {
         algorithm -
 
     */
+    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, LongTester materialTester, boolean collectData){
+        this(grid, mask, x, y, z, materialTester, collectData, DEFAULT_ALGORITHM);
+    }
+
     public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, long material, boolean collectData){
         this(grid, mask, x, y, z, material, collectData, DEFAULT_ALGORITHM);
     }
 
     public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, long material, boolean collectData, int algorithm){
+        this(grid, mask, x, y, z, new LongTesterValue(material), collectData, algorithm);
+    }
+    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, LongTester materialTester, boolean collectData, int algorithm){
 
         this.grid = grid;
         this.mask = mask;
-        this.material = material;
+        this.materialTester = materialTester;
         this.seedX = x;
         this.seedY = y;
         this.seedZ = z;
@@ -174,7 +184,7 @@ public class ConnectedComponent implements Comparable, Region {
 
             int y1 = y;
             // go down in y as far as possible
-            while(y1 >= 0 && compareMaterial(grid,x,y1,z,material)) {
+            while(y1 >= 0 && compareAttribute(grid,x,y1,z)) {
                 y1--;
             }
             y1++; // increment back
@@ -182,7 +192,7 @@ public class ConnectedComponent implements Comparable, Region {
 
             spanxLeft = spanxRight = spanzLeft = spanzRight = false;
 
-            while((y1 <= ny1) && compareMaterial(grid,x,y1,z,material) ){
+            while((y1 <= ny1) && compareAttribute(grid,x,y1,z) ){
                 // fill one scan line
                 // mark voxel visited
                 mask.set(x,y1,z,1);
@@ -192,28 +202,28 @@ public class ConnectedComponent implements Comparable, Region {
                 m_volume++;
 
                 // check x-direction
-                if(!spanxLeft && (x > 0) &&  (mask.get(x-1, y1, z) == 0) && compareMaterial(grid,x-1,y1,z,material)){
+                if(!spanxLeft && (x > 0) &&  (mask.get(x-1, y1, z) == 0) && compareAttribute(grid,x-1,y1,z)){
                     // start of potential new span
                     //que.offer(new int[]{x - 1, y1, z});
                     que.offer(x - 1, y1, z);
 
                     spanxLeft = true;
 
-                } else if(spanxLeft && (x > 0) && ((mask.get(x-1, y1, z)!= 0) || !compareMaterial(grid,x-1,y1,z,material))){
+                } else if(spanxLeft && (x > 0) && ((mask.get(x-1, y1, z)!= 0) || !compareAttribute(grid,x-1,y1,z))){
                     // end of potential new span
 
                     spanxLeft = false;
 
                 }
 
-                if(!spanxRight && x < nx1 &&  (mask.get(x+1, y1, z)==0)  && compareMaterial(grid,x+1,y1,z,material)) {
+                if(!spanxRight && x < nx1 &&  (mask.get(x+1, y1, z)==0)  && compareAttribute(grid,x+1,y1,z)) {
                     // start of potential new span
 
                     //que.offer(new int[]{x + 1, y1, z});
                     que.offer(x + 1, y1, z);
                     spanxRight = true;
 
-                } else if(spanxRight && x < nx1 && ((mask.get(x+1, y1, z)!= 0) || !compareMaterial(grid,x+1,y1,z,material))) {
+                } else if(spanxRight && x < nx1 && ((mask.get(x+1, y1, z)!= 0) || !compareAttribute(grid,x+1,y1,z))) {
                     // end of potential new span
 
                     spanxRight = false;
@@ -221,26 +231,26 @@ public class ConnectedComponent implements Comparable, Region {
                 }
 
                 // check z direction
-                if(!spanzLeft && (z > 0) &&  (mask.get(x, y1, z-1)==0) && compareMaterial(grid, x,y1,z-1, material)){
+                if(!spanzLeft && (z > 0) &&  (mask.get(x, y1, z-1)==0) && compareAttribute(grid, x,y1,z-1)){
                     // start of potential new span
                     //que.offer(new int[]{x, y1, z-1});
                     que.offer(x, y1, z-1);
                     spanzLeft = true;
 
-                } else if(spanzLeft && (z > 0) && ((mask.get(x, y1, z-1)!= 0) || !compareMaterial(grid,x,y1,z-1,material))){
+                } else if(spanzLeft && (z > 0) && ((mask.get(x, y1, z-1)!= 0) || !compareAttribute(grid,x,y1,z-1))){
                     // end of potential new span
 
                     spanzLeft = false;
 
                 }
 
-                if(!spanzRight && z < nz1 &&  (mask.get(x, y1, z+1)==0)  && compareMaterial(grid, x,y1,z+1,material)) {
+                if(!spanzRight && z < nz1 &&  (mask.get(x, y1, z+1)==0)  && compareAttribute(grid, x,y1,z+1)) {
                     // start of potential new span
                     //que.offer(new int[]{x, y1, z+1});
                     que.offer(x, y1, z+1);
                     spanzRight = true;
 
-                } else if(spanzRight && z < nz1 && ((mask.get(x, y1, z+1)!= 0) || !compareMaterial(grid,x,y1,z+1,material))) {
+                } else if(spanzRight && z < nz1 && ((mask.get(x, y1, z+1)!= 0) || !compareAttribute(grid,x,y1,z+1))) {
                     // end of potential new span
 
                     spanzRight = false;
@@ -284,7 +294,7 @@ public class ConnectedComponent implements Comparable, Region {
             int y1 = y;
 
             // go down in y as far as possible
-            while(y1 >= 0 && compareMaterial(grid,x,y1,z,material)) {
+            while(y1 >= 0 && compareAttribute(grid,x,y1,z)) {
                 y1--;
             }
             y1++; // increment back
@@ -292,7 +302,7 @@ public class ConnectedComponent implements Comparable, Region {
 
             spanxLeft = spanxRight = spanzLeft = spanzRight = false;
 
-            while((y1 <= ny1) && compareMaterial(grid,x,y1,z,material) ){
+            while((y1 <= ny1) && compareAttribute(grid,x,y1,z) ){
                 // fill one scan line
                 // mark voxel visited
                 mask.set(x,y1,z,1);
@@ -302,24 +312,24 @@ public class ConnectedComponent implements Comparable, Region {
                 m_volume++;
 
                 // check x-direction
-                if(!spanxLeft && (x > 0) &&  (mask.get(x-1, y1, z)==0) && compareMaterial(grid,x-1,y1,z,material)){
+                if(!spanxLeft && (x > 0) &&  (mask.get(x-1, y1, z)==0) && compareAttribute(grid,x-1,y1,z)){
                     // start of potential new span
                     if(!stack.push(x - 1, y1, z)) return false;
                     spanxLeft = true;
 
-                } else if(spanxLeft && (x > 0) && ((mask.get(x-1, y1, z) != 0) || !compareMaterial(grid,x-1,y1,z, material))){
+                } else if(spanxLeft && (x > 0) && ((mask.get(x-1, y1, z) != 0) || !compareAttribute(grid,x-1,y1,z))){
                     // end of potential new span
                     spanxLeft = false;
 
                 }
 
-                if(!spanxRight && x < nx1 &&  (mask.get(x+1, y1, z)==0)  && compareMaterial(grid,x+1,y1,z,material)) {
+                if(!spanxRight && x < nx1 &&  (mask.get(x+1, y1, z)==0)  && compareAttribute(grid,x+1,y1,z)) {
 
                     // start of potential new span
                     if(!stack.push(x + 1, y1, z)) return false; // stack overflow
                     spanxRight = true;
 
-                } else if(spanxRight && x < nx1 && ((mask.get(x+1, y1, z)!= 0) || !compareMaterial(grid,x+1,y1,z,material))) {
+                } else if(spanxRight && x < nx1 && ((mask.get(x+1, y1, z)!= 0) || !compareAttribute(grid,x+1,y1,z))) {
                     // end of potential new span
 
                     spanxRight = false;
@@ -327,25 +337,25 @@ public class ConnectedComponent implements Comparable, Region {
                 }
 
                 // check z direction
-                if(!spanzLeft && (z > 0) &&  (mask.get(x, y1, z-1)==0) && compareMaterial(grid,x,y1,z-1, material)){
+                if(!spanzLeft && (z > 0) &&  (mask.get(x, y1, z-1)==0) && compareAttribute(grid,x,y1,z-1)){
                     // start of potential new span
                     if(!stack.push(x, y1, z-1)) return false;
                     spanzLeft = true;
 
-                } else if(spanzLeft && (z > 0) && ((mask.get(x, y1, z-1)!= 0) || !compareMaterial(grid,x,y1,z-1,material))){
+                } else if(spanzLeft && (z > 0) && ((mask.get(x, y1, z-1)!= 0) || !compareAttribute(grid,x,y1,z-1))){
                     // end of potential new span
 
                     spanzLeft = false;
 
                 }
 
-                if(!spanzRight && z < nz1 &&  (mask.get(x, y1, z+1)==0)  && compareMaterial(grid,x,y1,z+1,material)) {
+                if(!spanzRight && z < nz1 &&  (mask.get(x, y1, z+1)==0)  && compareAttribute(grid,x,y1,z+1)) {
                     // start of potential new span
 
                     if(!stack.push(x, y1, z+1)) return false; // stack overflow
                     spanzRight = true;
 
-                } else if(spanzRight && z < nz1 && ((mask.get(x, y1, z+1)!= 0) || !compareMaterial(grid,x,y1,z+1,material))) {
+                } else if(spanzRight && z < nz1 && ((mask.get(x, y1, z+1)!= 0) || !compareAttribute(grid,x,y1,z+1))) {
 
                     // end of potential new span
                     spanzRight = false;
@@ -381,7 +391,7 @@ public class ConnectedComponent implements Comparable, Region {
             int j = vc[1];
             int k = vc[2];
 
-            if (compareMaterial(grid, i,j,k, material)) {
+            if (compareAttribute(grid, i,j,k)) {
 
                 if(m_component != null)
                     m_component.add(i,j,k);
@@ -401,7 +411,7 @@ public class ConnectedComponent implements Comparable, Region {
 
                             if (mask.get(ni,nj,nk) == 0) {
 
-                                if (!compareMaterial(grid, ni, nj, nk,material))
+                                if (!compareAttribute(grid, ni, nj, nk))
                                     continue;
 
                                 que.offer(new int[]{ni,nj,nk});
@@ -433,7 +443,7 @@ public class ConnectedComponent implements Comparable, Region {
             return;
         }
 
-        if(!compareMaterial(grid, x,y,z,material)) // different material
+        if(!compareAttribute(grid, x,y,z)) // different material
             return;
 
         // voxel of our material - add it and check 6 heighbors
@@ -511,6 +521,10 @@ public class ConnectedComponent implements Comparable, Region {
             return true;
         else
             return false;
+    }
+
+    final boolean compareAttribute(AttributeGrid grid, int x, int y, int z){        
+        return materialTester.test(grid.getAttribute(x,y,z));
     }
 
     public int compareTo(Object o){

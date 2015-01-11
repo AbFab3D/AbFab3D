@@ -19,6 +19,16 @@ public interface AttributeGrid extends Grid {
     public long getAttributeWorld(double x, double y, double z);
 
     /**
+     * Get the state of the voxel
+     *
+     * @param x The x world coordinate
+     * @param y The y world coordinate
+     * @param z The z world coordinate
+     * @return The voxel attribute
+     */
+    public void setAttributeWorld(double x, double y, double z, long attribute);
+
+    /**
      * Get the attribute of the voxel.
      *
      * @param x The x grid coordinate

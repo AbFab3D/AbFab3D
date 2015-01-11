@@ -19,7 +19,21 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+
 // Internal Imports
+import abfab3d.grid.op.GridMaker;
+import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Subtraction;
+import abfab3d.datasources.Union;
+import abfab3d.util.DataSource;
+import abfab3d.util.LongTester;
+import abfab3d.util.LongTesterValue;
+    import abfab3d.util.LongTesterRange;
+
+import abfab3d.io.output.SVXWriter;
+
+import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.MM;
 
 /**
  * Tests the functionality of a RegionCounter
@@ -349,5 +363,38 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
 
         bounds = regionsBoundsList.get(1);
         assertTrue(bounds[0] == 5 && bounds[1] == 2 && bounds[2] == 2 && bounds[3] == 6 && bounds[4] == 2 && bounds[5] == 2);
+    }
+
+    public void _testFindComponents(){
+        printf("testFindComponents()\n");
+        double vs = 0.5*MM;
+        AttributeGrid grid = makeDoubleSphere(10*MM,20*MM, 3*MM, vs);
+        long mat = 0;
+
+        grid.setAttributeWorld(0., 0., 0., mat);
+        grid.setAttributeWorld(vs,vs,vs, mat);
+        int count = RegionCounter.countComponents(grid, new LongTesterRange(100, 255));
+        printf("components count: %d\n", count);
+        //SVXWriter svx = new SVXWriter();
+        //svx.write(grid, "/tmp/ss.svx");
+    }
+
+    static AttributeGrid makeDoubleSphere(double minR, double maxR, double thickness, double vs){
+
+        double s = maxR + 2*vs;
+
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(new Bounds(-s, s, -s, s, -s, s), vs, vs);
+
+        DataSource ss = new Union(new Subtraction(new Sphere(maxR),new Sphere(maxR-thickness)),
+                                  new Subtraction(new Sphere(minR),new Sphere(minR-thickness)));
+        GridMaker gm = new GridMaker();
+        gm.setSource(ss);
+        gm.makeGrid(grid);        
+        return grid;
+
+    }
+
+    public static void main(String arg[]){
+        new TestRegionCounter()._testFindComponents();
     }
 }

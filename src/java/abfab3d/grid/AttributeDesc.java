@@ -54,8 +54,12 @@ public class AttributeDesc  {
 
     public AttributeMaker getAttributeMaker(){
 
-        if(m_attributeMaker == null) 
-            m_attributeMaker = new DefaultAttributeMaker(this);
+        if(m_attributeMaker == null) {
+            // TODO make real attribute maker 
+            // this is temp hack !!!
+            m_attributeMaker = new AttributeMakerDensity(255);
+        }
+        //m_attributeMaker = new DefaultAttributeMaker(this);
 
         return m_attributeMaker;
 
@@ -76,6 +80,12 @@ public class AttributeDesc  {
         }        
     }
 
+
+    public static AttributeDesc getDefaultAttributeDesc(){
+        AttributeDesc at = new AttributeDesc();
+        at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        return at;
+    }
 }
 
 

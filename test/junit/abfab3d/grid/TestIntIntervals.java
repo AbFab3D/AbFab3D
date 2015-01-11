@@ -47,12 +47,12 @@ public class TestIntIntervals extends BaseTestAttributeGrid {
         assertEquals("Array size is not 1", 1, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
         grid = new GridIntIntervals(100, 101, 102, 0.001, 0.001);
-        assertEquals("Array size is not 1030200", 1030200, grid.getWidth() * grid.getHeight() * grid.getDepth());
+        assertEquals("Array size is not 100*101*102", 100*101*102, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
         grid = new GridIntIntervals(new Bounds(1.0, 1.0, 1.0), 0.2, 0.1);
-        assertEquals("Array size is not 250", 250, grid.getWidth() * grid.getHeight() * grid.getDepth());
+        assertEquals("Array size is not 5*5*10", 5*5*10, grid.getWidth() * grid.getHeight() * grid.getDepth());
 
-        // grid size should be 7x7x12
+        // grid size should be 6x6x11
         grid = new GridIntIntervals(new Bounds(1.1, 1.1, 1.1), 0.2, 0.1);
         assertEquals("Array size is not 6*6*11", 6*6*11, grid.getWidth() * grid.getHeight() * grid.getDepth());
     }

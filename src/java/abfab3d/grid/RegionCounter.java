@@ -26,6 +26,9 @@ import abfab3d.grid.ClassTraverser;
 
 import abfab3d.grid.Region;
 
+import abfab3d.util.LongTester;
+import abfab3d.util.LongTesterValue;
+
 import static abfab3d.util.Output.printf;
 
 
@@ -43,21 +46,24 @@ public class RegionCounter {
 
 
      */
+    public static int countComponents(AttributeGrid grid, LongTester materialTester) {
+        return countComponents(grid, materialTester, -1, false,ConnectedComponent.DEFAULT_ALGORITHM);        
+    }
     public static int countComponents(AttributeGrid grid, long material) {
-        return countComponents(grid, material, -1, false);
+        return countComponents(grid, new LongTesterValue(material), -1, false,ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
     public static int countComponents(AttributeGrid grid, long material, int minSize) {
-        return countComponents(grid, material, minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new LongTesterValue(material), minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
     public static int countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData) {
 
-        return countComponents(grid, material, maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new LongTesterValue(material), maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
 
     }
 
-    public static int countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, LongTester materialTester, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -68,7 +74,7 @@ public class RegionCounter {
         int compCount = 0;
         int volume = 0;
 
-        printf("countComponents(material: %d, maxCount:%d)\n", material, maxCount);
+        printf("countComponents(tester: %s, maxCount:%d)\n", materialTester, maxCount);
 
         zcycle:
 
@@ -80,11 +86,11 @@ public class RegionCounter {
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
-
-                    if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
-
-                        ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z,material, collectData, algorithm);
-
+                    if(materialTester.test(grid.getAttribute(x,y,z))){
+                        
+                        //if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
+                        ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, materialTester, collectData, algorithm);
+                        
                         //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
                         volume+= sc.getVolume();
                         compCount++;
@@ -100,7 +106,7 @@ public class RegionCounter {
         return compCount;
     }
 
-    public static int countComponents(AttributeGrid grid, long material, int minSize, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, LongTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -110,7 +116,7 @@ public class RegionCounter {
 
         int compCount = 0;
 
-        printf("countComponents(material: %d, minSize: %d maxCount:%d)\n", material, minSize, maxCount);
+        printf("countComponents(material: %s, minSize: %d maxCount:%d)\n", tester, minSize, maxCount);
 
         zcycle:
 
@@ -123,9 +129,10 @@ public class RegionCounter {
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
 
-                    if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
-
-                        ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z,material, collectData, algorithm);
+                    if(tester.test(grid.getAttribute(x,y,z))){
+                        //if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
+                        
+                        ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, tester, collectData, algorithm);
 
                         //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
                         if (sc.getVolume() > minSize) {

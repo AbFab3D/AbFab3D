@@ -22,7 +22,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 
 /**
-   pool of candidate voxels for fast matrching algorithm 
+   pool of candidate voxels for fast marching algorithm 
    stores candidate voxel coordinates and value 
 
    allows fast access to the candidade with lowest value 

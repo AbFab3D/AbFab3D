@@ -197,6 +197,10 @@ public class DualWrapper implements AttributeGridWrapper {
         }
     }
 
+    public void setAttributeWorld(double x, double y, double z, long attribute) {
+        gridAtt.setAttributeWorld(x, y, z, attribute);
+    }
+
     /**
      * Get the material of the voxel.
      *

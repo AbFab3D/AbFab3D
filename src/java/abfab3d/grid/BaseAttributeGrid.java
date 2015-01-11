@@ -28,9 +28,11 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGrid, Cloneable, Serializable {
+
     protected InsideOutsideFunc ioFunc;
 
-    protected AttributeDesc m_attributeDesc;
+    // attriute descriptor used for this grid
+    protected AttributeDesc m_attributeDesc = AttributeDesc.getDefaultAttributeDesc();
 
     /**
      * Constructor.
@@ -508,13 +510,20 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     }
 
     /**
-       deprecated method 
      */
     public long getAttributeWorld(double x, double y, double z) {
         return getAttribute((int)((x-xorig) / pixelSize), 
                             (int)((y-yorig) / sheight),
                             (int)((z-zorig) / pixelSize)); 
 
+    }
+    /**
+     */
+    public void setAttributeWorld(double x, double y, double z, long attribute) {
+        setAttribute((int)((x-xorig) / pixelSize), 
+                     (int)((y-yorig) / sheight),
+                     (int)((z-zorig) / pixelSize), attribute); 
+        
     }
 
     /**

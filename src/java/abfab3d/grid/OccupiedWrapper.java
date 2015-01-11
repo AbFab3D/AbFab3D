@@ -156,6 +156,9 @@ public class OccupiedWrapper implements AttributeGridWrapper {
     public long getAttributeWorld(double x, double y, double z) {
         return grid.getAttributeWorld(x, y, z);
     }
+    public void setAttributeWorld(double x, double y, double z, long attribute) {
+        grid.setAttributeWorld(x, y, z, attribute);
+    }
 
     /**
      * Get the material of the voxel.
