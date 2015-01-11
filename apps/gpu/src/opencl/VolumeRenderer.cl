@@ -262,14 +262,25 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
         //float3 shading = normalize(grad);
 */
         // matlab style lighting
-        float ambient = 0.2;
+        float ambient = 0;
         float3 n = normalize(grad);  //  use gradient for normal at the surface
-        float3 light1 = (float3)(-1,0,2);
+        float3 light1 = (float3)(-10,0,20);
         float3 light1_color = (float3) (0.8f,0,0);
-        float3 light2 = (float3)(-1,-1,2);
+        float3 light2 = (float3)(-10,-10,20);
         float3 light2_color = (float3) (0,0.8f,0);
-        float3 light3 = (float3)(0,-1,2);
+        float3 light3 = (float3)(0,-10,20);
         float3 light3_color = (float3) (0,0,0.8f);
+
+            light1.x = dot((float4)(light1,1), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
+            light1.y = dot((float4)(light1,1),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
+            light1.z = dot((float4)(light1,1), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+            light2.x = dot((float4)(light2,1), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
+            light2.y = dot((float4)(light2,1),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
+            light2.z = dot((float4)(light2,1), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+            light3.x = dot((float4)(light3,1), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
+            light3.y = dot((float4)(light3,1),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
+            light3.z = dot((float4)(light3,1), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+
         float3 shading = dot(normalize(light1),n) * light1_color + dot(normalize(light2),n) * light2_color + dot(normalize(light3),n) * light3_color + ambient;
 
         d_output[i] = rgbaFloatToInt(shading);
