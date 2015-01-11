@@ -14,6 +14,7 @@ package viewer;
 import abfab3d.grid.Bounds;
 import abfab3d.util.Units;
 
+import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLProfile;
 import javax.swing.*;
 import java.awt.*;
@@ -49,6 +50,12 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
     /** The rendering thread */
     private RenderCanvas render;
 
+    /** The status bar */
+    protected StatusBar statusBar;
+
+    /** The content pane for the frame */
+    private Container mainPane;
+
     /** Typical usage message with program options */
     private static final String USAGE_MSG =
             "Usage: Browser [options] [filename]\n" +
@@ -61,13 +68,13 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                     "  -screenSize w h         Specify the screen size to use\n";
 
     public VolumeViewer() {
-        super("Volume Viewer");
+        super("ShapeJS Volume Viewer");
 
         GLProfile.initSingleton();
 
         // TODO: Bah, wish I knew how to get these window dressing params
         int we = 16;
-        int he = 62;
+        int he = 62 + 16;
 
         int size = 1024;
         int width = size + we;
@@ -128,13 +135,14 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
             }
         }
 
-        createUI();
-
         Runtime system_runtime = Runtime.getRuntime();
         system_runtime.addShutdownHook(new Thread(this));
 
         nav = new ExamineNavigator();
         render = new RenderCanvas(nav);
+
+        createUI();
+
         add(render.getComponent());
 
         setSize(width, height);
@@ -209,6 +217,8 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
      */
     protected void createUI() {
         java.util.List<Action> actionList = new ArrayList<Action>();
+
+        statusBar = new StatusBar(render, true, true);
 
         // Create the menu bar
         JMenuBar menuBar = new JMenuBar();
@@ -388,9 +398,37 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         */
         optionsMenu.add(antialiasingMenu);
 
+        StepsAction stepsAction = new StepsAction(render,statusBar);
+        actionList.add(stepsAction);
+
+        JMenu stepsMenu = new JMenu("Eval Steps");
+        ButtonGroup stepsGroup = new ButtonGroup();
+
+        int maxSteps = stepsAction.getMaximumNumberOfSteps();
+        n = 256;
+        while(n <= maxSteps) {
+            rbItem = new JRadioButtonMenuItem(n + " Steps", n == stepsAction.getDefaultNumberOfSteps());
+
+            rbItem.addActionListener(stepsAction);
+            rbItem.setActionCommand(Integer.toString(n));
+            stepsMenu.add(rbItem);
+            stepsGroup.add(rbItem);
+
+            n = n * 2;
+        }
+
+        optionsMenu.add(stepsMenu);
+
         menuBar.add(optionsMenu);
+        mainPane = getContentPane();
 
         if (!useFullscreen) {
+            printf("Adding status bar");
+            JPanel p2 = new JPanel(new BorderLayout());
+
+            p2.add(statusBar, BorderLayout.SOUTH);
+            mainPane.add(p2, BorderLayout.SOUTH);
+
             setJMenuBar(menuBar);
         } else {
             // Need to register all actions with canvas manually

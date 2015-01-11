@@ -37,8 +37,11 @@ import static java.lang.System.nanoTime;
  * @author Alan Hudson
  */
 public class RenderCanvas implements GLEventListener {
+    private boolean debug = false;
+
     private int width;
     private int height;
+    private int maxSteps = StepsAction.getMaximumNumberOfSteps();
 
     private Navigator nav;
     private transient boolean windowChanged = false;
@@ -70,7 +73,7 @@ public class RenderCanvas implements GLEventListener {
 
         GLCapabilities config = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         config.setSampleBuffers(true);
-        config.setNumSamples(4);
+        config.setNumSamples(2);
 
         canvas = new GLCanvas(config);
         canvas.addGLEventListener(this);
@@ -81,13 +84,24 @@ public class RenderCanvas implements GLEventListener {
         return canvas;
     }
 
+    public FPSCounter getCounter() {
+        return animator;
+    }
+
+    public void setSteps(int numSteps) {
+        this.maxSteps = numSteps;
+
+        buildProgram(debug);
+
+        windowChanged = true;
+    }
+
     @Override
     public void init(GLAutoDrawable drawable) {
         printf("Init canvas\n");
         if (clContext != null) return;
 
         this.drawable = drawable;
-        boolean debug = false;
 
         if (debug) {
             device = CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice();
@@ -126,15 +140,27 @@ public class RenderCanvas implements GLEventListener {
 
         // start rendering thread
         animator = new Animator(drawable);
+        animator.setUpdateFPSFrames(3, null);
         animator.start();
     }
 
     private void initCL(GL2 gl, int bufferSize, boolean debug) {
         printf("initCL called\n");
-        try {
+        commandQueue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
 
+        buildProgram(debug);
+
+        viewBuffer = clContext.createFloatBuffer(16, READ_ONLY);
+
+        System.out.println("cl initialised");
+    }
+
+    private void buildProgram(boolean debug) {
+        try {
+            printf("Building program with maxSteps: " + maxSteps + " debug: " + debug);
             String buildOpts = "";
             if (debug) buildOpts += " -DDEBUG";
+            buildOpts += "-DmaxSteps=" + maxSteps;
 
             program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
             program.build(buildOpts);
@@ -146,13 +172,7 @@ public class RenderCanvas implements GLEventListener {
             throw new RuntimeException("can not handle exception", ex);
         }
 
-        commandQueue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
-
         kernel = program.createCLKernel("render");
-
-        viewBuffer = clContext.createFloatBuffer(16, READ_ONLY);
-
-        System.out.println("cl initialised");
     }
 
     private void initPixelBuffer(GL2 gl, int width, int height) {
@@ -251,6 +271,10 @@ public class RenderCanvas implements GLEventListener {
     }
 
     public void reshape(GLAutoDrawable drawable, int arg1, int arg2, int width, int height) {
+        if (this.width == width && this.height == height && clPixelBuffer != null) {
+            // ignore, not sure why we get these
+            return;
+        }
         printf("Window reshaped: %d x %d\n", width, height);
         this.width = width;
         this.height = height;

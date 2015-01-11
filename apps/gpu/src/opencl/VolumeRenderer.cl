@@ -1,4 +1,3 @@
-#define maxSteps 1000
 #define tstep (2.0 / maxSteps)
 
 // intersect ray with a box
