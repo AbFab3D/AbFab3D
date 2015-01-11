@@ -1,4 +1,4 @@
-#define maxSteps 1024
+#define maxSteps 2048
 #define tstep (2.0 / maxSteps)
 
 // intersect ray with a box
@@ -117,7 +117,7 @@ float readShapeJS(float4 pos) {
     // gyroid params
     float factor = 2 * 3.14159265 / 0.1;
 //    float vs = 0.0001;
-    float vs = 2/1024;
+    float vs = 2/maxSteps;
     float thickness = 0.004;
     float level = 0;
     float voxelScale = 1;
@@ -280,7 +280,8 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 
         float4 lm = eyeRay_o - pos;
         float4 n = normalize(grad);  //  use gradient for normal at the surface
-        float4 shading = dot(lm,n) + ambient;
+//        float4 shading = dot(lm,n) + ambient;
+        float4 shading = grad;
 
         d_output[i] = rgbaFloatToInt(shading);
 
