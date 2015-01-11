@@ -14,7 +14,7 @@ package abfab3d.grid;
 
 import static abfab3d.util.Output.fmt;
 
-public class Bounds {
+public class Bounds implements Cloneable {
 
     public double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
 
@@ -77,5 +77,17 @@ public class Bounds {
 
     public String toString(){
         return fmt("%9.7f %9.7f %9.7f %9.7f %9.7f %9.7f",xmin, xmax, ymin, ymax, zmin, zmax);
+    }
+
+    public Bounds clone() {
+
+        try {
+            //Shallow copy is good
+            return (Bounds) super.clone();
+        } catch(CloneNotSupportedException cnse) {
+            cnse.printStackTrace();
+        }
+
+        return null;
     }
 }

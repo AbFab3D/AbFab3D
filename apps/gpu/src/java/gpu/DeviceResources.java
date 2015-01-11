@@ -35,6 +35,8 @@ public class DeviceResources {
             program = context.createProgram(src);
 
             program.build();
+//            program.build(CLProgram.CompilerOptions.FAST_RELAXED_MATH);
+
             assert program.isExecutable();
 
             queue = context.getDevices()[0].createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);

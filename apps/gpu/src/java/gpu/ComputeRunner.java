@@ -53,15 +53,6 @@ public class ComputeRunner implements Runnable {
         this.vs = vs;
     }
 
-    private static int roundUp(int groupSize, int globalSize) {
-        int r = globalSize % groupSize;
-        if (r == 0) {
-            return globalSize;
-        } else {
-            return globalSize + groupSize - r;
-        }
-    }
-
     private void cleanup() {
         events = null;
         device = null;
@@ -139,9 +130,9 @@ public class ComputeRunner implements Runnable {
                 localWorkSizeX = maxXWorkSize; // Local work size dimensions
                 localWorkSizeY = maxYWorkSize; // Local work size dimensions
                 localWorkSizeZ = maxZWorkSize; // Local work size dimensions
-                globalWorkSizeX = roundUp(localWorkSizeX, nx);  // rounded up to the nearest multiple of the localWorkSize
-                globalWorkSizeY = roundUp(localWorkSizeY, ny);  // rounded up to the nearest multiple of the localWorkSize
-                globalWorkSizeZ = roundUp(localWorkSizeZ, nz);  // rounded up to the nearest multiple of the localWorkSize
+                globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX, nx);  // rounded up to the nearest multiple of the localWorkSize
+                globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY, ny);  // rounded up to the nearest multiple of the localWorkSize
+                globalWorkSizeZ = GPUUtil.roundUp(localWorkSizeZ, nz);  // rounded up to the nearest multiple of the localWorkSize
 
 
                 //printf("\nlWS: %d %d %d  gWS: %d %d %d\n", localWorkSizeX, localWorkSizeY, localWorkSizeZ, globalWorkSizeX, globalWorkSizeY, globalWorkSizeZ);

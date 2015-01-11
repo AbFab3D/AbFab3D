@@ -4,6 +4,6 @@
     <buildFile url="file://$PROJECT_DIR$/build.xml" />
     <buildFile url="file://$PROJECT_DIR$/apps/ringpopper/build.xml" />
     <buildFile url="file://$PROJECT_DIR$/apps/ringtorus/build.xml" />
+    <buildFile url="file://$PROJECT_DIR$/apps/gpu/build.xml" />
   </component>
 </project>
-
