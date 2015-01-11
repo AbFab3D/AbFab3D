@@ -181,18 +181,18 @@ if (density > 1 && x==171 && y==160) {
 printf("high density: x: %4d y: %4d dens: %7.4f\n",x,y,density);
 }
 #endif
-        if (density > 0.2 && density < 0.8) {
+        if (density > 0.2 && density < 1.) {
            hit = i;
 		   float dt = 0.001;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
 		   float gp = (readShapeJS(p1)-density)/dt;
 		   float ddt = (0.5-density)/gp;
-		   ddt = clamp(ddt, -1.,1.);
-           // adjust hit based on density to reduce aliasing
-           pos = (eyeRay_o + eyeRay_d*(t + ddt)).xyz;
-           break;
-        }
-
+		   if( ddt > -5.f && ddt < 5.f){		   
+				// adjust hit based on density to reduce aliasing
+				pos = (eyeRay_o + eyeRay_d*(t + ddt)).xyz;
+				break;
+			}
+		}
         t += tstep;
         if (t > tfar) break;
     }
