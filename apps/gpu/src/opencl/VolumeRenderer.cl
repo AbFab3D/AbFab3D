@@ -1,4 +1,4 @@
-#define maxSteps 4096
+#define maxSteps 1000
 #define tstep (2.0 / maxSteps)
 
 // intersect ray with a box
@@ -166,7 +166,7 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %d\n",x,y,eyeRay_o,eyeRay
 
     float4 tpos;
     float3 pos;
-    for(uint i=0; i<maxSteps; i++) {
+    for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
         pos.x = tpos.x;
         pos.y = tpos.y;
@@ -181,22 +181,15 @@ if (density > 1 && x==171 && y==160) {
 printf("high density: x: %4d y: %4d dens: %7.4f\n",x,y,density);
 }
 #endif
-        if (density > 0.5 && density <= 1) {
+        if (density > 0.2 && density < 0.8) {
            hit = i;
-
+		   float dt = 0.001;
+		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
+		   float gp = (readShapeJS(p1)-density)/dt;
+		   float ddt = (0.5-density)/gp;
+		   ddt = clamp(ddt, -1.,1.);
            // adjust hit based on density to reduce aliasing
-#ifdef DEBUG2
-if (y==979) {
-printf("density: %d  pos: %7.4v4f\n",density,pos);
-}
-#endif
-           //pos = eyeRay_o + eyeRay_d*(t - ((1.0 - density) * tstep));
-
-#ifdef DEBUG2
-if (y==979) {
-printf("          new pos: %7.4v4f\n",pos);
-}
-#endif
+           pos = (eyeRay_o + eyeRay_d*(t + ddt)).xyz;
            break;
         }
 
