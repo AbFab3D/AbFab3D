@@ -248,32 +248,32 @@ printf("x: %4d y: %4d eye o: %5.2v4f d: %5.2v4f   hit: %3d   tnear: %4.1f tfar: 
 */
 
         // use exact answer for a sphere
-        float3 grad = normalize((float3)(pos.x,pos.y,pos.z));
-/*
+//        float3 grad = normalize((float3)(pos.x,pos.y,pos.z));
+
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
         float dist = tstep*0.01; // TODO: make one voxel size?
 
         // second order precision formula for gradient
         // x
-        float xd0 = readShapeJS((float4) (pos.x + dist, pos.y, pos.z, pos.w));
-        float xd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
-        float xd2 = readShapeJS((float4) (pos.x - dist, pos.y, pos.z, pos.w));
+        float xd0 = readShapeJS((float3) (pos.x + dist, pos.y, pos.z));
+        float xd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
+        float xd2 = readShapeJS((float3) (pos.x - dist, pos.y, pos.z));
         grad.x = (xd2 - xd0)/(2*dist);
         //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
-        float yd0 = readShapeJS((float4) (pos.x,pos.y + dist, pos.z, pos.w));
-        float yd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
-        float yd2 = readShapeJS((float4) (pos.x, pos.y - dist, pos.z, pos.w));
+        float yd0 = readShapeJS((float3) (pos.x,pos.y + dist, pos.z));
+        float yd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
+        float yd2 = readShapeJS((float3) (pos.x, pos.y - dist, pos.z));
         //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
         grad.y = (yd2 - yd0)/(2*dist);
         // z
-        float zd0 = readShapeJS((float4) (pos.x,pos.y, pos.z + dist, pos.w));
-        float zd1 = readShapeJS((float4) (pos.x, pos.y, pos.z, pos.w));
-        float zd2 = readShapeJS((float4) (pos.x, pos.y, pos.z - dist, pos.w));
+        float zd0 = readShapeJS((float3) (pos.x,pos.y, pos.z + dist));
+        float zd1 = readShapeJS((float3) (pos.x, pos.y, pos.z));
+        float zd2 = readShapeJS((float3) (pos.x, pos.y, pos.z - dist));
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
         grad.z = (zd2 - zd0)/(2*dist);
-*/
+
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model
         float ambient = 0.1;
