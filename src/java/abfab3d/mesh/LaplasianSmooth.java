@@ -116,6 +116,9 @@ public class LaplasianSmooth {
                 count++;
 
                 int twin = HalfEdge.getTwin(hedges,he);
+                if (twin == -1) {
+                    break;
+                }
 
                 he = HalfEdge.getNext(hedges,twin);
 
