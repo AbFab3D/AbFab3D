@@ -126,25 +126,32 @@ float readShapeJS(float3 pos) {
     // Intersection op
     float data3 = intersection(data2,data1);
 
+    float max_noise = 0.1;
+
     // Don't add noise to empty space
-    if (data3 < 0.01) {
+    if (data3 < 0.0001) {
        return data3;
     }
 
 
     float bias = 128.0f;
-    float scale = 100.0f;
+    float scale = 200.0f;
     float lacurnarity = 2.02f;
     float increment = 1.0f;
     float octaves = 3.3f;
 //    float amplitude = 0.1f;
-    float amplitude = tstep * 50;
+//    float amplitude = tstep * 50;
+    float amplitude = tstep * 5;
 
     float3 sample = (pos + bias);
     float noise = turbulence3d((float4)(sample,1.0), scale, lacurnarity, increment, octaves) * amplitude;
+
+    if (noise > max_noise) noise = max_noise;
+    if (noise < -max_noise) noise = -max_noise;
     data3 += noise;
 
     // TODO: Not certain why this is necessary
+
     data3 = clamp(data3,0.0f,1.0f);
 
    return data3;
@@ -226,7 +233,7 @@ if (debug) printf("bbx hit: %d near: %7.4f far: %7.4f\n",hit,tnear,tfar);
 #ifdef DEBUG
 if (debug) printf("step: %d pos: %7.4v3f dens: %7.4f\n",i,pos,density);
 #endif
-        if (density > 0.2 && density < 1.) {
+        if (density > 0.2 && density <= 1.) {
 #ifdef DEBUG
 if (debug) printf("   hit at: %d  dens: %7.4f\n",i,density);
 #endif
@@ -282,6 +289,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
     float4 tpos;
     float3 pos;
+    float density;
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
         pos.x = tpos.x;
@@ -291,9 +299,9 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
         // read from grid
 
-        float density = readShapeJS(pos);
+        density = readShapeJS(pos);
 
-        if (density > 0.2 && density < 1.) {
+        if (density > 0.2 && density <= 1.) {
            hit = i;
 		   float dt = 0.001;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
@@ -324,9 +332,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
-        //float dist = tstep*1000; // TODO: make one voxel size?
-        //float dist = tstep*0.1; // works for subtract script
-        float dist = tstep*0.1; // TODO: make one voxel size?
+        float dist = tstep*0.1; // works for subtract script
 
         // second order precision formula for gradient
         // x
@@ -347,7 +353,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
 #ifdef DEBUG
 if (x==171 && y==160) {
-printf("x: %4d y: %4d xd0: %7.4f xd1: %7.4f xd2: %7.5f grad: %7.4f\n",x,y,xd0,xd1,xd2,grad.x);
+printf("x: %4d y: %4d dens: %7.4f xd0: %7.4f xd2: %7.5f grad: %7.4f\n",x,y,density,xd0,xd2,grad.x);
 printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float3)(pos.x - dist, pos.y, pos.z),(float3) (pos.x + dist, pos.y, pos.z));
 }
 #endif
@@ -373,19 +379,23 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
         float3 light3a = (float3)(0.f, 10.f, 20.f);//(float3)(0,-10,20);
         float3 light3_color = (float3) (0,0,0.8f);
 */
+
         // tony lighting
         //float3 ambient = (float3) (0.1,0.1,0.1);
-        float3 ambient = (float3) (0.1,0.1,0.1);
-        float lscale = 0.6;
+//        float3 ambient = (float3) (0.1,0.1,0.1);
+        float3 ambient = (float3) (0.4,0.4,0.4);
+        float lscale = 0.65;
         float key = 0.8f * lscale;
         float fill = 0.25f * lscale;
         float rim = 1.0f * lscale;
+        float3 light_color = (float3) (255.0/255.0 * lscale, 255/255.0 * lscale, 251.0 / 255.0 * lscale);  // high noon sun
         float3 light1a =  (float3)(6.5f,-6.5f, 10.f);  // key light
-        float3 light1_color = (float3) (key,key,key);
+//        float3 light1_color = (float3) (key,key,key);
+        float3 light1_color = key * light_color;
         float3 light2a = (float3)(10.f, 1.f, -10.f);  // fill light
-        float3 light2_color = (float3) (fill,fill,fill);
+        float3 light2_color = fill * light_color;
         float3 light3a = (float3)(-10.f, 9.0f, 10.f);  // rim light
-        float3 light3_color = (float3) (rim,rim,rim);
+        float3 light3_color = rim * light_color;
 
         // WSF params
 //        float3 mat_diffuse = (float3) 0.831;
@@ -593,6 +603,8 @@ kernel void render(global uint *d_output, uint imageW, uint imageH, global const
 	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
 
     float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix);
+
+    shading = clamp(shading, 0.0, 1.0);
 
     uint idx =(y * imageW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
