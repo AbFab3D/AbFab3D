@@ -143,6 +143,8 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         createUI();
 
+        render.setStatusBar(statusBar);
+
         add(render.getComponent());
 
         setSize(width, height);
@@ -366,10 +368,10 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         actionList.add(viewpointToolbar.getFitWorldAction());
         */
         JMenu optionsMenu = new JMenu("Options");
-        /*
-        antialiasingAction = new AntialiasingAction(this, statusBar);
+
+        AntialiasingAction antialiasingAction = new AntialiasingAction(render,statusBar);
         actionList.add(antialiasingAction);
-        */
+
         JMenu antialiasingMenu = new JMenu("Anti-Aliasing");
         ButtonGroup antialiasingGroup = new ButtonGroup();
 
@@ -379,14 +381,15 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         if (desiredSamples <= 1)
             rbItem.setSelected(true);
         rbItem.setActionCommand("Disabled");
-        //rbItem.addActionListener(antialiasingAction);
+        rbItem.addActionListener(antialiasingAction);
         antialiasingMenu.add(rbItem);
         antialiasingGroup.add(rbItem);
-        /*
-        int maxSamples = antialiasingAction.getMaximumNumberOfSamples();
 
+        int maxSamples = antialiasingAction.getMaximumNumberOfSteps();
+
+        n = 2;
         while(n <= maxSamples) {
-            rbItem = new JRadioButtonMenuItem(n + " Samples", n == desiredSamples);
+            rbItem = new JRadioButtonMenuItem(n + " Samples", n == antialiasingAction.getDefaultNumberOfSteps());
 
             rbItem.addActionListener(antialiasingAction);
             rbItem.setActionCommand(Integer.toString(n));
@@ -395,7 +398,6 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
             n = n * 2;
         }
-        */
         optionsMenu.add(antialiasingMenu);
 
         StepsAction stepsAction = new StepsAction(render,statusBar);
@@ -419,6 +421,30 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         optionsMenu.add(stepsMenu);
 
+        ShadowStepsAction shadowStepsAction = new ShadowStepsAction(render,statusBar);
+        actionList.add(shadowStepsAction);
+
+        JMenu shadowStepsMenu = new JMenu("Shadow Steps");
+        ButtonGroup shadowStepsGroup = new ButtonGroup();
+
+        int maxShadowSteps = shadowStepsAction.getMaximumNumberOfSteps();
+        n = 0;
+        while(n <= maxShadowSteps) {
+            rbItem = new JRadioButtonMenuItem(n + " Steps", n == shadowStepsAction.getDefaultNumberOfSteps());
+
+            rbItem.addActionListener(shadowStepsAction);
+            rbItem.setActionCommand(Integer.toString(n));
+            shadowStepsMenu.add(rbItem);
+            shadowStepsGroup.add(rbItem);
+
+            if (n == 0) {
+                n = 64;
+            }
+            n = n * 2;
+        }
+
+        optionsMenu.add(shadowStepsMenu);
+
         menuBar.add(optionsMenu);
         mainPane = getContentPane();
 
@@ -430,6 +456,8 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
             mainPane.add(p2, BorderLayout.SOUTH);
 
             setJMenuBar(menuBar);
+
+
         } else {
             // Need to register all actions with canvas manually
             JComponent comp = (JComponent) getContentPane();

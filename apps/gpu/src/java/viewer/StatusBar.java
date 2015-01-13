@@ -68,13 +68,14 @@ public class StatusBar extends JPanel implements Runnable  {
         if(showFPS) {
             fpsLabel = new JLabel();
             rightPanel.add(fpsLabel, BorderLayout.EAST);
-            statusThread = new Thread(this, "Xj3D FPS updates");
+            statusThread = new Thread(this, "AbFab3D FPS updates");
             runStatusThread = true;
             statusThread.start();
         }
 
         if(showStatusBar) {
             statusLabel = new JLabel();
+            statusLabel.setText("System initializing");
             add(statusLabel, BorderLayout.WEST);
 
             progressBar = new JProgressBar();

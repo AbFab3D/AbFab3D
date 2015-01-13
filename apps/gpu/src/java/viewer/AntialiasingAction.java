@@ -1,8 +1,9 @@
 package viewer;
 
 // Standard library imports
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
 
 import static abfab3d.util.Output.printf;
 
@@ -14,19 +15,19 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  * @version $Revision: 1.2 $
  */
-public class StepsAction extends AbstractAction {
+public class AntialiasingAction extends AbstractAction {
     /** The status bar */
     protected StatusBar statusBar;
 
     protected RenderCanvas canvas;
     private int numSteps;
-    private static final int maxSteps = (int) Math.pow(2,14);
+    private static final int maxSteps = (int) Math.pow(2,3);
 
     /**
      * Create an instance of the action class.
      *
      */
-    public StepsAction(RenderCanvas canvas, StatusBar statusBar) {
+    public AntialiasingAction(RenderCanvas canvas, StatusBar statusBar) {
         super("");
 
         this.canvas = canvas;
@@ -69,7 +70,7 @@ public class StepsAction extends AbstractAction {
     //---------------------------------------------------------------
 
     public static int getDefaultNumberOfSteps() {
-        return (int) Math.pow(2,10);
+        return (int) 0;
     }
 
     /**
@@ -111,7 +112,7 @@ public class StepsAction extends AbstractAction {
      * Change to the current numSteps.
      */
     private void changeSteps() {
-        statusBar.setStatusText("Eval steps: " + numSteps + " out of max: " + maxSteps);
-        canvas.setSteps(numSteps);
+        statusBar.setStatusText("Antialiasing steps: " + numSteps + " out of max: " + maxSteps);
+        canvas.setAntialiasingSteps(numSteps);
     }
 }
