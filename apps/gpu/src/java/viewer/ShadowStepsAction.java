@@ -1,20 +1,21 @@
 package viewer;
 
 // Standard library imports
+
+import javax.swing.*;
 import java.awt.event.ActionEvent;
-import javax.swing.AbstractAction;
 
 import static abfab3d.util.Output.printf;
 
 
 /**
- * An action that can be used to change the number of evaluation steps
+ * An action that can be used to change the number of shadow evaluation steps
  * <p>
  *
  * @author Alan Hudson
  * @version $Revision: 1.2 $
  */
-public class StepsAction extends AbstractAction {
+public class ShadowStepsAction extends AbstractAction {
     /** The status bar */
     protected StatusBar statusBar;
 
@@ -26,13 +27,13 @@ public class StepsAction extends AbstractAction {
      * Create an instance of the action class.
      *
      */
-    public StepsAction(RenderCanvas canvas, StatusBar statusBar) {
+    public ShadowStepsAction(RenderCanvas canvas, StatusBar statusBar) {
         super("");
 
         this.canvas = canvas;
         this.statusBar = statusBar;
 
-        putValue(SHORT_DESCRIPTION, "Cycles the eval steps");
+        putValue(SHORT_DESCRIPTION, "Cycles the shadow steps");
 
         numSteps = getDefaultNumberOfSteps();
     }
@@ -50,7 +51,6 @@ public class StepsAction extends AbstractAction {
      */
     public void actionPerformed(ActionEvent evt) {
         String val = evt.getActionCommand();
-        printf("Steps action: " + val);
 
         if (val.equals("Disabled")) {
             numSteps = 1;
@@ -69,7 +69,7 @@ public class StepsAction extends AbstractAction {
     //---------------------------------------------------------------
 
     public static int getDefaultNumberOfSteps() {
-        return (int) Math.pow(2,10);
+        return 0;
     }
 
     /**
@@ -112,6 +112,6 @@ public class StepsAction extends AbstractAction {
      */
     private void changeSteps() {
         statusBar.setStatusText("Eval steps: " + numSteps + " out of max: " + maxSteps);
-        canvas.setSteps(numSteps);
+        canvas.setShadowSteps(numSteps);
     }
 }

@@ -1,6 +1,5 @@
 package viewer;
 
-import abfab3d.grid.Bounds;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
@@ -12,14 +11,11 @@ import render.VolumeRenderer;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.GLCanvas;
+import javax.swing.*;
 import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector3f;
 
 import java.awt.*;
-import java.awt.event.*;
 import java.io.IOException;
-import java.nio.Buffer;
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Random;
 
@@ -41,10 +37,14 @@ public class RenderCanvas implements GLEventListener {
 
     private int width;
     private int height;
-    private int maxSteps = StepsAction.getMaximumNumberOfSteps();
+    private int maxSteps = StepsAction.getDefaultNumberOfSteps();
+    private int maxShadowSteps = ShadowStepsAction.getDefaultNumberOfSteps();
+    private int maxAntialiasingSteps = AntialiasingAction.getDefaultNumberOfSteps();
 
     private Navigator nav;
+    private StatusBar statusBar;
     private transient boolean windowChanged = false;
+    private transient boolean compiling = false;
     private VolumeRenderer renderer;
     private CLDevice device;
     private CLGLContext clContext;
@@ -70,7 +70,6 @@ public class RenderCanvas implements GLEventListener {
 
     public RenderCanvas(Navigator nav) {
         this.nav = nav;
-
         GLCapabilities config = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         config.setSampleBuffers(true);
         config.setNumSamples(2);
@@ -78,6 +77,10 @@ public class RenderCanvas implements GLEventListener {
         canvas = new GLCanvas(config);
         canvas.addGLEventListener(this);
         nav.init(canvas);
+    }
+
+    public void setStatusBar(StatusBar status) {
+        this.statusBar = status;
     }
 
     public Component getComponent() {
@@ -88,10 +91,47 @@ public class RenderCanvas implements GLEventListener {
         return animator;
     }
 
+    public void setAntialiasingSteps(int numSteps) {
+        this.maxAntialiasingSteps = numSteps;
+
+        statusBar.setStatusText("Loading program...");
+        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                buildProgram(debug);
+            }
+        });
+
+        windowChanged = true;
+    }
+
     public void setSteps(int numSteps) {
         this.maxSteps = numSteps;
 
-        buildProgram(debug);
+        statusBar.setStatusText("Loading program...");
+        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                buildProgram(debug);
+            }
+        });
+
+        windowChanged = true;
+    }
+
+    public void setShadowSteps(int numSteps) {
+        this.maxShadowSteps = numSteps;
+
+        statusBar.setStatusText("Loading program...");
+        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                buildProgram(debug);
+            }
+        });
 
         windowChanged = true;
     }
@@ -156,23 +196,45 @@ public class RenderCanvas implements GLEventListener {
     }
 
     private void buildProgram(boolean debug) {
+        String kernel_name = "render";
+
+        compiling = true;
+        long t0 = System.currentTimeMillis();
         try {
             printf("Building program with maxSteps: " + maxSteps + " debug: " + debug);
             String buildOpts = "";
             if (debug) buildOpts += " -DDEBUG";
-            buildOpts += "-DmaxSteps=" + maxSteps;
+            buildOpts += " -DmaxSteps=" + maxSteps;
+            buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;
+            buildOpts += " -Dsamples=" + maxAntialiasingSteps;
+            if (maxShadowSteps > 0) {
+                buildOpts += " -DSHADOWS";
+            }
+            if (maxAntialiasingSteps > 0) {
+                buildOpts += " -DSUPERSAMPLE";
+                kernel_name = "renderSuper";
+            } else {
+                kernel_name = "render";
+            }
 
-            program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
+            //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
+            program = ProgramLoader.load(clContext, new String[] { "Noise.cl", "VolumeRenderer.cl" });
             program.build(buildOpts);
 
             System.out.println(program.getBuildStatus());
             System.out.println(program.isExecutable());
             System.out.println(program.getBuildLog());
         } catch (IOException ex) {
+            statusBar.setStatusText("Exception building program");
             throw new RuntimeException("can not handle exception", ex);
         }
 
-        kernel = program.createCLKernel("render");
+        kernel = program.createCLKernel(kernel_name);
+//        kernel = program.createCLKernel("renderSuper");
+        statusBar.setStatusText("Done loading program.  compile time: " + (System.currentTimeMillis() - t0) / 1000 + " secs");
+        compiling = false;
+
+        canvas.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
     }
 
     private void initPixelBuffer(GL2 gl, int width, int height) {
@@ -196,7 +258,7 @@ public class RenderCanvas implements GLEventListener {
 
     @Override
     public void display(GLAutoDrawable drawable) {
-        if (!rendering && !nav.hasChanged() && !windowChanged) return;
+        if (!compiling && !rendering && !nav.hasChanged() && !windowChanged) return;
 
         rendering = true;
         windowChanged = false;
