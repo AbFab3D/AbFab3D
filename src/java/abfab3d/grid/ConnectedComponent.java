@@ -15,8 +15,6 @@ package abfab3d.grid;
 
 import java.util.LinkedList;
 
-import abfab3d.util.LongTester;
-import abfab3d.util.LongTesterValue;
 import static abfab3d.util.Output.printf;
 
 
@@ -37,8 +35,7 @@ public class ConnectedComponent implements Comparable, Region {
 
 
     protected ArrayInt m_component = null; // array of coordinates of found voxels
-    //long material; // material  of the component
-    LongTester materialTester; // material  of the component
+    AttributeTester materialTester; // tests if voxel belong to the material 
     AttributeGrid grid;
 
     GridBit mask; // mask of visited voxels
@@ -67,7 +64,7 @@ public class ConnectedComponent implements Comparable, Region {
         algorithm -
 
     */
-    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, LongTester materialTester, boolean collectData){
+    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, AttributeTester materialTester, boolean collectData){
         this(grid, mask, x, y, z, materialTester, collectData, DEFAULT_ALGORITHM);
     }
 
@@ -76,9 +73,9 @@ public class ConnectedComponent implements Comparable, Region {
     }
 
     public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, long material, boolean collectData, int algorithm){
-        this(grid, mask, x, y, z, new LongTesterValue(material), collectData, algorithm);
+        this(grid, mask, x, y, z, new AttributeTesterValue(material), collectData, algorithm);
     }
-    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, LongTester materialTester, boolean collectData, int algorithm){
+    public ConnectedComponent(AttributeGrid grid, GridBit mask, int x, int y, int z, AttributeTester materialTester, boolean collectData, int algorithm){
 
         this.grid = grid;
         this.mask = mask;
@@ -523,8 +520,8 @@ public class ConnectedComponent implements Comparable, Region {
             return false;
     }
 
-    final boolean compareAttribute(AttributeGrid grid, int x, int y, int z){        
-        return materialTester.test(grid.getAttribute(x,y,z));
+    final boolean compareAttribute(AttributeGrid grid, int x, int y, int z){ 
+        return materialTester.test(x,y,z,grid.getAttribute(x,y,z));
     }
 
     public int compareTo(Object o){

@@ -26,9 +26,6 @@ import abfab3d.grid.ClassTraverser;
 
 import abfab3d.grid.Region;
 
-import abfab3d.util.LongTester;
-import abfab3d.util.LongTesterValue;
-
 import static abfab3d.util.Output.printf;
 
 
@@ -39,31 +36,31 @@ import static abfab3d.util.Output.printf;
  */
 public class RegionCounter {
 
-
+    public static final boolean DEBUG = false;
 
     /**
        components counting via various algoritms
 
 
      */
-    public static int countComponents(AttributeGrid grid, LongTester materialTester) {
+    public static int countComponents(AttributeGrid grid, AttributeTester materialTester) {
         return countComponents(grid, materialTester, -1, false,ConnectedComponent.DEFAULT_ALGORITHM);        
     }
     public static int countComponents(AttributeGrid grid, long material) {
-        return countComponents(grid, new LongTesterValue(material), -1, false,ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new AttributeTesterValue(material), -1, false,ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
     public static int countComponents(AttributeGrid grid, long material, int minSize) {
-        return countComponents(grid, new LongTesterValue(material), minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new AttributeTesterValue(material), minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
     public static int countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData) {
 
-        return countComponents(grid, new LongTesterValue(material), maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new AttributeTesterValue(material), maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
 
     }
 
-    public static int countComponents(AttributeGrid grid, LongTester materialTester, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, AttributeTester materialTester, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -74,7 +71,7 @@ public class RegionCounter {
         int compCount = 0;
         int volume = 0;
 
-        printf("countComponents(tester: %s, maxCount:%d)\n", materialTester, maxCount);
+        if(DEBUG)printf("countComponents(tester: %s, maxCount:%d)\n", materialTester, maxCount);
 
         zcycle:
 
@@ -86,9 +83,8 @@ public class RegionCounter {
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
-                    if(materialTester.test(grid.getAttribute(x,y,z))){
+                    if(materialTester.test(x,y,z,grid.getAttribute(x,y,z))){
                         
-                        //if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, materialTester, collectData, algorithm);
                         
                         //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
@@ -106,7 +102,7 @@ public class RegionCounter {
         return compCount;
     }
 
-    public static int countComponents(AttributeGrid grid, LongTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, AttributeTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
 
         int nx1 = grid.getWidth()-1;
         int ny1 = grid.getHeight()-1;
@@ -116,7 +112,7 @@ public class RegionCounter {
 
         int compCount = 0;
 
-        printf("countComponents(material: %s, minSize: %d maxCount:%d)\n", tester, minSize, maxCount);
+        if(DEBUG)printf("countComponents(material: %s, minSize: %d maxCount:%d)\n", tester, minSize, maxCount);
 
         zcycle:
 
@@ -129,8 +125,7 @@ public class RegionCounter {
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
 
-                    if(tester.test(grid.getAttribute(x,y,z))){
-                        //if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
+                    if(tester.test(x,y,z,grid.getAttribute(x,y,z))){
                         
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, tester, collectData, algorithm);
 
@@ -177,7 +172,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
 
-        printf("countComponents(state: %d, macCount:%d)\n", state, maxCount);
+        if(DEBUG)printf("countComponents(state: %d, macCount:%d)\n", state, maxCount);
         int compCount = 0;
         int volume = 0;
 
@@ -219,7 +214,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
 
-        printf("countComponents(state: %d, minSize: %d macCount:%d)\n", state, minSize, maxCount);
+        if(DEBUG)printf("countComponents(state: %d, minSize: %d macCount:%d)\n", state, minSize, maxCount);
         int compCount = 0;
 
         zcycle:
@@ -270,7 +265,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1, GridBitIntervals.ORIENTATION_Y);
 
-        printf("removeSmallComponents(%d, %d)\n", material, minSize);
+        if(DEBUG)printf("removeSmallComponents(%d, %d)\n", material, minSize);
 
         int compCount = 0;
         int volume = 0;
@@ -305,8 +300,8 @@ public class RegionCounter {
             }
         }
 
-        printf("totalComponentsCount: %d, voxelCount: %d\n", compCount, volume);
-        printf("smallComponentsCount: %d, voxelCount: %d maxRemovedVolume: %d\n", smallComponents.size(), smallVolume, maxRemovedVolume);
+        if(DEBUG)printf("totalComponentsCount: %d, voxelCount: %d\n", compCount, volume);
+        if(DEBUG)printf("smallComponentsCount: %d, voxelCount: %d maxRemovedVolume: %d\n", smallComponents.size(), smallVolume, maxRemovedVolume);
 
         if(smallComponents.size() == 0)
             return largeComponents;
@@ -326,7 +321,7 @@ public class RegionCounter {
                 grid.setState(voxel[0],voxel[1],voxel[2],Grid.OUTSIDE);
             }
         }
-        printf("removeSmallComponents(%d, %d) done\n", material, minSize);
+        if(DEBUG)printf("removeSmallComponents(%d, %d) done\n", material, minSize);
 
         return largeComponents;
 
@@ -360,7 +355,7 @@ public class RegionCounter {
 
     public static Vector<ConnectedComponent> removeSmallComponents(AttributeGrid grid, long material, int minSize){
 
-        printf("removeSmallComponents(material:%d, minSize: %d)\n", material, minSize);
+        if(DEBUG)printf("removeSmallComponents(material:%d, minSize: %d)\n", material, minSize);
 
         int compCount = 0;
         int volume = 0;
@@ -401,8 +396,8 @@ public class RegionCounter {
             }
         }
 
-        printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
-        printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
+        if(DEBUG)printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
+        if(DEBUG)printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
         //printf("removeSmallComponents(%d, %d) done\n", material, minSize);
 
         return largeComp;
@@ -410,7 +405,7 @@ public class RegionCounter {
 
     public static Vector<ConnectedComponentState> removeSmallComponents(Grid grid, byte state, int minSize){
 
-        printf("removeSmallComponents(state:%d, minSize: %d)\n", state, minSize);
+        if(DEBUG)printf("removeSmallComponents(state:%d, minSize: %d)\n", state, minSize);
 
         int compCount = 0;
         int volume = 0;
@@ -450,8 +445,8 @@ public class RegionCounter {
             }
         }
 
-        printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
-        printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
+        if(DEBUG)printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
+        if(DEBUG)printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
         //printf("removeSmallComponents(%d, %d) done\n", material, minSize);
 
         return largeComp;

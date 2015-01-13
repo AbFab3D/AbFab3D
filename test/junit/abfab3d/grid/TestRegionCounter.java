@@ -368,20 +368,39 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
     public void _testFindComponents(){
         printf("testFindComponents()\n");
         double vs = 0.5*MM;
-        AttributeGrid grid = makeDoubleSphere(10*MM,20*MM, 3*MM, vs);
+        double r1 = 10*MM;
+        double r2 = 20*MM;
+        double thickness = 3*MM;        
+        double ss = r2 + 3*vs;
+
+        AttributeGrid grid = makeDoubleSphere(r1, r2, thickness, ss, vs);
         long mat = 0;
 
-        grid.setAttributeWorld(0., 0., 0., mat);
-        grid.setAttributeWorld(vs,vs,vs, mat);
-        int count = RegionCounter.countComponents(grid, new LongTesterRange(100, 255));
+        //grid.setAttributeWorld(0., 0., 0., mat);
+        //grid.setAttributeWorld(vs,vs,vs, mat);
+        //int count = RegionCounter.countComponents(grid, new AttributeTesterRange(0, 0));
+        int count = RegionCounter.countComponents(grid, new HalfSpaceAttributeTester((int)((ss+r2)/vs), 0));
         printf("components count: %d\n", count);
         //SVXWriter svx = new SVXWriter();
         //svx.write(grid, "/tmp/ss.svx");
     }
 
-    static AttributeGrid makeDoubleSphere(double minR, double maxR, double thickness, double vs){
+    
+    // bound the connected components by half space (x >= x0)
+    static class HalfSpaceAttributeTester implements AttributeTester {
+        
+        int x0;
+        long value;
 
-        double s = maxR + 2*vs;
+        HalfSpaceAttributeTester(int x0, int value){
+            this.x0 = x0; 
+            this.value = value;
+        }
+        public boolean test(int x,int y,int z,long attribute){
+            return (x > x0) && (attribute == value);
+        }
+    }
+    static AttributeGrid makeDoubleSphere(double minR, double maxR, double thickness, double s, double vs){
 
         ArrayAttributeGridByte grid = new ArrayAttributeGridByte(new Bounds(-s, s, -s, s, -s, s), vs, vs);
 
