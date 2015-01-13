@@ -102,8 +102,6 @@ public class RenderCanvas implements GLEventListener {
                 buildProgram(debug);
             }
         });
-
-        windowChanged = true;
     }
 
     public void setSteps(int numSteps) {
@@ -117,8 +115,6 @@ public class RenderCanvas implements GLEventListener {
                 buildProgram(debug);
             }
         });
-
-        windowChanged = true;
     }
 
     public void setShadowSteps(int numSteps) {
@@ -132,8 +128,6 @@ public class RenderCanvas implements GLEventListener {
                 buildProgram(debug);
             }
         });
-
-        windowChanged = true;
     }
 
     @Override
@@ -235,6 +229,8 @@ public class RenderCanvas implements GLEventListener {
         compiling = false;
 
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+
+        windowChanged = true;
     }
 
     private void initPixelBuffer(GL2 gl, int width, int height) {
