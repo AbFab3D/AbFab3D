@@ -12,11 +12,10 @@
 package volumesculptor.shell;
 
 import abfab3d.datasources.Box;
-import abfab3d.datasources.GroupingNode;
+import abfab3d.datasources.SNode;
 import abfab3d.datasources.TransformableDataSource;
 import abfab3d.grid.Grid;
 import abfab3d.util.DataSource;
-import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 import org.web3d.vrml.sav.*;
 
@@ -66,8 +65,8 @@ public class DataSourceX3DViewer {
     }
 
     private void viz(DataSource src, List<VecTransform> trans, Grid grid, BinaryContentHandler stream) {
-        if (src instanceof GroupingNode) {
-            DataSource[] children = ((GroupingNode)src).getChildren();
+        if (src instanceof SNode) {
+            DataSource[] children = ((SNode)src).getChildren();
 
             VecTransform vt = null;
             if (src instanceof TransformableDataSource) {
