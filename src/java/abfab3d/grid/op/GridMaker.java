@@ -55,7 +55,7 @@ public class GridMaker implements Operation, AttributeOperation {
     protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;  
 
     // margin around the grid boundary to be kept empty
-    protected int m_margin = 1; 
+    protected int m_margin = 0; 
     // threads count to use 
     protected int m_threadCount = 0;
 

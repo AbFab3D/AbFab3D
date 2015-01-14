@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.intersect;
+package abfab3d.distance;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Matrix3d;
@@ -22,20 +22,21 @@ import static java.lang.Math.abs;
 
 
 /**
-   returns the distance to 3D spherical shell
+   returns the signed distance to 3D sphere
+   if radius > 0 the interipor of sphere is inside 
+   if radius < 0 the exterior of sphere is inside    
    @author Vladimir Bulatov
  */
-public class DistanceDataSphereShell implements DistanceData {
+public class DistanceDataSphere implements DistanceData {
         
     double cx,cy, cz; 
     double radius;
 
-    public DistanceDataSphereShell(double radius){
+    public DistanceDataSphere(double radius){
         this(radius, 0,0,0);
     }
 
-    public DistanceDataSphereShell(double radius, 
-                                   double centerx, double centery, double centerz){
+    public DistanceDataSphere(double radius, double centerx, double centery, double centerz){
         this.cx = centerx;
         this.cy = centery;
         this.cz = centerz;
@@ -46,16 +47,16 @@ public class DistanceDataSphereShell implements DistanceData {
     //
     // return distance to the sphere in 3D 
     //
-    public double get(double x, double y, double z){
+    public double getDistance(double x, double y, double z){
 
         // move center to origin 
         x -= cx;
         y -= cy;
-        z -= cz;        
-        
-        double dist = abs(sqrt(x*x + y*y + z*z) - radius);
-
-        return dist;
+        z -= cz;       
+ 
+        if(radius > 0) // interior of sphere 
+            return sqrt(x*x + y*y + z*z) - radius;
+        else  // exterior of sphere 
+            return (- sqrt(x*x + y*y + z*z) - radius);        
     }
 }
-

@@ -37,8 +37,10 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridLong;
+import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
+import abfab3d.grid.Bounds;
 
 
 import abfab3d.geom.TriangulatedModels;
@@ -585,6 +587,36 @@ public class TestSlicesWriter extends TestCase {
             (data.readUnsignedByte()<<16)|(data.readUnsignedByte()<<24);      
         return i;
     }
+
+
+    /**
+       makes a test slices set 
+     */
+    void blackWhiteTest() throws IOException{
+        // writes 1 pit per voxel grid 
+        printf("blackWhiteTest()\n");  
+        double voxelSize = 0.1*MM;
+        double margin = 0;
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double ballRadius = 5.0*MM;
+        double surfareThickness = Math.sqrt(3)/2;
+
+        double gridWidth = sizex + 2*margin;
+        double gridHeight = sizey + 2*margin;
+        double gridDepth = sizez + 2*margin;
+        
+        int threadsCount = 1;
+        Bounds bounds = new Bounds(-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2);
+        Sphere sphere = new Sphere(0, 0, 0,ballRadius);        
+        GridMaker gm = new GridMaker(); 
+        gm.setSource(sphere);        
+        AttributeGrid grid = new GridBitIntervals(bounds, voxelSize, voxelSize);
+        gm.makeGrid(grid);               
+        printf("gm.makeGrid() done\n");
+        new SVXWriter().write(grid, "/tmp/sphere_1bpp.svx");        
+    }
   
     /**
        makes a test slices set 
@@ -958,7 +990,8 @@ public class TestSlicesWriter extends TestCase {
         //new TestSlicesWriter().colorTest3();
         //new TestSlicesWriter().colorTestBoxSphere();
         //new TestSlicesWriter().colorTestConeSphere();
-        new TestSlicesWriter().colorTestNoise();
+        //new TestSlicesWriter().colorTestNoise();
+        new TestSlicesWriter().blackWhiteTest();
     }
     
 

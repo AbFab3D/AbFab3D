@@ -26,9 +26,6 @@ import abfab3d.grid.ClassTraverser;
 
 import abfab3d.grid.Region;
 
-import abfab3d.util.LongTester;
-import abfab3d.util.LongTesterValue;
-
 import static abfab3d.util.Output.printf;
 
 
@@ -39,56 +36,53 @@ import static abfab3d.util.Output.printf;
  */
 public class RegionCounter {
 
-
+    public static final boolean DEBUG = false;
 
     /**
        components counting via various algoritms
 
 
      */
-    public static int countComponents(AttributeGrid grid, LongTester materialTester) {
+    public static int countComponents(AttributeGrid grid, AttributeTester materialTester) {
         return countComponents(grid, materialTester, -1, false,ConnectedComponent.DEFAULT_ALGORITHM);        
     }
     public static int countComponents(AttributeGrid grid, long material) {
-        return countComponents(grid, new LongTesterValue(material), -1, false,ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new AttributeTesterValue(material), -1, false,ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
     public static int countComponents(AttributeGrid grid, long material, int minSize) {
-        return countComponents(grid, new LongTesterValue(material), minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new AttributeTesterValue(material), minSize, -1, false, ConnectedComponent.DEFAULT_ALGORITHM);
     }
 
     public static int countComponents(AttributeGrid grid, long material, int maxCount, boolean collectData) {
 
-        return countComponents(grid, new LongTesterValue(material), maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
+        return countComponents(grid, new AttributeTesterValue(material), maxCount, collectData, ConnectedComponent.DEFAULT_ALGORITHM);
 
     }
 
-    public static int countComponents(AttributeGrid grid, LongTester materialTester, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, AttributeTester materialTester, int maxCount, boolean collectData, int algorithm) {
 
-        int nx1 = grid.getWidth()-1;
-        int ny1 = grid.getHeight()-1;
-        int nz1 = grid.getDepth()-1;
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
 
-        GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
+        GridBit mask = new GridBitIntervals(nx,ny, nz);
 
         int compCount = 0;
         int volume = 0;
 
-        printf("countComponents(tester: %s, maxCount:%d)\n", materialTester, maxCount);
+        if(DEBUG)printf("countComponents(tester: %s, maxCount:%d)\n", materialTester, maxCount);
 
         zcycle:
 
-        for(int z = 1; z < nz1; z++){
-
-            for(int x = 1; x < nx1; x++){
-
-                for(int y = 1; y < ny1; y++){
+        for(int z = 0; z < nz; z++){
+            for(int x = 0; x < nx; x++){
+                for(int y = 0; y < ny; y++){
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
-                    if(materialTester.test(grid.getAttribute(x,y,z))){
+                    if(materialTester.test(x,y,z,grid.getAttribute(x,y,z))){
                         
-                        //if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, materialTester, collectData, algorithm);
                         
                         //printf("Component[%d] seed:(%d,%d,%d) volume: %d\n", (compCount++), x,y,z, sc.getVolume());
@@ -106,31 +100,30 @@ public class RegionCounter {
         return compCount;
     }
 
-    public static int countComponents(AttributeGrid grid, LongTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
+    public static int countComponents(AttributeGrid grid, AttributeTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
 
-        int nx1 = grid.getWidth()-1;
-        int ny1 = grid.getHeight()-1;
-        int nz1 = grid.getDepth()-1;
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
 
-        GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
+        GridBit mask = new GridBitIntervals(nx,ny, nz);
 
         int compCount = 0;
 
-        printf("countComponents(material: %s, minSize: %d maxCount:%d)\n", tester, minSize, maxCount);
+        if(DEBUG)printf("countComponents(material: %s, minSize: %d maxCount:%d)\n", tester, minSize, maxCount);
 
         zcycle:
 
-        for(int z = 1; z < nz1; z++){
+        for(int z = 0; z < nz; z++){
 
-            for(int x = 1; x < nx1; x++){
+            for(int x = 0; x < nx; x++){
 
-                for(int y = 1; y < ny1; y++){
+                for(int y = 0; y < ny; y++){
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
 
-                    if(tester.test(grid.getAttribute(x,y,z))){
-                        //if(ConnectedComponent.compareMaterial(grid, x,y,z, material)){
+                    if(tester.test(x,y,z,grid.getAttribute(x,y,z))){
                         
                         ConnectedComponent sc = new  ConnectedComponent(grid, mask, x,y,z, tester, collectData, algorithm);
 
@@ -177,7 +170,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
 
-        printf("countComponents(state: %d, macCount:%d)\n", state, maxCount);
+        if(DEBUG)printf("countComponents(state: %d, macCount:%d)\n", state, maxCount);
         int compCount = 0;
         int volume = 0;
 
@@ -219,7 +212,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
 
-        printf("countComponents(state: %d, minSize: %d macCount:%d)\n", state, minSize, maxCount);
+        if(DEBUG)printf("countComponents(state: %d, minSize: %d macCount:%d)\n", state, minSize, maxCount);
         int compCount = 0;
 
         zcycle:
@@ -270,7 +263,7 @@ public class RegionCounter {
 
         GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1, GridBitIntervals.ORIENTATION_Y);
 
-        printf("removeSmallComponents(%d, %d)\n", material, minSize);
+        if(DEBUG)printf("removeSmallComponents(%d, %d)\n", material, minSize);
 
         int compCount = 0;
         int volume = 0;
@@ -305,8 +298,8 @@ public class RegionCounter {
             }
         }
 
-        printf("totalComponentsCount: %d, voxelCount: %d\n", compCount, volume);
-        printf("smallComponentsCount: %d, voxelCount: %d maxRemovedVolume: %d\n", smallComponents.size(), smallVolume, maxRemovedVolume);
+        if(DEBUG)printf("totalComponentsCount: %d, voxelCount: %d\n", compCount, volume);
+        if(DEBUG)printf("smallComponentsCount: %d, voxelCount: %d maxRemovedVolume: %d\n", smallComponents.size(), smallVolume, maxRemovedVolume);
 
         if(smallComponents.size() == 0)
             return largeComponents;
@@ -326,20 +319,33 @@ public class RegionCounter {
                 grid.setState(voxel[0],voxel[1],voxel[2],Grid.OUTSIDE);
             }
         }
-        printf("removeSmallComponents(%d, %d) done\n", material, minSize);
+        if(DEBUG)printf("removeSmallComponents(%d, %d) done\n", material, minSize);
 
         return largeComponents;
 
     }
 
     /**
-       return components with specified material and INSIDE class
+       return connected  components with specified material and INSIDE voxels 
      */
     public static Vector<ConnectedComponent> findComponents(AttributeGrid grid, long material){
 
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
-        ComponentsFinder cf = new ComponentsFinder(grid, mask, material);
+        ComponentsFinder cf = new ComponentsFinder(grid, mask, new AttributeTesterValue(material));
         grid.find(Grid.VoxelClasses.INSIDE, cf);
+        cf.releaseReferences();
+        return cf.getComponents();
+
+    }
+
+    /**
+       return connected components with specific material tester 
+    */
+    public static Vector<ConnectedComponent> findComponents(AttributeGrid grid, AttributeTester materialTester){
+
+        GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
+        ComponentsFinder cf = new ComponentsFinder(grid, mask, materialTester);
+        grid.find(Grid.VoxelClasses.ALL, cf);
         cf.releaseReferences();
         return cf.getComponents();
 
@@ -360,7 +366,7 @@ public class RegionCounter {
 
     public static Vector<ConnectedComponent> removeSmallComponents(AttributeGrid grid, long material, int minSize){
 
-        printf("removeSmallComponents(material:%d, minSize: %d)\n", material, minSize);
+        if(DEBUG)printf("removeSmallComponents(material:%d, minSize: %d)\n", material, minSize);
 
         int compCount = 0;
         int volume = 0;
@@ -401,8 +407,8 @@ public class RegionCounter {
             }
         }
 
-        printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
-        printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
+        if(DEBUG)printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
+        if(DEBUG)printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
         //printf("removeSmallComponents(%d, %d) done\n", material, minSize);
 
         return largeComp;
@@ -410,7 +416,7 @@ public class RegionCounter {
 
     public static Vector<ConnectedComponentState> removeSmallComponents(Grid grid, byte state, int minSize){
 
-        printf("removeSmallComponents(state:%d, minSize: %d)\n", state, minSize);
+        if(DEBUG)printf("removeSmallComponents(state:%d, minSize: %d)\n", state, minSize);
 
         int compCount = 0;
         int volume = 0;
@@ -450,8 +456,8 @@ public class RegionCounter {
             }
         }
 
-        printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
-        printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
+        if(DEBUG)printf("totalComponents count: %d, voxels: %d\n", components.size(), volume);
+        if(DEBUG)printf("smallComponents count: %d, voxels: %d maxSize: %d\n", smallComp.size(), smallVolume, maxRemovedVolume);
         //printf("removeSmallComponents(%d, %d) done\n", material, minSize);
 
         return largeComp;
@@ -562,14 +568,14 @@ public class RegionCounter {
 
         AttributeGrid grid;
         GridBit mask;
-        long material;
+        AttributeTester materialTester;
         Vector<ConnectedComponent> components;
 
-        ComponentsFinder(AttributeGrid grid, GridBit mask, long material){
+        ComponentsFinder(AttributeGrid grid, GridBit mask, AttributeTester materialTester){
 
             this.grid = grid;
             this.mask = mask;
-            this.material = material;
+            this.materialTester = materialTester;
             this.components = new Vector<ConnectedComponent>();
 
         }
@@ -585,8 +591,8 @@ public class RegionCounter {
             if(mask.get(x,y,z) != 0)
                 return;
 
-            if(grid.getAttribute(x,y,z) == material){
-                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, material, true);
+            if(materialTester.test(x,y,z,grid.getAttribute(x,y,z))){
+                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, materialTester, true);
                 components.add(cc);
             }
 
@@ -597,8 +603,8 @@ public class RegionCounter {
             if(mask.get(x,y,z) != 0)
                 return true;
 
-            if(grid.getAttribute(x,y,z) == material){
-                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, material, true);
+            if(materialTester.test(x,y,z,grid.getAttribute(x,y,z))){
+                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, materialTester, true);
                 components.add(cc);
             }
             return true;
@@ -609,6 +615,9 @@ public class RegionCounter {
         }
     }
 
+    //
+    // componet finder for specific state 
+    // 
     static class ComponentsFinderState implements ClassTraverser {
 
         Grid grid;

@@ -10,12 +10,15 @@
  *
  ****************************************************************************/
 
-package abfab3d.intersect;
+package abfab3d.distance;
 
 //
 // interface for distance data calculation
 // @author Vladimir Bulatov
 public interface DistanceData {
-    public double get(double x, double y, double z);
+    /**
+       @return signed distance value to the object
+     */
+    public double getDistance(double x, double y, double z);
 }
 

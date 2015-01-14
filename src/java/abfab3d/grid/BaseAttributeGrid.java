@@ -31,8 +31,8 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
 
     protected InsideOutsideFunc ioFunc;
 
-    // attriute descriptor used for this grid
-    protected AttributeDesc m_attributeDesc = AttributeDesc.getDefaultAttributeDesc();
+    // attribute descriptor used for this grid
+    protected AttributeDesc m_attributeDesc = AttributeDesc.getDefaultAttributeDesc(8);
 
     /**
      * Constructor.

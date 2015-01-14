@@ -16,7 +16,7 @@ import static abfab3d.util.Output.printf;
 
 /**
    grid array to represent on/off mask. Implemented as array of int 
-   groups of 32 points in x-direction are stored as bits in one int 
+   groups of 32 points in z-direction are stored as bits in one int 
 
    @author Vladimir Bulatov
 */

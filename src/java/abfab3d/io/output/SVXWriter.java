@@ -31,6 +31,8 @@ import static abfab3d.util.Output.printf;
  */
 public class SVXWriter {
 
+    static final boolean DEBUG = false;
+
     public static final String m_orientationNames[] = {"X","Y","Z"};
 
     static final int DEFAULT_ORIENTATION = 1;
@@ -144,7 +146,7 @@ public class SVXWriter {
 
             String channelPattern = channel.getName() + "/" + "slice%04d.png";
             int bits = channel.getBitCount(); 
-            printf("channel type: %s name: %s\n", channel.getType(), channel.getName());
+            if(DEBUG)printf("channel type: %s name: %s\n", channel.getType(), channel.getName());
             printf(ps, indent2 + "<channel type=\"%s\" slices=\"%s\" bits=\"%d\" />\n",channel.getType(), channelPattern, bits);
         }        
         printf(ps, indent + "</channels>\n");

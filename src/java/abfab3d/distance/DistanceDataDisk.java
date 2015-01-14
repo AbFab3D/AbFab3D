@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.intersect;
+package abfab3d.distance;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Matrix3d;
@@ -81,7 +81,7 @@ public class DistanceDataDisk implements DistanceData {
     //
     // return distance to the disk in 3D 
     //
-    public double get(double x, double y, double z){
+    public double getDistance(double x, double y, double z){
 
         // move center to origin 
         x -= center.x;

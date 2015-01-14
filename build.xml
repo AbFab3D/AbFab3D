@@ -98,6 +98,9 @@
         <compilejava package="abfab3d/intersect"
                      jars=""
                             />                                                                                             
+        <compilejava package="abfab3d/distance"
+                     jars=""
+                            />                                                                                             
         <compilejava package="abfab3d/path"
             jars=""
         />  
@@ -258,6 +261,7 @@
                 abfab3d/grid/query/*
                 abfab3d/grid/util/*
                 abfab3d/intersect/*
+                abfab3d/distance/*
                 abfab3d/mesh/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
