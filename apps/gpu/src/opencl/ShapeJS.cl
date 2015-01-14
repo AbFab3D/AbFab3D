@@ -6,6 +6,9 @@ float step10(float x, float x0, float vs) {
     return ((x0+vs)-x)/(2*vs);
 }
 
+float3 translation(float3 in) {
+}
+
 float gyroid(float vs, float level, float factor, float thickness, float3 offset, float3 pnt) {
     pnt = pnt - offset;
     pnt = pnt * factor;
