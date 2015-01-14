@@ -20,6 +20,7 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.BaseParameterizable;
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -39,7 +40,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    only transfers data 
    
 */
-public class Identity implements VecTransform {
+public class Identity extends BaseParameterizable implements VecTransform {
     /**
        @noRefGuide
      */

@@ -58,55 +58,7 @@ uint rgbaFloatToInt(float3 rgb)
     return ((uint)(1)<<24) | ((uint)(rgb.z*255.0f)<<16) | ((uint)(rgb.y*255.0f)<<8) | (uint)(rgb.x*255.0f);
 }
 
-float step01(float x, float x0, float vs){
-    return (x-(x0-vs))/(2*vs);
-}
-
-float step10(float x, float x0, float vs) {
-    return ((x0+vs)-x)/(2*vs);
-}
-
-float gyroid(float vs, float voxelScale, float level, float factor, float thickness, float3 offset, float3 pnt) {
-    pnt = pnt - offset;
-
-    pnt = pnt * factor;
-
-    float d = fabs((sin(pnt.x) * cos(pnt.y) + sin(pnt.y) * cos(pnt.z) + sin(pnt.z) * cos(pnt.x) - level) / factor) - (thickness + voxelScale * vs);
-
-    return step10(d,0,vs);
-}
-
-float sphere(float vs, float radius, float cx, float cy, float cz, bool sign, float3 pnt) {
-    float x = pnt.x - cx;
-    float y = pnt.y - cy;
-    float z = pnt.z - cz;
-
-    float r = sqrt(x * x + y * y + z * z);
-
-    if (sign) {
-        return step10(r,radius,vs);
-    } else {
-        return step01(r,radius,vs);
-    }
-}
-
-float subtraction(float a, float b) {
-    if (a < 0) {
-        return 0;
-    }
-
-    if (b > 1) {
-        return 0;
-    }
-
-    return (a * (1.0 - b));
-}
-
-float intersection(float a, float b) {
-    return min(a,b);
-}
-
-float readShapeJS(float3 pos) {
+float readShapeJSIntersect(float3 pos) {
     // gyroid params
     float factor = 2 * 3.14159265 / 1;
 //    float vs = 0.0001;
@@ -114,13 +66,12 @@ float readShapeJS(float3 pos) {
 //    float thickness = 0.004;
     float thickness = 0.04;
     float level = 0;
-    float voxelScale = 1;
     float radius = 1;
 
-    //float data1 = clamp(gyroid(vs,voxelScale,level,factor,thickness, (float3)(0,0,0),pos),0.0f,1.0f);
+    //float data1 = clamp(gyroid(vs,level,factor,thickness, (float3)(0,0,0),pos),0.0f,1.0f);
     //float data2 = clamp(sphere(vs, radius, 0, 0, 0, true, pos),0.0f,1.0f);
 
-    float data1 = gyroid(vs,voxelScale,level,factor,thickness, (float3)(0,0,0),pos);
+    float data1 = gyroid(vs,level,factor,thickness, (float3)(0,0,0),pos);
     float data2 = sphere(vs, radius, 0, 0, 0, true, pos);
 
     // Intersection op
@@ -133,7 +84,7 @@ float readShapeJS(float3 pos) {
        return data3;
     }
 
-
+/*
     float bias = 128.0f;
     float scale = 200.0f;
     float lacurnarity = 2.02f;
@@ -149,7 +100,7 @@ float readShapeJS(float3 pos) {
     if (noise > max_noise) noise = max_noise;
     if (noise < -max_noise) noise = -max_noise;
     data3 += noise;
-
+*/
     // TODO: Not certain why this is necessary
 
     data3 = clamp(data3,0.0f,1.0f);
@@ -168,7 +119,7 @@ float readShapeJSSubtract(float3 pos) {
     float voxelScale = 1;
     float radius = 1;
 
-    float data1 = clamp(gyroid(vs,voxelScale,level,factor,thickness, (float3)(0,0,0),pos),0.0f,1.0f);
+    float data1 = clamp(gyroid(vs,level,factor,thickness, (float3)(0,0,0),pos),0.0f,1.0f);
     float data2 = clamp(sphere(vs, radius, 0, 0, 0, true, pos),0.0f,1.0f);
 
     // Intersection op
@@ -279,10 +230,6 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
     eyeRay_d.w = 0.0f;
 
-    // find intersection with box
-
-	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
-
     int hit = -1;
     // march along ray from tnear till we hit something
     float t = tnear;
@@ -292,10 +239,9 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     float density;
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
-        pos.x = tpos.x;
+        pos.x = tpos.x;    // TODO: fix to world conversion
         pos.y = tpos.y;
         pos.z = tpos.z;
-        //pos = pos*0.5f+0.5f;    // map position to [0, 1] coordinates
 
         // read from grid
 
@@ -332,7 +278,8 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
-        float dist = tstep*0.1; // works for subtract script
+//        float dist = voxelSize / 2.0; // This is what I expect we should use or just voxelSize
+        float dist = tstep*0.1;
 
         // second order precision formula for gradient
         // x

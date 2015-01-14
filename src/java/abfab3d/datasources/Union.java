@@ -15,30 +15,18 @@ package abfab3d.datasources;
 
 import java.util.Vector;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
-
 
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
 
-import abfab3d.util.PointToTriangleDistance;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 
 
 import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
 
 
 /**
@@ -51,7 +39,7 @@ import static abfab3d.util.Units.MM;
 
  */
 
-public class Union  extends TransformableDataSource implements GroupingNode {
+public class Union  extends TransformableDataSource implements SNode {
     
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
@@ -148,7 +136,7 @@ public class Union  extends TransformableDataSource implements GroupingNode {
     }
 
     @Override
-    public DataSource[] getChildren() {
-        return vDataSources;
+    public SNode[] getChildren() {
+        return (SNode[])vDataSources;
     }
 } // class Union

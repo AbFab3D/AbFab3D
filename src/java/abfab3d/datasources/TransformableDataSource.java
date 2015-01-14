@@ -12,10 +12,17 @@
 
 package abfab3d.datasources;
 
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.Parameter;
+import abfab3d.param.Parametrizable;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
    Base class for DataSources which want to be Transformable
@@ -36,7 +43,7 @@ import abfab3d.util.VecTransform;
    @author Vladimir Bulatov
 
  */
-public abstract class TransformableDataSource implements DataSource, Initializable {
+public abstract class TransformableDataSource extends BaseParameterizable implements DataSource, Initializable {
 
     // transformation which is aplied to the data point before the calculation of data value 
     protected VecTransform m_transform; 
@@ -50,6 +57,14 @@ public abstract class TransformableDataSource implements DataSource, Initializab
     protected DataSource m_material = null; 
 
     protected TransformableDataSource(){
+    }
+
+    /**
+     * Initialize parameters.
+     */
+    protected void initParams() {
+        Parameter p = new Vector3dParameter("center");
+        params.put(p.getName(),p);
     }
 
     /**

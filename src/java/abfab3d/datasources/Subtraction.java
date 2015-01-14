@@ -15,32 +15,20 @@ package abfab3d.datasources;
 
 //import java.awt.image.Raster;
 
-import java.util.Vector;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
-
-
+import abfab3d.param.Parameter;
+import abfab3d.param.SNodeParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
 
-import abfab3d.util.PointToTriangleDistance;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 
 
 import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
 
 
 /**
@@ -54,7 +42,7 @@ import static abfab3d.util.Units.MM;
    @author Vladimir Bulatov
 
  */
-public class Subtraction extends TransformableDataSource implements GroupingNode {
+public class Subtraction extends TransformableDataSource implements SNode {
     
     DataSource dataSource1;
     DataSource dataSource2;
@@ -64,11 +52,32 @@ public class Subtraction extends TransformableDataSource implements GroupingNode
      */
     public Subtraction(DataSource shape1, DataSource shape2){
 
-        dataSource1 = shape1;
-        dataSource2 = shape2;
-        
+        setShape1(shape1);
+        setShape2(shape2);
     }
-        
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams() {
+        super.initParams();
+        Parameter p = new SNodeParameter("shape1");
+        params.put(p.getName(), p);
+
+        p = new SNodeParameter("shape2");
+        params.put(p.getName(),p);
+    }
+
+    public void setShape1(DataSource shape1) {
+        dataSource1 = shape1;
+        ((SNodeParameter) params.get("shape1")).setValue(shape1);
+    }
+
+    public void setShape2(DataSource shape2) {
+        dataSource2 = shape2;
+        ((SNodeParameter) params.get("shape2")).setValue(shape2);
+    }
+
     /**
        @noRefGuide
      */
@@ -130,7 +139,7 @@ public class Subtraction extends TransformableDataSource implements GroupingNode
     }
 
     @Override
-    public DataSource[] getChildren() {
-        return new DataSource[] {dataSource1,dataSource2};
+    public SNode[] getChildren() {
+        return new SNode[] {(SNode)dataSource1,(SNode)dataSource2};
     }
 } // class Subtraction

@@ -18,12 +18,12 @@ import abfab3d.util.DataSource;
  *
  * @author Alan Hudson
  */
-public interface GroupingNode {
+public interface SNode {
     /**
      * Get the children of this node.
-     * @return A live array of children, do not modify
+     * @return A live array of children or null if no children
      */
-    public DataSource[] getChildren();
+    public SNode[] getChildren();
 
     /**
      * Get the bounds of this source containing all its children.

@@ -128,7 +128,7 @@ public class OpenAction extends AbstractAction {
                 }
 
                 if (file.exists())
-                    fileHandler.loadURL(file.toURL().toString());
+                    fileHandler.loadURL(file.getAbsolutePath());
             }
         } catch(MalformedURLException mue) {
             mue.printStackTrace();

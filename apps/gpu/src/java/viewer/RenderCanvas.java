@@ -1,5 +1,6 @@
 package viewer;
 
+import abfab3d.datasources.SNode;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
@@ -15,8 +16,10 @@ import javax.swing.*;
 import javax.vecmath.Matrix4f;
 
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.Random;
 
 import static abfab3d.util.Output.printf;
@@ -60,6 +63,10 @@ public class RenderCanvas implements GLEventListener {
     private int localWorkSizeX;
     private int localWorkSizeY;
     private transient boolean rendering;
+    private SNode scene;
+    private String sceneProg;
+    private boolean sceneLoaded = false;
+    private boolean graphicsInitialized = false;
 
     // Scratch vars
     private Matrix4f view = new Matrix4f();
@@ -130,6 +137,19 @@ public class RenderCanvas implements GLEventListener {
         });
     }
 
+    public void setScene(String scene) {
+        // Wait for the graphics to initialize
+        while(!graphicsInitialized) {
+            try { Thread.sleep(50); } catch(InterruptedException ie) {}
+        }
+
+        sceneProg = scene;
+
+        buildProgram(debug);
+
+        sceneLoaded = true;
+    }
+
     @Override
     public void init(GLAutoDrawable drawable) {
         printf("Init canvas\n");
@@ -172,6 +192,8 @@ public class RenderCanvas implements GLEventListener {
         // init OpenCL
         initCL(gl, bsz,debug);
 
+        graphicsInitialized = true;
+
         // start rendering thread
         animator = new Animator(drawable);
         animator.setUpdateFPSFrames(3, null);
@@ -182,23 +204,28 @@ public class RenderCanvas implements GLEventListener {
         printf("initCL called\n");
         commandQueue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
 
-        buildProgram(debug);
-
         viewBuffer = clContext.createFloatBuffer(16, READ_ONLY);
 
         System.out.println("cl initialised");
     }
 
     private void buildProgram(boolean debug) {
+
+        if (sceneProg == null) return;
+
         String kernel_name = "render";
 
         compiling = true;
         long t0 = System.currentTimeMillis();
         try {
-            printf("Building program with maxSteps: " + maxSteps + " debug: " + debug);
+            printf("Building program with maxSteps: %s debug: %b\n",maxSteps,debug);
             String buildOpts = "";
             if (debug) buildOpts += " -DDEBUG";
             buildOpts += " -DmaxSteps=" + maxSteps;
+//            double vs = (2 * 2.0/maxSteps / 40.0);  // TODO: add world scale
+            double vs = (1 * 2.0/maxSteps / 40.0);  // TODO: add world scale
+            printf("voxelSize: %f\n",vs);
+            buildOpts += " -DvoxelSize=" + vs;
             buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;
             buildOpts += " -Dsamples=" + maxAntialiasingSteps;
             if (maxShadowSteps > 0) {
@@ -212,7 +239,12 @@ public class RenderCanvas implements GLEventListener {
             }
 
             //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
-            program = ProgramLoader.load(clContext, new String[] { "Noise.cl", "VolumeRenderer.cl" });
+            ArrayList list = new ArrayList();
+            //list.add(new File("Noise.cl"));
+            list.add(new File("ShapeJS.cl"));
+            list.add(sceneProg);
+            list.add(new File("VolumeRenderer.cl"));
+            program = ProgramLoader.load(clContext,list);
             program.build(buildOpts);
 
             System.out.println(program.getBuildStatus());
@@ -224,7 +256,6 @@ public class RenderCanvas implements GLEventListener {
         }
 
         kernel = program.createCLKernel(kernel_name);
-//        kernel = program.createCLKernel("renderSuper");
         statusBar.setStatusText("Done loading program.  compile time: " + (System.currentTimeMillis() - t0) / 1000 + " secs");
         compiling = false;
 
@@ -254,7 +285,7 @@ public class RenderCanvas implements GLEventListener {
 
     @Override
     public void display(GLAutoDrawable drawable) {
-        if (!compiling && !rendering && !nav.hasChanged() && !windowChanged) return;
+        if (!sceneLoaded || compiling || rendering || (!nav.hasChanged() && !windowChanged)) return;
 
         rendering = true;
         windowChanged = false;
