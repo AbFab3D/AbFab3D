@@ -24,8 +24,8 @@ import javax.vecmath.Point3d;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 
-import abfab3d.intersect.DistanceData;
-import abfab3d.intersect.DistanceDataSphere;
+import abfab3d.distance.DistanceData;
+import abfab3d.distance.DistanceDataSphere;
 
 
 import abfab3d.geom.PointCloud;

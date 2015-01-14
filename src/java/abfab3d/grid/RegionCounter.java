@@ -62,11 +62,11 @@ public class RegionCounter {
 
     public static int countComponents(AttributeGrid grid, AttributeTester materialTester, int maxCount, boolean collectData, int algorithm) {
 
-        int nx1 = grid.getWidth()-1;
-        int ny1 = grid.getHeight()-1;
-        int nz1 = grid.getDepth()-1;
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
 
-        GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
+        GridBit mask = new GridBitIntervals(nx,ny, nz);
 
         int compCount = 0;
         int volume = 0;
@@ -75,11 +75,9 @@ public class RegionCounter {
 
         zcycle:
 
-        for(int z = 1; z < nz1; z++){
-
-            for(int x = 1; x < nx1; x++){
-
-                for(int y = 1; y < ny1; y++){
+        for(int z = 0; z < nz; z++){
+            for(int x = 0; x < nx; x++){
+                for(int y = 0; y < ny; y++){
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
@@ -104,11 +102,11 @@ public class RegionCounter {
 
     public static int countComponents(AttributeGrid grid, AttributeTester tester, int minSize, int maxCount, boolean collectData, int algorithm) {
 
-        int nx1 = grid.getWidth()-1;
-        int ny1 = grid.getHeight()-1;
-        int nz1 = grid.getDepth()-1;
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
 
-        GridBit mask = new GridBitIntervals(nx1+1,ny1+1, nz1+1);
+        GridBit mask = new GridBitIntervals(nx,ny, nz);
 
         int compCount = 0;
 
@@ -116,11 +114,11 @@ public class RegionCounter {
 
         zcycle:
 
-        for(int z = 1; z < nz1; z++){
+        for(int z = 0; z < nz; z++){
 
-            for(int x = 1; x < nx1; x++){
+            for(int x = 0; x < nx; x++){
 
-                for(int y = 1; y < ny1; y++){
+                for(int y = 0; y < ny; y++){
 
                     if(mask.get(x,y,z) != 0)// already visited
                         continue;
@@ -328,13 +326,26 @@ public class RegionCounter {
     }
 
     /**
-       return components with specified material and INSIDE class
+       return connected  components with specified material and INSIDE voxels 
      */
     public static Vector<ConnectedComponent> findComponents(AttributeGrid grid, long material){
 
         GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
-        ComponentsFinder cf = new ComponentsFinder(grid, mask, material);
+        ComponentsFinder cf = new ComponentsFinder(grid, mask, new AttributeTesterValue(material));
         grid.find(Grid.VoxelClasses.INSIDE, cf);
+        cf.releaseReferences();
+        return cf.getComponents();
+
+    }
+
+    /**
+       return connected components with specific material tester 
+    */
+    public static Vector<ConnectedComponent> findComponents(AttributeGrid grid, AttributeTester materialTester){
+
+        GridBit mask = new GridBitIntervals(grid.getWidth(),grid.getHeight(),grid.getDepth(), GridBitIntervals.ORIENTATION_Y);
+        ComponentsFinder cf = new ComponentsFinder(grid, mask, materialTester);
+        grid.find(Grid.VoxelClasses.ALL, cf);
         cf.releaseReferences();
         return cf.getComponents();
 
@@ -557,14 +568,14 @@ public class RegionCounter {
 
         AttributeGrid grid;
         GridBit mask;
-        long material;
+        AttributeTester materialTester;
         Vector<ConnectedComponent> components;
 
-        ComponentsFinder(AttributeGrid grid, GridBit mask, long material){
+        ComponentsFinder(AttributeGrid grid, GridBit mask, AttributeTester materialTester){
 
             this.grid = grid;
             this.mask = mask;
-            this.material = material;
+            this.materialTester = materialTester;
             this.components = new Vector<ConnectedComponent>();
 
         }
@@ -580,8 +591,8 @@ public class RegionCounter {
             if(mask.get(x,y,z) != 0)
                 return;
 
-            if(grid.getAttribute(x,y,z) == material){
-                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, material, true);
+            if(materialTester.test(x,y,z,grid.getAttribute(x,y,z))){
+                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, materialTester, true);
                 components.add(cc);
             }
 
@@ -592,8 +603,8 @@ public class RegionCounter {
             if(mask.get(x,y,z) != 0)
                 return true;
 
-            if(grid.getAttribute(x,y,z) == material){
-                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, material, true);
+            if(materialTester.test(x,y,z,grid.getAttribute(x,y,z))){
+                ConnectedComponent cc = new ConnectedComponent(grid, mask, x,y,z, materialTester, true);
                 components.add(cc);
             }
             return true;
@@ -604,6 +615,9 @@ public class RegionCounter {
         }
     }
 
+    //
+    // componet finder for specific state 
+    // 
     static class ComponentsFinderState implements ClassTraverser {
 
         Grid grid;

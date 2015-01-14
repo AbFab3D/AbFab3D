@@ -183,7 +183,7 @@ public class SlicesWriter {
         int voxelByteCount = getVoxelByteCount(voxelBitCount);
         int dataBitCount = getDataBitCount(voxelBitCount);
         BufferedImage outImage = makeImage(imgSize[0], imgSize[1], voxelBitCount);
-
+        if(DEBUG) printf("outImage: %s\n", outImage);        
         DataBuffer db = outImage.getRaster().getDataBuffer();
         if(DEBUG) printf("DataBuffer: %s\n", db);
 
@@ -301,7 +301,16 @@ public class SlicesWriter {
                         vdata = (vdata >> 8);
                     }                                        
                 }
-            }        
+            }
+            //
+            // last incomplete byte if needed 
+            //
+            if(sliceBitCount < 8 ) {
+                if(shift < (8-sliceBitCount)) {
+                    // we potentially have unwritend currentByte 
+                    sliceData[pos] = (byte)(currentByte);
+                }
+            }            
         }                
     }
 

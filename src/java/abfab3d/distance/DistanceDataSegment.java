@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.intersect;
+package abfab3d.distance;
 
 import javax.vecmath.Vector3d;
 
@@ -35,7 +35,7 @@ public class DistanceDataSegment implements DistanceData {
         length2 =  p01.dot(p01);
         
     }    
-    public double get(double x, double y, double z){
+    public double getDistance(double x, double y, double z){
         
         Vector3d p = new Vector3d(x,y,z);
         

@@ -81,9 +81,9 @@ public class AttributeDesc  {
     }
 
 
-    public static AttributeDesc getDefaultAttributeDesc(){
+    public static AttributeDesc getDefaultAttributeDesc(int bitCount){
         AttributeDesc at = new AttributeDesc();
-        at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", 8, 0));
+        at.addChannel(new AttributeChannel(AttributeChannel.DENSITY, "dens", bitCount, 0));
         return at;
     }
 }

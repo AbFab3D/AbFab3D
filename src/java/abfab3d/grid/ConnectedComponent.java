@@ -493,7 +493,7 @@ public class ConnectedComponent implements Comparable, Region {
     }
 
     /**
-       return seed pont of this region
+       return seed point of this region
      */
     public int[] getSeed(){
 

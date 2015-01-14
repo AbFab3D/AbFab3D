@@ -14,10 +14,13 @@ package abfab3d.grid;
 
 // External Imports
 import java.util.List;
+import java.util.Vector;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+
+import javax.vecmath.Vector3d;
 
 
 // Internal Imports
@@ -26,13 +29,13 @@ import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Subtraction;
 import abfab3d.datasources.Union;
 import abfab3d.util.DataSource;
-import abfab3d.util.LongTester;
-import abfab3d.util.LongTesterValue;
-    import abfab3d.util.LongTesterRange;
+import abfab3d.distance.DistanceData;
+import abfab3d.distance.DistanceDataHalfSpace;
 
 import abfab3d.io.output.SVXWriter;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Units.MM;
 
 /**
@@ -41,6 +44,7 @@ import static abfab3d.util.Units.MM;
  * NOTE: Filled voxels cannot be at the edge of the grid.
  *
  * @author Tony Wong
+ * @author Vladimir Bulatov
  * @version
  */
 public class TestRegionCounter extends BaseTestAttributeGrid {
@@ -371,7 +375,7 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         double r1 = 10*MM;
         double r2 = 20*MM;
         double thickness = 3*MM;        
-        double ss = r2 + 3*vs;
+        double ss = r2 + vs;
 
         AttributeGrid grid = makeDoubleSphere(r1, r2, thickness, ss, vs);
         long mat = 0;
@@ -379,25 +383,66 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         //grid.setAttributeWorld(0., 0., 0., mat);
         //grid.setAttributeWorld(vs,vs,vs, mat);
         //int count = RegionCounter.countComponents(grid, new AttributeTesterRange(0, 0));
-        int count = RegionCounter.countComponents(grid, new HalfSpaceAttributeTester((int)((ss+r2)/vs), 0));
+        int count = RegionCounter.countComponents(grid, new HalfSpaceAttributeTester((int)((ss+r2)/vs-1), 0));
         printf("components count: %d\n", count);
         //SVXWriter svx = new SVXWriter();
         //svx.write(grid, "/tmp/ss.svx");
     }
 
+    public void _testConnectedComponent(){
+        printf("testFindComponents()\n");
+        double vs = 0.5*MM;
+        double r1 = 10*MM;
+        double r2 = 20*MM;
+        double thickness = 3*MM;        
+        double ss = vs*(int)((r2/Math.sqrt(2))/vs);
+
+        AttributeGrid grid = makeDoubleSphere(r1, r2, thickness, ss, vs);
+        long mat = 0;
+
+        //grid.setAttributeWorld(0., 0., 0., mat);
+        //grid.setAttributeWorld(vs,vs,vs, mat);
+        //int count = RegionCounter.countComponents(grid, new AttributeTesterRange(0, 0));
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        printf("grid: %d x %d x %d \n", nx, ny, nz);
+        
+        SVXWriter svx = new SVXWriter();
+        svx.write(grid, "/tmp/grid.svx");
+
+        AttributeTester tester = new HalfSpaceAttributeTester(0, 0, 0);
+        Vector<ConnectedComponent> comp = RegionCounter.findComponents(grid, tester);
+
+        printf("components count: %d\n", comp.size());
+        for(int i = 0; i < comp.size(); i++){
+            ConnectedComponent cc = comp.get(i);
+            int seed[] = cc.getSeed();
+            printf("component seed(%d %d %d), volume: %d\n", seed[0], seed[1], seed[2],cc.getVolume()); 
+            GridBitIntervals mask = new GridBitIntervals(nx,ny,nz);
+            ConnectedComponent c = new ConnectedComponent(grid, mask, seed[0],seed[1],seed[2],tester, false);
+            svx.write(mask, fmt("/tmp/mask_%02d.svx",i));
+        }
+
+    }
     
     // bound the connected components by half space (x >= x0)
     static class HalfSpaceAttributeTester implements AttributeTester {
         
         int x0;
-        long value;
-
-        HalfSpaceAttributeTester(int x0, int value){
-            this.x0 = x0; 
-            this.value = value;
+        long minValue, maxValue;
+        DistanceData dd; 
+        HalfSpaceAttributeTester(int x0, long value){
+            this(x0, value, value);
+        }
+        HalfSpaceAttributeTester(int x0, long minValue, long maxValue){
+            this.dd = new DistanceDataHalfSpace(new Vector3d(1,0,0),new Vector3d(x0,0,0));
+            this.maxValue = maxValue;
+            this.minValue = minValue;
         }
         public boolean test(int x,int y,int z,long attribute){
-            return (x > x0) && (attribute == value);
+            //return (dd.getDistance(x,y,z) > 0) && (attribute == value);
+            return (attribute >= minValue &&  attribute <= maxValue );
         }
     }
     static AttributeGrid makeDoubleSphere(double minR, double maxR, double thickness, double s, double vs){
@@ -414,6 +459,7 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
     }
 
     public static void main(String arg[]){
-        new TestRegionCounter()._testFindComponents();
+        //new TestRegionCounter()._testFindComponents();
+        new TestRegionCounter()._testConnectedComponent();
     }
 }

@@ -24,8 +24,8 @@ import javax.vecmath.Point3d;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 
-import abfab3d.intersect.DistanceData;
-import abfab3d.intersect.DistanceDataSphere;
+import abfab3d.distance.DistanceData;
+import abfab3d.distance.DistanceDataSphere;
 
 
 import abfab3d.geom.PointCloud;
@@ -254,7 +254,7 @@ public class TestDistanceToPointSet extends TestCase {
         for(int k = 0; k < pnts.size(); k++){
 
             pnts.getPoint(k, pnt);
-            double d = Math.abs(dd.get(pnt.x, pnt.y, pnt.z)/vs);            
+            double d = Math.abs(dd.getDistance(pnt.x, pnt.y, pnt.z)/vs);            
             if(d > dmax) {
                 dmax = d; 
                 //printf("dmax: %7.4f vs pnt: (%7.3f, %7.3f, %7.3f)\n", dmax, pnt.x/vs, pnt.y/vs, pnt.z/vs );
@@ -365,7 +365,7 @@ public class TestDistanceToPointSet extends TestCase {
         for(int k = 0; k < pnts.size(); k++){
 
             pnts.getPoint(k, pnt);
-            double d = Math.abs(dd.get(pnt.x, pnt.y, pnt.z)/vs);            
+            double d = Math.abs(dd.getDistance(pnt.x, pnt.y, pnt.z)/vs);            
             if(d > dmax) {
                 dmax = d; 
                 //printf("dmax: %7.4f vs pnt: (%7.3f, %7.3f, %7.3f)\n", dmax, pnt.x/vs, pnt.y/vs, pnt.z/vs );
@@ -428,7 +428,7 @@ public class TestDistanceToPointSet extends TestCase {
         for(int k = 0; k < pnts.size(); k++){
 
             pnts.getPoint(k, pnt);
-            double d = Math.abs(dd.get(pnt.x, pnt.y, pnt.z)/vs);            
+            double d = Math.abs(dd.getDistance(pnt.x, pnt.y, pnt.z)/vs);            
             if(d > dmax) {
                 dmax = d; 
                 //printf("dmax: %7.4f vs pnt: (%7.3f, %7.3f, %7.3f)\n", dmax, pnt.x/vs, pnt.y/vs, pnt.z/vs );
@@ -478,10 +478,10 @@ public class TestDistanceToPointSet extends TestCase {
                     double x = x0 + (ix+0.5)*vs;
                     double y = y0 + (iy+0.5)*vs;
                     double z = x0 + (iz+0.5)*vs;
-                    double d0 = dd.get(x,y,z);
-                    double dx = dd.get(x+vs,y,z);
-                    double dy = dd.get(x,y+vs,z);
-                    double dz = dd.get(x,y,z+vs);
+                    double d0 = dd.getDistance(x,y,z);
+                    double dx = dd.getDistance(x+vs,y,z);
+                    double dy = dd.getDistance(x,y+vs,z);
+                    double dz = dd.getDistance(x,y,z+vs);
                     if(dx * d0 <= 0 && dx != d0) pnts.addPoint(x + vs * root(d0, dx), y,z); 
                     if(dy * d0 <= 0 && dy != d0) pnts.addPoint(x, y + vs * root(d0, dy), z); 
                     if(dz * d0 <= 0 && dz != d0) pnts.addPoint(x, y, z + vs * root(d0, dz)); 
@@ -677,7 +677,7 @@ public class TestDistanceToPointSet extends TestCase {
             this.cy = cy;
             this.r = r;
         }
-        public double get(double x, double y, double z){
+        public double getDistance(double x, double y, double z){
             x -= cx;
             y -= cy;
             return ( sqrt(x*x + y*y) - r);

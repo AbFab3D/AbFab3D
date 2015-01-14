@@ -84,6 +84,8 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
     
     protected void allocateData(){
+        // this is binary grid, make default attributeDesc
+        m_attributeDesc = AttributeDesc.getDefaultAttributeDesc(1);
 
         m_nx = width;
         m_ny = height;
