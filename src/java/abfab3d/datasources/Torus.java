@@ -22,6 +22,9 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -53,7 +56,7 @@ import static abfab3d.util.Units.MM;
 
  */
 
-public class Torus extends TransformableDataSource{
+public class Torus extends TransformableDataSource {
     
     private double R, r;
     private double x0, y0, z0;
@@ -75,8 +78,7 @@ public class Torus extends TransformableDataSource{
 
      */
     public Torus(double Rout, double Rin){
-        this.R = Rout;
-        this.r = Rin;
+        this(0,0,0,Rout,Rin);
     }
 
     /**
@@ -88,9 +90,24 @@ public class Torus extends TransformableDataSource{
 
      */
     public Torus(double cx, double cy, double cz, double Rout, double Rin){
+        initParams();
+
         setCenter(cx, cy, cz);
-        this.R = Rout;
-        this.r = Rin;
+        setRout(Rout);
+        setRin(Rin);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams() {
+        super.initParams();
+
+        Parameter p = new DoubleParameter("rout");
+        params.put(p.getName(), p);
+
+        p = new DoubleParameter("rin");
+        params.put(p.getName(),p);
     }
 
     /**
@@ -100,6 +117,25 @@ public class Torus extends TransformableDataSource{
         this.x0 = cx;
         this.y0 = cy;
         this.z0 = cz;
+
+        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(x0,y0,z0));
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public void setRout(double r){
+        R = r;
+        ((DoubleParameter) params.get("rout")).setValue(r);
+
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public void setRin(double r){
+        this.r = r;
+        ((DoubleParameter) params.get("rin")).setValue(r);
     }
 
     /**

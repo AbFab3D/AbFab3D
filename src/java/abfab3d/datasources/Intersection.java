@@ -15,32 +15,23 @@ package abfab3d.datasources;
 
 //import java.awt.image.Raster;
 
+import java.util.List;
 import java.util.Vector;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
 
-
+import abfab3d.param.Parameter;
+import abfab3d.param.SNodeListParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
 
-import abfab3d.util.PointToTriangleDistance;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 
 
 import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
 
 
 /**
@@ -51,27 +42,39 @@ import static abfab3d.util.Units.MM;
 
    @author Vladimir Bulatov
 */ 
-public class Intersection extends TransformableDataSource implements GroupingNode {
+public class Intersection extends TransformableDataSource implements SNode {
     
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
     DataSource vDataSources[];
     
     public Intersection(){
-        
+        initParams();
     }
     
-    public Intersection(DataSource ds1, DataSource ds2 ){
+    public Intersection(DataSource ds1, DataSource ds2){
+        initParams();
 
         add(ds1);
         add(ds2);        
     }
-    
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams() {
+        super.initParams();
+        Parameter p = new SNodeListParameter("datasources");
+        params.put(p.getName(), p);
+    }
+
     /**
        add items to set of data sources
     */
     public void add(DataSource ds){
+
         dataSources.add(ds);
+        ((List)params.get("datasources").getValue()).add(ds);
     }
     
     public int initialize(){
@@ -132,7 +135,15 @@ public class Intersection extends TransformableDataSource implements GroupingNod
     }
 
     @Override
-    public DataSource[] getChildren() {
-        return vDataSources;
+    public SNode[] getChildren() {
+        vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
+
+        // TODO: this is messy cleanup
+        SNode[] ret = new SNode[vDataSources.length];
+        for(int i=0; i < vDataSources.length; i++) {
+            ret[i] = (SNode)vDataSources[i];
+        }
+        return ret;
     }
+
 } // class Intersection

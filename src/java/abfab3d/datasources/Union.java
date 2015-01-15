@@ -13,32 +13,23 @@
 package abfab3d.datasources;
 
 
+import java.util.List;
 import java.util.Vector;
 
-import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
 
-
+import abfab3d.param.Parameter;
+import abfab3d.param.SNodeListParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
 
-import abfab3d.util.PointToTriangleDistance;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 
 
 import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
-
-import static abfab3d.util.Units.MM;
 
 
 /**
@@ -51,7 +42,7 @@ import static abfab3d.util.Units.MM;
 
  */
 
-public class Union  extends TransformableDataSource implements GroupingNode {
+public class Union  extends TransformableDataSource implements SNode {
     
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
@@ -61,16 +52,26 @@ public class Union  extends TransformableDataSource implements GroupingNode {
        Create empty union. Use add() method to add arbitrary number of shapes to the union. 
      */
     public Union(){
-        
+        initParams();
     }
 
     /**
        union of two shapes 
      */
     public Union(DataSource shape1, DataSource shape2 ){
+        initParams();
 
         add(shape1);
         add(shape2);        
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams() {
+        super.initParams();
+        Parameter p = new SNodeListParameter("datasources");
+        params.put(p.getName(), p);
     }
 
     /**
@@ -86,6 +87,7 @@ public class Union  extends TransformableDataSource implements GroupingNode {
     */
     public void add(DataSource shape){
         dataSources.add(shape);
+        ((List)params.get("datasources").getValue()).add(shape);
     }
     
     /**
@@ -148,7 +150,14 @@ public class Union  extends TransformableDataSource implements GroupingNode {
     }
 
     @Override
-    public DataSource[] getChildren() {
-        return vDataSources;
+    public SNode[] getChildren() {
+        vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
+
+        // TODO: this is messy cleanup
+        SNode[] ret = new SNode[vDataSources.length];
+        for(int i=0; i < vDataSources.length; i++) {
+            ret[i] = (SNode)vDataSources[i];
+        }
+        return ret;
     }
 } // class Union

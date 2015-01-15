@@ -13,6 +13,9 @@
 package abfab3d.datasources;
 
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.Vec;
@@ -151,26 +154,55 @@ public class VolumePatterns {
         private double voxelScale = 1;
 
         public Gyroid(){
-            
+            this(10*MM,0.1*MM);
         }
 
         public Gyroid(double period, double thickness){
+            initParams();
 
-            this.period = period;
-            this.thickness = thickness;
+            setPeriod(period);
+            setThickness(thickness);
         }
-        
+
+        /**
+         * @noRefGuide
+         */
+        protected void initParams() {
+            super.initParams();
+
+            Parameter p = new DoubleParameter("period");
+            params.put(p.getName(),p);
+
+            p = new DoubleParameter("thickness");
+            params.put(p.getName(),p);
+
+            p = new DoubleParameter("level");
+            params.put(p.getName(),p);
+
+            p = new Vector3dParameter("offset");
+            params.put(p.getName(),p);
+        }
+
         public void setPeriod(double value){
-            this.period = value; 
+
+            this.period = value;
+            ((DoubleParameter) params.get("period")).setValue(value);
         }
+
         public void setThickness(double value){
+
             this.thickness = value;
+            ((DoubleParameter) params.get("thickness")).setValue(value);
         }
+
         public void setLevel(double value){
+
             this.level = value;
+            ((DoubleParameter) params.get("level")).setValue(value);
         }
 
         public void setVoxelScale(double voxelScale) {
+
             this.voxelScale = voxelScale;
         }
 

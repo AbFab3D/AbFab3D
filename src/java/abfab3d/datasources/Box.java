@@ -13,6 +13,9 @@
 package abfab3d.datasources;
 
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Units;
 import abfab3d.util.Vec;
 
@@ -49,6 +52,27 @@ public class Box extends TransformableDataSource {
             m_hasSmoothBoundaryZ = true;
 
     /**
+     * Box with 0,0,0 center and given size
+     *
+     * @param sx x size
+     * @param sy y size
+     * @param sz z size
+     */
+    public Box(double sx, double sy, double sz) {
+        this(0, 0, 0, sx, sy, sz);
+    }
+
+    /**
+     * Box with 0,0,0 center and given size
+     *
+     * @param size Size vector
+     */
+    public Box(Vector3d size) {
+        this(0,0,0,size.x,size.y,size.z);
+    }
+
+
+    /**
      * Box with given center and size
      *
      * @param cx  x coordinate of center
@@ -59,30 +83,22 @@ public class Box extends TransformableDataSource {
      * @param sz z size
      */
     public Box(double cx, double cy, double cz, double sx, double sy, double sz) {
+        initParams();
+
         setCenter(cx, cy, cz);
         setSize(sx, sy, sz);
     }
 
     /**
-     * Box with 0,0,0 center and given size
-     *
-     * @param sx x size
-     * @param sy y size
-     * @param sz z size
+     * @noRefGuide
      */
-    public Box(double sx, double sy, double sz) {
-        setSize(sx, sy, sz);
-    }
+    protected void initParams() {
+        super.initParams();
 
-    /**
-     * Box with 0,0,0 center and given size
-     *
-     * @param size Size vector
-     */
-    public Box(Vector3d size) {
-        setSize(size.x, size.y, size.z);
-    }
+        Parameter p = new Vector3dParameter("size");
+        params.put(p.getName(), p);
 
+    }
 
     /**
      * Blah blah
@@ -113,6 +129,8 @@ public class Box extends TransformableDataSource {
         m_sizeX = sx;
         m_sizeY = sy;
         m_sizeZ = sz;
+
+        ((Vector3dParameter) params.get("size")).setValue(new Vector3d(m_sizeX,m_sizeY,m_sizeZ));
     }
 
     /**
@@ -127,6 +145,8 @@ public class Box extends TransformableDataSource {
         m_sizeX = size.x;
         m_sizeY = size.y;
         m_sizeZ = size.z;
+
+        ((Vector3dParameter) params.get("size")).setValue(new Vector3d(m_sizeX,m_sizeY,m_sizeZ));
     }
 
     /**
@@ -141,6 +161,8 @@ public class Box extends TransformableDataSource {
         m_centerX = cx;
         m_centerY = cy;
         m_centerZ = cz;
+
+        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(cx,cy,cz));
     }
 
     /**

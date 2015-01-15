@@ -75,6 +75,15 @@ public class Bounds implements Cloneable {
         return (int)(s + 0.5);
     }
 
+    public void set(Bounds bounds) {
+        this.xmin = bounds.xmin;
+        this.xmax = bounds.xmax;
+        this.ymin = bounds.ymin;
+        this.ymax = bounds.ymax;
+        this.zmin = bounds.zmin;
+        this.zmax = bounds.zmax;
+    }
+
     public String toString(){
         return fmt("%9.7f %9.7f %9.7f %9.7f %9.7f %9.7f",xmin, xmax, ymin, ymax, zmin, zmax);
     }

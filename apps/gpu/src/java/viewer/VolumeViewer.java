@@ -12,14 +12,14 @@
 package viewer;
 
 import abfab3d.grid.Bounds;
+import abfab3d.util.DataSource;
 import abfab3d.util.Units;
+import shapejs.ShapeJSEvaluator;
 
-import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLProfile;
 import javax.swing.*;
+import javax.vecmath.Vector3d;
 import java.awt.*;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -208,9 +208,21 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
     public void loadURL(String url) {
         printf("Loading file: %s\n",url);
 
-        // TODO: Set the current bounds
+        ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
+        DataSource source = eval.runScript(url,bounds);
+
+        OpenCLWriter writer = new OpenCLWriter();
+        Vector3d scale = new Vector3d(1,1,1);
         double vs = 0.1 * Units.MM;
+        scale = new Vector3d((bounds.xmax-bounds.xmin)/2.0,(bounds.ymax-bounds.ymin)/2.0,(bounds.zmax-bounds.zmin)/2.0);
+        printf("Scale is: %s\n",scale);
+        String code = writer.generate(source, scale);
+
+        float worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
+        // TODO: is this the best way to get one scale?
+        render.setScene(code,worldScale);
+        // TODO: Set the current bounds
         nav.setBounds(bounds,vs);
     }
 

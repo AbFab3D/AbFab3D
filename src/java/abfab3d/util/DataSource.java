@@ -12,6 +12,8 @@
 
 package abfab3d.util;
 
+import abfab3d.param.Parameter;
+
 /**
    
    interface to implements calculation of general multidimensional data at the given point 

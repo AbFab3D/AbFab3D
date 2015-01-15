@@ -19,12 +19,12 @@ float step01(float x, float x0, float vs){
     return (x-(x0-vs))/(2*vs);
 }
 
-float gyroid(float vs, float voxelScale, float level, float factor, float thickness, float3 offset, float3 pnt) {
+float gyroid(float vs, float level, float factor, float thickness, float3 offset, float3 pnt) {
     pnt = pnt - offset;
 
     pnt = pnt * factor;
 
-    float d = fabs((sin(pnt.x) * cos(pnt.y) + sin(pnt.y) * cos(pnt.z) + sin(pnt.z) * cos(pnt.x) - level) / factor) - (thickness + voxelScale * vs);
+    float d = fabs((sin(pnt.x) * cos(pnt.y) + sin(pnt.y) * cos(pnt.z) + sin(pnt.z) * cos(pnt.x) - level) / factor) - (thickness + vs);
 
     return step10(d,0,vs);
 }

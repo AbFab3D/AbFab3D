@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import static abfab3d.util.Output.printf;
 
@@ -32,6 +33,48 @@ public class ProgramLoader {
             bldr.append("\n");
 
         }
+        return context.createProgram(bldr.toString());
+    }
+
+    public static CLProgram load(CLContext context, String[] filename, String[] prog) throws IOException {
+        StringBuilder bldr = new StringBuilder();
+        int len = filename.length;
+
+        for(int i=0; i < len; i++) {
+            InputStream is = getStreamFor(filename[i]);
+            String st = IOUtils.toString(is, "UTF-8");
+            bldr.append(st);
+            bldr.append("\n");
+
+        }
+        len = prog.length;
+        for(int i=0; i < len; i++) {
+            if (prog[i] != null) {
+                bldr.append(prog[i]);
+                bldr.append("\n");
+            }
+        }
+
+        return context.createProgram(bldr.toString());
+    }
+
+    public static CLProgram load(CLContext context, List list) throws IOException {
+        StringBuilder bldr = new StringBuilder();
+        int len = list.size();
+
+        for(int i=0; i < len; i++) {
+            Object o = list.get(i);
+            if (o instanceof File){
+                InputStream is = getStreamFor(((File)o).getName());
+                String st = IOUtils.toString(is, "UTF-8");
+                bldr.append(st);
+            } else {
+                bldr.append((String)o);
+            }
+            bldr.append("\n");
+        }
+
+        printf("Final OpenCL: \n%s\n",bldr.toString());
         return context.createProgram(bldr.toString());
     }
 

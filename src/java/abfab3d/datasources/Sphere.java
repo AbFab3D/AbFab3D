@@ -20,6 +20,9 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -75,8 +78,8 @@ public class Sphere extends TransformableDataSource {
      * sphere with given radius centered at origin
      */
     public Sphere(double radius){
-        
-        setRadius(radius);
+
+        this(0., 0., 0., radius);
     }
     
 
@@ -91,12 +94,21 @@ public class Sphere extends TransformableDataSource {
      * sphere with given center and radius
      */
     public Sphere(double cx, double cy, double cz, double radius){
-        
+        initParams();
+
         setCenter(cx, cy, cz);
         setRadius(radius);
-        
     }
-    
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams() {
+        super.initParams();
+        Parameter p = new DoubleParameter("radius");
+        params.put(p.getName(),p);
+    }
+
     /**
      * @noRefGuide
      */
@@ -105,7 +117,8 @@ public class Sphere extends TransformableDataSource {
         this.x0 = x;
         this.y0 = y;
         this.z0 = z;
-        
+
+        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(x,y,z));
     }
     
     /**
@@ -122,7 +135,9 @@ public class Sphere extends TransformableDataSource {
         
         R2 = 2*r;
         RR = r*r;
-        
+
+        ((DoubleParameter) params.get("radius")).setValue(r);
+
     }
     
     /**
