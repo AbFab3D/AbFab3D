@@ -67,6 +67,7 @@ public class RenderCanvas implements GLEventListener {
     private String sceneProg;
     private boolean sceneLoaded = false;
     private boolean graphicsInitialized = false;
+    private float worldScale=1;
 
     // Scratch vars
     private Matrix4f view = new Matrix4f();
@@ -137,7 +138,9 @@ public class RenderCanvas implements GLEventListener {
         });
     }
 
-    public void setScene(String scene) {
+    public void setScene(String scene, float worldScale) {
+        this.worldScale = worldScale;
+
         // Wait for the graphics to initialize
         while(!graphicsInitialized) {
             try { Thread.sleep(50); } catch(InterruptedException ie) {}
@@ -222,8 +225,7 @@ public class RenderCanvas implements GLEventListener {
             String buildOpts = "";
             if (debug) buildOpts += " -DDEBUG";
             buildOpts += " -DmaxSteps=" + maxSteps;
-//            double vs = (2 * 2.0/maxSteps / 40.0);  // TODO: add world scale
-            double vs = (1 * 2.0/maxSteps / 40.0);  // TODO: add world scale
+            double vs = (2 * 2.0/maxSteps * worldScale);  // TODO: not sure this is right
             printf("voxelSize: %f\n",vs);
             buildOpts += " -DvoxelSize=" + vs;
             buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;

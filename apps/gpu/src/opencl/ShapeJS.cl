@@ -94,6 +94,7 @@ float intersectionOp(float a, float b) {
 float intersectionArr(float * src, int len) {
     float ret = src[0];
 
+#pragma unroll
     for(int i=1; i < len; i++) {
        ret = min(ret,src[i]);
     }
@@ -109,6 +110,7 @@ float unionOp(float a, float b) {
 float unionArr(float * src, int len) {
     float ret = src[0];
 
+#pragma unroll
     for(int i=1; i < len; i++) {
        ret = max(ret,src[i]);
     }

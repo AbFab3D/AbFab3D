@@ -219,7 +219,9 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         printf("Scale is: %s\n",scale);
         String code = writer.generate(source, scale);
 
-        render.setScene(code);
+        float worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
+        // TODO: is this the best way to get one scale?
+        render.setScene(code,worldScale);
         // TODO: Set the current bounds
         nav.setBounds(bounds,vs);
     }
