@@ -26,6 +26,7 @@ import javax.vecmath.Vector3d;
 // Internal Imports
 import abfab3d.grid.op.GridMaker;
 import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Cylinder;
 import abfab3d.datasources.Subtraction;
 import abfab3d.datasources.Union;
 import abfab3d.util.DataSource;
@@ -425,6 +426,48 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         }
 
     }
+
+    public void _testWithBoundary(){
+        printf("testWithBoundary()\n");
+        double vs = 0.25*MM;
+        double width = 20*MM;
+        double height = 20*MM;
+        double thicknessOut = 5*MM; 
+        double thicknessIn = 2*MM; 
+        double gridWidth = 30*MM;
+
+        AttributeGrid grid = makeDoubleWalledGlass(width, height, thicknessIn, thicknessOut, gridWidth, vs);
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+        printf("grid: %d x %d x %d \n", nx, ny, nz);
+        
+        SVXWriter svx = new SVXWriter(2);
+        svx.write(grid, "/tmp/glass.svx");
+
+
+        GridBitIntervals mask = new GridBitIntervals(nx,ny,nz);
+        DistanceData halfSpace = new DistanceDataHalfSpace(new Vector3d(0,1,0),new Vector3d(0,ny*5/6,0));
+        //tester of shape exterior
+        AttributeTester testerOut = new HalfSpaceAttributeTester(halfSpace, 0, 0);
+        //tester of shape interior
+        AttributeTester testerIn = new HalfSpaceAttributeTester(halfSpace, 1, 255);
+        ConnectedComponent cout = new ConnectedComponent(grid, mask, 0,0,0,testerOut, false);
+        svx.write(mask, "/tmp/glass_bottom_out.svx");
+        
+        Vector<ConnectedComponent> comp = RegionCounter.findComponents(grid, testerIn);
+        printf("component count: %d\n", comp.size());
+        for(int i = 0; i < comp.size(); i++){
+            ConnectedComponent cc = comp.get(i);
+            int seed[] = cc.getSeed();
+            printf("component seed(%d %d %d), volume: %d\n", seed[0], seed[1], seed[2],cc.getVolume()); 
+            GridBitIntervals cmask = new GridBitIntervals(nx,ny,nz);
+            ConnectedComponent c = new ConnectedComponent(grid, cmask, seed[0],seed[1],seed[2],testerIn, false);
+            svx.write(cmask, fmt("/tmp/glass_%02d.svx",i));
+        }
+
+    }
     
     // bound the connected components by half space (x >= x0)
     static class HalfSpaceAttributeTester implements AttributeTester {
@@ -435,16 +478,48 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
         HalfSpaceAttributeTester(int x0, long value){
             this(x0, value, value);
         }
+        HalfSpaceAttributeTester(DistanceData dd, long minValue, long maxValue){
+            this.dd = dd;
+            this.maxValue = maxValue;
+            this.minValue = minValue;
+        }
         HalfSpaceAttributeTester(int x0, long minValue, long maxValue){
             this.dd = new DistanceDataHalfSpace(new Vector3d(1,0,0),new Vector3d(x0,0,0));
             this.maxValue = maxValue;
             this.minValue = minValue;
         }
         public boolean test(int x,int y,int z,long attribute){
-            //return (dd.getDistance(x,y,z) > 0) && (attribute == value);
-            return (attribute >= minValue &&  attribute <= maxValue );
+            // point is inside of shape and attribute is inside of range 
+            return (dd.getDistance(x,y,z) < 0.) && (attribute >= minValue) &&  (attribute <= maxValue );
         }
     }
+
+    static AttributeGrid makeDoubleWalledGlass(double width, double height, double thicknessIn, double thicknessOut, double gridWidth, double vs){
+        double s = gridWidth/2;
+        ArrayAttributeGridByte grid = new ArrayAttributeGridByte(new Bounds(-s, s, -s, s, -s, s), vs, vs);
+        DataSource gin = makeGlass(width, height, thicknessIn);
+        DataSource gout = makeGlass(width, height, thicknessOut);
+        DataSource glass = new Subtraction(gout, gin);
+        GridMaker gm = new GridMaker();
+        
+        gm.setSource(glass);
+        gm.makeGrid(grid);        
+        return grid;
+    }
+
+    static DataSource makeGlass(double width, double height, double thickness){
+        double y1 = height/2;
+        double th2 = thickness/2;
+        double rout = width/2 + thickness/2;
+        double rin = rout-thickness;
+
+        DataSource c1 = new Cylinder(new Vector3d(0, y1+th2, 0),new Vector3d(0, -(y1+th2), 0), rout);
+        DataSource c2 = new Cylinder(new Vector3d(0, y1+2*th2, 0),new Vector3d(0, -(y1+2*th2), 0), rin);
+        DataSource c3 = new Cylinder(new Vector3d(0, -y1-th2, 0),new Vector3d(0, -y1+th2, 0), rout);
+
+        return new Union(new Subtraction(c1,c2),c3);
+    }
+
     static AttributeGrid makeDoubleSphere(double minR, double maxR, double thickness, double s, double vs){
 
         ArrayAttributeGridByte grid = new ArrayAttributeGridByte(new Bounds(-s, s, -s, s, -s, s), vs, vs);
@@ -460,6 +535,7 @@ public class TestRegionCounter extends BaseTestAttributeGrid {
 
     public static void main(String arg[]){
         //new TestRegionCounter()._testFindComponents();
-        new TestRegionCounter()._testConnectedComponent();
+        //new TestRegionCounter()._testConnectedComponent();
+        new TestRegionCounter()._testWithBoundary();
     }
 }
