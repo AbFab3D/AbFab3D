@@ -32,7 +32,7 @@ public class DoubleParameter extends NumberParameter {
 
     public DoubleParameter(String name, String desc) {
 
-        this(name, desc, 0,Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+        this(name, desc, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
 
     public DoubleParameter(String name, String desc, double initialValue,
@@ -44,6 +44,11 @@ public class DoubleParameter extends NumberParameter {
         setMaxRange(maxRange);
 
         setValue(initialValue);
+    }
+
+    @Override
+    public Double getValue() {
+        return (Double) value;
     }
 
     /**

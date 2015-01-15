@@ -170,16 +170,16 @@ public class VolumePatterns {
         protected void initParams() {
             super.initParams();
 
-            Parameter p = new DoubleParameter("period");
+            Parameter p = new DoubleParameter("level");
             params.put(p.getName(),p);
 
             p = new DoubleParameter("thickness");
             params.put(p.getName(),p);
 
-            p = new DoubleParameter("level");
+            p = new Vector3dParameter("offset");
             params.put(p.getName(),p);
 
-            p = new Vector3dParameter("offset");
+            p = new DoubleParameter("period");
             params.put(p.getName(),p);
         }
 

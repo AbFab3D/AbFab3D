@@ -1,9 +1,21 @@
 // Utility functions
 float step01(float x, float x0, float vs){
+    if(x <= -vs)
+        return 0.0;
+
+    if(x >=  vs)
+        return 1.0;
+
     return (x-(x0-vs))/(2*vs);
 }
 
 float step10(float x, float x0, float vs) {
+   if(x <= x0 - vs)
+       return 1.0;
+
+   if(x >= x0 + vs)
+       return 0.0;
+
     return ((x0+vs)-x)/(2*vs);
 }
 
@@ -26,7 +38,7 @@ float3 translation(float3 in, float3 inv_trans) {
 }
 
 // Datasources
-float gyroid(float vs, float level, float factor, float thickness, float3 offset, float3 pnt) {
+float gyroid(float vs, float level, float thickness, float3 offset, float factor, float3 pnt) {
     pnt = pnt - offset;
     pnt = pnt * factor;
 
@@ -35,10 +47,10 @@ float gyroid(float vs, float level, float factor, float thickness, float3 offset
     return step10(d,0,vs);
 }
 
-float sphere(float vs, float radius, float cx, float cy, float cz, bool sign, float3 pnt) {
-    float x = pnt.x - cx;
-    float y = pnt.y - cy;
-    float z = pnt.z - cz;
+float sphere(float vs, float3 center,float radius, bool sign, float3 pnt) {
+    float x = pnt.x - center.x;
+    float y = pnt.y - center.y;
+    float z = pnt.z - center.z;
 
     float r = sqrt(x * x + y * y + z * z);
 
@@ -65,10 +77,10 @@ float box(float vs, float xmin, float xmax, float ymin, float ymax, float zmin, 
     return finalValue;
 }
 
-float torus(float vs, float rout, float rin, float cx, float cy, float cz, float3 pnt) {
-    float x = pnt.x - cx;
-    float y = pnt.y - cy;
-    float z = pnt.z - cz;
+float torus(float vs, float3 center, float rout, float rin, float3 pnt) {
+    float x = pnt.x - center.x;
+    float y = pnt.y - center.y;
+    float z = pnt.z - center.z;
 
     float rxy = sqrt(x*x + y*y) - rout;
 

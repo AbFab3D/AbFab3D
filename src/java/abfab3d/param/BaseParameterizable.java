@@ -12,6 +12,8 @@
 package abfab3d.param;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Base code for all Parameterizable
@@ -19,7 +21,7 @@ import java.util.HashMap;
  * @author Alan Hudson
  */
 public class BaseParameterizable implements Parametrizable, SNode {
-    protected HashMap<String, Parameter> params = new HashMap<String,Parameter>();
+    protected Map<String, Parameter> params = new LinkedHashMap<String,Parameter>();
 
     /**
      * Get the parameter definition and value.
@@ -43,8 +45,9 @@ public class BaseParameterizable implements Parametrizable, SNode {
 
         int len = params.size();
 
-        for(int i=0; i < len; i++) {
-            ret[i] = params.get(i).clone();
+        int idx = 0;
+        for(Parameter p : params.values()) {
+            ret[idx++] = p.clone();
         }
 
         return ret;

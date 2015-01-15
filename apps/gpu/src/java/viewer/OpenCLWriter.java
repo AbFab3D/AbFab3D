@@ -1,13 +1,15 @@
 package viewer;
 
-import abfab3d.param.SNode;
+import abfab3d.param.*;
 import abfab3d.datasources.TransformableDataSource;
-import abfab3d.param.Parametrizable;
 import abfab3d.util.DataSource;
 
 import javax.vecmath.Vector3d;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static abfab3d.util.Output.printf;
 import static java.lang.Math.PI;
@@ -19,6 +21,18 @@ public class OpenCLWriter {
     private int nodeId;
     private HashMap<DataSource, Integer> idMap = new HashMap<DataSource, Integer>();
 
+    private static final HashSet<String> boxExclude;
+    private static final HashSet<String> gyroidExclude;
+
+    static {
+        boxExclude = new HashSet<String>();
+        boxExclude.add("size");
+        boxExclude.add("center");
+
+        gyroidExclude = new HashSet<String>();
+        gyroidExclude.add("center");
+        gyroidExclude.add("period");
+    }
 
     public OpenCLWriter() {
         nodeId = 0;
@@ -45,9 +59,11 @@ public class OpenCLWriter {
         bldr.append(scale.z);
         bldr.append(");\n");
         generate(source, bldr);
-        bldr.append("\treturn clamp(ds");
+        //bldr.append("\treturn clamp(ds");
+        bldr.append("\treturn ds");
         bldr.append(nodeId-1);
-        bldr.append(",0.0,1.0f); \n}\n");
+        //bldr.append("; \n}\n");
+        bldr.append("; \n}\n");
 
         return bldr.toString();
         /*
@@ -93,15 +109,33 @@ public class OpenCLWriter {
         }
         // TODO: change to map
         if (class_name.equals("Sphere")) {
-            bldr.append("\tfloat ds");
-            bldr.append(nodeId++);
-            bldr.append(" = clamp(sphere(voxelSize,");
-            double radius = ((Double) ((Parametrizable) source).getParam("radius").getValue()).doubleValue();
-            bldr.append(radius);
-            bldr.append(",0,0,0,true,");
+            addCallParams(source, bldr);
+
+            // Add initializable params
+
+            DoubleParameter dp = ((DoubleParameter)((Parametrizable)source).getParam("radius"));
+            double radius = dp.getValue();
+            boolean sign;
+
+            if( radius < 0) {
+                sign = false;
+            } else {
+                sign = true;
+            }
+
+            bldr.append(",");
+            bldr.append(sign);
+
+            bldr.append(",");
             bldr.append(pos);
-            bldr.append("),0.0,1.0);\n");
+            bldr.append(")");
+            //bldr.append(",0.0,1.0)");
+            bldr.append(";\n");
         } else if(class_name.equals("Box")) {
+            addCallParams(source, bldr, boxExclude);
+
+            // Add initializable params
+
             Vector3d center = ((Vector3d) ((Parametrizable) source).getParam("center").getValue());
             Vector3d size = ((Vector3d) ((Parametrizable) source).getParam("size").getValue());
 
@@ -114,9 +148,6 @@ public class OpenCLWriter {
 
 
             //float box(float vs, float xmin, float xmax, float ymin, float ymax, float zmin, float zmax) {
-            bldr.append("\tfloat ds");
-            bldr.append(nodeId++);
-            bldr.append(" = clamp(box(voxelSize,");
             bldr.append(xmin);
             bldr.append(",");
             bldr.append(xmax);
@@ -131,36 +162,19 @@ public class OpenCLWriter {
             bldr.append(",");
             bldr.append(pos);
             bldr.append("),0.0,1.0);\n");
-        } else if (class_name.equals("Torus")) {
-                bldr.append("\tfloat ds");
-                bldr.append(nodeId++);
-                bldr.append(" = clamp(torus(voxelSize,");
-                double rout = ((Double) ((Parametrizable) source).getParam("rout").getValue()).doubleValue();
-                bldr.append(rout);
-                bldr.append(",");
-                double rin = ((Double) ((Parametrizable) source).getParam("rin").getValue()).doubleValue();
-                bldr.append(rin);
-                bldr.append(",0,0,0,");
-                bldr.append(pos);
-                bldr.append("),0.0,1.0);\n");
         } else if (class_name.equals("Gyroid")) {
-            bldr.append("\tfloat ds");
-            bldr.append(nodeId++);
-            bldr.append(" = clamp(gyroid(voxelSize,");
-            //float ds1 = clamp(gyroid(vs,level,factor,thickness, (float3)(0,0,0),pos),0.0f,1.0f);
+            addCallParams(source, bldr,gyroidExclude);
 
-            double level = ((Double)((Parametrizable)source).getParam("level").getValue()).doubleValue();
+            // Add initializable params
+
             double period = ((Double)((Parametrizable)source).getParam("period").getValue()).doubleValue();
             double factor = 2*PI/period;
-            double thickness = ((Double)((Parametrizable)source).getParam("thickness").getValue()).doubleValue();
-            bldr.append(level);
-            bldr.append(",");
             bldr.append(factor);
             bldr.append(",");
-            bldr.append(thickness);
-            bldr.append(",(float3)(0,0,0),");
             bldr.append(pos);
-            bldr.append("),0.0,1.0);\n");
+            bldr.append(")");
+            //bldr.append(",0.0,1.0)");
+            bldr.append(";\n");
         } else if (class_name.equals("Intersection")) {
             SNode[] nchilds = ((TransformableDataSource) source).getChildren();
 
@@ -169,13 +183,16 @@ public class OpenCLWriter {
                 int data1 = idMap.get((DataSource) nchilds[1]);
                 bldr.append("\tfloat ds");
                 bldr.append(nodeId++);
-                bldr.append(" = clamp(intersectionOp(");
+                //bldr.append(" = clamp(");
+                bldr.append(" = intersectionOp(");
                 bldr.append("ds");
                 bldr.append(data0);
                 bldr.append(",");
                 bldr.append("ds");
                 bldr.append(data1);
-                bldr.append("),0.0,1.0);\n");
+                bldr.append(")");
+                //bldr.append(",0.0,1.0)");
+                bldr.append(";\n");
             } else {
                 bldr.append("\tfloat arr");
                 bldr.append(nodeId);
@@ -190,12 +207,15 @@ public class OpenCLWriter {
 
                 bldr.append("\tfloat ds");
                 bldr.append(nodeId++);
-                bldr.append(" = clamp(intersectionArr(");
+                //bldr.append(" = clamp(");
+                bldr.append(" = intersectionArr(");
                 bldr.append("arr");
                 bldr.append((nodeId-1));
                 bldr.append(",");
                 bldr.append(len);
-                bldr.append("),0.0,1.0);\n");
+                bldr.append(")");
+                //bldr.append(",0.0,1.0)");
+                bldr.append(";\n");
             }
         } else if (class_name.equals("Union")) {
             SNode[] nchilds = ((TransformableDataSource) source).getChildren();
@@ -247,7 +267,62 @@ public class OpenCLWriter {
             bldr.append(data1);
             bldr.append("),0.0,1.0);\n");
         } else {
-            printf("Unmapped datasource: %s\n",class_name);
+            // generic mapper, will not work if the function has an initializer
+
+            addCallParams(source,bldr,null);
+            bldr.append(",");
+            bldr.append(pos);
+            bldr.append("),0.0,1.0);\n");
         }
+    }
+
+    /**
+     * Add in the call params.
+     * @param source
+     * @param bldr
+     * @param exclude Params to exclude
+     */
+    private void addCallParams(DataSource source, StringBuilder bldr, Set<String> exclude) {
+        Parameter[] params = ((Parametrizable) source).getParams();
+        bldr.append("\tfloat ds");
+        bldr.append(nodeId++);
+        bldr.append(" = ");
+        //bldr.append(" clamp(");
+        bldr.append(source.getClass().getSimpleName().toLowerCase());
+        bldr.append("(voxelSize,");
+
+        // generic mapper, will not work if the function has an initializer
+
+        int len = params.length;
+
+        for(int i=0; i < len; i++) {
+            if (exclude != null && exclude.contains(params[i].getName())) continue;
+
+            ParameterType type = params[i].getType();
+            switch(type) {
+                case DOUBLE:
+                    DoubleParameter dp = (DoubleParameter)params[i];
+                    double d = dp.getValue();
+                    bldr.append(d);
+                    break;
+                case VECTOR3D:
+                    Vector3dParameter v3dp = ((Vector3dParameter)params[i]);
+                    Vector3d v3d = v3dp.getValue();
+                    bldr.append("(float3)(");
+                    bldr.append(v3d.x);
+                    bldr.append(",");
+                    bldr.append(v3d.y);
+                    bldr.append(",");
+                    bldr.append(v3d.z);
+                    bldr.append(")");
+                    break;
+            }
+            if (i != len - 1) bldr.append(",");
+        }
+
+    }
+
+    private void addCallParams(DataSource source, StringBuilder bldr) {
+        addCallParams(source,bldr,null);
     }
 }

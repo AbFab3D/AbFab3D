@@ -57,7 +57,8 @@ uint rgbaFloatToInt(float3 rgb)
     rgb.z = clamp(rgb.z,0.0f,1.0f);  
     return ((uint)(1)<<24) | ((uint)(rgb.z*255.0f)<<16) | ((uint)(rgb.y*255.0f)<<8) | (uint)(rgb.x*255.0f);
 }
-
+/*
+   save this code for the noise stuff
 float readShapeJSIntersect(float3 pos) {
     // gyroid params
     float factor = 2 * 3.14159265 / 1;
@@ -84,7 +85,7 @@ float readShapeJSIntersect(float3 pos) {
        return data3;
     }
 
-/*
+
     float bias = 128.0f;
     float scale = 200.0f;
     float lacurnarity = 2.02f;
@@ -100,55 +101,14 @@ float readShapeJSIntersect(float3 pos) {
     if (noise > max_noise) noise = max_noise;
     if (noise < -max_noise) noise = -max_noise;
     data3 += noise;
-*/
+
     // TODO: Not certain why this is necessary
 
     data3 = clamp(data3,0.0f,1.0f);
 
    return data3;
 }
-
-float readShapeJSSubtract(float3 pos) {
-    // gyroid params
-    float factor = 2 * 3.14159265 / 0.2;
-//    float vs = 0.0001;
-    float vs = tstep * 2;
-//    float thickness = 0.004;
-    float thickness = 0.04;
-    float level = 0;
-    float voxelScale = 1;
-    float radius = 1;
-
-    float data1 = clamp(gyroid(vs,level,factor,thickness, (float3)(0,0,0),pos),0.0f,1.0f);
-    float data2 = clamp(sphere(vs, radius, 0, 0, 0, true, pos),0.0f,1.0f);
-
-    // Intersection op
-    float data3 = subtraction(data2,data1);
-
-/*
-    // Don't add noise to empty space
-    if (data3 < 0.01) {
-       return data3;
-    }
-
-
-    float bias = 128.0f;
-    float scale = 100.0f;
-    float lacurnarity = 2.02f;
-    float increment = 1.0f;
-    float octaves = 3.3f;
-//    float amplitude = 0.1f;
-    float amplitude = tstep * 50;
-
-    float3 sample = (pos + bias);
-    float noise = turbulence3d((float4)(sample,1.0), scale, lacurnarity, increment, octaves) * amplitude;
-    data3 += noise;
 */
-    // TODO: Not certain why this is necessary
-    data3 = clamp(data3,0.0f,1.0f);
-
-   return data3;
-}
 
 // Can p0 see p1, if so returns 1
 uint canSee(float3 p0, float3 p1
