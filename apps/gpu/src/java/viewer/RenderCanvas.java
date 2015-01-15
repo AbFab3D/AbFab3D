@@ -1,6 +1,7 @@
 package viewer;
 
 import abfab3d.param.SNode;
+import abfab3d.util.Units;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
@@ -223,7 +224,8 @@ public class RenderCanvas implements GLEventListener {
             String buildOpts = "";
             if (debug) buildOpts += " -DDEBUG";
             buildOpts += " -DmaxSteps=" + maxSteps;
-            double vs = (2 * 2.0/maxSteps * worldScale);  // TODO: not sure this is right
+//            double vs = (2 * 2.0/maxSteps * worldScale);  // TODO: not sure this is right
+            double vs = 0.1* Units.MM;
             printf("voxelSize: %f\n",vs);
             buildOpts += " -DvoxelSize=" + vs;
             buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;
