@@ -22,16 +22,21 @@ import javax.vecmath.Vector3d;
  */
 public class Vector3dParameter extends NumberParameter {
     public Vector3dParameter(String name) {
-        this(name, name, new Vector3d(0,0,0));
+        this(name, name, new Vector3d(0, 0, 0));
     }
 
     public Vector3dParameter(String name, String desc) {
-        this(name, desc, new Vector3d(0,0,0));
+        this(name, desc, new Vector3d(0, 0, 0));
     }
 
     public Vector3dParameter(String name, String desc, Vector3d initialValue) {
         super(name, desc);
         setValue(initialValue);
+    }
+
+    @Override
+    public Vector3d getValue() {
+        return (Vector3d) value;
     }
 
     /**

@@ -25,7 +25,7 @@ public abstract class Parameter implements Cloneable {
     private String desc;
 
     /** The value */
-    private Object value;
+    protected Object value;
 
     public Parameter(String name, String desc) {
 
