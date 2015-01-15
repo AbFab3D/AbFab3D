@@ -176,19 +176,23 @@ if (debug) printf("final hit: %d\n",hit);
     return 0;
 }
 
+float4 mulMatVec4(global const float*mat, float4 vec){
+	float f0 = dot(vec, ((float4)(mat[0],mat[1],mat[2],mat[3])));
+	float f1 = dot(vec, ((float4)(mat[4],mat[5],mat[6],mat[7])));
+	float f2 = dot(vec, ((float4)(mat[8],mat[9],mat[10],mat[11])));
+	float f3 = 0;
+	return (float4)(f0, f1, f2, f3);
+}
 
 float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, global const float* invViewMatrix) {
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
     float4 eyeRay_d;    // eye direction
-
+	
     eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
-
+				   
     float4 temp = normalize(((float4)(u, v, -2.f,0.0f)));
-    eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
-    eyeRay_d.y = dot(temp, ((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
-    eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
-    eyeRay_d.w = 0.0f;
+	eyeRay_d = mulMatVec4(invViewMatrix,temp);
 
     int hit = -1;
     // march along ray from tnear till we hit something
@@ -293,12 +297,12 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
         float fill = 0.25f * lscale;
         float rim = 1.0f * lscale;
         float3 light_color = (float3) (255.0/255.0 * lscale, 255/255.0 * lscale, 251.0 / 255.0 * lscale);  // high noon sun
-        float3 light1a =  (float3)(6.5f,-6.5f, 10.f);  // key light
+        float4 light1a =  (float4)(6.5f,-6.5f, 10.f,0);  // key light
 //        float3 light1_color = (float3) (key,key,key);
         float3 light1_color = key * light_color;
-        float3 light2a = (float3)(10.f, 1.f, -10.f);  // fill light
+        float4 light2a = (float4)(10.f, 1.f, -10.f,0);  // fill light
         float3 light2_color = fill * light_color;
-        float3 light3a = (float3)(-10.f, 9.0f, 10.f);  // rim light
+        float4 light3a = (float4)(-10.f, 9.0f, 10.f,0);  // rim light
         float3 light3_color = rim * light_color;
 
         // WSF params
@@ -307,15 +311,9 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
 
 		float3 light1, light2, light3;
 
-        light1.x = dot((float4)(light1a,0), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
-        light1.y = dot((float4)(light1a,0),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
-        light1.z = dot((float4)(light1a,0), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
-        light2.x = dot((float4)(light2a,0), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
-        light2.y = dot((float4)(light2a,0),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
-        light2.z = dot((float4)(light2a,0), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
-        light3.x = dot((float4)(light3a,0), ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
-        light3.y = dot((float4)(light3a,0),((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
-        light3.z = dot((float4)(light3a,0), ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+        light1 = mulMatVec4(invViewMatrix,light1a).xyz; 
+        light2 = mulMatVec4(invViewMatrix,light2a).xyz; 
+        light3 = mulMatVec4(invViewMatrix,light3a).xyz; 
 
 /*
         // fixed lighting
@@ -392,10 +390,7 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
     eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
 
     float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
-    eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
-    eyeRay_d.y = dot(temp, ((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
-    eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
-    eyeRay_d.w = 0.0f;
+	eyeRay_d = mulMatVec(invViewMatrix, temp);
 
     // find intersection with box
 	float tnear, tfar;
