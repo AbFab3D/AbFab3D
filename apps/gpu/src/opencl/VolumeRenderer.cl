@@ -184,7 +184,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
     eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
 
-    float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
+    float4 temp = normalize(((float4)(u, v, -2.f,0.0f)));
     eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
     eyeRay_d.y = dot(temp, ((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
     eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
@@ -199,21 +199,18 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     float density;
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
-        pos.x = tpos.x;    // TODO: fix to world conversion
-        pos.y = tpos.y;
-        pos.z = tpos.z;
-
-        // read from grid
+        pos = tpos.xyz; 
 
         density = readShapeJS(pos);
 
-        if (density > 0.2 && density <= 1.) {
+        if (density > 0.1 && density <= 1.) {
            hit = i;
-		   float dt = 0.001;
+		   float dt = 0.2*tstep;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
 		   float gp = (readShapeJS(p1)-density)/dt;
 		   float ddt = (0.5-density)/gp;
-		   if( ddt > -5.f && ddt < 5.f){
+		   if( true ){
+		   //if( ddt > -5.f && ddt < 5.f){
 				// adjust hit based on density to reduce aliasing
 				pos = (eyeRay_o + eyeRay_d*(t + ddt)).xyz;
 				break;
@@ -239,7 +236,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
 //        float dist = voxelSize / 2.0; // This is what I expect we should use or just voxelSize
-        float dist = tstep*0.1;
+        float dist = tstep*0.2;
 
         // second order precision formula for gradient
         // x
