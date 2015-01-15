@@ -73,7 +73,7 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
-        <compilejava package="shapejs" jars="" >
+        <compilejava package="shapejs" jars="js.jar" >
             <classpath-elements>
                 <pathelement path="${app.common.dir}/classes"/>
                 <pathelement path="${abfab3d.classes.dir}"/>
