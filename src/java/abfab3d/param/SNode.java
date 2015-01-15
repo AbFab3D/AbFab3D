@@ -9,9 +9,8 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.datasources;
+package abfab3d.param;
 
-import abfab3d.util.DataSource;
 
 /**
  * A DataSource node that contains multiple children

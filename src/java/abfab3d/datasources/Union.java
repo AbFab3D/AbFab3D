@@ -18,6 +18,7 @@ import java.util.Vector;
 
 
 import abfab3d.param.Parameter;
+import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;

@@ -151,7 +151,7 @@ public class ExamineNavigator implements Navigator {
 
     @Override
     public void getViewMatrix(Matrix4f mat) {
-        trans.setZ(z);
+        trans.z = z;
         tmat.set(trans,1.0f);
 
         rxmat.rotX(rotx);
