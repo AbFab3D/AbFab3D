@@ -12,7 +12,7 @@
 package volumesculptor.shell;
 
 import abfab3d.datasources.Box;
-import abfab3d.datasources.SNode;
+import abfab3d.param.SNode;
 import abfab3d.datasources.TransformableDataSource;
 import abfab3d.grid.Grid;
 import abfab3d.util.DataSource;
@@ -66,6 +66,8 @@ public class DataSourceX3DViewer {
 
     private void viz(DataSource src, List<VecTransform> trans, Grid grid, BinaryContentHandler stream) {
         if (src instanceof SNode) {
+            System.out.println("Commented out");
+            /*
             DataSource[] children = ((SNode)src).getChildren();
 
             VecTransform vt = null;
@@ -85,6 +87,7 @@ public class DataSourceX3DViewer {
             for(DataSource ds : children) {
                 viz(ds,new_trans,grid,stream);
             }
+            */
         } else {
             if (src instanceof Box) {
                 //outputBox(src,trans,stream);

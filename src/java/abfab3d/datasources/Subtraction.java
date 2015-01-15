@@ -17,6 +17,7 @@ package abfab3d.datasources;
 
 
 import abfab3d.param.Parameter;
+import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;

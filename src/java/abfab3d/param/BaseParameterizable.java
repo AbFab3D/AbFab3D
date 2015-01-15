@@ -11,8 +11,6 @@
  ****************************************************************************/
 package abfab3d.param;
 
-import abfab3d.datasources.SNode;
-
 import java.util.HashMap;
 
 /**

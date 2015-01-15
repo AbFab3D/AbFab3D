@@ -91,7 +91,10 @@
         />
         <compilejava package="abfab3d/geomutil"
             jars=""
-        />  
+        />
+        <compilejava package="abfab3d/param"
+                     jars=""
+                />
         <compilejava package="abfab3d/transforms"
             jars="jafama.jar vecmath.jar"
         />  

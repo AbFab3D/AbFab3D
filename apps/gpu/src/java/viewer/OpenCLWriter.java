@@ -1,12 +1,9 @@
 package viewer;
 
-import abfab3d.datasources.SNode;
-import abfab3d.datasources.Sphere;
+import abfab3d.param.SNode;
 import abfab3d.datasources.TransformableDataSource;
 import abfab3d.param.Parametrizable;
-import abfab3d.transforms.BaseTransform;
 import abfab3d.util.DataSource;
-import abfab3d.util.VecTransform;
 
 import javax.vecmath.Vector3d;
 

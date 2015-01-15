@@ -1,6 +1,6 @@
 package viewer;
 
-import abfab3d.datasources.SNode;
+import abfab3d.param.SNode;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
@@ -23,12 +23,10 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import static abfab3d.util.Output.printf;
-import static com.jogamp.common.nio.Buffers.SIZEOF_FLOAT;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
 import static com.jogamp.opencl.util.CLPlatformFilters.type;
 import static com.jogamp.opencl.CLMemory.Mem.*;
-import static java.lang.System.nanoTime;
 
 /**
  * Rendering thread.  Regenerate the image when navigation changes.
