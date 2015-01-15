@@ -20,6 +20,9 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -37,7 +40,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    Performs translation in space 
    
 */
-public class Translation  implements VecTransform {
+public class Translation  extends BaseTransform implements VecTransform {
     
     protected double tx = 1, ty = 1, tz = 1; 
    
@@ -45,7 +48,8 @@ public class Translation  implements VecTransform {
        identity transform 
      */
     public Translation(){
-        setTranslation(0,0,0);
+
+        this(0,0,0);
     }
     
     /**
@@ -55,9 +59,15 @@ public class Translation  implements VecTransform {
        @param tz  z component of translation 
      */
     public Translation(double tx, double ty, double tz){
-        
+        initParams();
         setTranslation(tx, ty, tz);
-        
+    }
+
+    public void initParams() {
+        super.initParams();
+
+        Parameter p = new Vector3dParameter("translation");
+        params.put(p.getName(), p);
     }
 
     /**
@@ -67,7 +77,6 @@ public class Translation  implements VecTransform {
     public Translation(Vector3d p){
         
         setTranslation(p.x, p.y,p.z);
-        
     }
     
     /**
@@ -78,7 +87,7 @@ public class Translation  implements VecTransform {
         this.tx = tx;
         this.ty = ty;
         this.tz = tz;
-        
+        ((Vector3dParameter) params.get("translation")).setValue(new Vector3d(tx,ty,tz));
     }
     
     /**

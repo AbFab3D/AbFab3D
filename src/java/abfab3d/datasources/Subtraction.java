@@ -51,6 +51,7 @@ public class Subtraction extends TransformableDataSource implements SNode {
        shape which is result of subtracting shape2 from shape1
      */
     public Subtraction(DataSource shape1, DataSource shape2){
+        initParams();
 
         setShape1(shape1);
         setShape2(shape2);

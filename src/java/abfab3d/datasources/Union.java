@@ -13,9 +13,12 @@
 package abfab3d.datasources;
 
 
+import java.util.List;
 import java.util.Vector;
 
 
+import abfab3d.param.Parameter;
+import abfab3d.param.SNodeListParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -49,16 +52,26 @@ public class Union  extends TransformableDataSource implements SNode {
        Create empty union. Use add() method to add arbitrary number of shapes to the union. 
      */
     public Union(){
-        
+        initParams();
     }
 
     /**
        union of two shapes 
      */
     public Union(DataSource shape1, DataSource shape2 ){
+        initParams();
 
         add(shape1);
         add(shape2);        
+    }
+
+    /**
+     * @noRefGuide
+     */
+    protected void initParams() {
+        super.initParams();
+        Parameter p = new SNodeListParameter("datasources");
+        params.put(p.getName(), p);
     }
 
     /**
@@ -74,6 +87,7 @@ public class Union  extends TransformableDataSource implements SNode {
     */
     public void add(DataSource shape){
         dataSources.add(shape);
+        ((List)params.get("datasources").getValue()).add(shape);
     }
     
     /**
@@ -137,6 +151,13 @@ public class Union  extends TransformableDataSource implements SNode {
 
     @Override
     public SNode[] getChildren() {
-        return (SNode[])vDataSources;
+        vDataSources = (DataSource[])dataSources.toArray(new DataSource[dataSources.size()]);
+
+        // TODO: this is messy cleanup
+        SNode[] ret = new SNode[vDataSources.length];
+        for(int i=0; i < vDataSources.length; i++) {
+            ret[i] = (SNode)vDataSources[i];
+        }
+        return ret;
     }
 } // class Union

@@ -145,4 +145,5 @@ public class Intersection extends TransformableDataSource implements SNode {
         }
         return ret;
     }
+
 } // class Intersection
