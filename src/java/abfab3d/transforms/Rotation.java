@@ -20,6 +20,7 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.AxisAngle4dParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
@@ -90,13 +91,10 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
     public void initParams() {
         super.initParams();
 
-        Parameter p = new Vector3dParameter("axis");
+        Parameter p = new Vector3dParameter("center");
         params.put(p.getName(), p);
 
-        p = new DoubleParameter("angle");
-        params.put(p.getName(), p);
-
-        p = new Vector3dParameter("center");
+        p = new AxisAngle4dParameter("rotation");
         params.put(p.getName(), p);
     }
 
@@ -110,8 +108,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         m_angle = angle;
         m_center = null;
 
-        ((Vector3dParameter) params.get("axis")).setValue(new Vector3d(axis));
-        ((DoubleParameter) params.get("angle")).setValue(angle);
+        ((AxisAngle4dParameter) params.get("rotation")).setValue(new AxisAngle4d(axis,angle));
     }
 
     /**
@@ -125,9 +122,8 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         m_angle = angle;
         m_center = new Vector3d(center);
 
-        ((Vector3dParameter) params.get("axis")).setValue(new Vector3d(axis));
-        ((DoubleParameter) params.get("angle")).setValue(angle);
-        ((Vector3dParameter) params.get("axis")).setValue(new Vector3d(center));
+        ((AxisAngle4dParameter) params.get("rotation")).setValue(new AxisAngle4d(axis,angle));
+        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(center));
    }
     
     /**

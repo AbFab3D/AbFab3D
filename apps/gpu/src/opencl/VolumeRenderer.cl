@@ -286,11 +286,11 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
 /*
         // matlab style lighting
         float3 ambient = (float3) (0.1,0.1,0.1);
-        float3 light1a =  (float3)(10.f,0, 20.f);//float (float3)(-10,0,20);
+        float4 light1a =  (float4)(10.f,0, 20.f,0);//float (float3)(-10,0,20);
         float3 light1_color = (float3) (0.8f,0,0);
-        float3 light2a = (float3)(10.f, 10.f, 20.f);// (float3)(-10,-10,20);
+        float4 light2a = (float4)(10.f, 10.f, 20.f,0);// (float3)(-10,-10,20);
         float3 light2_color = (float3) (0,0.8f,0);
-        float3 light3a = (float3)(0.f, 10.f, 20.f);//(float3)(0,-10,20);
+        float4 light3a = (float4)(0.f, 10.f, 20.f,0);//(float3)(0,-10,20);
         float3 light3_color = (float3) (0,0,0.8f);
 */
 
@@ -396,7 +396,7 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
     eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
 
     float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
-	eyeRay_d = mulMatVec(invViewMatrix, temp);
+	eyeRay_d = mulMatVec4(invViewMatrix, temp);
 
     // find intersection with box
 	float tnear, tfar;

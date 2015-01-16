@@ -5,7 +5,7 @@ import abfab3d.param.Parameter;
 /**
  * Can have parameters.
  */
-public interface Parametrizable {
+public interface Parameterizable {
     /**
      * Get the parameter definition and value.
      *

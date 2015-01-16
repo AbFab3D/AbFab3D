@@ -12,6 +12,7 @@
 package viewer;
 
 import abfab3d.grid.Bounds;
+import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
 import shapejs.ShapeJSEvaluator;
@@ -217,7 +218,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         double vs = 0.1 * Units.MM;
         scale = new Vector3d((bounds.xmax-bounds.xmin)/2.0,(bounds.ymax-bounds.ymin)/2.0,(bounds.zmax-bounds.zmin)/2.0);
         printf("Scale is: %s\n",scale);
-        String code = writer.generate(source, scale);
+        String code = writer.generate((Parameterizable)source, scale);
 
         float worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
         // TODO: is this the best way to get one scale?

@@ -20,6 +20,9 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.AxisAngle4dParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -36,7 +39,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 /**
    performs scaling by given factor
 */
-public class Scale  implements VecTransform {
+public class Scale  extends BaseTransform implements VecTransform {
     
     protected double sx = 1., sy = 1., sz = 1.; 
     protected double averageScale = 1.;
@@ -45,6 +48,7 @@ public class Scale  implements VecTransform {
        identity transform 
      */
     public Scale(){
+        this(1,1,1);
     }
     
     /**
@@ -52,7 +56,7 @@ public class Scale  implements VecTransform {
        @param s uniform scaling factor 
      */
     public Scale(double s){
-        setScale(s);
+        this(s, s, s);
     }
     
     /**
@@ -62,6 +66,8 @@ public class Scale  implements VecTransform {
        @param sz z axis scaling factor 
      */
     public Scale(double sx, double sy, double sz){
+        initParams();
+
         setScale(sx,sy,sz);
     }
     
@@ -74,7 +80,7 @@ public class Scale  implements VecTransform {
         sy = s;
         sz = s;
         this.averageScale = s;
-        
+        ((Vector3dParameter) params.get("scale")).setValue(new Vector3d(s,s,s));
     }
     
     /**
@@ -87,8 +93,17 @@ public class Scale  implements VecTransform {
         this.sz = sz;
         
         this.averageScale = Math.pow(sz*sy*sz, 1./3);
+        ((Vector3dParameter) params.get("scale")).setValue(new Vector3d(sx,sy,sz));
+
     }
-    
+
+    public void initParams() {
+        super.initParams();
+
+        Parameter p = new Vector3dParameter("scale");
+        params.put(p.getName(), p);
+    }
+
     /**
        @noRefGuide
      */

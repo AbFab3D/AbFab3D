@@ -33,12 +33,11 @@ float intervalCap(float x, float xmin, float xmax, float vs){
 
 
 // Transform functions
-float3 translation(float3 in, float3 inv_trans) {
+float3 translation(float3 inv_trans,float3 in) {
     return in - inv_trans;
 }
 
-
-float3 rotation(float3 in, float3 center, float16 inv_mat) {
+float3 rotation(float3 center, float16 inv_mat,float3 in) {
     float3 pos = in - center;  // TODO: benchmark compare for no center calc
 
     return (float3)(
@@ -46,6 +45,10 @@ float3 rotation(float3 in, float3 center, float16 inv_mat) {
        dot(inv_mat.s159, pos),
        dot(inv_mat.s26A, pos)) + center;
 
+}
+
+float3 scale(float3 scale,float3 in) {
+    return in / scale;
 }
 
 // Datasources

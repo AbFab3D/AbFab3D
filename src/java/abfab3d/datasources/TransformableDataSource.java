@@ -14,15 +14,11 @@ package abfab3d.datasources;
 
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
-import abfab3d.param.Parametrizable;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
    Base class for DataSources which want to be Transformable

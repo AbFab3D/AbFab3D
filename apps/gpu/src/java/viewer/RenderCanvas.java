@@ -221,7 +221,7 @@ public class RenderCanvas implements GLEventListener {
             return;
         }
 
-        statusBar.setStatusText("Done loading program.  compile time: " + (renderer.getLastCompileTime()) / 1e6 + " secs");
+        statusBar.setStatusText("Done loading program.  compile time: " + (renderer.getLastCompileTime()) / 1e6 + " ms");
         compiling = false;
 
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -284,16 +284,18 @@ public class RenderCanvas implements GLEventListener {
             // ignore, not sure why we get these
             return;
         }
+
+        graphicsInitialized = false;
         printf("Window reshaped: %d x %d\n", width, height);
         this.width = width;
         this.height = height;
-
-        int max_wg_size = device.getMaxWorkGroupSize();
 
         windowChanged = true;
 
         GL2 gl = drawable.getGL().getGL2();
         initPixelBuffer(gl,width,height);
+
+        graphicsInitialized = true;
     }
 
     private static void fillBuffer(FloatBuffer buffer, int seed) {

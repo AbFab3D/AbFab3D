@@ -20,6 +20,9 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.Parameter;
+import abfab3d.param.SNode;
+import abfab3d.param.SNodeListParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -38,21 +41,33 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    Arbitrary long chain of transformation to be applied to the shape. 
    
  */
-public class CompositeTransform implements VecTransform, Initializable {
+public class CompositeTransform extends BaseTransform implements VecTransform, Initializable {
     
     private Vector<VecTransform> vTransforms = new Vector<VecTransform>();
     
     private VecTransform aTransforms[]; // array used in calculations 
-    
+
+    public CompositeTransform() {
+        initParams();
+    }
+
     /**
        add transform to the chain of transforms
      */
     public void add(VecTransform transform){
         
         vTransforms.add(transform);
-        
+        ((SNodeListParameter) params.get("transforms")).getValue().add((SNode) transform);
+
     }
-    
+
+    public void initParams() {
+        super.initParams();
+
+        Parameter p = new SNodeListParameter("transforms");
+        params.put(p.getName(), p);
+    }
+
     /**
        @noRefGuide
      */

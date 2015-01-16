@@ -13,6 +13,9 @@
 package abfab3d.datasources;
 
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 
 import javax.vecmath.AxisAngle4d;
@@ -54,16 +57,8 @@ public class Cylinder extends TransformableDataSource {
      * @param radius Radius of cylinder 
      */
     public Cylinder(Vector3d v0, Vector3d v1, double radius) {
-
-        if (radius < 0) {
-            throw new IllegalArgumentException("Cylinder radius < 0.  Value: " + radius);
-        }
-        this.R0 = radius;
-        this.R1 = radius;
-        this.v0 = new Vector3d(v0);
-        this.v1 = new Vector3d(v1);
+        this(v0,v1,radius,radius);
         this.uniform = true;
-
     }
 
     /**
@@ -78,12 +73,66 @@ public class Cylinder extends TransformableDataSource {
         if (radius0 < 0 || radius1 < 0) {
             throw new IllegalArgumentException(fmt("Cylinder radius < 0.  radius0: %15.8g radius1: %15.8g ",radius0,radius1));
         }
-        this.R0 = radius0;
-        this.R1 = radius1;
+
+        initParams();
+
+        setRadius0(radius0);
+        setRadius1(radius1);
+        setV0(v0);
+        setV1(v1);
         this.v0 = new Vector3d(v0);
         this.v1 = new Vector3d(v1);
         this.uniform = false;
+    }
 
+    /**
+     * @noRefGuide
+     */
+    protected void initParams() {
+        super.initParams();
+        Parameter p = new Vector3dParameter("v0");
+        params.put(p.getName(), p);
+
+        p = new Vector3dParameter("v1");
+        params.put(p.getName(),p);
+
+        p = new DoubleParameter("radius0");
+        params.put(p.getName(),p);
+
+        p = new DoubleParameter("radius1");
+        params.put(p.getName(),p);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public void setRadius0(double r){
+        R0 = r;
+        ((DoubleParameter) params.get("radius0")).setValue(r);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public void setRadius1(double r){
+        R1 = r;
+        ((DoubleParameter) params.get("radius1")).setValue(r);
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public void setV0(Vector3d v){
+        this.v0 = new Vector3d(v);
+        ((Vector3dParameter) params.get("v0")).setValue(new Vector3d(v));
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public void setV1(Vector3d v){
+        this.v1 = new Vector3d(v);
+        ((Vector3dParameter) params.get("v1")).setValue(new Vector3d(v));
     }
 
     /**

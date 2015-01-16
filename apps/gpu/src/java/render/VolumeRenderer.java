@@ -85,6 +85,9 @@ public class VolumeRenderer {
             System.out.println(program.getBuildLog());
 */            
         } catch (Exception e) {
+            String src = program.getSource();
+            printf("Src: \n%s",src);
+            printf("End Source\n");
             e.printStackTrace();
             return false;
         }
@@ -128,7 +131,7 @@ public class VolumeRenderer {
                        CLBuffer dest) {
         long t0 = System.nanoTime();
 
-        int localWorkSizeX = 8;
+        int localWorkSizeX = 8; // this seems the fastest not sure why
         int localWorkSizeY = 8;
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX, width);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,height);

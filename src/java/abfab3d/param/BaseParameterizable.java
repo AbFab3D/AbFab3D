@@ -11,7 +11,6 @@
  ****************************************************************************/
 package abfab3d.param;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -20,7 +19,7 @@ import java.util.Map;
  *
  * @author Alan Hudson
  */
-public class BaseParameterizable implements Parametrizable, SNode {
+public class BaseParameterizable implements Parameterizable, SNode {
     protected Map<String, Parameter> params = new LinkedHashMap<String,Parameter>();
 
     /**

@@ -13,30 +13,30 @@ package abfab3d.param;
 
 // External Imports
 
-import java.util.ArrayList;
-import java.util.List;
+import javax.vecmath.AxisAngle4d;
 
 /**
- * A pointer to a list of nodes
+ * A AxisAngle4d parameter to a service.
  *
  * @author Alan Hudson
  */
-public class SNodeListParameter extends Parameter {
-    public SNodeListParameter(String name) {
-
-        this(name, name);
+public class AxisAngle4dParameter extends NumberParameter {
+    public AxisAngle4dParameter(String name) {
+        this(name, name, new AxisAngle4d(0, 1, 0,0));
     }
 
-    public SNodeListParameter(String name, String desc) {
-
-        this(name, desc, new ArrayList());
+    public AxisAngle4dParameter(String name, String desc) {
+        this(name, desc, new AxisAngle4d(0, 1, 0,0));
     }
 
-    public SNodeListParameter(String name, String desc, List initialValue) {
-
+    public AxisAngle4dParameter(String name, String desc, AxisAngle4d initialValue) {
         super(name, desc);
-
         setValue(initialValue);
+    }
+
+    @Override
+    public AxisAngle4d getValue() {
+        return (AxisAngle4d) value;
     }
 
     /**
@@ -44,7 +44,7 @@ public class SNodeListParameter extends Parameter {
      * @return The type
      */
     public ParameterType getType() {
-        return ParameterType.SNODE_LIST;
+        return ParameterType.AXIS_ANGLE_4D;
     }
 
     /**
@@ -54,12 +54,12 @@ public class SNodeListParameter extends Parameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
-        if (!(val instanceof List)) {
-            throw new IllegalArgumentException("Unsupported type for SNodeList: " + val + " in param: " + getName());
+        if (!(val instanceof AxisAngle4d)) {
+            throw new IllegalArgumentException("Unsupported type for Vector3D: " + val + " in param: " + getName());
         }
     }
 
-    public List<SNode> getValue() {
-        return (List<SNode>) value;
+    public AxisAngle4dParameter clone() {
+        return (AxisAngle4dParameter) super.clone();
     }
 }

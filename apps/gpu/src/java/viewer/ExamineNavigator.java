@@ -119,11 +119,7 @@ public class ExamineNavigator implements Navigator {
             public void keyTyped(KeyEvent e) {
                 if (e.getKeyChar() == 'r') {
                     printf("Reseting view\n");
-                    // reset navigation
-                    z = DEFAULT_TRANS[2];
-                    rotx = DEFAULT_ROT[0];
-                    roty = DEFAULT_ROT[1];
-                    hasChanged = true;
+                    reset();
                 }
             }
 
@@ -163,5 +159,13 @@ public class ExamineNavigator implements Navigator {
 
     @Override
     public void setBounds(Bounds bounds, double vs) {
+        reset();
+    }
 
-    }}
+    private void reset() {
+        z = DEFAULT_TRANS[2];
+        rotx = DEFAULT_ROT[0];
+        roty = DEFAULT_ROT[1];
+        hasChanged = true;
+    }
+}

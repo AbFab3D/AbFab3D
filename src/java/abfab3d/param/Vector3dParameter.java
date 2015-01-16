@@ -44,7 +44,7 @@ public class Vector3dParameter extends NumberParameter {
      * @return The type
      */
     public ParameterType getType() {
-        return ParameterType.VECTOR3D;
+        return ParameterType.VECTOR_3D;
     }
 
     /**
