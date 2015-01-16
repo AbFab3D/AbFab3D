@@ -25,6 +25,9 @@ public class DistanceDataSegment implements DistanceData {
     Vector3d p01; // segment tangencial vector 
     double length2; 
 
+    public DistanceDataSegment(Vector3d v0, Vector3d v1){
+        this(v0.x,v0.y,v0.z,v1.x,v1.y,v1.z);
+    }
     public DistanceDataSegment(double x0, double y0, double z0, double x1, double y1, double z1){
         
         p0 = new Vector3d(x0,y0,z0);

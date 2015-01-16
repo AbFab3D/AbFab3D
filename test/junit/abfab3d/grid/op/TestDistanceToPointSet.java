@@ -20,6 +20,7 @@ import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 import javax.vecmath.Point3d;
+import javax.vecmath.Vector3d;
 
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
@@ -245,7 +246,7 @@ public class TestDistanceToPointSet extends TestCase {
 
         double cx = vs/2,cy = vs/2, cz= vs/2;        
         double radius = 1.5*MM;
-        DistanceData dd = new DistanceDataSphere(radius, cx, cy, cz);
+        DistanceData dd = new DistanceDataSphere(radius, new Vector3d(cx, cy, cz));
         double dmax = 0;
         PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
         
@@ -356,7 +357,7 @@ public class TestDistanceToPointSet extends TestCase {
 
         double cx = 0.0*MM,cy = 0.0*MM, cz= 0.0*MM;        
         double radius = 1.9*MM;
-        DistanceData dd = new DistanceDataSphere(radius, cx, cy, cz);
+        DistanceData dd = new DistanceDataSphere(radius, new Vector3d(cx, cy, cz));
         double dmax = 0;
         PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
         
@@ -419,7 +420,7 @@ public class TestDistanceToPointSet extends TestCase {
 
         double cx = vs/2,cy = vs/2, cz= vs/2;        
         double radius = 1.5*MM;
-        DistanceData dd = new DistanceDataSphere(radius, cx, cy, cz);
+        DistanceData dd = new DistanceDataSphere(radius, new Vector3d(cx, cy, cz));
         double dmax = 0;
         PointCloud pnts = makePointCloud(x0, y0, z0, nx, ny, nz, vs, dd);
         

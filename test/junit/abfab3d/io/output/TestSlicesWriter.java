@@ -50,6 +50,11 @@ import abfab3d.util.ImageGray16;
 import abfab3d.util.DefaultLongConverter;
 import abfab3d.util.LongConverter;
 
+import abfab3d.distance.DistanceDataSphere;
+import abfab3d.distance.DistanceDataSegment;
+import abfab3d.distance.DistanceDataUnion;
+import abfab3d.distance.DensityFromDistance;
+
 import abfab3d.datasources.DataChannelMixer;
 import abfab3d.datasources.SolidColor;
 import abfab3d.datasources.Box;
@@ -617,6 +622,45 @@ public class TestSlicesWriter extends TestCase {
         printf("gm.makeGrid() done\n");
         new SVXWriter().write(grid, "/tmp/sphere_1bpp.svx");        
     }
+
+    void grayTest() throws IOException{
+
+        // writes 1 pit per voxel grid 
+        printf("grayTest()\n");  
+        double voxelSize = 0.1*MM;
+        double margin = 2*MM;
+        double sizex = 10*MM; 
+        double sizey = 10*MM; 
+        double sizez = 10*MM;
+        double ballRadius = 10.0*MM;
+        
+        double gridWidth = 30*MM;
+        double gridHeight = gridWidth;
+        double gridDepth = gridWidth;
+        
+        int threadsCount = 1;
+        Bounds bounds = new Bounds(-gridWidth/2,gridWidth/2,-gridHeight/2,gridHeight/2,-gridDepth/2,gridDepth/2);
+
+        DistanceDataSphere s1 = new DistanceDataSphere(5*MM, new Vector3d(1*MM,0,0));
+        DistanceDataSphere s3 = new DistanceDataSphere(25*MM, new Vector3d(-25*MM,0,0));
+        DistanceDataSphere s2 = new DistanceDataSphere(5*MM, new Vector3d(0*MM,0,0));
+        DistanceDataSegment line = new DistanceDataSegment(new Vector3d(-2*MM, 0,0), new Vector3d(12*MM, 0,0));
+        //DistanceDataUnion s12 = new DistanceDataUnion(s2, line);
+        DistanceDataUnion s12 = new DistanceDataUnion(s2, s3);
+        double blend[] = new double[]{0, 0.2*MM, 0.5*MM, 1*MM, 2*MM};
+
+        for(int i = 0; i < blend.length; i++){
+
+            s12.setBlendWidth(blend[i]);
+            GridMaker gm = new GridMaker(); 
+            gm.setSource(new DensityFromDistance(s12, 0*MM, voxelSize));        
+            AttributeGrid grid = new ArrayAttributeGridByte(bounds, voxelSize, voxelSize);
+            gm.makeGrid(grid);               
+            printf("gm.makeGrid() done\n");
+            new SVXWriter().write(grid, fmt("/tmp/blend_%02d.svx", (int)(blend[i]/(0.1*MM))));        
+        }
+    }
+  
   
     /**
        makes a test slices set 
@@ -986,13 +1030,12 @@ public class TestSlicesWriter extends TestCase {
     public static void main(String[] args) throws IOException {
         //new TestSlicesWriter().multichannelTest();
         //new TestSlicesWriter().colorTest();
-        //new TestSlicesWriter().colorTest2();
         //new TestSlicesWriter().colorTest3();
         //new TestSlicesWriter().colorTestBoxSphere();
         //new TestSlicesWriter().colorTestConeSphere();
         //new TestSlicesWriter().colorTestNoise();
-        new TestSlicesWriter().blackWhiteTest();
+        //new TestSlicesWriter().blackWhiteTest();
+        new TestSlicesWriter().grayTest();
     }
     
-
 }

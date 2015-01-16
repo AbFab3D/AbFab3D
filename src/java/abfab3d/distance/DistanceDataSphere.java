@@ -33,13 +33,13 @@ public class DistanceDataSphere implements DistanceData {
     double radius;
 
     public DistanceDataSphere(double radius){
-        this(radius, 0,0,0);
+        this(radius, new Vector3d(0,0,0));
     }
 
-    public DistanceDataSphere(double radius, double centerx, double centery, double centerz){
-        this.cx = centerx;
-        this.cy = centery;
-        this.cz = centerz;
+    public DistanceDataSphere(double radius, Vector3d center) {
+        this.cx = center.x;
+        this.cy = center.y;
+        this.cz = center.z;
         this.radius = radius;
 
     }

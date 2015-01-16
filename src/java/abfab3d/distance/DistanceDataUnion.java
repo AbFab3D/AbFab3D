@@ -21,7 +21,8 @@ import javax.vecmath.Quat4d;
 
 import static java.lang.Math.sqrt;
 import static java.lang.Math.abs;
-
+import static java.lang.Math.min;
+import static java.lang.Math.max;
 
 /**
    returns the distance to union of several distance data sources
@@ -33,6 +34,8 @@ public class DistanceDataUnion implements DistanceData {
     Vector<DistanceData> m_vcomponents = new Vector<DistanceData>();
     DistanceData m_components[]; 
 
+    double blendWidth = 0.;
+
     public DistanceDataUnion(){
     }
 
@@ -40,6 +43,11 @@ public class DistanceDataUnion implements DistanceData {
         m_vcomponents.add(distData1);
         m_vcomponents.add(distData2);
         initArray();
+    }
+
+    public void setBlendWidth(double value){
+
+        this.blendWidth = value;
     }
 
     public void add(DistanceData distData){
@@ -57,14 +65,31 @@ public class DistanceDataUnion implements DistanceData {
     public double getDistance(double x, double y, double z){
 
         double dist = Double.MAX_VALUE;
+        double d0 = m_components[0].getDistance(x,y,z);
+        double d1 = m_components[1].getDistance(x,y,z);
+        double dd = min(d0, d1);
 
+        double w = blendWidth;
+
+        if(w <= 0.) 
+            return dd;
+        
+        double d = abs(d0-d1);
+        if( d < 2*w) return dd - (d - 2*w)*(d - 2*w)/(8*w);
+        else return dd;
+        //if(d >= 2*w) return dd;
+        //else return dd - (d - 2*w)*(d - 2*w)/(4*w);
+
+        //return dd;
+        /*
         for(int i = 0; i < m_components.length; i++){
             double d = m_components[i].getDistance(x,y,z);
             if(d < dist) 
                 dist = d;
         }
-
+        
         return dist;
+        */
     }
 }
 
