@@ -77,10 +77,7 @@ public class DistanceDataUnion implements DistanceData {
         double d = abs(d0-d1);
         if( d < 2*w) return dd - (d - 2*w)*(d - 2*w)/(8*w);
         else return dd;
-        //if(d >= 2*w) return dd;
-        //else return dd - (d - 2*w)*(d - 2*w)/(4*w);
 
-        //return dd;
         /*
         for(int i = 0; i < m_components.length; i++){
             double d = m_components[i].getDistance(x,y,z);
