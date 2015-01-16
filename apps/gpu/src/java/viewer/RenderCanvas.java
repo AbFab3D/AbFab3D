@@ -1,14 +1,11 @@
 package viewer;
 
 import abfab3d.param.SNode;
-import abfab3d.util.Units;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import com.jogamp.opencl.gl.CLGLContext;
 import com.jogamp.opengl.util.Animator;
-import gpu.GPUUtil;
-import program.ProgramLoader;
 import render.VolumeRenderer;
 
 import javax.media.opengl.*;
@@ -17,8 +14,6 @@ import javax.swing.*;
 import javax.vecmath.Matrix4f;
 
 import java.awt.*;
-import java.io.File;
-import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.Random;
@@ -50,17 +45,11 @@ public class RenderCanvas implements GLEventListener {
     private VolumeRenderer renderer;
     private CLDevice device;
     private CLGLContext clContext;
-    private CLKernel kernel;
-    private CLProgram program;
     private CLCommandQueue commandQueue;
     private GLAutoDrawable drawable;
     private Animator animator;
     private CLGLBuffer clPixelBuffer;
     private int[] glPixelBuffer = new int[1];
-    private long globalWorkSizeX;
-    private long globalWorkSizeY;
-    private int localWorkSizeX;
-    private int localWorkSizeY;
     private transient boolean rendering;
     private SNode scene;
     private String sceneProg;
@@ -70,9 +59,7 @@ public class RenderCanvas implements GLEventListener {
 
     // Scratch vars
     private Matrix4f view = new Matrix4f();
-    private float[] viewData = new float[16];
     private CLBuffer<FloatBuffer> viewBuffer;
-
     private final GLCanvas canvas;
 
     public RenderCanvas(Navigator nav) {
@@ -101,6 +88,7 @@ public class RenderCanvas implements GLEventListener {
     public void setAntialiasingSteps(int numSteps) {
         this.maxAntialiasingSteps = numSteps;
 
+        renderer.setMaxAntialiasingSteps(numSteps);
         statusBar.setStatusText("Loading program...");
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
@@ -114,6 +102,7 @@ public class RenderCanvas implements GLEventListener {
     public void setSteps(int numSteps) {
         this.maxSteps = numSteps;
 
+        renderer.setMaxSteps(numSteps);
         statusBar.setStatusText("Loading program...");
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
@@ -127,6 +116,7 @@ public class RenderCanvas implements GLEventListener {
     public void setShadowSteps(int numSteps) {
         this.maxShadowSteps = numSteps;
 
+        renderer.setMaxShadowSteps(numSteps);
         statusBar.setStatusText("Loading program...");
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
@@ -206,66 +196,38 @@ public class RenderCanvas implements GLEventListener {
         printf("initCL called\n");
         commandQueue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
 
+        renderer = new VolumeRenderer(clContext,commandQueue);
+        renderer.setMaxSteps(maxSteps);
+        renderer.setMaxShadowSteps(maxShadowSteps);
+        renderer.setMaxAntialiasingSteps(maxAntialiasingSteps);
         viewBuffer = clContext.createFloatBuffer(16, READ_ONLY);
 
         System.out.println("cl initialised");
     }
 
     private void buildProgram(boolean debug) {
-
         if (sceneProg == null) return;
 
-        String kernel_name = "render";
-
+        String opts = "";
+        if (debug) opts = " -DDEBUG";
+        ArrayList progs = new ArrayList();
+        progs.add(sceneProg);
         compiling = true;
-        long t0 = System.currentTimeMillis();
-        try {
-            printf("Building program with maxSteps: %s debug: %b\n",maxSteps,debug);
-            String buildOpts = "";
-            if (debug) buildOpts += " -DDEBUG";
-            buildOpts += " -DmaxSteps=" + maxSteps;
-//            double vs = (2 * 2.0/maxSteps * worldScale);  // TODO: not sure this is right
-            double vs = 0.1* Units.MM;
-            printf("voxelSize: %f\n",vs);
-            buildOpts += " -DvoxelSize=" + vs;
-            buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;
-            buildOpts += " -Dsamples=" + maxAntialiasingSteps;
-            if (maxShadowSteps > 0) {
-                buildOpts += " -DSHADOWS";
-            }
-            if (maxAntialiasingSteps > 0) {
-                buildOpts += " -DSUPERSAMPLE";
-                kernel_name = "renderSuper";
-            } else {
-                kernel_name = "render";
-            }
-
-            //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
-            ArrayList list = new ArrayList();
-            //list.add(new File("Noise.cl"));
-            list.add(new File("ShapeJS.cl"));
-            list.add(sceneProg);
-            list.add(new File("VolumeRenderer.cl"));
-            program = ProgramLoader.load(clContext,list);
-            program.build(buildOpts);
-
+        if (!renderer.init(progs, opts)) {
+            CLProgram program = renderer.getProgram();
+            statusBar.setStatusText("Program failed to load: " + program.getBuildStatus());
             System.out.println(program.getBuildStatus());
-            System.out.println(program.isExecutable());
             System.out.println(program.getBuildLog());
-        } catch (IOException ex) {
-            statusBar.setStatusText("Exception building program");
-            throw new RuntimeException("can not handle exception", ex);
+            return;
         }
 
-        kernel = program.createCLKernel(kernel_name);
-        statusBar.setStatusText("Done loading program.  compile time: " + (System.currentTimeMillis() - t0) / 1000 + " secs");
+        statusBar.setStatusText("Done loading program.  compile time: " + (renderer.getLastCompileTime()) / 1e6 + " secs");
         compiling = false;
 
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 
         windowChanged = true;
     }
-
     private void initPixelBuffer(GL2 gl, int width, int height) {
 
         if (clPixelBuffer != null) {
@@ -298,52 +260,8 @@ public class RenderCanvas implements GLEventListener {
         gl.glFinish();
 
         nav.getViewMatrix(view);
-        // Invert and send current view matrix to OpenCL
-        view.invert();
-        //printf("inv view: \n%s\n",view);
+        renderer.render(view, width, height, viewBuffer,commandQueue,clPixelBuffer);
 
-        viewData[0] = view.m00;
-        viewData[1] = view.m01;
-        viewData[2] = view.m02;
-        viewData[3] = view.m03;
-        viewData[4] = view.m10;
-        viewData[5] = view.m11;
-        viewData[6] = view.m12;
-        viewData[7] = view.m13;
-        viewData[8] = view.m20;
-        viewData[9] = view.m21;
-        viewData[10] = view.m22;
-        viewData[11] = view.m23;
-        viewData[12] = view.m30;
-        viewData[13] = view.m31;
-        viewData[14] = view.m32;
-        viewData[15] = view.m33;
-
-        viewBuffer.getBuffer().put(viewData);
-        viewBuffer.getBuffer().rewind();
-
-        // Call OpenCL kernel
-        CLEventList list = new CLEventList(4);
-
-        commandQueue.putAcquireGLObject(clPixelBuffer, list);
-        commandQueue.putWriteBuffer(viewBuffer, true, null, list);
-
-        kernel.setArg(0,clPixelBuffer).rewind();
-        kernel.setArg(1,width);
-        kernel.setArg(2,height);
-        kernel.setArg(3,viewBuffer).rewind();
-
-        commandQueue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
-        commandQueue.putReleaseGLObject(clPixelBuffer, list);
-        commandQueue.finish();
-
-        /*
-        for(int i=0; i < list.size(); i++) {
-            CLEvent event = list.getEvent(i);
-            System.out.println("cmd: " + i + " time: " + (event.getProfilingInfo(CLEvent.ProfilingCommand.END)
-                    - event.getProfilingInfo(CLEvent.ProfilingCommand.START))/1000000.0);
-        }
-        */
         // Render image using OpenGL
 
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
@@ -372,12 +290,6 @@ public class RenderCanvas implements GLEventListener {
 
         int max_wg_size = device.getMaxWorkGroupSize();
 
-        // TODO: optimize these
-        localWorkSizeX = 16;
-        localWorkSizeY = 16;
-        globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,width);
-        globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,height);
-
         windowChanged = true;
 
         GL2 gl = drawable.getGL().getGL2();
@@ -389,6 +301,14 @@ public class RenderCanvas implements GLEventListener {
         while(buffer.remaining() != 0)
             buffer.put(rnd.nextFloat()*100);
         buffer.rewind();
+    }
+
+    public long getLastRenderTime() {
+        return renderer.getLastTotalRenderTime();
+    }
+
+    public long getLastKernelTime() {
+        return renderer.getLastKernelTime();
     }
 
     public void setNavigator(Navigator nav) {

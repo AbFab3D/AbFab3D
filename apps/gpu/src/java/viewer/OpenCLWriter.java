@@ -15,12 +15,18 @@ import static abfab3d.util.Output.printf;
 import static java.lang.Math.PI;
 
 /**
- * Created by giles on 1/13/2015.
+ * Write a datasource tree to OpenCL
+ *
+ * @author Alan Hudson
  */
 public class OpenCLWriter {
+    /** Each node has a unique id for future reference */
     private int nodeId;
+
+    /** Map of each datasource to its nodeId */
     private HashMap<DataSource, Integer> idMap = new HashMap<DataSource, Integer>();
 
+    /** Parameter excludes for special cases */
     private static final HashSet<String> boxExclude;
     private static final HashSet<String> gyroidExclude;
 
@@ -66,18 +72,6 @@ public class OpenCLWriter {
         bldr.append("; \n}\n");
 
         return bldr.toString();
-        /*
-        String prog = "float readShapeJS(float3 pos) {\n" +
-                "    float vs = voxelSize;\n" +
-                "    float radius = 1;\n" +
-                "    float ds1 = sphere(vs, radius, 0, 0, 0, true, pos);\n" +
-                "    data1 = clamp(data1,0.0f,1.0f);\n" +
-                "\n" +
-                "   return data1;\n" +
-                "}";
-
-        return prog;
-        */
     }
 
     private void generate(DataSource source, StringBuilder bldr) {
@@ -161,7 +155,9 @@ public class OpenCLWriter {
             bldr.append(zmax);
             bldr.append(",");
             bldr.append(pos);
-            bldr.append("),0.0,1.0);\n");
+            bldr.append(")");
+            //bldr.append(",0.0,1.0)");
+            bldr.append(";\n");
         } else if (class_name.equals("Gyroid")) {
             addCallParams(source, bldr,gyroidExclude);
 
@@ -225,13 +221,13 @@ public class OpenCLWriter {
                 int data1 = idMap.get((DataSource) nchilds[1]);
                 bldr.append("\tfloat ds");
                 bldr.append(nodeId++);
-                bldr.append(" = clamp(unionOp(");
+                bldr.append(" = unionOp(");
                 bldr.append("ds");
                 bldr.append(data0);
                 bldr.append(",");
                 bldr.append("ds");
                 bldr.append(data1);
-                bldr.append("),0.0,1.0);\n");
+                bldr.append(");\n");
             } else {
                 bldr.append("\tfloat arr");
                 bldr.append(nodeId);
@@ -246,12 +242,12 @@ public class OpenCLWriter {
 
                 bldr.append("\tfloat ds");
                 bldr.append(nodeId++);
-                bldr.append(" = clamp(unionArr(");
+                bldr.append(" = unionArr(");
                 bldr.append("arr");
                 bldr.append((nodeId-1));
                 bldr.append(",");
                 bldr.append(len);
-                bldr.append("),0.0,1.0);\n");
+                bldr.append(");\n");
             }
         } else if (class_name.equals("Subtraction")) {
             SNode[] nchilds = ((TransformableDataSource) source).getChildren();
