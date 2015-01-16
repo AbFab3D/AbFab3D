@@ -207,14 +207,20 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
         density = readShapeJS(pos);
 
-        if (density > 0.1 && density <= 1.) {
+        if (density > 0.5){  // overshot the surface 
+			while(density > 0.5){
+			   t -= 0.01*tstep;  // back off 
+			   pos = (eyeRay_o + eyeRay_d*t).xyz;
+			   density = readShapeJS(pos);
+			}			   
+			// && density <= 1.) {
            hit = i;
-		   float dt = 0.1*tstep;
+		   float dt = 0.01*tstep;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
 		   float gp = (readShapeJS(p1)-density)/dt;
 		   float ddt = (0.5-density)/gp;
 		   //if( true ){
-		   if( ddt > -0.5*tstep && ddt < 0.5*tstep){
+		   if( true) {//ddt > -0.5*tstep && ddt < 0.5*tstep){
 				// adjust hit based on density to reduce aliasing
 				pos = (eyeRay_o + eyeRay_d*(t + ddt)).xyz;
 				break;
@@ -240,7 +246,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
 //        float dist = voxelSize / 2.0; // This is what I expect we should use or just voxelSize
-        float dist = tstep*0.1;
+        float dist = tstep*0.01;
 
         // second order precision formula for gradient
         // x
