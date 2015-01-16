@@ -20,6 +20,9 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -35,7 +38,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 /**
    performs rotation about given axis 
 */
-public class Rotation implements VecTransform, Initializable {
+public class Rotation extends BaseTransform implements VecTransform, Initializable {
     
     private Vector3d m_axis = new Vector3d(1,0,0); 
     private double m_angle = 0;
@@ -50,6 +53,7 @@ public class Rotation implements VecTransform, Initializable {
        identity rotation
      */
     public Rotation(){
+        this(1,0,0,0);
     }
     /**
        rotation with given axis and angle. Angle is measure in radians. 
@@ -57,8 +61,7 @@ public class Rotation implements VecTransform, Initializable {
      */
     public Rotation(Vector3d axis, double angle){
         
-        setRotation(axis, angle);
-        
+        this(axis.x, axis.y, axis.z, angle);
     }
 
     /**
@@ -70,9 +73,8 @@ public class Rotation implements VecTransform, Initializable {
        
      */
     public Rotation(double ax, double ay, double az, double angle){
-        
+        initParams();
         setRotation(new Vector3d(ax, ay, az), angle);
-        
     }
 
 
@@ -81,11 +83,23 @@ public class Rotation implements VecTransform, Initializable {
        @param angle  rotation angle is measured in radians
      */
     public Rotation(Vector3d axis, double angle, Vector3d center){
-        
+        initParams();
         setRotation(axis, angle, center);
-        
     }
-    
+
+    public void initParams() {
+        super.initParams();
+
+        Parameter p = new Vector3dParameter("axis");
+        params.put(p.getName(), p);
+
+        p = new DoubleParameter("angle");
+        params.put(p.getName(), p);
+
+        p = new Vector3dParameter("center");
+        params.put(p.getName(), p);
+    }
+
     /**
        @noRefGuide
        @param angle  rotation angle is measured in radians
@@ -95,7 +109,10 @@ public class Rotation implements VecTransform, Initializable {
         m_axis = new Vector3d(axis); 
         m_angle = angle;
         m_center = null;
-   } 
+
+        ((Vector3dParameter) params.get("axis")).setValue(new Vector3d(axis));
+        ((DoubleParameter) params.get("angle")).setValue(angle);
+    }
 
     /**
        @noRefGuide
@@ -107,8 +124,11 @@ public class Rotation implements VecTransform, Initializable {
         m_axis.normalize();
         m_angle = angle;
         m_center = new Vector3d(center);
-        
-   } 
+
+        ((Vector3dParameter) params.get("axis")).setValue(new Vector3d(axis));
+        ((DoubleParameter) params.get("angle")).setValue(angle);
+        ((Vector3dParameter) params.get("axis")).setValue(new Vector3d(center));
+   }
     
     /**
        @noRefGuide

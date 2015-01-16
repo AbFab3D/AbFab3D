@@ -37,6 +37,17 @@ float3 translation(float3 in, float3 inv_trans) {
     return in - inv_trans;
 }
 
+
+float3 rotation(float3 in, float3 center, float16 inv_mat) {
+    float3 pos = in - center;  // TODO: benchmark compare for no center calc
+
+    return (float3)(
+       dot(inv_mat.s048, pos),
+       dot(inv_mat.s159, pos),
+       dot(inv_mat.s26A, pos)) + center;
+
+}
+
 // Datasources
 float gyroid(float vs, float level, float thickness, float3 offset, float factor, float3 pnt) {
     pnt = pnt - offset;

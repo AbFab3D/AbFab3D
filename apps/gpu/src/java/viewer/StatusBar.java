@@ -102,6 +102,8 @@ public class StatusBar extends JPanel implements Runnable  {
             }
 
             float fps = counter.getLastFPS();
+            long kernel = (long) (canvas.getLastKernelTime() / 1e6); // ms;
+            long render = (long) (canvas.getLastRenderTime() / 1e6); // ms
 
             if(Math.abs(lastFPS - fps) > 0.1) {
 
@@ -122,7 +124,7 @@ public class StatusBar extends JPanel implements Runnable  {
                     }
                 }
 
-                fpsLabel.setText("FPS: " + txt);
+                fpsLabel.setText("Kernel: " + kernel + " Render: " + render + " ms  FPS: " + txt);
                 lastFPS = fps;
             }
         }
