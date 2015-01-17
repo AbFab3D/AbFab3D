@@ -406,7 +406,7 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
     eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
 
     float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
-	eyeRay_d = mulMatVec(invViewMatrix, temp);
+	eyeRay_d = mulMatVec4(invViewMatrix, temp);
 
     // find intersection with box
 	float tnear, tfar;
