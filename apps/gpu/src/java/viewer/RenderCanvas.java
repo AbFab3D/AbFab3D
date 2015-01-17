@@ -157,6 +157,7 @@ public class RenderCanvas implements GLEventListener {
             System.out.printf("CL Devices: %d\n",devices.length);
             for (CLDevice d : devices) {
                 System.out.printf("Device: %s\n",d);
+
                 if (d.getName().contains("GeForce")) {
                     device = d;
                     break;
