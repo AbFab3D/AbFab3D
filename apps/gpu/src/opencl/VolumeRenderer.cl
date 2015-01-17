@@ -509,7 +509,7 @@ kernel void render(global uint *d_output, uint imageW, uint imageH, global const
 
     float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix);
 
-    shading = clamp(shading, 0.0, 1.0);
+    shading = clamp(shading, 0.0f, 1.0f);
 
     uint idx =(y * imageW) + x;
     d_output[idx] = rgbaFloatToInt(shading);

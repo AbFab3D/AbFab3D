@@ -149,10 +149,32 @@ public class RenderCanvas implements GLEventListener {
 
         this.drawable = drawable;
 
-        if (debug) {
-            device = CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice();
+        CLPlatform platform = CLPlatform.getDefault();
+
+        if (platform.getName().contains("Apple")) {
+            // Intel drivers seem to be borked, force to GeForce
+            CLDevice[] devices = CLPlatform.getDefault().listCLDevices();
+            System.out.printf("CL Devices: %d\n",devices.length);
+            for (CLDevice d : devices) {
+                System.out.printf("Device: %s\n",d);
+                if (d.getName().contains("GeForce")) {
+                    device = d;
+                    break;
+                }
+                /*
+                if (d.isGLMemorySharingSupported()) {
+                    device = d;
+                    break;
+                }
+                */
+            }
+
         } else {
-            device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+            if (debug) {
+                device = CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice();
+            } else {
+                device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+            }
         }
 
         if (!device.isGLMemorySharingSupported()) {
