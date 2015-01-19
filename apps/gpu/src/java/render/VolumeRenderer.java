@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static abfab3d.util.Output.printf;
+import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
 
 /**
  * Volume renderer using GPU.  Renders to any CLBuffer.
@@ -168,6 +169,8 @@ public class VolumeRenderer {
         if (usingGL) {
             queue.putAcquireGLObject((CLGLBuffer) dest, list);
         }
+
+        // TODO: this line crashes my Mac on second render
         queue.putWriteBuffer(viewBuffer, true, null, list);
 
         kernel.setArg(0, dest).rewind();
@@ -175,7 +178,9 @@ public class VolumeRenderer {
         kernel.setArg(2, height);
         kernel.setArg(3, viewBuffer).rewind();
 
-        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
+//        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
+        // Changed to 0 needed to work on MAC
+        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, 0, 0, list);
         if (usingGL) {
             queue.putReleaseGLObject((CLGLBuffer) dest, list);
         }

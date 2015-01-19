@@ -69,7 +69,7 @@ public class StepsAction extends AbstractAction {
     //---------------------------------------------------------------
 
     public static int getDefaultNumberOfSteps() {
-        return (int) Math.pow(2,10);
+        return (int) Math.pow(2,9);
     }
 
     /**
