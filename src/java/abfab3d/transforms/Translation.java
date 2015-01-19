@@ -87,7 +87,7 @@ public class Translation  extends BaseTransform implements VecTransform {
         this.tx = tx;
         this.ty = ty;
         this.tz = tz;
-        ((Vector3dParameter) params.get("translation")).setValue(new Vector3d(tx,ty,tz));
+        //((Vector3dParameter) params.get("translation")).setValue(new Vector3d(tx,ty,tz)); // broken, commented VB
     }
     
     /**

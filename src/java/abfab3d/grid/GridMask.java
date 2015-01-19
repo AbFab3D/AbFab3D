@@ -20,14 +20,24 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
 */
-public class GridMask implements GridBit {
+public class GridMask extends BaseAttributeGrid implements GridBit {
 
     int data[];
     int nx, ny, nz;
     int lenz, lenxz;
     static final int INTLEN = 32;
     
+    public GridMask(GridMask grid){
+        this(grid.nx,grid.ny,grid.nz);
+        System.arraycopy(grid.data,0, data, 0, data.length);
+        copyBounds(grid, this);
+    }
+    public GridMask(){
+        this(1,1,1);
+    }
+
     public GridMask(int nx, int ny, int nz){
+        super(nx, ny, nz,1., 1., null);
         this.nx = nx;
         this.ny = ny;
         this.nz = nz;
@@ -35,6 +45,10 @@ public class GridMask implements GridBit {
         this.lenxz = lenz * nx;
         
         data = new int[nx*ny*lenz];
+        
+        // this is binary grid, make default attributeDesc
+        m_attributeDesc = AttributeDesc.getDefaultAttributeDesc(1);
+        
     }
     
     public long get(int x, int y, int z){
@@ -80,5 +94,22 @@ public class GridMask implements GridBit {
     public void release(){
         data = null;
     }
-    
+
+    public Object clone() {
+        GridMask ret_val = new GridMask(this);
+        return ret_val;
+    }
+
+    public Grid createEmpty(int w, int h, int d, double pixel, double sheight) {
+        Grid ret_val = new GridMask(w,h,d);
+        return ret_val;
+    }
+
+    public void setAttribute(int x,int y,int z, long attribute){
+        set(x,y,z,attribute);
+    }    
+
+    public long getAttribute(int x,int y,int z){
+        return get(x,y,z);
+    }    
 } // class GridMask

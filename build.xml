@@ -270,6 +270,7 @@
                 abfab3d/io/output/*
                 abfab3d/path/*
                 abfab3d/util/*
+                abfab3d/param/*
                 abfab3d/geomutil/*
                 "
         />

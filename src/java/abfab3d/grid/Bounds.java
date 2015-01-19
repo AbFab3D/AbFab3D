@@ -12,6 +12,8 @@
 
 package abfab3d.grid;
 
+import javax.vecmath.Vector3d;
+
 import static abfab3d.util.Output.fmt;
 
 public class Bounds implements Cloneable {
@@ -82,6 +84,33 @@ public class Bounds implements Cloneable {
         this.ymax = bounds.ymax;
         this.zmin = bounds.zmin;
         this.zmax = bounds.zmax;
+    }
+
+    public Vector3d[] getCorners(){
+
+        Vector3d v[] = new Vector3d[8];
+        int c = 0;
+        v[c++] = new Vector3d(xmin,ymin,zmin);
+        v[c++] = new Vector3d(xmax,ymin,zmin);
+        v[c++] = new Vector3d(xmin,ymax,zmin);
+        v[c++] = new Vector3d(xmax,ymax,zmin);
+        v[c++] = new Vector3d(xmin,ymin,zmax);
+        v[c++] = new Vector3d(xmax,ymin,zmax);
+        v[c++] = new Vector3d(xmin,ymax,zmax);
+        v[c++] = new Vector3d(xmax,ymax,zmax);
+        return v;
+    }
+
+    public void toGridCoord(Grid grid, Vector3d pnt){
+
+        int nx = grid.getWidth();
+        int ny = grid.getHeight();
+        int nz = grid.getDepth();
+
+        pnt.x = nx*(pnt.x - xmin)/(xmax - xmin);
+        pnt.y = ny*(pnt.y - ymin)/(ymax - ymin);
+        pnt.z = nz*(pnt.z - zmin)/(zmax - zmin);
+        
     }
 
     public String toString(){
