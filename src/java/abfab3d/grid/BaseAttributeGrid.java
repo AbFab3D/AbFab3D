@@ -14,6 +14,7 @@ package abfab3d.grid;
 
 import java.io.Serializable;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 // External Imports
 
 /**
@@ -548,31 +549,31 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
     /**
      */
     public void getData(int x, int y, int z, VoxelData vd) {
-        throw new RuntimeException("not implemented");
+        throw new RuntimeException(fmt("getData() not implemented in %s", this));
     }
     /**
      */
     public byte getState(int x, int y, int z) {
-        throw new RuntimeException("not implemented");        
+        throw new RuntimeException(fmt("getState() not implemented in %s",this));        
     }
 
     /**
      */
     public void setData(int x, int y, int z, byte state, long material) {
-        throw new RuntimeException("not implemented");        
+        throw new RuntimeException(fmt("setData() not implemented in %s",this));        
     }
 
     /**
      */
     public void setState(int x, int y, int z, byte state) {
-        throw new RuntimeException("not implemented");                
+        throw new RuntimeException(fmt("setState() not implemented n %s",this));                
     }
 
     /**
      *
      */
     public VoxelData getVoxelData() {
-        throw new RuntimeException("not implemented");                
+        throw new RuntimeException(fmt("getVoxelData() not implemented in %s", this));
     }
 
 }

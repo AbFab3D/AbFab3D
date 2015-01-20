@@ -28,6 +28,7 @@ import junit.framework.TestCase;
 // Internal Imports
 import abfab3d.grid.*;
 import abfab3d.io.output.BoxesX3DExporter;
+import abfab3d.io.output.SVXWriter;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
@@ -79,30 +80,35 @@ public class TestDilationShapeMT extends TestCase {
         }
     }
 
-    public void _testSingleVoxelBall() {
-
-        int size = 301;
-        int gridType = GRID_ARRAYBYTE;
-        //int gridType = GRID_SHORTINTERVALS;
+    public void dilateSingleVoxelBall() {
+        
+        printf("dilateSingleVoxelBall()\n");
+        int nx = 50, ny = 50, nz = 50;
+        int x = nx/2, y = ny/2, z = nz/2;
+        double vs = 0.001;
 
         for(int k = 1; k < 10; k++){
 
-            AttributeGrid grid = makeBlock(gridType, size, size, size, size/3);
+            //AttributeGrid grid = new GridBitIntervals(nx, ny, nz);
+            AttributeGrid grid = new GridMask(nx, ny, nz);
+            //grid.setState(x,y,z, Grid.INSIDE);
+            grid.setAttribute(x,y,z, 1);
+            //grid.setAttribute(x+5,y,z, 1);
 
             int voxelCount =  grid.findCount(Grid.INSIDE);
-            //writeFile(grid, "/tmp/dilationSingleVoxel.x3d");
-            DilationShapeMT dil = new DilationShapeMT();
-            dil.setThreadCount(1);
+            printf("orig voxel count: %d\n", voxelCount);
+
+            //DilationShapeMT dil = new DilationShapeMT();
+            //dil.setThreadCount(1);
+            DilationShape dil = new DilationShape();
             dil.setVoxelShape(VoxelShapeFactory.getBall(k,0,0));
             long t0 = time();
             grid = dil.execute(grid);
-            printf("dilation time: %dms\n", (time()-t0));
-            //writeFile(grid, fmt("/tmp/dilationSingleVoxelDilatedMT_%d.x3d", k));
-
+            //printf("dilation time: %dms\n", (time()-t0));
             voxelCount =  grid.findCount(Grid.INSIDE);
-            printf("dilated grid volume: %d\n",voxelCount);
+            printf("dilated voxel count: %d\n",voxelCount);
+            if(true) new SVXWriter().write(grid, fmt("/tmp/dilatedGrid%d.svx",k));
             //assertTrue("dilation of single voxel", voxelCount == (6*k + 1));
-
         }
     }
 
@@ -372,9 +378,9 @@ public class TestDilationShapeMT extends TestCase {
 
     public static void main(String[] args) {
 
-        TestDilationShape ec = new TestDilationShape();
+        TestDilationShapeMT ec = new TestDilationShapeMT();
 
-        //ec.dilateCube();
+        ec.dilateSingleVoxelBall();
 
     }
 }

@@ -112,4 +112,37 @@ public class GridMask extends BaseAttributeGrid implements GridBit {
     public long getAttribute(int x,int y,int z){
         return get(x,y,z);
     }    
+
+    /**
+     * Get a new instance of voxel data.  Returns this grids specific sized voxel data.
+     *
+     * @override 
+     * @return The voxel data
+     */
+    public VoxelData getVoxelData() {
+        return new VoxelDataByte();
+    }
+
+    /**
+       @override 
+    */
+    public void getData(int x, int y, int z, VoxelData data){
+
+        long encoded = get(x,y,z);
+        long att = encoded;
+        byte state = (byte)encoded;
+        data.setData(state,att);
+    }
+
+    /**
+       @override 
+     */
+    public void setState(int x, int y, int z, byte state) {
+        set(x,y,z,state);
+    }
+    public byte getState(int x, int y, int z) {
+        return (byte)get(x,y,z);
+    }
+
+
 } // class GridMask

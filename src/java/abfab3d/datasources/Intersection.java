@@ -53,6 +53,16 @@ public class Intersection extends TransformableDataSource implements SNode {
         initParams();
     }
     
+    public Intersection(DataSource ds1, DataSource ds2, DataSource ds3){
+
+        initParams();
+
+        add(ds1);
+        add(ds2);        
+        add(ds3); 
+        
+    }
+
     public Intersection(DataSource ds1, DataSource ds2){
         initParams();
 

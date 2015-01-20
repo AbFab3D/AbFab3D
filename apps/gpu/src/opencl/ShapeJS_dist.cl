@@ -160,7 +160,7 @@ float torus(float vs, float3 center, float rout, float rin, float3 pnt) {
 float subtraction(float a, float b) {
 
 	float w = BlendWidth;// blending width 0.2mm       
-    return blendMin(a,-b,w);
+    return blendMax(a,-b,w);
 	
 }
 
