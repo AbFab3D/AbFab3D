@@ -283,7 +283,7 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
 */
 
         float3 n = normalize(grad);  //  use gradient for normal at the surface
-/*
+
         // matlab style lighting
         float3 ambient = (float3) (0.1,0.1,0.1);
         float4 light1a =  (float4)(10.f,0, 20.f,0);//float (float3)(-10,0,20);
@@ -292,8 +292,8 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
         float3 light2_color = (float3) (0,0.8f,0);
         float4 light3a = (float4)(0.f, 10.f, 20.f,0);//(float3)(0,-10,20);
         float3 light3_color = (float3) (0,0,0.8f);
-*/
 
+/*
         // tony lighting
         //float3 ambient = (float3) (0.1,0.1,0.1);
 //        float3 ambient = (float3) (0.1,0.1,0.1);
@@ -310,7 +310,7 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
         float3 light2_color = fill * light_color;
         float4 light3a = (float4)(-10.f, 9.0f, 10.f,0);  // rim light
         float3 light3_color = rim * light_color;
-
+*/
         // WSF params
 //        float3 mat_diffuse = (float3) 0.831;
         float3 mat_diffuse = (float3) 1;

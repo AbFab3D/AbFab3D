@@ -9,7 +9,7 @@ float getDensity(float3 pos){
    float x = pos.x*f;
    float y = pos.y*f;
    float z = pos.z*f;
-   d += 0.0003*(2-fabs(1-fabs((sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x)))));
+   //d += 0.0003*(2-fabs(1-fabs((sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x)))));
    d = step10_(d,0,0.0001);
    return d;
 }

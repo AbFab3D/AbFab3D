@@ -28,9 +28,11 @@ import static java.lang.Math.PI;
 public class OpenCLWriter {
     /** Each node has a unique id for future reference */
     private int nodeId;
+    private int transId;
 
     /** Map of each datasource to its nodeId */
     private HashMap<Parameterizable, Integer> idMap = new HashMap<Parameterizable, Integer>();
+    private HashMap<Parameterizable, Integer> transIdMap = new HashMap<Parameterizable, Integer>();
 
     /** Parameter excludes for special cases */
     private static final HashSet<String> boxExclude;
@@ -55,7 +57,9 @@ public class OpenCLWriter {
     }
 
     public OpenCLWriter() {
+
         nodeId = 0;
+        transId = 0;
     }
 
     /**
@@ -67,6 +71,7 @@ public class OpenCLWriter {
     public String generate(Parameterizable source, Vector3d scale) {
         nodeId = 0;
         idMap.clear();
+        transIdMap.clear();
 
         StringBuilder bldr = new StringBuilder();
 
@@ -78,7 +83,7 @@ public class OpenCLWriter {
         bldr.append(",");
         bldr.append(scale.z);
         bldr.append(");\n");
-        generate(source, true, bldr);
+        generate(source, "pos",bldr);
         //bldr.append("\treturn clamp(ds");
         bldr.append("\treturn ds");
         bldr.append(nodeId-1);
@@ -88,27 +93,7 @@ public class OpenCLWriter {
         return bldr.toString();
     }
 
-    private void generate(Parameterizable source, boolean terminal, StringBuilder bldr) {
-        SNode[] children = ((SNode)source).getChildren();
-
-        if (children != null) {
-            for(SNode child : children) {
-                generate((Parameterizable)child,true,bldr);
-            }
-        }
-
-        if (source instanceof DataSource) {
-            idMap.put(source, new Integer(nodeId));
-        }
-
-        // terminal add node details
-
-        // TODO: decide if we add a getName() field or int ID
-        String class_name = source.getClass().getSimpleName();
-
-        printf("Node: %s\n",class_name);
-
-        String pos = "pos";
+    private void generate(Parameterizable source, String pos, StringBuilder bldr) {
         Parameterizable trans = null;
 
         if (source instanceof VecTransform) {
@@ -116,66 +101,28 @@ public class OpenCLWriter {
         } else if (source instanceof TransformableDataSource) {
             trans = (Parameterizable)(((TransformableDataSource) source).getTransform());
         }
-        StringBuilder sb = new StringBuilder();   // scratch, setLength(0) before each use
 
         if (trans != null) {
-            String trans_name = trans.getClass().getSimpleName();
-            if (trans_name.equals("Translation")) {
-                sb.setLength(0);
-                addTransform(trans,terminal,sb,null);
-                if (terminal) sb.append(")");
-                pos = sb.toString();
-            } else if (trans_name.equals("Scale")) {
-                    sb.setLength(0);
-                    addTransform(trans,terminal,sb,null);
-                    if (terminal) sb.append(")");
-                    pos = sb.toString();
+            pos = generateTransform(trans,pos,bldr);
+        }
 
-                // TODO: not sure if we need scaleFactor
-            } else if (trans_name.equals("Rotation")) {
-                sb.setLength(0);
-                addTransform(trans, terminal,sb, rotationExclude);
 
-                AxisAngle4d rotation = (AxisAngle4d) trans.getParam("rotation").getValue();
+        SNode[] children = ((SNode)source).getChildren();
 
-                Matrix4d mat_inv = new Matrix4d();
-                mat_inv.setIdentity();
-                mat_inv.set(new AxisAngle4d(rotation.x, rotation.y, rotation.z, -rotation.angle));
-                sb.append(",");
-                addMatrix4d(mat_inv, sb);
-                if (terminal) sb.append(")");
-                pos = sb.toString();
-            } else if (trans_name.equals("CompositeTransform")) {
-                sb.setLength(0);
-
-                // TODO: unroll this
-                // enunciate list as method calls
-                List<SNode> transforms = ((SNodeListParameter) trans.getParam("transforms")).getValue();
-                int tlen = transforms.size();
-                for(int i=tlen - 1; i >= 0; i--) {
-                    SNode n = transforms.get(i);
-                    generate((Parameterizable) n, false, sb);
-                    if (i != 0) {
-                        sb.append(",");
-                    }
-                }
-
-                if (terminal) {
-                    sb.append(",pos)");
-                    for(int i=0; i < tlen-1; i++) {
-                        sb.append(")");
-                    }
-                }
-
-                //sb.append("pos)");
-                pos = sb.toString();
+        if (children != null) {
+            for(SNode child : children) {
+                generate((Parameterizable)child,pos,bldr);
             }
         }
 
-        if (!(source instanceof DataSource)) {
-            bldr.append(pos);
-            return;
-        }
+        idMap.put(source, new Integer(nodeId));
+
+        // terminal add node details
+
+        // TODO: decide if we add a getName() field or int ID
+        String class_name = source.getClass().getSimpleName();
+
+        printf("Node: %s\n",class_name);
 
         // TODO: change to map
         if (class_name.equals("Sphere")) {
@@ -366,7 +313,82 @@ public class OpenCLWriter {
         }
     }
 
-    private void addTransform(Parameterizable source, boolean terminal, StringBuilder bldr, Set<String> exclude) {
+    private String generateTransform(Parameterizable source, String parent, StringBuilder bldr) {
+        // TODO: decide if we add a getName() field or int ID
+        String class_name = source.getClass().getSimpleName();
+
+        printf("Transform: %s\n",class_name);
+
+        Parameterizable trans = null;
+
+        if (source instanceof VecTransform) {
+            trans = (Parameterizable) source;
+        } else if (source instanceof TransformableDataSource) {
+            trans = (Parameterizable)(((TransformableDataSource) source).getTransform());
+        }
+
+        if (trans == null) return parent;
+
+        SNode[] tchildren = ((SNode)trans).getChildren();
+
+        if (tchildren != null) {
+            String ret = parent;
+            int len = tchildren.length;
+            for (int i=len-1; i >= 0; i--) {
+                SNode child = tchildren[i];
+                String pos;
+
+                if (i == len -1) pos = parent;
+                else {
+                    pos = "trans" + (transId-1);
+                    transIdMap.put((Parameterizable)child,(transId));
+                }
+                ret = generateTransform((Parameterizable) child, pos, bldr);
+            }
+
+            return ret;
+        }
+
+        String ret = null;
+        String trans_name = trans.getClass().getSimpleName();
+        if (trans_name.equals("Translation")) {
+            ret = addTransform(trans, bldr, null);
+            bldr.append(",");
+            bldr.append(parent);
+            bldr.append(");\n");
+        } else if (trans_name.equals("Scale")) {
+            ret = addTransform(trans, bldr, null);
+            bldr.append(",");
+            bldr.append(parent);
+            bldr.append(");\n");
+            // TODO: not sure if we need scaleFactor
+        } else if (trans_name.equals("Rotation")) {
+            ret = addTransform(trans, bldr, rotationExclude);
+
+            AxisAngle4d rotation = (AxisAngle4d) trans.getParam("rotation").getValue();
+
+            Matrix4d mat_inv = new Matrix4d();
+            mat_inv.setIdentity();
+            mat_inv.set(new AxisAngle4d(rotation.x, rotation.y, rotation.z, -rotation.angle));
+            bldr.append(",");
+            addMatrix4d(mat_inv, bldr);
+            bldr.append(",");
+            bldr.append(parent);
+            bldr.append(");\n");
+        } else if (trans_name.equals("CompositeTransform")) {
+            ret = parent;
+        }
+
+        return ret;
+    }
+
+    private String addTransform(Parameterizable source, StringBuilder bldr, Set<String> exclude) {
+        String ret = "trans" + (transId);
+
+        bldr.append("\tfloat3 trans");
+        bldr.append(transId++);
+        bldr.append(" = ");
+
         bldr.append(source.getClass().getSimpleName().toLowerCase());
         bldr.append("(");
 
@@ -401,7 +423,9 @@ public class OpenCLWriter {
             first = false;
         }
 
-        if (terminal) bldr.append(",pos)");
+        //bldr.append(");");
+
+        return ret;
     }
 
     /**

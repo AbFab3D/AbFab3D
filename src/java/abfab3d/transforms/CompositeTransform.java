@@ -21,13 +21,10 @@ import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
 import abfab3d.param.Parameter;
+import abfab3d.param.Parameterizable;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
-import abfab3d.util.Vec;
-import abfab3d.util.Initializable;
-import abfab3d.util.Symmetry;
-import abfab3d.util.ReflectionGroup;
-import abfab3d.util.VecTransform;
+import abfab3d.util.*;
 
 import net.jafama.FastMath;
 
@@ -145,4 +142,16 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
         return RESULT_OK;
         
     }
+
+    @Override
+    public SNode[] getChildren() {
+        aTransforms = (VecTransform[])vTransforms.toArray(new VecTransform[vTransforms.size()]);
+
+        SNode[] ret = new SNode[aTransforms.length];
+        for(int i=0; i < aTransforms.length; i++) {
+            ret[i] = (SNode)aTransforms[i];
+        }
+        return ret;
+    }
+
 }  // class CompositeTransform

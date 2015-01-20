@@ -73,7 +73,8 @@ public class VolumeRenderer {
             //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
             ArrayList list = new ArrayList();
             //list.add(new File("Noise.cl"));
-            String ver = "_dist";
+//            String ver = "_dist";
+            String ver = "";
             list.add(new File("ShapeJS" + ver + ".cl"));
             list.addAll(progs);
             list.add(new File("VolumeRenderer" + ver + ".cl"));
