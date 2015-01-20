@@ -258,27 +258,17 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     public void getData(int x, int y, int z, VoxelData data){
 
         long encoded = get(x,y,z);
-        long att = ioFunc.getAttribute(encoded);
-        byte state = ioFunc.getState(encoded);
-
+        long att = encoded;
+        byte state = (byte)encoded;
         data.setData(state,att);
     }
 
     public byte getState(int x, int y, int z){
-        return ioFunc.getState(get(x,y,z));
+        return (byte)get(x,y,z);
     }
 
     public void setState(int x, int y, int z, byte state){
-
-        long curCode = get(x,y,z);
-
-        byte currState = ioFunc.getState(curCode);
-
-        if (state == currState) {
-            return;
-        }
-        long att = ioFunc.getAttribute(curCode);
-        ioFunc.combineStateAndAttribute(state,att);
+        set(x,y,z,(long)state);
     }
 
     public int findCount(VoxelClasses vc){
@@ -592,7 +582,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
     }
 
     public void setData(int x, int y, int z, byte state, long attribute){
-        set(x,y,z,ioFunc.combineStateAndAttribute(state,attribute));
+        set(x,y,z,state);
     }
 
     public void setAttribute(int x, int y, int z, long attribute){
