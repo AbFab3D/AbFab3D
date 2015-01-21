@@ -101,15 +101,25 @@ public class Bounds implements Cloneable {
         return v;
     }
 
-    public void toGridCoord(Grid grid, Vector3d pnt){
-
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
+    /**
+       conversion of world cordinates to grid coordinates 
+     */
+    public void toGridCoord(int nx, int ny, int nz, Vector3d pnt){
 
         pnt.x = nx*(pnt.x - xmin)/(xmax - xmin);
         pnt.y = ny*(pnt.y - ymin)/(ymax - ymin);
         pnt.z = nz*(pnt.z - zmin)/(zmax - zmin);
+        
+    }
+
+    /**
+       conversion of grid cordinates to world coordinates 
+     */
+    public void toWorldCoord(int nx, int ny, int nz, Vector3d pnt){
+
+        pnt.x = pnt.x*(xmax-xmin)/nx + xmin;
+        pnt.y = pnt.y*(ymax-ymin)/ny + ymin;
+        pnt.z = pnt.z*(zmax-zmin)/nz + zmin;
         
     }
 
