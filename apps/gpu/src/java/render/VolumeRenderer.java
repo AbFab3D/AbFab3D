@@ -24,6 +24,11 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
+
+    public static final String VERSION_DIST = "dist";
+    public static final String VERSION_OPCODE = "opcode";
+    public static final String VERSION_DENS = "dens";
+
     private float[] viewData = new float[16];
     private CLBuffer<FloatBuffer> viewBuffer;
     private int maxSteps = 512;
@@ -36,7 +41,7 @@ public class VolumeRenderer {
     private long compileTime;
     private long renderTime;
     private long kernelTIme;
-    private String renderVersion = "";
+    private String renderVersion = VERSION_DIST;
 
 
     // Prototype vars for opcode
@@ -61,10 +66,10 @@ public class VolumeRenderer {
      * @param opts  The build options
      * @param ver The version to load, empty for regular, "_dist" or "_opcode"
      */
-    public boolean init(List progs, List<Instruction> instructions, String opts, String ver) {
+    public boolean init(List progs, List<Instruction> instructions, String opts, String version) {
         String kernel_name;
 
-        renderVersion = ver;
+        renderVersion = version;
 
         long t0 = System.nanoTime();
         try {
@@ -92,20 +97,15 @@ public class VolumeRenderer {
 
             //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
             ArrayList list = new ArrayList();
-            //list.add(new File("Noise.cl"));
-            if (ver.equals("_dist")) {
-                list.add(new File("ShapeJS" + ver + ".cl"));
-            } else {
-                list.add(new File("ShapeJS.cl"));
-            }
+            list.add(new File("ShapeJS_" + renderVersion + ".cl"));
             list.addAll(progs);
-            list.add(new File("VolumeRenderer" + ver + ".cl"));
+            list.add(new File("VolumeRenderer_" + renderVersion + ".cl"));
             program = ProgramLoader.load(context, list);
             program.build(buildOpts);
 
             if (!program.isExecutable()) return false;
 
-            if (ver.equals("_opcode")) {
+            if (renderVersion.equals(VERSION_OPCODE)) {
                 float[] fparams;
                 int[] iparams;
                 float[] fvparams;

@@ -16,6 +16,7 @@ import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
 import render.Instruction;
+import render.VolumeRenderer;
 import shapejs.ShapeJSEvaluator;
 
 import javax.media.opengl.GLProfile;
@@ -46,7 +47,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
     private static int stereoMode = 0;
     private static int[] screenSize = null;   // null means not provided
 
-    private static String renderVersion = "_opcode";
+    private static String renderVersion = VolumeRenderer.VERSION_DIST;
 //    private static final String renderVersion = "";
 
     /** Should we use full screen mode */
@@ -76,7 +77,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                     "  -screenSize w h         Specify the screen size to use\n";
 
     public VolumeViewer() {
-        super("ShapeJS Volume Viewer ver: " + renderVersion);
+        super("ShapeJS Volume Viewer (" + renderVersion + ")");
 
         GLProfile.initSingleton();
 
@@ -232,10 +233,9 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         String code = null;
         List<Instruction> inst = null;
 
-        if (renderVersion.equals("_opcode")) {
+        if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE)) {
             OpenCLOpWriter writer = new OpenCLOpWriter();
             inst = writer.generate((Parameterizable) source, scale);
-
             if (DEBUG) {
                 String dcode = writer.createText(inst,scale);
                 printf("Debug Code: \n%s\n",dcode);

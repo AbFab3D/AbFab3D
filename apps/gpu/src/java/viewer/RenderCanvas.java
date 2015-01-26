@@ -66,7 +66,7 @@ public class RenderCanvas implements GLEventListener {
     private Matrix4f view = new Matrix4f();
     private CLBuffer<FloatBuffer> viewBuffer;
     private final GLCanvas canvas;
-    private String renderVersion = "";
+    private String renderVersion = VolumeRenderer.VERSION_DIST;
 
     private NumberFormat format = new DecimalFormat("####.#");
 
@@ -326,7 +326,7 @@ public class RenderCanvas implements GLEventListener {
         //w = 16;
         int h = height;
 
-        if (renderVersion.length() == 0 || renderVersion.equals("_dist")) {
+        if (!renderVersion.equals("opcode")) {
             renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
         } else {
             renderer.renderOps(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
