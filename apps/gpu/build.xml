@@ -172,6 +172,7 @@
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="viewer.VolumeViewer" fork="true">
             <jvmarg line="${jvmrunargs}"/>
+            <arg value="-version"/><arg value="_dist"/>
             <arg value="${script}"/>
             <classpath>
                 <pathelement path="${classes.dir}"/>

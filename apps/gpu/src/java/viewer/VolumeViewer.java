@@ -46,7 +46,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
     private static int stereoMode = 0;
     private static int[] screenSize = null;   // null means not provided
 
-    private static final String renderVersion = "_opcode";
+    private static String renderVersion = "_opcode";
 //    private static final String renderVersion = "";
 
     /** Should we use full screen mode */
@@ -574,6 +574,8 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                     String val = args[++i];
                     numCpus = Integer.valueOf(val).intValue();
                     lastUsed = i;
+                } else if (args[i].equals("-version")) {
+                    renderVersion = args[++i];
                 } else if (args[i].startsWith("-")) {
                     System.out.println("Unknown flag: " + args[i]);
                     lastUsed = i;
