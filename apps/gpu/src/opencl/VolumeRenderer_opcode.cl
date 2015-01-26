@@ -141,7 +141,6 @@ float readShapeJS(const global int * op, int len, const global float * fparams, 
    int m_idx = 0;
 
    float results[10];
-   float tresults[10];
 
    float fparam1;
    float fparam2;
@@ -200,20 +199,20 @@ float readShapeJS(const global int * op, int len, const global float * fparams, 
 	    case 6:   // intersection arr
 	        iparam1 = iparams[i_idx++];   // count
 
-	        for(int i=0; i < iparam1; i++) {
-	           tresults[i] = results[iparams[i_idx++]];
-	        }
-
-	        results[ridx++] = intersectionArr(tresults,iparam1);
+            results[ridx] = results[iparams[i_idx++]];
+	        for(int i=1; i < iparam1; i++) {
+	            results[ridx] = min(results[ridx],results[iparams[i_idx++]]);
+            }
+            ridx++;
 	        break;
 	    case 7:   // union arr
 	        iparam1 = iparams[i_idx++];   // count
 
-	        for(int i=0; i < iparam1; i++) {
-	           tresults[i] = results[iparams[i_idx++]];
-	        }
-
-	        results[ridx++] = unionArr(tresults,iparam1);
+            results[ridx] = results[iparams[i_idx++]];
+	        for(int i=1; i < iparam1; i++) {
+	            results[ridx] = max(results[ridx],results[iparams[i_idx++]]);
+            }
+            ridx++;
 	        break;
 	    case 8:
             fvparam1 = fvparams[fv_idx++];
