@@ -42,6 +42,8 @@ public class OpenCLOpWriter {
 
     private List<Instruction> instructions;
     private Vector3d worldScale;
+    // Maximum number of datasource results
+    private int maxResults;
 
     private NumberFormat format = new DecimalFormat("####.######");
     static {
@@ -88,6 +90,7 @@ public class OpenCLOpWriter {
         nodeId = 0;
         transId = 0;
 
+        maxResults = 1;
         instructions = new ArrayList<Instruction>();
     }
 
@@ -304,6 +307,7 @@ public class OpenCLOpWriter {
 
         //printf("Node: %s\n",class_name);
 
+        maxResults++;
         // TODO: change to map
         if (class_name.equals("Sphere")) {
             Instruction inst = new Instruction();
@@ -394,7 +398,7 @@ public class OpenCLOpWriter {
 
             } else {
                 inst.setOpCode(getOpCode("intersectionArr"));
-                addCallParam(ParameterType.INTEGER,nchilds.length,inst);
+                addCallParam(ParameterType.INTEGER, nchilds.length, inst);
                 for(int i=0; i < nchilds.length; i++) {
                     addCallParam(ParameterType.INTEGER,idMap.get((DataSource) nchilds[i]),inst);
                 }
@@ -415,7 +419,12 @@ public class OpenCLOpWriter {
                 instructions.add(inst);
 
             } else {
-                throw new IllegalArgumentException("Unhandled");
+                inst.setOpCode(getOpCode("unionArr"));
+                addCallParam(ParameterType.INTEGER, nchilds.length, inst);
+                for(int i=0; i < nchilds.length; i++) {
+                    addCallParam(ParameterType.INTEGER,idMap.get((DataSource) nchilds[i]),inst);
+                }
+                instructions.add(inst);
             }
         } else if (class_name.equals("Subtraction")) {
             Instruction inst = new Instruction();
