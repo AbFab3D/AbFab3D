@@ -14,6 +14,9 @@ public class GPUUtil {
      * @return
      */
     public static int roundUp(int groupSize, int globalSize) {
+
+        if (groupSize == 0) return globalSize;
+
         int r = globalSize % groupSize;
         if (r == 0) {
             return globalSize;
