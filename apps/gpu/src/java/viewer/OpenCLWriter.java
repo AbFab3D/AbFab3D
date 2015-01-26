@@ -40,7 +40,7 @@ public class OpenCLWriter {
     private static final HashSet<String> gyroidExclude;
     private static final HashSet<String> rotationExclude;
 
-    private NumberFormat format = new DecimalFormat("####.######");
+    private NumberFormat format = new DecimalFormat("####.0####");
     static {
         boxExclude = new HashSet<String>();
         boxExclude.add("size");
@@ -122,7 +122,7 @@ public class OpenCLWriter {
         // TODO: decide if we add a getName() field or int ID
         String class_name = source.getClass().getSimpleName();
 
-        printf("Node: %s\n",class_name);
+        //printf("Node: %s\n",class_name);
 
         // TODO: change to map
         if (class_name.equals("Sphere")) {
@@ -165,18 +165,19 @@ public class OpenCLWriter {
 
 
             //float box(float vs, float xmin, float xmax, float ymin, float ymax, float zmin, float zmax) {
-            bldr.append(xmin);
-            bldr.append(",");
-            bldr.append(xmax);
-            bldr.append(",");
-            bldr.append(ymin);
-            bldr.append(",");
-            bldr.append(ymax);
-            bldr.append(",");
-            bldr.append(zmin);
-            bldr.append(",");
-            bldr.append(zmax);
-            bldr.append(",");
+            bldr.append("(float3)(");
+            bldr.append(format.format(xmin));
+            bldr.append("f,");
+            bldr.append(format.format(ymin));
+            bldr.append("f,");
+            bldr.append(format.format(zmin));
+            bldr.append("f),(float3)(");
+            bldr.append(format.format(xmax));
+            bldr.append("f,");
+            bldr.append(format.format(ymax));
+            bldr.append("f,");
+            bldr.append(format.format(zmax));
+            bldr.append("f),");
             bldr.append(pos);
             bldr.append(")");
             //bldr.append(",0.0,1.0)");
@@ -317,7 +318,7 @@ public class OpenCLWriter {
         // TODO: decide if we add a getName() field or int ID
         String class_name = source.getClass().getSimpleName();
 
-        printf("Transform: %s\n",class_name);
+        //printf("Transform: %s\n",class_name);
 
         Parameterizable trans = null;
 

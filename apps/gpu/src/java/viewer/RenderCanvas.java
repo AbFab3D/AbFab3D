@@ -6,6 +6,7 @@ import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import com.jogamp.opencl.gl.CLGLContext;
 import com.jogamp.opengl.util.Animator;
+import render.Instruction;
 import render.VolumeRenderer;
 
 import javax.media.opengl.*;
@@ -15,8 +16,10 @@ import javax.vecmath.Matrix4f;
 
 import java.awt.*;
 import java.nio.FloatBuffer;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.List;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
@@ -30,7 +33,7 @@ import static com.jogamp.opencl.CLMemory.Mem.*;
  * @author Alan Hudson
  */
 public class RenderCanvas implements GLEventListener {
-    private boolean debug = false;
+    private boolean debug = false;  // forces CPU for printf
 
     private int width;
     private int height;
@@ -53,14 +56,19 @@ public class RenderCanvas implements GLEventListener {
     private transient boolean rendering;
     private SNode scene;
     private String sceneProg;
+    private List<Instruction> instructions;
     private boolean sceneLoaded = false;
     private boolean graphicsInitialized = false;
     private float worldScale=1;
+    private boolean firstRender = true;
 
     // Scratch vars
     private Matrix4f view = new Matrix4f();
     private CLBuffer<FloatBuffer> viewBuffer;
     private final GLCanvas canvas;
+    private String renderVersion = "";
+
+    private NumberFormat format = new DecimalFormat("####.#");
 
     public RenderCanvas(Navigator nav) {
         this.nav = nav;
@@ -71,6 +79,10 @@ public class RenderCanvas implements GLEventListener {
         canvas = new GLCanvas(config);
         canvas.addGLEventListener(this);
         nav.init(canvas);
+    }
+
+    public void setRenderVersion(String st) {
+        renderVersion = st;
     }
 
     public void setStatusBar(StatusBar status) {
@@ -127,9 +139,9 @@ public class RenderCanvas implements GLEventListener {
         });
     }
 
-    public void setScene(String scene, float worldScale) {
+    public void setScene(String scene, List<Instruction> instructions, float worldScale) {
         this.worldScale = worldScale;
-
+        this.instructions = instructions;
         // Wait for the graphics to initialize
         while(!graphicsInitialized) {
             try { Thread.sleep(50); } catch(InterruptedException ie) {}
@@ -229,14 +241,20 @@ public class RenderCanvas implements GLEventListener {
     }
 
     private void buildProgram(boolean debug) {
-        if (sceneProg == null) return;
+        if (sceneProg == null && instructions == null) return;
 
         String opts = "";
         if (debug) opts = " -DDEBUG";
         ArrayList progs = new ArrayList();
-        progs.add(sceneProg);
+        if (sceneProg != null) progs.add(sceneProg);
         compiling = true;
-        if (!renderer.init(progs, opts)) {
+
+        printf("Building using programs: renderVersion: %s\n",renderVersion);
+        for(int i=0; i < progs.size(); i++) {
+            printf("\t%s\n",progs.get(i));
+        }
+
+        if (!renderer.init(progs, instructions, opts, renderVersion)) {
             CLProgram program = renderer.getProgram();
             statusBar.setStatusText("Program failed to load: " + program.getBuildStatus());
             System.out.println(program.getBuildStatus());
@@ -244,7 +262,14 @@ public class RenderCanvas implements GLEventListener {
             return;
         }
 
-        statusBar.setStatusText("Done loading program.  compile time: " + (renderer.getLastCompileTime()) / 1e6 + " ms");
+        if (debug) {
+            CLProgram program = renderer.getProgram();
+            System.out.println(program.getBuildStatus());
+            System.out.println(program.getBuildLog());
+        }
+
+
+        statusBar.setStatusText("Done loading program.  compile time: " + format.format((renderer.getLastCompileTime()) / 1e6) + " ms");
         compiling = false;
 
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -272,10 +297,23 @@ public class RenderCanvas implements GLEventListener {
 
     @Override
     public void display(GLAutoDrawable drawable) {
-        if (!sceneLoaded || compiling || rendering || (!nav.hasChanged() && !windowChanged)) return;
+
+        if (!sceneLoaded || compiling || rendering) {
+            return;
+        }
+        boolean navChanged = nav.hasChanged();
+
+        if (!navChanged && !windowChanged) {
+            if (firstRender)
+                printf("scene: %b  compile: %b rendering: %b nav: %b wc: %b\n", sceneLoaded, compiling, rendering, navChanged,windowChanged);
+            return;
+        } else {
+            //printf("Rendering: wc: %b\n",windowChanged);
+        }
 
         rendering = true;
         windowChanged = false;
+        firstRender = false;
 
         GL2 gl = drawable.getGL().getGL2();
 
@@ -283,8 +321,16 @@ public class RenderCanvas implements GLEventListener {
         gl.glFinish();
 
         nav.getViewMatrix(view);
-        renderer.render(view, width, height, viewBuffer,commandQueue,clPixelBuffer);
 
+        int w = width;
+        //w = 16;
+        int h = height;
+
+        if (renderVersion.length() == 0 || renderVersion.equals("_dist")) {
+            renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
+        } else {
+            renderer.renderOps(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
+        }
         // Render image using OpenGL
 
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
@@ -313,19 +359,13 @@ public class RenderCanvas implements GLEventListener {
         this.width = width;
         this.height = height;
 
+
         windowChanged = true;
 
         GL2 gl = drawable.getGL().getGL2();
         initPixelBuffer(gl,width,height);
 
         graphicsInitialized = true;
-    }
-
-    private static void fillBuffer(FloatBuffer buffer, int seed) {
-        Random rnd = new Random(seed);
-        while(buffer.remaining() != 0)
-            buffer.put(rnd.nextFloat()*100);
-        buffer.rewind();
     }
 
     public long getLastRenderTime() {
