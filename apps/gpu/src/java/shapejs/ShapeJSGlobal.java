@@ -499,7 +499,7 @@ public class ShapeJSGlobal {
             } else {
                 st = args[i].toString();
             }
-            System.out.println("arg: " + i + " val: " + st);
+            //System.out.println("arg: " + i + " val: " + st);
         }
         if (args.length == 1) {
             if (args[0] instanceof AttributeGrid) {
@@ -567,7 +567,7 @@ public class ShapeJSGlobal {
 
         AttributeGrid dest = makeEmptyGrid(gs, vs);
 
-        System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs);
+        //System.out.println("Creating grid: " + java.util.Arrays.toString(gs) + java.util.Arrays.toString(grid_bounds) + " vs: " + vs);
         dest.setGridBounds(grid_bounds);
 
         return cx.getWrapFactory().wrapAsJavaObject(cx, funObj.getParentScope(), dest, null);
@@ -633,7 +633,7 @@ public class ShapeJSGlobal {
 
         long voxels = ((long) (gs[0])) * gs[1] * gs[2];
 
-        printf("Creating grid: %d %d %d\n", gs[0], gs[1], gs[2], voxels);
+        //printf("Creating grid: %d %d %d\n", gs[0], gs[1], gs[2], voxels);
         dest = new FakeGrid(gs[0], gs[1], gs[2], vs, vs);
 
         return dest;

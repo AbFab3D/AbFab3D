@@ -58,7 +58,35 @@ float gyroid(float vs, float level, float thickness, float3 offset, float factor
 
     float d = fabs((sin(pnt.x) * cos(pnt.y) + sin(pnt.y) * cos(pnt.z) + sin(pnt.z) * cos(pnt.x) - level) / factor) - (thickness);
 
-    return step10(d,0,vs);
+    float ret = step10(d,0,vs);
+/*
+#ifdef DEBUG
+//if (((fabs(pnt.x - 245.68)) < 1.40) && ((fabs(pnt.y - 101.89)) < 1.43)  && ((fabs(pnt.z - 243)) < 10.0)) {
+if (ret > 0.0f && ret < 1.0f) {
+        printf("pos: %v3f level: %f thick: %f  factor: %f d: %f ret: %f\n",pnt,level,thickness,factor,d,ret);
+}
+//}
+#endif
+*/
+    return ret;
+}
+
+float gyroidDebug(float vs, float level, float thickness, float3 offset, float factor, float3 pnt) {
+#ifdef DEBUG
+        printf("gyroidDebug pos: %v3f\n",pnt);
+#endif
+
+    pnt = pnt - offset;
+    pnt = pnt * factor;
+
+    float d = fabs((sin(pnt.x) * cos(pnt.y) + sin(pnt.y) * cos(pnt.z) + sin(pnt.z) * cos(pnt.x) - level) / factor) - (thickness);
+
+    float ret = step10(d,0,vs);
+#ifdef DEBUG
+printf("pos: %v3f level: %f thick: %f  factor: %f d: %f ret: %f\n",pnt,level,thickness,factor,d,ret);
+#endif
+
+    return ret;
 }
 
 float sphere(float vs, float3 center,float radius, bool sign, float3 pnt) {
@@ -75,18 +103,18 @@ float sphere(float vs, float3 center,float radius, bool sign, float3 pnt) {
     }
 }
 
-float box(float vs, float xmin, float xmax, float ymin, float ymax, float zmin, float zmax, float3 pnt) {
-    if (pnt.x <= xmin - vs || pnt.x >= xmax + vs ||
-        pnt.y <= ymin - vs || pnt.y >= ymax + vs ||
-        pnt.z <= zmin - vs || pnt.z >= zmax + vs) {
+float box(float vs, float3 minv, float3 maxv, float3 pnt) {
+    if (pnt.x <= minv.x - vs || pnt.x >= maxv.x + vs ||
+        pnt.y <= minv.y - vs || pnt.y >= maxv.y + vs ||
+        pnt.z <= minv.z - vs || pnt.z >= maxv.z + vs) {
 
         return 0;
     }
     float finalValue = 1;
 
-    finalValue = min(finalValue, intervalCap(pnt.x, xmin, xmax, vs));
-    finalValue = min(finalValue, intervalCap(pnt.y, ymin, ymax, vs));
-    finalValue = min(finalValue, intervalCap(pnt.z, zmin, zmax, vs));
+    finalValue = min(finalValue, intervalCap(pnt.x, minv.x, maxv.x,vs));
+    finalValue = min(finalValue, intervalCap(pnt.y, minv.y, maxv.y,vs));
+    finalValue = min(finalValue, intervalCap(pnt.z, minv.z, maxv.z,vs));
 
     return finalValue;
 }
@@ -120,10 +148,17 @@ float intersectionOp(float a, float b) {
 float intersectionArr(float * src, int len) {
     float ret = src[0];
 
-#pragma unroll
+#ifdef DEBUG
+printf("len: %d\n",len);
+#endif
+
     for(int i=1; i < len; i++) {
        ret = min(ret,src[i]);
     }
+
+#ifdef DEBUG
+printf("done\n");
+#endif
 
     return ret;
 }
@@ -136,7 +171,6 @@ float unionOp(float a, float b) {
 float unionArr(float * src, int len) {
     float ret = src[0];
 
-#pragma unroll
     for(int i=1; i < len; i++) {
        ret = max(ret,src[i]);
     }
