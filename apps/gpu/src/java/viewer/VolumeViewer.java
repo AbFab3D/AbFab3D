@@ -150,7 +150,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         system_runtime.addShutdownHook(new Thread(this));
 
         nav = new ExamineNavigator();
-        render = new RenderCanvas(nav);
+        render = new SingleDeviceRenderCanvas(nav);
         render.setRenderVersion(renderVersion);
 
         createUI();
