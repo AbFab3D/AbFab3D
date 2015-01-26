@@ -289,8 +289,9 @@ float readShapeJSDebug(const global int * op, int len, const global float * fpar
 	        fparam2 = fparams[f_idx++];
 	        fvparam1 = fvparams[fv_idx++];
 	        fparam3 = fparams[f_idx++];
-
-printf("Pos into gyoid: %v3f\n",pos);
+#ifdef DEBUG 
+		printf("Pos into gyoid: %v3f\n",pos);
+#endif 
 	        results[ridx++] = gyroidDebug(vs,fparam1,fparam2,fvparam1,fparam3,pos);
 	        break;
 	    case 3:
@@ -313,8 +314,9 @@ printf("Pos into gyoid: %v3f\n",pos);
 	    case 1000:  // scale
 	        fvparam1 = fvparams[fv_idx++];
 	        pos *= fvparam1;
-
+#ifdef DEBUG
 	        printf("Scaling pos to: %v3f\n",pos);
+#endif 
 	        break;
       }
    }
