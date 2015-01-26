@@ -105,7 +105,7 @@ public class ShapeJSEvaluator {
             script = addImports(script);
             script = replaceMakeGrid(script);
 
-            printf("Final script:\n%s\n",script);
+            //printf("Final script:\n%s\n",script);
             Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
 
             Object o = scope.get("main", scope);
@@ -114,8 +114,6 @@ public class ShapeJSEvaluator {
                 System.out.println("Cannot find function main");
             }
             Function main = (Function) o;
-
-            System.out.println("Main is: " + main.getClass());
 
             Object[] args = new Object[0];
             Object result2 = main.call(cx, scope, scope, new Object[] {args});
@@ -133,7 +131,7 @@ public class ShapeJSEvaluator {
                     return source;
                 }
             }
-            System.err.println("Result:" + result2.getClass().getName());
+
         } catch(IOException ioe) {
             ioe.printStackTrace();
         } finally {

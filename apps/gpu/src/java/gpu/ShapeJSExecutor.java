@@ -191,7 +191,7 @@ public class ShapeJSExecutor {
 
         if (is == null) {
             String path = "classes" + File.separator + filename;
-            printf("Loading openCL Script: %s\n", path);
+            //printf("Loading openCL Script: %s\n", path);
             try {
                 FileInputStream fis = new FileInputStream(path);
 

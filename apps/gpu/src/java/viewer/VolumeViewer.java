@@ -15,6 +15,7 @@ import abfab3d.grid.Bounds;
 import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
+import render.Instruction;
 import shapejs.ShapeJSEvaluator;
 
 import javax.media.opengl.GLProfile;
@@ -23,6 +24,7 @@ import javax.vecmath.Vector3d;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Iterator;
 
 import static abfab3d.util.Output.printf;
@@ -34,6 +36,8 @@ import static java.awt.AWTEvent.WINDOW_EVENT_MASK;
  * @author Alan Hudson
  */
 public class VolumeViewer extends JFrame implements FileHandler, Runnable {
+    private static final boolean DEBUG = true;
+
     // Command line arguments
     private static int fullscreen = -1;
     private static boolean stereo = false;
@@ -41,6 +45,9 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
     private static int numCpus = 0;
     private static int stereoMode = 0;
     private static int[] screenSize = null;   // null means not provided
+
+    private static final String renderVersion = "_opcode";
+//    private static final String renderVersion = "";
 
     /** Should we use full screen mode */
     private boolean useFullscreen;
@@ -69,7 +76,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                     "  -screenSize w h         Specify the screen size to use\n";
 
     public VolumeViewer() {
-        super("ShapeJS Volume Viewer");
+        super("ShapeJS Volume Viewer ver: " + renderVersion);
 
         GLProfile.initSingleton();
 
@@ -77,9 +84,11 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         int we = 16;
         int he = 62 + 16;
 
-        int size = 512;
-        int width = size + we;
-        int height = size + he;
+        int wsize = 512;
+        int hsize = 512;
+
+        int width = wsize + we;
+        int height = hsize + he;
 
         if (screenSize != null) {
             width = screenSize[0] + we;
@@ -141,6 +150,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         nav = new ExamineNavigator();
         render = new RenderCanvas(nav);
+        render.setRenderVersion(renderVersion);
 
         createUI();
 
@@ -154,7 +164,6 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         if (!useFullscreen && screenSize == null) {
             setLocation(40, 40);
         }
-
     }
 
 
@@ -213,16 +222,32 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         Bounds bounds = new Bounds();
         DataSource source = eval.runScript(url,bounds);
 
-        OpenCLWriter writer = new OpenCLWriter();
         Vector3d scale = new Vector3d(1,1,1);
         double vs = 0.1 * Units.MM;
+
+        // TODO: Hardcoding scale, remove!
         scale = new Vector3d((bounds.xmax-bounds.xmin)/2.0,(bounds.ymax-bounds.ymin)/2.0,(bounds.zmax-bounds.zmin)/2.0);
         printf("Scale is: %s\n",scale);
-        String code = writer.generate((Parameterizable)source, scale);
 
+        String code = null;
+        List<Instruction> inst = null;
+
+        if (renderVersion.equals("_opcode")) {
+            OpenCLOpWriter writer = new OpenCLOpWriter();
+            inst = writer.generate((Parameterizable) source, scale);
+
+            if (DEBUG) {
+                String dcode = writer.createText(inst,scale);
+                printf("Debug Code: \n%s\n",dcode);
+            }
+        } else {
+            OpenCLWriter writer = new OpenCLWriter();
+            code = writer.generate((Parameterizable) source, scale);
+            printf("OpenCL Code: \n%s",code);
+        }
         float worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
         // TODO: is this the best way to get one scale?
-        render.setScene(code,worldScale);
+        render.setScene(code,inst,worldScale);
         // TODO: Set the current bounds
         nav.setBounds(bounds,vs);
     }
@@ -257,7 +282,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         // View Menu
         JMenu viewMenu = new JMenu("View");
-        menuBar.add(viewMenu);
+        //menuBar.add(viewMenu);
 
         // Render Style SubMenu
         JMenu renderStyle = new JMenu("Render Style");
@@ -281,7 +306,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         renderStyle.add(rbItem);
         rbItem.setSelected(true);
         */
-        viewMenu.add(renderStyle);
+        //viewMenu.add(renderStyle);
         /*
         RenderStyle[] linkedStyles = new RenderStyle[1];
         linkedStyles[0] = psa;
@@ -351,7 +376,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         */
         // Viewpoint Menu
         JMenu viewpointMenu = new JMenu("Viewpoint");
-        menuBar.add(viewpointMenu);
+        //menuBar.add(viewpointMenu);
         /*
         viewpointMenu.add(new JMenuItem(viewpointToolbar.getNextViewpointAction()));
         actionList.add(viewpointToolbar.getNextViewpointAction());
@@ -361,7 +386,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         actionList.add(viewpointToolbar.getHomeViewpointAction());
         */
         JMenu navMenu = new JMenu("Navigation");
-        menuBar.add(navMenu);
+        //menuBar.add(navMenu);
         /*
         navMenu.add(new JMenuItem(nav_tb.getFlyAction()));
         actionList.add(nav_tb.getFlyAction());

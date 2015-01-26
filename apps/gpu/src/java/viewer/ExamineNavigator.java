@@ -28,6 +28,8 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class ExamineNavigator implements Navigator {
+    private static final int MAX_SKIP = 200;
+
     private static final float[] DEFAULT_TRANS = new float[] {0,0,-4};
     private static final float[] DEFAULT_ROT = new float[] {0,0,0,0};
     private float z = DEFAULT_TRANS[2];
@@ -44,6 +46,7 @@ public class ExamineNavigator implements Navigator {
     private Matrix4f rxmat = new Matrix4f();
     private Matrix4f rymat = new Matrix4f();
 
+    private int skippedCount = 0;
     public void init(Component component) {
         initMouseListeners(component);
     }
@@ -140,6 +143,16 @@ public class ExamineNavigator implements Navigator {
     public boolean hasChanged() {
         boolean ret_val = hasChanged;
 
+        if (!hasChanged) {
+            skippedCount++;
+            if (skippedCount > MAX_SKIP) {
+                hasChanged = false;
+                skippedCount = 0;
+                return true;
+            }
+        } else {
+            skippedCount = 0;
+        }
         hasChanged = false;
 
         return ret_val;

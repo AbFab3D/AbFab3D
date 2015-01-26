@@ -74,7 +74,7 @@ public class ProgramLoader {
             bldr.append("\n");
         }
 
-        printf("Final OpenCL: \n%s\n",bldr.toString());
+        //printf("Final OpenCL: \n%s\n",bldr.toString());
         return context.createProgram(bldr.toString());
     }
 
@@ -83,7 +83,7 @@ public class ProgramLoader {
 
         if (is == null) {
             String path = "classes" + File.separator + filename;
-            printf("Loading openCL Script: %s\n", path);
+            //printf("Loading openCL Script: %s\n", path);
             try {
                 FileInputStream fis = new FileInputStream(path);
 
@@ -92,7 +92,7 @@ public class ProgramLoader {
                 ioe.printStackTrace();
             }
         } else {
-            printf("Loading openCL Script: %s\n", filename);
+            //printf("Loading openCL Script: %s\n", filename);
         }
 
         return is;
