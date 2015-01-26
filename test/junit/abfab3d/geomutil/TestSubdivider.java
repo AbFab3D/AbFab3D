@@ -24,6 +24,7 @@ import junit.framework.TestSuite;
 
 
 // Internal Imports
+import abfab3d.util.PointSetArray;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Units.MM;
@@ -143,6 +144,26 @@ public class TestSubdivider extends TestCase {
 
     }
 
+    public static void makePolyquad4() {
+
+	double EPS = 0.1;
+
+        PointSetArray points = new PointSetArray();
+        points.addPoint(0,0,0);
+        points.addPoint(1,0,0);
+        points.addPoint(1,1,0);
+        points.addPoint(1,1,0);
+
+        points = Subdivider.makeCurve(points, 0.1);
+
+        Vector3d p = new Vector3d();
+        for(int i = 0; i < points.size(); i++){            
+            points.getPoint(i,p);
+            printf("%6.3f %6.3f %6.3f\n",p.x,p.y,p.z);
+        }       
+    }
+
+
     public static void makePolycubic() {
 
 	double EPS = 0.01;
@@ -167,7 +188,8 @@ public class TestSubdivider extends TestCase {
         //makePolyline1();
         //makePolyquad();
         //makePolyquad2();
-        makePolyquad3();
+        //makePolyquad3();
+        makePolyquad4();
         //makePolycubic();
 
     }

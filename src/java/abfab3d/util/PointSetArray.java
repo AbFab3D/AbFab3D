@@ -107,10 +107,13 @@ public class PointSetArray implements TriangleProducer, PointSet  {
         m_size++;
     }
 
-    public final void addPoints(Vector<Tuple3d> pnts){
+    /**
+       @param pnts Vector of points (subclasses of Tuple3d) 
+     */
+    public final void addPoints(Vector pnts){
 
         for(int k = 0; k < pnts.size(); k++){
-            Tuple3d p = pnts.get(k);
+            Tuple3d p = (Tuple3d)pnts.get(k);
             addPoint(p.x,p.y,p.z);
         }
     }

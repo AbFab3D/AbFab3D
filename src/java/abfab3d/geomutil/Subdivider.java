@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2014,2015
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -15,7 +15,10 @@ package abfab3d.geomutil;
 import java.util.Vector;
 
 import javax.vecmath.Vector3d;
+import javax.vecmath.Tuple3d;
 import javax.vecmath.Vector2d;
+
+import abfab3d.util.PointSetArray;
 
 /**
    routines used to subdivide various lines and curves 
@@ -36,7 +39,21 @@ public class Subdivider {
 
     }
 
-
+    public static PointSetArray makeCurve(PointSetArray points, double maxlength){
+        int size = points.size();
+        Vector<Vector3d> pnts = new Vector<Vector3d>(size);
+        for(int i = 0; i < size; i++){
+            Vector3d pnt = new Vector3d();
+            points.getPoint(i, pnt);
+            pnts.add(pnt);
+        }
+        Vector<Vector3d> qpnts = makeQuadricCurve(pnts, false);
+        Vector<Vector3d> spnts = subdividePolyquad(qpnts, maxlength);
+        int ssize = spnts.size();
+        PointSetArray opnts = new PointSetArray(ssize);
+        opnts.addPoints(spnts);
+        return opnts;
+    }        
 
     public static <T> Vector<T> makeQuadricCurve(Vector<T> polyline, boolean closed){
 
@@ -56,18 +73,31 @@ public class Subdivider {
         
         Vector<T> points = new Vector<T>();
         int count = polyline.size();
-    
-        for(int i = 0; i < count; i++){
-            
-            T p1 = polyline.get(i);           
-            T p2 = polyline.get((i+1)%count);  // closed line 
-            T p12 = interpolator.midpoint(p1,p2);
-            
-            points.add(p12);
-            points.add(p2);
-        }  
-        // add last point
-        points.add(points.get(0));
+        if(closed) {
+            // closed curve 
+            for(int i = 0; i < count; i++){
+                
+                T p1 = polyline.get(i);           
+                T p2 = polyline.get((i+1)%count);  // closed line 
+                T p12 = interpolator.midpoint(p1,p2);
+                
+                points.add(p12);
+                points.add(p2);
+            }  
+            // add last point
+            points.add(points.get(0));
+        } else {
+            // open curve 
+            for(int i = 0; i < count-1; i++){
+                
+                T p1 = polyline.get(i);           
+                T p2 = polyline.get(i+1);
+                T p12 = interpolator.midpoint(p1,p2);                
+                points.add(p12);
+                points.add(p2);
+            }  
+        }
+
         return points;
         
     }
