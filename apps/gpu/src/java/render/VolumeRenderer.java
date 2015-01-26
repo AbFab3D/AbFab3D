@@ -73,6 +73,8 @@ public class VolumeRenderer {
             double vs = 0.1 * Units.MM;
             printf("Voxel Size: %f\n",vs);
             printf("MaxSteps: %d\n",maxSteps);
+            buildOpts += " -cl-fast-relaxed-math";
+            buildOpts += " -cl-no-signed-zeros";
             buildOpts += " -DmaxSteps=" + maxSteps;
             buildOpts += " -DvoxelSize=" + vs;
             buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;

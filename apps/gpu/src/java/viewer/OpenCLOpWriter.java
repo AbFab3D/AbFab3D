@@ -122,6 +122,7 @@ public class OpenCLOpWriter {
      * @return
      */
     public String createText(List<Instruction> list, Vector3d scale) {
+        printf("Creating text.  maxResults: %d\n",maxResults);
         StringBuilder bldr = new StringBuilder();
 
         bldr.append("float readShapeJS(float3 pos) {\n");

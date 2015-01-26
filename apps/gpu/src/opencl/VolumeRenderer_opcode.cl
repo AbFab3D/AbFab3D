@@ -157,9 +157,7 @@ float readShapeJS(const global int * op, int len, const global float * fparams, 
 
    int ridx = 0;
    for(int i=0; i < len; i++) {
-      int opCode = op[i];
-
-      switch(opCode) {
+      switch(op[i]) {
 	    case 0:
 	        fvparam1 = fvparams[fv_idx++];
 	        fparam1 = fparams[f_idx++];
@@ -172,10 +170,10 @@ float readShapeJS(const global int * op, int len, const global float * fparams, 
 	        results[ridx++] = box(voxelSize,fvparam1,fvparam2,pos);
 	        break;
 	    case 2:
-	        fparam1 = fparams[f_idx++];
-	        fparam2 = fparams[f_idx++];
-	        fvparam1 = fvparams[fv_idx++];
-	        fparam3 = fparams[f_idx++];
+	        fparam1 = fparams[f_idx++]; // level
+	        fparam2 = fparams[f_idx++]; // thickness
+	        fvparam1 = fvparams[fv_idx++]; // offset
+	        fparam3 = fparams[f_idx++];    // factor
 
 	        results[ridx++] = gyroid(voxelSize,fparam1,fparam2,fvparam1,fparam3,pos);
 	        break;
