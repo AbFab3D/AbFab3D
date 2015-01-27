@@ -95,6 +95,13 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
+        <compilejava package="prototype" jars="" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
     </target>
 
     <target name="kernels" >
@@ -174,6 +181,21 @@
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-version"/><arg value="dist"/>
             <arg value="${script}"/>
+            <classpath>
+                <pathelement path="${classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" />
+            </classpath>
+        </java>
+    </target>
+
+    <target name="runProto" depends="compile" description="Run the viewer">
+        <echo message="jvmargs: ${jvmrunargs}"/>
+        <java classname="prototype.Prototype" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
