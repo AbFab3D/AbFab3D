@@ -7,6 +7,7 @@ import program.ProgramLoader;
 import javax.media.opengl.GLContext;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 import static abfab3d.util.Output.printf;
@@ -41,6 +42,8 @@ public class Prototype {
         
     }
 
+    
+
     static void testAddOpenCL(int elementCount) throws Exception{
 
         // set up (uses default CLPlatform and creates context for all devices)
@@ -49,7 +52,18 @@ public class Prototype {
         // always make sure to release the context under all circumstances
         // not needed for this particular sample but recommented
         //CLDevice device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice(CLDeviceFilters.queueMode(CLCommandQueue.Mode.OUT_OF_ORDER_MODE));
+        CLPlatform platforms[] = CLPlatform.listCLPlatforms();
+        for(int i =0; i < platforms.length; i++){
+            out.printf("platform[%d]: %s\n", i, platforms[i]);
+            CLDevice devices[] = platforms[i].listCLDevices();
+            for(int k = 0; k < devices.length;k++){
+                out.printf("  device[%d]: %s\n", k, devices[k]);                
+            }
+        }
+
         CLDevice device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+        //CLDevice device = platforms[0].listCLDevices()[0];
+        
         
         CLContext context = CLContext.create(device);
 
@@ -65,8 +79,7 @@ public class Prototype {
             // create command queue on device.
             CLCommandQueue queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
 
-            //int elementCount = (int) 2e7;                                  // Length of arrays to process
-            int localWorkSize = 0;//min(device.getMaxWorkGroupSize(), 256);  // Local work size dimensions
+            int localWorkSize = min(device.getMaxWorkGroupSize(), 256);  // Local work size dimensions
             int globalWorkSize = roundUp(localWorkSize, elementCount);   // rounded up to the nearest multiple of the localWorkSize
 
             // load sources, create and build program
@@ -97,6 +110,8 @@ public class Prototype {
             // get a reference to the kernel function with the name 'VectorAdd'
             // and map the buffers to its input parameters.
             CLKernel kernel = program.createCLKernel("VectorAdd");
+            out.printf("VectorAdd kernel: %s\n", kernel);
+            out.printf("ByteReader kernel: %s\n", program.createCLKernel("ByteReader"));
             kernel.putArgs(clBufferA, clBufferB, clBufferC);
             kernel.putArg(elementCount);
 
@@ -107,12 +122,20 @@ public class Prototype {
 
             long time = nanoTime();
             final CLEventList events = new CLEventList(2);
-
+            long tk = nanoTime();
+            
             queue.putWriteBuffer(clBufferA, true,list);//false, events, list);
+            printf("  putWriteBuffer() time %d ms\n", (nanoTime() - tk)/1000000);
+            tk = nanoTime();
             queue.putWriteBuffer(clBufferB, true,list);//false, events, list);
-
+            printf("  putWriteBuffer() time %d ms\n", (nanoTime() - tk)/1000000);
+            tk = nanoTime();
             queue.put1DRangeKernel(kernel, 0, globalWorkSize, localWorkSize, list);
+            printf("OpenCL kernel time %d ms\n", (nanoTime() - tk)/1000000);
+            tk = nanoTime();
             queue.putReadBuffer(clBufferC, true, list);
+            printf("  putReadBuffer() time %d ms\n", (nanoTime() - tk)/1000000);
+
             time = (nanoTime() - time);
 
             for(int i=0; i < list.size(); i++) {
@@ -161,9 +184,69 @@ public class Prototype {
             return globalSize + groupSize - r;
         }
     }
+
+    static void testByteReader(int elementCount) throws Exception{
+        
+        CLDevice device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+        CLContext context = CLContext.create(device);
+
+        out.printf("context: %s\n", context);
+        out.printf("device: %s\n", device);
+
+        int localWorkSize = min(device.getMaxWorkGroupSize(), 256);  // Local work size dimensions
+        int globalWorkSize = roundUp(localWorkSize, elementCount);   // rounded up to the nearest multiple of the localWorkSize
+        
+        CLCommandQueue queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
+        CLProgram program = ProgramLoader.load(context,"Prototype.cl");
+        String buildOpts = "";
+        program.build(buildOpts);
+        
+        printf("ProgramBuildStatus: %s\n",program.getBuildStatus());
+        
+        if (!program.isExecutable()) {
+            printf("log: %s\n",program.getBuildLog());
+            throw new IllegalArgumentException("Program didn't compile");
+        }
+        
+        CLKernel kernel = program.createCLKernel("ByteReader");
+        out.printf("ByteReader kernel: %s\n", kernel);
+        int opcodeCount = 10;
+        CLBuffer<ByteBuffer> clBufferData = context.createByteBuffer(opcodeCount, READ_ONLY);
+        CLBuffer<ByteBuffer> clBufferResult = context.createByteBuffer(elementCount, WRITE_ONLY);
+        
+        initOpcodeBuffer(clBufferData.getBuffer(), opcodeCount);
+
+        kernel.putArg(clBufferData);
+        kernel.putArg(opcodeCount);
+        kernel.putArg(clBufferResult);
+        kernel.putArg(elementCount);
+
+
+        CLEventList list = new CLEventList(4);
+        queue.putWriteBuffer(clBufferData, true,list);
+        queue.put1DRangeKernel(kernel, 0, globalWorkSize, localWorkSize, list);
+        queue.putReadBuffer(clBufferResult, true, list);
+
+        for(int i = 0; i < 20; i++)
+            out.printf("%d ", (int)clBufferResult.getBuffer().get());        
+        out.printf("\n  DONE\n");
+
+        context.release();
+
+    }
+
+    static void initOpcodeBuffer(ByteBuffer buffer, int length){
+        int c = 0;
+        while(c++ < length)
+            buffer.put((byte)(6));
+        buffer.rewind();
+
+    }
+    
     public static void main(String[] args) throws Exception {
         int cnt = 100000000;
-        testAddCPU(cnt);
-        testAddOpenCL(cnt);
+        //testAddCPU(cnt);
+        //testAddOpenCL(cnt);
+        testByteReader(cnt);
     }
 }
