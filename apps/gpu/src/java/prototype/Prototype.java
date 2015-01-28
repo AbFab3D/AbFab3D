@@ -210,9 +210,9 @@ public class Prototype {
         
         CLKernel kernel = program.createCLKernel("ByteReader");
         out.printf("ByteReader kernel: %s\n", kernel);
-        int opcodeCount = 10;
+        int opcodeCount = 100;
         CLBuffer<ByteBuffer> clBufferData = context.createByteBuffer(opcodeCount, READ_ONLY);
-        CLBuffer<ByteBuffer> clBufferResult = context.createByteBuffer(elementCount, WRITE_ONLY);
+        CLBuffer<FloatBuffer> clBufferResult = context.createFloatBuffer(elementCount, WRITE_ONLY);
         
         initOpcodeBuffer(clBufferData.getBuffer(), opcodeCount);
 
@@ -228,17 +228,32 @@ public class Prototype {
         queue.putReadBuffer(clBufferResult, true, list);
 
         for(int i = 0; i < 20; i++)
-            out.printf("%d ", (int)clBufferResult.getBuffer().get());        
+            out.printf("%f ", clBufferResult.getBuffer().get());        
         out.printf("\n  DONE\n");
 
         context.release();
 
     }
 
+    static void writeToBuffer(ByteBuffer buffer, int x){
+    
+        buffer.put((byte)(x & 0xFF));
+        buffer.put((byte)((x >> 8) & 0xFF));
+        buffer.put((byte)((x >> 16) & 0xFF));
+        buffer.put((byte)((x >> 24) & 0xFF));
+    } 
+
     static void initOpcodeBuffer(ByteBuffer buffer, int length){
-        int c = 0;
-        while(c++ < length)
-            buffer.put((byte)(6));
+
+        writeToBuffer(buffer, 24);
+        writeToBuffer(buffer, Float.floatToRawIntBits(1.1f));
+        writeToBuffer(buffer, Float.floatToRawIntBits(2.2f));  //
+        writeToBuffer(buffer, Float.floatToRawIntBits(3.3f));
+        writeToBuffer(buffer, Float.floatToRawIntBits(4.4f));  //
+        writeToBuffer(buffer, Float.floatToRawIntBits(5.5f));  //
+        writeToBuffer(buffer, Float.floatToRawIntBits(6.6f));  //
+        writeToBuffer(buffer, Float.floatToRawIntBits(7.7f));
+
         buffer.rewind();
 
     }
@@ -250,3 +265,4 @@ public class Prototype {
         testByteReader(cnt);
     }
 }
+

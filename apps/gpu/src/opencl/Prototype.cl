@@ -2,6 +2,7 @@ typedef struct {
    size_t size;
    float radius;
    float3 center;
+  
 } CSphere;
    
 typedef struct{
@@ -20,7 +21,7 @@ typedef union {
  } CPtr;
 
 // OpenCL Kernel Function for byte code reading 
-kernel void ByteReader(global uchar* opcode, int dataCount, global uchar* outdata, int outCount) {
+kernel void ByteReader(global uchar* opcode, int dataCount, global float* outdata, int outCount) {
 		
 		CPtr p;
 		p.c = opcode;
@@ -31,7 +32,16 @@ kernel void ByteReader(global uchar* opcode, int dataCount, global uchar* outdat
 		if (iGID >= outCount)  {
 			return;
 		}
-		outdata[iGID] = (uchar)(pS->size);
+		int c = iGID % 5;
+		switch(c){
+			case 0: outdata[iGID] = (int)(pS->size); break;
+			case 1: outdata[iGID] = pS->radius; break;
+			case 2: outdata[iGID] = pS->center.x; break;
+			case 3: outdata[iGID] = pS->center.y; break;
+			case 4: outdata[iGID] = pS->center.z; break;
+		}	
+			
+		//outdata[iGID] = (uchar)(c);
 }
 
 
