@@ -179,7 +179,7 @@
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="viewer.VolumeViewer" fork="true">
             <jvmarg line="${jvmrunargs}"/>
-            <arg value="-version"/><arg value="dens"/>
+            <arg value="-version"/><arg value="opcode"/>
             <arg value="scripts/gyrosphere.js"/>
             <!--<arg value="${script}"/>-->
             <classpath>
@@ -193,7 +193,7 @@
         </java>
     </target>
 
-    <target name="runProto" depends="compile" description="Run the viewer">
+    <target name="runProto" depends="compile" description="Run the Proto for test">
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="prototype.Prototype" fork="true">
             <jvmarg line="${jvmrunargs}"/>
@@ -208,7 +208,7 @@
         </java>
     </target>
 
-    <target name="runCLInfo" depends="compile" description="Run the viewer">
+    <target name="runCLInfo" depends="compile" description="Run CLInfo">
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="prototype.CLInfo" fork="true">
             <jvmarg line="${jvmrunargs}"/>

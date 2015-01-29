@@ -254,9 +254,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         // use exact answer for a sphere
         //float3 grad = normalize((float3)(pos.x,pos.y,pos.z));
 
-        // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
-//        float dist = voxelSize / 2.0; // This is what I expect we should use or just voxelSize
         float dist = tstep*0.01;
 
         // second order precision formula for gradient
@@ -264,17 +262,14 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         float xd0 = readShapeJS((float3) (pos.x + dist, pos.y, pos.z));
         float xd2 = readShapeJS((float3) (pos.x - dist, pos.y, pos.z));
         grad.x = (xd2 - xd0)/(2*dist);
-        //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
         float yd0 = readShapeJS((float3) (pos.x,pos.y + dist, pos.z));
         float yd2 = readShapeJS((float3) (pos.x, pos.y - dist, pos.z));
         grad.y = (yd2 - yd0)/(2*dist);
-        //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
         // z
         float zd0 = readShapeJS((float3) (pos.x,pos.y, pos.z + dist));
         float zd2 = readShapeJS((float3) (pos.x, pos.y, pos.z - dist));
         grad.z = (zd2 - zd0)/(2*dist);
-        //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
 
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model

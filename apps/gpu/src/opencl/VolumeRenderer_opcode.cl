@@ -339,37 +339,26 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     float3 pos;
     float density;
 
-// TODO: debug
-
-#ifdef DEBUG
-//if (debug) printf("x: %d y: %d u: %f %v: %f eye_o: %v4f eye_d: %v4f tnear: %f tfar: %f\n",x,y,u,v,eyeRay_o,eyeRay_d,tnear,tfar);
-#endif
+    tpos = eyeRay_o + eyeRay_d*t;
+    pos = tpos.xyz; 
+    density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
+	if (density > 0.5){  // solid on the boundary 
+		return (float3)(1.f,0,0);
+	}	
 
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
         pos = tpos.xyz; 
-/*
-if (debug) {
-    density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
-    if (i == 27) {
-#ifdef DEBUG
-	    printf("eye_o: %v4f eye_d: %v4f t: %f tstep: %f maxSteps: %d\n",eyeRay_o,eyeRay_d,t,tstep,maxSteps);
-        density = readShapeJSDebug(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
-        printf("x: %d y:%d pos: %v3f density: %f step: %d\n",x,y,pos,density,i);
-#endif
-    }
-}
-else
-*/
+
         density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
 
         if (density > 0.5){  // overshot the surface
-			while(density > 0.5){
-			   t -= 0.01*tstep;  // back off
+			int backcount = 10;
+			while(density > 0.5 && backcount-- > 0 ){
+			   t -= 0.1*tstep;  // back off 
 			   pos = (eyeRay_o + eyeRay_d*t).xyz;
 			   density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
 			}			   
-			// && density <= 1.) {
            hit = i;
 		   float dt = 0.01*tstep;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
