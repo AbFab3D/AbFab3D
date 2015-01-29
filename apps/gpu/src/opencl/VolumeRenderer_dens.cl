@@ -196,39 +196,31 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
     int hit = -1;
     // march along ray from tnear till we hit something
+	
     float t = tnear;
 
     float4 tpos;
     float3 pos;
     float density;
 
-#ifdef DEBUG
-if (debug) printf("x: %d y: %d u: %f %v: %f eye_o: %v4f eye_d: %v4f\n",x,y,u,v,eyeRay_o,eyeRay_d);
-#endif
-
+    tpos = eyeRay_o + eyeRay_d*t;
+    pos = tpos.xyz; 
+	
+    density = readShapeJS(pos);
+	if (density > 0.5){  // solid on the boundary 
+		return (float3)(1.f,0,0);
+	}	
+	
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
         pos = tpos.xyz; 
-
-/*
-if (debug) {
-    density = readShapeJS(pos);
-    if (i == 27) {
-        //gyroidDebug(
-        float3 orig_pos = pos;
-	    pos = pos * (float3)(0.025,0.025,0.025);
-	    printf("eye_o: %v4f eye_d: %v4f t: %f tstep: %f\n",eyeRay_o,eyeRay_d,t,tstep);
-	    float ds0 = gyroidDebug(voxelSize,0,0.002,(float3)(0,0,0),251.327412,pos);
-        printf("x: %d y:%d pos: %v3f density: %f step: %d\n",x,y,orig_pos,density,i);
-
-    }
-} else
-*/
         density = readShapeJS(pos);
 
         if (density > 0.5){  // overshot the surface 
-			while(density > 0.5){
-			   t -= 0.01*tstep;  // back off 
+			
+			int backcount = 10;
+			while(density > 0.5 && backcount-- > 0 ){
+			   t -= 0.1*tstep;  // back off 
 			   pos = (eyeRay_o + eyeRay_d*t).xyz;
 			   density = readShapeJS(pos);
 			}			   
@@ -283,13 +275,6 @@ if (debug) {
         float zd2 = readShapeJS((float3) (pos.x, pos.y, pos.z - dist));
         grad.z = (zd2 - zd0)/(2*dist);
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
-
-#ifdef DEBUG
-if (x==171 && y==160) {
-printf("x: %4d y: %4d dens: %7.4f xd0: %7.4f xd2: %7.5f grad: %7.4f\n",x,y,density,xd0,xd2,grad.x);
-printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float3)(pos.x - dist, pos.y, pos.z),(float3) (pos.x + dist, pos.y, pos.z));
-}
-#endif
 
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model

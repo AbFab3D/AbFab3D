@@ -1,4 +1,4 @@
-#define BlendWidth 0.0003
+#define BlendWidth 0.0005
 #define CUBIC_BLEND_VALUE 0.05  // value above 0.25 makes blending flater, below 0.25 - heigher blending 
 // 0 - linear blend, 1 - quadric blend, 2 cubic blend 
 #define BlendType 1
