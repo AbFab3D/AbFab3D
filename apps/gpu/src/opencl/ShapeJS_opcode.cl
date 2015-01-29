@@ -145,35 +145,7 @@ float intersectionOp(float a, float b) {
     return min(a,b);
 }
 
-float intersectionArr(float * src, int len) {
-    float ret = src[0];
-
-#ifdef DEBUG
-printf("len: %d\n",len);
-#endif
-
-    for(int i=1; i < len; i++) {
-       ret = min(ret,src[i]);
-    }
-
-#ifdef DEBUG
-printf("done\n");
-#endif
-
-    return ret;
-}
-
 // TODO: benchmark if this is worth having, in theory loops are expensive
 float unionOp(float a, float b) {
     return max(a,b);
-}
-
-float unionArr(float * src, int len) {
-    float ret = src[0];
-
-    for(int i=1; i < len; i++) {
-       ret = max(ret,src[i]);
-    }
-
-    return ret;
 }

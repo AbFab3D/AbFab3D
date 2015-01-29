@@ -160,7 +160,7 @@ public class TestVolumeRenderer extends TestCase {
         ArrayList progs = new ArrayList();
         progs.add(code);
 
-        boolean result = renderer.init(progs, null,"","");
+        boolean result = renderer.init(progs, null,"","opcode");
 
         if (!result) {
             CLProgram program = renderer.getProgram();

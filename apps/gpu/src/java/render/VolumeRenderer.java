@@ -27,6 +27,7 @@ public class VolumeRenderer {
 
     public static final String VERSION_DIST = "dist";
     public static final String VERSION_OPCODE = "opcode";
+    public static final String VERSION_OPCODE_V2 = "opcode_v2";
     public static final String VERSION_DENS = "dens";
 
     private float[] viewData = new float[16];
@@ -64,7 +65,7 @@ public class VolumeRenderer {
      *
      * @param progs Can either be File or String objects.
      * @param opts  The build options
-     * @param ver The version to load, empty for regular, "_dist" or "_opcode"
+     * @param version The version to load, empty for regular, "_dist" or "_opcode"
      */
     public boolean init(List progs, List<Instruction> instructions, String opts, String version) {
         String kernel_name;
@@ -99,13 +100,29 @@ public class VolumeRenderer {
             ArrayList list = new ArrayList();
             list.add(new File("ShapeJS_" + renderVersion + ".cl"));
             list.addAll(progs);
+
+            if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2)) {
+                // TODO: this would need to be updated to support jar file deployment
+                File dir = new File("classes");
+                String[] files = dir.list();
+                for(int i=0; i < files.length; i++) {
+                    if (files[i].contains(VolumeRenderer.VERSION_OPCODE_V2)) {
+                        if (files[i].contains("VolumeRenderer") || files[i].contains("ShapeJS") ) {
+                            continue;
+                        }
+                        printf("Adding OpenCL file: %s\n",files[i]);
+                        list.add(new File(files[i]));
+                    }
+                }
+            }
             list.add(new File("VolumeRenderer_" + renderVersion + ".cl"));
             program = ProgramLoader.load(context, list);
             program.build(buildOpts);
 
+            printf("Build status: %s\n",program.getBuildStatus());
             if (!program.isExecutable()) return false;
 
-            if (renderVersion.equals(VERSION_OPCODE)) {
+            if (renderVersion.equals(VERSION_OPCODE) || renderVersion.equals(VERSION_OPCODE_V2)) {
                 float[] fparams;
                 int[] iparams;
                 float[] fvparams;
@@ -288,8 +305,8 @@ public class VolumeRenderer {
      * @param queue
      * @param dest
      */
-    public void renderOps(Matrix4f view, int width, int height, CLBuffer<FloatBuffer> viewBuffer, CLCommandQueue queue,
-                       CLBuffer dest) {
+    public void renderOps(Matrix4f view, int w0, int h0, int wsize, int hsize, int width, int height,
+                          CLBuffer<FloatBuffer> viewBuffer, float worldScale, CLCommandQueue queue, CLBuffer dest) {
 
         long t0 = System.nanoTime();
 
@@ -340,17 +357,21 @@ public class VolumeRenderer {
         kernel.setArg(1, width);
         kernel.setArg(2, height);
         kernel.setArg(3, viewBuffer).rewind();
-        kernel.setArg(4,opBuffer).rewind();
-        kernel.setArg(5,opLen);
-        kernel.setArg(6,floatBuffer).rewind();
-        kernel.setArg(7,intBuffer).rewind();
-        kernel.setArg(8,floatVectorBuffer).rewind();
-        kernel.setArg(9,booleanBuffer).rewind();
-        kernel.setArg(10,matrixBuffer).rewind();
+        kernel.setArg(4, worldScale);
+        kernel.setArg(5,opBuffer).rewind();
+        kernel.setArg(6,opLen);
+        kernel.setArg(7,floatBuffer).rewind();
+        kernel.setArg(8,intBuffer).rewind();
+        kernel.setArg(9,floatVectorBuffer).rewind();
+        kernel.setArg(10,booleanBuffer).rewind();
+        kernel.setArg(11,matrixBuffer).rewind();
 
 //        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
         // Changed to 0 needed to work on MAC
-        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, 0, 0, list);
+        // TODO: Test
+        queue.put2DRangeKernel(kernel, w0, h0, wsize, hsize, 0, 0, list);
+
+        //queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, 0, 0, list);
         if (usingGL) {
             queue.putReleaseGLObject((CLGLBuffer) dest, list);
         }

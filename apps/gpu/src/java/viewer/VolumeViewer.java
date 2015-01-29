@@ -47,8 +47,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
     private static int stereoMode = 0;
     private static int[] screenSize = null;   // null means not provided
 
-    private static String renderVersion = VolumeRenderer.VERSION_DIST;
-//    private static final String renderVersion = "";
+    private static String renderVersion = VolumeRenderer.VERSION_DENS;
 
     /** Should we use full screen mode */
     private boolean useFullscreen;
@@ -151,6 +150,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         nav = new ExamineNavigator();
         render = new SingleDeviceRenderCanvas(nav);
+//        render = new MultiDeviceRenderCanvas(nav);
         render.setRenderVersion(renderVersion);
 
         createUI();
@@ -237,9 +237,16 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
             OpenCLOpWriter writer = new OpenCLOpWriter();
             inst = writer.generate((Parameterizable) source, scale);
             if (DEBUG) {
-                String dcode = writer.createText(inst,scale);
-                printf("Debug Code: \n%s\n",dcode);
+                String dcode = writer.createText(inst, scale);
+                printf("Debug Code: \n%s\n", dcode);
             }
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2)) {
+                OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
+                inst = writer.generate((Parameterizable) source, scale);
+                if (DEBUG) {
+                    String dcode = writer.createText(inst,scale);
+                    printf("Debug Code: \n%s\n",dcode);
+                }
         } else {
             OpenCLWriter writer = new OpenCLWriter();
             code = writer.generate((Parameterizable) source, scale);

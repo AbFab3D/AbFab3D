@@ -13,7 +13,6 @@ import javax.media.opengl.*;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.*;
 import javax.vecmath.Matrix4f;
-
 import java.awt.*;
 import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
@@ -24,15 +23,16 @@ import java.util.List;
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
+import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
+import static com.jogamp.opencl.CLMemory.Mem.WRITE_ONLY;
 import static com.jogamp.opencl.util.CLPlatformFilters.type;
-import static com.jogamp.opencl.CLMemory.Mem.*;
 
 /**
  * Rendering thread.  Regenerate the image when navigation changes.
  *
  * @author Alan Hudson
  */
-public class SingleDeviceRenderCanvas implements RenderCanvas {
+public class MultiDeviceRenderCanvas implements RenderCanvas {
     private boolean debug = false;  // forces CPU for printf
 
     private int width;
@@ -45,14 +45,15 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
     private StatusBar statusBar;
     private transient boolean windowChanged = false;
     private transient boolean compiling = false;
-    private VolumeRenderer renderer;
-    private CLDevice device;
+    private VolumeRenderer[] renderer;
+    private CLDevice[] device;
+    private int numDevices;
     private CLGLContext clContext;
-    private CLCommandQueue commandQueue;
+    private CLCommandQueue[] commandQueue;
     private GLAutoDrawable drawable;
     private Animator animator;
-    private CLGLBuffer clPixelBuffer;
-    private int[] glPixelBuffer = new int[1];
+    private CLGLBuffer[] clPixelBuffer;
+    private int[] glPixelBuffer;
     private transient boolean rendering;
     private SNode scene;
     private String sceneProg;
@@ -70,7 +71,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
     private NumberFormat format = new DecimalFormat("####.#");
 
-    public SingleDeviceRenderCanvas(Navigator nav) {
+    public MultiDeviceRenderCanvas(Navigator nav) {
         this.nav = nav;
         GLCapabilities config = new GLCapabilities(GLProfile.get(GLProfile.GL2));
         config.setSampleBuffers(true);
@@ -105,7 +106,9 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
     public void setAntialiasingSteps(int numSteps) {
         this.maxAntialiasingSteps = numSteps;
 
-        renderer.setMaxAntialiasingSteps(numSteps);
+        for(int i=0; i < numDevices; i++) {
+            renderer[i].setMaxAntialiasingSteps(numSteps);
+        }
         statusBar.setStatusText("Loading program...");
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
@@ -120,7 +123,9 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
     public void setSteps(int numSteps) {
         this.maxSteps = numSteps;
 
-        renderer.setMaxSteps(numSteps);
+        for(int i=0; i < numDevices; i++) {
+            renderer[i].setMaxSteps(numSteps);
+        }
         statusBar.setStatusText("Loading program...");
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
@@ -135,7 +140,9 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
     public void setShadowSteps(int numSteps) {
         this.maxShadowSteps = numSteps;
 
-        renderer.setMaxShadowSteps(numSteps);
+        for(int i=0; i < numDevices; i++) {
+            renderer[i].setMaxShadowSteps(numSteps);
+        }
         statusBar.setStatusText("Loading program...");
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 
@@ -179,7 +186,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
                 System.out.printf("Device: %s\n",d);
 
                 if (d.getName().contains("GeForce")) {
-                    device = d;
+                    device = new CLDevice[] {d};
                     break;
                 }
                 /*
@@ -192,12 +199,19 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
         } else {
             if (debug) {
-                device = CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice();
+                device = new CLDevice[] {CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice() };
             } else {
-                device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+                device = CLPlatform.getDefault(type(GPU)).listCLDevices();
             }
         }
 
+        //device = new CLDevice[] {device[0]};
+        numDevices = device.length;
+
+        for(int i=0; i < numDevices; i++) {
+            printf("%s Sharing: %b\n",device[i].getName(),device[i].isGLMemorySharingSupported());
+        }
+        /*
         if (!device.isGLMemorySharingSupported()) {
             CLDevice[] devices = CLPlatform.getDefault().listCLDevices();
             for (CLDevice d : devices) {
@@ -207,7 +221,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
                 }
             }
         }
-
+        */
         if(device == null) {
             throw new RuntimeException("couldn't find any CL/GL memory sharing devices ..");
         }
@@ -237,12 +251,16 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
     private void initCL(GL2 gl, int bufferSize, boolean debug) {
         printf("initCL called\n");
-        commandQueue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
+        commandQueue = new CLCommandQueue[numDevices];
+        renderer = new VolumeRenderer[numDevices];
+        for(int i=0; i < device.length; i++) {
+            commandQueue[i] = device[i].createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
+            renderer[i] = new VolumeRenderer(clContext,commandQueue[i]);
+            renderer[i].setMaxSteps(maxSteps);
+            renderer[i].setMaxShadowSteps(maxShadowSteps);
+            renderer[i].setMaxAntialiasingSteps(maxAntialiasingSteps);
+        }
 
-        renderer = new VolumeRenderer(clContext,commandQueue);
-        renderer.setMaxSteps(maxSteps);
-        renderer.setMaxShadowSteps(maxShadowSteps);
-        renderer.setMaxAntialiasingSteps(maxAntialiasingSteps);
         viewBuffer = clContext.createFloatBuffer(16, READ_ONLY);
 
         System.out.println("cl initialised");
@@ -262,22 +280,23 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
             printf("\t%s\n",progs.get(i));
         }
 
-        if (!renderer.init(progs, instructions, opts, renderVersion)) {
-            CLProgram program = renderer.getProgram();
-            statusBar.setStatusText("Program failed to load: " + program.getBuildStatus());
-            System.out.println(program.getBuildStatus());
-            System.out.println(program.getBuildLog());
-            return;
+        for(int i=0; i < numDevices; i++) {
+            if (!renderer[i].init(progs, instructions, opts, renderVersion)) {
+                CLProgram program = renderer[i].getProgram();
+                statusBar.setStatusText("Program failed to load: " + program.getBuildStatus());
+                System.out.println(program.getBuildStatus());
+                System.out.println(program.getBuildLog());
+                return;
+            }
+
+            if (debug) {
+                CLProgram program = renderer[i].getProgram();
+                System.out.println(program.getBuildStatus());
+                System.out.println(program.getBuildLog());
+            }
         }
 
-        if (debug) {
-            CLProgram program = renderer.getProgram();
-            System.out.println(program.getBuildStatus());
-            System.out.println(program.getBuildLog());
-        }
-
-
-        statusBar.setStatusText("Done loading program.  compile time: " + format.format((renderer.getLastCompileTime()) / 1e6) + " ms");
+        statusBar.setStatusText("Done loading program.  compile time: " + format.format((renderer[0].getLastCompileTime()) / 1e6) + " ms");
         compiling = false;
 
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -286,21 +305,31 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
     }
     private void initPixelBuffer(GL2 gl, int width, int height) {
 
+        if (glPixelBuffer == null) {
+            glPixelBuffer = new int[numDevices];
+        }
+
         if (clPixelBuffer != null) {
-            // release old buffer
-            clPixelBuffer.release();
-            gl.glDeleteBuffers(1,glPixelBuffer,0);
+            for(int i=0; i < numDevices; i++) {
+                // release old buffer
+                clPixelBuffer[i].release();
+            }
+            gl.glDeleteBuffers(numDevices,glPixelBuffer,0);
             clPixelBuffer = null;
         }
 
         int bufferSize = width * height * 4 * Buffers.SIZEOF_BYTE;
-        gl.glGenBuffers(1,glPixelBuffer,0);
+        gl.glGenBuffers(numDevices,glPixelBuffer,0);
         gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, glPixelBuffer[0]);
         gl.glBufferData(GL2.GL_PIXEL_UNPACK_BUFFER, bufferSize, null, GL2.GL_STREAM_DRAW);
         gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
-        clPixelBuffer = clContext.createFromGLBuffer(glPixelBuffer[0],
-                bufferSize, WRITE_ONLY);
 
+        clPixelBuffer = new CLGLBuffer[numDevices];
+
+        for(int i=0; i < numDevices; i++) {
+            clPixelBuffer[i] = clContext.createFromGLBuffer(glPixelBuffer[i],
+                    bufferSize, WRITE_ONLY);
+        }
     }
 
     @Override
@@ -334,20 +363,34 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
         //w = 16;
         int h = height;
 
-        if (!renderVersion.equals("opcode") && !renderVersion.equals("opcode_v2")) {
-            renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
+        if (!renderVersion.equals("opcode")) {
+            for(int i=0; i < numDevices; i++) {
+                // TODO: need to thread this
+                renderer[i].render(view, w, h, viewBuffer, commandQueue[i], clPixelBuffer[i]);
+            }
         } else {
-            renderer.renderOps(view, 0,0,w,h,w, h, viewBuffer, worldScale, commandQueue, clPixelBuffer);
+            int wsize = w / 2;
+            int hsize = w / 2;
+            for(int i=0; i < numDevices; i++) {
+                renderer[i].renderOps(view, (i*hsize), (i*hsize), wsize, hsize, w, h, viewBuffer, worldScale, commandQueue[i], clPixelBuffer[i]);
+            }
         }
         // Render image using OpenGL
 
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
         gl.glDisable(GL2.GL_DEPTH_TEST);
-        gl.glRasterPos2i(0,0);
-        gl.glRasterPos2i(-1,-1);  // TODO: different then example not sure why necessary but it does center it
+
+        gl.glRasterPos2i(-1,-1);
         gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, glPixelBuffer[0]);
         gl.glDrawPixels(width, height, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, 0);
         gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
+
+        if (numDevices > 1) {
+            gl.glRasterPos2i(-1, 0);
+            gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, glPixelBuffer[1]);
+            gl.glDrawPixels(width, height, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, 0);
+            gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
+        }
 
         rendering = false;
     }
@@ -378,12 +421,12 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
     @Override
     public long getLastRenderTime() {
-        return renderer.getLastTotalRenderTime();
+        return renderer[0].getLastTotalRenderTime();
     }
 
     @Override
     public long getLastKernelTime() {
-        return renderer.getLastKernelTime();
+        return renderer[0].getLastKernelTime();
     }
 
     @Override
