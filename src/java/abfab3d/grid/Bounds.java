@@ -19,6 +19,7 @@ import static abfab3d.util.Output.fmt;
 public class Bounds implements Cloneable {
 
     public double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
+    public int nx = 1, ny = 1, nz = 1;
 
     public Bounds(){        
     }
@@ -73,6 +74,12 @@ public class Bounds implements Cloneable {
         return roundSize((zmax-zmin)/voxel);
     }    
 
+    public void setGridSize(int width,int height, int depth){
+        this.nx = width;
+        this.ny = height;
+        this.nz = depth;
+    }
+
     public static final int roundSize(double s){        
         return (int)(s + 0.5);
     }
@@ -104,7 +111,7 @@ public class Bounds implements Cloneable {
     /**
        conversion of world cordinates to grid coordinates 
      */
-    public void toGridCoord(int nx, int ny, int nz, Vector3d pnt){
+    public void toGridCoord(Vector3d pnt){
 
         pnt.x = nx*(pnt.x - xmin)/(xmax - xmin);
         pnt.y = ny*(pnt.y - ymin)/(ymax - ymin);
@@ -115,7 +122,7 @@ public class Bounds implements Cloneable {
     /**
        conversion of grid cordinates to world coordinates 
      */
-    public void toWorldCoord(int nx, int ny, int nz, Vector3d pnt){
+    public void toWorldCoord(Vector3d pnt){
 
         pnt.x = pnt.x*(xmax-xmin)/nx + xmin;
         pnt.y = pnt.y*(ymax-ymin)/ny + ymin;

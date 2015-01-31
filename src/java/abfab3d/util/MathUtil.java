@@ -146,6 +146,14 @@ public class MathUtil {
         
     }
 
+    public static final double clamp(double x, double xmin, double xmax){
+        if(x <= xmin)
+            return xmin;
+        if(x >= xmax)
+            return xmax;
+        return x;
+    }
+
     public static final int clamp(int x, int xmin, int xmax){
         if(x <= xmin)
             return xmin;

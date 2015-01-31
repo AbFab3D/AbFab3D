@@ -556,9 +556,11 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      */
     public Bounds getGridBounds() {
 
-        return new Bounds(xorig, xorig + width * pixelSize,
-                          yorig, yorig + height * sheight,
-                          zorig, zorig + depth * pixelSize);
+        Bounds bounds = new Bounds(xorig, xorig + width * pixelSize,
+                                   yorig, yorig + height * sheight,
+                                   zorig, zorig + depth * pixelSize);
+        bounds.setGridSize(width, height, depth);
+        return bounds;
     }
 
     /**
