@@ -4,15 +4,19 @@ import abfab3d.util.Units;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import gpu.GPUUtil;
+import org.apache.commons.io.FileUtils;
 import program.ProgramLoader;
 
 import javax.vecmath.Matrix4f;
 import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
@@ -25,6 +29,8 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  */
 public class VolumeRenderer {
     private static final boolean DEBUG = false;
+    private static final boolean CACHE_PROGRAM = true;
+    private static final String CACHE_LOCATION = "/tmp/openCL_cache";
 
     public static final String VERSION_DIST = "dist";
     public static final String VERSION_OPCODE = "opcode";
@@ -97,39 +103,83 @@ public class VolumeRenderer {
             }
             printf("Building program with opts: %s\n", buildOpts);
 
-            //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
-            ArrayList list = new ArrayList();
-            list.add(new File("ShapeJS_" + renderVersion + ".cl"));
-            list.addAll(progs);
+            boolean from_cache = false;
+            if (CACHE_PROGRAM) {
+                CLDevice[] devices = context.getDevices();
+                int len = devices.length;
+                HashMap<CLDevice,byte[]> bins = new HashMap<CLDevice, byte[]>();
 
-            if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2)) {
-                // TODO: this would need to be updated to support jar file deployment
-                File dir = new File("classes");
-                String[] files = dir.list();
-                for(int i=0; i < files.length; i++) {
-                    if (files[i].contains(VolumeRenderer.VERSION_OPCODE_V2)) {
-                        if (files[i].contains("VolumeRenderer") || files[i].contains("ShapeJS") ) {
-                            continue;
+                try {
+                    for (int i = 0; i < len; i++) {
+                        CLDevice device = devices[i];
+                        String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
+                        File f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
+                        if (f.exists()) {
+                            byte[] bytes = FileUtils.readFileToByteArray(f);
+                            bins.put(device,bytes);
                         }
-                        list.add(new File(files[i]));
+
+                        program = context.createProgram(bins);
+                        from_cache = true;
+                        printf("Successfully loaded cached OpenCL binaries\n");
+                    }
+                } catch(IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+
+            if (program == null) {
+                //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
+                ArrayList list = new ArrayList();
+                list.add(new File("ShapeJS_" + renderVersion + ".cl"));
+                list.addAll(progs);
+
+                if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2)) {
+                    // TODO: this would need to be updated to support jar file deployment
+                    File dir = new File("classes");
+                    String[] files = dir.list();
+                    for (int i = 0; i < files.length; i++) {
+                        if (files[i].contains(VolumeRenderer.VERSION_OPCODE_V2)) {
+                            if (files[i].contains("VolumeRenderer") || files[i].contains("ShapeJS")) {
+                                continue;
+                            }
+                            list.add(new File(files[i]));
+                        }
                     }
                 }
-            }
-            list.add(new File("VolumeRenderer_" + renderVersion + ".cl"));
+                list.add(new File("VolumeRenderer_" + renderVersion + ".cl"));
 
 
-            if (DEBUG) {
-                printf("Loading files:\n");
-                for (int i = 0; i < list.size(); i++) {
-                    printf("%s\n", list.get(i));
+                if (DEBUG) {
+                    printf("Loading files:\n");
+                    for (int i = 0; i < list.size(); i++) {
+                        printf("%s\n", list.get(i));
+                    }
+                    printf("Prog: \n%s\n", progs);
                 }
-                printf("Prog: \n%s\n", progs);
+                program = ProgramLoader.load(context, list);
             }
-            program = ProgramLoader.load(context, list);
+
             program.build(buildOpts);
 
             if (DEBUG) printf("Build status: %s\n",program.getBuildStatus());
             if (!program.isExecutable()) return false;
+
+            if (CACHE_PROGRAM && !from_cache) {
+                printf("Caching program\n");
+                Map<CLDevice,byte[]> bins = program.getBinaries();
+
+                for(Map.Entry<CLDevice,byte[]> entry : bins.entrySet()) {
+                    CLDevice device = entry.getKey();
+                    byte[] compiled = entry.getValue();
+                    String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
+                    File f = new File(dir);
+                    f.mkdirs();
+                    f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
+                    FileUtils.writeByteArrayToFile(f,compiled);
+
+                }
+            }
 
             if (renderVersion.equals(VERSION_OPCODE) || renderVersion.equals(VERSION_OPCODE_V2)) {
                 float[] fparams;

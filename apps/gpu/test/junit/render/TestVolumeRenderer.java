@@ -16,7 +16,6 @@ package render;
 import abfab3d.grid.Bounds;
 import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
-import abfab3d.util.SysErrorReporter;
 import com.jogamp.opencl.*;
 import com.objectplanet.image.PngEncoder;
 import junit.framework.Test;
@@ -24,7 +23,6 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import shapejs.ShapeJSEvaluator;
 import viewer.OpenCLOpWriterV2;
-import viewer.OpenCLWriter;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Matrix4f;
@@ -32,10 +30,18 @@ import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.io.*;
-import java.nio.*;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
@@ -61,6 +67,7 @@ public class TestVolumeRenderer extends TestCase {
     private long lastLoadScriptTime;
     private long lastImageTime;
     private long lastPngTime;
+    private HashMap<String, List<Instruction>> cache = new HashMap<String, List<Instruction>>();
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -73,19 +80,32 @@ public class TestVolumeRenderer extends TestCase {
         int width = 512;
         int height = 512;
 
-        initCL(DEBUG, width, height);
+        long t0 = System.nanoTime();
 
-        int TIMES = 3;
-        for(int i=0; i < TIMES; i++) {
-            long t0 = System.nanoTime();
-            BufferedImage base = render("scripts/gyrosphere.js", width, height);
-            makePng(base);
+        // Do these items once for the servlet.  Should be per-thread resources
+        initCL(false, width, height);
+        PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
+//        int MAX_IMG_SIZE = 150000;
+        int MAX_IMG_SIZE = width*height;
+        byte[] buff = new byte[MAX_IMG_SIZE];
+        int[] pixels = new int[width*height];
+        printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
+
+        // End of per-thread resources
+
+        String jobID = UUID.randomUUID().toString();
+
+        int TIMES = 5;
+        for (int i = 0; i < TIMES; i++) {
+            t0 = System.nanoTime();
+            BufferedImage base = render(jobID, "scripts/gyrosphere.js", width, height,pixels);
+            int size = makePng(encoder,base,buff);  // return buff[0] to size bytes to client
 
             printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (renderer.getLastCompileTime() / 1e6), (int) (renderer.getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
             if (DEBUG) {
                 try {
-                    ImageIO.write(base, "png", new File("/tmp/render_base.png"));
+                    ImageIO.write(base, "png", new File("/tmp/render_speed.png"));
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
@@ -102,12 +122,12 @@ public class TestVolumeRenderer extends TestCase {
 
 
         long t0 = System.nanoTime();
-        BufferedImage base = render("test/scripts/transform_base.js",width,height);
-        printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d\n",(int)((System.nanoTime() - t0) / 1e6),(int)(lastLoadScriptTime / 1e6),(int)(renderer.getLastCompileTime() / 1e6),(int) (renderer.getLastKernelTime() / 1e6),(int) (lastImageTime / 1e6));
-        BufferedImage test = render("test/scripts/translation.js",width,height);
+        BufferedImage base = render("test/scripts/transform_base.js", width, height);
+        printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (renderer.getLastCompileTime() / 1e6), (int) (renderer.getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6));
+        BufferedImage test = render("test/scripts/translation.js", width, height);
 
         assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
-        assertFalse("Same image", ImageUtilTest.isImageEqual(base,test));
+        assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
 
         if (DEBUG) {
             try {
@@ -126,11 +146,11 @@ public class TestVolumeRenderer extends TestCase {
         initCL(true, width, height);
 
 
-        BufferedImage base = render("test/scripts/transform_base.js",width,height);
-        BufferedImage test = render("test/scripts/rotation.js",width,height);
+        BufferedImage base = render("test/scripts/transform_base.js", width, height);
+        BufferedImage test = render("test/scripts/rotation.js", width, height);
 
         assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
-        assertFalse("Same image", ImageUtilTest.isImageEqual(base,test));
+        assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
 
         if (DEBUG) {
             try {
@@ -142,20 +162,45 @@ public class TestVolumeRenderer extends TestCase {
         }
     }
 
-    private void makePng(BufferedImage img) {
+    private byte[] makePng(BufferedImage img) {
         long t0 = System.nanoTime();
 
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             BufferedOutputStream bos = new BufferedOutputStream(baos);
-            PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR_ALPHA, PngEncoder.BEST_SPEED);
+            PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
             encoder.encode(img, bos);
             bos.close();
-        } catch(IOException ioe) {
+
+            byte[] ret_val = baos.toByteArray();
+            lastPngTime = (System.nanoTime() - t0);
+            return ret_val;
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        lastPngTime = (System.nanoTime() - t0);
+
+        return null;
+    }
+
+    private int makePng(PngEncoder encoder, BufferedImage img, byte[] buff) {
+        long t0 = System.nanoTime();
+
+        try {
+            ReusableByteArrayOutputStream baos = new ReusableByteArrayOutputStream(buff);
+            BufferedOutputStream bos = new BufferedOutputStream(baos);
+            encoder.encode(img, bos);
+            bos.close();
+
+            lastPngTime = (System.nanoTime() - t0);
+
+            return baos.size();
+        } catch (IOException ioe) {
             ioe.printStackTrace();
         }
 
         lastPngTime = (System.nanoTime() - t0);
+        return 0;
     }
 
     private BufferedImage render(String script, int width, int height) {
@@ -163,7 +208,7 @@ public class TestVolumeRenderer extends TestCase {
         List<Instruction> inst = loadScript(script);
         ArrayList progs = new ArrayList();
 
-        boolean result = renderer.init(progs, inst,"",VolumeRenderer.VERSION_OPCODE_V2);
+        boolean result = renderer.init(progs, inst, "", ver);
 
         if (!result) {
             CLProgram program = renderer.getProgram();
@@ -171,13 +216,56 @@ public class TestVolumeRenderer extends TestCase {
             printf("Build Log: %s\n", program.getBuildLog());
         }
         assertTrue("Compiled", result);
-        renderer.renderOps(getView(), 0, 0, width,height,width, height, viewBuffer, worldScale, queue, pixelBuffer);
+        renderer.renderOps(getView(), 0, 0, width, height, width, height, viewBuffer, worldScale, queue, pixelBuffer);
 
         long t0 = System.nanoTime();
         queue.putReadBuffer(pixelBuffer, true); // read results back (blocking read)
         queue.finish();
 
-        BufferedImage img = createImage(width,height,pixelBuffer);
+        int[] pixels = new int[width*height];
+        BufferedImage img = createImage(width, height, pixels,pixelBuffer);
+        lastImageTime = System.nanoTime() - t0;
+
+        return img;
+    }
+
+    /**
+     * Render a script with caching
+     *
+     * @param jobID  UniqueID for caching results
+     * @param script
+     * @param width
+     * @param height
+     * @return
+     */
+    private BufferedImage render(String jobID, String script, int width, int height,int[] pixels) {
+        String ver = VolumeRenderer.VERSION_OPCODE_V2;
+        List<Instruction> inst = null;
+
+        inst = cache.get(jobID);
+        if (inst == null) {
+            inst = loadScript(script);
+            cache.put(jobID, inst);
+        } else {
+            lastLoadScriptTime = 0;
+        }
+        ArrayList progs = new ArrayList();
+
+        boolean result = renderer.init(progs, inst, "", ver);
+
+        if (!result) {
+            CLProgram program = renderer.getProgram();
+            printf("Status: %s\n", program.getBuildStatus());
+            printf("Build Log: %s\n", program.getBuildLog());
+        }
+        assertTrue("Compiled", result);
+        renderer.renderOps(getView(), 0, 0, width, height, width, height, viewBuffer, worldScale, queue, pixelBuffer);
+
+        long t0 = System.nanoTime();
+        queue.putReadBuffer(pixelBuffer, true); // read results back (blocking read)
+        queue.finish();
+
+        BufferedImage img = createImage(width, height, pixels,pixelBuffer);
         lastImageTime = System.nanoTime() - t0;
 
         return img;
@@ -234,7 +322,7 @@ public class TestVolumeRenderer extends TestCase {
         OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
         Vector3d scale;
         scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
-        worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
+        worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
 
         //printf("Scale is: %s\n", scale);
         List<Instruction> inst = writer.generate((Parameterizable) source, scale);
@@ -252,17 +340,17 @@ public class TestVolumeRenderer extends TestCase {
             return image;
         }
     */
-    private BufferedImage createImage(int width, int height, CLBuffer<IntBuffer> buffer) {
+    private BufferedImage createImage(int width, int height, int[] pixels,CLBuffer<IntBuffer> buffer) {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        int[] pixels = new int[buffer.getBuffer().capacity()];
+        //int[] pixels = new int[buffer.getBuffer().capacity()];
         buffer.getBuffer().get(pixels).rewind();
         WritableRaster raster = image.getRaster();
         int[] pixel = new int[4];
-        int r,g,b;
+        int r, g, b;
         long t0 = System.nanoTime();
-        for(int w=0; w < width; w++) {
-            for(int h=0; h < height;h++) {
-                int packed = pixels[h*width + w];
+        for (int w = 0; w < width; w++) {
+            for (int h = 0; h < height; h++) {
+                int packed = pixels[h * width + w];
 
                 b = (packed & 0x00FF0000) >> 16;
                 g = (packed & 0x0000FF00) >> 8;
@@ -271,7 +359,7 @@ public class TestVolumeRenderer extends TestCase {
                 pixel[1] = g;
                 pixel[2] = b;
                 pixel[3] = 0xFFFFFFFF;
-                raster.setPixel(w,h,pixel);
+                raster.setPixel(w, h, pixel);
             }
         }
 
