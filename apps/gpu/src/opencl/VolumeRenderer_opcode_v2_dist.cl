@@ -1,8 +1,7 @@
 #define tstep (2.0 / maxSteps)
 #define sstep (2.0 / maxShadowSteps)
 #define clearColor (1,1,1)
-#define clearInt ((uint)(1)<<24) | ((uint)(1.0f*255.0f)<<16) | ((uint)(1.0*255.0f)<<8) | (uint)(1.0*255.0f)
-
+#define clearInt 33554431 // White color
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // intersect ray with a box
@@ -57,59 +56,8 @@ uint rgbaFloatToInt(float3 rgb)
     rgb.z = clamp(rgb.z,0.0f,1.0f);  
     return ((uint)(1)<<24) | ((uint)(rgb.z*255.0f)<<16) | ((uint)(rgb.y*255.0f)<<8) | (uint)(rgb.x*255.0f);
 }
+
 /*
-   save this code for the noise stuff
-float readShapeJSIntersect(float3 pos) {
-    // gyroid params
-    float factor = 2 * 3.14159265 / 1;
-//    float vs = 0.0001;
-    float vs = tstep * 2;
-//    float thickness = 0.004;
-    float thickness = 0.04;
-    float level = 0;
-    float radius = 1;
-
-    //float data1 = clamp(gyroid(vs,level,factor,thickness, (float3)(0,0,0),pos),0.0f,1.0f);
-    //float data2 = clamp(sphere(vs, radius, 0, 0, 0, true, pos),0.0f,1.0f);
-
-    float data1 = gyroid(vs,level,factor,thickness, (float3)(0,0,0),pos);
-    float data2 = sphere(vs, radius, 0, 0, 0, true, pos);
-
-    // Intersection op
-    float data3 = intersection(data2,data1);
-
-    float max_noise = 0.1;
-
-    // Don't add noise to empty space
-    if (data3 < 0.0001) {
-       return data3;
-    }
-
-
-    float bias = 128.0f;
-    float scale = 200.0f;
-    float lacurnarity = 2.02f;
-    float increment = 1.0f;
-    float octaves = 3.3f;
-//    float amplitude = 0.1f;
-//    float amplitude = tstep * 50;
-    float amplitude = tstep * 5;
-
-    float3 sample = (pos + bias);
-    float noise = turbulence3d((float4)(sample,1.0), scale, lacurnarity, increment, octaves) * amplitude;
-
-    if (noise > max_noise) noise = max_noise;
-    if (noise < -max_noise) noise = -max_noise;
-    data3 += noise;
-
-    // TODO: Not certain why this is necessary
-
-    data3 = clamp(data3,0.0f,1.0f);
-
-   return data3;
-}
-*/
-
 // Can p0 see p1, if so returns 1
 uint canSee(float3 p0, float3 p1
    #ifdef DEBUG
@@ -139,7 +87,7 @@ if (debug) printf("bbx hit: %d near: %7.4f far: %7.4f\n",hit,tnear,tfar);
 
         // read from grid
 
-        float density = readShapeJS(pos);
+        float density = getDensity(pos);
 
 #ifdef DEBUG
 if (debug) printf("step: %d pos: %7.4v3f dens: %7.4f\n",i,pos,density);
@@ -154,7 +102,7 @@ if (debug) printf("   hit at: %d  dens: %7.4f\n",i,density);
 
 		   //float dt = 0.001;
 		   //float3 pa = (p0 + dir*(t+dt));
-		   //float gp = (readShapeJS(pa)-density)/dt;
+		   //float gp = (getDensity(pa)-density)/dt;
 		   //float ddt = (0.5-density)/gp;
 		   //if( ddt > -5.f && ddt < 5.f){
 				// adjust hit based on density to reduce aliasing
@@ -175,6 +123,7 @@ if (debug) printf("final hit: %d\n",hit);
 
     return 0;
 }
+*/
 
 float4 mulMatVec4(global const float*mat, float4 vec){
 	float f0 = dot(vec, ((float4)(mat[0],mat[1],mat[2],mat[3])));
@@ -184,7 +133,132 @@ float4 mulMatVec4(global const float*mat, float4 vec){
 	return (float4)(f0, f1, f2, f3);
 }
 
-float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, global const float* invViewMatrix) {
+
+float readShapeJS(const global int * op, int len, const global float * fparams, const global int * iparams, const global float3 * fvparams, const global char * bparams, const global float16 * mparams, float worldScale, float3 pos0) {
+   int f_idx = 0;
+   int i_idx = 0;
+   int fv_idx = 0;
+   int b_idx = 0;
+   int m_idx = 0;
+
+   float result;
+   float presult;
+
+   float fparam1;
+   float fparam2;
+   float fparam3;
+   float3 fvparam1;
+   float3 fvparam2;
+   float16 mparam1;
+   int iparam1;
+   int iparam2;
+   char bparam1;
+
+   float vs = voxelSize;
+   pos0 *= worldScale;
+
+   float3 pos = pos0;
+
+#ifdef DEBUG
+if (get_global_id(0) == 74) printf("id: %d Ops: %d\n",get_global_id(0),len);
+#endif
+
+   int ridx = 0;
+   for(int i=0; i < len; i++) {
+#ifdef DEBUG
+if (get_global_id(0) == 74) printf("Op: %d\n",op[i]);
+#endif
+      switch(op[i]) {
+	    case 0:  // sphere
+	        fvparam1 = fvparams[fv_idx++];
+	        fparam1 = fparams[f_idx++];
+	        bparam1 = bparams[b_idx++];
+	        result = sphere(voxelSize,fvparam1,fparam1,bparam1,pos);
+	        break;
+	    case 1:   // box
+	        fvparam1 = fvparams[fv_idx++];
+	        fvparam2 = fvparams[fv_idx++];
+	        result = box(voxelSize,fvparam1,fvparam2,pos);
+	        break;
+	    case 2:  // gyroid
+	        fparam1 = fparams[f_idx++]; // level
+	        fparam2 = fparams[f_idx++]; // thickness
+	        fvparam1 = fvparams[fv_idx++]; // offset
+	        fparam3 = fparams[f_idx++];    // factor
+
+	        result = gyroid(voxelSize,fparam1,fparam2,fvparam1,fparam3,pos);
+	        break;
+	    case 5:  // torus
+            fvparam1 = fvparams[fv_idx++];
+            fparam1 = fparams[f_idx++];
+            fparam2 = fparams[f_idx++];
+            result = torus(voxelSize,fvparam1,fparam1,fparam2,pos);
+            break;
+	    case 6:   // intersection start
+	        presult = result;
+	        break;
+	    case 7:   // intersection mid
+	        presult = intersectionOp(presult,result);
+	        break;
+	    case 8:  // intersection end
+	        result = intersectionOp(presult,result);
+            break;
+	    case 9:   // union start
+	        presult = result;
+	        break;
+	    case 10:   // union mid
+	        presult = unionOp(presult,result);
+	        break;
+	    case 11:  // union end
+	        result = unionOp(presult,result);
+            break;
+	    case 12: // subtraction start
+	        presult = result;
+	        break;
+	    case 13:  // subtraction end
+//	        result = subtraction(presult,result);
+	        result = subtraction(result,presult);
+            break;
+	    case 1000: // reset
+	        pos = pos0;
+	        break;
+	    case 1001:  // scale
+	        fvparam1 = fvparams[fv_idx++];
+	        pos = scale(fvparam1,pos);
+
+	        // TODO: should this change vs
+	        break;
+        case 1002: // translation
+	        fvparam1 = fvparams[fv_idx++];
+	        pos = translation(fvparam1,pos);
+	        break;
+	    case 1003: // rotation
+	        fvparam1 = fvparams[fv_idx++];
+	        mparam1 = mparams[m_idx++];
+
+	        pos = rotation(fvparam1,mparam1,pos);
+	        break;
+
+      }
+   }
+
+   return result;
+}
+
+inline float getDensity(const global int * op, int len, const global float * fparams, const global int * iparams, const global float3 * fvparams, const global char * bparams, const global float16 * mparams, float worldScale, float3 pos0){
+   float d = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos0);
+   /*
+   float f = 30.;
+   float x = pos.x*f;
+   float y = pos.y*f;
+   float z = pos.z*f;
+   d += 0.0003*(2-fabs(1-fabs((sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x)))));
+   */
+   d = step10_(d,0,0.0001);
+   return d;
+}
+
+float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, global const float* invViewMatrix,float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
     float4 eyeRay_d;    // eye direction
@@ -196,39 +270,39 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
     int hit = -1;
     // march along ray from tnear till we hit something
-	
     float t = tnear;
 
     float4 tpos;
     float3 pos;
     float density;
 
-    tpos = eyeRay_o + eyeRay_d*t;
-    pos = tpos.xyz; 
+/*
+    density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
 
-    density = readShapeJS(pos);
-	if (density > 0.5){  // solid on the boundary 
-		return (float3)(1.f,0,0);
-	}	
-
+	if (density > 0.5){  // solid on the boundary
+		return step10_(1,0,0.0001);
+	}
+*/
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
         pos = tpos.xyz; 
-        density = readShapeJS(pos);
+
+        density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
 
         if (density > 0.5){  // overshot the surface 
-			
+			//return (float3)(1,0,0);
 			int backcount = 10;
-			while(density > 0.5 && backcount-- > 0 ){
+			while(density > 0.5 && backcount-- > 0){
 			   t -= 0.1*tstep;  // back off
 			   pos = (eyeRay_o + eyeRay_d*t).xyz;
-			   density = readShapeJS(pos);
+			   density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
 			}			   
 			// && density <= 1.) {
            hit = i;
+		   // calculate gradient along the ray 
 		   float dt = 0.01*tstep;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
-		   float gp = (readShapeJS(p1)-density)/dt;
+		   float gp = (getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,p1)-density)/dt;
 		   float ddt = (0.5-density)/gp;
 		   //if( true ){
 		   if( true) {//ddt > -0.5*tstep && ddt < 0.5*tstep){
@@ -254,22 +328,34 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         // use exact answer for a sphere
         //float3 grad = normalize((float3)(pos.x,pos.y,pos.z));
 
+        // Gradient Calc - http://stackoverflow.com/questions/21272817/compute-gradient-for-voxel-data-efficiently
         float3 grad;
+//        float dist = voxelSize / 2.0; // This is what I expect we should use or just voxelSize
         float dist = tstep*0.01;
 
         // second order precision formula for gradient
         // x
-        float xd0 = readShapeJS((float3) (pos.x + dist, pos.y, pos.z));
-        float xd2 = readShapeJS((float3) (pos.x - dist, pos.y, pos.z));
+        float xd0 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x + dist, pos.y, pos.z));
+        float xd2 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x - dist, pos.y, pos.z));
         grad.x = (xd2 - xd0)/(2*dist);
+        //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
-        float yd0 = readShapeJS((float3) (pos.x,pos.y + dist, pos.z));
-        float yd2 = readShapeJS((float3) (pos.x, pos.y - dist, pos.z));
+        float yd0 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x,pos.y + dist, pos.z));
+        float yd2 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x, pos.y - dist, pos.z));
         grad.y = (yd2 - yd0)/(2*dist);
+        //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
         // z
-        float zd0 = readShapeJS((float3) (pos.x,pos.y, pos.z + dist));
-        float zd2 = readShapeJS((float3) (pos.x, pos.y, pos.z - dist));
+        float zd0 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x,pos.y, pos.z + dist));
+        float zd2 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x, pos.y, pos.z - dist));
         grad.z = (zd2 - zd0)/(2*dist);
+        //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
+
+#ifdef DEBUG
+if (x==171 && y==160) {
+printf("x: %4d y: %4d dens: %7.4f xd0: %7.4f xd2: %7.5f grad: %7.4f\n",x,y,density,xd0,xd2,grad.x);
+printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float3)(pos.x - dist, pos.y, pos.z),(float3) (pos.x + dist, pos.y, pos.z));
+}
+#endif
 
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model
@@ -372,7 +458,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 }
 
 #ifdef SUPERSAMPLE
-kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix) {
+kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
@@ -419,10 +505,10 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
     // TODO: we can factor out the bounding box test to speed this up
     float3 sum = (float3)(0,0,0);
 
-    sum += renderPixel(x,y,u - subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix);
-    sum += renderPixel(x,y,u + subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix);
-    sum += renderPixel(x,y,u - subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix);
-    sum += renderPixel(x,y,u + subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix);
+    sum += renderPixel(x,y,u - subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u + subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u - subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u + subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
 
     float3 shading = sum / 4;
 /*
@@ -462,7 +548,7 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
 #endif
 
 #ifndef SUPERSAMPLE
-kernel void render(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix) {
+kernel void render(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
@@ -506,7 +592,7 @@ kernel void render(global uint *d_output, uint imageW, uint imageH, global const
     }
 	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
 
-    float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix);
+    float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
 
     shading = clamp(shading, 0.0f, 1.0f);
 

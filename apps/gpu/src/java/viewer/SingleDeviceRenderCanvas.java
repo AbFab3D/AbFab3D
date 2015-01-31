@@ -164,7 +164,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
     @Override
     public void init(GLAutoDrawable drawable) {
-        printf("Init canvas: %d\n",debug);
+        printf("Init canvas: debug: %b\n",debug);
         if (clContext != null) return;
 
         this.drawable = drawable;
@@ -334,7 +334,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
         //w = 16;
         int h = height;
 
-        if (!renderVersion.equals("opcode") && !renderVersion.equals("opcode_v2")) {
+        if (!renderVersion.equals(VolumeRenderer.VERSION_OPCODE) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
             renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
         } else {
             renderer.renderOps(view, 0,0,w,h,w, h, viewBuffer, worldScale, commandQueue, clPixelBuffer);

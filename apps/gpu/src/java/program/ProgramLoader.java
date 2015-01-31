@@ -29,7 +29,13 @@ public class ProgramLoader {
         for(int i=0; i < len; i++) {
             InputStream is = getStreamFor(filename[i]);
             String st = IOUtils.toString(is, "UTF-8");
+            bldr.append("// Include: ");
+            bldr.append(filename[i]);
+            bldr.append("\n");
             bldr.append(st);
+            bldr.append("\n");
+            bldr.append("// End Include: ");
+            bldr.append(filename[i]);
             bldr.append("\n");
 
         }
@@ -43,7 +49,13 @@ public class ProgramLoader {
         for(int i=0; i < len; i++) {
             InputStream is = getStreamFor(filename[i]);
             String st = IOUtils.toString(is, "UTF-8");
+            bldr.append("// Include: ");
+            bldr.append(filename[i]);
+            bldr.append("\n");
             bldr.append(st);
+            bldr.append("\n");
+            bldr.append("// End Include: ");
+            bldr.append(filename[i]);
             bldr.append("\n");
 
         }
@@ -65,9 +77,17 @@ public class ProgramLoader {
         for(int i=0; i < len; i++) {
             Object o = list.get(i);
             if (o instanceof File){
-                InputStream is = getStreamFor(((File)o).getName());
+                String name = ((File)o).getName();
+                InputStream is = getStreamFor(name);
                 String st = IOUtils.toString(is, "UTF-8");
+                bldr.append("// Include: ");
+                bldr.append(name);
+                bldr.append("\n");
                 bldr.append(st);
+                bldr.append("\n");
+                bldr.append("// End Include: ");
+                bldr.append(name);
+                bldr.append("\n");
             } else {
                 bldr.append((String)o);
             }

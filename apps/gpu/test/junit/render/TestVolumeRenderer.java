@@ -55,7 +55,9 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
  * @author Alan Hudson
  */
 public class TestVolumeRenderer extends TestCase {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
+    public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
+
     private CLDevice device;
     private CLContext context;
     private CLCommandQueue queue;
@@ -76,6 +78,9 @@ public class TestVolumeRenderer extends TestCase {
         return new TestSuite(TestVolumeRenderer.class);
     }
 
+    /**
+     * Look at using GPU to make a jpg directly, could save 14ms or about 50%
+     */
     public void testSpeed() {
         int width = 512;
         int height = 512;
@@ -96,6 +101,9 @@ public class TestVolumeRenderer extends TestCase {
         String jobID = UUID.randomUUID().toString();
 
         int TIMES = 5;
+
+        if (DEBUG) TIMES = 1;
+
         for (int i = 0; i < TIMES; i++) {
             t0 = System.nanoTime();
             BufferedImage base = render(jobID, "scripts/gyrosphere.js", width, height,pixels);
@@ -204,11 +212,10 @@ public class TestVolumeRenderer extends TestCase {
     }
 
     private BufferedImage render(String script, int width, int height) {
-        String ver = VolumeRenderer.VERSION_OPCODE_V2;
         List<Instruction> inst = loadScript(script);
         ArrayList progs = new ArrayList();
 
-        boolean result = renderer.init(progs, inst, "", ver);
+        boolean result = renderer.init(progs, inst, "", VERSION);
 
         if (!result) {
             CLProgram program = renderer.getProgram();
@@ -239,7 +246,6 @@ public class TestVolumeRenderer extends TestCase {
      * @return
      */
     private BufferedImage render(String jobID, String script, int width, int height,int[] pixels) {
-        String ver = VolumeRenderer.VERSION_OPCODE_V2;
         List<Instruction> inst = null;
 
         inst = cache.get(jobID);
@@ -251,7 +257,7 @@ public class TestVolumeRenderer extends TestCase {
         }
         ArrayList progs = new ArrayList();
 
-        boolean result = renderer.init(progs, inst, "", ver);
+        boolean result = renderer.init(progs, inst, "", VERSION);
 
         if (!result) {
             CLProgram program = renderer.getProgram();

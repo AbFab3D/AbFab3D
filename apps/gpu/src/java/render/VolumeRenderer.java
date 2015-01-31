@@ -28,13 +28,14 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
-    private static final boolean DEBUG = false;
-    private static final boolean CACHE_PROGRAM = true;
+    private static final boolean DEBUG = true;
+    private static final boolean CACHE_PROGRAM = false;
     private static final String CACHE_LOCATION = "/tmp/openCL_cache";
 
     public static final String VERSION_DIST = "dist";
     public static final String VERSION_OPCODE = "opcode";
     public static final String VERSION_OPCODE_V2 = "opcode_v2";
+    public static final String VERSION_OPCODE_V2_DIST = "opcode_v2_dist";
     public static final String VERSION_DENS = "dens";
 
     private float[] viewData = new float[16];
@@ -134,12 +135,13 @@ public class VolumeRenderer {
                 list.add(new File("ShapeJS_" + renderVersion + ".cl"));
                 list.addAll(progs);
 
-                if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2)) {
+                if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
                     // TODO: this would need to be updated to support jar file deployment
                     File dir = new File("classes");
                     String[] files = dir.list();
+                    String rv = renderVersion + ".cl";
                     for (int i = 0; i < files.length; i++) {
-                        if (files[i].contains(VolumeRenderer.VERSION_OPCODE_V2)) {
+                        if (files[i].contains(rv)) {
                             if (files[i].contains("VolumeRenderer") || files[i].contains("ShapeJS")) {
                                 continue;
                             }
@@ -181,7 +183,7 @@ public class VolumeRenderer {
                 }
             }
 
-            if (renderVersion.equals(VERSION_OPCODE) || renderVersion.equals(VERSION_OPCODE_V2)) {
+            if (renderVersion.equals(VERSION_OPCODE) || renderVersion.equals(VERSION_OPCODE_V2) || renderVersion.equals(VERSION_OPCODE_V2_DIST)) {
                 float[] fparams;
                 int[] iparams;
                 float[] fvparams;

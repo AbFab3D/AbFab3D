@@ -240,7 +240,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                 String dcode = writer.createText(inst, scale);
                 printf("Debug Code: \n%s\n", dcode);
             }
-        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2)) {
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
                 OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
                 inst = writer.generate((Parameterizable) source, scale);
                 if (DEBUG) {
