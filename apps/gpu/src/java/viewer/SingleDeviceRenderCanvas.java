@@ -164,7 +164,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
     @Override
     public void init(GLAutoDrawable drawable) {
-        printf("Init canvas\n");
+        printf("Init canvas: %d\n",debug);
         if (clContext != null) return;
 
         this.drawable = drawable;

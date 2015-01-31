@@ -23,6 +23,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import shapejs.ShapeJSEvaluator;
+import viewer.OpenCLOpWriterV2;
 import viewer.OpenCLWriter;
 
 import javax.imageio.ImageIO;
@@ -34,6 +35,7 @@ import java.awt.image.WritableRaster;
 import java.io.*;
 import java.nio.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
@@ -47,7 +49,7 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
  * @author Alan Hudson
  */
 public class TestVolumeRenderer extends TestCase {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private CLDevice device;
     private CLContext context;
     private CLCommandQueue queue;
@@ -55,6 +57,7 @@ public class TestVolumeRenderer extends TestCase {
     private CLBuffer<FloatBuffer> viewBuffer;
     private IntBuffer dest;
     private CLBuffer<IntBuffer> pixelBuffer;
+    private float worldScale;
     private long lastLoadScriptTime;
     private long lastImageTime;
     private long lastPngTime;
@@ -70,9 +73,9 @@ public class TestVolumeRenderer extends TestCase {
         int width = 512;
         int height = 512;
 
-        initCL(true, width, height);
+        initCL(DEBUG, width, height);
 
-        int TIMES = 1;
+        int TIMES = 3;
         for(int i=0; i < TIMES; i++) {
             long t0 = System.nanoTime();
             BufferedImage base = render("scripts/gyrosphere.js", width, height);
@@ -156,19 +159,19 @@ public class TestVolumeRenderer extends TestCase {
     }
 
     private BufferedImage render(String script, int width, int height) {
-        String code = loadScript(script);
+        String ver = VolumeRenderer.VERSION_OPCODE_V2;
+        List<Instruction> inst = loadScript(script);
         ArrayList progs = new ArrayList();
-        progs.add(code);
 
-        boolean result = renderer.init(progs, null,"","opcode");
+        boolean result = renderer.init(progs, inst,"",VolumeRenderer.VERSION_OPCODE_V2);
 
         if (!result) {
             CLProgram program = renderer.getProgram();
-            printf("%s\n", program.getBuildStatus());
-            printf("%s\n", program.getBuildLog());
+            printf("Status: %s\n", program.getBuildStatus());
+            printf("Build Log: %s\n", program.getBuildLog());
         }
         assertTrue("Compiled", result);
-        renderer.render(getView(), width, height, viewBuffer, queue, pixelBuffer);
+        renderer.renderOps(getView(), 0, 0, width,height,width, height, viewBuffer, worldScale, queue, pixelBuffer);
 
         long t0 = System.nanoTime();
         queue.putReadBuffer(pixelBuffer, true); // read results back (blocking read)
@@ -222,20 +225,22 @@ public class TestVolumeRenderer extends TestCase {
         pixelBuffer = context.createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER);
     }
 
-    private String loadScript(String filename) {
+    private List<Instruction> loadScript(String filename) {
         long t0 = System.nanoTime();
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
         DataSource source = eval.runScript(filename, bounds);
 
-        OpenCLWriter writer = new OpenCLWriter();
+        OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
         Vector3d scale;
         scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
+        worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
+
         //printf("Scale is: %s\n", scale);
-        String code = writer.generate((Parameterizable)source, scale);
+        List<Instruction> inst = writer.generate((Parameterizable) source, scale);
 
         lastLoadScriptTime = System.nanoTime() - t0;
-        return code;
+        return inst;
     }
 
     /*

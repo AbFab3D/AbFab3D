@@ -24,6 +24,7 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
+    private static final boolean DEBUG = false;
 
     public static final String VERSION_DIST = "dist";
     public static final String VERSION_OPCODE = "opcode";
@@ -110,16 +111,24 @@ public class VolumeRenderer {
                         if (files[i].contains("VolumeRenderer") || files[i].contains("ShapeJS") ) {
                             continue;
                         }
-                        printf("Adding OpenCL file: %s\n",files[i]);
                         list.add(new File(files[i]));
                     }
                 }
             }
             list.add(new File("VolumeRenderer_" + renderVersion + ".cl"));
+
+
+            if (DEBUG) {
+                printf("Loading files:\n");
+                for (int i = 0; i < list.size(); i++) {
+                    printf("%s\n", list.get(i));
+                }
+                printf("Prog: \n%s\n", progs);
+            }
             program = ProgramLoader.load(context, list);
             program.build(buildOpts);
 
-            printf("Build status: %s\n",program.getBuildStatus());
+            if (DEBUG) printf("Build status: %s\n",program.getBuildStatus());
             if (!program.isExecutable()) return false;
 
             if (renderVersion.equals(VERSION_OPCODE) || renderVersion.equals(VERSION_OPCODE_V2)) {
