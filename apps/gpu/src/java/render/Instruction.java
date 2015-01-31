@@ -1,9 +1,14 @@
 package render;
 
+import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
+import abfab3d.param.Parameterizable;
 
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Vector3d;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * OpenCL instruction
@@ -38,6 +43,32 @@ public class Instruction {
     private ParameterType types[];
     private int tcount;
 
+    private static final HashMap<String, Integer> opcodes;
+
+    static {
+        opcodes=new HashMap<String, Integer>();
+        opcodes.put("sphere",0);
+        opcodes.put("box",1);
+        opcodes.put("gyroid",2);
+        opcodes.put("intersection",3);
+        opcodes.put("union",4);
+        opcodes.put("torus",5);
+        opcodes.put("intersectionStart",6);
+        opcodes.put("intersectionMid",7);
+        opcodes.put("intersectionEnd",8);
+        opcodes.put("unionStart",9);
+        opcodes.put("unionMid",10);
+        opcodes.put("unionEnd",11);
+        opcodes.put("subtractionStart",12);
+        opcodes.put("subtractionEnd",13);
+
+        opcodes.put("reset",1000);
+        opcodes.put("scale",1001);
+        opcodes.put("translation",1002);
+        opcodes.put("rotation",1003);
+    }
+
+
     public Instruction() {
         fcount = 0;
         icount = 0;
@@ -46,6 +77,12 @@ public class Instruction {
 
         tcount = 0;
         types = new ParameterType[CHUNK_SIZE];
+    }
+
+    public Instruction(String op) {
+        this();
+
+        setOpCode(getOpCode(op));
     }
 
     public void setOpCode(int code) {
@@ -370,4 +407,108 @@ public class Instruction {
     public int getTypeCount() {
         return tcount;
     }
+
+    /**
+     * Add in the call params.
+     * @param source
+     * @param inst
+     * @param exclude Params to exclude
+     */
+    public static void addCallParams(Parameterizable source, Instruction inst, Set<String> exclude) {
+        Parameter[] params = ((Parameterizable) source).getParams();
+
+        // generic mapper, will not work if the function has an initializer
+
+        int len = params.length;
+
+        for(int i=0; i < len; i++) {
+            if (exclude != null && exclude.contains(params[i].getName())) continue;
+
+            addCallParam(params[i],inst);
+        }
+
+    }
+
+    public static void addCallParam(Parameter param, Instruction inst) {
+        ParameterType type = param.getType();
+        Object value = param.getValue();
+
+        addCallParam(type, value, inst);
+    }
+
+    /**
+     * Add in the call params.
+     * @param inst
+     */
+    public static void addCallParam(ParameterType type, Object value, Instruction inst) {
+        switch(type) {
+            case INTEGER:
+                inst.addInt((Integer) value);
+                break;
+            case DOUBLE:
+                inst.addFloat(((Double)value).floatValue());
+                break;
+            case VECTOR_3D:
+                Vector3d v3d = (Vector3d) value;
+                float[] vec = new float[3];
+                vec[0] = (float) v3d.x;
+                vec[1] = (float) v3d.y;
+                vec[2] = (float) v3d.z;
+                inst.addFloatVector3(vec);
+                break;
+            case MATRIX_4D:
+                Matrix4d m4d = (Matrix4d) value;
+                float[] mvec = new float[16];
+                mvec[0] = (float) m4d.m00;
+                mvec[1] = (float) m4d.m01;
+                mvec[2] = (float) m4d.m02;
+                mvec[3] = (float) m4d.m03;
+                mvec[4] = (float) m4d.m10;
+                mvec[5] = (float) m4d.m11;
+                mvec[6] = (float) m4d.m12;
+                mvec[7] = (float) m4d.m13;
+                mvec[8] = (float) m4d.m20;
+                mvec[9] = (float) m4d.m21;
+                mvec[10] = (float) m4d.m22;
+                mvec[11] = (float) m4d.m23;
+                mvec[12] = (float) m4d.m30;
+                mvec[13] = (float) m4d.m31;
+                mvec[14] = (float) m4d.m32;
+                mvec[15] = (float) m4d.m33;
+
+                inst.addMatrix(mvec);
+                break;
+            case BOOLEAN:
+                inst.addBoolean((Boolean)value);
+                break;
+            default:
+                throw new IllegalArgumentException("Parameter type not mapped: " + type);
+        }
+    }
+
+    public static void addCallParams(Parameterizable source, Instruction inst) {
+        addCallParams(source,inst,null);
+    }
+
+    public static int getOpCode(String name) {
+        Integer op = opcodes.get(name);
+
+        if (op ==  null) {
+            throw new IllegalArgumentException("Undefined op: " + name);
+        }
+
+        return op.intValue();
+    }
+
+    public static String convertOpToFunction(int op) {
+        for(Map.Entry<String,Integer> entry : opcodes.entrySet()) {
+            if (entry.getValue().equals(op)) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
+    }
+
+
 }

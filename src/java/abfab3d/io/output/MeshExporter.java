@@ -246,7 +246,7 @@ public class MeshExporter {
     public static void writeMesh(TriangleMesh we, BinaryContentHandler writer, Map<String,
             Object> params, boolean meshOnly, String defName) throws IOException {
 
-        writeMesh(we,writer,params,null,meshOnly,null);
+        writeMesh(we,writer,params,null,meshOnly,defName);
     }
 
 

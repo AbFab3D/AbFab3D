@@ -133,14 +133,15 @@ float4 mulMatVec4(global const float*mat, float4 vec){
 	return (float4)(f0, f1, f2, f3);
 }
 
-float readShapeJS(const global int * op, int len, const global float * fparams, const global int * iparams, const global float3 * fvparams, const global char * bparams, const global float16 * mparams, float3 pos0) {
+float readShapeJS(const global int * op, int len, const global float * fparams, const global int * iparams, const global float3 * fvparams, const global char * bparams, const global float16 * mparams, float worldScale, float3 pos0) {
    int f_idx = 0;
    int i_idx = 0;
    int fv_idx = 0;
    int b_idx = 0;
    int m_idx = 0;
 
-   float results[10];
+   float result;
+   float presult;
 
    float fparam1;
    float fparam2;
@@ -153,22 +154,33 @@ float readShapeJS(const global int * op, int len, const global float * fparams, 
    char bparam1;
 
    float vs = voxelSize;
+   pos0 *= worldScale;
+
    float3 pos = pos0;
-   float3 tmp;
+
+#ifdef DEBUG
+if (get_global_id(0) == 74) printf("id: %d Ops: %d\n",get_global_id(0),len);
+#endif
 
    int ridx = 0;
    for(int i=0; i < len; i++) {
+#ifdef DEBUG
+if (get_global_id(0) == 74) printf("Op: %d\n",op[i]);
+#endif
       switch(op[i]) {
 	    case 0:  // sphere
 	        fvparam1 = fvparams[fv_idx++];
 	        fparam1 = fparams[f_idx++];
 	        bparam1 = bparams[b_idx++];
-	        results[ridx++] = sphere(voxelSize,fvparam1,fparam1,bparam1,pos);
+	        result = sphere(voxelSize,fvparam1,fparam1,bparam1,pos);
 	        break;
 	    case 1:   // box
 	        fvparam1 = fvparams[fv_idx++];
 	        fvparam2 = fvparams[fv_idx++];
-	        results[ridx++] = box(voxelSize,fvparam1,fvparam2,pos);
+#ifdef DEBUG
+if (get_global_id(0) == 74) printf("Box:  vs: %f xmin: %v3f  xmax: %v3f  pos: %v3f\n",voxelSize,fvparam1,fvparam2,pos);
+#endif
+	        result = box(voxelSize,fvparam1,fvparam2,pos);
 	        break;
 	    case 2:  // gyroid
 	        fparam1 = fparams[f_idx++]; // level
@@ -176,53 +188,41 @@ float readShapeJS(const global int * op, int len, const global float * fparams, 
 	        fvparam1 = fvparams[fv_idx++]; // offset
 	        fparam3 = fparams[f_idx++];    // factor
 
-	        results[ridx++] = gyroid(voxelSize,fparam1,fparam2,fvparam1,fparam3,pos);
+	        result = gyroid(voxelSize,fparam1,fparam2,fvparam1,fparam3,pos);
 	        break;
-	    case 3:  // intersection
-	        iparam1 = iparams[i_idx++];
-	        iparam2 = iparams[i_idx++];
-	        results[ridx++] = intersectionOp(results[iparam1],results[iparam2]);    // TODO: I suspect this indirect indexing is bad for performance
-	        break;
-	    case 4:  // union
-	        iparam1 = iparams[i_idx++];
-	        iparam2 = iparams[i_idx++];
-
-	        results[ridx++] = unionOp(results[iparam1],results[iparam2]);
-	        break;
-	    case 5: // subtraction
-	        iparam1 = iparams[i_idx++];
-	        iparam2 = iparams[i_idx++];
-
-	        results[ridx++] = subtraction(results[iparam1],results[iparam2]);
-	        break;
-	    case 6:   // intersection arr
-	        iparam1 = iparams[i_idx++];   // count
-
-            results[ridx] = results[iparams[i_idx++]];
-	        for(int i=1; i < iparam1; i++) {
-	            results[ridx] = min(results[ridx],results[iparams[i_idx++]]);
-            }
-            ridx++;
-	        break;
-	    case 7:   // union arr
-	        iparam1 = iparams[i_idx++];   // count
-
-            results[ridx] = results[iparams[i_idx++]];
-	        for(int i=1; i < iparam1; i++) {
-	            results[ridx] = max(results[ridx],results[iparams[i_idx++]]);
-            }
-            ridx++;
-	        break;
-	    case 8:  // torus
+	    case 5:  // torus
             fvparam1 = fvparams[fv_idx++];
             fparam1 = fparams[f_idx++];
             fparam2 = fparams[f_idx++];
-            results[ridx++] = torus(voxelSize,fvparam1,fparam1,fparam2,pos);
+            result = torus(voxelSize,fvparam1,fparam1,fparam2,pos);
+            break;
+	    case 6:   // intersection start
+	        presult = result;
+	        break;
+	    case 7:   // intersection mid
+	        presult = min(presult,result);
+	        break;
+	    case 8:  // intersection end
+	        result = min(presult,result);
+            break;
+	    case 9:   // union start
+	        presult = result;
+	        break;
+	    case 10:   // union mid
+	        presult = max(presult,result);
+	        break;
+	    case 11:  // union end
+	        result = max(presult,result);
+            break;
+	    case 12: // subtraction start
+	        presult = result;
+	        break;
+	    case 13:  // subtraction end
+//	        result = subtraction(presult,result);
+	        result = subtraction(result,presult);
             break;
 	    case 1000: // reset
 	        pos = pos0;
-	        fvparam1 = fvparams[fv_idx++];
-	        pos /= fvparam1;
 	        break;
 	    case 1001:  // scale
 	        fvparam1 = fvparams[fv_idx++];
@@ -239,102 +239,15 @@ float readShapeJS(const global int * op, int len, const global float * fparams, 
 	        mparam1 = mparams[m_idx++];
 
 	        pos = rotation(fvparam1,mparam1,pos);
-
-            /*
-	        // inlined version
-            float3 tmp = pos - fvparam1;
-
-            pos = (float3)(
-               dot(mparam1.s048, tmp),
-               dot(mparam1.s159, tmp),
-               dot(mparam1.s26A, tmp)) + fvparam1;
-            */
-
 	        break;
 
       }
    }
 
-   return results[ridx-1];
+   return result;
 }
 
-float readShapeJSDebug(const global int * op, int len, const global float * fparams, const global int * iparams, const global float3 * fvparams, const global char * bparams, float3 pos0) {
-   int f_idx = 0;
-   int i_idx = 0;
-   int fv_idx = 0;
-   int b_idx = 0;
-
-   float results[10];
-
-   float fparam1;
-   float fparam2;
-   float fparam3;
-   float3 fvparam1;
-   float3 fvparam2;
-   int iparam1;
-   int iparam2;
-   char bparam1;
-
-  float vs = voxelSize;
-   float3 pos = pos0;
-
-   int ridx = 0;
-   for(int i=0; i < len; i++) {
-      int opCode = op[i];
-
-      switch(opCode) {
-	    case 0:
-	        fvparam1 = fvparams[fv_idx++];
-	        fparam1 = fparams[f_idx++];
-	        bparam1 = bparams[b_idx++];
-	        results[ridx++] = sphere(vs,fvparam1,fparam1,bparam1,pos);
-	        break;
-	    case 1:
-	        fvparam1 = fvparams[fv_idx++];
-	        fvparam2 = fvparams[fv_idx++];
-	        results[ridx++] = box(vs,fvparam1,fvparam2,pos);
-	        break;
-	    case 2:
-	        fparam1 = fparams[f_idx++];
-	        fparam2 = fparams[f_idx++];
-	        fvparam1 = fvparams[fv_idx++];
-	        fparam3 = fparams[f_idx++];
-#ifdef DEBUG 
-		printf("Pos into gyoid: %v3f\n",pos);
-#endif 
-	        results[ridx++] = gyroidDebug(vs,fparam1,fparam2,fvparam1,fparam3,pos);
-	        break;
-	    case 3:
-	        iparam1 = iparams[i_idx++];
-	        iparam2 = iparams[i_idx++];
-	        results[ridx++] = intersectionOp(results[iparam1],results[iparam2]);    // TODO: I suspect this indirect indexing is bad for performance
-	        break;
-	    case 4:
-	        iparam1 = iparams[i_idx++];
-	        iparam2 = iparams[i_idx++];
-
-	        results[ridx++] = unionOp(results[iparam1],results[iparam2]);
-	        break;
-	    case 5:
-	        iparam1 = iparams[i_idx++];
-	        iparam2 = iparams[i_idx++];
-
-	        results[ridx++] = subtraction(results[iparam1],results[iparam2]);
-	        break;
-	    case 1000:  // scale
-	        fvparam1 = fvparams[fv_idx++];
-	        pos *= fvparam1;
-#ifdef DEBUG
-	        printf("Scaling pos to: %v3f\n",pos);
-#endif 
-	        break;
-      }
-   }
-
-   return results[ridx-1];
-}
-
-float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, global const float* invViewMatrix, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
+float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
     float4 eyeRay_d;    // eye direction
@@ -353,29 +266,29 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     float density;
 
     tpos = eyeRay_o + eyeRay_d*t;
-    pos = tpos.xyz; 
-    density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
-	if (density > 0.5){  // solid on the boundary 
+    pos = tpos.xyz;
+    density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
+	if (density > 0.5){  // solid on the boundary
 		return (float3)(1.f,0,0);
-	}	
+	}
 
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
-        pos = tpos.xyz; 
+        pos = tpos.xyz;
 
-        density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
+        density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
 
         if (density > 0.5){  // overshot the surface
 			int backcount = 10;
 			while(density > 0.5 && backcount-- > 0 ){
-			   t -= 0.1*tstep;  // back off 
+			   t -= 0.1*tstep;  // back off
 			   pos = (eyeRay_o + eyeRay_d*t).xyz;
-			   density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,pos);
-			}			   
+			   density = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
+			}
            hit = i;
 		   float dt = 0.01*tstep;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
-		   float gp = (readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,p1)-density)/dt;
+		   float gp = (readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,p1)-density)/dt;
 		   float ddt = (0.5-density)/gp;
 		   //if( true ){
 		   if( true) {//ddt > -0.5*tstep && ddt < 0.5*tstep){
@@ -410,27 +323,20 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
         // second order precision formula for gradient
         // x
-        float xd0 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,(float3) (pos.x + dist, pos.y, pos.z));
-        float xd2 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,(float3) (pos.x - dist, pos.y, pos.z));
+        float xd0 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x + dist, pos.y, pos.z));
+        float xd2 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x - dist, pos.y, pos.z));
         grad.x = (xd2 - xd0)/(2*dist);
         //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
-        float yd0 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,(float3) (pos.x,pos.y + dist, pos.z));
-        float yd2 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,(float3) (pos.x, pos.y - dist, pos.z));
+        float yd0 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x,pos.y + dist, pos.z));
+        float yd2 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x, pos.y - dist, pos.z));
         grad.y = (yd2 - yd0)/(2*dist);
         //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
         // z
-        float zd0 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,(float3) (pos.x,pos.y, pos.z + dist));
-        float zd2 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,(float3) (pos.x, pos.y, pos.z - dist));
+        float zd0 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x,pos.y, pos.z + dist));
+        float zd2 = readShapeJS(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x, pos.y, pos.z - dist));
         grad.z = (zd2 - zd0)/(2*dist);
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
-
-#ifdef DEBUG
-if (x==171 && y==160) {
-printf("x: %4d y: %4d dens: %7.4f xd0: %7.4f xd2: %7.5f grad: %7.4f\n",x,y,density,xd0,xd2,grad.x);
-printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float3)(pos.x - dist, pos.y, pos.z),(float3) (pos.x + dist, pos.y, pos.z));
-}
-#endif
 
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model
@@ -490,14 +396,6 @@ printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float
 		float3 light1_sum = 0;
 		float3 light2_sum = 0;
 		float3 light3_sum = 0;
-
-        #ifdef DEBUG
-        uint debug = 0;
-        if (x==171 && y==160) {
-           printf("Debugging pixel\n");
-           debug = 1;
-        }
-        #endif
 
         #ifdef SHADOWS
         if (canSee(pos,light1
@@ -574,10 +472,10 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
     // TODO: we can factor out the bounding box test to speed this up
     float3 sum = (float3)(0,0,0);
 
-    sum += renderPixel(x,y,u - subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,op,len,fparams,iparams,fvparams,bparams,mparams);
-    sum += renderPixel(x,y,u + subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,op,len,fparams,iparams,fvparams,bparams,mparams);
-    sum += renderPixel(x,y,u - subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,op,len,fparams,iparams,fvparams,bparams,mparams);
-    sum += renderPixel(x,y,u + subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u - subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u + subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u - subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u + subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
 
     float3 shading = sum / 4;
 /*
@@ -655,7 +553,7 @@ kernel void render(global uint *d_output, uint imageW, uint imageH, global const
     }
 	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
 
-    float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix,op,len,fparams,iparams,fvparams,bparams,mparams);
+    float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
 
     shading = clamp(shading, 0.0f, 1.0f);
 

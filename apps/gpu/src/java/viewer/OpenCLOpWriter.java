@@ -68,6 +68,7 @@ public class OpenCLOpWriter {
         opcodes.put("union",4);
         opcodes.put("subtraction",5);
         opcodes.put("intersectionArr",6);
+        opcodes.put("unionArr",7);
         opcodes.put("torus",8);
 
         opcodes.put("reset",1000);
@@ -477,7 +478,6 @@ public class OpenCLOpWriter {
             int len = tchildren.length;
             for (int i=len-1; i >= 0; i--) {
                 SNode child = tchildren[i];
-                String pos;
 
                 transIdMap.put((Parameterizable)child,(transId));
                 generateTransform((Parameterizable) child);
