@@ -28,8 +28,8 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
-    private static final boolean DEBUG = true;
-    private static final boolean CACHE_PROGRAM = false;
+    private static final boolean DEBUG = false;
+    private static final boolean CACHE_PROGRAM = true;
     private static final String CACHE_LOCATION = "/tmp/openCL_cache";
 
     public static final String VERSION_DIST = "dist";
@@ -105,28 +105,34 @@ public class VolumeRenderer {
             printf("Building program with opts: %s\n", buildOpts);
 
             boolean from_cache = false;
-            if (CACHE_PROGRAM) {
-                CLDevice[] devices = context.getDevices();
-                int len = devices.length;
-                HashMap<CLDevice,byte[]> bins = new HashMap<CLDevice, byte[]>();
+            try {
+                if (CACHE_PROGRAM) {
+                    CLDevice[] devices = context.getDevices();
+                    int len = devices.length;
+                    HashMap<CLDevice, byte[]> bins = new HashMap<CLDevice, byte[]>();
 
-                try {
-                    for (int i = 0; i < len; i++) {
-                        CLDevice device = devices[i];
-                        String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
-                        File f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
-                        if (f.exists()) {
-                            byte[] bytes = FileUtils.readFileToByteArray(f);
-                            bins.put(device,bytes);
+                    try {
+                        for (int i = 0; i < len; i++) {
+                            CLDevice device = devices[i];
+                            String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
+                            File f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
+                            if (f.exists()) {
+                                byte[] bytes = FileUtils.readFileToByteArray(f);
+                                bins.put(device, bytes);
+                            }
+
+                            program = context.createProgram(bins);
+                            program.build(buildOpts);
+
+                            from_cache = true;
+                            printf("Successfully loaded cached OpenCL binaries\n");
                         }
-
-                        program = context.createProgram(bins);
-                        from_cache = true;
-                        printf("Successfully loaded cached OpenCL binaries\n");
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
                     }
-                } catch(IOException ioe) {
-                    ioe.printStackTrace();
                 }
+            } catch(Exception e) {
+                e.printStackTrace();
             }
 
             if (program == null) {
@@ -160,9 +166,9 @@ public class VolumeRenderer {
                     printf("Prog: \n%s\n", progs);
                 }
                 program = ProgramLoader.load(context, list);
+                program.build(buildOpts);
             }
 
-            program.build(buildOpts);
 
             if (DEBUG) printf("Build status: %s\n",program.getBuildStatus());
             if (!program.isExecutable()) return false;
@@ -324,10 +330,14 @@ public class VolumeRenderer {
 
             }
         } catch (Exception e) {
-            String src = program.getSource();
-            printf("Src: \n%s",src);
-            printf("End Source\n");
-            e.printStackTrace();
+            if (program == null) {
+                e.printStackTrace();
+            } else {
+                String src = program.getSource();
+                printf("Src: \n%s", src);
+                printf("End Source\n");
+                e.printStackTrace();
+            }
             return false;
         }
 

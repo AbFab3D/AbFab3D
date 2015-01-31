@@ -55,7 +55,7 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
  * @author Alan Hudson
  */
 public class TestVolumeRenderer extends TestCase {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
 
     private CLDevice device;
