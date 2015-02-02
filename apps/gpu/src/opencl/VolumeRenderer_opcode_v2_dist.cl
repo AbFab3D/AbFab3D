@@ -276,13 +276,12 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     float3 pos;
     float density;
 
-/*
     density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
 
 	if (density > 0.5){  // solid on the boundary
-		return step10_(1,0,0.0001);
+		return (float3)(1.f,0, 0);
 	}
-*/
+
     for(uint i=0; i < maxSteps; i++) {
         tpos = eyeRay_o + eyeRay_d*t;
         pos = tpos.xyz; 
@@ -349,13 +348,6 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         float zd2 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x, pos.y, pos.z - dist));
         grad.z = (zd2 - zd0)/(2*dist);
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
-
-#ifdef DEBUG
-if (x==171 && y==160) {
-printf("x: %4d y: %4d dens: %7.4f xd0: %7.4f xd2: %7.5f grad: %7.4f\n",x,y,density,xd0,xd2,grad.x);
-printf("   pos: %7.4v3f dist: %7.4f xd2: %7.4v3f xd0: %7.5v3f\n",pos,dist,(float3)(pos.x - dist, pos.y, pos.z),(float3) (pos.x + dist, pos.y, pos.z));
-}
-#endif
 
         // TODO: hardcode headlight from eye direction
         // from this equation: http://en.wikipedia.org/wiki/Phong_reflection_model
