@@ -5,7 +5,7 @@ import abfab3d.param.Parameterizable;
 import datasources.InstNode;
 import org.apache.commons.io.IOUtils;
 import program.ProgramLoader;
-import render.Instruction;
+import datasources.Instruction;
 
 import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Matrix4d;
@@ -14,7 +14,6 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 /**
  * Created by giles on 1/27/2015.

@@ -15,7 +15,7 @@ package transforms;
 import abfab3d.param.Parameterizable;
 import datasources.InstNode;
 import datasources.OpenCLNode;
-import render.Instruction;
+import datasources.Instruction;
 
 import java.util.List;
 import java.util.Map;

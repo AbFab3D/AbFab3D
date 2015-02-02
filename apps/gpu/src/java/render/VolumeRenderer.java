@@ -3,13 +3,13 @@ package render;
 import abfab3d.util.Units;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
+import datasources.Instruction;
 import gpu.GPUUtil;
 import org.apache.commons.io.FileUtils;
 import program.ProgramLoader;
 
 import javax.vecmath.Matrix4f;
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -111,24 +111,23 @@ public class VolumeRenderer {
                     int len = devices.length;
                     HashMap<CLDevice, byte[]> bins = new HashMap<CLDevice, byte[]>();
 
-                    try {
-                        for (int i = 0; i < len; i++) {
-                            CLDevice device = devices[i];
-                            String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
-                            File f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
-                            if (f.exists()) {
-                                byte[] bytes = FileUtils.readFileToByteArray(f);
-                                bins.put(device, bytes);
-                            }
+                    for (int i = 0; i < len; i++) {
+                        CLDevice device = devices[i];
+                        String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
+                        File f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
+                        if (f.exists()) {
+                            printf("Loading OpenCL program from binary\n");
+                            byte[] bytes = FileUtils.readFileToByteArray(f);
+                            bins.put(device, bytes);
+                        }
 
+                        if (bins.size() == len) {
                             program = context.createProgram(bins);
                             program.build(buildOpts);
 
                             from_cache = true;
                             printf("Successfully loaded cached OpenCL binaries\n");
                         }
-                    } catch (IOException ioe) {
-                        ioe.printStackTrace();
                     }
                 }
             } catch(Exception e) {
@@ -136,6 +135,7 @@ public class VolumeRenderer {
             }
 
             if (program == null) {
+                printf("Compiling text program\n");
                 //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
                 ArrayList list = new ArrayList();
                 list.add(new File("ShapeJS_" + renderVersion + ".cl"));
@@ -563,5 +563,9 @@ public class VolumeRenderer {
 
     public long getLastCompileTime() {
         return compileTime;
+    }
+
+    public CLCommandQueue getCommandQueue() {
+        return queue;
     }
 }

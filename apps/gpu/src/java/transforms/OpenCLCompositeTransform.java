@@ -4,13 +4,12 @@ import abfab3d.param.Parameterizable;
 import abfab3d.param.SNode;
 import datasources.InstNode;
 import datasources.OpenCLNode;
-import render.Instruction;
-import viewer.NodeFactory;
+import datasources.Instruction;
+import datasources.NodeFactory;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 /**
  * Created by giles on 1/27/2015.

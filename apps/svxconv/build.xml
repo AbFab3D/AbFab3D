@@ -124,9 +124,9 @@
         <java classname="svxconv.SVXConv" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
-            <arg value="stony/stony.svx" />
+            <arg value="bot/bot_battle_manual.svx" />
             <arg value="-output" />
-            <arg value="stony.x3db" />
+            <arg value="bot.x3db" />
 <!--
             <arg value="-input" />
             <arg value="cf6_1024.svx" />

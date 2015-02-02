@@ -6,7 +6,7 @@ import abfab3d.param.Vector3dParameter;
 import datasources.InstNode;
 import org.apache.commons.io.IOUtils;
 import program.ProgramLoader;
-import render.Instruction;
+import datasources.Instruction;
 
 import javax.vecmath.Vector3d;
 import java.io.IOException;

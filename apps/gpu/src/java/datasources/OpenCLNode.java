@@ -13,8 +13,6 @@
 package datasources;
 
 import abfab3d.param.Parameterizable;
-import render.Instruction;
-import viewer.NodeFactory;
 
 import java.io.IOException;
 import java.util.*;

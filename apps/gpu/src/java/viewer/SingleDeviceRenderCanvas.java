@@ -6,7 +6,7 @@ import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import com.jogamp.opencl.gl.CLGLContext;
 import com.jogamp.opengl.util.Animator;
-import render.Instruction;
+import datasources.Instruction;
 import render.VolumeRenderer;
 
 import javax.media.opengl.*;

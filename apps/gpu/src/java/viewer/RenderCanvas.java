@@ -1,11 +1,10 @@
 package viewer;
 
-import render.Instruction;
+import datasources.Instruction;
 
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLEventListener;
 import java.awt.*;
-import java.util.*;
 
 /**
  * Canvas for rendering, responsible for handling windows events and navigation.

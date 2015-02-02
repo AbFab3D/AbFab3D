@@ -4,7 +4,6 @@ import abfab3d.param.ParameterType;
 import abfab3d.param.Parameterizable;
 import org.apache.commons.io.IOUtils;
 import program.ProgramLoader;
-import render.Instruction;
 
 import javax.vecmath.Vector3d;
 import java.io.IOException;

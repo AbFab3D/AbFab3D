@@ -5,15 +5,12 @@ import abfab3d.param.Parameterizable;
 import abfab3d.param.SNode;
 import org.apache.commons.io.IOUtils;
 import program.ProgramLoader;
-import render.Instruction;
-import viewer.NodeFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 
 /**
  * Intersection datasource

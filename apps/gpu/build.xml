@@ -81,6 +81,20 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
+        <compilejava package="datasources" jars="js.jar" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
+        <compilejava package="transform" jars="js.jar" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
         <compilejava package="render" jars="" >
             <classpath-elements>
                 <pathelement path="${app.common.dir}/classes"/>

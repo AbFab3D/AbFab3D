@@ -4,10 +4,9 @@ import abfab3d.datasources.TransformableDataSource;
 import abfab3d.param.*;
 import abfab3d.util.DataSource;
 import abfab3d.util.VecTransform;
-import render.Instruction;
+import datasources.Instruction;
 
 import javax.vecmath.AxisAngle4d;
-import javax.vecmath.Matrix3d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Vector3d;
 import java.text.DecimalFormat;

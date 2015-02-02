@@ -1,4 +1,4 @@
-package viewer;
+package datasources;
 
 import datasources.OpenCLNode;
 

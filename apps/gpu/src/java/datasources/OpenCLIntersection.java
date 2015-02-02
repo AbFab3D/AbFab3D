@@ -1,23 +1,16 @@
 package datasources;
 
 import abfab3d.datasources.TransformableDataSource;
-import abfab3d.param.ParameterType;
 import abfab3d.param.Parameterizable;
 import abfab3d.param.SNode;
-import abfab3d.util.DataSource;
 import org.apache.commons.io.IOUtils;
 import program.ProgramLoader;
-import render.Instruction;
-import viewer.NodeFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
-
-import static java.lang.Math.PI;
 
 /**
  * Intersection datasource

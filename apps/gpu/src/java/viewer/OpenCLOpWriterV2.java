@@ -2,13 +2,12 @@ package viewer;
 
 import abfab3d.datasources.TransformableDataSource;
 import abfab3d.param.*;
-import abfab3d.util.DataSource;
 import abfab3d.util.VecTransform;
 import datasources.InstNode;
+import datasources.NodeFactory;
 import datasources.OpenCLNode;
-import render.Instruction;
+import datasources.Instruction;
 
-import javax.vecmath.AxisAngle4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.Vector3d;
 import java.text.DecimalFormat;
@@ -16,7 +15,6 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static abfab3d.util.Output.printf;
-import static java.lang.Math.PI;
 
 /**
  * Write a datasource tree to OpenCL using OpCodes

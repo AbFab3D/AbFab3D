@@ -15,7 +15,7 @@ import abfab3d.grid.Bounds;
 import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
-import render.Instruction;
+import datasources.Instruction;
 import render.VolumeRenderer;
 import shapejs.ShapeJSEvaluator;
 
@@ -583,6 +583,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                     lastUsed = i;
                 } else if (args[i].equals("-version")) {
                     renderVersion = args[++i];
+                    lastUsed = i;
                 } else if (args[i].startsWith("-")) {
                     System.out.println("Unknown flag: " + args[i]);
                     lastUsed = i;
@@ -600,6 +601,5 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
             vv.loadURL(filename);
         }
-
     }
 }

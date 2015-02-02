@@ -6,7 +6,7 @@ import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import com.jogamp.opencl.gl.CLGLContext;
 import com.jogamp.opengl.util.Animator;
-import render.Instruction;
+import datasources.Instruction;
 import render.VolumeRenderer;
 
 import javax.media.opengl.*;
@@ -26,6 +26,7 @@ import static com.jogamp.opencl.CLDevice.Type.GPU;
 import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
 import static com.jogamp.opencl.CLMemory.Mem.WRITE_ONLY;
 import static com.jogamp.opencl.util.CLPlatformFilters.type;
+import static java.lang.System.out;
 
 /**
  * Rendering thread.  Regenerate the image when navigation changes.
@@ -46,14 +47,18 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
     private transient boolean windowChanged = false;
     private transient boolean compiling = false;
     private VolumeRenderer[] renderer;
-    private CLDevice[] device;
+    private CLDevice glDevice;
+    private CLDevice[] devices;
     private int numDevices;
-    private CLGLContext clContext;
-    private CLCommandQueue[] commandQueue;
+    private CLGLContext glContext;
+    private CLContext[] contexts;
+    private CLCommandQueue glCommandQueue;
+    private CLCommandQueue[] commandQueues;
     private GLAutoDrawable drawable;
     private Animator animator;
     private CLGLBuffer[] clPixelBuffer;
     private int[] glPixelBuffer;
+    private CLBuffer[] clBuffer;
     private transient boolean rendering;
     private SNode scene;
     private String sceneProg;
@@ -65,7 +70,8 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
 
     // Scratch vars
     private Matrix4f view = new Matrix4f();
-    private CLBuffer<FloatBuffer> viewBuffer;
+    private CLBuffer<FloatBuffer> glViewBuffer;
+    private CLBuffer<FloatBuffer>[] viewBuffers;
     private final GLCanvas canvas;
     private String renderVersion = VolumeRenderer.VERSION_DIST;
 
@@ -172,11 +178,25 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
     @Override
     public void init(GLAutoDrawable drawable) {
         printf("Init canvas\n");
-        if (clContext != null) return;
+        if (glContext != null) return;
 
         this.drawable = drawable;
 
-        CLPlatform platform = CLPlatform.getDefault();
+        CLPlatform platforms[] = CLPlatform.listCLPlatforms();
+        CLPlatform platform = null;
+        for(int i =0; i < platforms.length; i++){
+            out.printf("platform[%d]: %s\n", i, platforms[i]);
+            if (platforms[i].getICDSuffix().equals("NV")) {
+                platform = platforms[i];
+            }
+            CLDevice devices[] = platforms[i].listCLDevices();
+            for(int k = 0; k < devices.length;k++){
+                out.printf("  device[%d]: %s\n", k, devices[k]);
+            }
+        }
+
+        devices = platform.listCLDevices();
+        CLContext context = CLContext.create(devices);
 
         if (platform.getName().contains("Apple")) {
             // Intel drivers seem to be borked, force to GeForce
@@ -186,31 +206,51 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
                 System.out.printf("Device: %s\n",d);
 
                 if (d.getName().contains("GeForce")) {
-                    device = new CLDevice[] {d};
+                    glDevice = d;
+                    devices = new CLDevice[] {d};
                     break;
                 }
-                /*
-                if (d.isGLMemorySharingSupported()) {
-                    device = d;
-                    break;
-                }
-                */
             }
 
         } else {
             if (debug) {
-                device = new CLDevice[] {CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice() };
+                glDevice = CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice();
+                devices = new CLDevice[] {CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice() };
             } else {
-                device = CLPlatform.getDefault(type(GPU)).listCLDevices();
+                // Do not try and meld all devices into one context, gives an CL_INVALID_OPERATION
+                devices = CLPlatform.getDefault(type(GPU)).listCLDevices();
+
+                CLDevice max = null;
+                int flops = 0;
+
+                for(int i=0; i < devices.length; i++) {
+                    int maxComputeUnits     = devices[i].getMaxComputeUnits();
+                    int maxClockFrequency   = devices[i].getMaxClockFrequency();
+
+                    if (maxClockFrequency * maxComputeUnits > flops) {
+                        max = devices[i];
+                        flops = maxClockFrequency * maxComputeUnits;
+                    }
+                }
+
+                glDevice = max;
+
+                CLDevice[] tdevices = new CLDevice[devices.length - 1];
+                int idx = 0;
+                for(int i=0; i < devices.length; i++) {
+                    if (devices[i] == glDevice) {
+                        continue;
+                    }
+
+                    tdevices[idx++] = devices[i];
+                }
+
+                devices = tdevices;
             }
         }
 
-        //device = new CLDevice[] {device[0]};
-        numDevices = device.length;
+        numDevices = devices.length;
 
-        for(int i=0; i < numDevices; i++) {
-            printf("%s Sharing: %b\n",device[i].getName(),device[i].isGLMemorySharingSupported());
-        }
         /*
         if (!device.isGLMemorySharingSupported()) {
             CLDevice[] devices = CLPlatform.getDefault().listCLDevices();
@@ -222,11 +262,20 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
             }
         }
         */
-        if(device == null) {
+        if(devices == null) {
             throw new RuntimeException("couldn't find any CL/GL memory sharing devices ..");
         }
 
-        clContext = CLGLContext.create(drawable.getContext(), device);
+        // TODO: Why can't we create one context, grrr...
+
+        //        glContext = CLGLContext.create(drawable.getContext(), devices);
+
+        glContext = CLGLContext.create(drawable.getContext(), glDevice);
+        contexts = new CLContext[numDevices];
+
+        for(int i=0; i < numDevices; i++) {
+            contexts[i] = CLContext.create(devices[i]);
+        }
         // enable GL error checking using the composable pipeline
         drawable.setGL(new DebugGL2(drawable.getGL().getGL2()));
 
@@ -251,18 +300,29 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
 
     private void initCL(GL2 gl, int bufferSize, boolean debug) {
         printf("initCL called\n");
-        commandQueue = new CLCommandQueue[numDevices];
-        renderer = new VolumeRenderer[numDevices];
-        for(int i=0; i < device.length; i++) {
-            commandQueue[i] = device[i].createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
-            renderer[i] = new VolumeRenderer(clContext,commandQueue[i]);
-            renderer[i].setMaxSteps(maxSteps);
-            renderer[i].setMaxShadowSteps(maxShadowSteps);
-            renderer[i].setMaxAntialiasingSteps(maxAntialiasingSteps);
+        glCommandQueue = glDevice.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
+        commandQueues = new CLCommandQueue[numDevices];
+        renderer = new VolumeRenderer[numDevices+1];
+
+        renderer[0] = new VolumeRenderer(glContext,glCommandQueue);
+        renderer[0].setMaxSteps(maxSteps);
+        renderer[0].setMaxShadowSteps(maxShadowSteps);
+        renderer[0].setMaxAntialiasingSteps(maxAntialiasingSteps);
+
+        for(int i=0; i < devices.length; i++) {
+            commandQueues[i] = devices[i].createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
+            renderer[i+1] = new VolumeRenderer(contexts[i],commandQueues[i]);
+            renderer[i+1].setMaxSteps(maxSteps);
+            renderer[i+1].setMaxShadowSteps(maxShadowSteps);
+            renderer[i+1].setMaxAntialiasingSteps(maxAntialiasingSteps);
         }
 
-        viewBuffer = clContext.createFloatBuffer(16, READ_ONLY);
+        viewBuffers = new CLBuffer[numDevices + 1];
+        glViewBuffer = glContext.createFloatBuffer(16, READ_ONLY);
 
+        for(int i=0; i < numDevices; i++) {
+            viewBuffers[i] = contexts[i].createFloatBuffer(16, READ_ONLY);
+        }
         System.out.println("cl initialised");
     }
 
@@ -280,7 +340,7 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
             printf("\t%s\n",progs.get(i));
         }
 
-        for(int i=0; i < numDevices; i++) {
+        for(int i=0; i < renderer.length; i++) {
             if (!renderer[i].init(progs, instructions, opts, renderVersion)) {
                 CLProgram program = renderer[i].getProgram();
                 statusBar.setStatusText("Program failed to load: " + program.getBuildStatus());
@@ -306,7 +366,7 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
     private void initPixelBuffer(GL2 gl, int width, int height) {
 
         if (glPixelBuffer == null) {
-            glPixelBuffer = new int[numDevices];
+            glPixelBuffer = new int[numDevices+1];
         }
 
         if (clPixelBuffer != null) {
@@ -314,21 +374,35 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
                 // release old buffer
                 clPixelBuffer[i].release();
             }
-            gl.glDeleteBuffers(numDevices,glPixelBuffer,0);
+            gl.glDeleteBuffers(numDevices+1,glPixelBuffer,0);
             clPixelBuffer = null;
         }
 
-        int bufferSize = width * height * 4 * Buffers.SIZEOF_BYTE;
-        gl.glGenBuffers(numDevices,glPixelBuffer,0);
-        gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, glPixelBuffer[0]);
-        gl.glBufferData(GL2.GL_PIXEL_UNPACK_BUFFER, bufferSize, null, GL2.GL_STREAM_DRAW);
-        gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
+        if (clBuffer != null) {
+            for(int i=0; i < numDevices; i++) {
+                // release old buffer
+                clBuffer[i].release();
+            }
+            clBuffer = null;
+        }
 
-        clPixelBuffer = new CLGLBuffer[numDevices];
+        int bufferSize = width * height * 4 * Buffers.SIZEOF_BYTE;
+
+        gl.glGenBuffers(numDevices+1,glPixelBuffer,0);
+
+        for(int i=0; i < numDevices + 1; i++) {
+            gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, glPixelBuffer[i]);
+            gl.glBufferData(GL2.GL_PIXEL_UNPACK_BUFFER, bufferSize, null, GL2.GL_STREAM_DRAW);
+            gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
+        }
+
+        clPixelBuffer = new CLGLBuffer[numDevices+1];
+        clPixelBuffer[0] = glContext.createFromGLBuffer(glPixelBuffer[0], bufferSize, WRITE_ONLY);
+        clBuffer = new CLBuffer[numDevices];
 
         for(int i=0; i < numDevices; i++) {
-            clPixelBuffer[i] = clContext.createFromGLBuffer(glPixelBuffer[i],
-                    bufferSize, WRITE_ONLY);
+            clBuffer[i] = contexts[i].createByteBuffer(bufferSize);
+            clPixelBuffer[i+1] = glContext.createFromGLBuffer(glPixelBuffer[i+1], bufferSize, WRITE_ONLY);
         }
     }
 
@@ -360,21 +434,16 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
         nav.getViewMatrix(view);
 
         int w = width;
-        //w = 16;
         int h = height;
 
-        if (!renderVersion.equals("opcode")) {
-            for(int i=0; i < numDevices; i++) {
-                // TODO: need to thread this
-                renderer[i].render(view, w, h, viewBuffer, commandQueue[i], clPixelBuffer[i]);
-            }
-        } else {
-            int wsize = w / 2;
-            int hsize = w / 2;
-            for(int i=0; i < numDevices; i++) {
-                renderer[i].renderOps(view, (i*hsize), (i*hsize), wsize, hsize, w, h, viewBuffer, worldScale, commandQueue[i], clPixelBuffer[i]);
-            }
+        int wsize = w;
+        int hsize = h / 2;
+
+        renderer[0].renderOps(view, (0*hsize), (0*hsize), wsize, hsize, w, h, glViewBuffer, worldScale, glCommandQueue, clPixelBuffer[0]);
+        for(int i=0; i < numDevices; i++) {
+            renderer[i+1].renderOps(view, 0, ((i+1)*hsize), wsize, hsize, w, h, viewBuffers[i], worldScale, commandQueues[i], clBuffer[i]);
         }
+
         // Render image using OpenGL
 
         gl.glClear(GL2.GL_COLOR_BUFFER_BIT);
@@ -385,7 +454,11 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
         gl.glDrawPixels(width, height, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, 0);
         gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, 0);
 
-        if (numDevices > 1) {
+        // TODO: Need to generalize
+        if (numDevices > 0) {
+            // Need to copy the buffer from the device to host and back to openGL
+            commandQueues[0].putReadBuffer(clBuffer[0],true);
+            glCommandQueue.putWriteBuffer(clPixelBuffer[1],true);
             gl.glRasterPos2i(-1, 0);
             gl.glBindBuffer(GL2.GL_PIXEL_UNPACK_BUFFER, glPixelBuffer[1]);
             gl.glDrawPixels(width, height, GL2.GL_RGBA, GL2.GL_UNSIGNED_BYTE, 0);
