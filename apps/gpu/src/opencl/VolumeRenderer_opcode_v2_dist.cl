@@ -276,8 +276,9 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     float3 pos;
     float density;
 
+    tpos = eyeRay_o + eyeRay_d*t;
+	pos = tpos.xyz; 
     density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
-
 	if (density > 0.5){  // solid on the boundary
 		return (float3)(1.f,0, 0);
 	}
