@@ -8,6 +8,7 @@ import javax.media.opengl.GLContext;
 import java.io.IOException;
 import java.nio.FloatBuffer;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.Random;
 
 import static abfab3d.util.Output.printf;
@@ -235,7 +236,64 @@ public class Prototype {
 
     }
 
-    static void writeToBuffer(ByteBuffer buffer, int x){
+    static void testWordWriter(int elementCount) throws Exception{
+        
+        CLDevice device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+        CLContext context = CLContext.create(device);
+
+        out.printf("context: %s\n", context);
+        out.printf("device: %s\n", device);
+
+        int localWorkSize = min(device.getMaxWorkGroupSize(), 256);  // Local work size dimensions
+        int globalWorkSize = roundUp(localWorkSize, elementCount);   // rounded up to the nearest multiple of the localWorkSize
+        
+        CLCommandQueue queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
+        CLProgram program = ProgramLoader.load(context,"Prototype.cl");
+        String buildOpts = "";
+        program.build(buildOpts);
+        
+        printf("ProgramBuildStatus: %s\n",program.getBuildStatus());
+        
+        if (!program.isExecutable()) {
+            printf("log: %s\n",program.getBuildLog());
+            throw new IllegalArgumentException("Program didn't compile");
+        }
+        
+        CLKernel kernel = program.createCLKernel("WordWriter");
+        out.printf("WordWriter kernel: %s\n", kernel);
+        int opcodeCount = 200;
+        int outCount = 200;
+        CLBuffer<IntBuffer> clBufferData = context.createIntBuffer(opcodeCount, READ_ONLY);
+        CLBuffer<IntBuffer> clBufferResult = context.createIntBuffer(outCount, WRITE_ONLY);
+        
+        initIntOpcodeBuffer(clBufferData.getBuffer(), opcodeCount);
+
+        kernel.putArg(clBufferData);
+        kernel.putArg(opcodeCount);
+        kernel.putArg(clBufferResult);
+        kernel.putArg(elementCount);
+
+        CLEventList list = new CLEventList(4);
+        queue.putWriteBuffer(clBufferData, true,list);
+        queue.put1DRangeKernel(kernel, 0, globalWorkSize, localWorkSize, list);
+        queue.putReadBuffer(clBufferResult, true, list);
+
+        for(int k = 0; k < 10; k++){
+            int size = clBufferResult.getBuffer().get();
+            out.printf("%4d ", size);        
+            for(int i = 0; i < size; i++){
+                int ri = (clBufferResult.getBuffer().get());
+                float rf = Float.intBitsToFloat(ri);            
+                out.printf("%8x(%6.2f) ", ri,rf);        
+            }
+            out.printf("\n");
+        }
+
+        context.release();
+
+    }
+
+    static void writeToByteBuffer(ByteBuffer buffer, int x){
     
         buffer.put((byte)(x & 0xFF));
         buffer.put((byte)((x >> 8) & 0xFF));
@@ -243,16 +301,35 @@ public class Prototype {
         buffer.put((byte)((x >> 24) & 0xFF));
     } 
 
+    static void writeToIntBuffer(IntBuffer buffer, int x){    
+        buffer.put(x);
+    } 
+
     static void initOpcodeBuffer(ByteBuffer buffer, int length){
 
-        writeToBuffer(buffer, 24);
-        writeToBuffer(buffer, Float.floatToRawIntBits(1.1f));
-        writeToBuffer(buffer, Float.floatToRawIntBits(2.2f));  //
-        writeToBuffer(buffer, Float.floatToRawIntBits(3.3f));
-        writeToBuffer(buffer, Float.floatToRawIntBits(4.4f));  //
-        writeToBuffer(buffer, Float.floatToRawIntBits(5.5f));  //
-        writeToBuffer(buffer, Float.floatToRawIntBits(6.6f));  //
-        writeToBuffer(buffer, Float.floatToRawIntBits(7.7f));
+        writeToByteBuffer(buffer, 24);
+        writeToByteBuffer(buffer, Float.floatToRawIntBits(1.1f));
+        writeToByteBuffer(buffer, Float.floatToRawIntBits(2.2f));  //
+        writeToByteBuffer(buffer, Float.floatToRawIntBits(3.3f));
+        writeToByteBuffer(buffer, Float.floatToRawIntBits(4.4f));  //
+        writeToByteBuffer(buffer, Float.floatToRawIntBits(5.5f));  //
+        writeToByteBuffer(buffer, Float.floatToRawIntBits(6.6f));  //
+        writeToByteBuffer(buffer, Float.floatToRawIntBits(7.7f));
+
+        buffer.rewind();
+
+    }
+
+    static void initIntOpcodeBuffer(IntBuffer buffer, int length){
+
+        writeToIntBuffer(buffer, 24);
+        writeToIntBuffer(buffer, Float.floatToRawIntBits(1.1f));
+        writeToIntBuffer(buffer, Float.floatToRawIntBits(2.2f));  //
+        writeToIntBuffer(buffer, Float.floatToRawIntBits(3.3f));
+        writeToIntBuffer(buffer, Float.floatToRawIntBits(4.4f));  //
+        writeToIntBuffer(buffer, Float.floatToRawIntBits(5.5f));  //
+        writeToIntBuffer(buffer, Float.floatToRawIntBits(6.6f));  //
+        writeToIntBuffer(buffer, Float.floatToRawIntBits(7.7f));
 
         buffer.rewind();
 
@@ -262,7 +339,8 @@ public class Prototype {
         int cnt = 100000000;
         //testAddCPU(cnt);
         //testAddOpenCL(cnt);
-        testByteReader(cnt);
+        //testByteReader(cnt);
+        testWordWriter(cnt);        
     }
 }
 
