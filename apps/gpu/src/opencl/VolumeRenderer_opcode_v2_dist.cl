@@ -455,12 +455,6 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
-    // TODO: Always clear, optimize this
-    if ((x < imageW) && (y < imageH)) {
-        uint idx =(y * imageW) + x;
-        d_output[idx] = clearInt;
-    }
-
     float u = (x / (float) imageW)*2.0f-1.0f;
     float v = (y / (float) imageH)*2.0f-1.0f;
 
@@ -544,12 +538,6 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
 kernel void render(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
-
-    // TODO: Always clear, optimize this
-    if ((x < imageW) && (y < imageH)) {
-        uint idx =(y * imageW) + x;
-        d_output[idx] = clearInt;
-    }
 
     float3 sum = (float3)(0,0,0);
     float u = (x / (float) imageW)*2.0f-1.0f;
