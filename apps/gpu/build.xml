@@ -119,6 +119,7 @@
     </target>
 
     <target name="kernels" >
+        <delete dir="/tmp/openCL_cache" />
         <copy todir="${classes.dir}">
             <fileset dir="${src.dir}/opencl"/>
         </copy>
