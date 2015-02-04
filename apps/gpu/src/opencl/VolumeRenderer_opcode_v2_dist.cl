@@ -2,6 +2,10 @@
 #define sstep (2.0 / maxShadowSteps)
 #define clearColor (1,1,1)
 #define clearInt 33554431 // White color
+//#define clearInt 23004431 // purple color
+
+#define boxMin ((float4)(-1.0f, -1.0f, -1.0f,1.0f))
+#define boxMax ((float4)(1.0f, 1.0f, 1.0f,1.0f))
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // intersect ray with a box
@@ -262,12 +266,14 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
     float4 eyeRay_d;    // eye direction
-	
+
+//	printf("invMat: %f %f %f\n", invViewMatrix[3], invViewMatrix[7], invViewMatrix[11]);
     eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
 				   
     float4 temp = normalize(((float4)(u, v, -2.f,0.0f)));
 	eyeRay_d = mulMatVec4(invViewMatrix,temp);
 
+//printf("x: %d y: %d eye_o: %v4f eye_d: %v4f\n",x,y,eyeRay_o,eyeRay_d);
     int hit = -1;
     // march along ray from tnear till we hit something
     float t = tnear;
@@ -451,15 +457,12 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 }
 
 #ifdef SUPERSAMPLE
-kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
+kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
-    float u = (x / (float) imageW)*2.0f-1.0f;
-    float v = (y / (float) imageH)*2.0f-1.0f;
-
-    float4 boxMin = (float4)(-1.0f, -1.0f, -1.0f,1.0f);
-    float4 boxMax = (float4)(1.0f, 1.0f, 1.0f,1.0f);
+    float u = ((x + x0) / (float) imageW)*2.0f-1.0f;
+    float v = ((y + y0) / (float) imageH)*2.0f-1.0f;
 
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
@@ -475,16 +478,16 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
 	int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
 
     if (!hit) {
-        if ((x < imageW) && (y < imageH)) {
+        if ((x < tileW) && (y < tileH)) {
             // write output color
-            uint i =(y * imageW) + x;
+            uint i =(y * tileW) + x;
             d_output[i] = clearInt;
 
             return;
         }
     }
 
-	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
+    tnear = clamp(tnear,0.0f,tfar);   // clamp to near plane
 
     float subPixel = (1 / (float) imageW)*2.0f / samples / 2;
 
@@ -529,22 +532,25 @@ kernel void renderSuper(global uint *d_output, uint imageW, uint imageH, global 
 
     float3 shading = sum / 16;
   */
-    uint idx =(y * imageW) + x;
+    uint idx =(y * tileW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
 }
 #endif
 
 #ifndef SUPERSAMPLE
-kernel void render(global uint *d_output, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
+kernel void render(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
-    float3 sum = (float3)(0,0,0);
-    float u = (x / (float) imageW)*2.0f-1.0f;
-    float v = (y / (float) imageH)*2.0f-1.0f;
 
-    float4 boxMin = (float4)(-1.0f, -1.0f, -1.0f,1.0f);
-    float4 boxMax = (float4)(1.0f, 1.0f, 1.0f,1.0f);
+    if ((x > tileW) || (y > tileH)) {
+        return;
+    }
+
+    float3 sum = (float3)(0,0,0);
+    float u = ((x + x0) / (float) imageW)*2.0f-1.0f;
+    float v = ((y + y0) / (float) imageH)*2.0f-1.0f;
+
 
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
@@ -558,26 +564,27 @@ kernel void render(global uint *d_output, uint imageW, uint imageH, global const
     eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
     eyeRay_d.w = 0.0f;
 
+
     // find intersection with box
     float tnear, tfar;
     int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
 
     if (!hit) {
-        if ((x < imageW) && (y < imageH)) {
+        if ((x < tileW) && (y < tileH)) {
             // write output color
-            uint i =(y * imageW) + x;
+            uint i =(y * tileW) + x;
             d_output[i] = clearInt;
 
             return;
         }
     }
-	if (tnear < 0.0f) tnear = 0.0f;     // clamp to near plane
+    tnear = clamp(tnear,0.0f,tfar);   // clamp to near plane
 
     float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
 
     shading = clamp(shading, 0.0f, 1.0f);
 
-    uint idx =(y * imageW) + x;
+    uint idx =(y * tileW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
 }
 #endif

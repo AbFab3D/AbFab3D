@@ -195,6 +195,18 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
                 device = CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice();
             } else {
                 device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+/*
+                CLDevice[] devices = CLPlatform.getDefault(type(GPU)).listCLDevices();
+                System.out.printf("CL Devices: %d\n",devices.length);
+                for (CLDevice d : devices) {
+                    System.out.printf("Device: %s\n",d);
+
+                    if (d.getName().contains("GTX 780")) {
+                        device = d;
+                        break;
+                    }
+                }
+  */
             }
         }
 
@@ -212,6 +224,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
             throw new RuntimeException("couldn't find any CL/GL memory sharing devices ..");
         }
 
+        printf("Using device: %s\n",device);
         clContext = CLGLContext.create(drawable.getContext(), device);
         // enable GL error checking using the composable pipeline
         drawable.setGL(new DebugGL2(drawable.getGL().getGL2()));
@@ -329,6 +342,7 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
         gl.glFinish();
 
         nav.getViewMatrix(view);
+        view.invert();  // TODO: let opencl do this?
 
         int w = width;
         //w = 16;
@@ -337,7 +351,8 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
         if (!renderVersion.equals(VolumeRenderer.VERSION_OPCODE) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
             renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
         } else {
-            renderer.renderOps(view, 0,0,w,h,w, h, viewBuffer, worldScale, commandQueue, clPixelBuffer);
+            renderer.sendView(view,viewBuffer);
+            renderer.renderOps(0,0,w,h,w, h, worldScale, clPixelBuffer);
         }
         // Render image using OpenGL
 

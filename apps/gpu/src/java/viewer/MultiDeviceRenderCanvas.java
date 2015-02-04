@@ -432,6 +432,7 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
         gl.glFinish();
 
         nav.getViewMatrix(view);
+        view.invert();
 
         int w = width;
         int h = height;
@@ -439,9 +440,11 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
         int wsize = w;
         int hsize = h / 2;
 
-        renderer[0].renderOps(view, (0*hsize), (0*hsize), wsize, hsize, w, h, glViewBuffer, worldScale, glCommandQueue, clPixelBuffer[0]);
+        renderer[0].sendView(view, glViewBuffer);
+        renderer[0].renderOps((0*hsize), (0*hsize), wsize, hsize, w, h, worldScale, clPixelBuffer[0]);
         for(int i=0; i < numDevices; i++) {
-            renderer[i+1].renderOps(view, 0, ((i+1)*hsize), wsize, hsize, w, h, viewBuffers[i], worldScale, commandQueues[i], clBuffer[i]);
+            renderer[i+1].sendView(view, viewBuffers[i]);
+            renderer[i+1].renderOps(0, ((i+1)*hsize), wsize, hsize, w, h, worldScale, clBuffer[i]);
         }
 
         // Render image using OpenGL
