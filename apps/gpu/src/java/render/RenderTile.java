@@ -13,7 +13,7 @@ import java.nio.IntBuffer;
  *
  * @author Alan Hudson
  */
-class RenderTile {
+public class RenderTile {
     private int x0;
     private int y0;
     private int width;

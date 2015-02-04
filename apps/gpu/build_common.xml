@@ -53,12 +53,49 @@
    <attribute name="version" />
    <attribute name="includes" />
    <attribute name="manifest" default="" />
+   <attribute name="metainf" default="none" />
    <sequential>  
    
     <jar destfile="${jar.dir}/@{name}_@{version}.jar"  manifest="${manifest.dir}/@{manifest}" >
        <fileset dir="${classes.dir}" includes="@{includes}" />
+       <metainf dir="${manifest.dir}" includes="@{metainf}" erroronmissingdir="false" />
     </jar>
          
    </sequential>  
 </macrodef>
+
+   <macrodef name="createwar" >
+      <attribute name="name" />
+      <attribute name="jars" default="none" />
+      <attribute name="lib" default="none" />
+      <attribute name="libzip" default="none" />
+      <attribute name="libzipdir" default="none" />
+      <attribute name="includes" default="none" />
+      <attribute name="includelibs" default="none" />
+      <attribute name="includejars" default="none" />
+      <element name="zipfileset-elements" optional="true" />
+
+      <sequential>
+
+         <war destfile="${war.dir}/@{name}_${version}.war"
+              webxml="${manifest.dir}/@{name}/web.xml" >
+
+            <webinf dir="${manifest.dir}/@{name}" excludes="web.xml">
+               <depth max="0" />
+            </webinf>
+            <classes dir="${manifest.dir}/@{name}/classes" excludes="Makefile" erroronmissingdir="false" />
+            <lib dir="${jar.dir}" includes="@{jars}" />
+            <lib dir="${lib.dir}" includes="@{lib}" />
+            <zipfileset-elements />
+
+            <fileset dir="${classes.dir}"
+                     includes="@{includes}"  />
+            <fileset dir="${lib.dir}"
+                     includes="@{includelibs}"  />
+            <fileset dir="${jar.dir}"
+                     includes="@{includejars}"  />
+         </war>
+      </sequential>
+   </macrodef>
+
 </project>

@@ -115,7 +115,7 @@ public class TestVolumeRenderer extends TestCase {
             BufferedImage base = render(jobID, script, width, height, pixels, image);
             int size = makePng(encoder, base, buff);  // return buff[0] to size bytes to client
 
-            printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
+            printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
             if (DEBUG) {
                 try {
@@ -325,7 +325,9 @@ public class TestVolumeRenderer extends TestCase {
         inst = cache.get(jobID);
         if (inst == null) {
             inst = loadScript(script);
-            cache.put(jobID, inst);
+            if (inst != null && inst.size() > 0) {
+                cache.put(jobID, inst);
+            }
         } else {
             lastLoadScriptTime = 0;
         }
@@ -345,7 +347,7 @@ public class TestVolumeRenderer extends TestCase {
         Matrix4f view = getView();
         view.invert();
 
-        tiles[0].getRenderer().sendView(view,tiles[0].getView());
+            tiles[0].getRenderer().sendView(view,tiles[0].getView());
         for (int i = 0; i < numTiles; i++) {
             RenderTile tile = tiles[i];
 
@@ -597,7 +599,7 @@ public class TestVolumeRenderer extends TestCase {
         long t0 = System.nanoTime();
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
-        DataSource source = eval.runScript(filename, bounds);
+        DataSource source = eval.runScript(new File(filename), bounds);
 
         OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
         Vector3d scale;
