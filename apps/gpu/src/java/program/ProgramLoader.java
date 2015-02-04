@@ -94,7 +94,7 @@ public class ProgramLoader {
             bldr.append("\n");
         }
 
-        //printf("Final OpenCL: \n%s\n",bldr.toString());
+        printf("Final OpenCL: \n%s\n",bldr.toString());
         return context.createProgram(bldr.toString());
     }
 
@@ -109,7 +109,10 @@ public class ProgramLoader {
 
                 return fis;
             } catch (IOException ioe) {
-                ioe.printStackTrace();
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                InputStream input = classLoader.getResourceAsStream(filename);
+
+                return input;
             }
         } else {
             //printf("Loading openCL Script: %s\n", filename);

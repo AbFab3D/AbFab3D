@@ -28,7 +28,7 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final boolean STATS = true;
     private static final boolean CACHE_PROGRAM = true;
     private static final String CACHE_LOCATION = "/tmp/openCL_cache";
@@ -82,6 +82,7 @@ public class VolumeRenderer {
 
         renderVersion = version;
 
+        printf("VolumeRenderer Init: %s\n",version);
         long t0 = System.nanoTime();
         try {
             String buildOpts = "";
@@ -137,7 +138,7 @@ public class VolumeRenderer {
             }
 
             if (program == null) {
-                printf("Compiling text program\n");
+                printf("Compiling text program:\n");
                 //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
                 ArrayList list = new ArrayList();
                 list.add(new File("ShapeJS_" + renderVersion + ".cl"));
@@ -146,7 +147,24 @@ public class VolumeRenderer {
                 if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
                     // TODO: this would need to be updated to support jar file deployment
                     File dir = new File("classes");
+                    boolean in_jar = false;
+
                     String[] files = dir.list();
+
+                    if (files == null) {
+                        in_jar = true;
+                        files = new String[] {"box_opcode_v2_dist.cl",
+                             "gyroid_opcode_v2_dist.cl",
+                             "intersection_opcode_v2_dist.cl",
+                             "rotation_opcode_v2_dist.cl",
+                             "scale_opcode_v2_dist.cl",
+                             "sphere_opcode_v2_dist.cl",
+                             "subtraction_opcode_v2_dist.cl",
+                             "torus_opcode_v2_dist.cl",
+                             "translation_opcode_v2_dist.cl",
+                             "union_opcode_v2_dist.cl"};
+                    }
+
                     String rv = renderVersion + ".cl";
                     for (int i = 0; i < files.length; i++) {
                         if (files[i].contains(rv)) {

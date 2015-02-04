@@ -119,6 +119,7 @@ public class ImageRenderer {
         // Do these items once for the servlet.  Should be per-thread resources
 
         PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
+//        PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_COMPRESSION);
         printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
 
         // End of per-thread resources
@@ -148,6 +149,8 @@ public class ImageRenderer {
         // Do these items once for the servlet.  Should be per-thread resources
 
         PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
+//        PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_COMPRESSION);
+
 
 
         printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
