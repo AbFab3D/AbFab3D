@@ -1,15 +1,7 @@
 package http;
 
-import abfab3d.grid.Bounds;
-import abfab3d.param.Parameterizable;
-import abfab3d.util.DataSource;
-import com.jogamp.opencl.*;
-import com.objectplanet.image.PngEncoder;
-import datasources.Instruction;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import render.*;
-import shapejs.ShapeJSEvaluator;
-import viewer.OpenCLOpWriterV2;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -19,23 +11,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.vecmath.Matrix4f;
-import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
-import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster;
-import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.util.*;
 
 import static abfab3d.util.Output.printf;
-import static com.jogamp.opencl.CLDevice.Type.CPU;
-import static com.jogamp.opencl.CLDevice.Type.GPU;
-import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
-import static com.jogamp.opencl.util.CLPlatformFilters.type;
 
 /**
  * Creates images from ShapeJS

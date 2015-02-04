@@ -23,7 +23,6 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import shapejs.ShapeJSEvaluator;
-import viewer.OpenCLOpWriterV2;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Matrix4f;
@@ -37,7 +36,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;

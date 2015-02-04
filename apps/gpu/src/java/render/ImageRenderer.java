@@ -7,7 +7,6 @@ import com.jogamp.opencl.*;
 import com.objectplanet.image.PngEncoder;
 import datasources.Instruction;
 import shapejs.ShapeJSEvaluator;
-import viewer.OpenCLOpWriterV2;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3d;
@@ -344,7 +343,6 @@ public class ImageRenderer {
     }
 
     private BufferedImage createImage(int x0, int y0, int width, int height, int[] pixels, CLBuffer<IntBuffer> buffer, BufferedImage image) {
-        printf("Creating image: %d %d\n",width,height);
         //int[] pixels = new int[buffer.getBuffer().capacity()];
         buffer.getBuffer().get(pixels).rewind();
         WritableRaster raster = image.getRaster();
