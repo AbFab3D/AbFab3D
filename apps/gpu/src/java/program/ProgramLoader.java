@@ -94,7 +94,7 @@ public class ProgramLoader {
             bldr.append("\n");
         }
 
-        printf("Final OpenCL: \n%s\n",bldr.toString());
+        //printf("Final OpenCL: \n%s\n",bldr.toString());
         return context.createProgram(bldr.toString());
     }
 
