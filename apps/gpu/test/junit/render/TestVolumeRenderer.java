@@ -43,9 +43,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
@@ -62,10 +60,11 @@ public class TestVolumeRenderer extends TestCase {
     private static final boolean DEBUG = false;
     public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
 
-    private int numJobs;
-    private RenderJob[] jobs;
+    private int numTiles;
+    private RenderTile[] tiles;
     private int numRenderers;
     private VolumeRenderer[] render;
+    private DeviceResources[] devices;
     private int numDevices;
     private float worldScale;
     private long lastLoadScriptTime;
@@ -94,9 +93,9 @@ public class TestVolumeRenderer extends TestCase {
         initCL(false, width, height);
         PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
 //        int MAX_IMG_SIZE = 150000;
-        int MAX_IMG_SIZE = width*height;
+        int MAX_IMG_SIZE = width * height;
         byte[] buff = new byte[MAX_IMG_SIZE];
-        int[] pixels = new int[width*height];
+        int[] pixels = new int[width * height];
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
@@ -113,10 +112,10 @@ public class TestVolumeRenderer extends TestCase {
         String script = "scripts/gyrosphere.js";
         for (int i = 0; i < TIMES; i++) {
             t0 = System.nanoTime();
-            BufferedImage base = render(jobID, script, width, height,pixels,image);
-            int size = makePng(encoder,base,buff);  // return buff[0] to size bytes to client
+            BufferedImage base = render(jobID, script, width, height, pixels, image);
+            int size = makePng(encoder, base, buff);  // return buff[0] to size bytes to client
 
-            printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (jobs[0].getRenderer().getLastCompileTime() / 1e6), (int) (jobs[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
+            printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
             if (DEBUG) {
                 try {
@@ -133,8 +132,10 @@ public class TestVolumeRenderer extends TestCase {
      * Look at using GPU to make a jpg directly, could save 14ms or about 50%
      */
     public void testMultiDevice() {
-        int width = 1024;
-        int height = 1024;
+//        int width = 1024;
+//        int height = 1024;
+        int width = 4096;
+        int height = 4096;
 
         long t0 = System.nanoTime();
 
@@ -144,9 +145,10 @@ public class TestVolumeRenderer extends TestCase {
 
         PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
 //        int MAX_IMG_SIZE = 150000;
-        int MAX_IMG_SIZE = width*height;
+        int MAX_IMG_SIZE = width * height;
         byte[] buff = new byte[MAX_IMG_SIZE];
-        int[] pixels = new int[width*height];
+        int[] pixels = new int[tiles[0].getWidth() * tiles[0].getHeight()];
+//        int[] pixels = new int[width * height];
         printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
 
         // End of per-thread resources
@@ -155,7 +157,7 @@ public class TestVolumeRenderer extends TestCase {
 
         int TIMES = 3;
 
-        if (DEBUG) TIMES = 1;
+//        if (DEBUG) TIMES = 1;
 
         long compileTime = -1;
         String script = "scripts/dodecahedron.js";
@@ -163,8 +165,8 @@ public class TestVolumeRenderer extends TestCase {
 
         for (int i = 0; i < TIMES; i++) {
             t0 = System.nanoTime();
-            BufferedImage base = renderMT(jobID, script, width, height, pixels,image);
-            int size = makePng(encoder,base,buff);  // return buff[0] to size bytes to client
+            BufferedImage base = renderMT(jobID, script, width, height, pixels, image);
+            int size = makePng(encoder, base, buff);  // return buff[0] to size bytes to client
 
             printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (compileTime / 1e6), (int) (lastKernelTime / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
@@ -191,7 +193,7 @@ public class TestVolumeRenderer extends TestCase {
         BufferedImage test = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         render("test/scripts/transform_base.js", width, height, base);
-        printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (jobs[0].getRenderer().getLastCompileTime() / 1e6), (int) (jobs[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6));
+        printf("total time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d\n", (int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6));
         render("test/scripts/translation.js", width, height, test);
 
         assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
@@ -217,7 +219,7 @@ public class TestVolumeRenderer extends TestCase {
         BufferedImage test = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         render("test/scripts/transform_base.js", width, height, base);
-        test = render("test/scripts/rotation.js", width, height,test);
+        test = render("test/scripts/rotation.js", width, height, test);
 
         assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
         assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
@@ -277,7 +279,7 @@ public class TestVolumeRenderer extends TestCase {
         List<Instruction> inst = loadScript(script);
         ArrayList progs = new ArrayList();
 
-        for(int i=0; i < numRenderers; i++) {
+        for (int i = 0; i < numRenderers; i++) {
             boolean result = render[i].init(progs, inst, "", VERSION);
 
             if (!result) {
@@ -289,14 +291,18 @@ public class TestVolumeRenderer extends TestCase {
         }
 
         BufferedImage img = null;
-        for(int i=0; i < numJobs; i++) {
-            RenderJob job = jobs[i];
-            jobs[i].getRenderer().renderOps(getView(), job.getX0(), job.getY0(), job.getWidth(), job.getHeight(), width, height, job.getView(), worldScale, job.getCommandQueue(), job.getDest());
-            job.getCommandQueue().putReadBuffer(job.getDest(), true); // read results back (blocking read)
-            job.getCommandQueue().finish();
-            int[] pixels = new int[width*height];
+        Matrix4f view = getView();
+        view.invert();
+
+        for (int i = 0; i < numTiles; i++) {
+            RenderTile tile = tiles[i];
+            tile.getRenderer().sendView(view,tile.getView());
+            tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height, worldScale, tile.getDest());
+            tile.getCommandQueue().putReadBuffer(tile.getDest(), true); // read results back (blocking read)
+            tile.getCommandQueue().finish();
+            int[] pixels = new int[width * height];
             long t0 = System.nanoTime();
-            createImage(width, height, pixels, job.getDest(), image);
+            createImage(width, height, pixels, tile.getDest(), image);
             lastImageTime = System.nanoTime() - t0;
         }
 
@@ -313,7 +319,7 @@ public class TestVolumeRenderer extends TestCase {
      * @param height
      * @return
      */
-    private BufferedImage render(String jobID, String script, int width, int height,int[] pixels, BufferedImage image) {
+    private BufferedImage render(String jobID, String script, int width, int height, int[] pixels, BufferedImage image) {
         List<Instruction> inst = null;
 
         inst = cache.get(jobID);
@@ -325,7 +331,7 @@ public class TestVolumeRenderer extends TestCase {
         }
         ArrayList progs = new ArrayList();
 
-        for(int i=0; i < numRenderers; i++) {
+        for (int i = 0; i < numRenderers; i++) {
             boolean result = render[i].init(progs, inst, "", VERSION);
 
             if (!result) {
@@ -336,20 +342,24 @@ public class TestVolumeRenderer extends TestCase {
             assertTrue("Compiled", result);
         }
 
-        for(int i=0; i < numJobs; i++) {
-            RenderJob job = jobs[i];
+        Matrix4f view = getView();
+        view.invert();
 
-            job.getRenderer().renderOps(getView(), job.getX0(), job.getY0(), job.getWidth(), job.getHeight(), width, height,
-                    job.getView(), worldScale, job.getCommandQueue(), job.getDest());
-            job.getCommandQueue().putReadBuffer(job.getDest(), false); // read results back (blocking read)
+        tiles[0].getRenderer().sendView(view,tiles[0].getView());
+        for (int i = 0; i < numTiles; i++) {
+            RenderTile tile = tiles[i];
+
+            tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
+                    worldScale, tile.getDest());
+            tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
         }
 
-        for(int i=0; i < numRenderers; i++) {
+        for (int i = 0; i < numRenderers; i++) {
             render[i].getCommandQueue().finish();
         }
 
         long t0 = System.nanoTime();
-        createImage(width, height, pixels, image, jobs);
+        createImage(width, height, pixels, tiles[0].getDest(), image);
         lastImageTime = System.nanoTime() - t0;
 
         return image;
@@ -364,7 +374,7 @@ public class TestVolumeRenderer extends TestCase {
      * @param height
      * @return
      */
-    private BufferedImage renderMT(String jobID, String script, int width, int height,int[] pixels,BufferedImage image) {
+    private BufferedImage renderMT(String jobID, String script, int width, int height, int[] pixels, BufferedImage image) {
         List<Instruction> inst = null;
 
         inst = cache.get(jobID);
@@ -376,41 +386,115 @@ public class TestVolumeRenderer extends TestCase {
         }
         ArrayList progs = new ArrayList();
 
-        for(int i=0; i < numRenderers; i++) {
-            boolean result = render[i].init(progs, inst, "", VERSION);
-
-            if (!result) {
-                CLProgram program = render[i].getProgram();
-                printf("Status: %s\n", program.getBuildStatus());
-                printf("Build Log: %s\n", program.getBuildLog());
-            }
-            assertTrue("Compiled", result);
-        }
-
         long t0 = System.nanoTime();
 
-        JobRunner[] runners = new JobRunner[numJobs];
 
-        ExecutorService compute_executor = Executors.newFixedThreadPool(numJobs);
-        Matrix4f view = getView();
-        for (int i = 0; i < numJobs; i++) {
-            RenderJob job = jobs[i];
-            runners[i] = new JobRunner(job,view,width,height,worldScale);
-            compute_executor.submit(runners[i]);
-        }
-        compute_executor.shutdown();
-
-        try {
-            compute_executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        RenderThread[] rthreads = new RenderThread[numDevices];
+        ConcurrentLinkedQueue<RenderTile> rqueue = new ConcurrentLinkedQueue<RenderTile>();
+        for (RenderTile rt : tiles) {
+            rqueue.add(rt);
         }
 
-        lastKernelTime = (System.nanoTime() - t0);
-        t0 = System.nanoTime();
-        createImage(width, height, pixels, image, jobs);
-        lastImageTime = System.nanoTime() - t0;
+        ConcurrentLinkedQueue<RenderTile> tqueue = new ConcurrentLinkedQueue<RenderTile>();
 
+        int read_factor = 4;  // TODO: How to choose this param?
+        int read_threads = numDevices * read_factor;
+
+        //read_threads = 1;
+        TransferResultsThread[] transfer = new TransferResultsThread[read_threads];
+        ResultsListener[] rl = new ResultsListener[transfer.length];
+
+        for (int i = 0; i < transfer.length; i++) {
+            rl[i] = new ResultsListener(width, height, pixels, image);
+
+            transfer[i] = new TransferResultsThread(tqueue);
+            transfer[i].setListener(rl[i]);
+            transfer[i].start();
+        }
+
+        for (int i = 0; i < numDevices; i++) {
+            rthreads[i] = new RenderThread(devices[i], rqueue, tqueue, progs, inst, "", VERSION, getView(), width, height, worldScale);
+
+            // TODO: short circuit listener thread to force on same system thread
+            //rthreads[i].setListener(rl[0]);
+            rthreads[i].start();
+        }
+/*
+        // wait for completion
+        boolean waiting_initialize = true;
+        while (waiting_initialize) {
+            int initialized_count = 0;
+            for (int i = 0; i < numDevices; i++) {
+                if (rthreads[i].isInitialized()) initialized_count++;
+            }
+
+            if (initialized_count == numDevices) {
+                waiting_initialize = false;
+            }
+
+            try {
+                Thread.yield();
+            } catch (Exception e) {
+            }
+        }
+*/
+        // wait for completion
+        boolean waiting_render = true;
+        while (waiting_render) {
+            int done_count = 0;
+            for (int i = 0; i < numDevices; i++) {
+                if (rthreads[i].isDone()) done_count++;
+            }
+
+            if (done_count == numDevices) {
+                waiting_render = false;
+            }
+
+            try {
+                Thread.yield();
+            } catch (Exception e) {
+            }
+        }
+
+        for (int i = 0; i < transfer.length; i++) {
+            transfer[i].terminate();
+        }
+
+        boolean waiting_transfer = true;
+        while (waiting_transfer) {
+            int done_count = 0;
+            for (int i = 0; i < transfer.length; i++) {
+                if (transfer[i].isDone()) done_count++;
+            }
+
+            if (done_count == transfer.length) {
+                waiting_transfer = false;
+            }
+
+            try {
+                Thread.yield();
+            } catch (Exception e) {
+            }
+        }
+
+        for (int i = 0; i < numDevices; i++) {
+            rthreads[i].cleanup();
+        }
+
+        lastKernelTime = 0;
+        lastImageTime = 0;
+
+        // STATS
+        for(int i=0; i < numDevices; i++) {
+            printf("Device: %s Tiles: %d Kernel: %d\n",devices[i].getDevice().getName(),rthreads[i].getTilesProcessed(),((int)(rthreads[i].getKernelTime() / 1e6)));
+            lastKernelTime = Math.max(lastKernelTime, rthreads[i].getKernelTime());
+        }
+
+        for(int i=0; i < transfer.length; i++) {
+            printf("Transfer: %d Tiles: %d Image: %d\n",i,transfer[i].getTilesProcessed(),((int)(transfer[i].getImageTime() / 1e6)));
+            lastImageTime = Math.max(lastImageTime, transfer[i].getImageTime());
+
+        }
         return image;
     }
 
@@ -441,54 +525,71 @@ public class TestVolumeRenderer extends TestCase {
 
     public void initCL(boolean debug, int width, int height) {
         numDevices = 1;
-        numJobs = 1;
+        numTiles = 1;
         numRenderers = 1;
-        jobs = new RenderJob[1];
+        tiles = new RenderTile[1];
         render = new VolumeRenderer[1];
-        jobs[0] = new RenderJob(0,0,width,height);
-        RenderJob job = jobs[0];
+        tiles[0] = new RenderTile(0, 0, width, height);
+        RenderTile tile = tiles[0];
 
         if (debug) {
-            job.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
+            tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
         } else {
-            job.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+            tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
         }
 
-        job.setContext(CLContext.create(job.getDevice()));
+        tile.setContext(CLContext.create(tile.getDevice()));
 
-        job.setQueue(job.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
+        tile.setQueue(tile.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
 
-        render[0] = new VolumeRenderer(job.getContext(), job.getCommandQueue());
-        job.setRenderer(render[0]);
-        job.setView(job.getContext().createFloatBuffer(16, READ_ONLY));
+        render[0] = new VolumeRenderer(tile.getContext(), tile.getCommandQueue());
+        tile.setRenderer(render[0]);
+        tile.setView(tile.getContext().createFloatBuffer(16, READ_ONLY));
 
         IntBuffer dest = ByteBuffer.allocateDirect(height * width * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
-        job.setDest(job.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
+        tile.setDest(tile.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
     }
 
     public void initMultiCL(int width, int height) {
-        CLDevice[] devices = CLPlatform.getDefault(type(GPU)).listCLDevices();
+//        CLDevice[] ocl_devices = CLPlatform.getDefault(type(CPU)).listCLDevices();
+        CLDevice[] ocl_devices = CLPlatform.getDefault(type(GPU)).listCLDevices();
+//        CLDevice[] ocl_devices = new CLDevice[] {CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice()};
+        numDevices = ocl_devices.length;
+        devices = new DeviceResources[numDevices];
 
-        numDevices = devices.length;
-        jobs = new RenderJob[numDevices];
-        numRenderers = numDevices;
-        render = new VolumeRenderer[numRenderers];
+        long t0 = System.nanoTime();
+        int factor = numDevices * 1;
+        //int factor = 1;
+        int block_size = width / factor;
 
-        int jobWidth = width;
-        int jobHeight = height / numDevices;
+        int jobWidth = width / block_size;
+        int jobHeight = height / block_size;
 
-        numJobs = numDevices;
-        for(int i=0; i < numDevices; i++) {
-            RenderJob job = new RenderJob(0,i*jobHeight,jobWidth,jobHeight);
-            jobs[i] = job;
-            job.setDevice(devices[i]);
-            job.setContext(CLContext.create(job.getDevice()));
-            job.setQueue(job.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
-            render[i] = new VolumeRenderer(job.getContext(), job.getCommandQueue());
-            job.setRenderer(render[i]);
-            job.setView(job.getContext().createFloatBuffer(16, READ_ONLY));
-            IntBuffer dest = ByteBuffer.allocateDirect(height * width * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
-            job.setDest(job.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
+        while (width % block_size != 0 || height % block_size != 0) {
+            block_size = block_size / 2;
+            printf("Changing block size to: %d\n", block_size);
+        }
+
+        numTiles = jobWidth * jobHeight;
+
+
+        for (int i = 0; i < numDevices; i++) {
+            devices[i] = new DeviceResources(ocl_devices[i], block_size, block_size, width, height);
+        }
+
+        tiles = new RenderTile[numTiles];
+        for (int i = 0; i < jobWidth; i++) {
+            for (int j = 0; j < jobHeight; j++) {
+                RenderTile tile = new RenderTile(i, j, block_size, block_size);
+                tiles[i * jobWidth + j] = tile;
+            }
+        }
+
+        if (DEBUG) {
+            for (int i = 0; i < numTiles; i++) {
+                printf("Job: %d x0: %d y0: %d w: %d h: %d\n", i, tiles[i].getX0(), tiles[i].getY0(), tiles[i].getWidth(), tiles[i].getHeight());
+            }
+            printf("OpenCL Init: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
         }
     }
 
@@ -519,7 +620,7 @@ public class TestVolumeRenderer extends TestCase {
             return image;
         }
     */
-    private BufferedImage createImage(int width, int height, int[] pixels,CLBuffer<IntBuffer> buffer, BufferedImage image) {
+    private BufferedImage createImage(int width, int height, int[] pixels, CLBuffer<IntBuffer> buffer, BufferedImage image) {
         //int[] pixels = new int[buffer.getBuffer().capacity()];
         buffer.getBuffer().get(pixels).rewind();
         WritableRaster raster = image.getRaster();
@@ -541,35 +642,46 @@ public class TestVolumeRenderer extends TestCase {
             }
         }
 
-        printf("alloc time: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
+        lastImageTime = (System.nanoTime() - t0);
+        //printf("alloc time: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
         return image;
     }
+}
 
-    /**
-     * Create a combined image from multiple buffers
-     *
-     * @param width Total image width
-     * @param height Total image height
-     * @param pixels Preallocated array to place results
-     * @param jobs The completed rendering jobs
-     * @return
-     */
-    private BufferedImage createImage(int width, int height, int[] pixels,BufferedImage image, RenderJob[] jobs) {
+class ResultsListener implements TransferResultsListener {
+    private int[] pixels;
+    private int[] pixel = new int[4];
+    private int width;
+    private int height;
+    private BufferedImage image;
 
-        //int[] pixels = new int[buffer.getBuffer().capacity()];
-        WritableRaster raster = image.getRaster();
+    public ResultsListener(int width, int height, int[] pixels, BufferedImage image) {
+        this.pixels = pixels;
+        this.width = width;
+        this.height = height;
+        this.image = image;
+    }
 
-        int len = jobs.length;
-        int[] pixel = new int[4];
+    @Override
+    public void tileArrived(RenderTile tile) {
+        //writeImage(tile);
 
-        long t0 = System.nanoTime();
-        for(int i=0; i < len; i++) {
-            RenderJob job = jobs[i];
-            job.getDest().getBuffer().get(pixels).rewind();
+        synchronized (image) {
+            long t0 = System.nanoTime();
+            //int[] pixels = new int[buffer.getBuffer().capacity()];
+            WritableRaster raster = image.getRaster();
+
+
+            int x;
+            int y;
+
+            tile.getDest().getBuffer().get(pixels).rewind();
             int r, g, b;
-            for (int w = 0; w < job.getWidth(); w++) {
-                for (int h = 0; h < job.getHeight(); h++) {
-                    int packed = pixels[(job.getY0() + h) * width + w + job.getX0()];
+            int tw = tile.getWidth();
+            int th = tile.getHeight();
+            for (int w = 0; w < tw; w++) {
+                for (int h = 0; h < th; h++) {
+                    int packed = pixels[h * tw + w];
 
                     b = (packed & 0x00FF0000) >> 16;
                     g = (packed & 0x0000FF00) >> 8;
@@ -578,164 +690,52 @@ public class TestVolumeRenderer extends TestCase {
                     pixel[1] = g;
                     pixel[2] = b;
                     pixel[3] = 0xFFFFFFFF;
-                    raster.setPixel(job.getX0() + w, job.getY0() + h, pixel);
+
+                    x = tile.getX0() * tile.getWidth() + w;
+                    y = tile.getY0() * tile.getHeight() + h;
+
+                    //printf("SP: orig: %d %d\n",x,y);
+                    raster.setPixel(x, y, pixel);
                 }
+            }
+            //printf("create image: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
+        }
+    }
+
+    private void writeImage(RenderTile tile) {
+        BufferedImage image = new BufferedImage(tile.getWidth(), tile.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        int[] pixels = new int[tile.getWidth() * tile.getHeight()];
+        WritableRaster raster = image.getRaster();
+
+        int x;
+        int y;
+
+        tile.getDest().getBuffer().get(pixels).rewind();
+        int r, g, b;
+        int tw = tile.getWidth();
+        int th = tile.getHeight();
+        for (int w = 0; w < tw; w++) {
+            for (int h = 0; h < th; h++) {
+                int packed = pixels[h * tw + w];
+
+                b = (packed & 0x00FF0000) >> 16;
+                g = (packed & 0x0000FF00) >> 8;
+                r = (packed & 0x000000FF);
+                pixel[0] = r;
+                pixel[1] = g;
+                pixel[2] = b;
+                pixel[3] = 0xFFFFFFFF;
+
+                //printf("SP: orig: %d %d\n",x,y);
+                raster.setPixel(w, h, pixel);
             }
         }
 
-        printf("create image: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
-        return image;
-    }
-}
+        try {
+            ImageIO.write(image, "png", new File("/tmp/tile_" + tile.getX0() + "_" + tile.getY0() + ".png"));
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
 
-
-class RenderJob {
-    private int x0;
-    private int y0;
-    private int width;
-    private int height;
-
-    private CLDevice  device;
-    private CLContext context;
-    private CLCommandQueue queue;
-    private VolumeRenderer renderer;
-    private CLBuffer<IntBuffer> dest;
-    private CLBuffer<FloatBuffer> view;
-
-    public RenderJob(int x0, int y0, int width, int height) {
-        this.x0 = x0;
-        this.y0 = y0;
-        this.width = width;
-        this.height = height;
-    }
-
-    public RenderJob(int x0, int y0, int width, int height, CLBuffer<IntBuffer> dest, CLBuffer<FloatBuffer> view) {
-        this.x0 = x0;
-        this.y0 = y0;
-        this.width = width;
-        this.height = height;
-        this.dest = dest;
-        this.view = view;
-    }
-
-    public RenderJob(int x0, int y0, int width, int height,
-                     CLDevice device, CLContext context, CLCommandQueue queue, VolumeRenderer renderer,
-                     CLBuffer<IntBuffer> dest, CLBuffer<FloatBuffer> view) {
-        this.x0 = x0;
-        this.y0 = y0;
-        this.width = width;
-        this.height = height;
-        this.device = device;
-        this.context = context;
-        this.queue = queue;
-        this.renderer = renderer;
-        this.dest = dest;
-        this.view = view;
-    }
-
-    public CLDevice getDevice() {
-        return device;
-    }
-
-    public void setDevice(CLDevice device) {
-        this.device = device;
-    }
-
-    public CLContext getContext() {
-        return context;
-    }
-
-    public void setContext(CLContext context) {
-        this.context = context;
-    }
-
-    public CLCommandQueue getCommandQueue() {
-        return queue;
-    }
-
-    public void setQueue(CLCommandQueue queue) {
-        this.queue = queue;
-    }
-
-    public VolumeRenderer getRenderer() {
-        return renderer;
-    }
-
-    public void setRenderer(VolumeRenderer renderer) {
-        this.renderer = renderer;
-    }
-
-    public CLBuffer<FloatBuffer> getView() {
-        return view;
-    }
-
-    public void setView(CLBuffer<FloatBuffer> view) {
-        this.view = view;
-    }
-
-    public void setDest(CLBuffer<IntBuffer> dest) {
-        this.dest = dest;
-    }
-
-    public int getX0() {
-        return x0;
-    }
-
-    public void setX0(int x0) {
-        this.x0 = x0;
-    }
-
-    public int getY0() {
-        return y0;
-    }
-
-    public void setY0(int y0) {
-        this.y0 = y0;
-    }
-
-    public int getWidth() {
-        return width;
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public int getHeight() {
-        return height;
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-    }
-
-    public CLBuffer<IntBuffer> getDest() {
-        return dest;
-    }
-}
-
-class JobRunner extends Thread {
-    RenderJob job;
-    Matrix4f view;
-    float worldScale;
-    int width;
-    int height;
-
-    public JobRunner(RenderJob job, Matrix4f view, int width, int height, float worldScale) {
-        this.job = job;
-        this.view = view;
-        this.width = width;
-        this.height = height;
-        this.worldScale = worldScale;
-    }
-
-    public void run() {
-        long t0 = System.nanoTime();
-
-        printf("Job: %d,%d %d %d\n",job.getX0(),job.getY0(),job.getWidth(),job.getHeight());
-        job.getRenderer().renderOps(view, job.getX0(), job.getY0(), job.getWidth(), job.getHeight(), width, height,
-                job.getView(), worldScale, job.getCommandQueue(), job.getDest());
-        job.getCommandQueue().putReadBuffer(job.getDest(), true); // read results back (blocking read)
-        printf("Job time: %d\n",(int)((System.nanoTime() - t0) / 1e6));
     }
 }
