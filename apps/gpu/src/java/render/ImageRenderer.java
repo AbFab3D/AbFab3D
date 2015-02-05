@@ -106,25 +106,35 @@ public class ImageRenderer {
         pixels = new int[width * height];
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
+
         int frames = 36;
         int frameX = 6;
         int frameY = frames / frameX;
 
-        imgSize = (int)(width * height * expandFactor * frames);
-        jpgSize = 0;
+        allocBuffers(width,height,frames,frameX);
+
+        initialized = true;
+    }
+
+
+    private void allocBuffers(int width, int height, int frames, int frameX) {
+        int frameY = frames / frameX;
+
+        float expandFactor = 1.5f;
+        int imgSize = (int)(width * height * expandFactor * frames);
+        int jpgSize = 0;
         try {
             jpgSize = TJ.bufSize(width * frameX, height * frameY, TJ.SAMP_420);
         } catch(Exception e) {e.printStackTrace();}
 
         imgSize = Math.max(imgSize,jpgSize);
 
-        bigBuff = new byte[(int)(imgSize)];
-        bigPixels = new int[width * height];
-        bigImage = new BufferedImage(width * frameX, height * frameY, BufferedImage.TYPE_INT_ARGB);
-
-        initialized = true;
+        if (bigBuff == null || bigBuff.length < imgSize) {
+            bigBuff = new byte[(int) (imgSize)];
+            bigPixels = new int[width * height];
+            bigImage = new BufferedImage(width * frameX, height * frameY, BufferedImage.TYPE_INT_ARGB);
+        }
     }
-
 
     public int render(String jobID, String script, Matrix4f view,boolean cache, int imgType, OutputStream os) throws IOException {
         if (!initialized) {
@@ -209,6 +219,8 @@ public class ImageRenderer {
                 throw new IllegalArgumentException("Compile failed");
             }
         }
+
+        allocBuffers(width,height,frames,frameX);
 
         float drot = 360f / frames;
         float rotx = 0;
