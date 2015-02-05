@@ -359,10 +359,10 @@ public class ImageRenderer {
         lastImageTime = System.nanoTime() - t0;
     }
 
-    private Matrix4f getView(float rotx) {
+    private Matrix4f getView(float roty) {
         float[] DEFAULT_TRANS = new float[]{0, 0, -4};
         float z = DEFAULT_TRANS[2];
-        float roty = 0;
+        float rotx = 0;
 
         Vector3f trans = new Vector3f();
         Matrix4f tmat = new Matrix4f();
