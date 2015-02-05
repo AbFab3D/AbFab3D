@@ -28,9 +28,9 @@ float step10_(float x, float x0, float vs) { // this is used for density
     return ((x0+vs)-x)/(2*vs);
 }
 
-float step10(float x, float x0, float vs) { // used for distance
-     return (x-x0);
-}
+//float step10(float x, float x0, float vs) { // used for distance
+//     return (x-x0);
+//}
 
 
 float intervalCap(float x, float xmin, float xmax, float vs){
@@ -69,14 +69,14 @@ float blendMin(float a, float b, float w){
 
     float dd = min(a,b);
     float d = fabs(a-b);
-    if( d < w) return dd - w*blendFunc(d/w);
-	else return dd;
+    if( d < w) return dd - w*blendQuadric(d/w);	else return dd;
+    //return dd - w*blendQuadric(d/w)*clamp(d/w,0,1);
 }
 
 float blendMax(float a, float b, float w){
 
     float dd = max(a,b);
     float d = fabs(a-b);
-    if( d < w) return dd + w*blendFunc(d/w);
+    if( d < w) return dd + w*blendQuadric(d/w);
     else return dd;
 }

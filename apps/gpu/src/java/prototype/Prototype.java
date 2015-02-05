@@ -11,6 +11,8 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Random;
 
+import javax.vecmath.Vector3d;
+
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
@@ -278,7 +280,7 @@ public class Prototype {
         queue.put1DRangeKernel(kernel, 0, globalWorkSize, localWorkSize, list);
         queue.putReadBuffer(clBufferResult, true, list);
 
-        for(int k = 0; k < 10; k++){
+        for(int k = 0; k < 1; k++){
             int size = clBufferResult.getBuffer().get();
             out.printf("%4d ", size);        
             for(int i = 0; i < size; i++){
@@ -293,6 +295,58 @@ public class Prototype {
 
     }
 
+    static void testStructWriting(int elementCount) throws Exception{
+        
+        CLDevice device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
+        CLContext context = CLContext.create(device);
+        int localWorkSize = min(device.getMaxWorkGroupSize(), 256);  // Local work size dimensions
+        int globalWorkSize = roundUp(localWorkSize, elementCount);   // rounded up to the nearest multiple of the localWorkSize        
+        CLCommandQueue queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
+        CLProgram program = ProgramLoader.load(context,"OpcodeReader.cl");
+        String buildOpts = "";
+        program.build(buildOpts);        
+        printf("ProgramBuildStatus: %s\n",program.getBuildStatus());
+        
+        if (!program.isExecutable()) {
+            printf("log: %s\n",program.getBuildLog());
+            throw new IllegalArgumentException("Program didn't compile");
+        }
+        
+        CLKernel kernel = program.createCLKernel("StructReader");
+        out.printf("StructReader kernel: %s\n", kernel);
+        int bufferSize = 2000;
+        CLBuffer<IntBuffer> clBufferData = context.createIntBuffer(bufferSize, READ_ONLY);
+        CLBuffer<IntBuffer> clBufferResult = context.createIntBuffer(bufferSize, WRITE_ONLY);
+        
+        initStructBuffer(clBufferData.getBuffer());
+
+        kernel.putArg(clBufferData);
+        kernel.putArg(bufferSize);
+        kernel.putArg(clBufferResult);
+        kernel.putArg(bufferSize);
+
+        CLEventList list = new CLEventList(4);
+        queue.putWriteBuffer(clBufferData, true,list);
+        queue.put1DRangeKernel(kernel, 0, globalWorkSize, localWorkSize, list);
+        queue.putReadBuffer(clBufferResult, true, list);
+
+        while(true){
+
+            int size = clBufferResult.getBuffer().get();
+            if(size == 0) 
+                break;
+            out.printf("%4d ", size);        
+            for(int i = 0; i < size; i++){
+                int ri = (clBufferResult.getBuffer().get());
+                float rf = Float.intBitsToFloat(ri);            
+                out.printf("%8x(%6.2f) ", ri,rf);        
+            }
+            out.printf("\n");
+        }    
+        out.printf("\nDONE");
+        context.release();
+    }
+
     static void writeToByteBuffer(ByteBuffer buffer, int x){
     
         buffer.put((byte)(x & 0xFF));
@@ -304,6 +358,31 @@ public class Prototype {
     static void writeToIntBuffer(IntBuffer buffer, int x){    
         buffer.put(x);
     } 
+
+    static void writeToIntBuffer(IntBuffer buffer, int array[], int count){    
+        for(int i = 0; i < count; i++){
+            buffer.put(array[i]);
+        }
+    } 
+
+    static void initStructBuffer(IntBuffer buffer){
+
+        int workBuffer[] = new int[1000];
+
+        CSphere s1 = new CSphere(1.10, new Vector3d(1.11, 1.12, 1.13));
+        CSphere s2 = new CSphere(2.20, new Vector3d(2.11, 2.12, 2.13));
+        CSphere s3 = new CSphere(3.20, new Vector3d(3.11, 3.12, 3.13));
+        CGyroid g1 = new CGyroid(1.1, 2.2, 3.3, new Vector3d(4.11, 4.12, 4.13));
+
+        s1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]);
+        s2.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]);
+        s3.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); 
+        g1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); 
+
+        buffer.rewind();
+        
+    }
+
 
     static void initOpcodeBuffer(ByteBuffer buffer, int length){
 
@@ -341,6 +420,7 @@ public class Prototype {
         //testAddOpenCL(cnt);
         //testByteReader(cnt);
         testWordWriter(cnt);        
+        //testStructWriting(cnt);        
     }
 }
 
