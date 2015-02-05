@@ -10,8 +10,8 @@ var maxParams = 20;
 
 var width = 512;
 var height = 512;
-var frames = 36;
-var framesX = 6;
+var frames = 360 / 2;
+var framesX = 9;
 
 
 function getFile(elementId){
@@ -33,7 +33,7 @@ function getJobID() {
 }
 
 function getRender() {
-  spin('preview');
+  //spin('preview');
   
   // Set additional data not part of the form
   extraParams = {
@@ -48,7 +48,7 @@ function getRender() {
 //  console.log($.param(extraParams));
   
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
-  showSpriteImage(url);
+  showSpriteImage(url,frames,framesX);
   
 /*
 
