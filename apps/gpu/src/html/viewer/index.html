@@ -1,0 +1,472 @@
+<!DOCTYPE html >
+<html >
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="javascript/x3dom/x3dom.css" />
+<script type="text/javascript" src="javascript/x3dom/x3dom.js"></script>
+<script type="text/javascript" src="javascript/jquery/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="javascript/jquery/jquery-ui-1.8.14.custom.min.js"></script>
+<script type="text/javascript" src="javascript/jquery/jquery.tools.min.js"></script>
+<script type="text/javascript" src="javascript/jquery/jquery.form.js"></script>
+<script type="text/javascript" src="javascript/jquery/gpu.realtime.js"></script>
+<script type="text/javascript" src="javascript/jquery/spritespin.js"></script>
+<script type="text/javascript" src="javascript/jquery/md5.js"></script>
+
+<link rel="stylesheet" type="text/css" href="stylesheets/main.css"/>
+<link rel="stylesheet" type="text/css" href="stylesheets/screen.css"/>
+
+<link rel="stylesheet" href="stylesheets/codemirror.css">
+<link rel="stylesheet" href="javascript/codemirror/theme/eclipse.css">
+<link rel="stylesheet" href="javascript/codemirror/addons/lint.css">
+<script src="javascript/codemirror/codemirror.js"></script>
+<script src="javascript/codemirror/addons/lint.js"></script>
+<script src="javascript/codemirror/addons/javascript-lint.js"></script>
+<script src="javascript/codemirror/addons/matchbrackets.js"></script>
+<script src="javascript/codemirror/addons/mark-selection.js"></script>
+<script src="javascript/codemirror/addons/placeholder.js"></script>
+<script src="javascript/codemirror/addons/active-line.js"></script>
+<script src="javascript/codemirror/mode/javascript.js"></script>
+<script src="http://ajax.aspnetcdn.com/ajax/jshint/r07/jshint.js"></script>
+</head>
+<body class="sct-home">
+<script type="text/javascript">
+
+/** Creator specific vars and methods */
+
+var inputTypes = ["text", "file", "range"];
+
+var isUriImage = false;
+var isUrlScript = false;
+var paramCount = 1;     // 1 because we have initialized default script and parameter
+var fileCount = 0;
+
+
+jQuery(document).ready(function() {
+
+//  jQuery('#form').ajaxForm(options);
+  unspin();
+//  showSpriteImage("images/bike6x6_big.jpg");
+
+});
+
+function jsonForm(formData, jqForm, options) {
+
+  // Add extra parameters not part of the form to formData
+  jQuery.each(extraParams, function(key, val) {
+    formData.push({name: key, value: val});
+  });
+
+  // Get the code editor content
+  // Replace new line ("\n") with a space character
+//  formData.push({name: "script", value: editor.getValue()});
+
+  for (var i=0; i < formData.length; i++) {
+    if (formData[i].type != "file") {
+      formData[i].value = JSON.stringify(formData[i].value);
+	} else {
+	  checkFile(formData, i);
+	}
+  }
+
+  for (var i=0; i < formData.length; i++) {
+    console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
+  }
+}
+
+function checkFile(formData, index) {
+  var fileParam = formData[index].name;
+  var fileNameParam = fileParam.replace("file", "filename");
+  var val = document.getElementById(fileNameParam).value;
+
+  if (isUriParam(fileNameParam)) {
+    formData[index].type = "text";
+    formData[index].name = fileParam;
+    formData[index].value = JSON.stringify(val);
+  } else if (val.indexOf("/") > -1) {
+    if (val.charAt(0) === "/") {
+      val = val.substring(1);
+    }
+    var host = location.host;
+    formData[index].type = "text";
+    formData[index].name = fileParam;
+    formData[index].value = JSON.stringify("http://" + host + "/" + val);
+  }
+}
+
+function addParam() {
+  paramCount++;
+
+  var pname_div = document.createElement("div");
+  pname_div.setAttribute("id", "param-name" + paramCount);
+  pname_div.setAttribute("class", "param-name");
+  pname_div.innerHTML = "param" + paramCount;
+
+  var pname_input = document.createElement("input");
+  pname_input.setAttribute("type", "text");
+  pname_input.setAttribute("name", "param" + paramCount);
+  pname_input.setAttribute("id", "param" + paramCount);
+  pname_input.setAttribute("class", "param-val");
+
+  var pval_div = document.createElement("div");
+  pval_div.setAttribute("class", "param-val");
+  pval_div.appendChild(pname_input);
+
+  var remove_div = document.createElement("div");
+  remove_div.setAttribute("class", "remove-param");
+  remove_div.setAttribute("onclick", "removeParam(" + paramCount + ")");
+  remove_div.innerHTML = "remove";
+
+  var param_row = document.createElement("div");
+  param_row.setAttribute("id", "param-row" + paramCount);
+  param_row.setAttribute("class", "param-row");
+  param_row.appendChild(pname_div);
+  param_row.appendChild(pval_div);
+  param_row.appendChild(remove_div);
+
+  var parent = document.getElementById("parameters");
+  parent.appendChild(param_row);
+
+//  debug(parent);
+}
+
+//  <div id="param-row1" class="param-row">
+//    <div id="param-name1" class="param-name">param1</div>
+//    <div class="param-val"><input type="text" name="param-val1" id="param-val1" class="param-val" value="0.005"/></div>
+//  </div>
+
+function removeParam(num) {
+  // Reassign param values starting from the selected param to remove
+  for (var i = num; i < paramCount; i++) {
+    var nextVal = jQuery("#param" + (i + 1)).val();
+    jQuery("#param" + i).val(nextVal);
+  }
+
+  // Remove the last input
+  var parent = document.getElementById("parameters");
+  var param_row = document.getElementById("param-row" + paramCount);
+  parent.removeChild(param_row);
+
+  paramCount--;
+//  debug(parent);
+}
+
+function addFile() {
+  fileCount++;
+
+  var fname_div = document.createElement("div");
+  fname_div.setAttribute("id", "file-name" + fileCount);
+  fname_div.setAttribute("class", "param-name");
+  fname_div.innerHTML = "file" + fileCount;
+
+  var fname_text = document.createElement("input");
+  fname_text.setAttribute("type", "text");
+  fname_text.setAttribute("name", "filename" + fileCount);
+  fname_text.setAttribute("id", "filename" + fileCount);
+  fname_text.setAttribute("class", "file-param-val");
+  fname_text.setAttribute("value", "Select file");
+  fname_text.setAttribute("readOnly", true);
+
+  var fval_text_div = document.createElement("div");
+  fval_text_div.setAttribute("id", "file_val" + fileCount);
+  fval_text_div.setAttribute("class", "file-param-val");
+  fval_text_div.setAttribute("onclick", "getFile('file" + fileCount + "')");
+  fval_text_div.appendChild(fname_text);
+
+  var fname_file = document.createElement("input");
+  fname_file.setAttribute("type", "file");
+  fname_file.setAttribute("name", "file" + fileCount);
+  fname_file.setAttribute("id", "file" + fileCount);
+  fname_file.setAttribute("onchange", "sub(this, 'filename" + fileCount + "')");
+
+  var fval_file_div = document.createElement("div");
+  fval_file_div.setAttribute("style", "height: 0px;width:0px; overflow:hidden;");
+  fval_file_div.appendChild(fname_file);
+
+  var remove_div = document.createElement("div");
+  remove_div.setAttribute("id", "file-remove" + fileCount);
+  remove_div.setAttribute("class", "remove-param");
+  remove_div.setAttribute("onclick", "removeFile(" + fileCount + ")");
+  remove_div.innerHTML = "remove";
+
+  var file_row = document.createElement("div");
+  file_row.setAttribute("id", "file-row" + fileCount);
+  file_row.setAttribute("class", "param-row");
+  file_row.appendChild(fname_div);
+  file_row.appendChild(fval_text_div);
+  file_row.appendChild(fval_file_div);
+  file_row.appendChild(remove_div);
+
+  var parent = document.getElementById("files");
+  parent.appendChild(file_row);
+
+//  debug(parent);
+}
+
+//  <div id="file-row1" class="param-row">
+//    <div id="file-name1" class="param-name">file1</div>
+//    <div id="file_val1" class="file-param-val" onclick="getFile('file1')"><input type="text" name="filename1" id="filename1" class="file-param-val" value="Select file" readonly></div>
+//    <div style='height: 0px;width:0px; overflow:hidden;'><input type="file" name="file1" id="file1" onchange="sub(this, 'filename1')" /></div>
+//  </div>
+
+function removeFile(num) {
+  var parent = document.getElementById("files");
+  var param_row = document.getElementById("file-row" + num);
+  parent.removeChild(param_row);
+
+  // Reassign param values starting from the selected param to remove
+  var start = num + 1;
+  for (var i = start; i <= fileCount; i++) {
+    var file_row = document.getElementById("file-row" + i);
+    file_row.setAttribute("id", "file-row" + (i - 1));
+
+    var fname_div = document.getElementById("file-name" + i);
+    fname_div.setAttribute("id", "file-name" + (i - 1));
+    fname_div.innerHTML = "file" + (i - 1);
+
+    var fval_text_div = document.getElementById("file_val" + i);
+    fval_text_div.setAttribute("id", "file_val" + (i - 1));
+    fval_text_div.setAttribute("onclick", "getFile('file" + (i - 1) + "')");
+
+    var fname_input = document.getElementById("filename" + i);
+    fname_input.setAttribute("id", "filename" + (i - 1));
+    fname_input.setAttribute("name", "filename" + (i - 1));
+
+    var file_input = document.getElementById("file" + i);
+    file_input.setAttribute("id", "file" + (i - 1));
+    file_input.setAttribute("name", "file" + (i - 1));
+    file_input.setAttribute("onchange", "sub(this, 'filename" + (i - 1) + "')");
+
+    var remove_div = document.getElementById("file-remove" + i);
+    remove_div.setAttribute("id", "file-remove" + (i - 1));
+    remove_div.setAttribute("onclick", "removeFile(" + (i - 1) + ")");
+  }
+
+  fileCount--;
+//  debug(parent);
+}
+
+/*
+// Download the output url
+function saveFile() {
+  if (creatorOutput === undefined || creatorOutput === null || creatorOutput.length == 0) {
+    return;
+  }
+
+  // Get file name from url.
+  var url = creatorOutput;
+  var filename = url.substring(url.lastIndexOf("/") + 1).split("?")[0];
+  var xhr = new XMLHttpRequest();
+  xhr.responseType = 'blob';
+  xhr.onload = function() {
+    var a = document.createElement('a');
+    a.href = window.URL.createObjectURL(xhr.response); // xhr.response is a blob
+    a.download = filename; // Set the file name.
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    delete a;
+  };
+  xhr.open('GET', url);
+  xhr.send();
+}
+*/
+// Download the output url
+function saveFile() {
+    var fileURL = creatorOutput;
+    var extension = fileURL.split('.').pop();
+    var fileName = "output." + extension;
+
+    // for non-IE
+    if (!window.ActiveXObject) {
+        var save = document.createElement('a');
+        save.href = fileURL;
+        save.target = '_blank';
+        save.download = fileName || fileURL;
+        var evt = document.createEvent('MouseEvents');
+        evt.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0,
+            false, false, false, false, 0, null);
+        save.dispatchEvent(evt);
+        (window.URL || window.webkitURL).revokeObjectURL(save.href);
+    }
+
+    // for IE
+    else if ( !! window.ActiveXObject && document.execCommand)     {
+        var _window = window.open(fileURL, "_blank");
+        _window.document.close();
+        _window.document.execCommand('SaveAs', true, fileName || fileURL)
+        _window.close();
+    }
+}
+
+
+/*************************************************/
+/*
+var params = [
+  {
+    "id": "name",
+    "displayName": "Name",
+    "type": "text",
+    "default": "Enter Name"
+  },
+  {
+    "id": "radius",
+    "displayName": "Radius",
+    "type": "range",
+    "rangeMin": 0.01,
+    "rangeMax": 0.1,
+    "step": 0.01,
+    "default": 0.05
+  }
+];
+*/
+function evalScriptParams() {
+  var jsScript = editor.getValue();
+  eval(jsScript);
+
+  for (var i=0; i<params.length; i++) {
+    console.log(params[i]);
+
+    var type = (params[i].type).toLowerCase();
+    if ( $.inArray(type, inputTypes) >= 0) {
+      insertInput(params[i]);
+      paramCount++;
+    } else {
+      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
+    }
+  }
+}
+
+function insertInput(param) {
+
+  var pname_div = document.createElement("div");
+  pname_div.setAttribute("class", "param-name");
+  pname_div.innerHTML = param.displayName;
+
+  switch ( (param.type).toLowerCase() ) {
+    case "text":
+      var pname_input = document.createElement("input");
+      pname_input.setAttribute("type", "text");
+      pname_input.setAttribute("name", param.id);
+      pname_input.setAttribute("id", param.id);
+      pname_input.setAttribute("value", param.default);
+      pname_input.setAttribute("class", "param-val");
+      break;
+    case "range":
+      var pname_input = document.createElement("input");
+      pname_input.setAttribute("type", "range");
+      pname_input.setAttribute("name", param.id);
+      pname_input.setAttribute("id", param.id);
+      pname_input.setAttribute("value", param.default);
+      pname_input.setAttribute("min", param.rangeMin);
+      pname_input.setAttribute("max", param.rangeMax);
+      pname_input.setAttribute("step", param.step);
+      pname_input.setAttribute("class", "range-slider");
+      break;
+    default:
+      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
+  }
+
+  var pval_div = document.createElement("div");
+  pval_div.setAttribute("class", "param-val");
+  pval_div.appendChild(pname_input);
+
+  var param_row = document.createElement("div");
+  param_row.setAttribute("id", "param-row" + paramCount);
+  param_row.setAttribute("class", "param-row");
+  param_row.appendChild(pname_div);
+  param_row.appendChild(pval_div);
+
+  var parent = document.getElementById("parameters");
+  parent.appendChild(param_row);
+}
+
+function showSpriteImage(image) {
+  $('#sprite-viewer').spritespin({
+    source: image,
+    width: 512,
+    height: 512,
+    frames: 36,
+    framesX: 6,
+    sense: -1,
+//    onDraw: console.log("loaded")
+  });
+
+//  debug($('#sprite-viewer'));
+}
+</script>
+
+<div class="container">
+
+<div id="main-box">
+
+<!-- left column -->
+<div class="jscode">
+<textarea id="code" name="code" placeholder="Code goes here..."></textarea>
+<div id="preview-button" onclick="getRender();" class="submit-generate">Generate</div>
+<div id="loading" class="loading">Generating...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
+<div id="save-button" onclick="" class="submit-save">Save model</div>
+<div id="saving">Saving...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
+</div>
+
+
+
+<style type="text/css">
+.CodeMirror {
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+}
+.CodeMirror pre.CodeMirror-placeholder {
+  color: #999;
+}
+.CodeMirror-selected  { background-color: blue !important; }
+.CodeMirror-selectedtext { color: white !important; }
+.CodeMirror-activeline-background {background: #e8f2ff !important;}
+</style>
+<script>
+  var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+    mode: "javascript",
+	lineNumbers: true,
+	matchBrackets: true,
+	continueComments: "Enter",
+    styleSelectedText: true,
+    gutters: ["CodeMirror-lint-markers"],
+    lintWith: CodeMirror.javascriptValidator,
+    styleActiveLine: true,
+  });
+</script>
+
+<!-- middle column -->
+<div class="viewer-container">
+<div class="viewer">
+<div id="model-container">
+<div id="sprite-viewer" width="520px" height="540px"></div>
+
+</div>
+</div>
+<div><input type="text" name="title" id="title" class="title" value="Model Title" /></div>
+<div id="upload-button" onclick="" class="submit-upload">Upload</div>
+<div id="uploading">Uploading...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
+</div>
+<!--
+<form id="form" action="" method="GET">
+<div id="parameters" class="parameter-container">
+  <div id="addparam-title">Add Parameters</div>
+  <div class="add-img" onclick="addParam();"><img src="images/add_small.png" /></div>
+  <div id="param-row1" class="param-row">
+    <div id="param-name1" class="param-name">param1</div>
+    <div class="param-val"><input type="text" name="param1" id="param1" class="param-val" value="0.005" /></div>
+    <div class="remove-param" onclick="removeParam(1)">remove</div>
+ </div>
+</div>
+
+<div id="files" class="file-container">
+  <div id="addparam-title">Add Files</div>
+  <div class="add-img" onclick="addFile();"><img src="images/add_small.png" /></div>
+</div>
+</form>
+-->
+</div>
+</div>
+
+</body>
+</html>
