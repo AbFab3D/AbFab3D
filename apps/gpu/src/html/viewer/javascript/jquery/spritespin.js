@@ -145,14 +145,18 @@
       firstLoaded = firstLoaded || (this === images[0]);
       if (!completed && count >= targetCount && firstLoaded && (typeof opts.complete === 'function')) {
         completed = true;
+        console.log("Completed");
+
         opts.complete(images);
       }
     };
+
     for (i = 0; i < src.length; i += 1 ) {
       img = new Image();
       images.push(img);
       // currently no care about error or aborting transfers
       img.onload = img.onabort = img.onerror = tick;
+
       img.src = src[i];
     }
     if (typeof opts.initiated === 'function'){

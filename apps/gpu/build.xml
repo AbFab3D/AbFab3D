@@ -183,6 +183,11 @@
             <fileset dir="${war.dir}"/>
         </copy>
     </target>
+    <target name="deployWeb" depends="war">
+        <copy todir="${deploy.webserver.dir}/${service}" failonerror="false">
+            <fileset dir="${src.dir}/html"/>
+        </copy>
+    </target>
 
     <target name="test" depends="compileTest,kernels">
         <junit dir="${basedir}" printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">

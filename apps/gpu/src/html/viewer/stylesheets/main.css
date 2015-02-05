@@ -633,3 +633,9 @@ input.file-param-val {
   display: block;
   clear: both;
 }
+
+.spritespin-instance.loading {
+	background: url('../images/loading.gif');
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+}

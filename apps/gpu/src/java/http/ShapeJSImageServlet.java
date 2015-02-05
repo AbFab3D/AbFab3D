@@ -96,7 +96,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         float[] viewMatrix = null;
         int frames = 0;
         int framesX = 6;
-        String imgType = "JPEG";
+        String imgType = "JPG";
 
         boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 

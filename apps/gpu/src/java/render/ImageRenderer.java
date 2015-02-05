@@ -119,6 +119,7 @@ public class ImageRenderer {
 
     private void allocBuffers(int width, int height, int frames, int frameX) {
         int frameY = frames / frameX;
+        printf("AllocBuffers: frames: %d frameX: %d frameY: %d\n",frames,frameX,frameY);
 
         float expandFactor = 1.5f;
         int imgSize = (int)(width * height * expandFactor * frames);
@@ -133,6 +134,7 @@ public class ImageRenderer {
             bigBuff = new byte[(int) (imgSize)];
             bigPixels = new int[width * height];
             bigImage = new BufferedImage(width * frameX, height * frameY, BufferedImage.TYPE_INT_ARGB);
+            printf("Realloc buffers: imgSize: %d   w: %d  h: %d\n",imgSize,bigImage.getWidth(),bigImage.getHeight());
         }
     }
 
@@ -224,13 +226,15 @@ public class ImageRenderer {
 
         float drot = 360f / frames;
         float rotx = 0;
+
+        printf("Rot degrees: %f\n",drot);
         for(int n=0; n < frames; n++) {
             // TODO: get view based on rotation
 
             Matrix4f inv_view = getView(rotx);
             inv_view.invert();
 
-            rotx -= drot;
+            rotx += drot;
             tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
             RenderTile tile = tiles[0];
 
