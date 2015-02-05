@@ -218,7 +218,7 @@ public class ImageRenderer {
             Matrix4f inv_view = getView(rotx);
             inv_view.invert();
 
-            rotx += drot;
+            rotx -= drot;
             tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
             RenderTile tile = tiles[0];
 
