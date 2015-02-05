@@ -109,7 +109,10 @@ public class ProgramLoader {
 
                 return fis;
             } catch (IOException ioe) {
-                ioe.printStackTrace();
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                InputStream input = classLoader.getResourceAsStream(filename);
+
+                return input;
             }
         } else {
             //printf("Loading openCL Script: %s\n", filename);

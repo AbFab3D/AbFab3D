@@ -110,7 +110,6 @@ public class ShapeJSExecutor {
             lastRuntime = time;
             printf("Run time: %d ms\n",(time / 1000000));
         } finally {
-            printf("Cleaning up OpenCL resources\n");
             for (int i = 0; i < compute.length; i++) {
                 ocd[i].cleanup();
             }

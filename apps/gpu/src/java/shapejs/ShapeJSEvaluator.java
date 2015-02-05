@@ -91,7 +91,7 @@ public class ShapeJSEvaluator {
         return script.replace("maker.makeGrid(grid);","var ret_ss = new ShapeJSStore(); ret_ss.addMaker(maker,grid); return ret_ss;");
     }
 
-    public DataSource runScript(String filename, Bounds bounds) {
+    public DataSource runScript(File file, Bounds bounds) {
 
         Context cx = Context.enter();
         try {
@@ -101,7 +101,7 @@ public class ShapeJSEvaluator {
 
             scope.initShapeJS(contextFactory);
 
-            String script = FileUtils.readFileToString(new File(filename));
+            String script = FileUtils.readFileToString(file);
             script = addImports(script);
             script = replaceMakeGrid(script);
 
@@ -134,6 +134,53 @@ public class ShapeJSEvaluator {
 
         } catch(IOException ioe) {
             ioe.printStackTrace();
+        } finally {
+            Context.exit();
+        }
+
+        return null;
+    }
+
+    public DataSource runScript(String script, Bounds bounds) {
+
+        Context cx = Context.enter();
+        try {
+            GlobalScope scope = new GlobalScope();
+            ContextFactory contextFactory = new ContextFactory();
+            //.setErrorReporter(errorReporter);
+
+            scope.initShapeJS(contextFactory);
+
+            script = addImports(script);
+            script = replaceMakeGrid(script);
+
+            //printf("Final script:\n%s\n",script);
+            Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
+
+            Object o = scope.get("main", scope);
+
+            if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {
+                System.out.println("Cannot find function main");
+            }
+            Function main = (Function) o;
+
+            Object[] args = new Object[0];
+            Object result2 = main.call(cx, scope, scope, new Object[] {args});
+
+            if (result2 instanceof NativeJavaObject) {
+                Object no = ((NativeJavaObject)result2).unwrap();
+
+                ShapeJSStore store = (ShapeJSStore) no;
+                List<DataSource> source_list = store.getDataSources();
+                List<Bounds> bounds_list = store.getBounds();
+                for(int i=0; i < source_list.size(); i++) {
+                    // TODO: Handle lists
+                    DataSource source = source_list.get(i);
+                    bounds.set(bounds_list.get(i));
+                    return source;
+                }
+            }
+
         } finally {
             Context.exit();
         }

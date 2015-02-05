@@ -28,7 +28,8 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
+    private static final boolean STATS = true;
     private static final boolean CACHE_PROGRAM = true;
     private static final String CACHE_LOCATION = "/tmp/openCL_cache";
 
@@ -51,6 +52,7 @@ public class VolumeRenderer {
     private long renderTime;
     private long kernelTIme;
     private String renderVersion = VERSION_DIST;
+    private String kernelName;
 
 
     // Prototype vars for opcode
@@ -80,6 +82,7 @@ public class VolumeRenderer {
 
         renderVersion = version;
 
+        printf("VolumeRenderer Init: %s\n",version);
         long t0 = System.nanoTime();
         try {
             String buildOpts = "";
@@ -116,7 +119,7 @@ public class VolumeRenderer {
                         String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
                         File f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
                         if (f.exists()) {
-                            printf("Loading OpenCL program from binary\n");
+                            if (DEBUG) printf("Loading OpenCL program from binary\n");
                             byte[] bytes = FileUtils.readFileToByteArray(f);
                             bins.put(device, bytes);
                         }
@@ -126,7 +129,7 @@ public class VolumeRenderer {
                             program.build(buildOpts);
 
                             from_cache = true;
-                            printf("Successfully loaded cached OpenCL binaries\n");
+                            if (DEBUG) printf("Successfully loaded cached OpenCL binaries\n");
                         }
                     }
                 }
@@ -135,7 +138,7 @@ public class VolumeRenderer {
             }
 
             if (program == null) {
-                printf("Compiling text program\n");
+                printf("Compiling text program:\n");
                 //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
                 ArrayList list = new ArrayList();
                 list.add(new File("ShapeJS_" + renderVersion + ".cl"));
@@ -144,7 +147,24 @@ public class VolumeRenderer {
                 if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
                     // TODO: this would need to be updated to support jar file deployment
                     File dir = new File("classes");
+                    boolean in_jar = false;
+
                     String[] files = dir.list();
+
+                    if (files == null) {
+                        in_jar = true;
+                        files = new String[] {"box_opcode_v2_dist.cl",
+                             "gyroid_opcode_v2_dist.cl",
+                             "intersection_opcode_v2_dist.cl",
+                             "rotation_opcode_v2_dist.cl",
+                             "scale_opcode_v2_dist.cl",
+                             "sphere_opcode_v2_dist.cl",
+                             "subtraction_opcode_v2_dist.cl",
+                             "torus_opcode_v2_dist.cl",
+                             "translation_opcode_v2_dist.cl",
+                             "union_opcode_v2_dist.cl"};
+                    }
+
                     String rv = renderVersion + ".cl";
                     for (int i = 0; i < files.length; i++) {
                         if (files[i].contains(rv)) {
@@ -341,6 +361,7 @@ public class VolumeRenderer {
             return false;
         }
 
+        kernelName = kernel_name;
         kernel = program.createCLKernel(kernel_name);
         compileTime = (System.nanoTime() - t0);
         
@@ -368,50 +389,52 @@ public class VolumeRenderer {
         return program;
     }
 
-    /**
-     * Render the program from the desired view into a buffer.
-     *
-     * @param view
-     * @param viewBuffer
-     * @param queue
-     * @param dest
-     */
-    public void renderOps(Matrix4f view, int w0, int h0, int wsize, int hsize, int width, int height,
-                          CLBuffer<FloatBuffer> viewBuffer, float worldScale, CLCommandQueue queue, CLBuffer dest) {
-
-        long t0 = System.nanoTime();
-
-        int localWorkSizeX = 0; // this seems the fastest not sure why
-        int localWorkSizeY = 0;
-
-        long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX, width);
-        long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,height);
-
-        view.invert();
-        //printf("inv view: \n%s\n",view);
-
-        viewData[0] = view.m00;
-        viewData[1] = view.m01;
-        viewData[2] = view.m02;
-        viewData[3] = view.m03;
-        viewData[4] = view.m10;
-        viewData[5] = view.m11;
-        viewData[6] = view.m12;
-        viewData[7] = view.m13;
-        viewData[8] = view.m20;
-        viewData[9] = view.m21;
-        viewData[10] = view.m22;
-        viewData[11] = view.m23;
-        viewData[12] = view.m30;
-        viewData[13] = view.m31;
-        viewData[14] = view.m32;
-        viewData[15] = view.m33;
+    public void sendView(Matrix4f invView, CLBuffer<FloatBuffer> viewBuffer) {
+        viewData[0] = invView.m00;
+        viewData[1] = invView.m01;
+        viewData[2] = invView.m02;
+        viewData[3] = invView.m03;
+        viewData[4] = invView.m10;
+        viewData[5] = invView.m11;
+        viewData[6] = invView.m12;
+        viewData[7] = invView.m13;
+        viewData[8] = invView.m20;
+        viewData[9] = invView.m21;
+        viewData[10] = invView.m22;
+        viewData[11] = invView.m23;
+        viewData[12] = invView.m30;
+        viewData[13] = invView.m31;
+        viewData[14] = invView.m32;
+        viewData[15] = invView.m33;
 
         viewBuffer.getBuffer().put(viewData);
         viewBuffer.getBuffer().rewind();
+        this.viewBuffer = viewBuffer;
+
+        queue.putWriteBuffer(viewBuffer, true, null);
+    }
+    /**
+     * Render the program from the desired view into a buffer.
+     *
+     * @param dest
+     */
+    public void renderOps(int w0, int h0, int wsize, int hsize, int width, int height,
+                          float worldScale, CLBuffer dest) {
+
+        //printf("RenderOps: w0: %d h0: %d wsize: %d hsize: %d width:%d height: %d dest: %s this: %s\n",w0,h0,wsize,hsize,width,height,dest,this);
+        long t0 = System.nanoTime();
+
+        // TODO: needs 0 for Apple, 8 is fastest on Desktop GPU
+        int localWorkSizeX = 8; // this seems the fastest not sure why
+        int localWorkSizeY = 8;
+
+        long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
+        long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
+
+        //printf("inv view: \n%s\n",view);
 
         // Call OpenCL kernel
-        CLEventList list = new CLEventList(4);
+        CLEventList list = new CLEventList(3);
 
         boolean usingGL = (dest instanceof CLGLBuffer);
 
@@ -419,47 +442,47 @@ public class VolumeRenderer {
             queue.putAcquireGLObject((CLGLBuffer) dest, list);
         }
 
-        //queue.finish();
-
-        // TODO: this line crashes my Mac on second render
-        queue.putWriteBuffer(viewBuffer, true, null, list);
-
         kernel.setArg(0, dest).rewind();
-        kernel.setArg(1, width);
-        kernel.setArg(2, height);
-        kernel.setArg(3, viewBuffer).rewind();
-        kernel.setArg(4, worldScale);
-        kernel.setArg(5,opBuffer).rewind();
-        kernel.setArg(6,opLen);
-        kernel.setArg(7,floatBuffer).rewind();
-        kernel.setArg(8,intBuffer).rewind();
-        kernel.setArg(9,floatVectorBuffer).rewind();
-        kernel.setArg(10,booleanBuffer).rewind();
-        kernel.setArg(11,matrixBuffer).rewind();
+        kernel.setArg(1, w0 * wsize);
+        kernel.setArg(2, h0 * hsize);
+        kernel.setArg(3, wsize);
+        kernel.setArg(4, hsize);
+        kernel.setArg(5, width);
+        kernel.setArg(6, height);
+        kernel.setArg(7, viewBuffer).rewind();
+        kernel.setArg(8, worldScale);
+        kernel.setArg(9,opBuffer).rewind();
+        kernel.setArg(10,opLen);
+        kernel.setArg(11,floatBuffer).rewind();
+        kernel.setArg(12,intBuffer).rewind();
+        kernel.setArg(13,floatVectorBuffer).rewind();
+        kernel.setArg(14,booleanBuffer).rewind();
+        kernel.setArg(15,matrixBuffer).rewind();
 
 //        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
         // Changed to 0 needed to work on MAC
         // TODO: Test
-        queue.put2DRangeKernel(kernel, w0, h0, wsize, hsize, 0, 0, list);
+        //queue.put2DRangeKernel(kernel, 0, 0, wsize, hsize, 0, 0, list);
 
-        //queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, 0, 0, list);
+        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
         if (usingGL) {
             queue.putReleaseGLObject((CLGLBuffer) dest, list);
         }
         queue.finish();
 
-        int idx = 1;
-        if (usingGL) idx++;
-        kernelTIme = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
-        /*
+        if (STATS) {
+            int idx = 0;
+            if (usingGL) idx++;
+            kernelTIme = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
+            renderTime = System.nanoTime() - t0;
+        }
+/*
         for(int i=0; i < list.size(); i++) {
             CLEvent event = list.getEvent(i);
-            System.out.println("cmd: " + i + " time: " + (event.getProfilingInfo(CLEvent.ProfilingCommand.END)
+            System.out.println("cmd: " + i + " " + event.getType() + " time: " + (event.getProfilingInfo(CLEvent.ProfilingCommand.END)
                     - event.getProfilingInfo(CLEvent.ProfilingCommand.START))/1000000.0);
         }
-        */
-
-        renderTime = System.nanoTime() - t0;
+*/
 
     }
 
@@ -567,5 +590,13 @@ public class VolumeRenderer {
 
     public CLCommandQueue getCommandQueue() {
         return queue;
+    }
+
+    /**
+     * Cleanup resources used
+     */
+    public void cleanup() {
+        if (kernel != null) kernel.release();
+        if (program != null) program.release();
     }
 }

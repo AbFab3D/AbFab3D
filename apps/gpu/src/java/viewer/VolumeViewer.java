@@ -16,6 +16,8 @@ import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
 import datasources.Instruction;
+import render.OpenCLOpWriter;
+import render.OpenCLOpWriterV2;
 import render.VolumeRenderer;
 import shapejs.ShapeJSEvaluator;
 

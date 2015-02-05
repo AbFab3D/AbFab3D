@@ -65,7 +65,7 @@ public class ReusableByteArrayOutputStream extends OutputStream {
      * @param   len   the number of bytes to write.
      */
     public  void write(byte b[], int off, int len) {
-         if (len == 0) {
+        if (len == 0) {
             return;
         }
 

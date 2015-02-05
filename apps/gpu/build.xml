@@ -6,6 +6,7 @@
     <description>gpu</description>
 
     <property name="version" value="1.0.0"/>
+    <property name="service" value="shapejsRT" />
     <property name="src.dir" value="${basedir}/src"/>
     <property name="apps.dir" value="${basedir}/apps"/>
     <property name="apps.common.dir" value="../common"/>
@@ -16,6 +17,7 @@
     <property name="classes.dir" value="${basedir}/classes"/>
     <property name="test.classes.dir" value="${classes.dir}/test" />
     <property name="jar.dir" value="${basedir}/jars"/>
+    <property name="war.dir" value="${basedir}/wars"/>
     <property name="lib.dir" value="${basedir}/lib"/>
     <property name="abfab3d.lib.dir" value="../../lib"/>
     <property name="abfab3d.jars.dir" value="../../jars"/>
@@ -24,6 +26,9 @@
     <property name="app.common.dir" value="../common"/>
     <property name="xj3d.dir" value="../../../../../xj3d/code/trunk"/>
     <property name="av3d.dir" value="../../j3d.org/aviatrix3d-2/aviatrix3d"/>
+
+    <property name="deploy.webserver.dir" value="/var/www/html/creators/creators"/>
+    <property name="deploy.appserver.dir" value="/InstalledPrograms/jetty-distribution-8.1.3.v20120416"/>
 
     <property name="entrypoint" value="volumesculptor.VolumeSculptor"/>
 
@@ -109,6 +114,13 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
+        <compilejava package="http" jars="" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
         <compilejava package="prototype" jars="" >
             <classpath-elements>
                 <pathelement path="${app.common.dir}/classes"/>
@@ -125,13 +137,53 @@
         </copy>
     </target>
     <target name="jar" depends="compile">
-        <createjar name="gpu" 
+        <createjar name="shapejsRT"
             version="${version}"
-            manifest="gpu.mf"
-            includes="gpu/*
+            manifest="shapejsRT/shapejsRT.mf"
+
+            includes="*/**
             "
         />		
     </target>
+    <target name="war" depends="jar">
+        <createwar name="shapejsRT"
+                   includes="web/html/*"
+
+                   jars="shapejsRT_${version}.jar"
+                >
+            <zipfileset-elements>
+                <zipfileset dir="${lib.dir}" prefix="WEB-INF/lib"
+                            includes="*"
+                            excludes="servlet*.jar"
+                        />
+                <zipfileset dir="${abfab3d.lib.dir}" prefix="WEB-INF/lib"
+                            includes="*"
+                            excludes=""
+                        />
+                <zipfileset dir="${abfab3d.jars.dir}" prefix="WEB-INF/lib"
+                            includes="*"
+                            excludes=""
+                        />
+                <zipfileset dir="natives/Windows 8.1/amd64" prefix="WEB-INF/lib"
+                            includes="*/**"
+                            excludes="*.dll"
+                        />
+            </zipfileset-elements>
+        </createwar>
+    </target>
+
+    <target name="deploy" depends="war">
+        <mkdir dir="${deploy.webserver.dir}/${service}"/>
+
+        <copy todir="${deploy.webserver.dir}/${service}" failonerror="false">
+            <fileset dir="${src.dir}/html"/>
+        </copy>
+<!--        <createjetty service="${service}" version="${version}" appserverdir="${deploy.appserver.dir}" commondir="${shapeways.common.dir}"/> -->
+        <copy todir="${deploy.appserver.dir}/webapps">
+            <fileset dir="${war.dir}"/>
+        </copy>
+    </target>
+
     <target name="test" depends="compileTest,kernels">
         <junit dir="${basedir}" printsummary="yes" haltonerror="no" haltonfailure="yes" fork="yes" showoutput="true">
             <jvmarg line="${jvmrunargs}"/>
