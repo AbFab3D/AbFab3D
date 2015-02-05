@@ -185,12 +185,12 @@ public class ImageRenderer {
 
         List<Instruction> inst = null;
 
-        if (useCache) {
+        if (useCache && jobID != null) {
             inst = cache.get(jobID);
         }
         if (inst == null) {
             inst = loadScript(script);
-            if (inst != null && inst.size() > 0) {
+            if (inst != null && inst.size() > 0 && jobID != null && useCache) {
                 cache.put(jobID, inst);
             }
         } else {
@@ -313,12 +313,12 @@ public class ImageRenderer {
                             int[] pixels, BufferedImage image) {
         List<Instruction> inst = null;
 
-        if (useCache) {
+        if (useCache && jobID != null) {
             inst = cache.get(jobID);
         }
         if (inst == null) {
             inst = loadScript(script);
-            if (inst != null && inst.size() > 0) {
+            if (inst != null && inst.size() > 0 && jobID != null && useCache) {
                 cache.put(jobID, inst);
             }
         } else {
