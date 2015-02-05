@@ -26,6 +26,7 @@ import javax.swing.*;
 import javax.vecmath.Vector3d;
 import java.awt.*;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -223,7 +224,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
-        DataSource source = eval.runScript(url,bounds);
+        DataSource source = eval.runScript(new File(url),bounds);
 
         Vector3d scale = new Vector3d(1,1,1);
         double vs = 0.1 * Units.MM;
