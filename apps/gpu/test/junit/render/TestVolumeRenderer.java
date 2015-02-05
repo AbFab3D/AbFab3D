@@ -22,6 +22,8 @@ import datasources.Instruction;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.libjpegturbo.turbojpeg.TJ;
+import org.libjpegturbo.turbojpeg.TJCompressor;
 import shapejs.ShapeJSEvaluator;
 
 import javax.imageio.ImageIO;
@@ -78,6 +80,51 @@ public class TestVolumeRenderer extends TestCase {
         return new TestSuite(TestVolumeRenderer.class);
     }
 
+    public void testJPEGSpeed() throws Exception {
+        int width = 512;
+        int height = 512;
+
+        long t0 = System.nanoTime();
+
+        // Do these items once for the servlet.  Should be per-thread resources
+        initCL(false, width, height);
+        int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
+
+        printf("Max size: %d\n",MAX_IMG_SIZE);
+        byte[] buff = new byte[MAX_IMG_SIZE];
+        int[] pixels = new int[width * height];
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
+
+        // End of per-thread resources
+
+        String jobID = UUID.randomUUID().toString();
+
+        int TIMES = 3;
+
+        if (DEBUG) TIMES = 1;
+
+//        String script = "scripts/dodecahedron.js";
+        String script = "scripts/gyrosphere.js";
+        for (int i = 0; i < TIMES; i++) {
+            t0 = System.nanoTime();
+            BufferedImage base = render(jobID, script, width, height, pixels, image);
+            int size = makeJpg(base, buff);  // return buff[0] to size bytes to client
+
+            printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
+
+            if (DEBUG) {
+                try {
+                    ImageIO.write(base, "png", new File("/tmp/render_speed.png"));
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+
+        }
+
+    }
     /**
      * Look at using GPU to make a jpg directly, could save 14ms or about 50%
      */
@@ -251,6 +298,32 @@ public class TestVolumeRenderer extends TestCase {
         lastPngTime = (System.nanoTime() - t0);
 
         return null;
+    }
+
+    private int makeJpg(BufferedImage img, byte[] buff) {
+        long t0 = System.nanoTime();
+
+        try {
+            TJCompressor tj = new TJCompressor();
+            tj.setJPEGQuality(75);
+            tj.setSubsamp(TJ.SAMP_420);
+
+            tj.setSourceImage(img, 0, 0, 0, 0);
+            tj.compress(buff,0);
+            int size = tj.getCompressedSize();
+            printf("JPEG size is: %d\n", size);
+
+            lastPngTime = (System.nanoTime() - t0);
+
+            return size;
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        lastPngTime = (System.nanoTime() - t0);
+        return 0;
     }
 
     private int makePng(PngEncoder encoder, BufferedImage img, byte[] buff) {

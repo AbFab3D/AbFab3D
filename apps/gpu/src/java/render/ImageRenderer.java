@@ -6,6 +6,8 @@ import abfab3d.util.DataSource;
 import com.jogamp.opencl.*;
 import com.objectplanet.image.PngEncoder;
 import datasources.Instruction;
+import org.libjpegturbo.turbojpeg.TJ;
+import org.libjpegturbo.turbojpeg.TJCompressor;
 import shapejs.ShapeJSEvaluator;
 
 import javax.vecmath.Matrix4f;
@@ -35,6 +37,9 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
  * @author Alan Hudson
  */
 public class ImageRenderer {
+    public static final int IMAGE_JPEG = 0;
+    public static final int IMAGE_PNG = 1;
+
     public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
 
     private int numTiles;
@@ -89,16 +94,31 @@ public class ImageRenderer {
         tile.setDest(tile.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
 
         float expandFactor = 1.5f;  // Account for png's which get larger, is this really necessary?
+        int imgSize = (int)(width * height * expandFactor);
+        int jpgSize = 0;
+        try {
+            jpgSize = TJ.bufSize(width, height, TJ.SAMP_420);
+        } catch(Exception e) {e.printStackTrace();}
 
+        imgSize = Math.max(imgSize,jpgSize);
         // TODO: these need to be thread local resources
-        buff = new byte[(int)(width * height * expandFactor)];
+        buff = new byte[imgSize];
         pixels = new int[width * height];
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         int frames = 36;
         int frameX = 6;
         int frameY = frames / frameX;
-        bigBuff = new byte[(int)(width * height * expandFactor * frames)];
+
+        imgSize = (int)(width * height * expandFactor * frames);
+        jpgSize = 0;
+        try {
+            jpgSize = TJ.bufSize(width * frameX, height * frameY, TJ.SAMP_420);
+        } catch(Exception e) {e.printStackTrace();}
+
+        imgSize = Math.max(imgSize,jpgSize);
+
+        bigBuff = new byte[(int)(imgSize)];
         bigPixels = new int[width * height];
         bigImage = new BufferedImage(width * frameX, height * frameY, BufferedImage.TYPE_INT_ARGB);
 
@@ -106,7 +126,7 @@ public class ImageRenderer {
     }
 
 
-    public int render(String jobID, String script, Matrix4f view,boolean cache, OutputStream os) throws IOException {
+    public int render(String jobID, String script, Matrix4f view,boolean cache, int imgType, OutputStream os) throws IOException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
@@ -118,8 +138,6 @@ public class ImageRenderer {
 
         // Do these items once for the servlet.  Should be per-thread resources
 
-        PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
-//        PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_COMPRESSION);
         printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
 
         // End of per-thread resources
@@ -127,8 +145,16 @@ public class ImageRenderer {
 
         t0 = System.nanoTime();
         makeRender(jobID, script, cache, view,0,0,width, height, pixels, image);
-        int size = makePng(encoder, image, buff);  // return buff[0] to size bytes to client
-
+        int size = 0;
+        switch(imgType) {
+            case IMAGE_PNG:
+                PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
+                size = makePng(encoder, image, buff);  // return buff[0] to size bytes to client
+                break;
+            case IMAGE_JPEG:
+                size = makeJpg(image, buff);
+                break;
+        }
         printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
         os.write(buff,0,size);
@@ -136,7 +162,7 @@ public class ImageRenderer {
         return size;
     }
 
-    public int renderImages(String jobID, String script, Matrix4f view,int frames, int frameX, boolean useCache, OutputStream os) throws IOException {
+    public int renderImages(String jobID, String script, Matrix4f view,int frames, int frameX, boolean useCache, int imgType, OutputStream os) throws IOException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
@@ -147,11 +173,6 @@ public class ImageRenderer {
         long t0 = System.nanoTime();
 
         // Do these items once for the servlet.  Should be per-thread resources
-
-        PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
-//        PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_COMPRESSION);
-
-
 
         printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
 
@@ -215,7 +236,16 @@ public class ImageRenderer {
                 pixX = 0;
             }
         }
-        int size = makePng(encoder, bigImage, bigBuff);  // return buff[0] to size bytes to client
+        int size = 0;
+        switch(imgType) {
+            case IMAGE_PNG:
+                PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
+                size = makePng(encoder, bigImage, bigBuff);  // return buff[0] to size bytes to client
+                break;
+            case IMAGE_JPEG:
+                size = makeJpg(bigImage, bigBuff);
+                break;
+        }
 
         printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
@@ -238,6 +268,32 @@ public class ImageRenderer {
             return baos.size();
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        }
+
+        lastPngTime = (System.nanoTime() - t0);
+        return 0;
+    }
+
+    private int makeJpg(BufferedImage img, byte[] buff) {
+        long t0 = System.nanoTime();
+
+        try {
+            TJCompressor tj = new TJCompressor();
+            tj.setJPEGQuality(75);
+            tj.setSubsamp(TJ.SAMP_420);
+
+            tj.setSourceImage(img, 0, 0, 0, 0);
+            tj.compress(buff,0);
+            int size = tj.getCompressedSize();
+            printf("JPEG size is: %d\n", size);
+
+            lastPngTime = (System.nanoTime() - t0);
+
+            return size;
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        } catch(Exception e) {
+            e.printStackTrace();
         }
 
         lastPngTime = (System.nanoTime() - t0);

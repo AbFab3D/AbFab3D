@@ -96,6 +96,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         float[] viewMatrix = null;
         int frames = 0;
         int framesX = 6;
+        String imgType = "JPEG";
 
         boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 
@@ -126,6 +127,16 @@ public class ShapeJSImageServlet extends HttpServlet {
             jobID = jobIDSt[0];
         }
 
+        String[] imgTypeSt = params.get("imgType");
+        if (imgTypeSt != null && imgTypeSt.length > 0) {
+            imgType = imgTypeSt[0];
+        }
+
+        String[] scriptSt = params.get("script");
+        if (scriptSt != null && scriptSt.length > 0) {
+            script = scriptSt[0];
+        }
+
         if (script == null) {
             script = "function main(args) {\n" +
                     "    var radius = 25 * MM;\n" +
@@ -145,14 +156,21 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         long t0 = System.nanoTime();
 
-        resp.setContentType("image/png");
         OutputStream os = resp.getOutputStream();
 
         int size = 0;
+        int itype = 0;
+        if (imgType.equals("PNG")) {
+            itype = ImageRenderer.IMAGE_PNG;
+            resp.setContentType("image/png");
+        } else if (imgType.equals("JPG")) {
+            itype = ImageRenderer.IMAGE_JPEG;
+            resp.setContentType("image/jpeg");
+        }
         if (frames == 0) {
-            size = render.render(jobID, script, getView(), true, resp.getOutputStream());
+            size = render.render(jobID, script, getView(), true, itype,resp.getOutputStream());
         } else {
-            size = render.renderImages(jobID, script, getView(), frames, framesX, true, resp.getOutputStream());
+            size = render.renderImages(jobID, script, getView(), frames, framesX, true, itype,resp.getOutputStream());
         }
 
         printf("Image size: %d\n",size);
