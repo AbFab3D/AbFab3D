@@ -1,26 +1,31 @@
+
+#define WSIZE(A) (sizeof(A)/sizeof(int))
+
 typedef struct {
-    float3 center;
-    float3 offset;
-    float3 dist;
-    float test;
-    float radius;
+    int size;  // size of struct in words 
+    int opcode; // opcode to perform 
+    // custom patrameters of DataSource 
+    float radius;  // sphere radius (positive radius - interior of sphere, negative - exterior) 
+    float3 center; // center   
 } CSphere;
 
 typedef struct {
+    int size;
+    int opcode;
     float v1;
     float v2;
-    float v3;
-    float v4;
-    float v5;
-    float v6;
-    float v7;
-    float v8;
+    float3 pnt;
 } CTest1;
 
+
 typedef struct {
-    float3 v1;
-    float3 v2;
+    int size;
+    float8 f8;
 } CTest2;
+
+typedef struct {
+    float v[8];
+} CTest3;
    
 typedef struct{
     float4 v;
@@ -32,13 +37,13 @@ typedef struct {
 } CTranslation;
 
 
+// union to "safely" convert pointers 
 typedef union {
-    CSphere *pSphere;
-    CTest2 *pTest2;
-    CTest2 *pTest1;
-    uchar *c;
+    void *pv;  
     int *w;
 } CPtr;
+
+
 
 // OpenCL Kernel Function for byte code reading 
 kernel void WordWriter(global int* opcode, int dataCount, global int* outdata, int outCount) {
@@ -46,37 +51,38 @@ kernel void WordWriter(global int* opcode, int dataCount, global int* outdata, i
     //CPtr p;
     //p.c = opcode;
 
-    //CSphere sphere = (CSphere){.radius=1.11f, .center=(float3)(2.21f,2.22f, 2.23f), .test=3.33f, .offset = (float3)(4.41f,4.42f,4.43f), .dist = (float3)(5.51f,5.52f,5.53f)};
-
-    //CTest2 test2 = (CTest2){.v1=(float3)(1.11f,1.12f, 1.13f), .v2=(float3)(2.11f,2.12f, 2.13f), .v3=(float3)(3.11f,3.12f, 3.13f)};
-    CTest2 test2 = (CTest2){.v1=(float3)(1.11f,1.12f, 1.13f), .v2=(float3)(2.11f,2.12f, 2.13f)};
-    //CTest1 test1 = (CTest1){.v1=1.11f,.v2=1.12f,.v3=1.13f,.v4=1.14f,.v5=1.15f,.v6=1.16f};
-    //CSphere *pS = &sphere;
-    CTest2 *pT = &test2;
+    //CSphere sphere = (CSphere){.size=WSIZE(CSphere),.radius=-1.1f,.center=(float3)(2.11f,2.12f, 2.13f)};
+    CTest2 test = (CTest2){.size=WSIZE(CTest2),.f8=(float8)(1.11f,1.12f,1.13f,1.14f,1.15f,1.16f,1.17f,1.18f)};
+    //CTest3 test3 = (CTest3){.v={1.1f,2.2f,3.3f,4.4f,5.5f,6.6f,7.7f,8.8f}};
+    //CTest1 test1 = (CTest1){.size=WSIZE(CTest1),.v1=1.11f,.v2=2.11, .pnt = (float3)(2.21f,2.22f,2.23f)};
+    //CSphere *pT = &sphere;
+    //CTest3 *pT = &test3;
     //CTest1 *pT = &test1;
+    //CTest1 *pT = &test2;
     
     // get index into global data array
     int iGID = get_global_id(0);
-
 
     if(iGID > 10) 
         return;
     
     // size in int words 
-    int size = sizeof(*pT)/sizeof(int);
+    int size = test.size;
 
     CPtr p;
-    p.pTest1 = pT;
+    p.pv = &test;
 
     int *pW = p.w;
 
     int offset = iGID*(size+1);
     // each kernel writres into it's own memory 
     global int *writebuf = (outdata + offset);
+    *(writebuf) = size; 
+    writebuf++;
     int cnt = 0;
-    *(writebuf+cnt) = size; 
-    while(cnt++ < size) {
+    while(cnt < size) {
         *(writebuf+cnt) = *(pW+cnt); 
+        cnt++;
     }
 }
 

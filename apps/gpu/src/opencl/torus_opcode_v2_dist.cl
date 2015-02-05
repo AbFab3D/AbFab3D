@@ -5,5 +5,5 @@ float torus(float vs, float3 center, float rout, float rin, float3 pnt) {
 
     float rxy = sqrt(x*x + y*y) - rout;
 
-    return step10(((rxy*rxy + z*z) - rin*rin)/(2*rin), 0, vs);
+    return ((rxy*rxy + z*z) - rin*rin)/(2*rin);
 }
