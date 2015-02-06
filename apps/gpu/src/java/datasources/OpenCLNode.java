@@ -61,7 +61,7 @@ public abstract class OpenCLNode {
         // issue transformation op codes
         if (transChain.size() > 0) {
             Instruction inst = new Instruction();
-            inst.setOpCode(Instruction.getOpCode("reset"));
+            inst.setOpCode(Instruction.oRESET);
             insts.add(inst);
 
             // TODO: is this right?
@@ -71,8 +71,7 @@ public abstract class OpenCLNode {
             while(itr.hasNext()) {
                 Parameterizable p = itr.next();
                 OpenCLNode n = NodeFactory.getNode(p.getClass().getSimpleName());
-                n.traverse(nodeMap,p, insts);
-
+                n.traverse(nodeMap,p, insts);                
             }
         }
 

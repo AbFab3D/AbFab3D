@@ -18,6 +18,27 @@ import java.util.Set;
 public class Instruction {
     private static final int CHUNK_SIZE = 5;
 
+
+    public final static int 
+        oSPHERE = 0,
+        oBOX = 1,
+        oGYROID = 2,
+        oINTERSECTION = 3,
+        oUNION = 4,
+        oTORUS = 5,
+        oINTERSECTION_START = 6,
+        oINTERSECTION_MID = 7,
+        oINTERSECTION_END = 8,
+        oUNION_START = 9,
+        oUNION_MID = 10,
+        oUNION_END = 11,
+        oSUBTRACTION_START = 12,
+        oSUBTRACTION_END = 13,
+        oRESET = 1000,
+        oSCALE = 1001,       
+        oTRANSLATION = 1002,
+        oROTATION = 1003;
+
     private int op;
     
     /** Float Params */
@@ -47,25 +68,25 @@ public class Instruction {
 
     static {
         opcodes=new HashMap<String, Integer>();
-        opcodes.put("sphere",0);
-        opcodes.put("box",1);
-        opcodes.put("gyroid",2);
-        opcodes.put("intersection",3);
-        opcodes.put("union",4);
-        opcodes.put("torus",5);
-        opcodes.put("intersectionStart",6);
-        opcodes.put("intersectionMid",7);
-        opcodes.put("intersectionEnd",8);
-        opcodes.put("unionStart",9);
-        opcodes.put("unionMid",10);
-        opcodes.put("unionEnd",11);
-        opcodes.put("subtractionStart",12);
-        opcodes.put("subtractionEnd",13);
+        opcodes.put("sphere",oSPHERE);
+        opcodes.put("box",oBOX);
+        opcodes.put("gyroid",oGYROID);
+        opcodes.put("intersection",oINTERSECTION);
+        opcodes.put("union",oUNION);
+        opcodes.put("torus",oTORUS);
+        opcodes.put("intersectionStart",oINTERSECTION_START);
+        opcodes.put("intersectionMid",oINTERSECTION_MID);
+        opcodes.put("intersectionEnd",oINTERSECTION_END);
+        opcodes.put("unionStart",oUNION_START);
+        opcodes.put("unionMid",oUNION_MID);
+        opcodes.put("unionEnd",oUNION_END);
+        opcodes.put("subtractionStart",oSUBTRACTION_START);
+        opcodes.put("subtractionEnd",oSUBTRACTION_END);
 
-        opcodes.put("reset",1000);
-        opcodes.put("scale",1001);
-        opcodes.put("translation",1002);
-        opcodes.put("rotation",1003);
+        opcodes.put("reset",oRESET);
+        opcodes.put("scale",oSCALE);
+        opcodes.put("translation",oTRANSLATION);
+        opcodes.put("rotation",oROTATION);
     }
 
 
@@ -135,7 +156,7 @@ public class Instruction {
 
             fvparams = na;
         }
-
+        
         fvparams[fvcount*3] = (float)f.x;
         fvparams[fvcount*3+1] = (float)f.y;
         fvparams[fvcount*3+2] = (float)f.z;
@@ -154,23 +175,10 @@ public class Instruction {
 
             mparams = na;
         }
-
-        mparams[mcount*16] = f[0];
-        mparams[mcount*16+1] = f[1];
-        mparams[mcount*16+2] = f[2];
-        mparams[mcount*16+3] = f[3];
-        mparams[mcount*16+4] = f[4];
-        mparams[mcount*16+5] = f[5];
-        mparams[mcount*16+6] = f[6];
-        mparams[mcount*16+7] = f[7];
-        mparams[mcount*16+8] = f[8];
-        mparams[mcount*16+9] = f[9];
-        mparams[mcount*16+10] = f[10];
-        mparams[mcount*16+11] = f[11];
-        mparams[mcount*16+12] = f[12];
-        mparams[mcount*16+13] = f[13];
-        mparams[mcount*16+14] = f[14];
-        mparams[mcount*16+15] = f[15];
+        int ms = mcount*16;
+        for(int i = 0; i < 16;i++){
+            mparams[ms+i] = f[i];
+        }
         mcount++;
 
         addType(ParameterType.MATRIX_4D);
@@ -187,23 +195,23 @@ public class Instruction {
 
             mparams = na;
         }
-
-        mparams[mcount*16] = (float)f.m00;
-        mparams[mcount*16+1] = (float)f.m01;
-        mparams[mcount*16+2] = (float)f.m02;
-        mparams[mcount*16+3] = (float)f.m03;
-        mparams[mcount*16+4] = (float)f.m10;
-        mparams[mcount*16+5] = (float)f.m11;
-        mparams[mcount*16+6] = (float)f.m12;
-        mparams[mcount*16+7] = (float)f.m13;
-        mparams[mcount*16+8] = (float)f.m20;
-        mparams[mcount*16+9] = (float)f.m21;
-        mparams[mcount*16+10] = (float)f.m22;
-        mparams[mcount*16+11] = (float)f.m23;
-        mparams[mcount*16+12] = (float)f.m30;
-        mparams[mcount*16+13] = (float)f.m31;
-        mparams[mcount*16+14] = (float)f.m32;
-        mparams[mcount*16+15] = (float)f.m33;
+        int ms = mcount*16;
+        mparams[ms] = (float)f.m00;
+        mparams[ms+1] = (float)f.m01;
+        mparams[ms+2] = (float)f.m02;
+        mparams[ms+3] = (float)f.m03;
+        mparams[ms+4] = (float)f.m10;
+        mparams[ms+5] = (float)f.m11;
+        mparams[ms+6] = (float)f.m12;
+        mparams[ms+7] = (float)f.m13;
+        mparams[ms+8] = (float)f.m20;
+        mparams[ms+9] = (float)f.m21;
+        mparams[ms+10] = (float)f.m22;
+        mparams[ms+11] = (float)f.m23;
+        mparams[ms+12] = (float)f.m30;
+        mparams[ms+13] = (float)f.m31;
+        mparams[ms+14] = (float)f.m32;
+        mparams[ms+15] = (float)f.m33;
         
         mcount++;
         addType(ParameterType.MATRIX_4D);
@@ -347,22 +355,23 @@ public class Instruction {
     }
 
     public void getMatrix(int idx, Matrix4d dest) {
-        dest.m00 = mparams[idx*16];
-        dest.m01 = mparams[idx*16+1];
-        dest.m02 = mparams[idx*16+2];
-        dest.m03 = mparams[idx*16+3];
-        dest.m10 = mparams[idx*16+4];
-        dest.m11 = mparams[idx*16+5];
-        dest.m12 = mparams[idx*16+6];
-        dest.m13 = mparams[idx*16+7];
-        dest.m20 = mparams[idx*16+8];
-        dest.m21 = mparams[idx*16+9];
-        dest.m22 = mparams[idx*16+10];
-        dest.m23 = mparams[idx*16+11];
-        dest.m30 = mparams[idx*16+12];
-        dest.m31 = mparams[idx*16+13];
-        dest.m32 = mparams[idx*16+14];
-        dest.m33 = mparams[idx*16+15];
+        idx *= 16;
+        dest.m00 = mparams[idx];
+        dest.m01 = mparams[idx+1];
+        dest.m02 = mparams[idx+2];
+        dest.m03 = mparams[idx+3];
+        dest.m10 = mparams[idx+4];
+        dest.m11 = mparams[idx+5];
+        dest.m12 = mparams[idx+6];
+        dest.m13 = mparams[idx+7];
+        dest.m20 = mparams[idx+8];
+        dest.m21 = mparams[idx+9];
+        dest.m22 = mparams[idx+10];
+        dest.m23 = mparams[idx+11];
+        dest.m30 = mparams[idx+12];
+        dest.m31 = mparams[idx+13];
+        dest.m32 = mparams[idx+14];
+        dest.m33 = mparams[idx+15];
     }
 
     public void getMatrixParams(float[] arr, int start) {

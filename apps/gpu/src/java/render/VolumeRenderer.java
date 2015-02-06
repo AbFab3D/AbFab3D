@@ -418,7 +418,7 @@ public class VolumeRenderer {
      *
      * @param dest
      */
-    public void renderOps(int w0, int h0, int wsize, int hsize, int width, int height,
+    public void _renderOps(int w0, int h0, int wsize, int hsize, int width, int height,
                           float worldScale, CLBuffer dest) {
 
         //printf("RenderOps: w0: %d h0: %d wsize: %d hsize: %d width:%d height: %d dest: %s this: %s\n",w0,h0,wsize,hsize,width,height,dest,this);

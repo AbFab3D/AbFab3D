@@ -7,6 +7,26 @@
 #define boxMin ((float4)(-1.0f, -1.0f, -1.0f,1.0f))
 #define boxMax ((float4)(1.0f, 1.0f, 1.0f,1.0f))
 
+#define oSPHERE  0
+#define oBOX  1
+#define oGYROID  2
+#define oINTERSECTION  3
+#define oUNION  4
+#define oTORUS  5
+#define oINTERSECTION_START  6
+#define oINTERSECTION_MID  7
+#define oINTERSECTION_END  8
+#define oUNION_START  9
+#define oUNION_MID  10
+#define oUNION_END  11
+#define oSUBTRACTION_START  12
+#define oSUBTRACTION_END  13
+#define oRESET 1000
+#define oSCALE  1001       
+#define oTRANSLATION 1002
+#define oROTATION 1003
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // intersect ray with a box
 // http://www.siggraph.org/education/materials/HyperGraph/raytrace/rtinter3.htm
@@ -173,18 +193,18 @@ if (get_global_id(0) == 74) printf("id: %d Ops: %d\n",get_global_id(0),len);
 if (get_global_id(0) == 74) printf("Op: %d\n",op[i]);
 #endif
       switch(op[i]) {
-	    case 0:  // sphere
+	    case oSPHERE:  // sphere
 	        fvparam1 = fvparams[fv_idx++];
 	        fparam1 = fparams[f_idx++];
 	        bparam1 = bparams[b_idx++];
 	        result = sphere(voxelSize,fvparam1,fparam1,bparam1,pos);
 	        break;
-	    case 1:   // box
+	    case oBOX:   // box
 	        fvparam1 = fvparams[fv_idx++];
 	        fvparam2 = fvparams[fv_idx++];
 	        result = box(voxelSize,fvparam1,fvparam2,pos);
 	        break;
-	    case 2:  // gyroid
+	    case oGYROID:  // gyroid
 	        fparam1 = fparams[f_idx++]; // level
 	        fparam2 = fparams[f_idx++]; // thickness
 	        fvparam1 = fvparams[fv_idx++]; // offset
@@ -192,51 +212,51 @@ if (get_global_id(0) == 74) printf("Op: %d\n",op[i]);
 
 	        result = gyroid(voxelSize,fparam1,fparam2,fvparam1,fparam3,pos);
 	        break;
-	    case 5:  // torus
+	    case oTORUS:  // torus
             fvparam1 = fvparams[fv_idx++];
             fparam1 = fparams[f_idx++];
             fparam2 = fparams[f_idx++];
             result = torus(voxelSize,fvparam1,fparam1,fparam2,pos);
             break;
-	    case 6:   // intersection start
+	    case oINTERSECTION_START:   // intersection start
 	        presult = result;
 	        break;
-	    case 7:   // intersection mid
+	    case oINTERSECTION_MID:   // intersection mid
 	        presult = intersectionOp(presult,result);
 	        break;
-	    case 8:  // intersection end
+	    case oINTERSECTION_END:  // intersection end
 	        result = intersectionOp(presult,result);
             break;
-	    case 9:   // union start
+	    case oUNION_START:   // union start
 	        presult = result;
 	        break;
-	    case 10:   // union mid
+	    case oUNION_MID:   // union mid
 	        presult = unionOp(presult,result);
 	        break;
-	    case 11:  // union end
+	    case oUNION_END:  // union end
 	        result = unionOp(presult,result);
             break;
-	    case 12: // subtraction start
+	    case oSUBTRACTION_START: // subtraction start
 	        presult = result;
 	        break;
-	    case 13:  // subtraction end
+	    case oSUBTRACTION_END:  // subtraction end
 //	        result = subtraction(presult,result);
 	        result = subtraction(result,presult);
             break;
-	    case 1000: // reset
+	    case oRESET: // reset
 	        pos = pos0;
 	        break;
-	    case 1001:  // scale
+	    case oSCALE:  // scale
 	        fvparam1 = fvparams[fv_idx++];
 	        pos = scale(fvparam1,pos);
 
 	        // TODO: should this change vs
 	        break;
-        case 1002: // translation
+        case oTRANSLATION: // translation
 	        fvparam1 = fvparams[fv_idx++];
 	        pos = translation(fvparam1,pos);
 	        break;
-	    case 1003: // rotation
+	    case oROTATION: // rotation
 	        fvparam1 = fvparams[fv_idx++];
 	        mparam1 = mparams[m_idx++];
 
