@@ -13,6 +13,10 @@ var height = 512;
 var frames = 360 / 2;
 var framesX = 9;
 
+var rotX = 0;
+var rotY = 0;
+var zoom = -4;
+
 
 function getFile(elementId){
   document.getElementById(elementId).click();
@@ -41,7 +45,10 @@ function initScript() {
     'script':  editor.getValue(),
     'width':   width,
     'height':  height,
-    'view':    matrixToQueryString(viewMatrix)
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom,  // zoom level (translation in z direction)
+//    'view':    matrixToQueryString(viewMatrix)
   };
 
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
@@ -66,28 +73,29 @@ function initScript() {
 
 function rotateModel(event) {
   if (!mouseDown) return;
-//console.log("start: " + dragStart.x + " " + dragStart.y);
-//console.log("end:   " + event.clientX + " " + event.clientY);
+console.log("start: " + dragStart.x + " " + dragStart.y);
+console.log("end:   " + event.clientX + " " + event.clientY);
 
-  var dx = Math.abs(event.clientX - dragStart.x);
-  var dy = Math.abs(event.clientY - dragStart.y);
+  rotX += (event.clientY - dragStart.y) / 20;
+  rotY += (event.clientX - dragStart.x) / 20;
+console.log("rot: " + rotX + " " + rotY);
 
   // Skip if not enough drag
-  if (dx + dy < 10) return;
+//  if (dx + dy < 10) return;
   
-  setViewMatrix(dx, dy);
+  setViewMatrix3(rotX, rotY);
   var matrixStr = matrixToQueryString(viewMatrix);
-//  console.log(matrixStr);
+  console.log(matrixStr);
 
   extraParams = {
     'jobID':  getJobID(),
-    'view':   matrixToQueryString(viewMatrix)
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom,  // zoom level (translation in z direction)
+//    'view':   matrixToQueryString(viewMatrix)
   };
   
   if (loading) return;
-  
-//  dragStart.x = event.clientX;
-//  dragStart.y = event.clientY;
   
   var imageViewer = document.getElementById("render");
   loading = true;
@@ -329,8 +337,9 @@ function debug(element) {
 }
 
 function setViewMatrix(dx, dy) {
-  var angle = Math.sqrt(dx*dx + dy*dy); // / distanceToCenter;
-  console.log("angle: " + angle);
+//  var angle = Math.sqrt(dx*dx + dy*dy) / 20; // / distanceToCenter;
+//  console.log("angle: " + angle);
+/*
   var rot = new Array(); 
   rot[0] = dy;
   rot[1] = dx;
@@ -351,8 +360,22 @@ function setViewMatrix(dx, dy) {
     [ 0, 0, 0, 1 ]
   ]);
   console.log("*** matrix4f");
-  console.log(matrixToQueryString(matrix4f));
-  viewMatrix = viewMatrix.multiply(matrix4f);
+*/
+  var xRotMatrix = Matrix.RotationX(rotX);
+  var yRotMatrix = Matrix.RotationY(rotY);
+  var rotMatrix  = xRotMatrix.multiply(yRotMatrix);
+
+  // indexes start at 1
+  viewMatrix = $M([
+    [ rotMatrix.e(1,1),  rotMatrix.e(1,2),  rotMatrix.e(1,3),  viewMatrix.e(1,4) ],
+    [ rotMatrix.e(2,1),  rotMatrix.e(2,2),  rotMatrix.e(2,3),  viewMatrix.e(2,4) ],
+    [ rotMatrix.e(3,1),  rotMatrix.e(3,2),  rotMatrix.e(3,3),  viewMatrix.e(3,4) ],
+    [ viewMatrix.e(4,1), viewMatrix.e(4,2), viewMatrix.e(4,2), viewMatrix.e(4,4) ]
+  ]);
+  console.log("*** viewMatrix");
+  
+  console.log(matrixToQueryString(viewMatrix));
+//  viewMatrix = viewMatrix.multiply(matrix4f);
 }
 
 function setViewMatrix2(dx, dy) {
@@ -361,6 +384,35 @@ function setViewMatrix2(dx, dy) {
   
   viewMatrix = viewMatrix.multiply(matrix);
 }
+
+function setViewMatrix3(rotX, rotY) {
+ var trans = $M([
+   [1, 0, 0, 0],
+   [0, 1, 0, 0],
+   [0, 0, 1, -4],
+   [0, 0, 0, 1]
+ ]);  
+ //console.log("trans matrix");
+ //console.log(matrixToQueryString(trans));  
+ var rxmat = Matrix.RotationX(rotX);
+ var rymat = Matrix.RotationY(rotY);  // indexes start at 1
+ var rxmat4 = $M([
+   [ rxmat.e(1,1), rxmat.e(1,2), rxmat.e(1,3), 0],
+   [ rxmat.e(2,1), rxmat.e(2,2), rxmat.e(2,3), 0],
+   [ rxmat.e(3,1), rxmat.e(3,2), rxmat.e(3,3), 0],
+   [ 0, 0, 0, 1 ]
+ ]);
+ var rymat4 = $M([
+   [ rymat.e(1,1), rymat.e(1,2), rymat.e(1,3), 0],
+   [ rymat.e(2,1), rymat.e(2,2), rymat.e(2,3), 0],
+   [ rymat.e(3,1), rymat.e(3,2), rymat.e(3,3), 0],
+   [ 0, 0, 0, 1 ]
+ ]);
+ viewMatrix = viewMatrix.multiply(rxmat4).multiply(rymat4);
+//  viewMatrix = trans.multiply(rxmat4);
+ //console.log("*** final");
+ //console.log(matrixToQueryString(viewMatrix));
+} 
 
 function axisAngleToMatrix(aaRot) {
   var rx = aaRot[0];
@@ -399,6 +451,17 @@ function normalize(p){
     p[1] = p[1]/s;
     p[2] = p[2]/s;
   }
+}
+
+function round(val, digits) {
+  var sigDigits = "1";
+  
+  for (var i=0; i<digits; i++) {
+    sigDigits = sigDigits + "0";
+  }
+
+  var dig = parseFloat(sigDigits);
+  return Math.round(val * dig) / dig;
 }
 
 function matrixToQueryString(matrix) {
