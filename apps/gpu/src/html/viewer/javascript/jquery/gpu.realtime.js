@@ -76,17 +76,28 @@ function zoomModel() {
     'jobID':  getJobID(),
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
+    'zoom':    zoom  // zoom level (translation in z direction)
   };
   
   if (loading) return;
   
   var imageViewer = document.getElementById("render");
-  loading = true;
+
+  if (loading) {
+    skipCount--;
+    if (skipCount > 0) {
+      return;
+    } else {
+      console.log("Skipped too long, reseting");
+      skipCount = 15;
+    }
+  }
 
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   imageViewer.setAttribute("src", url);
 }
+
+var skipCount = 15;
 
 function rotateModel(event) {
   if (!mouseDown) return;
@@ -94,25 +105,33 @@ console.log("start: " + dragStart.x + " " + dragStart.y);
 console.log("end:   " + event.clientX + " " + event.clientY);
 
   rotX += (event.clientY - dragStart.y) / 20;
-  rotY += (event.clientX - dragStart.x) / 20;
-console.log("rot: " + rotX + " " + rotY);
+//  rotY += (event.clientX - dragStart.x) / 20;
+//console.log("rot: " + rotX + " " + rotY);
 
   // Skip if not enough drag
 //  if (dx + dy < 10) return;
   
   setViewMatrix3(rotX, rotY);
   var matrixStr = matrixToQueryString(viewMatrix);
-  console.log(matrixStr);
+  //console.log(matrixStr);
 
   extraParams = {
     'jobID':  getJobID(),
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
+    'zoom':    zoom  // zoom level (translation in z direction)
 //    'view':   matrixToQueryString(viewMatrix)
   };
-  
-  if (loading) return;
+
+  if (loading) {
+    skipCount--;
+    if (skipCount > 0) {
+      return;
+    } else {
+      console.log("Skipped too long, reseting");
+      skipCount = 15;
+    }
+  }
   
   var imageViewer = document.getElementById("render");
   loading = true;
