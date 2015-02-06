@@ -106,12 +106,10 @@ function rotateModel(dx, dy, radX, radY) {
   } else {
     if (!mouseDown) return;
 
-    rotX += dy / 20;
-    rotY += dx / 20;
+    rotX -= dy / 240;
+    rotY += dx / 240;
   }
 
-console.log("rot: " + rotX + " " + rotY);
-  
   extraParams = {
     'jobID':  getJobID(),
     'rotX':    rotX,  // x rotation in radians

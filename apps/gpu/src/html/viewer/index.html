@@ -411,6 +411,9 @@ function addMouseEventListeners() {
 //console.log("start: " + dragStart.x + " " + dragStart.y);
 //console.log("end:   " + event.clientX + " " + event.clientY);
         rotateModel(dx, dy, null, null);
+
+        dragStart.x = event.clientX;
+        dragStart.y = event.clientY;
       },
       mouseup : function(event){
         $(this).off(handlers);
@@ -422,7 +425,6 @@ function addMouseEventListeners() {
 
   $("#render").load(function() {
     loading = false;
-    console.log("image loaded");
   });
 
   //Firefox
