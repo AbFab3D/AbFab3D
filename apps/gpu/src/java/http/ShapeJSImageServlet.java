@@ -87,7 +87,8 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
     }
 
-    private void handleRequest(HttpServletRequest req,
+    // TODO: stop doing this
+    synchronized private void handleRequest(HttpServletRequest req,
                                HttpServletResponse resp,
                                HttpSession session,
                                String accept)
