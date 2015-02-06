@@ -39,6 +39,9 @@ var dragStart = {};
 var mouseDown = false;
 var loading = false;
 
+var degreeByArrow = 10;
+var radiansByArrow = (degreeByArrow / 180) * 3.14159;
+
 /** Creator specific vars and methods */
 
 var inputTypes = ["text", "file", "range"];
@@ -394,26 +397,6 @@ function insertInput(param) {
 }
 
 function addMouseEventListeners() {
-/*
-    imageViewer.addEventListener("mousedown", function(event) {
-        console.log("imageViewer mousedown");
-        event.preventDefault();
-        mouseDown = true;
-        dragStart.x = event.layerX;
-        dragStart.y = event.layerY;
-    }, false);
-
-    imageViewer.addEventListener("mouseup", function(event) {
-        console.log("imageViewer mouseup");
-        mouseDown = false;
-    }, false);
-
-    imageViewer.addEventListener("mousemove", function(event) {
-        event.preventDefault();
-        rotateModel(event);
-     }, true);
-*/
-
   $("#render").on("mousedown", function(event){
     event.preventDefault();
     mouseDown = true;
@@ -423,7 +406,11 @@ function addMouseEventListeners() {
     var handlers = {
       mousemove : function(event){
         event.preventDefault();
-        rotateModel(event);
+        var dx = event.clientX - dragStart.x;
+        var dy = event.clientY - dragStart.y;
+//console.log("start: " + dragStart.x + " " + dragStart.y);
+//console.log("end:   " + event.clientX + " " + event.clientY);
+        rotateModel(dx, dy, null, null);
       },
       mouseup : function(event){
         $(this).off(handlers);
@@ -439,7 +426,7 @@ function addMouseEventListeners() {
   });
 
   //Firefox
-  $('#render').bind('DOMMouseScroll', function(e){
+  $("#render").bind('DOMMouseScroll', function(e){
     zoom += -e.originalEvent.detail / 3;
     zoomModel();
 
@@ -448,15 +435,48 @@ function addMouseEventListeners() {
   });
 
   //IE, Opera, Safari
-  $('#render').bind('mousewheel', function(e){
+  $("#render").bind('mousewheel', function(e){
     zoom += e.originalEvent.wheelDelta / 120;
     zoomModel();
 
     //prevent page fom scrolling
     return false;
- });
+  });
+
+  // Handle key events over render
+  $("#render").on("mouseover", function(event){
+    var handlers = {
+      keydown : function(event){
+        onKeyPress(event);
+      },
+      mouseout : function(event){
+        $(this).off(handlers);
+      }
+    };
+    $(document).on(handlers);
+  });
 }
 
+function onKeyPress(event) {
+  var charCode = (typeof event.which == "number") ? event.which : event.keyCode;
+
+  switch (charCode) {
+    case 39:              // right arrow
+      rotateModel(null, null, 0, radiansByArrow);
+      break;
+    case 37:              // left arrow
+      rotateModel(null, null, 0, -radiansByArrow);
+      break;
+    case 38:              // up arrow
+      rotateModel(null, null, radiansByArrow, 0);
+      break;
+    case 40:              // down arrow
+      rotateModel(null, null, -radiansByArrow, 0);
+      break;
+    default:
+      break;
+  }
+}
 </script>
 
 <div class="container">

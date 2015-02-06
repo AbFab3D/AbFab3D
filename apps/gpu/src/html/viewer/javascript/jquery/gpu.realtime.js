@@ -13,6 +13,8 @@ var height = 512;
 var frames = 360 / 2;
 var framesX = 9;
 
+var skipCount = 15;
+
 var rotX = 0;
 var rotY = 0;
 var zoom = -4;
@@ -97,30 +99,24 @@ function zoomModel() {
   imageViewer.setAttribute("src", url);
 }
 
-var skipCount = 15;
+function rotateModel(dx, dy, radX, radY) {
+  if (radX !== undefined && radX !== null && radY !== undefined && radY !== null) {
+    rotX += radX;
+    rotY += radY;
+  } else {
+    if (!mouseDown) return;
 
-function rotateModel(event) {
-  if (!mouseDown) return;
-console.log("start: " + dragStart.x + " " + dragStart.y);
-console.log("end:   " + event.clientX + " " + event.clientY);
+    rotX += dy / 20;
+    rotY += dx / 20;
+  }
 
-  rotX += (event.clientY - dragStart.y) / 20;
-//  rotY += (event.clientX - dragStart.x) / 20;
-//console.log("rot: " + rotX + " " + rotY);
-
-  // Skip if not enough drag
-//  if (dx + dy < 10) return;
+console.log("rot: " + rotX + " " + rotY);
   
-  setViewMatrix3(rotX, rotY);
-  var matrixStr = matrixToQueryString(viewMatrix);
-  //console.log(matrixStr);
-
   extraParams = {
     'jobID':  getJobID(),
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
     'zoom':    zoom  // zoom level (translation in z direction)
-//    'view':   matrixToQueryString(viewMatrix)
   };
 
   if (loading) {
@@ -372,122 +368,34 @@ function debug(element) {
   alert(serialized);
 }
 
-function setViewMatrix(dx, dy) {
-//  var angle = Math.sqrt(dx*dx + dy*dy) / 20; // / distanceToCenter;
-//  console.log("angle: " + angle);
-/*
-  var rot = new Array(); 
-  rot[0] = dy;
-  rot[1] = dx;
-  rot[2] = 0;
-  normalize(rot);
-  console.log(rot);
-  var axis = $V([rot[0], rot[1], rot[2]]);
-  
-  var matrix3f = Matrix.Rotation(angle, axis);
-  console.log("*** matrix3f");
-  console.log(matrixToQueryString(matrix3f));
-  
-  // indexes start at 1
-  var matrix4f = $M([
-    [ matrix3f.e(1,1), matrix3f.e(1,2), matrix3f.e(1,3), 0],
-    [ matrix3f.e(2,1), matrix3f.e(2,2), matrix3f.e(2,3), 0],
-    [ matrix3f.e(3,1), matrix3f.e(3,2), matrix3f.e(3,3), 0],
+function setViewMatrix(rotX, rotY) {
+  var trans = $M([
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, -4],
+    [0, 0, 0, 1]
+  ]);  
+  //console.log("trans matrix");
+  //console.log(matrixToQueryString(trans));  
+  var rxmat = Matrix.RotationX(rotX);
+  var rymat = Matrix.RotationY(rotY);  // indexes start at 1
+  var rxmat4 = $M([
+    [ rxmat.e(1,1), rxmat.e(1,2), rxmat.e(1,3), 0],
+    [ rxmat.e(2,1), rxmat.e(2,2), rxmat.e(2,3), 0],
+    [ rxmat.e(3,1), rxmat.e(3,2), rxmat.e(3,3), 0],
     [ 0, 0, 0, 1 ]
   ]);
-  console.log("*** matrix4f");
-*/
-  var xRotMatrix = Matrix.RotationX(rotX);
-  var yRotMatrix = Matrix.RotationY(rotY);
-  var rotMatrix  = xRotMatrix.multiply(yRotMatrix);
-
-  // indexes start at 1
-  viewMatrix = $M([
-    [ rotMatrix.e(1,1),  rotMatrix.e(1,2),  rotMatrix.e(1,3),  viewMatrix.e(1,4) ],
-    [ rotMatrix.e(2,1),  rotMatrix.e(2,2),  rotMatrix.e(2,3),  viewMatrix.e(2,4) ],
-    [ rotMatrix.e(3,1),  rotMatrix.e(3,2),  rotMatrix.e(3,3),  viewMatrix.e(3,4) ],
-    [ viewMatrix.e(4,1), viewMatrix.e(4,2), viewMatrix.e(4,2), viewMatrix.e(4,4) ]
+  var rymat4 = $M([
+    [ rymat.e(1,1), rymat.e(1,2), rymat.e(1,3), 0],
+    [ rymat.e(2,1), rymat.e(2,2), rymat.e(2,3), 0],
+    [ rymat.e(3,1), rymat.e(3,2), rymat.e(3,3), 0],
+    [ 0, 0, 0, 1 ]
   ]);
-  console.log("*** viewMatrix");
-  
-  console.log(matrixToQueryString(viewMatrix));
-//  viewMatrix = viewMatrix.multiply(matrix4f);
-}
-
-function setViewMatrix2(dx, dy) {
-  var aaRot = toAxisAngle(dx, dy);
-  var matrix = axisAngleToMatrix(aaRot);
-  
-  viewMatrix = viewMatrix.multiply(matrix);
-}
-
-function setViewMatrix3(rotX, rotY) {
- var trans = $M([
-   [1, 0, 0, 0],
-   [0, 1, 0, 0],
-   [0, 0, 1, -4],
-   [0, 0, 0, 1]
- ]);  
- //console.log("trans matrix");
- //console.log(matrixToQueryString(trans));  
- var rxmat = Matrix.RotationX(rotX);
- var rymat = Matrix.RotationY(rotY);  // indexes start at 1
- var rxmat4 = $M([
-   [ rxmat.e(1,1), rxmat.e(1,2), rxmat.e(1,3), 0],
-   [ rxmat.e(2,1), rxmat.e(2,2), rxmat.e(2,3), 0],
-   [ rxmat.e(3,1), rxmat.e(3,2), rxmat.e(3,3), 0],
-   [ 0, 0, 0, 1 ]
- ]);
- var rymat4 = $M([
-   [ rymat.e(1,1), rymat.e(1,2), rymat.e(1,3), 0],
-   [ rymat.e(2,1), rymat.e(2,2), rymat.e(2,3), 0],
-   [ rymat.e(3,1), rymat.e(3,2), rymat.e(3,3), 0],
-   [ 0, 0, 0, 1 ]
- ]);
- viewMatrix = viewMatrix.multiply(rxmat4).multiply(rymat4);
+  viewMatrix = viewMatrix.multiply(rxmat4).multiply(rymat4);
 //  viewMatrix = trans.multiply(rxmat4);
- //console.log("*** final");
- //console.log(matrixToQueryString(viewMatrix));
+  //console.log("*** final");
+  //console.log(matrixToQueryString(viewMatrix));
 } 
-
-function axisAngleToMatrix(aaRot) {
-  var rx = aaRot[0];
-  var ry = aaRot[1];
-  var rz = aaRot[2];
-  var rangle = aaRot[3];
-  
-  // matrix as Sylvester matrix object
-  var matrix = $M([
-    [Math.cos(rangle) + rx*rx*(1-Math.cos(rangle)), rx*ry*(1-Math.cos(rangle)) - rz*Math.sin(rangle), rx*rz*(1-Math.cos(rangle)) + ry*Math.sin(rangle), 0],
-    [ry*rx*(1-Math.cos(rangle)) + rz*Math.sin(rangle), Math.cos(rangle) + ry*ry*(1-Math.cos(rangle)), ry*rz*(1-Math.cos(rangle)) - rx*Math.sin(rangle), 0],
-    [rz*rx*(1-Math.cos(rangle)) - ry*Math.sin(rangle), rz*ry*(1-Math.cos(rangle)) + rx*Math.sin(rangle), Math.cos(rangle) + rz*rz*(1-Math.cos(rangle)), 0],
-    [0, 0, 0, 1]
-  ]);
-  
-  return matrix;
-}
-
-function toAxisAngle(dx, dy) {
-  var angle = Math.sqrt(dx*dx + dy*dy) / 20;	
-  var rot = new Array(); 
-  rot[0] = dy;
-  rot[1] = dx;
-  rot[2] = 0;
-  rot[3] = angle;
-  normalize(rot);
-  return rot;
-}
-
-// normalizes vector
-function normalize(p){
-  var s = p[0]*p[0]+p[1]*p[1]+p[2]*p[2];
-  if(s != 0.0){
-    s = Math.sqrt(s);
-    p[0] = p[0]/s;
-    p[1] = p[1]/s;
-    p[2] = p[2]/s;
-  }
-}
 
 function round(val, digits) {
   var sigDigits = "1";
