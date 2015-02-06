@@ -437,6 +437,24 @@ function addMouseEventListeners() {
     loading = false;
     console.log("image loaded");
   });
+
+  //Firefox
+  $('#render').bind('DOMMouseScroll', function(e){
+    zoom += -e.originalEvent.detail / 3;
+    zoomModel();
+
+    //prevent page fom scrolling
+    return false;
+  });
+
+  //IE, Opera, Safari
+  $('#render').bind('mousewheel', function(e){
+    zoom += e.originalEvent.wheelDelta / 120;
+    zoomModel();
+
+    //prevent page fom scrolling
+    return false;
+ });
 }
 
 </script>

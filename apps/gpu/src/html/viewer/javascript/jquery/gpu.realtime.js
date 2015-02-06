@@ -71,6 +71,23 @@ function initScript() {
   });
 }
 
+function zoomModel() {
+  extraParams = {
+    'jobID':  getJobID(),
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom,  // zoom level (translation in z direction)
+  };
+  
+  if (loading) return;
+  
+  var imageViewer = document.getElementById("render");
+  loading = true;
+
+  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  imageViewer.setAttribute("src", url);
+}
+
 function rotateModel(event) {
   if (!mouseDown) return;
 console.log("start: " + dragStart.x + " " + dragStart.y);
