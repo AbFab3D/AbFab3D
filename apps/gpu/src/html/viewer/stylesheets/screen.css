@@ -47,7 +47,7 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
 
 body {
   color: #4b4a49;
-  background: url(http://www.shapeways.com/rrstatic/img/sw-bg.jpg) top left repeat #eceae8;
+  background: top left repeat #eceae8;
   font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
   font-size: 12px;
   line-height: 18px;

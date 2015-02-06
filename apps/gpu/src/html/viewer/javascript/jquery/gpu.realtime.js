@@ -32,6 +32,72 @@ function getJobID() {
   return md5(text);
 }
 
+function initScript() {
+  spin('preview');
+  
+  // Set additional data not part of the form
+  extraParams = {
+    'jobID':   getJobID(),
+    'script':  editor.getValue(),
+    'width':   width,
+    'height':  height,
+    'view':    matrixToQueryString(viewMatrix)
+  };
+
+  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  console.log(url);
+  var request = $.ajax({
+    type: "POST",
+    url: url,
+  })
+  
+  request.done(function( data ) {
+//    console.log("request done url: " + url);
+    var imageViewer = document.getElementById("render");
+    imageViewer.setAttribute("src", url);
+    unspin();
+  });
+ 
+  request.fail(function( jqXHR, textStatus ) {
+    alert( "Request failed: " + textStatus );
+    unspin();
+  });
+}
+
+function rotateModel(event) {
+  if (!mouseDown) return;
+//console.log("start: " + dragStart.x + " " + dragStart.y);
+//console.log("end:   " + event.clientX + " " + event.clientY);
+
+  var dx = Math.abs(event.clientX - dragStart.x);
+  var dy = Math.abs(event.clientY - dragStart.y);
+
+  // Skip if not enough drag
+  if (dx + dy < 10) return;
+  
+  setViewMatrix(dx, dy);
+  var matrixStr = matrixToQueryString(viewMatrix);
+//  console.log(matrixStr);
+
+  extraParams = {
+    'jobID':  getJobID(),
+    'view':   matrixToQueryString(viewMatrix)
+  };
+  
+  if (loading) return;
+  
+//  dragStart.x = event.clientX;
+//  dragStart.y = event.clientY;
+  
+  var imageViewer = document.getElementById("render");
+  loading = true;
+
+  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  imageViewer.setAttribute("src", url);
+  
+}
+
+/*
 function getRender() {
   //spin('preview');
   
@@ -50,9 +116,7 @@ function getRender() {
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   showSpriteImage(url,frames,framesX);
   
-/*
-
-  
+///////////////////////////////////////////////
   var request = $.ajax({
     type: "GET",
     url: "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage",
@@ -67,7 +131,7 @@ function getRender() {
     alert( "Request failed: " + textStatus );
   });
 
-/*
+///////////////////////////////////////////////
   options = {
     url: "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage",
     type: "get",
@@ -81,7 +145,7 @@ function getRender() {
   };
 
   jQuery('#form').ajaxSubmit(options);
-*/
+
 }
 
 function postRender() {
@@ -117,7 +181,7 @@ function generateRenderResponse(data) {
   console.log(data);
 //  $("#sprite-image").attr("src", data);
 }
-
+*/
 ////////////////////////////////////////////////////////
 
 function loadFile(method, url, data, type) {
@@ -262,4 +326,92 @@ function debug(element) {
   }
 
   alert(serialized);
+}
+
+function setViewMatrix(dx, dy) {
+  var angle = Math.sqrt(dx*dx + dy*dy); // / distanceToCenter;
+  console.log("angle: " + angle);
+  var rot = new Array(); 
+  rot[0] = dy;
+  rot[1] = dx;
+  rot[2] = 0;
+  normalize(rot);
+  console.log(rot);
+  var axis = $V([rot[0], rot[1], rot[2]]);
+  
+  var matrix3f = Matrix.Rotation(angle, axis);
+  console.log("*** matrix3f");
+  console.log(matrixToQueryString(matrix3f));
+  
+  // indexes start at 1
+  var matrix4f = $M([
+    [ matrix3f.e(1,1), matrix3f.e(1,2), matrix3f.e(1,3), 0],
+    [ matrix3f.e(2,1), matrix3f.e(2,2), matrix3f.e(2,3), 0],
+    [ matrix3f.e(3,1), matrix3f.e(3,2), matrix3f.e(3,3), 0],
+    [ 0, 0, 0, 1 ]
+  ]);
+  console.log("*** matrix4f");
+  console.log(matrixToQueryString(matrix4f));
+  viewMatrix = viewMatrix.multiply(matrix4f);
+}
+
+function setViewMatrix2(dx, dy) {
+  var aaRot = toAxisAngle(dx, dy);
+  var matrix = axisAngleToMatrix(aaRot);
+  
+  viewMatrix = viewMatrix.multiply(matrix);
+}
+
+function axisAngleToMatrix(aaRot) {
+  var rx = aaRot[0];
+  var ry = aaRot[1];
+  var rz = aaRot[2];
+  var rangle = aaRot[3];
+  
+  // matrix as Sylvester matrix object
+  var matrix = $M([
+    [Math.cos(rangle) + rx*rx*(1-Math.cos(rangle)), rx*ry*(1-Math.cos(rangle)) - rz*Math.sin(rangle), rx*rz*(1-Math.cos(rangle)) + ry*Math.sin(rangle), 0],
+    [ry*rx*(1-Math.cos(rangle)) + rz*Math.sin(rangle), Math.cos(rangle) + ry*ry*(1-Math.cos(rangle)), ry*rz*(1-Math.cos(rangle)) - rx*Math.sin(rangle), 0],
+    [rz*rx*(1-Math.cos(rangle)) - ry*Math.sin(rangle), rz*ry*(1-Math.cos(rangle)) + rx*Math.sin(rangle), Math.cos(rangle) + rz*rz*(1-Math.cos(rangle)), 0],
+    [0, 0, 0, 1]
+  ]);
+  
+  return matrix;
+}
+
+function toAxisAngle(dx, dy) {
+  var angle = Math.sqrt(dx*dx + dy*dy) / 20;	
+  var rot = new Array(); 
+  rot[0] = dy;
+  rot[1] = dx;
+  rot[2] = 0;
+  rot[3] = angle;
+  normalize(rot);
+  return rot;
+}
+
+// normalizes vector
+function normalize(p){
+  var s = p[0]*p[0]+p[1]*p[1]+p[2]*p[2];
+  if(s != 0.0){
+    s = Math.sqrt(s);
+    p[0] = p[0]/s;
+    p[1] = p[1]/s;
+    p[2] = p[2]/s;
+  }
+}
+
+function matrixToQueryString(matrix) {
+  var rows = matrix.rows();
+  var cols = matrix.cols();
+  var str = "";
+  
+  for (var row=1; row<=rows; row++) {
+    for (var col=1; col<=cols; col++) {
+      str += matrix.e(row,col) + ", ";
+    }
+  }
+  
+  // remove last 2 chars (comma and space)
+  return str.substr(0, str.length-2);
 }
