@@ -330,7 +330,7 @@ public class ImageRenderer {
                             int[] pixels, BufferedImage image) {
         List<Instruction> inst = null;
 
-        if (useCache && jobID != null) {
+        if (useCache && jobID != null && params.size() == 0) {
             inst = cache.get(jobID);
         }
         if (inst == null) {
