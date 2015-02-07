@@ -66,6 +66,15 @@ public class Sphere extends TransformableDataSource {
 
     private double x0, y0, z0;
     
+    private Vector3dParameter  mp_center = new Vector3dParameter("center","center of the sphere",new Vector3d(0,0,0));
+    private DoubleParameter  mp_radius = new DoubleParameter("radius","radius of the sphere", 1.*MM);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_center,
+        mp_radius
+    };
+
+
     /**
      * @noRefGuide
      */
@@ -103,10 +112,10 @@ public class Sphere extends TransformableDataSource {
     /**
      * @noRefGuide
      */
-    protected void initParams() {
-        super.initParams();
-        Parameter p = new DoubleParameter("radius");
-        params.put(p.getName(),p);
+    protected void initParams(){
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
+        }
     }
 
     /**
@@ -117,8 +126,7 @@ public class Sphere extends TransformableDataSource {
         this.x0 = x;
         this.y0 = y;
         this.z0 = z;
-
-        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(x,y,z));
+        mp_center.setValue(new Vector3d(x,y,z));
     }
     
     /**
@@ -135,8 +143,7 @@ public class Sphere extends TransformableDataSource {
         
         R2 = 2*r;
         RR = r*r;
-
-        ((DoubleParameter) params.get("radius")).setValue(r);
+        mp_radius.setValue(r);
 
     }
     

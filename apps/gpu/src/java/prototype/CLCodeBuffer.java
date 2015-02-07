@@ -20,8 +20,8 @@ package prototype;
 public class CLCodeBuffer {
 
     int code[];
-    int size = 0;
-
+    int size = 0;  // size of the buffer
+    int opCount = 0; // opcodes count
     /**
        constructor
        @param initialCapacity initial capacity of the buffewr
@@ -32,6 +32,10 @@ public class CLCodeBuffer {
     
     public final int size(){
         return size;
+    }
+
+    public final int opCount(){
+        return opCount;
     }
 
     public final int get(int index){
@@ -56,7 +60,7 @@ public class CLCodeBuffer {
         reallocArray(size+count);
         System.arraycopy(buffer, 0, code, size, count);
         size += count;
-        
+        opCount++;
     }
 
     

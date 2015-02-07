@@ -191,7 +191,7 @@ public class OpcodeMaker {
 
         buffer.rewind();
 
-        return code.size();
+        return code.opCount();
     }
 
     private static int roundUp(int denom, int value) {        

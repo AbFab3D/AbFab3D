@@ -253,8 +253,8 @@
             <jvmarg line="${jvmrunargs}"/>
             <!--<arg value="-version"/><arg value="dist"/> -->
             <!--<arg value="-version"/><arg value="opcode">-->
-            <!--<arg value="-version"/><arg value="opcode_v2_dist"/> -->
-            <arg value="-version"/><arg value="opcode"/>
+            <arg value="-version"/><arg value="opcode_v2_dist"/> 
+            <!--<arg value="-version"/><arg value="opcode"/>-->
             <!--<arg value="-version"/><arg value="opcode_v2"/> -->
             <arg value="scripts/box4.js"/>
             <!--<arg value="${script}"/>-->

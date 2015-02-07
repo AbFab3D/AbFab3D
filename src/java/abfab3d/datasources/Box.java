@@ -113,7 +113,7 @@ public class Box extends TransformableDataSource {
 
     }
     
-    protected void initParam(){
+    protected void initParams(){
         for(int i = 0; i < m_aparam.length; i++){
             params.put(m_aparam[i].getName(),m_aparam[i]);
         }
