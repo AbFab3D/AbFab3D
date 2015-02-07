@@ -50,18 +50,15 @@ function initScript() {
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
     'zoom':    zoom,  // zoom level (translation in z direction)
-//    'view':    matrixToQueryString(viewMatrix)
   };
 
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
-  console.log(url);
   var request = $.ajax({
     type: "POST",
     url: url,
   })
   
   request.done(function( data ) {
-//    console.log("request done url: " + url);
     var imageViewer = document.getElementById("render");
     imageViewer.setAttribute("src", url);
     unspin();
@@ -81,20 +78,17 @@ function zoomModel() {
     'zoom':    zoom  // zoom level (translation in z direction)
   };
   
-  if (loading) return;
-  
-  var imageViewer = document.getElementById("render");
-
   if (loading) {
-    skipCount--;
+    skipCount--;    
     if (skipCount > 0) {
       return;
     } else {
       console.log("Skipped too long, reseting");
-      skipCount = 15;
     }
   }
+  skipCount = 15; 
 
+  var imageViewer = document.getElementById("render");
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   imageViewer.setAttribute("src", url);
 }
@@ -118,14 +112,14 @@ function rotateModel(dx, dy, radX, radY) {
   };
 
   if (loading) {
-    skipCount--;
+    skipCount--;    
     if (skipCount > 0) {
       return;
     } else {
       console.log("Skipped too long, reseting");
-      skipCount = 15;
     }
   }
+  skipCount = 15;
   
   var imageViewer = document.getElementById("render");
   loading = true;

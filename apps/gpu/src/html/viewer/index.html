@@ -408,8 +408,6 @@ function addMouseEventListeners() {
         event.preventDefault();
         var dx = event.clientX - dragStart.x;
         var dy = event.clientY - dragStart.y;
-//console.log("start: " + dragStart.x + " " + dragStart.y);
-//console.log("end:   " + event.clientX + " " + event.clientY);
         rotateModel(dx, dy, null, null);
 
         dragStart.x = event.clientX;
@@ -429,7 +427,14 @@ function addMouseEventListeners() {
 
   //Firefox
   $("#render").bind('DOMMouseScroll', function(e){
-    zoom += -e.originalEvent.detail / 3;
+//    zoom += -e.originalEvent.detail / 3;
+
+    if (e.originalEvent.wheelDelta > 0) {
+      zoom += Math.abs(zoom) / 4;
+    } else if (e.originalEvent.wheelDelta < 0) {
+      zoom -= (Math.abs(zoom) + 1) / 4;
+    }
+
     zoomModel();
 
     //prevent page fom scrolling
@@ -438,7 +443,13 @@ function addMouseEventListeners() {
 
   //IE, Opera, Safari
   $("#render").bind('mousewheel', function(e){
-    zoom += e.originalEvent.wheelDelta / 120;
+    if (e.originalEvent.wheelDelta > 0) {
+      zoom += Math.abs(zoom) / 4;
+    } else if (e.originalEvent.wheelDelta < 0) {
+      zoom -= (Math.abs(zoom) + 1) / 4;
+    }
+
+    console.log("zoom: " + zoom);
     zoomModel();
 
     //prevent page fom scrolling
@@ -453,7 +464,7 @@ function addMouseEventListeners() {
       },
       mouseout : function(event){
         $(this).off(handlers);
-      }
+      },
     };
     $(document).on(handlers);
   });
@@ -488,7 +499,7 @@ function onKeyPress(event) {
 <!-- left column -->
 <div class="jscode">
 <textarea id="code" name="code" placeholder="">
-  function cross3D(size, thickeness){
+function cross3D(size, thickeness){
     var union = new Union();
     var boxX = new Box(0,0,0,size,thickeness, thickeness);
     var boxY = new Box(0,0,0, thickeness, size, thickeness);
