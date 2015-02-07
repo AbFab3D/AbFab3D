@@ -38,6 +38,14 @@ function getJobID() {
   return md5(text);
 }
 
+function paramDataToQueryString(params) {
+  var newParams = {};
+  $.each(params, function(key, val) {
+    newParams["shapeJS_" + key] = val;
+  });
+  return newParams;
+}
+
 function initScript() {
   spin('preview');
   
@@ -53,6 +61,11 @@ function initScript() {
   };
 
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  
+  if (paramData !== undefined && paramData !== null) {
+    url = url + "&" + $.param(paramDataToQueryString(paramData));
+  }
+
   var request = $.ajax({
     type: "POST",
     url: url,
@@ -79,7 +92,7 @@ function zoomModel() {
   };
   
   if (loading) {
-    skipCount--;    
+    skipCount--;
     if (skipCount > 0) {
       return;
     } else {
@@ -112,7 +125,7 @@ function rotateModel(dx, dy, radX, radY) {
   };
 
   if (loading) {
-    skipCount--;    
+    skipCount--;
     if (skipCount > 0) {
       return;
     } else {
