@@ -199,8 +199,8 @@ public class ShapeJSImageServlet extends HttpServlet {
         Map<String,Object> sparams = new HashMap<String,Object>();
         for(Map.Entry<String,String[]> entry : params.entrySet()) {
             String key = entry.getKey();
-            if (key.startsWith("shapeJS")) {
-                key = key.substring(7);
+            if (key.startsWith("shapeJS_")) {
+                key = key.substring(8);
                 printf("Adding param: %s -> %d",key,entry.getValue()[0]);
                 sparams.put(key,entry.getValue()[0]);
             }
