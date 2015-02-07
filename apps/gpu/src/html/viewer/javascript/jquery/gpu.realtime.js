@@ -47,7 +47,7 @@ function paramDataToQueryString(params) {
 }
 
 function initScript() {
-  spin('preview');
+//  spin('preview');
   
   // Set additional data not part of the form
   extraParams = {
