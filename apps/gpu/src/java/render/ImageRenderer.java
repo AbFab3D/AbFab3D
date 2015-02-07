@@ -24,6 +24,7 @@ import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
@@ -138,7 +139,7 @@ public class ImageRenderer {
         }
     }
 
-    public int render(String jobID, String script, Matrix4f view,boolean cache, int imgType, OutputStream os) throws IOException {
+    public int render(String jobID, String script, Map<String,Object> params, Matrix4f view,boolean cache, int imgType, OutputStream os) throws IOException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
@@ -156,7 +157,7 @@ public class ImageRenderer {
 
 
         t0 = System.nanoTime();
-        makeRender(jobID, script, cache, view,0,0,width, height, pixels, image);
+        makeRender(jobID, script, params,cache, view,0,0,width, height, pixels, image);
         int size = 0;
         switch(imgType) {
             case IMAGE_PNG:
@@ -174,7 +175,7 @@ public class ImageRenderer {
         return size;
     }
 
-    public int renderImages(String jobID, String script, Matrix4f view,int frames, int frameX, boolean useCache, int imgType, OutputStream os) throws IOException {
+    public int renderImages(String jobID, String script, Map<String,Object> params, Matrix4f view,int frames, int frameX, boolean useCache, int imgType, OutputStream os) throws IOException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
@@ -201,7 +202,7 @@ public class ImageRenderer {
             inst = cache.get(jobID);
         }
         if (inst == null) {
-            inst = loadScript(script);
+            inst = loadScript(script,params);
             if (inst != null && inst.size() > 0 && jobID != null && useCache) {
                 cache.put(jobID, inst);
             }
@@ -325,7 +326,7 @@ public class ImageRenderer {
      * @param height
      * @return
      */
-    private void makeRender(String jobID, String script, boolean useCache, Matrix4f view, int pixX, int pixY, int width, int height,
+    private void makeRender(String jobID, String script, Map<String,Object> params, boolean useCache, Matrix4f view, int pixX, int pixY, int width, int height,
                             int[] pixels, BufferedImage image) {
         List<Instruction> inst = null;
 
@@ -333,7 +334,7 @@ public class ImageRenderer {
             inst = cache.get(jobID);
         }
         if (inst == null) {
-            inst = loadScript(script);
+            inst = loadScript(script,params);
             if (inst != null && inst.size() > 0 && jobID != null && useCache) {
                 cache.put(jobID, inst);
             }
@@ -398,11 +399,11 @@ public class ImageRenderer {
         return mat;
     }
 
-    private List<Instruction> loadScript(String script) {
+    private List<Instruction> loadScript(String script, Map<String,Object> params) {
         long t0 = System.nanoTime();
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
-        DataSource source = eval.runScript(script, bounds);
+        DataSource source = eval.runScript(script, bounds,params);
 
         OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
         Vector3d scale;

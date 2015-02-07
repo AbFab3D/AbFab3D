@@ -196,6 +196,16 @@ public class ShapeJSImageServlet extends HttpServlet {
                     "}";
         }
 
+        Map<String,Object> sparams = new HashMap<String,Object>();
+        for(Map.Entry<String,String[]> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("shapeJS")) {
+                key = key.substring(7);
+                printf("Adding param: %s -> %d",key,entry.getValue()[0]);
+                sparams.put(key,entry.getValue()[0]);
+            }
+
+        }
         long t0 = System.nanoTime();
 
         OutputStream os = resp.getOutputStream();
@@ -210,9 +220,9 @@ public class ShapeJSImageServlet extends HttpServlet {
             resp.setContentType("image/jpeg");
         }
         if (frames == 0 || frames == 1) {
-            size = render.render(jobID, script, viewMatrix, true, itype,resp.getOutputStream());
+            size = render.render(jobID, script, sparams,viewMatrix, true, itype,resp.getOutputStream());
         } else {
-            size = render.renderImages(jobID, script, viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
+            size = render.renderImages(jobID, script, sparams,viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
         }
 
         printf("Image size: %d\n",size);
