@@ -16,7 +16,7 @@ package abfab3d.param;
 import javax.vecmath.Vector3d;
 
 /**
- * A Vector3d parameter to a service.
+ * A Vector3d parameter  
  *
  * @author Alan Hudson
  */

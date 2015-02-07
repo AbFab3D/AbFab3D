@@ -23,6 +23,7 @@ import javax.vecmath.Vector3d;
 
 import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.MM;
 
 
 /**
@@ -37,7 +38,7 @@ public class Box extends TransformableDataSource {
     static final boolean DEBUG = false;
     static int debugCount = 1000;
 
-    private double m_sizeX = 0.1, m_sizeY = 0.1, m_sizeZ = 0.1, m_centerX = 0, m_centerY = 0, m_centerZ = 0;
+    //private double m_sizeX = 0.1, m_sizeY = 0.1, m_sizeZ = 0.1, m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
     private double
             xmin,
@@ -45,6 +46,18 @@ public class Box extends TransformableDataSource {
             ymin,
             ymax,
             zmin, zmax;
+    
+    
+    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the box",new Vector3d(0,0,0));
+    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the box",new Vector3d(0.1,0.1,0.1));
+    // rounding of the edges
+    DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_center,
+        mp_size,
+        mp_rounding
+    };
 
     protected boolean
             m_hasSmoothBoundaryX = true,
@@ -84,85 +97,26 @@ public class Box extends TransformableDataSource {
      */
     public Box(double cx, double cy, double cz, double sx, double sy, double sz) {
         initParams();
-
-        setCenter(cx, cy, cz);
-        setSize(sx, sy, sz);
-    }
-
-    /**
-     * @noRefGuide
-     */
-    protected void initParams() {
-        super.initParams();
-
-        Parameter p = new Vector3dParameter("size");
-        params.put(p.getName(), p);
+        
+        mp_center.setValue(new Vector3d(cx, cy, cz));
+        mp_size.setValue(new Vector3d(sx, sy, sz));
+        mp_rounding.setValue(new Double(0.));
 
     }
 
-    /**
-     * Blah blah
-     *
-     * @noRefGuide
-     * @param boundaryX
-     * @param boundaryY
-     * @param boundaryZ
-     */
-    public void setSmoothBoundaries(boolean boundaryX, boolean boundaryY, boolean boundaryZ) {
-        m_hasSmoothBoundaryX = boundaryX;
-        m_hasSmoothBoundaryY = boundaryY;
-        m_hasSmoothBoundaryZ = boundaryZ;
+    public Box(Vector3d center, Vector3d size, double rounding) {
+
+        initParams();
+        mp_center.setValue(new Vector3d(center));
+        mp_size.setValue(new Vector3d(size));
+        mp_rounding.setValue(new Double(rounding));
+
     }
-
-    /**
-     * Set the size of the box
-     *
-     * @param sx x size
-     * @param sy y size
-     * @param sz z size
-     */
-    public void setSize(double sx, double sy, double sz) {
-
-        if (sx < 0 || sy < 0 || sz < 0) {
-            throw new IllegalArgumentException("Box size < 0. Value: " + sx + " " + sy + " " + sz);
+    
+    protected void initParam(){
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
         }
-        m_sizeX = sx;
-        m_sizeY = sy;
-        m_sizeZ = sz;
-
-        ((Vector3dParameter) params.get("size")).setValue(new Vector3d(m_sizeX,m_sizeY,m_sizeZ));
-    }
-
-    /**
-     * Set the size of the box
-     *
-     * @param size Size vector
-     */
-    public void setSize(Vector3d size) {
-        if (size.x < 0 || size.y < 0 || size.z < 0) {
-            throw new IllegalArgumentException("Box size < 0. Value: " + size.x + " " + size.y + " " + size.z);
-        }
-        m_sizeX = size.x;
-        m_sizeY = size.y;
-        m_sizeZ = size.z;
-
-        ((Vector3dParameter) params.get("size")).setValue(new Vector3d(m_sizeX,m_sizeY,m_sizeZ));
-    }
-
-    /**
-     * Set the center of the box
-     *
-     * @param cx  x coordinate of center
-     * @param cy  y coordinate of center
-     * @param cz  z coordinate of center
-     *
-     */
-    public void setCenter(double cx, double cy, double cz) {
-        m_centerX = cx;
-        m_centerY = cy;
-        m_centerZ = cz;
-
-        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(cx,cy,cz));
     }
 
     /**
@@ -171,15 +125,25 @@ public class Box extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
+        Vector3d center = mp_center.getValue();
+        Vector3d size = mp_size.getValue();
 
-        xmin = m_centerX - m_sizeX / 2;
-        xmax = m_centerX + m_sizeX / 2;
+        double centerX = center.x;
+        double centerY = center.y;
+        double centerZ = center.z;
 
-        ymin = m_centerY - m_sizeY / 2;
-        ymax = m_centerY + m_sizeY / 2;
+        double sizeX = size.x;
+        double sizeY = size.y;
+        double sizeZ = size.z;
+        
+        xmin = centerX - sizeX / 2;
+        xmax = centerX + sizeX / 2;
 
-        zmin = m_centerZ - m_sizeZ / 2;
-        zmax = m_centerZ + m_sizeZ / 2;
+        ymin = centerY - sizeY / 2;
+        ymax = centerY + sizeY / 2;
+
+        zmin = centerZ - sizeZ / 2;
+        zmax = centerZ + sizeZ / 2;
 
         return RESULT_OK;
 

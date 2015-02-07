@@ -20,6 +20,7 @@ import java.util.Map;
  * @author Alan Hudson
  */
 public class BaseParameterizable implements Parameterizable, SNode {
+
     protected Map<String, Parameter> params = new LinkedHashMap<String,Parameter>();
 
     /**
@@ -31,7 +32,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
     public Parameter getParam(String param) {
         Parameter ret = params.get(param);
         if (ret == null) throw new IllegalArgumentException("Cannot find parameter: " + param);
-
+        //TODO - return param, not clone. VB
         return ret.clone();
     }
 
@@ -46,6 +47,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
 
         int idx = 0;
         for(Parameter p : params.values()) {
+            //TODO - return param, not clone. VB
             ret[idx++] = p.clone();
         }
 

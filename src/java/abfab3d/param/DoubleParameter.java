@@ -35,6 +35,11 @@ public class DoubleParameter extends NumberParameter {
         this(name, desc, 0, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
     }
 
+    public DoubleParameter(String name, String desc, double initialValue) {
+
+        this(name, desc, initialValue, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY);
+    }
+
     public DoubleParameter(String name, String desc, double initialValue,
                            double minRange, double maxRange) {
 
