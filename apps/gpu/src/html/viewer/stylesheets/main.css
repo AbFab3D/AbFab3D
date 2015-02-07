@@ -411,16 +411,16 @@
   width: 100px;
   padding: 3px 5px 3px 3px;
 //  margin: 3px 5px 3px 3px;
-  background-color: green;
+//  background-color: green;
 }
 .param-val {
-  float: left;
+  float: right;
   position: relative;
   text-align: left;
   width: 236px;
   padding: 3px 5px 3px 3px;
 //  margin: 3px 5px 3px 3px;
-  background-color: red;
+//  background-color: red;
 }
 .file-param-val {
   float: left;
@@ -532,9 +532,17 @@ input.file-param-val {
 
 .param-row .range-slider { 
   -webkit-appearance: none;
-  width: 100%;
+  width: 186px;
   padding: 0px;
-  margin: 0px;
+  margin-top: 4px;
+}
+
+.param-row .range-slider-display { 
+  -webkit-appearance: none;
+  float: right;
+  width: 34px;
+  padding: 0px;
+  margin-left: 0px;
 }
 
 /* Special styling for WebKit/Blink */
@@ -596,7 +604,7 @@ input.file-param-val {
   cursor: pointer;
   background: #FAFAFA;
   border-radius: 1.3px;
-  border: 1px solid #bbbbbb;
+//  border: 1px solid #bbbbbb;
 }
 
 .range-slider::-moz-range-track {
@@ -635,7 +643,7 @@ input.file-param-val {
 }
 
 .spritespin-instance.loading {
-	background: url('../images/loading.gif');
-	background-position: 50% 50%;
-	background-repeat: no-repeat;
+  background: url('../images/loading.gif');
+  background-position: 50% 50%;
+  background-repeat: no-repeat;
 }
