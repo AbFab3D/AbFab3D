@@ -11,6 +11,7 @@
 <script type="text/javascript" src="javascript/jquery/gpu.realtime.js"></script>
 <script type="text/javascript" src="javascript/jquery/spritespin.js"></script>
 <script type="text/javascript" src="javascript/jquery/md5.js"></script>
+<script type="text/javascript" src="javascript/jquery/sylvester.js"></script>
 
 <link rel="stylesheet" type="text/css" href="stylesheets/main.css"/>
 <link rel="stylesheet" type="text/css" href="stylesheets/screen.css"/>
@@ -31,22 +32,39 @@
 <body class="sct-home">
 <script type="text/javascript">
 
+var paramData = {};
+
+var imageViewer;
+var viewMatrix;
+
+var dragStart = {};
+var mouseDown = false;
+var loading = false;
+
+var degreeByArrow = 10;
+var radiansByArrow = (degreeByArrow / 180) * 3.14159;
+
 /** Creator specific vars and methods */
 
 var inputTypes = ["text", "file", "range"];
 
 var isUriImage = false;
 var isUrlScript = false;
-var paramCount = 1;     // 1 because we have initialized default script and parameter
+var paramCount = 0;
 var fileCount = 0;
 
 
 jQuery(document).ready(function() {
-
-//  jQuery('#form').ajaxForm(options);
   unspin();
-//  showSpriteImage("images/bike6x6_big.jpg");
+  imageViewer = document.getElementById("image-viewer");
+  addMouseEventListeners();
 
+  viewMatrix = $M([
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, -4],
+    [0, 0, 0, 1]
+  ]);
 });
 
 function jsonForm(formData, jqForm, options) {
@@ -245,31 +263,6 @@ function removeFile(num) {
 //  debug(parent);
 }
 
-/*
-// Download the output url
-function saveFile() {
-  if (creatorOutput === undefined || creatorOutput === null || creatorOutput.length == 0) {
-    return;
-  }
-
-  // Get file name from url.
-  var url = creatorOutput;
-  var filename = url.substring(url.lastIndexOf("/") + 1).split("?")[0];
-  var xhr = new XMLHttpRequest();
-  xhr.responseType = 'blob';
-  xhr.onload = function() {
-    var a = document.createElement('a');
-    a.href = window.URL.createObjectURL(xhr.response); // xhr.response is a blob
-    a.download = filename; // Set the file name.
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    a.click();
-    delete a;
-  };
-  xhr.open('GET', url);
-  xhr.send();
-}
-*/
 // Download the output url
 function saveFile() {
     var fileURL = creatorOutput;
@@ -300,36 +293,23 @@ function saveFile() {
 
 
 /*************************************************/
-/*
-var params = [
-  {
-    "id": "name",
-    "displayName": "Name",
-    "type": "text",
-    "default": "Enter Name"
-  },
-  {
-    "id": "radius",
-    "displayName": "Radius",
-    "type": "range",
-    "rangeMin": 0.01,
-    "rangeMax": 0.1,
-    "step": 0.01,
-    "default": 0.05
-  }
-];
-*/
+
+function generate() {
+  evalScriptParams();
+  spin();
+  initScript();
+}
+
 function evalScriptParams() {
+  removeAllParams();
+
   var jsScript = editor.getValue();
   eval(jsScript);
 
   for (var i=0; i<params.length; i++) {
-    console.log(params[i]);
-
     var type = (params[i].type).toLowerCase();
     if ( $.inArray(type, inputTypes) >= 0) {
       insertInput(params[i]);
-      paramCount++;
     } else {
       console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
     }
@@ -360,7 +340,15 @@ function insertInput(param) {
       pname_input.setAttribute("min", param.rangeMin);
       pname_input.setAttribute("max", param.rangeMax);
       pname_input.setAttribute("step", param.step);
-      pname_input.setAttribute("class", "range-slider");
+      pname_input.setAttribute("class", "param-val range-slider");
+
+      var pname_input_display = document.createElement("label");
+      pname_input_display.setAttribute("id", param.id + "-display");
+      pname_input_display.setAttribute("class", "param-val range-slider-display");
+      pname_input_display.innerHTML = param.default;
+
+      setParamVal(param.id, param.default);
+      addParamUIListener(pname_input, param.id);
       break;
     default:
       console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
@@ -370,6 +358,10 @@ function insertInput(param) {
   pval_div.setAttribute("class", "param-val");
   pval_div.appendChild(pname_input);
 
+  if (pname_input_display !== undefined && pname_input_display !== null) {
+    pval_div.appendChild(pname_input_display);
+  }
+
   var param_row = document.createElement("div");
   param_row.setAttribute("id", "param-row" + paramCount);
   param_row.setAttribute("class", "param-row");
@@ -378,22 +370,129 @@ function insertInput(param) {
 
   var parent = document.getElementById("parameters");
   parent.appendChild(param_row);
+  if ($(parent).hasClass('hidden')) {
+    $(parent).removeClass('hidden')
+  }
+
+  paramCount++;
 }
 
-function showSpriteImage(image,frames,framesX) {
-  console.log("Show sprite.  frames: " + frames + " framesX: " + framesX);
-  $('#sprite-viewer').spritespin({
-    source: image,
-    width: 512,
-    height: 512,
-    frames: frames,
-    framesX: framesX,
-//    sense: -1,
-    sense: -2,
-    loop: false
+function setParamVal(id, val) {
+  paramData[id] = val;
+}
+
+function addParamUIListener(element, elementId) {
+  $(element).on("input", function() {
+      setParamVal( elementId, $(element).val() );
+
+      var displayId = elementId + "-display";
+      if ( $("#" + displayId).length ) {
+        $("#" + displayId).html( $(element).val() );
+      }
+
+      initScript();
+  });
+}
+
+function removeAllParams() {
+  $("#parameters").empty();
+  paramData = {};
+  paramCount = 0;
+}
+
+function addMouseEventListeners() {
+  $("#render").on("mousedown", function(event){
+    event.preventDefault();
+    mouseDown = true;
+    dragStart.x = event.clientX;
+    dragStart.y = event.clientY;
+
+    var handlers = {
+      mousemove : function(event){
+        event.preventDefault();
+        var dx = event.clientX - dragStart.x;
+        var dy = event.clientY - dragStart.y;
+        rotateModel(dx, dy, null, null);
+
+        dragStart.x = event.clientX;
+        dragStart.y = event.clientY;
+      },
+      mouseup : function(event){
+        $(this).off(handlers);
+        mouseDown = false;
+      }
+    };
+    $(document).on(handlers);
   });
 
-//  debug($('#sprite-viewer'));
+  $("#render").load(function() {
+    loading = false;
+  });
+
+  //Firefox
+  $("#render").bind('DOMMouseScroll', function(e){
+//    zoom += -e.originalEvent.detail / 3;
+
+    if (e.originalEvent.wheelDelta > 0) {
+      zoom += Math.abs(zoom) / 4;
+    } else if (e.originalEvent.wheelDelta < 0) {
+      zoom -= (Math.abs(zoom) + 1) / 4;
+    }
+
+    zoomModel();
+
+    //prevent page fom scrolling
+    return false;
+  });
+
+  //IE, Opera, Safari
+  $("#render").bind('mousewheel', function(e){
+    if (e.originalEvent.wheelDelta > 0) {
+      zoom += Math.abs(zoom) / 4;
+    } else if (e.originalEvent.wheelDelta < 0) {
+      zoom -= (Math.abs(zoom) + 1) / 4;
+    }
+
+    console.log("zoom: " + zoom);
+    zoomModel();
+
+    //prevent page fom scrolling
+    return false;
+  });
+
+  // Handle key events over render
+  $("#render").on("mouseover", function(event){
+    var handlers = {
+      keydown : function(event){
+        onKeyPress(event);
+      },
+      mouseout : function(event){
+        $(this).off(handlers);
+      },
+    };
+    $(document).on(handlers);
+  });
+}
+
+function onKeyPress(event) {
+  var charCode = (typeof event.which == "number") ? event.which : event.keyCode;
+
+  switch (charCode) {
+    case 39:              // right arrow
+      rotateModel(null, null, 0, radiansByArrow);
+      break;
+    case 37:              // left arrow
+      rotateModel(null, null, 0, -radiansByArrow);
+      break;
+    case 38:              // up arrow
+      rotateModel(null, null, radiansByArrow, 0);
+      break;
+    case 40:              // down arrow
+      rotateModel(null, null, -radiansByArrow, 0);
+      break;
+    default:
+      break;
+  }
 }
 </script>
 
@@ -404,7 +503,18 @@ function showSpriteImage(image,frames,framesX) {
 <!-- left column -->
 <div class="jscode">
 <textarea id="code" name="code" placeholder="">
-  function cross3D(size, thickeness){
+var params = [
+  {
+    "id": "thickness",
+    "displayName": "Thickness",
+    "type": "range",
+    "rangeMin": 0.005,
+    "rangeMax": 0.05,
+    "step": 0.001,
+    "default": 0.01
+  }
+];
+function cross3D(size, thickeness){
     var union = new Union();
     var boxX = new Box(0,0,0,size,thickeness, thickeness);
     var boxY = new Box(0,0,0, thickeness, size, thickeness);
@@ -417,7 +527,7 @@ function showSpriteImage(image,frames,framesX) {
 
 function main(args) {
     var size = 0.04;
-    var thickness = 0.01;
+    var thickness = args["thickness"];
     var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
     var diff = new Subtraction(new Sphere(15*MM), cross3D(size, thickness));
     var maker = new GridMaker();
@@ -427,7 +537,7 @@ function main(args) {
 }
 
 </textarea>
-<div id="preview-button" onclick="getRender();" class="submit-generate">Generate</div>
+<div id="preview-button" onclick="generate();" class="submit-generate">Generate</div>
 <div id="loading" class="loading">Generating...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
 <div id="save-button" onclick="" class="submit-save">Save model</div>
 <div id="saving">Saving...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
@@ -464,7 +574,7 @@ function main(args) {
 <div class="viewer-container">
 <div class="viewer">
 <div id="model-container">
-<div id="sprite-viewer" width="520px" height="540px"></div>
+<div id="image-viewer" width="520px" height="540px"><img id="render"/></div>
 
 </div>
 </div>
@@ -472,9 +582,10 @@ function main(args) {
 <div id="upload-button" onclick="" class="submit-upload">Upload</div>
 <div id="uploading">Uploading...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
 </div>
-<!--
+
 <form id="form" action="" method="GET">
-<div id="parameters" class="parameter-container">
+<div id="parameters" class="parameter-container hidden">
+<!--
   <div id="addparam-title">Add Parameters</div>
   <div class="add-img" onclick="addParam();"><img src="images/add_small.png" /></div>
   <div id="param-row1" class="param-row">
@@ -482,14 +593,16 @@ function main(args) {
     <div class="param-val"><input type="text" name="param1" id="param1" class="param-val" value="0.005" /></div>
     <div class="remove-param" onclick="removeParam(1)">remove</div>
  </div>
+-->
 </div>
-
+<!--
 <div id="files" class="file-container">
   <div id="addparam-title">Add Files</div>
   <div class="add-img" onclick="addFile();"><img src="images/add_small.png" /></div>
 </div>
-</form>
 -->
+</form>
+
 </div>
 </div>
 

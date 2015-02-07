@@ -13,6 +13,12 @@ var height = 512;
 var frames = 360 / 2;
 var framesX = 9;
 
+var skipCount = 15;
+
+var rotX = 0;
+var rotY = 0;
+var zoom = -4;
+
 
 function getFile(elementId){
   document.getElementById(elementId).click();
@@ -32,6 +38,111 @@ function getJobID() {
   return md5(text);
 }
 
+function paramDataToQueryString(params) {
+  var newParams = {};
+  $.each(params, function(key, val) {
+    newParams["shapeJS_" + key] = val;
+  });
+  return newParams;
+}
+
+function initScript() {
+//  spin('preview');
+  
+  // Set additional data not part of the form
+  extraParams = {
+    'jobID':   getJobID(),
+    'script':  editor.getValue(),
+    'width':   width,
+    'height':  height,
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom,  // zoom level (translation in z direction)
+  };
+
+  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  
+  if (paramData !== undefined && paramData !== null) {
+    url = url + "&" + $.param(paramDataToQueryString(paramData));
+  }
+
+  var request = $.ajax({
+    type: "POST",
+    url: url,
+  })
+  
+  request.done(function( data ) {
+    var imageViewer = document.getElementById("render");
+    imageViewer.setAttribute("src", url);
+    unspin();
+  });
+ 
+  request.fail(function( jqXHR, textStatus ) {
+    alert( "Request failed: " + textStatus );
+    unspin();
+  });
+}
+
+function zoomModel() {
+  extraParams = {
+    'jobID':  getJobID(),
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom  // zoom level (translation in z direction)
+  };
+  
+  if (loading) {
+    skipCount--;
+    if (skipCount > 0) {
+      return;
+    } else {
+      console.log("Skipped too long, reseting");
+    }
+  }
+  skipCount = 15; 
+
+  var imageViewer = document.getElementById("render");
+  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  imageViewer.setAttribute("src", url);
+}
+
+function rotateModel(dx, dy, radX, radY) {
+  if (radX !== undefined && radX !== null && radY !== undefined && radY !== null) {
+    rotX += radX;
+    rotY += radY;
+  } else {
+    if (!mouseDown) return;
+
+    rotX -= dy / 240;
+    rotY += dx / 240;
+  }
+
+  extraParams = {
+    'jobID':  getJobID(),
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom  // zoom level (translation in z direction)
+  };
+
+  if (loading) {
+    skipCount--;
+    if (skipCount > 0) {
+      return;
+    } else {
+      console.log("Skipped too long, reseting");
+    }
+  }
+  skipCount = 15;
+  
+  var imageViewer = document.getElementById("render");
+  loading = true;
+
+  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  imageViewer.setAttribute("src", url);
+  
+}
+
+/*
 function getRender() {
   //spin('preview');
   
@@ -50,9 +161,7 @@ function getRender() {
   var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   showSpriteImage(url,frames,framesX);
   
-/*
-
-  
+///////////////////////////////////////////////
   var request = $.ajax({
     type: "GET",
     url: "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage",
@@ -67,7 +176,7 @@ function getRender() {
     alert( "Request failed: " + textStatus );
   });
 
-/*
+///////////////////////////////////////////////
   options = {
     url: "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage",
     type: "get",
@@ -81,7 +190,7 @@ function getRender() {
   };
 
   jQuery('#form').ajaxSubmit(options);
-*/
+
 }
 
 function postRender() {
@@ -117,7 +226,7 @@ function generateRenderResponse(data) {
   console.log(data);
 //  $("#sprite-image").attr("src", data);
 }
-
+*/
 ////////////////////////////////////////////////////////
 
 function loadFile(method, url, data, type) {
@@ -262,4 +371,59 @@ function debug(element) {
   }
 
   alert(serialized);
+}
+
+function setViewMatrix(rotX, rotY) {
+  var trans = $M([
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, -4],
+    [0, 0, 0, 1]
+  ]);  
+  //console.log("trans matrix");
+  //console.log(matrixToQueryString(trans));  
+  var rxmat = Matrix.RotationX(rotX);
+  var rymat = Matrix.RotationY(rotY);  // indexes start at 1
+  var rxmat4 = $M([
+    [ rxmat.e(1,1), rxmat.e(1,2), rxmat.e(1,3), 0],
+    [ rxmat.e(2,1), rxmat.e(2,2), rxmat.e(2,3), 0],
+    [ rxmat.e(3,1), rxmat.e(3,2), rxmat.e(3,3), 0],
+    [ 0, 0, 0, 1 ]
+  ]);
+  var rymat4 = $M([
+    [ rymat.e(1,1), rymat.e(1,2), rymat.e(1,3), 0],
+    [ rymat.e(2,1), rymat.e(2,2), rymat.e(2,3), 0],
+    [ rymat.e(3,1), rymat.e(3,2), rymat.e(3,3), 0],
+    [ 0, 0, 0, 1 ]
+  ]);
+  viewMatrix = viewMatrix.multiply(rxmat4).multiply(rymat4);
+//  viewMatrix = trans.multiply(rxmat4);
+  //console.log("*** final");
+  //console.log(matrixToQueryString(viewMatrix));
+} 
+
+function round(val, digits) {
+  var sigDigits = "1";
+  
+  for (var i=0; i<digits; i++) {
+    sigDigits = sigDigits + "0";
+  }
+
+  var dig = parseFloat(sigDigits);
+  return Math.round(val * dig) / dig;
+}
+
+function matrixToQueryString(matrix) {
+  var rows = matrix.rows();
+  var cols = matrix.cols();
+  var str = "";
+  
+  for (var row=1; row<=rows; row++) {
+    for (var col=1; col<=cols; col++) {
+      str += matrix.e(row,col) + ", ";
+    }
+  }
+  
+  // remove last 2 chars (comma and space)
+  return str.substr(0, str.length-2);
 }

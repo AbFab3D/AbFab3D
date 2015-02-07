@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static abfab3d.util.Output.printf;
 
@@ -141,7 +142,7 @@ public class ShapeJSEvaluator {
         return null;
     }
 
-    public DataSource runScript(String script, Bounds bounds) {
+    public DataSource runScript(String script, Bounds bounds, Map<String,Object> namedParams) {
 
         Context cx = Context.enter();
         try {
@@ -154,6 +155,19 @@ public class ShapeJSEvaluator {
             script = addImports(script);
             script = replaceMakeGrid(script);
 
+            NativeObject argsMap = new NativeObject();
+
+            for(Map.Entry<String, Object> entry : namedParams.entrySet()){
+                printf("Adding arg: %s -> %s\n",entry.getKey(),entry.getValue().toString());
+                argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), NativeObject.READONLY);
+            }
+/*
+            Object argForMain = argsMap;
+            try {
+                argForMain = new JsonParser(cx,scope).parseValue(new Gson().toJson(argsMap));
+            } catch (Exception e) {e.printStackTrace();}
+*/
+
             //printf("Final script:\n%s\n",script);
             Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
 
@@ -164,8 +178,8 @@ public class ShapeJSEvaluator {
             }
             Function main = (Function) o;
 
-            Object[] args = new Object[0];
-            Object result2 = main.call(cx, scope, scope, new Object[] {args});
+            Object[] args = new Object[] { argsMap};
+            Object result2 = main.call(cx, scope, scope, args);
 
             if (result2 instanceof NativeJavaObject) {
                 Object no = ((NativeJavaObject)result2).unwrap();

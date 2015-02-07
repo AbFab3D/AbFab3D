@@ -33,6 +33,7 @@ public class ShapeJSImageServlet extends HttpServlet {
     protected ServletContext ctx;
 
     private ImageRenderer render;
+    private Matrix4f viewMatrix = new Matrix4f(); // TODO: need to thread local
 
     /**
      * Initialize the servlet. Sets up the base directory properties for finding
@@ -58,6 +59,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        long t0 = System.nanoTime();
         String command = req.getPathInfo();
 
         HttpSession session = req.getSession(true);
@@ -68,6 +70,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         } else {
             super.doGet(req, resp);
         }
+        printf("request time: %d ms\n",((int)((System.nanoTime() - t0) / 1e6)));
     }
 
     @Override
@@ -84,7 +87,8 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
     }
 
-    private void handleRequest(HttpServletRequest req,
+    // TODO: stop doing this
+    synchronized private void handleRequest(HttpServletRequest req,
                                HttpServletResponse resp,
                                HttpSession session,
                                String accept)
@@ -93,10 +97,14 @@ public class ShapeJSImageServlet extends HttpServlet {
         int width = 512, height = 512;
         String jobID = null;
         String script = null;
-        float[] viewMatrix = null;
+        float[] tviewMatrix = null;
         int frames = 0;
         int framesX = 6;
         String imgType = "JPG";
+        float[] view;
+        float rotX = 0;
+        float rotY = 0;
+        float zoom = -4;
 
         boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 
@@ -137,6 +145,40 @@ public class ShapeJSImageServlet extends HttpServlet {
             script = scriptSt[0];
         }
 
+
+        String[] viewSt = params.get("view");
+        if (viewSt != null && viewSt.length > 0) {
+            String[] vals = viewSt[0].split(",");
+            view = new float[vals.length];
+            for(int i=0; i < vals.length; i++) {
+                view[i] = Float.parseFloat(vals[i]);
+            }
+
+            if (view.length != 16) {
+                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            }
+
+
+            viewMatrix.set(view);
+        } else {
+            String[] rotXSt = params.get("rotX");
+            if (rotXSt != null && rotXSt.length > 0) {
+                rotX = Float.parseFloat(rotXSt[0]);
+            }
+
+            String[] rotYSt = params.get("rotY");
+            if (rotYSt != null && rotYSt.length > 0) {
+                rotY = Float.parseFloat(rotYSt[0]);
+            }
+
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            getView(rotX,rotY,zoom,viewMatrix);
+        }
+
         if (script == null) {
             script = "function main(args) {\n" +
                     "    var radius = 25 * MM;\n" +
@@ -154,6 +196,16 @@ public class ShapeJSImageServlet extends HttpServlet {
                     "}";
         }
 
+        Map<String,Object> sparams = new HashMap<String,Object>();
+        for(Map.Entry<String,String[]> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("shapeJS_")) {
+                key = key.substring(8);
+                printf("Adding param: %s -> %d",key,entry.getValue()[0]);
+                sparams.put(key,entry.getValue()[0]);
+            }
+
+        }
         long t0 = System.nanoTime();
 
         OutputStream os = resp.getOutputStream();
@@ -167,10 +219,10 @@ public class ShapeJSImageServlet extends HttpServlet {
             itype = ImageRenderer.IMAGE_JPEG;
             resp.setContentType("image/jpeg");
         }
-        if (frames == 0) {
-            size = render.render(jobID, script, getView(), true, itype,resp.getOutputStream());
+        if (frames == 0 || frames == 1) {
+            size = render.render(jobID, script, sparams,viewMatrix, true, itype,resp.getOutputStream());
         } else {
-            size = render.renderImages(jobID, script, getView(), frames, framesX, true, itype,resp.getOutputStream());
+            size = render.renderImages(jobID, script, sparams,viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
         }
 
         printf("Image size: %d\n",size);
@@ -179,11 +231,9 @@ public class ShapeJSImageServlet extends HttpServlet {
         os.close();
     }
 
-    private Matrix4f getView() {
-        float[] DEFAULT_TRANS = new float[]{0, 0, -4};
+    private void getView(float rotX, float rotY, float zoom, Matrix4f mat) {
+        float[] DEFAULT_TRANS = new float[]{0, 0, zoom};
         float z = DEFAULT_TRANS[2];
-        float rotx = 0;
-        float roty = 0;
 
         Vector3f trans = new Vector3f();
         Matrix4f tmat = new Matrix4f();
@@ -193,14 +243,12 @@ public class ShapeJSImageServlet extends HttpServlet {
         trans.z = z;
         tmat.set(trans, 1.0f);
 
-        rxmat.rotX(rotx);
-        rymat.rotY(roty);
+        rxmat.rotX(rotX);
+        rymat.rotY(rotY);
 
-        Matrix4f mat = new Matrix4f();
+        mat.setIdentity();
         mat.mul(tmat, rxmat);
         mat.mul(rymat);
-
-        return mat;
     }
 
     /**
