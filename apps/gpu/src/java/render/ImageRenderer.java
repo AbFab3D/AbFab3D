@@ -96,12 +96,14 @@ public class ImageRenderer {
 
         float expandFactor = 1.5f;  // Account for png's which get larger, is this really necessary?
         int imgSize = (int)(width * height * expandFactor);
+
         int jpgSize = 0;
         try {
             jpgSize = TJ.bufSize(width, height, TJ.SAMP_420);
         } catch(Exception e) {e.printStackTrace();}
 
         imgSize = Math.max(imgSize,jpgSize);
+
         // TODO: these need to be thread local resources
         buff = new byte[imgSize];
         pixels = new int[width * height];
@@ -124,13 +126,15 @@ public class ImageRenderer {
 
         float expandFactor = 1.5f;
         int imgSize = (int)(width * height * expandFactor * frames);
+
+        /*
         int jpgSize = 0;
         try {
             jpgSize = TJ.bufSize(width * frameX, height * frameY, TJ.SAMP_420);
         } catch(Exception e) {e.printStackTrace();}
 
         imgSize = Math.max(imgSize,jpgSize);
-
+*/
         if (bigBuff == null || bigBuff.length < imgSize) {
             bigBuff = new byte[(int) (imgSize)];
             bigPixels = new int[width * height];

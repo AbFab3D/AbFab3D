@@ -154,8 +154,9 @@
             <zipfileset-elements>
                 <zipfileset dir="${lib.dir}" prefix="WEB-INF/lib"
                             includes="*"
-                            excludes="servlet*.jar libjpeg_turbo_v1.4.0.jar"
+                            excludes="servlet*.jar"
                         />
+                <!--                            excludes="servlet*.jar libjpeg_turbo_v1.4.0.jar" -->
                 <zipfileset dir="${abfab3d.lib.dir}" prefix="WEB-INF/lib"
                             includes="*"
                             excludes=""
@@ -164,10 +165,17 @@
                             includes="*"
                             excludes=""
                         />
+<!--
                 <zipfileset dir="natives/Windows 8.1/amd64" prefix="WEB-INF/lib"
                             includes="*/**"
                             excludes="*.dll"
                         />
+-->
+                <zipfileset dir="natives/linux/amd64" prefix="WEB-INF/lib"
+                            includes="*/**"
+                            excludes="*.dll"
+                        />
+
             </zipfileset-elements>
         </createwar>
     </target>

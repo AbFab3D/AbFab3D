@@ -12,6 +12,7 @@ var width = 512;
 var height = 512;
 var frames = 360 / 2;
 var framesX = 9;
+var imgType = 'JPG';
 
 var skipCount = 15;
 
@@ -34,8 +35,9 @@ function sub(obj, idOfDisplay){
 }
 
 function getJobID() {
-  var text = "width=" + width + "&height=" + height + "&frames=" + frames + "&framesX=" + framesX + "&script=" + editor.getValue();
-  return md5(text);
+//  var text = "width=" + width + "&height=" + height + "&frames=" + frames + "&framesX=" + framesX + "&script=" + editor.getValue();
+  var text = editor.getValue();
+  return userID+"_" + md5(text);
 }
 
 function paramDataToQueryString(params) {
@@ -58,9 +60,10 @@ function initScript() {
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
     'zoom':    zoom,  // zoom level (translation in z direction)
+    'imgType': imgType
   };
 
-  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   
   if (paramData !== undefined && paramData !== null) {
     url = url + "&" + $.param(paramDataToQueryString(paramData));
@@ -88,7 +91,8 @@ function zoomModel() {
     'jobID':  getJobID(),
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom  // zoom level (translation in z direction)
+    'zoom':    zoom,  // zoom level (translation in z direction)
+    'imgType': imgType
   };
   
   if (loading) {
@@ -102,7 +106,7 @@ function zoomModel() {
   skipCount = 15; 
 
   var imageViewer = document.getElementById("render");
-  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   imageViewer.setAttribute("src", url);
 }
 
@@ -121,7 +125,8 @@ function rotateModel(dx, dy, radX, radY) {
     'jobID':  getJobID(),
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom  // zoom level (translation in z direction)
+    'zoom':    zoom,  // zoom level (translation in z direction)
+    'imgType': imgType
   };
 
   if (loading) {
@@ -137,7 +142,7 @@ function rotateModel(dx, dy, radX, radY) {
   var imageViewer = document.getElementById("render");
   loading = true;
 
-  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   imageViewer.setAttribute("src", url);
   
 }

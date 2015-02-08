@@ -201,7 +201,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             String key = entry.getKey();
             if (key.startsWith("shapeJS_")) {
                 key = key.substring(8);
-                printf("Adding param: %s -> %d",key,entry.getValue()[0]);
+                printf("Adding param: %s -> %s",key,entry.getValue()[0]);
                 sparams.put(key,entry.getValue()[0]);
             }
 
@@ -212,10 +212,10 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         int size = 0;
         int itype = 0;
-        if (imgType.equals("PNG")) {
+        if (imgType.equalsIgnoreCase("PNG")) {
             itype = ImageRenderer.IMAGE_PNG;
             resp.setContentType("image/png");
-        } else if (imgType.equals("JPG")) {
+        } else if (imgType.equalsIgnoreCase("JPG")) {
             itype = ImageRenderer.IMAGE_JPEG;
             resp.setContentType("image/jpeg");
         }
