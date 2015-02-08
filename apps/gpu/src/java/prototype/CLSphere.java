@@ -13,23 +13,24 @@ package prototype;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.param.BaseParameterizable;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Vector3dParameter;
+
 import static prototype.CLUtils.floatToInt;
 
-public class CSphere  {
+public class CLSphere implements CLCodeGenerator {
 
     static int OPCODE = Opcodes.oSPHERE;
     static int STRUCTSIZE = 8;
-    Vector3d center;
-    double radius;
-
-    public CSphere(double radyus, Vector3d center){
-
-        this.center = center;
-        this.radius = radius;
-        
-    }
     
-    public void getStruct(int buffer[]){
+    int buffer[] = new int[STRUCTSIZE];
+    
+    public int getCLCode(BaseParameterizable node, CLCodeBuffer codeBuffer) {
+
+        DoubleParameter pradius = (DoubleParameter)node.getParam("radius");
+        double radius = pradius.getValue();
+        Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         
         int c = 0;
         buffer[c++] = STRUCTSIZE;
@@ -41,6 +42,8 @@ public class CSphere  {
         buffer[c++] = floatToInt(center.z);
         buffer[c++] = 0;
 
+        codeBuffer.add(buffer, STRUCTSIZE);
+        return STRUCTSIZE;
     }
 
 }

@@ -13,6 +13,10 @@ import java.util.Random;
 
 import javax.vecmath.Vector3d;
 
+import abfab3d.datasources.Sphere;
+import abfab3d.datasources.Box;
+
+
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
@@ -46,29 +50,29 @@ public class OpcodeMaker {
         CLKernel kernel = program.createCLKernel("OpcodeReader");
         out.printf("StructReader kernel: %s\n", kernel);
         int bufferSize = 2000;
-        CLBuffer<IntBuffer> clBufferData = context.createIntBuffer(bufferSize, READ_ONLY);
+        CLBuffer<IntBuffer> clOpcodeBuffer = context.createIntBuffer(bufferSize, READ_ONLY);
         CLBuffer<IntBuffer> clBufferResult = context.createIntBuffer(bufferSize, WRITE_ONLY);
         CLBuffer<IntBuffer> clBufferResult2 = context.createIntBuffer(bufferSize, WRITE_ONLY);
         
-        makeOpcodeBuffer(clBufferData.getBuffer());
-        printOpcodeBuffer(clBufferData.getBuffer());
+        int opCount = makeOpcodeBuffer(clOpcodeBuffer.getBuffer());
+        printOpcodeBuffer(clOpcodeBuffer.getBuffer());
 
         //if(true) return;
 
-        kernel.putArg(clBufferData);
-        kernel.putArg(bufferSize);
+        kernel.putArg(clOpcodeBuffer);
+        kernel.putArg(opCount);
         kernel.putArg(clBufferResult);
         kernel.putArg(bufferSize);
         kernel.putArg(clBufferResult2);
 
         CLEventList list = new CLEventList(4);
-        queue.putWriteBuffer(clBufferData, true,list);
+        queue.putWriteBuffer(clOpcodeBuffer, true,list);
         queue.put1DRangeKernel(kernel, 0, globalWorkSize, localWorkSize, list);
         queue.putReadBuffer(clBufferResult, true, list);
         queue.putReadBuffer(clBufferResult2, true, list);
         
         printOpcodeBuffer(clBufferResult.getBuffer());
-        printResultBuffer(clBufferResult2.getBuffer(), 10);
+        printResultBuffer(clBufferResult2.getBuffer(), opCount);
 
         context.release();
     }
@@ -82,6 +86,12 @@ public class OpcodeMaker {
             buffer.put(array[i]);
         }
     } 
+
+    static void writeToIntBuffer(IntBuffer buffer, CLCodeBuffer code){    
+        for(int i = 0; i < code.size(); i++)
+            buffer.put(code.get(i));
+    } 
+
 
     static void printOpcodeBuffer(IntBuffer buffer){
 
@@ -100,6 +110,10 @@ public class OpcodeMaker {
                 out.printf("Unknown opcode\n", opcode); break;
             case Opcodes.oSPHERE:
                 out.printf("CSphere\n"); break;                
+            case Opcodes.oBOX:
+                out.printf("CBox\n"); break;                
+            case Opcodes.oTORUS:
+                out.printf("CTorus\n"); break;                
             case Opcodes.oGYROID:
                 out.printf("CGyroid\n"); break;                
             }
@@ -129,22 +143,55 @@ public class OpcodeMaker {
         buffer.rewind();
     }
 
-    static void makeOpcodeBuffer(IntBuffer buffer){
+    static int makeOpcodeBuffer(IntBuffer buffer){
 
         int workBuffer[] = new int[1000];
+        int opcount = 0;
 
-        CSphere s1 = new CSphere(1.10, new Vector3d(1.11, 1.12, 1.13));
-        CSphere s2 = new CSphere(2.20, new Vector3d(2.11, 2.12, 2.13));
-        CSphere s3 = new CSphere(3.20, new Vector3d(3.11, 3.12, 3.13));
-        CGyroid g1 = new CGyroid(1.1, 2.2, 3.3, new Vector3d(4.11, 4.12, 4.13));
+        Sphere s1 = new Sphere(new Vector3d(0., 0., 0.), 1.);
+        Sphere s2 = new Sphere(new Vector3d(0.99, 0., 0.),1.);
+        Sphere s3 = new Sphere(new Vector3d(2., 0., 0.),1.);
+        
+        
+        //CGyroid g1 = new CGyroid(1.1, 2.2, 3.3, new Vector3d(4.11, 4.12, 4.13));
+        Box b1 = new Box(new Vector3d(0,0,0), new Vector3d(2.,4.,1.), 0.1);
+        Box b2 = new Box(new Vector3d(1,0,0), new Vector3d(2.,4.,1.), 0.1);
+        Box b3 = new Box(new Vector3d(1,2,0.5), new Vector3d(2.,4.,1.), 0.05);
+        //CTorus t1 = new CTorus(new Vector3d(0,0,0), 1., 2);
+        //CTorus t2 = new CTorus(new Vector3d(0,0,1), 1., 2);
+        //CTorus t3 = new CTorus(new Vector3d(0,0,2), 1., 2);
+        
+        CLCodeBuffer code = new CLCodeBuffer(1000);
 
-        s1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]);
-        s2.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]);
-        s3.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); 
-        g1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); 
+        CLSphere cls = new CLSphere();
+        cls.getCLCode(s1,code);
+        cls.getCLCode(s2,code);
+        cls.getCLCode(s3,code);
+
+        CLBox clb = new CLBox();
+        clb.getCLCode(b1,code);
+        clb.getCLCode(b2,code);
+        clb.getCLCode(b3,code);
+        
+        //s1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //s2.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //s3.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //b1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //b2.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //b3.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //t1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //t2.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //t3.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //g1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        // b1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //s2.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //s3.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        //g1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); opcount++;
+        writeToIntBuffer(buffer, code);
 
         buffer.rewind();
-        
+
+        return code.opCount();
     }
 
     private static int roundUp(int denom, int value) {        

@@ -42,7 +42,7 @@ import abfab3d.util.VecTransform;
 public abstract class TransformableDataSource extends BaseParameterizable implements DataSource, Initializable {
 
     // transformation which is aplied to the data point before the calculation of data value 
-    protected VecTransform m_transform; 
+    protected VecTransform m_transform = null; 
     // count of data channels 
     protected int m_channelsCount = 1;
     // count of channels of material 
@@ -57,10 +57,10 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     /**
      * Initialize parameters.
+     * to be overridden by subclass
      */
     protected void initParams() {
-        Parameter p = new Vector3dParameter("center");
-        params.put(p.getName(),p);
+        
     }
 
     /**

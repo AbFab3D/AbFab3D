@@ -69,14 +69,16 @@ float blendMin(float a, float b, float w){
 
     float dd = min(a,b);
     float d = fabs(a-b);
-    if( d < w) return dd - w*blendQuadric(d/w);	else return dd;
-    //return dd - w*blendQuadric(d/w)*clamp(d/w,0,1);
+    //if( d < w) return dd - w*blendQuadric(d/w);	else return dd;
+    //return dd;
+    return dd - (1.f-step(w,d))* w*blendQuadric(d/w);
 }
 
 float blendMax(float a, float b, float w){
 
     float dd = max(a,b);
     float d = fabs(a-b);
-    if( d < w) return dd + w*blendQuadric(d/w);
-    else return dd;
+    //return dd;
+    //if( d < w) return dd + w*blendQuadric(d/w); else return dd;
+    return dd + (1.f-step(w,d))*w*blendQuadric(d/w);;
 }

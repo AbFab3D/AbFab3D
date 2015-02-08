@@ -1,8 +1,35 @@
 // size of struct in words 
 #define WSIZE(A) (sizeof(A)/sizeof(int))
+//#define NAN (0xFFFF)
 
 #define oSPHERE 1001
 #define oGYROID 1002
+#define oBOX    1003
+#define oTORUS    1004
+
+#define PTR global const
+
+
+// blending function 
+float blendQuadric(float x){
+	return (1.f-x)*(1.f - x)*0.25f;
+}
+
+float blendMin(float a, float b, float w){
+
+    float dd = min(a,b);
+    float d = fabs(a-b);
+    if( d < w) return dd - w*blendQuadric(d/w);	
+    else return dd;
+}
+
+float blendMax(float a, float b, float w){
+
+    float dd = max(a,b);
+    float d = fabs(a-b);
+    if( d < w) return dd + w*blendQuadric(d/w);
+    else return dd;
+}
 
 
 typedef struct{
@@ -19,6 +46,40 @@ typedef struct {
     float3 center; // center   
 } sSphere;
 
+void oSphere(PTR sSphere *sphere, sVec *in, sVec *out){
+
+    float3 v = in->v.xyz;
+    v -= sphere->center;
+    float len = length(v);
+    float radius = sphere->radius;
+    float d = sign(radius) * len - radius;
+
+    out->v.x = d;
+
+}
+
+// box 
+typedef struct {
+    int size;
+    int opcode;
+    float rounding;
+    float3 center;
+    float3 halfsize;
+} sBox;
+
+void oBox(PTR sBox *box, sVec *in, sVec *out){
+
+    float3 v = in->v.xyz;
+    v -= box->center;    
+    v = fabs(v);
+    v -= box->halfsize;
+
+    float d = blendMax(blendMax(v.x,v.y,box->rounding),v.z,box->rounding);
+
+    out->v.x = d;
+}
+
+// gyroid 
 typedef struct {
     int size;
     int opcode;
@@ -28,24 +89,43 @@ typedef struct {
     float3 offset;
 } sGyroid;
 
+void oGyroid(PTR sGyroid *p, sVec *in, sVec *out){
+    //TODO
+    out->v.x = p->offset.z;    
 
-void oSphere(sSphere *p, sVec *in, sVec *out){
-    out->v.x = p->radius;
 }
 
-void oGyroid(sGyroid *p, sVec *in, sVec *out){
-    out->v.x = p->offset.z;    
+// torus 
+typedef struct {
+    int size;
+    int opcode;
+    float r;
+    float R;
+    float3 center;
+} sTorus;
+
+void oTorus(PTR sTorus *torus, sVec *in, sVec *out){
+
+    float3 p = in->v.xyz;
+    p -= torus->center;
+
+    p.y = length(p.xy) - torus->R;
+
+    float d = length(p.yz) - torus->r;
+
+    out->v.x = d;    
+
 }
 
 
 // union to "safely" convert pointers 
 typedef union {
-    global void *pv;  
-    global int *w;
+    PTR void *pv;  
+    PTR int *w;
 } CPtr;
 
 
-void copyOpcodes(global int *opcode, global int *outdata){
+void copyOpcodes(PTR int *opcode, global int *outdata){
 
     int opcount = 0;
     int maxCount = 10;
@@ -70,7 +150,7 @@ void copyOpcodes(global int *opcode, global int *outdata){
 
 
 // OpenCL Kernel Function for opcode reading 
-kernel void OpcodeReader(global const int* opcode, int dataCount, global int* outdata, int outCount, global int *results) {
+kernel void OpcodeReader(PTR int* opcode, int opCount, global int* outdata, int outCount, global int *results) {
 		
     int iGID = get_global_id(0);
     if(iGID > 0) { 
@@ -83,12 +163,12 @@ kernel void OpcodeReader(global const int* opcode, int dataCount, global int* ou
     CPtr ptr;
     int count = 0;
     int offsetIn = 0;
-    sVec pnt;
+    sVec pnt = (sVec){.v=(float4)(0,0,0,0), .scale = 1.f};
     sVec data;
-    pnt.v.x = 1.f;
+
     int resOffset = 0;
 
-    while(count++ < 10) {
+    while(count++ < opCount) {
 
         int size = opcode[offsetIn];
         if(size == 0)
@@ -96,19 +176,30 @@ kernel void OpcodeReader(global const int* opcode, int dataCount, global int* ou
         int code = opcode[offsetIn+1];
         ptr.w = (opcode + offsetIn);
         switch(code){
+        default:
+            results[resOffset++] = NAN;
+            break;
         case oSPHERE:
             {
-                global sSphere *pS = ptr.pv;
-                sSphere sphere = *pS;
-                oSphere(&sphere, &pnt, &data);
+                oSphere(ptr.pv, &pnt, &data);
                 results[resOffset++] = as_int(data.v.x);
             }
             break;
         case oGYROID:
             {
-                global sGyroid *pS = ptr.pv;
-                sGyroid gyroid = *pS;
-                oGyroid(&gyroid, &pnt, &data);
+                oGyroid(ptr.pv, &pnt, &data);
+                results[resOffset++] = as_int(data.v.x);
+            }
+            break;
+        case oBOX:
+            {
+                oBox(ptr.pv, &pnt, &data);
+                results[resOffset++] = as_int(data.v.x);
+            }
+            break;
+        case oTORUS:
+            {
+                oTorus(ptr.pv, &pnt, &data);
                 results[resOffset++] = as_int(data.v.x);
             }
             break;

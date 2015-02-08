@@ -9,25 +9,23 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package abfab3d.param;
 
-// External Imports
+package prototype;
+
+import abfab3d.param.BaseParameterizable; 
 
 /**
- * A Number parameter 
- *
- * @author Alan Hudson
- */
-public abstract class NumberParameter extends Parameter implements Cloneable {
-    public NumberParameter(String name, String desc) {
-        super(name,desc);
-    }
+   interface to generate CL code for supplied node 
 
-    public NumberParameter(String name) {
-        super(name, name);
-    }
-
-    public NumberParameter clone() {
-        return (NumberParameter) super.clone();
-    }
+   @author Vladimir Bulatov
+*/
+public interface CLCodeGenerator {
+    /**
+       stores CL opcode for given node in the buffer 
+       @param node for which code will be generated
+       @param codeBuffer to store the code 
+       @return word count of the code 
+     */
+    public int getCLCode(BaseParameterizable node, CLCodeBuffer codeBuffer);
+        
 }

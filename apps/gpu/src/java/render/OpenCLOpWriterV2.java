@@ -3,6 +3,7 @@ package render;
 import abfab3d.datasources.TransformableDataSource;
 import abfab3d.param.*;
 import abfab3d.util.VecTransform;
+
 import datasources.InstNode;
 import datasources.NodeFactory;
 import datasources.OpenCLNode;
@@ -15,6 +16,7 @@ import java.text.NumberFormat;
 import java.util.*;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 /**
  * Write a datasource tree to OpenCL using OpCodes
@@ -166,13 +168,7 @@ public class OpenCLOpWriterV2 {
                         break;
                     case VECTOR_3D:
                         inst.getFloatVector(fv_idx++,s3d);
-                        bldr.append("(float3)(");
-                        bldr.append(format.format(s3d.x));
-                        bldr.append(",");
-                        bldr.append(format.format(s3d.y));
-                        bldr.append(",");
-                        bldr.append(format.format(s3d.z));
-                        bldr.append(")");
+                        bldr.append(fmt("(float3)(%7.5f,%7.5f,%7.5f)",s3d.x,s3d.y,s3d.z));
                         break;
                     case MATRIX_4D:
                         inst.getMatrix(m_idx++, m4d);
@@ -226,6 +222,7 @@ public class OpenCLOpWriterV2 {
         return bldr.toString();
     }
 
+    
     private void generateOld(Parameterizable source, Stack<Parameterizable> transChain) {
 
         Parameterizable trans = null;
@@ -267,14 +264,14 @@ public class OpenCLOpWriterV2 {
         } else if (source instanceof TransformableDataSource) {
             trans = (Parameterizable)(((TransformableDataSource) source).getTransform());
         }
-
-        if (trans != null) {
+ 
+        //if (trans != null) {
+        if (true) { // VB. seems we always need to reset, null means identity transform 
             // We have a real transform so we need to reset to the original pos
             Instruction inst = new Instruction();
             inst.setOpCode(Instruction.getOpCode("reset"));
-            //instructions.add(inst);
-
-            transChain.push(trans);
+            if(trans != null) // VB - ignore identity treansform 
+                transChain.push(trans);
         }
 
 
