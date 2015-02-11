@@ -52,7 +52,7 @@ var isUriImage = false;
 var isUrlScript = false;
 var paramCount = 0;
 var fileCount = 0;
-
+var userID;
 
 jQuery(document).ready(function() {
   unspin();
@@ -65,7 +65,24 @@ jQuery(document).ready(function() {
     [0, 0, 1, -4],
     [0, 0, 0, 1]
   ]);
+
+  userID = randomstring(5);
+
+  generate();
+
 });
+
+function randomstring(L){
+  var s= '';
+  var randomchar=function(){
+    var n= Math.floor(Math.random()*62);
+    if(n<10) return n; //1-10
+    if(n<36) return String.fromCharCode(n+55); //A-Z
+    return String.fromCharCode(n+61); //a-z
+  }
+  while(s.length< L) s+= randomchar();
+  return s;
+}
 
 function jsonForm(formData, jqForm, options) {
 
@@ -306,6 +323,8 @@ function evalScriptParams() {
   var jsScript = editor.getValue();
   eval(jsScript);
 
+  if(typeof params === "undefined") return;
+
   for (var i=0; i<params.length; i++) {
     var type = (params[i].type).toLowerCase();
     if ( $.inArray(type, inputTypes) >= 0) {
@@ -453,7 +472,6 @@ function addMouseEventListeners() {
       zoom -= (Math.abs(zoom) + 1) / 4;
     }
 
-    console.log("zoom: " + zoom);
     zoomModel();
 
     //prevent page fom scrolling
@@ -508,10 +526,10 @@ var params = [
     "id": "thickness",
     "displayName": "Thickness",
     "type": "range",
-    "rangeMin": 0.005,
-    "rangeMax": 0.05,
-    "step": 0.001,
-    "default": 0.01
+    "rangeMin": 0.5,
+    "rangeMax": 20,
+    "step": 1,
+    "default": 10
   }
 ];
 function cross3D(size, thickeness){
@@ -527,7 +545,7 @@ function cross3D(size, thickeness){
 
 function main(args) {
     var size = 0.04;
-    var thickness = args["thickness"];
+    var thickness = args["thickness"] * MM;
     var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
     var diff = new Subtraction(new Sphere(15*MM), cross3D(size, thickness));
     var maker = new GridMaker();
@@ -535,6 +553,7 @@ function main(args) {
     maker.makeGrid(grid);
     return grid;
 }
+
 
 </textarea>
 <div id="preview-button" onclick="generate();" class="submit-generate">Generate</div>
