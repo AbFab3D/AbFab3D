@@ -1,5 +1,5 @@
 
-package prototype;
+package opencl;
 
 
 public class CLUtils {

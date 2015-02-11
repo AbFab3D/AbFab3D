@@ -9,7 +9,7 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package prototype;
+package opencl;
 
 import javax.vecmath.Vector3d;
 

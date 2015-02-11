@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package prototype;
+package opencl;
 
 /**
    storage for generated CL code

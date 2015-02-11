@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package prototype;
+package opencl;
 
 import abfab3d.param.BaseParameterizable; 
 
@@ -22,7 +22,7 @@ import abfab3d.param.BaseParameterizable;
 public interface CLCodeGenerator {
     /**
        stores CL opcode for given node in the buffer 
-       @param node for which code will be generated
+       @param node for which the code will be generated
        @param codeBuffer to store the code 
        @return word count of the code 
      */
