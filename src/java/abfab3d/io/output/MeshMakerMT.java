@@ -50,6 +50,8 @@ import static java.lang.System.nanoTime;
  * @author Vladimir Bulatov
  */
 public class MeshMakerMT {
+    public enum StatusType {SUCCESS, FAIL};  
+    
     /** Should we print debug information */
     private static final boolean DEBUG = false;
 
@@ -71,6 +73,7 @@ public class MeshMakerMT {
     final static int VERSION1 = 1, VERSION2 =2;
     static int version=VERSION2;
     
+    protected StatusType status;
 
     protected int m_interpolationAlgorithm = IsosurfaceMaker.INTERPOLATION_LINEAR;
 
@@ -172,6 +175,8 @@ public class MeshMakerMT {
      * creates mesh and feeds it into triangle collector
      */
     public int makeMesh(Grid grid, TriangleCollector tc) {
+    	status = StatusType.SUCCESS;
+    	
         switch(version){
         default: 
         case VERSION1:
@@ -446,6 +451,10 @@ public class MeshMakerMT {
         return blocks;
         
     } // makeBlocksOctree
+    
+    public StatusType getStatus() {
+    	return status;
+    }
 
     /**
      *
@@ -858,6 +867,7 @@ public class MeshMakerMT {
                 } catch (Exception e) {
 
                     e.printStackTrace();
+                    status = StatusType.FAIL;
                     break;
                 }
             }
@@ -1111,6 +1121,7 @@ public class MeshMakerMT {
                 } catch (Exception e) {
 
                     e.printStackTrace();
+                    status = StatusType.FAIL;
                     break;
                 }
             }
