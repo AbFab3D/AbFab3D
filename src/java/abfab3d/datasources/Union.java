@@ -20,6 +20,7 @@ import java.util.Vector;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
+import abfab3d.param.DoubleParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -48,6 +49,13 @@ public class Union  extends TransformableDataSource implements SNode {
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
     DataSource vDataSources[];
+    DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
+    SNodeListParameter mp_dataSources = new SNodeListParameter("datasources");
+    
+    Parameter m_aparam[] = new Parameter[]{
+        mp_blendWidth,
+        mp_dataSources
+    };    
 
     /**
        Create empty union. Use add() method to add arbitrary number of shapes to the union. 
@@ -61,7 +69,7 @@ public class Union  extends TransformableDataSource implements SNode {
      */
     public Union(DataSource shape1, DataSource shape2 ){
         initParams();
-
+        
         add(shape1);
         add(shape2);        
     }
@@ -70,9 +78,9 @@ public class Union  extends TransformableDataSource implements SNode {
      * @noRefGuide
      */
     protected void initParams() {
-        super.initParams();
-        Parameter p = new SNodeListParameter("datasources");
-        params.put(p.getName(), p);
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
+        }
     }
 
     /**

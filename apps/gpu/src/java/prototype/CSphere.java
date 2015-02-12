@@ -13,7 +13,8 @@ package prototype;
 
 import javax.vecmath.Vector3d;
 
-import static prototype.CLUtils.floatToInt;
+import static opencl.CLUtils.floatToInt;
+import opencl.Opcodes;
 
 public class CSphere  {
 

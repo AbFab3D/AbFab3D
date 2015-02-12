@@ -1,6 +1,7 @@
 package prototype;
 
 import javax.vecmath.Vector3d;
+import opencl.Opcodes;
 
 
 public class CTorus {

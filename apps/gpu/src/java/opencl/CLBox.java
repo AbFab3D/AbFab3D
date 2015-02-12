@@ -16,7 +16,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import javax.vecmath.Vector3d;
 
-import static prototype.CLUtils.floatToInt;
+import static opencl.CLUtils.floatToInt;
 
 import static abfab3d.util.Units.MM;
 

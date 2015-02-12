@@ -12,13 +12,47 @@
 
 package opencl; 
 
+import java.nio.IntBuffer;
+
+import abfab3d.param.Parameterizable;
 
 
-public class OpcodeMaker {
+import static abfab3d.util.Output.printf;
 
-    static void printOpcodeBuffer(IntBuffer buffer){
 
-        out.printf("printStructBuffer(%s)\n", buffer);
+public class OpcodeMaker implements CLCodeGenerator {
+    
+
+    
+    /**
+       makes CL code for given node 
+       @return count of opcodes 
+     */
+    CLNodeFactory m_factory = new CLNodeFactory();
+
+    public CLCodeBuffer makeOpcode(Parameterizable node){
+
+        CLCodeBuffer codeBuffer = new CLCodeBuffer(10000);
+
+        CLCodeGenerator clnode = m_factory.getCLNode(node);
+
+        clnode.getCLCode(node, codeBuffer);
+
+        return codeBuffer;
+        
+    }
+
+    public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer){
+        
+        CLCodeGenerator clnode = m_factory.getCLNode(node);
+        int count = clnode.getCLCode(node, codeBuffer);
+        return count;
+        
+    }
+
+    public static void printOpcodeBuffer(IntBuffer buffer){
+        
+        printf("printOpcodeBuffer(%s)\n", buffer);
         int work[] = new int[1000];
 
         while(true){
@@ -27,18 +61,18 @@ public class OpcodeMaker {
             int opcode = buffer.get();
             if(size == 0) 
                 break;
-            out.printf("size: %4d opcode: %4d ", size, opcode);
+            printf("size: %4d opcode: %4d ", size, opcode);
             switch(opcode){
             default: 
-                out.printf("Unknown opcode\n", opcode); break;
+                printf("Unknown opcode\n", opcode); break;
             case Opcodes.oSPHERE:
-                out.printf("Sphere\n"); break;                
+                printf("Sphere\n"); break;                
             case Opcodes.oBOX:
-                out.printf("Box\n"); break;                
+                printf("Box\n"); break;                
             case Opcodes.oTORUS:
-                out.printf("Torus\n"); break;                
+                printf("Torus\n"); break;                
             case Opcodes.oGYROID:
-                out.printf("Gyroid\n"); break;                
+                printf("Gyroid\n"); break;                
             }
             for(int i = 2; i < size; i++){
                 int ri = (buffer.get());
@@ -46,8 +80,9 @@ public class OpcodeMaker {
                 //out.printf("%8x(%6.2f) ", ri,rf);        
             }
             //out.printf("\n");
+
         }    
-        out.printf("printStructBuffer() DONE\n");
+        printf("printOpcodeBuffer() DONE\n");
         buffer.rewind();
     }
 }

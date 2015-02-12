@@ -16,10 +16,13 @@ import javax.vecmath.Vector3d;
 import abfab3d.param.Parameterizable;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
+import abfab3d.param.SNode;
+
+import abfab3d.datasources.Union;
 
 import static opencl.CLUtils.floatToInt;
 
-public class CLSphere implements CLCodeGenerator {
+public class CLUnion implements CLCodeGenerator {
 
     static int OPCODE = Opcodes.oSPHERE;
     static int STRUCTSIZE = 8;
@@ -28,22 +31,19 @@ public class CLSphere implements CLCodeGenerator {
     
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
 
-        DoubleParameter pradius = (DoubleParameter)node.getParam("radius");
-        double radius = pradius.getValue();
-        Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
-        
-        int c = 0;
-        buffer[c++] = STRUCTSIZE;
-        buffer[c++] = OPCODE;
-        buffer[c++] = floatToInt(radius);        
-        c++; // align to 4 words boundary 
-        buffer[c++] = floatToInt(center.x);
-        buffer[c++] = floatToInt(center.y);
-        buffer[c++] = floatToInt(center.z);
-        buffer[c++] = 0;
+        Union union = (Union)node;
 
-        codeBuffer.add(buffer, STRUCTSIZE);
-        return STRUCTSIZE;
+        SNode[] children = union.getChildren();
+
+        int wcount = 0;
+        for(int i = 0; i < children.length; i++){
+
+            Parameterizable child = (Parameterizable)children[i];
+            CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)child);
+            wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
+        }
+        return wcount;
+
     }
 
 }
