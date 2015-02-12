@@ -36,6 +36,7 @@ public class VolumeRenderer {
     public static final String VERSION_OPCODE = "opcode";
     public static final String VERSION_OPCODE_V2 = "opcode_v2";
     public static final String VERSION_OPCODE_V2_DIST = "opcode_v2_dist";
+    public static final String VERSION_OPCODE_V3_DIST = "opcode_v3_dist";
     public static final String VERSION_DENS = "dens";
 
     private float[] viewData = new float[16];
@@ -181,6 +182,41 @@ public class VolumeRenderer {
                         }
                     }
                 }
+
+                if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+                    // TODO: Vlad, update this list if necessary or fix if possible
+                    // TODO: this would need to be updated to support jar file deployment
+                    // Issue is how do we know what files need to be loaded?
+                    File dir = new File("classes");
+                    boolean in_jar = false;
+
+                    String[] files = dir.list();
+
+                    if (files == null) {
+                        in_jar = true;
+                        files = new String[] {"box_opcode_v3_dist.cl",
+                                "gyroid_opcode_v3_dist.cl",
+                                "intersection_opcode_v3_dist.cl",
+                                "rotation_opcode_v3_dist.cl",
+                                "scale_opcode_v3_dist.cl",
+                                "sphere_opcode_v3_dist.cl",
+                                "subtraction_opcode_v3_dist.cl",
+                                "torus_opcode_v3_dist.cl",
+                                "translation_opcode_v3_dist.cl",
+                                "union_opcode_v3_dist.cl"};
+                    }
+
+                    String rv = renderVersion + ".cl";
+                    for (int i = 0; i < files.length; i++) {
+                        if (files[i].contains(rv)) {
+                            if (files[i].contains("VolumeRenderer") || files[i].contains("ShapeJS")) {
+                                continue;
+                            }
+                            list.add(new File(files[i]));
+                        }
+                    }
+                }
+
                 list.add(new File("VolumeRenderer_" + renderVersion + ".cl"));
 
 
@@ -356,6 +392,13 @@ public class VolumeRenderer {
                 if (matrixBuffer != null) queue.putWriteBuffer(matrixBuffer, false, null, events);
                 if (booleanBuffer != null) queue.putWriteBuffer(booleanBuffer, false, null, events);
 
+            }  else if (renderVersion.equals(VERSION_OPCODE_V3_DIST)) {
+                // TODO: Vlad convert Instructions to params needed for Struct
+                // This is one time setup for a script, ie cached for navigation
+
+                for(Instruction inst : instructions) {
+
+                }
             }
         } catch (Exception e) {
             if (program == null) {
@@ -440,6 +483,7 @@ public class VolumeRenderer {
 
         queue.putWriteBuffer(viewBuffer, true, null);
     }
+
     /**
      * Render the program from the desired view into a buffer.
      *
@@ -481,6 +525,84 @@ public class VolumeRenderer {
         kernel.setArg(6, height);
         kernel.setArg(7, viewBuffer).rewind();
         kernel.setArg(8, worldScale);
+        kernel.setArg(9,opBuffer).rewind();
+        kernel.setArg(10,opLen);
+        kernel.setArg(11,floatBuffer).rewind();
+        kernel.setArg(12,intBuffer).rewind();
+        kernel.setArg(13,floatVectorBuffer).rewind();
+        kernel.setArg(14,booleanBuffer).rewind();
+        kernel.setArg(15,matrixBuffer).rewind();
+
+//        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
+        // Changed to 0 needed to work on MAC
+        // TODO: Test
+        //queue.put2DRangeKernel(kernel, 0, 0, wsize, hsize, 0, 0, list);
+
+        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
+        if (usingGL) {
+            queue.putReleaseGLObject((CLGLBuffer) dest, list);
+        }
+        queue.finish();
+
+        if (STATS) {
+            int idx = 0;
+            if (usingGL) idx++;
+            kernelTIme = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
+            renderTime = System.nanoTime() - t0;
+        }
+/*
+        for(int i=0; i < list.size(); i++) {
+            CLEvent event = list.getEvent(i);
+            System.out.println("cmd: " + i + " " + event.getType() + " time: " + (event.getProfilingInfo(CLEvent.ProfilingCommand.END)
+                    - event.getProfilingInfo(CLEvent.ProfilingCommand.START))/1000000.0);
+        }
+*/
+
+    }
+
+    /**
+     * Render the program from the desired view into a buffer.
+     *
+     * @param dest
+     */
+    public void renderStruct(int w0, int h0, int wsize, int hsize, int width, int height,
+                          float worldScale, CLBuffer dest) {
+
+        //printf("RenderOps: w0: %d h0: %d wsize: %d hsize: %d width:%d height: %d dest: %s this: %s\n",w0,h0,wsize,hsize,width,height,dest,this);
+        long t0 = System.nanoTime();
+
+        // TODO: needs 0 for Apple, 8 is fastest on Desktop GPU
+        int localWorkSizeX = 8; // this seems the fastest not sure why
+        int localWorkSizeY = 8;
+
+        localWorkSizeX = 0; // this seems the fastest not sure why
+        localWorkSizeY = 0;
+
+        long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
+        long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
+
+        //printf("inv view: \n%s\n",view);
+
+        // Call OpenCL kernel
+        CLEventList list = new CLEventList(3);
+
+        boolean usingGL = (dest instanceof CLGLBuffer);
+
+        if (usingGL) {
+            queue.putAcquireGLObject((CLGLBuffer) dest, list);
+        }
+
+        kernel.setArg(0, dest).rewind();
+        kernel.setArg(1, w0 * wsize);
+        kernel.setArg(2, h0 * hsize);
+        kernel.setArg(3, wsize);
+        kernel.setArg(4, hsize);
+        kernel.setArg(5, width);
+        kernel.setArg(6, height);
+        kernel.setArg(7, viewBuffer).rewind();
+        kernel.setArg(8, worldScale);
+
+        // TODO: Vlad update these call params for Struct
         kernel.setArg(9,opBuffer).rewind();
         kernel.setArg(10,opLen);
         kernel.setArg(11,floatBuffer).rewind();

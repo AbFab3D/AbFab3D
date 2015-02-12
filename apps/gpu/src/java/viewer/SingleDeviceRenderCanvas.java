@@ -350,6 +350,9 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
         if (!renderVersion.equals(VolumeRenderer.VERSION_OPCODE) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
             renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+            renderer.sendView(view,viewBuffer);
+            renderer.renderStruct(0,0,w,h,w, h, worldScale, clPixelBuffer);
         } else {
             renderer.sendView(view,viewBuffer);
             renderer.renderOps(0,0,w,h,w, h, worldScale, clPixelBuffer);
