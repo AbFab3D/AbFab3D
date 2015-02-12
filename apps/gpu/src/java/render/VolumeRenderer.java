@@ -13,10 +13,9 @@ import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.*;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
@@ -63,6 +62,7 @@ public class VolumeRenderer {
     private CLBuffer<FloatBuffer> matrixBuffer;
     private CLBuffer<ByteBuffer> booleanBuffer;
     private CLBuffer<IntBuffer> opBuffer;
+    private NumberFormat format = new DecimalFormat("####.#####");
 
 
     public VolumeRenderer(CLContext context, CLCommandQueue queue) {
@@ -81,15 +81,19 @@ public class VolumeRenderer {
         String kernel_name;
 
         renderVersion = version;
+        double vs = 0.1 * Units.MM;
 
-        printf("VolumeRenderer Init: %s\n",version);
+        LinkedHashMap<String,String> optMap = new LinkedHashMap<String, String>();
+        optMap.put("steps",Integer.toString(maxSteps));
+        optMap.put("voxelSize",format.format(vs));
+        optMap.put("shadowSteps",Integer.toString(maxShadowSteps));
+        optMap.put("antialiasingSteps",Integer.toString(maxShadowSteps));
+
+        printf("VolumeRenderer Init: %s  Samples: %d\n", version,maxAntialiasingSteps);
         long t0 = System.nanoTime();
         try {
             String buildOpts = "";
             if (opts != null) buildOpts = opts;
-            double vs = 0.1 * Units.MM;
-            printf("Voxel Size: %f\n",vs);
-            printf("MaxSteps: %d\n",maxSteps);
             buildOpts += " -cl-fast-relaxed-math";
             buildOpts += " -cl-no-signed-zeros";
             buildOpts += " -DmaxSteps=" + maxSteps;
@@ -116,8 +120,10 @@ public class VolumeRenderer {
 
                     for (int i = 0; i < len; i++) {
                         CLDevice device = devices[i];
+                        String cacheName = getCacheName(optMap);
+                        printf("Cache name: %s\n",cacheName);
                         String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
-                        File f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
+                        File f = new File(dir + File.separator + cacheName + "_compiled.ocl");
                         if (f.exists()) {
                             if (DEBUG) printf("Loading OpenCL program from binary\n");
                             byte[] bytes = FileUtils.readFileToByteArray(f);
@@ -200,10 +206,12 @@ public class VolumeRenderer {
                 for(Map.Entry<CLDevice,byte[]> entry : bins.entrySet()) {
                     CLDevice device = entry.getKey();
                     byte[] compiled = entry.getValue();
+                    String cacheName = getCacheName(optMap);
+
                     String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
                     File f = new File(dir);
                     f.mkdirs();
-                    f = new File(dir + File.separator + renderVersion + "_compiled.ocl");
+                    f = new File(dir + File.separator + cacheName + "_compiled.ocl");
                     FileUtils.writeByteArrayToFile(f,compiled);
 
                 }
@@ -368,6 +376,25 @@ public class VolumeRenderer {
         return true;
     }
 
+    /**
+     * Get a disk file name for all options that change compile binaries.
+     * @param opts
+     * @return
+     */
+    private String getCacheName(LinkedHashMap<String,String> opts) {
+        StringBuilder bldr = new StringBuilder();
+
+        Iterator itr = opts.entrySet().iterator();
+        while(itr.hasNext()) {
+            Map.Entry<String,String> entry = (Map.Entry<String,String>) itr.next();
+            bldr.append(entry.getKey());
+            bldr.append("_");
+            bldr.append(entry.getValue());
+        }
+
+        return bldr.toString();
+    }
+
     public void setMaxSteps(int maxSteps) {
         this.maxSteps = maxSteps;
     }
@@ -427,6 +454,9 @@ public class VolumeRenderer {
         // TODO: needs 0 for Apple, 8 is fastest on Desktop GPU
         int localWorkSizeX = 8; // this seems the fastest not sure why
         int localWorkSizeY = 8;
+
+        localWorkSizeX = 0; // this seems the fastest not sure why
+        localWorkSizeY = 0;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);

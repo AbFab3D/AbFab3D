@@ -105,6 +105,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         float rotX = 0;
         float rotY = 0;
         float zoom = -4;
+        float quality = 0.5f;  // samples,maxSteps,shadowSteps,softShadows
 
         boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 
@@ -196,6 +197,11 @@ public class ShapeJSImageServlet extends HttpServlet {
                     "}";
         }
 
+        String[] qualitySt = params.get("quality");
+        if (qualitySt != null && qualitySt.length > 0) {
+            quality = Float.parseFloat(qualitySt[0]);
+        }
+
         Map<String,Object> sparams = new HashMap<String,Object>();
         for(Map.Entry<String,String[]> entry : params.entrySet()) {
             String key = entry.getKey();
@@ -220,7 +226,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             resp.setContentType("image/jpeg");
         }
         if (frames == 0 || frames == 1) {
-            size = render.render(jobID, script, sparams,viewMatrix, true, itype,resp.getOutputStream());
+            size = render.render(jobID, script, sparams,viewMatrix, true, itype,quality, resp.getOutputStream());
         } else {
             size = render.renderImages(jobID, script, sparams,viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
         }
