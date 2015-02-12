@@ -72,6 +72,13 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
+        <compilejava package="opencl" jars="" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
         <compilejava package="program" jars="" >
             <classpath-elements>
                 <pathelement path="${app.common.dir}/classes"/>
@@ -293,7 +300,7 @@
     </target>
     <target name="runOpcode" depends="compile" description="Run the Opcode maker test">
       <echo message="jvmargs: ${jvmrunargs}"/>
-        <java classname="prototype.OpcodeMaker" fork="true">
+        <java classname="prototype.ProtoOpcodeMaker" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}"/>

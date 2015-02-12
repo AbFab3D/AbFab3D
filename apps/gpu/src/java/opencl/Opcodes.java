@@ -1,4 +1,4 @@
-package prototype;
+package opencl;
 
 
 public class Opcodes{

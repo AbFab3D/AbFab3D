@@ -1,4 +1,4 @@
-package prototype;
+package opencl;
 
 import javax.vecmath.Vector3d;
 

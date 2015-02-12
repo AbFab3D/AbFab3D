@@ -372,12 +372,12 @@ public class Prototype {
         CSphere s1 = new CSphere(1.10, new Vector3d(1.11, 1.12, 1.13));
         CSphere s2 = new CSphere(2.20, new Vector3d(2.11, 2.12, 2.13));
         CSphere s3 = new CSphere(3.20, new Vector3d(3.11, 3.12, 3.13));
-        CGyroid g1 = new CGyroid(1.1, 2.2, 3.3, new Vector3d(4.11, 4.12, 4.13));
+        //CGyroid g1 = new CGyroid(1.1, 2.2, 3.3, new Vector3d(4.11, 4.12, 4.13));
 
         s1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]);
         s2.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]);
         s3.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); 
-        g1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); 
+        //g1.getStruct(workBuffer); writeToIntBuffer(buffer,workBuffer, workBuffer[0]); 
 
         buffer.rewind();
         

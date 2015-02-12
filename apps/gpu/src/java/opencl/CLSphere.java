@@ -9,15 +9,15 @@
  * purpose. Use it at your own risk. If there's a problem you get to fix it.
  *
  ****************************************************************************/
-package prototype;
+package opencl;
 
 import javax.vecmath.Vector3d;
 
-import abfab3d.param.BaseParameterizable;
+import abfab3d.param.Parameterizable;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 
-import static prototype.CLUtils.floatToInt;
+import static opencl.CLUtils.floatToInt;
 
 public class CLSphere implements CLCodeGenerator {
 
@@ -26,7 +26,7 @@ public class CLSphere implements CLCodeGenerator {
     
     int buffer[] = new int[STRUCTSIZE];
     
-    public int getCLCode(BaseParameterizable node, CLCodeBuffer codeBuffer) {
+    public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
 
         DoubleParameter pradius = (DoubleParameter)node.getParam("radius");
         double radius = pradius.getValue();

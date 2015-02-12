@@ -10,9 +10,9 @@
  *
  ****************************************************************************/
 
-package prototype;
+package opencl;
 
-import abfab3d.param.BaseParameterizable; 
+import abfab3d.param.Parameterizable; 
 
 /**
    interface to generate CL code for supplied node 
@@ -22,10 +22,10 @@ import abfab3d.param.BaseParameterizable;
 public interface CLCodeGenerator {
     /**
        stores CL opcode for given node in the buffer 
-       @param node for which code will be generated
+       @param node for which the code will be generated
        @param codeBuffer to store the code 
        @return word count of the code 
      */
-    public int getCLCode(BaseParameterizable node, CLCodeBuffer codeBuffer);
+    public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer);
         
 }
