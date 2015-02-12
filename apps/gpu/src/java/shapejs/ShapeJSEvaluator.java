@@ -169,8 +169,11 @@ public class ShapeJSEvaluator {
 */
 
             //printf("Final script:\n%s\n",script);
-            Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
-
+            try {
+                Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
+            } catch(Exception e) {
+                printf("Script failed: %s\n",script);
+            }
             Object o = scope.get("main", scope);
 
             if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {

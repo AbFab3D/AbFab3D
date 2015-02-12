@@ -22,6 +22,7 @@ import datasources.Instruction;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.apache.commons.io.FileUtils;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
 import shapejs.ShapeJSEvaluator;
@@ -57,7 +58,7 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
  * @author Alan Hudson
  */
 public class TestVolumeRenderer extends TestCase {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
 
     private int numTiles;
@@ -87,7 +88,8 @@ public class TestVolumeRenderer extends TestCase {
         long t0 = System.nanoTime();
 
         // Do these items once for the servlet.  Should be per-thread resources
-        initCL(false, width, height);
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
         int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
 
         printf("Max size: %d\n",MAX_IMG_SIZE);
@@ -107,24 +109,77 @@ public class TestVolumeRenderer extends TestCase {
 
 //        String script = "scripts/dodecahedron.js";
         String script = "scripts/gyrosphere.js";
-        for (int i = 0; i < TIMES; i++) {
-            t0 = System.nanoTime();
-            BufferedImage base = render(jobID, script, width, height, pixels, image);
-            int size = makeJpg(base, buff);  // return buff[0] to size bytes to client
 
-            printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
+        for (int i = 0; i < TIMES; i++) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
+            BufferedOutputStream bos = new BufferedOutputStream(baos);
+                    t0 = System.nanoTime();
+            render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);
 
             if (DEBUG) {
-                try {
-                    ImageIO.write(base, "png", new File("/tmp/render_speed.png"));
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
-                }
+                FileUtils.writeByteArrayToFile(new File("/tmp/render_speed.jpg"),baos.toByteArray());
             }
 
         }
 
     }
+
+    public void testQuality() throws Exception {
+        int width = 512;
+        int height = 512;
+
+        long t0 = System.nanoTime();
+
+        // Do these items once for the servlet.  Should be per-thread resources
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
+
+        printf("Max size: %d\n",MAX_IMG_SIZE);
+        byte[] buff = new byte[MAX_IMG_SIZE];
+        int[] pixels = new int[width * height];
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
+
+        // End of per-thread resources
+
+        String jobID = UUID.randomUUID().toString();
+
+//        String script = "scripts/dodecahedron.js";
+        String script = "scripts/gyrosphere.js";
+        float quality = 0.25f;
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
+        BufferedOutputStream bos = new BufferedOutputStream(baos);
+        render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
+        bos.close();
+
+        if (DEBUG) {
+            FileUtils.writeByteArrayToFile(new File("/tmp/render_quality_" + quality + ".png"),baos.toByteArray());
+        }
+
+        quality = 0.5f;
+        baos = new ByteArrayOutputStream(150000);
+        bos = new BufferedOutputStream(baos);
+        render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
+        bos.close();
+
+        if (DEBUG) {
+            FileUtils.writeByteArrayToFile(new File("/tmp/render_quality" + quality + ".png"),baos.toByteArray());
+        }
+
+        quality = 1f;
+        baos = new ByteArrayOutputStream(150000);
+        bos = new BufferedOutputStream(baos);
+        render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
+        bos.close();
+
+        if (DEBUG) {
+            FileUtils.writeByteArrayToFile(new File("/tmp/render_quality" + quality + ".png"),baos.toByteArray());
+        }
+    }
+
     /**
      * Look at using GPU to make a jpg directly, could save 14ms or about 50%
      */
@@ -605,10 +660,30 @@ public class TestVolumeRenderer extends TestCase {
         tiles[0] = new RenderTile(0, 0, width, height);
         RenderTile tile = tiles[0];
 
+        CLPlatform platform = CLPlatform.getDefault();
+
         if (debug) {
             tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
         } else {
-            tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+            if (platform.getName().contains("Apple")) {
+                // Apple does not get the GPU maxFlops right, just find the nvidia card
+                CLDevice[] devices = platform.listCLDevices();
+                boolean found = false;
+                for(int i=0; i < devices.length; i++) {
+                    printf("Checking device: %s %s\n",devices[i],devices[i].getVendor());
+                    if (devices[i].getVendor().contains("NVIDIA")) {
+                        tile.setDevice(devices[i]);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found) {
+                    tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+                }
+            } else {
+                tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+            }
         }
 
         tile.setContext(CLContext.create(tile.getDevice()));

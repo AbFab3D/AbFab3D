@@ -6,6 +6,7 @@ import abfab3d.util.DataSource;
 import com.jogamp.opencl.*;
 import com.objectplanet.image.PngEncoder;
 import datasources.Instruction;
+import org.apache.commons.io.FileUtils;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
 import shapejs.ShapeJSEvaluator;
@@ -16,6 +17,7 @@ import javax.vecmath.Vector3f;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -80,8 +82,27 @@ public class ImageRenderer {
         tiles[0] = new RenderTile(0, 0, width, height);
         RenderTile tile = tiles[0];
 
-        // TODO: add CPU fallback logic
-        tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+        CLPlatform platform = CLPlatform.getDefault();
+
+        if (platform.getName().contains("Apple")) {
+            // Apple does not get the GPU maxFlops right, just find the nvidia card
+            CLDevice[] devices = platform.listCLDevices();
+            boolean found = false;
+            for(int i=0; i < devices.length; i++) {
+                printf("Checking device: %s %s\n",devices[i],devices[i].getVendor());
+                if (devices[i].getVendor().contains("NVIDIA")) {
+                    tile.setDevice(devices[i]);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+            }
+        } else {
+            tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+        }
 
         tile.setContext(CLContext.create(tile.getDevice()));
 
@@ -143,7 +164,7 @@ public class ImageRenderer {
         }
     }
 
-    public int render(String jobID, String script, Map<String,Object> params, Matrix4f view,boolean cache, int imgType, OutputStream os) throws IOException {
+    public int render(String jobID, String script, Map<String,Object> params, Matrix4f view,boolean cache, int imgType, float quality, OutputStream os) throws IOException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
@@ -153,15 +174,8 @@ public class ImageRenderer {
 
         long t0 = System.nanoTime();
 
-        // Do these items once for the servlet.  Should be per-thread resources
-
-        printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
-
-        // End of per-thread resources
-
-
         t0 = System.nanoTime();
-        makeRender(jobID, script, params,cache, view,0,0,width, height, pixels, image);
+        makeRender(jobID, script, params,cache, quality, view,0,0,width, height, pixels, image);
         int size = 0;
         switch(imgType) {
             case IMAGE_PNG:
@@ -177,6 +191,12 @@ public class ImageRenderer {
         os.write(buff,0,size);
 
         return size;
+    }
+
+    public int render(String jobID, File file, Map<String,Object> params, Matrix4f view,boolean cache, int imgType, float quality, OutputStream os) throws IOException {
+        String script = FileUtils.readFileToString(file);
+
+        return render(jobID, script, params, view, cache, imgType, quality, os);
     }
 
     public int renderImages(String jobID, String script, Map<String,Object> params, Matrix4f view,int frames, int frameX, boolean useCache, int imgType, OutputStream os) throws IOException {
@@ -332,7 +352,8 @@ public class ImageRenderer {
      * @param height
      * @return
      */
-    private void makeRender(String jobID, String script, Map<String,Object> params, boolean useCache, Matrix4f view, int pixX, int pixY, int width, int height,
+    private void makeRender(String jobID, String script, Map<String,Object> params, boolean useCache, float quality, Matrix4f view,
+                            int pixX, int pixY, int width, int height,
                             int[] pixels, BufferedImage image) {
         List<Instruction> inst = null;
 
@@ -350,6 +371,20 @@ public class ImageRenderer {
         ArrayList progs = new ArrayList();
 
         for (int i = 0; i < numRenderers; i++) {
+            if (quality >= 0.75) {
+                // high quality
+                render[i].setMaxSteps(1024);
+                render[i].setMaxAntialiasingSteps(2);
+                // TODO: Eventually add shadows
+            } else if (quality <= 0.25) {
+                // low quality
+                render[i].setMaxSteps(256);
+                render[i].setMaxAntialiasingSteps(0);
+            } else {
+                // normal
+                render[i].setMaxSteps(512);
+                render[i].setMaxAntialiasingSteps(0);
+            }
             boolean result = render[i].init(progs, inst, "", VERSION);
 
             if (!result) {

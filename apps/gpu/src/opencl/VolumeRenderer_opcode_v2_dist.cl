@@ -476,13 +476,21 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     return (float3)clearColor;
 }
 
-#ifdef SUPERSAMPLE
 kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
+    if ((x > tileW) || (y > tileH)) {
+        return;
+    }
+
+    if ((x > tileW) || (y > tileH)) {
+        return;
+    }
+
     float u = ((x + x0) / (float) imageW)*2.0f-1.0f;
     float v = ((y + y0) / (float) imageH)*2.0f-1.0f;
+
 
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
@@ -491,11 +499,15 @@ kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uin
     eyeRay_o = (float4)(invViewMatrix[3], invViewMatrix[7], invViewMatrix[11], 1.0f);
 
     float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
-	eyeRay_d = mulMatVec4(invViewMatrix, temp);
+    eyeRay_d.x = dot(temp, ((float4)(invViewMatrix[0],invViewMatrix[1],invViewMatrix[2],invViewMatrix[3])));
+    eyeRay_d.y = dot(temp, ((float4)(invViewMatrix[4],invViewMatrix[5],invViewMatrix[6],invViewMatrix[7])));
+    eyeRay_d.z = dot(temp, ((float4)(invViewMatrix[8],invViewMatrix[9],invViewMatrix[10],invViewMatrix[11])));
+    eyeRay_d.w = 0.0f;
+
 
     // find intersection with box
-	float tnear, tfar;
-	int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
+    float tnear, tfar;
+    int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
 
     if (!hit) {
         if ((x < tileW) && (y < tileH)) {
@@ -509,10 +521,11 @@ kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uin
 
     tnear = clamp(tnear,0.0f,tfar);   // clamp to near plane
 
-    float subPixel = (1 / (float) imageW)*2.0f / samples / 2;
+    float subPixel = (1 / (float) imageW)*2.0f / (2) / 2;  // harcoded samples as define not working
 
     // TODO: we should change to rotated grid pattern: http://en.wikipedia.org/wiki/Supersampling
     // TODO: we can factor out the bounding box test to speed this up
+
     float3 sum = (float3)(0,0,0);
 
     sum += renderPixel(x,y,u - subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
@@ -521,6 +534,9 @@ kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uin
     sum += renderPixel(x,y,u + subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
 
     float3 shading = sum / 4;
+
+    shading = clamp(shading, 0.0f, 1.0f);
+
 /*
     float subPixel = (1 / (float) imageW)*2.0f / samples / 4;
 
@@ -555,9 +571,7 @@ kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uin
     uint idx =(y * tileW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
 }
-#endif
 
-#ifndef SUPERSAMPLE
 kernel void render(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
@@ -607,4 +621,3 @@ kernel void render(global uint *d_output, uint x0, uint y0, uint tileW, uint til
     uint idx =(y * tileW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
 }
-#endif

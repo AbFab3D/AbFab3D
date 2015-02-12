@@ -15,10 +15,11 @@
    <attribute name="destdir" default="${classes.dir}" />
    <element name="exclude-elements" optional="true" />
    <element name="classpath-elements" optional="true" />
-   <sequential>     
+
+   <sequential>
       <echo message="Compiling @{package}" />
-      <javac listfiles="false" sourcepath="" destdir="@{destdir}" debug="true" srcdir="@{srcdir}" 
-        includeAntRuntime="false" source="@{source}" target="@{target}">
+      <javac listfiles="true" sourcepath="" destdir="@{destdir}" debug="true" srcdir="@{srcdir}"
+        includeAntRuntime="false" source="@{source}" target="@{target}" fork="true" memoryinitialsize="256m" memorymaximumsize="256m">
          <include name="@{package}/@{include}" />
          <exclude-elements />
          <classpath>
