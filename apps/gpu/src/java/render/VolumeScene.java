@@ -46,7 +46,7 @@ public class VolumeScene {
     public VolumeScene(List<String> progs, List<Instruction> inst, String opts,String version){
 
         this.progs = progs;
-        this.instructions = instructions;
+        this.instructions = inst;
         this.opts = opts;
         this.version = version;
     }
