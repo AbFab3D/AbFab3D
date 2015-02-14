@@ -65,6 +65,14 @@ public class Union  extends TransformableDataSource implements SNode {
     }
 
     /**
+     * Union Constructor
+     */
+    public Union(DataSource shape1){
+        initParams();
+        add(shape1);
+    }
+
+    /**
        union of two shapes 
      */
     public Union(DataSource shape1, DataSource shape2 ){
@@ -81,13 +89,6 @@ public class Union  extends TransformableDataSource implements SNode {
         for(int i = 0; i < m_aparam.length; i++){
             params.put(m_aparam[i].getName(),m_aparam[i]);
         }
-    }
-
-    /**
-     * Union Constructor
-     */
-    public Union(DataSource shape1){
-        add(shape1);
     }
 
     /**

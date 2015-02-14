@@ -25,6 +25,7 @@ public class CLNodeFactory {
     static Map<String,String> sm_map = new HashMap<String,String>();
     static {
         sm_map.put("Union", "opencl.CLUnion");
+        sm_map.put("Intersection", "opencl.CLIntersection");
         sm_map.put("Sphere", "opencl.CLSphere");
     }
     

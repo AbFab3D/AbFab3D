@@ -22,13 +22,18 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.Random;
 
+
 import javax.vecmath.Vector3d;
 
+import abfab3d.param.Parameterizable;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Union;
+import abfab3d.datasources.Intersection;
+import abfab3d.param.DoubleParameter;
+import abfab3d.util.Initializable;
 
-import opencl.OpcodeMaker;
+import opencl.CLCodeMaker;
 import opencl.CLSphere;
 import opencl.CLBox;
 import opencl.CLCodeBuffer;
@@ -43,7 +48,7 @@ import static java.lang.System.*;
 import static com.jogamp.opencl.CLMemory.Mem.*;
 import static java.lang.Math.*;
 
-import static opencl.OpcodeMaker.printOpcodeBuffer;
+import opencl.CLUtils;
 
 /**
    makes Opcode buffer and executes on GPU 
@@ -58,7 +63,7 @@ public class ProtoOpcodeMaker {
         int globalWorkSize = roundUp(localWorkSize, elementCount);   // rounded up to the nearest multiple of the localWorkSize        
         CLCommandQueue queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
         CLProgram program = ProgramLoader.load(context,"OpcodeReader.cl");
-        String buildOpts = "";
+        String buildOpts = " -Werror";
         program.build(buildOpts);        
         printf("ProgramBuildStatus: %s\n",program.getBuildStatus());
         
@@ -76,7 +81,7 @@ public class ProtoOpcodeMaker {
         
         int opCount = makeOpcodeBuffer(clOpcodeBuffer.getBuffer());
         printf("opCount: %d\n",opCount);
-        OpcodeMaker.printOpcodeBuffer(clOpcodeBuffer.getBuffer());
+        CLUtils.printOpcodeBuffer(clOpcodeBuffer.getBuffer());
 
         //if(true) return;
 
@@ -92,8 +97,9 @@ public class ProtoOpcodeMaker {
         queue.putReadBuffer(clBufferResult, true, list);
         queue.putReadBuffer(clBufferResult2, true, list);
         
-        printOpcodeBuffer(clBufferResult.getBuffer());
-        printResultBuffer(clBufferResult2.getBuffer(), opCount);
+        //printOpcodeBuffer(clBufferResult.getBuffer());
+        // last item in results is register data1 
+        printResultBuffer(clBufferResult2.getBuffer(), opCount+1);
 
         context.release();
     }
@@ -134,14 +140,29 @@ public class ProtoOpcodeMaker {
 
         int workBuffer[] = new int[1000];
         int opcount = 0;
-        Union union = new Union();
-        union.add(new Sphere(new Vector3d(1., 0., 0.), 0.99));
-        union.add(new Sphere(new Vector3d(-1., 0., 0.),0.99));
+        Union union1 = new Union();
+        ((DoubleParameter)union1.getParam("blend")).setValue(0.);
+        union1.add(new Sphere(new Vector3d(1.03, 0., 0.), 1));
+        union1.add(new Sphere(new Vector3d(-1.02, 0., 0.),1));
 
+        Intersection inter1 = new Intersection();
+        ((DoubleParameter)inter1.getParam("blend")).setValue(0.);
+        inter1.add(new Sphere(new Vector3d(0.95, 0., 0.), 1));
+        inter1.add(new Sphere(new Vector3d(-0.96, 0., 0.),1));
+
+        Union union2 = new Union(inter1, union1);
+
+        
         CLCodeBuffer code = new CLCodeBuffer(1000);
-        OpcodeMaker codeMaker = new OpcodeMaker();
+        CLCodeMaker codeMaker = new CLCodeMaker();
+        
+        Parameterizable shape = union2;
 
-        codeMaker.getCLCode(union, code);
+        if(shape instanceof Initializable) 
+            ((Initializable)shape).initialize();
+
+        codeMaker.getCLCode(shape, code);
+
 
         //Sphere s1 = new Sphere(new Vector3d(0., 0., 0.), 1.);
         //Sphere s2 = new Sphere(new Vector3d(0.99, 0., 0.),1.);

@@ -1,6 +1,6 @@
 package viewer;
 
-import datasources.Instruction;
+import render.VolumeScene;
 
 import javax.media.opengl.FPSCounter;
 import javax.media.opengl.GLEventListener;
@@ -26,13 +26,13 @@ public interface RenderCanvas extends GLEventListener {
 
     public void setShadowSteps(int numSteps);
 
-    public void setScene(String scene, java.util.List<Instruction> instructions, float worldScale);
+    public void setScene(VolumeScene scene);
+    //public void setScene(String scene, java.util.List<Instruction> instructions, float worldScale);
 
     public long getLastRenderTime();
 
     public long getLastKernelTime();
 
-    public void setNavigator(Navigator nav);
 
     public void terminate();
 }

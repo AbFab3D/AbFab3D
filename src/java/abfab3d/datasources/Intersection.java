@@ -22,6 +22,7 @@ import java.util.Vector;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
+import abfab3d.param.DoubleParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -48,6 +49,15 @@ public class Intersection extends TransformableDataSource implements SNode {
     Vector<DataSource> dataSources = new Vector<DataSource>();
     // fixed vector for calculations
     DataSource vDataSources[];
+
+    DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
+    SNodeListParameter mp_dataSources = new SNodeListParameter("datasources");
+    
+    Parameter m_aparam[] = new Parameter[]{
+        mp_blendWidth,
+        mp_dataSources
+    };    
+
     
     public Intersection(){
         initParams();
@@ -70,13 +80,18 @@ public class Intersection extends TransformableDataSource implements SNode {
         add(ds2);        
     }
 
+    public Intersection(DataSource ds1){
+        initParams();
+        add(ds1);
+    }
+
     /**
      * @noRefGuide
      */
     protected void initParams() {
-        super.initParams();
-        Parameter p = new SNodeListParameter("datasources");
-        params.put(p.getName(), p);
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
+        }
     }
 
     /**

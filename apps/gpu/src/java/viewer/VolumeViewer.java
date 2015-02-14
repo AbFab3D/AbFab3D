@@ -19,6 +19,9 @@ import datasources.Instruction;
 import render.OpenCLOpWriter;
 import render.OpenCLOpWriterV2;
 import render.VolumeRenderer;
+import render.VolumeScene;
+import opencl.CLCodeMaker;
+
 import shapejs.ShapeJSEvaluator;
 
 import javax.media.opengl.GLProfile;
@@ -233,31 +236,38 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         scale = new Vector3d((bounds.xmax-bounds.xmin)/2.0,(bounds.ymax-bounds.ymin)/2.0,(bounds.zmax-bounds.zmin)/2.0);
         printf("Scale is: %s\n",scale);
 
-        String code = null;
-        List<Instruction> inst = null;
-
+        VolumeScene vscene = new VolumeScene(renderVersion);
+                
         if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE)) {
             OpenCLOpWriter writer = new OpenCLOpWriter();
-            inst = writer.generate((Parameterizable) source, scale);
+            vscene.setInstructions(writer.generate((Parameterizable) source, scale));
             if (DEBUG) {
-                String dcode = writer.createText(inst, scale);
+                String dcode = writer.createText(vscene.getInstructions(), scale);
                 printf("Debug Code: \n%s\n", dcode);
             }
-        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
-                OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
-                inst = writer.generate((Parameterizable) source, scale);
-                if (DEBUG) {
-                    String dcode = writer.createText(inst,scale);
-                    printf("Debug Code: \n%s\n",dcode);
-                }
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)){
+            
+            CLCodeMaker maker = new CLCodeMaker();
+            vscene.setCLCode(maker.makeCLCode((Parameterizable)source));
+            
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || 
+                   renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
+            OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
+            vscene.setInstructions(writer.generate((Parameterizable) source, scale));
+            if (DEBUG) {
+                String dcode = writer.createText(vscene.getInstructions(),scale);
+                printf("Debug Code: \n%s\n",dcode);
+            }
         } else {
             OpenCLWriter writer = new OpenCLWriter();
-            code = writer.generate((Parameterizable) source, scale);
-            printf("OpenCL Code: \n%s",code);
+            vscene.setCode(writer.generate((Parameterizable) source, scale));
+            printf("OpenCL Code: \n%s",vscene.getCode());
         }
         float worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
+        vscene.setWorldScale(worldScale);
+
         // TODO: is this the best way to get one scale?
-        render.setScene(code,inst,worldScale);
+        render.setScene(vscene);
         // TODO: Set the current bounds
         nav.setBounds(bounds,vs);
     }

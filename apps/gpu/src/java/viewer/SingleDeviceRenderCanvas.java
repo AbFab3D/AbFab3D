@@ -8,6 +8,7 @@ import com.jogamp.opencl.gl.CLGLContext;
 import com.jogamp.opengl.util.Animator;
 import datasources.Instruction;
 import render.VolumeRenderer;
+import render.VolumeScene;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.GLCanvas;
@@ -55,11 +56,14 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
     private int[] glPixelBuffer = new int[1];
     private transient boolean rendering;
     private SNode scene;
-    private String sceneProg;
-    private List<Instruction> instructions;
+
+    private VolumeScene vscene; 
+    //private String sceneProg;
+    //private List<Instruction> instructions;
+
     private boolean sceneLoaded = false;
     private boolean graphicsInitialized = false;
-    private float worldScale=1;
+    //private float worldScale=1;
     private boolean firstRender = true;
 
     // Scratch vars
@@ -146,16 +150,19 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
         });
     }
 
-    @Override
-    public void setScene(String scene, List<Instruction> instructions, float worldScale) {
-        this.worldScale = worldScale;
-        this.instructions = instructions;
+    /**
+       @Override
+    */
+    public void setScene(VolumeScene vscene){ 
+        // public void setScene(String scene, List<Instruction> instructions, float worldScale) {
+        this.vscene = vscene;
+        //this.worldScale = worldScale;
+        //this.instructions = instructions;
         // Wait for the graphics to initialize
         while(!graphicsInitialized) {
             try { Thread.sleep(50); } catch(InterruptedException ie) {}
         }
-
-        sceneProg = scene;
+        //sceneProg = scene;
 
         buildProgram(debug);
 
@@ -262,20 +269,22 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
     }
 
     private void buildProgram(boolean debug) {
-        if (sceneProg == null && instructions == null) return;
+        
+        //if (sceneProg == null && instructions == null) return;
 
-        String opts = "";
-        if (debug) opts = " -DDEBUG";
-        ArrayList progs = new ArrayList();
-        if (sceneProg != null) progs.add(sceneProg);
+        if (debug) vscene.opts += " -DDEBUG";
+
+        //ArrayList progs = new ArrayList();
+        //if (sceneProg != null) progs.add(sceneProg);
+
         compiling = true;
 
         printf("Building using programs: renderVersion: %s\n",renderVersion);
-        for(int i=0; i < progs.size(); i++) {
-            printf("\t%s\n",progs.get(i));
-        }
+        //for(int i=0; i < vscene.progs.size(); i++) {
+        //    printf("\t%s\n",vscene.progs.get(i));
+        //}
 
-        if (!renderer.init(progs, instructions, opts, renderVersion)) {
+        if (!renderer.init(vscene)) {
             CLProgram program = renderer.getProgram();
             statusBar.setStatusText("Program failed to load: " + program.getBuildStatus());
             System.out.println(program.getBuildStatus());
@@ -347,15 +356,22 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
         int w = width;
         //w = 16;
         int h = height;
+        
+        if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST )) {
 
-        if (!renderVersion.equals(VolumeRenderer.VERSION_OPCODE) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) && !renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
+            // opcode v3
+            renderer.sendView(view,viewBuffer);
+            renderer.renderStruct(0,0, w,h, w,h, vscene.getWorldScale(), clPixelBuffer);
+            
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE) ||
+                   renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) ||
+                   renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
+            // opcode 
+            renderer.sendView(view,viewBuffer);
+            renderer.renderOps(0,0,w,h,w, h, vscene.getWorldScale(), clPixelBuffer);
+        } else { 
+            // text program 
             renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);
-        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
-            renderer.sendView(view,viewBuffer);
-            renderer.renderStruct(0,0,w,h,w, h, worldScale, clPixelBuffer);
-        } else {
-            renderer.sendView(view,viewBuffer);
-            renderer.renderOps(0,0,w,h,w, h, worldScale, clPixelBuffer);
         }
         // Render image using OpenGL
 
@@ -394,17 +410,23 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
         graphicsInitialized = true;
     }
 
-    @Override
+    /**
+       @Override
+    */
     public long getLastRenderTime() {
         return renderer.getLastTotalRenderTime();
     }
 
-    @Override
+    /**
+       @Override
+    */
     public long getLastKernelTime() {
         return renderer.getLastKernelTime();
     }
 
-    @Override
+    /**
+       @Override
+    */
     public void setNavigator(Navigator nav) {
         printf("Ignoring setNavigator for now\n");
        // this.nav = nav;

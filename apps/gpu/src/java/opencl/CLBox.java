@@ -11,7 +11,7 @@
  ****************************************************************************/
 package opencl;
 
-import abfab3d.param.BaseParameterizable;
+import abfab3d.param.Parameterizable;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import javax.vecmath.Vector3d;
@@ -27,7 +27,7 @@ public class CLBox  implements CLCodeGenerator {
     
     int buffer[] = new int[STRUCTSIZE];
     
-    public int getCLCode(BaseParameterizable node, CLCodeBuffer codeBuffer) {
+    public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
         
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();

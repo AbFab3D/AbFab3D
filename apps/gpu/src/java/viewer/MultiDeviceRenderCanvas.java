@@ -8,6 +8,7 @@ import com.jogamp.opencl.gl.CLGLContext;
 import com.jogamp.opengl.util.Animator;
 import datasources.Instruction;
 import render.VolumeRenderer;
+import render.VolumeScene;
 
 import javax.media.opengl.*;
 import javax.media.opengl.awt.GLCanvas;
@@ -60,9 +61,12 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
     private int[] glPixelBuffer;
     private CLBuffer[] clBuffer;
     private transient boolean rendering;
-    private SNode scene;
-    private String sceneProg;
-    private List<Instruction> instructions;
+    // 
+    //private SNode scene;
+    // 
+    private VolumeScene vscene; 
+    //private String sceneProg;
+    //private List<Instruction> instructions;
     private boolean sceneLoaded = false;
     private boolean graphicsInitialized = false;
     private float worldScale=1;
@@ -141,34 +145,40 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
             }
         });
     }
+    
+    /**
 
-    @Override
+       @Override
+    */
     public void setShadowSteps(int numSteps) {
         this.maxShadowSteps = numSteps;
-
+        
         for(int i=0; i < numDevices; i++) {
             renderer[i].setMaxShadowSteps(numSteps);
         }
         statusBar.setStatusText("Loading program...");
         canvas.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-
+        
         SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                buildProgram(debug);
+                public void run() {
+                    buildProgram(debug);
             }
-        });
+            });
     }
+    /**
+       @Override
+    */
+    public void setScene(VolumeScene vscene) { //setScene (String scene, List<Instruction> instructions, float worldScale) {
 
-    @Override
-    public void setScene(String scene, List<Instruction> instructions, float worldScale) {
-        this.worldScale = worldScale;
-        this.instructions = instructions;
+        this.vscene = vscene; 
+        //this.worldScale = worldScale;
+        //this.instructions = instructions;
         // Wait for the graphics to initialize
         while(!graphicsInitialized) {
             try { Thread.sleep(50); } catch(InterruptedException ie) {}
         }
-
-        sceneProg = scene;
+        
+        //sceneProg = scene;
 
         buildProgram(debug);
 
@@ -327,21 +337,23 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
     }
 
     private void buildProgram(boolean debug) {
-        if (sceneProg == null && instructions == null) return;
 
-        String opts = "";
-        if (debug) opts = " -DDEBUG";
-        ArrayList progs = new ArrayList();
-        if (sceneProg != null) progs.add(sceneProg);
+        //if (sceneProg == null && instructions == null) return;
+        //String opts = "";
+        if (debug) vscene.opts += " -DDEBUG";
+        //ArrayList progs = new ArrayList();
+        //if (sceneProg != null) progs.add(sceneProg);
+
         compiling = true;
 
-        printf("Building using programs: renderVersion: %s\n",renderVersion);
-        for(int i=0; i < progs.size(); i++) {
-            printf("\t%s\n",progs.get(i));
-        }
+        printf("Building using programs: renderVersion: %s\n",vscene.version);
+        //List progs = vscene.getProgs();
+        //for(int i=0; i < progs.size(); i++) {
+        //    printf("  %s\n",progs.get(i));
+        //}
 
         for(int i=0; i < renderer.length; i++) {
-            if (!renderer[i].init(progs, instructions, opts, renderVersion)) {
+            if (!renderer[i].init(vscene)) {
                 CLProgram program = renderer[i].getProgram();
                 statusBar.setStatusText("Program failed to load: " + program.getBuildStatus());
                 System.out.println(program.getBuildStatus());
@@ -495,17 +507,23 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
         graphicsInitialized = true;
     }
 
-    @Override
+    /**      
+      @Override
+    */
     public long getLastRenderTime() {
         return renderer[0].getLastTotalRenderTime();
     }
 
-    @Override
+    /**
+       @Override
+    */
     public long getLastKernelTime() {
         return renderer[0].getLastKernelTime();
     }
 
-    @Override
+    /**
+       @Override
+    */
     public void setNavigator(Navigator nav) {
         printf("Ignoring setNavigator for now\n");
        // this.nav = nav;

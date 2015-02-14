@@ -215,8 +215,7 @@ void copyOpcodes(PTR int *opcode, global int *outdata){
 }
 
 
-// OpenCL Kernel Function for opcode reading 
-kernel void OpcodeReader(PTR int* opcode, int opCount, global int* outdata, int outCount, global int *results) {
+void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
 		
     int iGID = get_global_id(0);
     if(iGID > 0) { 
@@ -226,18 +225,24 @@ kernel void OpcodeReader(PTR int* opcode, int opCount, global int* outdata, int 
     //copyOpcodes(opcode, outdata);
     
     CPtr ptr;
-    int count = 0;
-    int offsetIn = 0;
+    int count = 0; // count of codes 
+    int offsetIn = 0;  // current input location 
     sVec stack[STACK_SIZE];
     int stackPos = 0; // current stack position
-    sVec pnt1 = (sVec){.v=(float4)(0,0,0,0), .scale = 1.f};
-    sVec pnt2 = (sVec){.v=(float4)(0,0,0,0), .scale = 1.f};
-    sVec data1;
-    sVec data2;
+    sVec pnt1;
+    // original point 
+    pnt1 = *pnt;
+    //sVec pnt2 = (sVec){.v=(float4)(0,0,0,0), .scale = 1.f};
+
+    sVec data1 = (sVec){.v=(float4)(0,0,0,0)}; // register to store data value
+    sVec data2; // register for intermediate data storage 
 
     int resOffset = 0;
+    
+    // to prevent infinite cycle
 
-    while(count++ < opCount) {
+    int maxcount = 100;
+    while(count++ < maxcount) {
 
         int size = opcode[offsetIn];
         if(size == 0)
@@ -247,108 +252,88 @@ kernel void OpcodeReader(PTR int* opcode, int opCount, global int* outdata, int 
 
         switch(code){
         default:
-            results[resOffset++] = NAN;
-            break;            
+
+            *result = data1;
+            return;            
+
+        case oEND:
+
+            *result = data1;
+            return;            
+
         case oSPHERE:
-            {
-                oSphere(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            
+            oSphere(ptr.pv, &pnt1, &data1);            
+            break;
+            
+        case oGYROID:
+            
+            oGyroid(ptr.pv, &pnt1, &data1);        
             break;
 
-        case oGYROID:
-            {
-                oGyroid(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
-            break;
         case oBOX:
-            {
-                oBox(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            
+            oBox(ptr.pv, &pnt1, &data1);
             break;
+
         case oTORUS:
-            {
-                oTorus(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            
+            oTorus(ptr.pv, &pnt1, &data1);
             break;
             
         case oCOPY_D1D2:
-            {
-                data2 = data1;
-                results[resOffset++] = as_int(data2.v.x);
-                break;
-            }
+            
+            data2 = data1;
+            break;            
             
         case oCOPY_D2D1:
-            {
-                data1 = data2;
-                results[resOffset++] = as_int(data1.v.x);
-                break;
-            }            
             
+            data1 = data2;
+            break;
+                                    
         case oMAX:
-            {
-                oMax(ptr.pv,&data2, &data1,&data2);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            
+            oMax(ptr.pv,&data2, &data1,&data2);
             break;
             
         case oMIN:
-            {
-                oMin(ptr.pv,&data2, &data1,&data2);
-                results[resOffset++] = as_int(data2.v.x);
-            }
+            
+            oMin(ptr.pv,&data2, &data1,&data2);
             break;
             
-        case oBLENDMIN:
-            {
-                oBlendMin(ptr.pv, &data1,&data2, &data2);
-                results[resOffset++] = as_int(data2.v.x);
-            }
+        case oBLENDMIN:            
+
+            oBlendMin(ptr.pv, &data1,&data2, &data2);            
             break;
             
         case oBLENDMAX:
-            {
-                oBlendMax(ptr.pv, &data1,&data2, &data2);
-                results[resOffset++] = as_int(data2.v.x);
-            }
+            
+            oBlendMax(ptr.pv, &data1,&data2, &data2);        
             break;
             
         case oSUBTRACT:
-            {
-                oSubtract(ptr.pv,&data1, &data2,&data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            
+            oSubtract(ptr.pv,&data1, &data2,&data1);            
             break;
             
         case oBLENDSUBTRACT:
-            {
-                oBlendSubtract(ptr.pv,&data1, &data2,&data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            
+            oBlendSubtract(ptr.pv,&data1, &data2,&data1);            
             break;            
+
         case oPUSH_D2:
-            {
-                stack[stackPos++] = data2;
-                results[resOffset++] = as_int(data2.v.x);
-            }
+            
+            stack[stackPos++] = data2;
             break;            
         case oPOP_D2:
-            {
-                data2 = stack[--stackPos];
-                results[resOffset++] = as_int(data2.v.x);
-            }
+            
+            data2 = stack[--stackPos];            
             break;            
         }        
         offsetIn += size;
     }
-    // write out the result 
-    results[resOffset++] = as_int(data1.v.x);
-    results[resOffset++] = 0;
-    results[resOffset++] = 0;
-    results[resOffset++] = 0;
-    
+
+    *result = data1;
+    return;            
 }
+

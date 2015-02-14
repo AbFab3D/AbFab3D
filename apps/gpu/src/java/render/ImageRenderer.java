@@ -186,7 +186,9 @@ public class ImageRenderer {
                 size = makeJpg(image, buff);
                 break;
         }
-        printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
+        printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", 
+               size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), 
+               (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
         os.write(buff,0,size);
 
@@ -233,10 +235,9 @@ public class ImageRenderer {
         } else {
             lastLoadScriptTime = 0;
         }
-        ArrayList progs = new ArrayList();
-
+        VolumeScene vscene = new VolumeScene(new ArrayList(), inst, "", VERSION);
         for (int i = 0; i < numRenderers; i++) {
-            boolean result = render[i].init(progs, inst, "", VERSION);
+            boolean result = render[i].init(vscene);
 
             if (!result) {
                 CLProgram program = render[i].getProgram();
@@ -368,7 +369,7 @@ public class ImageRenderer {
         } else {
             lastLoadScriptTime = 0;
         }
-        ArrayList progs = new ArrayList();
+        VolumeScene vscene = new VolumeScene(new ArrayList(), inst, "", VERSION);
 
         for (int i = 0; i < numRenderers; i++) {
             if (quality >= 0.75) {
@@ -385,7 +386,7 @@ public class ImageRenderer {
                 render[i].setMaxSteps(512);
                 render[i].setMaxAntialiasingSteps(0);
             }
-            boolean result = render[i].init(progs, inst, "", VERSION);
+            boolean result = render[i].init(vscene);
 
             if (!result) {
                 CLProgram program = render[i].getProgram();

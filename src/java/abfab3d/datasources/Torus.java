@@ -60,6 +60,16 @@ public class Torus extends TransformableDataSource {
     
     private double R, r;
     private double x0, y0, z0;
+
+    private Vector3dParameter  mp_center = new Vector3dParameter("center","center of the sphere",new Vector3d(0,0,0));
+    private DoubleParameter  mp_r = new DoubleParameter("rin","radius of the torus tube", 1.*MM);
+    private DoubleParameter  mp_R = new DoubleParameter("rout","radius of the torus spine", 5.*MM);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_center,
+        mp_R,
+        mp_r,
+    };
     
     /**
        @param center - location of torus center
@@ -91,7 +101,6 @@ public class Torus extends TransformableDataSource {
      */
     public Torus(double cx, double cy, double cz, double Rout, double Rin){
         initParams();
-
         setCenter(cx, cy, cz);
         setRout(Rout);
         setRin(Rin);
@@ -101,41 +110,37 @@ public class Torus extends TransformableDataSource {
      * @noRefGuide
      */
     protected void initParams() {
-        super.initParams();
-
-        Parameter p = new DoubleParameter("rout");
-        params.put(p.getName(), p);
-
-        p = new DoubleParameter("rin");
-        params.put(p.getName(),p);
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
+        }
     }
 
     /**
        @noRefGuide
      */
     public void setCenter(double cx, double cy, double cz) {
+        mp_center.setValue(new Vector3d(cx,cy,cz));
         this.x0 = cx;
         this.y0 = cy;
         this.z0 = cz;
-
-        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(x0,y0,z0));
     }
 
     /**
      * @noRefGuide
      */
-    public void setRout(double r){
-        R = r;
-        ((DoubleParameter) params.get("rout")).setValue(r);
+    public void setRout(double value){
+
+        mp_R.setValue(value);
+        this.R = value;
 
     }
 
     /**
      * @noRefGuide
      */
-    public void setRin(double r){
-        this.r = r;
-        ((DoubleParameter) params.get("rin")).setValue(r);
+    public void setRin(double value){
+        this.r = value;
+        mp_r.setValue(value);
     }
 
     /**

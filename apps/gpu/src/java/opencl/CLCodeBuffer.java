@@ -38,6 +38,16 @@ public class CLCodeBuffer {
         return opCount;
     }
 
+    public int[] getData(){
+
+        int data[] = new int[size+2];
+        System.arraycopy(code, 0, data, 0, size);
+        // add zeros to terminate commands array 
+        data[size] = 0;
+        data[size+1] = 0;
+        return data;        
+    }
+    
     public final int get(int index){
         return code[index];
     }

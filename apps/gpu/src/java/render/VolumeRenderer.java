@@ -8,6 +8,8 @@ import gpu.GPUUtil;
 import org.apache.commons.io.FileUtils;
 import program.ProgramLoader;
 
+import opencl.CLCodeBuffer;
+
 import javax.vecmath.Matrix4f;
 import java.io.File;
 import java.nio.ByteBuffer;
@@ -50,10 +52,9 @@ public class VolumeRenderer {
     private CLKernel kernel;
     private long compileTime;
     private long renderTime;
-    private long kernelTIme;
+    private long kernelTime;
     private String renderVersion = VERSION_DIST;
     private String kernelName;
-
 
     // Prototype vars for opcode
     private int opLen;
@@ -78,10 +79,10 @@ public class VolumeRenderer {
      * @param opts  The build options
      * @param version The version to load, empty for regular, "_dist" or "_opcode"
      */
-    public boolean init(List progs, List<Instruction> instructions, String opts, String version) {
+    public boolean init(VolumeScene vscene){ //init(List progs, List<Instruction> instructions, String opts, String version) {
         String kernel_name;
 
-        renderVersion = version;
+        renderVersion = vscene.version;
         double vs = 0.1 * Units.MM;
 
         LinkedHashMap<String,String> optMap = new LinkedHashMap<String, String>();
@@ -90,11 +91,11 @@ public class VolumeRenderer {
         optMap.put("shadowSteps",Integer.toString(maxShadowSteps));
         optMap.put("antialiasingSteps",Integer.toString(maxShadowSteps));
 
-        printf("VolumeRenderer Init: %s  Samples: %d\n", version,maxAntialiasingSteps);
+        printf("VolumeRenderer Init: %s  Samples: %d\n", vscene.version,maxAntialiasingSteps);
         long t0 = System.nanoTime();
         try {
             String buildOpts = "";
-            if (opts != null) buildOpts = opts;
+            if (vscene.opts != null) buildOpts = vscene.opts;
             buildOpts += " -cl-fast-relaxed-math";
             buildOpts += " -cl-no-signed-zeros";
             buildOpts += " -DmaxSteps=" + maxSteps;
@@ -149,7 +150,7 @@ public class VolumeRenderer {
                 //program = ProgramLoader.load(clContext, "VolumeRenderer.cl");
                 ArrayList list = new ArrayList();
                 list.add(new File("ShapeJS_" + renderVersion + ".cl"));
-                list.addAll(progs);
+                list.addAll(vscene.getProgs());
 
                 if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
                     // TODO: this would need to be updated to support jar file deployment
@@ -184,7 +185,6 @@ public class VolumeRenderer {
                 }
 
                 if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
-                    // TODO: Vlad, update this list if necessary or fix if possible
                     // TODO: this would need to be updated to support jar file deployment
                     // Issue is how do we know what files need to be loaded?
                     File dir = new File("classes");
@@ -194,16 +194,8 @@ public class VolumeRenderer {
 
                     if (files == null) {
                         in_jar = true;
-                        files = new String[] {"box_opcode_v3_dist.cl",
-                                "gyroid_opcode_v3_dist.cl",
-                                "intersection_opcode_v3_dist.cl",
-                                "rotation_opcode_v3_dist.cl",
-                                "scale_opcode_v3_dist.cl",
-                                "sphere_opcode_v3_dist.cl",
-                                "subtraction_opcode_v3_dist.cl",
-                                "torus_opcode_v3_dist.cl",
-                                "translation_opcode_v3_dist.cl",
-                                "union_opcode_v3_dist.cl"};
+                        files = new String[] {
+                        };
                     }
 
                     String rv = renderVersion + ".cl";
@@ -225,7 +217,7 @@ public class VolumeRenderer {
                     for (int i = 0; i < list.size(); i++) {
                         printf("%s\n", list.get(i));
                     }
-                    printf("Prog: \n%s\n", progs);
+                    printf("Prog: \n%s\n", vscene.getProgs());
                 }
                 program = ProgramLoader.load(context, list);
                 program.build(buildOpts);
@@ -268,7 +260,7 @@ public class VolumeRenderer {
                 int op_count = 0;
                 int m_count = 0;
 
-                for(Instruction inst : instructions) {
+                for(Instruction inst : vscene.getInstructions()) {
                     inst.compact();
 
                     f_count += inst.getFloatCount();
@@ -294,7 +286,7 @@ public class VolumeRenderer {
                 ops = new int[op_count];
                 opLen = op_count;
 
-                for(Instruction inst : instructions) {
+                for(Instruction inst : vscene.getInstructions()) {
                     inst.getFloatParams(fparams,f_idx);
                     f_idx += inst.getFloatCount();
 
@@ -393,12 +385,16 @@ public class VolumeRenderer {
                 if (booleanBuffer != null) queue.putWriteBuffer(booleanBuffer, false, null, events);
 
             }  else if (renderVersion.equals(VERSION_OPCODE_V3_DIST)) {
-                // TODO: Vlad convert Instructions to params needed for Struct
+                
                 // This is one time setup for a script, ie cached for navigation
+                // create buffers and kernel for V3
 
-                for(Instruction inst : instructions) {
+                CLCodeBuffer codeBuffer = vscene.getCLCode();
+                
+                opBuffer = context.createIntBuffer(codeBuffer.size(), READ_ONLY);                
+                opBuffer.getBuffer().put(codeBuffer.getData());
+                opBuffer.getBuffer().rewind();
 
-                }
             }
         } catch (Exception e) {
             if (program == null) {
@@ -547,7 +543,7 @@ public class VolumeRenderer {
         if (STATS) {
             int idx = 0;
             if (usingGL) idx++;
-            kernelTIme = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
+            kernelTime = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
             renderTime = System.nanoTime() - t0;
         }
 /*
@@ -567,8 +563,8 @@ public class VolumeRenderer {
      */
     public void renderStruct(int w0, int h0, int wsize, int hsize, int width, int height,
                           float worldScale, CLBuffer dest) {
-
-        //printf("RenderOps: w0: %d h0: %d wsize: %d hsize: %d width:%d height: %d dest: %s this: %s\n",w0,h0,wsize,hsize,width,height,dest,this);
+                
+        //printf("renderStruct: w0: %d h0: %d wsize: %d hsize: %d width:%d height: %d dest: %s this: %s\n",w0,h0,wsize,hsize,width,height,dest,this);
         long t0 = System.nanoTime();
 
         // TODO: needs 0 for Apple, 8 is fastest on Desktop GPU
@@ -601,22 +597,10 @@ public class VolumeRenderer {
         kernel.setArg(6, height);
         kernel.setArg(7, viewBuffer).rewind();
         kernel.setArg(8, worldScale);
-
-        // TODO: Vlad update these call params for Struct
         kernel.setArg(9,opBuffer).rewind();
-        kernel.setArg(10,opLen);
-        kernel.setArg(11,floatBuffer).rewind();
-        kernel.setArg(12,intBuffer).rewind();
-        kernel.setArg(13,floatVectorBuffer).rewind();
-        kernel.setArg(14,booleanBuffer).rewind();
-        kernel.setArg(15,matrixBuffer).rewind();
-
-//        queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
-        // Changed to 0 needed to work on MAC
-        // TODO: Test
-        //queue.put2DRangeKernel(kernel, 0, 0, wsize, hsize, 0, 0, list);
 
         queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
+        
         if (usingGL) {
             queue.putReleaseGLObject((CLGLBuffer) dest, list);
         }
@@ -625,16 +609,10 @@ public class VolumeRenderer {
         if (STATS) {
             int idx = 0;
             if (usingGL) idx++;
-            kernelTIme = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
+            kernelTime = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
             renderTime = System.nanoTime() - t0;
         }
-/*
-        for(int i=0; i < list.size(); i++) {
-            CLEvent event = list.getEvent(i);
-            System.out.println("cmd: " + i + " " + event.getType() + " time: " + (event.getProfilingInfo(CLEvent.ProfilingCommand.END)
-                    - event.getProfilingInfo(CLEvent.ProfilingCommand.START))/1000000.0);
-        }
-*/
+        
 
     }
 
@@ -708,7 +686,7 @@ public class VolumeRenderer {
 
         int idx = 1;
         if (usingGL) idx++;
-        kernelTIme = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
+        kernelTime = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
         /*
         for(int i=0; i < list.size(); i++) {
             CLEvent event = list.getEvent(i);
@@ -733,7 +711,7 @@ public class VolumeRenderer {
      * @return The time in nanoseconds
      */
     public long getLastKernelTime() {
-        return kernelTIme;
+        return kernelTime;
     }
 
     public long getLastCompileTime() {

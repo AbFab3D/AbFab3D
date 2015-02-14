@@ -18,7 +18,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.SNode;
 
-import abfab3d.datasources.Union;
+import abfab3d.datasources.Intersection;
 
 import static opencl.CLUtils.floatToInt;
 
@@ -29,29 +29,27 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
  */
-public class CLUnion implements CLCodeGenerator {
+public class CLIntersection implements CLCodeGenerator {
 
-    static int OPCODE = Opcodes.oBLENDMAX;
-    static int STRUCTSIZE = 4;
-    
+    static int STRUCTSIZE = 4;    
     int buffer[] = new int[STRUCTSIZE];
     
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
 
-        Union union = (Union)node;
+        Intersection inter = (Intersection)node;
 
-        double blendWidth = ((DoubleParameter)union.getParam("blend")).getValue();
-        printf("union.blend: %f\n", blendWidth);
+        double blendWidth = ((DoubleParameter)inter.getParam("blend")).getValue();
+        printf("intersection.blend: %f\n", blendWidth);
 
-        SNode[] children = union.getChildren();
-        if(children.length == 0) {
-            // no children - do nothing 
+        SNode[] children = inter.getChildren();
+        if(children.length == 0) 
             return 0;
-        }
-        
+
         int wcount = 0;
+
         // save working register 
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_D2, codeBuffer);           
+
         Parameterizable child = (Parameterizable)children[0];
         CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)child);
         wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
@@ -64,17 +62,17 @@ public class CLUnion implements CLCodeGenerator {
             if(blendWidth != 0.) {
                 int c = 0;
                 buffer[c++] = STRUCTSIZE;
-                buffer[c++] = Opcodes.oBLENDMIN;
+                buffer[c++] = Opcodes.oBLENDMAX;
                 buffer[c++] = floatToInt(blendWidth);  
                 codeBuffer.add(buffer, STRUCTSIZE);
             } else {
-                wcount += CLUtils.addOPCode(Opcodes.oMIN, codeBuffer); 
+                wcount += CLUtils.addOPCode(Opcodes.oMAX, codeBuffer); 
             }
         }
 
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D2D1, codeBuffer);           
-        // restore working register 
+         // restore working register 
         wcount += CLUtils.addOPCode(Opcodes.oPOP_D2, codeBuffer);           
-        return wcount;
+       return wcount;
     }
 }

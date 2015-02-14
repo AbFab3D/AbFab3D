@@ -135,6 +135,13 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
         </compilejava>
+        <compilejava package="opencl" jars="" >
+            <classpath-elements>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
     </target>
 
     <target name="kernels" >
@@ -265,13 +272,14 @@
     <target name="runViewer" depends="compile" description="Run the viewer">
         <echo message="jvmargs: ${jvmrunargs}"/>
         <java classname="viewer.VolumeViewer" fork="true">
-            <jvmarg line="${jvmrunargs}"/>
-            <!--<arg value="-version"/><arg value="dist"/> -->
+          <jvmarg line="${jvmrunargs}"/>
+           <!--<arg value="-version"/><arg value="dist"/> -->
             <!--<arg value="-version"/><arg value="opcode">-->
-            <arg value="-version"/><arg value="opcode_v2_dist"/> 
+            <arg value="-version"/><arg value="opcode_v2_dist"/>
+            <!--<arg value="-version"/><arg value="opcode_v3_dist"/>-->
             <!--<arg value="-version"/><arg value="opcode"/>-->
             <!--<arg value="-version"/><arg value="opcode_v2"/> -->
-            <arg value="scripts/box4.js"/>
+            <arg value="scripts/gyrosphere.js"/>
             <!--<arg value="${script}"/>-->
             <classpath>
                 <pathelement path="${classes.dir}"/>

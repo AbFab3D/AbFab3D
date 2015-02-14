@@ -51,7 +51,7 @@ public class DeviceResources {
      * @param opts
      * @param ver
      */
-    public void init(List<String> prog, List<Instruction> inst,String opts, String ver) {
+    public void init(VolumeScene vscene){ //List<String> prog, List<Instruction> inst,String opts, String ver) {
         printf("Init device: %s on thread: %s\n",this,Thread.currentThread());
 
         if (context == null) {
@@ -59,7 +59,7 @@ public class DeviceResources {
             queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
             renderer = new VolumeRenderer(context, queue);
         }
-        renderer.init(prog,inst,opts,ver);
+        renderer.init(vscene);
 
         view = context.createFloatBuffer(16, READ_ONLY);
 

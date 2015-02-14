@@ -34,10 +34,11 @@ public class RenderThread extends Thread {
     /** Outgoing transfers to process */
     private ConcurrentLinkedQueue<RenderTile> transfers;
 
-    private List<String> prog;
-    private List<Instruction> inst;
-    private String opts;
-    private String ver;
+    private VolumeScene vscene;
+    //private List<String> prog;
+    //private List<Instruction> inst;
+    //private String opts;
+    //private String ver;
     private DeviceResources device;
     private CLEventList events;
     private int width;
@@ -55,14 +56,18 @@ public class RenderThread extends Thread {
     private TransferResultsListener listener;
 
     public RenderThread(DeviceResources device, ConcurrentLinkedQueue<RenderTile> tiles,
-                        ConcurrentLinkedQueue<RenderTile> transfers, List<String> prog, List<Instruction> inst, String opts,String ver,
+                        ConcurrentLinkedQueue<RenderTile> transfers, 
+                        VolumeScene vscene, // List<String> prog, List<Instruction> inst, String opts,String ver,
                         Matrix4f view, int width,int height,float worldScale) {
         this.device = device;
         this.tiles = tiles;
-        this.prog = prog;
-        this.inst = inst;
-        this.ver = ver;
-        this.opts = opts;
+
+        this.vscene = vscene; 
+        //this.prog = prog;
+        //this.inst = inst;
+        //this.ver = ver;
+        //this.opts = opts;
+
         this.width = width;
         this.height = height;
         this.worldScale = worldScale;
@@ -82,7 +87,8 @@ public class RenderThread extends Thread {
     public void run() {
         long t0 = System.nanoTime();
         // Initialize on thread
-        device.init(prog,inst,opts,ver);
+
+        device.init(vscene);
         //printf("Device init: %d\n",((int)((System.nanoTime() - t0) / 1e6)));
 
         initialized = true;

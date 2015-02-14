@@ -19,6 +19,10 @@ import abfab3d.param.Vector3dParameter;
 
 import static opencl.CLUtils.floatToInt;
 
+/**
+   CL code generatror for sphere
+   @author Vladimir Bulatov 
+ */
 public class CLSphere implements CLCodeGenerator {
 
     static int OPCODE = Opcodes.oSPHERE;

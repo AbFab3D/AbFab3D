@@ -3,8 +3,8 @@ function main(args) {
     var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);
 	
 	var cx = 5*MM;
-	var R = 10*MM;
-	var r = 3*MM;
+	var R = 20*MM;
+	var r = 0.1*MM;
 	var angle = Math.PI/20;
 	
 	var union = new Union();
