@@ -255,12 +255,12 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
 
             *result = data1;
             return;            
-
+/*
         case oEND:
 
             *result = data1;
             return;            
-
+*/
         case oSPHERE:
             
             oSphere(ptr.pv, &pnt1, &data1);            

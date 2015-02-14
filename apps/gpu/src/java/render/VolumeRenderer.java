@@ -387,7 +387,8 @@ public class VolumeRenderer {
                 // create buffers and kernel for V3
 
                 CLCodeBuffer codeBuffer = vscene.getCLCode();
-                
+
+                opLen = codeBuffer.getOpCount();
                 opBuffer = context.createIntBuffer(codeBuffer.size(), READ_ONLY);                
                 opBuffer.getBuffer().put(codeBuffer.getData());
                 opBuffer.getBuffer().rewind();
@@ -570,7 +571,7 @@ public class VolumeRenderer {
         int localWorkSizeX = 8; // this seems the fastest not sure why
         int localWorkSizeY = 8;
 
-        localWorkSizeX = 0; // this seems the fastest not sure why
+        localWorkSizeX = 0;
         localWorkSizeY = 0;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
@@ -597,6 +598,7 @@ public class VolumeRenderer {
         kernel.setArg(7, viewBuffer).rewind();
         kernel.setArg(8, worldScale);
         kernel.setArg(9,opBuffer).rewind();
+        kernel.setArg(10,opLen);
 
         queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
         

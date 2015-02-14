@@ -7,6 +7,7 @@
 #define boxMin ((float4)(-1.0f, -1.0f, -1.0f,1.0f))
 #define boxMax ((float4)(1.0f, 1.0f, 1.0f,1.0f))
 
+/*  Alan: removed as values are different in ShapeJS_opcode_v3_dist.cl
 #define oSPHERE  0
 #define oBOX  1
 #define oGYROID  2
@@ -25,7 +26,7 @@
 #define oSCALE  1001       
 #define oTRANSLATION 1002
 #define oROTATION 1003
-
+*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // intersect ray with a box
@@ -101,21 +102,21 @@ float step01_(float x, float x0, float vs){  // this is used for density
 }
 
 
-inline float getDensity(const global int * op, float worldScale, float3 pos){
+inline float getDensity(const global int * op, int opCount, float worldScale, float3 pos){
 
     sVec data;
     sVec pnt;
     pnt.v.xyz = pos;
 
-    void getShapeJSData(opcode, &pnt, &data);
+    getShapeJSData(op, opCount, &pnt, &data);
 
-    float d = data.c.x;
+    float d = data.v.x;
     // convert distance to density 
     d = step10_(d,0,0.0001);
     return d;
 }
 
-float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, global const float* invViewMatrix,float worldScale, global const int * op) {
+float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, global const float* invViewMatrix,float worldScale, global const int * op, int opCount) {
 
     // calculate eye ray in world space
     float4 eyeRay_o;    // eye origin
@@ -137,7 +138,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
     tpos = eyeRay_o + eyeRay_d*t;
 	pos = tpos.xyz; 
-    density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
+    density = getDensity(op,opCount,worldScale,pos);
 	if (density > 0.5){  // solid on the boundary
 		return (float3)(1.f,0, 0);
 	}
@@ -146,7 +147,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         tpos = eyeRay_o + eyeRay_d*t;
         pos = tpos.xyz; 
 
-        density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
+        density = getDensity(op,opCount,worldScale,pos);
 
         if (density > 0.5){  // overshot the surface 
 			//return (float3)(1,0,0);
@@ -154,14 +155,14 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 			while(density > 0.5 && backcount-- > 0){
 			   t -= 0.1*tstep;  // back off
 			   pos = (eyeRay_o + eyeRay_d*t).xyz;
-			   density = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,pos);
+			   density = getDensity(op,opCount,worldScale,pos);
 			}			   
 			// && density <= 1.) {
            hit = i;
 		   // calculate gradient along the ray 
 		   float dt = 0.01*tstep;
 		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
-		   float gp = (getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,p1)-density)/dt;
+		   float gp = (getDensity(op,opCount,worldScale,p1)-density)/dt;
 		   float ddt = (0.5-density)/gp;
 		   //if( true ){
 		   if( true) {//ddt > -0.5*tstep && ddt < 0.5*tstep){
@@ -194,18 +195,18 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 
         // second order precision formula for gradient
         // x
-        float xd0 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x + dist, pos.y, pos.z));
-        float xd2 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x - dist, pos.y, pos.z));
+        float xd0 = getDensity(op,opCount,worldScale,(float3) (pos.x + dist, pos.y, pos.z));
+        float xd2 = getDensity(op,opCount,worldScale,(float3) (pos.x - dist, pos.y, pos.z));
         grad.x = (xd2 - xd0)/(2*dist);
         //grad.x = (xd1 - xd0) * (1.0f - dist) + (xd2 - xd1) * dist; // lerp
         // y
-        float yd0 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x,pos.y + dist, pos.z));
-        float yd2 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x, pos.y - dist, pos.z));
+        float yd0 = getDensity(op,opCount,worldScale,(float3) (pos.x,pos.y + dist, pos.z));
+        float yd2 = getDensity(op,opCount,worldScale,(float3) (pos.x, pos.y - dist, pos.z));
         grad.y = (yd2 - yd0)/(2*dist);
         //grad.y = (yd1 - yd0) * (1.0f - dist) + (yd2 - yd1) * dist; // lerp
         // z
-        float zd0 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x,pos.y, pos.z + dist));
-        float zd2 = getDensity(op,len,fparams,iparams,fvparams,bparams,mparams,worldScale,(float3) (pos.x, pos.y, pos.z - dist));
+        float zd0 = getDensity(op,opCount,worldScale,(float3) (pos.x,pos.y, pos.z + dist));
+        float zd2 = getDensity(op,opCount,worldScale,(float3) (pos.x, pos.y, pos.z - dist));
         grad.z = (zd2 - zd0)/(2*dist);
         //grad.z = (zd1 - zd0) * (1.0f - dist) + (zd2 - zd1) * dist; // lerp
 
@@ -309,7 +310,8 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     return (float3)clearColor;
 }
 
-kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int len, global const float * fparams, global const int * iparams, global const float3 * fvparams, global const char * bparams, global const float16 * mparams) {
+/*
+kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int opCount) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
@@ -361,10 +363,10 @@ kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uin
 
     float3 sum = (float3)(0,0,0);
 
-    sum += renderPixel(x,y,u - subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
-    sum += renderPixel(x,y,u + subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
-    sum += renderPixel(x,y,u - subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
-    sum += renderPixel(x,y,u + subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,len,fparams,iparams,fvparams,bparams,mparams);
+    sum += renderPixel(x,y,u - subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,opCount);
+    sum += renderPixel(x,y,u + subPixel,v - subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,opCount);
+    sum += renderPixel(x,y,u - subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,opCount);
+    sum += renderPixel(x,y,u + subPixel,v + subPixel,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,opCount);
 
     float3 shading = sum / 4;
 
@@ -373,8 +375,9 @@ kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uin
     uint idx =(y * tileW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
 }
+*/
 
-kernel void render(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op) {
+kernel void render(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int opCount) {
 
     uint x = get_global_id(0);
     uint y = get_global_id(1);
@@ -417,7 +420,7 @@ kernel void render(global uint *d_output, uint x0, uint y0, uint tileW, uint til
     }
     tnear = clamp(tnear,0.0f,tfar);   // clamp to near plane
 
-    float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op);
+    float3 shading = renderPixel(x,y,u,v,tnear,tfar,imageW,imageH,invViewMatrix,worldScale,op,opCount);
 
     shading = clamp(shading, 0.0f, 1.0f);
 

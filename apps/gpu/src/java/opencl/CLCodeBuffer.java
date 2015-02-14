@@ -73,12 +73,16 @@ public class CLCodeBuffer {
         opCount++;
     }
 
-    
+    public int getOpCount() {
+        return opCount;
+    }
+
     protected void reallocArray(int newSize){
         if(newSize <= code.length)
             return;
         int newCode[] = new int[Math.max(2*code.length, newSize)];
         System.arraycopy(code, 0, newCode, 0, size);
         code = newCode;    
-    }    
+    }
+
 }
