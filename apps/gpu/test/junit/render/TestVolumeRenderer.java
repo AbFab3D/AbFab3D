@@ -124,6 +124,50 @@ public class TestVolumeRenderer extends TestCase {
 
     }
 
+    public void testV3Speed() throws Exception {
+        int width = 512;
+        int height = 512;
+
+        long t0 = System.nanoTime();
+
+        // Do these items once for the servlet.  Should be per-thread resources
+        ImageRenderer render = new ImageRenderer();
+        render.setVersion(VolumeRenderer.VERSION_OPCODE_V3_DIST);
+        render.initCL(1, width, height);
+        int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
+
+        printf("Max size: %d\n",MAX_IMG_SIZE);
+        byte[] buff = new byte[MAX_IMG_SIZE];
+        int[] pixels = new int[width * height];
+        BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
+
+        // End of per-thread resources
+
+        String jobID = UUID.randomUUID().toString();
+
+        int TIMES = 3;
+
+        if (DEBUG) TIMES = 1;
+
+//        String script = "scripts/dodecahedron.js";
+        String script = "scripts/gyrosphere.js";
+
+        for (int i = 0; i < TIMES; i++) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
+            BufferedOutputStream bos = new BufferedOutputStream(baos);
+            t0 = System.nanoTime();
+            render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);
+
+            if (DEBUG) {
+                FileUtils.writeByteArrayToFile(new File("/tmp/render_speed.jpg"),baos.toByteArray());
+            }
+
+        }
+
+    }
+
     public void testQuality() throws Exception {
         int width = 512;
         int height = 512;
@@ -405,8 +449,10 @@ public class TestVolumeRenderer extends TestCase {
         List<Instruction> inst = loadScript(script);
         ArrayList progs = new ArrayList();
 
+        VolumeScene vscene = new VolumeScene(progs, inst, "", VERSION);
+
         for (int i = 0; i < numRenderers; i++) {
-            boolean result = render[i].init(progs, inst, "", VERSION);
+            boolean result = render[i].init(vscene);
 
             if (!result) {
                 CLProgram program = render[i].getProgram();
@@ -458,9 +504,10 @@ public class TestVolumeRenderer extends TestCase {
             lastLoadScriptTime = 0;
         }
         ArrayList progs = new ArrayList();
+        VolumeScene vscene = new VolumeScene(progs, inst, "", VERSION);
 
         for (int i = 0; i < numRenderers; i++) {
-            boolean result = render[i].init(progs, inst, "", VERSION);
+            boolean result = render[i].init(vscene);
 
             if (!result) {
                 CLProgram program = render[i].getProgram();
@@ -540,8 +587,10 @@ public class TestVolumeRenderer extends TestCase {
             transfer[i].start();
         }
 
+        VolumeScene vscene = new VolumeScene(new ArrayList(), inst, "", VERSION);
+
         for (int i = 0; i < numDevices; i++) {
-            rthreads[i] = new RenderThread(devices[i], rqueue, tqueue, progs, inst, "", VERSION, getView(), width, height, worldScale);
+            rthreads[i] = new RenderThread(devices[i], rqueue, tqueue, vscene, getView(), width, height, worldScale);
 
             // TODO: short circuit listener thread to force on same system thread
             //rthreads[i].setListener(rl[0]);

@@ -43,7 +43,7 @@ public class ImageRenderer {
     public static final int IMAGE_JPEG = 0;
     public static final int IMAGE_PNG = 1;
 
-    public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
+    public String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
 
     private int numTiles;
     private RenderTile[] tiles;
@@ -140,6 +140,9 @@ public class ImageRenderer {
         initialized = true;
     }
 
+    public void setVersion(String version) {
+        this.VERSION = version;
+    }
 
     private void allocBuffers(int width, int height, int frames, int frameX) {
         int frameY = frames / frameX;
@@ -363,9 +366,13 @@ public class ImageRenderer {
         }
         if (inst == null) {
             inst = loadScript(script,params);
-            if (inst != null && inst.size() > 0 && jobID != null && useCache) {
+            if (inst == null) {
+                throw new IllegalArgumentException("Script failed to load: " + script);
+            }
+            if (inst.size() > 0 && jobID != null && useCache) {
                 cache.put(jobID, inst);
             }
+
         } else {
             lastLoadScriptTime = 0;
         }

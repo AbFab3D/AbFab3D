@@ -75,11 +75,8 @@ public class VolumeRenderer {
     /**
      * Initialize the renderer with the provided user scripts.
      *
-     * @param progs Can either be File or String objects.
-     * @param opts  The build options
-     * @param version The version to load, empty for regular, "_dist" or "_opcode"
      */
-    public boolean init(VolumeScene vscene){ //init(List progs, List<Instruction> instructions, String opts, String version) {
+    public boolean init(VolumeScene vscene) {
         String kernel_name;
 
         renderVersion = vscene.version;
@@ -122,10 +119,10 @@ public class VolumeRenderer {
 
                     for (int i = 0; i < len; i++) {
                         CLDevice device = devices[i];
-                        String cacheName = getCacheName(optMap);
-                        printf("Cache name: %s\n",cacheName);
+                        String cacheName = getCacheName(renderVersion,optMap);
                         String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
                         File f = new File(dir + File.separator + cacheName + "_compiled.ocl");
+                        printf("Cache dir: %s file: %s\n",dir,cacheName);
                         if (f.exists()) {
                             if (DEBUG) printf("Loading OpenCL program from binary\n");
                             byte[] bytes = FileUtils.readFileToByteArray(f);
@@ -234,7 +231,7 @@ public class VolumeRenderer {
                 for(Map.Entry<CLDevice,byte[]> entry : bins.entrySet()) {
                     CLDevice device = entry.getKey();
                     byte[] compiled = entry.getValue();
-                    String cacheName = getCacheName(optMap);
+                    String cacheName = getCacheName(renderVersion,optMap);
 
                     String dir = CACHE_LOCATION + File.separator + device.getName() + "_" + device.getDriverVersion();
                     File f = new File(dir);
@@ -420,8 +417,10 @@ public class VolumeRenderer {
      * @param opts
      * @return
      */
-    private String getCacheName(LinkedHashMap<String,String> opts) {
+    private String getCacheName(String renderVersion,LinkedHashMap<String,String> opts) {
         StringBuilder bldr = new StringBuilder();
+        bldr.append(renderVersion);
+        bldr.append("_");
 
         Iterator itr = opts.entrySet().iterator();
         while(itr.hasNext()) {
