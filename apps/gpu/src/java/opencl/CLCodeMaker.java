@@ -45,6 +45,23 @@ public class CLCodeMaker implements CLCodeGenerator {
         
     }
 
+    public String createText(CLCodeBuffer ops) {
+        StringBuilder bldr = new StringBuilder();
+
+        int[] data = ops.getData();
+        int len = data.length;
+
+        int idx = 0;
+        printf("Op Code Debug:\n");
+        while(idx < len) {
+            int size = data[idx];
+            int op = data[idx+1];
+            idx += size;
+            printf("%s\n",Opcodes.getText(op));
+        }
+
+        return bldr.toString();
+    }
     
     /**
        makes CL code for given node 

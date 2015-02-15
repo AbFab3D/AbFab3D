@@ -16,6 +16,7 @@ import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
 import datasources.Instruction;
+import opencl.CLCodeBuffer;
 import render.OpenCLOpWriter;
 import render.OpenCLOpWriterV2;
 import render.VolumeRenderer;
@@ -192,8 +193,10 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
      * Close down the application safely by destroying all the resources
      * currently in use.
      */
-    private void shutdownApp() {
+    public void shutdownApp() {
         render.terminate();
+
+        //try { Thread.sleep(3000); } catch(Exception e) {}
     }
 
     //---------------------------------------------------------------
@@ -204,7 +207,6 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
     protected void processWindowEvent(WindowEvent e) {
 
         if (e.getID() == WindowEvent.WINDOW_CLOSING) {
-
             // Too many threads running, so, calling shutdown does nothing
             System.exit(0);
 
@@ -248,12 +250,22 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)){
             
             CLCodeMaker maker = new CLCodeMaker();
-            vscene.setCLCode(maker.makeCLCode((Parameterizable)source));
+            CLCodeBuffer ops = maker.makeCLCode((Parameterizable) source);
+            vscene.setCLCode(ops);
+
+            if (DEBUG) {
+                String dcode = maker.createText(ops);
+                printf("Debug Code: \n%s\n",dcode);
+            }
+
+            printf("Operations: %d\n",ops.opCount());
             
         } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || 
                    renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
             OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
-            vscene.setInstructions(writer.generate((Parameterizable) source, scale));
+            List<Instruction> inst = writer.generate((Parameterizable) source, scale);
+            vscene.setInstructions(inst);
+            printf("Operations: %d\n", inst.size());
             if (DEBUG) {
                 String dcode = writer.createText(vscene.getInstructions(),scale);
                 printf("Debug Code: \n%s\n",dcode);
@@ -294,7 +306,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         actionList.add(openAction);
         fileMenu.add(new JMenuItem(openAction));
 
-        ExitAction exitAction = new ExitAction();
+        ExitAction exitAction = new ExitAction(this);
         actionList.add(exitAction);
 
         // Exit Item

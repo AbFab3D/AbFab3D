@@ -24,7 +24,7 @@ public class CLCodeBuffer {
     int opCount = 0; // opcodes count
     /**
        constructor
-       @param initialCapacity initial capacity of the buffewr
+       @param initialCapacity initial capacity of the buffer
      */
     public CLCodeBuffer(int initialCapacity){
         code = new int[initialCapacity];

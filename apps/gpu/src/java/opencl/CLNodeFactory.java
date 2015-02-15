@@ -27,6 +27,7 @@ public class CLNodeFactory {
         sm_map.put("Union", "opencl.CLUnion");
         sm_map.put("Intersection", "opencl.CLIntersection");
         sm_map.put("Sphere", "opencl.CLSphere");
+        sm_map.put("Gyroid", "opencl.CLGyroid");
     }
     
     public CLNodeFactory(){        
@@ -40,6 +41,7 @@ public class CLNodeFactory {
             try {
                 return (CLCodeGenerator) Class.forName(sname).newInstance();
             } catch(Exception e){
+                e.printStackTrace();
                 throw new RuntimeException(fmt("can't instantiate %s", sname));
             }            
         } else {

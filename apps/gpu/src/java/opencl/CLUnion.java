@@ -51,7 +51,7 @@ public class CLUnion implements CLCodeGenerator {
         
         int wcount = 0;
         // save working register 
-        wcount += CLUtils.addOPCode(Opcodes.oPUSH_D2, codeBuffer);           
+        wcount += CLUtils.addOPCode(Opcodes.oPUSH_D2, codeBuffer);
         Parameterizable child = (Parameterizable)children[0];
         CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)child);
         wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
@@ -74,7 +74,7 @@ public class CLUnion implements CLCodeGenerator {
 
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D2D1, codeBuffer);           
         // restore working register 
-        wcount += CLUtils.addOPCode(Opcodes.oPOP_D2, codeBuffer);           
+        wcount += CLUtils.addOPCode(Opcodes.oPOP_D2, codeBuffer);
         return wcount;
     }
 }

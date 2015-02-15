@@ -431,6 +431,16 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
     @Override
     public void terminate() {
-        animator.stop();
+        printf("Terminating Canvas");
+        System.out.flush();
+
+        if (clContext != null) {
+            printf("Releasing resources\n");
+            commandQueue.release();
+            clContext.release();
+            clContext = null;
+            animator.stop();
+        }
+
     }
 }

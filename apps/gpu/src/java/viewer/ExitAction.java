@@ -18,6 +18,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import javax.swing.KeyStroke;
 
+import static abfab3d.util.Output.printf;
+
 /**
  * An action that can be used to exit the system.
  * <p>
@@ -26,13 +28,15 @@ import javax.swing.KeyStroke;
  * @version $Revision: 1.1 $
  */
 public class ExitAction extends AbstractAction {
+    private VolumeViewer viewer;
 
     /**
      * Create an instance of the action class.
      */
-    public ExitAction() {
+    public ExitAction(VolumeViewer viewer) {
         super("Exit");
 
+        this.viewer = viewer;
         KeyStroke acc_key = KeyStroke.getKeyStroke(KeyEvent.VK_X,
                 KeyEvent.ALT_MASK);
 
@@ -50,6 +54,9 @@ public class ExitAction extends AbstractAction {
      * @param evt The event that caused this method to be called.
      */
     public void actionPerformed(ActionEvent evt) {
+        viewer.shutdownApp();
+
+        try { Thread.sleep(50); } catch(Exception e) {}
         System.exit(0);
     }
 }

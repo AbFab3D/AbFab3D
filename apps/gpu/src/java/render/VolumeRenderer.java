@@ -375,11 +375,28 @@ public class VolumeRenderer {
 
                 // no need to wait for any of this
                 queue.putWriteBuffer(opBuffer, false, null, events);
-                if (floatBuffer != null) queue.putWriteBuffer(floatBuffer, false, null, events);
-                if (intBuffer != null) queue.putWriteBuffer(intBuffer, false, null, events);
-                if (floatVectorBuffer != null) queue.putWriteBuffer(floatVectorBuffer, false, null, events);
-                if (matrixBuffer != null) queue.putWriteBuffer(matrixBuffer, false, null, events);
-                if (booleanBuffer != null) queue.putWriteBuffer(booleanBuffer, false, null, events);
+                long ob = opBuffer.getCLSize();
+                if (floatBuffer != null) {
+                    queue.putWriteBuffer(floatBuffer, false, null, events);
+                    ob += floatBuffer.getCLSize();
+                }
+                if (intBuffer != null) {
+                    queue.putWriteBuffer(intBuffer, false, null, events);
+                    ob += intBuffer.getCLSize();
+                }
+                if (floatVectorBuffer != null) {
+                    queue.putWriteBuffer(floatVectorBuffer, false, null, events);
+                    ob += floatVectorBuffer.getCLSize();
+                }
+                if (matrixBuffer != null) {
+                    queue.putWriteBuffer(matrixBuffer, false, null, events);
+                    ob += matrixBuffer.getCLSize();
+                }
+                if (booleanBuffer != null) {
+                    queue.putWriteBuffer(booleanBuffer, false, null, events);
+                    ob += booleanBuffer.getCLSize();
+                }
+                printf("Op bytes(v2): %d\n", ob);
 
             }  else if (renderVersion.equals(VERSION_OPCODE_V3_DIST)) {
                 
@@ -393,6 +410,7 @@ public class VolumeRenderer {
                 opBuffer.getBuffer().put(codeBuffer.getData());
                 opBuffer.getBuffer().rewind();
 
+                printf("Op bytes(v3): %d\n",codeBuffer.size() * 4);
                 queue.putWriteBuffer(opBuffer, false, null);
             }
         } catch (Exception e) {
@@ -410,7 +428,16 @@ public class VolumeRenderer {
         kernelName = kernel_name;
         kernel = program.createCLKernel(kernel_name);
         compileTime = (System.nanoTime() - t0);
-        
+
+        if (DEBUG) {
+            printf("Kernel Performance Info\n");
+            CLDevice[] devices = context.getDevices();
+
+            for(int i=0; i < devices.length; i++) {
+                printf("Device: %s wgSize: %d locMem: %d\n", devices[i].getName(),kernel.getWorkGroupSize(devices[i]),kernel.getLocalMemorySize(devices[i]));
+
+            }
+        }
         return true;
     }
 
@@ -572,8 +599,8 @@ public class VolumeRenderer {
         int localWorkSizeX = 8; // this seems the fastest not sure why
         int localWorkSizeY = 8;
 
-        localWorkSizeX = 0;
-        localWorkSizeY = 0;
+        //localWorkSizeX = 0;
+        //localWorkSizeY = 0;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
