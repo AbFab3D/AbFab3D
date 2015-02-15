@@ -6,7 +6,6 @@ import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import com.jogamp.opencl.gl.CLGLContext;
 import com.jogamp.opengl.util.Animator;
-import datasources.Instruction;
 import render.VolumeRenderer;
 import render.VolumeScene;
 
@@ -19,8 +18,6 @@ import java.awt.*;
 import java.nio.FloatBuffer;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.List;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLDevice.Type.CPU;

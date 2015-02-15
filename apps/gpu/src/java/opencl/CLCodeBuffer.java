@@ -40,11 +40,14 @@ public class CLCodeBuffer {
 
     public int[] getData(){
 
-        int data[] = new int[size+2];
+        int data[] = new int[size];
         System.arraycopy(code, 0, data, 0, size);
+
+        /*  // TODO: Vlad I removed this and used a count
         // add zeros to terminate commands array 
         data[size] = 0;
         data[size+1] = 0;
+        */
         return data;        
     }
     
@@ -60,6 +63,7 @@ public class CLCodeBuffer {
         code[size] = word;
         size++;
     }
+
     /**
        add code from array 
        @param buffer with code 

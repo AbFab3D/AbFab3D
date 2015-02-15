@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import static abfab3d.util.Output.printf;
+import static com.jogamp.opencl.CLDevice.Type.CPU;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
 import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
 import static com.jogamp.opencl.util.CLPlatformFilters.type;
@@ -103,6 +104,11 @@ public class ImageRenderer {
         } else {
             tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
         }
+
+
+        // TODO: remove me
+        printf("Debugging with CPU");
+        tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
 
         tile.setContext(CLContext.create(tile.getDevice()));
 

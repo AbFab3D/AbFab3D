@@ -216,12 +216,14 @@ void copyOpcodes(PTR int *opcode, global int *outdata){
 
 
 void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
-		
+
+		/*
     int iGID = get_global_id(0);
-    if(iGID > 0) { 
+    if(iGID > 0) {
         return;
-    }    
-    // for debugging 
+    }
+    */
+    // for debugging
     //copyOpcodes(opcode, outdata);
     
     CPtr ptr;
@@ -241,14 +243,32 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
     
     // to prevent infinite cycle
 
-    int maxcount = 100;
-    while(count++ < maxcount) {
-
+#ifdef DEBUG
+if (get_global_id(0) < 60) {
+    printf("opCount: %d\n",opCount);
+    for(int i=0; i < 10; i++) {
+        printf("%d ",opcode[i]);
+    }
+    printf("\n");
+}
+#endif
+    for(int i=0; i < opCount; i++) {
         int size = opcode[offsetIn];
+#ifdef DEBUG
+if (get_global_id(0) < 60) {
+    printf("offset: %d size: %d\n",offsetIn,size);
+}
+#endif
         if(size == 0)
             break;
         int code = opcode[offsetIn+1];
         ptr.w = (opcode + offsetIn);
+
+#ifdef DEBUG
+if (get_global_id(0) < 60) {
+    printf("code: %d size: %d\n",code,size);
+}
+#endif
 
         switch(code){
         default:

@@ -101,12 +101,26 @@ float step01_(float x, float x0, float vs){  // this is used for density
     return (x-(x0-vs))/(2*vs);
 }
 
+float step01(float x, float x0, float vs){ // used for distance
+    return (x0-x);
+}
+
+float step10_(float x, float x0, float vs) { // this is used for density
+   if(x <= x0 - vs)
+       return 1.0;
+
+   if(x >= x0 + vs)
+       return 0.0;
+
+    return ((x0+vs)-x)/(2*vs);
+}
+
 
 inline float getDensity(const global int * op, int opCount, float worldScale, float3 pos){
 
     sVec data;
     sVec pnt;
-    pnt.v.xyz = pos;
+    pnt.v.xyz = pos * worldScale;
 
     getShapeJSData(op, opCount, &pnt, &data);
 
@@ -269,14 +283,6 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 		float3 light2_sum = 0;
 		float3 light3_sum = 0;
 
-        #ifdef DEBUG
-        uint debug = 0;
-        if (x==171 && y==160) {
-           printf("Debugging pixel\n");
-           debug = 1;
-        }
-        #endif
-
         #ifdef SHADOWS
         if (canSee(pos,light1
            #ifdef DEBUG
@@ -310,7 +316,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     return (float3)clearColor;
 }
 
-/*
+
 kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int opCount) {
     uint x = get_global_id(0);
     uint y = get_global_id(1);
@@ -375,7 +381,6 @@ kernel void renderSuper(global uint *d_output, uint x0, uint y0, uint tileW, uin
     uint idx =(y * tileW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
 }
-*/
 
 kernel void render(global uint *d_output, uint x0, uint y0, uint tileW, uint tileH, uint imageW, uint imageH, global const float* invViewMatrix, float worldScale, global const int * op, int opCount) {
 

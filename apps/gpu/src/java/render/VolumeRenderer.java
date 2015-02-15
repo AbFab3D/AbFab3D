@@ -393,6 +393,7 @@ public class VolumeRenderer {
                 opBuffer.getBuffer().put(codeBuffer.getData());
                 opBuffer.getBuffer().rewind();
 
+                queue.putWriteBuffer(opBuffer, false, null);
             }
         } catch (Exception e) {
             if (program == null) {
@@ -598,7 +599,7 @@ public class VolumeRenderer {
         kernel.setArg(7, viewBuffer).rewind();
         kernel.setArg(8, worldScale);
         kernel.setArg(9,opBuffer).rewind();
-        kernel.setArg(10,opLen);
+        kernel.setArg(10, opLen);
 
         queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
         
