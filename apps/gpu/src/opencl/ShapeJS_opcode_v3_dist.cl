@@ -3,7 +3,7 @@
 //#define NAN (0xFFFF)
 
 // stack size for intermediate memory 
-#define STACK_SIZE  10  
+#define STACK_SIZE  10
 
 #define oSPHERE 1001
 #define oGYROID 1002
@@ -74,7 +74,7 @@ void oSphere(PTR sSphere *sphere, sVec *in, sVec *out){
 
 }
 
-// box 
+// box
 typedef struct {
     int size;
     int opcode;
@@ -243,32 +243,13 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
     
     // to prevent infinite cycle
 
-#ifdef DEBUG
-if (get_global_id(0) < 60) {
-    printf("opCount: %d\n",opCount);
-    for(int i=0; i < 10; i++) {
-        printf("%d ",opcode[i]);
-    }
-    printf("\n");
-}
-#endif
     for(int i=0; i < opCount; i++) {
         int size = opcode[offsetIn];
-#ifdef DEBUG
-if (get_global_id(0) < 60) {
-    printf("offset: %d size: %d\n",offsetIn,size);
-}
-#endif
+
         if(size == 0)
             break;
         int code = opcode[offsetIn+1];
         ptr.w = (opcode + offsetIn);
-
-#ifdef DEBUG
-if (get_global_id(0) < 60) {
-    printf("code: %d size: %d\n",code,size);
-}
-#endif
 
         switch(code){
         default:
@@ -283,9 +264,9 @@ if (get_global_id(0) < 60) {
 */
         case oSPHERE:
             
-            oSphere(ptr.pv, &pnt1, &data1);            
+            oSphere(ptr.pv, &pnt1, &data1);
             break;
-            
+
         case oGYROID:
             
             oGyroid(ptr.pv, &pnt1, &data1);        
@@ -300,7 +281,7 @@ if (get_global_id(0) < 60) {
             
             oTorus(ptr.pv, &pnt1, &data1);
             break;
-            
+
         case oCOPY_D1D2:
             
             data2 = data1;
@@ -348,8 +329,8 @@ if (get_global_id(0) < 60) {
         case oPOP_D2:
             
             data2 = stack[--stackPos];            
-            break;            
-        }        
+            break;
+        }
         offsetIn += size;
     }
 
