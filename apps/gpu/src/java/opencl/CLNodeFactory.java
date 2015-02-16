@@ -28,6 +28,7 @@ public class CLNodeFactory {
         sm_map.put("Intersection", "opencl.CLIntersection");
         sm_map.put("Sphere", "opencl.CLSphere");
         sm_map.put("Gyroid", "opencl.CLGyroid");
+        sm_map.put("Box", "opencl.CLBox");
     }
     
     public CLNodeFactory(){        

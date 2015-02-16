@@ -89,7 +89,7 @@ void oBox(PTR sBox *box, sVec *in, sVec *out){
     v -= box->center;    
     v = fabs(v);
     v -= box->halfsize;
-
+    
     float d = blendMax(blendMax(v.x,v.y,box->rounding),v.z,box->rounding);
 
     out->v.x = d;
