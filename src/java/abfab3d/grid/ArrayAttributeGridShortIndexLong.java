@@ -86,6 +86,19 @@ public class ArrayAttributeGridShortIndexLong extends BaseAttributeGrid {
     }
 
     /**
+     * Constructor.
+     *
+     * @param bounds The grid bounds in world coords
+     * @param pixel The size of the pixels
+     * @param sheight The slice height in meters
+     */
+    public ArrayAttributeGridShortIndexLong(Bounds bounds, double pixel, double sheight) {
+
+        super(bounds, pixel,sheight);
+        data = new short[height][width][depth];
+    }
+
+    /**
      * Create an empty grid of the specified size.  Reuses
      * the grid type and material type(byte, short, int).
      *
