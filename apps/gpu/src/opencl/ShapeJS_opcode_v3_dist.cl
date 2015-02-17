@@ -314,12 +314,12 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
             
         case oSUBTRACT:
             
-            oSubtract(ptr.pv,&data1, &data2,&data1);            
+            oSubtract(ptr.pv,&data1, &data2,&data2);            
             break;
             
         case oBLENDSUBTRACT:
             
-            oBlendSubtract(ptr.pv,&data1, &data2,&data1);            
+            oBlendSubtract(ptr.pv,&data1, &data2,&data2);
             break;            
 
         case oPUSH_D2:
