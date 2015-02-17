@@ -10,23 +10,23 @@ public class Opcodes {
     // these codes have to be identical to codes usen in CL code 
     //
     public static final int
-            oSPHERE = 1001,
-            oGYROID = 1002,
-            oBOX = 1003,
-            oTORUS = 1004,
-            oMAX = 1005,
-            oMIN = 1006,
-            oBLEND = 1007,
-            oBLENDMAX = 1008,
-            oBLENDMIN = 1009,
-            oSUBTRACT = 1010,
-            oBLENDSUBTRACT = 1011,
+            oSPHERE = 1,
+            oGYROID = 2,
+            oBOX = 3,
+            oTORUS = 4,
+            oMAX = 5,
+            oMIN = 6,
+            oBLEND = 7,
+            oBLENDMAX = 8,
+            oBLENDMIN = 9,
+            oSUBTRACT = 10,
+            oBLENDSUBTRACT = 11,
             // registers operations
-            oCOPY_D1D2 = 1012,
-            oCOPY_D2D1 = 1013,
+            oCOPY_D1D2 = 12,
+            oCOPY_D2D1 = 13,
             // stack operations
-            oPUSH_D2 = 1014,  // save D2 to stack
-            oPOP_D2 = 1015;   // restore D2 fom stack
+            oPUSH_D2 = 14,  // save D2 to stack
+            oPOP_D2 = 15;   // restore D2 fom stack
 
     static {
         codes = new HashMap<Integer, String>();

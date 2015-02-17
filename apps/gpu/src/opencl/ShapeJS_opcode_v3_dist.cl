@@ -3,23 +3,23 @@
 //#define NAN (0xFFFF)
 
 // stack size for intermediate memory 
-#define STACK_SIZE  10
+#define STACK_SIZE  3
 
-#define oSPHERE 1001
-#define oGYROID 1002
-#define oBOX    1003
-#define oTORUS  1004
-#define oMAX    1005
-#define oMIN    1006
-#define oBLEND  1007
-#define oBLENDMAX  1008
-#define oBLENDMIN  1009
-#define oSUBTRACT  1010
-#define oBLENDSUBTRACT  1011
-#define oCOPY_D1D2  1012
-#define oCOPY_D2D1  1013
-#define oPUSH_D2  1014
-#define oPOP_D2  1015
+#define oSPHERE 1
+#define oGYROID 2
+#define oBOX    3
+#define oTORUS  4
+#define oMAX    5
+#define oMIN    6
+#define oBLEND  7
+#define oBLENDMAX  8
+#define oBLENDMIN  9
+#define oSUBTRACT  10
+#define oBLENDSUBTRACT  11
+#define oCOPY_D1D2  12
+#define oCOPY_D2D1  13
+#define oPUSH_D2  14
+#define oPOP_D2  15
 
 
 
