@@ -21,7 +21,6 @@
     <property name="lib.dir" value="${basedir}/lib"/>
     <property name="abfab3d.lib.dir" value="../../lib"/>
     <property name="abfab3d.jars.dir" value="../../jars"/>
-    <property name="abfab3d.support.dir" value="../../lib/support"/>
     <property name="manifest.dir" value="${basedir}/manifest"/>
     <property name="javadocs.dir" value="${basedir}/docs/javadoc"/>
     <property name="app.common.dir" value="../common"/>
@@ -361,7 +360,6 @@
 
     <target name="runMain" depends="compile,compileTest" description="Run main of the specified class">
         <echo message="jvmargs: ${jvmrunargs}" />
-        <echo message="support: ${abfab3d.support.dir}" />
         <java classname="${class}" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
