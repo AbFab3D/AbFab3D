@@ -26,6 +26,7 @@ public class CLNodeFactory {
     static {
         sm_map.put("Union", "opencl.CLUnion");
         sm_map.put("Intersection", "opencl.CLIntersection");
+        sm_map.put("Subtraction", "opencl.CLSubtraction");
         sm_map.put("Sphere", "opencl.CLSphere");
         sm_map.put("Gyroid", "opencl.CLGyroid");
         sm_map.put("Box", "opencl.CLBox");

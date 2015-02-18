@@ -1,6 +1,6 @@
 function main(args) {
     var radius = 15 * MM;
-    var num = 12;
+    var num = 3;
     var gs = 2*radius;
     var grid = createGrid(-gs, gs, -gs, gs, -gs, gs, 0.1 * MM);
 
@@ -9,7 +9,7 @@ function main(args) {
         result = new Sphere(0,0,0,radius);
     } else {
         var union = new Union();
-		
+		var blend = union.getParam("blend").setValue(0.5*MM);
 		var x0 = -radius;
 		var dx = 2*radius/(num-1);
         for (i = 0; i < num; i++) {
