@@ -29,8 +29,9 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
  */
-public class CLUnion implements CLCodeGenerator {
+public class CLUnion extends CLNodeBase {
 
+    static final boolean DEBUG = false;
     static int OPCODE = Opcodes.oBLENDMAX;
     static int STRUCTSIZE = 4;
     
@@ -40,27 +41,37 @@ public class CLUnion implements CLCodeGenerator {
 
         Union union = (Union)node;
 
-        double blendWidth = ((DoubleParameter)union.getParam("blend")).getValue();
-        printf("union.blend: %f\n", blendWidth);
-
         SNode[] children = union.getChildren();
         if(children.length == 0) {
             // no children - do nothing 
             return 0;
         }
+
+        int wcount =  super.getTransformCLCode(node,codeBuffer);
         
-        int wcount = 0;
+        double blendWidth = ((DoubleParameter)union.getParam("blend")).getValue();
+        if(DEBUG)printf("union.blend: %f\n", blendWidth);
+
         // save working register 
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_D2, codeBuffer);
         Parameterizable child = (Parameterizable)children[0];
         CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)child);
+        wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);           
         wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
+        wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);           
+
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D1D2, codeBuffer);
 
         for(int i = 1; i < children.length; i++){
             child = (Parameterizable)children[i];
             clnode = CLNodeFactory.getCLNode((Parameterizable)child);
+
+            if(DEBUG)printf("push p1\n");
+            wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);           
             wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
+            if(DEBUG)printf("pop p1\n");
+            wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);           
+
             if(blendWidth != 0.) {
                 int c = 0;
                 buffer[c++] = STRUCTSIZE;
@@ -75,6 +86,9 @@ public class CLUnion implements CLCodeGenerator {
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D2D1, codeBuffer);           
         // restore working register 
         wcount += CLUtils.addOPCode(Opcodes.oPOP_D2, codeBuffer);
+
+        wcount +=  super.getMaterialCLCode(node,codeBuffer);
+       
         return wcount;
     }
 }

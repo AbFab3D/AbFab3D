@@ -3,26 +3,32 @@
 //#define NAN (0xFFFF)
 
 // stack size for intermediate memory 
-#define STACK_SIZE  3
+#define STACK_SIZE  10
 
-#define oSPHERE 1
-#define oGYROID 2
-#define oBOX    3
-#define oTORUS  4
-#define oMAX    5
-#define oMIN    6
-#define oBLEND  7
-#define oBLENDMAX  8
-#define oBLENDMIN  9
-#define oSUBTRACT  10
-#define oBLENDSUBTRACT  11
-#define oCOPY_D1D2  12
-#define oCOPY_D2D1  13
-#define oPUSH_D2  14
-#define oPOP_D2  15
+// this list should be identical to list in src/java/opencl/Opcodes.java
+#define oSPHERE        1
+#define oGYROID        2
+#define oBOX           3
+#define oTORUS         4
+#define oMAX           5
+#define oMIN           6
+#define oBLEND         7
+#define oBLENDMAX      8
+#define oBLENDMIN      9
+#define oSUBTRACT      10
+#define oBLENDSUBTRACT 11
+#define oCOPY_D1D2     12
+#define oCOPY_D2D1     13
+#define oPUSH_D2       14
+#define oPOP_D2        15
+#define oPUSH_P1       16
+#define oPOP_P1        17
+#define oTRANSLATION   18
+
+#define oEND   0
 
 
-
+// poimnter to buffer of opcodes 
 #define PTR global const
 
 
@@ -183,6 +189,19 @@ void oBlendSubtract(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
 }
 
+typedef struct {
+    int size;  // size of struct in words 
+    int opcode; // opcode to perform 
+    // custom parameters of DataSource 
+    float3 translation; 
+} sTranslation;
+
+void oTranslation(PTR sTranslation *trans, sVec *inout){
+    // inverse translation 
+    inout->v.xyz -= trans->translation;
+
+}
+
 
 // union to "safely" convert pointers 
 typedef union {
@@ -191,6 +210,7 @@ typedef union {
 } CPtr;
 
 
+// for debugging 
 void copyOpcodes(PTR int *opcode, global int *outdata){
 
     int opcount = 0;
@@ -217,27 +237,19 @@ void copyOpcodes(PTR int *opcode, global int *outdata){
 
 void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
 
-		/*
-    int iGID = get_global_id(0);
-    if(iGID > 0) {
-        return;
-    }
-    */
-    // for debugging
-    //copyOpcodes(opcode, outdata);
     
     CPtr ptr;
     int count = 0; // count of codes 
     int offsetIn = 0;  // current input location 
     sVec stack[STACK_SIZE];
     int stackPos = 0; // current stack position
-    sVec pnt1;
+
+    sVec pnt1;  // current working point 
+    sVec data1 = (sVec){.v=(float4)(0,0,0,0)}; // register to store current data value
+    sVec data2; // register for intermediate data 
+
     // original point 
     pnt1 = *pnt;
-    //sVec pnt2 = (sVec){.v=(float4)(0,0,0,0), .scale = 1.f};
-
-    sVec data1 = (sVec){.v=(float4)(0,0,0,0)}; // register to store data value
-    sVec data2; // register for intermediate data storage 
 
     int resOffset = 0;
     
@@ -330,6 +342,22 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
             
             data2 = stack[--stackPos];            
             break;
+
+        case oPUSH_P1:
+            
+            stack[stackPos++] = pnt1;
+            break;            
+        case oPOP_P1:
+            
+            pnt1 = stack[--stackPos];            
+            break;
+
+        case oTRANSLATION:
+            
+            oTranslation(ptr.pv,&pnt1);
+            break;            
+
+
         }
         offsetIn += size;
     }
