@@ -179,17 +179,17 @@
                             includes="*"
                             excludes=""
                         />
-<!--
+
                 <zipfileset dir="natives/Windows 8.1/amd64" prefix="WEB-INF/lib"
                             includes="*/**"
                             excludes="*.dll"
                         />
--->
+<!--
                 <zipfileset dir="natives/linux/amd64" prefix="WEB-INF/lib"
                             includes="*/**"
                             excludes="*.dll"
                         />
-
+-->
             </zipfileset-elements>
         </createwar>
     </target>

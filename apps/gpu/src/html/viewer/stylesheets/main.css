@@ -1,7 +1,6 @@
 
 #main-box {
 	width: 1040px;
-//			height: 500px;
 	//overflow: hidden;
 	//background-color: #EDF2F9;
 	margin: auto auto;
@@ -9,18 +8,7 @@
 	top: 0px;
 	padding: 0px 0 10px 0;
 }
-#preset-title {
-	float: left;
-	font-size: 16px;
-	font-weight: 700;
-	height: 30px;
-	margin: 0px;
-	padding: 0px;
-	margin-left: 5px;
-	margin-bottom: 8px;
-	color: #444;
-	text-align: left;
-}
+
 #addparam-title {
 	float: left;
 	width: 80%;
@@ -207,37 +195,7 @@
 	-webkit-box-shadow: 0px 0 8px #ccc;
 	box-shadow: 0px 0 8px #ccc;
 }
-/*
-#loading, #checking, #making, #uploading {
-	color: #CCCCCC;
-	font-size: 18px;
-	font-weight: 700;
-	float: left;
-	margin: 5px 0 10px 0px;
-	position: relative;
-	cursor: pointer;
-	cursor: hand;
-	text-align: center;
-	display: block;
-	width: 216px;
-	padding: 8px 0;
-	-khtml-border-radius: 20px;
-	-moz-border-radius: 4px;
-	-webkit-border-radius: 4px;
-	//text-shadow: white 0 1px 0;
-	border-radius: 4px;
-	border-top: 0;
-	border-left: 1px solid #6C7F88;
-	border-right: 1px solid #6C7F88;
-	border-bottom: 2px solid #6C7F88;
-	//background-color: #29ABE2;
-	background-color: white;
-	z-index: 1;
-	display: none;
-	text-shadow: 0 1px 0 #DE4A37;
-	border: none;
-}
-*/
+
 #menu {
 	float: left;
 	width: 470px;
@@ -283,36 +241,13 @@
 	float: left;
 	width: 470px;
 	height: 552px;
-	margin: 10px 10px 10px 10px;
+	margin: 0px 10px 10px 10px;
 	text-align: left;
 	background-color: green;
 	border: 1px solid #DDD;
 	position: relative;
 }
 
-#loading, #checking, #making, #uploading {
-	float: left;
-	position: relative;
-	width: 134px;
-	height: 21px;
-	text-align: center;
-	color: #999999;
-	font-weight: bold;
-	font-family: helvetica;
-	font-size: 13px;
-	display: inline-block;
-	padding: 5px 10px;
-	margin-right: 1px;
-	background-color: white;
-	border: 1px solid #ccc;
-	border-top: none;
-	border-bottom-left-radius: 4px;
-	border-bottom-right-radius: 4px;
-	text-shadow: 0px 1px 0px rgba(255, 255, 255, 1);
-	text-decoration: none;
-	cursor: pointer;
-	letter-spacing: 1.2px;
-}
 .close-popup {
     position: relative;
 	width: 80px;
@@ -383,7 +318,7 @@
 	//margin-bottom: 20px;
 	top: 0px;
 	left: 0px;
-	margin: 10px 0px 10px 0px;
+	margin: 0px 0px 10px 0px;
 	float: left;
 }
 .viewer-container .viewer {
@@ -473,22 +408,6 @@ input.file-param-val {
 	cursor: pointer;
 //	background-color: blue;
 }
-.preset1 {
-	float: left;
-	margin: 0px 50px 0px 120px;
-}
-.preset2 {
-	float: left;
-	margin: 0px 40px 0px 40px;
-}
-.preset3 {
-	float: left;
-	margin: 0px 40px 0px 40px;
-}
-.preset4 {
-	float: left;
-	margin: 0px 40px 0px 40px;
-}
 
 .infoPopup {
   z-index:9999;
@@ -534,7 +453,7 @@ input.file-param-val {
   -webkit-appearance: none;
   width: 186px;
   padding: 0px;
-  margin-top: 4px;
+//  margin-top: 3px;
 }
 
 .param-row .range-slider-display { 
@@ -554,7 +473,7 @@ input.file-param-val {
   border: none;
   background: #1dbaff;
   cursor: pointer;
-  margin-top: -4px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+  margin-top: -5px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
 }
 
 /* All the same stuff for Firefox */
@@ -604,11 +523,12 @@ input.file-param-val {
   cursor: pointer;
   background: #FAFAFA;
   border-radius: 1.3px;
-//  border: 1px solid #bbbbbb;
+  border: 1px solid #bbbbbb;
+  margin-top: 4px;
 }
 
 .range-slider::-moz-range-track {
-  height: 8.4px;
+  height: 6px;
   cursor: pointer;
   background: #FAFAFA;
   border-radius: 1.3px;
@@ -642,8 +562,34 @@ input.file-param-val {
   clear: both;
 }
 
-.spritespin-instance.loading {
-  background: url('../images/loading.gif');
-  background-position: 50% 50%;
-  background-repeat: no-repeat;
+.quality-control {
+  float: right;
+  width: 1016px;
+  margin: 0px 13px 0px 10px;
+}
+.quality-select {
+  float: right;
+  margin-right: 10px;
+}
+.camera {
+  float: right;
+  width: 30px;
+  height: 30px
+}
+.camera:hover {
+  cursor: pointer;
+}
+
+.loading {
+    position:absolute;
+    padding:205px 0px 0px 218px;
+    display: none;
+    z-index:20;
+}
+.x3dom-view-loading {
+    background:url("../images/loading.gif");
+    background-repeat:no-repeat;
+    background-position:center;
+    width:100px;
+    height:100px
 }

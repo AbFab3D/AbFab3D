@@ -19,6 +19,7 @@ var skipCount = 15;
 var rotX = 0;
 var rotY = 0;
 var zoom = -4;
+var quality = 0.5;
 
 
 function getFile(elementId){
@@ -60,7 +61,8 @@ function initScript() {
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
     'zoom':    zoom,  // zoom level (translation in z direction)
-    'imgType': imgType
+    'imgType': imgType,
+    'quality': quality
   };
 
   var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
@@ -92,7 +94,8 @@ function zoomModel() {
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
     'zoom':    zoom,  // zoom level (translation in z direction)
-    'imgType': imgType
+    'imgType': imgType,
+    'quality': quality
   };
   
   if (loading) {
@@ -126,7 +129,8 @@ function rotateModel(dx, dy, radX, radY) {
     'rotX':    rotX,  // x rotation in radians
     'rotY':    rotY,  // y rotation in radians
     'zoom':    zoom,  // zoom level (translation in z direction)
-    'imgType': imgType
+    'imgType': imgType,
+    'quality': quality
   };
 
   if (loading) {
@@ -147,6 +151,53 @@ function rotateModel(dx, dy, radX, radY) {
   
 }
 
+function getRender(q) {
+  spin('preview');
+  
+  var imgType = "jpg";
+  if (q >= 1.0) 
+    imgType = "png";
+  
+  extraParams = {
+    'jobID':  getJobID(),
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom,  // zoom level (translation in z direction)
+    'imgType': imgType,
+    'quality': q
+  };
+  
+  if (loading) {
+    skipCount--;
+    if (skipCount > 0) {
+      return;
+    } else {
+      console.log("Skipped too long, reseting");
+    }
+  }
+  skipCount = 15; 
+
+  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  
+  var request = $.ajax({
+    type: "POST",
+    url: url,
+  })
+  
+  request.done(function( data ) {
+    var imageViewer = document.getElementById("render");
+    imageViewer.setAttribute("src", url);
+  });
+ 
+  request.fail(function( jqXHR, textStatus ) {
+    alert( "Request failed: " + textStatus );
+    unspin();
+  });
+}
+
+function setQuality(q) {
+  quality = q;
+}
 /*
 function getRender() {
   //spin('preview');
@@ -301,11 +352,7 @@ function isWebGLSupported() {
 
 function spin(process) {
   if (process == null || process == 'preview') {
-    jQuery('#preview-button').hide();
     jQuery('#loading').show();
-  } else if (process == 'printability') {
-    jQuery('#printability-button').hide();
-    jQuery('#checking').show();
   } else if (process == 'save') {
     jQuery('#save-button').hide();
     jQuery('#saving').show();
@@ -313,15 +360,10 @@ function spin(process) {
     jQuery('#upload-button').hide();
     jQuery('#uploading').show();
   }
-//  jQuery('#save-cover').show();
-//  jQuery('#save-button').css('color', '#777777');
 }
 
 function unspin() {
   jQuery("#loading").hide();
-  jQuery("#preview-button").show();
-  jQuery("#checking").hide();
-  jQuery("#printability-button").show();
   jQuery("#saving").hide();
   jQuery("#save-button").show();
   jQuery("#uploading").hide();
