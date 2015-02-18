@@ -17,6 +17,9 @@ import abfab3d.param.Vector3dParameter;
 import abfab3d.util.Vec;
 import abfab3d.util.VecTransform;
 
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
+
 import javax.vecmath.Vector3d;
 
 /**
@@ -25,13 +28,19 @@ import javax.vecmath.Vector3d;
 public class Translation extends BaseTransform implements VecTransform {
 
     protected double tx = 1, ty = 1, tz = 1;
+    protected Vector3dParameter  mp_trans = new Vector3dParameter("translation","translation",new Vector3d(0,0,0));
+
+    protected Parameter m_aparam[] = new Parameter[]{
+        mp_trans
+    };
+
 
     /**
      * identity transform
      */
     public Translation() {
-
-        this(0, 0, 0);
+        initParams();        
+        setTranslation(0,0,0);
     }
 
     /**
@@ -40,7 +49,8 @@ public class Translation extends BaseTransform implements VecTransform {
      * @param p vector of translation
      */
     public Translation(Vector3d p) {
-        this(p.x, p.y, p.z);
+        initParams();
+        setTranslation(p.x,p.y,p.z);
     }
 
     /**
@@ -56,10 +66,10 @@ public class Translation extends BaseTransform implements VecTransform {
     }
 
     public void initParams() {
-        super.initParams();
 
-        Parameter p = new Vector3dParameter("translation");
-        params.put(p.getName(), p);
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
+        }
     }
 
     /**
@@ -70,7 +80,7 @@ public class Translation extends BaseTransform implements VecTransform {
         this.tx = tx;
         this.ty = ty;
         this.tz = tz;
-        ((Vector3dParameter) params.get("translation")).setValue(new Vector3d(tx, ty, tz)); // broken, commented VB
+        mp_trans.setValue(new Vector3d(tx, ty, tz));
     }
 
     /**

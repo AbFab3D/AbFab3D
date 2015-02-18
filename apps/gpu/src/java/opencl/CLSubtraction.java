@@ -29,7 +29,7 @@ import static abfab3d.util.Output.printf;
 
    @author Vladimir Bulatov
  */
-public class CLSubtraction implements CLCodeGenerator {
+public class CLSubtraction extends CLNodeBase {
 
     static int OPCODE = Opcodes.oBLENDMAX;
     static int STRUCTSIZE = 4;
@@ -40,27 +40,34 @@ public class CLSubtraction implements CLCodeGenerator {
 
         Subtraction sub = (Subtraction)node;
 
-        double blendWidth = ((DoubleParameter)sub.getParam("blend")).getValue();
-        printf("sub.blend: %f\n", blendWidth);
 
         SNode[] children = sub.getChildren();
-        if(children.length == 0) {
+        if(children.length < 2) {
             // no children - do nothing 
             return 0;
         }
         
-        int wcount = 0;
+        double blendWidth = ((DoubleParameter)sub.getParam("blend")).getValue();
+
+        int wcount =  super.getTransformCLCode(node,codeBuffer);
+
         // save working register 
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_D2, codeBuffer);
+
         // we calculate shapes in opposite order to save resisters movement 
         Parameterizable child = (Parameterizable)children[1];
         CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)child);
+
+        wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);                   
         wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
+        wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);                   
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D1D2, codeBuffer);
 
         child = (Parameterizable)children[0];
         clnode = CLNodeFactory.getCLNode((Parameterizable)child);
+        wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);                   
         wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
+        wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);                   
         // 
         // subtraction(D1, D2, D2) 
         //
@@ -77,6 +84,9 @@ public class CLSubtraction implements CLCodeGenerator {
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D2D1, codeBuffer);           
         // restore working register 
         wcount += CLUtils.addOPCode(Opcodes.oPOP_D2, codeBuffer);
-        return wcount;
+        // get material code 
+        wcount +=  super.getMaterialCLCode(node,codeBuffer);
+ 
+       return wcount;
     }
 }

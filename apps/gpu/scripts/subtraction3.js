@@ -15,6 +15,7 @@ function main(args) {
 	var b = 25*MM;
     var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
     var diff = new Subtraction(cross3D(size, thickness), cross3D(size, 0.7*thickness));
+	
     var maker = new GridMaker();
     maker.setSource(diff);
     maker.makeGrid(grid);

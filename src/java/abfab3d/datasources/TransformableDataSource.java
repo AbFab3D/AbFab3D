@@ -71,13 +71,29 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
         m_transform = transform; 
     }
 
+    /**
+       @return Transformation the object
+     */
+    public VecTransform getTransform() {
+        return m_transform;
+    }
+
+
+    /**
+     * set objects material 
+     * @param material Material to apply to the object after it is rendered
+     */
     public void setMaterial(DataSource material){
         m_material = material; 
     }
 
-    public VecTransform getTransform() {
-        return m_transform;
+    /**
+       @return Material of the object 
+     */
+    public DataSource getMaterial() {
+        return m_material;
     }
+
 
     /**
      * @noRefGuide

@@ -19,42 +19,39 @@ import abfab3d.param.Vector3dParameter;
 
 import static opencl.CLUtils.floatToInt;
 
+import static abfab3d.util.Output.printf;
+
 /**
-   CL code generatror for sphere
+   CL code generator for translation
    @author Vladimir Bulatov 
  */
-public class CLSphere   extends CLNodeBase {
+public class CLTranslation implements CLCodeGenerator {
 
-    static int OPCODE = Opcodes.oSPHERE;
+    static final boolean DEBUG = false;
+
+    static int OPCODE = Opcodes.oTRANSLATION;
     static int STRUCTSIZE = 8;
     
+
     int buffer[] = new int[STRUCTSIZE];
     
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
         
-        int wcount =  super.getTransformCLCode(node,codeBuffer);
-        
-        DoubleParameter pradius = (DoubleParameter)node.getParam("radius");
-        double radius = pradius.getValue();
-        Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
+        if(DEBUG)printf("CLTranslation(%s)\n", node);
+        Vector3d trans = ((Vector3dParameter)node.getParam("translation")).getValue();
+
+        if(DEBUG)printf("trans(%7.5f,%7.5f,%7.5f)\n", trans.x,trans.y,trans.z);
         
         int c = 0;
         buffer[c++] = STRUCTSIZE;
         buffer[c++] = OPCODE;
-        buffer[c++] = floatToInt(radius);        
-        c++; // align to 4 words boundary 
-        buffer[c++] = floatToInt(center.x);
-        buffer[c++] = floatToInt(center.y);
-        buffer[c++] = floatToInt(center.z);
+        c += 2;  // align to 4 words boundary 
+        buffer[c++] = floatToInt(trans.x);
+        buffer[c++] = floatToInt(trans.y);
+        buffer[c++] = floatToInt(trans.z);
         buffer[c++] = 0;
 
         codeBuffer.add(buffer, STRUCTSIZE);
-
-        wcount += STRUCTSIZE;
-       
-        wcount +=  super.getMaterialCLCode(node,codeBuffer);
-       
-        return wcount;
-     }
-
+        return STRUCTSIZE;
+    }
 }

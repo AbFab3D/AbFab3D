@@ -20,29 +20,29 @@ import abfab3d.param.Vector3dParameter;
 import static opencl.CLUtils.floatToInt;
 
 /**
-   CL code generatror for sphere
+   CL code generator for torus
    @author Vladimir Bulatov 
  */
-public class CLSphere   extends CLNodeBase {
+public class CLTorus   extends CLNodeBase {
 
-    static int OPCODE = Opcodes.oSPHERE;
+    static int OPCODE = Opcodes.oTORUS;
     static int STRUCTSIZE = 8;
     
     int buffer[] = new int[STRUCTSIZE];
     
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
-        
+
         int wcount =  super.getTransformCLCode(node,codeBuffer);
-        
-        DoubleParameter pradius = (DoubleParameter)node.getParam("radius");
-        double radius = pradius.getValue();
+
+        double rin = ((DoubleParameter)node.getParam("rin")).getValue();
+        double rout = ((DoubleParameter)node.getParam("rout")).getValue();
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         
         int c = 0;
         buffer[c++] = STRUCTSIZE;
         buffer[c++] = OPCODE;
-        buffer[c++] = floatToInt(radius);        
-        c++; // align to 4 words boundary 
+        buffer[c++] = floatToInt(rin);        
+        buffer[c++] = floatToInt(rout);        
         buffer[c++] = floatToInt(center.x);
         buffer[c++] = floatToInt(center.y);
         buffer[c++] = floatToInt(center.z);

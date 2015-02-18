@@ -29,7 +29,9 @@ public class CLNodeFactory {
         sm_map.put("Subtraction", "opencl.CLSubtraction");
         sm_map.put("Sphere", "opencl.CLSphere");
         sm_map.put("Gyroid", "opencl.CLGyroid");
+        sm_map.put("Torus", "opencl.CLTorus");
         sm_map.put("Box", "opencl.CLBox");
+        sm_map.put("Translation", "opencl.CLTranslation");
     }
     
     public CLNodeFactory(){        
