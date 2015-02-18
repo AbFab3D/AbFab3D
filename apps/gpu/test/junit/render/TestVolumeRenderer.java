@@ -1013,4 +1013,11 @@ class ResultsListener implements TransferResultsListener {
         }
 
     }
+
+
+    public static void main(String arg[]) throws Exception {
+        
+        new TestVolumeRenderer().testVersionSpeed();
+    }
+
 }

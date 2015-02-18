@@ -52,7 +52,14 @@
 
     <target name="compileTest" depends="init" description="Compile all Test source files">
         <mkdir dir="${test.classes.dir}" />
-
+        <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="render" jars="**/*.jar" >
+            <classpath-elements>
+                <pathelement path="${classes.dir}"/>
+                <pathelement path="${app.common.dir}/classes"/>
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${abfab3d.lib.dir}"/>
+            </classpath-elements>
+        </compilejava>
         <compilejava destdir="${test.classes.dir}" srcdir="${test.dir}" package="gpu" jars="**/*.jar" >
             <classpath-elements>
                 <pathelement path="${classes.dir}"/>
@@ -347,6 +354,19 @@
                 <fileset dir="${abfab3d.lib.dir}"/>
                 <pathelement path="${app.common.dir}/classes"/>
                 <!--                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> -->
+            </classpath>
+        </java>
+    </target>
+
+    <target name="runMain" depends="compile,compileTest" description="Run main of the specified class">
+        <echo message="jvmargs: ${jvmrunargs}" />
+        <java classname="${class}" fork="true">
+            <jvmarg line="${jvmrunargs}"/>
+            <classpath>
+                <pathelement path="${classes.dir}" />
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
+                <pathelement path="${test.classes.dir}" />
+                <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" /> 
             </classpath>
         </java>
     </target>
