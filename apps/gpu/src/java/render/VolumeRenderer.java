@@ -523,8 +523,8 @@ public class VolumeRenderer {
         int localWorkSizeX = 8; // this seems the fastest not sure why
         int localWorkSizeY = 8;
 
-        localWorkSizeX = 0; // this seems the fastest not sure why
-        localWorkSizeY = 0;
+        localWorkSizeX = 8; // this seems the fastest not sure why
+        localWorkSizeY = 8;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
@@ -599,8 +599,8 @@ public class VolumeRenderer {
         int localWorkSizeX = 8; // this seems the fastest not sure why
         int localWorkSizeY = 8;
 
-        //localWorkSizeX = 0;
-        //localWorkSizeY = 0;
+        localWorkSizeX = 8;
+        localWorkSizeY = 8;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);

@@ -79,7 +79,12 @@ public class VolumeScene {
     }
 
     public void setCLCode(CLCodeBuffer codeBuffer){
+
         this.codeBuffer = codeBuffer;
+
+        if (codeBuffer.opCount() == 0) {
+            throw new IllegalArgumentException("Empty CL code");
+        }
     }
 
    public CLCodeBuffer getCLCode(){

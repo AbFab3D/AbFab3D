@@ -6,6 +6,8 @@ import abfab3d.util.DataSource;
 import com.jogamp.opencl.*;
 import com.objectplanet.image.PngEncoder;
 import datasources.Instruction;
+import opencl.CLCodeBuffer;
+import opencl.CLCodeMaker;
 import org.apache.commons.io.FileUtils;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
@@ -144,6 +146,20 @@ public class ImageRenderer {
 
     public void setVersion(String version) {
         this.VERSION = version;
+    }
+
+    public String getVersion() {
+        return VERSION;
+    }
+
+    public long getLastKernelTime() {
+        long ret_val = 0;
+
+        for(int i=0; i < render.length; i++) {
+            ret_val = Math.max(render[i].getLastKernelTime(),ret_val);
+        }
+
+        return ret_val;
     }
 
     private void allocBuffers(int width, int height, int frames, int frameX) {
@@ -361,24 +377,42 @@ public class ImageRenderer {
     private void makeRender(String jobID, String script, Map<String,Object> params, boolean useCache, float quality, Matrix4f view,
                             int pixX, int pixY, int width, int height,
                             int[] pixels, BufferedImage image) {
-        List<Instruction> inst = null;
 
-        if (useCache && jobID != null && params.size() == 0) {
-            inst = cache.get(jobID);
-        }
-        if (inst == null) {
-            inst = loadScript(script,params);
+        VolumeScene vscene = new VolumeScene(new ArrayList(), null, "", VERSION);
+
+        if (VERSION.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+            ShapeJSEvaluator eval = new ShapeJSEvaluator();
+            Bounds bounds = new Bounds();
+            DataSource source = eval.runScript(script, bounds,params);
+
+            Vector3d scale;
+            scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
+            worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
+
+            CLCodeMaker maker = new CLCodeMaker();
+            CLCodeBuffer ops = maker.makeCLCode((Parameterizable) source);
+            vscene.setCLCode(ops);
+        } else{
+            List<Instruction> inst = null;
+
+            if (useCache && jobID != null && params.size() == 0) {
+                inst = cache.get(jobID);
+            }
             if (inst == null) {
-                throw new IllegalArgumentException("Script failed to load: " + script);
-            }
-            if (inst.size() > 0 && jobID != null && useCache) {
-                cache.put(jobID, inst);
+                inst = loadScript(script, params);
+                if (inst == null) {
+                    throw new IllegalArgumentException("Script failed to load: " + script);
+                }
+                if (inst.size() > 0 && jobID != null && useCache) {
+                    cache.put(jobID, inst);
+                }
+
+            } else {
+                lastLoadScriptTime = 0;
             }
 
-        } else {
-            lastLoadScriptTime = 0;
+            vscene.setInstructions(inst);
         }
-        VolumeScene vscene = new VolumeScene(new ArrayList(), inst, "", VERSION);
 
         for (int i = 0; i < numRenderers; i++) {
             if (quality >= 0.75) {
@@ -413,8 +447,13 @@ public class ImageRenderer {
         for (int i = 0; i < numTiles; i++) {
             RenderTile tile = tiles[i];
 
-            tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
-                    worldScale, tile.getDest());
+            if (VERSION.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+                tile.getRenderer().renderStruct(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale, tile.getDest());
+            }  else {
+                tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale, tile.getDest());
+            }
             tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
         }
 
