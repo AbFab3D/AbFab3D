@@ -106,10 +106,6 @@ public class ImageRenderer {
         }
 
 
-        // TODO: remove me
-        printf("Debugging with CPU");
-        tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
-
         tile.setContext(CLContext.create(tile.getDevice()));
 
         tile.setQueue(tile.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
