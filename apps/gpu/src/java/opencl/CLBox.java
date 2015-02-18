@@ -20,7 +20,11 @@ import static opencl.CLUtils.floatToInt;
 
 import static abfab3d.util.Units.MM;
 
-public class CLBox  implements CLCodeGenerator {
+/**
+   CL code generatror for box
+   @author Vladimir Bulatov 
+ */
+public class CLBox  extends CLNodeBase {
 
     static int OPCODE = Opcodes.oBOX;
     static int STRUCTSIZE = 12;
@@ -28,7 +32,9 @@ public class CLBox  implements CLCodeGenerator {
     int buffer[] = new int[STRUCTSIZE];
     
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
-        
+
+        int wcount =  super.getTransformCLCode(node,codeBuffer);
+
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();
         double rounding = ((DoubleParameter)node.getParam("rounding")).getValue();
@@ -48,7 +54,11 @@ public class CLBox  implements CLCodeGenerator {
         buffer[c++] = 0;// alignment
 
         codeBuffer.add(buffer, STRUCTSIZE);
-        return STRUCTSIZE;
+        wcount += STRUCTSIZE;
+
+        wcount +=  super.getMaterialCLCode(node,codeBuffer);
+       
+        return wcount;
                
     }
 }

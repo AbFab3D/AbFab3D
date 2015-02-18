@@ -10,7 +10,11 @@ import static java.lang.Math.PI;
 import static opencl.CLUtils.floatToInt;
 
 
-public class CLGyroid implements CLCodeGenerator {
+/**
+   CL code generatror for gyroid 
+   @author Vladimir Bulatov 
+ */
+public class CLGyroid extends CLNodeBase {
 
     static int OPCODE = Opcodes.oGYROID;
 
@@ -19,6 +23,8 @@ public class CLGyroid implements CLCodeGenerator {
     int buffer[] = new int[STRUCTSIZE];
     
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
+
+        int wcount =  super.getTransformCLCode(node,codeBuffer);
 
         DoubleParameter plevel = (DoubleParameter)node.getParam("level");
         double level = plevel.getValue();
@@ -46,7 +52,12 @@ public class CLGyroid implements CLCodeGenerator {
         buffer[c++] = 0;
 
         codeBuffer.add(buffer, STRUCTSIZE);
-        return STRUCTSIZE;
+
+        wcount += STRUCTSIZE;
+       
+        wcount +=  super.getMaterialCLCode(node,codeBuffer);
+       
+        return wcount;
     }
     
 }

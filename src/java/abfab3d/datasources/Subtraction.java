@@ -19,6 +19,8 @@ package abfab3d.datasources;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeParameter;
+import abfab3d.param.DoubleParameter;
+
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -48,6 +50,16 @@ public class Subtraction extends TransformableDataSource implements SNode {
     DataSource dataSource1;
     DataSource dataSource2;
 
+    SNodeParameter mp_shape1 = new SNodeParameter("shape1");
+    SNodeParameter mp_shape2 = new SNodeParameter("shape2");
+    DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_shape1,
+        mp_shape2,
+        mp_blendWidth,
+    };    
+
     /**
        shape which is result of subtracting shape2 from shape1
      */
@@ -62,22 +74,20 @@ public class Subtraction extends TransformableDataSource implements SNode {
      * @noRefGuide
      */
     protected void initParams() {
-        super.initParams();
-        Parameter p = new SNodeParameter("shape1");
-        params.put(p.getName(), p);
 
-        p = new SNodeParameter("shape2");
-        params.put(p.getName(),p);
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
+        }
     }
 
     public void setShape1(DataSource shape1) {
         dataSource1 = shape1;
-        ((SNodeParameter) params.get("shape1")).setValue(shape1);
+        mp_shape1.setValue(shape1);
     }
 
     public void setShape2(DataSource shape2) {
+        mp_shape2.setValue(shape2);
         dataSource2 = shape2;
-        ((SNodeParameter) params.get("shape2")).setValue(shape2);
     }
 
     /**
