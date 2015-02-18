@@ -177,7 +177,7 @@ public class TestVolumeRenderer extends TestCase {
         // Do these items once for the servlet.  Should be per-thread resources
         ImageRenderer render = new ImageRenderer();
 //        render.setVersion(VolumeRenderer.VERSION_OPCODE_V3_DIST);
-        render.setVersion(VolumeRenderer.VERSION_OPCODE_V2_DIST);
+        render.setVersion(VolumeRenderer.VERSION_DIST);
         render.initCL(1, width, height);
         int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
 
@@ -192,7 +192,7 @@ public class TestVolumeRenderer extends TestCase {
 
         String jobID = UUID.randomUUID().toString();
 
-        int TIMES = 20;
+        int TIMES = 3;
 
 //        String script = "scripts/dodecahedron.js";
         String script = "function main(args) {\n" +
@@ -224,9 +224,10 @@ public class TestVolumeRenderer extends TestCase {
 
         HashMap<String,Object> params = new HashMap<String, Object>();
         long[] times = new long[TIMES];
+        int base = 0;
 
         for (int i = 0; i < TIMES; i++) {
-            params.put("num",(i+1));
+            params.put("num",base + (i+1));
             ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
             BufferedOutputStream bos = new BufferedOutputStream(baos);
             t0 = System.nanoTime();
@@ -234,15 +235,14 @@ public class TestVolumeRenderer extends TestCase {
             times[i] = render.getLastKernelTime();
             if (DEBUG) {
                 bos.close();
-                FileUtils.writeByteArrayToFile(new File("/tmp/render_speed_" + i + ".jpg"),baos.toByteArray());
+                FileUtils.writeByteArrayToFile(new File("/tmp/render_speed_" + (base+i) + ".jpg"),baos.toByteArray());
             }
-
         }
 
         printf("Version: %s\n",render.getVersion());
 
         for(int i=0; i < TIMES; i++) {
-            printf("%d %d ms\n",i,((int) (times[i] / 1e6)));
+            printf("%d %3.2f ms\n",i,times[i] / 1e6);
         }
     }
 

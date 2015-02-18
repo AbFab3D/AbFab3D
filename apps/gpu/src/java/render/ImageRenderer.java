@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
 import shapejs.ShapeJSEvaluator;
+import viewer.OpenCLWriter;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3d;
@@ -106,7 +107,6 @@ public class ImageRenderer {
         } else {
             tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
         }
-
 
         tile.setContext(CLContext.create(tile.getDevice()));
 
@@ -392,7 +392,18 @@ public class ImageRenderer {
             CLCodeMaker maker = new CLCodeMaker();
             CLCodeBuffer ops = maker.makeCLCode((Parameterizable) source);
             vscene.setCLCode(ops);
-        } else{
+        } else if (VERSION.equals(VolumeRenderer.VERSION_DIST)) {
+            ShapeJSEvaluator eval = new ShapeJSEvaluator();
+            Bounds bounds = new Bounds();
+            DataSource source = eval.runScript(script, bounds,params);
+
+            Vector3d scale;
+            scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
+            worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
+            OpenCLWriter writer = new OpenCLWriter();
+            vscene.setCode(writer.generate((Parameterizable) source, scale));
+            printf("OpenCL Code: \n%s",vscene.getCode());
+        } else {
             List<Instruction> inst = null;
 
             if (useCache && jobID != null && params.size() == 0) {
@@ -450,7 +461,9 @@ public class ImageRenderer {
             if (VERSION.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
                 tile.getRenderer().renderStruct(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
                         worldScale, tile.getDest());
-            }  else {
+            }  else if (VERSION.equals(VolumeRenderer.VERSION_DIST)) {
+                tile.getRenderer().render(inv_view, tile.getWidth(), tile.getHeight(), tiles[0].getView(), render[i].getCommandQueue(), tile.getDest());
+            } else {
                 tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
                         worldScale, tile.getDest());
             }

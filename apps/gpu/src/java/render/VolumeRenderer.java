@@ -29,7 +29,7 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean STATS = true;
     private static final boolean CACHE_PROGRAM = true;
     private static final String CACHE_LOCATION = "/tmp/openCL_cache";
@@ -109,10 +109,11 @@ public class VolumeRenderer {
                 kernel_name = "render";
             }
             printf("Building program with opts: %s\n", buildOpts);
+            program = null;
 
             boolean from_cache = false;
             try {
-                if (CACHE_PROGRAM) {
+                if (CACHE_PROGRAM && !renderVersion.equals(VERSION_DIST)) {
                     CLDevice[] devices = context.getDevices();
                     int len = devices.length;
                     HashMap<CLDevice, byte[]> bins = new HashMap<CLDevice, byte[]>();
@@ -224,7 +225,7 @@ public class VolumeRenderer {
             if (DEBUG) printf("Build status: %s\n",program.getBuildStatus());
             if (!program.isExecutable()) return false;
 
-            if (CACHE_PROGRAM && !from_cache) {
+            if (CACHE_PROGRAM && !from_cache && !renderVersion.equals(VERSION_DIST)) {
                 printf("Caching program\n");
                 Map<CLDevice,byte[]> bins = program.getBinaries();
 
@@ -666,9 +667,6 @@ public class VolumeRenderer {
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX, width);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,height);
 
-        view.invert();
-        //printf("inv view: \n%s\n",view);
-
         viewData[0] = view.m00;
         viewData[1] = view.m01;
         viewData[2] = view.m02;
@@ -716,6 +714,7 @@ public class VolumeRenderer {
         int idx = 1;
         if (usingGL) idx++;
         kernelTime = list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.END) - list.getEvent(idx).getProfilingInfo(CLEvent.ProfilingCommand.START);
+
         /*
         for(int i=0; i < list.size(); i++) {
             CLEvent event = list.getEvent(i);
@@ -723,6 +722,7 @@ public class VolumeRenderer {
                     - event.getProfilingInfo(CLEvent.ProfilingCommand.START))/1000000.0);
         }
         */
+
 
         renderTime = System.nanoTime() - t0;
     }
