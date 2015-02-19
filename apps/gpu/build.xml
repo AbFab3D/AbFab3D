@@ -71,14 +71,13 @@
     </target>
 
     <target name="compile" depends="init" description="Compile all Java source files">
-        <compilejava package="gpu"
-                     jars="jocl.jar commons-pool2-2.3.jar gluegen-rt.jar" >
-            <classpath-elements>
+        <compilejava package="gpu" jars="jocl.jar commons-pool2-2.3.jar gluegen-rt.jar">
+        <classpath-elements>
                 <pathelement path="${app.common.dir}/classes"/>
                 <pathelement path="${abfab3d.classes.dir}"/>
                 <fileset dir="${abfab3d.lib.dir}"/>
             </classpath-elements>
-        </compilejava>
+        </compilejava>   
         <compilejava package="opencl" jars="" >
             <classpath-elements>
                 <pathelement path="${app.common.dir}/classes"/>

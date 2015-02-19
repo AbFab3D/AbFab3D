@@ -130,6 +130,21 @@ public class Bounds implements Cloneable {
         
     }
 
+    /**
+       expand bounds by given margins 
+       @param marging amount of expansion. if (margin < 0) bounds shrink 
+     */
+    public void expand(double margin){
+
+        xmin -= margin;
+        xmax += margin;
+        ymin -= margin;
+        ymax += margin;
+        zmin -= margin;
+        zmax += margin;
+
+    }
+
     public String toString(){
         return fmt("%9.7f %9.7f %9.7f %9.7f %9.7f %9.7f",xmin, xmax, ymin, ymax, zmin, zmax);
     }

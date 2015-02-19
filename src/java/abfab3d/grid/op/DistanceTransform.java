@@ -46,16 +46,6 @@ public class DistanceTransform {
                 
         densityGrid.getGridBounds(bounds);
         double vs = densityGrid.getVoxelSize();
-        /*
-        if(margins > 0){
-            bounds = MathUtil.extendBounds(bounds, margins);
-            bounds = MathUtil.roundBounds(bounds, vs);
-            int[] gs = MathUtil.getGridSize(bounds,vs);
-            nx = gs[0];
-            ny = gs[1];
-            nz = gs[2];
-        }            
-        */        
         AttributeGrid distGrid = null;
         if(m_distanceGridTemplate != null)
             distGrid = (AttributeGrid)m_distanceGridTemplate.createEmpty(nx, ny, nz, vs, vs);

@@ -1,4 +1,4 @@
-package viewer;
+package render;
 
 import abfab3d.param.*;
 import abfab3d.datasources.TransformableDataSource;
@@ -43,6 +43,7 @@ public class OpenCLWriter {
     private NumberFormat format = new DecimalFormat("####.0####");
     static {
         boxExclude = new HashSet<String>();
+        boxExclude.add("rounding");
         boxExclude.add("size");
         boxExclude.add("center");
 

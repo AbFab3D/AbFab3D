@@ -124,7 +124,7 @@ public class DistanceTransformExact extends DistanceTransform implements Operati
 
         m_defaultValue = Short.MAX_VALUE;
 
-        // bal radius normalized to maxAttribute 
+        // ball radius normalized to maxAttribute 
         int ballRadius = max(m_maxInDistance, m_maxOutDistance);
 
 

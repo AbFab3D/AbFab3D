@@ -579,7 +579,7 @@ public class ShapeJSGlobal {
             }
             System.out.println("arg: " + i + " val: " + st);
         }
-        if (args.length == 1) {
+        if (args.length == 1) {  // grid 
             if (args[0] instanceof AttributeGrid) {
                 AttributeGrid grid = (AttributeGrid) args[0];
                 grid.getGridBounds(grid_bounds);
@@ -589,7 +589,7 @@ public class ShapeJSGlobal {
                 grid.getGridBounds(grid_bounds);
                 vs = grid.getVoxelSize();
             }
-        } else if (args.length == 2) {
+        } else if (args.length == 2) {  // Bounds, voxelSize
             Bounds bounds;
             if (args[0] instanceof Bounds) {
                 bounds = (Bounds) args[0];
@@ -603,7 +603,7 @@ public class ShapeJSGlobal {
             grid_bounds[4] = bounds.zmin;
             grid_bounds[5] = bounds.zmax;                
             vs = getDouble(args[1]); 
-        } else if (args.length == 4) {
+        } else if (args.length == 4) {  // grid, sizex, sizey, sizez 
             if (args[0] instanceof AttributeGrid) {
                 AttributeGrid grid = (AttributeGrid) args[0];
                 grid.getGridBounds(grid_bounds);
@@ -623,7 +623,7 @@ public class ShapeJSGlobal {
             grid_bounds[3] += y;
             grid_bounds[4] -= z;
             grid_bounds[5] += z;
-        } else if (args.length == 7) {
+        } else if (args.length == 7) {  // bounds[], voxleSize
             grid_bounds[0] = getDouble(args[0]);
             grid_bounds[1] = getDouble(args[1]);
             grid_bounds[2] = getDouble(args[2]);

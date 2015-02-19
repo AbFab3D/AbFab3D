@@ -169,13 +169,13 @@ public class TestVolumeRenderer extends TestCase {
     }
 
     public void testVersionSpeed() throws Exception {
+
         int width = 512;
         int height = 512;
 
         long t0 = System.nanoTime();
 
         // Do these items once for the servlet.  Should be per-thread resources
-        ImageRenderer render = new ImageRenderer();
         //render.setVersion(VolumeRenderer.VERSION_OPCODE_V2_DIST);
         //render.setVersion(VolumeRenderer.VERSION_OPCODE_V3_DIST);
         render.setVersion(VolumeRenderer.VERSION_DIST);
@@ -186,46 +186,59 @@ public class TestVolumeRenderer extends TestCase {
         byte[] buff = new byte[MAX_IMG_SIZE];
         int[] pixels = new int[width * height];
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-        printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
+        double initCLTime = ((System.nanoTime() - t0) / 1e6);
+        printf("initCL time: %6.0f ms\n", initCLTime);
 
         // End of per-thread resources
 
         String jobID = UUID.randomUUID().toString();
 
-        int TIMES = 20;
+        int TIMES = 6;
 
 //        String script = "scripts/dodecahedron.js";
-        String script = "function main(args) {\n" +
-                "    var radius = 15 * MM;\n" +
-                "    var num = args['num'];\n" +
-                "    var gs = 2*radius;\n" +
-                "    var grid = createGrid(-gs, gs, -gs, gs, -gs, gs, 0.1 * MM);\n" +
-                "\n" +
-                "    var result;\n" +
-                "    if (num == 1) {\n" +
-                "        result = new Sphere(0,0,0,radius);\n" +
-                "    } else {\n" +
-                "        var union = new Union();\n" +
-                "\t\t\n" +
-                "\t\tvar x0 = -radius;\n" +
-                "\t\tvar dx = 2*radius/(num-1);\n" +
-                "        for (i = 0; i < num; i++) {\n" +
-                "            union.add(new Sphere(x0 + dx*i, 0, 0, radius));\n" +
-                "        }\n" +
-                "        result = union;\n" +
-                "    }\n" +
-                "    var maker = new GridMaker();\n" +
-                "    maker.setSource(result);\n" +
-                "    maker.makeGrid(grid);\n" +
-                "\n" +
-                "    return grid;\n" +
-                "}\n";
-
+        String script = 
+            "function main(args) {                                         \n"+
+            "  var radius = 15 * MM;                                       \n"+
+            "  var num = args['num'];                                      \n"+
+            "  var gs = 2*radius;                                          \n"+
+            "  var grid = createGrid(-gs, gs, -gs, gs, -gs, gs, 0.1 * MM); \n"+
+            "  var result;                                                 \n"+
+            "  if (num == 1) {                                             \n"+
+            "    result = new Sphere(0,0,0,radius);                        \n"+
+            "  } else {                                                    \n"+
+            "    var union = new Union();                                  \n"+
+            "    var x0 = -radius;                                         \n"+
+            "    var dx = 2*radius/(num-1);                                \n"+
+            "    for (i = 0; i < num; i++) {                               \n"+
+            "      var x = x0 + dx * i;                                    \n"+
+            "      var y = radius;                                         \n"+
+            "      union.add(new Sphere(x, -y, 0, radius));                \n"+
+            "      union.add(new Box(x,y, 0,radius/2 ,radius/2,radius/2)); \n"+
+            "    }                                                         \n"+
+            "    result = union;                                           \n"+
+            "  }                                                           \n"+
+            "  var maker = new GridMaker();                                \n"+
+            "  maker.setSource(result);                                    \n"+
+            "  maker.makeGrid(grid);                                       \n"+
+            "  return grid;                                                \n"+
+            "}                                                             \n";
 
         HashMap<String,Object> params = new HashMap<String, Object>();
-        long[] times = new long[TIMES];
+        ImageRenderer.TimeStat[] times = new ImageRenderer.TimeStat[TIMES];
         int base = 0;
+
+        for (int i = 0; i < 3; i++) {
+            // to warm up 
+            params.put("num",base + (i+1));
+            ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
+            BufferedOutputStream bos = new BufferedOutputStream(baos);
+            t0 = System.nanoTime();
+            render.render(jobID, script, params, getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);            
+            if (DEBUG) {
+                bos.close();
+                FileUtils.writeByteArrayToFile(new File("/tmp/render_speed_" + (base+i) + ".jpg"),baos.toByteArray());
+            }
+        }
 
         for (int i = 0; i < TIMES; i++) {
             params.put("num",base + (i+1));
@@ -233,7 +246,8 @@ public class TestVolumeRenderer extends TestCase {
             BufferedOutputStream bos = new BufferedOutputStream(baos);
             t0 = System.nanoTime();
             render.render(jobID, script, params, getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);
-            times[i] = render.getLastKernelTime();
+            times[i] = render.getTimeStat();
+            
             if (DEBUG) {
                 bos.close();
                 FileUtils.writeByteArrayToFile(new File("/tmp/render_speed_" + (base+i) + ".jpg"),baos.toByteArray());
@@ -241,9 +255,10 @@ public class TestVolumeRenderer extends TestCase {
         }
 
         printf("Version: %s\n",render.getVersion());
-
+        printf("initCL time: %6.0f ms\n", initCLTime);
+        printf("count %s\n",times[0].getHeader());
         for(int i=0; i < TIMES; i++) {
-            printf("%d %3.2f ms\n",i,times[i] / 1e6);
+            printf("%5d %s\n",(i+1),times[i].toString());
         }
     }
 
@@ -922,6 +937,8 @@ public class TestVolumeRenderer extends TestCase {
         //printf("alloc time: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
         return image;
     }
+
+
     public static void main(String arg[]) throws Exception {
         
         new TestVolumeRenderer().testVersionSpeed();

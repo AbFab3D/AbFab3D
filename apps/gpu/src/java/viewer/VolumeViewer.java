@@ -17,6 +17,7 @@ import abfab3d.util.DataSource;
 import abfab3d.util.Units;
 import datasources.Instruction;
 import opencl.CLCodeBuffer;
+import render.OpenCLWriter;
 import render.OpenCLOpWriter;
 import render.OpenCLOpWriterV2;
 import render.VolumeRenderer;

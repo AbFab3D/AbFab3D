@@ -12,7 +12,6 @@ import org.apache.commons.io.FileUtils;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
 import shapejs.ShapeJSEvaluator;
-import viewer.OpenCLWriter;
 
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3d;
@@ -32,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 import static com.jogamp.opencl.CLDevice.Type.CPU;
 import static com.jogamp.opencl.CLDevice.Type.GPU;
 import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
@@ -56,6 +56,7 @@ public class ImageRenderer {
     private DeviceResources[] devices;
     private int numDevices;
     private float worldScale;
+    // timig params for STAT 
     private long lastLoadScriptTime;
     private long lastImageTime;
     private long lastPngTime;
@@ -152,11 +153,26 @@ public class ImageRenderer {
         return VERSION;
     }
 
+    public TimeStat getTimeStat() {
+        TimeStat ts = new TimeStat(lastLoadScriptTime,getLastCompileTime(), lastImageTime, getLastKernelTime(),lastPngTime);
+        return ts;
+    }
+
     public long getLastKernelTime() {
         long ret_val = 0;
 
         for(int i=0; i < render.length; i++) {
             ret_val = Math.max(render[i].getLastKernelTime(),ret_val);
+        }
+
+        return ret_val;
+    }
+
+    public long getLastCompileTime() {
+        long ret_val = 0;
+
+        for(int i=0; i < render.length; i++) {
+            ret_val = Math.max(render[i].getLastCompileTime(),ret_val);
         }
 
         return ret_val;
@@ -190,9 +206,6 @@ public class ImageRenderer {
             throw new IllegalArgumentException("Renderer not initialized");
         }
 
-        int width = 512;
-        int height = 512;
-
         long t0 = System.nanoTime();
 
         t0 = System.nanoTime();
@@ -207,7 +220,7 @@ public class ImageRenderer {
                 size = makeJpg(image, buff);
                 break;
         }
-        printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", 
+        printf("total size: %d time: %d ms\n  js eval: %d\n  ocl compile: %d ms\n  kernel: %d ms\n  image: %d ms\n  png: %d ms\n", 
                size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), 
                (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
@@ -226,9 +239,6 @@ public class ImageRenderer {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
-
-        int width = 512;
-        int height = 512;
 
         long t0 = System.nanoTime();
 
@@ -549,6 +559,33 @@ public class ImageRenderer {
         lastImageTime = (System.nanoTime() - t0);
         //printf("alloc time: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
         return image;
+    }
+
+    public static class TimeStat {
+        
+        public long script;
+        public long compile;
+        public long kernel;
+        public long png;
+        public long image;
+        public long total; 
+        public TimeStat(long script, long compile, long image, long kernel, long png){
+            this.script = script;
+            this.compile = compile;
+            this.image = image;
+            this.kernel = kernel;
+            this.png = png;
+            this.total = script + compile + image + kernel + png;
+            
+        }
+
+        public String getHeader(){
+            return "script  compile kernel image  png   total(ms)";
+        }
+        public String toString(){
+            double f = 1.e-6;
+            return fmt("%6.2f %6.1f %6.1f %6.1f %6.1f %6.1f", script*f,compile*f,kernel*f,image*f, png*f, total*f);
+        }
     }
 
 }
