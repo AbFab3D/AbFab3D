@@ -133,7 +133,7 @@ public class Text extends TransformableDataSource {
         m_bitmap.setBlurWidth(m_voxelSize/4);
         m_bitmap.setUseGrayscale(false);
         m_bitmap.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
-        
+        m_bitmap.setTransform(getTransform());
         
         m_bitmap.initialize();
 
@@ -148,7 +148,7 @@ public class Text extends TransformableDataSource {
      @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
-        
+
         return m_bitmap.getDataValue(pnt, data);
         
     }
