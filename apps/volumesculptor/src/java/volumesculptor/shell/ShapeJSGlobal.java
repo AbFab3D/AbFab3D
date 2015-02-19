@@ -12,6 +12,7 @@ import java.awt.image.BufferedImage;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
+import abfab3d.grid.Bounds;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.grid.op.GridMaker;
@@ -588,6 +589,20 @@ public class ShapeJSGlobal {
                 grid.getGridBounds(grid_bounds);
                 vs = grid.getVoxelSize();
             }
+        } else if (args.length == 2) {
+            Bounds bounds;
+            if (args[0] instanceof Bounds) {
+                bounds = (Bounds) args[0];
+            } else {
+                bounds = (Bounds) ((NativeJavaObject)args[0]).unwrap();
+            }
+            grid_bounds[0] = bounds.xmin;
+            grid_bounds[1] = bounds.xmax;
+            grid_bounds[2] = bounds.ymin;
+            grid_bounds[3] = bounds.ymax;
+            grid_bounds[4] = bounds.zmin;
+            grid_bounds[5] = bounds.zmax;                
+            vs = getDouble(args[1]); 
         } else if (args.length == 4) {
             if (args[0] instanceof AttributeGrid) {
                 AttributeGrid grid = (AttributeGrid) args[0];
@@ -615,7 +630,7 @@ public class ShapeJSGlobal {
             grid_bounds[3] = getDouble(args[3]);
             grid_bounds[4] = getDouble(args[4]);
             grid_bounds[5] = getDouble(args[5]);
-
+            
             vs = getDouble(args[6]);
         }  else {
             throw new IllegalArgumentException("Invalid number of arguments to CreateGrid(xmin,xmax,ymin,ymax,zmin,zmax,voxelSize)");
