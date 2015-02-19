@@ -364,8 +364,9 @@
             <jvmarg line="${jvmrunargs}"/>
             <classpath>
                 <pathelement path="${classes.dir}" />
-                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
                 <pathelement path="${test.classes.dir}" />
+                <pathelement path="${abfab3d.classes.dir}"/>
+                <fileset dir="${lib.dir}" includes="**/*.jar" excludes="" />
                 <fileset dir="natives/${os.name}/${os.arch}" includes="**/*.jar" />
                 <fileset dir="${abfab3d.lib.dir}" includes="**/*.jar" />
             </classpath>

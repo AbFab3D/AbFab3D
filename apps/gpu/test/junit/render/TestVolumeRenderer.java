@@ -176,7 +176,8 @@ public class TestVolumeRenderer extends TestCase {
 
         // Do these items once for the servlet.  Should be per-thread resources
         ImageRenderer render = new ImageRenderer();
-//        render.setVersion(VolumeRenderer.VERSION_OPCODE_V3_DIST);
+        //render.setVersion(VolumeRenderer.VERSION_OPCODE_V2_DIST);
+        //render.setVersion(VolumeRenderer.VERSION_OPCODE_V3_DIST);
         render.setVersion(VolumeRenderer.VERSION_DIST);
         render.initCL(1, width, height);
         int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
@@ -192,7 +193,7 @@ public class TestVolumeRenderer extends TestCase {
 
         String jobID = UUID.randomUUID().toString();
 
-        int TIMES = 3;
+        int TIMES = 20;
 
 //        String script = "scripts/dodecahedron.js";
         String script = "function main(args) {\n" +
@@ -921,103 +922,10 @@ public class TestVolumeRenderer extends TestCase {
         //printf("alloc time: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
         return image;
     }
-}
-
-class ResultsListener implements TransferResultsListener {
-    private int[] pixels;
-    private int[] pixel = new int[4];
-    private int width;
-    private int height;
-    private BufferedImage image;
-
-    public ResultsListener(int width, int height, int[] pixels, BufferedImage image) {
-        this.pixels = pixels;
-        this.width = width;
-        this.height = height;
-        this.image = image;
-    }
-
-    @Override
-    public void tileArrived(RenderTile tile) {
-        //writeImage(tile);
-
-        synchronized (image) {
-            long t0 = System.nanoTime();
-            //int[] pixels = new int[buffer.getBuffer().capacity()];
-            WritableRaster raster = image.getRaster();
-
-
-            int x;
-            int y;
-
-            tile.getDest().getBuffer().get(pixels).rewind();
-            int r, g, b;
-            int tw = tile.getWidth();
-            int th = tile.getHeight();
-            for (int w = 0; w < tw; w++) {
-                for (int h = 0; h < th; h++) {
-                    int packed = pixels[h * tw + w];
-
-                    b = (packed & 0x00FF0000) >> 16;
-                    g = (packed & 0x0000FF00) >> 8;
-                    r = (packed & 0x000000FF);
-                    pixel[0] = r;
-                    pixel[1] = g;
-                    pixel[2] = b;
-                    pixel[3] = 0xFFFFFFFF;
-
-                    x = tile.getX0() * tile.getWidth() + w;
-                    y = tile.getY0() * tile.getHeight() + h;
-
-                    //printf("SP: orig: %d %d\n",x,y);
-                    raster.setPixel(x, y, pixel);
-                }
-            }
-            //printf("create image: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
-        }
-    }
-
-    private void writeImage(RenderTile tile) {
-        BufferedImage image = new BufferedImage(tile.getWidth(), tile.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        int[] pixels = new int[tile.getWidth() * tile.getHeight()];
-        WritableRaster raster = image.getRaster();
-
-        int x;
-        int y;
-
-        tile.getDest().getBuffer().get(pixels).rewind();
-        int r, g, b;
-        int tw = tile.getWidth();
-        int th = tile.getHeight();
-        for (int w = 0; w < tw; w++) {
-            for (int h = 0; h < th; h++) {
-                int packed = pixels[h * tw + w];
-
-                b = (packed & 0x00FF0000) >> 16;
-                g = (packed & 0x0000FF00) >> 8;
-                r = (packed & 0x000000FF);
-                pixel[0] = r;
-                pixel[1] = g;
-                pixel[2] = b;
-                pixel[3] = 0xFFFFFFFF;
-
-                //printf("SP: orig: %d %d\n",x,y);
-                raster.setPixel(w, h, pixel);
-            }
-        }
-
-        try {
-            ImageIO.write(image, "png", new File("/tmp/tile_" + tile.getX0() + "_" + tile.getY0() + ".png"));
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
-
-    }
-
-
     public static void main(String arg[]) throws Exception {
         
         new TestVolumeRenderer().testVersionSpeed();
     }
 
 }
+
