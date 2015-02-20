@@ -32,6 +32,8 @@ public class CLNodeFactory {
         sm_map.put("Torus", "opencl.CLTorus");
         sm_map.put("Box", "opencl.CLBox");
         sm_map.put("Translation", "opencl.CLTranslation");
+        sm_map.put("Rotation", "opencl.CLRotation");
+        sm_map.put("Scale", "opencl.CLScale");
     }
     
     public CLNodeFactory(){        

@@ -19,6 +19,7 @@ import javax.vecmath.Vector3d;
 import static opencl.CLUtils.floatToInt;
 
 import static abfab3d.util.Units.MM;
+import static abfab3d.util.Output.printf;
 
 /**
    CL code generatror for box
@@ -26,6 +27,7 @@ import static abfab3d.util.Units.MM;
  */
 public class CLBox  extends CLNodeBase {
 
+    static final boolean DEBUG = true;
     static int OPCODE = Opcodes.oBOX;
     static int STRUCTSIZE = 12;
     
@@ -38,6 +40,8 @@ public class CLBox  extends CLNodeBase {
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();
         double rounding = ((DoubleParameter)node.getParam("rounding")).getValue();
+
+        if(DEBUG)printf("box([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
 
         int c = 0;
         buffer[c++] = STRUCTSIZE;

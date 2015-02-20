@@ -50,6 +50,9 @@ public class Opcodes {
         oPOP_P1          = 17,   // restore P1 from stack 
     // transformations 
         oTRANSLATION     = 18, 
+        oROTATION        = 19,
+        oSCALE           = 20,
+
     // end of operations
         oEND = 0; 
         
@@ -73,6 +76,8 @@ public class Opcodes {
         codes.put(oPUSH_P1, "PushP1");
         codes.put(oPOP_P1, "PopP1");
         codes.put(oTRANSLATION, "Translation");
+        codes.put(oROTATION, "Rotation");
+        codes.put(oSCALE, "Scale");
         
     }
 

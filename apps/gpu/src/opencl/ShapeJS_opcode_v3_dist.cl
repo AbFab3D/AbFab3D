@@ -24,6 +24,8 @@
 #define oPUSH_P1       16
 #define oPOP_P1        17
 #define oTRANSLATION   18
+#define oROTATION      19
+#define oSCALE         20
 
 #define oEND   0
 
@@ -202,6 +204,39 @@ void oTranslation(PTR sTranslation *trans, sVec *inout){
 
 }
 
+typedef struct {
+    int size;  // size of struct in words 
+    int opcode; // opcode to perform 
+    // custom parameters of DataSource 
+    float factor; 
+} sScale;
+
+void oScale(PTR sScale *pS, sVec *inout){
+    // inverse scale 
+    inout->v.xyz *= pS->factor;
+
+}
+
+typedef struct {
+    int size;  // size of struct in words 
+    int opcode; // opcode to perform 
+    // custom parameters of DataSource 
+    float3 center; 
+    float3 m0; 
+    float3 m1; 
+    float3 m2; 
+} sRotation;
+
+void oRotation(PTR sRotation *rot, sVec *inout){
+
+    float3 vec = inout->v.xyz;
+    vec -= rot->center;   
+    vec = (float3){dot(rot->m0,vec),dot(rot->m1,vec),dot(rot->m2,vec)};
+    vec += rot->center;    
+    
+    inout->v.xyz = vec;
+}
+
 
 // union to "safely" convert pointers 
 typedef union {
@@ -355,6 +390,16 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
         case oTRANSLATION:
             
             oTranslation(ptr.pv,&pnt1);
+            break;            
+
+        case oROTATION:
+            
+            oRotation(ptr.pv,&pnt1);
+            break;            
+
+        case oSCALE:
+            
+            oScale(ptr.pv,&pnt1);
             break;            
 
 

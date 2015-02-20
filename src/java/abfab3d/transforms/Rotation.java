@@ -48,7 +48,15 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
     private Matrix3d 
         mat = new Matrix3d(),
         mat_inv = new Matrix3d();
-    
+    private  double m_centerx,m_centery,m_centerz;
+
+    protected Vector3dParameter  mp_center = new Vector3dParameter("center","center of rotation",new Vector3d(0,0,0));
+    protected AxisAngle4dParameter  mp_rotation = new AxisAngle4dParameter("rotation","rotation",new AxisAngle4d(new Vector3d(1,0,0),0));
+
+    protected Parameter m_aparam[] = new Parameter[]{
+        mp_rotation,
+        mp_center
+    };
     
     /**
        identity rotation
@@ -89,13 +97,10 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
     }
 
     public void initParams() {
-        super.initParams();
 
-        Parameter p = new Vector3dParameter("center");
-        params.put(p.getName(), p);
-
-        p = new AxisAngle4dParameter("rotation");
-        params.put(p.getName(), p);
+        for(int i = 0; i < m_aparam.length; i++){
+            params.put(m_aparam[i].getName(),m_aparam[i]);
+        }
     }
 
     /**
@@ -104,11 +109,12 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
      */
     public void setRotation(Vector3d axis, double angle){
         
-        m_axis = new Vector3d(axis); 
-        m_angle = angle;
-        m_center = null;
+        //m_axis = new Vector3d(axis); 
+        //m_angle = angle;
+        axis.normalize();
+        mp_center.setValue(new Vector3d(0,0,0));
+        mp_rotation.setValue(new AxisAngle4d(axis,angle));
 
-        ((AxisAngle4dParameter) params.get("rotation")).setValue(new AxisAngle4d(axis,angle));
     }
 
     /**
@@ -117,13 +123,10 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
      */
     public void setRotation(Vector3d axis, double angle, Vector3d center){
         
-        m_axis = new Vector3d(axis); 
-        m_axis.normalize();
-        m_angle = angle;
-        m_center = new Vector3d(center);
+        axis.normalize();
+        mp_center.setValue(center);
+        mp_rotation.setValue(new AxisAngle4d(axis,angle));
 
-        ((AxisAngle4dParameter) params.get("rotation")).setValue(new AxisAngle4d(axis,angle));
-        ((Vector3dParameter) params.get("center")).setValue(new Vector3d(center));
    }
     
     /**
@@ -131,9 +134,15 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
      */
     public int initialize(){
 
-        mat.set(new AxisAngle4d(m_axis.x,m_axis.y,m_axis.z,m_angle));
-        mat_inv.set(new AxisAngle4d(m_axis.x,m_axis.y,m_axis.z,-m_angle));
-        
+        AxisAngle4d aa = (AxisAngle4d)mp_rotation.getValue();
+        mat.set(aa);
+        mat_inv.set(new AxisAngle4d(aa.x,aa.y,aa.z,-aa.angle));
+
+        Vector3d c = (Vector3d)mp_center.getValue();
+        m_centerx = c.x;
+        m_centery = c.y;
+        m_centerz = c.z;
+
         return RESULT_OK;
     }
     
@@ -149,21 +158,19 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         y = in.v[1];
         z = in.v[2];
 
-        if(m_center != null){
-            x -= m_center.x;
-            y -= m_center.y;
-            z -= m_center.z;
-        }
+        x -= m_centerx;
+        y -= m_centery;
+        z -= m_centerz;
+        
         
         out.v[0] = mat.m00* x + mat.m01*y + mat.m02*z;
         out.v[1] = mat.m10* x + mat.m11*y + mat.m12*z;
         out.v[2] = mat.m20* x + mat.m21*y + mat.m22*z;
 
-        if(m_center != null){
-            out.v[0] += m_center.x;
-            out.v[1] += m_center.y;
-            out.v[2] += m_center.z;
-        }
+        out.v[0] += m_centerx;
+        out.v[1] += m_centery;
+        out.v[2] += m_centerz;
+        
         
         return RESULT_OK;
     }
@@ -181,21 +188,18 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
         y = in.v[1];
         z = in.v[2];
         
-        if(m_center != null){
-            x -= m_center.x;
-            y -= m_center.y;
-            z -= m_center.z;
-        }
+        x -= m_centerx;
+        y -= m_centery;
+        z -= m_centerz;
+        
         out.v[0] = mat_inv.m00* x + mat_inv.m01*y + mat_inv.m02*z;
         out.v[1] = mat_inv.m10* x + mat_inv.m11*y + mat_inv.m12*z;
         out.v[2] = mat_inv.m20* x + mat_inv.m21*y + mat_inv.m22*z;
         
-        if(m_center != null){
-            out.v[0] += m_center.x;
-            out.v[1] += m_center.y;
-            out.v[2] += m_center.z;
-        }
-
+        out.v[0] += m_centerx;
+        out.v[1] += m_centery;
+        out.v[2] += m_centerz;
+        
         return RESULT_OK;
         
     }
