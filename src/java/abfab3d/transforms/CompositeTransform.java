@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2011-2015
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -13,6 +13,7 @@
 package abfab3d.transforms;
 
 import java.util.Vector;
+import java.util.List;
 
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
@@ -35,17 +36,22 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
 /**
 
-   Arbitrary long chain of transformation to be applied to the shape. 
+   Arbitrary chain of transformations to be applied to the point 
    
+   @author Vladimir Bulatov   
  */
 public class CompositeTransform extends BaseTransform implements VecTransform, Initializable {
-    
-    private Vector<VecTransform> vTransforms = new Vector<VecTransform>();
-    
-    private VecTransform aTransforms[]; // array used in calculations 
+        
+    private VecTransform aTransforms[]; // array of transforms used in calculations 
+
+    SNodeListParameter mp_transforms = new SNodeListParameter("transforms");
+
+    protected Parameter m_aparams[] = new Parameter[]{
+        mp_transforms
+    };
 
     public CompositeTransform() {
-        initParams();
+        addParams(m_aparams);
     }
 
     /**
@@ -53,16 +59,8 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
      */
     public void add(VecTransform transform){
         
-        vTransforms.add(transform);
-        ((SNodeListParameter) params.get("transforms")).getValue().add((SNode) transform);
-
-    }
-
-    public void initParams() {
-        super.initParams();
-
-        Parameter p = new SNodeListParameter("transforms");
-        params.put(p.getName(), p);
+        ((List)mp_transforms.getValue()).add(transform);
+        
     }
 
     /**
@@ -70,11 +68,9 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
      */
     public int initialize(){
         
-        int len = vTransforms.size();
-        
-        aTransforms = (VecTransform[])vTransforms.toArray(new VecTransform[len]);
-        
-        for(int i = 0; i < len; i++){
+        aTransforms = getTransformsArray();
+        int size = aTransforms.length;
+        for(int i = 0; i < size; i++){
             VecTransform tr = aTransforms[i];
             if(tr instanceof Initializable){
                 int res = ((Initializable)tr).initialize();
@@ -85,7 +81,19 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
         
         return RESULT_OK;
     }
-    
+
+    public VecTransform [] getTransformsArray(){
+
+        List<SNode> trans = (List<SNode>)mp_transforms.getValue();
+        int size = trans.size();
+        VecTransform ta[] = new VecTransform[size];
+        int k = 0;
+        for(SNode t: trans){
+            ta[k++] = (VecTransform)t;
+        }
+        return ta;
+    }
+
     /**
        @noRefGuide
      */
@@ -145,11 +153,12 @@ public class CompositeTransform extends BaseTransform implements VecTransform, I
 
     @Override
     public SNode[] getChildren() {
-        aTransforms = (VecTransform[])vTransforms.toArray(new VecTransform[vTransforms.size()]);
+        
+        VecTransform[] ta = getTransformsArray();
 
-        SNode[] ret = new SNode[aTransforms.length];
-        for(int i=0; i < aTransforms.length; i++) {
-            ret[i] = (SNode)aTransforms[i];
+        SNode[] ret = new SNode[ta.length];
+        for(int i=0; i < ta.length; i++) {
+            ret[i] = (SNode)ta[i];
         }
         return ret;
     }

@@ -66,6 +66,17 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return ret.getValue();
     }
 
+    /**
+       adds parameters from the array to the params table 
+       @param aparam  - array of parameters to add 
+     */
+    public void addParams(Parameter aparam[]){
+        for(int i = 0; i < aparam.length; i++){
+            params.put(aparam[i].getName(),aparam[i]);
+        }        
+    }
+
+
     @Override
     public SNode[] getChildren() {
         return null;

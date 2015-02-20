@@ -207,20 +207,24 @@ void oTranslation(PTR sTranslation *trans, sVec *inout){
 typedef struct {
     int size;  // size of struct in words 
     int opcode; // opcode to perform 
-    // custom parameters of DataSource 
-    float factor; 
+    // custom parameters of sScale
+    float averageFactor; // inverse of average scale 
+    float3 factor; // inverse of scale 
+    float3 center; // center of scale 
 } sScale;
 
 void oScale(PTR sScale *pS, sVec *inout){
-    // inverse scale 
+    
+    inout->v.xyz -= pS->center;
     inout->v.xyz *= pS->factor;
-
+    inout->v.xyz += pS->center;
+    // TODO - adjustment of total scale 
 }
 
 typedef struct {
     int size;  // size of struct in words 
     int opcode; // opcode to perform 
-    // custom parameters of DataSource 
+    // custom parameters of sRotation 
     float3 center; 
     float3 m0; 
     float3 m1; 
@@ -269,32 +273,35 @@ void copyOpcodes(PTR int *opcode, global int *outdata){
     }    
 }
 
-
+/**
+   opcode - stream of opcodes 
+   opCount total count of opcodes 
+   pnt - input point 
+   result - output data value 
+ */
 void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
-
     
-    CPtr ptr;
-    int count = 0; // count of codes 
-    int offsetIn = 0;  // current input location 
+    CPtr ptr;  // pointer to dta struct to convert from int* to structs* 
+    int offsetIn = 0;  // current offset in the input data 
     sVec stack[STACK_SIZE];
     int stackPos = 0; // current stack position
 
-    sVec pnt1;  // current working point 
+    sVec pnt1;   // current working point 
+    
     sVec data1 = (sVec){.v=(float4)(0,0,0,0)}; // register to store current data value
-    sVec data2; // register for intermediate data 
+    sVec data2;  // register for intermediate data 
 
     // original point 
     pnt1 = *pnt;
 
     int resOffset = 0;
     
-    // to prevent infinite cycle
-
     for(int i=0; i < opCount; i++) {
         int size = opcode[offsetIn];
 
-        if(size == 0)
+        if(size <= 0)
             break;
+
         int code = opcode[offsetIn+1];
         ptr.w = (opcode + offsetIn);
 
@@ -303,12 +310,7 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
 
             *result = data1;
             return;            
-/*
-        case oEND:
 
-            *result = data1;
-            return;            
-*/
         case oSPHERE:
             
             oSphere(ptr.pv, &pnt1, &data1);

@@ -39,7 +39,7 @@ public class Translation extends BaseTransform implements VecTransform {
      * identity transform
      */
     public Translation() {
-        initParams();        
+        addParams(m_aparam);        
         setTranslation(0,0,0);
     }
 
@@ -49,7 +49,7 @@ public class Translation extends BaseTransform implements VecTransform {
      * @param p vector of translation
      */
     public Translation(Vector3d p) {
-        initParams();
+        addParams(m_aparam);        
         setTranslation(p.x,p.y,p.z);
     }
 
@@ -61,15 +61,8 @@ public class Translation extends BaseTransform implements VecTransform {
      * @param tz z component of translation
      */
     public Translation(double tx, double ty, double tz) {
-        initParams();
+        addParams(m_aparam);        
         setTranslation(tx, ty, tz);
-    }
-
-    public void initParams() {
-
-        for(int i = 0; i < m_aparam.length; i++){
-            params.put(m_aparam[i].getName(),m_aparam[i]);
-        }
     }
 
     /**
