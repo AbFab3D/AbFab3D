@@ -175,6 +175,8 @@ public class TestVolumeRenderer extends TestCase {
 
         long t0 = System.nanoTime();
 
+        ImageRenderer render = new ImageRenderer();
+
         // Do these items once for the servlet.  Should be per-thread resources
         //render.setVersion(VolumeRenderer.VERSION_OPCODE_V2_DIST);
         //render.setVersion(VolumeRenderer.VERSION_OPCODE_V3_DIST);
@@ -182,7 +184,6 @@ public class TestVolumeRenderer extends TestCase {
         render.initCL(1, width, height);
         int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
 
-        printf("Max size: %d\n",MAX_IMG_SIZE);
         byte[] buff = new byte[MAX_IMG_SIZE];
         int[] pixels = new int[width * height];
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
