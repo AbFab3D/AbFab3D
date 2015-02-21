@@ -1047,7 +1047,7 @@ public class Main {
         bldr.append(script.substring(e_idx+2));
 
         System.out.println("Added ParseFloats: " + cnt);
-        System.out.println("final: " + bldr.toString());
+        //System.out.println("final: " + bldr.toString());
         return bldr.toString();
     }
 
@@ -1431,8 +1431,38 @@ public class Main {
      */
     private static Object readFileOrUrl(String path, boolean convertToString)
             throws IOException {
-        return SourceReader.readFileOrUrl(path, convertToString,
-                shellContextFactory.getCharacterEncoding());
+
+        Object ret_val = null;
+
+        try {
+            ret_val = SourceReader.readFileOrUrl(path, convertToString,
+                    shellContextFactory.getCharacterEncoding());
+        } catch(IOException ioe) {
+            printf("Fallback to resource: " + path);
+            InputStream is = Main.class.getClassLoader().getResourceAsStream(path);
+
+            if (is == null) {
+                String cpath = "classes" + File.separator + path;
+                printf("Fallback to resource/classes: " + cpath);
+                is = Main.class.getClassLoader().getResourceAsStream(cpath);
+            }
+
+            if (is == null) {
+                String cpath = "classes" + File.separator + path;
+                is = new FileInputStream(cpath);
+
+                if (is == null)
+                    throw ioe;
+            }
+
+            ret_val = IOUtils.toByteArray(is);
+
+            if (convertToString) {
+                ret_val = new String((byte[]) ret_val, "UTF-8");
+            }
+        }
+
+        return ret_val;
     }
 
     static class ScriptReference extends SoftReference<Script> {
