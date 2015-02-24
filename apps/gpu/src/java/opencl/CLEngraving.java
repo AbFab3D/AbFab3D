@@ -18,36 +18,38 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.SNode;
 
-import abfab3d.datasources.Subtraction;
+import abfab3d.datasources.Engraving;
 
 import static opencl.CLUtils.floatToInt;
 
 import static abfab3d.util.Output.printf;
 
 /**
-  OpenCL code for subtraction
+  OpenCL code for engraving 
 
    @author Vladimir Bulatov
  */
-public class CLSubtraction extends CLNodeBase {
+public class CLEngraving extends CLNodeBase {
 
-    static int OPCODE = Opcodes.oBLENDMAX;
     static int STRUCTSIZE = 4;
     
     int buffer[] = new int[STRUCTSIZE];
     
-    public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
+    public int getCLCode(Parameterizable pnode, CLCodeBuffer codeBuffer) {
 
-        Subtraction sub = (Subtraction)node;
+        Engraving node = (Engraving)pnode;
 
 
-        SNode[] children = sub.getChildren();
-        if(children.length < 2) {
-            // no children - do nothing 
+        //SNode[] children = sub.getChildren();
+        Parameterizable shape = (Parameterizable)node.getParam("shape").getValue();
+        Parameterizable engraver = (Parameterizable)node.getParam("engraver").getValue();
+        if(shape == null) {
+            // no base shape do nothing 
             return 0;
         }
         
-        double blendWidth = ((DoubleParameter)sub.getParam("blend")).getValue();
+        double blendWidth = ((DoubleParameter)node.getParam("blend")).getValue();
+        double depth = ((DoubleParameter)node.getParam("depth")).getValue();
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
 
@@ -55,31 +57,26 @@ public class CLSubtraction extends CLNodeBase {
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_D2, codeBuffer);
 
         // we calculate shapes in opposite order to save resisters movement 
-        Parameterizable child = (Parameterizable)children[1];
-        CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)child);
+        CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)engraver);
 
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);                   
-        wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
+        wcount += clnode.getCLCode(engraver, codeBuffer);
         wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);                   
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D1D2, codeBuffer);
 
-        child = (Parameterizable)children[0];
-        clnode = CLNodeFactory.getCLNode((Parameterizable)child);
+        clnode = CLNodeFactory.getCLNode((Parameterizable)shape);
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);                   
-        wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
+        wcount += clnode.getCLCode((Parameterizable)shape, codeBuffer);
         wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);                   
         // 
-        // subtraction(D1, D2, D2) 
+        // engrave(D1, D2, D2) 
         //
-        if(blendWidth != 0.) {
-            int c = 0;
-            buffer[c++] = STRUCTSIZE;
-            buffer[c++] = Opcodes.oBLENDSUBTRACT;
-            buffer[c++] = floatToInt(blendWidth);  
-            codeBuffer.add(buffer, STRUCTSIZE);
-        } else {
-            wcount += CLUtils.addOPCode(Opcodes.oSUBTRACT, codeBuffer); 
-        }        
+        int c = 0;
+        buffer[c++] = STRUCTSIZE;
+        buffer[c++] = Opcodes.oENGRAVE;
+        buffer[c++] = floatToInt(blendWidth);  
+        buffer[c++] = floatToInt(depth);  
+        codeBuffer.add(buffer, STRUCTSIZE);
 
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D2D1, codeBuffer);           
         // restore working register 

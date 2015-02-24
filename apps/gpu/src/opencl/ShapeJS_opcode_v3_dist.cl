@@ -26,6 +26,7 @@
 #define oTRANSLATION   18
 #define oROTATION      19
 #define oSCALE         20
+#define oENGRAVE       21
 
 #define oEND   0
 
@@ -173,6 +174,7 @@ typedef struct {
     float padding;
 } sBlend;
 
+
 void oBlendMin(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMin(in1->v.x, in2->v.x, ptr->width);
@@ -188,6 +190,23 @@ void oBlendMax(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 void oBlendSubtract(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMax(in1->v.x, -in2->v.x, ptr->width);
+
+}
+
+// edgrave 
+typedef struct {
+    int size;
+    int opcode;
+    float blendWidth;
+    float depth;
+} sEngrave;
+// engrave shape1 with shape2 
+void oEngrave(PTR sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
+
+    //float eng = max(0.,min(ptr->depth, -in2->v.x));
+    float eng = blendMax(0.,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
+    //out->v.x = blendMax(in1->v.x, -eng, ptr->blendWidth);
+    out->v.x = in1->v.x + eng;
 
 }
 
@@ -369,6 +388,11 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
         case oBLENDSUBTRACT:
             
             oBlendSubtract(ptr.pv,&data1, &data2,&data2);
+            break;            
+
+        case oENGRAVE:
+            
+            oEngrave(ptr.pv,&data1, &data2,&data2);
             break;            
 
         case oPUSH_D2:

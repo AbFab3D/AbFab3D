@@ -36,46 +36,49 @@ import static abfab3d.util.MathUtil.step10;
 
 /**
 
-   Boolean difference between two data sources 
+   makes engaving surface of one object with another object 
    <br/>
 
-   <embed src="doc-files/Subtraction.svg" type="image/svg+xml"/> 
+   <embed src="doc-files/engraving.svg" type="image/svg+xml"/> 
 
    
    @author Vladimir Bulatov
 
  */
-public class Subtraction extends TransformableDataSource implements SNode {
+public class Engraving extends TransformableDataSource implements SNode {
     
     DataSource dataSource1;
     DataSource dataSource2;
 
-    SNodeParameter mp_shape1 = new SNodeParameter("shape1");
-    SNodeParameter mp_shape2 = new SNodeParameter("shape2");
+    SNodeParameter mp_shape = new SNodeParameter("shape");
+    SNodeParameter mp_engraver = new SNodeParameter("engraver");
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
+    DoubleParameter mp_depth = new DoubleParameter("depth", "engraving depth", 0.001);
 
     Parameter m_aparam[] = new Parameter[]{
-        mp_shape1,
-        mp_shape2,
+        mp_shape,
+        mp_engraver,
         mp_blendWidth,
+        mp_depth,
     };    
 
     /**
        shape which is result of subtracting shape2 from shape1
      */
-    public Subtraction(DataSource shape1, DataSource shape2){
+    public Engraving(DataSource shape, DataSource engraver){
+
         super.addParams(m_aparam);
 
-        setShape1(shape1);
-        setShape2(shape2);
+        setShape(shape);
+        setEngraver(engraver);
     }
 
-    public void setShape1(DataSource shape1) {
-        mp_shape1.setValue(shape1);
+    public void setShape(DataSource shape) {
+        mp_shape.setValue(shape);
     }
 
-    public void setShape2(DataSource shape2) {
-        mp_shape2.setValue(shape2);
+    public void setEngraver(DataSource engraver) {
+        mp_engraver.setValue(engraver);
     }
 
     /**
@@ -84,9 +87,8 @@ public class Subtraction extends TransformableDataSource implements SNode {
     public int initialize(){
 
         super.initialize();
-
-        dataSource1 = (DataSource)mp_shape1.getValue();
-        dataSource2 = (DataSource)mp_shape2.getValue();
+        dataSource1 = (DataSource)mp_shape.getValue();
+        dataSource2 = (DataSource)mp_engraver.getValue();
 
         if(dataSource1 != null && dataSource1 instanceof Initializable){
             ((Initializable)dataSource1).initialize();
@@ -108,7 +110,9 @@ public class Subtraction extends TransformableDataSource implements SNode {
         
         super.transform(pnt);
         double v1 = 0, v2 = 0;
-        
+        // TODO 
+        // this currently works as pure subtraction 
+        // need to implement 
         int res = dataSource1.getDataValue(new Vec(pnt), data);
         if(res != RESULT_OK){
             data.v[0] = 0.0;
@@ -143,6 +147,6 @@ public class Subtraction extends TransformableDataSource implements SNode {
 
     @Override
     public SNode[] getChildren() {
-        return new SNode[] {(SNode)mp_shape1.getValue(),(SNode)mp_shape2.getValue()};
+        return new SNode[] {(SNode)mp_shape.getValue(),(SNode)mp_engraver.getValue()};
     }
-} // class Subtraction
+} // class Engraving
