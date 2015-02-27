@@ -17,12 +17,15 @@ public class GPUUtil {
 
         if (groupSize == 0) return globalSize;
 
+        return groupSize*((globalSize + groupSize - 1)/groupSize);
+        /*
         int r = globalSize % groupSize;
         if (r == 0) {
             return globalSize;
         } else {
             return globalSize + groupSize - r;
         }
+        */
     }
 
 }

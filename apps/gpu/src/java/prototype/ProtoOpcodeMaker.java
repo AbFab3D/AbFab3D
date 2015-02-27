@@ -115,7 +115,7 @@ public class ProtoOpcodeMaker {
     } 
 
     static void writeToIntBuffer(IntBuffer buffer, CLCodeBuffer code){    
-        for(int i = 0; i < code.size(); i++)
+        for(int i = 0; i < code.opcodesSize(); i++)
             buffer.put(code.get(i));
     } 
 
@@ -179,7 +179,7 @@ public class ProtoOpcodeMaker {
 
         buffer.rewind();
 
-        return code.opCount();
+        return code.opcodesCount();
     }
 
     private static int roundUp(int denom, int value) {        

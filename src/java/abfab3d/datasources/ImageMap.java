@@ -32,7 +32,7 @@ import static abfab3d.util.Output.time;
 
 /**
  * <p>
- * DataSource which fills 3D space with columns of data originates from 2D image.
+ * DataSource which fills 3D space with columns of data originated from 2D image.
  * </p><p>
  * ImageMap may have multiple channels, according to the source image type 
  * </p><p>
@@ -50,11 +50,11 @@ public class ImageMap extends TransformableDataSource {
     public static int REPEAT_X = 1, REPEAT_Y = 2, REPEAT_BOTH = 3;
     
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
-    public static final double DEFAULT_VOXLE_SIZE = 0.1*MM;
+    public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
 
     int m_repeat = REPEAT_BOTH;
     int m_interpolation = INTERPOLATION_BOX; 
-    double v_voxelSize = DEFAULT_VOXLE_SIZE;
+    double v_voxelSize = DEFAULT_VOXEL_SIZE;
 
     /**
        creates ImageMap from a file

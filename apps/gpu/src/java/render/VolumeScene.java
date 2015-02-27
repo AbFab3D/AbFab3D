@@ -82,7 +82,7 @@ public class VolumeScene {
 
         this.codeBuffer = codeBuffer;
 
-        if (codeBuffer.opCount() == 0) {
+        if (codeBuffer.opcodesCount() == 0) {
             throw new IllegalArgumentException("Empty CL code");
         }
     }

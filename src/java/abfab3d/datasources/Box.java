@@ -100,7 +100,6 @@ public class Box extends TransformableDataSource {
         
         mp_center.setValue(new Vector3d(cx, cy, cz));
         mp_size.setValue(new Vector3d(sx, sy, sz));
-        mp_rounding.setValue(new Double(0.));
 
     }
 
@@ -114,9 +113,7 @@ public class Box extends TransformableDataSource {
     }
     
     protected void initParams(){
-        for(int i = 0; i < m_aparam.length; i++){
-            params.put(m_aparam[i].getName(),m_aparam[i]);
-        }
+        super.addParams(m_aparam);
     }
 
     /**

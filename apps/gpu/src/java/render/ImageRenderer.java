@@ -45,10 +45,12 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
  * @author Alan Hudson
  */
 public class ImageRenderer {
+
+    static final boolean DEBUG = true;
     public static final int IMAGE_JPEG = 0;
     public static final int IMAGE_PNG = 1;
-
-    public String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
+    
+    public String version = VolumeRenderer.VERSION_OPCODE_V2_DIST;
 
     private int numTiles;
     private RenderTile[] tiles;
@@ -60,6 +62,8 @@ public class ImageRenderer {
     // timig params for STAT 
     private long lastLoadScriptTime;
     private long lastImageTime;
+    private long lastInitializationTime;
+    private long lastRenderTime;
     private long lastPngTime;
     private long lastKernelTime;
     private int width;
@@ -146,16 +150,16 @@ public class ImageRenderer {
         initialized = true;
     }
 
-    public void setVersion(String version) {
-        this.VERSION = version;
+    public void setVersion(String version_value) {
+        this.version = version_value;
     }
 
     public String getVersion() {
-        return VERSION;
+        return version;
     }
 
     public TimeStat getTimeStat() {
-        TimeStat ts = new TimeStat(lastLoadScriptTime,getLastCompileTime(), lastImageTime, getLastKernelTime(),lastPngTime);
+        TimeStat ts = new TimeStat(lastLoadScriptTime,getLastCompileTime(), lastImageTime, getLastKernelTime(),lastPngTime, lastInitializationTime, lastRenderTime);
         return ts;
     }
 
@@ -209,7 +213,6 @@ public class ImageRenderer {
 
         long t0 = System.nanoTime();
 
-        t0 = System.nanoTime();
         makeRender(jobID, script, params,cache, quality, view,0,0,width, height, pixels, image);
         int size = 0;
         switch(imgType) {
@@ -221,9 +224,9 @@ public class ImageRenderer {
                 size = makeJpg(image, buff);
                 break;
         }
-        printf("total size: %d time: %d ms\n  js eval: %d\n  ocl compile: %d ms\n  kernel: %d ms\n  image: %d ms\n  png: %d ms\n", 
-               size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), 
-               (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
+        if(DEBUG)printf("total size: %d time: %d ms\n  js eval: %d\n  ocl compile: %d ms\n  kernel: %d ms\n  image: %d ms\n  png: %d ms\n", 
+                        size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), 
+                        (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
 
         os.write(buff,0,size);
 
@@ -267,7 +270,7 @@ public class ImageRenderer {
         } else {
             lastLoadScriptTime = 0;
         }
-        VolumeScene vscene = new VolumeScene(new ArrayList(), inst, "", VERSION);
+        VolumeScene vscene = new VolumeScene(new ArrayList(), inst, "", version);
         for (int i = 0; i < numRenderers; i++) {
             boolean result = render[i].init(vscene);
 
@@ -389,9 +392,13 @@ public class ImageRenderer {
                             int pixX, int pixY, int width, int height,
                             int[] pixels, BufferedImage image) {
 
-        VolumeScene vscene = new VolumeScene(new ArrayList(), null, "", VERSION);
+        VolumeScene vscene = new VolumeScene(new ArrayList(), null, "", version);
+        if(DEBUG) printf("makeRender(%s, version:%s )\n", jobID, version);
+        long t0 = System.nanoTime();
 
-        if (VERSION.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+        if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+            
+            if(DEBUG)printf("js evaluation\n");
             ShapeJSEvaluator eval = new ShapeJSEvaluator();
             Bounds bounds = new Bounds();
             DataSource source = eval.runScript(script, bounds,params);
@@ -402,19 +409,23 @@ public class ImageRenderer {
 
             CLCodeMaker maker = new CLCodeMaker();
             CLCodeBuffer ops = maker.makeCLCode((Parameterizable) source);
+
             vscene.setCLCode(ops);
-        } else if (VERSION.equals(VolumeRenderer.VERSION_DIST)) {
+
+            if(DEBUG)printf("code generation %5.2f ms\n", (System.nanoTime()-t0)*1.e-6);
+
+        } else if (version.equals(VolumeRenderer.VERSION_DIST)) {
             ShapeJSEvaluator eval = new ShapeJSEvaluator();
             Bounds bounds = new Bounds();
             DataSource source = eval.runScript(script, bounds,params);
-
+            
             Vector3d scale;
             scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
             worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
             OpenCLWriter writer = new OpenCLWriter();
             vscene.setCode(writer.generate((Parameterizable) source, scale));
-            printf("OpenCL Code: \n%s",vscene.getCode());
-        } else {
+            if(DEBUG) printf("OpenCL Code: \n%s",vscene.getCode());
+        } else { // 
             List<Instruction> inst = null;
 
             if (useCache && jobID != null && params.size() == 0) {
@@ -461,18 +472,22 @@ public class ImageRenderer {
                 throw new IllegalArgumentException("Compile failed");
             }
         }
+        lastInitializationTime = (System.nanoTime() - t0);
+        //if(DEBUG) printf("frame initialization time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);    
+
+        t0 = System.nanoTime();
 
         Matrix4f inv_view = new Matrix4f(view);
         inv_view.invert();
-
+        t0 = System.nanoTime();
         tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
         for (int i = 0; i < numTiles; i++) {
             RenderTile tile = tiles[i];
 
-            if (VERSION.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+            if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
                 tile.getRenderer().renderStruct(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
                         worldScale, tile.getDest());
-            }  else if (VERSION.equals(VolumeRenderer.VERSION_DIST)) {
+            }  else if (version.equals(VolumeRenderer.VERSION_DIST)) {
                 tile.getRenderer().render(inv_view, tile.getWidth(), tile.getHeight(), tiles[0].getView(), render[i].getCommandQueue(), tile.getDest());
             } else {
                 tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
@@ -481,13 +496,17 @@ public class ImageRenderer {
             tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
         }
 
+        
         for (int i = 0; i < numRenderers; i++) {
             render[i].getCommandQueue().finish();
         }
 
-        long t0 = System.nanoTime();
+        lastRenderTime = (System.nanoTime() - t0);
+        //if(DEBUG) printf("frame render time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);    
+
+        t0 = System.nanoTime();
         createImage(pixX,pixY,width, height, pixels, tiles[0].getDest(), image);
-        lastImageTime = System.nanoTime() - t0;
+        lastImageTime = System.nanoTime() - t0;    
     }
 
     private Matrix4f getView(float roty) {
@@ -570,22 +589,27 @@ public class ImageRenderer {
         public long png;
         public long image;
         public long total; 
-        public TimeStat(long script, long compile, long image, long kernel, long png){
+        public long initialization;
+        public long render;
+
+        public TimeStat(long script, long compile, long image, long kernel, long png, long initTime, long renderTime){
             this.script = script;
             this.compile = compile;
             this.image = image;
             this.kernel = kernel;
             this.png = png;
+            this.initialization = initTime;
+            this.render = renderTime;
             this.total = script + compile + image + kernel + png;
             
         }
 
         public String getHeader(){
-            return "script  compile kernel image  png   total(ms)";
+            return "script  compile kernel image  png   total(ms)  init render ";
         }
         public String toString(){
             double f = 1.e-6;
-            return fmt("%6.2f %6.1f %6.1f %6.1f %6.1f %6.1f", script*f,compile*f,kernel*f,image*f, png*f, total*f);
+            return fmt("%6.2f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f %6.1f", script*f,compile*f,kernel*f,image*f, png*f, total*f, initialization*f, render*f);
         }
     }
 

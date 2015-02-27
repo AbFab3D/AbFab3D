@@ -19,6 +19,15 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
+import javax.vecmath.Vector3d;
+
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
+import abfab3d.param.BooleanParameter;
+
+
 import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
 import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.clamp;
@@ -60,6 +69,26 @@ public class ImageBitmap extends TransformableDataSource {
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
     static final String MEMORY_IMAGE = "[memory image]";
 
+    // public params of the image 
+    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the box",new Vector3d(0,0,0));
+    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the box",new Vector3d(0.1,0.1,0.1));
+    // rounding of the edges
+    DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
+    IntParameter  mp_tilesX = new IntParameter("tilesX","image tiles in x-direction", 1);
+    IntParameter  mp_tilesY = new IntParameter("tilesY","image tiles in y-direction", 1);
+    DoubleParameter  mp_baseThickness = new DoubleParameter("baseThickness","relative thickness of image base", 0.);
+    BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for image rendering", true);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_center,
+        mp_size,
+        mp_rounding,
+        mp_tilesX,
+        mp_tilesY,
+        mp_baseThickness,
+        mp_useGrayscale,
+    };
+
     static final double PIXEL_NORM = 1. / 255.;
     static final double SHORT_NORM = 1. / 0xFFFF;
     static double EPSILON = 1.e-3;
@@ -99,9 +128,6 @@ public class ImageBitmap extends TransformableDataSource {
     private double xscale, yscale, zscale;
     private boolean useGrayscale = true;
     private int imageWidth, imageHeight, imageWidth1, imageHeight1;
-    //private int imageData[]; 
-    //private byte imageDataByte[]; 
-    //private short imageDataShort[];
     private ImageGray16 imageData;
 
 
@@ -127,7 +153,7 @@ public class ImageBitmap extends TransformableDataSource {
      * @noRefGuide
      */
     public ImageBitmap() {
-
+        initParams();
     }
 
     /**
@@ -138,6 +164,7 @@ public class ImageBitmap extends TransformableDataSource {
      @param sz depth of the box. 
      */
     public ImageBitmap(String imagePath, double sx, double sy, double sz) {
+        initParams();
 
         setImagePath(imagePath);
         setSize(sx, sy, sz);
@@ -153,6 +180,7 @@ public class ImageBitmap extends TransformableDataSource {
      @param voxelSize size of voxel to be used for image voxelization 
      */
     public ImageBitmap(String imagePath, double sx, double sy, double sz, double voxelSize) {
+        initParams();
 
         setImagePath(imagePath);
         setSize(sx, sy, sz);
@@ -169,6 +197,7 @@ public class ImageBitmap extends TransformableDataSource {
      @param voxelSize size of voxel to be used for image voxelization 
      */
     public ImageBitmap(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
+        initParams();
 
         setImage(image);
         setSize(sx, sy, sz);
@@ -185,16 +214,24 @@ public class ImageBitmap extends TransformableDataSource {
      * @param voxelSize size of voxel to be used for image voxelization 
      */
     public ImageBitmap(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
-
+        initParams();
         setImage(imwrapper.getImage());
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
 
     }
+    
+    protected void initParams(){
+        super.addParams(m_aparam);
+    }
+
     /**
      * set size of imagebox 
      */
     public void setSize(double sx, double sy, double sz) {
+
+        mp_size.setValue(new Vector3d(sx, sy, sz));
+
         m_sizeX = sx;
         m_sizeY = sy;
         m_sizeZ = sz;
@@ -204,6 +241,8 @@ public class ImageBitmap extends TransformableDataSource {
      * set center of imagebox 
      */
     public void setCenter(double cx, double cy, double cz) {
+        mp_center.setValue(new Vector3d(cx, cy, cz));
+
         m_centerX = cx;
         m_centerY = cy;
         m_centerZ = cz;
@@ -214,6 +253,8 @@ public class ImageBitmap extends TransformableDataSource {
      */
     public void setTiles(int tilesX, int tilesY) {
 
+        mp_tilesX.setValue(new Integer(tilesX));
+        mp_tilesY.setValue(new Integer(tilesY));
         m_xTilesCount = tilesX;
         m_yTilesCount = tilesY;
 
@@ -225,9 +266,9 @@ public class ImageBitmap extends TransformableDataSource {
      * @param baseThickness thickenss of solid base relative to the thickness of the bounding box. Default value is 0.
      */
     public void setBaseThickness(double baseThickness) {
-
+        mp_baseThickness.setValue(new Double(baseThickness));
         m_baseThickness = baseThickness;
-
+        
     }
 
     /**
@@ -308,7 +349,9 @@ public class ImageBitmap extends TransformableDataSource {
      *              the black and white option is useful if one want to have image shape with sharp vertical walls.
      */
     public void setUseGrayscale(boolean value) {
+        
         useGrayscale = value;
+        mp_useGrayscale.setValue(new Boolean(value));
     }
 
     /**

@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 import program.ProgramLoader;
 
 import opencl.CLCodeBuffer;
+import opencl.CLCodeMaker;
 
 import javax.vecmath.Matrix4f;
 import java.io.File;
@@ -29,7 +30,7 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
     private static final boolean STATS = true;
     private static final boolean CACHE_PROGRAM = true;
     private static final String CACHE_LOCATION = "/tmp/openCL_cache";
@@ -180,31 +181,8 @@ public class VolumeRenderer {
                             list.add(new File(files[i]));
                         }
                     }
-                }
-
-                if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
-                    // TODO: this would need to be updated to support jar file deployment
-                    // Issue is how do we know what files need to be loaded?
-                    File dir = new File("classes");
-                    boolean in_jar = false;
-
-                    String[] files = dir.list();
-
-                    if (files == null) {
-                        in_jar = true;
-                        files = new String[] {
-                        };
-                    }
-
-                    String rv = renderVersion + ".cl";
-                    for (int i = 0; i < files.length; i++) {
-                        if (files[i].contains(rv)) {
-                            if (files[i].contains("VolumeRenderer") || files[i].contains("ShapeJS")) {
-                                continue;
-                            }
-                            list.add(new File(files[i]));
-                        }
-                    }
+                } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {                    
+                    // no files added here 
                 }
 
                 list.add(new File("VolumeRenderer_" + renderVersion + ".cl"));
@@ -405,13 +383,19 @@ public class VolumeRenderer {
                 // create buffers and kernel for V3
 
                 CLCodeBuffer codeBuffer = vscene.getCLCode();
-
-                opLen = codeBuffer.getOpCount();
-                opBuffer = context.createIntBuffer(codeBuffer.size(), READ_ONLY);                
-                opBuffer.getBuffer().put(codeBuffer.getData());
+                if (DEBUG) {
+                    printf("Operations count: %d\n",codeBuffer.opcodesCount());
+                    printf("Data Size: %d\n",codeBuffer.dataSize());
+                    printf("Code: \n%s\n",CLCodeMaker.createText(codeBuffer));
+                }                            
+                opLen = codeBuffer.opcodesCount();
+                opBuffer = context.createIntBuffer(codeBuffer.opcodesSize(), READ_ONLY);                
+                opBuffer.getBuffer().put(codeBuffer.getOpcodesData());
                 opBuffer.getBuffer().rewind();
-
-                printf("Op bytes(v3): %d\n",codeBuffer.size() * 4);
+                
+                printf("Op bytes(v3): %d\n",codeBuffer.opcodesSize() * 4);
+                printf("data buffer bytes(v3): %d\n",codeBuffer.dataSize());
+                
                 queue.putWriteBuffer(opBuffer, false, null);
             }
         } catch (Exception e) {
@@ -521,11 +505,11 @@ public class VolumeRenderer {
         long t0 = System.nanoTime();
 
         // TODO: needs 0 for Apple, 8 is fastest on Desktop GPU
-        int localWorkSizeX = 8; // this seems the fastest not sure why
-        int localWorkSizeY = 8;
+        int localWorkSizeX = 0; // this seems the fastest not sure why
+        int localWorkSizeY = 0;
 
-        localWorkSizeX = 8; // this seems the fastest not sure why
-        localWorkSizeY = 8;
+        localWorkSizeX = 0; // this seems the fastest not sure why
+        localWorkSizeY = 0;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
@@ -597,11 +581,9 @@ public class VolumeRenderer {
         long t0 = System.nanoTime();
 
         // TODO: needs 0 for Apple, 8 is fastest on Desktop GPU
-        int localWorkSizeX = 8; // this seems the fastest not sure why
-        int localWorkSizeY = 8;
-
-        localWorkSizeX = 8;
-        localWorkSizeY = 8;
+        int 
+            localWorkSizeX = 8,
+            localWorkSizeY = 8;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
@@ -626,7 +608,7 @@ public class VolumeRenderer {
         kernel.setArg(6, height);
         kernel.setArg(7, viewBuffer).rewind();
         kernel.setArg(8, worldScale);
-        kernel.setArg(9,opBuffer).rewind();
+        kernel.setArg(9, opBuffer).rewind();
         kernel.setArg(10, opLen);
 
         queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);

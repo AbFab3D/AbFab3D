@@ -22,6 +22,8 @@ public class CLCodeBuffer {
     int code[];
     int size = 0;  // size of the buffer
     int opCount = 0; // opcodes count
+    int dataBufferSize = 0; // size of data buffer 
+    
     /**
        constructor
        @param initialCapacity initial capacity of the buffer
@@ -30,24 +32,36 @@ public class CLCodeBuffer {
         code = new int[initialCapacity];
     }
     
-    public final int size(){
+    /**
+       return size of opcodes buffer in words)
+     */
+    public final int opcodesSize(){
         return size;
     }
 
-    public final int opCount(){
+    /**
+      @return opcodes count  
+     */
+    public final int opcodesCount(){
         return opCount;
     }
 
-    public int[] getData(){
+    /**
+       @return size of dataBuffer (in bytes) 
+     */
+    public final int dataSize(){
+        return dataBufferSize;
+    }   
+
+
+    /**
+       @return opcodes data 
+     */
+    public int[] getOpcodesData(){
 
         int data[] = new int[size];
         System.arraycopy(code, 0, data, 0, size);
 
-        /*  // TODO: Vlad I removed this and used a count
-        // add zeros to terminate commands array 
-        data[size] = 0;
-        data[size+1] = 0;
-        */
         return data;        
     }
     
@@ -58,11 +72,13 @@ public class CLCodeBuffer {
     /**
        add single word of code 
      */
+    /**
     public void add(int word){
         reallocArray(size+1);
         code[size] = word;
         size++;
-    }
+   }
+    */
 
     /**
        add code from array 
@@ -77,9 +93,9 @@ public class CLCodeBuffer {
         opCount++;
     }
 
-    public int getOpCount() {
-        return opCount;
-    }
+    //public int getOpCount() {
+    //    return opCount;
+    //}
 
     protected void reallocArray(int newSize){
         if(newSize <= code.length)
@@ -89,4 +105,4 @@ public class CLCodeBuffer {
         code = newCode;    
     }
 
-}
+} // class CLCodeBuffer 

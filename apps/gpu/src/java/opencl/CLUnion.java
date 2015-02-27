@@ -66,10 +66,8 @@ public class CLUnion extends CLNodeBase {
             child = (Parameterizable)children[i];
             clnode = CLNodeFactory.getCLNode((Parameterizable)child);
 
-            if(DEBUG)printf("push p1\n");
             wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);           
             wcount += clnode.getCLCode((Parameterizable)child, codeBuffer);
-            if(DEBUG)printf("pop p1\n");
             wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);           
 
             if(blendWidth != 0.) {

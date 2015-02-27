@@ -248,19 +248,6 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                 String dcode = writer.createText(vscene.getInstructions(), scale);
                 printf("Debug Code: \n%s\n", dcode);
             }
-        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)){
-            
-            CLCodeMaker maker = new CLCodeMaker();
-            CLCodeBuffer ops = maker.makeCLCode((Parameterizable) source);
-            vscene.setCLCode(ops);
-
-            if (DEBUG) {
-                String dcode = maker.createText(ops);
-                printf("Debug Code: \n%s\n",dcode);
-            }
-
-            printf("Operations: %d\n",ops.opCount());
-            
         } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || 
                    renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
             OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
@@ -271,7 +258,21 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                 String dcode = writer.createText(vscene.getInstructions(),scale);
                 printf("Debug Code: \n%s\n",dcode);
             }
-        } else {
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)){
+            
+            CLCodeMaker maker = new CLCodeMaker();
+            CLCodeBuffer ops = maker.makeCLCode((Parameterizable) source);
+            vscene.setCLCode(ops);
+
+            if (DEBUG) {
+                String dcode = CLCodeMaker.createText(ops);
+                printf("Debug Code: \n%s\n",dcode);
+                printf("Operations: %d\n",ops.opcodesCount());
+                printf("Data Size: %d\n",ops.dataSize());
+            }            
+        } else if (renderVersion.equals(VolumeRenderer.VERSION_DENS) ||
+                   renderVersion.equals(VolumeRenderer.VERSION_DIST)
+                   ){
             OpenCLWriter writer = new OpenCLWriter();
             vscene.setCode(writer.generate((Parameterizable) source, scale));
             printf("OpenCL Code: \n%s",vscene.getCode());

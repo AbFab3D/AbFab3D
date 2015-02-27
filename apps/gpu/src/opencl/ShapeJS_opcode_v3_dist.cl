@@ -27,13 +27,15 @@
 #define oROTATION      19
 #define oSCALE         20
 #define oENGRAVE       21
+#define oGRID2DBYTE    22
 
 #define oEND   0
 
 
-// poimnter to buffer of opcodes 
-#define PTR global const
-
+// pointer to buffer of opcodes 
+#define PTROPS global const
+// pointer to buffer of large data 
+#define PTRDATA global const
 
 // blending function 
 float blendQuadric(float x){
@@ -71,7 +73,7 @@ typedef struct {
     float3 center; // center   
 } sSphere;
 
-void oSphere(PTR sSphere *sphere, sVec *in, sVec *out){
+void oSphere(PTROPS sSphere *sphere, sVec *in, sVec *out){
 
     float3 v = in->v.xyz;
     v -= sphere->center;
@@ -87,12 +89,12 @@ void oSphere(PTR sSphere *sphere, sVec *in, sVec *out){
 typedef struct {
     int size;
     int opcode;
-    float rounding;
-    float3 center;
-    float3 halfsize;
+    float rounding;  // rounding of box edges in 
+    float3 center;   // center of the box 
+    float3 halfsize; // half size of the box 
 } sBox;
 
-void oBox(PTR sBox *box, sVec *in, sVec *out){
+void oBox(PTROPS sBox *box, sVec *in, sVec *out){
 
     float3 v = in->v.xyz;
     v -= box->center;    
@@ -114,7 +116,7 @@ typedef struct {
     float3 offset;
 } sGyroid;
 
-void oGyroid(PTR sGyroid *g, sVec *in, sVec *out){
+void oGyroid(PTROPS sGyroid *g, sVec *in, sVec *out){
     float3 pnt = in->v.xyz;
     pnt -= g->offset;
     pnt *= g->factor;
@@ -134,7 +136,7 @@ typedef struct {
     float3 center;
 } sTorus;
 
-void oTorus(PTR sTorus *torus, sVec *in, sVec *out){
+void oTorus(PTROPS sTorus *torus, sVec *in, sVec *out){
 
     float3 p = in->v.xyz;
     p -= torus->center;
@@ -148,19 +150,19 @@ void oTorus(PTR sTorus *torus, sVec *in, sVec *out){
 }
 
 
-void oMax(PTR void *ptr, sVec *in1, sVec *in2, sVec *out){
+void oMax(PTROPS void *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = max(in1->v.x, in2->v.x);
 
 }
 
-void oMin(PTR void *ptr, sVec *in1, sVec *in2, sVec *out){
+void oMin(PTROPS void *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = min(in1->v.x, in2->v.x);
 
 }
 
-void oSubtract(PTR void *ptr, sVec *in1, sVec *in2, sVec *out){
+void oSubtract(PTROPS void *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = max(in1->v.x, -in2->v.x);
 
@@ -175,39 +177,48 @@ typedef struct {
 } sBlend;
 
 
-void oBlendMin(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
+void oBlendMin(PTROPS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMin(in1->v.x, in2->v.x, ptr->width);
 
 }
 
-void oBlendMax(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
+void oBlendMax(PTROPS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMax(in1->v.x, in2->v.x, ptr->width);
 
 }
 
-void oBlendSubtract(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
+void oBlendSubtract(PTROPS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMax(in1->v.x, -in2->v.x, ptr->width);
 
 }
 
-// edgrave 
+// engrave 
 typedef struct {
     int size;
     int opcode;
     float blendWidth;
     float depth;
 } sEngrave;
+
 // engrave shape1 with shape2 
-void oEngrave(PTR sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
-
+void oEngrave(PTROPS sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
+    // bump mapping version 
     //float eng = max(0.,min(ptr->depth, -in2->v.x));
-    float eng = blendMax(0.,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
-    //out->v.x = blendMax(in1->v.x, -eng, ptr->blendWidth);
-    out->v.x = in1->v.x + eng;
+    //float eng = blendMax(0.,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
+    //out->v.x = in1->v.x + eng;
 
+    // subtraction version 
+    float d = in1->v.x;
+    // sub surface layer of shape     
+    d = max(d, -d - ptr->depth);
+    // intersection of subsurface layer and engraver
+    d = blendMax(d, in2->v.x, ptr->blendWidth);
+    // subtraction of shape and intersected engraver 
+    out->v.x = blendMax(in1->v.x, -d, ptr->blendWidth);
+    
 }
 
 typedef struct {
@@ -217,7 +228,7 @@ typedef struct {
     float3 translation; 
 } sTranslation;
 
-void oTranslation(PTR sTranslation *trans, sVec *inout){
+void oTranslation(PTROPS sTranslation *trans, sVec *inout){
     // inverse translation 
     inout->v.xyz -= trans->translation;
 
@@ -232,7 +243,7 @@ typedef struct {
     float3 center; // center of scale 
 } sScale;
 
-void oScale(PTR sScale *pS, sVec *inout){
+void oScale(PTROPS sScale *pS, sVec *inout){
     
     inout->v.xyz -= pS->center;
     inout->v.xyz *= pS->factor;
@@ -250,7 +261,7 @@ typedef struct {
     float3 m2; 
 } sRotation;
 
-void oRotation(PTR sRotation *rot, sVec *inout){
+void oRotation(PTROPS sRotation *rot, sVec *inout){
 
     float3 vec = inout->v.xyz;
     vec -= rot->center;   
@@ -260,16 +271,53 @@ void oRotation(PTR sRotation *rot, sVec *inout){
     inout->v.xyz = vec;
 }
 
+//
+// describes 2D grid in space 
+// the shape is places inside of 3D box 
+// each pixels in xy plane are extended in z-direction 
+typedef struct {
+    int size;  // size of struct in words 
+    int opcode; // opcode 
+    // custom parameters
+    // coefficients to calculate data value
+    float vOffset; // value = byteValue*vFactor + vOffset;
+    float vFactor; 
+
+    float rounding; // edges rounding      
+    int tiling; // (tilesx | tilesy << 16)
+    int2 dim; // grid count in x and y directions 
+
+    float3 center;  // center in world units
+
+    float3 halfsize; // size in world units
+
+    int data; // location of data in the data buffer 
+    PTRDATA char *pData; // actual grid data 
+} sGrid2dByte;
+
+void oGrid2dByte(PTROPS sGrid2dByte *grid, sVec *pnt, sVec *out){
+    // do box for now 
+    float3 v = pnt->v.xyz;
+    v -= grid->center;    
+    v = fabs(v);
+    v -= grid->halfsize;
+    
+    float d = blendMax(blendMax(v.x,v.y,grid->rounding),v.z,grid->rounding);
+    
+    out->v.x = d;
+    
+}
+
 
 // union to "safely" convert pointers 
 typedef union {
-    PTR void *pv;  
-    PTR int *w;
+    PTROPS void *pv;  
+    PTROPS int *w;
 } CPtr;
 
 
 // for debugging 
-void copyOpcodes(PTR int *opcode, global int *outdata){
+void copyOpcodes(PTROPS int *opcode, global int *outdata){
 
     int opcount = 0;
     int maxCount = 10;
@@ -298,7 +346,7 @@ void copyOpcodes(PTR int *opcode, global int *outdata){
    pnt - input point 
    result - output data value 
  */
-void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
+void getShapeJSData(PTROPS int* opcode, int opCount, sVec *pnt, sVec *result) {
     
     CPtr ptr;  // pointer to dta struct to convert from int* to structs* 
     int offsetIn = 0;  // current offset in the input data 
@@ -343,6 +391,11 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
         case oBOX:
             
             oBox(ptr.pv, &pnt1, &data1);
+            break;
+
+        case oGRID2DBYTE:
+            
+            oGrid2dByte(ptr.pv, &pnt1, &data1);
             break;
 
         case oTORUS:
@@ -436,4 +489,3 @@ void getShapeJSData(PTR int* opcode, int opCount, sVec *pnt, sVec *result) {
     *result = data1;
     return;            
 }
-

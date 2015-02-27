@@ -16,7 +16,7 @@ import abfab3d.param.Parameterizable;
 
 
 import static abfab3d.util.Output.printf;
-
+import static abfab3d.util.Output.fmt;
 
 /**
    makes opcode for fot given node 
@@ -45,20 +45,21 @@ public class CLCodeMaker implements CLCodeGenerator {
         
     }
 
-    public String createText(CLCodeBuffer ops) {
+    public static String createText(CLCodeBuffer ops) {
         StringBuilder bldr = new StringBuilder();
 
-        int[] data = ops.getData();
+        int[] data = ops.getOpcodesData();
         int len = data.length;
 
         int idx = 0;
-        printf("Op Code Debug:\n");
+        //printf("---code start ---\n");
         while(idx < len) {
             int size = data[idx];
             int op = data[idx+1];
             idx += size;
-            printf("%s\n",Opcodes.getText(op));
+            bldr.append(fmt("%s\n",Opcodes.getText(op)));
         }
+        //printf("---code end ---\n");
 
         return bldr.toString();
     }

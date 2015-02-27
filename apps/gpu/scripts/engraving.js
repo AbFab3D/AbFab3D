@@ -19,8 +19,8 @@ function main(args) {
 	
 	var eng = new Engraving(sphere, box);
 	
-	eng.getParam("depth").setValue(0.5*MM);
-	eng.getParam("blend").setValue(0.1*MM);
+	eng.getParam("depth").setValue(0.4*MM);
+	eng.getParam("blend").setValue(0.2*MM);
 	
     var maker = new GridMaker();
     maker.setSource(eng);
