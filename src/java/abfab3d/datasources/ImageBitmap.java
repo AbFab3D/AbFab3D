@@ -407,7 +407,7 @@ public class ImageBitmap extends TransformableDataSource {
 
         super.initialize();
 
-        if(DEBUG)prinf("%s.initilize()\n",this);
+        if(DEBUG)printf("%s.initilize()\n",this);
         int res = prepareImage();
 
         if(res != RESULT_OK){ 

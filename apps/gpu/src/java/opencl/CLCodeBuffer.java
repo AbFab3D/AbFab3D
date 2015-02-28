@@ -88,9 +88,9 @@ public class CLCodeBuffer {
         }
     }   
         
-    //public final int get(int index){
-    //    return code[index];
-    //}
+    public final int get(int index){
+        return code[index];
+    }
 
     /**
        add single word of code 
