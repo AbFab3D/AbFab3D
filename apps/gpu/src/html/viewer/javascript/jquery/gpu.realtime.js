@@ -20,6 +20,77 @@ var rotX = 0;
 var rotY = 0;
 var zoom = -4;
 var quality = 0.5;
+var viewChanged = false;
+
+var maxFPS = 30;  // maximum frame rate to shoot for
+
+// requestAnimationFrame polyfill by Erik Möller
+// fixes from Paul Irish and Tino Zijdel
+
+(function() {
+  var lastTime = 0;
+  var vendors = ['ms', 'moz', 'webkit', 'o'];
+  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
+    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
+    || window[vendors[x]+'CancelRequestAnimationFrame'];
+  }
+
+  if (!window.requestAnimationFrame)
+    window.requestAnimationFrame = function(callback, element) {
+      var currTime = new Date().getTime();
+      var timeToCall = Math.max(0, 16 - (currTime - lastTime));
+      var id = window.setTimeout(function() { callback(currTime + timeToCall); },
+          timeToCall);
+      lastTime = currTime + timeToCall;
+      return id;
+    };
+
+  if (!window.cancelAnimationFrame)
+    window.cancelAnimationFrame = function(id) {
+      clearTimeout(id);
+    };
+}());
+
+// function for updating the image
+function draw() {
+  setTimeout(function() {
+    window.requestAnimationFrame(draw);
+
+    if (!viewChanged) return;
+
+    viewChanged = false;
+
+    extraParams = {
+      'jobID':  getJobID(),
+      'rotX':    rotX,  // x rotation in radians
+      'rotY':    rotY,  // y rotation in radians
+      'zoom':    zoom,  // zoom level (translation in z direction)
+      'imgType': imgType,
+      'quality': quality
+    };
+
+    if (loading) {
+      skipCount--;
+      if (skipCount > 0) {
+        return;
+      } else {
+        console.log("Skipped too long, reseting");
+      }
+    }
+    skipCount = 15;
+
+    var imageViewer = document.getElementById("render");
+    loading = true;
+
+    var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+    imageViewer.setAttribute("src", url);
+
+  }, 1000 / maxFPS);
+}
+
+// Start the drawing loop
+draw();
 
 
 function getFile(elementId){
@@ -89,28 +160,7 @@ function initScript() {
 }
 
 function zoomModel() {
-  extraParams = {
-    'jobID':  getJobID(),
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
-    'imgType': imgType,
-    'quality': quality
-  };
-  
-  if (loading) {
-    skipCount--;
-    if (skipCount > 0) {
-      return;
-    } else {
-      console.log("Skipped too long, reseting");
-    }
-  }
-  skipCount = 15; 
-
-  var imageViewer = document.getElementById("render");
-  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
-  imageViewer.setAttribute("src", url);
+  viewChanged = true;
 }
 
 function rotateModel(dx, dy, radX, radY) {
@@ -124,31 +174,7 @@ function rotateModel(dx, dy, radX, radY) {
     rotY += dx / 240;
   }
 
-  extraParams = {
-    'jobID':  getJobID(),
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
-    'imgType': imgType,
-    'quality': quality
-  };
-
-  if (loading) {
-    skipCount--;
-    if (skipCount > 0) {
-      return;
-    } else {
-      console.log("Skipped too long, reseting");
-    }
-  }
-  skipCount = 15;
-  
-  var imageViewer = document.getElementById("render");
-  loading = true;
-
-  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
-  imageViewer.setAttribute("src", url);
-  
+  viewChanged = true;
 }
 
 function getRender(q) {
