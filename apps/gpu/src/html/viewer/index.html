@@ -46,7 +46,7 @@ var radiansByArrow = (degreeByArrow / 180) * 3.14159;
 
 /** Creator specific vars and methods */
 
-var inputTypes = ["text", "file", "range"];
+var inputTypes = ["text", "file", "range","3dloc"];
 
 var isUriImage = false;
 var isUrlScript = false;
@@ -369,6 +369,16 @@ function insertInput(param) {
       setParamVal(param.id, param.default);
       addParamUIListener(pname_input, param.id);
       break;
+    case "3dloc":
+      var pname_input = document.createElement("button");
+      pname_input.setAttribute("type", "text");
+      pname_input.setAttribute("name", param.id);
+      pname_input.setAttribute("id", param.id);
+      pname_input.setAttribute("value", param.default);
+      pname_input.setAttribute("class", "param-val");
+      var text = document.createTextNode(param.displayName);
+      pname_input.appendChild(text);
+      break;
     default:
       console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
   }
@@ -429,12 +439,23 @@ function addMouseEventListeners() {
     var handlers = {
       mousemove : function(event){
         event.preventDefault();
-        var dx = event.clientX - dragStart.x;
-        var dy = event.clientY - dragStart.y;
-        rotateModel(dx, dy, null, null);
 
-        dragStart.x = event.clientX;
-        dragStart.y = event.clientY;
+        if (event.button == 0) {
+          var dx = event.clientX - dragStart.x;
+          var dy = event.clientY - dragStart.y;
+          rotateModel(dx, dy, null, null);
+
+          dragStart.x = event.clientX;
+          dragStart.y = event.clientY;
+        }
+      },
+      mousedown : function(event){
+        event.preventDefault();
+
+        if (event.button == 2) {
+          pickModel(event.clientX,event.clientY);
+          mouseDown = false;
+        }
       },
       mouseup : function(event){
         $(this).off(handlers);
@@ -557,6 +578,7 @@ function main(args) {
     var sphere = new Sphere(radius);
     var gyroid = new VolumePatterns.Gyroid(args['period']*MM, args['thickness']*MM);
     var intersect = new Intersection();
+    intersect.setBlend(0.5*MM);
     intersect.add(sphere);
     intersect.add(gyroid);
     var maker = new GridMaker();

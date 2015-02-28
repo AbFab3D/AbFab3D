@@ -60,12 +60,13 @@ public class ImageRenderer {
     private VolumeRenderer[] render;
     private DeviceResources[] devices;
     private int numDevices;
-    private float worldScale;
-    // timig params for STAT 
+    // timig params for STAT
     private long lastLoadScriptTime;
+    private long lastCompileTime;
     private long lastImageTime;
     private long lastInitializationTime;
     private long lastRenderTime;
+    private long lastPickTime;
     private long lastPngTime;
     private long lastKernelTime;
     private int width;
@@ -77,11 +78,13 @@ public class ImageRenderer {
     private int[] pixels;
     private BufferedImage image;
 
+    /*
     private byte[] bigBuff;
     private int[] bigPixels;
     private BufferedImage bigImage;
-
+    */
     private HashMap<String, List<Instruction>> cache = new HashMap<String, List<Instruction>>();
+    private HashMap<String, CacheEntry> cacheSource = new HashMap<String, CacheEntry>();
 
     public void initCL(int maxDevices,int width, int height) {
         this.width = width;
@@ -161,7 +164,7 @@ public class ImageRenderer {
     }
 
     public TimeStat getTimeStat() {
-        TimeStat ts = new TimeStat(lastLoadScriptTime,getLastCompileTime(), lastImageTime, getLastKernelTime(),lastPngTime, lastInitializationTime, lastRenderTime);
+        TimeStat ts = new TimeStat(lastLoadScriptTime,lastCompileTime, lastImageTime, getLastKernelTime(),lastPngTime, lastInitializationTime, lastRenderTime);
         return ts;
     }
 
@@ -200,12 +203,14 @@ public class ImageRenderer {
 
         imgSize = Math.max(imgSize,jpgSize);
 */
+        /*
         if (bigBuff == null || bigBuff.length < imgSize) {
             bigBuff = new byte[(int) (imgSize)];
             bigPixels = new int[width * height];
             bigImage = new BufferedImage(width * frameX, height * frameY, BufferedImage.TYPE_INT_ARGB);
             printf("Realloc buffers: imgSize: %d   w: %d  h: %d\n",imgSize,bigImage.getWidth(),bigImage.getHeight());
         }
+        */
     }
 
     public int render(String jobID, String script, Map<String,Object> params, Matrix4f view,boolean cache, int imgType, float quality, OutputStream os) throws IOException {
@@ -217,18 +222,22 @@ public class ImageRenderer {
 
         makeRender(jobID, script, params,cache, quality, view,0,0,width, height, pixels, image);
         int size = 0;
+        String img_st = null;
+
         switch(imgType) {
             case IMAGE_PNG:
                 PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
                 size = makePng(encoder, image, buff);  // return buff[0] to size bytes to client
+                img_st = "png";
                 break;
             case IMAGE_JPEG:
                 size = makeJpg(image, buff);
+                img_st = "jpg";
                 break;
         }
-        if(DEBUG)printf("total size: %d time: %d ms\n  js eval: %d\n  ocl compile: %d ms\n  kernel: %d ms\n  image: %d ms\n  png: %d ms\n", 
-                        size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), 
-                        (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
+        if(DEBUG)printf("total size: %d time: %d ms\n  js eval: %d\n  ocl compile: %d ms\n  kernel: %d ms\n  image: %d ms\n  %s: %d ms\n",
+                        size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (lastCompileTime / 1e6),
+                        (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), img_st,(int) (lastPngTime / 1e6));
 
         os.write(buff,0,size);
 
@@ -241,6 +250,7 @@ public class ImageRenderer {
         return render(jobID, script, params, view, cache, imgType, quality, os);
     }
 
+    /*
     public int renderImages(String jobID, String script, Map<String,Object> params, Matrix4f view,int frames, int frameX, boolean useCache, int imgType, OutputStream os) throws IOException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
@@ -334,7 +344,7 @@ public class ImageRenderer {
 
         return size;
     }
-
+*/
     private int makePng(PngEncoder encoder, BufferedImage img, byte[] buff) {
         long t0 = System.nanoTime();
 
@@ -394,45 +404,101 @@ public class ImageRenderer {
                             int pixX, int pixY, int width, int height,
                             int[] pixels, BufferedImage image) {
 
-        VolumeScene vscene = new VolumeScene(new ArrayList(), null, "", version);
-        if(DEBUG) printf("makeRender(%s, version:%s )\n", jobID, version);
+        if(DEBUG) printf("makeRender(%s, version:%s quality: %f)\n", jobID, version,quality);
         long t0 = System.nanoTime();
 
+        DataSource source = null;
+        float worldScale = 1;
+        CLCodeBuffer ops;
+        VolumeScene vscene = null;
+        boolean newScene = false;
+
         if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
-            
-            if(DEBUG)printf("js evaluation\n");
-            ShapeJSEvaluator eval = new ShapeJSEvaluator();
-            Bounds bounds = new Bounds();
-            DataSource source = eval.runScript(script, bounds,params);
 
-            if(source instanceof Initializable)
-                ((Initializable)source).initialize();
+            CacheEntry ce = null;
+
+            if (useCache && jobID != null && params.size() == 0) {
+                ce = cacheSource.get(jobID);
+                if (ce != null && ce.quality != quality) {
+                    if (DEBUG) printf("Quality not the same for cached");
+                    newScene = true;  // force a new openCL program
+                    ce.quality = quality;
+                }
+            }
+            if (ce == null) {
+
+                if (DEBUG) printf("js evaluation\n");
+                ShapeJSEvaluator eval = new ShapeJSEvaluator();
+                Bounds bounds = new Bounds();
+                ce = new CacheEntry();
+                ce.source = eval.runScript(script, bounds, params);
+
+                if (ce.source instanceof Initializable)
+                    ((Initializable) ce.source).initialize();
+                Vector3d scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
+                ce.worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
+
+                CLCodeMaker maker = new CLCodeMaker();
+                ce.ops = maker.makeCLCode((Parameterizable) ce.source);
+                ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
+                ce.vscene.setCLCode(ce.ops);
+                ce.quality = quality;
+                newScene = true;
+
+                if(DEBUG)printf("code generation %5.2f ms\n", (System.nanoTime()-t0)*1.e-6);
 
 
-            Vector3d scale;
-            scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
-            worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
+                if (jobID != null && useCache) {
+                    cacheSource.put(jobID, ce);
+                }
+            }
 
-            CLCodeMaker maker = new CLCodeMaker();
-            CLCodeBuffer ops = maker.makeCLCode((Parameterizable) source);
-
-            vscene.setCLCode(ops);
-
-            if(DEBUG)printf("code generation %5.2f ms\n", (System.nanoTime()-t0)*1.e-6);
-
+            source = ce.source;
+            worldScale = ce.worldScale;
+            ops = ce.ops;
+            vscene = ce.vscene;
         } else if (version.equals(VolumeRenderer.VERSION_DIST)) {
-            ShapeJSEvaluator eval = new ShapeJSEvaluator();
-            Bounds bounds = new Bounds();
-            DataSource source = eval.runScript(script, bounds,params);
+            CacheEntry ce = null;
 
-            if(source instanceof Initializable)
-                ((Initializable)source).initialize();
+            if (useCache && jobID != null && params.size() == 0) {
+                ce = cacheSource.get(jobID);
+
+                if (ce.quality != quality) {
+                    if (DEBUG) printf("Quality not the same for cached");
+                    newScene = true;  // force a new openCL program
+                }
+            }
+            if (ce == null) {
+
+                if (DEBUG) printf("js evaluation\n");
+                ShapeJSEvaluator eval = new ShapeJSEvaluator();
+                Bounds bounds = new Bounds();
+                ce = new CacheEntry();
+                ce.source = eval.runScript(script, bounds, params);
+
+                if (ce.source instanceof Initializable)
+                    ((Initializable) ce.source).initialize();
+                Vector3d scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
+                ce.worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
+
+                CLCodeMaker maker = new CLCodeMaker();
+                ce.ops = maker.makeCLCode((Parameterizable) source);
+                ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
+                OpenCLWriter writer = new OpenCLWriter();
+                ce.vscene.setCode(writer.generate((Parameterizable) source, new Vector3d(worldScale,worldScale,worldScale)));
+                ce.quality = quality;
+                newScene = true;
+
+                if (jobID != null && useCache) {
+                    cacheSource.put(jobID, ce);
+                }
+            }
+
+            source = ce.source;
+            worldScale = ce.worldScale;
+            ops = ce.ops;
+            vscene = ce.vscene;
             
-            Vector3d scale;
-            scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
-            worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
-            OpenCLWriter writer = new OpenCLWriter();
-            vscene.setCode(writer.generate((Parameterizable) source, scale));
             if(DEBUG) printf("OpenCL Code: \n%s",vscene.getCode());
         } else { // 
             List<Instruction> inst = null;
@@ -441,7 +507,24 @@ public class ImageRenderer {
                 inst = cache.get(jobID);
             }
             if (inst == null) {
-                inst = loadScript(script, params);
+                ShapeJSEvaluator eval = new ShapeJSEvaluator();
+                Bounds bounds = new Bounds();
+                source = eval.runScript(script, bounds,params);
+
+                if(source instanceof Initializable)
+                    ((Initializable)source).initialize();
+
+                OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
+                Vector3d scale;
+                scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
+                worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
+
+                //printf("Scale is: %s\n", scale);
+                inst = writer.generate((Parameterizable) source, scale);
+
+                printf("Instructions: %d\n",inst.size());
+                lastLoadScriptTime = System.nanoTime() - t0;
+
                 if (inst == null) {
                     throw new IllegalArgumentException("Script failed to load: " + script);
                 }
@@ -452,38 +535,46 @@ public class ImageRenderer {
             } else {
                 lastLoadScriptTime = 0;
             }
-
+            newScene = true;
+            vscene = new VolumeScene(new ArrayList(), null, "", version);
             vscene.setInstructions(inst);
+
         }
 
-        for (int i = 0; i < numRenderers; i++) {
-            if (quality >= 0.75) {
-                // high quality
-                render[i].setMaxSteps(1024);
-                render[i].setMaxAntialiasingSteps(2);
-                // TODO: Eventually add shadows
-            } else if (quality <= 0.25) {
-                // low quality
-                render[i].setMaxSteps(256);
-                render[i].setMaxAntialiasingSteps(0);
-            } else {
-                // normal
-                render[i].setMaxSteps(512);
-                render[i].setMaxAntialiasingSteps(0);
-            }
-            boolean result = render[i].init(vscene);
+        if (newScene) {
+            if (DEBUG) printf("New scene for jobID: %s\n",jobID);
+            for (int i = 0; i < numRenderers; i++) {
+                if (quality >= 0.75) {
+                    // high quality
+                    render[i].setMaxSteps(1024);
+                    render[i].setMaxAntialiasingSteps(2);
+                    // TODO: Eventually add shadows
+                } else if (quality <= 0.25) {
+                    // low quality
+                    render[i].setMaxSteps(256);
+                    render[i].setMaxAntialiasingSteps(0);
+                } else {
+                    // normal
+                    render[i].setMaxSteps(512);
+                    render[i].setMaxAntialiasingSteps(0);
+                }
+                boolean result = render[i].init(vscene);
 
-            if (!result) {
-                CLProgram program = render[i].getProgram();
-                printf("Status: %s\n", program.getBuildStatus());
-                printf("Build Log: %s\n", program.getBuildLog());
+                if (!result) {
+                    CLProgram program = render[i].getProgram();
+                    printf("Status: %s\n", program.getBuildStatus());
+                    printf("Build Log: %s\n", program.getBuildLog());
 
-                throw new IllegalArgumentException("Compile failed");
+                    throw new IllegalArgumentException("Compile failed");
+                }
             }
+            lastInitializationTime = (System.nanoTime() - t0);
+            //if(DEBUG) printf("frame initialization time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);
+            lastCompileTime = getLastCompileTime();
+        } else{
+            lastInitializationTime = (System.nanoTime() - t0);
+            lastCompileTime = 0;
         }
-        lastInitializationTime = (System.nanoTime() - t0);
-        //if(DEBUG) printf("frame initialization time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);    
-
         t0 = System.nanoTime();
 
         Matrix4f inv_view = new Matrix4f(view);
@@ -518,6 +609,82 @@ public class ImageRenderer {
         lastImageTime = System.nanoTime() - t0;    
     }
 
+    /**
+     * Pick against a script, it must be cached
+     *
+     * @param jobID  UniqueID for caching results
+     * @param width
+     * @param height
+     * @return
+     */
+    public void pick(String jobID, Matrix4f view,
+                            int pixX, int pixY, int width, int height,
+                            Vector3f pos, Vector3f normal) {
+
+        if(DEBUG) printf("pick(%s, version:%s)\n", jobID, version);
+        long t0 = System.nanoTime();
+
+        DataSource source = null;
+        float worldScale = 1;
+        CLCodeBuffer ops;
+        VolumeScene vscene = null;
+        boolean newScene = false;
+
+        if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+
+            CacheEntry ce = null;
+
+            ce = cacheSource.get(jobID);
+
+            if (ce == null) {
+                throw new IllegalArgumentException("Cannot pick against an uncached scene");
+            }
+
+            source = ce.source;
+            worldScale = ce.worldScale;
+            ops = ce.ops;
+            vscene = ce.vscene;
+        } else { //
+            List<Instruction> inst = null;
+
+            inst = cache.get(jobID);
+            if (inst == null) {
+                throw new IllegalArgumentException("Cannot pick against an uncached scene");
+            }
+        }
+
+        lastInitializationTime = (System.nanoTime() - t0);
+        lastCompileTime = 0;
+        t0 = System.nanoTime();
+
+        Matrix4f inv_view = new Matrix4f(view);
+        inv_view.invert();
+        t0 = System.nanoTime();
+        tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
+
+        for (int i = 0; i < numTiles; i++) {
+            RenderTile tile = tiles[i];
+
+            if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+                tile.getRenderer().pickStruct(pixX, pixY, tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale,pos,normal);
+            } else {
+                /*
+                tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale, tile.getDest());
+                */
+            }
+        }
+
+
+        for (int i = 0; i < numRenderers; i++) {
+            render[i].getCommandQueue().finish();
+        }
+
+        lastPickTime = (System.nanoTime() - t0);
+        //if(DEBUG) printf("frame render time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);
+    }
+
     private Matrix4f getView(float roty) {
         float[] DEFAULT_TRANS = new float[]{0, 0, -4};
         float z = DEFAULT_TRANS[2];
@@ -539,28 +706,6 @@ public class ImageRenderer {
         mat.mul(rymat);
 
         return mat;
-    }
-
-    private List<Instruction> loadScript(String script, Map<String,Object> params) {
-        long t0 = System.nanoTime();
-        ShapeJSEvaluator eval = new ShapeJSEvaluator();
-        Bounds bounds = new Bounds();
-        DataSource source = eval.runScript(script, bounds,params);
-
-        if(source instanceof Initializable)
-            ((Initializable)source).initialize();
-
-        OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
-        Vector3d scale;
-        scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
-        worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
-
-        //printf("Scale is: %s\n", scale);
-        List<Instruction> inst = writer.generate((Parameterizable) source, scale);
-
-        printf("Instructions: %d\n",inst.size());
-        lastLoadScriptTime = System.nanoTime() - t0;
-        return inst;
     }
 
     private BufferedImage createImage(int x0, int y0, int width, int height, int[] pixels, CLBuffer<IntBuffer> buffer, BufferedImage image) {
@@ -625,4 +770,16 @@ public class ImageRenderer {
         }
     }
 
+    public static class CacheEntry {
+        public DataSource source;
+        public float worldScale;
+        public CLCodeBuffer ops;
+        public VolumeScene vscene;
+        public String script;
+        public Map<String,Object> params;
+        public float quality;
+
+        public CacheEntry() {
+        }
+    }
 }

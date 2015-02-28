@@ -7,6 +7,7 @@
 #define boxMin ((float4)(-1.0f, -1.0f, -1.0f,1.0f))
 #define boxMax ((float4)(1.0f, 1.0f, 1.0f,1.0f))
 
+#define OUTSIDE -10000
 // copy from global to local using individual workers 
 void copyToLocalMT(global const int *pgBufFrom, local int *plBufTo,int count){
     
@@ -298,6 +299,108 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
     return (float3)clearColor;
 }
 
+void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, Scene *pScene, global float3 * out_pos, global float3 * out_normal) {
+
+
+    // calculate eye ray in world space
+    float4 eyeRay_o;    // eye origin
+    float4 eyeRay_d;    // eye direction
+
+    eyeRay_o = (float4)(pScene->invvm[3], pScene->invvm[7], pScene->invvm[11], 1.0f);
+
+    float4 temp = normalize(((float4)(u, v, -2.f,0.0f)));
+	eyeRay_d = mulMatVec4(pScene->invvm,temp);
+
+    int hit = -1;
+    // march along ray from tnear till we hit something
+    float t = tnear;
+
+    float4 tpos;
+    float3 pos;
+    float density;
+
+    tpos = eyeRay_o + eyeRay_d*t;
+	pos = tpos.xyz;
+    density = getDensity(pScene,pos);
+	if (density > 0.5){  // solid on the boundary
+        out_normal->x = OUTSIDE;
+        out_normal->y = OUTSIDE;
+        out_normal->z = OUTSIDE;
+
+	    out_pos->x = OUTSIDE;
+	    out_pos->y = OUTSIDE;
+	    out_pos->z = OUTSIDE;
+
+	    return;
+	}
+
+    for(uint i=0; i < maxSteps; i++) {
+        tpos = eyeRay_o + eyeRay_d*t;
+        pos = tpos.xyz;
+
+        density = getDensity(pScene,pos);
+
+        if (density > 0.5){  // overshot the surface
+			//return (float3)(1,0,0);
+			int backcount = 10;
+			while(density > 0.5 && backcount-- > 0){
+			   t -= 0.1*tstep;  // back off
+			   pos = (eyeRay_o + eyeRay_d*t).xyz;
+			   density = getDensity(pScene,pos);
+			}
+			// && density <= 1.) {
+           hit = i;
+		   // calculate gradient along the ray
+		   float dt = 0.01*tstep;
+		   float3 p1 = (eyeRay_o + eyeRay_d*(t+dt)).xyz;
+		   float gp = (getDensity(pScene,p1)-density)/dt;
+		   float ddt = (0.5-density)/gp;
+		   //if( true ){
+		   if( true) {//ddt > -0.5*tstep && ddt < 0.5*tstep){
+				// adjust hit based on density to reduce aliasing
+				pos = (eyeRay_o + eyeRay_d*(t + ddt)).xyz;
+				break;
+			}
+		}
+        t += tstep;
+        if (t > tfar) {
+            out_normal->x = OUTSIDE;
+            out_normal->y = OUTSIDE;
+            out_normal->z = OUTSIDE;
+            out_pos->x = OUTSIDE;
+            out_pos->y = OUTSIDE;
+            out_pos->z = OUTSIDE;
+            return;
+        }
+    }
+
+    float3 grad;
+    float dist = tstep*0.01;
+
+    // second order precision formula for gradient
+    // x
+    float xd0 = getDensity(pScene,(float3) (pos.x + dist, pos.y, pos.z));
+    float xd2 = getDensity(pScene,(float3) (pos.x - dist, pos.y, pos.z));
+    grad.x = (xd2 - xd0)/(2*dist);
+    // y
+    float yd0 = getDensity(pScene,(float3) (pos.x,pos.y + dist, pos.z));
+    float yd2 = getDensity(pScene,(float3) (pos.x, pos.y - dist, pos.z));
+    grad.y = (yd2 - yd0)/(2*dist);
+    // z
+    float zd0 = getDensity(pScene,(float3) (pos.x,pos.y, pos.z + dist));
+    float zd2 = getDensity(pScene,(float3) (pos.x, pos.y, pos.z - dist));
+    grad.z = (zd2 - zd0)/(2*dist);
+
+    grad = normalize(grad);  //  use gradient for normal at the surface
+    out_normal->x = grad.x;
+    out_normal->y = grad.y;
+    out_normal->z = grad.z;
+
+    out_pos->x = pos.x * pScene->worldScale;
+    out_pos->y = pos.y * pScene->worldScale;
+    out_pos->z = pos.z * pScene->worldScale;
+}
+
 //
 // render with AA 
 //
@@ -455,4 +558,67 @@ kernel void render(global uint *d_output,
 
     uint idx =(y * tileW) + x;
     d_output[idx] = rgbaFloatToInt(shading);
+}
+
+//
+// Pick into the scene to find the 3d position and surface normal
+//
+kernel void pick(global float3 * out_pos, global float3 * out_normal,
+                   uint x0, uint y0,
+                   uint imageW, uint imageH,
+                   global const float* invViewMatrix,
+                   float worldScale,
+                   global const int * pgOps, // operations
+                   int opCount, // operations count
+                   int opBufferSize, // operations buffer size
+                   local int *plOps, // ops in local memory
+                   global const char *pgData // large global data
+                   ){
+
+    uint x = get_global_id(0);
+    uint y = get_global_id(1);
+
+    copyToLocal(pgOps, plOps,opBufferSize);
+
+    PTROPS int *pOps = plOps;
+    // init the scene
+    Scene scene = (Scene){.worldScale=worldScale, .pOps=pOps, .opCount=opCount, .pgData=pgData, .invvm=invViewMatrix};
+    Scene *pScene = &scene;
+
+    float u = ((x + x0) / (float) imageW)*2.0f-1.0f;
+    float v = ((y + y0) / (float) imageH)*2.0f-1.0f;
+
+
+    // calculate eye ray in world space
+    float4 eyeRay_o;    // eye origin
+    float4 eyeRay_d;    // eye direction
+
+    eyeRay_o = (float4)(pScene->invvm[3], pScene->invvm[7], pScene->invvm[11], 1.0f);
+
+    float4 temp = normalize(((float4)(u, v, -2.0f,0.0f)));
+    eyeRay_d.x = dot(temp, ((float4)(pScene->invvm[0],pScene->invvm[1],pScene->invvm[2],pScene->invvm[3])));
+    eyeRay_d.y = dot(temp, ((float4)(pScene->invvm[4],pScene->invvm[5],pScene->invvm[6],pScene->invvm[7])));
+    eyeRay_d.z = dot(temp, ((float4)(pScene->invvm[8],pScene->invvm[9],pScene->invvm[10],pScene->invvm[11])));
+    eyeRay_d.w = 0.0f;
+
+
+    // find intersection with box
+    float tnear, tfar;
+    int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
+
+    if (!hit) {
+
+        out_normal->x = OUTSIDE;
+        out_normal->y = OUTSIDE;
+        out_normal->z = OUTSIDE;
+        out_pos->x = OUTSIDE;
+        out_pos->y = OUTSIDE;
+        out_pos->z = OUTSIDE;
+
+        return;
+    }
+
+    tnear = clamp(tnear,0.0f,tfar);   // clamp to near plane
+
+    castRay(x,y,u,v,tnear,tfar,imageW,imageH,pScene,out_pos,out_normal);
 }

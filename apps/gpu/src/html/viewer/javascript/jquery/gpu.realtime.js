@@ -61,6 +61,10 @@ function draw() {
 
     viewChanged = false;
 
+    var imgType = "jpg";
+    if (quality >= 1.0)
+      imgType = "png";
+
     extraParams = {
       'jobID':  getJobID(),
       'rotX':    rotX,  // x rotation in radians
@@ -177,6 +181,52 @@ function rotateModel(dx, dy, radX, radY) {
   viewChanged = true;
 }
 
+// Remove default right button menu
+window.oncontextmenu = function ()
+{
+  return false;     // cancel default menu
+}
+
+function pickModel(x,y) {
+  console.log("Pick: " + x + " " + y);
+
+  // TODO: Not certain how to get this 0,0 in upper left corner
+  x = x - 760;
+  y = y - 63;
+
+  extraParams = {
+    'x': x,
+    'y': y,
+    'jobID':   getJobID(),
+    'script':  editor.getValue(),
+    'width':   width,
+    'height':  height,
+    'rotX':    rotX,  // x rotation in radians
+    'rotY':    rotY,  // y rotation in radians
+    'zoom':    zoom  // zoom level (translation in z direction)
+  };
+
+  var url = "/creator/shapejsRT_v1.0.0/pick?" + $.param(extraParams);
+
+  if (paramData !== undefined && paramData !== null) {
+    url = url + "&" + $.param(paramDataToQueryString(paramData));
+  }
+
+  var request = $.ajax({
+    type: "POST",
+    url: url
+  })
+
+  request.done(function( data ) {
+    console.log(data);
+  });
+
+  request.fail(function( jqXHR, textStatus ) {
+    alert( "Request failed: " + textStatus );
+  });
+
+}
+
 function getRender(q) {
   spin('preview');
   
@@ -193,21 +243,13 @@ function getRender(q) {
     'quality': q
   };
   
-  if (loading) {
-    skipCount--;
-    if (skipCount > 0) {
-      return;
-    } else {
-      console.log("Skipped too long, reseting");
-    }
-  }
-  skipCount = 15; 
+  skipCount = 15;
 
   var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
   
   var request = $.ajax({
     type: "POST",
-    url: url,
+    url: url
   })
   
   request.done(function( data ) {
@@ -223,7 +265,9 @@ function getRender(q) {
 
 function setQuality(q) {
   quality = q;
+  viewChanged = true;
 }
+
 /*
 function getRender() {
   //spin('preview');

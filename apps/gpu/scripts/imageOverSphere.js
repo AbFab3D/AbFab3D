@@ -1,3 +1,18 @@
+var params = [
+	{
+		"id": "text",
+		"displayName": "Text",
+		"type": "text",
+		"default" : "Alan"
+	},
+	{
+		"id": "text_loc",
+		"displayName": "Text Location",
+		"type": "3dloc",
+		"related": "text"
+	}
+
+];
 function main(args) {
     var radius = 25 * MM;
 	var bx = 20*MM;

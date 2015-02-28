@@ -1,5 +1,7 @@
 package http;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import render.*;
 
@@ -24,7 +26,7 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class ShapeJSImageServlet extends HttpServlet {
-    public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V2_DIST;
+    public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V3_DIST;
 
     /** Config params in map format */
     protected Map<String, String> config;
@@ -54,6 +56,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
     public void initCL(boolean debug, int width, int height) {
         render = new ImageRenderer();
+        render.setVersion(VERSION);
         render.initCL(1,width,height);
     }
 
@@ -66,7 +69,9 @@ public class ShapeJSImageServlet extends HttpServlet {
         String accept = req.getHeader("Accept");
 
         if (command.contains("/makeImage")) {
-            handleRequest(req, resp, session, accept);
+            handleImageRequest(req, resp, session, accept);
+        } else if (command.contains("/pick")) {
+                handlePickRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
@@ -81,17 +86,19 @@ public class ShapeJSImageServlet extends HttpServlet {
         String accept = req.getHeader("Accept");
 
         if (command.contains("/makeImage")) {
-            handleRequest(req, resp, session, accept);
+            handleImageRequest(req, resp, session, accept);
+        } else if (command.contains("/pick")) {
+            handlePickRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
     }
 
     // TODO: stop doing this
-    synchronized private void handleRequest(HttpServletRequest req,
-                               HttpServletResponse resp,
-                               HttpSession session,
-                               String accept)
+    synchronized private void handleImageRequest(HttpServletRequest req,
+                                                 HttpServletResponse resp,
+                                                 HttpSession session,
+                                                 String accept)
             throws IOException {
 
         int width = 512, height = 512;
@@ -207,8 +214,8 @@ public class ShapeJSImageServlet extends HttpServlet {
             String key = entry.getKey();
             if (key.startsWith("shapeJS_")) {
                 key = key.substring(8);
-                printf("Adding param: %s -> %s",key,entry.getValue()[0]);
-                sparams.put(key,entry.getValue()[0]);
+                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
+                sparams.put(key, entry.getValue()[0]);
             }
 
         }
@@ -228,11 +235,133 @@ public class ShapeJSImageServlet extends HttpServlet {
         if (frames == 0 || frames == 1) {
             size = render.render(jobID, script, sparams,viewMatrix, true, itype,quality, resp.getOutputStream());
         } else {
-            size = render.renderImages(jobID, script, sparams,viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
+            throw new IllegalArgumentException("Need to reimplement");
+            //size = render.renderImages(jobID, script, sparams,viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
         }
 
         printf("Image size: %d\n",size);
         resp.setContentLength(size);
+
+        os.close();
+    }
+
+    // TODO: stop doing this
+    synchronized private void handlePickRequest(HttpServletRequest req,
+                                                 HttpServletResponse resp,
+                                                 HttpSession session,
+                                                 String accept)
+            throws IOException {
+
+        String jobID = null;
+        String script = null;
+        float[] tviewMatrix = null;
+        float[] view;
+        float rotX = 0;
+        float rotY = 0;
+        float zoom = -4;
+        int x = 0;
+        int y = 0;
+
+        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
+
+        Map<String, String[]> params = req.getParameterMap();
+
+        String[] jobIDSt = params.get("jobID");
+        if (jobIDSt != null && jobIDSt.length > 0) {
+            jobID = jobIDSt[0];
+        }
+
+        String[] scriptSt = params.get("script");
+        if (scriptSt != null && scriptSt.length > 0) {
+            script = scriptSt[0];
+        }
+
+        String[] viewSt = params.get("view");
+        if (viewSt != null && viewSt.length > 0) {
+            String[] vals = viewSt[0].split(",");
+            view = new float[vals.length];
+            for(int i=0; i < vals.length; i++) {
+                view[i] = Float.parseFloat(vals[i]);
+            }
+
+            if (view.length != 16) {
+                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            }
+
+
+            viewMatrix.set(view);
+        } else {
+            String[] rotXSt = params.get("rotX");
+            if (rotXSt != null && rotXSt.length > 0) {
+                rotX = Float.parseFloat(rotXSt[0]);
+            }
+
+            String[] rotYSt = params.get("rotY");
+            if (rotYSt != null && rotYSt.length > 0) {
+                rotY = Float.parseFloat(rotYSt[0]);
+            }
+
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            getView(rotX,rotY,zoom,viewMatrix);
+        }
+
+        String[] xSt = params.get("x");
+        if (xSt != null && xSt.length > 0) {
+            x = Integer.parseInt(xSt[0]);
+        }
+        String[] ySt = params.get("y");
+        if (ySt != null && ySt.length > 0) {
+            y = Integer.parseInt(ySt[0]);
+        }
+
+        if (script == null) {
+            script = "function main(args) {\n" +
+                    "    var radius = 25 * MM;\n" +
+                    "    var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);\n" +
+                    "    var sphere = new Sphere(radius);\n" +
+                    "    var gyroid = new VolumePatterns.Gyroid(25*MM, 2*MM);\n" +
+                    "    var intersect = new Intersection();\n" +
+                    "    intersect.add(sphere);\n" +
+                    "    intersect.add(gyroid);\n" +
+                    "    var maker = new GridMaker();\n" +
+                    "    maker.setSource(intersect);\n" +
+                    "    maker.makeGrid(grid);\n" +
+                    "\n" +
+                    "    return grid;\n" +
+                    "}";
+        }
+
+        Map<String,Object> sparams = new HashMap<String,Object>();
+        for(Map.Entry<String,String[]> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("shapeJS_")) {
+                key = key.substring(8);
+                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
+                sparams.put(key, entry.getValue()[0]);
+            }
+
+        }
+        long t0 = System.nanoTime();
+
+        OutputStream os = resp.getOutputStream();
+
+        resp.setContentType("application/json");
+
+        // TODO: garbage
+        Vector3f pos = new Vector3f();
+        Vector3f normal = new Vector3f();
+        Gson gson = new Gson();
+        HashMap<String,Object> result = new HashMap<String, Object>();
+        render.pick(jobID, viewMatrix, x, y, 512,512,pos,normal);
+        result.put("pos",pos.toString());
+        result.put("normal",normal.toString());
+
+        String st = gson.toJson(result);
+        os.write(st.getBytes());
 
         os.close();
     }

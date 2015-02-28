@@ -118,8 +118,15 @@ public class Intersection extends TransformableDataSource implements SNode {
         return RESULT_OK;
         
     }
-    
-    
+
+
+    /**
+     * Set the blending width
+     */
+    public void setBlend(double r){
+        mp_blendWidth.setValue(r);
+    }
+
     /**
      * calculates intersection of all values
      *
