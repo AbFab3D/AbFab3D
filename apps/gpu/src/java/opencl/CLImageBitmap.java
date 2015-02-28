@@ -15,6 +15,9 @@ import abfab3d.param.Parameterizable;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.IntParameter;
+
+import abfab3d.datasources.ImageBitmap;
+
 import javax.vecmath.Vector3d;
 
 import static opencl.CLUtils.floatToInt;
@@ -56,6 +59,8 @@ public class CLImageBitmap  extends CLNodeBase {
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
 
+        ImageBitmap image = (ImageBitmap)node;
+        
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();
         double rounding = ((DoubleParameter)node.getParam("rounding")).getValue();
@@ -64,6 +69,13 @@ public class CLImageBitmap  extends CLNodeBase {
         int tiling = ((tilesX & 0xFFFF)| (tilesY & 0xFFFF) << 16);
 
         if(DEBUG)printf("box([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
+        int nx = image.getBitmapWidth();
+        int ny = image.getBitmapHeight();
+        byte[] data = new byte[nx*ny];
+        
+        image.getBitmapData(data);
+
+        int offset = codeBuffer.addData(data);
 
         int c = 0;
         buffer[c++] = STRUCTSIZE;
@@ -82,7 +94,7 @@ public class CLImageBitmap  extends CLNodeBase {
         buffer[c++] = floatToInt(size.y/2.);
         buffer[c++] = floatToInt(size.z/2.);
         buffer[c++] = 0;// alignment
-        buffer[c++] = 0; // data offset 
+        buffer[c++] = offset; // data offset 
         buffer[c++] = 0; // place for data pointer
 
         codeBuffer.add(buffer, STRUCTSIZE);

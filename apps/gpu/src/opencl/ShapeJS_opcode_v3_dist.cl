@@ -3,7 +3,10 @@
 //#define NAN (0xFFFF)
 
 // stack size for intermediate memory 
-#define STACK_SIZE  10
+// stack >= 4000 generates CL_OUT_OF_HOST_MEMORY error 
+#define STACK_SIZE  1000
+// maximal size of struct for single operation (in words) should be the size of largest operation 
+#define MAXOPSIZE 30 
 
 // this list should be identical to list in src/java/opencl/Opcodes.java
 #define oSPHERE        1
@@ -33,7 +36,11 @@
 
 
 // pointer to buffer of opcodes 
-#define PTROPS global const
+//#define PTROPS global const
+// pointer to local ops buffer
+#define PTROPS local 
+// pointer to struct in private memory 
+#define PTRS local 
 // pointer to buffer of large data 
 #define PTRDATA global const
 
@@ -73,7 +80,7 @@ typedef struct {
     float3 center; // center   
 } sSphere;
 
-void oSphere(PTROPS sSphere *sphere, sVec *in, sVec *out){
+void oSphere(PTRS sSphere *sphere, sVec *in, sVec *out){
 
     float3 v = in->v.xyz;
     v -= sphere->center;
@@ -94,7 +101,7 @@ typedef struct {
     float3 halfsize; // half size of the box 
 } sBox;
 
-void oBox(PTROPS sBox *box, sVec *in, sVec *out){
+void oBox(PTRS sBox *box, sVec *in, sVec *out){
 
     float3 v = in->v.xyz;
     v -= box->center;    
@@ -116,7 +123,7 @@ typedef struct {
     float3 offset;
 } sGyroid;
 
-void oGyroid(PTROPS sGyroid *g, sVec *in, sVec *out){
+void oGyroid(PTRS sGyroid *g, sVec *in, sVec *out){
     float3 pnt = in->v.xyz;
     pnt -= g->offset;
     pnt *= g->factor;
@@ -136,7 +143,7 @@ typedef struct {
     float3 center;
 } sTorus;
 
-void oTorus(PTROPS sTorus *torus, sVec *in, sVec *out){
+void oTorus(PTRS sTorus *torus, sVec *in, sVec *out){
 
     float3 p = in->v.xyz;
     p -= torus->center;
@@ -150,19 +157,19 @@ void oTorus(PTROPS sTorus *torus, sVec *in, sVec *out){
 }
 
 
-void oMax(PTROPS void *ptr, sVec *in1, sVec *in2, sVec *out){
+void oMax(PTRS void *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = max(in1->v.x, in2->v.x);
 
 }
 
-void oMin(PTROPS void *ptr, sVec *in1, sVec *in2, sVec *out){
+void oMin(PTRS void *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = min(in1->v.x, in2->v.x);
 
 }
 
-void oSubtract(PTROPS void *ptr, sVec *in1, sVec *in2, sVec *out){
+void oSubtract(PTRS void *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = max(in1->v.x, -in2->v.x);
 
@@ -177,19 +184,19 @@ typedef struct {
 } sBlend;
 
 
-void oBlendMin(PTROPS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
+void oBlendMin(PTRS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMin(in1->v.x, in2->v.x, ptr->width);
 
 }
 
-void oBlendMax(PTROPS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
+void oBlendMax(PTRS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMax(in1->v.x, in2->v.x, ptr->width);
 
 }
 
-void oBlendSubtract(PTROPS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
+void oBlendSubtract(PTRS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMax(in1->v.x, -in2->v.x, ptr->width);
 
@@ -204,7 +211,7 @@ typedef struct {
 } sEngrave;
 
 // engrave shape1 with shape2 
-void oEngrave(PTROPS sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
+void oEngrave(PTRS sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
     // bump mapping version 
     //float eng = max(0.,min(ptr->depth, -in2->v.x));
     //float eng = blendMax(0.,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
@@ -228,7 +235,7 @@ typedef struct {
     float3 translation; 
 } sTranslation;
 
-void oTranslation(PTROPS sTranslation *trans, sVec *inout){
+void oTranslation(PTRS sTranslation *trans, sVec *inout){
     // inverse translation 
     inout->v.xyz -= trans->translation;
 
@@ -243,7 +250,7 @@ typedef struct {
     float3 center; // center of scale 
 } sScale;
 
-void oScale(PTROPS sScale *pS, sVec *inout){
+void oScale(PTRS sScale *pS, sVec *inout){
     
     inout->v.xyz -= pS->center;
     inout->v.xyz *= pS->factor;
@@ -261,7 +268,7 @@ typedef struct {
     float3 m2; 
 } sRotation;
 
-void oRotation(PTROPS sRotation *rot, sVec *inout){
+void oRotation(PTRS sRotation *rot, sVec *inout){
 
     float3 vec = inout->v.xyz;
     vec -= rot->center;   
@@ -295,7 +302,7 @@ typedef struct {
     PTRDATA char *pData; // actual grid data 
 } sGrid2dByte;
 
-void oGrid2dByte(PTROPS sGrid2dByte *grid, sVec *pnt, sVec *out){
+void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out){
     // do box for now 
     float3 v = pnt->v.xyz;
     v -= grid->center;    
@@ -311,34 +318,19 @@ void oGrid2dByte(PTROPS sGrid2dByte *grid, sVec *pnt, sVec *out){
 
 // union to "safely" convert pointers 
 typedef union {
-    PTROPS void *pv;  
-    PTROPS int *w;
+    PTRS void *pv;  
+    PTRS int *w;
 } CPtr;
 
 
-// for debugging 
-void copyOpcodes(PTROPS int *opcode, global int *outdata){
-
-    int opcount = 0;
-    int maxCount = 10;
-    int offsetIn = 0;
-    int offsetOut = 0;
-
-    while(opcount++ < maxCount){
-        
-        int size = opcode[offsetIn++];
-        outdata[offsetOut++] = size;
-        // end of opcode queue 
-        if(size <= 0) 
-            break;        
-        int code = opcode[offsetIn++];
-        outdata[offsetOut++] = code;
-        int scount = (size-2);
-        while(scount-- > 0){
-            outdata[offsetOut++] = opcode[offsetIn++];
-        }                           
-    }    
-}
+// desription of the scene to render 
+typedef struct {
+    float worldScale;      //
+    PTROPS int *pOps;      // operations 
+    int opCount;           // count of operations 
+    PTRDATA char* pgData;  // global large data
+    global const float* invvm; // inverse view matrix
+} Scene; 
 
 /**
    opcode - stream of opcodes 
@@ -346,12 +338,17 @@ void copyOpcodes(PTROPS int *opcode, global int *outdata){
    pnt - input point 
    result - output data value 
  */
-void getShapeJSData(PTROPS int* opcode, int opCount, sVec *pnt, sVec *result) {
+void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
     
-    CPtr ptr;  // pointer to dta struct to convert from int* to structs* 
-    int offsetIn = 0;  // current offset in the input data 
+    CPtr ptr;  // pointer to opcodes struct to convert from int* to structs* 
+    int offsetIn = 0;  // current offset in the opcodes 
     sVec stack[STACK_SIZE];
     int stackPos = 0; // current stack position
+    
+    //int popcode[MAXOPSIZE]; // private opcode, no benefits so far 
+
+    PTROPS int *opcode = pScene->pOps; 
+    int opCount = pScene->opCount;
 
     sVec pnt1;   // current working point 
     
@@ -368,9 +365,18 @@ void getShapeJSData(PTROPS int* opcode, int opCount, sVec *pnt, sVec *result) {
 
         if(size <= 0)
             break;
-
+        
         int code = opcode[offsetIn+1];
         ptr.w = (opcode + offsetIn);
+        
+        /*
+        // copy data into local makes things slower 
+        for(int k = 0; k < size/4; k++){
+            popcode[k] = opcode[offsetIn+k];
+        }
+        int code = popcode[1];
+        ptr.w = popcode;
+        */
 
         switch(code){
         default:

@@ -3,6 +3,8 @@ package render;
 import abfab3d.grid.Bounds;
 import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
+import abfab3d.util.Initializable;
+
 import com.jogamp.opencl.*;
 import com.objectplanet.image.PngEncoder;
 import datasources.Instruction;
@@ -403,6 +405,10 @@ public class ImageRenderer {
             Bounds bounds = new Bounds();
             DataSource source = eval.runScript(script, bounds,params);
 
+            if(source instanceof Initializable)
+                ((Initializable)source).initialize();
+
+
             Vector3d scale;
             scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
             worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
@@ -418,6 +424,9 @@ public class ImageRenderer {
             ShapeJSEvaluator eval = new ShapeJSEvaluator();
             Bounds bounds = new Bounds();
             DataSource source = eval.runScript(script, bounds,params);
+
+            if(source instanceof Initializable)
+                ((Initializable)source).initialize();
             
             Vector3d scale;
             scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
@@ -537,6 +546,9 @@ public class ImageRenderer {
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
         DataSource source = eval.runScript(script, bounds,params);
+
+        if(source instanceof Initializable)
+            ((Initializable)source).initialize();
 
         OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
         Vector3d scale;

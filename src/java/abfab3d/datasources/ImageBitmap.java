@@ -62,7 +62,7 @@ import static abfab3d.util.Output.time;
  */
 public class ImageBitmap extends TransformableDataSource {
 
-    final static boolean DEBUG = false;
+    final static boolean DEBUG = true;
 
     public static final int IMAGE_TYPE_EMBOSSED = 0, IMAGE_TYPE_ENGRAVED = 1;
     public static final int IMAGE_PLACE_TOP = 0, IMAGE_PLACE_BOTTOM = 1, IMAGE_PLACE_BOTH = 2;
@@ -129,9 +129,6 @@ public class ImageBitmap extends TransformableDataSource {
     private boolean useGrayscale = true;
     private int imageWidth, imageHeight, imageWidth1, imageHeight1;
     private ImageGray16 imageData;
-
-
-    //private ImageMipMap m_mipMap;
 
     private ImageMipMapGray16 m_mipMap;
 
@@ -382,6 +379,26 @@ public class ImageBitmap extends TransformableDataSource {
         m_pixelWeightNonlinearity = value;
     }
 
+    public int getBitmapWidth(){
+        return imageData.getWidth();
+    }
+
+    public int getBitmapHeight(){
+        return imageData.getHeight();
+    }
+
+    public void getBitmapData(byte data[]){
+
+        int nx = imageData.getWidth();
+        int ny = imageData.getHeight();
+
+        for(int y = 0;  y < ny; y++){
+            for(int x = 0;  x < nx; x++){
+                int d = imageData.getDataI(x, y);
+                data[x + y * nx] = (byte)d;
+            }
+        }
+    }
 
     /**
      * @noRefGuide
@@ -389,6 +406,8 @@ public class ImageBitmap extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
+
+        if(DEBUG)prinf("%s.initilize()\n",this);
         int res = prepareImage();
 
         if(res != RESULT_OK){ 
@@ -549,6 +568,8 @@ public class ImageBitmap extends TransformableDataSource {
             m_mipMap = null;
 
         }
+
+        if(DEBUG)printf("imageData: %s\n", imageData);
 
         return RESULT_OK;
 

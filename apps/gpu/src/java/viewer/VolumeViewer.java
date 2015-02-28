@@ -15,6 +15,8 @@ import abfab3d.grid.Bounds;
 import abfab3d.param.Parameterizable;
 import abfab3d.util.DataSource;
 import abfab3d.util.Units;
+import abfab3d.util.Initializable;
+
 import datasources.Instruction;
 import opencl.CLCodeBuffer;
 import render.OpenCLWriter;
@@ -231,6 +233,9 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
         DataSource source = eval.runScript(new File(url),bounds);
+
+        if(source instanceof Initializable)
+            ((Initializable)source).initialize();
 
         Vector3d scale = new Vector3d(1,1,1);
         double vs = 0.1 * Units.MM;

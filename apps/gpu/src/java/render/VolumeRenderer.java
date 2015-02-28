@@ -65,6 +65,7 @@ public class VolumeRenderer {
     private CLBuffer<FloatBuffer> matrixBuffer;
     private CLBuffer<ByteBuffer> booleanBuffer;
     private CLBuffer<IntBuffer> opBuffer;
+    private CLBuffer<ByteBuffer> dataBuffer;
     private NumberFormat format = new DecimalFormat("####.#####");
 
 
@@ -386,17 +387,25 @@ public class VolumeRenderer {
                 if (DEBUG) {
                     printf("Operations count: %d\n",codeBuffer.opcodesCount());
                     printf("Data Size: %d\n",codeBuffer.dataSize());
-                    printf("Code: \n%s\n",CLCodeMaker.createText(codeBuffer));
+                    printf(":code:\n%s\n:code end:",CLCodeMaker.createText(codeBuffer));
                 }                            
                 opLen = codeBuffer.opcodesCount();
                 opBuffer = context.createIntBuffer(codeBuffer.opcodesSize(), READ_ONLY);                
                 opBuffer.getBuffer().put(codeBuffer.getOpcodesData());
                 opBuffer.getBuffer().rewind();
-                
-                printf("Op bytes(v3): %d\n",codeBuffer.opcodesSize() * 4);
-                printf("data buffer bytes(v3): %d\n",codeBuffer.dataSize());
-                
+
                 queue.putWriteBuffer(opBuffer, false, null);
+                
+                dataBuffer = context.createByteBuffer(codeBuffer.dataSize(), READ_ONLY);
+                codeBuffer.getData(dataBuffer);
+                dataBuffer.getBuffer().rewind();
+
+                queue.putWriteBuffer(dataBuffer, false, null);                    
+                
+                if(DEBUG){
+                    printf("Op bytes(v3): %d\n",codeBuffer.opcodesSize() * 4);
+                    printf("data buffer bytes(v3): %d\n",codeBuffer.dataSize());
+                }                
             }
         } catch (Exception e) {
             if (program == null) {
@@ -505,11 +514,8 @@ public class VolumeRenderer {
         long t0 = System.nanoTime();
 
         // TODO: needs 0 for Apple, 8 is fastest on Desktop GPU
-        int localWorkSizeX = 0; // this seems the fastest not sure why
-        int localWorkSizeY = 0;
-
-        localWorkSizeX = 0; // this seems the fastest not sure why
-        localWorkSizeY = 0;
+        int localWorkSizeX = 8; // this seems the fastest not sure why
+        int localWorkSizeY = 8;
 
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
@@ -599,6 +605,8 @@ public class VolumeRenderer {
             queue.putAcquireGLObject((CLGLBuffer) dest, list);
         }
 
+        int opBufferSize = opBuffer.getCLCapacity();
+
         kernel.setArg(0, dest).rewind();
         kernel.setArg(1, w0 * wsize);
         kernel.setArg(2, h0 * hsize);
@@ -609,7 +617,10 @@ public class VolumeRenderer {
         kernel.setArg(7, viewBuffer).rewind();
         kernel.setArg(8, worldScale);
         kernel.setArg(9, opBuffer).rewind();
-        kernel.setArg(10, opLen);
+        kernel.setArg(10,opLen);
+        kernel.setArg(11,opBufferSize);
+        kernel.setNullArg(12,opBufferSize*4); // allocate buffer in local memory             
+        kernel.setArg(13,dataBuffer); // data buffer 
 
         queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
         

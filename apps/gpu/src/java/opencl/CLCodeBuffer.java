@@ -12,6 +12,13 @@
 
 package opencl;
 
+import com.jogamp.opencl.CLBuffer;
+
+import java.util.Vector;
+
+import java.nio.ByteBuffer;
+
+
 /**
    storage for generated CL code
    
@@ -20,10 +27,13 @@ package opencl;
 public class CLCodeBuffer {
 
     int code[];
-    int size = 0;  // size of the buffer
+    int opSize = 0;  // size of the opcodes buffer
     int opCount = 0; // opcodes count
-    int dataBufferSize = 0; // size of data buffer 
-    
+
+    int dataSize = 0; // size of data buffer
+    // holds data buffers
+    Vector dataBuffers = new Vector();
+
     /**
        constructor
        @param initialCapacity initial capacity of the buffer
@@ -36,7 +46,7 @@ public class CLCodeBuffer {
        return size of opcodes buffer in words)
      */
     public final int opcodesSize(){
-        return size;
+        return opSize;
     }
 
     /**
@@ -47,27 +57,40 @@ public class CLCodeBuffer {
     }
 
     /**
-       @return size of dataBuffer (in bytes) 
-     */
-    public final int dataSize(){
-        return dataBufferSize;
-    }   
-
-
-    /**
        @return opcodes data 
      */
     public int[] getOpcodesData(){
 
-        int data[] = new int[size];
-        System.arraycopy(code, 0, data, 0, size);
+        int data[] = new int[opSize];
+        System.arraycopy(code, 0, data, 0, opSize);
 
         return data;        
     }
     
-    public final int get(int index){
-        return code[index];
-    }
+
+    /**
+       @return size of dataBuffer (in bytes) 
+     */
+    public final int dataSize(){
+        if( dataSize == 0) 
+            return 1;       
+        return dataSize;
+        
+    }   
+
+    /**
+       stores data into CL data buffer 
+     */
+    public final void getData(CLBuffer<ByteBuffer> dataBuffer){
+        for(int i = 0; i < dataBuffers.size(); i++){
+            byte[] buf = (byte[])dataBuffers.get(i);
+            dataBuffer.getBuffer().put(buf);
+        }
+    }   
+        
+    //public final int get(int index){
+    //    return code[index];
+    //}
 
     /**
        add single word of code 
@@ -87,9 +110,9 @@ public class CLCodeBuffer {
        
      */
     public void add(int buffer[], int count){
-        reallocArray(size+count);
-        System.arraycopy(buffer, 0, code, size, count);
-        size += count;
+        reallocArray(opSize+count);
+        System.arraycopy(buffer, 0, code, opSize, count);
+        opSize += count;
         opCount++;
     }
 
@@ -101,8 +124,19 @@ public class CLCodeBuffer {
         if(newSize <= code.length)
             return;
         int newCode[] = new int[Math.max(2*code.length, newSize)];
-        System.arraycopy(code, 0, newCode, 0, size);
+        System.arraycopy(code, 0, newCode, 0, opSize);
         code = newCode;    
+    }
+
+
+    public int addData(byte buffer[]){
+
+        int offset = dataSize;
+
+        dataSize += buffer.length;        
+        dataBuffers.add(buffer);
+        
+        return offset;
     }
 
 } // class CLCodeBuffer 

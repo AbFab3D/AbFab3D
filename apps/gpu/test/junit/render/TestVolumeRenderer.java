@@ -194,7 +194,7 @@ public class TestVolumeRenderer extends TestCase {
 
         String jobID = UUID.randomUUID().toString();
 
-        int TIMES = 2;
+        int TIMES = 20;
 
 //        String script = "scripts/dodecahedron.js";
         String script = 
@@ -227,7 +227,7 @@ public class TestVolumeRenderer extends TestCase {
         HashMap<String,Object> params = new HashMap<String, Object>();
         ImageRenderer.TimeStat[] times = new ImageRenderer.TimeStat[TIMES];
         int base = 0;
-        if(false){
+        if(true){
             // java warm up 
             for (int i = 0; i < 3; i++) {
                 params.put("num",base + (i+1));
