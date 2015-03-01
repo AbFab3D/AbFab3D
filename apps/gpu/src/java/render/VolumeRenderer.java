@@ -12,6 +12,7 @@ import opencl.CLCodeBuffer;
 import opencl.CLCodeMaker;
 
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3f;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
@@ -22,6 +23,7 @@ import java.util.*;
 
 import static abfab3d.util.Output.printf;
 import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
+import static com.jogamp.opencl.CLMemory.Mem.WRITE_ONLY;
 
 /**
  * Volume renderer using GPU.  Renders to any CLBuffer.
@@ -30,7 +32,7 @@ import static com.jogamp.opencl.CLMemory.Mem.READ_ONLY;
  * @author Alan Hudson
  */
 public class VolumeRenderer {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final boolean STATS = true;
     private static final boolean CACHE_PROGRAM = true;
     private static final String CACHE_LOCATION = "/tmp/openCL_cache";
@@ -51,6 +53,7 @@ public class VolumeRenderer {
     private CLCommandQueue queue;
     private CLProgram program;
     private CLKernel kernel;
+    private CLKernel pickKernel;
     private long compileTime;
     private long renderTime;
     private long kernelTime;
@@ -113,6 +116,8 @@ public class VolumeRenderer {
             printf("Building program with opts: %s\n", buildOpts);
             program = null;
 
+            // TODO: we should store these in memory as cache, best would be to keep the result of init completely
+
             boolean from_cache = false;
             try {
                 if (CACHE_PROGRAM && !renderVersion.equals(VERSION_DIST)) {
@@ -128,7 +133,9 @@ public class VolumeRenderer {
                         printf("Cache dir: %s file: %s\n",dir,cacheName);
                         if (f.exists()) {
                             if (DEBUG) printf("Loading OpenCL program from binary\n");
+                            long t1 = System.nanoTime();
                             byte[] bytes = FileUtils.readFileToByteArray(f);
+                            printf("load time: %f\n", ((System.nanoTime() - t1) / 1e6));
                             bins.put(device, bytes);
                         }
 
@@ -421,6 +428,7 @@ public class VolumeRenderer {
 
         kernelName = kernel_name;
         kernel = program.createCLKernel(kernel_name);
+        pickKernel = program.createCLKernel("pick");
         compileTime = (System.nanoTime() - t0);
 
         if (DEBUG) {
@@ -617,9 +625,9 @@ public class VolumeRenderer {
         kernel.setArg(7, viewBuffer).rewind();
         kernel.setArg(8, worldScale);
         kernel.setArg(9, opBuffer).rewind();
-        kernel.setArg(10,opLen);
+        kernel.setArg(10, opLen);
         kernel.setArg(11,opBufferSize);
-        kernel.setNullArg(12,opBufferSize*4); // allocate buffer in local memory             
+        kernel.setNullArg(12, opBufferSize * 4); // allocate buffer in local memory
         kernel.setArg(13,dataBuffer); // data buffer 
 
         queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
@@ -637,6 +645,56 @@ public class VolumeRenderer {
         }
         
 
+    }
+
+    /**
+     * Cast a ray into the scene to get the 3d position and surface normal
+     *
+     */
+    public void pickStruct(int w0, int h0, int wsize, int hsize, int width, int height,
+                             float worldScale, Vector3f pos, Vector3f normal) {
+
+        printf("pickStruct: w0: %d h0: %d width:%d height: %d\n",w0,h0,width,height);
+        long t0 = System.nanoTime();
+
+        //printf("inv view: \n%s\n",view);
+
+        // Call OpenCL kernel
+        CLEventList list = new CLEventList(3);
+
+        int opBufferSize = opBuffer.getCLCapacity();
+
+        // TODO: garbage, decide on threading restrictions
+        CLBuffer<FloatBuffer> posBuffer = context.createFloatBuffer(4, WRITE_ONLY);     // float3 needs 4 bytes
+        CLBuffer<FloatBuffer> normalBuffer = context.createFloatBuffer(4, WRITE_ONLY);  // float3 needs 4 bytes
+
+        pickKernel.setArg(0, posBuffer).rewind();
+        pickKernel.setArg(1, normalBuffer).rewind();
+        pickKernel.setArg(2, w0);
+        pickKernel.setArg(3, h0);
+        pickKernel.setArg(4, width);
+        pickKernel.setArg(5, height);
+        pickKernel.setArg(6, viewBuffer).rewind();
+        pickKernel.setArg(7, worldScale);
+        pickKernel.setArg(8, opBuffer).rewind();
+        pickKernel.setArg(9,opLen);
+        pickKernel.setArg(10,opBufferSize);
+        pickKernel.setNullArg(11,opBufferSize*4); // allocate buffer in local memory
+        pickKernel.setArg(12,dataBuffer); // data buffer
+
+        queue.put2DRangeKernel(pickKernel, 0, 0, 1, 1, 1, 1, list);
+        queue.putReadBuffer(posBuffer, false); // read results back (blocking read)}
+        queue.putReadBuffer(normalBuffer, true); // read results back (blocking read)}
+
+        FloatBuffer posb = (FloatBuffer) posBuffer.getBuffer();
+        FloatBuffer normalb = (FloatBuffer) normalBuffer.getBuffer();
+        pos.x = posb.get(0);
+        pos.y = posb.get(1);
+        pos.z = posb.get(2);
+
+        normal.x = normalb.get(0);
+        normal.y = normalb.get(1);
+        normal.z = normalb.get(2);
     }
 
     /**

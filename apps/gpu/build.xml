@@ -211,7 +211,7 @@
             <fileset dir="${war.dir}"/>
         </copy>
     </target>
-    <target name="deployWeb" depends="war">
+    <target name="deployWeb" depends="">
         <copy todir="${deploy.webserver.dir}/${service}" failonerror="false">
             <fileset dir="${src.dir}/html"/>
         </copy>
