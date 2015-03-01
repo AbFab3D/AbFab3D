@@ -67,9 +67,9 @@ function draw() {
 
     extraParams = {
       'jobID':  getJobID(),
-      'rotX':    rotX,  // x rotation in radians
-      'rotY':    rotY,  // y rotation in radians
-      'zoom':    zoom,  // zoom level (translation in z direction)
+      'rotX':    rotX.toFixed(4),  // x rotation in radians
+      'rotY':    rotY.toFixed(4),  // y rotation in radians
+      'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
       'imgType': imgType,
       'quality': quality
     };
@@ -133,9 +133,9 @@ function initScript() {
     'script':  editor.getValue(),
     'width':   width,
     'height':  height,
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
+    'rotX':    rotX.toFixed(4),  // x rotation in radians
+    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
     'imgType': imgType,
     'quality': quality
   };
@@ -201,9 +201,9 @@ function pickModel(x,y) {
     'script':  editor.getValue(),
     'width':   width,
     'height':  height,
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom  // zoom level (translation in z direction)
+    'rotX':    rotX.toFixed(4),  // x rotation in radians
+    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'zoom':    zoom.toFixed(4)  // zoom level (translation in z direction)
   };
 
   var url = "/creator/shapejsRT_v1.0.0/pick?" + $.param(extraParams);
@@ -236,9 +236,9 @@ function getRender(q) {
   
   extraParams = {
     'jobID':  getJobID(),
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
+    'rotX':    rotX.toFixed(4),  // x rotation in radians
+    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
     'imgType': imgType,
     'quality': q
   };
