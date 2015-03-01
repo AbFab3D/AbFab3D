@@ -395,7 +395,8 @@ public class ImageBitmap extends TransformableDataSource {
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
                 int d = imageData.getDataI(x, y);
-                data[x + y * nx] = (byte)d;
+                // normalization to byte 
+                data[x + y * nx] = (byte)((d>>8) & 0xFF); 
             }
         }
     }

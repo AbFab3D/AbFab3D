@@ -44,6 +44,17 @@
 // pointer to buffer of large data 
 #define PTRDATA global const
 
+
+// desription of the scene to render 
+typedef struct {
+    float worldScale;      //
+    PTROPS int *pOps;      // operations 
+    int opCount;           // count of operations 
+    PTRDATA char* pgData;  // global large data
+    global const float* invvm; // inverse view matrix
+} Scene; 
+
+
 // blending function 
 float blendQuadric(float x){
 	return (1.f-x)*(1.f - x)*0.25f;
@@ -213,19 +224,20 @@ typedef struct {
 // engrave shape1 with shape2 
 void oEngrave(PTRS sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
     // bump mapping version 
-    //float eng = max(0.,min(ptr->depth, -in2->v.x));
+    float eng = max(0.,min(ptr->depth, -in2->v.x));
     //float eng = blendMax(0.,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
     //out->v.x = in1->v.x + eng;
-
+    out->v.x = in1->v.x + ptr->depth*in2->v.x;
+    /*
     // subtraction version 
     float d = in1->v.x;
     // sub surface layer of shape     
-    d = max(d, -d - ptr->depth);
+     d = max(d, -d - ptr->depth);
     // intersection of subsurface layer and engraver
     d = blendMax(d, in2->v.x, ptr->blendWidth);
     // subtraction of shape and intersected engraver 
     out->v.x = blendMax(in1->v.x, -d, ptr->blendWidth);
-    
+    */
 }
 
 typedef struct {
@@ -287,22 +299,27 @@ typedef struct {
     int opcode; // opcode 
     // custom parameters
     // coefficients to calculate data value
-    float vOffset; // value = byteValue*vFactor + vOffset;
-    float vFactor; 
+    float valueOffset; // value = byteValue*vFactor + vOffset;
+    float valueFactor; 
 
     float rounding; // edges rounding      
     int tiling; // (tilesx | tilesy << 16)
-    int2 dim; // grid count in x and y directions 
+    int nx; // grid count in x direction
+    int ny; // grid count in y direction
 
     float3 center;  // center in world units
 
     float3 halfsize; // size in world units
 
-    int data; // location of data in the data buffer 
+    float3 origin; // location of bottom left corner
+    float xscale; // world->girdx
+    float yscale; // world->girdy
+
+    int dataOffset; // location of data in the data buffer 
     PTRDATA char *pData; // actual grid data 
 } sGrid2dByte;
 
-void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out){
+void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
     // do box for now 
     float3 v = pnt->v.xyz;
     v -= grid->center;    
@@ -310,8 +327,39 @@ void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out){
     v -= grid->halfsize;
     
     float d = blendMax(blendMax(v.x,v.y,grid->rounding),v.z,grid->rounding);
-    
-    out->v.x = d;
+    if(d < 0.) { // inside of grid 
+        // vector in grid units 
+        float3 gpnt = (pnt->v.xyz - grid->origin) * (float3)(grid->xscale, grid->yscale,grid->yscale);
+        int nx = grid->nx;
+        int ny = grid->ny;
+
+        gpnt.y = ny - gpnt.y;
+        PTRDATA unsigned char *pData = (PTRDATA unsigned char *)(pScene->pgData + grid->dataOffset);        
+        int ix = (int)gpnt.x;
+        int iy = (int)gpnt.y;
+        float x = gpnt.x - ix;
+        float y = gpnt.y - iy;
+        ix = clamp(ix, 0, nx-1);
+        iy = clamp(iy, 0, ny-1);
+
+        int ix1 = ix+1;
+        int iy1 = iy+1;
+        ix1 = clamp(ix1, 0, nx-1);
+        iy1 = clamp(iy1, 0, ny-1);
+        float v00 = pData[ix  + iy *  grid->nx];
+        float v10 = pData[ix1 + iy *  grid->nx];
+        float v11 = pData[ix1 + iy1 * grid->nx];
+        float v01 = pData[ix  + iy1 * grid->nx];
+        float v = v00 *(1-x)*(1-y) + v10*x*(1-y) + v01*(1-x)*y + v11*x*y;
+
+        out->v.x = (grid->valueFactor*v + grid->valueOffset);
+
+        //out->v.x = ((((int)(gpnt.x)) % 50) - (((int)gpnt.y)) % 50) * 0.00002;
+    } else {
+        out->v.x = 0;
+    }
+
+    //out->v.x = d;
     
 }
 
@@ -323,14 +371,6 @@ typedef union {
 } CPtr;
 
 
-// desription of the scene to render 
-typedef struct {
-    float worldScale;      //
-    PTROPS int *pOps;      // operations 
-    int opCount;           // count of operations 
-    PTRDATA char* pgData;  // global large data
-    global const float* invvm; // inverse view matrix
-} Scene; 
 
 /**
    opcode - stream of opcodes 
@@ -401,7 +441,7 @@ void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
 
         case oGRID2DBYTE:
             
-            oGrid2dByte(ptr.pv, &pnt1, &data1);
+            oGrid2dByte(ptr.pv, &pnt1, &data1, pScene);
             break;
 
         case oTORUS:

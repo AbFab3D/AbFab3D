@@ -34,24 +34,31 @@ public class CLImageBitmap  extends CLNodeBase {
     static final boolean DEBUG = true;
     static int OPCODE = Opcodes.oGRID2DBYTE;
     /*
-    typedef struct {
-        int size;  // size of struct in words 
-        int opcode; // opcode 
-        // custom parameters
-        // coefficients to calculate data value        
-        float vOffset; // value = byteValue*vFactor + vOffset;
-        float vFactor;                                 // 4
-        float rounding; // edges rounding              // 1   
-        int tiling;                                    // 1
-        int2 dim; // grid count in x and y directions  // 2
-        float3 center;  // center in world units       // 4
-        float3 halfsize; // size in world units        // 4
-        int data; // location of data in the data buffer //  1
-        PTRDATA char *pData; // actual grid data         //  1
-   } sGrid2dByte;
+typedef struct {
+    int size;  // size of struct in words 
+    int opcode; // opcode 
+    // custom parameters
+    // coefficients to calculate data value
+    float vOffset; // value = byteValue*vFactor + vOffset;
+    float vFactor; 
+
+    float rounding; // edges rounding      
+    int tiling; // (tilesx | tilesy << 16)
+    int2 dim; // grid count in x and y directions 
+
+    float3 center;  // center in world units
+
+    float3 halfsize; // size in world units
+
+    float3 origin; // location of bottom left corner
+    float vscale; // 1/voxelSize 
+
+    int data; // location of data in the data buffer 
+    PTRDATA char *pData; // actual grid data 
+} sGrid2dByte;
     */
 
-    static int STRUCTSIZE = 20;
+    static int STRUCTSIZE = 24;
     
     int buffer[] = new int[STRUCTSIZE];
     
@@ -80,12 +87,12 @@ public class CLImageBitmap  extends CLNodeBase {
         int c = 0;
         buffer[c++] = STRUCTSIZE;
         buffer[c++] = OPCODE;
-        buffer[c++] = floatToInt(0.); // vOffset 
-        buffer[c++] = floatToInt(1.); // vFactor
-        buffer[c++] = floatToInt(rounding); // roundng
+        buffer[c++] = floatToInt(1.); // vOffset 
+        buffer[c++] = floatToInt(-1./256.); // vFactor
+        buffer[c++] = floatToInt(rounding); // rounding
         buffer[c++] = tiling;
-        buffer[c++] = 0; // dim[0]
-        buffer[c++] = 0; // dim[1]
+        buffer[c++] = nx; // dim[0]
+        buffer[c++] = ny; // dim[1]
         buffer[c++] = floatToInt(center.x);
         buffer[c++] = floatToInt(center.y);
         buffer[c++] = floatToInt(center.z);
@@ -94,6 +101,12 @@ public class CLImageBitmap  extends CLNodeBase {
         buffer[c++] = floatToInt(size.y/2.);
         buffer[c++] = floatToInt(size.z/2.);
         buffer[c++] = 0;// alignment
+        buffer[c++] = floatToInt(center.x-size.x/2.);
+        buffer[c++] = floatToInt(center.y-size.y/2.);
+        buffer[c++] = floatToInt(center.z-size.z/2.);
+        buffer[c++] = 0;// alignment
+        buffer[c++] = floatToInt(nx/size.x); //1./pixelSize 
+        buffer[c++] = floatToInt(ny/size.y); //1./pixelSize 
         buffer[c++] = offset; // data offset 
         buffer[c++] = 0; // place for data pointer
 
