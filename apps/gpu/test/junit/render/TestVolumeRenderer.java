@@ -114,7 +114,7 @@ public class TestVolumeRenderer extends TestCase {
             ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
             BufferedOutputStream bos = new BufferedOutputStream(baos);
                     t0 = System.nanoTime();
-            render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);
+            render.render(jobID, getFile(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);
 
             if (DEBUG) {
                 FileUtils.writeByteArrayToFile(new File("/tmp/render_speed.jpg"),baos.toByteArray());
@@ -158,7 +158,7 @@ public class TestVolumeRenderer extends TestCase {
             ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
             BufferedOutputStream bos = new BufferedOutputStream(baos);
             t0 = System.nanoTime();
-            render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);
+            render.render(jobID, getFile(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_JPEG, 0.5f, bos);
 
             if (DEBUG) {
                 FileUtils.writeByteArrayToFile(new File("/tmp/render_speed.jpg"),baos.toByteArray());
@@ -291,7 +291,7 @@ public class TestVolumeRenderer extends TestCase {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream(150000);
         BufferedOutputStream bos = new BufferedOutputStream(baos);
-        render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
+        render.render(jobID, getFile(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
         bos.close();
 
         if (DEBUG) {
@@ -301,7 +301,7 @@ public class TestVolumeRenderer extends TestCase {
         quality = 0.5f;
         baos = new ByteArrayOutputStream(150000);
         bos = new BufferedOutputStream(baos);
-        render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
+        render.render(jobID, getFile(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
         bos.close();
 
         if (DEBUG) {
@@ -311,7 +311,7 @@ public class TestVolumeRenderer extends TestCase {
         quality = 1f;
         baos = new ByteArrayOutputStream(150000);
         bos = new BufferedOutputStream(baos);
-        render.render(jobID, new File(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
+        render.render(jobID, getFile(script), new HashMap(), getView(), true, ImageRenderer.IMAGE_PNG, quality, bos);
         bos.close();
 
         if (DEBUG) {
@@ -425,7 +425,6 @@ public class TestVolumeRenderer extends TestCase {
         int height = 512;
 
         initCL(true, width, height);
-
 
         long t0 = System.nanoTime();
         BufferedImage base = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
@@ -883,6 +882,10 @@ public class TestVolumeRenderer extends TestCase {
             }
             printf("OpenCL Init: %d\n", (int) ((System.nanoTime() - t0) / 1e6));
         }
+    }
+
+    private String getFile(String file) throws IOException {
+        return FileUtils.readFileToString(new File(file));
     }
 
     private List<Instruction> loadScript(String filename) {

@@ -428,7 +428,10 @@ public class VolumeRenderer {
 
         kernelName = kernel_name;
         kernel = program.createCLKernel(kernel_name);
-        pickKernel = program.createCLKernel("pick");
+
+        if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+            pickKernel = program.createCLKernel("pick");
+        }
         compileTime = (System.nanoTime() - t0);
 
         if (DEBUG) {
