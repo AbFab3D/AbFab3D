@@ -145,13 +145,6 @@ public class ImageRenderer {
         pixels = new int[width * height];
         image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
-
-        int frames = 36;
-        int frameX = 6;
-        int frameY = frames / frameX;
-
-        allocBuffers(width,height,frames,frameX);
-
         initialized = true;
     }
 
@@ -188,39 +181,19 @@ public class ImageRenderer {
         return ret_val;
     }
 
-    private void allocBuffers(int width, int height, int frames, int frameX) {
-        int frameY = frames / frameX;
-        printf("AllocBuffers: frames: %d frameX: %d frameY: %d\n",frames,frameX,frameY);
-
-        float expandFactor = 1.5f;
-        int imgSize = (int)(width * height * expandFactor * frames);
-
-        /*
-        int jpgSize = 0;
-        try {
-            jpgSize = TJ.bufSize(width * frameX, height * frameY, TJ.SAMP_420);
-        } catch(Exception e) {e.printStackTrace();}
-
-        imgSize = Math.max(imgSize,jpgSize);
-*/
-        /*
-        if (bigBuff == null || bigBuff.length < imgSize) {
-            bigBuff = new byte[(int) (imgSize)];
-            bigPixels = new int[width * height];
-            bigImage = new BufferedImage(width * frameX, height * frameY, BufferedImage.TYPE_INT_ARGB);
-            printf("Realloc buffers: imgSize: %d   w: %d  h: %d\n",imgSize,bigImage.getWidth(),bigImage.getHeight());
-        }
-        */
-    }
-
     public int render(String jobID, String script, Map<String,Object> params, Matrix4f view,boolean cache, int imgType, float quality, OutputStream os) throws IOException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
 
         long t0 = System.nanoTime();
+        try {
+            makeRender(jobID, script, params, cache, quality, view, 0, 0, width, height, pixels, image);
+        } catch(NotCachedException nce) {
+            // should never happen
+            nce.printStackTrace();
+        }
 
-        makeRender(jobID, script, params,cache, quality, view,0,0,width, height, pixels, image);
         int size = 0;
         String img_st = null;
 
@@ -244,107 +217,75 @@ public class ImageRenderer {
         return size;
     }
 
-    public int render(String jobID, File file, Map<String,Object> params, Matrix4f view,boolean cache, int imgType, float quality, OutputStream os) throws IOException {
-        String script = FileUtils.readFileToString(file);
-
-        return render(jobID, script, params, view, cache, imgType, quality, os);
-    }
-
-    /*
-    public int renderImages(String jobID, String script, Map<String,Object> params, Matrix4f view,int frames, int frameX, boolean useCache, int imgType, OutputStream os) throws IOException {
+    public int renderCached(String jobID, Matrix4f view,int imgType, float quality, OutputStream os) throws IOException, NotCachedException {
         if (!initialized) {
             throw new IllegalArgumentException("Renderer not initialized");
         }
 
         long t0 = System.nanoTime();
 
-        // Do these items once for the servlet.  Should be per-thread resources
-
-        printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
-
-        // End of per-thread resources
-
-
-        t0 = System.nanoTime();
-        int pixX = 0;
-        int pixY = 0;
-
-        List<Instruction> inst = null;
-
-        if (useCache && jobID != null) {
-            inst = cache.get(jobID);
-        }
-        if (inst == null) {
-            inst = loadScript(script,params);
-            if (inst != null && inst.size() > 0 && jobID != null && useCache) {
-                cache.put(jobID, inst);
-            }
-        } else {
-            lastLoadScriptTime = 0;
-        }
-        VolumeScene vscene = new VolumeScene(new ArrayList(), inst, "", version);
-        for (int i = 0; i < numRenderers; i++) {
-            boolean result = render[i].init(vscene);
-
-            if (!result) {
-                CLProgram program = render[i].getProgram();
-                printf("Status: %s\n", program.getBuildStatus());
-                printf("Build Log: %s\n", program.getBuildLog());
-
-                throw new IllegalArgumentException("Compile failed");
-            }
-        }
-
-        allocBuffers(width,height,frames,frameX);
-
-        float drot = 360f / frames;
-        float rotx = 0;
-
-        printf("Rot degrees: %f\n",drot);
-        for(int n=0; n < frames; n++) {
-            // TODO: get view based on rotation
-
-            Matrix4f inv_view = getView(rotx);
-            inv_view.invert();
-
-            rotx += drot;
-            tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
-            RenderTile tile = tiles[0];
-
-            tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
-                    worldScale, tile.getDest());
-            tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
-
-            render[0].getCommandQueue().finish();
-
-            createImage(pixX,pixY,width, height, bigPixels, tile.getDest(), bigImage);
-            lastImageTime = System.nanoTime() - t0;
-            pixX++;
-            if (pixX == frameX) {
-                pixY++;
-                pixX = 0;
-            }
-        }
+        makeRender(jobID, null, null, true, quality, view,0,0,width, height, pixels, image);
         int size = 0;
+        String img_st = null;
+
         switch(imgType) {
             case IMAGE_PNG:
                 PngEncoder encoder = new PngEncoder(PngEncoder.COLOR_TRUECOLOR, PngEncoder.BEST_SPEED);
-                size = makePng(encoder, bigImage, bigBuff);  // return buff[0] to size bytes to client
+                size = makePng(encoder, image, buff);  // return buff[0] to size bytes to client
+                img_st = "png";
                 break;
             case IMAGE_JPEG:
-                size = makeJpg(bigImage, bigBuff);
+                size = makeJpg(image, buff);
+                img_st = "jpg";
                 break;
         }
+        if(DEBUG)printf("total size: %d time: %d ms\n  js eval: %d\n  ocl compile: %d ms\n  kernel: %d ms\n  image: %d ms\n  %s: %d ms\n",
+                size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (lastCompileTime / 1e6),
+                (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), img_st,(int) (lastPngTime / 1e6));
 
-        printf("total size: %d time: %d ms\n\tjs eval: %d\n\tocl compile: %d ms\n\tkernel: %d ms\n\timage: %d ms\n\tpng: %d ms\n", 
-               size,(int) ((System.nanoTime() - t0) / 1e6), (int) (lastLoadScriptTime / 1e6), (int) (tiles[0].getRenderer().getLastCompileTime() / 1e6), 
-               (int) (tiles[0].getRenderer().getLastKernelTime() / 1e6), (int) (lastImageTime / 1e6), (int) (lastPngTime / 1e6));
-
-        os.write(bigBuff,0,size);
+        os.write(buff,0,size);
 
         return size;
     }
-*/
+
+    public void render(String jobID, String script, Map<String,Object> params, Matrix4f view,boolean cache, float quality, BufferedImage image) {
+        if (!initialized) {
+            throw new IllegalArgumentException("Renderer not initialized");
+        }
+
+        try {
+            makeRender(jobID, script, params, cache, quality, view, 0, 0, width, height, pixels, image);
+        } catch(NotCachedException nce) {
+            // should never happen
+            nce.printStackTrace();
+        }
+    }
+
+    public void renderCached(String jobID, Matrix4f view,float quality, BufferedImage image) throws NotCachedException {
+        if (!initialized) {
+            throw new IllegalArgumentException("Renderer not initialized");
+        }
+
+        makeRender(jobID, null, null, true, quality, view, 0, 0, width, height, pixels, image);
+    }
+
+    /**
+     * Clear all resources consumed by all jobs
+     */
+    public void clearResources() {
+        cache.clear();
+        cacheSource.clear();
+    }
+
+    /**
+     * Clear resources consum by a specific job
+     * @param jobID
+     */
+    public void clearCache(String jobID) {
+        cache.remove(jobID);
+        cacheSource.remove(jobID);
+    }
+
     private int makePng(PngEncoder encoder, BufferedImage img, byte[] buff) {
         long t0 = System.nanoTime();
 
@@ -402,11 +343,49 @@ public class ImageRenderer {
      */
     private void makeRender(String jobID, String script, Map<String,Object> params, boolean useCache, float quality, Matrix4f view,
                             int pixX, int pixY, int width, int height,
-                            int[] pixels, BufferedImage image) {
+                            int[] pixels, BufferedImage image) throws NotCachedException {
 
         if(DEBUG) printf("makeRender(%s, version:%s quality: %f)\n", jobID, version,quality);
         long t0 = System.nanoTime();
 
+        float worldScale = setupOpenCL(jobID, script, params, useCache, quality);
+
+        t0 = System.nanoTime();
+
+        Matrix4f inv_view = new Matrix4f(view);
+        inv_view.invert();
+        t0 = System.nanoTime();
+        tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
+        for (int i = 0; i < numTiles; i++) {
+            RenderTile tile = tiles[i];
+
+            if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+                tile.getRenderer().renderStruct(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale, tile.getDest());
+            }  else if (version.equals(VolumeRenderer.VERSION_DIST)) {
+                tile.getRenderer().render(inv_view, tile.getWidth(), tile.getHeight(), tiles[0].getView(), render[i].getCommandQueue(), tile.getDest());
+            } else {
+                tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale, tile.getDest());
+            }
+            tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
+        }
+
+        
+        for (int i = 0; i < numRenderers; i++) {
+            render[i].getCommandQueue().finish();
+        }
+
+        lastRenderTime = (System.nanoTime() - t0);
+        //if(DEBUG) printf("frame render time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);    
+
+        t0 = System.nanoTime();
+        createImage(pixX,pixY,width, height, pixels, tiles[0].getDest(), image);
+        lastImageTime = System.nanoTime() - t0;    
+    }
+
+    private float setupOpenCL(String jobID, String script, Map<String,Object> params, boolean useCache, float quality) throws NotCachedException {
+        long t0 = System.nanoTime();
         DataSource source = null;
         float worldScale = 1;
         CLCodeBuffer ops;
@@ -417,7 +396,7 @@ public class ImageRenderer {
 
             CacheEntry ce = null;
 
-            if (useCache && jobID != null && params.size() == 0) {
+            if (useCache && jobID != null && (params == null || params.size() == 0)) {
                 ce = cacheSource.get(jobID);
                 if (ce != null && ce.quality != quality) {
                     if (DEBUG) printf("Quality not the same for cached");
@@ -426,6 +405,10 @@ public class ImageRenderer {
                 }
             }
             if (ce == null) {
+
+                if (script == null) {
+                    throw new NotCachedException();
+                }
 
                 if (DEBUG) printf("js evaluation\n");
                 ShapeJSEvaluator eval = new ShapeJSEvaluator();
@@ -460,7 +443,7 @@ public class ImageRenderer {
         } else if (version.equals(VolumeRenderer.VERSION_DIST)) {
             CacheEntry ce = null;
 
-            if (useCache && jobID != null && params.size() == 0) {
+            if (useCache && jobID != null && params != null && params.size() == 0) {
                 ce = cacheSource.get(jobID);
 
                 if (ce.quality != quality) {
@@ -498,12 +481,12 @@ public class ImageRenderer {
             worldScale = ce.worldScale;
             ops = ce.ops;
             vscene = ce.vscene;
-            
+
             if(DEBUG) printf("OpenCL Code: \n%s",vscene.getCode());
-        } else { // 
+        } else { //
             List<Instruction> inst = null;
 
-            if (useCache && jobID != null && params.size() == 0) {
+            if (useCache && jobID != null && params != null && params.size() == 0) {
                 inst = cache.get(jobID);
             }
             if (inst == null) {
@@ -575,38 +558,8 @@ public class ImageRenderer {
             lastInitializationTime = (System.nanoTime() - t0);
             lastCompileTime = 0;
         }
-        t0 = System.nanoTime();
 
-        Matrix4f inv_view = new Matrix4f(view);
-        inv_view.invert();
-        t0 = System.nanoTime();
-        tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
-        for (int i = 0; i < numTiles; i++) {
-            RenderTile tile = tiles[i];
-
-            if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
-                tile.getRenderer().renderStruct(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
-                        worldScale, tile.getDest());
-            }  else if (version.equals(VolumeRenderer.VERSION_DIST)) {
-                tile.getRenderer().render(inv_view, tile.getWidth(), tile.getHeight(), tiles[0].getView(), render[i].getCommandQueue(), tile.getDest());
-            } else {
-                tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
-                        worldScale, tile.getDest());
-            }
-            tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
-        }
-
-        
-        for (int i = 0; i < numRenderers; i++) {
-            render[i].getCommandQueue().finish();
-        }
-
-        lastRenderTime = (System.nanoTime() - t0);
-        //if(DEBUG) printf("frame render time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);    
-
-        t0 = System.nanoTime();
-        createImage(pixX,pixY,width, height, pixels, tiles[0].getDest(), image);
-        lastImageTime = System.nanoTime() - t0;    
+        return worldScale;
     }
 
     /**
@@ -617,45 +570,66 @@ public class ImageRenderer {
      * @param height
      * @return
      */
-    public void pick(String jobID, Matrix4f view,
-                            int pixX, int pixY, int width, int height,
-                            Vector3f pos, Vector3f normal) {
+    public void pick(String jobID, String script, Map<String,Object> params, boolean useCache, Matrix4f view,
+                           int pixX, int pixY, int width, int height,
+                           Vector3f pos, Vector3f normal) {
 
         if(DEBUG) printf("pick(%s, version:%s)\n", jobID, version);
         long t0 = System.nanoTime();
 
-        DataSource source = null;
         float worldScale = 1;
-        CLCodeBuffer ops;
-        VolumeScene vscene = null;
-        boolean newScene = false;
+        try {
+            worldScale = setupOpenCL(jobID, script, params, useCache, 0.5f);
+        } catch(NotCachedException nce) {
+            // Should never happen
+            nce.printStackTrace();
+        }
 
-        if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+        Matrix4f inv_view = new Matrix4f(view);
+        inv_view.invert();
+        t0 = System.nanoTime();
+        tiles[0].getRenderer().sendView(inv_view,tiles[0].getView());
 
-            CacheEntry ce = null;
+        for (int i = 0; i < numTiles; i++) {
+            RenderTile tile = tiles[i];
 
-            ce = cacheSource.get(jobID);
-
-            if (ce == null) {
-                throw new IllegalArgumentException("Cannot pick against an uncached scene");
-            }
-
-            source = ce.source;
-            worldScale = ce.worldScale;
-            ops = ce.ops;
-            vscene = ce.vscene;
-        } else { //
-            List<Instruction> inst = null;
-
-            inst = cache.get(jobID);
-            if (inst == null) {
-                throw new IllegalArgumentException("Cannot pick against an uncached scene");
+            if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
+                tile.getRenderer().pickStruct(pixX, pixY, tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale,pos,normal);
+            } else {
+                /*
+                tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
+                        worldScale, tile.getDest());
+                */
             }
         }
 
-        lastInitializationTime = (System.nanoTime() - t0);
-        lastCompileTime = 0;
-        t0 = System.nanoTime();
+
+        for (int i = 0; i < numRenderers; i++) {
+            render[i].getCommandQueue().finish();
+        }
+
+        lastPickTime = (System.nanoTime() - t0);
+        //if(DEBUG) printf("frame render time: %5.2f ms\n",(System.nanoTime() - t0)*1.e-6);
+    }
+
+    /**
+     * Pick against a script, it must be cached
+     *
+     * @param jobID  UniqueID for caching results
+     * @param width
+     * @param height
+     * @return
+     */
+    public void pickCached(String jobID, Matrix4f view,
+                            int pixX, int pixY, int width, int height,
+                            Vector3f pos, Vector3f normal) throws NotCachedException {
+
+        if(DEBUG) printf("pick(%s, version:%s)\n", jobID, version);
+        long t0 = System.nanoTime();
+
+
+        float worldScale = setupOpenCL(jobID,null,null,false,0.5f);
 
         Matrix4f inv_view = new Matrix4f(view);
         inv_view.invert();
@@ -782,4 +756,7 @@ public class ImageRenderer {
         public CacheEntry() {
         }
     }
+
+    public static class NotCachedException extends Exception {}
 }
+

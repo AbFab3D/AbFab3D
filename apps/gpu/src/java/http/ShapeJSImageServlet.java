@@ -1,7 +1,6 @@
 package http;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import render.*;
 
@@ -42,9 +41,6 @@ public class ShapeJSImageServlet extends HttpServlet {
      * stuff later on.
      */
     public void init() throws ServletException {
-        // DirectorServlet overrides all but this method.  If your making changes here
-        // you might need to change that class as well
-
         ServletConfig sconfig = getServletConfig();
         this.ctx = sconfig.getServletContext();
 
@@ -68,10 +64,14 @@ public class ShapeJSImageServlet extends HttpServlet {
         HttpSession session = req.getSession(true);
         String accept = req.getHeader("Accept");
 
-        if (command.contains("/makeImage")) {
+        if (command.contains("/makeImageCached")) {
+            handleImageCachedRequest(req, resp, session, accept);
+        } else if (command.contains("/makeImage")) {
             handleImageRequest(req, resp, session, accept);
         } else if (command.contains("/pick")) {
-                handlePickRequest(req, resp, session, accept);
+            handlePickRequest(req, resp, session, accept);
+        } else if (command.contains("/pickCached")) {
+            handlePickCachedRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
@@ -85,10 +85,14 @@ public class ShapeJSImageServlet extends HttpServlet {
         HttpSession session = req.getSession(true);   // TODO: do we need this
         String accept = req.getHeader("Accept");
 
-        if (command.contains("/makeImage")) {
+        if (command.contains("/makeImageCached")) {
+            handleImageCachedRequest(req, resp, session, accept);
+        } else if (command.contains("/makeImage")) {
             handleImageRequest(req, resp, session, accept);
         } else if (command.contains("/pick")) {
             handlePickRequest(req, resp, session, accept);
+        } else if (command.contains("/pickCached")) {
+            handlePickCachedRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
@@ -245,11 +249,210 @@ public class ShapeJSImageServlet extends HttpServlet {
         os.close();
     }
 
-    // TODO: stop doing this
-    synchronized private void handlePickRequest(HttpServletRequest req,
+    synchronized private void handleImageCachedRequest(HttpServletRequest req,
                                                  HttpServletResponse resp,
                                                  HttpSession session,
                                                  String accept)
+            throws IOException {
+
+        int width = 512, height = 512;
+        String jobID = null;
+        float[] tviewMatrix = null;
+        int frames = 0;
+        int framesX = 6;
+        String imgType = "JPG";
+        float[] view;
+        float rotX = 0;
+        float rotY = 0;
+        float zoom = -4;
+        float quality = 0.5f;  // samples,maxSteps,shadowSteps,softShadows
+
+        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
+
+        Map<String, String[]> params = req.getParameterMap();
+
+        String[] widthSt = params.get("width");
+        if (widthSt != null && widthSt.length > 0) {
+            width = Integer.parseInt(widthSt[0]);
+        }
+
+        String[] heightSt = params.get("height");
+        if (heightSt != null && heightSt.length > 0) {
+            height = Integer.parseInt(heightSt[0]);
+        }
+
+        String[] jobIDSt = params.get("jobID");
+        if (jobIDSt != null && jobIDSt.length > 0) {
+            jobID = jobIDSt[0];
+        }
+
+        String[] imgTypeSt = params.get("imgType");
+        if (imgTypeSt != null && imgTypeSt.length > 0) {
+            imgType = imgTypeSt[0];
+        }
+
+        String[] viewSt = params.get("view");
+        if (viewSt != null && viewSt.length > 0) {
+            String[] vals = viewSt[0].split(",");
+            view = new float[vals.length];
+            for(int i=0; i < vals.length; i++) {
+                view[i] = Float.parseFloat(vals[i]);
+            }
+
+            if (view.length != 16) {
+                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            }
+
+
+            viewMatrix.set(view);
+        } else {
+            String[] rotXSt = params.get("rotX");
+            if (rotXSt != null && rotXSt.length > 0) {
+                rotX = Float.parseFloat(rotXSt[0]);
+            }
+
+            String[] rotYSt = params.get("rotY");
+            if (rotYSt != null && rotYSt.length > 0) {
+                rotY = Float.parseFloat(rotYSt[0]);
+            }
+
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            getView(rotX,rotY,zoom,viewMatrix);
+        }
+
+        String[] qualitySt = params.get("quality");
+        if (qualitySt != null && qualitySt.length > 0) {
+            quality = Float.parseFloat(qualitySt[0]);
+        }
+
+        long t0 = System.nanoTime();
+
+        OutputStream os = resp.getOutputStream();
+
+        int size = 0;
+        int itype = 0;
+        if (imgType.equalsIgnoreCase("PNG")) {
+            itype = ImageRenderer.IMAGE_PNG;
+            resp.setContentType("image/png");
+        } else if (imgType.equalsIgnoreCase("JPG")) {
+            itype = ImageRenderer.IMAGE_JPEG;
+            resp.setContentType("image/jpeg");
+        }
+
+        try {
+            size = render.renderCached(jobID, viewMatrix, itype, quality, resp.getOutputStream());
+        } catch(ImageRenderer.NotCachedException nce) {
+            resp.sendError(410,"Job not cached");
+            return;
+        }
+
+        printf("Image size: %d\n",size);
+        resp.setContentLength(size);
+
+        os.close();
+    }
+
+    // TODO: stop doing this
+    synchronized private void handlePickCachedRequest(HttpServletRequest req,
+                                                 HttpServletResponse resp,
+                                                 HttpSession session,
+                                                 String accept)
+            throws IOException {
+
+        String jobID = null;
+        float[] view;
+        float rotX = 0;
+        float rotY = 0;
+        float zoom = -4;
+        int x = 0;
+        int y = 0;
+
+        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
+
+        Map<String, String[]> params = req.getParameterMap();
+
+        String[] jobIDSt = params.get("jobID");
+        if (jobIDSt != null && jobIDSt.length > 0) {
+            jobID = jobIDSt[0];
+        }
+
+        String[] viewSt = params.get("view");
+        if (viewSt != null && viewSt.length > 0) {
+            String[] vals = viewSt[0].split(",");
+            view = new float[vals.length];
+            for(int i=0; i < vals.length; i++) {
+                view[i] = Float.parseFloat(vals[i]);
+            }
+
+            if (view.length != 16) {
+                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            }
+
+
+            viewMatrix.set(view);
+        } else {
+            String[] rotXSt = params.get("rotX");
+            if (rotXSt != null && rotXSt.length > 0) {
+                rotX = Float.parseFloat(rotXSt[0]);
+            }
+
+            String[] rotYSt = params.get("rotY");
+            if (rotYSt != null && rotYSt.length > 0) {
+                rotY = Float.parseFloat(rotYSt[0]);
+            }
+
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            getView(rotX,rotY,zoom,viewMatrix);
+        }
+
+        String[] xSt = params.get("x");
+        if (xSt != null && xSt.length > 0) {
+            x = Integer.parseInt(xSt[0]);
+        }
+        String[] ySt = params.get("y");
+        if (ySt != null && ySt.length > 0) {
+            y = Integer.parseInt(ySt[0]);
+        }
+
+        long t0 = System.nanoTime();
+
+
+        // TODO: garbage
+        Vector3f pos = new Vector3f();
+        Vector3f normal = new Vector3f();
+        Gson gson = new Gson();
+        HashMap<String, Object> result = new HashMap<String, Object>();
+        try {
+            render.pickCached(jobID, viewMatrix, x, y, 512, 512, pos, normal);
+        } catch(ImageRenderer.NotCachedException nce) {
+            resp.sendError(410,"Job not cached");
+            return;
+        }
+        OutputStream os = resp.getOutputStream();
+        resp.setContentType("application/json");
+
+        result.put("pos",pos.toString());
+        result.put("normal",normal.toString());
+
+        String st = gson.toJson(result);
+        os.write(st.getBytes());
+
+        os.close();
+    }
+
+    // TODO: stop doing this
+    synchronized private void handlePickRequest(HttpServletRequest req,
+                                                      HttpServletResponse resp,
+                                                      HttpSession session,
+                                                      String accept)
             throws IOException {
 
         String jobID = null;
@@ -347,16 +550,17 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
         long t0 = System.nanoTime();
 
-        OutputStream os = resp.getOutputStream();
-
-        resp.setContentType("application/json");
 
         // TODO: garbage
         Vector3f pos = new Vector3f();
         Vector3f normal = new Vector3f();
         Gson gson = new Gson();
-        HashMap<String,Object> result = new HashMap<String, Object>();
-        render.pick(jobID, viewMatrix, x, y, 512,512,pos,normal);
+        HashMap<String, Object> result = new HashMap<String, Object>();
+        render.pick(jobID,script,sparams,true,viewMatrix, x, y, 512, 512, pos, normal);
+
+        OutputStream os = resp.getOutputStream();
+        resp.setContentType("application/json");
+
         result.put("pos",pos.toString());
         result.put("normal",normal.toString());
 

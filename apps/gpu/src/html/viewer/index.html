@@ -470,6 +470,13 @@ function addMouseEventListeners() {
     unspin();
   });
 
+  $("#render").error(function() {
+    // failed to load, use full render path
+    loading = false;
+    forceFull = true;
+    unspin();
+  });
+
   //Firefox
   $("#render").bind('DOMMouseScroll', function(e){
     if (e.originalEvent.detail > 0) {

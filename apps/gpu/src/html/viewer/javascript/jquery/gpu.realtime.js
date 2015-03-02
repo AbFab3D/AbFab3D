@@ -21,6 +21,7 @@ var rotY = 0;
 var zoom = -4;
 var quality = 0.5;
 var viewChanged = false;
+var forceFull = false;  //  should we force a full render
 
 var maxFPS = 30;  // maximum frame rate to shoot for
 
@@ -65,21 +66,35 @@ function draw() {
     if (quality >= 1.0)
       imgType = "png";
 
-    extraParams = {
-      'jobID':  getJobID(),
-      'rotX':    rotX,  // x rotation in radians
-      'rotY':    rotY,  // y rotation in radians
-      'zoom':    zoom,  // zoom level (translation in z direction)
-      'imgType': imgType,
-      'quality': quality
-    };
+    if (forceFull) {
+      extraParams = {
+        'jobID': getJobID(),
+        'script': editor.getValue(),
+        'width': width,
+        'height': height,
+        'rotX': rotX.toFixed(4),  // x rotation in radians
+        'rotY': rotY.toFixed(4),  // y rotation in radians
+        'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
+        'imgType': imgType,
+        'quality': quality
+      };
+    } else {
+      extraParams = {
+        'jobID': getJobID(),
+        'rotX': rotX.toFixed(4),  // x rotation in radians
+        'rotY': rotY.toFixed(4),  // y rotation in radians
+        'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
+        'imgType': imgType,
+        'quality': quality
+      };
+    }
 
     if (loading) {
       skipCount--;
       if (skipCount > 0) {
         return;
       } else {
-        console.log("Skipped too long, reseting");
+        console.log("Skipped too long, resetting");
       }
     }
     skipCount = 15;
@@ -87,7 +102,17 @@ function draw() {
     var imageViewer = document.getElementById("render");
     loading = true;
 
-    var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+    var url;
+    if (forceFull) {
+      url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+      if (paramData !== undefined && paramData !== null) {
+        url = url + "&" + $.param(paramDataToQueryString(paramData));
+      }
+      forceFull = false;
+    } else {
+      url = "/creator/shapejsRT_v1.0.0/makeImageCached?" + $.param(extraParams);
+    }
+
     imageViewer.setAttribute("src", url);
 
   }, 1000 / maxFPS);
@@ -126,16 +151,28 @@ function paramDataToQueryString(params) {
 
 function initScript() {
 //  spin('preview');
-  
+
+  if (loading) {
+    //console.log("Still loading, skipping");
+    skipCount--;
+    if (skipCount > 0) {
+      return;
+    } else {
+      console.log("Skipped too long, resetting");
+    }
+  }
+  skipCount = 15;
+  loading = true;
+
   // Set additional data not part of the form
   extraParams = {
     'jobID':   getJobID(),
     'script':  editor.getValue(),
     'width':   width,
     'height':  height,
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
+    'rotX':    rotX.toFixed(4),  // x rotation in radians
+    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
     'imgType': imgType,
     'quality': quality
   };
@@ -198,20 +235,21 @@ function pickModel(x,y) {
     'x': x,
     'y': y,
     'jobID':   getJobID(),
-    'script':  editor.getValue(),
+//    'script':  editor.getValue(),
     'width':   width,
     'height':  height,
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom  // zoom level (translation in z direction)
+    'rotX':    rotX.toFixed(4),  // x rotation in radians
+    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'zoom':    zoom.toFixed(4)  // zoom level (translation in z direction)
   };
 
-  var url = "/creator/shapejsRT_v1.0.0/pick?" + $.param(extraParams);
+  var url = "/creator/shapejsRT_v1.0.0/pickCached?" + $.param(extraParams);
 
+/*
   if (paramData !== undefined && paramData !== null) {
     url = url + "&" + $.param(paramDataToQueryString(paramData));
   }
-
+*/
   var request = $.ajax({
     type: "POST",
     url: url
@@ -223,6 +261,8 @@ function pickModel(x,y) {
 
   request.fail(function( jqXHR, textStatus ) {
     alert( "Request failed: " + textStatus );
+
+    // TODO: use pick with complete script
   });
 
 }
@@ -236,9 +276,9 @@ function getRender(q) {
   
   extraParams = {
     'jobID':  getJobID(),
-    'rotX':    rotX,  // x rotation in radians
-    'rotY':    rotY,  // y rotation in radians
-    'zoom':    zoom,  // zoom level (translation in z direction)
+    'rotX':    rotX.toFixed(4),  // x rotation in radians
+    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
     'imgType': imgType,
     'quality': q
   };
