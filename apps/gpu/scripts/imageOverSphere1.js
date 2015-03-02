@@ -39,7 +39,7 @@ function main(args) {
 	
 	var union = new Union(shape, imgBox);
 	var eng = new Engraving(shape, imgBox);
-	eng.getParam("depth").setValue(0.5*MM);
+	eng.getParam("depth").setValue(-0.5*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
     //maker.setSource(union);
