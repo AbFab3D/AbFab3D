@@ -54,6 +54,7 @@ public class TestImageRenderer extends TestCase {
 
         ImageRenderer render = new ImageRenderer();
         render.initCL(1, width, height);
+        render.setVersion(VERSION);
         render.render(null, getFile("test/scripts/transform_base.js"), new HashMap<String, Object>(), getView(), false, 0.5f, base);
         render.render(null, getFile("test/scripts/translation.js"), new HashMap<String, Object>(), getView(), false, 0.5f, test);
 

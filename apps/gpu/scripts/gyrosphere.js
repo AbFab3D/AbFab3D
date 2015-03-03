@@ -15,6 +15,7 @@ function main(args) {
     var sphere = new Sphere(radius);
     var gyroid = new VolumePatterns.Gyroid(25*MM, 2*MM);
     var intersect = new Intersection();
+    intersect.setBlend(2*MM);
     intersect.add(sphere);
     intersect.add(gyroid);
 	var r = 25*MM;

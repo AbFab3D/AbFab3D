@@ -347,10 +347,9 @@ public class ImageRenderer {
 
         if(DEBUG) printf("makeRender(%s, version:%s quality: %f)\n", jobID, version,quality);
         long t0 = System.nanoTime();
-        if(true) throw new RuntimeException("broken code here");
         // need to add wold scale and center
         //float worldScale = 1; should be inside of scene 
-        setupOpenCL(jobID, script, params, useCache, quality);
+        VolumeScene vscene = setupOpenCL(jobID, script, params, useCache, quality);
 
         t0 = System.nanoTime();
 
@@ -363,13 +362,13 @@ public class ImageRenderer {
 
             if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
                 tile.getRenderer().renderStruct(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
-                                                null, // should be scene 
+                                                vscene,
                                                 tile.getDest());
             }  else if (version.equals(VolumeRenderer.VERSION_DIST)) {
                 tile.getRenderer().render(inv_view, tile.getWidth(), tile.getHeight(), tiles[0].getView(), render[i].getCommandQueue(), tile.getDest());
             } else {
                 tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
-                                             null, // should be scene 
+                                             vscene,
                                              tile.getDest());
             }
             tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
@@ -388,10 +387,9 @@ public class ImageRenderer {
         lastImageTime = System.nanoTime() - t0;    
     }
 
-    private float setupOpenCL(String jobID, String script, Map<String,Object> params, boolean useCache, float quality) throws NotCachedException {
+    private VolumeScene setupOpenCL(String jobID, String script, Map<String,Object> params, boolean useCache, float quality) throws NotCachedException {
         long t0 = System.nanoTime();
         DataSource source = null;
-        float worldScale = 1;
         CLCodeBuffer ops;
         VolumeScene vscene = null;
         boolean newScene = false;
@@ -422,12 +420,15 @@ public class ImageRenderer {
 
                 if (ce.source instanceof Initializable)
                     ((Initializable) ce.source).initialize();
-                Vector3d scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
-                //ce.worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
+                Vector3d worldCenter = bounds.getCenter();
+                Vector3d worldSize = bounds.getSize();
 
                 CLCodeMaker maker = new CLCodeMaker();
                 ce.ops = maker.makeCLCode((Parameterizable) ce.source);
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
+                ce.vscene.setWorldSize(worldSize);
+                ce.vscene.setWorldCenter(worldCenter);
+                ce.vscene.setWorldBounds(bounds);
                 ce.vscene.setCLCode(ce.ops);
                 ce.quality = quality;
                 newScene = true;
@@ -465,7 +466,10 @@ public class ImageRenderer {
 
                 if (ce.source instanceof Initializable)
                     ((Initializable) ce.source).initialize();
-                
+
+                Vector3d worldCenter = bounds.getCenter();
+                Vector3d worldSize = bounds.getSize();
+
                 //Vector3d scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
                 //ce.worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
 
@@ -473,9 +477,11 @@ public class ImageRenderer {
                 ce.ops = maker.makeCLCode((Parameterizable) source);
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
                 ce.vscene.setWorldBounds(bounds);
+                ce.vscene.setWorldSize(worldSize);
+                ce.vscene.setWorldCenter(worldCenter);
                 OpenCLWriter writer = new OpenCLWriter();
-                Vector3d ws = ce.vscene.getWorldSize(); ws.scale(0.5);
-                ce.vscene.setCode(writer.generate((Parameterizable) source, ws));
+                //Vector3d ws = ce.vscene.getWorldSize(); ws.scale(0.5);
+                ce.vscene.setCode(writer.generate((Parameterizable) source, worldSize));
                 ce.quality = quality;
                 newScene = true;
 
@@ -485,7 +491,6 @@ public class ImageRenderer {
             }
 
             source = ce.source;
-                //worldScale = ce.worldScale;
             ops = ce.ops;
             vscene = ce.vscene;
 
@@ -507,7 +512,6 @@ public class ImageRenderer {
                 OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
                 Vector3d scale;
                 scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
-                worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
 
                 //printf("Scale is: %s\n", scale);
                 inst = writer.generate((Parameterizable) source, scale);
@@ -566,7 +570,7 @@ public class ImageRenderer {
             lastCompileTime = 0;
         }
 
-        return worldScale;
+        return vscene;
     }
 
     /**
@@ -584,9 +588,9 @@ public class ImageRenderer {
         if(DEBUG) printf("pick(%s, version:%s)\n", jobID, version);
         long t0 = System.nanoTime();
 
-        float worldScale = 1;
+        VolumeScene vscene = null;
         try {
-            worldScale = setupOpenCL(jobID, script, params, useCache, 0.5f);
+             vscene = setupOpenCL(jobID, script, params, useCache, 0.5f);
         } catch(NotCachedException nce) {
             // Should never happen
             nce.printStackTrace();
@@ -602,7 +606,7 @@ public class ImageRenderer {
 
             if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
                 tile.getRenderer().pickStruct(pixX, pixY, tile.getWidth(), tile.getHeight(), width, height,
-                                              null, // should be scene 
+                                              vscene,
                                               pos,normal);
             } else {
                 /*
@@ -637,7 +641,7 @@ public class ImageRenderer {
         long t0 = System.nanoTime();
 
 
-        float worldScale = setupOpenCL(jobID,null,null,false,0.5f);
+        VolumeScene vscene = setupOpenCL(jobID,null,null,false,0.5f);
 
         Matrix4f inv_view = new Matrix4f(view);
         inv_view.invert();
@@ -649,7 +653,7 @@ public class ImageRenderer {
 
             if (version.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)) {
                 tile.getRenderer().pickStruct(pixX, pixY, tile.getWidth(), tile.getHeight(), width, height,
-                                              null, // should be scene
+                                              vscene,
                                               pos,normal);
             } else {
                 /*
