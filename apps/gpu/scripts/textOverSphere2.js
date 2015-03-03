@@ -30,14 +30,14 @@ function main(args) {
 	
     var maker = new GridMaker();
 
-	var shape = spheres(7*MM,3);
+	var shape = new Intersection(new Sphere(13*MM), new Box(24*MM,24*MM,24*MM));
+	shape.getParam("blend").setValue(0.5*MM);
 	
-	var union = new Union(shape, textBox);
 	var eng = new Engraving(shape, textBox);
 	eng.getParam("depth").setValue(0.5*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
-	var r = 15*MM;
+	var r = 13*MM;
 	return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
 
 }
