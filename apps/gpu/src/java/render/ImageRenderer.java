@@ -10,7 +10,6 @@ import com.objectplanet.image.PngEncoder;
 import datasources.Instruction;
 import opencl.CLCodeBuffer;
 import opencl.CLCodeMaker;
-import org.apache.commons.io.FileUtils;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
 import shapejs.ShapeJSEvaluator;
@@ -21,7 +20,6 @@ import javax.vecmath.Vector3f;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
@@ -49,6 +47,7 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
 public class ImageRenderer {
 
     static final boolean DEBUG = true;
+    static final boolean FORCE_CPU = true;
     public static final int IMAGE_JPEG = 0;
     public static final int IMAGE_PNG = 1;
     
@@ -117,6 +116,11 @@ public class ImageRenderer {
             }
         } else {
             tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+        }
+
+        if (FORCE_CPU) {
+            printf("Forcing to CPU rendering");
+            tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
         }
 
         tile.setContext(CLContext.create(tile.getDevice()));

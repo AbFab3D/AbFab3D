@@ -225,7 +225,7 @@ typedef struct {
 // engrave shape1 with shape2 
 void oEngrave(PTRS sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
     // bump mapping version 
-    float eng = max(0.,min(ptr->depth, -in2->v.x));
+    float eng = max(0.f,min(ptr->depth, -in2->v.x));
     //float eng = blendMax(0.,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
     //out->v.x = in1->v.x + eng;
     out->v.x = in1->v.x + ptr->depth*in2->v.x;

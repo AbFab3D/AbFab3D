@@ -324,13 +324,12 @@ void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint ima
 	pos = tpos.xyz;
     density = getDensity(pScene,pos);
 	if (density > 0.5){  // solid on the boundary
-        out_normal->x = OUTSIDE;
-        out_normal->y = OUTSIDE;
-        out_normal->z = OUTSIDE;
-
-	    out_pos->x = OUTSIDE;
-	    out_pos->y = OUTSIDE;
-	    out_pos->z = OUTSIDE;
+        (*out_normal).x = OUTSIDE;
+        (*out_normal).y = OUTSIDE;
+        (*out_normal).z = OUTSIDE;
+        (*out_pos).x = OUTSIDE;
+        (*out_pos).y = OUTSIDE;
+        (*out_pos).z = OUTSIDE;
 
 	    return;
 	}
@@ -365,12 +364,12 @@ void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint ima
 		}
         t += tstep;
         if (t > tfar) {
-            out_normal->x = OUTSIDE;
-            out_normal->y = OUTSIDE;
-            out_normal->z = OUTSIDE;
-            out_pos->x = OUTSIDE;
-            out_pos->y = OUTSIDE;
-            out_pos->z = OUTSIDE;
+            (*out_normal).x = OUTSIDE;
+            (*out_normal).y = OUTSIDE;
+            (*out_normal).z = OUTSIDE;
+            (*out_pos).x = OUTSIDE;
+            (*out_pos).y = OUTSIDE;
+            (*out_pos).z = OUTSIDE;
             return;
         }
     }
@@ -599,6 +598,7 @@ kernel void pick(global float3 *out_pos, global float3 *out_normal,
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
+//printf("pick x: %d y: %d\n",x,y);
     copyToLocal(pgOps, plOps,opBufferSize);
 
     PTROPS int *pOps = plOps;
@@ -633,13 +633,12 @@ kernel void pick(global float3 *out_pos, global float3 *out_normal,
     int hit = intersectBox(eyeRay_o, eyeRay_d, boxMin, boxMax, &tnear, &tfar);
 
     if (!hit) {
-
-        out_normal->x = OUTSIDE;
-        out_normal->y = OUTSIDE;
-        out_normal->z = OUTSIDE;
-        out_pos->x = OUTSIDE;
-        out_pos->y = OUTSIDE;
-        out_pos->z = OUTSIDE;
+        (*out_normal).x = OUTSIDE;
+        (*out_normal).y = OUTSIDE;
+        (*out_normal).z = OUTSIDE;
+        (*out_pos).x = OUTSIDE;
+        (*out_pos).y = OUTSIDE;
+        (*out_pos).z = OUTSIDE;
 
         return;
     }
