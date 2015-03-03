@@ -27,7 +27,7 @@ function main(args) {
     intersect.setBlend(2*MM);
     intersect.add(sphere);
     intersect.add(gyroid);
-	
-	var s = 25*MM;
-	return new Shape(intersect,new Bounds(-s,s,-s,s,-s,s));
+
+    var s = 25*MM;
+    return new Shape(intersect,new Bounds(-s,s,-s,s,-s,s));
 }

@@ -545,6 +545,9 @@ public class TestVolumeRenderer extends TestCase {
 
         VolumeScene vscene = new VolumeScene(progs, inst, "", VERSION);
 
+        // TODO: This has not been tested
+        vscene.setWorldSize(new Vector3d(worldScale,worldScale,worldScale));
+
         for (int i = 0; i < numRenderers; i++) {
             boolean result = render[i].init(vscene);
 
@@ -563,7 +566,7 @@ public class TestVolumeRenderer extends TestCase {
         for (int i = 0; i < numTiles; i++) {
             RenderTile tile = tiles[i];
             tile.getRenderer().sendView(view,tile.getView());
-            tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height, worldScale, tile.getDest());
+            tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height, vscene, tile.getDest());
             tile.getCommandQueue().putReadBuffer(tile.getDest(), true); // read results back (blocking read)
             tile.getCommandQueue().finish();
             int[] pixels = new int[width * height];
@@ -599,6 +602,7 @@ public class TestVolumeRenderer extends TestCase {
         }
         ArrayList progs = new ArrayList();
         VolumeScene vscene = new VolumeScene(progs, inst, "", VERSION);
+        vscene.setWorldSize(new Vector3d(worldScale,worldScale,worldScale));
 
         for (int i = 0; i < numRenderers; i++) {
             boolean result = render[i].init(vscene);
@@ -619,7 +623,7 @@ public class TestVolumeRenderer extends TestCase {
             RenderTile tile = tiles[i];
 
             tile.getRenderer().renderOps(tile.getX0(), tile.getY0(), tile.getWidth(), tile.getHeight(), width, height,
-                    worldScale, tile.getDest());
+                    vscene, tile.getDest());
             tile.getCommandQueue().putReadBuffer(tile.getDest(), false); // read results back (blocking read)
         }
 
