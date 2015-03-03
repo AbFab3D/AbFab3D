@@ -42,7 +42,7 @@ function main(args) {
 	eng.getParam("depth").setValue(-0.5*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
-	var r = s;
+	var r = 15*MM;
 	return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
 
 }

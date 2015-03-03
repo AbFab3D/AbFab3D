@@ -70,14 +70,15 @@ public class ImageBitmap extends TransformableDataSource {
     static final String MEMORY_IMAGE = "[memory image]";
 
     // public params of the image 
-    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the box",new Vector3d(0,0,0));
-    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the box",new Vector3d(0.1,0.1,0.1));
+    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the image box",new Vector3d(0,0,0));
+    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     // rounding of the edges
     DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
     IntParameter  mp_tilesX = new IntParameter("tilesX","image tiles in x-direction", 1);
     IntParameter  mp_tilesY = new IntParameter("tilesY","image tiles in y-direction", 1);
     DoubleParameter  mp_baseThickness = new DoubleParameter("baseThickness","relative thickness of image base", 0.);
     BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for image rendering", true);
+    DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_center,
@@ -87,6 +88,7 @@ public class ImageBitmap extends TransformableDataSource {
         mp_tilesY,
         mp_baseThickness,
         mp_useGrayscale,
+        mp_blurWidth,
     };
 
     static final double PIXEL_NORM = 1. / 255.;
@@ -117,7 +119,6 @@ public class ImageBitmap extends TransformableDataSource {
     private BufferedImage m_image;
     private int m_interpolationType = INTERPOLATION_LINEAR;//INTERPOLATION_BOX;
     // width of optional blur of the the image 
-    private double m_blurWidth = 0.;
     private double m_voxelSize = 0.;
 
     private double xmin, xmax, ymin, ymax, zmin, zmax;
@@ -273,7 +274,7 @@ public class ImageBitmap extends TransformableDataSource {
      */
     public void setBlurWidth(double blurWidth) {
 
-        m_blurWidth = blurWidth;
+        mp_blurWidth.setValue(new Double(blurWidth));
 
     }
 
@@ -535,14 +536,16 @@ public class ImageBitmap extends TransformableDataSource {
         imageHeight = imageData.getHeight();
         imageWidth1 = imageWidth - 1;
         imageHeight1 = imageHeight - 1;
+        
+        double blurWidth = mp_blurWidth.getValue();
 
-        if (m_blurWidth > 0.0) {
+        if (blurWidth > 0.0) {
 
             double pixelSize = (m_sizeX / (imageWidth * m_xTilesCount));
 
             printf("pixelSize: %8.6f MM \n", pixelSize / MM);
 
-            double blurSizePixels = m_blurWidth / pixelSize;
+            double blurSizePixels = blurWidth / pixelSize;
 
             printf("gaussian blur: %7.2f\n", blurSizePixels);
             t0 = time();

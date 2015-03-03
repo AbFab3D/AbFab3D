@@ -25,6 +25,14 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
 
+import abfab3d.param.Vector3dParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.BooleanParameter;
+import abfab3d.param.StringParameter;
+import abfab3d.param.Parameter;
+
+
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -70,16 +78,37 @@ public class Text extends TransformableDataSource {
     static final boolean DEBUG = false;
     static int debugCount = 1000;
 
-    private double m_sizeX=30*MM, m_sizeY=10*MM, m_sizeZ=2*MM;
-    private double m_voxelSize = 0.1*MM;
-    private String m_text  = "Text";
-    private String m_fontName = "Times New Roman";
+    //private double m_sizeX=30*MM, m_sizeY=10*MM, m_sizeZ=2*MM;
+    //private double m_voxelSize = 0.1*MM;
 
     private ImageBitmap m_bitmap = null; 
     private int m_fontSize = 50; // arbitrary font size, text is scaled to fit box anyway
-    private double m_textBlurWidth = 1.;
-    private int m_fontStyle = PLAIN;
+    //private double m_textBlurWidth = 1.;
     private int m_textScale = 5;
+
+    // public params of the image 
+    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the text box",new Vector3d(0,0,0));
+    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the text box",new Vector3d(30*MM, 10*MM, 2*MM));
+    DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
+    DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize","size of voxel for text rendering", 0.1*MM);
+    DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the text bitmap", 0.025*MM);
+
+    BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for text rendering", true);
+    StringParameter  mp_fontName = new StringParameter("fontName","Name of the font", "Times New Roman");
+    StringParameter  mp_text = new StringParameter("text","text to be created", "Text");
+    IntParameter  mp_fontStyle = new IntParameter("fontStyle","style of font(BOLD ,ITALIC, PLAIN)", PLAIN);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_center,
+        mp_size,
+        mp_voxelSize,
+        mp_blurWidth,
+        mp_rounding,
+        mp_useGrayscale,
+        mp_fontName,
+        mp_text,
+        mp_fontStyle,        
+    };
 
     /**
 
@@ -92,20 +121,27 @@ public class Text extends TransformableDataSource {
        @param voxelSize size of voxel used for text rasterizetion
      */
     public Text(String text, String fontName, double sx, double sy, double sz, double voxelSize){
-        
-        m_sizeX = sx;
-        m_sizeY = sy;
-        m_sizeZ = sz;
-        m_voxelSize = voxelSize;
-        m_text = text;
-        m_fontName = fontName;
+        initParams();
+        mp_size.setValue(new Vector3d(sx, sy, sz));
+        mp_voxelSize.setValue(new Double(voxelSize));        
+        mp_text.setValue(text);
+        mp_fontName.setValue(fontName);
         
     }
 
     public void setFontStyle(int fontStyle){
-        m_fontStyle = fontStyle;
+        mp_fontStyle.setValue(new Integer(fontStyle));
     }
         
+
+    public ImageBitmap getBitmap(){
+        return m_bitmap;
+    }
+
+    protected void initParams(){
+        super.addParams(m_aparam);
+    }
+
     /**
        @noRefGuide
      */
@@ -114,24 +150,31 @@ public class Text extends TransformableDataSource {
         super.initialize();
         
         // size of bitmap to render text 
-        int nx = m_textScale*(int)Math.round(m_sizeX/m_voxelSize);
-        int ny = m_textScale*(int)Math.round(m_sizeY/m_voxelSize); 
-        
-        BufferedImage img = TextUtil.createTextImage(nx, ny, m_text, new Font(m_fontName, m_fontStyle, m_fontSize), new Insets(0,0,0,0), true);
+        Vector3d size = mp_size.getValue();
+        double voxelSize = mp_voxelSize.getValue();
+        int nx = m_textScale*(int)Math.round(size.x/voxelSize);
+        int ny = m_textScale*(int)Math.round(size.y/voxelSize); 
+        String text = mp_text.getValue();
+        String fontName = mp_fontName.getValue();
+        int fontStyle = mp_fontStyle.getValue();
+
+
+        BufferedImage img = TextUtil.createTextImage(nx, ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets(0,0,0,0), true);
         
         printf("text bitmap: %d x %d\n", nx, ny);
-        Font font = new Font(m_fontName, m_fontStyle, m_fontSize);
+        //Font font = new Font(m_fontName, m_fontStyle, m_fontSize);
 
-       
+        
         m_bitmap = new ImageBitmap();
 
         m_bitmap.setImage(img);
-        m_bitmap.setSize(m_sizeX, m_sizeY, m_sizeZ);
+        m_bitmap.setSize(size.x, size.y, size.z);
         m_bitmap.setBaseThickness(0.);
         m_bitmap.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
         m_bitmap.setTiles(1, 1);
-        m_bitmap.setBlurWidth(m_voxelSize/4);
-        m_bitmap.setUseGrayscale(false);
+        m_bitmap.setBlurWidth(mp_blurWidth.getValue());
+        //m_bitmap.setUseGrayscale(false); // VB - temp fix for GPU 
+        m_bitmap.setUseGrayscale(true);
         m_bitmap.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
         m_bitmap.setTransform(getTransform());
         
@@ -148,7 +191,7 @@ public class Text extends TransformableDataSource {
      @noRefGuide
      */
     public int getDataValue(Vec pnt, Vec data) {
-
+        
         return m_bitmap.getDataValue(pnt, data);
         
     }

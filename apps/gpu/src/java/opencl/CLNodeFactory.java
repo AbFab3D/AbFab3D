@@ -37,6 +37,7 @@ public class CLNodeFactory {
         sm_map.put("CompositeTransform", "opencl.CLCompositeTransform");
         sm_map.put("Engraving", "opencl.CLEngraving");
         sm_map.put("ImageBitmap", "opencl.CLImageBitmap");
+        sm_map.put("Text", "opencl.CLText");
     }
     
     public CLNodeFactory(){        

@@ -28,6 +28,6 @@ function main(args) {
 	eng.getParam("blend").setValue(0.2*MM);
 	
 	var s = 16*MM;
-	return new Shape(union,new Bounds(-s,s,-s,s,-s,s));
+	return new Shape(eng,new Bounds(-s,s,-s,s,-s,s));
 
 }

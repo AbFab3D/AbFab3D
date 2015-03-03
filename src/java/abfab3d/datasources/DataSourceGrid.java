@@ -53,8 +53,9 @@ public class DataSourceGrid extends TransformableDataSource {
     double m_bounds[] = new double[6];
     int m_nx, m_ny, m_nz;
     double xmin, ymin, zmin, xscale, yscale, zscale;
-    double m_dataScaling = 1./m_subvoxelResolution;
 
+    LinearMapper m_mapper = null;
+       
     /**
        constructs DataSoure from the given grid 
      */
@@ -103,6 +104,18 @@ public class DataSourceGrid extends TransformableDataSource {
             printf("xmin: (%10.7f,%10.7f,%10.7f) \n", xmin, ymin, zmin);
             printf("xscale: (%10.7f,%10.7f,%10.7f) \n", xscale,yscale,zscale);
         }
+    }
+
+
+    public void setMapper(LinearMapper mapper){
+
+        m_mapper = mapper; 
+
+    }
+
+    public LinearMapper getMapper(){
+
+        return m_mapper; 
     }
 
     /**
@@ -154,10 +167,14 @@ public class DataSourceGrid extends TransformableDataSource {
     public int initialize(){
 
         super.initialize();
-        if(m_subvoxelResolution > 0) 
-            m_dataScaling = 1./m_subvoxelResolution;
-        else 
-            m_dataScaling = 1.;
+
+        if(m_mapper == null){
+            // create default mapper 
+            if(m_subvoxelResolution > 0) 
+                m_mapper = new LinearMapper(0,m_subvoxelResolution, 0, 1);
+            else 
+                m_mapper = new LinearMapper(0,1, 0, 1);
+        }
 
         return RESULT_OK;
 
@@ -206,7 +223,7 @@ public class DataSourceGrid extends TransformableDataSource {
             return RESULT_OUTSIDE; 
         }
 
-        data.v[0] = getGridValue(ix, iy, iz)*m_dataScaling;
+        data.v[0] = m_mapper.map(getGridValue(ix, iy, iz));
         
         return RESULT_OK; 
             
@@ -260,7 +277,7 @@ public class DataSourceGrid extends TransformableDataSource {
             dx1 *(dy1 * (dz1 * v000 + dz  * v001) +  dy*(dz1 * v010 + dz  * v011)) +   
             dx  *(dy1 * (dz1 * v100 + dz  * v101) +  dy*(dz1 * v110 + dz  * v111));
 
-        data.v[0] = d*m_dataScaling;
+        data.v[0] = m_mapper.map(d);
         
         return RESULT_OK; 
         
@@ -268,13 +285,14 @@ public class DataSourceGrid extends TransformableDataSource {
 
     private final long getGridValue(int x, int y, int z){
 
+        //TODO hee we need to have flexible way of getting data from the grid value
+        
         switch(m_subvoxelResolution){            
         case 0:  // grid value is in state 
             byte state = m_grid.getState(x, y, z);            
             switch(state){
             case Grid.OUTSIDE:
-                return 0;
-                
+                return 0;                
             default:
                 return 1;
             }             

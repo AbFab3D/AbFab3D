@@ -347,8 +347,7 @@ public class ImageRenderer {
 
         if(DEBUG) printf("makeRender(%s, version:%s quality: %f)\n", jobID, version,quality);
         long t0 = System.nanoTime();
-        // need to add wold scale and center
-        //float worldScale = 1; should be inside of scene 
+
         VolumeScene vscene = setupOpenCL(jobID, script, params, useCache, quality);
 
         t0 = System.nanoTime();
@@ -420,14 +419,10 @@ public class ImageRenderer {
 
                 if (ce.source instanceof Initializable)
                     ((Initializable) ce.source).initialize();
-                Vector3d worldCenter = bounds.getCenter();
-                Vector3d worldSize = bounds.getSize();
 
                 CLCodeMaker maker = new CLCodeMaker();
                 ce.ops = maker.makeCLCode((Parameterizable) ce.source);
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
-                ce.vscene.setWorldSize(worldSize);
-                ce.vscene.setWorldCenter(worldCenter);
                 ce.vscene.setWorldBounds(bounds);
                 ce.vscene.setCLCode(ce.ops);
                 ce.quality = quality;
@@ -442,7 +437,6 @@ public class ImageRenderer {
             }
 
             source = ce.source;
-            //worldScale = ce.worldScale;
             ops = ce.ops;
             vscene = ce.vscene;
         } else if (version.equals(VolumeRenderer.VERSION_DIST)) {
@@ -467,21 +461,14 @@ public class ImageRenderer {
                 if (ce.source instanceof Initializable)
                     ((Initializable) ce.source).initialize();
 
-                Vector3d worldCenter = bounds.getCenter();
-                Vector3d worldSize = bounds.getSize();
-
-                //Vector3d scale = new Vector3d((bounds.xmax - bounds.xmin) / 2.0, (bounds.ymax - bounds.ymin) / 2.0, (bounds.zmax - bounds.zmin) / 2.0);
-                //ce.worldScale = (float) Math.min(Math.min(scale.x, scale.y), scale.z);
-
                 CLCodeMaker maker = new CLCodeMaker();
                 ce.ops = maker.makeCLCode((Parameterizable) source);
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
                 ce.vscene.setWorldBounds(bounds);
-                ce.vscene.setWorldSize(worldSize);
-                ce.vscene.setWorldCenter(worldCenter);
+
                 OpenCLWriter writer = new OpenCLWriter();
                 //Vector3d ws = ce.vscene.getWorldSize(); ws.scale(0.5);
-                ce.vscene.setCode(writer.generate((Parameterizable) source, worldSize));
+                ce.vscene.setCode(writer.generate((Parameterizable) source, ce.vscene.getWorldSize()));
                 ce.quality = quality;
                 newScene = true;
 

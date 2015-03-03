@@ -609,7 +609,7 @@ public class MathUtil {
     // linear intepolation
     // x < -1 return 1;
     // x >  1 returns 0
-    public static final double interpolate_linear(double x){
+    public static final double _interpolate_linear(double x){
 
         return 0.5*(1 - x);
 
