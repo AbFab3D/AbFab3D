@@ -48,6 +48,7 @@
 // desription of the scene to render 
 typedef struct {
     float worldScale;      //
+    float3 worldCenter;    // center of the world box
     PTROPS int *pOps;      // operations 
     int opCount;           // count of operations 
     PTRDATA char* pgData;  // global large data

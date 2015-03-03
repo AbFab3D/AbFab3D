@@ -74,6 +74,56 @@ public class Bounds implements Cloneable {
         return roundSize((zmax-zmin)/voxel);
     }    
 
+
+    public Vector3d getSize(){
+        return new Vector3d((xmax-xmin),(ymax-ymin),(zmax-zmin));
+    }
+    public Vector3d getCenter(){
+        return new Vector3d((xmax+xmin)/2.,(ymax+ymin)/2.,(zmax+zmin)/2.);
+    }
+
+    /**
+       @return width of bounds 
+     */
+    public double getSizeX(){
+        return (xmax-xmin);
+    }
+
+    /**
+       @return height of bounds 
+     */
+    public double getSizeY(){
+        return (ymax-ymin);
+    }
+
+    /**
+       @return depth of bounds 
+     */
+    public double getSizeZ(){
+        return (zmax-zmin);
+    }
+
+    /**
+       @return  center x
+     */
+    public double getCenterX(){
+        return (xmax+xmin)/2;
+    }
+
+    /**
+       @return  center y
+     */
+    public double getCenterY(){
+        return (ymax+ymin)/2;
+    }
+
+    /**
+       @return center z
+     */
+    public double getCenterZ(){
+        return (zmax+zmin)/2;
+    }
+
     public void setGridSize(int width,int height, int depth){
         this.nx = width;
         this.ny = height;

@@ -12,12 +12,15 @@
 
 package render;
 
+import javax.vecmath.Vector3d;
 
 import java.util.List;
 import java.util.ArrayList;
 
 import datasources.Instruction;
 import opencl.CLCodeBuffer;
+
+import abfab3d.grid.Bounds;
 
 
 /**
@@ -27,7 +30,8 @@ import opencl.CLCodeBuffer;
  */
 public class VolumeScene {
 
-    private float worldScale=1.f;
+    private Vector3d worldSize = new Vector3d(1,1,1);
+    private Vector3d worldCenter = new Vector3d(0,0,0);
 
     public String opts = "";
 
@@ -91,11 +95,24 @@ public class VolumeScene {
        return codeBuffer;
     }
 
-    public void setWorldScale(float scale){
-        this.worldScale = scale;
+    public void setWorldCenter(Vector3d center){
+        this.worldCenter = new Vector3d(center);
     }
 
-    public float getWorldScale(){
-        return this.worldScale;
+    public Vector3d getWorldCenter(){
+        return worldCenter;
+    }
+
+    public void setWorldSize(Vector3d size){
+        this.worldSize = new Vector3d(size);
+    }
+
+    public void setWorldBounds(Bounds bounds){
+        this.worldSize = new Vector3d(bounds.getSize());
+        this.worldCenter = new Vector3d(bounds.getCenter());
+    }
+
+    public Vector3d getWorldSize(){
+        return worldSize;
     }
 }

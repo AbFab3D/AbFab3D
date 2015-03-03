@@ -633,6 +633,31 @@ public class ShapeJSGlobal {
 
         long voxels = ((long) (gs[0])) * gs[1] * gs[2];
 
+        printf("Creating grid: %d %d %d\n",gs[0],gs[1],gs[2],voxels);
+        long max_voxels = (long) MAX_GRID_SIZE * MAX_GRID_SIZE * MAX_GRID_SIZE;
+
+        if (voxels > max_voxels) {
+            System.out.println("Maximum grid size exceeded.  Max is: " + MAX_GRID_SIZE + "^3 grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+            throw Context.reportRuntimeError(
+                    "Maximum grid size exceeded.  Max is: " + MAX_GRID_SIZE + "^3 grid is: " + gs[0] + " " + gs[1] + " " + gs[2]);
+        }
+
+        long MAX_MEMORY = Integer.MAX_VALUE;
+        if (voxels > MAX_MEMORY) {
+            dest = new GridShortIntervals(gs[0], gs[1], gs[2], vs, vs);
+        } else {
+            dest = new ArrayAttributeGridByte(gs[0], gs[1], gs[2], vs, vs);
+        }
+
+        return dest;
+    }
+
+
+    private static AttributeGrid makeEmptyFakeGrid(int[] gs, double vs) {
+        AttributeGrid dest = null;
+
+        long voxels = ((long) (gs[0])) * gs[1] * gs[2];
+
         //printf("Creating grid: %d %d %d\n", gs[0], gs[1], gs[2], voxels);
         dest = new FakeGrid(gs[0], gs[1], gs[2], vs, vs);
 

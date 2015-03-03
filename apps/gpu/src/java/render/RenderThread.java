@@ -111,7 +111,7 @@ public class RenderThread extends Thread {
                     first = false;
                 }
                 device.getRenderer().renderOps(tile.getX0(),tile.getY0(),
-                        tile.getWidth(),tile.getHeight(),width,height,worldScale,tile.getDest());
+                                               tile.getWidth(),tile.getHeight(),width,height, vscene, tile.getDest());
 
                 // Assign device so transfer knows where it came from
                 tile.setResources(device);

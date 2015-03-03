@@ -12,7 +12,6 @@ function main(args) {
 	var image = loadImage(path);
 		
 	by = bx * image.getHeight()/image.getWidth();
-    var grid = createGrid(-s,s,-s,s,-s,s,vs);
     var imgBox = new ImageBitmap(image, bx, by, bz, vs);
 	imgBox.getParam("rounding").setValue(0.5*MM);
 	imgBox.getParam("center").setValue(new Vector3d(0,0,radius));
@@ -24,9 +23,6 @@ function main(args) {
 	eng.getParam("depth").setValue(0.4*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
-    //maker.setSource(union);
-    maker.setSource(eng);
-    maker.makeGrid(grid);
+	return new Shape(eng,new Bounds(-s,s,-s,s,-s,s));
 
-    return grid;
 }

@@ -13,10 +13,7 @@ function main(args) {
     var size = 40*MM;
     var thickness = 10*MM;
 	var b = 25*MM;
-    var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
     var diff = new Subtraction(new Box(b,b,b), cross3D(size, thickness));
-    var maker = new GridMaker();
-    maker.setSource(diff);
-    maker.makeGrid(grid);
-    return grid;
+	var s = 16*MM;
+	return new Shape(diff,new Bounds(-s,s,-s,s,-s,s));
 }

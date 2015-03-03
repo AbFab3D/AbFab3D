@@ -135,7 +135,8 @@ inline float getDensity(Scene *pScene, float3 pos) {
     sVec data;
     sVec pnt;
     pnt.v.xyz = pos * pScene->worldScale;
-
+    pnt.v.xyz += pScene->worldCenter;
+    
     getShapeJSData(pScene, &pnt, &data);
     //TODO deal with complex data 
     float d = data.v.x;
@@ -392,13 +393,12 @@ void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint ima
     grad.z = (zd2 - zd0)/(2*dist);
 
     grad = normalize(grad);  //  use gradient for normal at the surface
-    out_normal->x = grad.x;
-    out_normal->y = grad.y;
-    out_normal->z = grad.z;
+    *out_normal = grad;
 
-    out_pos->x = pos.x * pScene->worldScale;
-    out_pos->y = pos.y * pScene->worldScale;
-    out_pos->z = pos.z * pScene->worldScale;
+    pos *= pScene->worldScale;
+    pos += pScene->worldCenter;
+
+    *out_pos = pos;
 }
 
 //
@@ -410,6 +410,9 @@ kernel void renderSuper(global uint *d_output,
                         uint imageW, uint imageH, 
                         global const float* invViewMatrix, 
                         float worldScale, 
+                        float worldCenterX, // location of world center
+                        float worldCenterY, 
+                        float worldCenterZ, 
                         global const int * pgOps, // operations 
                         int opCount, // operations count 
                         int opBufferSize, // operations buffer size 
@@ -432,7 +435,12 @@ kernel void renderSuper(global uint *d_output,
     PTROPS int *pOps = plOps; 
 
     // init the scene from kernel params 
-    Scene scene = (Scene){.worldScale=worldScale, .pOps=pOps, .opCount=opCount, .pgData=pgData, .invvm=invViewMatrix}; 
+    Scene scene = (Scene){.worldScale=worldScale, 
+                          .worldCenter=(float3)(worldCenterX,worldCenterY,worldCenterZ),
+                          .pOps=pOps, 
+                          .opCount=opCount, 
+                          .pgData=pgData, 
+                          .invvm=invViewMatrix}; 
     Scene *pScene = &scene;
 
     float u = ((x + x0) / (float) imageW)*2.0f-1.0f;
@@ -497,6 +505,9 @@ kernel void render(global uint *d_output,
                    uint imageW, uint imageH, 
                    global const float* invViewMatrix, 
                    float worldScale, 
+                   float worldCenterX, 
+                   float worldCenterY, 
+                   float worldCenterZ, 
                    global const int * pgOps, // operations 
                    int opCount, // operations count 
                    int opBufferSize, // operations buffer size 
@@ -516,7 +527,14 @@ kernel void render(global uint *d_output,
 
     PTROPS int *pOps = plOps;
     // init the scene 
-    Scene scene = (Scene){.worldScale=worldScale, .pOps=pOps, .opCount=opCount, .pgData=pgData, .invvm=invViewMatrix}; 
+    // init the scene from kernel params 
+    Scene scene = (Scene){.worldScale=worldScale, 
+                          .worldCenter=(float3)(worldCenterX,worldCenterY,worldCenterZ),
+                          .pOps=pOps, 
+                          .opCount=opCount, 
+                          .pgData=pgData, 
+                          .invvm=invViewMatrix}; 
+
     Scene *pScene = &scene;
 
     float3 sum = (float3)(0,0,0);
@@ -563,11 +581,14 @@ kernel void render(global uint *d_output,
 //
 // Pick into the scene to find the 3d position and surface normal
 //
-kernel void pick(global float3 * out_pos, global float3 * out_normal,
+kernel void pick(global float3 *out_pos, global float3 *out_normal,
                    uint x0, uint y0,
                    uint imageW, uint imageH,
                    global const float* invViewMatrix,
                    float worldScale,
+                   float worldCenterX,
+                   float worldCenterY,
+                   float worldCenterZ,
                    global const int * pgOps, // operations
                    int opCount, // operations count
                    int opBufferSize, // operations buffer size
@@ -582,7 +603,12 @@ kernel void pick(global float3 * out_pos, global float3 * out_normal,
 
     PTROPS int *pOps = plOps;
     // init the scene
-    Scene scene = (Scene){.worldScale=worldScale, .pOps=pOps, .opCount=opCount, .pgData=pgData, .invvm=invViewMatrix};
+    Scene scene = (Scene){.worldScale=worldScale, 
+                          .worldCenter=(float3)(worldCenterX,worldCenterY,worldCenterZ),
+                          .pOps=pOps, 
+                          .opCount=opCount, 
+                          .pgData=pgData, 
+                          .invvm=invViewMatrix}; 
     Scene *pScene = &scene;
 
     float u = ((x + x0) / (float) imageW)*2.0f-1.0f;

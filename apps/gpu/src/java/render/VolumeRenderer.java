@@ -1,5 +1,7 @@
 package render;
 
+import javax.vecmath.Vector3d;
+
 import abfab3d.util.Units;
 import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
@@ -519,7 +521,7 @@ public class VolumeRenderer {
      * @param dest
      */
     public void renderOps(int w0, int h0, int wsize, int hsize, int width, int height,
-                          float worldScale, CLBuffer dest) {
+                          VolumeScene scene, CLBuffer dest) {
 
         //printf("RenderOps: w0: %d h0: %d wsize: %d hsize: %d width:%d height: %d dest: %s this: %s\n",w0,h0,wsize,hsize,width,height,dest,this);
         long t0 = System.nanoTime();
@@ -532,11 +534,15 @@ public class VolumeRenderer {
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
 
         //printf("inv view: \n%s\n",view);
-
+        
         // Call OpenCL kernel
         CLEventList list = new CLEventList(3);
 
         boolean usingGL = (dest instanceof CLGLBuffer);
+
+        Vector3d ws = scene.getWorldSize();
+        float worldScale = (float)Math.max(Math.max(ws.x,ws.y),ws.z);
+        worldScale *= 0.5f; // factor to fit world into (2 x 2 x 2) box of GPU world 
 
         if (usingGL) {
             queue.putAcquireGLObject((CLGLBuffer) dest, list);
@@ -591,8 +597,7 @@ public class VolumeRenderer {
      *
      * @param dest
      */
-    public void renderStruct(int w0, int h0, int wsize, int hsize, int width, int height,
-                          float worldScale, CLBuffer dest) {
+    public void renderStruct(int w0, int h0, int wsize, int hsize, int width, int height, VolumeScene scene, CLBuffer dest) {
                 
         //printf("renderStruct: w0: %d h0: %d wsize: %d hsize: %d width:%d height: %d dest: %s this: %s\n",w0,h0,wsize,hsize,width,height,dest,this);
         long t0 = System.nanoTime();
@@ -601,7 +606,7 @@ public class VolumeRenderer {
         int 
             localWorkSizeX = 8,
             localWorkSizeY = 8;
-
+        
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
 
@@ -617,21 +622,29 @@ public class VolumeRenderer {
         }
 
         int opBufferSize = opBuffer.getCLCapacity();
+        Vector3d ws = scene.getWorldSize();
+        float worldScale = (float)Math.max(Math.max(ws.x,ws.y),ws.z);
+        worldScale *= 0.5f; // factor to fit world into (2 x 2 x 2) box of GPU world 
+        Vector3d worldCenter = scene.getWorldCenter();
 
-        kernel.setArg(0, dest).rewind();
-        kernel.setArg(1, w0 * wsize);
-        kernel.setArg(2, h0 * hsize);
-        kernel.setArg(3, wsize);
-        kernel.setArg(4, hsize);
-        kernel.setArg(5, width);
-        kernel.setArg(6, height);
-        kernel.setArg(7, viewBuffer).rewind();
-        kernel.setArg(8, worldScale);
-        kernel.setArg(9, opBuffer).rewind();
-        kernel.setArg(10, opLen);
-        kernel.setArg(11,opBufferSize);
-        kernel.setNullArg(12, opBufferSize * 4); // allocate buffer in local memory
-        kernel.setArg(13,dataBuffer); // data buffer 
+        int c = 0;
+        kernel.setArg(c++, dest).rewind();
+        kernel.setArg(c++, w0 * wsize);
+        kernel.setArg(c++, h0 * hsize);
+        kernel.setArg(c++, wsize);
+        kernel.setArg(c++, hsize);
+        kernel.setArg(c++, width);
+        kernel.setArg(c++, height);
+        kernel.setArg(c++, viewBuffer).rewind();
+        kernel.setArg(c++, worldScale);
+        kernel.setArg(c++, (float)worldCenter.x);
+        kernel.setArg(c++, (float)worldCenter.y);
+        kernel.setArg(c++, (float)worldCenter.z);
+        kernel.setArg(c++, opBuffer).rewind();
+        kernel.setArg(c++, opLen);
+        kernel.setArg(c++,opBufferSize);
+        kernel.setNullArg(c++, opBufferSize * 4); // allocate buffer for data in workgroup local memory 
+        kernel.setArg(c++,dataBuffer); // data buffer 
 
         queue.put2DRangeKernel(kernel, 0, 0, globalWorkSizeX, globalWorkSizeY, localWorkSizeX, localWorkSizeY, list);
         
@@ -655,7 +668,7 @@ public class VolumeRenderer {
      *
      */
     public void pickStruct(int w0, int h0, int wsize, int hsize, int width, int height,
-                             float worldScale, Vector3f pos, Vector3f normal) {
+                             VolumeScene scene, Vector3f pos, Vector3f normal) {
 
         printf("pickStruct: w0: %d h0: %d width:%d height: %d\n",w0,h0,width,height);
         long t0 = System.nanoTime();
@@ -667,23 +680,31 @@ public class VolumeRenderer {
 
         int opBufferSize = opBuffer.getCLCapacity();
 
+        Vector3d ws = scene.getWorldSize();
+        float worldScale = (float)Math.max(Math.max(ws.x,ws.y),ws.z);
+        worldScale *= 0.5f; // factor to fit world into (2 x 2 x 2) box of GPU world 
+        Vector3d worldCenter = scene.getWorldCenter();
+
         // TODO: garbage, decide on threading restrictions
         CLBuffer<FloatBuffer> posBuffer = context.createFloatBuffer(4, WRITE_ONLY);     // float3 needs 4 bytes
         CLBuffer<FloatBuffer> normalBuffer = context.createFloatBuffer(4, WRITE_ONLY);  // float3 needs 4 bytes
-
-        pickKernel.setArg(0, posBuffer).rewind();
-        pickKernel.setArg(1, normalBuffer).rewind();
-        pickKernel.setArg(2, w0);
-        pickKernel.setArg(3, h0);
-        pickKernel.setArg(4, width);
-        pickKernel.setArg(5, height);
-        pickKernel.setArg(6, viewBuffer).rewind();
-        pickKernel.setArg(7, worldScale);
-        pickKernel.setArg(8, opBuffer).rewind();
-        pickKernel.setArg(9,opLen);
-        pickKernel.setArg(10,opBufferSize);
-        pickKernel.setNullArg(11,opBufferSize*4); // allocate buffer in local memory
-        pickKernel.setArg(12,dataBuffer); // data buffer
+        int c = 0;
+        pickKernel.setArg(c++, posBuffer).rewind();
+        pickKernel.setArg(c++, normalBuffer).rewind();
+        pickKernel.setArg(c++, w0);
+        pickKernel.setArg(c++, h0);
+        pickKernel.setArg(c++, width);
+        pickKernel.setArg(c++, height);
+        pickKernel.setArg(c++, viewBuffer).rewind();
+        pickKernel.setArg(c++, worldScale);
+        pickKernel.setArg(c++, (float)worldCenter.x);
+        pickKernel.setArg(c++, (float)worldCenter.y);
+        pickKernel.setArg(c++, (float)worldCenter.z);
+        pickKernel.setArg(c++, opBuffer).rewind();
+        pickKernel.setArg(c++,opLen);
+        pickKernel.setArg(c++,opBufferSize);
+        pickKernel.setNullArg(c++,opBufferSize*4); // allocate buffer in local memory
+        pickKernel.setArg(c++,dataBuffer); // data buffer
 
         queue.put2DRangeKernel(pickKernel, 0, 0, 1, 1, 1, 1, list);
         queue.putReadBuffer(posBuffer, false); // read results back (blocking read)}

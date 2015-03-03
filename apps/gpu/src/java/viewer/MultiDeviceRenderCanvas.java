@@ -69,7 +69,7 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
     //private List<Instruction> instructions;
     private boolean sceneLoaded = false;
     private boolean graphicsInitialized = false;
-    private float worldScale=1;
+    //private float worldScale=1;
     private boolean firstRender = true;
 
     // Scratch vars
@@ -453,10 +453,10 @@ public class MultiDeviceRenderCanvas implements RenderCanvas {
         int hsize = h / 2;
 
         renderer[0].sendView(view, glViewBuffer);
-        renderer[0].renderOps((0*hsize), (0*hsize), wsize, hsize, w, h, worldScale, clPixelBuffer[0]);
+        renderer[0].renderOps((0*hsize), (0*hsize), wsize, hsize, w, h, vscene, clPixelBuffer[0]);
         for(int i=0; i < numDevices; i++) {
             renderer[i+1].sendView(view, viewBuffers[i]);
-            renderer[i+1].renderOps(0, ((i+1)*hsize), wsize, hsize, w, h, worldScale, clBuffer[i]);
+            renderer[i+1].renderOps(0, ((i+1)*hsize), wsize, hsize, w, h, vscene, clBuffer[i]);
         }
 
         // Render image using OpenGL

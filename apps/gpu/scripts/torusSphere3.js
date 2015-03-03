@@ -2,9 +2,7 @@ function main(args) {
     var R = 20 * MM;
 	var r = 8*MM;
 	var s = R + 2*r;
-	
-    var grid = createGrid(-s, s, -s, s, -s, s, 0.1*MM);
-	
+		
 	var union = new Union();
 
     var torus = new Torus(new Vector3d(0,0,0),R,r);
@@ -26,10 +24,6 @@ function main(args) {
 	union.add(sphere3);
 	union.add(sphere4);
 	
-    var maker = new GridMaker();
-    
-	maker.setSource(union);
-    maker.makeGrid(grid);
+	return new Shape(union,new Bounds(-s,s,-s,s,-s,s));
 
-    return grid;
 }

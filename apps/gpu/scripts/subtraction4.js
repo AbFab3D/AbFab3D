@@ -14,15 +14,12 @@ function main(args) {
     var size = 30*MM;
     var thickness = 10*MM;
 	var b = 25*MM;
-    var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
 	var cross1 = cross3D(size, thickness);
 	var cross2 = cross3D(size*1.5, 0.6*thickness);
 	cross2.setTransform(new Translation(0.19*thickness,0.19*thickness,0.19*thickness));
     var diff = new Subtraction(cross1, cross2);
 	diff.getParam("blend").setValue(thickness*0.0);
 	
-    var maker = new GridMaker();
-    maker.setSource(diff);
-    maker.makeGrid(grid);
-    return grid;
+	var s = 16*MM;
+	return new Shape(diff,new Bounds(-s,s,-s,s,-s,s));
 }

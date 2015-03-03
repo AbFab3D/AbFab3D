@@ -20,10 +20,7 @@ function main(args) {
   var s = 25*MM;
   var vs = 0.5*MM;
   var dodec = dodecahedron(1.6*s);
-  var maker = new GridMaker();
-  maker.setSource(dodec);
+    
+  return new Shape(dodec,new Bounds(-s,s,-s,s,-s,s));
   
-  var grid = createGrid(-s,s,-s,s,-s,s,vs);
-  maker.makeGrid(grid);
-  return grid;
 }

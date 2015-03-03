@@ -9,12 +9,8 @@ function main(args) {
 	var image = loadImage(path);
 	
 	by = bx * image.getHeight()/image.getWidth();
-    var grid = createGrid(-s,s,-s,s,-s,s,vs);
     var imgBox = new ImageBitmap(image, bx, by, bz, vs);
 	imgBox.getParam("rounding").setValue(0.5*MM);
-    var maker = new GridMaker();
-    maker.setSource(imgBox);
-    maker.makeGrid(grid);
+	return new Shape(union,new Bounds(-s,s,-s,s,-s,s));
 
-    return grid;
 }

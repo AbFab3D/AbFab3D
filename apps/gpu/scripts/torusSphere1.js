@@ -10,10 +10,7 @@ function main(args) {
 	
 	var union = new Union(torus, sphere);
 	
-    var maker = new GridMaker();
-    
-	maker.setSource(union);
-    maker.makeGrid(grid);
+	var s = 25*MM;
+	return new Shape(union,new Bounds(-s,s,-s,s,-s,s));
 
-    return grid;
 }

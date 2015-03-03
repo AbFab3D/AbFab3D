@@ -1,6 +1,5 @@
 function main(args) {
     var radius = 25 * MM;
-    var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);
 	var bx = 49*MM;
 	var by = 30*MM;
 	var bz = 10*MM;
@@ -14,10 +13,7 @@ function main(args) {
 	inter.add(box1);
 	inter.add(box2);
 	inter.add(box3);
-	
-    var maker = new GridMaker();
-    maker.setSource(inter);
-    maker.makeGrid(grid);
+	var s = 25*MM;
+	return new Shape(inter,new Bounds(-s,s,-s,s,-s,s));
 
-    return grid;
-}
+  }

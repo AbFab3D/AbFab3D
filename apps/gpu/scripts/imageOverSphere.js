@@ -41,9 +41,5 @@ function main(args) {
 	eng.getParam("depth").setValue(0.4*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
-    //maker.setSource(union);
-    maker.setSource(eng);
-    maker.makeGrid(grid);
-
-    return grid;
+	return new Shape(eng,new Bounds(-s,s,-s,s,-s,s));
 }

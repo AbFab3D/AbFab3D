@@ -20,6 +20,9 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class ShapeJSEvaluator {
+
+    final static boolean DEBUG = true;
+
     /** Packages allowed to be imported.  Security mechanism */
     private static final ArrayList<String> packageWhitelist;
 
@@ -76,6 +79,18 @@ public class ShapeJSEvaluator {
             bldr.append(");\n");
         }
 
+        bldr.append("importClass(Packages.abfab3d.util.PointSetArray);\n");
+        bldr.append("importClass(Packages.abfab3d.util.Complex);\n");
+        bldr.append("importClass(Packages.abfab3d.grid.ArrayAttributeGridShort);\n");
+        bldr.append("importClass(Packages.abfab3d.grid.ArrayAttributeGridByte);\n");
+        bldr.append("importClass(Packages.abfab3d.grid.AttributeDesc);\n");
+        bldr.append("importClass(Packages.abfab3d.grid.Bounds);\n");
+        bldr.append("importClass(Packages.abfab3d.grid.AttributeDesc);\n");
+        bldr.append("importClass(Packages.abfab3d.grid.AttributeChannel);\n");
+        bldr.append("importClass(Packages.abfab3d.geomutil.Subdivider);\n");
+        bldr.append("importClass(Packages.java.util.Vector);\n");
+        bldr.append("importClass(Packages.shapejs.Shape);\n");
+
         bldr.append(script);
 
         return bldr.toString();
@@ -94,6 +109,7 @@ public class ShapeJSEvaluator {
 
     public DataSource runScript(File file, Bounds bounds) {
 
+        if(DEBUG)printf("runScript(%s, %s)\n", file, bounds);
         Context cx = Context.enter();
         try {
             GlobalScope scope = new GlobalScope();
@@ -104,7 +120,8 @@ public class ShapeJSEvaluator {
 
             String script = FileUtils.readFileToString(file);
             script = addImports(script);
-            script = replaceMakeGrid(script);
+            // don't replace from now on 
+            //script = replaceMakeGrid(script);
 
             //printf("Final script:\n%s\n",script);
             Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
@@ -119,10 +136,24 @@ public class ShapeJSEvaluator {
             Object[] args = new Object[0];
             Object result2 = main.call(cx, scope, scope, new Object[] {args});
 
+            if(DEBUG)printf("result of JS evaluation: %s\n", result2);
+
             if (result2 instanceof NativeJavaObject) {
                 Object no = ((NativeJavaObject)result2).unwrap();
+                
+                Shape shape = (Shape) no;
+                bounds.set(shape.getBounds());
+                DataSource dataSource = shape.getDataSource();
 
+                if(DEBUG)printf("end of runScript() dataSource: %s, bounds:%s\n", dataSource, bounds);
+
+                return dataSource;
+
+                /*
                 ShapeJSStore store = (ShapeJSStore) no;
+
+                if(DEBUG)printf("store: %s\n", store);
+
                 List<DataSource> source_list = store.getDataSources();
                 List<Bounds> bounds_list = store.getBounds();
                 for(int i=0; i < source_list.size(); i++) {
@@ -131,6 +162,7 @@ public class ShapeJSEvaluator {
                     bounds.set(bounds_list.get(i));
                     return source;
                 }
+                */
             }
 
         } catch(IOException ioe) {
@@ -144,6 +176,7 @@ public class ShapeJSEvaluator {
 
     public DataSource runScript(String script, Bounds bounds, Map<String,Object> namedParams) {
 
+        if(DEBUG)printf("runScript(script, %s, namedParams)\n", bounds);
         Context cx = Context.enter();
         try {
             GlobalScope scope = new GlobalScope();
@@ -153,7 +186,9 @@ public class ShapeJSEvaluator {
             scope.initShapeJS(contextFactory);
 
             script = addImports(script);
-            script = replaceMakeGrid(script);
+
+            // don't replace from now on
+            //script = replaceMakeGrid(script);
 
             NativeObject argsMap = new NativeObject();
 
@@ -184,10 +219,21 @@ public class ShapeJSEvaluator {
             Object[] args = new Object[] { argsMap};
             Object result2 = main.call(cx, scope, scope, args);
 
+            if(DEBUG)printf("result of JS evaluation: %s\n", result2);
+
             if (result2 instanceof NativeJavaObject) {
                 Object no = ((NativeJavaObject)result2).unwrap();
+                
+                Shape shape = (Shape) no;
+                bounds.set(shape.getBounds());
+                DataSource dataSource = shape.getDataSource();
 
+                if(DEBUG)printf("end of runScript() dataSource: %s, bounds:%s\n", dataSource, bounds);
+
+                return dataSource;
+                /*
                 ShapeJSStore store = (ShapeJSStore) no;
+                if(DEBUG)printf("store: %s\n", store);
                 List<DataSource> source_list = store.getDataSources();
                 List<Bounds> bounds_list = store.getBounds();
                 for(int i=0; i < source_list.size(); i++) {
@@ -196,6 +242,7 @@ public class ShapeJSEvaluator {
                     bounds.set(bounds_list.get(i));
                     return source;
                 }
+                */
             }
 
         } finally {

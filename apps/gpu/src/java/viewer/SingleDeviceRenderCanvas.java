@@ -358,14 +358,14 @@ public class SingleDeviceRenderCanvas implements RenderCanvas {
 
             // opcode v3
             renderer.sendView(view,viewBuffer);
-            renderer.renderStruct(0,0, w,h, w,h, vscene.getWorldScale(), clPixelBuffer);
+            renderer.renderStruct(0,0, w,h, w,h, vscene, clPixelBuffer);
             
         } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE) ||
                    renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) ||
                    renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
             // opcode 
             renderer.sendView(view,viewBuffer);
-            renderer.renderOps(0,0,w,h,w, h, vscene.getWorldScale(), clPixelBuffer);
+            renderer.renderOps(0,0,w,h,w, h, vscene, clPixelBuffer);
         } else { 
             // text program 
             renderer.render(view, w, h, viewBuffer, commandQueue, clPixelBuffer);

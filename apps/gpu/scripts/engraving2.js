@@ -14,7 +14,7 @@ function boxes(sizex, sizey, sizez, gap, zoffset, count){
 function main(args) {
     var size = 0.04;
     var thickness = 0.01;
-    var grid = createGrid(-16*MM,16*MM,-16*MM,16*MM,-16*MM,16*MM,0.1*MM);
+
 	var sphere = new Sphere(15*MM);
 	var torus = new Torus(10*MM, 5*MM);
 	torus.setTransform(new Rotation(1,0,0,Math.PI/2));
@@ -26,8 +26,8 @@ function main(args) {
 
 	eng.getParam("depth").setValue(0.4*MM);
 	eng.getParam("blend").setValue(0.2*MM);
-    var maker = new GridMaker();
-    maker.setSource(eng);
-    maker.makeGrid(grid);
-    return grid;
+	
+	var s = 16*MM;
+	return new Shape(union,new Bounds(-s,s,-s,s,-s,s));
+
 }

@@ -3,7 +3,6 @@
 // the whole shape is rotated around z 
 function main(args) {
     var radius = 25 * MM;
-    var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);
 	
 	var cx = 10*MM;
 	var R = 15*MM;
@@ -21,10 +20,7 @@ function main(args) {
 	union.add(t3);
 	// rotate the whole union around Z
 	union.setTransform(new Rotation(new Vector3d(0,0,1), Math.PI/4));
-	
-    var maker = new GridMaker();
-    maker.setSource(union);
-    maker.makeGrid(grid);
+	var s = 25*MM;
+	return new Shape(union,new Bounds(-s,s,-s,s,-s,s));
 
-    return grid;
-}
+  }

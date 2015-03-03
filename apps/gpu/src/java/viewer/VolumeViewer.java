@@ -237,30 +237,33 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
         if(source instanceof Initializable)
             ((Initializable)source).initialize();
 
-        Vector3d scale = new Vector3d(1,1,1);
         double vs = 0.1 * Units.MM;
+        
+        Vector3d worldCenter = bounds.getCenter();
+        Vector3d worldSize = bounds.getSize(); 
 
-        // TODO: Hardcoding scale, remove!
-        scale = new Vector3d((bounds.xmax-bounds.xmin)/2.0,(bounds.ymax-bounds.ymin)/2.0,(bounds.zmax-bounds.zmin)/2.0);
-        printf("Scale is: %s\n",scale);
+        printf("worldCenter: %s\n",worldCenter);
+        printf("worldSize: %s\n",worldSize);
+
+        //worldSize.scale(0.5); 
 
         VolumeScene vscene = new VolumeScene(renderVersion);
                 
         if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE)) {
             OpenCLOpWriter writer = new OpenCLOpWriter();
-            vscene.setInstructions(writer.generate((Parameterizable) source, scale));
+            vscene.setInstructions(writer.generate((Parameterizable) source, worldSize));
             if (DEBUG) {
-                String dcode = writer.createText(vscene.getInstructions(), scale);
+                String dcode = writer.createText(vscene.getInstructions(), worldSize);
                 printf("Debug Code: \n%s\n", dcode);
             }
         } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2) || 
                    renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V2_DIST)) {
             OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
-            List<Instruction> inst = writer.generate((Parameterizable) source, scale);
+            List<Instruction> inst = writer.generate((Parameterizable) source, worldSize);
             vscene.setInstructions(inst);
             printf("Operations: %d\n", inst.size());
             if (DEBUG) {
-                String dcode = writer.createText(vscene.getInstructions(),scale);
+                String dcode = writer.createText(vscene.getInstructions(),worldSize);
                 printf("Debug Code: \n%s\n",dcode);
             }
         } else if (renderVersion.equals(VolumeRenderer.VERSION_OPCODE_V3_DIST)){
@@ -279,16 +282,18 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
                    renderVersion.equals(VolumeRenderer.VERSION_DIST)
                    ){
             OpenCLWriter writer = new OpenCLWriter();
-            vscene.setCode(writer.generate((Parameterizable) source, scale));
+            vscene.setCode(writer.generate((Parameterizable) source, worldSize));
             printf("OpenCL Code: \n%s",vscene.getCode());
         }
-        float worldScale = (float) Math.min(Math.min(scale.x,scale.y),scale.z);
-        vscene.setWorldScale(worldScale);
 
-        // TODO: is this the best way to get one scale?
+        //float maxSize = (float) Math.min(Math.min(worldSize.x,worldSize.y),worldSize.z);
+
+        vscene.setWorldSize(worldSize);
+        vscene.setWorldCenter(worldCenter);
+
         render.setScene(vscene);
-        // TODO: Set the current bounds
         nav.setBounds(bounds,vs);
+
     }
 
     /**
