@@ -19,6 +19,7 @@ import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 
 import abfab3d.grid.Grid;
+import abfab3d.grid.Bounds;
 import abfab3d.grid.AttributeGrid;
 
 import abfab3d.util.Output;
@@ -116,6 +117,35 @@ public class DataSourceGrid extends TransformableDataSource {
 
     }
 
+    public Bounds getGridBounds(){
+        return m_grid.getGridBounds();
+    }
+
+    public int getGridWidth(){
+        return m_nx;
+    }
+    public int getGridHeight(){
+        return m_ny;
+    }
+    public int getGridDepth(){
+        return m_nz;
+    }
+    public void getGridData(byte data[]){
+
+        int nx = m_nx;
+        int ny = m_ny;
+        int nz = m_nz;
+        int nxy = nx*ny;
+
+        for(int z = 0; z < nz; z++){
+            for(int y = 0; y < ny; y++){
+                for(int x = 0; x < nx; x++){
+                    long att = m_grid.getAttribute(x,y,z);
+                    data[x + y * nx + z * nxy] = (byte)(att & 0xFF);
+                }
+            }            
+        }
+    }
 
     /**
 
