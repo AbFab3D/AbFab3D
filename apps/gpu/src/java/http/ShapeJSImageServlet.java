@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static abfab3d.util.Output.printf;
 
@@ -44,6 +45,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
     private ImageRenderer render;
     private Matrix4f viewMatrix = new Matrix4f(); // TODO: need to thread local
+    private ConcurrentHashMap<String, SceneCacheEntry> sceneCache;
 
     /**
      * Initialize the servlet. Sets up the base directory properties for finding
@@ -54,6 +56,8 @@ public class ShapeJSImageServlet extends HttpServlet {
         this.ctx = sconfig.getServletContext();
 
         config = convertConfig(sconfig);
+
+        sceneCache = new ConcurrentHashMap<String, SceneCacheEntry>();
 
         initCL(false, 512, 512);
         printf("Init called\n");
@@ -77,10 +81,12 @@ public class ShapeJSImageServlet extends HttpServlet {
             handleImageCachedRequest(req, resp, session, accept);
         } else if (command.contains("/makeImage")) {
             handleImageRequest(req, resp, session, accept);
-        } else if (command.contains("/pick")) {
-            handlePickRequest(req, resp, session, accept);
         } else if (command.contains("/pickCached")) {
             handlePickCachedRequest(req, resp, session, accept);
+        } else if (command.contains("/pick")) {
+            handlePickRequest(req, resp, session, accept);
+        } else if (command.contains("/updateScene")) {
+            handleSceneRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
@@ -98,10 +104,12 @@ public class ShapeJSImageServlet extends HttpServlet {
             handleImageCachedRequest(req, resp, session, accept);
         } else if (command.contains("/makeImage")) {
             handleImageRequest(req, resp, session, accept);
-        } else if (command.contains("/pick")) {
-            handlePickRequest(req, resp, session, accept);
         } else if (command.contains("/pickCached")) {
             handlePickCachedRequest(req, resp, session, accept);
+        } else if (command.contains("/pick")) {
+            handlePickRequest(req, resp, session, accept);
+        } else if (command.contains("/updateScene")) {
+            handleSceneRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
@@ -470,8 +478,6 @@ public class ShapeJSImageServlet extends HttpServlet {
         int x = 0;
         int y = 0;
 
-        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
-
         Map<String, String[]> params = req.getParameterMap();
 
         String[] jobIDSt = params.get("jobID");
@@ -527,20 +533,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         if (script == null) {
-            script = "function main(args) {\n" +
-                    "    var radius = 25 * MM;\n" +
-                    "    var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);\n" +
-                    "    var sphere = new Sphere(radius);\n" +
-                    "    var gyroid = new VolumePatterns.Gyroid(25*MM, 2*MM);\n" +
-                    "    var intersect = new Intersection();\n" +
-                    "    intersect.add(sphere);\n" +
-                    "    intersect.add(gyroid);\n" +
-                    "    var maker = new GridMaker();\n" +
-                    "    maker.setSource(intersect);\n" +
-                    "    maker.makeGrid(grid);\n" +
-                    "\n" +
-                    "    return grid;\n" +
-                    "}";
+            throw new IllegalArgumentException("Script is required");
         }
 
         Map<String,Object> sparams = new HashMap<String,Object>();
@@ -573,6 +566,53 @@ public class ShapeJSImageServlet extends HttpServlet {
         os.write(st.getBytes());
 
         os.close();
+    }
+
+    // TODO: stop doing this
+    synchronized private void handleSceneRequest(HttpServletRequest req,
+                                                 HttpServletResponse resp,
+                                                 HttpSession session,
+                                                 String accept)
+            throws IOException {
+
+        String jobID = null;
+        String script = null;
+
+        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
+
+        Map<String, String[]> params = null;
+
+        if (isMultipart) {
+//    		System.out.println("==> multipart form post");
+            params = new HashMap<String, String[]>();
+            mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
+        } else {
+//    		System.out.println("==> not multipart form post");
+            params = req.getParameterMap();
+        }
+
+        String[] jobIDSt = params.get("jobID");
+        if (jobIDSt != null && jobIDSt.length > 0) {
+            jobID = jobIDSt[0];
+        }
+
+        String[] scriptSt = params.get("script");
+        if (scriptSt != null && scriptSt.length > 0) {
+            script = scriptSt[0];
+        }
+
+        Map<String,Object> sparams = new HashMap<String,Object>();
+        for(Map.Entry<String,String[]> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("shapeJS_")) {
+                key = key.substring(8);
+                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
+                sparams.put(key, entry.getValue()[0]);
+            }
+
+        }
+
+        updateScene(jobID,script,sparams);
     }
 
     private void getView(float rotX, float rotY, float zoom, Matrix4f mat) {
@@ -633,7 +673,6 @@ public class ShapeJSImageServlet extends HttpServlet {
      * @param req The request to parse
      * @param params The param map
      * @param maxUploadSize The max request size limit
-     * @param uploadDir The directory to save the upload files to
      * @return ServiceResults with error reason, or null otherwise
      */
     protected boolean mapParams(HttpServletRequest req, Map params, int maxUploadSize, String baseDir) {
@@ -761,6 +800,70 @@ public class ShapeJSImageServlet extends HttpServlet {
         throw new IllegalStateException("Failed to create file within "
             + TEMP_DIR_ATTEMPTS + " attempts (tried " + fileName + baseName + "0" + ext
             + " to " + fileName + baseName + (TEMP_DIR_ATTEMPTS - 1) + ext + ')' + " baseDir: " + baseDir);
+    }
+
+    /**
+     * Updates the scene for the current script and params.  Currently ignores deleted params.
+     *
+     * @param script
+     * @param params
+     */
+    private void updateScene(String sceneID, String script, Map<String,Object> params) {
+        SceneCacheEntry sce = sceneCache.get(sceneID);
+        if (sce == null) {
+            sce = new SceneCacheEntry(sceneID,script,params);
+            sceneCache.put(sceneID,sce);
+        } else {
+            if (script != null) {
+                sce.setScript(script);
+            }
+            if (params != null) {
+                sce.updateParams(params);
+            }
+        }
+
+        render.setScene(sceneID,sce.getScript(),sce.getParams());
+    }
+
+    public static class SceneCacheEntry {
+        private String sceneID;
+        private String script;
+        private Map<String,Object> params;
+        private long lastUpdateTime;
+
+        public SceneCacheEntry(String sceneID, String script, Map<String,Object> params) {
+            this.sceneID = sceneID;
+            this.script = script;
+            this.params = new HashMap<String,Object>();
+            this.params.putAll(params);
+            lastUpdateTime = System.currentTimeMillis();
+        }
+
+        public String getSceneID() {
+            return sceneID;
+        }
+
+        public String getScript() {
+            return script;
+        }
+
+        public void setScript(String script) {
+            this.script = script;
+            lastUpdateTime = System.currentTimeMillis();
+        }
+
+        public Map<String, Object> getParams() {
+            return params;
+        }
+
+        public void updateParams(Map<String, Object> params) {
+            this.params.putAll(params);
+            lastUpdateTime = System.currentTimeMillis();
+        }
+
+        public long getLastUpdateTime() {
+            return lastUpdateTime;
+        }
     }
 }
 

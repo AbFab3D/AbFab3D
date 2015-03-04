@@ -124,9 +124,10 @@
         <java classname="svxconv.SVXConv" fork="true">
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
-            <arg value="bot/bot_battle_manual.svx" />
+<!--            <arg value="/tmp/voxelsize/original-3000075_v0.stl" /> -->
+            <arg value="/tmp/voxelsize/scan_selfie.stl" />
             <arg value="-output" />
-            <arg value="bot.x3db" />
+            <arg value="scan_selfie.svx" />
 <!--
             <arg value="-input" />
             <arg value="cf6_1024.svx" />
@@ -136,9 +137,11 @@
             <arg value="-meshErrorFactor" />
             <arg value="0.1" />
             <arg value="-meshSmoothingWidth" />
-            <arg value="1" />
+            <arg value="0.5" />
+
             <arg value="-maxTriangles" />
-            <arg value="20000000" />
+            <arg value="50000000" />
+
             <arg value="-meshMaxPartsCount" />
             <arg value="1" />
             <classpath>

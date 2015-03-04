@@ -24,6 +24,8 @@ var viewChanged = false;
 var forceFull = false;  //  should we force a full render
 
 var maxFPS = 30;  // maximum frame rate to shoot for
+var updatingScene = false;
+var usSkipCount = 15;
 
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
@@ -157,32 +159,26 @@ function paramDataToQueryString(params) {
 function initScript() {
 //  spin('preview');
 
-  if (loading) {
+  if (updatingScene) {
     //console.log("Still loading, skipping");
-    skipCount--;
-    if (skipCount > 0) {
+    usSkipCount--;
+    if (usSkipCount > 0) {
       return;
     } else {
       console.log("Skipped too long, resetting");
     }
   }
-  skipCount = 15;
-  loading = true;
+
+  updatingScene = true;
+  usSkipCount = 15;
 
   // Set additional data not part of the form
   extraParams = {
     'jobID':   getJobID(),
-    'script':  editor.getValue(),
-    'width':   width,
-    'height':  height,
-    'rotX':    rotX.toFixed(4),  // x rotation in radians
-    'rotY':    rotY.toFixed(4),  // y rotation in radians
-    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
-    'imgType': imgType,
-    'quality': quality
+    'script':  editor.getValue()
   };
 
-  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  var url = "/creator/shapejsRT_v1.0.0/updateScene?" + $.param(extraParams);
   
   if (paramData !== undefined && paramData !== null) {
     url = url + "&" + $.param(paramDataToQueryString(paramData));
@@ -190,17 +186,22 @@ function initScript() {
 
   var request = $.ajax({
     type: "POST",
-    url: url,
+    url: url
   })
   
   request.done(function( data ) {
+    updatingScene = false;
+    viewChanged = true;  // force a redraw
+    /*
     var imageViewer = document.getElementById("render");
     imageViewer.setAttribute("src", url);
+    */
     unspin();
   });
  
   request.fail(function( jqXHR, textStatus ) {
-    alert( "Request failed: " + textStatus );
+    updatingScene = false;
+    alert( "Request failed: " + jqXHR );
     unspin();
   });
 }
@@ -233,10 +234,6 @@ function pickModel(e, element, x, y) {
   var pos = getClickPosition(e, element);
   
   console.log("Pick: " + pos[0] + " " + pos[1]);
-
-  // TODO: Not certain how to get this 0,0 in upper left corner
-  x = x - 760;
-  y = y - 63;
 
   extraParams = {
     'x': pos[0],

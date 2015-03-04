@@ -215,6 +215,13 @@
             <arg value="${arg6}" />
             <arg value="${arg7}" />
             <arg value="${arg8}" />
+            <arg value="${arg9}" />
+            <arg value="${arg10}" />
+            <arg value="${arg11}" />
+            <arg value="${arg12}" />
+            <arg value="${arg13}" />
+            <arg value="${arg14}" />
+            <arg value="${arg15}" />
             <classpath>
                 <pathelement path="${classes.dir}"/>
                 <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>
