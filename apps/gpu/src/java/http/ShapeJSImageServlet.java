@@ -210,20 +210,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         if (script == null) {
-            script = "function main(args) {\n" +
-                    "    var radius = 25 * MM;\n" +
-                    "    var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);\n" +
-                    "    var sphere = new Sphere(radius);\n" +
-                    "    var gyroid = new VolumePatterns.Gyroid(25*MM, 2*MM);\n" +
-                    "    var intersect = new Intersection();\n" +
-                    "    intersect.add(sphere);\n" +
-                    "    intersect.add(gyroid);\n" +
-                    "    var maker = new GridMaker();\n" +
-                    "    maker.setSource(intersect);\n" +
-                    "    maker.makeGrid(grid);\n" +
-                    "\n" +
-                    "    return grid;\n" +
-                    "}";
+            throw new IllegalArgumentException("Script is required");
         }
 
         String[] qualitySt = params.get("quality");
