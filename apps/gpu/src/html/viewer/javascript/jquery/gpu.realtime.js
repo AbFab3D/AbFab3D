@@ -55,6 +55,7 @@ var usSkipCount = 15;
     };
 }());
 
+var frameNum = 0;
 // function for updating the image
 function draw() {
   setTimeout(function() {
@@ -63,6 +64,7 @@ function draw() {
     if (!viewChanged) return;
 
     viewChanged = false;
+    frameNum++;
 
     var imgType = "jpg";
     if (quality >= 1.0)
@@ -78,7 +80,8 @@ function draw() {
         'rotY': rotY.toFixed(4),  // y rotation in radians
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
-        'quality': quality
+        'quality': quality,
+        'frameNum': frameNum     // cache busting logic
       };
     } else {
       extraParams = {
@@ -87,7 +90,8 @@ function draw() {
         'rotY': rotY.toFixed(4),  // y rotation in radians
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
-        'quality': quality
+        'quality': quality,
+        'frameNum': frameNum     // cache busting logic
       };
     }
 
@@ -140,11 +144,13 @@ function sub(obj, idOfDisplay){
 function getJobID() {
 //  var text = "width=" + width + "&height=" + height + "&frames=" + frames + "&framesX=" + framesX + "&script=" + editor.getValue();
   var text = editor.getValue();
-  
+
+  // TODO: jobID does not need params anymore
+/*
   $.each( paramData, function( key, value ) {
     text += "&" + key +"=" + value;
   });
-  
+*/
   return userID + "_" + md5(text);
 }
 
@@ -179,7 +185,7 @@ function initScript() {
   };
 
   var url = "/creator/shapejsRT_v1.0.0/updateScene?" + $.param(extraParams);
-  
+
   if (paramData !== undefined && paramData !== null) {
     url = url + "&" + $.param(paramDataToQueryString(paramData));
   }
