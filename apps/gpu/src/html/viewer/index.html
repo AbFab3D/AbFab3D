@@ -87,14 +87,14 @@ function randomstring(L){
 
 function jsonForm(formData, jqForm, options) {
 
+  for (var i=0; i < formData.length; i++) {
+    formData[i].name = "shapeJS_" + formData[i].name;
+  }
+
   // Add extra parameters not part of the form to formData
   jQuery.each(extraParams, function(key, val) {
     formData.push({name: key, value: val});
   });
-
-  for (var i=0; i < formData.length; i++) {
-    formData[i].name = "shapeJS_" + formData[i].name;
-  }
 /*
   for (var i=0; i < formData.length; i++) {
     if (formData[i].type != "file") {
@@ -637,34 +637,33 @@ function onKeyPress(event) {
 <div class="jscode">
 <textarea id="code" name="code" placeholder="">
 var params = [
-    {
-        "id": "period",
-        "displayName": "Period",
-        "type": "range",
-        "rangeMin": 1,
-        "rangeMax": 21,
-        "step": 1,
-        "default": 18
-    },
-    {
-        "id": "thickness",
-        "displayName": "Thickness",
-        "type": "range",
-        "rangeMin": 1,
-        "rangeMax": 5,
-        "step": 0.5,
-        "default": 2
-    }
+	{
+       "id": "period",
+       "displayName": "Period",
+       "type": "range",
+       "rangeMin": 1,
+       "rangeMax": 21,
+       "step": 1,
+       "default": 18
+	},
+	{
+       "id": "thickness",
+       "displayName": "Thickness",
+       "type": "range",
+       "rangeMin": 1,
+       "rangeMax": 5,
+       "step": 0.5,
+       "default": 2
+	}
 ];
 function main(args) {
-    var radius = 25 * MM;
-    var sphere = new Sphere(radius);
-    var gyroid = new VolumePatterns.Gyroid(args['period']*MM, args['thickness']*MM);
-    var intersect = new Intersection();
-    intersect.setBlend(2*MM);
-    intersect.add(sphere);
-    intersect.add(gyroid);
-
+	var radius = 25 * MM;
+	var sphere = new Sphere(radius);
+	var gyroid = new VolumePatterns.Gyroid(args['period']*MM, args['thickness']*MM);
+	var intersect = new Intersection();
+	intersect.setBlend(2*MM);
+	intersect.add(sphere);
+	intersect.add(gyroid);
 	var s = 25*MM;
 	return new Shape(intersect,new Bounds(-s,s,-s,s,-s,s));
 }
