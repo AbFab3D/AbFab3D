@@ -47,7 +47,7 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
 public class ImageRenderer {
 
     static final boolean DEBUG = true;
-    static final boolean FORCE_CPU = true;
+    static final boolean FORCE_CPU = false;
     public static final int IMAGE_JPEG = 0;
     public static final int IMAGE_PNG = 1;
     

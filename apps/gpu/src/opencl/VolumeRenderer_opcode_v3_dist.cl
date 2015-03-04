@@ -136,12 +136,13 @@ inline float getDensity(Scene *pScene, float3 pos) {
     sVec pnt;
     pnt.v.xyz = pos * pScene->worldScale;
     pnt.v.xyz += pScene->worldCenter;
-    
+
     getShapeJSData(pScene, &pnt, &data);
-    //TODO deal with complex data 
+    //TODO deal with complex data
     float d = data.v.x;
-    // convert distance to density 
+    // convert distance to density
     d = step10_(d,0,0.0001);
+//printf("getD pos: %f %f %f pnt: %f %f %f  worldScale: %f  center: %f %f %f --> d: %f\n",pos.x,pos.y,pos.z,pnt.v.x,pnt.v.y,pnt.v.z,pScene->worldScale,pScene->worldCenter.x,pScene->worldCenter.y,pScene->worldCenter.z,d);
     return d;
 }
 
@@ -301,6 +302,7 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
 }
 
 void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint imageW, uint imageH, Scene *pScene, global float3 * out_pos, global float3 * out_normal) {
+//    printf("CastRay worldScale: %f  center: %v3f\n",pScene->worldScale,pScene->worldCenter);
 
 
     // calculate eye ray in world space
@@ -322,8 +324,11 @@ void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint ima
 
     tpos = eyeRay_o + eyeRay_d*t;
 	pos = tpos.xyz;
+
     density = getDensity(pScene,pos);
-	if (density > 0.5){  // solid on the boundary
+//    printf("CastRay pos: %v3f worldScale: %f  center: %v3f density: %f\n",pos,pScene->worldScale,pScene->worldCenter,density);
+
+	if (density > 0.5){  // we are inside the solid
         (*out_normal).x = OUTSIDE;
         (*out_normal).y = OUTSIDE;
         (*out_normal).z = OUTSIDE;
@@ -341,6 +346,7 @@ void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint ima
         density = getDensity(pScene,pos);
 
         if (density > 0.5){  // overshot the surface
+//printf("found surface: %d\n",i);
 			//return (float3)(1,0,0);
 			int backcount = 10;
 			while(density > 0.5 && backcount-- > 0){
@@ -374,6 +380,7 @@ void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint ima
         }
     }
 
+//printf("final mc pos: %v3f\n",pos);
     float3 grad;
     float dist = tstep*0.01;
 
@@ -396,6 +403,8 @@ void castRay(uint x, uint y, float u, float v, float tnear, float tfar, uint ima
 
     pos *= pScene->worldScale;
     pos += pScene->worldCenter;
+
+//printf("final wc pos: %v3f\n",pos);
 
     *out_pos = pos;
 }
@@ -598,9 +607,7 @@ kernel void pick(global float3 *out_pos, global float3 *out_normal,
     uint x = get_global_id(0);
     uint y = get_global_id(1);
 
-//printf("pick x: %d y: %d\n",x,y);
     copyToLocal(pgOps, plOps,opBufferSize);
-
     PTROPS int *pOps = plOps;
     // init the scene
     Scene scene = (Scene){.worldScale=worldScale, 
@@ -644,6 +651,8 @@ kernel void pick(global float3 *out_pos, global float3 *out_normal,
     }
 
     tnear = clamp(tnear,0.0f,tfar);   // clamp to near plane
+
+//printf("pick x: %d y: %d  x0: %d  y0:  %d tnear: %f  tfar: %f scale: %f  center: %f %f %f pscale: %f pcenter: %v3f\n",x,y,x0,y0,tnear,tfar,worldScale,worldCenterX,worldCenterY,worldCenterZ,pScene->worldScale,pScene->worldCenter);
 
     castRay(x,y,u,v,tnear,tfar,imageW,imageH,pScene,out_pos,out_normal);
 }
