@@ -358,8 +358,18 @@ function postRender() {
     timeout: 180000,
     beforeSubmit: jsonForm,
     success: function() {
-      var p = { "jobID" : jobid };
-      url = "/creator/shapejsRT_v1.0.0/makeImage&" + $.param(p);
+      extraParams = {
+        'jobID':   jobid,
+        'width':   width,
+        'height':  height,
+        'rotX':    rotX.toFixed(4),  // x rotation in radians
+        'rotY':    rotY.toFixed(4),  // y rotation in radians
+        'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
+        'imgType': imgType,
+        'quality': quality
+      };
+      var url = "/creator/shapejsRT_v1.0.0/makeImageCached?" + $.param(extraParams);
+      console.log(url);
       var imageViewer = document.getElementById("render");
       imageViewer.setAttribute("src", url);
       unspin();
