@@ -707,7 +707,11 @@ public class ImageRenderer {
                 pixel[1] = g;
                 pixel[2] = b;
                 pixel[3] = 0xFFFFFFFF;
-                raster.setPixel(xorig + w, yorig + h, pixel);
+//                raster.setPixel(xorig + w, yorig + h, pixel);
+//                int px = width - (xorig + w) - 1;
+                int px = xorig + w;
+                int py = height - (yorig + h) - 1;
+                raster.setPixel(px, py, pixel);
             }
         }
 
