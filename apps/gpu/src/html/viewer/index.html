@@ -322,26 +322,53 @@ function generate() {
 }
 
 function evalScriptParams() {
-  removeAllParams();
+  // TODO: Unchanged params stay. Remove no longer existing params. Add new params.
+//  removeAllParams();
 
   var jsScript = editor.getValue();
   eval(jsScript);
 
-  if (typeof params === "undefined") return;
+//  if (typeof params === "undefined") return;
 
-  for (var i=0; i<params.length; i++) {
-    var type = (params[i].type).toLowerCase();
-    if ( $.inArray(type, inputTypes) >= 0) {
-      insertInput(params[i]);
-    } else {
-      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
+  // Remove item from paramData that no longer exist in params declared in the script
+  $.each(paramData, function(key, val) {
+    var remove = true;
+
+    if (typeof params !== "undefined") {
+      $.each(params, function(i, param) {
+        if (param.id === key) {
+          remove = false;
+          return false;   // breaks out of loop
+        }
+      });
     }
-  }
 
+    // Remove from paramData and in the dom
+    if (remove) {
+      delete paramData[key];
+      if ( $("#" + key + "-row").length > 0 )
+        $("#" + key + "-row").remove();
+    }
+  });
+
+  // Insert new params that do not already exist
+  if (typeof params !== "undefined") {
+    $.each(params, function(i, param) {
+      var type = (param.type).toLowerCase();
+      if ( $.inArray(type, inputTypes) >= 0) {
+        console.log("*** " + param.id + " = " + paramData[param.id]);
+        if (paramData[param.id] === undefined) {
+          console.log("*** inserting " + param.id);
+          insertInput(param);
+        }
+      } else {
+        console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.id);
+      }
+    });
+  }
 }
 
 function insertInput(param) {
-
   var pname_div = document.createElement("div");
   pname_div.setAttribute("class", "param-name");
   pname_div.innerHTML = param.displayName;
@@ -430,7 +457,7 @@ function insertInput(param) {
       fval_file_div.setAttribute("style", "height: 0px;width:0px; overflow:hidden;");
       fval_file_div.appendChild(pname_input);
 
-	  param_row.setAttribute("id", "file-row" + fileCount);
+	  param_row.setAttribute("id", param.id + "-row");
 	  param_row.setAttribute("class", "param-row");
 	  param_row.appendChild(pname_div);
 	  param_row.appendChild(fval_text_div);
@@ -441,7 +468,6 @@ function insertInput(param) {
         $(parent).removeClass('hidden')
       }
 
-      fileCount++;
       break;
     default:
       var pval_div = document.createElement("div");
@@ -452,7 +478,7 @@ function insertInput(param) {
 	      pval_div.appendChild(pname_input_display);
       }
 
-	  param_row.setAttribute("id", "param-row" + paramCount);
+	  param_row.setAttribute("id", param.id + "-row");
 	  param_row.setAttribute("class", "param-row");
 	  param_row.appendChild(pname_div);
       param_row.appendChild(pval_div);
@@ -462,7 +488,6 @@ function insertInput(param) {
         $(parent).removeClass('hidden')
       }
 
-      paramCount++;
   }
 }
 
