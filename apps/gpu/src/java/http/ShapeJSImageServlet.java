@@ -587,7 +587,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         trans.z = z;
         tmat.set(trans, 1.0f);
 
-        rxmat.rotX(rotX);
+        rxmat.rotX(-rotX);
         rymat.rotY(rotY);
 
         mat.setIdentity();
