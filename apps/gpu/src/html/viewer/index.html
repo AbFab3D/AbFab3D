@@ -40,7 +40,9 @@ var viewMatrix;
 var dragStart = {};
 var mouseDown = false;
 var loading = false;
-var makingUI = false;
+var pickMode = false;
+var pickDataContainer = null;
+var scriptChanged = false;
 
 var degreeByArrow = 10;
 var radiansByArrow = (degreeByArrow / 180) * 3.14159;
@@ -104,9 +106,9 @@ function jsonForm(formData, jqForm, options) {
 	}
   }
 */
-  for (var i=0; i < formData.length; i++) {
-    console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
-  }
+//  for (var i=0; i < formData.length; i++) {
+//    console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
+//  }
 }
 
 function checkFile(formData, index) {
@@ -127,158 +129,6 @@ function checkFile(formData, index) {
     formData[index].name = fileParam;
     formData[index].value = "http://" + host + "/" + val;//JSON.stringify("http://" + host + "/" + val);
   }
-}
-
-function addParam() {
-  paramCount++;
-
-  var pname_div = document.createElement("div");
-  pname_div.setAttribute("id", "param-name" + paramCount);
-  pname_div.setAttribute("class", "param-name");
-  pname_div.innerHTML = "param" + paramCount;
-
-  var pname_input = document.createElement("input");
-  pname_input.setAttribute("type", "text");
-  pname_input.setAttribute("name", "param" + paramCount);
-  pname_input.setAttribute("id", "param" + paramCount);
-  pname_input.setAttribute("class", "param-val");
-
-  var pval_div = document.createElement("div");
-  pval_div.setAttribute("class", "param-val");
-  pval_div.appendChild(pname_input);
-
-  var remove_div = document.createElement("div");
-  remove_div.setAttribute("class", "remove-param");
-  remove_div.setAttribute("onclick", "removeParam(" + paramCount + ")");
-  remove_div.innerHTML = "remove";
-
-  var param_row = document.createElement("div");
-  param_row.setAttribute("id", "param-row" + paramCount);
-  param_row.setAttribute("class", "param-row");
-  param_row.appendChild(pname_div);
-  param_row.appendChild(pval_div);
-  param_row.appendChild(remove_div);
-
-  var parent = document.getElementById("parameters");
-  parent.appendChild(param_row);
-
-//  debug(parent);
-}
-
-//  <div id="param-row1" class="param-row">
-//    <div id="param-name1" class="param-name">param1</div>
-//    <div class="param-val"><input type="text" name="param-val1" id="param-val1" class="param-val" value="0.005"/></div>
-//  </div>
-
-function removeParam(num) {
-  // Reassign param values starting from the selected param to remove
-  for (var i = num; i < paramCount; i++) {
-    var nextVal = jQuery("#param" + (i + 1)).val();
-    jQuery("#param" + i).val(nextVal);
-  }
-
-  // Remove the last input
-  var parent = document.getElementById("parameters");
-  var param_row = document.getElementById("param-row" + paramCount);
-  parent.removeChild(param_row);
-
-  paramCount--;
-//  debug(parent);
-}
-
-function addFile() {
-  fileCount++;
-
-  var fname_div = document.createElement("div");
-  fname_div.setAttribute("id", "file-name" + fileCount);
-  fname_div.setAttribute("class", "param-name");
-  fname_div.innerHTML = "file" + fileCount;
-
-  var fname_text = document.createElement("input");
-  fname_text.setAttribute("type", "text");
-  fname_text.setAttribute("name", "filename" + fileCount);
-  fname_text.setAttribute("id", "filename" + fileCount);
-  fname_text.setAttribute("class", "file-param-val");
-  fname_text.setAttribute("value", "Select file");
-  fname_text.setAttribute("readOnly", true);
-
-  var fval_text_div = document.createElement("div");
-  fval_text_div.setAttribute("id", "file_val" + fileCount);
-  fval_text_div.setAttribute("class", "file-param-val");
-  fval_text_div.setAttribute("onclick", "getFile('file" + fileCount + "')");
-  fval_text_div.appendChild(fname_text);
-
-  var fname_file = document.createElement("input");
-  fname_file.setAttribute("type", "file");
-  fname_file.setAttribute("name", "file" + fileCount);
-  fname_file.setAttribute("id", "file" + fileCount);
-  fname_file.setAttribute("onchange", "sub(this, 'filename" + fileCount + "')");
-
-  var fval_file_div = document.createElement("div");
-  fval_file_div.setAttribute("style", "height: 0px;width:0px; overflow:hidden;");
-  fval_file_div.appendChild(fname_file);
-
-  var remove_div = document.createElement("div");
-  remove_div.setAttribute("id", "file-remove" + fileCount);
-  remove_div.setAttribute("class", "remove-param");
-  remove_div.setAttribute("onclick", "removeFile(" + fileCount + ")");
-  remove_div.innerHTML = "remove";
-
-  var file_row = document.createElement("div");
-  file_row.setAttribute("id", "file-row" + fileCount);
-  file_row.setAttribute("class", "param-row");
-  file_row.appendChild(fname_div);
-  file_row.appendChild(fval_text_div);
-  file_row.appendChild(fval_file_div);
-  file_row.appendChild(remove_div);
-
-  var parent = document.getElementById("files");
-  parent.appendChild(file_row);
-
-//  debug(parent);
-}
-
-//  <div id="file-row1" class="param-row">
-//    <div id="file-name1" class="param-name">file1</div>
-//    <div id="file_val1" class="file-param-val" onclick="getFile('file1')"><input type="text" name="filename1" id="filename1" class="file-param-val" value="Select file" readonly></div>
-//    <div style='height: 0px;width:0px; overflow:hidden;'><input type="file" name="file1" id="file1" onchange="sub(this, 'filename1')" /></div>
-//  </div>
-
-function removeFile(num) {
-  var parent = document.getElementById("files");
-  var param_row = document.getElementById("file-row" + num);
-  parent.removeChild(param_row);
-
-  // Reassign param values starting from the selected param to remove
-  var start = num + 1;
-  for (var i = start; i <= fileCount; i++) {
-    var file_row = document.getElementById("file-row" + i);
-    file_row.setAttribute("id", "file-row" + (i - 1));
-
-    var fname_div = document.getElementById("file-name" + i);
-    fname_div.setAttribute("id", "file-name" + (i - 1));
-    fname_div.innerHTML = "file" + (i - 1);
-
-    var fval_text_div = document.getElementById("file_val" + i);
-    fval_text_div.setAttribute("id", "file_val" + (i - 1));
-    fval_text_div.setAttribute("onclick", "getFile('file" + (i - 1) + "')");
-
-    var fname_input = document.getElementById("filename" + i);
-    fname_input.setAttribute("id", "filename" + (i - 1));
-    fname_input.setAttribute("name", "filename" + (i - 1));
-
-    var file_input = document.getElementById("file" + i);
-    file_input.setAttribute("id", "file" + (i - 1));
-    file_input.setAttribute("name", "file" + (i - 1));
-    file_input.setAttribute("onchange", "sub(this, 'filename" + (i - 1) + "')");
-
-    var remove_div = document.getElementById("file-remove" + i);
-    remove_div.setAttribute("id", "file-remove" + (i - 1));
-    remove_div.setAttribute("onclick", "removeFile(" + (i - 1) + ")");
-  }
-
-  fileCount--;
-//  debug(parent);
 }
 
 // Download the output url
@@ -315,9 +165,19 @@ function saveFile() {
 function generate() {
   evalScriptParams();
 
-  if (!makingUI) {
+  // Update scene only if all script parameters have values
+  var ready = true;
+
+  $.each(paramData, function(key, val) {
+    if (typeof val === "undefined" || val === null) {
+      ready = false;
+      return false;
+    }
+  });
+
+  if (ready) {
     spin();
-    postRender();
+    updateScene();
   }
 }
 
@@ -356,13 +216,13 @@ function evalScriptParams() {
     $.each(params, function(i, param) {
       var type = (param.type).toLowerCase();
       if ( $.inArray(type, inputTypes) >= 0) {
-        console.log("*** " + param.id + " = " + paramData[param.id]);
+//        console.log("*** " + param.id + " = " + paramData[param.id]);
         if (paramData[param.id] === undefined) {
-          console.log("*** inserting " + param.id);
+//          console.log("*** inserting " + param.id);
           insertInput(param);
         }
       } else {
-        console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.id);
+        console.log("Param type not allowed0:\n  Type: " + type + "\n  ID: " + param.id);
       }
     });
   }
@@ -370,7 +230,7 @@ function evalScriptParams() {
 
 function insertInput(param) {
   var pname_div = document.createElement("div");
-  pname_div.setAttribute("class", "param-name");
+  pname_div.setAttribute("class", "col1");
   pname_div.innerHTML = param.displayName;
 
   switch ( (param.type).toLowerCase() ) {
@@ -380,7 +240,11 @@ function insertInput(param) {
       pname_input.setAttribute("name", param.id);
       pname_input.setAttribute("id", param.id);
       pname_input.setAttribute("value", param.default);
-      pname_input.setAttribute("class", "param-val");
+      pname_input.setAttribute("class", "col2-input");
+
+      var pname_input_div = document.createElement("div");
+      pname_input_div.setAttribute("class", "col2-3");
+      pname_input_div.appendChild(pname_input);
 
       setParamVal(param.id, param.default);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
@@ -394,53 +258,70 @@ function insertInput(param) {
       pname_input.setAttribute("min", param.rangeMin);
       pname_input.setAttribute("max", param.rangeMax);
       pname_input.setAttribute("step", param.step);
-      pname_input.setAttribute("class", "param-val range-slider");
+      pname_input.setAttribute("class", "range-slider");
+
+      var pname_input_div = document.createElement("div");
+      pname_input_div.setAttribute("class", "col2");
+      pname_input_div.appendChild(pname_input);
 
       var pname_input_display = document.createElement("label");
       pname_input_display.setAttribute("id", param.id + "-display");
-      pname_input_display.setAttribute("class", "param-val range-slider-display");
+      pname_input_display.setAttribute("class", "col3");
       pname_input_display.innerHTML = param.default;
 
       setParamVal(param.id, param.default);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
     case "3dloc":
-      var pname_input = document.createElement("button");
+      // Create text box to show the 3d location
+      var pname_input = document.createElement("input");
       pname_input.setAttribute("type", "text");
       pname_input.setAttribute("name", param.id);
       pname_input.setAttribute("id", param.id);
       pname_input.setAttribute("value", param.default);
-      pname_input.setAttribute("class", "param-val");
-      var text = document.createTextNode(param.displayName);
-      pname_input.appendChild(text);
+      pname_input.setAttribute("class", "col2-input");
+      pname_input.setAttribute("readOnly", true);
+
+      var pname_input_div = document.createElement("div");
+      pname_input_div.setAttribute("class", "col2");
+      pname_input_div.appendChild(pname_input);
+
+      // Create a button to allow selecting a 3d position
+      var button_div = document.createElement("div");
+      button_div.setAttribute("class", "param-button");
+      button_div.setAttribute("onclick", "setPickMode(true, '" + param.id + "');");
+      button_div.innerHTML = "Location";
 
       setParamVal(param.id, param.default);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
     case "file":
-      // If we're inserting a new file input, then there is no file already selected
-      // Do not make request in this case
-      makingUI = true;
-
       var fname_text = document.createElement("input");
       fname_text.setAttribute("type", "text");
       fname_text.setAttribute("name", "filename" + param.id);
       fname_text.setAttribute("id", "filename" + param.id);
-      fname_text.setAttribute("class", "file-param-val");
-      fname_text.setAttribute("value", "Select file");
+      fname_text.setAttribute("class", "col2-input");
       fname_text.setAttribute("readOnly", true);
 
-      var fval_text_div = document.createElement("div");
-      fval_text_div.setAttribute("id", "file_val" + param.id);
-      fval_text_div.setAttribute("class", "file-param-val");
-      fval_text_div.setAttribute("onclick", "getFile('" + param.id + "')");
-      fval_text_div.appendChild(fname_text);
+      var pname_input_div = document.createElement("div");
+      pname_input_div.setAttribute("class", "col2");
+      pname_input_div.appendChild(fname_text);
 
       var pname_input = document.createElement("input");
       pname_input.setAttribute("type", "file");
       pname_input.setAttribute("name", param.id);
       pname_input.setAttribute("id", param.id);
+      pname_input.setAttribute("class", "upload");
 
+      var span = document.createElement("span");
+      span.innerHTML = "File";
+
+      var button_div = document.createElement("div");
+      button_div.setAttribute("class", "fileUpload");
+      button_div.innerHTML = "File";
+      button_div.appendChild(pname_input);
+
+      setParamVal(param.id, null);
       addFileParamUIListener(pname_input, param.id, fname_text, (param.type).toLowerCase());
       break;
     default:
@@ -454,13 +335,13 @@ function insertInput(param) {
   switch ( (param.type).toLowerCase() ) {
     case "file":
       var fval_file_div = document.createElement("div");
-      fval_file_div.setAttribute("style", "height: 0px;width:0px; overflow:hidden;");
-      fval_file_div.appendChild(pname_input);
+      fval_file_div.setAttribute("class", "param-val");
+      fval_file_div.appendChild(pname_input_div);
+      fval_file_div.appendChild(button_div);
 
 	  param_row.setAttribute("id", param.id + "-row");
 	  param_row.setAttribute("class", "param-row");
 	  param_row.appendChild(pname_div);
-	  param_row.appendChild(fval_text_div);
       param_row.appendChild(fval_file_div);
 
       parent.appendChild(param_row);
@@ -469,10 +350,25 @@ function insertInput(param) {
       }
 
       break;
+    case "3dloc":
+      var pval_div = document.createElement("div");
+      pval_div.setAttribute("class", "param-val");
+      pval_div.appendChild(pname_input_div);
+      pval_div.appendChild(button_div);
+
+	  param_row.setAttribute("id", param.id + "-row");
+	  param_row.setAttribute("class", "param-row");
+	  param_row.appendChild(pname_div);
+      param_row.appendChild(pval_div);
+
+      parent.appendChild(param_row);
+      if ($(parent).hasClass('hidden')) {
+        $(parent).removeClass('hidden')
+      }
     default:
       var pval_div = document.createElement("div");
       pval_div.setAttribute("class", "param-val");
-      pval_div.appendChild(pname_input);
+      pval_div.appendChild(pname_input_div);
 
       if (pname_input_display !== undefined && pname_input_display !== null) {
 	      pval_div.appendChild(pname_input_display);
@@ -506,7 +402,13 @@ function addParamUIListener(element, elementId, type) {
 	    if ( $("#" + displayId).length ) {
 	      $("#" + displayId).html( $(element).val() );
 	    }
-	    initScript();
+	    updateScene();
+      });
+      break;
+    case "3dloc":
+      $(element).on("change", function() {
+        setParamVal( elementId, $(element).val() );
+	    updateScene();
       });
       break;
     default:
@@ -522,7 +424,7 @@ function addFileParamUIListener(element, elementId, nameHolderElement, type) {
     var fileName = tmp[tmp.length-1];
     nameHolderElement.value = fileName;
     setParamVal( elementId, fileName );
-    postRender();
+    updateScene();
   });
 }
 
@@ -530,6 +432,20 @@ function removeAllParams() {
   $("#parameters").empty();
   paramData = {};
   paramCount = 0;
+}
+
+function setPickMode(mode, elementId) {
+  pickMode = mode;
+  pickDataContainer = $("#" + elementId);
+/*
+  if (mode == true) {
+    $(button).removeClass("param-button");
+    $(button).addClass("param-button-selected");
+  } else {
+    $(button).removeClass("param-button-selected");
+    $(button).addClass("param-button");
+  }
+*/
 }
 
 function addMouseEventListeners() {
@@ -555,8 +471,8 @@ function addMouseEventListeners() {
       mousedown : function(event){
         event.preventDefault();
 
-        if (event.button == 2) {
-          pickModel(event, $("#render"), event.clientX, event.clientY);
+        if (pickMode && event.button == 2) {
+          pickModel(event, $("#render"));
           mouseDown = false;
         }
       },
@@ -620,12 +536,27 @@ function addMouseEventListeners() {
     };
     $(document).on(handlers);
   });
+
+  // Evaluate script, and update UI and scene if script changes
+  editor.on("blur", function() {
+    if (scriptChanged) {
+      generate();
+      scriptChanged = false;
+    }
+  });
+
+  editor.on("change", function() {
+    scriptChanged = true;
+  });
 }
 
 function onKeyPress(event) {
   var charCode = (typeof event.which == "number") ? event.which : event.keyCode;
 
   switch (charCode) {
+    case 27:              // escape
+      setPickMode(false, null);
+      break;
     case 39:              // right arrow
       rotateModel(null, null, 0, radiansByArrow);
       break;
