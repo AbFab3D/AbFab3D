@@ -24,6 +24,8 @@ var viewChanged = false;
 var forceFull = false;  //  should we force a full render
 
 var maxFPS = 30;  // maximum frame rate to shoot for
+var updatingScene = false;
+var usSkipCount = 15;
 
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
@@ -53,6 +55,7 @@ var maxFPS = 30;  // maximum frame rate to shoot for
     };
 }());
 
+var frameNum = 0;
 // function for updating the image
 function draw() {
   setTimeout(function() {
@@ -61,6 +64,7 @@ function draw() {
     if (!viewChanged) return;
 
     viewChanged = false;
+    frameNum++;
 
     var imgType = "jpg";
     if (quality >= 1.0)
@@ -76,7 +80,8 @@ function draw() {
         'rotY': rotY.toFixed(4),  // y rotation in radians
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
-        'quality': quality
+        'quality': quality,
+        'frameNum': frameNum     // cache busting logic
       };
     } else {
       extraParams = {
@@ -85,7 +90,8 @@ function draw() {
         'rotY': rotY.toFixed(4),  // y rotation in radians
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
-        'quality': quality
+        'quality': quality,
+        'frameNum': frameNum     // cache busting logic
       };
     }
 
@@ -138,7 +144,14 @@ function sub(obj, idOfDisplay){
 function getJobID() {
 //  var text = "width=" + width + "&height=" + height + "&frames=" + frames + "&framesX=" + framesX + "&script=" + editor.getValue();
   var text = editor.getValue();
-  return userID+"_" + md5(text);
+
+  // TODO: jobID does not need params anymore
+/*
+  $.each( paramData, function( key, value ) {
+    text += "&" + key +"=" + value;
+  });
+*/
+  return userID + "_" + md5(text);
 }
 
 function paramDataToQueryString(params) {
@@ -152,50 +165,49 @@ function paramDataToQueryString(params) {
 function initScript() {
 //  spin('preview');
 
-  if (loading) {
+  if (updatingScene) {
     //console.log("Still loading, skipping");
-    skipCount--;
-    if (skipCount > 0) {
+    usSkipCount--;
+    if (usSkipCount > 0) {
       return;
     } else {
       console.log("Skipped too long, resetting");
     }
   }
-  skipCount = 15;
-  loading = true;
+
+  updatingScene = true;
+  usSkipCount = 15;
 
   // Set additional data not part of the form
   extraParams = {
     'jobID':   getJobID(),
-    'script':  editor.getValue(),
-    'width':   width,
-    'height':  height,
-    'rotX':    rotX.toFixed(4),  // x rotation in radians
-    'rotY':    rotY.toFixed(4),  // y rotation in radians
-    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
-    'imgType': imgType,
-    'quality': quality
+    'script':  editor.getValue()
   };
 
-  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
-  
+  var url = "/creator/shapejsRT_v1.0.0/updateScene?" + $.param(extraParams);
+
   if (paramData !== undefined && paramData !== null) {
     url = url + "&" + $.param(paramDataToQueryString(paramData));
   }
 
   var request = $.ajax({
     type: "POST",
-    url: url,
+    url: url
   })
   
   request.done(function( data ) {
+    updatingScene = false;
+    viewChanged = true;  // force a redraw
+    /*
     var imageViewer = document.getElementById("render");
     imageViewer.setAttribute("src", url);
+    */
     unspin();
   });
  
   request.fail(function( jqXHR, textStatus ) {
-    alert( "Request failed: " + textStatus );
+    updatingScene = false;
+    alert( "Request failed: " + jqXHR );
     unspin();
   });
 }
@@ -224,16 +236,14 @@ window.oncontextmenu = function ()
   return false;     // cancel default menu
 }
 
-function pickModel(x,y) {
-  console.log("Pick: " + x + " " + y);
-
-  // TODO: Not certain how to get this 0,0 in upper left corner
-  x = x - 760;
-  y = y - 63;
+function pickModel(e, element, x, y) {
+  var pos = getClickPosition(e, element);
+  
+  console.log("Pick: " + pos[0] + " " + pos[1]);
 
   extraParams = {
-    'x': x,
-    'y': y,
+    'x': pos[0],
+    'y': pos[1],
     'jobID':   getJobID(),
 //    'script':  editor.getValue(),
     'width':   width,
@@ -264,7 +274,27 @@ function pickModel(x,y) {
 
     // TODO: use pick with complete script
   });
+}
 
+function getClickPosition(event, element) {
+  // Positioning in html page is (0,0) at upper left, while we need (0,0) at lower left
+  // Convert by subtracing y position from height var
+  var offset = $("#render").offset();
+  var x = Math.round(event.pageX - offset.left);
+  var y = Math.round(height - (event.pageY - offset.top));
+  
+  if (x < 0) {
+    x = 0;
+  } else if (x > width) {
+    x = width;
+  }
+  if (y < 0) {
+    y = 0;
+  } else if (y > height) {
+    y = height;
+  }
+
+  return [x,y];
 }
 
 function getRender(q) {
@@ -308,78 +338,48 @@ function setQuality(q) {
   viewChanged = true;
 }
 
-/*
-function getRender() {
-  //spin('preview');
-  
-  // Set additional data not part of the form
-  extraParams = {
-    'jobID':   getJobID(),
-    'script':  editor.getValue(),
-    'width':   width,
-    'height':  height,
-    'frames':  frames,
-    'framesX': framesX
-  };
-//  console.log(editor.getValue());
-//  console.log($.param(extraParams));
-  
-  var url = "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
-  showSpriteImage(url,frames,framesX);
-  
-///////////////////////////////////////////////
-  var request = $.ajax({
-    type: "GET",
-    url: "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage",
-  })
-  
-  request.done(function( data ) {
-    console.log(data);
-    showSpriteImage(data);
-  });
- 
-  request.fail(function( jqXHR, textStatus ) {
-    alert( "Request failed: " + textStatus );
-  });
-
-///////////////////////////////////////////////
-  options = {
-    url: "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage",
-    type: "get",
-    contentType: "image/png",
-    success: generateRenderResponse,
-    error: function(xhr, textStatus, errorThrown) {
-      alert("Status: " + textStatus + ",\nError: " + errorThrown);
-      console.log("Status: " + textStatus + ", error: " + errorThrown);
-      unspin();
-    }
-  };
-
-  jQuery('#form').ajaxSubmit(options);
-
-}
 
 function postRender() {
 
   // Set additional data not part of the form
+  var jobid = getJobID();
   extraParams = {
-    'jobID':   getJobID(),
+    'jobID':   jobid,
+    'script':  editor.getValue(),
     'width':   width,
     'height':  height,
-    'frames':  frames,
-    'framesX': framesX
+    'rotX':    rotX.toFixed(4),  // x rotation in radians
+    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
+    'imgType': imgType,
+    'quality': quality
   };
 
   options = {
-    url: "http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage",
+    url: "/creator/shapejsRT_v1.0.0/makeImage",
     type: "post",
-    dataType: 'json',
     timeout: 180000,
     beforeSubmit: jsonForm,
-    success: generateRenderResponse,
+    success: function() {
+      extraParams = {
+        'jobID':   jobid,
+        'width':   width,
+        'height':  height,
+        'rotX':    rotX.toFixed(4),  // x rotation in radians
+        'rotY':    rotY.toFixed(4),  // y rotation in radians
+        'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
+        'imgType': imgType,
+        'quality': quality
+      };
+      var url = "/creator/shapejsRT_v1.0.0/makeImageCached?" + $.param(extraParams);
+      console.log(url);
+      var imageViewer = document.getElementById("render");
+      imageViewer.setAttribute("src", url);
+      unspin();
+    },
     error: function(xhr, textStatus, errorThrown) {
       alert("Status: " + textStatus + ",\nError: " + errorThrown);
-      console.log("Status: " + textStatus + ", error: " + errorThrown);
+      console.log(xhr);
       unspin();
     }
   };
@@ -387,12 +387,6 @@ function postRender() {
   jQuery('#form').ajaxSubmit(options);
 }
 
-function generateRenderResponse(data) {
-  showSpriteImage("http://localhost:8080/creator/shapejsRT_v1.0.0/makeImage?width=512&height=512&frames=36&frameX=6");
-  console.log(data);
-//  $("#sprite-image").attr("src", data);
-}
-*/
 ////////////////////////////////////////////////////////
 
 function loadFile(method, url, data, type) {

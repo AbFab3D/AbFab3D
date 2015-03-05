@@ -418,7 +418,7 @@ public class Main {
         // empty model means we had an error
         if (model != null) {
             ModelWriter writer = model.getWriter();
-            if (model.getWriter() == null) {
+            if (writer == null) {
                 writer = createDefaultWriter("x3db", new NullOutputStream(), getShellScope());
                 model.setWriter(writer);
             }

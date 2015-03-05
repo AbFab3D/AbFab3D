@@ -40,6 +40,7 @@ var viewMatrix;
 var dragStart = {};
 var mouseDown = false;
 var loading = false;
+var makingUI = false;
 
 var degreeByArrow = 10;
 var radiansByArrow = (degreeByArrow / 180) * 3.14159;
@@ -86,15 +87,15 @@ function randomstring(L){
 
 function jsonForm(formData, jqForm, options) {
 
+  for (var i=0; i < formData.length; i++) {
+    formData[i].name = "shapeJS_" + formData[i].name;
+  }
+
   // Add extra parameters not part of the form to formData
   jQuery.each(extraParams, function(key, val) {
     formData.push({name: key, value: val});
   });
-
-  // Get the code editor content
-  // Replace new line ("\n") with a space character
-//  formData.push({name: "script", value: editor.getValue()});
-
+/*
   for (var i=0; i < formData.length; i++) {
     if (formData[i].type != "file") {
       formData[i].value = JSON.stringify(formData[i].value);
@@ -102,7 +103,7 @@ function jsonForm(formData, jqForm, options) {
 	  checkFile(formData, i);
 	}
   }
-
+*/
   for (var i=0; i < formData.length; i++) {
     console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
   }
@@ -116,7 +117,7 @@ function checkFile(formData, index) {
   if (isUriParam(fileNameParam)) {
     formData[index].type = "text";
     formData[index].name = fileParam;
-    formData[index].value = JSON.stringify(val);
+    formData[index].value = val;//JSON.stringify(val);
   } else if (val.indexOf("/") > -1) {
     if (val.charAt(0) === "/") {
       val = val.substring(1);
@@ -124,7 +125,7 @@ function checkFile(formData, index) {
     var host = location.host;
     formData[index].type = "text";
     formData[index].name = fileParam;
-    formData[index].value = JSON.stringify("http://" + host + "/" + val);
+    formData[index].value = "http://" + host + "/" + val;//JSON.stringify("http://" + host + "/" + val);
   }
 }
 
@@ -313,30 +314,61 @@ function saveFile() {
 
 function generate() {
   evalScriptParams();
-  spin();
-  initScript();
+
+  if (!makingUI) {
+    spin();
+    postRender();
+  }
 }
 
 function evalScriptParams() {
-  removeAllParams();
+  // TODO: Unchanged params stay. Remove no longer existing params. Add new params.
+//  removeAllParams();
 
   var jsScript = editor.getValue();
   eval(jsScript);
 
-  if (typeof params === "undefined") return;
+//  if (typeof params === "undefined") return;
 
-  for (var i=0; i<params.length; i++) {
-    var type = (params[i].type).toLowerCase();
-    if ( $.inArray(type, inputTypes) >= 0) {
-      insertInput(params[i]);
-    } else {
-      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
+  // Remove item from paramData that no longer exist in params declared in the script
+  $.each(paramData, function(key, val) {
+    var remove = true;
+
+    if (typeof params !== "undefined") {
+      $.each(params, function(i, param) {
+        if (param.id === key) {
+          remove = false;
+          return false;   // breaks out of loop
+        }
+      });
     }
+
+    // Remove from paramData and in the dom
+    if (remove) {
+      delete paramData[key];
+      if ( $("#" + key + "-row").length > 0 )
+        $("#" + key + "-row").remove();
+    }
+  });
+
+  // Insert new params that do not already exist
+  if (typeof params !== "undefined") {
+    $.each(params, function(i, param) {
+      var type = (param.type).toLowerCase();
+      if ( $.inArray(type, inputTypes) >= 0) {
+        console.log("*** " + param.id + " = " + paramData[param.id]);
+        if (paramData[param.id] === undefined) {
+          console.log("*** inserting " + param.id);
+          insertInput(param);
+        }
+      } else {
+        console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.id);
+      }
+    });
   }
 }
 
 function insertInput(param) {
-
   var pname_div = document.createElement("div");
   pname_div.setAttribute("class", "param-name");
   pname_div.innerHTML = param.displayName;
@@ -349,6 +381,9 @@ function insertInput(param) {
       pname_input.setAttribute("id", param.id);
       pname_input.setAttribute("value", param.default);
       pname_input.setAttribute("class", "param-val");
+
+      setParamVal(param.id, param.default);
+      addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
     case "range":
       var pname_input = document.createElement("input");
@@ -367,7 +402,7 @@ function insertInput(param) {
       pname_input_display.innerHTML = param.default;
 
       setParamVal(param.id, param.default);
-      addParamUIListener(pname_input, param.id);
+      addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
     case "3dloc":
       var pname_input = document.createElement("button");
@@ -378,48 +413,116 @@ function insertInput(param) {
       pname_input.setAttribute("class", "param-val");
       var text = document.createTextNode(param.displayName);
       pname_input.appendChild(text);
+
+      setParamVal(param.id, param.default);
+      addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
+      break;
+    case "file":
+      // If we're inserting a new file input, then there is no file already selected
+      // Do not make request in this case
+      makingUI = true;
+
+      var fname_text = document.createElement("input");
+      fname_text.setAttribute("type", "text");
+      fname_text.setAttribute("name", "filename" + param.id);
+      fname_text.setAttribute("id", "filename" + param.id);
+      fname_text.setAttribute("class", "file-param-val");
+      fname_text.setAttribute("value", "Select file");
+      fname_text.setAttribute("readOnly", true);
+
+      var fval_text_div = document.createElement("div");
+      fval_text_div.setAttribute("id", "file_val" + param.id);
+      fval_text_div.setAttribute("class", "file-param-val");
+      fval_text_div.setAttribute("onclick", "getFile('" + param.id + "')");
+      fval_text_div.appendChild(fname_text);
+
+      var pname_input = document.createElement("input");
+      pname_input.setAttribute("type", "file");
+      pname_input.setAttribute("name", param.id);
+      pname_input.setAttribute("id", param.id);
+
+      addFileParamUIListener(pname_input, param.id, fname_text, (param.type).toLowerCase());
       break;
     default:
       console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
+      return;
   }
-
-  var pval_div = document.createElement("div");
-  pval_div.setAttribute("class", "param-val");
-  pval_div.appendChild(pname_input);
-
-  if (pname_input_display !== undefined && pname_input_display !== null) {
-    pval_div.appendChild(pname_input_display);
-  }
-
-  var param_row = document.createElement("div");
-  param_row.setAttribute("id", "param-row" + paramCount);
-  param_row.setAttribute("class", "param-row");
-  param_row.appendChild(pname_div);
-  param_row.appendChild(pval_div);
 
   var parent = document.getElementById("parameters");
-  parent.appendChild(param_row);
-  if ($(parent).hasClass('hidden')) {
-    $(parent).removeClass('hidden')
-  }
+  var param_row = document.createElement("div");
 
-  paramCount++;
+  switch ( (param.type).toLowerCase() ) {
+    case "file":
+      var fval_file_div = document.createElement("div");
+      fval_file_div.setAttribute("style", "height: 0px;width:0px; overflow:hidden;");
+      fval_file_div.appendChild(pname_input);
+
+	  param_row.setAttribute("id", param.id + "-row");
+	  param_row.setAttribute("class", "param-row");
+	  param_row.appendChild(pname_div);
+	  param_row.appendChild(fval_text_div);
+      param_row.appendChild(fval_file_div);
+
+      parent.appendChild(param_row);
+      if ($(parent).hasClass('hidden')) {
+        $(parent).removeClass('hidden')
+      }
+
+      break;
+    default:
+      var pval_div = document.createElement("div");
+      pval_div.setAttribute("class", "param-val");
+      pval_div.appendChild(pname_input);
+
+      if (pname_input_display !== undefined && pname_input_display !== null) {
+	      pval_div.appendChild(pname_input_display);
+      }
+
+	  param_row.setAttribute("id", param.id + "-row");
+	  param_row.setAttribute("class", "param-row");
+	  param_row.appendChild(pname_div);
+      param_row.appendChild(pval_div);
+
+      parent.appendChild(param_row);
+      if ($(parent).hasClass('hidden')) {
+        $(parent).removeClass('hidden')
+      }
+
+  }
 }
 
 function setParamVal(id, val) {
   paramData[id] = val;
 }
 
-function addParamUIListener(element, elementId) {
-  $(element).on("input", function() {
-      setParamVal( elementId, $(element).val() );
+function addParamUIListener(element, elementId, type) {
+  switch (type) {
+    case "text":
+      break;
+    case "range":
+      $(element).on("input", function() {
+        setParamVal( elementId, $(element).val() );
+	    var displayId = elementId + "-display";
+	    if ( $("#" + displayId).length ) {
+	      $("#" + displayId).html( $(element).val() );
+	    }
+	    initScript();
+      });
+      break;
+    default:
+      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + elementId);
+      return;
+  }
+}
 
-      var displayId = elementId + "-display";
-      if ( $("#" + displayId).length ) {
-        $("#" + displayId).html( $(element).val() );
-      }
-
-      initScript();
+function addFileParamUIListener(element, elementId, nameHolderElement, type) {
+  $(element).on("change", function() {
+    var file = element.value;
+    var tmp = file.split("\\");
+    var fileName = tmp[tmp.length-1];
+    nameHolderElement.value = fileName;
+    setParamVal( elementId, fileName );
+    postRender();
   });
 }
 
@@ -453,7 +556,7 @@ function addMouseEventListeners() {
         event.preventDefault();
 
         if (event.button == 2) {
-          pickModel(event.clientX,event.clientY);
+          pickModel(event, $("#render"), event.clientX, event.clientY);
           mouseDown = false;
         }
       },
@@ -559,35 +662,33 @@ function onKeyPress(event) {
 <div class="jscode">
 <textarea id="code" name="code" placeholder="">
 var params = [
-    {
-        "id": "period",
-        "displayName": "Period",
-        "type": "range",
-        "rangeMin": 1,
-        "rangeMax": 21,
-        "step": 1,
-        "default": 18
-    },
-    {
-        "id": "thickness",
-        "displayName": "Thickness",
-        "type": "range",
-        "rangeMin": 1,
-        "rangeMax": 5,
-        "step": 0.5,
-        "default": 2
-    }
-
+	{
+       "id": "period",
+       "displayName": "Period",
+       "type": "range",
+       "rangeMin": 1,
+       "rangeMax": 21,
+       "step": 1,
+       "default": 18
+	},
+	{
+       "id": "thickness",
+       "displayName": "Thickness",
+       "type": "range",
+       "rangeMin": 1,
+       "rangeMax": 5,
+       "step": 0.5,
+       "default": 2
+	}
 ];
 function main(args) {
-    var radius = 25 * MM;
-    var sphere = new Sphere(radius);
-    var gyroid = new VolumePatterns.Gyroid(args['period']*MM, args['thickness']*MM);
-    var intersect = new Intersection();
-    intersect.setBlend(2*MM);
-    intersect.add(sphere);
-    intersect.add(gyroid);
-
+	var radius = 25 * MM;
+	var sphere = new Sphere(radius);
+	var gyroid = new VolumePatterns.Gyroid(args['period']*MM, args['thickness']*MM);
+	var intersect = new Intersection();
+	intersect.setBlend(2*MM);
+	intersect.add(sphere);
+	intersect.add(gyroid);
 	var s = 25*MM;
 	return new Shape(intersect,new Bounds(-s,s,-s,s,-s,s));
 }
@@ -633,7 +734,7 @@ function main(args) {
 <div id="loading" class='loading'>
   <div class="x3dom-view-loading"></div>
 </div>
-<div id="image-viewer" width="520px" height="540px"><img id="render"/></div>
+<div id="image-viewer" width="512px" height="540px"><img id="render"/></div>
 </div>
 </div>
 <div><input type="text" name="title" id="title" class="title" value="Model Title" /></div>
@@ -641,7 +742,7 @@ function main(args) {
 <div id="uploading">Uploading...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
 </div>
 
-<form id="form" action="" method="GET">
+<form id="form" action="" method="POST">
 <div id="parameters" class="parameter-container hidden">
 <!--
   <div id="addparam-title">Add Parameters</div>

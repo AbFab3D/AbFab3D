@@ -1,6 +1,9 @@
 package http;
 
 import com.google.gson.Gson;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import render.*;
 
@@ -13,9 +16,12 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static abfab3d.util.Output.printf;
 
@@ -26,6 +32,10 @@ import static abfab3d.util.Output.printf;
  */
 public class ShapeJSImageServlet extends HttpServlet {
     public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V3_DIST;
+    
+    private static int MAX_UPLOAD_SIZE = 64000000;
+    private static String TMP_DIR = "/tmp";
+    private static int TEMP_DIR_ATTEMPTS = 1000;
 
     /** Config params in map format */
     protected Map<String, String> config;
@@ -35,6 +45,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
     private ImageRenderer render;
     private Matrix4f viewMatrix = new Matrix4f(); // TODO: need to thread local
+    private ConcurrentHashMap<String, SceneCacheEntry> sceneCache;
 
     /**
      * Initialize the servlet. Sets up the base directory properties for finding
@@ -45,6 +56,8 @@ public class ShapeJSImageServlet extends HttpServlet {
         this.ctx = sconfig.getServletContext();
 
         config = convertConfig(sconfig);
+
+        sceneCache = new ConcurrentHashMap<String, SceneCacheEntry>();
 
         initCL(false, 512, 512);
         printf("Init called\n");
@@ -68,10 +81,12 @@ public class ShapeJSImageServlet extends HttpServlet {
             handleImageCachedRequest(req, resp, session, accept);
         } else if (command.contains("/makeImage")) {
             handleImageRequest(req, resp, session, accept);
-        } else if (command.contains("/pick")) {
-            handlePickRequest(req, resp, session, accept);
         } else if (command.contains("/pickCached")) {
             handlePickCachedRequest(req, resp, session, accept);
+        } else if (command.contains("/pick")) {
+            handlePickRequest(req, resp, session, accept);
+        } else if (command.contains("/updateScene")) {
+            handleSceneRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
@@ -89,10 +104,12 @@ public class ShapeJSImageServlet extends HttpServlet {
             handleImageCachedRequest(req, resp, session, accept);
         } else if (command.contains("/makeImage")) {
             handleImageRequest(req, resp, session, accept);
-        } else if (command.contains("/pick")) {
-            handlePickRequest(req, resp, session, accept);
         } else if (command.contains("/pickCached")) {
             handlePickCachedRequest(req, resp, session, accept);
+        } else if (command.contains("/pick")) {
+            handlePickRequest(req, resp, session, accept);
+        } else if (command.contains("/updateScene")) {
+            handleSceneRequest(req, resp, session, accept);
         } else {
             super.doGet(req, resp);
         }
@@ -120,7 +137,16 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 
-        Map<String, String[]> params = req.getParameterMap();
+        Map<String, String[]> params = null;
+        
+        if (isMultipart) {
+//    		System.out.println("==> multipart form post");
+            params = new HashMap<String, String[]>();
+            mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
+        } else {
+//    		System.out.println("==> not multipart form post");
+            params = req.getParameterMap();
+        }
 
         String[] widthSt = params.get("width");
         if (widthSt != null && widthSt.length > 0) {
@@ -192,20 +218,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         if (script == null) {
-            script = "function main(args) {\n" +
-                    "    var radius = 25 * MM;\n" +
-                    "    var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);\n" +
-                    "    var sphere = new Sphere(radius);\n" +
-                    "    var gyroid = new VolumePatterns.Gyroid(25*MM, 2*MM);\n" +
-                    "    var intersect = new Intersection();\n" +
-                    "    intersect.add(sphere);\n" +
-                    "    intersect.add(gyroid);\n" +
-                    "    var maker = new GridMaker();\n" +
-                    "    maker.setSource(intersect);\n" +
-                    "    maker.makeGrid(grid);\n" +
-                    "\n" +
-                    "    return grid;\n" +
-                    "}";
+            throw new IllegalArgumentException("Script is required");
         }
 
         String[] qualitySt = params.get("quality");
@@ -285,7 +298,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         if (jobIDSt != null && jobIDSt.length > 0) {
             jobID = jobIDSt[0];
         }
-
+        
         String[] imgTypeSt = params.get("imgType");
         if (imgTypeSt != null && imgTypeSt.length > 0) {
             imgType = imgTypeSt[0];
@@ -439,8 +452,8 @@ public class ShapeJSImageServlet extends HttpServlet {
         OutputStream os = resp.getOutputStream();
         resp.setContentType("application/json");
 
-        result.put("pos",pos.toString());
-        result.put("normal",normal.toString());
+        result.put("pos",new float[] {pos.x,pos.y,pos.z});
+        result.put("normal",new float[] {normal.x,normal.y,normal.z});
 
         String st = gson.toJson(result);
         os.write(st.getBytes());
@@ -464,8 +477,6 @@ public class ShapeJSImageServlet extends HttpServlet {
         float zoom = -4;
         int x = 0;
         int y = 0;
-
-        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 
         Map<String, String[]> params = req.getParameterMap();
 
@@ -522,20 +533,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         if (script == null) {
-            script = "function main(args) {\n" +
-                    "    var radius = 25 * MM;\n" +
-                    "    var grid = createGrid(-25*MM,25*MM,-25*MM,25*MM,-25*MM,25*MM,0.1*MM);\n" +
-                    "    var sphere = new Sphere(radius);\n" +
-                    "    var gyroid = new VolumePatterns.Gyroid(25*MM, 2*MM);\n" +
-                    "    var intersect = new Intersection();\n" +
-                    "    intersect.add(sphere);\n" +
-                    "    intersect.add(gyroid);\n" +
-                    "    var maker = new GridMaker();\n" +
-                    "    maker.setSource(intersect);\n" +
-                    "    maker.makeGrid(grid);\n" +
-                    "\n" +
-                    "    return grid;\n" +
-                    "}";
+            throw new IllegalArgumentException("Script is required");
         }
 
         Map<String,Object> sparams = new HashMap<String,Object>();
@@ -561,13 +559,60 @@ public class ShapeJSImageServlet extends HttpServlet {
         OutputStream os = resp.getOutputStream();
         resp.setContentType("application/json");
 
-        result.put("pos",pos.toString());
-        result.put("normal",normal.toString());
+        result.put("pos",new float[] {pos.x,pos.y,pos.z});
+        result.put("normal",new float[] {normal.x,normal.y,normal.z});
 
         String st = gson.toJson(result);
         os.write(st.getBytes());
 
         os.close();
+    }
+
+    // TODO: stop doing this
+    synchronized private void handleSceneRequest(HttpServletRequest req,
+                                                 HttpServletResponse resp,
+                                                 HttpSession session,
+                                                 String accept)
+            throws IOException {
+
+        String jobID = null;
+        String script = null;
+
+        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
+
+        Map<String, String[]> params = null;
+
+        if (isMultipart) {
+//    		System.out.println("==> multipart form post");
+            params = new HashMap<String, String[]>();
+            mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
+        } else {
+//    		System.out.println("==> not multipart form post");
+            params = req.getParameterMap();
+        }
+
+        String[] jobIDSt = params.get("jobID");
+        if (jobIDSt != null && jobIDSt.length > 0) {
+            jobID = jobIDSt[0];
+        }
+
+        String[] scriptSt = params.get("script");
+        if (scriptSt != null && scriptSt.length > 0) {
+            script = scriptSt[0];
+        }
+
+        Map<String,Object> sparams = new HashMap<String,Object>();
+        for(Map.Entry<String,String[]> entry : params.entrySet()) {
+            String key = entry.getKey();
+            if (key.startsWith("shapeJS_")) {
+                key = key.substring(8);
+                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
+                sparams.put(key, entry.getValue()[0]);
+            }
+
+        }
+
+        updateScene(jobID,script,sparams);
     }
 
     private void getView(float rotX, float rotY, float zoom, Matrix4f mat) {
@@ -582,7 +627,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         trans.z = z;
         tmat.set(trans, 1.0f);
 
-        rxmat.rotX(rotX);
+        rxmat.rotX(-rotX);
         rymat.rotY(rotY);
 
         mat.setIdentity();
@@ -628,13 +673,11 @@ public class ShapeJSImageServlet extends HttpServlet {
      * @param req The request to parse
      * @param params The param map
      * @param maxUploadSize The max request size limit
-     * @param uploadDir The directory to save the upload files to
      * @return ServiceResults with error reason, or null otherwise
      */
-    /*
-    protected ServiceResult mapUploadParams(HttpServletRequest req, Map params, int maxUploadSize, String uploadDir) {
-        ServiceResult result = null;
-        Gson gson = DefaultGsonBuilder.getBuilder().create();
+    protected boolean mapParams(HttpServletRequest req, Map params, int maxUploadSize, String baseDir) {
+        boolean success = false;
+        Gson gson = new Gson();
 
         try {
             // Create a factory for disk-based file items
@@ -651,6 +694,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             List<FileItem> items = upload.parseRequest(req);
 
             String ext = null;
+            String upload_dir = createTempDir(baseDir);
 
             // Process the uploaded items
             Iterator<FileItem> iter = items.iterator();
@@ -668,7 +712,7 @@ public class ShapeJSImageServlet extends HttpServlet {
                     String fileName = item.getName();
 
                     if (fileName == null || fileName.trim().equals("")) {
-                        throw new Exception("Missing upload file");
+                        throw new Exception("Missing upload file for field: " + fieldName);
                     }
 
                     int idx = fileName.lastIndexOf(".");
@@ -677,34 +721,149 @@ public class ShapeJSImageServlet extends HttpServlet {
                         ext = fileName.substring(idx);
                     }
 
-                    String contentType = item.getContentType();
-                    boolean isInMemory = item.isInMemory();
+//                    String contentType = item.getContentType();
+//                    boolean isInMemory = item.isInMemory();
                     long sizeInBytes = item.getSize();
 
-                    String prefix = "uploaded";
-
-                    File uploadedFile = File.createTempFile(prefix, ext, new File(uploadDir));
+//                    File uploadedFile = File.createTempFile(prefix, ext, new File(uploadDir));
+                    File uploadedFile = createTempFile(baseDir + "/" + upload_dir, fieldName, ext);
                     item.write(uploadedFile);
 
-                    // Schedule the uploaded file for deletion
-                    tempFiles.get(serviceName).get().add(uploadedFile);
+                    // TODO: Schedule the uploaded file for deletion
+                    
                     // JSON the path to the uploaded file
 //                    System.out.println("==>fieldName: " + fieldName);
 //                    System.out.println("==>fileName: " + fileName);
 //                    System.out.println("write file: " + uploadedFile + " bytes: " + sizeInBytes);
-                    String[] file = {gson.toJson(uploadedFile.getAbsolutePath())};
+                    String[] file = {uploadedFile.getAbsolutePath()};
                     params.put(fieldName, file);
                 }
             }
+            
+            success = true;
         } catch(Exception e) {
             e.printStackTrace();
             String reason = "Failed to parse or write upload file";
             System.out.println(reason);
-            result = new ServiceResult(ServiceResult.ErrorCode.INVALID_PARAMS, reason);
+            success = false;
         }
 
-        return result;
+        return success;
     }
+
+    /**
+    * Atomically creates a new directory somewhere beneath the system's
+    * temporary directory (as defined by the {@code java.io.tmpdir} system
+    * property), and returns its name.
+    *
+    * <p>Use this method instead of {@link File#createTempFile(String, String)}
+    * when you wish to create a directory, not a regular file.  A common pitfall
+    * is to call {@code createTempFile}, delete the file and create a
+    * directory in its place, but this leads a race condition which can be
+    * exploited to create security vulnerabilities, especially when executable
+    * files are to be written into the directory.
+    *
+    * <p>This method assumes that the temporary volume is writable, has free
+    * inodes and free blocks, and that it will not be called thousands of times
+    * per second.
+    *
+    * @return the newly-created directory
+    * @throws IllegalStateException if the directory could not be created
+    */
+    protected String createTempDir(String baseDir) {
+        String baseName = System.currentTimeMillis() + "-";
+
+        for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
+            File tempDir = new File(baseDir, baseName + counter);
+            if (tempDir.mkdir()) {
+                return baseName + counter;
+            }
+        }
+
+        throw new IllegalStateException("Failed to create directory within "
+            + TEMP_DIR_ATTEMPTS + " attempts (tried "
+            + baseName + "0 to " + baseName + (TEMP_DIR_ATTEMPTS - 1) + ')' + " baseDir: " + baseDir);
+    }
+    
+    protected File createTempFile(String baseDir, String fileName, String ext) {
+        String baseName = System.currentTimeMillis() + "-";
+
+        try {
+            for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
+                File tempFile = new File(baseDir, fileName + baseName + counter + ext);
+                if (tempFile.createNewFile()) {
+                    return tempFile;
+                }
+            }
+        } catch (Exception e) {}
+
+        throw new IllegalStateException("Failed to create file within "
+            + TEMP_DIR_ATTEMPTS + " attempts (tried " + fileName + baseName + "0" + ext
+            + " to " + fileName + baseName + (TEMP_DIR_ATTEMPTS - 1) + ext + ')' + " baseDir: " + baseDir);
+    }
+
+    /**
+     * Updates the scene for the current script and params.  Currently ignores deleted params.
+     *
+     * @param script
+     * @param params
      */
+    private void updateScene(String sceneID, String script, Map<String,Object> params) {
+        SceneCacheEntry sce = sceneCache.get(sceneID);
+        if (sce == null) {
+            sce = new SceneCacheEntry(sceneID,script,params);
+            sceneCache.put(sceneID,sce);
+        } else {
+            if (script != null) {
+                sce.setScript(script);
+            }
+            if (params != null) {
+                sce.updateParams(params);
+            }
+        }
+
+        render.setScene(sceneID,sce.getScript(),sce.getParams());
+    }
+
+    public static class SceneCacheEntry {
+        private String sceneID;
+        private String script;
+        private Map<String,Object> params;
+        private long lastUpdateTime;
+
+        public SceneCacheEntry(String sceneID, String script, Map<String,Object> params) {
+            this.sceneID = sceneID;
+            this.script = script;
+            this.params = new HashMap<String,Object>();
+            this.params.putAll(params);
+            lastUpdateTime = System.currentTimeMillis();
+        }
+
+        public String getSceneID() {
+            return sceneID;
+        }
+
+        public String getScript() {
+            return script;
+        }
+
+        public void setScript(String script) {
+            this.script = script;
+            lastUpdateTime = System.currentTimeMillis();
+        }
+
+        public Map<String, Object> getParams() {
+            return params;
+        }
+
+        public void updateParams(Map<String, Object> params) {
+            this.params.putAll(params);
+            lastUpdateTime = System.currentTimeMillis();
+        }
+
+        public long getLastUpdateTime() {
+            return lastUpdateTime;
+        }
+    }
 }
 

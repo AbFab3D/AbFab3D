@@ -47,7 +47,7 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
 public class ImageRenderer {
 
     static final boolean DEBUG = true;
-    static final boolean FORCE_CPU = true;
+    static final boolean FORCE_CPU = false;
     public static final int IMAGE_JPEG = 0;
     public static final int IMAGE_PNG = 1;
     
@@ -274,6 +274,23 @@ public class ImageRenderer {
     }
 
     /**
+     * Update a scene params.
+     *
+     * @param jobID  UniqueID for caching results
+     * @param script The script
+     * @param params The params, must include all of them
+     * @return
+     */
+    public void setScene(String jobID, String script, Map<String,Object> params) {
+
+        try {
+            VolumeScene vscene = setupOpenCL(jobID, script, params, true, 0.5f);
+        } catch (NotCachedException nce) {
+            // ignore
+        }
+    }
+
+    /**
      * Clear all resources consumed by all jobs
      */
     public void clearResources() {
@@ -402,6 +419,7 @@ public class ImageRenderer {
             CacheEntry ce = null;
 
             if (useCache && jobID != null && (params == null || params.size() == 0)) {
+                if (DEBUG) printf("Checking cache");
                 ce = cacheSource.get(jobID);
                 if (ce != null && ce.quality != quality) {
                     if (DEBUG) printf("Quality not the same for cached");
@@ -410,7 +428,6 @@ public class ImageRenderer {
                 }
             }
             if (ce == null) {
-
                 if (script == null) {
                     throw new NotCachedException();
                 }
@@ -432,10 +449,11 @@ public class ImageRenderer {
                 ce.quality = quality;
                 newScene = true;
 
-                if(DEBUG)printf("code generation %5.2f ms\n", (System.nanoTime()-t0)*1.e-6);
+                if(DEBUG)printf("code generation %s --> %5.2f ms\n", jobID, (System.nanoTime()-t0)*1.e-6);
 
 
                 if (jobID != null && useCache) {
+                    if (DEBUG) printf("Caching job: %s\n",jobID);
                     cacheSource.put(jobID, ce);
                 }
             }
@@ -632,7 +650,7 @@ public class ImageRenderer {
         long t0 = System.nanoTime();
 
 
-        VolumeScene vscene = setupOpenCL(jobID,null,null,false,0.5f);
+        VolumeScene vscene = setupOpenCL(jobID,null,null,true,0.5f);
 
         Matrix4f inv_view = new Matrix4f(view);
         inv_view.invert();
@@ -707,7 +725,11 @@ public class ImageRenderer {
                 pixel[1] = g;
                 pixel[2] = b;
                 pixel[3] = 0xFFFFFFFF;
-                raster.setPixel(xorig + w, yorig + h, pixel);
+//                raster.setPixel(xorig + w, yorig + h, pixel);
+//                int px = width - (xorig + w) - 1;
+                int px = xorig + w;
+                int py = height - (yorig + h) - 1;
+                raster.setPixel(px, py, pixel);
             }
         }
 
@@ -750,7 +772,6 @@ public class ImageRenderer {
 
     public static class CacheEntry {
         public DataSource source;
-        //public float worldScale; // part of vscene 
         public CLCodeBuffer ops;
         public VolumeScene vscene;
         public String script;

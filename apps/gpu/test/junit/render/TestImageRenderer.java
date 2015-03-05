@@ -13,6 +13,7 @@
 package render;
 
 
+import abfab3d.util.Units;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -27,7 +28,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
+
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Units.*;
 
 /**
  * Tests the functionality of the ImageRenderer
@@ -180,6 +183,55 @@ public class TestImageRenderer extends TestCase {
 
         printf("T1: %d ms  T2: %d ms\n", (int) (t1 / 1e6), (int) (t2 / 1e6));
         assertTrue("Speed", t1 > 2 * t2);
+    }
+
+    /**
+     * Test that caching improves speed by at least 50%
+     *
+     * @throws IOException
+     */
+    public void testPicking() throws Exception {
+        int width = 256;
+        int height = 256;
+
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+
+        HashMap<String,Object> params = new HashMap<String, Object>();
+        params.put("radius",10);
+
+        Vector3f pos1 = new Vector3f();
+        Vector3f normal1 = new Vector3f();
+
+        render.pick(null, getFile("test/scripts/picking.js"), params, true,getView(), 128,128,width,height,pos1,normal1);
+        printf("pos1: %s  normal: %s\n", pos1, normal1);
+
+        Vector3f pos2 = new Vector3f();
+        Vector3f normal2 = new Vector3f();
+        params.put("radius",15);
+        render.pick(null, getFile("test/scripts/picking.js"), params, true,getView(), 128,128,width,height,pos2,normal2);
+
+        printf("pos2: %s  normal: %s\n",pos2,normal2);
+
+        double EPS = 0.1f*MM;
+        double delta = pos2.z - pos1.z;
+        assertTrue("z changed",delta >= (5.0 * Units.MM - EPS));
+        assertTrue("x same",Math.abs((pos2.x - pos1.x)) <= EPS);
+        assertTrue("y same",Math.abs((pos2.y - pos1.y)) <= EPS);
+
+        params.put("radius", 10);
+        render.pick(null, getFile("test/scripts/picking.js"), params, true, getView(), 127, 128, width, height, pos2, normal2);
+        assertTrue("x less",pos2.x < pos1.x);
+
+        render.pick(null, getFile("test/scripts/picking.js"), params, true, getView(), 128, 130, width, height, pos2, normal2);
+        assertTrue("y more",pos2.y > pos1.y);
+
+        // check outside
+        render.pick(null, getFile("test/scripts/picking.js"), params, true, getView(), 0, 0, width, height, pos2, normal2);
+        printf("pos2: %s  normal: %s\n", pos2, normal2);
+
+        assertTrue("outside", pos2.x <= 10000);
     }
 
     private String getFile(String file) throws IOException {
