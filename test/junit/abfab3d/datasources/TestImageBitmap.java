@@ -106,8 +106,29 @@ public class TestImageBitmap extends TestCase {
         printf("testBitmap()\n");
         
     }
+
+
+    static void testLinearMapper(){
+
+        LinearMapper mapper = new LinearMapper(-1000, 1000, -0.001, 0.001);
+
+        double vmin = mapper.getVmin();
+        double vmax = mapper.getVmax();
+        
+        printf("%vmin: %f vmax: %f\n", vmin, vmax);
+
+        for(int i = -2000; i < 2000; i += 100) {
+            long att = i;
+            double v = mapper.map(att);
+            int vi = (int)(255*((v - vmin)/(vmax - vmin)))&0xFF;
+            byte vb = (byte)vi;
+            int vii = (vb) & 0xFF;
+            double vv = vii*(vmax - vmin)/255 + vmin;
+            printf("%8x %5d -> v:%9.5f vi:%4d vb:%4d vii:%4d vv: %9.5f\n", i, att, v*1000, vi, vb, vii, vv*1000);
+        }
+    }
     
     public static void main(String[] args) {
-
+        testLinearMapper();
     }
 }

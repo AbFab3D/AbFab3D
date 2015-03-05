@@ -98,7 +98,7 @@ public class DataSourceGrid extends TransformableDataSource {
         zscale = m_nz / (m_bounds[5] - m_bounds[4]);
 
 
-        if(DEBUG && debugCount > 0){
+        if(DEBUG){
             printf("DataSourceGrid()\n");
             printf("nx: (%d x %d x %d) \n", grid.getWidth(),grid.getHeight(),grid.getDepth());
             printf("xmin: (%10.7f,%10.7f,%10.7f) \n", xmin, ymin, zmin);
@@ -150,12 +150,25 @@ public class DataSourceGrid extends TransformableDataSource {
         int nz = m_nz;
         int nxy = nx*ny;
 
+        double vmin = m_mapper.getVmin();
+        double vmax = m_mapper.getVmax();
+        double xmin = m_mapper.getXmin();
+        double xmax = m_mapper.getXmax();
+        if(DEBUG) printf("xmin: %5.1f, xmax: %5.1f, vmin: 9.5f, vmax: %9.5f\n", xmin, xmax, vmin, vmax);
+
         for(int z = 0; z < nz; z++){
             for(int y = 0; y < ny; y++){
                 for(int x = 0; x < nx; x++){
-                    long att = m_grid.getAttribute(x,y,z);
-                    data[x + y * nx + z * nxy] = (byte)(att & 0xFF);
+                    
+                    long att = (long)(short)m_grid.getAttribute(x,y,z);
+                    double v = m_mapper.map(att);
+                    int vi = (int)(255*((v - vmin)/(vmax - vmin)))&0xFF;
+                    if(DEBUG & (z == nz/2) && (x > nx/4 && x < nx/2) && (y < ny/2)) printf("%4.2f ", v*1000);
+                    //if(DEBUG & (z == nz/2) && (x > nx/4 && x < nx/2) && (y < ny/2)) printf("(%4x %x)", att, vi);
+                    // v is inside of (vmin, vmax);
+                    data[x + y * nx + z * nxy] = (byte)vi;
                 }
+                if(DEBUG & (z == nz/2)) printf("\n");
             }            
         }
     }
@@ -270,7 +283,7 @@ public class DataSourceGrid extends TransformableDataSource {
             v011 = getGridValue(ix,  iy1, iz1),
             v111 = getGridValue(ix1, iy1, iz1);
 
-        if(DEBUG && debugCount-- > 0) printf("[%3d, %3d, %3d]: %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d\n",ix, iy, iz, 
+        if(false && debugCount-- > 0) printf("[%3d, %3d, %3d]: %3d,%3d,%3d,%3d,%3d,%3d,%3d,%3d\n",ix, iy, iz, 
                                              v000,v100, v010, v110, 
                                              v001,v101, v011, v111);
         double d = 

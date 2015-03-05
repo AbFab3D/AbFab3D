@@ -27,9 +27,11 @@ public class LinearMapper {
     
     public double map(double x){
 
-        double v = (x - xmin)*scale;
+        if(x <= xmin) return vmin;
+        if(x >= xmax) return vmax; 
+            
+        return (x - xmin)*scale + vmin;
 
-        return v;
     }
     
 

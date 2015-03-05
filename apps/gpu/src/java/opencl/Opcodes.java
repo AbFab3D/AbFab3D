@@ -56,6 +56,7 @@ public class Opcodes {
     // 
         oENGRAVE         = 21,
         oGRID2DBYTE      = 22,
+        oGRID3DBYTE      = 23,
 
     // end of operations
         oEND = 0; 
@@ -84,6 +85,7 @@ public class Opcodes {
         codes.put(oSCALE, "Scale");
         codes.put(oENGRAVE, "Engrave");
         codes.put(oGRID2DBYTE, "Grid2dByte");        
+        codes.put(oGRID3DBYTE, "Grid3dByte");        
     }
 
     public static String getText(int code) {

@@ -38,6 +38,7 @@ public class CLNodeFactory {
         sm_map.put("Engraving", "opencl.CLEngraving");
         sm_map.put("ImageBitmap", "opencl.CLImageBitmap");
         sm_map.put("Text", "opencl.CLText");
+        sm_map.put("DataSourceGrid", "opencl.CLGrid");
     }
     
     public CLNodeFactory(){        
