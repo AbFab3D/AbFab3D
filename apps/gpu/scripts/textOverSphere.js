@@ -1,43 +1,92 @@
-function spheres(radius, count){
+function getRotation(from, to){
 
-	var union = new Union();
-	var blend = union.getParam("blend").setValue(0.5*MM);
-	var x0 = -radius;
-	var dx = 2*radius/(count-1);
-	for (i = 0; i < count; i++) {
-		union.add(new Sphere(x0 + dx*i, 0, 0, radius));
-	}
-	return union;
+	var a = new Vector3d();
+	a.cross(from, to);
+	var sina = a.length();
+	   
+	var cosa = to.dot(from);
+	var angle = Math.atan2(sina, cosa);
+
+	if(Math.abs(sina) < 1.e-8)
+	   return new AxisAngle4d(1,0,0,0);
+
+	a.normalize();
+	return new AxisAngle4d(a.x,a.y,a.z,angle);
+}
+// calculates transformation of text to be placed between point p0 and p1 wih normals n0 and n1
+function getTextTransform(p0, n0, p1, n1){
+
+	// calculation of text transform
+	var nn = new Vector3d();
+	nn.add(n0,n1);
+	nn.normalize();
+	
+	var center = new Vector3d();
+	center.add(p0, p1);
+	center.scale(0.5);
+	var xdir = new Vector3d();
+	xdir.sub(p1,p0);
+	var len = xdir.length();
+	xdir.normalize();
+	
+	var xaxis = new Vector3d(1,0,0);
+	
+	var aa1 = getRotation(xaxis, xdir);
+	
+	var m1 = new Matrix3d();
+	m1.set(aa1);
+	var zaxis = new Vector3d(0,0,1);
+	m1.transform(zaxis); // zaxis after first rotation
+	
+	var aa2 = getRotation(zaxis, nn);
+	var trans = new CompositeTransform();
+	trans.add(new Rotation(aa1.x,aa1.y,aa1.z, aa1.angle));
+	trans.add(new Rotation(aa2.x,aa2.y,aa2.z, aa2.angle));
+	trans.add(new Translation(center));
+	return trans;
 }
 
+
 function main(args) {
+
     var radius = 25 * MM;
-	var bx = 20*MM;
-	var by = 10*MM;
-	var bz = 20*MM;
+	
+	var n0 = new Vector3d(-0.7,0.2,1);
+	var n1 = new Vector3d(0., 0.7,1);
+	n0.normalize();
+	n1.normalize();
+	var p0 = new Vector3d(n0);
+	var p1 = new Vector3d(n1);
+	p0.scale(r);
+	p1.scale(r);
+	
+	var ttrans = getTextTransform(p0,n0,p1,n1);
+	var p01 = new Vector3d();
+	p01.sub(p1,p0);
+	
+	var bx = p01.length();
+	var by = 5*MM;
+	var bz = 5*MM;
 	var s = 22*MM;
 
 	var radius = 15*MM;
 	var r = 5*MM;
 	var vs = 0.1*MM;
 		
-    //var textBox = new Text("text text", "Courier", bx, by, bz, vs);
-    var textBox = new Text("TEXT text TEXT text TEXT", "Times New Roman", bx, by, bz, vs);
+    var textBox = new Text("TEXT text", "Times New Roman", bx, by, bz, vs);
 	
 	textBox.getParam("rounding").setValue(0.*MM);
-	textBox.getParam("center").setValue(new Vector3d(0,0,radius));
 	textBox.getParam("blurWidth").setValue(0.1*MM);
-	
-    var maker = new GridMaker();
+	textBox.setTransform(getTextTransform(p0,n0,p1,n1));
 
-	var shape = new Sphere(12*MM);
 	
-	var union = new Union(shape, textBox);
+	var shape = new Union(new Sphere(radius),new Sphere(p0,1*MM),new Sphere(p1, 1*MM));
+	
 	var eng = new Engraving(shape, textBox);
 	eng.getParam("depth").setValue(0.5*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
-	var r = 13*MM;
+	var r = radius+1*MM;
 	return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
 
 }
