@@ -52,13 +52,13 @@ function main(args) {
     var radius = 25 * MM;
 	
 	var n0 = new Vector3d(-0.7,0.2,1);
-	var n1 = new Vector3d(0., 0.7,1);
+	var n1 = new Vector3d(0.7, 0.5,1);
 	n0.normalize();
 	n1.normalize();
 	var p0 = new Vector3d(n0);
 	var p1 = new Vector3d(n1);
-	p0.scale(r);
-	p1.scale(r);
+	p0.scale(radius);
+	p1.scale(radius);
 	
 	var ttrans = getTextTransform(p0,n0,p1,n1);
 	var p01 = new Vector3d();
@@ -66,13 +66,10 @@ function main(args) {
 	
 	var bx = p01.length();
 	var by = 5*MM;
-	var bz = 5*MM;
+	var bz = 10*MM;
 	var s = 22*MM;
 
-	var radius = 15*MM;
-	var r = 5*MM;
-	var vs = 0.1*MM;
-		
+	var vs = 0.1*MM;		
     var textBox = new Text("TEXT text", "Times New Roman", bx, by, bz, vs);
 	
 	textBox.getParam("rounding").setValue(0.*MM);
@@ -80,7 +77,9 @@ function main(args) {
 	textBox.setTransform(getTextTransform(p0,n0,p1,n1));
 
 	
-	var shape = new Union(new Sphere(radius),new Sphere(p0,1*MM),new Sphere(p1, 1*MM));
+	var shape = new Union(new Sphere(radius));
+	shape.add(new Sphere(p0,1*MM));
+	shape.add(new Sphere(p1,1*MM));
 	
 	var eng = new Engraving(shape, textBox);
 	eng.getParam("depth").setValue(0.5*MM);
