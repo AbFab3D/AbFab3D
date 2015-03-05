@@ -1162,4 +1162,81 @@ public class MathUtil {
         return ((1L << bitCount)-1);
         */
     }
+
+
+    /**
+       
+     */
+    public static final double lerp(double x1, double x2, double t){
+        return x1 + t * (x2-x1);
+    }
+
+
+    /**
+       return point where indicator function becomes 0 on the segment (p0,p1) if values of function at he ends of segment are (v0,v1) 
+       // indicator function algorithm is based on 
+       // 
+       // J. Manson, J. Smith, and S. Schaefer (2011) 
+       // Contouring Discrete Indicator Functions
+       @param result - return value of intersection 
+       */
+    public static void intersectIF(Vector3d p0, Vector3d p1, double v0, double v1, Vector3d result){
+
+        double c = coeffIF(0.5*(1-v0),0.5*(1-v1));
+        result.x = lerp(p0.x,p1.x, c); 
+        result.y = lerp(p0.y,p1.y, c); 
+        result.z = lerp(p0.z,p1.z, c); 
+    }
+
+    //
+    public static final double coeffIF(double v1, double v2){
+        if (v1 < v2)
+            return coeffIF2(v1, v2);
+        else
+            return 1. - coeffIF2(v2, v1);
+    }
+    
+    public static final double coeffIF2(double v1, double v2){
+
+        int selector = 0;
+	if (3*v1 >= v2) // test 1-3
+            selector += 1;
+	if (v1 + 2 >= 3*v2) // test 1-4
+            selector += 2;
+        
+	switch (selector){
+            
+	case 3: // must be 1
+            return (v1 - .5) / (v1 - v2);  
+	case 0: // must be 2
+            return 1.5 - v1 - v2;            
+	case 2: // test 2-3
+            {
+                double d = v1*(v1+v2);
+                double s = 2*v1+2*v2-1;
+                if (4*d > s*s)	{
+                    return 1. - (2*v2 - 1) / (8*v1 + 4*v2 -8*sqrt(d)); // must be 3
+                } else {
+                    return 1.5 - v1 - v2; // must be 2
+                }
+            }
+            
+	case 1: // test 2-4
+            {
+                double b1 = 1 - v2;
+                double b2 = 1 - v1;
+                
+                double d = b1*(b1+b2);
+                double s = 2*b1+2*b2-1;
+                if (4*d > s*s){
+                    return (2*b2 - 1) / (8*b1 + 4*b2 - 8*sqrt(d)); // must be 4
+                } else {
+                    return 1.5 - v1 - v2; // must be 2
+                }
+            }
+	}
+        
+	return 0;
+    }
+
 }

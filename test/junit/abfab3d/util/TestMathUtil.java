@@ -20,6 +20,7 @@ import junit.framework.TestSuite;
 
 import java.util.Random;
 import javax.vecmath.Matrix3d;
+import javax.vecmath.Vector3d;
 
 import static java.lang.Math.abs;
 
@@ -271,17 +272,38 @@ public class TestMathUtil extends TestCase {
         
     }
 
+    public void testIntersectIF(){
+        Vector3d p0 = new Vector3d(0,0,0);
+        Vector3d p1 = new Vector3d(1,0,0);
+        //double v0 = 0;
+        //double v1 = 1;
+        Vector3d p2 = new Vector3d(0,0,0);
+
+        //MathUtil.intersectIF(p0, p1, v0, v1, p2);
+        
+        //printf("p0: (%4.2f,%4.2f,%4.2f) p1:(%4.2f,%4.2f,%4.2f),v0: %4.2f v1: %4.2f p2:(%4.2f,%4.2f,%4.2f)\n", p0.x,p0.y,p0.z, p1.x,p1.y,p1.z,v0,v1, p2.x,p2.y,p2.z);
+        int N = 10;
+        for(int y = 0; y <= N; y++){
+            for(int x = 0; x <= N; x++){
+                double v0 = -0.1*x-0.01;
+                double v1 = 0.1*y;                
+                MathUtil.intersectIF(p0, p1, v0, v1, p2);
+                printf("%5.2f ", p2.x);
+            }
+            printf("\n");
+        }
+    }
 
     public static void main(String arg[]){
 
-        new TestMathUtil().testInversion3b();
+        //new TestMathUtil().testInversion3b();
         //new TestMathUtil().testInversion3a();
         //new TestMathUtil().testSolveLinear3();
         //new TestMathUtil().testSolveLinear3a();
         //new TestMathUtil().testGetBestPlane();
         //new TestMathUtil().testGetBestPlane();
         //new TestMathUtil().testGetBestPlane2();
-
+        new TestMathUtil().testIntersectIF();
         
     }
 }

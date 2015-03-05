@@ -25,6 +25,7 @@ import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.util.AbFab3DGlobals;
 import abfab3d.util.PointSet;
 import abfab3d.util.PointSetArray;
+import abfab3d.util.MathUtil;
 
 
 import static abfab3d.util.Output.printf;
@@ -335,17 +336,17 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
                     if(ix < nx1){
                         int vx = (int)grid.getAttribute(ix+1,iy,iz)-sv;
                         if(v0 * vx <= 0 && v0 != vx)
-                            pnts.addPoint(x+(vs*v0)/(v0-vx), y, z);
+                            pnts.addPoint(x+vs*coeff(v0, vx), y, z);
                     }
                     if(iy < ny1){
                         int vy = (int)grid.getAttribute(ix,iy+1,iz)-sv;
                         if(v0 * vy <= 0 && v0 != vy)
-                            pnts.addPoint(x,y+(vs*v0)/(v0-vy),z);
+                            pnts.addPoint(x,y+vs*coeff(v0, vy),z);
                     }
                     if(iz < nz1){
                         int vz = (int)grid.getAttribute(ix,iy,iz+1)-sv;
                         if(v0 * vz <= 0 && v0 != vz )
-                            pnts.addPoint(x, y, z +(vs*v0)/(v0-vz));                    
+                            pnts.addPoint(x, y, z+vs*coeff(v0, vz));                    
                     }
                 }
             }
@@ -359,7 +360,24 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
     }
 
     /**
-       runner for each thread 
+       return zero of linear function on interval (0,1) which has values v0 and v1 at the end of interval 
+
+       f(x) = a*x + b;
+       f(0) = v0
+       f(1) = v1
+       
+     */
+    final double _coeff(int v0, int v1){
+        return ((double)v0)/(v0-v1);
+    }
+
+    final double coeff(int v0, int v1){
+        double svr = m_subvoxelResolution;
+        return MathUtil.coeffIF((v0+m_surfaceValue)/svr, (v1+m_surfaceValue)/svr);
+    }
+
+    /**
+       
      */
     class SliceProcessor implements Runnable {
 
