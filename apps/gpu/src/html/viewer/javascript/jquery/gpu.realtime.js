@@ -162,9 +162,7 @@ function paramDataToQueryString(params) {
   return newParams;
 }
 
-function initScript() {
-//  spin('preview');
-
+function updateScene() {
   if (updatingScene) {
     //console.log("Still loading, skipping");
     usSkipCount--;
@@ -184,32 +182,25 @@ function initScript() {
     'script':  editor.getValue()
   };
 
-  var url = "/creator/shapejsRT_v1.0.0/updateScene?" + $.param(extraParams);
+  options = {
+    url: "/creator/shapejsRT_v1.0.0/updateScene",
+    type: "post",
+    timeout: 180000,
+    beforeSubmit: jsonForm,
+    success: function() {
+      updatingScene = false;
+      viewChanged = true;  // force a redraw
+      unspin();
+    },
+    error: function(xhr, textStatus, errorThrown) {
+      updatingScene = false;
+      alert( "Request failed: " + xhr );
+      console.log(xhr);
+      unspin();
+    }
+  };
 
-  if (paramData !== undefined && paramData !== null) {
-    url = url + "&" + $.param(paramDataToQueryString(paramData));
-  }
-
-  var request = $.ajax({
-    type: "POST",
-    url: url
-  })
-  
-  request.done(function( data ) {
-    updatingScene = false;
-    viewChanged = true;  // force a redraw
-    /*
-    var imageViewer = document.getElementById("render");
-    imageViewer.setAttribute("src", url);
-    */
-    unspin();
-  });
- 
-  request.fail(function( jqXHR, textStatus ) {
-    updatingScene = false;
-    alert( "Request failed: " + jqXHR );
-    unspin();
-  });
+  jQuery('#form').ajaxSubmit(options);
 }
 
 function zoomModel() {
@@ -236,7 +227,7 @@ window.oncontextmenu = function ()
   return false;     // cancel default menu
 }
 
-function pickModel(e, element, x, y) {
+function pickModel(e, element) {
   var pos = getClickPosition(e, element);
   
   console.log("Pick: " + pos[0] + " " + pos[1]);
@@ -267,6 +258,7 @@ function pickModel(e, element, x, y) {
 
   request.done(function( data ) {
     console.log(data);
+    $(pickDataContainer).val(data["pos"]).change();
   });
 
   request.fail(function( jqXHR, textStatus ) {
@@ -315,7 +307,7 @@ function getRender(q) {
   
   skipCount = 15;
 
-  var url = "/creator/shapejsRT_v1.0.0/makeImage?" + $.param(extraParams);
+  var url = "/creator/shapejsRT_v1.0.0/makeImageCached?" + $.param(extraParams);
   
   var request = $.ajax({
     type: "POST",
@@ -339,74 +331,6 @@ function setQuality(q) {
 }
 
 
-function postRender() {
-
-  // Set additional data not part of the form
-  var jobid = getJobID();
-  extraParams = {
-    'jobID':   jobid,
-    'script':  editor.getValue(),
-    'width':   width,
-    'height':  height,
-    'rotX':    rotX.toFixed(4),  // x rotation in radians
-    'rotY':    rotY.toFixed(4),  // y rotation in radians
-    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
-    'imgType': imgType,
-    'quality': quality
-  };
-
-  options = {
-    url: "/creator/shapejsRT_v1.0.0/makeImage",
-    type: "post",
-    timeout: 180000,
-    beforeSubmit: jsonForm,
-    success: function() {
-      extraParams = {
-        'jobID':   jobid,
-        'width':   width,
-        'height':  height,
-        'rotX':    rotX.toFixed(4),  // x rotation in radians
-        'rotY':    rotY.toFixed(4),  // y rotation in radians
-        'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
-        'imgType': imgType,
-        'quality': quality
-      };
-      var url = "/creator/shapejsRT_v1.0.0/makeImageCached?" + $.param(extraParams);
-      console.log(url);
-      var imageViewer = document.getElementById("render");
-      imageViewer.setAttribute("src", url);
-      unspin();
-    },
-    error: function(xhr, textStatus, errorThrown) {
-      alert("Status: " + textStatus + ",\nError: " + errorThrown);
-      console.log(xhr);
-      unspin();
-    }
-  };
-
-  jQuery('#form').ajaxSubmit(options);
-}
-
-////////////////////////////////////////////////////////
-
-function loadFile(method, url, data, type) {
-  jQuery.ajax({
-    url: url,
-    data: data,
-    type: method,
-    async: false,
-    dataType: type,
-    timeout:  30000,
-    success: function(response) {
-      editor.setValue(response);
-      return true;
-    },
-    error: function(response) {
-      return false;
-    }
-  });
-}
-
 /////////////////////////////////////////
 // Other things
 /////////////////////////////////////////
@@ -424,34 +348,6 @@ function gup( name ) {
     return "";
   else
     return results[1];
-}
-
-function isWebGLSupported() {
-  var forceImage = gup('forceImage');
-
-  if (forceImage == 'true') {
-    return false;
-  }
-
-  var cvs = document.createElement('canvas');
-  var contextNames = ["webgl","experimental-webgl","moz-webgl","webkit-3d"];
-  var ctx;
-
-  if ( navigator.userAgent.indexOf("MSIE") >= 0 ) {
-    try {
-      ctx = WebGLHelper.CreateGLContext(cvs, 'canvas');
-    } catch(e) {}
-  } else {
-    for ( var i = 0; i < contextNames.length; i++ ) {
-      try {
-        ctx = cvs.getContext(contextNames[i]);
-        if ( ctx ) break;
-      } catch(e){}
-    }
-  }
-
-  if ( ctx ) return true;
-  return false;
 }
 
 function spin(process) {
