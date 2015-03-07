@@ -4,7 +4,6 @@ var extraParams;
 var previewResultsURL = "";
 var creatorOutput = "";
 var generateImage = false;
-var concatenateFiles = false;
 
 var maxParams = 20;
 
@@ -22,6 +21,7 @@ var zoom = -4;
 var quality = 0.5;
 var viewChanged = false;
 var forceFull = false;  //  should we force a full render
+var highQuality = false;
 
 var maxFPS = 30;  // maximum frame rate to shoot for
 var updatingScene = false;
@@ -66,10 +66,15 @@ function draw() {
     viewChanged = false;
     frameNum++;
 
+    var useQuality = quality;
     var imgType = "jpg";
-    if (quality >= 1.0)
+    
+    if (highQuality) {
+      useQuality = 1.0;
       imgType = "png";
-
+      highQuality = false;
+    }
+    
     if (forceFull) {
       extraParams = {
         'jobID': getJobID(),
@@ -80,7 +85,7 @@ function draw() {
         'rotY': rotY.toFixed(4),  // y rotation in radians
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
-        'quality': quality,
+        'quality': useQuality,
         'frameNum': frameNum     // cache busting logic
       };
     } else {
@@ -90,7 +95,7 @@ function draw() {
         'rotY': rotY.toFixed(4),  // y rotation in radians
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
-        'quality': quality,
+        'quality': useQuality,
         'frameNum': frameNum     // cache busting logic
       };
     }
@@ -230,7 +235,7 @@ window.oncontextmenu = function ()
 function pickModel(e, element) {
   var pos = getClickPosition(e, element);
   
-  console.log("Pick: " + pos[0] + " " + pos[1]);
+//  console.log("Pick: " + pos[0] + " " + pos[1]);
 
   extraParams = {
     'x': pos[0],
@@ -257,8 +262,7 @@ function pickModel(e, element) {
   })
 
   request.done(function( data ) {
-    console.log(data);
-    $(pickDataContainer).val(data["pos"]).change();
+    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
   });
 
   request.fail(function( jqXHR, textStatus ) {
@@ -289,47 +293,15 @@ function getClickPosition(event, element) {
   return [x,y];
 }
 
-function getRender(q) {
-  spin('preview');
-  
-  var imgType = "jpg";
-  if (q >= 1.0) 
-    imgType = "png";
-  
-  extraParams = {
-    'jobID':  getJobID(),
-    'rotX':    rotX.toFixed(4),  // x rotation in radians
-    'rotY':    rotY.toFixed(4),  // y rotation in radians
-    'zoom':    zoom.toFixed(4),  // zoom level (translation in z direction)
-    'imgType': imgType,
-    'quality': q
-  };
-  
-  skipCount = 15;
-
-  var url = "/creator/shapejsRT_v1.0.0/makeImageCached?" + $.param(extraParams);
-  
-  var request = $.ajax({
-    type: "POST",
-    url: url
-  })
-  
-  request.done(function( data ) {
-    var imageViewer = document.getElementById("render");
-    imageViewer.setAttribute("src", url);
-  });
- 
-  request.fail(function( jqXHR, textStatus ) {
-    alert( "Request failed: " + textStatus );
-    unspin();
-  });
-}
-
 function setQuality(q) {
   quality = q;
   viewChanged = true;
 }
 
+function renderHighQuality() {
+  highQuality = true;
+  viewChanged = true;
+}
 
 /////////////////////////////////////////
 // Other things
