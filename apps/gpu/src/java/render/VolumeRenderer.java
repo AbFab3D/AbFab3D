@@ -405,6 +405,9 @@ public class VolumeRenderer {
 
                 queue.putWriteBuffer(opBuffer, false, null);
                 
+                if(dataBuffer != null){
+                    dataBuffer.release();
+                }
                 dataBuffer = context.createByteBuffer(codeBuffer.dataSize(), READ_ONLY);
                 codeBuffer.getData(dataBuffer);
                 dataBuffer.getBuffer().rewind();
