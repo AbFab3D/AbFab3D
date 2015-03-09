@@ -34,7 +34,7 @@
 
 var paramData = {};
 var paramRequired = {};
-var deltaParams = [];
+var deltaParams = [];   // Keep track of script parameters that have changed
 
 var imageViewer;
 var viewMatrix;
@@ -224,6 +224,7 @@ function evalScriptParams() {
     }
   });
 
+  // Reset deltaParams since the script may have different parameters after evaluation of script
   deltaParams.length = 0;
 
   // Insert new params that do not already exist
@@ -234,6 +235,7 @@ function evalScriptParams() {
         if (paramData[param.id] === undefined) {
           insertInput(param);
         } else {
+          // After resetting deltaParams, need to add params that were kept back to deltaParams
           deltaParams.push(param.id);
         }
       } else {

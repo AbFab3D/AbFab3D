@@ -264,7 +264,10 @@ function pickModel(e, element) {
 
   request.done(function( data ) {
     // Response with normals (-10000, -10000, -10000) means no valid position on geometry was clicked
-    if (data.normal[0] != -10000 && data.normal[0] != -10000 && data.normal[0] != -10000)
+    // TODO: Clicking in the bounding box of model returns valid response, but not a valid geometry position.
+    //       Indicated with normals (0,0,0). Should fix on server side.
+    if ( (data.normal[0] != -10000 && data.normal[0] != -10000 && data.normal[0] != -10000) &&
+         (data.normal[0] != 0 && data.normal[0] != 0 && data.normal[0] != 0) )
       $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
   });
 
