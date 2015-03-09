@@ -89,7 +89,7 @@ function main(args) {
 	var vs = 0.2*MM;
 	var maxDist = 1*MM;
 	var svr = 255;
-	
+
 	var modelPath = args['model'];
 	var imagePath = args['image'];
 	var textpos0 = args['textpos0'];
@@ -107,7 +107,7 @@ function main(args) {
 		var bounds = getCachedData(boundsKey);
 
 		if (distData == null) {
-			var modelGrid = load(modelPath, vs);
+			var modelGrid = load(modelPath, vs,2*MM);
 			bounds = modelGrid.getGridBounds();
 
 			var dt = new DistanceTransformLayered(svr, maxDist, maxDist);
