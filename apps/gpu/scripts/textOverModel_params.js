@@ -82,21 +82,32 @@ function main(args) {
 	var shape = null;
 	var bounds = null;
 	var textBox = null;
+	var bounds;
 	
 	if (modelPath) {
-	  var modelGrid = load(modelPath, vs);
-	  var dt = new DistanceTransformLayered(svr, maxDist,maxDist);
-	  var distGrid = dt.execute(modelGrid);
-	  var distData = new DataSourceGrid(distGrid);
-	  // a hack to get real distance from the distance grid
-	  var maxDistSVR = svr*(maxDist/vs);
-	  distData.setMapper(new LinearMapper(-maxDistSVR,maxDistSVR,-maxDist, maxDist));
+	  	var distDataKey = "distData:" + modelPath;
+		var boundsKey = "gridBounds:"+modelPath;
+		var distData = getCachedData(distDataKey);
+		bounds = getCachedData(boundsKey);
+		if(distData == null){
+	
+			var modelGrid = load(modelPath, vs);
+			var dt = new DistanceTransformLayered(svr, maxDist,maxDist);
+			var distGrid = dt.execute(modelGrid);
+			var distData = new DataSourceGrid(distGrid);
+			// a hack to get real distance from the distance grid
+			var maxDistSVR = svr*(maxDist/vs);
+			distData.setMapper(new LinearMapper(-maxDistSVR,maxDistSVR,-maxDist, maxDist));
 
-	  bounds = modelGrid.getGridBounds();
-	  var cx = bounds.getCenterX();
-	  var cy = bounds.getCenterY();
-	  var cz = bounds.getCenterZ();
-	  shape = distData;
+			bounds = modelGrid.getGridBounds();
+			var cx = bounds.getCenterX();
+			var cy = bounds.getCenterY();
+			var cz = bounds.getCenterZ();
+			
+			saveCachedData(distDataKey, distData);
+			saveCachedData(boundsKey, bounds);
+	    } 
+		shape = distData;
 	}
 	
 	if (textpos0 && textpos1) {
