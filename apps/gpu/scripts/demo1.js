@@ -24,8 +24,8 @@ var params = [
 		"id": "textDepth",
 		"displayName": "Text Depth",
 		"type": "range",
-		"rangeMin": 0.2,
-		"rangeMax": 3,
+		"rangeMin": -2,
+		"rangeMax": 2,
 		"step": 0.1,
 		"default": 0.5
 	},
@@ -53,8 +53,8 @@ var params = [
 		"id": "imageDepth",
 		"displayName": "Image Depth",
 		"type": "range",
-		"rangeMin": 0.2,
-		"rangeMax": 3,
+		"rangeMin": -2,
+		"rangeMax": 2,
 		"step": 0.1,
 		"default": 0.5
 	},
