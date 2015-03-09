@@ -96,7 +96,7 @@ typedef struct {
 
         // CL code should maps (0,255) into (vmin, vmax);
         // value = byteValue*valueFactor + valueOffset;
-        double boundaryLayer = 0.001*(size.x/nx);  // small offset to get rid of surface artifacts
+        double boundaryLayer = 0.0000001*(size.x/nx);  // small offset to get rid of surface artifacts
         double valueOffset = vmin;
         double valueFactor = (vmax - vmin)/255.;
         //TODO - take outside values from DataSource 

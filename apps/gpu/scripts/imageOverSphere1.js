@@ -20,15 +20,15 @@ function main(args) {
 	var r = 5*MM;
 	var vs = 0.1*MM;
     //var path = 	"scripts/pattern.png";
-    //var path = 	"scripts/shapeways227.png";
-    var path = 	"scripts/shapeways755.png";
+    var path = 	"scripts/shapeways227.png";
+    //var path = 	"scripts/shapeways755.png";
 	var image = loadImage(path);
 		
 	by = bx * image.getHeight()/image.getWidth();
 
     var imgBox = new ImageBitmap(image, bx, by, bz, vs);
 	imgBox.setBlurWidth(0.1*MM);
-	imgBox.getParam("rounding").setValue(0.*MM);
+	imgBox.getParam("rounding").setValue(0.1*MM);
 	imgBox.getParam("center").setValue(new Vector3d(0,0,radius));
 
     var maker = new GridMaker();
@@ -39,7 +39,7 @@ function main(args) {
 	
 	var union = new Union(shape, imgBox);
 	var eng = new Engraving(shape, imgBox);
-	eng.getParam("depth").setValue(-0.5*MM);
+	eng.getParam("depth").setValue(0.5*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
 	var r = 15*MM;
