@@ -410,6 +410,10 @@ function setParamRequirement(id, required) {
 function addParamUIListener(element, elementId, type) {
   switch (type) {
     case "text":
+      $(element).on("input", function() {
+        setParamVal( elementId, $(element).val() );
+	    update(false, false);
+      });
       break;
     case "range":
       $(element).on("input", function() {
