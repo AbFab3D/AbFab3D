@@ -24,7 +24,17 @@ var params = [
         "type": "3dloc",
         "default": "",
         "required": false
-    }
+    },
+	{
+		"id": "engraveDepth",
+		"displayName": "Engrave Depth",
+		"type": "range",
+		"rangeMin": -1,
+		"rangeMax": 1,
+		"step": 0.1,
+		"default": -1
+	}
+
 ];
 
 function getRotation(from, to){
@@ -84,6 +94,7 @@ function main(args) {
 	var imagePath = args['image'];
 	var textpos0 = args['textpos0'];
 	var textpos1 = args['textpos1'];
+	var engraveDepth = args.engraveDepth * MM;
 	
 	var shape = null;
 	var bounds = null;
@@ -153,7 +164,7 @@ function main(args) {
 	  if (imgBox !== null) {
 	    var union = new Union(shape, imgBox);
 	    var eng = new Engraving(shape, imgBox);
-	    eng.getParam("depth").setValue(0.5*MM);
+	    eng.getParam("depth").setValue(engraveDepth);
 	    eng.getParam("blend").setValue(0.2*MM);
 	    return new Shape(eng, bounds);
 	  } else {
