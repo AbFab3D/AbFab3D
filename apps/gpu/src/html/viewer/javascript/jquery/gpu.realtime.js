@@ -191,10 +191,11 @@ function updateScene() {
     url: "/creator/shapejsRT_v1.0.0/updateScene",
     type: "post",
     timeout: 180000,
-    beforeSubmit: jsonForm,
+    beforeSubmit: prepForm,
     success: function() {
       updatingScene = false;
       viewChanged = true;  // force a redraw
+      deltaParams.length = 0;
       unspin();
     },
     error: function(xhr, textStatus, errorThrown) {
@@ -262,7 +263,9 @@ function pickModel(e, element) {
   })
 
   request.done(function( data ) {
-    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
+    // Response with normals (-10000, -10000, -10000) means no valid position on geometry was clicked
+    if (data.normal[0] != -10000 && data.normal[0] != -10000 && data.normal[0] != -10000)
+      $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
   });
 
   request.fail(function( jqXHR, textStatus ) {

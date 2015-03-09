@@ -34,6 +34,7 @@
 
 var paramData = {};
 var paramRequired = {};
+var deltaParams = [];
 
 var imageViewer;
 var viewMatrix;
@@ -89,14 +90,18 @@ function randomstring(L){
   return s;
 }
 
-function jsonForm(formData, jqForm, options) {
-
+function prepForm(formData, jqForm, options) {
   for (var i=0; i < formData.length; i++) {
-    formData[i].name = "shapeJS_" + formData[i].name;
+    if ( $.inArray(formData[i].name, deltaParams) >= 0 ) {
+      formData[i].name = "shapeJS_" + formData[i].name;
+    } else {
+      formData.splice(i, 1);
+      i--;
+    }
   }
 
   // Add extra parameters not part of the form to formData
-  jQuery.each(extraParams, function(key, val) {
+  $.each(extraParams, function(key, val) {
     formData.push({name: key, value: val});
   });
 /*
@@ -107,11 +112,14 @@ function jsonForm(formData, jqForm, options) {
 	  checkFile(formData, i);
 	}
   }
+
+  for (var i=0; i < formData.length; i++) {
+    console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
+  }
 */
-//  for (var i=0; i < formData.length; i++) {
-//    console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
-//  }
 }
+
+
 
 function checkFile(formData, index) {
   var fileParam = formData[index].name;
@@ -412,12 +420,14 @@ function addParamUIListener(element, elementId, type) {
     case "text":
       $(element).on("input", function() {
         setParamVal( elementId, $(element).val() );
+        deltaParams.push(elementId);
 	    update(false, false);
       });
       break;
     case "range":
       $(element).on("input", function() {
         setParamVal( elementId, $(element).val() );
+        deltaParams.push(elementId);
 	    var displayId = elementId + "-display";
 	    if ( $("#" + displayId).length ) {
 	      $("#" + displayId).html( $(element).val() );
@@ -428,6 +438,7 @@ function addParamUIListener(element, elementId, type) {
     case "3dloc":
       $(element).on("change", function() {
         setParamVal( elementId, $(element).val() );
+        deltaParams.push(elementId);
 	    update(false, false);
       });
       break;
@@ -444,6 +455,7 @@ function addFileParamUIListener(element, elementId, nameHolderElement, type) {
     var fileName = tmp[tmp.length-1];
     nameHolderElement.value = fileName;
     setParamVal( elementId, fileName );
+    deltaParams.push(elementId);
     update(false, true);
   });
 }
@@ -480,6 +492,33 @@ function pickModeOff(button) {
   $(button).addClass("param-button");
   $("#render").removeClass("render-picking");
   $("#render").addClass("render-normal");
+}
+
+function toggleScriptView() {
+//  if ($("#viewer-container").css("visibility") == "hidden") {
+  if ($("#viewer-container").is(':visible')) {
+    hideViewer();
+  } else {
+    showViewer();
+  }
+}
+
+function hideViewer() {
+  $("#viewer-container").hide();
+  $("#jscode").removeClass("jscode");
+  $("#jscode").addClass("jscode-expanded");
+  $("#expand-arrow").removeClass("expand-arrow");
+  $("#expand-arrow").addClass("contract-arrow");
+  $("#expand-arrow").attr( "src", "images/arrow_left.png" );
+}
+
+function showViewer() {
+  $("#jscode").removeClass("jscode-expanded");
+  $("#jscode").addClass("jscode");
+  $("#expand-arrow").removeClass("contract-arrow");
+  $("#expand-arrow").addClass("expand-arrow");
+  $("#expand-arrow").attr( "src", "images/arrow_right.png" );
+  $("#viewer-container").show();
 }
 
 function addMouseEventListeners() {
@@ -616,8 +655,8 @@ function onKeyPress(event) {
 <div id="main-box">
 
 <div class="quality-control">
-  <div><img src="images/icon-camera-128.png" class="camera" onclick="renderHighQuality(true)"/></div>
-  <div>
+  <div id="camera"><img src="images/icon-camera-128.png" class="camera" onclick="renderHighQuality(true)"/></div>
+  <div id="quality-select">
     <select id="render-quality" class="quality-select" onchange="setQuality(this.value)">
       <option value="0.5" selected="selected">Normal</option>
 	  <option value="0.25">Draft</option>
@@ -626,7 +665,7 @@ function onKeyPress(event) {
 </div>
 
 <!-- left column -->
-<div class="jscode">
+<div id="jscode" class="jscode">
 <textarea id="code" name="code" placeholder="">
 var params = [
 	{
@@ -665,6 +704,7 @@ function main(args) {
 <!--<div id="loading" class="loading">Generating...<img width="18" height="18" alt="" src="images/loading.gif" /></div> -->
 <div id="save-button" onclick="" class="submit-save">Save model</div>
 <div id="saving">Saving...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
+<div><img id="expand-arrow" src="images/arrow_right.png" class="expand-arrow" onclick="toggleScriptView()"/></div>
 </div>
 
 
@@ -695,7 +735,7 @@ function main(args) {
 </script>
 
 <!-- middle column -->
-<div class="viewer-container">
+<div id="viewer-container" class="viewer-container">
 <div class="viewer">
 <div id="model-container">
 <div id="loading" class='loading'>

@@ -101,7 +101,7 @@ function main(args) {
 
 			var dt = new DistanceTransformLayered(svr, maxDist, maxDist);
 			var distGrid = dt.execute(modelGrid);
-			var distData = new DataSourceGrid(distGrid);
+			distData = new DataSourceGrid(distGrid);
 			// a hack to get real distance from the distance grid
 			var maxDistSVR = svr * (maxDist / vs);
 			distData.setMapper(new LinearMapper(-maxDistSVR, maxDistSVR, -maxDist, maxDist));
@@ -112,8 +112,9 @@ function main(args) {
 			var cx = bounds.getCenterX();
 			var cy = bounds.getCenterY();
 			var cz = bounds.getCenterZ();
-			shape = distData;
 		}
+		
+		shape = distData;
 	}
 
 	if (imagePath && textpos0 && textpos1) {

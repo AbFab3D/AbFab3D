@@ -199,8 +199,20 @@
 }
 
 .jscode {
+	position: relative;
 	float: left;
 	width: 470px;
+	height: 586px;
+	margin: 0px 10px 10px 10px;
+	text-align: left;
+//	background-color: green;
+	border: 1px solid #DDD;
+	position: relative;
+}
+
+.jscode-expanded {
+	float: left;
+	width: 1007px;
 	height: 586px;
 	margin: 0px 10px 10px 10px;
 	text-align: left;
@@ -504,6 +516,27 @@
   margin-right: 8px;
 }
 .camera:hover {
+  cursor: pointer;
+}
+.expand-arrow {
+//  background-image: url("../images/arrow_right.png");
+//  background-repeat: no-repeat;
+//  position: absolute;
+  float: right;
+  width: 20px;
+  height: 16px;
+  margin: 6px 4px 0px 0px;
+}
+.expand-arrow:hover {
+  cursor: pointer;
+}
+.contract-arrow {
+  float: right;
+  width: 20px;
+  height: 16px;
+  margin: -26px 4px 0px 0px;
+}
+.contract-arrow:hover {
   cursor: pointer;
 }
 
