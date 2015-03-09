@@ -96,7 +96,7 @@ typedef struct {
 
         // CL code should maps (0,255) into (vmin, vmax);
         // value = byteValue*valueFactor + valueOffset;
-        
+        double boundaryLayer = 0.001*(size.x/nx);  // small offset to get rid of surface artifacts
         double valueOffset = vmin;
         double valueFactor = (vmax - vmin)/255.;
         //TODO - take outside values from DataSource 
@@ -128,9 +128,9 @@ typedef struct {
         buffer[c++] = floatToInt(center.y);
         buffer[c++] = floatToInt(center.z);
         buffer[c++] = 0; // alignment
-        buffer[c++] = floatToInt(size.x/2.);
-        buffer[c++] = floatToInt(size.y/2.);
-        buffer[c++] = floatToInt(size.z/2.);
+        buffer[c++] = floatToInt(size.x/2.-boundaryLayer);
+        buffer[c++] = floatToInt(size.y/2.-boundaryLayer);
+        buffer[c++] = floatToInt(size.z/2.-boundaryLayer);
         buffer[c++] = 0;// alignment
         buffer[c++] = floatToInt(center.x-size.x/2.);
         buffer[c++] = floatToInt(center.y-size.y/2.);

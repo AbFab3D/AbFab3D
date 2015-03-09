@@ -400,7 +400,7 @@ void oGrid3dByte(PTRS sGrid3dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
     float d = max(max(v.x,v.y),v.z);
     if(d >= 0.) {
         // outside of grid 
-        out->v.x = d;//grid->outsideValue;        
+        out->v.x = grid->outsideValue;        
         return;
     } 
     //else {
