@@ -72,6 +72,8 @@ public class ShapeJSGlobal {
     private static boolean isDebugViz = false;
     private static int maxThreadCount;
 
+    private static HashMap<String, Object> sm_dataCache = new HashMap<String, Object>();
+
     public static String getOutputFolder() {
         return outputFolder;
     }
@@ -149,10 +151,10 @@ public class ShapeJSGlobal {
     }
     */
     private static String[] globalFunctionsSecure = {
-            "load", "loadImage", "createGrid", "writeTree"
+        "load", "loadImage", "createGrid", "writeTree", "getCachedData", "saveCachedData", 
     };
     private static String[] globalFunctionsAll = {
-            "load", "loadImage", "createGrid", "writeAsMesh", "writeAsSVX", "writeTree"
+        "load", "loadImage", "createGrid", "writeAsMesh", "writeAsSVX", "writeTree","getCachedData", "saveCachedData", 
     };
 
     private HashMap<String, Object> globals = new HashMap<String, Object>();
@@ -319,6 +321,34 @@ public class ShapeJSGlobal {
         }
         throw Context.reportRuntimeError("Failed to load file: " + filename);
     }
+
+    public static void saveCachedData(Context cx, Scriptable thisObj,
+                                      Object[] args, Function funObj) {
+        if (args.length != 2) {
+            throw Context.reportRuntimeError("saveCachedData(key, data) wrong arguments  count");
+        }
+        
+        String key = Context.toString(args[0]);
+        Object data = ((NativeJavaObject) args[1]).unwrap();
+        printf("saveCachedData(%s,%s)\n", key, data);
+
+        sm_dataCache.put(key, data);
+
+    }
+
+    public static Object getCachedData(Context cx, Scriptable thisObj,
+                                      Object[] args, Function funObj) {
+        if (args.length != 1) {
+            throw Context.reportRuntimeError("getCachedData(key) wrong arguments count");
+        }
+
+        String key = Context.toString(args[0]);
+        Object data = sm_dataCache.get(key);
+        printf("getCachedData(%s) returs: %s\n", key, data);
+        return data;
+
+    }
+
 
     /**
      * js function to load image
