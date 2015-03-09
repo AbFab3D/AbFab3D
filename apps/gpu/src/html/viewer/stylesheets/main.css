@@ -128,7 +128,7 @@
 	float: left;
 	width: 452px;
 	padding: 10px;
-	margin: 30px 10px 10px 10px;
+	margin: 0px 10px 10px 10px;
 	text-align: center;
 	background-color: white;
 	border-radius: 5px;
@@ -201,10 +201,10 @@
 .jscode {
 	float: left;
 	width: 470px;
-	height: 552px;
+	height: 586px;
 	margin: 0px 10px 10px 10px;
 	text-align: left;
-	background-color: green;
+//	background-color: green;
 	border: 1px solid #DDD;
 	position: relative;
 }
@@ -275,12 +275,13 @@
 	position: relative;
 	top: 0px;
 	width: 526px;
-	height: 554px;
+	height: 588px;
 	//margin-bottom: 20px;
 	top: 0px;
 	left: 0px;
 	margin: 0px 0px 10px 0px;
 	float: left;
+//	background-color: green;
 }
 .viewer-container .viewer {
 	position: relative;
@@ -299,6 +300,7 @@
 
 .param-row {
   width: 100%;
+  height: 26px;
 //  background-color: red;
 }
 .col1 {
@@ -328,20 +330,18 @@
 //  margin: 3px 5px 3px 3px;
 //  background-color: orange;
 }
-input.col1 {
-  float: left;
-  width: 110px;
-}
 .col2-input {
   position: relative;
   float: left;
   width: 242px;
+  height: 14px;
   padding-left: 4px;
 }
 #title {
   float: left;
   width: 359px;
   height: 22px;
+  padding: 4px;
   font-size: 13px;
   color: #555555;
   background-color: white;
@@ -384,8 +384,8 @@ input.col1 {
   position: relative;
   text-align: left;
   width: 76px;
-  padding: 0px;
-  margin-left: 0px;
+  height: 24px;
+  padding-top: 2px;
 //  background-color: blue;
 }
 
@@ -532,13 +532,14 @@ input.col1 {
   -moz-border-radius: 3;
   float: right;
   position: relative;
-  width: 60px;
+  width: 70px;
+  height: 16px;
   border-radius: 3px;
   text-align: center;
   color: #ffffff;
   font-size: 12px;
-  padding: 3px 10px 3px 10px;
-  margin: 2px 0px 5px 0px;
+  padding: 3px;
+  margin-top: 1px;
   text-decoration: none;
   cursor: pointer;
 }
@@ -552,16 +553,14 @@ input.col1 {
   -webkit-border-radius: 3;
   -moz-border-radius: 3;
   float: right;
-  width: 60px;
+  width: 70px;
+  height: 16px;
   border-radius: 3px;
   text-align: center;
-  font-family: Arial;
   color: #ffffff;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 3px 10px 3px 10px;
-  margin: 2px 0px 5px 0px;
-  cursor: context-menu;
+  padding: 3px;
+  margin-top: 1px;
+  cursor: pointer;
   text-decoration: none;
 }
 
@@ -577,15 +576,16 @@ input.col1 {
   background-image: linear-gradient(to bottom, #1dbaff, #2980b9);
   -webkit-border-radius: 3;
   -moz-border-radius: 3;
-  float: left;
+  float: right;
   position: relative;
-  width: 60px;
+  width: 70px;
+  height: 16px;
   border-radius: 3px;
   text-align: center;
   color: #ffffff;
   font-size: 12px;
-  padding: 3px 10px 3px 10px;
-  margin: 2px 0px 5px 2px;
+  padding: 3px;
+  margin-top: 1px;
   text-decoration: none;
   cursor: pointer;
   overflow: hidden;
@@ -601,4 +601,11 @@ input.col1 {
   cursor: pointer;
   opacity: 0;
   filter: alpha(opacity=0);
+}
+
+.render-normal {
+  cursor: pointer;
+}
+.render-picking {
+  cursor: crosshair;
 }

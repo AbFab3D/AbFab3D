@@ -33,6 +33,7 @@
 <script type="text/javascript">
 
 var paramData = {};
+var paramRequired = {};
 
 var imageViewer;
 var viewMatrix;
@@ -43,6 +44,7 @@ var loading = false;
 var pickMode = false;
 var pickDataContainer = null;
 var scriptChanged = false;
+var curLocButton = null;
 
 var degreeByArrow = 10;
 var radiansByArrow = (degreeByArrow / 180) * 3.14159;
@@ -71,7 +73,7 @@ jQuery(document).ready(function() {
 
   userID = randomstring(5);
 
-  generate();
+  update(true,true);
 
 });
 
@@ -162,33 +164,36 @@ function saveFile() {
 
 /*************************************************/
 
-function generate() {
-  evalScriptParams();
+function update(evalScript, showSpin) {
+  if (typeof evalScript === "undefined" || evalScript === null || evalScript == true)
+    evalScriptParams();
 
-  // Update scene only if all script parameters have values
+  if (renderReady()) {
+    if (showSpin) spin();
+    updateScene();
+  }
+}
+
+/**
+ * Checks if required parameters are set
+ * TODO: Display indicator that not all required parameters are set
+ */
+function renderReady() {
   var ready = true;
 
   $.each(paramData, function(key, val) {
-    if (typeof val === "undefined" || val === null) {
+    if ( val === null && paramRequired[key] == true ) {
       ready = false;
       return false;
     }
   });
 
-  if (ready) {
-    spin();
-    updateScene();
-  }
+  return ready;
 }
 
 function evalScriptParams() {
-  // TODO: Unchanged params stay. Remove no longer existing params. Add new params.
-//  removeAllParams();
-
   var jsScript = editor.getValue();
   eval(jsScript);
-
-//  if (typeof params === "undefined") return;
 
   // Remove item from paramData that no longer exist in params declared in the script
   $.each(paramData, function(key, val) {
@@ -216,9 +221,7 @@ function evalScriptParams() {
     $.each(params, function(i, param) {
       var type = (param.type).toLowerCase();
       if ( $.inArray(type, inputTypes) >= 0) {
-//        console.log("*** " + param.id + " = " + paramData[param.id]);
         if (paramData[param.id] === undefined) {
-//          console.log("*** inserting " + param.id);
           insertInput(param);
         }
       } else {
@@ -247,6 +250,7 @@ function insertInput(param) {
       pname_input_div.appendChild(pname_input);
 
       setParamVal(param.id, param.default);
+      setParamRequirement(param.id, param.required);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
     case "range":
@@ -270,6 +274,7 @@ function insertInput(param) {
       pname_input_display.innerHTML = param.default;
 
       setParamVal(param.id, param.default);
+      setParamRequirement(param.id, param.required);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
     case "3dloc":
@@ -288,11 +293,12 @@ function insertInput(param) {
 
       // Create a button to allow selecting a 3d position
       var button_div = document.createElement("div");
-      button_div.setAttribute("class", "param-button");
-      button_div.setAttribute("onclick", "setPickMode(true, '" + param.id + "');");
+      button_div.setAttribute("class", "col3 param-button");
+      button_div.setAttribute("onclick", "pickModeOn('" + param.id + "', this);");
       button_div.innerHTML = "Location";
 
       setParamVal(param.id, param.default);
+      setParamRequirement(param.id, param.required);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
     case "file":
@@ -317,11 +323,12 @@ function insertInput(param) {
       span.innerHTML = "File";
 
       var button_div = document.createElement("div");
-      button_div.setAttribute("class", "fileUpload");
+      button_div.setAttribute("class", "col3 fileUpload");
       button_div.innerHTML = "File";
       button_div.appendChild(pname_input);
 
       setParamVal(param.id, null);
+      setParamRequirement(param.id, param.required);
       addFileParamUIListener(pname_input, param.id, fname_text, (param.type).toLowerCase());
       break;
     default:
@@ -335,7 +342,7 @@ function insertInput(param) {
   switch ( (param.type).toLowerCase() ) {
     case "file":
       var fval_file_div = document.createElement("div");
-      fval_file_div.setAttribute("class", "param-val");
+//      fval_file_div.setAttribute("class", "param-val");
       fval_file_div.appendChild(pname_input_div);
       fval_file_div.appendChild(button_div);
 
@@ -352,7 +359,7 @@ function insertInput(param) {
       break;
     case "3dloc":
       var pval_div = document.createElement("div");
-      pval_div.setAttribute("class", "param-val");
+//      pval_div.setAttribute("class", "param-val");
       pval_div.appendChild(pname_input_div);
       pval_div.appendChild(button_div);
 
@@ -367,7 +374,7 @@ function insertInput(param) {
       }
     default:
       var pval_div = document.createElement("div");
-      pval_div.setAttribute("class", "param-val");
+//      pval_div.setAttribute("class", "param-val");
       pval_div.appendChild(pname_input_div);
 
       if (pname_input_display !== undefined && pname_input_display !== null) {
@@ -391,9 +398,22 @@ function setParamVal(id, val) {
   paramData[id] = val;
 }
 
+function setParamRequirement(id, required) {
+  var bool = true;
+  if (typeof required !== "undefined" && required !== null) {
+    bool = (required.toString()).toLowerCase();
+    bool = (bool == "true") ? true : false
+  }
+  paramRequired[id] = bool;
+}
+
 function addParamUIListener(element, elementId, type) {
   switch (type) {
     case "text":
+      $(element).on("input", function() {
+        setParamVal( elementId, $(element).val() );
+	    update(false, false);
+      });
       break;
     case "range":
       $(element).on("input", function() {
@@ -402,13 +422,13 @@ function addParamUIListener(element, elementId, type) {
 	    if ( $("#" + displayId).length ) {
 	      $("#" + displayId).html( $(element).val() );
 	    }
-	    updateScene();
+	    update(false, false);
       });
       break;
     case "3dloc":
       $(element).on("change", function() {
         setParamVal( elementId, $(element).val() );
-	    updateScene();
+	    update(false, false);
       });
       break;
     default:
@@ -424,7 +444,7 @@ function addFileParamUIListener(element, elementId, nameHolderElement, type) {
     var fileName = tmp[tmp.length-1];
     nameHolderElement.value = fileName;
     setParamVal( elementId, fileName );
-    updateScene();
+    update(false, true);
   });
 }
 
@@ -434,18 +454,32 @@ function removeAllParams() {
   paramCount = 0;
 }
 
-function setPickMode(mode, elementId) {
-  pickMode = mode;
-  pickDataContainer = $("#" + elementId);
-/*
-  if (mode == true) {
-    $(button).removeClass("param-button");
-    $(button).addClass("param-button-selected");
-  } else {
-    $(button).removeClass("param-button-selected");
-    $(button).addClass("param-button");
+function pickModeOn(dataContainerId, button) {
+  pickMode = true;
+  pickDataContainer = $("#" + dataContainerId);
+
+  // Deselect current pick button
+  if (curLocButton !== null) {
+    $(curLocButton).removeClass("param-button-selected");
+    $(curLocButton).addClass("param-button");
   }
-*/
+
+  curLocButton = button;
+  $(button).removeClass("param-button");
+  $(button).addClass("param-button-selected");
+  $("#render").removeClass("render-normal");
+  $("#render").addClass("render-picking");
+}
+
+function pickModeOff(button) {
+  pickMode = false;
+  pickDataContainer = null;
+  curLocButton = null;
+
+  $(button).removeClass("param-button-selected");
+  $(button).addClass("param-button");
+  $("#render").removeClass("render-picking");
+  $("#render").addClass("render-normal");
 }
 
 function addMouseEventListeners() {
@@ -472,7 +506,9 @@ function addMouseEventListeners() {
         event.preventDefault();
 
         if (pickMode && event.button == 2) {
-          pickModel(event, $("#render"));
+          if (renderReady()) {
+            pickModel(event, $("#render"));
+          }
           mouseDown = false;
         }
       },
@@ -540,7 +576,7 @@ function addMouseEventListeners() {
   // Evaluate script, and update UI and scene if script changes
   editor.on("blur", function() {
     if (scriptChanged) {
-      generate();
+      update(true, true);
       scriptChanged = false;
     }
   });
@@ -555,7 +591,7 @@ function onKeyPress(event) {
 
   switch (charCode) {
     case 27:              // escape
-      setPickMode(false, null);
+      pickModeOff(curLocButton);
       break;
     case 39:              // right arrow
       rotateModel(null, null, 0, radiansByArrow);
@@ -580,7 +616,7 @@ function onKeyPress(event) {
 <div id="main-box">
 
 <div class="quality-control">
-  <div><img src="images/icon-camera-128.png" class="camera" onclick="getRender(1.0)"/></div>
+  <div><img src="images/icon-camera-128.png" class="camera" onclick="renderHighQuality(true)"/></div>
   <div>
     <select id="render-quality" class="quality-select" onchange="setQuality(this.value)">
       <option value="0.5" selected="selected">Normal</option>
@@ -625,7 +661,7 @@ function main(args) {
 }
 
 </textarea>
-<div id="preview-button" onclick="generate();" class="submit-generate">Generate</div>
+<div id="preview-button" onclick="update(true,true);" class="submit-generate">Generate</div>
 <!--<div id="loading" class="loading">Generating...<img width="18" height="18" alt="" src="images/loading.gif" /></div> -->
 <div id="save-button" onclick="" class="submit-save">Save model</div>
 <div id="saving">Saving...<img width="18" height="18" alt="" src="images/loading.gif" /></div>
@@ -665,7 +701,7 @@ function main(args) {
 <div id="loading" class='loading'>
   <div class="x3dom-view-loading"></div>
 </div>
-<div id="image-viewer" width="512px" height="540px"><img id="render"/></div>
+<div id="image-viewer" width="512px" height="540px"><img id="render" class="render-normal"/></div>
 </div>
 </div>
 <div><input type="text" name="title" id="title" class="title" value="Model Title" /></div>
@@ -674,23 +710,7 @@ function main(args) {
 </div>
 
 <form id="form" action="" method="POST">
-<div id="parameters" class="parameter-container hidden">
-<!--
-  <div id="addparam-title">Add Parameters</div>
-  <div class="add-img" onclick="addParam();"><img src="images/add_small.png" /></div>
-  <div id="param-row1" class="param-row">
-    <div id="param-name1" class="param-name">param1</div>
-    <div class="param-val"><input type="text" name="param1" id="param1" class="param-val" value="0.005" /></div>
-    <div class="remove-param" onclick="removeParam(1)">remove</div>
- </div>
--->
-</div>
-<!--
-<div id="files" class="file-container">
-  <div id="addparam-title">Add Files</div>
-  <div class="add-img" onclick="addFile();"><img src="images/add_small.png" /></div>
-</div>
--->
+<div id="parameters" class="parameter-container hidden"></div>
 </form>
 
 </div>
