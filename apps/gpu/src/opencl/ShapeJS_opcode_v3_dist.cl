@@ -4,7 +4,7 @@
 
 // stack size for intermediate memory 
 // stack >= 4000 generates CL_OUT_OF_HOST_MEMORY error 
-#define STACK_SIZE  1000
+#define STACK_SIZE  10
 // maximal size of struct for single operation (in words) should be the size of largest operation 
 #define MAXOPSIZE 30 
 
@@ -105,6 +105,18 @@ void oSphere(PTRS sSphere *sphere, sVec *in, sVec *out){
 
 }
 
+void ooSphere(sSphere sphere, sVec *in, sVec *out){
+
+    float3 v = in->v.xyz;
+    v -= sphere.center;
+    float len = length(v);
+    float rad = sphere.radius;
+    float d = sign(rad) * len - rad;
+
+    out->v.x = d;
+
+}
+
 // box
 typedef struct {
     int size;
@@ -200,6 +212,12 @@ typedef struct {
 void oBlendMin(PTRS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
     out->v.x = blendMin(in1->v.x, in2->v.x, ptr->width);
+
+}
+
+void ooBlendMin(sBlend sBlend, sVec *in1, sVec *in2, sVec *out){
+
+    out->v.x = blendMin(in1->v.x, in2->v.x, sBlend.width);
 
 }
 
@@ -462,6 +480,8 @@ void oGrid3dByte(PTRS sGrid3dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
 typedef union {
     PTRS void *pv;  
     PTRS int *w;
+    PTRS sSphere *pSphere;
+    PTRS sBlend *pBlend;
 } CPtr;
 
 
@@ -521,6 +541,7 @@ void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
         case oSPHERE:
             
             oSphere(ptr.pv, &pnt1, &data1);
+            //ooSphere(*(ptr.pSphere), &pnt1, &data1);
             break;
 
         case oGYROID:
@@ -561,16 +582,19 @@ void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
         case oMAX:
             
             oMax(ptr.pv,&data2, &data1,&data2);
+            //oMax(0,&data2, &data1,&data2);
             break;
             
         case oMIN:
             
             oMin(ptr.pv,&data2, &data1,&data2);
+            //oMin(0,&data2, &data1,&data2);
             break;
             
         case oBLENDMIN:            
 
             oBlendMin(ptr.pv, &data1,&data2, &data2);            
+            //ooBlendMin(*(ptr.pBlend), &data1,&data2, &data2);            
             break;
             
         case oBLENDMAX:
