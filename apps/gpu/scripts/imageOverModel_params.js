@@ -29,8 +29,8 @@ var params = [
 		"id": "engraveDepth",
 		"displayName": "Engrave Depth",
 		"type": "range",
-		"rangeMin": -1,
-		"rangeMax": 1,
+		"rangeMin": -2,
+		"rangeMax": 0.5,
 		"step": 0.1,
 		"default": -1
 	}
@@ -151,7 +151,7 @@ function main(args) {
 	  
 	  var bx = p01.length();
 	  var by = bx * image.getHeight()/image.getWidth();
-	  var bz = 20*MM;
+	  var bz = 50*MM;
 	  var vs = 0.1*MM;
 	  
 	  imgBox = new ImageBitmap(image, bx, by, bz, vs);

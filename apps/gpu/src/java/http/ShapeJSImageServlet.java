@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
 
@@ -185,6 +186,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
 
         String[] viewSt = params.get("view");
+        String[] axisAngleSt = params.get("axisAngle");
         if (viewSt != null && viewSt.length > 0) {
             String[] vals = viewSt[0].split(",");
             view = new float[vals.length];
@@ -198,6 +200,23 @@ public class ShapeJSImageServlet extends HttpServlet {
 
 
             viewMatrix.set(view);
+        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+        	String[] vals = axisAngleSt[0].split(",");
+            float[] axisAngle = new float[vals.length];
+            
+            for(int i=0; i < vals.length; i++) {
+            	axisAngle[i] = Float.parseFloat(vals[i]);
+            }
+            
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            if (axisAngle.length != 4) {
+                throw new IllegalArgumentException("Axis angle must be 4 values");
+            }
+        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
         } else {
             String[] rotXSt = params.get("rotX");
             if (rotXSt != null && rotXSt.length > 0) {
@@ -305,6 +324,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         String[] viewSt = params.get("view");
+        String[] axisAngleSt = params.get("axisAngle");
         if (viewSt != null && viewSt.length > 0) {
             String[] vals = viewSt[0].split(",");
             view = new float[vals.length];
@@ -318,6 +338,23 @@ public class ShapeJSImageServlet extends HttpServlet {
 
 
             viewMatrix.set(view);
+        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+        	String[] vals = axisAngleSt[0].split(",");
+            float[] axisAngle = new float[vals.length];
+            
+            for(int i=0; i < vals.length; i++) {
+            	axisAngle[i] = Float.parseFloat(vals[i]);
+            }
+            
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            if (axisAngle.length != 4) {
+                throw new IllegalArgumentException("Axis angle must be 4 values");
+            }
+        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
         } else {
             String[] rotXSt = params.get("rotX");
             if (rotXSt != null && rotXSt.length > 0) {
@@ -394,6 +431,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         String[] viewSt = params.get("view");
+        String[] axisAngleSt = params.get("axisAngle");
         if (viewSt != null && viewSt.length > 0) {
             String[] vals = viewSt[0].split(",");
             view = new float[vals.length];
@@ -407,6 +445,23 @@ public class ShapeJSImageServlet extends HttpServlet {
 
 
             viewMatrix.set(view);
+        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+        	String[] vals = axisAngleSt[0].split(",");
+            float[] axisAngle = new float[vals.length];
+            
+            for(int i=0; i < vals.length; i++) {
+            	axisAngle[i] = Float.parseFloat(vals[i]);
+            }
+            
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            if (axisAngle.length != 4) {
+                throw new IllegalArgumentException("Axis angle must be 4 values");
+            }
+        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
         } else {
             String[] rotXSt = params.get("rotX");
             if (rotXSt != null && rotXSt.length > 0) {
@@ -491,6 +546,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         String[] viewSt = params.get("view");
+        String[] axisAngleSt = params.get("axisAngle");
         if (viewSt != null && viewSt.length > 0) {
             String[] vals = viewSt[0].split(",");
             view = new float[vals.length];
@@ -504,6 +560,23 @@ public class ShapeJSImageServlet extends HttpServlet {
 
 
             viewMatrix.set(view);
+        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+        	String[] vals = axisAngleSt[0].split(",");
+            float[] axisAngle = new float[vals.length];
+            
+            for(int i=0; i < vals.length; i++) {
+            	axisAngle[i] = Float.parseFloat(vals[i]);
+            }
+            
+            String[] zoomSt = params.get("zoom");
+            if (zoomSt != null && zoomSt.length > 0) {
+                zoom = Float.parseFloat(zoomSt[0]);
+            }
+
+            if (axisAngle.length != 4) {
+                throw new IllegalArgumentException("Axis angle must be 4 values");
+            }
+        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
         } else {
             String[] rotXSt = params.get("rotX");
             if (rotXSt != null && rotXSt.length > 0) {
@@ -633,6 +706,23 @@ public class ShapeJSImageServlet extends HttpServlet {
         mat.setIdentity();
         mat.mul(tmat, rxmat);
         mat.mul(rymat);
+    }
+    
+    private void getViewFromAxisAngle(float[] axisAngle, float zoom, Matrix4f mat) {
+        float[] DEFAULT_TRANS = new float[]{0, 0, zoom};
+        float z = DEFAULT_TRANS[2];
+
+        AxisAngle4f aa = new AxisAngle4f(axisAngle);
+        Vector3f trans = new Vector3f();
+        Matrix4f tmat = new Matrix4f();
+
+        trans.z = z;
+        tmat.set(trans, 1.0f);
+        
+        mat.setIdentity();
+        mat.setTranslation(trans);
+        mat.setScale(1.0f);
+        mat.setRotation(aa);
     }
 
     /**
