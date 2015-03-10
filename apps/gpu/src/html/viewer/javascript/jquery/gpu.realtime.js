@@ -17,6 +17,7 @@ var skipCount = 15;
 
 var rotX = 0;
 var rotY = 0;
+var curRotation = [0,1,0,0];
 var zoom = -4;
 var quality = 0.5;
 var viewChanged = false;
@@ -74,15 +75,14 @@ function draw() {
       imgType = "png";
       highQuality = false;
     }
-    
+
     if (forceFull) {
       extraParams = {
         'jobID': getJobID(),
         'script': editor.getValue(),
         'width': width,
         'height': height,
-        'rotX': rotX.toFixed(4),  // x rotation in radians
-        'rotY': rotY.toFixed(4),  // y rotation in radians
+        'axisAngle': curRotationToQueryString(),
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
         'quality': useQuality,
@@ -91,8 +91,7 @@ function draw() {
     } else {
       extraParams = {
         'jobID': getJobID(),
-        'rotX': rotX.toFixed(4),  // x rotation in radians
-        'rotY': rotY.toFixed(4),  // y rotation in radians
+        'axisAngle': curRotationToQueryString(),
         'zoom': zoom.toFixed(4),  // zoom level (translation in z direction)
         'imgType': imgType,
         'quality': useQuality,
@@ -215,13 +214,11 @@ function zoomModel() {
 
 function rotateModel(dx, dy, radX, radY) {
   if (radX !== undefined && radX !== null && radY !== undefined && radY !== null) {
-    rotX += radX;
-    rotY += radY;
+    addRotation(radY, radX);
   } else {
     if (!mouseDown) return;
 
-    rotX -= dy / 240;
-    rotY += dx / 240;
+    addRotation(dx / 120, dy / 120);
   }
 
   viewChanged = true;
@@ -245,8 +242,7 @@ function pickModel(e, element) {
 //    'script':  editor.getValue(),
     'width':   width,
     'height':  height,
-    'rotX':    rotX.toFixed(4),  // x rotation in radians
-    'rotY':    rotY.toFixed(4),  // y rotation in radians
+    'axisAngle': curRotationToQueryString(),
     'zoom':    zoom.toFixed(4)  // zoom level (translation in z direction)
   };
 
@@ -425,7 +421,88 @@ function setViewMatrix(rotX, rotY) {
 //  viewMatrix = trans.multiply(rxmat4);
   //console.log("*** final");
   //console.log(matrixToQueryString(viewMatrix));
-} 
+}
+
+function toAxisAngle(dx,dy){
+  var angle = Math.sqrt(dx*dx + dy*dy);	
+  var rot = new Array(); 
+  rot[0] = dy;
+  rot[1] = dx;
+  rot[2] = 0;
+  rot[3] = angle;
+  normalize(rot);
+  return rot;
+}
+
+/** Add dx and dy to current rotaton in axis angle */
+function addRotation(dx,dy) {
+  var newRot = toAxisAngle(dx,dy);
+
+  to_quaternion(newRot);
+  to_quaternion(curRotation);
+  
+  var totalRot = new Array();
+  multiply_quaternion(curRotation, newRot, totalRot);
+  from_quaternion(totalRot);
+  
+  curRotation = [totalRot[0], totalRot[1], totalRot[2], totalRot[3]];
+}
+
+/** Convert quaternion to (axis, angle) **/
+function from_quaternion( q ) {
+  var angle = Math.acos(q[3]) * 2.0;
+  var s = Math.sin(angle / 2.0);
+  if(s == 0.0) {
+    s = 1;
+    angle = 0.0;
+  }
+  q[0] /= s;
+  q[1] /= s; 
+  q[2] /= s;
+  q[3]  = angle;
+}
+
+/** Convert (rotation, angle) to quaternion */
+function to_quaternion( r ){
+  var s = Math.sin(r[3]/2.0);
+  r[0] *= s; r[1] *= s; r[2] *= s; r[3] = Math.cos(r[3] / 2.0);
+}
+
+/** Multiply two quaternions */
+function multiply_quaternion(q1, q2, result) {
+  result[0] = q2[3] * q1[0] + q2[0] * q1[3] +	q2[1] * q1[2] - q2[2] * q1[1];
+  result[1] = q2[3] * q1[1] + q2[1] * q1[3] + q2[2] * q1[0] - q2[0] * q1[2];
+  result[2] = q2[3] * q1[2] + q2[2] * q1[3] + q2[0] * q1[1] - q2[1] * q1[0];
+  result[3] = q2[3] * q1[3] - q2[0] * q1[0] - q2[1] * q1[1] - q2[2] * q1[2];
+}
+
+/** Normalizes vector part of rotation */
+function normalize(p) {
+  var s = p[0]*p[0]+p[1]*p[1]+p[2]*p[2];
+  if(s != 0.0) {
+    s = Math.sqrt(s);
+    p[0] = p[0]/s;
+    p[1] = p[1]/s;
+    p[2] = p[2]/s;
+  }
+}
+
+function toRotationMatrix(dx,dy) {
+  var axisAngle = toAxisAngle(dx,dy);
+  var rx = axisAngle[0];
+  var ry = axisAngle[1];
+  var rz = axisAngle[2];
+  var rangle = axisAngle[3];
+  
+  var matrix = $M([
+    [Math.cos(rangle) + rx*rx*(1-Math.cos(rangle)), rx*ry*(1-Math.cos(rangle)) - rz*Math.sin(rangle), rx*rz*(1-Math.cos(rangle)) + ry*Math.sin(rangle), 0],
+    [ry*rx*(1-Math.cos(rangle)) + rz*Math.sin(rangle), Math.cos(rangle) + ry*ry*(1-Math.cos(rangle)), ry*rz*(1-Math.cos(rangle)) - rx*Math.sin(rangle), 0],
+    [rz*rx*(1-Math.cos(rangle)) - ry*Math.sin(rangle), rz*ry*(1-Math.cos(rangle)) + rx*Math.sin(rangle), Math.cos(rangle) + rz*rz*(1-Math.cos(rangle)), 0],
+    [0, 0, 0, 1]
+  ]);
+  
+  return matrix;
+}
 
 function round(val, digits) {
   var sigDigits = "1";
@@ -451,4 +528,8 @@ function matrixToQueryString(matrix) {
   
   // remove last 2 chars (comma and space)
   return str.substr(0, str.length-2);
+}
+
+function curRotationToQueryString() {
+  return curRotation[0] + "," + curRotation[1] + "," + curRotation[2] + "," + curRotation[3];
 }
