@@ -12,6 +12,7 @@ import opencl.CLCodeBuffer;
 import opencl.CLCodeMaker;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
+import shapejs.EvalResult;
 import shapejs.ShapeJSEvaluator;
 
 import javax.vecmath.Matrix4f;
@@ -281,13 +282,17 @@ public class ImageRenderer {
      * @param params The params, must include all of them
      * @return
      */
-    public void setScene(String jobID, String script, Map<String,Object> params) {
+    public EvalResult setScene(String jobID, String script, Map<String,Object> params) {
 
         try {
             VolumeScene vscene = setupOpenCL(jobID, script, params, true, 0.5f);
+
+            return vscene.getResult();
         } catch (NotCachedException nce) {
             // ignore
         }
+
+        return null;
     }
 
     /**
@@ -436,15 +441,16 @@ public class ImageRenderer {
                 ShapeJSEvaluator eval = new ShapeJSEvaluator();
                 Bounds bounds = new Bounds();
                 ce = new CacheEntry();
-                ce.source = eval.runScript(script, bounds, params);
+                ce.result = eval.evalScript(jobID, script, bounds, params);
 
-                if (ce.source instanceof Initializable)
-                    ((Initializable) ce.source).initialize();
+                if (ce.result.getDataSource() instanceof Initializable)
+                    ((Initializable) ce.result.getDataSource()).initialize();
 
                 CLCodeMaker maker = new CLCodeMaker();
-                ce.ops = maker.makeCLCode((Parameterizable) ce.source);
+                ce.ops = maker.makeCLCode((Parameterizable) ce.result.getDataSource());
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
                 ce.vscene.setWorldBounds(bounds);
+                ce.vscene.setResult(ce.result);
                 ce.vscene.setCLCode(ce.ops);
                 ce.quality = quality;
                 newScene = true;
@@ -458,7 +464,7 @@ public class ImageRenderer {
                 }
             }
 
-            source = ce.source;
+            source = ce.result.getDataSource();
             ops = ce.ops;
             vscene = ce.vscene;
         } else if (version.equals(VolumeRenderer.VERSION_DIST)) {
@@ -478,15 +484,16 @@ public class ImageRenderer {
                 ShapeJSEvaluator eval = new ShapeJSEvaluator();
                 Bounds bounds = new Bounds();
                 ce = new CacheEntry();
-                ce.source = eval.runScript(script, bounds, params);
+                ce.result = eval.evalScript(jobID, script, bounds, params);
 
-                if (ce.source instanceof Initializable)
-                    ((Initializable) ce.source).initialize();
+                if (ce.result.getDataSource() instanceof Initializable)
+                    ((Initializable) ce.result.getDataSource()).initialize();
 
                 CLCodeMaker maker = new CLCodeMaker();
                 ce.ops = maker.makeCLCode((Parameterizable) source);
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
                 ce.vscene.setWorldBounds(bounds);
+                ce.vscene.setResult(ce.result);
 
                 OpenCLWriter writer = new OpenCLWriter();
                 //Vector3d ws = ce.vscene.getWorldSize(); ws.scale(0.5);
@@ -499,7 +506,7 @@ public class ImageRenderer {
                 }
             }
 
-            source = ce.source;
+            source = ce.result.getDataSource();
             ops = ce.ops;
             vscene = ce.vscene;
 
@@ -513,7 +520,8 @@ public class ImageRenderer {
             if (inst == null) {
                 ShapeJSEvaluator eval = new ShapeJSEvaluator();
                 Bounds bounds = new Bounds();
-                source = eval.runScript(script, bounds,params);
+                EvalResult result = eval.evalScript(jobID,script, bounds,params);
+                source = result.getDataSource();
 
                 if(source instanceof Initializable)
                     ((Initializable)source).initialize();
@@ -771,7 +779,7 @@ public class ImageRenderer {
     }
 
     public static class CacheEntry {
-        public DataSource source;
+        public EvalResult result;
         public CLCodeBuffer ops;
         public VolumeScene vscene;
         public String script;

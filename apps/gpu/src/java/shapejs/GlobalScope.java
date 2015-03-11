@@ -1,11 +1,5 @@
 package shapejs;
 
-/* -*- Mode: java; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
-
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.serialize.ScriptableInputStream;
 import org.mozilla.javascript.serialize.ScriptableOutputStream;
@@ -29,7 +23,6 @@ public class GlobalScope extends ImporterTopLevel
 
     private boolean sealedStdLib = false;
     boolean initialized;
-    private String[] prompts = { "js> ", "  > " };
 
     public GlobalScope()
     {
@@ -75,39 +68,6 @@ public class GlobalScope extends ImporterTopLevel
         initialized = true;
     }
 
-    /**
-     * Print the string values of its arguments.
-     *
-     * This method is defined as a JavaScript function.
-     * Note that its arguments are of the "varargs" form, which
-     * allows it to handle an arbitrary number of arguments
-     * supplied to the JavaScript function.
-     *
-     */
-    public static Object print(Context cx, Scriptable thisObj,
-                               Object[] args, Function funObj)
-    {
-
-        //PrintStream out = getInstance(funObj).getOut();
-        StringBuilder bldr = new StringBuilder();
-        for (int i=0; i < args.length; i++) {
-            if (i > 0) {
-                //out.print(" ");
-                bldr.append(" ");
-            }
-            // Convert the arbitrary JavaScript value into a string form.
-            String s = Context.toString(args[i]);
-
-            //out.print(s);
-            bldr.append(s);
-        }
-        //out.println();
-        bldr.append("\n");
-
-        printf("%s\n", bldr.toString());
-        //DebugLogger.log(cx, bldr.toString());
-        return Context.getUndefinedValue();
-    }
 }
 
 

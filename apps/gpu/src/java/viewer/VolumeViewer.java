@@ -19,6 +19,7 @@ import abfab3d.util.Initializable;
 
 import datasources.Instruction;
 import opencl.CLCodeBuffer;
+import org.apache.commons.io.FileUtils;
 import render.OpenCLWriter;
 import render.OpenCLOpWriter;
 import render.OpenCLOpWriterV2;
@@ -26,6 +27,7 @@ import render.VolumeRenderer;
 import render.VolumeScene;
 import opencl.CLCodeMaker;
 
+import shapejs.EvalResult;
 import shapejs.ShapeJSEvaluator;
 
 import javax.media.opengl.GLProfile;
@@ -34,6 +36,7 @@ import javax.vecmath.Vector3d;
 import java.awt.*;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
@@ -232,7 +235,15 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
 
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
-        DataSource source = eval.runScript(new File(url),bounds);
+        String script = null;
+        try {
+            script = FileUtils.readFileToString(new File(url));
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        EvalResult result = eval.evalScript(null,script,bounds,null);
+        DataSource source = result.getDataSource();
 
         if(source instanceof Initializable)
             ((Initializable)source).initialize();

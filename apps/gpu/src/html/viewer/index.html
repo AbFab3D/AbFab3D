@@ -431,6 +431,10 @@ function addParamUIListener(element, elementId, type) {
         setParamVal( elementId, $(element).val() );
 	    update(false, false);
       });
+      $(element).on("change", function() {
+        setParamVal( elementId, $(element).val() );
+        update(false, false);
+      });
       break;
     case "range":
       $(element).on("input", function() {

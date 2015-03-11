@@ -6,6 +6,7 @@ import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import render.*;
+import shapejs.EvalResult;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -685,7 +686,27 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         }
 
-        updateScene(jobID,script,sparams);
+        Gson gson = new Gson();
+        HashMap<String, Object> result = new HashMap<String, Object>();
+        EvalResult eval = updateScene(jobID,script,sparams);
+
+        if (result == null) {
+            result.put("success",false);
+        } else {
+            result.put("success",eval.isSuccess());
+            result.put("execTime",eval.getExecTime());
+            result.put("printLog",eval.getPrintLog());
+            result.put("errorLog",eval.getErrorLog());
+        }
+
+        OutputStream os = resp.getOutputStream();
+        resp.setContentType("application/json");
+
+        String st = gson.toJson(result);
+        os.write(st.getBytes());
+
+        os.close();
+
     }
 
     private void getView(float rotX, float rotY, float zoom, Matrix4f mat) {
@@ -898,7 +919,7 @@ public class ShapeJSImageServlet extends HttpServlet {
      * @param script
      * @param params
      */
-    private void updateScene(String sceneID, String script, Map<String,Object> params) {
+    private EvalResult updateScene(String sceneID, String script, Map<String,Object> params) {
         SceneCacheEntry sce = sceneCache.get(sceneID);
         if (sce == null) {
             sce = new SceneCacheEntry(sceneID,script,params);
@@ -912,7 +933,9 @@ public class ShapeJSImageServlet extends HttpServlet {
             }
         }
 
-        render.setScene(sceneID,sce.getScript(),sce.getParams());
+        EvalResult result = render.setScene(sceneID,sce.getScript(),sce.getParams());
+
+        return result;
     }
 
     public static class SceneCacheEntry {
