@@ -28,6 +28,8 @@ var maxFPS = 30;  // maximum frame rate to shoot for
 var updatingScene = false;
 var usSkipCount = 15;
 
+var scriptErrorLines = [];
+
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
 
@@ -177,6 +179,7 @@ function updateScene() {
     }
   }
 
+  clearScriptHighlights();
   updatingScene = true;
   usSkipCount = 15;
 
@@ -191,16 +194,22 @@ function updateScene() {
     type: "post",
     timeout: 180000,
     beforeSubmit: prepForm,
-    success: function() {
+    success: function(data) {
       updatingScene = false;
-      viewChanged = true;  // force a redraw
-      deltaParams.length = 0;
+      showLogs(data);
       unspin();
+      if (data.success) {
+        viewChanged = true;  // force a redraw
+        deltaParams.length = 0;
+      } else {
+        $("#render").attr("src", "");
+      }
     },
     error: function(xhr, textStatus, errorThrown) {
       updatingScene = false;
-      alert( "Request failed: " + xhr );
+      alert( "REQUEST FAILED\n\nCode: " + xhr.status + "\nError: " + xhr.statusText );
       console.log(xhr);
+      $("#render").attr("src", "");
       unspin();
     }
   };
@@ -268,7 +277,7 @@ function pickModel(e, element) {
   });
 
   request.fail(function( jqXHR, textStatus ) {
-    alert( "Request failed: " + textStatus );
+    alert( "REQUEST FAILED\n\nCode: " + xhr.status + "\nError: " + xhr.statusText );
 
     // TODO: use pick with complete script
   });
@@ -303,6 +312,60 @@ function setQuality(q) {
 function renderHighQuality() {
   highQuality = true;
   viewChanged = true;
+}
+
+function showLogs(obj) {
+  $("#logger").empty();
+
+  var display = "";
+  
+  var val = obj.execTime;
+  if (val !== null) {
+    $( "<p><span class='logType'>Execution time:</span><span class='log-info'>" + val + "</span></p><p style='line-height:50%'>&nbsp;</p>" ).appendTo( "#logger" );
+  }
+
+  val = obj.printLog;
+  if (val !== undefined && val !== null && val.length > 0) {
+    $( "<p class='log-type'>Prints:</p>" ).appendTo( "#logger" );
+    
+    var prints = val.split("\n");
+    $.each(prints, function(i, text) {
+      $( "<p class='log-info'>" + text + "</p>" ).appendTo( "#logger" );
+    });
+  }
+  
+  val = obj.errorLog;
+  if (val !== undefined && val !== null && val.length > 0) {
+    $( "<p class='log-type'>Errors:</p>" ).appendTo( "#logger" );
+    
+    var prints = val.split("\n");
+    $.each(prints, function(i, text) {
+      $( "<p class='log-info'>" + text + "</p>" ).appendTo( "#logger" );
+      highlightScriptError(text);
+    });
+  }
+}
+
+function highlightScriptError(text) {
+  var marker = "Script Line(";
+  var index = text.indexOf(marker);
+
+  if (index >= 0) {
+    var start = index + marker.length;
+    var end = text.indexOf(")", start);
+    var lineNumber = text.substring(index + marker.length, end);
+    editor.removeLineClass(lineNumber-1, 'background', 'CodeMirror-activeline-background');
+    editor.addLineClass(lineNumber-1, 'background', 'CodeMirror-error-line-bg');
+    scriptErrorLines.push(lineNumber-1);
+  }
+}
+
+function clearScriptHighlights() {
+  $.each(scriptErrorLines, function(i, val) {
+    editor.removeLineClass(val, 'background', 'CodeMirror-error-line-bg');
+  });
+  
+  scriptErrorLines.length = 0;
 }
 
 /////////////////////////////////////////
@@ -533,3 +596,7 @@ function matrixToQueryString(matrix) {
 function curRotationToQueryString() {
   return curRotation[0] + "," + curRotation[1] + "," + curRotation[2] + "," + curRotation[3];
 }
+
+function nl2br(text){
+  return text.replace(/(\r\n|\n\r|\r|\n)/g, "<br/>");
+};

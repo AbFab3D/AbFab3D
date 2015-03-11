@@ -248,7 +248,7 @@
 //		    color: #059C05;
 	color: white;
 	font-weight: 100;
-	font-family:Helvetica Neue, Helvetica, Arial, sans-serif
+	font-family:Helvetica Neue, Helvetica, Arial, sans-serif;
 	font-size: 13px;
 	display: inline-block;
 	padding: 5px 10px;
@@ -641,4 +641,26 @@
 }
 .render-picking {
   cursor: crosshair;
+}
+
+.console {
+  position: relative;
+  float: left;
+  width: 500px;
+  height: 100px;
+  font-family: courier, monospace;
+  color: #3cff00;
+  background: #000000;
+  border: 3px double #888888;
+  padding: 10px;
+  overflow-y: auto;
+}
+.console .log-type {
+  font-weight: 500;
+}
+.console .log-info {
+  padding-left:8px;
+}
+.CodeMirror-error-line-bg {
+  background: yellow !important;
 }
