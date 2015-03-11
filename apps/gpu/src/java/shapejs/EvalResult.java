@@ -34,6 +34,9 @@ public class EvalResult {
     /** Was the execution successful */
     private boolean success;
 
+    /** The number of instructions the script compiled too */
+    private int instructions;
+
     public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, long execTime) {
         this.datasource = datasource;
         this.printLog = printLog;
@@ -60,5 +63,13 @@ public class EvalResult {
 
     public boolean isSuccess() {
         return success;
+    }
+
+    public void setInstructions(int inst) {
+        instructions = inst;
+    }
+
+    public int getInstructions() {
+        return instructions;
     }
 }

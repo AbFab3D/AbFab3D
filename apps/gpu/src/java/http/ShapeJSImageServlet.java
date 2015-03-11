@@ -694,9 +694,10 @@ public class ShapeJSImageServlet extends HttpServlet {
             result.put("success",false);
         } else {
             result.put("success",eval.isSuccess());
-            result.put("execTime",eval.getExecTime());
             result.put("printLog",eval.getPrintLog());
             result.put("errorLog",eval.getErrorLog());
+            result.put("execTime",eval.getExecTime());
+            result.put("instructions",eval.getInstructions());
         }
 
         OutputStream os = resp.getOutputStream();
