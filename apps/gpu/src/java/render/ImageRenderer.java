@@ -282,8 +282,9 @@ public class ImageRenderer {
      * @param params The params, must include all of them
      * @return
      */
-    public EvalResult setScene(String jobID, String script, Map<String,Object> params) {
+    public EvalResult updateScene(String jobID, String script, Map<String,Object> params) {
 
+        // Call onChange listeners
         try {
             VolumeScene vscene = setupOpenCL(jobID, script, params, true, 0.5f);
 
@@ -304,7 +305,7 @@ public class ImageRenderer {
     }
 
     /**
-     * Clear resources consum by a specific job
+     * Clear resources consumed by a specific job
      * @param jobID
      */
     public void clearCache(String jobID) {
@@ -437,11 +438,28 @@ public class ImageRenderer {
                     throw new NotCachedException();
                 }
 
-                if (DEBUG) printf("js evaluation\n");
-                ShapeJSEvaluator eval = new ShapeJSEvaluator();
+                ShapeJSEvaluator eval = null;
                 Bounds bounds = new Bounds();
-                ce = new CacheEntry();
-                ce.result = eval.evalScript(jobID, script, bounds, params);
+
+                // check for existing js cache
+                if (jobID != null) {
+                    ce = cacheSource.get(jobID);
+                    if (ce != null) {
+                        eval = ce.evaluator;
+                    }
+                }
+
+                if (DEBUG) printf("js evaluation\n");
+
+                if (ce == null) {
+                    eval = new ShapeJSEvaluator();
+                    bounds = new Bounds();
+                    ce = new CacheEntry();
+                    ce.evaluator = eval;
+                    ce.result = eval.evalScript(script, bounds, params);
+                } else {
+                    ce.result = eval.reevalScript(script, bounds, params);
+                }
 
                 if (!ce.result.isSuccess()) {
                     VolumeScene fail = new VolumeScene(version);
@@ -487,11 +505,25 @@ public class ImageRenderer {
             }
             if (ce == null) {
 
-                if (DEBUG) printf("js evaluation\n");
-                ShapeJSEvaluator eval = new ShapeJSEvaluator();
+                ShapeJSEvaluator eval = null;
                 Bounds bounds = new Bounds();
-                ce = new CacheEntry();
-                ce.result = eval.evalScript(jobID, script, bounds, params);
+
+                if (DEBUG) printf("js evaluation\n");
+                if (ce == null) {
+                    eval = new ShapeJSEvaluator();
+                    bounds = new Bounds();
+                    ce = new CacheEntry();
+                    ce.evaluator = eval;
+                    ce.result = eval.evalScript(script, bounds, params);
+                } else {
+                    ce.result = eval.reevalScript(script, bounds, params);
+                }
+
+                if (!ce.result.isSuccess()) {
+                    VolumeScene fail = new VolumeScene(version);
+                    fail.setResult(ce.result);
+                    return fail;
+                }
 
                 if (ce.result.getDataSource() instanceof Initializable)
                     ((Initializable) ce.result.getDataSource()).initialize();
@@ -528,7 +560,7 @@ public class ImageRenderer {
             if (inst == null) {
                 ShapeJSEvaluator eval = new ShapeJSEvaluator();
                 Bounds bounds = new Bounds();
-                EvalResult result = eval.evalScript(jobID,script, bounds,params);
+                EvalResult result = eval.evalScript(script, bounds,params);
                 source = result.getDataSource();
 
                 if(source instanceof Initializable)
@@ -793,6 +825,7 @@ public class ImageRenderer {
         public String script;
         public Map<String,Object> params;
         public float quality;
+        public ShapeJSEvaluator evaluator;
 
         public CacheEntry() {
         }

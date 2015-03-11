@@ -32,7 +32,11 @@ public class DebugLogger {
     }
 
     public static void clearLog(Object key) {
-        logs.get(key).clear();
+        List<String> list = logs.get(key);
+
+        if (list != null) {
+            list.clear();
+        }
     }
 
     public static void log(Object key, String msg) {

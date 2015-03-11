@@ -45,6 +45,12 @@ public class EvalResult {
         this.success = success;
     }
 
+    public EvalResult(String errorLog, long execTime) {
+        this.errorLog = errorLog;
+        this.execTime = execTime;
+        this.success = false;
+    }
+
     public DataSource getDataSource() {
         return datasource;
     }

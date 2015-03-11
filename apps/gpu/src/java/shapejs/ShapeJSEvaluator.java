@@ -13,15 +13,9 @@ package shapejs;
 
 import abfab3d.grid.Bounds;
 import abfab3d.util.DataSource;
-import org.apache.commons.io.FileUtils;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Function;
-import org.mozilla.javascript.NativeJavaObject;
-import org.mozilla.javascript.NativeObject;
+import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,6 +44,12 @@ public class ShapeJSEvaluator {
 
     /** How many header lines did we add? */
     private int headerLines;
+
+    private GlobalScope scope;
+    private ErrorReporterWrapper errors;
+    private NativeObject argsMap;
+    private HashMap<String,ParameterDefinition> defs;
+    private Shape shape;
 
     static {
         packageWhitelist = new ArrayList();
@@ -129,61 +129,141 @@ public class ShapeJSEvaluator {
     /**
      * Reevaluate the script using the initial context.
      *
-     * @param jobID
-     * @param file
      * @param bounds
      * @return
      */
-    public EvalResult reevalScript(String jobID, File file, Bounds bounds) {
+    public EvalResult reevalScript(String script, Bounds bounds, Map<String, Object> namedParams) {
         Context cx = Context.enter();
         DebugLogger.clearLog(cx);
+        long t0 = System.currentTimeMillis();
+
+        if (DEBUG) printf("runScript(script, %s, namedParams)\n", bounds);
+        try {
+            if (scope == null) {
+                throw new IllegalArgumentException("Cannot reeval as scope is null");
+            }
+
+            script = addImports(script);
+
+            if (namedParams != null) {
+                for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
+                    printf("Changing arg: %s -> %s\n", entry.getKey(), entry.getValue().toString());
+                    argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), 0);
+
+                    ParameterDefinition pd = defs.get(entry.getKey());
+
+                    if (pd == null) {
+                        return new EvalResult("Cannot find parameter: " + entry.getKey(),System.currentTimeMillis() - t0);
+                    }
+                    Object o = scope.get(pd.getOnChange(), scope);
+                    if (o == null) {
+                        return new EvalResult("Cannot find onChange function: " + pd.getOnChange(),System.currentTimeMillis() - t0);
+                    }
+
+                    Function main = (Function) o;
+
+                    Object[] args = new Object[]{argsMap};
+                    Object result2 = null;
+
+                    try {
+                        result2 = main.call(cx, scope, scope, args);
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                        String err_msg = addErrorLine(e.getMessage(), script, headerLines);
+                        return new EvalResult(false,null,null,err_msg, System.currentTimeMillis() - t0);
+                    }
+                    if (DEBUG) printf("result of JS evaluation: %s\n", result2);
+
+                    StringBuilder bldr = new StringBuilder();
+                    for(JsError error : errors.getErrors()) {
+                        String err_st = error.toString();
+                        String remap = errorRemap.get(err_st);
+                        if (remap != null) {
+                            err_st = remap;
+                        }
+                        bldr.append(err_st);
+                        bldr.append("\n");
+                    }
+
+                    String err_msg = bldr.toString();
+
+                    List<String> prints = DebugLogger.getLog(cx);
+
+                    String print_msg = "";
+                    if (prints != null) {
+                        for(String print : prints) {
+                            bldr.append(print);
+                        }
+                        print_msg = bldr.toString();
+                    }
+
+                    if (pd.getOnChange().equals("main")) {
+                        // We updated the who thing
+
+                        if (result2 instanceof NativeJavaObject) {
+                            Object no = ((NativeJavaObject) result2).unwrap();
+
+                            shape = (Shape) no;
+                            bounds.set(shape.getBounds());
+                        }
+                    }
+                    return new EvalResult(true,shape.getDataSource(),print_msg,err_msg, System.currentTimeMillis() - t0);
+
+                }
+            }
+
+        } finally {
+            Context.exit();
+        }
 
         return null;
     }
 
 
-    public EvalResult evalScript(String jobID, String script, Bounds bounds, Map<String, Object> namedParams) {
+    public EvalResult evalScript(String script, Bounds bounds, Map<String, Object> namedParams) {
         long t0 = System.currentTimeMillis();
 
         if (DEBUG) printf("runScript(script, %s, namedParams)\n", bounds);
         Context cx = Context.enter();
         try {
-            GlobalScope scope = new GlobalScope();
-            ContextFactory contextFactory = new ContextFactory();
-            ToolErrorReporter errorReporter = new ToolErrorReporter(false, System.err);
-            ErrorReporterWrapper errors = new ErrorReporterWrapper(errorReporter);
-            contextFactory.setErrorReporter(errors);
+            if (scope == null) {
+                scope = new GlobalScope();
+                ContextFactory contextFactory = new ContextFactory();
+                ToolErrorReporter errorReporter = new ToolErrorReporter(false, System.err);
+                errors = new ErrorReporterWrapper(errorReporter);
+                contextFactory.setErrorReporter(errors);
 
-            scope.initShapeJS(contextFactory);
+                scope.initShapeJS(contextFactory);
+                argsMap = new NativeObject();
+            }
 
             script = addImports(script);
 
-            NativeObject argsMap = new NativeObject();
 
             if (namedParams != null) {
                 for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
                     printf("Adding arg: %s -> %s\n", entry.getKey(), entry.getValue().toString());
-                    argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), NativeObject.READONLY);
+//                    argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), NativeObject.READONLY);
+                    argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), 0);
                 }
             }
-/*
-            Object argForMain = argsMap;
-            try {
-                argForMain = new JsonParser(cx,scope).parseValue(new Gson().toJson(argsMap));
-            } catch (Exception e) {e.printStackTrace();}
-*/
-
             //printf("Final script:\n%s\n",script);
             try {
                 Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
             } catch (Exception e) {
                 e.printStackTrace(System.out);
                 printf("Script failed: %s\nScript:\n%s", e.getMessage(),script);
+                return new EvalResult("Script failed to evaluate: " + e.getMessage(), System.currentTimeMillis() - t0);
             }
+
+            Object uiParams = scope.get("uiParams", scope);
+            parseDefinition(uiParams);
+
             Object o = scope.get("main", scope);
 
             if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {
                 System.out.println("Cannot find function main");
+                return new EvalResult("Cannot find main function", System.currentTimeMillis() - t0);
             }
             Function main = (Function) o;
 
@@ -193,6 +273,7 @@ public class ShapeJSEvaluator {
             try {
                 result2 = main.call(cx, scope, scope, args);
             } catch(Exception e) {
+                e.printStackTrace();
                 String err_msg = addErrorLine(e.getMessage(), script, headerLines);
                 return new EvalResult(false,null,null,err_msg, System.currentTimeMillis() - t0);
             }
@@ -201,7 +282,7 @@ public class ShapeJSEvaluator {
             if (result2 instanceof NativeJavaObject) {
                 Object no = ((NativeJavaObject) result2).unwrap();
 
-                Shape shape = (Shape) no;
+                shape = (Shape) no;
                 bounds.set(shape.getBounds());
                 DataSource dataSource = shape.getDataSource();
 
@@ -252,6 +333,37 @@ public class ShapeJSEvaluator {
         return null;
     }
 
+    private void parseDefinition(Object uiParams) {
+        printf("Parsing uiParams: " + uiParams);
+        if (defs == null) {
+            defs = new HashMap<String, ParameterDefinition>();
+        } else {
+            defs.clear();
+        }
+
+        if (uiParams == null) return;
+
+        if (uiParams instanceof NativeArray) {
+            NativeArray arr = (NativeArray) uiParams;
+            int len = (int) arr.getLength();
+            printf("Params length: %d\n",len);
+            for(int i=0; i < len; i++) {
+                Object po = arr.get(i);
+                printf("po: %s\n",po);
+                NativeObject no = (NativeObject) po;
+                String id = (String) no.get("id");
+                String displayName = (String) no.get("displayName");
+                String type = (String) no.get("type");
+                String onChange = (String) no.get("onChange");
+                if (onChange == null) onChange = "main";
+
+                printf("Creating pd: id: %s name: %s type: %s onChange: %s\n",id,displayName,type,onChange);
+                ParameterDefinition pd = new ParameterDefinition(id,displayName,type,onChange);
+                defs.put(id,pd);
+            }
+        }
+    }
+
     private String addErrorLine(String msg, String script, int header) {
         // line number is <cmd>#23 form
         int idx = msg.indexOf("<cmd>#");
@@ -266,7 +378,12 @@ public class ShapeJSEvaluator {
         String[] lines = script.split("\r\n|\r|\n");
         int line = Integer.parseInt(line_st);
 
-        msg = msg.substring(0,idx-1) + "\nScript Line(" + (line-header) + "): " + lines[line-1];
+        int val = line - header;
+        if (val > 0) {
+            msg = msg.substring(0, idx - 1) + "\nScript Line(" + (line - header) + "): " + lines[line - 1];
+        } else {
+            msg = msg.substring(0, idx - 1);
+        }
         return msg;
     }
 }

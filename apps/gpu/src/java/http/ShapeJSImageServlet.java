@@ -934,7 +934,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             }
         }
 
-        EvalResult result = render.setScene(sceneID,sce.getScript(),sce.getParams());
+        EvalResult result = render.updateScene(sceneID,sce.getScript(),params);
 
         return result;
     }

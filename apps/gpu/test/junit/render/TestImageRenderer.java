@@ -242,10 +242,60 @@ public class TestImageRenderer extends TestCase {
         ImageRenderer render = new ImageRenderer();
         render.initCL(1, width, height);
         render.setVersion(VERSION);
-        EvalResult result = render.setScene(null, getFile("test/scripts/syntax_error.js"), new HashMap<String, Object>());
+        EvalResult result = render.updateScene(null, getFile("test/scripts/syntax_error.js"), new HashMap<String, Object>());
 
         printf("Error log: %s\n",result.getErrorLog());
-        assertTrue("Missing error log",result.getErrorLog() != null && result.getErrorLog().length() != 0);
+        assertTrue("Missing error log", result.getErrorLog() != null && result.getErrorLog().length() != 0);
+    }
+
+    /**
+     * Check that we global state between calls
+     * @throws IOException
+     */
+    public void testGlobalState() throws IOException {
+        int width = 256;
+        int height = 256;
+
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+        String uuid = UUID.randomUUID().toString();
+
+        HashMap<String,Object> params = new HashMap<String, Object>();
+        params.put("radius", 1);
+
+        String script = "var uiParams = [{id:\"radius\",type:\"range\",onChange:\"radiusChanged\"}]; function radiusChanged(params) {foo=params.radius; print(foo)} function main(args) {foo=1; return new Shape(new Sphere(args.radius*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}";
+        EvalResult result = render.updateScene(uuid,script, params);
+
+        printf("Error log: %s\n", result.getErrorLog());
+        params.put("radius", 0.5);
+        result = render.updateScene(uuid, script,params);
+
+        printf("Error log: %s\n", result.getErrorLog());
+        printf("Print log: %s\n", result.getPrintLog());
+    }
+
+    /**
+     * Check that we don't have cross talk of global state between jobID's
+     * @throws IOException
+     */
+    public void testCrossTalk() throws IOException {
+        int width = 256;
+        int height = 256;
+
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+        String uuid = UUID.randomUUID().toString();
+
+        EvalResult result = render.updateScene(uuid, "function main(args) {foo=1; return new Shape(new Sphere(1*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}", new HashMap<String, Object>());
+
+        uuid = UUID.randomUUID().toString();
+        printf("Error log: %s\n", result.getErrorLog());
+        result = render.updateScene(uuid, "function main(args) {print(foo); return new Shape(new Sphere(1*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}", new HashMap<String, Object>());
+
+        printf("Error log: %s\n", result.getErrorLog());
+        printf("Print log: %s\n", result.getPrintLog());
     }
 
     private String getFile(String file) throws IOException {
