@@ -409,7 +409,7 @@ public class ImageRenderer {
 
         t0 = System.nanoTime();
         createImage(pixX,pixY,width, height, pixels, tiles[0].getDest(), image);
-        lastImageTime = System.nanoTime() - t0;    
+        lastImageTime = System.nanoTime() - t0;
     }
 
     private VolumeScene setupOpenCL(String jobID, String script, Map<String,Object> params, boolean useCache, float quality) throws NotCachedException {
@@ -442,6 +442,12 @@ public class ImageRenderer {
                 Bounds bounds = new Bounds();
                 ce = new CacheEntry();
                 ce.result = eval.evalScript(jobID, script, bounds, params);
+
+                if (!ce.result.isSuccess()) {
+                    VolumeScene fail = new VolumeScene(version);
+                    fail.setResult(ce.result);
+                    return fail;
+                }
 
                 if (ce.result.getDataSource() instanceof Initializable)
                     ((Initializable) ce.result.getDataSource()).initialize();

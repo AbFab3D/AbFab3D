@@ -48,6 +48,9 @@ public class ShapeJSEvaluator {
     /** Remap error messages to something readable */
     private static final HashMap<String, String> errorRemap;
 
+    /** How many header lines did we add? */
+    private int headerLines;
+
     static {
         packageWhitelist = new ArrayList();
         packageWhitelist.add("abfab3d.");
@@ -96,16 +99,19 @@ public class ShapeJSEvaluator {
         StringBuilder bldr = new StringBuilder();
 
         for (String pack : scriptImports) {
+            headerLines++;
             bldr.append("importPackage(Packages.");
             bldr.append(pack);
             bldr.append(");\n");
         }
 
         for (String pack : classImports) {
+            headerLines++;
             bldr.append("importClass(Packages.");
             bldr.append(pack);
             bldr.append(");\n");
         }
+
 
         bldr.append(script);
 
@@ -182,8 +188,14 @@ public class ShapeJSEvaluator {
             Function main = (Function) o;
 
             Object[] args = new Object[]{argsMap};
-            Object result2 = main.call(cx, scope, scope, args);
+            Object result2 = null;
 
+            try {
+                result2 = main.call(cx, scope, scope, args);
+            } catch(Exception e) {
+                String err_msg = addErrorLine(e.getMessage(), script, headerLines);
+                return new EvalResult(false,null,null,err_msg, System.currentTimeMillis() - t0);
+            }
             if (DEBUG) printf("result of JS evaluation: %s\n", result2);
 
             if (result2 instanceof NativeJavaObject) {
@@ -238,5 +250,23 @@ public class ShapeJSEvaluator {
         }
 
         return null;
+    }
+
+    private String addErrorLine(String msg, String script, int header) {
+        // line number is <cmd>#23 form
+        int idx = msg.indexOf("<cmd>#");
+        if (idx == -1) {
+            return msg;
+        }
+
+        String line_st = msg.substring(idx+6);
+        idx = line_st.indexOf(")");
+        line_st = line_st.substring(0,idx);
+
+        String[] lines = script.split("\r\n|\r|\n");
+        int line = Integer.parseInt(line_st);
+
+        msg = msg + "\nScript Line(" + (line-header) + "): " + lines[line-1];
+        return msg;
     }
 }

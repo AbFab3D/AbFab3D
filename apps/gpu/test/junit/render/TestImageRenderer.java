@@ -18,6 +18,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.apache.commons.io.FileUtils;
+import shapejs.EvalResult;
 
 import javax.imageio.ImageIO;
 import javax.vecmath.Matrix4f;
@@ -232,6 +233,19 @@ public class TestImageRenderer extends TestCase {
         printf("pos2: %s  normal: %s\n", pos2, normal2);
 
         assertTrue("outside", pos2.x <= 10000);
+    }
+
+    public void testSyntaxError() throws IOException {
+        int width = 256;
+        int height = 256;
+
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+        EvalResult result = render.setScene(null, getFile("test/scripts/syntax_error.js"), new HashMap<String, Object>());
+
+        printf("Error log: %s\n",result.getErrorLog());
+        assertTrue("Missing error log",result.getErrorLog() != null && result.getErrorLog().length() != 0);
     }
 
     private String getFile(String file) throws IOException {
