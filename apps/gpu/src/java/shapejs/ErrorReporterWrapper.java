@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Wraps an error reporter
+ * Wraps an error reporter.
+ *
+ * TODO: Not certain this is really working
  *
  * @author Alan Hudson
  */

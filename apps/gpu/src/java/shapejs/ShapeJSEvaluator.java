@@ -260,13 +260,13 @@ public class ShapeJSEvaluator {
         }
 
         String line_st = msg.substring(idx+6);
-        idx = line_st.indexOf(")");
-        line_st = line_st.substring(0,idx);
+        int idx2 = line_st.indexOf(")");
+        line_st = line_st.substring(0,idx2);
 
         String[] lines = script.split("\r\n|\r|\n");
         int line = Integer.parseInt(line_st);
 
-        msg = msg + "\nScript Line(" + (line-header) + "): " + lines[line-1];
+        msg = msg.substring(0,idx-1) + "\nScript Line(" + (line-header) + "): " + lines[line-1];
         return msg;
     }
 }
