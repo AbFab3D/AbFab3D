@@ -217,6 +217,35 @@ function updateScene() {
   jQuery('#form').ajaxSubmit(options);
 }
 
+/** Save the current scene */
+function saveScene() {
+  extraParams = {
+    'jobID':   getJobID(),
+  };
+
+  var fileURL = "/creator/shapejsRT_v1.0.0/saveSceneCached?" + $.param(extraParams);
+
+  // for non-IE
+  if (!window.ActiveXObject) {
+    var save = document.createElement('a');
+    save.href = fileURL;
+    save.target = '_blank';
+    save.download = fileURL;
+    var evt = document.createEvent('MouseEvents');
+    evt.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+    save.dispatchEvent(evt);
+    (window.URL || window.webkitURL).revokeObjectURL(save.href);
+  }
+
+  // for IE
+  else if ( !! window.ActiveXObject && document.execCommand)     {
+    var _window = window.open(fileURL, "_blank");
+    _window.document.close();
+    _window.document.execCommand('SaveAs', true, fileURL)
+    _window.close();
+  }
+}
+
 function zoomModel() {
   viewChanged = true;
 }
