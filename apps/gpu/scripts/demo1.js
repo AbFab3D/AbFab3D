@@ -21,15 +21,6 @@ var params = [
 		"default": ""
 	},
 	{
-		"id": "textDepth",
-		"displayName": "Text Depth",
-		"type": "range",
-		"rangeMin": -2,
-		"rangeMax": 2,
-		"step": 0.1,
-		"default": 0.5
-	},
-	{
 		"id": "image",
 		"displayName": "Image",
 		"type": "file",
@@ -50,14 +41,14 @@ var params = [
 		"default": ""
 	},
 	{
-		"id": "imageDepth",
-		"displayName": "Image Depth",
+		"id": "engraveDepth",
+		"displayName": "Engrave Depth",
 		"type": "range",
-		"rangeMin": -2,
-		"rangeMax": 2,
+		"rangeMin": -1,
+		"rangeMax": 1,
 		"step": 0.1,
 		"default": 0.5
-	},
+	}
 
 
 ];
@@ -123,53 +114,51 @@ function getTextTransform(p0, n0, p1, n1){
 }
 
 function main(args) {
-	var textpos0 = args['textpos0'];
-	var textpos1 = args['textpos1'];
+	var textpos0 = args.textpos0;
+	var textpos1 = args.textpos1;
 	var text = args.text;
-	var textDepth = args.textDepth * MM;
 	var textBox = null;
-	var imagePath = args['image'];
-	var imagepos0 = args['imagepos0'];
-	var imagepos1 = args['imagepos1'];
+	var imagePath = args.image;
+	var imagepos0 = args.imagepos0;
+	var imagepos1 = args.imagepos1;
 	var imgBox = null;
-	var imageDepth = args.imageDepth * MM;
+	var engraveDepth = args.engraveDepth * MM;
 
 
 	if (text != null && textpos0 && textpos1) {
-		var pos0Str = textpos0.split(",");
-		var pos1Str = textpos1.split(",");
+		var tpos0Str = textpos0.split(",");
+		var tpos1Str = textpos1.split(",");
 
-		var pos0 = [parseFloat(pos0Str[0]),parseFloat(pos0Str[1]),parseFloat(pos0Str[2])];
-		var normal0 = [parseFloat(pos0Str[3]),parseFloat(pos0Str[4]),parseFloat(pos0Str[5])];
-		var pos1 = [parseFloat(pos1Str[0]),parseFloat(pos1Str[1]),parseFloat(pos1Str[2])];
-		var normal1 = [parseFloat(pos1Str[3]),parseFloat(pos1Str[4]),parseFloat(pos1Str[5])];
+		var tpos0 = [parseFloat(tpos0Str[0]),parseFloat(tpos0Str[1]),parseFloat(tpos0Str[2])];
+		var tnormal0 = [parseFloat(tpos0Str[3]),parseFloat(tpos0Str[4]),parseFloat(tpos0Str[5])];
+		var tpos1 = [parseFloat(tpos1Str[0]),parseFloat(tpos1Str[1]),parseFloat(tpos1Str[2])];
+		var tnormal1 = [parseFloat(tpos1Str[3]),parseFloat(tpos1Str[4]),parseFloat(tpos1Str[5])];
 
-		var p0 = new Vector3d(pos0[0],pos0[1],pos0[2]);
-		var p1 = new Vector3d(pos1[0],pos1[1],pos1[2]);
-		var n0 = new Vector3d(normal0[0],normal0[1],normal0[2]);
-		var n1 = new Vector3d(normal1[0],normal1[1],normal1[2]);
-		n0.normalize();
-		n1.normalize();
+		var tp0 = new Vector3d(tpos0[0],tpos0[1],tpos0[2]);
+		var tp1 = new Vector3d(tpos1[0],tpos1[1],tpos1[2]);
+		var tn0 = new Vector3d(tnormal0[0],tnormal0[1],tnormal0[2]);
+		var tn1 = new Vector3d(tnormal1[0],tnormal1[1],tnormal1[2]);
+		tn0.normalize();
+		tn1.normalize();
 
-		var ttrans = getTextTransform(p0,n0,p1,n1);
-		var p01 = new Vector3d();
-		p01.sub(p1,p0);
+		var tp01 = new Vector3d();
+		tp01.sub(tp1,tp0);
 
-		var bx = p01.length();
-		var by = 5*MM;
-		var bz = 10*MM;
-		var vs = 0.1*MM;
+		var tbx = tp01.length();
+		var tby = 5*MM;
+		var tbz = 10*MM;
+		var tvs = 0.1*MM;
 
-		textBox = new Text(text, "Times New Roman", bx, by, bz, vs);
+		textBox = new Text(text, "Times New Roman", tbx, tby, tbz, tvs);
 
 		textBox.getParam("rounding").setValue(0.*MM);
 		textBox.getParam("blurWidth").setValue(0.1*MM);
-		textBox.setTransform(getTextTransform(p0,n0,p1,n1));
+		textBox.setTransform(getTextTransform(tp0,tn0,tp1,tn1));
 	}
 	if (imagePath && imagepos0 && imagepos1) {
 		var image = loadImage(imagePath);
-		var pos0Str = textpos0.split(",");
-		var pos1Str = textpos1.split(",");
+		var pos0Str = imagepos0.split(",");
+		var pos1Str = imagepos1.split(",");
 
 		var pos0 = [parseFloat(pos0Str[0]),parseFloat(pos0Str[1]),parseFloat(pos0Str[2])];
 		var normal0 = [parseFloat(pos0Str[3]),parseFloat(pos0Str[4]),parseFloat(pos0Str[5])];
@@ -183,7 +172,6 @@ function main(args) {
 		n0.normalize();
 		n1.normalize();
 
-		var ttrans = getTextTransform(p0,n0,p1,n1);
 		var p01 = new Vector3d();
 		p01.sub(p1,p0);
 
@@ -194,7 +182,7 @@ function main(args) {
 
 		imgBox = new ImageBitmap(image, bx, by, bz, vs);
 		imgBox.setBlurWidth(0.1*MM);
-		imgBox.getParam("rounding").setValue(0.*MM);
+		imgBox.getParam("rounding").setValue(0.0*MM);
 		imgBox.setTransform(getTextTransform(p0,n0,p1,n1));
 	}
 
@@ -204,30 +192,25 @@ function main(args) {
 	r = radius * num * 0.7;
 	var shape = new Union(spheres(radius,3), new Box(0,-r * 0.9,0,r,r,r));
 
-	if (textBox !== null && imgBox == null) {
-		var eng = new Engraving(shape, textBox);
-		eng.getParam("depth").setValue(textDepth);
-		eng.getParam("blend").setValue(0.2*MM);
-
-		return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
-	} else if (imgBox !== null && textBox === null) {
-		var eng = new Engraving(shape, imgBox);
-		eng.getParam("depth").setValue(imageDepth);
-		eng.getParam("blend").setValue(0.2*MM);
-
-		return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
-	} else if (textBox !== null && imgBox !== null) {
-		var eng1 = new Engraving(shape, imgBox);
-		eng1.getParam("depth").setValue(textDepth);
-		eng1.getParam("blend").setValue(0.2*MM);
-
-		var eng2 = new Engraving(shape, textBox);
-		eng2.getParam("depth").setValue(imageDepth);
-		eng2.getParam("blend").setValue(0.2*MM);
-
-		return new Shape(new Union(eng1,eng2),new Bounds(-r,r,-r,r,-r,r));
+	var bump = null;
+	if (textBox !== null){
+		if(imgBox === null) {
+			bump = textBox;
+		} else {
+			bump = new Intersection(imgBox, textBox);
+		}
+	} else { // textBox == null
+		if(imgBox !== null) {
+			bump = imgBox;
+		}
 	}
-	else {
+
+	if(bump === null){
 		return new Shape(shape,new Bounds(-r,r,-r,r,-r,r));
+	} else {
+		var eng = new Engraving(shape, bump);
+		eng.getParam("depth").setValue(engraveDepth);
+		eng.getParam("blend").setValue(0.2*MM);
+		return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
 	}
 }

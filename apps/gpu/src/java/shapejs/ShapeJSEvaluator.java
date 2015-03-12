@@ -300,6 +300,7 @@ public class ShapeJSEvaluator {
                 }
 
                 String err_msg = bldr.toString();
+                if (err_msg.length() == 0) err_msg = null;
 
                 List<String> prints = DebugLogger.getLog(cx);
 
@@ -309,6 +310,7 @@ public class ShapeJSEvaluator {
                         bldr.append(print);
                     }
                     print_msg = bldr.toString();
+                    if (print_msg.length() == 0) print_msg = null;
                 }
 
                 return new EvalResult(true,dataSource,print_msg,err_msg, System.currentTimeMillis() - t0);

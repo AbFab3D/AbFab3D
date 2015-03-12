@@ -247,7 +247,22 @@ float3 renderPixel(uint x, uint y, float u, float v, float tnear, float tfar, ui
         float3 light2_color = (float3) (0,0.8f,0);
         float4 light3a = (float4)(0.f, 10.f, 20.f,0);//(float3)(0,-10,20);
         float3 light3_color = (float3) (0,0,0.8f);
-
+/*
+        // tony lighting
+        float3 ambient = (float3) (0.4,0.4,0.4);
+        float lscale = 0.65;
+        float key = 0.8f * lscale;
+        float fill = 0.25f * lscale;
+        float rim = 1.0f * lscale;
+        float3 light_color = (float3) (255.0/255.0 * lscale, 255/255.0 * lscale, 251.0 / 255.0 * lscale);  // high noon sun
+        float4 light1a =  (float4)(6.5f,-6.5f, 10.f,0);  // key light
+//        float3 light1_color = (float3) (key,key,key);
+        float3 light1_color = key * light_color;
+        float4 light2a = (float4)(10.f, 1.f, -10.f,0);  // fill light
+        float3 light2_color = fill * light_color;
+        float4 light3a = (float4)(-10.f, 9.0f, 10.f,0);  // rim light
+        float3 light3_color = rim * light_color;
+*/
         // WSF params
 //        float3 mat_diffuse = (float3) 0.831;
         float3 mat_diffuse = (float3) 1;

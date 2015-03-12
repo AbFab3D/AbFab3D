@@ -264,7 +264,7 @@ public class TestImageRenderer extends TestCase {
         HashMap<String,Object> params = new HashMap<String, Object>();
         params.put("radius", 1);
 
-        String script = "var uiParams = [{id:\"radius\",type:\"range\",onChange:\"radiusChanged\"}]; function radiusChanged(params) {foo=params.radius; print(foo)} function main(args) {foo=1; return new Shape(new Sphere(args.radius*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}";
+        String script = "var uiParams = [{id:\"radius\",type:\"range\",onChange:\"radiusChanged\"}]; function radiusChanged(params) {foo=params.radius; print(\"foo:\" + foo)} function main(args) {foo=1; return new Shape(new Sphere(args.radius*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}";
         EvalResult result = render.updateScene(uuid,script, params);
 
         printf("Error log: %s\n", result.getErrorLog());
@@ -273,6 +273,7 @@ public class TestImageRenderer extends TestCase {
 
         printf("Error log: %s\n", result.getErrorLog());
         printf("Print log: %s\n", result.getPrintLog());
+        assertTrue("final value", result.getPrintLog().startsWith("foo:0.5"));
     }
 
     /**
@@ -293,9 +294,9 @@ public class TestImageRenderer extends TestCase {
         uuid = UUID.randomUUID().toString();
         printf("Error log: %s\n", result.getErrorLog());
         result = render.updateScene(uuid, "function main(args) {print(foo); return new Shape(new Sphere(1*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}", new HashMap<String, Object>());
-
         printf("Error log: %s\n", result.getErrorLog());
-        printf("Print log: %s\n", result.getPrintLog());
+
+        assertNotNull("foo defined", result.getErrorLog());
     }
 
     private String getFile(String file) throws IOException {
