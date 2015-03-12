@@ -13,6 +13,9 @@ package shapejs;
 
 import abfab3d.util.DataSource;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Result of evaluating a ShapeJS script from Javascript.
  *
@@ -37,12 +40,24 @@ public class EvalResult {
     /** The number of instructions the script compiled too */
     private int instructions;
 
+    /** The parsed uiParams */
+    private Map<String,ParameterDefinition> uiParams;
+
     public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, long execTime) {
         this.datasource = datasource;
         this.printLog = printLog;
         this.errorLog = errorLog;
         this.execTime = execTime;
         this.success = success;
+    }
+
+    public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, Map<String,ParameterDefinition> uiParams, long execTime) {
+        this.datasource = datasource;
+        this.printLog = printLog;
+        this.errorLog = errorLog;
+        this.execTime = execTime;
+        this.success = success;
+        setUIParams(uiParams);
     }
 
     public EvalResult(String errorLog, long execTime) {
@@ -77,5 +92,15 @@ public class EvalResult {
 
     public int getInstructions() {
         return instructions;
+    }
+
+    public void setUIParams(Map<String,ParameterDefinition> params) {
+        if (uiParams == null) uiParams = new HashMap<String,ParameterDefinition>();
+
+        uiParams.putAll(params);
+    }
+
+    public Map<String,ParameterDefinition> getUIParams() {
+        return uiParams;
     }
 }

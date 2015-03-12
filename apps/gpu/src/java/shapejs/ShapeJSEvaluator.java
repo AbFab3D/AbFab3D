@@ -313,7 +313,7 @@ public class ShapeJSEvaluator {
                     if (print_msg.length() == 0) print_msg = null;
                 }
 
-                return new EvalResult(true,dataSource,print_msg,err_msg, System.currentTimeMillis() - t0);
+                return new EvalResult(true,dataSource,print_msg,err_msg, defs,System.currentTimeMillis() - t0);
                 /*
                 ShapeJSStore store = (ShapeJSStore) no;
                 if(DEBUG)printf("store: %s\n", store);
