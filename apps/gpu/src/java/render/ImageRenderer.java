@@ -473,7 +473,9 @@ public class ImageRenderer {
                 CLCodeMaker maker = new CLCodeMaker();
                 ce.ops = maker.makeCLCode((Parameterizable) ce.result.getDataSource());
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
-                ce.result.setInstructions(ce.ops.opcodesCount());
+                ce.result.setOpCount(ce.ops.opcodesCount());
+                ce.result.setOpSize(ce.ops.opcodesSize());
+                ce.result.setDataSize(ce.ops.dataSize());
                 ce.vscene.setWorldBounds(bounds);
                 ce.vscene.setResult(ce.result);
                 ce.vscene.setCLCode(ce.ops);
@@ -530,7 +532,9 @@ public class ImageRenderer {
 
                 CLCodeMaker maker = new CLCodeMaker();
                 ce.ops = maker.makeCLCode((Parameterizable) source);
-                ce.result.setInstructions(ce.ops.opcodesCount());
+                ce.result.setOpCount(ce.ops.opcodesCount());
+                ce.result.setOpSize(ce.ops.opcodesSize());
+                ce.result.setDataSize(ce.ops.dataSize());
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
                 ce.vscene.setWorldBounds(bounds);
                 ce.vscene.setResult(ce.result);

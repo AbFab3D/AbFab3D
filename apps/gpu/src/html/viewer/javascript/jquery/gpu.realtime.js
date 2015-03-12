@@ -321,9 +321,12 @@ function showLogs(obj) {
 
   var display = "";
   
-  var val = obj.execTime;
-  if (val !== null) {
-    $( "<p><span class='logType'>Execution time:</span><span class='log-info'>" + val + "</span></p><p style='line-height:50%'>&nbsp;</p>" ).appendTo( "#logger" );
+  var val = obj.evalTime;
+  var val2 = obj.opCount;
+  var val3 = obj.opSize;
+  var val4 = obj.dataSize;
+  if (val !== null && val2 !== null && val3 != null && val4 != null) {
+    $( "<span class='logType'>Evaluation time:</span><span class='log-info'>" + val + "</span><span class='logType'> ms.</span><span class='logType'>   opCount:</span><span class='log-info'>" + val2 + "</span><span class='logType'> opSize:</span><span class='log-info'>" + val3 + "</span><span class='logType'> dataSize:</span><span class='log-info'>" + val4 + "</span><p style='line-height:50%'>&nbsp;</p>" ).appendTo( "#logger" );
   }
 
   val = obj.printLog;

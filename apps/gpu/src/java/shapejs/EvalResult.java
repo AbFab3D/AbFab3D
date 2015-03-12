@@ -32,37 +32,40 @@ public class EvalResult {
     private String errorLog;
 
     /** How long did the script take */
-    private long execTime;
+    private long evalTime;
 
     /** Was the execution successful */
     private boolean success;
 
-    /** The number of instructions the script compiled too */
-    private int instructions;
+    /** Script compile information */
+    private int opCount;
+    private int opSize;
+    private int dataSize;
+    
 
     /** The parsed uiParams */
     private Map<String,ParameterDefinition> uiParams;
 
-    public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, long execTime) {
+    public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, long evalTime) {
         this.datasource = datasource;
         this.printLog = printLog;
         this.errorLog = errorLog;
-        this.execTime = execTime;
+        this.evalTime = evalTime;
         this.success = success;
     }
 
-    public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, Map<String,ParameterDefinition> uiParams, long execTime) {
+    public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, Map<String,ParameterDefinition> uiParams, long evalTime) {
         this.datasource = datasource;
         this.printLog = printLog;
         this.errorLog = errorLog;
-        this.execTime = execTime;
+        this.evalTime = evalTime;
         this.success = success;
         setUIParams(uiParams);
     }
 
-    public EvalResult(String errorLog, long execTime) {
+    public EvalResult(String errorLog, long evalTime) {
         this.errorLog = errorLog;
-        this.execTime = execTime;
+        this.evalTime = evalTime;
         this.success = false;
     }
 
@@ -78,20 +81,36 @@ public class EvalResult {
         return errorLog;
     }
 
-    public long getExecTime() {
-        return execTime;
+    public long getEvalTime() {
+        return evalTime;
     }
 
     public boolean isSuccess() {
         return success;
     }
 
-    public void setInstructions(int inst) {
-        instructions = inst;
+    public int getOpCount() {
+        return opCount;
     }
 
-    public int getInstructions() {
-        return instructions;
+    public void setOpCount(int opCount) {
+        this.opCount = opCount;
+    }
+
+    public int getOpSize() {
+        return opSize;
+    }
+
+    public void setOpSize(int opSize) {
+        this.opSize = opSize;
+    }
+
+    public int getDataSize() {
+        return dataSize;
+    }
+
+    public void setDataSize(int dataSize) {
+        this.dataSize = dataSize;
     }
 
     public void setUIParams(Map<String,ParameterDefinition> params) {
