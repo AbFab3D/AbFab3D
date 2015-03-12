@@ -1,4 +1,4 @@
-var params = [
+var uiParams = [
     {
         "id": "period",
         "displayName": "Period",

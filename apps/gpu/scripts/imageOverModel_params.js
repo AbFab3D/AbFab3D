@@ -1,8 +1,8 @@
-var params = [
+var uiParams = [
     {
         "id": "model",
         "displayName": "Model",
-        "type": "file",
+        "type": "url",
         "required": true
     },
     {
@@ -14,14 +14,14 @@ var params = [
     {
         "id": "textpos0",
         "displayName": "Image left",
-        "type": "3dloc",
+        "type": "location",
         "default": "",
         "required": false
     },
     {
         "id": "textpos1",
         "displayName": "Image right",
-        "type": "3dloc",
+        "type": "location",
         "default": "",
         "required": false
     },

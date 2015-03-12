@@ -1,5 +1,11 @@
 var uiParams = [
 	{
+		"id": "model",
+		"displayName": "Model",
+		"type": "url",
+		"required": true
+	},
+	{
 		"id": "text",
 		"displayName": "Text",
 		"type": "text",
@@ -23,7 +29,7 @@ var uiParams = [
 	{
 		"id": "image",
 		"displayName": "Image",
-		"type": "url",
+		"type": "file",
 		"required": false
 	},
 	{
@@ -114,6 +120,11 @@ function getTextTransform(p0, n0, p1, n1){
 }
 
 function main(args) {
+	var vs = 0.2*MM;
+	var maxDist = 2.1*MM;
+	var svr = 255;
+
+	var modelPath = args['model'];
 	var textpos0 = args.textpos0;
 	var textpos1 = args.textpos1;
 	var text = args.text;
@@ -123,7 +134,32 @@ function main(args) {
 	var imagepos1 = args.imagepos1;
 	var imgBox = null;
 	var engraveDepth = args.engraveDepth * MM;
+	var shape = null;
+	var bounds = null;
 
+
+	if (modelPath) {
+		var distDataKey = "distData:" + modelPath;
+		var boundsKey = "gridBounds:" + modelPath;
+		var distData = getCachedData(distDataKey);
+		bounds = getCachedData(boundsKey);
+
+		if (distData == null) {
+			var modelGrid = load(modelPath, vs,3*MM);
+			bounds = modelGrid.getGridBounds();
+
+			var dt = new DistanceTransformLayered(svr, maxDist, maxDist);
+			var distGrid = dt.execute(modelGrid);
+			distData = new DataSourceGrid(distGrid);
+			// a hack to get real distance from the distance grid
+			var maxDistSVR = svr * (maxDist / vs);
+			distData.setMapper(new LinearMapper(-maxDistSVR, maxDistSVR, -maxDist, maxDist));
+			saveCachedData(distDataKey, distData);
+			saveCachedData(boundsKey, bounds);
+		}
+
+		shape = distData;
+	}
 
 	if (text != null && textpos0 && textpos1) {
 		var tpos0Str = textpos0.split(",");
@@ -186,12 +222,6 @@ function main(args) {
 		imgBox.setTransform(getTextTransform(p0,n0,p1,n1));
 	}
 
-	var radius = 7*MM;
-	var num = 3;
-
-	r = radius * num * 0.7;
-	var shape = new Union(spheres(radius,3), new Box(0,-r * 0.9,0,r,r,r));
-
 	var bump = null;
 	if (textBox !== null){
 		if(imgBox === null) {
@@ -206,11 +236,11 @@ function main(args) {
 	}
 
 	if(bump === null){
-		return new Shape(shape,new Bounds(-r,r,-r,r,-r,r));
+		return new Shape(shape,bounds);
 	} else {
 		var eng = new Engraving(shape, bump);
 		eng.getParam("depth").setValue(engraveDepth);
 		eng.getParam("blend").setValue(0.2*MM);
-		return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
+		return new Shape(eng,bounds);
 	}
 }
