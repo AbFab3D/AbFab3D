@@ -8,7 +8,7 @@ var uiParams = [
     {
         "id": "image",
         "displayName": "Image",
-        "type": "file",
+        "type": "url",
         "required": false
     },
     {
