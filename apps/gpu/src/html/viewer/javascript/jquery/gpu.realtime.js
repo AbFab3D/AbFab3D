@@ -300,8 +300,10 @@ function pickModel(e, element) {
     if ( (data.normal[0] == -10000 && data.normal[1] == -10000 && data.normal[2] == -10000) ||
          (data.normal[0] == 0 && data.normal[1] == 0 && data.normal[2] == 0) )
          return;
-         
-    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
+
+//    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
+    console.log("pick result: " + data);
+    $(pickDataContainer).val(JSON.stringify(data)).change();
   });
 
   request.fail(function( jqXHR, textStatus ) {

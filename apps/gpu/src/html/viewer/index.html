@@ -91,12 +91,13 @@ function randomstring(L){
 function prepForm(formData, jqForm, options) {
   for (var i=0; i < formData.length; i++) {
     if ( $.inArray(formData[i].name, deltaParams) >= 0 ) {
+      console.log("Param changed: " + formData[i].name + " val: " + formData[i].value);
       var isComplex = false;
       if (paramDef[formData[i].name].type == "location") isComplex = true;
 
       formData[i].name = "shapeJS_" + formData[i].name;
 
-      if (!isComplex) {
+      if (!isComplex && formData[i].value !== undefined) {
         // Don't JSON encode complex data types.
         formData[i].value = JSON.stringify(formData[i].value);
       }
@@ -443,6 +444,7 @@ function addParamUIListener(element, elementId, type) {
         update(false, false);
       });
       break;
+
     case "location":
       $(element).on("change", function() {
         setParamVal( elementId, $(element).val() );

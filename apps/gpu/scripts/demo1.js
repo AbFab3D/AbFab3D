@@ -119,6 +119,7 @@ function main(args) {
 	var engraveDepth = args.engraveDepth * MM;
 
 
+	print("textpos: " + textpos0);
 	if (text != null && textpos0 && textpos1) {
 		var tp0 = textpos0.point;
 		var tn0 = textpos0.normal;

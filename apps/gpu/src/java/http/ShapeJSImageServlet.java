@@ -698,15 +698,18 @@ public class ShapeJSImageServlet extends HttpServlet {
             script = scriptSt[0];
         }
 
+        printf("UpdateScene:\n");
         Map<String,Object> sparams = new HashMap<String,Object>();
         for(Map.Entry<String,String[]> entry : params.entrySet()) {
             String key = entry.getKey();
+            String val = null;
             if (key.startsWith("shapeJS_")) {
                 key = key.substring(8);
-                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
-                sparams.put(key, entry.getValue()[0]);
+                val = entry.getValue()[0];
+                if (val.equals("undefined")) continue;
+                printf("Adding param: %s -> %s\n",key,val);
+                sparams.put(key, val);
             }
-
         }
 
         Gson gson = new Gson();
