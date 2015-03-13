@@ -57,6 +57,7 @@ import static com.jogamp.opencl.util.CLPlatformFilters.type;
  * Tests the functionality of ShapeJSExecutor
  *
  * @author Alan Hudson
+ * @author Vladimir Bulatov
  */
 public class TestVolumeRenderer extends TestCase {
     private static final boolean DEBUG = true;
@@ -200,8 +201,7 @@ public class TestVolumeRenderer extends TestCase {
             "function main(args) {                                         \n"+
             "  var radius = 15 * MM;                                       \n"+
             "  var num = args['num'];                                      \n"+
-            "  var gs = 2*radius;                                          \n"+
-            "  var grid = createGrid(-gs, gs, -gs, gs, -gs, gs, 0.1 * MM); \n"+
+            "  var s = 2*radius;                                           \n"+
             "  var result;                                                 \n"+
             "  if (num == 1) {                                             \n"+
             "    result = new Sphere(0,0,0,radius);                        \n"+
@@ -213,14 +213,10 @@ public class TestVolumeRenderer extends TestCase {
             "      var x = x0 + dx * i;                                    \n"+
             "      var y = radius;                                         \n"+
             "      union.add(new Sphere(x, -y, 0, radius));                \n"+
-            //"      union.add(new Box(x,y, 0,radius/2 ,radius/2,radius/2)); \n"+
             "    }                                                         \n"+
             "    result = union;                                           \n"+
             "  }                                                           \n"+
-            "  var maker = new GridMaker();                                \n"+
-            "  maker.setSource(result);                                    \n"+
-            "  maker.makeGrid(grid);                                       \n"+
-            "  return grid;                                                \n"+
+            " return new Shape(result, new Bounds(-s, s, -s, s, -s, s));   \n"+
             "}                                                             \n";
 
         HashMap<String,Object> params = new HashMap<String, Object>();

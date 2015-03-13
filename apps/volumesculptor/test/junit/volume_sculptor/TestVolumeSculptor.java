@@ -70,7 +70,7 @@ public class TestVolumeSculptor extends TestCase {
             //var height = 38*MM;
             //var layerHeight = 1*MM;
 
-            // If ImageBitmap worked then the final volume should < 3 full layers of material
+            // If ImageBox worked then the final volume should < 3 full layers of material
             double max_volume = 38 * MM * 38 * MM * 1 * MM * 3;
 
             assertTrue("Volume", ac.getVolume() < max_volume * 0.9);

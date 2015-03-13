@@ -27,7 +27,7 @@ import abfab3d.grid.Grid;
 import abfab3d.util.DataSource;
 import abfab3d.util.TextUtil;
 
-import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.ImageBox;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Ring;
@@ -193,7 +193,7 @@ public class RingPopperKernel extends HostedKernel {
     private int fontSize = 20;
 
     private double imageBlurWidth = 0.;
-    private int imageInterpolationType = ImageBitmap.INTERPOLATION_LINEAR;
+    private int imageInterpolationType = ImageBox.INTERPOLATION_LINEAR;
     private double imageBaseThreshold = 0.1;
     private double bandLength; // length of ring perimeter
 
@@ -473,7 +473,7 @@ public class RingPopperKernel extends HostedKernel {
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866 
         imageBlurWidth = surfaceTransitionWidth*voxelSize;
         imageBaseThreshold = 0.1;            
-        imageInterpolationType = ImageBitmap.INTERPOLATION_LINEAR;
+        imageInterpolationType = ImageBox.INTERPOLATION_LINEAR;
 
 
         bandLength = innerDiameter * Math.PI;
@@ -660,7 +660,7 @@ public class RingPopperKernel extends HostedKernel {
      */
     DataSource makeImageBand() {
 
-        ImageBitmap image_src = new ImageBitmap();
+        ImageBox image_src = new ImageBox();
        
         image_src.setCenter(0, 0, ringThickness / 2);
         image_src.setImagePath(imagePath);
@@ -672,7 +672,7 @@ public class RingPopperKernel extends HostedKernel {
         image_src.setVoxelSize(resolution);
 
         if (imageInvert) {
-            image_src.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
+            image_src.setImageType(ImageBox.IMAGE_TYPE_ENGRAVED);
         }
 
         image_src.setInterpolationType(imageInterpolationType);
@@ -766,17 +766,17 @@ public class RingPopperKernel extends HostedKernel {
         printf("text height: %d pixels\n", textHeightPixels);
         printf("vertical text offset: %d pixels\n", textOffsetV);
 
-        ImageBitmap textBand = new ImageBitmap();
+        ImageBox textBand = new ImageBox();
 
         textBand.setSize(Math.PI * innerDiameter, width, textDepth);
         // text is offset in opposite z-direction because we have to rotate it 180 deg around Y-axis 
         textBand.setCenter(0, (ymax + ymin)/2, -textDepth / 2);
         textBand.setBaseThickness(0.);
-        textBand.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
+        textBand.setImageType(ImageBox.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1, 1);
         textBand.setBlurWidth(imageBlurWidth);
         textBand.setUseGrayscale(false);
-        textBand.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
+        textBand.setInterpolationType(ImageBox.INTERPOLATION_LINEAR);
 
 
         int fontStyle = Font.PLAIN;
@@ -828,7 +828,7 @@ public class RingPopperKernel extends HostedKernel {
      */
     DataSource makeCrossSection(double ringYmin, double ringYmax) {
 
-        ImageBitmap crossSect = new ImageBitmap();
+        ImageBox crossSect = new ImageBox();
         
         double size = (ringYmax - ringYmin);
         crossSect.setSize(size, ringThickness, Math.PI * innerDiameter);
@@ -843,7 +843,7 @@ public class RingPopperKernel extends HostedKernel {
         crossSect.setUseGrayscale(false);
         crossSect.setImagePath(crossSectionPath);
         crossSect.setBlurWidth(imageBlurWidth);
-        crossSect.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
+        crossSect.setInterpolationType(ImageBox.INTERPOLATION_LINEAR);
 
         CompositeTransform crossTrans = new CompositeTransform();
 

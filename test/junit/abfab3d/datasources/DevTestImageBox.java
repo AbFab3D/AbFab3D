@@ -53,7 +53,7 @@ import abfab3d.util.VecTransform;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
-import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.ImageBox;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;
@@ -98,7 +98,7 @@ import static abfab3d.util.MathUtil.normalizePlane;
  *
  * @version
  */
-public class DevTestImageBitmap{
+public class DevTestImageBox{
 
 
     int gridMaxAttributeValue = 127;
@@ -120,7 +120,7 @@ public class DevTestImageBitmap{
         
         String imagePath = "test_imageBitmap.stl";
 
-        ImageBitmap image = new ImageBitmap("test/images/blackcircle.png", 10*MM, 0, 10*MM, voxelSize);
+        ImageBox image = new ImageBox("test/images/blackcircle.png", 10*MM, 0, 10*MM, voxelSize);
         image.setUseGrayscale(false);
         image.setBlurWidth(voxelSize);
 
@@ -151,7 +151,7 @@ public class DevTestImageBitmap{
         
         String imagePath = "test_imageBitmap.stl";
 
-        ImageBitmap image = new ImageBitmap("test/images/blackcircle_blur.png", 10*MM, 0, 10*MM, voxelSize);
+        ImageBox image = new ImageBox("test/images/blackcircle_blur.png", 10*MM, 0, 10*MM, voxelSize);
         image.setUseGrayscale(true);
         //image.setBlurWidth(voxelSize);
 
@@ -181,7 +181,7 @@ public class DevTestImageBitmap{
 
     public static void main(String[] args) throws Exception {
 
-        DevTestImageBitmap dt = new DevTestImageBitmap();
+        DevTestImageBox dt = new DevTestImageBox();
         //dt.testBitmapAspectRatio();
         dt.testBitmapGray();
     }
