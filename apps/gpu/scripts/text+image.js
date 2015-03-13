@@ -1,4 +1,4 @@
-var params = [
+var uiParams = [
 	{
 		"id": "text",
 		"displayName": "Text",
@@ -9,34 +9,34 @@ var params = [
 	{
 		"id": "textpos0",
 		"displayName": "Text Pos1",
-		"type": "3dloc",
+		"type": "location",
 		"required": false,
 		"default": ""
 	},
 	{
 		"id": "textpos1",
 		"displayName": "Text Pos2",
-		"type": "3dloc",
+		"type": "location",
 		"required": false,
 		"default": ""
 	},
 	{
 		"id": "image",
 		"displayName": "Image",
-		"type": "file",
+		"type": "url",
 		"required": false
 	},
 	{
 		"id": "imagepos0",
 		"displayName": "Image Pos1",
-		"type": "3dloc",
+		"type": "location",
 		"required": false,
 		"default": ""
 	},
 	{
 		"id": "imagepos1",
 		"displayName": "Image Pos2",
-		"type": "3dloc",
+		"type": "location",
 		"required": false,
 		"default": ""
 	},

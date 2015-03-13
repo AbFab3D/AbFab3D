@@ -21,12 +21,13 @@ import datasources.Instruction;
 import opencl.CLCodeBuffer;
 
 import abfab3d.grid.Bounds;
+import shapejs.EvalResult;
 
 
 /**
-   wraper for volume scene parameters 
-
-   @author Vladimir Bulatov 
+ * Wrapper for volume scene parameters
+ *
+ * @author Vladimir Bulatov
  */
 public class VolumeScene {
 
@@ -42,6 +43,7 @@ public class VolumeScene {
     private String code; // single piece of code (
     private List<Instruction> instructions = null; // list of instructions to perform 
     private CLCodeBuffer codeBuffer = null;  // buffer of opcodes with structs
+    private EvalResult result;
 
     public VolumeScene(String version){
         this.version = version;
@@ -114,5 +116,13 @@ public class VolumeScene {
 
     public Vector3d getWorldSize(){
         return worldSize;
+    }
+
+    public EvalResult getResult() {
+        return result;
+    }
+
+    public void setResult(EvalResult result) {
+        this.result = result;
     }
 }

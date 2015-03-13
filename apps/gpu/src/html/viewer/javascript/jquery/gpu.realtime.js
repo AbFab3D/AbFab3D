@@ -28,6 +28,8 @@ var maxFPS = 30;  // maximum frame rate to shoot for
 var updatingScene = false;
 var usSkipCount = 15;
 
+var scriptErrorLines = [];
+
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
 
@@ -177,6 +179,7 @@ function updateScene() {
     }
   }
 
+  clearScriptHighlights();
   updatingScene = true;
   usSkipCount = 15;
 
@@ -191,21 +194,56 @@ function updateScene() {
     type: "post",
     timeout: 180000,
     beforeSubmit: prepForm,
-    success: function() {
+    success: function(data) {
       updatingScene = false;
-      viewChanged = true;  // force a redraw
-      deltaParams.length = 0;
+      showLogs(data);
       unspin();
+      if (data.success) {
+        viewChanged = true;  // force a redraw
+        deltaParams.length = 0;
+      } else {
+        $("#render").attr("src", "");
+      }
     },
     error: function(xhr, textStatus, errorThrown) {
       updatingScene = false;
-      alert( "Request failed: " + xhr );
+      alert( "REQUEST FAILED\n\nCode: " + xhr.status + "\nError: " + xhr.statusText );
       console.log(xhr);
+      $("#render").attr("src", "");
       unspin();
     }
   };
 
   jQuery('#form').ajaxSubmit(options);
+}
+
+/** Save the current scene */
+function saveScene() {
+  extraParams = {
+    'jobID':   getJobID(),
+  };
+
+  var fileURL = "/creator/shapejsRT_v1.0.0/saveSceneCached?" + $.param(extraParams);
+
+  // for non-IE
+  if (!window.ActiveXObject) {
+    var save = document.createElement('a');
+    save.href = fileURL;
+    save.target = '_blank';
+    save.download = fileURL;
+    var evt = document.createEvent('MouseEvents');
+    evt.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0, false, false, false, false, 0, null);
+    save.dispatchEvent(evt);
+    (window.URL || window.webkitURL).revokeObjectURL(save.href);
+  }
+
+  // for IE
+  else if ( !! window.ActiveXObject && document.execCommand)     {
+    var _window = window.open(fileURL, "_blank");
+    _window.document.close();
+    _window.document.execCommand('SaveAs', true, fileURL)
+    _window.close();
+  }
 }
 
 function zoomModel() {
@@ -262,13 +300,15 @@ function pickModel(e, element) {
     // Response with normals (-10000, -10000, -10000) means no valid position on geometry was clicked
     // TODO: Clicking in the bounding box of model returns valid response, but not a valid geometry position.
     //       Indicated with normals (0,0,0). Should fix on server side.
-    if ( (data.normal[0] != -10000 && data.normal[0] != -10000 && data.normal[0] != -10000) &&
-         (data.normal[0] != 0 && data.normal[0] != 0 && data.normal[0] != 0) )
-      $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
+    if ( (data.normal[0] == -10000 && data.normal[1] == -10000 && data.normal[2] == -10000) ||
+         (data.normal[0] == 0 && data.normal[1] == 0 && data.normal[2] == 0) )
+         return;
+         
+    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
   });
 
   request.fail(function( jqXHR, textStatus ) {
-    alert( "Request failed: " + textStatus );
+    alert( "REQUEST FAILED\n\nCode: " + xhr.status + "\nError: " + xhr.statusText );
 
     // TODO: use pick with complete script
   });
@@ -303,6 +343,63 @@ function setQuality(q) {
 function renderHighQuality() {
   highQuality = true;
   viewChanged = true;
+}
+
+function showLogs(obj) {
+  $("#logger").empty();
+
+  var display = "";
+  
+  var val = obj.evalTime;
+  var val2 = obj.opCount;
+  var val3 = obj.opSize;
+  var val4 = obj.dataSize;
+  if (val !== null && val2 !== null && val3 != null && val4 != null) {
+    $( "<span class='logType'>Evaluation time:</span><span class='log-info'>" + val + "</span><span class='logType'> ms.</span><span class='logType'>   opCount:</span><span class='log-info'>" + val2 + "</span><span class='logType'> opSize:</span><span class='log-info'>" + val3 + "</span><span class='logType'> dataSize:</span><span class='log-info'>" + val4 + "</span><p style='line-height:50%'>&nbsp;</p>" ).appendTo( "#logger" );
+  }
+
+  val = obj.printLog;
+  if (val !== undefined && val !== null && val.length > 0) {
+    $( "<p class='log-type'>Prints:</p>" ).appendTo( "#logger" );
+    
+    var prints = val.split("\n");
+    $.each(prints, function(i, text) {
+      $( "<p class='log-info'>" + text + "</p>" ).appendTo( "#logger" );
+    });
+  }
+  
+  val = obj.errorLog;
+  if (val !== undefined && val !== null && val.length > 0) {
+    $( "<p class='log-type'>Errors:</p>" ).appendTo( "#logger" );
+    
+    var prints = val.split("\n");
+    $.each(prints, function(i, text) {
+      $( "<p class='log-info'>" + text + "</p>" ).appendTo( "#logger" );
+      highlightScriptError(text);
+    });
+  }
+}
+
+function highlightScriptError(text) {
+  var marker = "Script Line(";
+  var index = text.indexOf(marker);
+
+  if (index >= 0) {
+    var start = index + marker.length;
+    var end = text.indexOf(")", start);
+    var lineNumber = text.substring(index + marker.length, end);
+    editor.removeLineClass(lineNumber-1, 'background', 'CodeMirror-activeline-background');
+    editor.addLineClass(lineNumber-1, 'background', 'CodeMirror-error-line-bg');
+    scriptErrorLines.push(lineNumber-1);
+  }
+}
+
+function clearScriptHighlights() {
+  $.each(scriptErrorLines, function(i, val) {
+    editor.removeLineClass(val, 'background', 'CodeMirror-error-line-bg');
+  });
+  
+  scriptErrorLines.length = 0;
 }
 
 /////////////////////////////////////////
@@ -533,3 +630,7 @@ function matrixToQueryString(matrix) {
 function curRotationToQueryString() {
   return curRotation[0] + "," + curRotation[1] + "," + curRotation[2] + "," + curRotation[3];
 }
+
+function nl2br(text){
+  return text.replace(/(\r\n|\n\r|\r|\n)/g, "<br/>");
+};

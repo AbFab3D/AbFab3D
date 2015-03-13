@@ -1,15 +1,15 @@
-var params = [
+var uiParams = [
     {
         "id": "textpos0",
         "displayName": "Text Pos1",
-        "type": "3dloc",
+        "type": "location",
         "required": false,
         "default": ""
     },
     {
         "id": "textpos1",
         "displayName": "Text Pos2",
-        "type": "3dloc",
+        "type": "location",
         "required": false,
         "default": ""
     }

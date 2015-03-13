@@ -1,21 +1,21 @@
-var params = [
+var uiParams = [
     {
         "id": "model",
         "displayName": "Model",
-        "type": "file",
+        "type": "url",
         "required": true
     },
     {
         "id": "textpos0",
         "displayName": "Text Pos1",
-        "type": "3dloc",
+        "type": "location",
         "required": false,
         "default": ""//"-0.015,0,0,-0.7,0.2,1"
     },
     {
         "id": "textpos1",
         "displayName": "Text Pos2",
-        "type": "3dloc",
+        "type": "location",
         "required": false,
         "default": ""//"0.015,0,0,0.7, 0.5,1"
     }

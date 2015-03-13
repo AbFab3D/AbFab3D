@@ -12,6 +12,7 @@ import opencl.CLCodeBuffer;
 import opencl.CLCodeMaker;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
+import shapejs.EvalResult;
 import shapejs.ShapeJSEvaluator;
 
 import javax.vecmath.Matrix4f;
@@ -281,13 +282,18 @@ public class ImageRenderer {
      * @param params The params, must include all of them
      * @return
      */
-    public void setScene(String jobID, String script, Map<String,Object> params) {
+    public EvalResult updateScene(String jobID, String script, Map<String,Object> params) {
 
+        // Call onChange listeners
         try {
             VolumeScene vscene = setupOpenCL(jobID, script, params, true, 0.5f);
+
+            return vscene.getResult();
         } catch (NotCachedException nce) {
             // ignore
         }
+
+        return null;
     }
 
     /**
@@ -299,7 +305,7 @@ public class ImageRenderer {
     }
 
     /**
-     * Clear resources consum by a specific job
+     * Clear resources consumed by a specific job
      * @param jobID
      */
     public void clearCache(String jobID) {
@@ -404,7 +410,7 @@ public class ImageRenderer {
 
         t0 = System.nanoTime();
         createImage(pixX,pixY,width, height, pixels, tiles[0].getDest(), image);
-        lastImageTime = System.nanoTime() - t0;    
+        lastImageTime = System.nanoTime() - t0;
     }
 
     private VolumeScene setupOpenCL(String jobID, String script, Map<String,Object> params, boolean useCache, float quality) throws NotCachedException {
@@ -432,19 +438,46 @@ public class ImageRenderer {
                     throw new NotCachedException();
                 }
 
-                if (DEBUG) printf("js evaluation\n");
-                ShapeJSEvaluator eval = new ShapeJSEvaluator();
+                ShapeJSEvaluator eval = null;
                 Bounds bounds = new Bounds();
-                ce = new CacheEntry();
-                ce.source = eval.runScript(script, bounds, params);
 
-                if (ce.source instanceof Initializable)
-                    ((Initializable) ce.source).initialize();
+                // check for existing js cache
+                if (jobID != null) {
+                    ce = cacheSource.get(jobID);
+                    if (ce != null) {
+                        eval = ce.evaluator;
+                    }
+                }
+
+                if (DEBUG) printf("js evaluation\n");
+
+                if (ce == null) {
+                    eval = new ShapeJSEvaluator();
+                    bounds = new Bounds();
+                    ce = new CacheEntry();
+                    ce.evaluator = eval;
+                    ce.result = eval.evalScript(script, bounds, params);
+                } else {
+                    ce.result = eval.reevalScript(script, bounds, params);
+                }
+
+                if (!ce.result.isSuccess()) {
+                    VolumeScene fail = new VolumeScene(version);
+                    fail.setResult(ce.result);
+                    return fail;
+                }
+
+                if (ce.result.getDataSource() instanceof Initializable)
+                    ((Initializable) ce.result.getDataSource()).initialize();
 
                 CLCodeMaker maker = new CLCodeMaker();
-                ce.ops = maker.makeCLCode((Parameterizable) ce.source);
+                ce.ops = maker.makeCLCode((Parameterizable) ce.result.getDataSource());
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
+                ce.result.setOpCount(ce.ops.opcodesCount());
+                ce.result.setOpSize(ce.ops.opcodesSize());
+                ce.result.setDataSize(ce.ops.dataSize());
                 ce.vscene.setWorldBounds(bounds);
+                ce.vscene.setResult(ce.result);
                 ce.vscene.setCLCode(ce.ops);
                 ce.quality = quality;
                 newScene = true;
@@ -458,7 +491,7 @@ public class ImageRenderer {
                 }
             }
 
-            source = ce.source;
+            source = ce.result.getDataSource();
             ops = ce.ops;
             vscene = ce.vscene;
         } else if (version.equals(VolumeRenderer.VERSION_DIST)) {
@@ -474,19 +507,37 @@ public class ImageRenderer {
             }
             if (ce == null) {
 
-                if (DEBUG) printf("js evaluation\n");
-                ShapeJSEvaluator eval = new ShapeJSEvaluator();
+                ShapeJSEvaluator eval = null;
                 Bounds bounds = new Bounds();
-                ce = new CacheEntry();
-                ce.source = eval.runScript(script, bounds, params);
 
-                if (ce.source instanceof Initializable)
-                    ((Initializable) ce.source).initialize();
+                if (DEBUG) printf("js evaluation\n");
+                if (ce == null) {
+                    eval = new ShapeJSEvaluator();
+                    bounds = new Bounds();
+                    ce = new CacheEntry();
+                    ce.evaluator = eval;
+                    ce.result = eval.evalScript(script, bounds, params);
+                } else {
+                    ce.result = eval.reevalScript(script, bounds, params);
+                }
+
+                if (!ce.result.isSuccess()) {
+                    VolumeScene fail = new VolumeScene(version);
+                    fail.setResult(ce.result);
+                    return fail;
+                }
+
+                if (ce.result.getDataSource() instanceof Initializable)
+                    ((Initializable) ce.result.getDataSource()).initialize();
 
                 CLCodeMaker maker = new CLCodeMaker();
                 ce.ops = maker.makeCLCode((Parameterizable) source);
+                ce.result.setOpCount(ce.ops.opcodesCount());
+                ce.result.setOpSize(ce.ops.opcodesSize());
+                ce.result.setDataSize(ce.ops.dataSize());
                 ce.vscene = new VolumeScene(new ArrayList(), null, "", version);
                 ce.vscene.setWorldBounds(bounds);
+                ce.vscene.setResult(ce.result);
 
                 OpenCLWriter writer = new OpenCLWriter();
                 //Vector3d ws = ce.vscene.getWorldSize(); ws.scale(0.5);
@@ -499,7 +550,7 @@ public class ImageRenderer {
                 }
             }
 
-            source = ce.source;
+            source = ce.result.getDataSource();
             ops = ce.ops;
             vscene = ce.vscene;
 
@@ -513,7 +564,8 @@ public class ImageRenderer {
             if (inst == null) {
                 ShapeJSEvaluator eval = new ShapeJSEvaluator();
                 Bounds bounds = new Bounds();
-                source = eval.runScript(script, bounds,params);
+                EvalResult result = eval.evalScript(script, bounds,params);
+                source = result.getDataSource();
 
                 if(source instanceof Initializable)
                     ((Initializable)source).initialize();
@@ -771,12 +823,13 @@ public class ImageRenderer {
     }
 
     public static class CacheEntry {
-        public DataSource source;
+        public EvalResult result;
         public CLCodeBuffer ops;
         public VolumeScene vscene;
         public String script;
         public Map<String,Object> params;
         public float quality;
+        public ShapeJSEvaluator evaluator;
 
         public CacheEntry() {
         }

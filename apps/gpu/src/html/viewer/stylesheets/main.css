@@ -248,7 +248,7 @@
 //		    color: #059C05;
 	color: white;
 	font-weight: 100;
-	font-family:Helvetica Neue, Helvetica, Arial, sans-serif
+	font-family:Helvetica Neue, Helvetica, Arial, sans-serif;
 	font-size: 13px;
 	display: inline-block;
 	padding: 5px 10px;
@@ -554,6 +554,37 @@
     height:100px
 }
 
+.menu-button {
+  background: #1e88ff;
+  background-image: -webkit-linear-gradient(top, #1e88ff, #55a5ff);
+  background-image: -moz-linear-gradient(top, #1e88ff, #55a5ff);
+  background-image: -ms-linear-gradient(top, #1e88ff, #55a5ff);
+  background-image: -o-linear-gradient(top, #1e88ff, #55a5ff);
+  background-image: linear-gradient(to bottom, #1e88ff, #55a5ff);
+  -webkit-border-radius: 3;
+  -moz-border-radius: 3;
+  float: left;
+  position: relative;
+  width: 80px;
+  height: 16px;
+  border-radius: 3px;
+  text-align: center;
+  color: #ffffff;
+  font-size: 12px;
+  padding: 3px;
+  margin-top: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+.menu-button:hover {
+  background: #2c99ff;
+  background-image: -webkit-linear-gradient(top, #1e88ff, #1e88ff);
+  background-image: -moz-linear-gradient(top, #1e88ff, #1e88ff);
+  background-image: -ms-linear-gradient(top, #1e88ff, #1e88ff);
+  background-image: -o-linear-gradient(top, #1e88ff, #1e88ff);
+  background-image: linear-gradient(to bottom, #1e88ff, #1e88ff);
+}
+
 .param-button {
   background: #1dbaff;
   background-image: -webkit-linear-gradient(top, #1dbaff, #2980b9);
@@ -641,4 +672,26 @@
 }
 .render-picking {
   cursor: crosshair;
+}
+
+.console {
+  position: relative;
+  float: left;
+  width: 500px;
+  height: 100px;
+  font-family: courier, monospace;
+  color: #3cff00;
+  background: #000000;
+  border: 3px double #888888;
+  padding: 10px;
+  overflow-y: auto;
+}
+.console .log-type {
+  font-weight: 500;
+}
+.console .log-info {
+  padding-left:8px;
+}
+.CodeMirror-error-line-bg {
+  background: yellow !important;
 }

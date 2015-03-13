@@ -2,14 +2,11 @@
 <html >
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<link rel="stylesheet" type="text/css" href="javascript/x3dom/x3dom.css" />
-<script type="text/javascript" src="javascript/x3dom/x3dom.js"></script>
 <script type="text/javascript" src="javascript/jquery/jquery-1.7.1.min.js"></script>
 <script type="text/javascript" src="javascript/jquery/jquery-ui-1.8.14.custom.min.js"></script>
 <script type="text/javascript" src="javascript/jquery/jquery.tools.min.js"></script>
 <script type="text/javascript" src="javascript/jquery/jquery.form.js"></script>
 <script type="text/javascript" src="javascript/jquery/gpu.realtime.js"></script>
-<script type="text/javascript" src="javascript/jquery/spritespin.js"></script>
 <script type="text/javascript" src="javascript/jquery/md5.js"></script>
 <script type="text/javascript" src="javascript/jquery/sylvester.js"></script>
 
@@ -52,7 +49,7 @@ var radiansByArrow = (degreeByArrow / 180) * 3.14159;
 
 /** Creator specific vars and methods */
 
-var inputTypes = ["text", "file", "range","3dloc"];
+var inputTypes = ["text", "url", "range","location","enum","boolean","rotation"];
 
 var isUriImage = false;
 var isUrlScript = false;
@@ -141,35 +138,6 @@ function checkFile(formData, index) {
   }
 }
 
-// Download the output url
-function saveFile() {
-    var fileURL = creatorOutput;
-    var extension = fileURL.split('.').pop();
-    var fileName = "output." + extension;
-
-    // for non-IE
-    if (!window.ActiveXObject) {
-        var save = document.createElement('a');
-        save.href = fileURL;
-        save.target = '_blank';
-        save.download = fileName || fileURL;
-        var evt = document.createEvent('MouseEvents');
-        evt.initMouseEvent('click', true, true, window, 1, 0, 0, 0, 0,
-            false, false, false, false, 0, null);
-        save.dispatchEvent(evt);
-        (window.URL || window.webkitURL).revokeObjectURL(save.href);
-    }
-
-    // for IE
-    else if ( !! window.ActiveXObject && document.execCommand)     {
-        var _window = window.open(fileURL, "_blank");
-        _window.document.close();
-        _window.document.execCommand('SaveAs', true, fileName || fileURL)
-        _window.close();
-    }
-}
-
-
 /*************************************************/
 
 function update(evalScript, showSpin) {
@@ -207,8 +175,8 @@ function evalScriptParams() {
   $.each(paramData, function(key, val) {
     var remove = true;
 
-    if (typeof params !== "undefined") {
-      $.each(params, function(i, param) {
+    if (typeof uiParams !== "undefined") {
+      $.each(uiParams, function(i, param) {
         if (param.id === key) {
           remove = false;
           return false;   // breaks out of loop
@@ -228,8 +196,8 @@ function evalScriptParams() {
   deltaParams.length = 0;
 
   // Insert new params that do not already exist
-  if (typeof params !== "undefined") {
-    $.each(params, function(i, param) {
+  if (typeof uiParams !== "undefined") {
+    $.each(uiParams, function(i, param) {
       var type = (param.type).toLowerCase();
       if ( $.inArray(type, inputTypes) >= 0) {
         if (paramData[param.id] === undefined) {
@@ -291,7 +259,7 @@ function insertInput(param) {
       setParamRequirement(param.id, param.required);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
-    case "3dloc":
+    case "location":
       // Create text box to show the 3d location
       var pname_input = document.createElement("input");
       pname_input.setAttribute("type", "text");
@@ -315,7 +283,7 @@ function insertInput(param) {
       setParamRequirement(param.id, param.required);
       addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
       break;
-    case "file":
+    case "url":
       var fname_text = document.createElement("input");
       fname_text.setAttribute("type", "text");
       fname_text.setAttribute("name", "filename" + param.id);
@@ -346,7 +314,7 @@ function insertInput(param) {
       addFileParamUIListener(pname_input, param.id, fname_text, (param.type).toLowerCase());
       break;
     default:
-      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + params[i].id);
+      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.id);
       return;
   }
 
@@ -354,7 +322,7 @@ function insertInput(param) {
   var param_row = document.createElement("div");
 
   switch ( (param.type).toLowerCase() ) {
-    case "file":
+    case "url":
       var fval_file_div = document.createElement("div");
 //      fval_file_div.setAttribute("class", "param-val");
       fval_file_div.appendChild(pname_input_div);
@@ -371,7 +339,7 @@ function insertInput(param) {
       }
 
       break;
-    case "3dloc":
+    case "location":
       var pval_div = document.createElement("div");
 //      pval_div.setAttribute("class", "param-val");
       pval_div.appendChild(pname_input_div);
@@ -431,6 +399,10 @@ function addParamUIListener(element, elementId, type) {
         setParamVal( elementId, $(element).val() );
 	    update(false, false);
       });
+      $(element).on("change", function() {
+        setParamVal( elementId, $(element).val() );
+        update(false, false);
+      });
       break;
     case "range":
       $(element).on("input", function() {
@@ -441,8 +413,16 @@ function addParamUIListener(element, elementId, type) {
 	    }
 	    update(false, false);
       });
+      $(element).on("change", function() {
+        setParamVal( elementId, $(element).val() );
+        var displayId = elementId + "-display";
+        if ( $("#" + displayId).length ) {
+          $("#" + displayId).html( $(element).val() );
+        }
+        update(false, false);
+      });
       break;
-    case "3dloc":
+    case "location":
       $(element).on("change", function() {
         setParamVal( elementId, $(element).val() );
 	    update(false, false);
@@ -659,6 +639,7 @@ function onKeyPress(event) {
 <div id="main-box">
 
 <div class="quality-control">
+  <div id="save-scene" class="menu-button" onclick="saveScene()">Save</div>
   <div id="camera"><img src="images/icon-camera-128.png" class="camera" onclick="renderHighQuality(true)"/></div>
   <div id="quality-select">
     <select id="render-quality" class="quality-select" onchange="setQuality(this.value)">
@@ -671,7 +652,7 @@ function onKeyPress(event) {
 <!-- left column -->
 <div id="jscode" class="jscode">
 <textarea id="code" name="code" placeholder="">
-var params = [
+var uiParams = [
 	{
        "id": "period",
        "displayName": "Period",
@@ -756,6 +737,8 @@ function main(args) {
 <form id="form" action="" method="POST">
 <div id="parameters" class="parameter-container hidden"></div>
 </form>
+
+<div id="logger" class="console"></div>
 
 </div>
 </div>

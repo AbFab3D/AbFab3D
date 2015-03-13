@@ -25,6 +25,7 @@ import junit.framework.TestSuite;
 import org.apache.commons.io.FileUtils;
 import org.libjpegturbo.turbojpeg.TJ;
 import org.libjpegturbo.turbojpeg.TJCompressor;
+import shapejs.EvalResult;
 import shapejs.ShapeJSEvaluator;
 
 import javax.imageio.ImageIO;
@@ -94,8 +95,6 @@ public class TestVolumeRenderer extends TestCase {
         int MAX_IMG_SIZE = TJ.bufSize(width,height,TJ.SAMP_420);
 
         printf("Max size: %d\n",MAX_IMG_SIZE);
-        byte[] buff = new byte[MAX_IMG_SIZE];
-        int[] pixels = new int[width * height];
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
         printf("initCL time: %d ms\n", (int) ((System.nanoTime() - t0) / 1e6));
@@ -892,7 +891,15 @@ public class TestVolumeRenderer extends TestCase {
         long t0 = System.nanoTime();
         ShapeJSEvaluator eval = new ShapeJSEvaluator();
         Bounds bounds = new Bounds();
-        DataSource source = eval.runScript(new File(filename), bounds);
+        String script = null;
+        try {
+            script = FileUtils.readFileToString(new File(filename));
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        EvalResult result = eval.evalScript(script,bounds,null);
+        DataSource source = result.getDataSource();
 
         OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();
         Vector3d scale;

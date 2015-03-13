@@ -1,4 +1,4 @@
-var params = [
+var uiParams = [
 	{
 		"id": "text",
 		"displayName": "Text",
@@ -8,7 +8,7 @@ var params = [
 	{
 		"id": "text_loc",
 		"displayName": "Text Location",
-		"type": "3dloc",
+		"type": "location",
 		"related": "text"
 	}
 
