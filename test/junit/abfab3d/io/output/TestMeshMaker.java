@@ -38,7 +38,7 @@ import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Plane;
 import abfab3d.datasources.Ring;
-import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.ImageBox;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;

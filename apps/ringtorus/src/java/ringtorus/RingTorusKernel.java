@@ -244,13 +244,13 @@ public class RingTorusKernel extends HostedKernel {
 
         printf("grid: [%d x %d x %d]\n", nx, ny, nz);
 
-        DataSources.ImageBitmap bitmap = new DataSources.ImageBitmap();
+        DataSources.ImageBox bitmap = new DataSources.ImageBox();
 
         bitmap.setSize(tileWidth, tileHeight, ringThickness);
         bitmap.setLocation(0,0,-ringThickness);
         bitmap.setBaseThickness(0.);
         bitmap.setTiles(1,1);
-        bitmap.setImageType(DataSources.ImageBitmap.IMAGE_POSITIVE);
+        bitmap.setImageType(DataSources.ImageBox.IMAGE_POSITIVE);
         bitmap.setImagePath(image);
 
         VecTransforms.CompositeTransform compTrans = new VecTransforms.CompositeTransform();

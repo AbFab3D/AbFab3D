@@ -203,7 +203,6 @@ public class TestVolumeRenderer extends TestCase {
             "  var radius = 15 * MM;                                       \n"+
             "  var num = args['num'];                                      \n"+
             "  var s = 2*radius;                                           \n"+
-            //"  var grid = createGrid(-gs, gs, -gs, gs, -gs, gs, 0.1 * MM); \n"+
             "  var result;                                                 \n"+
             "  if (num == 1) {                                             \n"+
             "    result = new Sphere(0,0,0,radius);                        \n"+
@@ -219,10 +218,6 @@ public class TestVolumeRenderer extends TestCase {
             "    result = union;                                           \n"+
             "  }                                                           \n"+
             " return new Shape(result, new Bounds(-s, s, -s, s, -s, s));   \n"+
-            //"  var maker = new GridMaker();                                \n"+
-            //"  maker.setSource(result);                                    \n"+
-            //"  maker.makeGrid(grid);                                       \n"+
-            //"  return grid;                                                \n"+
             "}                                                             \n";
 
         HashMap<String,Object> params = new HashMap<String, Object>();

@@ -81,6 +81,17 @@ public class IntParameter extends NumberParameter {
     public void setMaxRange(int maxRange) {
         this.maxRange = maxRange;
     }
+    
+    @Override
+    public void setValue(Object val) {
+        if(val instanceof Double)
+            val = new Integer((int)Math.round(((Double)val).doubleValue()));
+        validate(val);
+
+        this.value = val;
+
+    }
+
 
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
@@ -89,11 +100,14 @@ public class IntParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
-        if (!(val instanceof Integer)) {
+
+        int d = 0;
+        if (val instanceof Integer) {
+            d = ((Integer) val).intValue();
+            this.value = val;
+        } else {
             throw new IllegalArgumentException("Unsupported type for Integer: " + val + " in param: " + getName());
         }
-        
-        int d = ((Integer) val).intValue();
         
         if (d < minRange) {
             throw new IllegalArgumentException("Invalid int value, below minimum range: " + d + " in param: " + getName());
@@ -101,7 +115,7 @@ public class IntParameter extends NumberParameter {
         }
         if (d > maxRange) {
             throw new IllegalArgumentException("Invalid int value, above maximum range: " + d + " in param: " + getName());
-
-        }
+        }        
     }
+
 }

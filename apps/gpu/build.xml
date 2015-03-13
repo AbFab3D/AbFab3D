@@ -286,7 +286,7 @@
           <!--<arg value="-version"/><arg value="opcode"/>-->
           <!--<arg value="-version"/><arg value="opcode_v2"/> -->
           <!--<arg value="scripts/gyrosphere.js"/>-->
-          <arg value="scripts/box_rotated.js"/>
+          <arg value="scripts/imageBox.js"/>
           <classpath>
             <pathelement path="${classes.dir}"/>
             <fileset dir="${lib.dir}" includes="**/*.jar" excludes=""/>

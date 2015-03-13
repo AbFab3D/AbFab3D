@@ -48,7 +48,7 @@ import abfab3d.util.VecTransform;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
-import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.ImageBox;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;
@@ -90,13 +90,13 @@ import static abfab3d.util.MathUtil.normalizePlane;
  *
  * @version
  */
-public class TestImageBitmap extends TestCase {
+public class TestImageBox extends TestCase {
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestImageBitmap.class);
+        return new TestSuite(TestImageBox.class);
     }
 
     int gridMaxAttributeValue = 127;
@@ -106,7 +106,6 @@ public class TestImageBitmap extends TestCase {
         printf("testBitmap()\n");
         
     }
-
 
     static void testLinearMapper(){
 

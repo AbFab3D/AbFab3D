@@ -16,7 +16,8 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.IntParameter;
 
-import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.ImageBox;
+import abfab3d.datasources.Text;
 
 import javax.vecmath.Vector3d;
 
@@ -26,10 +27,10 @@ import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 
 /**
-   CL code generatror for box
+   CL code generator for TextMap
    @author Vladimir Bulatov 
  */
-public class CLImageBitmap  extends CLNodeBase {
+public class CLTextMap  extends CLNodeBase {
 
     static final boolean DEBUG = true;
     static int OPCODE = Opcodes.oGRID2DBYTE;
@@ -54,7 +55,6 @@ typedef struct {
     float vscale; // 1/voxelSize 
 
     int data; // location of data in the data buffer 
-    PTRDATA char *pData; // actual grid data 
 } sGrid2dByte;
     */
 
@@ -66,20 +66,23 @@ typedef struct {
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
 
-        ImageBitmap image = (ImageBitmap)node;
         
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();
         double rounding = ((DoubleParameter)node.getParam("rounding")).getValue();
-        int tilesX = ((IntParameter)node.getParam("tilesX")).getValue();
-        int tilesY = ((IntParameter)node.getParam("tilesY")).getValue();
+        int tilesX = 1;
+        int tilesY = 1;
         int tiling = ((tilesX & 0xFFFF)| (tilesY & 0xFFFF) << 16);
 
-        if(DEBUG)printf("imageBitmap([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
+        if(DEBUG)printf("text([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
+
+        Text text = (Text)node;
+        ImageBox image = text.getBitmap();
+
         int nx = image.getBitmapWidth();
         int ny = image.getBitmapHeight();
-        byte[] data = new byte[nx*ny];
-        
+
+        byte[] data = new byte[nx*ny];        
         image.getBitmapData(data);
 
         int offset = codeBuffer.addData(data);
