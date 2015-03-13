@@ -2,33 +2,31 @@ var uiParams = [
     {
         "id": "model",
         "displayName": "Model",
-        "type": "url",
+        "type": "uri",
         "required": true
     },
     {
         "id": "image",
         "displayName": "Image",
-        "type": "url",
+        "type": "uri",
         "required": false
     },
     {
         "id": "textpos0",
         "displayName": "Image left",
         "type": "location",
-        "default": "",
         "required": false
     },
     {
         "id": "textpos1",
         "displayName": "Image right",
         "type": "location",
-        "default": "",
         "required": false
     },
 	{
 		"id": "engraveDepth",
 		"displayName": "Engrave Depth",
-		"type": "range",
+		"type": "double",
 		"rangeMin": -2,
 		"rangeMax": 0.5,
 		"step": 0.1,
