@@ -2,6 +2,8 @@ package http;
 
 import abfab3d.grid.Bounds;
 
+import abfab3d.param.Parameter;
+import abfab3d.param.ParameterType;
 import com.google.gson.Gson;
 
 import org.apache.commons.fileupload.FileItem;
@@ -81,7 +83,7 @@ public class ShapeJSImageServlet extends HttpServlet {
     public void initCL(boolean debug, int width, int height) {
         render = new ImageRenderer();
         render.setVersion(VERSION);
-        render.initCL(1,width,height);
+        render.initCL(1, width, height);
     }
 
     @Override
@@ -732,155 +734,155 @@ public class ShapeJSImageServlet extends HttpServlet {
         os.close();
 
     }
-/*
-    synchronized private void handleSaveSceneRequest(HttpServletRequest req,
-            HttpServletResponse resp,
-            HttpSession session,
-            String accept)
-            		throws IOException {
+    /*
+        synchronized private void handleSaveSceneRequest(HttpServletRequest req,
+                HttpServletResponse resp,
+                HttpSession session,
+                String accept)
+                        throws IOException {
 
-    	String jobID = null;
-    	String script = null;
+            String jobID = null;
+            String script = null;
 
-    	boolean isMultipart = ServletFileUpload.isMultipartContent(req);
+            boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 
-    	Map<String, String[]> params = null;
+            Map<String, String[]> params = null;
 
-    	if (isMultipart) {
-    		//System.out.println("==> multipart form post");
-    		params = new HashMap<String, String[]>();
-    		mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
-		} else {
-			//System.out.println("==> not multipart form post");
-			params = req.getParameterMap();
-		}
+            if (isMultipart) {
+                //System.out.println("==> multipart form post");
+                params = new HashMap<String, String[]>();
+                mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
+            } else {
+                //System.out.println("==> not multipart form post");
+                params = req.getParameterMap();
+            }
 
-    	String[] jobIDSt = params.get("jobID");
-    	if (jobIDSt != null && jobIDSt.length > 0) {
-        	jobID = jobIDSt[0];
-    	}
+            String[] jobIDSt = params.get("jobID");
+            if (jobIDSt != null && jobIDSt.length > 0) {
+                jobID = jobIDSt[0];
+            }
 
-    	String[] scriptSt = params.get("script");
-    	if (scriptSt != null && scriptSt.length > 0) {
-        	script = scriptSt[0];
-    	}
+            String[] scriptSt = params.get("script");
+            if (scriptSt != null && scriptSt.length > 0) {
+                script = scriptSt[0];
+            }
 
-    	if (script == null) {
-    		throw new IllegalArgumentException("Script is required");
-		}
+            if (script == null) {
+                throw new IllegalArgumentException("Script is required");
+            }
 
-    	Map<String,Object> sparams = new HashMap<String,Object>();
-    	for(Map.Entry<String,String[]> entry : params.entrySet()) {
-        	String key = entry.getKey();
-        	if (key.startsWith("shapeJS_")) {
-        		key = key.substring(8);
-        	//printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
-        		sparams.put(key, entry.getValue()[0]);
-        	}
-    	}
-    	
-    	SceneCacheEntry sce = new SceneCacheEntry(jobID,script,sparams);
-		saveScene(sce, resp);
-		resp.flushBuffer();
-    }
-*/
+            Map<String,Object> sparams = new HashMap<String,Object>();
+            for(Map.Entry<String,String[]> entry : params.entrySet()) {
+                String key = entry.getKey();
+                if (key.startsWith("shapeJS_")) {
+                    key = key.substring(8);
+                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
+                    sparams.put(key, entry.getValue()[0]);
+                }
+            }
+
+            SceneCacheEntry sce = new SceneCacheEntry(jobID,script,sparams);
+            saveScene(sce, resp);
+            resp.flushBuffer();
+        }
+    */
     synchronized private void handleSaveSceneCachedRequest(HttpServletRequest req,
-											               HttpServletResponse resp,
-											               HttpSession session,
-											               String accept)
-	        throws IOException {
+                                                           HttpServletResponse resp,
+                                                           HttpSession session,
+                                                           String accept)
+            throws IOException {
 
-    	String jobID = null;
+        String jobID = null;
 
-    	Map<String, String[]> params = req.getParameterMap();
+        Map<String, String[]> params = req.getParameterMap();
 
-    	String[] jobIDSt = params.get("jobID");
-    	if (jobIDSt != null && jobIDSt.length > 0) {
-    		jobID = jobIDSt[0];
-    	}
+        String[] jobIDSt = params.get("jobID");
+        if (jobIDSt != null && jobIDSt.length > 0) {
+            jobID = jobIDSt[0];
+        }
 
-    	if (jobID != null) {
-    		SceneCacheEntry sce = sceneCache.get(jobID);
+        if (jobID != null) {
+            SceneCacheEntry sce = sceneCache.get(jobID);
 
-    		if (sce == null) {
-    			resp.sendError(410,"Job not cached");
-    			return;
-    		}
+            if (sce == null) {
+                resp.sendError(410,"Job not cached");
+                return;
+            }
 
-    		saveScene(sce, resp);
-    		resp.flushBuffer();
-    	} else {
-    		resp.sendError(410,"Job not cached");
-    		return;
-    	}
-	}
-    
+            saveScene(sce, resp);
+            resp.flushBuffer();
+        } else {
+            resp.sendError(410,"Job not cached");
+            return;
+        }
+    }
+
     synchronized private void handleLoadSceneRequest(HttpServletRequest req,
-            HttpServletResponse resp,
-            HttpSession session,
-            String accept)
-            		throws IOException {
-        
+                                                     HttpServletResponse resp,
+                                                     HttpSession session,
+                                                     String accept)
+            throws IOException {
+
         HashMap<String, Object> result = new HashMap<String, Object>();
-        
-    	boolean isMultipart = ServletFileUpload.isMultipartContent(req);
-    	Map<String, String[]> params = null;
 
-    	if (isMultipart) {
-    		//System.out.println("==> multipart form post");
-    		params = new HashMap<String, String[]>();
-    		mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
-    		
-    		String workingDirName = createTempDir(RESULTS_DIR);
-    		String resultDirPath = RESULTS_DIR + "/" + workingDirName;
-    		
-    		String zipFile = params.get("sceneFile")[0];
-    		Map<String, String> sceneFiles = new HashMap<String, String>();
-    		extractZip(zipFile, resultDirPath, sceneFiles);
-    		
-    		String scriptFilePath = sceneFiles.get("scriptFile");
-    		String paramFilePath = sceneFiles.get("paramFile");
-    		System.out.println("scriptFilePath: " + scriptFilePath);
-    		System.out.println("paramFilePath: " + paramFilePath);
-    		
-    		if (scriptFilePath == null) {
-    			result.put("success",false);
-    		} else {
-    			File scriptFile = new File(scriptFilePath);
-    			String script = FileUtils.readFileToString(scriptFile, "UTF-8");
-    			result.put("script", script);
-    			
-    			if (paramFilePath != null) {
-    				Gson gson = new Gson();
-    				String paramsJson = FileUtils.readFileToString(new File(paramFilePath), "UTF-8");
-    				Map<String, String> scriptParams = gson.fromJson(paramsJson, Map.class);
-    				
-    				Bounds bounds = new Bounds();
-    				ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
-    				EvalResult evalResult = evaluator.evalScript(script, bounds, null);
-    				Map<String, ParameterDefinition> evalParams = evalResult.getUIParams();
-    				
-    				// For parameters of type "url", make it a fully qualified url
-    				System.out.println("*** Loaded params");
-    				for (Map.Entry<String, String> entry : scriptParams.entrySet()) {
-    					String name = entry.getKey();
-    					String val = entry.getValue();
-    					String type = evalParams.get(name).getType();
-    					System.out.println(    type + ": " + name + "=" + val);
-    					if (type.equals("url")) {
-    						scriptParams.put(name, resultDirPath + "/" + val);
-    					}
-    				}
+        boolean isMultipart = ServletFileUpload.isMultipartContent(req);
+        Map<String, String[]> params = null;
 
-    				result.put("params", scriptParams);
-    			}
-    			
-    			result.put("success", true);
-    		}
-		} else {
-			result.put("success",false);
-		}
-		
+        if (isMultipart) {
+            //System.out.println("==> multipart form post");
+            params = new HashMap<String, String[]>();
+            mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
+
+            String workingDirName = createTempDir(RESULTS_DIR);
+            String resultDirPath = RESULTS_DIR + "/" + workingDirName;
+
+            String zipFile = params.get("sceneFile")[0];
+            Map<String, String> sceneFiles = new HashMap<String, String>();
+            extractZip(zipFile, resultDirPath, sceneFiles);
+
+            String scriptFilePath = sceneFiles.get("scriptFile");
+            String paramFilePath = sceneFiles.get("paramFile");
+            System.out.println("scriptFilePath: " + scriptFilePath);
+            System.out.println("paramFilePath: " + paramFilePath);
+
+            if (scriptFilePath == null) {
+                result.put("success",false);
+            } else {
+                File scriptFile = new File(scriptFilePath);
+                String script = FileUtils.readFileToString(scriptFile, "UTF-8");
+                result.put("script", script);
+
+                if (paramFilePath != null) {
+                    Gson gson = new Gson();
+                    String paramsJson = FileUtils.readFileToString(new File(paramFilePath), "UTF-8");
+                    Map<String, String> scriptParams = gson.fromJson(paramsJson, Map.class);
+
+                    Bounds bounds = new Bounds();
+                    ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
+                    EvalResult evalResult = evaluator.evalScript(script, bounds, null);
+                    Map<String, Parameter> evalParams = evalResult.getUIParams();
+
+                    // For parameters of type "uri", make it a fully qualified url
+                    System.out.println("*** Loaded params");
+                    for (Map.Entry<String, String> entry : scriptParams.entrySet()) {
+                        String name = entry.getKey();
+                        String val = entry.getValue();
+                        ParameterType type = evalParams.get(name).getType();
+                        System.out.println(    type + ": " + name + "=" + val);
+                        if (type == ParameterType.URI) {
+                            scriptParams.put(name, resultDirPath + "/" + val);
+                        }
+                    }
+
+                    result.put("params", scriptParams);
+                }
+
+                result.put("success", true);
+            }
+        } else {
+            result.put("success",false);
+        }
+
         Gson gson = new Gson();
         OutputStream os = resp.getOutputStream();
         resp.setContentType("application/json");
@@ -890,104 +892,106 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         os.close();
     }
-    
-    private void saveScene(SceneCacheEntry sce, HttpServletResponse resp) throws IOException {
-		String script = sce.getScript();
-		Map<String, Object> sceneParams = sce.getParams();
-		
-		Bounds bounds = new Bounds();
-		ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
-		EvalResult result = evaluator.evalScript(script, bounds, sceneParams);
-		Map<String, ParameterDefinition> evalParams = result.getUIParams();
-		
-		System.out.println("*** Script:\n" + script);
-		System.out.println("*** Params:");
-		String workingDirName = createTempDir(TMP_DIR);
-		String workingDirPath = TMP_DIR + "/" + workingDirName;
-		Map<String, String> params = new HashMap<String, String>();
-		
-		// Write the script to file
-		File scriptFile = new File(workingDirPath + "/script.js");
-		FileUtils.writeStringToFile(scriptFile, script, "UTF-8");
-		
-		// Loop through params and create key/pair entries
-		for (Map.Entry<String, Object> entry : sceneParams.entrySet()) {
-			System.out.println("    Type: " + evalParams.get(entry.getKey()).getType() + ", " + entry.getKey() + " = " + entry.getValue());
-			
-			String name = entry.getKey();
-			Object val = entry.getValue();
-			String type = evalParams.get(name).getType();
 
-			if (type.equals("url")) {
-				File f = new File((String)val);
-				String fileName = f.getName();
-				params.put(name, fileName);
-				
-				// Copy the file to working directory
-				FileUtils.copyFile(f, new File(workingDirPath + "/" + fileName), true);
-			} else if (type.equals("location")) {
-				params.put(name, (String)val);
-			} else {
-				params.put(name, (String)val);
-			}
-		}
-		
-		Gson gson = new Gson();
-		String paramsJson = gson.toJson(params);
-		File paramFile = new File(workingDirPath + "/" + "params.json");
-		FileUtils.writeStringToFile(paramFile, paramsJson, "UTF-8");
-		
+    private void saveScene(SceneCacheEntry sce, HttpServletResponse resp) throws IOException {
+        String script = sce.getScript();
+        Map<String, Object> sceneParams = sce.getParams();
+
+        Bounds bounds = new Bounds();
+        ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
+        EvalResult result = evaluator.evalScript(script, bounds, sceneParams);
+        Map<String, Parameter> evalParams = result.getUIParams();
+
+        System.out.println("*** Script:\n" + script);
+        System.out.println("*** Params:");
+        String workingDirName = createTempDir(TMP_DIR);
+        String workingDirPath = TMP_DIR + "/" + workingDirName;
+        Map<String, String> params = new HashMap<String, String>();
+
+        // Write the script to file
+        File scriptFile = new File(workingDirPath + "/script.js");
+        FileUtils.writeStringToFile(scriptFile, script, "UTF-8");
+
+        // Loop through params and create key/pair entries
+        for (Map.Entry<String, Object> entry : sceneParams.entrySet()) {
+            System.out.println("    Type: " + evalParams.get(entry.getKey()).getType() + ", " + entry.getKey() + " = " + entry.getValue());
+
+            String name = entry.getKey();
+            Object val = entry.getValue();
+            ParameterType type = evalParams.get(name).getType();
+
+            switch(type) {
+                case URI:
+                    File f = new File((String)val);
+                    String fileName = f.getName();
+                    params.put(name, fileName);
+
+                    // Copy the file to working directory
+                    FileUtils.copyFile(f, new File(workingDirPath + "/" + fileName), true);
+                    break;
+                case LOCATION:
+                    params.put(name, (String)val);
+                default:
+                    params.put(name, (String)val);
+            }
+        }
+
+        Gson gson = new Gson();
+        String paramsJson = gson.toJson(params);
+        File paramFile = new File(workingDirPath + "/" + "params.json");
+        FileUtils.writeStringToFile(paramFile, paramsJson, "UTF-8");
+
 //		String resultDirPath = RESULTS_DIR + "/" + workingDirName;
 //		File resultDir = new File(resultDirPath);
-		
+
 //		String zipFile = workingDirPath + "/shapejs.zip";
 //    	FileOutputStream fos = new FileOutputStream(zipFile);
-    	
-    	resp.setContentType("application/zip");
-    	resp.setHeader("Content-Disposition","attachment;filename=\"shapeJS.zip\"");
-    	OutputStream os = resp.getOutputStream();
-    	ZipOutputStream zos = new ZipOutputStream(os);
-    	
-		try {
-			byte[] buffer = new byte[1024];
 
-	    	File[] files = (new File(workingDirPath)).listFiles();
-	    	
-	    	for (int i=0; i<files.length; i++) {
-	    		if (files[i].getName().endsWith(".zip")) continue;
-	    		
-	    		System.out.println("*** Adding file: " + files[i].getName());
-	    		ZipEntry ze = new ZipEntry(files[i].getName());
-	    		zos.putNextEntry(ze);
-	    		
-	        	FileInputStream fis = new FileInputStream(files[i]);
-	 
-	        	int len;
-	        	while ((len = fis.read(buffer)) > 0) {
-	        		zos.write(buffer, 0, len);
-	        	}
-	 
-	        	fis.close();
-	    	}
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			zos.closeEntry();
-	    	zos.close();
+        resp.setContentType("application/zip");
+        resp.setHeader("Content-Disposition","attachment;filename=\"shapeJS.zip\"");
+        OutputStream os = resp.getOutputStream();
+        ZipOutputStream zos = new ZipOutputStream(os);
+
+        try {
+            byte[] buffer = new byte[1024];
+
+            File[] files = (new File(workingDirPath)).listFiles();
+
+            for (int i=0; i<files.length; i++) {
+                if (files[i].getName().endsWith(".zip")) continue;
+
+                System.out.println("*** Adding file: " + files[i].getName());
+                ZipEntry ze = new ZipEntry(files[i].getName());
+                zos.putNextEntry(ze);
+
+                FileInputStream fis = new FileInputStream(files[i]);
+
+                int len;
+                while ((len = fis.read(buffer)) > 0) {
+                    zos.write(buffer, 0, len);
+                }
+
+                fis.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            zos.closeEntry();
+            zos.close();
 //	    	fos.close();
-	    	os.close();
-		}
-		
+            os.close();
+        }
+
 /*
     	System.out.println("*** Move " + workingDirPath + " to " + RESULTS_DIR + "/" + workingDirName);
     	FileUtils.moveDirectory(new File(workingDirPath), new File(RESULTS_DIR + "/" + workingDirName));
-    	
+
         Gson gson = new Gson();
         HashMap<String, Object> response = new HashMap<String, Object>();
 
         OutputStream os = resp.getOutputStream();
         resp.setContentType("application/json");
-        response.put("url", "http://localhost:8080/creator-kernels/results/" + workingDirName + "/shapejs.zip");
+        response.put("uri", "http://localhost:8080/creator-kernels/results/" + workingDirName + "/shapejs.zip");
 
         String st = gson.toJson(response);
         os.write(st.getBytes());
@@ -999,45 +1003,45 @@ public class ShapeJSImageServlet extends HttpServlet {
         byte[] buffer = new byte[1024];
 
         try{
-           	//create output directory is not exists
-           	File folder = new File(outputFolder);
-           	if (!folder.exists()) {
-           		folder.mkdir();
-           	}
+            //create output directory is not exists
+            File folder = new File(outputFolder);
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
 
-           	ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
-           	ZipEntry ze = zis.getNextEntry();
+            ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
+            ZipEntry ze = zis.getNextEntry();
 
-           	while (ze != null) {
-           		// Ignore directories
-           		if (ze.isDirectory()) continue;
-           		
-           		String fileName = ze.getName();
-           		File newFile = new File(outputFolder + File.separator + fileName);
-           		System.out.println("file unzip : "+ newFile.getAbsoluteFile());
+            while (ze != null) {
+                // Ignore directories
+                if (ze.isDirectory()) continue;
 
-                FileOutputStream fos = new FileOutputStream(newFile);             
+                String fileName = ze.getName();
+                File newFile = new File(outputFolder + File.separator + fileName);
+                System.out.println("file unzip : "+ newFile.getAbsoluteFile());
+
+                FileOutputStream fos = new FileOutputStream(newFile);
 
                 int len;
                 while ((len = zis.read(buffer)) > 0) {
-              		fos.write(buffer, 0, len);
+                    fos.write(buffer, 0, len);
                 }
 
                 // Save path to the script and parameters files
-           		if (fileName.endsWith(".json")) {
-           			sceneFiles.put("paramFile", newFile.getAbsolutePath());
-           		} else if (fileName.endsWith(".js")) {
-           			sceneFiles.put("scriptFile", newFile.getAbsolutePath());
-           		}
-           		
-                fos.close();   
+                if (fileName.endsWith(".json")) {
+                    sceneFiles.put("paramFile", newFile.getAbsolutePath());
+                } else if (fileName.endsWith(".js")) {
+                    sceneFiles.put("scriptFile", newFile.getAbsolutePath());
+                }
+
+                fos.close();
                 ze = zis.getNextEntry();
-           	}
-    
+            }
+
             zis.closeEntry();
-           	zis.close();
+            zis.close();
         } catch (IOException ex){
-            ex.printStackTrace(); 
+            ex.printStackTrace();
         }
     }
     
@@ -1274,6 +1278,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             }
         }
 
+        printf("Update Scene: %s\n",params);
         EvalResult result = render.updateScene(sceneID,sce.getScript(),params);
 
         return result;

@@ -14,13 +14,13 @@ package abfab3d.param;
 // External Imports
 
 /**
- * A String parameter
+ * A URI parameter
  *
  * @author Vladimir Bulatov
  */
-public class StringParameter extends Parameter {
+public class URIParameter extends Parameter {
 
-    public StringParameter(String name, String desc, String initialValue) {
+    public URIParameter(String name, String desc, String initialValue) {
         super(name, desc);
         setValue(initialValue);
     }
@@ -35,7 +35,7 @@ public class StringParameter extends Parameter {
      * @return The type
      */
     public ParameterType getType() {
-        return ParameterType.STRING;
+        return ParameterType.URI;
     }
 
     /**
@@ -52,7 +52,7 @@ public class StringParameter extends Parameter {
         }
     }
 
-    public StringParameter clone() {
-        return (StringParameter) super.clone();
+    public URIParameter clone() {
+        return (URIParameter) super.clone();
     }
 }

@@ -25,6 +25,9 @@ public class DoubleParameter extends NumberParameter {
     /** Max range for numeric values */
     private double maxRange;
 
+    /** The step size for changes */
+    private double step;
+
     public DoubleParameter(String name) {
 
         this(name, name);
@@ -43,12 +46,20 @@ public class DoubleParameter extends NumberParameter {
     public DoubleParameter(String name, String desc, double initialValue,
                            double minRange, double maxRange) {
 
+        this(name,desc,initialValue,minRange,maxRange,1);
+    }
+
+    public DoubleParameter(String name, String desc, double initialValue,
+                           double minRange, double maxRange, double step) {
+
         super(name, desc);
 
         setMinRange(minRange);
         setMaxRange(maxRange);
 
+        defaultValue = initialValue;
         setValue(initialValue);
+        this.step = step;
     }
 
     @Override
@@ -92,6 +103,14 @@ public class DoubleParameter extends NumberParameter {
         this.maxRange = maxRange;
     }
 
+    public double getStep() {
+        return step;
+    }
+
+    public void setStep(double step) {
+        this.step = step;
+    }
+
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
      * error.
@@ -99,6 +118,8 @@ public class DoubleParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
+        if (val == null) return;
+
         if (!(val instanceof Double)) {
             throw new IllegalArgumentException("Unsupported type for Double: " + val + " in param: " + getName());
         }
@@ -106,11 +127,11 @@ public class DoubleParameter extends NumberParameter {
         double d = ((Double) val).doubleValue();
         
         if (d < minRange) {
-            throw new IllegalArgumentException("Invalid double value, below minimum range: " + d + " in param: " + getName());
+            throw new IllegalArgumentException("Invalid double value, below minimum range: " + d + " in param: " + getName() + " val: " + d);
 
         }
         if (d > maxRange) {
-            throw new IllegalArgumentException("Invalid double value, above maximum range: " + d + " in param: " + getName());
+            throw new IllegalArgumentException("Invalid double value, above maximum range: " + d + " in param: " + getName() + " val: " + d);
 
         }
     }

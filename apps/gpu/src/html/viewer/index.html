@@ -32,6 +32,7 @@
 var paramData = {};
 var paramRequired = {};
 var deltaParams = [];   // Keep track of script parameters that have changed
+var paramDef = {};
 
 var imageViewer;
 var viewMatrix;
@@ -49,7 +50,7 @@ var radiansByArrow = (degreeByArrow / 180) * 3.14159;
 
 /** Creator specific vars and methods */
 
-var inputTypes = ["text", "url", "range","location","enum","boolean","rotation"];
+var inputTypes = ["string", "uri", "double","location","enum","boolean","rotation"];
 
 var isUriImage = false;
 var isUrlScript = false;
@@ -90,7 +91,15 @@ function randomstring(L){
 function prepForm(formData, jqForm, options) {
   for (var i=0; i < formData.length; i++) {
     if ( $.inArray(formData[i].name, deltaParams) >= 0 ) {
+      var isComplex = false;
+      if (paramDef[formData[i].name].type == "location") isComplex = true;
+
       formData[i].name = "shapeJS_" + formData[i].name;
+
+      if (!isComplex) {
+        // Don't JSON encode complex data types.
+        formData[i].value = JSON.stringify(formData[i].value);
+      }
     } else {
       formData.splice(i, 1);
       i--;
@@ -101,10 +110,11 @@ function prepForm(formData, jqForm, options) {
   $.each(extraParams, function(key, val) {
     formData.push({name: key, value: val});
   });
+
 /*
   for (var i=0; i < formData.length; i++) {
     if (formData[i].type != "file") {
-      formData[i].value = JSON.stringify(formData[i].value);
+        formData[i].value = JSON.stringify(formData[i].value);
 	} else {
 	  checkFile(formData, i);
 	}
@@ -167,9 +177,12 @@ function renderReady() {
   return ready;
 }
 
+// Unit definitions
+var units = "var MM = 0.001;\n";
+
 function evalScriptParams() {
   var jsScript = editor.getValue();
-  eval(jsScript);
+  eval(units + jsScript);
 
   // Remove item from paramData that no longer exist in params declared in the script
   $.each(paramData, function(key, val) {
@@ -177,7 +190,7 @@ function evalScriptParams() {
 
     if (typeof uiParams !== "undefined") {
       $.each(uiParams, function(i, param) {
-        if (param.id === key) {
+        if (param.name === key) {
           remove = false;
           return false;   // breaks out of loop
         }
@@ -200,14 +213,14 @@ function evalScriptParams() {
     $.each(uiParams, function(i, param) {
       var type = (param.type).toLowerCase();
       if ( $.inArray(type, inputTypes) >= 0) {
-        if (paramData[param.id] === undefined) {
+        if (paramData[param.name] === undefined) {
           insertInput(param);
         } else {
           // After resetting deltaParams, need to add params that were kept back to deltaParams
-          deltaParams.push(param.id);
+          deltaParams.push(param.name);
         }
       } else {
-        console.log("Param type not allowed0:\n  Type: " + type + "\n  ID: " + param.id);
+        console.log("Param type not allowed0:\n  Type: " + type + "\n  ID: " + param.name);
       }
     });
   }
@@ -216,14 +229,16 @@ function evalScriptParams() {
 function insertInput(param) {
   var pname_div = document.createElement("div");
   pname_div.setAttribute("class", "col1");
-  pname_div.innerHTML = param.displayName;
+  pname_div.innerHTML = param.desc;
+
+  setParamDef(param.name,param);
 
   switch ( (param.type).toLowerCase() ) {
-    case "text":
+    case "string":
       var pname_input = document.createElement("input");
       pname_input.setAttribute("type", "text");
-      pname_input.setAttribute("name", param.id);
-      pname_input.setAttribute("id", param.id);
+      pname_input.setAttribute("name", param.name);
+      pname_input.setAttribute("id", param.name);
       pname_input.setAttribute("value", param.default);
       pname_input.setAttribute("class", "col2-input");
 
@@ -231,15 +246,15 @@ function insertInput(param) {
       pname_input_div.setAttribute("class", "col2-3");
       pname_input_div.appendChild(pname_input);
 
-      setParamVal(param.id, param.default);
-      setParamRequirement(param.id, param.required);
-      addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
+      setParamVal(param.name, param.default);
+      setParamRequirement(param.name, param.required);
+      addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
-    case "range":
+    case "double":
       var pname_input = document.createElement("input");
       pname_input.setAttribute("type", "range");
-      pname_input.setAttribute("name", param.id);
-      pname_input.setAttribute("id", param.id);
+      pname_input.setAttribute("name", param.name);
+      pname_input.setAttribute("id", param.name);
       pname_input.setAttribute("value", param.default);
       pname_input.setAttribute("min", param.rangeMin);
       pname_input.setAttribute("max", param.rangeMax);
@@ -251,21 +266,21 @@ function insertInput(param) {
       pname_input_div.appendChild(pname_input);
 
       var pname_input_display = document.createElement("label");
-      pname_input_display.setAttribute("id", param.id + "-display");
+      pname_input_display.setAttribute("id", param.name + "-display");
       pname_input_display.setAttribute("class", "col3");
       pname_input_display.innerHTML = param.default;
 
-      setParamVal(param.id, param.default);
-      setParamRequirement(param.id, param.required);
-      addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
+      setParamVal(param.name, param.default);
+      setParamRequirement(param.name, param.required);
+      addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
     case "location":
       // Create text box to show the 3d location
       var pname_input = document.createElement("input");
       pname_input.setAttribute("type", "text");
-      pname_input.setAttribute("name", param.id);
-      pname_input.setAttribute("id", param.id);
-      pname_input.setAttribute("value", param.default);
+      pname_input.setAttribute("name", param.name);
+      pname_input.setAttribute("id", param.name);
+      pname_input.setAttribute("value", JSON.stringify(param.default));
       pname_input.setAttribute("class", "col2-input");
       pname_input.setAttribute("readOnly", true);
 
@@ -276,18 +291,18 @@ function insertInput(param) {
       // Create a button to allow selecting a 3d position
       var button_div = document.createElement("div");
       button_div.setAttribute("class", "col3 param-button");
-      button_div.setAttribute("onclick", "pickModeOn('" + param.id + "', this);");
+      button_div.setAttribute("onclick", "pickModeOn('" + param.name + "', this);");
       button_div.innerHTML = "Location";
 
-      setParamVal(param.id, param.default);
-      setParamRequirement(param.id, param.required);
-      addParamUIListener(pname_input, param.id, (param.type).toLowerCase());
+      setParamVal(param.name, param.default);
+      setParamRequirement(param.name, param.required);
+      addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
-    case "url":
+    case "uri":
       var fname_text = document.createElement("input");
       fname_text.setAttribute("type", "text");
-      fname_text.setAttribute("name", "filename" + param.id);
-      fname_text.setAttribute("id", "filename" + param.id);
+      fname_text.setAttribute("name", "filename" + param.name);
+      fname_text.setAttribute("id", "filename" + param.name);
       fname_text.setAttribute("class", "col2-input");
       fname_text.setAttribute("readOnly", true);
 
@@ -297,8 +312,8 @@ function insertInput(param) {
 
       var pname_input = document.createElement("input");
       pname_input.setAttribute("type", "file");
-      pname_input.setAttribute("name", param.id);
-      pname_input.setAttribute("id", param.id);
+      pname_input.setAttribute("name", param.name);
+      pname_input.setAttribute("id", param.name);
       pname_input.setAttribute("class", "upload");
 
       var span = document.createElement("span");
@@ -309,12 +324,12 @@ function insertInput(param) {
       button_div.innerHTML = "File";
       button_div.appendChild(pname_input);
 
-      setParamVal(param.id, null);
-      setParamRequirement(param.id, param.required);
-      addFileParamUIListener(pname_input, param.id, fname_text, (param.type).toLowerCase());
+      setParamVal(param.name, null);
+      setParamRequirement(param.name, param.required);
+      addFileParamUIListener(pname_input, param.name, fname_text, (param.type).toLowerCase());
       break;
     default:
-      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.id);
+      console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.name);
       return;
   }
 
@@ -322,13 +337,13 @@ function insertInput(param) {
   var param_row = document.createElement("div");
 
   switch ( (param.type).toLowerCase() ) {
-    case "url":
+    case "uri":
       var fval_file_div = document.createElement("div");
 //      fval_file_div.setAttribute("class", "param-val");
       fval_file_div.appendChild(pname_input_div);
       fval_file_div.appendChild(button_div);
 
-	  param_row.setAttribute("id", param.id + "-row");
+	  param_row.setAttribute("id", param.name + "-row");
 	  param_row.setAttribute("class", "param-row");
 	  param_row.appendChild(pname_div);
       param_row.appendChild(fval_file_div);
@@ -345,7 +360,7 @@ function insertInput(param) {
       pval_div.appendChild(pname_input_div);
       pval_div.appendChild(button_div);
 
-	  param_row.setAttribute("id", param.id + "-row");
+	  param_row.setAttribute("id", param.name + "-row");
 	  param_row.setAttribute("class", "param-row");
 	  param_row.appendChild(pname_div);
       param_row.appendChild(pval_div);
@@ -363,7 +378,7 @@ function insertInput(param) {
 	      pval_div.appendChild(pname_input_display);
       }
 
-	  param_row.setAttribute("id", param.id + "-row");
+	  param_row.setAttribute("id", param.name + "-row");
 	  param_row.setAttribute("class", "param-row");
 	  param_row.appendChild(pname_div);
       param_row.appendChild(pval_div);
@@ -374,6 +389,12 @@ function insertInput(param) {
       }
 
   }
+}
+
+function setParamDef(id, val) {
+  console.log("Added param: " + id);
+  console.log(val);
+  paramDef[id] = val;
 }
 
 function setParamVal(id, val) {
@@ -394,7 +415,7 @@ function setParamRequirement(id, required) {
 
 function addParamUIListener(element, elementId, type) {
   switch (type) {
-    case "text":
+    case "string":
       $(element).on("input", function() {
         setParamVal( elementId, $(element).val() );
 	    update(false, false);
@@ -404,7 +425,7 @@ function addParamUIListener(element, elementId, type) {
         update(false, false);
       });
       break;
-    case "range":
+    case "double":
       $(element).on("input", function() {
         setParamVal( elementId, $(element).val() );
 	    var displayId = elementId + "-display";
@@ -654,18 +675,18 @@ function onKeyPress(event) {
 <textarea id="code" name="code" placeholder="">
 var uiParams = [
 	{
-       "id": "period",
-       "displayName": "Period",
-       "type": "range",
+       "name": "period",
+       "desc": "Period",
+       "type": "double",
        "rangeMin": 1,
        "rangeMax": 21,
        "step": 1,
        "default": 18
 	},
 	{
-       "id": "thickness",
-       "displayName": "Thickness",
-       "type": "range",
+       "name": "thickness",
+       "desc": "Thickness",
+       "type": "double",
        "rangeMin": 1,
        "rangeMax": 5,
        "step": 0.5,

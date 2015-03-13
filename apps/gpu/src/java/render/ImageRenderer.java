@@ -449,7 +449,7 @@ public class ImageRenderer {
                     }
                 }
 
-                if (DEBUG) printf("js evaluation\n");
+                if (DEBUG) printf("js evaluation.  Cached: %s\n",ce);
 
                 if (ce == null) {
                     eval = new ShapeJSEvaluator();

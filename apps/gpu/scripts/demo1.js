@@ -1,56 +1,50 @@
 var uiParams = [
 	{
-		"id": "text",
-		"displayName": "Text",
-		"type": "text",
+		"name": "text",
+		"desc": "Text",
+		"type": "string",
 		"required": false,
 		"default": ""
 	},
 	{
-		"id": "textpos0",
-		"displayName": "Text Pos1",
+		"name": "textpos0",
+		"desc": "Text Pos1",
 		"type": "location",
-		"required": false,
-		"default": ""
-	},
-	{
-		"id": "textpos1",
-		"displayName": "Text Pos2",
-		"type": "location",
-		"required": false,
-		"default": ""
-	},
-	{
-		"id": "image",
-		"displayName": "Image",
-		"type": "url",
 		"required": false
 	},
 	{
-		"id": "imagepos0",
-		"displayName": "Image Pos1",
+		"name": "textpos1",
+		"desc": "Text Pos2",
 		"type": "location",
-		"required": false,
-		"default": ""
+		"required": false
 	},
 	{
-		"id": "imagepos1",
-		"displayName": "Image Pos2",
-		"type": "location",
-		"required": false,
-		"default": ""
+		"name": "image",
+		"desc": "Image",
+		"type": "uri",
+		"required": false
 	},
 	{
-		"id": "engraveDepth",
-		"displayName": "Engrave Depth",
-		"type": "range",
+		"name": "imagepos0",
+		"desc": "Image Pos1",
+		"type": "location",
+		"required": false
+	},
+	{
+		"name": "imagepos1",
+		"desc": "Image Pos2",
+		"type": "location",
+		"required": false
+	},
+	{
+		"name": "engraveDepth",
+		"desc": "Engrave Depth",
+		"type": "double",
 		"rangeMin": -1,
 		"rangeMax": 1,
 		"step": 0.1,
 		"default": 0.5
 	}
-
-
 ];
 
 function spheres(radius, count){
@@ -126,18 +120,11 @@ function main(args) {
 
 
 	if (text != null && textpos0 && textpos1) {
-		var tpos0Str = textpos0.split(",");
-		var tpos1Str = textpos1.split(",");
+		var tp0 = textpos0.point;
+		var tn0 = textpos0.normal;
+		var tp1 = textpos1.point;
+		var tn1 = textpos1.normal;
 
-		var tpos0 = [parseFloat(tpos0Str[0]),parseFloat(tpos0Str[1]),parseFloat(tpos0Str[2])];
-		var tnormal0 = [parseFloat(tpos0Str[3]),parseFloat(tpos0Str[4]),parseFloat(tpos0Str[5])];
-		var tpos1 = [parseFloat(tpos1Str[0]),parseFloat(tpos1Str[1]),parseFloat(tpos1Str[2])];
-		var tnormal1 = [parseFloat(tpos1Str[3]),parseFloat(tpos1Str[4]),parseFloat(tpos1Str[5])];
-
-		var tp0 = new Vector3d(tpos0[0],tpos0[1],tpos0[2]);
-		var tp1 = new Vector3d(tpos1[0],tpos1[1],tpos1[2]);
-		var tn0 = new Vector3d(tnormal0[0],tnormal0[1],tnormal0[2]);
-		var tn1 = new Vector3d(tnormal1[0],tnormal1[1],tnormal1[2]);
 		tn0.normalize();
 		tn1.normalize();
 
@@ -157,18 +144,11 @@ function main(args) {
 	}
 	if (imagePath && imagepos0 && imagepos1) {
 		var image = loadImage(imagePath);
-		var pos0Str = imagepos0.split(",");
-		var pos1Str = imagepos1.split(",");
 
-		var pos0 = [parseFloat(pos0Str[0]),parseFloat(pos0Str[1]),parseFloat(pos0Str[2])];
-		var normal0 = [parseFloat(pos0Str[3]),parseFloat(pos0Str[4]),parseFloat(pos0Str[5])];
-		var pos1 = [parseFloat(pos1Str[0]),parseFloat(pos1Str[1]),parseFloat(pos1Str[2])];
-		var normal1 = [parseFloat(pos1Str[3]),parseFloat(pos1Str[4]),parseFloat(pos1Str[5])];
-
-		var p0 = new Vector3d(pos0[0],pos0[1],pos0[2]);
-		var p1 = new Vector3d(pos1[0],pos1[1],pos1[2]);
-		var n0 = new Vector3d(normal0[0],normal0[1],normal0[2]);
-		var n1 = new Vector3d(normal1[0],normal1[1],normal1[2]);
+		var p0 = textpos0.point;
+		var n0 = textpos0.normal;
+		var p1 = textpos1.point;
+		var n1 = textpos1.normal;
 		n0.normalize();
 		n1.normalize();
 
