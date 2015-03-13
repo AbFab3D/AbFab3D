@@ -455,17 +455,17 @@ public class RectSidedPopperKernel extends HostedKernel {
                           String filename, double[] bounds,
                           double rot[], double rot2[], double translation[]) {
 
-        ImageBitmap layer = new ImageBitmap();
+        ImageBox layer = new ImageBox();
         layer.setSize(bodyWidth, bodyHeight, bodyDepth);
         layer.setCenter(0, 0, bodyDepth/2); // move up halfthickness to align bottom of the image with xy plane
         layer.setBaseThickness(0.0);
-        layer.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
+        layer.setImageType(ImageBox.IMAGE_TYPE_EMBOSSED);
         layer.setTiles(1, 1);
         layer.setImagePath(filename);
         layer.setUseGrayscale(useGrayscale);
 
         if (USE_MIP_MAPPING) {
-            layer.setInterpolationType(ImageBitmap.INTERPOLATION_MIPMAP);
+            layer.setInterpolationType(ImageBox.INTERPOLATION_MIPMAP);
             layer.setPixelWeightNonlinearity(1.0);  // 0 - linear, 1. - black pixels get more weight
             //layer.setProbeSize(resolution * 2.);
         }

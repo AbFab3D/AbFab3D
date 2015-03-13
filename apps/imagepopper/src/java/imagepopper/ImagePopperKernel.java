@@ -21,7 +21,7 @@ import abfab3d.creator.shapeways.HostedKernel;
 import abfab3d.creator.util.ParameterUtil;
 import abfab3d.grid.*;
 
-import abfab3d.datasources.ImageBitmap;
+import abfab3d.datasources.ImageBox;
 import abfab3d.datasources.Union;
 
 
@@ -379,7 +379,7 @@ public class ImagePopperKernel extends HostedKernel {
         double surfaceTransitionWidth = Math.sqrt(3)/2; // 0.866
         double imagesBlurWidth = surfaceTransitionWidth*voxelSize;
         double baseThreshold = 0.1;
-        int interpolationType = ImageBitmap.INTERPOLATION_BOX;
+        int interpolationType = ImageBox.INTERPOLATION_BOX;
 
 
         if (!filename2.equalsIgnoreCase("NONE")) {
@@ -403,11 +403,11 @@ public class ImagePopperKernel extends HostedKernel {
 
         Union union = new Union();
 
-        ImageBitmap layer1 = new ImageBitmap();
+        ImageBox layer1 = new ImageBox();
         layer1.setSize(bodyWidth1, bodyHeight1, bodyDepth1);
         layer1.setCenter(0, 0, layer1z);
         layer1.setBaseThickness(0.0);
-        layer1.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
+        layer1.setImageType(ImageBox.IMAGE_TYPE_EMBOSSED);
         layer1.setTiles(1, 1);
         layer1.setImagePath(filename1);
         layer1.setUseGrayscale(useGrayscale1);
@@ -417,7 +417,7 @@ public class ImagePopperKernel extends HostedKernel {
 
         layer1.setImagePlace(getPlacementValue(bodyImagePlacement1));
         if (imageInvert1) {
-            layer1.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
+            layer1.setImageType(ImageBox.IMAGE_TYPE_ENGRAVED);
         }
         layer1.setBaseThreshold(baseThreshold);
         layer1.setInterpolationType(interpolationType);
@@ -425,19 +425,19 @@ public class ImagePopperKernel extends HostedKernel {
         union.add(layer1);
 
         if (!filename2.equalsIgnoreCase("NONE")) {
-            ImageBitmap layer2 = new ImageBitmap();
+            ImageBox layer2 = new ImageBox();
             layer2.setSize(bodyWidth2, bodyHeight2, bodyDepth2);
 
             layer2.setCenter(0, 0, layer2z);
             layer2.setBaseThickness(0.0);
-            layer2.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
+            layer2.setImageType(ImageBox.IMAGE_TYPE_EMBOSSED);
             layer2.setTiles(1, 1);
             layer2.setImagePath(filename2);
             layer2.setUseGrayscale(useGrayscale2);
             layer2.setBlurWidth((useGrayscale2)? 0: imagesBlurWidth);
             layer2.setImagePlace(getPlacementValue(bodyImagePlacement2));
             if (imageInvert2) {
-                layer2.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
+                layer2.setImageType(ImageBox.IMAGE_TYPE_ENGRAVED);
             }
 
             layer2.setInterpolationType(interpolationType);
@@ -449,12 +449,12 @@ public class ImagePopperKernel extends HostedKernel {
         }
 
         if (!filename3.equalsIgnoreCase("NONE")) {
-            ImageBitmap layer3 = new ImageBitmap();
+            ImageBox layer3 = new ImageBox();
             layer3.setSize(bodyWidth3, bodyHeight3, bodyDepth3);
 
             layer3.setCenter(0, 0, layer3z);
             layer3.setBaseThickness(0.0);
-            layer3.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
+            layer3.setImageType(ImageBox.IMAGE_TYPE_EMBOSSED);
             layer3.setTiles(1, 1);
             layer3.setImagePath(filename3);
             layer3.setUseGrayscale(useGrayscale3);
@@ -462,7 +462,7 @@ public class ImagePopperKernel extends HostedKernel {
 
             layer3.setImagePlace(getPlacementValue(bodyImagePlacement3));
             if (imageInvert3) {
-                layer3.setImageType(ImageBitmap.IMAGE_TYPE_ENGRAVED);
+                layer3.setImageType(ImageBox.IMAGE_TYPE_ENGRAVED);
             }
 
             layer3.setInterpolationType(interpolationType);
@@ -712,13 +712,13 @@ public class ImagePopperKernel extends HostedKernel {
 
     private int getPlacementValue(ImagePlace place) {
         switch(place) {
-        case TOP: return ImageBitmap.IMAGE_PLACE_TOP;
-        case BOTTOM: return ImageBitmap.IMAGE_PLACE_BOTTOM;
-        case BOTH: return ImageBitmap.IMAGE_PLACE_BOTH;
+        case TOP: return ImageBox.IMAGE_PLACE_TOP;
+        case BOTTOM: return ImageBox.IMAGE_PLACE_BOTTOM;
+        case BOTH: return ImageBox.IMAGE_PLACE_BOTH;
         default :
             System.out.println("Unhandled place: " + place);
             new Exception().printStackTrace();
-            return ImageBitmap.IMAGE_PLACE_TOP;
+            return ImageBox.IMAGE_PLACE_TOP;
         }
     }
 

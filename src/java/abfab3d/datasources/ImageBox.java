@@ -44,7 +44,7 @@ import static abfab3d.util.Output.time;
  * The shape fits into a box of the specified size. The image is placed parallel to the xy plane.
  * The bounding box is centered at origin.
  * <p/>
- * <embed src="doc-files/ImageBitmap.svg" type="image/svg+xml"/>
+ * <embed src="doc-files/ImageBox.svg" type="image/svg+xml"/>
  * <p>
  * The image may be placed in 3 different places: on top side, on bottom side and on both sides.
  * </p>
@@ -52,15 +52,15 @@ import static abfab3d.util.Output.time;
  * The style of image may be emboss or engrave.
  * </p>
  * <p/>
- * <embed src="doc-files/ImageBitmap_options.svg" type="image/svg+xml"/>
+ * <embed src="doc-files/ImageBox_options.svg" type="image/svg+xml"/>
  * <p>
  * The image can by tiled (repeated) in both x and y directions finite number of times 
- * The size is a
+ * 
  * </p>
  *
  * @author Vladimir Bulatov
  */
-public class ImageBitmap extends TransformableDataSource {
+public class ImageBox extends TransformableDataSource {
 
     final static boolean DEBUG = true;
 
@@ -74,11 +74,13 @@ public class ImageBitmap extends TransformableDataSource {
     Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
     // rounding of the edges
     DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the box edges", 0.);
+    IntParameter  mp_imagePlace = new IntParameter("imagePlace","placement of the image", 0, 0, 2);
     IntParameter  mp_tilesX = new IntParameter("tilesX","image tiles in x-direction", 1);
     IntParameter  mp_tilesY = new IntParameter("tilesY","image tiles in y-direction", 1);
     DoubleParameter  mp_baseThickness = new DoubleParameter("baseThickness","relative thickness of image base", 0.);
     BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for image rendering", true);
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
+    DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_center,
@@ -89,6 +91,9 @@ public class ImageBitmap extends TransformableDataSource {
         mp_baseThickness,
         mp_useGrayscale,
         mp_blurWidth,
+        mp_baseThreshold,
+        mp_imagePlace,
+
     };
 
     static final double PIXEL_NORM = 1. / 255.;
@@ -103,9 +108,9 @@ public class ImageBitmap extends TransformableDataSource {
     // location of the box
     protected double m_centerX = 0, m_centerY = 0, m_centerZ = 0;
 
-    protected double m_baseThickness = 0.5; // relative thickness of solid base 
     protected String m_imagePath;
-    protected double m_baseThreshold = 0.01;
+    protected double m_baseThickness = 0.0; // relative thickness of solid base 
+    protected double m_baseThreshold = 0.01; // threshold to make cut from base of the image 
 
     protected int m_imageType = IMAGE_TYPE_EMBOSSED;
     protected int m_imagePlace = IMAGE_PLACE_TOP;
@@ -140,7 +145,7 @@ public class ImageBitmap extends TransformableDataSource {
 
     private double imageThickness;
 
-    private double m_imageThreshold = 0.5; // below threshold we have solid voxel, above - empty voxel  
+    private double m_imageThreshold = 0.5; // this is for black and white case. below threshold we have solid voxel, above - empty voxel  
 
     // scratch vars
     //double[] ci = new double[4];
@@ -150,18 +155,18 @@ public class ImageBitmap extends TransformableDataSource {
     /**
      * @noRefGuide
      */
-    public ImageBitmap() {
+    public ImageBox() {
         initParams();
     }
 
     /**
-     * ImageBitmap with given image path and size
+     * ImageBox with given image path and size
      @param imagePath path to the image file 
      @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sz depth of the box. 
      */
-    public ImageBitmap(String imagePath, double sx, double sy, double sz) {
+    public ImageBox(String imagePath, double sx, double sy, double sz) {
         initParams();
 
         setImagePath(imagePath);
@@ -170,14 +175,14 @@ public class ImageBitmap extends TransformableDataSource {
     }
 
     /**
-     * ImageBitmap with given image path and size
+     * ImageBox with given image path and size
      @param imagePath path to the image file 
      @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sz depth of the box. 
      @param voxelSize size of voxel to be used for image voxelization 
      */
-    public ImageBitmap(String imagePath, double sx, double sy, double sz, double voxelSize) {
+    public ImageBox(String imagePath, double sx, double sy, double sz, double voxelSize) {
         initParams();
 
         setImagePath(imagePath);
@@ -187,14 +192,14 @@ public class ImageBitmap extends TransformableDataSource {
     }
 
     /**
-     * ImageBitmap with given image path and size
+     * ImageBox with given image path and size
      @param imagePath path to the image file 
      @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sz depth of the box. 
      @param voxelSize size of voxel to be used for image voxelization 
      */
-    public ImageBitmap(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
+    public ImageBox(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
         initParams();
 
         setImage(image);
@@ -204,14 +209,14 @@ public class ImageBitmap extends TransformableDataSource {
     }
 
     /**
-     * ImageBitmap with given image path and size
+     * ImageBox with given image path and size
      * @param imwrapper holder of BufferedImage 
      * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sz depth of the box. 
      * @param voxelSize size of voxel to be used for image voxelization 
      */
-    public ImageBitmap(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
+    public ImageBox(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
         initParams();
         setImage(imwrapper.getImage());
         setSize(sx, sy, sz);
@@ -265,7 +270,6 @@ public class ImageBitmap extends TransformableDataSource {
      */
     public void setBaseThickness(double baseThickness) {
         mp_baseThickness.setValue(new Double(baseThickness));
-        m_baseThickness = baseThickness;
         
     }
 
@@ -283,7 +287,7 @@ public class ImageBitmap extends TransformableDataSource {
      */
     public void setBaseThreshold(double baseThreshold) {
 
-        m_baseThreshold = baseThreshold;
+        mp_baseThreshold.setValue(new Double(baseThreshold));
 
     }
 
@@ -318,7 +322,7 @@ public class ImageBitmap extends TransformableDataSource {
     /**
      * set options to image embossing type
      *
-     * @param type Type ot the image. Possible values ImageBitmap.IMAGE_TYPE_EMBOSSED (default value), ImageBitmap.IMAGE_TYPE_ENGRAVED.
+     * @param type Type ot the image. Possible values ImageBox.IMAGE_TYPE_EMBOSSED (default value), ImageBox.IMAGE_TYPE_ENGRAVED.
      *             
      */
     public void setImageType(int type) {
@@ -331,12 +335,12 @@ public class ImageBitmap extends TransformableDataSource {
      * set options to place the image
      *
      * @param place of the image.
-     *              Possible values: ImageBitmap.IMAGE_PLACE_TOP, ImageBitmap.IMAGE_PLACE_BOTTOM, ImageBitmap.IMAGE_PLACE_BOTH
-     *              Default ImageBitmap.IMAGE_PLACE_TOP
+     *              Possible values: ImageBox.IMAGE_PLACE_TOP, ImageBox.IMAGE_PLACE_BOTTOM, ImageBox.IMAGE_PLACE_BOTH
+     *              Default ImageBox.IMAGE_PLACE_TOP
      */
     public void setImagePlace(int place) {
 
-        m_imagePlace = place;
+        mp_imagePlace.setValue(new Integer(place));
 
     }
 
@@ -389,15 +393,45 @@ public class ImageBitmap extends TransformableDataSource {
     }
 
     public void getBitmapData(byte data[]){
+        getBitmapDataUByte(data);
+    }
+
+    public void getBitmapDataUByte(byte data[]){
 
         int nx = imageData.getWidth();
         int ny = imageData.getHeight();
-
+        double base = m_baseThreshold;
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
-                int d = imageData.getDataI(x, y);
+                double d = getImageHeight(x,y);//imageData.getDataD(x, y);
                 // normalization to byte 
-                data[x + y * nx] = (byte)((d>>8) & 0xFF); 
+                if(d > base)
+                    data[x + y * nx] = (byte)((int)(d * 255.) & 0xFF); 
+                else 
+                    data[x + y * nx] = 0;
+            }
+        }
+    }
+    // store bitmap data as 16 bit shorts 
+    public void getBitmapDataUShort(byte data[]){
+
+        int nx = imageData.getWidth();
+        int ny = imageData.getHeight();
+        int nx2 = nx*2;
+        
+        double base = m_baseThreshold;
+        for(int y = 0;  y < ny; y++){
+            for(int x = 0;  x < nx; x++){
+                double d = getImageHeight(x,y);
+                // normalization to byte 
+                if(d > base){
+                    int id = (int)(d * 0xFFFF);
+                    data[2*x + y * nx2] = (byte)(id & 0xFF); 
+                    data[2*x + y * nx2+1] = (byte)((id >> 8) & 0xFF);  
+                } else {
+                  data[2*x + y * nx2] = 0;
+                  data[2*x + y * nx2 + 1] = 0;
+                }
             }
         }
     }
@@ -410,6 +444,11 @@ public class ImageBitmap extends TransformableDataSource {
         super.initialize();
 
         if(DEBUG)printf("%s.initilize()\n",this);
+
+        m_baseThreshold = mp_baseThreshold.getValue();
+        m_baseThickness = mp_baseThickness.getValue();
+        m_imagePlace = mp_imagePlace.getValue();
+
         int res = prepareImage();
 
         if(res != RESULT_OK){ 
@@ -792,7 +831,7 @@ public class ImageBitmap extends TransformableDataSource {
     private double getHeightFieldValue(double x, double y, double probeSize) {
 
         //if(debugCount-- > 0)
-        //    printf("ImageBitmap.getHeightFieldValue(%10.5f, %10.5f, %10.5f)\n", x,y,probeSize);
+        //    printf("ImageBox.getHeightFieldValue(%10.5f, %10.5f, %10.5f)\n", x,y,probeSize);
 
         x = (x - xmin) * xscale; // x and y are now in (0,1)
         y = 1. - (y - ymin) * yscale;

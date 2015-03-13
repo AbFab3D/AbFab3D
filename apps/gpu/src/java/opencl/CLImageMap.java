@@ -16,8 +16,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.IntParameter;
 
-import abfab3d.datasources.ImageBitmap;
-import abfab3d.datasources.Text;
+import abfab3d.datasources.ImageBox;
 
 import javax.vecmath.Vector3d;
 
@@ -27,10 +26,10 @@ import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 
 /**
-   CL code generatror for box
+   CL code generatror for ImageMap
    @author Vladimir Bulatov 
  */
-public class CLText  extends CLNodeBase {
+public class CLImageMap  extends CLNodeBase {
 
     static final boolean DEBUG = true;
     static int OPCODE = Opcodes.oGRID2DBYTE;
@@ -53,8 +52,9 @@ typedef struct {
 
     float3 origin; // location of bottom left corner
     float vscale; // 1/voxelSize 
-
+    float outsideValue; 
     int data; // location of data in the data buffer 
+    PTRDATA char *pData; // actual grid data 
 } sGrid2dByte;
     */
 
@@ -65,24 +65,21 @@ typedef struct {
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
-
+        // TO DO make code from ImageMap 
+        ImageBox image = (ImageBox)node;
         
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();
         double rounding = ((DoubleParameter)node.getParam("rounding")).getValue();
-        int tilesX = 1;
-        int tilesY = 1;
+        int tilesX = ((IntParameter)node.getParam("tilesX")).getValue();
+        int tilesY = ((IntParameter)node.getParam("tilesY")).getValue();
         int tiling = ((tilesX & 0xFFFF)| (tilesY & 0xFFFF) << 16);
 
-        if(DEBUG)printf("text([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
-
-        Text text = (Text)node;
-        ImageBitmap image = text.getBitmap();
-
+        if(DEBUG)printf("imageBox([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
         int nx = image.getBitmapWidth();
         int ny = image.getBitmapHeight();
-
-        byte[] data = new byte[nx*ny];        
+        byte[] data = new byte[nx*ny];
+        double outsideValue = 0.; // what it should be? 
         image.getBitmapData(data);
 
         int offset = codeBuffer.addData(data);
@@ -110,8 +107,8 @@ typedef struct {
         buffer[c++] = 0;// alignment
         buffer[c++] = floatToInt(nx/size.x); //1./pixelSize 
         buffer[c++] = floatToInt(ny/size.y); //1./pixelSize 
+        buffer[c++] = floatToInt(outsideValue); 
         buffer[c++] = offset; // data offset 
-        buffer[c++] = 0; // place for data pointer
 
         codeBuffer.add(buffer, STRUCTSIZE);
         wcount += STRUCTSIZE;

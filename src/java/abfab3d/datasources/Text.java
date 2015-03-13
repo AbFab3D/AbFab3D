@@ -81,7 +81,7 @@ public class Text extends TransformableDataSource {
     //private double m_sizeX=30*MM, m_sizeY=10*MM, m_sizeZ=2*MM;
     //private double m_voxelSize = 0.1*MM;
 
-    private ImageBitmap m_bitmap = null; 
+    private ImageBox m_bitmap = null; 
     private int m_fontSize = 50; // arbitrary font size, text is scaled to fit box anyway
     //private double m_textBlurWidth = 1.;
     private int m_textScale = 5;
@@ -134,7 +134,7 @@ public class Text extends TransformableDataSource {
     }
         
 
-    public ImageBitmap getBitmap(){
+    public ImageBox getBitmap(){
         return m_bitmap;
     }
 
@@ -165,17 +165,17 @@ public class Text extends TransformableDataSource {
         //Font font = new Font(m_fontName, m_fontStyle, m_fontSize);
 
         
-        m_bitmap = new ImageBitmap();
+        m_bitmap = new ImageBox();
 
         m_bitmap.setImage(img);
         m_bitmap.setSize(size.x, size.y, size.z);
         m_bitmap.setBaseThickness(0.);
-        m_bitmap.setImageType(ImageBitmap.IMAGE_TYPE_EMBOSSED);
+        m_bitmap.setImageType(ImageBox.IMAGE_TYPE_EMBOSSED);
         m_bitmap.setTiles(1, 1);
         m_bitmap.setBlurWidth(mp_blurWidth.getValue());
         //m_bitmap.setUseGrayscale(false); // VB - temp fix for GPU 
         m_bitmap.setUseGrayscale(true);
-        m_bitmap.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
+        m_bitmap.setInterpolationType(ImageBox.INTERPOLATION_LINEAR);
         m_bitmap.setTransform(getTransform());
         
         m_bitmap.initialize();

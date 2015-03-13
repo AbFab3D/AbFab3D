@@ -36,8 +36,10 @@ public class CLNodeFactory {
         sm_map.put("Scale", "opencl.CLScale");
         sm_map.put("CompositeTransform", "opencl.CLCompositeTransform");
         sm_map.put("Engraving", "opencl.CLEngraving");
-        sm_map.put("ImageBitmap", "opencl.CLImageBitmap");
-        sm_map.put("Text", "opencl.CLText");
+        sm_map.put("ImageBox", "opencl.CLImageBox");
+        sm_map.put("ImageMap", "opencl.CLImageMap");
+        sm_map.put("TextBox", "opencl.CLTextBox");
+        sm_map.put("TextMap", "opencl.CLTextMap");
         sm_map.put("DataSourceGrid", "opencl.CLGrid");
     }
     
