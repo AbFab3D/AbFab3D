@@ -531,7 +531,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         OutputStream os = resp.getOutputStream();
         resp.setContentType("application/json");
 
-        result.put("pos",new float[] {pos.x,pos.y,pos.z});
+        result.put("point",new float[] {pos.x,pos.y,pos.z});
         result.put("normal",new float[] {normal.x,normal.y,normal.z});
 
         String st = gson.toJson(result);

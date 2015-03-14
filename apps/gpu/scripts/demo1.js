@@ -119,7 +119,6 @@ function main(args) {
 	var engraveDepth = args.engraveDepth * MM;
 
 
-	print("textpos: " + textpos0);
 	if (text != null && textpos0 && textpos1) {
 		var tp0 = textpos0.point;
 		var tn0 = textpos0.normal;
@@ -146,10 +145,10 @@ function main(args) {
 	if (imagePath && imagepos0 && imagepos1) {
 		var image = loadImage(imagePath);
 
-		var p0 = textpos0.point;
-		var n0 = textpos0.normal;
-		var p1 = textpos1.point;
-		var n1 = textpos1.normal;
+		var p0 = imagepos0.point;
+		var n0 = imagepos0.normal;
+		var p1 = imagepos1.point;
+		var n1 = imagepos1.normal;
 		n0.normalize();
 		n1.normalize();
 
