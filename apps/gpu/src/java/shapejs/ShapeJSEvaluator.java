@@ -162,6 +162,11 @@ public class ShapeJSEvaluator {
                 for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
                     printf("Changing arg: %s -> %s\n", entry.getKey(), entry.getValue().toString());
                     argsMap.defineProperty(entry.getKey(), entry.getValue(), 0);
+                }
+
+                boolean main_called = false;
+
+                for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
 
                     Parameter pd = defs.get(entry.getKey());
 
@@ -170,8 +175,12 @@ public class ShapeJSEvaluator {
                     }
 
                     String onChange = pd.getOnChange();
+
                     if (onChange == null) {
                         return new EvalResult("Cannot find onChange property: " + pd.getName(), System.currentTimeMillis() - t0);
+                    }
+                    if (main_called && onChange.equals("main")) {
+                        continue;
                     }
                     Object o = scope.get(onChange, scope);
                     if (o == null) {
@@ -192,31 +201,9 @@ public class ShapeJSEvaluator {
                     }
                     if (DEBUG) printf("result of JS evaluation: %s\n", result2);
 
-                    StringBuilder bldr = new StringBuilder();
-                    for(JsError error : errors.getErrors()) {
-                        String err_st = error.toString();
-                        String remap = errorRemap.get(err_st);
-                        if (remap != null) {
-                            err_st = remap;
-                        }
-                        bldr.append(err_st);
-                        bldr.append("\n");
-                    }
-
-                    String err_msg = bldr.toString();
-
-                    List<String> prints = DebugLogger.getLog(cx);
-
-                    String print_msg = "";
-                    if (prints != null) {
-                        for(String print : prints) {
-                            bldr.append(print);
-                        }
-                        print_msg = bldr.toString();
-                    }
-
-                    if (pd.getOnChange().equals("main")) {
+                    if (onChange.equals("main")) {
                         // We updated the who thing
+                        main_called = true;
 
                         if (result2 instanceof NativeJavaObject) {
                             Object no = ((NativeJavaObject) result2).unwrap();
@@ -225,16 +212,38 @@ public class ShapeJSEvaluator {
                             bounds.set(shape.getBounds());
                         }
                     }
-                    return new EvalResult(true,shape.getDataSource(),print_msg,err_msg, System.currentTimeMillis() - t0);
 
                 }
             }
 
+            StringBuilder bldr = new StringBuilder();
+            for(JsError error : errors.getErrors()) {
+                String err_st = error.toString();
+                String remap = errorRemap.get(err_st);
+                if (remap != null) {
+                    err_st = remap;
+                }
+                bldr.append(err_st);
+                bldr.append("\n");
+            }
+
+            String err_msg = bldr.toString();
+
+            List<String> prints = DebugLogger.getLog(cx);
+
+            String print_msg = "";
+            if (prints != null) {
+                for(String print : prints) {
+                    bldr.append(print);
+                }
+                print_msg = bldr.toString();
+            }
+
+            return new EvalResult(true,shape.getDataSource(),print_msg,err_msg, System.currentTimeMillis() - t0);
+
         } finally {
             Context.exit();
         }
-
-        return null;
     }
 
 
@@ -255,12 +264,26 @@ public class ShapeJSEvaluator {
             }
 
             try {
+                Object wrapped =  null;
+
                 switch (param.getType()) {
                     case DOUBLE:
-                        namedParams.put(key, gson.fromJson(json, Double.class));
+                        Double dv = gson.fromJson(json, Double.class);
+                        DoubleParameter dp = (DoubleParameter) param;
+                        dp.setValue(dv);
+                        wrapped = new ParameterJSWrapper(scope,dp);
                         break;
                     case STRING:
-                        namedParams.put(key, gson.fromJson(json, String.class));
+                        String sv = gson.fromJson(json, String.class);
+                        StringParameter sp = (StringParameter) param;
+                        sp.setValue(sv);
+                        wrapped = new ParameterJSWrapper(scope,sp);
+                        break;
+                    case URI:
+                        String uv = gson.fromJson(json, String.class);
+                        URIParameter up = (URIParameter) param;
+                        up.setValue(uv);
+                        wrapped = new ParameterJSWrapper(scope,up);
                         break;
                     case LOCATION:
                         Map<String, Object> map = gson.fromJson(json, Map.class);
@@ -277,13 +300,14 @@ public class ShapeJSEvaluator {
                             normal = v3d2;
                         }
 
-                        LocationParameter p = (LocationParameter) param;
-                        if (point != null) p.setPoint(point);
-                        if (normal != null) p.setNormal(normal);
+                        LocationParameter lp = (LocationParameter) param;
+                        if (point != null) lp.setPoint(point);
+                        if (normal != null) lp.setNormal(normal);
+                        wrapped =  Context.javaToJS(lp, scope);
 
-                        namedParams.put(key, p);
                         break;
                 }
+                namedParams.put(key, wrapped);
             } catch(Exception e) {
                 printf("Error parsing: " + json);
                 e.printStackTrace();
@@ -435,6 +459,9 @@ public class ShapeJSEvaluator {
             Object defaultValue = no.get("default");
             if (onChange == null) onChange = "main";
 
+            if (type.endsWith("[]")) {
+                type = type.substring(0,type.length()-2) + "_LIST";
+            }
             ParameterType ptype = ParameterType.valueOf(type);
             Parameter pd = null;
             Object val = null;
@@ -469,6 +496,14 @@ public class ShapeJSEvaluator {
                     break;
                 case URI:
                     pd = new URIParameter(name,desc,(String) defaultValue);
+                    break;
+                case URI_LIST:
+                    NativeArray ula = (NativeArray) defaultValue;
+                    ArrayList<URIParameter> ul = new ArrayList<URIParameter>();
+                    for(int j=0; j < ula.size(); j++) {
+                        ul.add(new URIParameter(name,desc,(String)ula.get(j)));
+                    }
+                    pd = new URIListParameter(name,desc,ul);
                     break;
                 case LOCATION:
                     // TODO: garbage

@@ -13,21 +13,30 @@ package abfab3d.param;
 
 // External Imports
 
-/**
- * A BooleanParameter parameter 
- *
- * @author Vladimir Bulatov
- */
-public class BooleanParameter extends NumberParameter {
+import java.util.ArrayList;
+import java.util.List;
 
-    public BooleanParameter(String name, String desc, boolean initialValue) {
-        super(name, desc);
-        setValue(initialValue);
+/**
+ * A list of URI
+ *
+ * @author Alan Hudson
+ */
+public class URIListParameter extends Parameter {
+    public URIListParameter(String name) {
+
+        this(name, name);
     }
 
-    @Override
-    public Boolean getValue() {
-        return (Boolean) value;
+    public URIListParameter(String name, String desc) {
+
+        this(name, desc, new ArrayList());
+    }
+
+    public URIListParameter(String name, String desc, List initialValue) {
+
+        super(name, desc);
+
+        setValue(initialValue);
     }
 
     /**
@@ -35,7 +44,7 @@ public class BooleanParameter extends NumberParameter {
      * @return The type
      */
     public ParameterType getType() {
-        return ParameterType.BOOLEAN;
+        return ParameterType.URI_LIST;
     }
 
     /**
@@ -45,14 +54,12 @@ public class BooleanParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
-        if (val == null) return;
-
-        if (!(val instanceof Boolean)) {
-            throw new IllegalArgumentException("Unsupported type for Boolean: " + val + " in param: " + getName());
+        if (!(val instanceof List)) {
+            throw new IllegalArgumentException("Unsupported type for URIList: " + val + " in param: " + getName());
         }
     }
 
-    public BooleanParameter clone() {
-        return (BooleanParameter) super.clone();
+    public List<URIParameter> getValue() {
+        return (List<URIParameter>) value;
     }
 }
