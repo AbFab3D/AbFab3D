@@ -32,6 +32,10 @@ public class ParameterJSWrapper extends ScriptableObject {
         this.param = param;
     }
 
+    public Parameter getParameter() {
+        return param;
+    }
+
     @Override
     public Object getDefaultValue(Class hint) {
         return param.getValue();
