@@ -488,7 +488,7 @@ public class ShapeJSEvaluator {
             String type = ((String) no.get("type")).toUpperCase();
             String onChange = (String) no.get("onChange");
 
-            Object defaultValue = no.get("default");
+            Object defaultValue = no.get("defaultVal");
             if (onChange == null) onChange = "main";
 
             if (type.endsWith("[]")) {
@@ -518,7 +518,7 @@ public class ShapeJSEvaluator {
                     if (val != null) {
                         step = ((Number) val).doubleValue();
                     }
-                    val = no.get("default");
+                    val = no.get("defaultVal");
                     if (val != null) {
                         def = ((Number) val).doubleValue();
                     }
@@ -566,7 +566,7 @@ public class ShapeJSEvaluator {
                     if (val != null) {
                         dlStep = ((Number) val).doubleValue();
                     }
-                    val = no.get("default");
+                    val = no.get("defaultVal");
                     if (val != null) {
                         if (val instanceof Number) {
                             dlDef = ((Number) val).doubleValue();

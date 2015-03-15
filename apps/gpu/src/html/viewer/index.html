@@ -248,14 +248,14 @@ function insertInput(param) {
       pname_input.setAttribute("type", "text");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", param.default);
+      pname_input.setAttribute("value", param.defaultVal);
       pname_input.setAttribute("class", "col2-input");
 
       var pname_input_div = document.createElement("div");
       pname_input_div.setAttribute("class", "col2-3");
       pname_input_div.appendChild(pname_input);
 
-      setParamVal(param.name, param.default);
+      setParamVal(param.name, param.defaultVal);
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
@@ -264,14 +264,14 @@ function insertInput(param) {
       pname_input.setAttribute("type", "text");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", JSON.stringify(param.default));
+      pname_input.setAttribute("value", JSON.stringify(param.defaultVal));
       pname_input.setAttribute("class", "col2-input");
 
       var pname_input_div = document.createElement("div");
       pname_input_div.setAttribute("class", "col2-3");
       pname_input_div.appendChild(pname_input);
 
-      setParamVal(param.name, param.default);
+      setParamVal(param.name, param.defaultVal);
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
@@ -280,7 +280,7 @@ function insertInput(param) {
       pname_input.setAttribute("type", "range");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", param.default);
+      pname_input.setAttribute("value", param.defaultVal);
       pname_input.setAttribute("min", param.rangeMin);
       pname_input.setAttribute("max", param.rangeMax);
       pname_input.setAttribute("step", param.step);
@@ -293,9 +293,9 @@ function insertInput(param) {
       var pname_input_display = document.createElement("label");
       pname_input_display.setAttribute("id", param.name + "-display");
       pname_input_display.setAttribute("class", "col3");
-      pname_input_display.innerHTML = param.default;
+      pname_input_display.innerHTML = param.defaultVal;
 
-      setParamVal(param.name, param.default);
+      setParamVal(param.name, param.defaultVal);
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
@@ -304,14 +304,14 @@ function insertInput(param) {
       pname_input.setAttribute("type", "text");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", JSON.stringify(param.default));
+      pname_input.setAttribute("value", JSON.stringify(param.defaultVal));
       pname_input.setAttribute("class", "col2-input");
 
       var pname_input_div = document.createElement("div");
       pname_input_div.setAttribute("class", "col2-3");
       pname_input_div.appendChild(pname_input);
 
-      setParamVal(param.name, param.default);
+      setParamVal(param.name, param.defaultVal);
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
@@ -322,7 +322,7 @@ function insertInput(param) {
       pname_input.setAttribute("type", "text");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", JSON.stringify(param.default));
+      pname_input.setAttribute("value", JSON.stringify(param.defaultVal));
       pname_input.setAttribute("class", "col2-input");
       pname_input.setAttribute("readOnly", true);
 
@@ -336,7 +336,7 @@ function insertInput(param) {
       button_div.setAttribute("onclick", "pickModeOn('" + param.name + "', this);");
       button_div.innerHTML = "Location";
 
-      setParamVal(param.name, param.default);
+      setParamVal(param.name, param.defaultVal);
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
@@ -738,22 +738,22 @@ function onKeyPress(event) {
 <textarea id="code" name="code" placeholder="">
 var uiParams = [
 	{
-       "name": "period",
-       "desc": "Period",
-       "type": "double",
-       "rangeMin": 1,
-       "rangeMax": 21,
-       "step": 1,
-       "default": 18
+       name: "period",
+       desc: "Period",
+       type: "double",
+       rangeMin: 1,
+       rangeMax: 21,
+       step: 1,
+       defaultVal: 18
 	},
 	{
-       "name": "thickness",
-       "desc": "Thickness",
-       "type": "double",
-       "rangeMin": 1,
-       "rangeMax": 5,
-       "step": 0.5,
-       "default": 2
+       name: "thickness",
+       desc: "Thickness",
+       type: "double",
+       rangeMin: 1,
+       rangeMax: 5,
+       step: 0.5,
+       defaultVal: 2
 	}
 ];
 function main(args) {

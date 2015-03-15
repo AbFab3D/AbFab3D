@@ -1,54 +1,54 @@
 var uiParams = [
     {
-        "name": "model",
-        "desc": "model",
-        "type": "uri"
+        name: "model",
+        desc: "model",
+        type: "uri"
     },
     {
-        "name": "models",
-        "desc": "models",
-        "type": "string[]",
-        "default" : ["model1","model2"]
+        name: "models",
+        desc: "models",
+        type: "string[]",
+        defaultVal : ["model1","model2"]
     },
     {
-        "name": "text",
-        "desc": "Text",
-        "type": "string",
+        name: "text",
+        desc: "Text",
+        type: "string",
         "onChange" : "textChanged",
-        "default": "Shapeways"
+        defaultVal: "Shapeways"
     },
     {
-        "name": "center",
-        "desc": "Center",
-        "type": "location",
-        "default" : { "point": [-10*MM,0,0], "normal": [1,0,0] }
+        name: "center",
+        desc: "Center",
+        type: "location",
+        defaultVal : { "point": [-10*MM,0,0], "normal": [1,0,0] }
     },
     {
-        "name": "radius",
-        "desc": "Radius",
-        "type": "double",
-        "rangeMin": 0.1,
-        "rangeMax": 10,
-        "step": 0.1,
-        "default": 1
+        name: "radius",
+        desc: "Radius",
+        type: "double",
+        rangeMin: 0.1,
+        rangeMax: 10,
+        step: 0.1,
+        defaultVal: 1
     },
     {
-        "name": "radii",
-        "desc": "Radii",
-        "type": "double[]",
-        "rangeMin": 0.1,
-        "rangeMax": 10,
-        "step": 0.1,
-        "default": 1    // test double constructor
+        name: "radii",
+        desc: "Radii",
+        type: "double[]",
+        rangeMin: 0.1,
+        rangeMax: 10,
+        step: 0.1,
+        defaultVal: 1    // test double constructor
     },
     {
-        "name": "sizes",
-        "desc": "Sizes",
-        "type": "double[]",
-        "rangeMin": 0.1,
-        "rangeMax": 10,
-        "step": 0.1,
-        "default": [1,2]  // test list constructor
+        name: "sizes",
+        desc: "Sizes",
+        type: "double[]",
+        rangeMin: 0.1,
+        rangeMax: 10,
+        step: 0.1,
+        defaultVal: [1,2]  // test list constructor
     }
 ];
 
