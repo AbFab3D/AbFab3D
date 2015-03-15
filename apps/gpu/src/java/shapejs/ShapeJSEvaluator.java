@@ -16,14 +16,14 @@ import abfab3d.param.*;
 import abfab3d.util.DataSource;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
 import javax.vecmath.Vector3d;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.Type;
+import java.util.*;
 
 import static abfab3d.util.Output.printf;
 
@@ -54,6 +54,9 @@ public class ShapeJSEvaluator {
     private NativeObject argsMap;
     private HashMap<String,Parameter> defs;
     private Shape shape;
+
+    private static Type stringListType = new TypeToken<List<String>>() {}.getType();
+    private static Type doubleListType = new TypeToken<List<Double>>() {}.getType();
 
     // scratch variables
     private double[] dArray1 = new double[3];
@@ -263,6 +266,7 @@ public class ShapeJSEvaluator {
                 continue;
             }
 
+            printf("Munging: %s  type: %s\n",param.getName(), param.getType());
             try {
                 Object wrapped =  null;
 
@@ -273,6 +277,20 @@ public class ShapeJSEvaluator {
                         dp.setValue(dv);
                         wrapped = new ParameterJSWrapper(scope,dp);
                         break;
+                    case DOUBLE_LIST:
+                        DoubleListParameter dlp = (DoubleListParameter) param;
+                        try {
+                            List<Double> dlv = gson.fromJson(json, doubleListType);
+                            dlp.setValue(dlv);
+                        } catch(JsonSyntaxException jse) {
+                            // try single number form
+                            Number dlv = gson.fromJson(json, Number.class);
+                            ArrayList<Double> dlv2 = new ArrayList<Double>();
+                            dlv2.add(new Double(dlv.doubleValue()));
+                            dlp.setValue(dlv2);
+                        }
+                        wrapped = new ArrayJSWrapper(scope,dlp);
+                        break;
                     case STRING:
                         String sv = gson.fromJson(json, String.class);
                         StringParameter sp = (StringParameter) param;
@@ -280,10 +298,24 @@ public class ShapeJSEvaluator {
                         wrapped = new ParameterJSWrapper(scope,sp);
                         break;
                     case URI:
-                        String uv = gson.fromJson(json, String.class);
+                        // TODO: not JSON encoded decide if we want this
+                       //String uv = gson.fromJson(json, String.class);
+                        String uv = json;
                         URIParameter up = (URIParameter) param;
                         up.setValue(uv);
                         wrapped = new ParameterJSWrapper(scope,up);
+                        break;
+                    case URI_LIST:
+                        String[] ulv = gson.fromJson(json, String[].class);
+                        URIListParameter ulp = (URIListParameter) param;
+                        ulp.setValue(ulv);
+                        wrapped = new ArrayJSWrapper(scope,ulp);
+                        break;
+                    case STRING_LIST:
+                        List<String> slv = gson.fromJson(json, stringListType);
+                        StringListParameter slp = (StringListParameter) param;
+                        slp.setValue(slv);
+                        wrapped = new ArrayJSWrapper(scope,slp);
                         break;
                     case LOCATION:
                         Map<String, Object> map = gson.fromJson(json, Map.class);
@@ -465,6 +497,8 @@ public class ShapeJSEvaluator {
             ParameterType ptype = ParameterType.valueOf(type);
             Parameter pd = null;
             Object val = null;
+
+            printf("Creating definition:  %s  type: %s\n",name,type);
             switch(ptype) {
                 case DOUBLE:
                     double rangeMin = Double.NEGATIVE_INFINITY;
@@ -505,6 +539,50 @@ public class ShapeJSEvaluator {
                     }
                     pd = new URIListParameter(name,desc,ul);
                     break;
+                case STRING_LIST:
+                    NativeArray sla = (NativeArray) defaultValue;
+                    ArrayList<StringParameter> sl = new ArrayList<StringParameter>();
+                    for(int j=0; j < sla.size(); j++) {
+                        sl.add(new StringParameter(name,desc,(String)sla.get(j)));
+                    }
+                    pd = new StringListParameter(name,desc,sl);
+                    break;
+                case DOUBLE_LIST:
+                    double dlRangeMin = Double.NEGATIVE_INFINITY;
+                    double dlRangeMax = Double.POSITIVE_INFINITY;
+                    double dlStep = 1.0;
+                    ArrayList<DoubleParameter> dll = new ArrayList<DoubleParameter>();
+                    double dlDef = 0;
+
+                    val = no.get("rangeMin");
+                    if (val != null) {
+                        dlRangeMin = ((Number) val).doubleValue();
+                    }
+                    val = no.get("rangeMax");
+                    if (val != null) {
+                        dlRangeMax = ((Number) val).doubleValue();
+                    }
+                    val = no.get("step");
+                    if (val != null) {
+                        dlStep = ((Number) val).doubleValue();
+                    }
+                    val = no.get("default");
+                    if (val != null) {
+                        if (val instanceof Number) {
+                            dlDef = ((Number) val).doubleValue();
+                            dll.add(new DoubleParameter(name,desc,dlDef,dlRangeMin,dlRangeMax,dlStep));
+                        } else if (val instanceof NativeArray) {
+                            NativeArray dla = (NativeArray) defaultValue;
+                            for(int j=0; j < dla.size(); j++) {
+                                dll.add(new DoubleParameter(name,desc,((Number)dla.get(j)).doubleValue(),dlRangeMin,dlRangeMax,dlStep));
+                            }
+
+                        }
+                    }
+
+                    pd = new DoubleListParameter(name,desc,dll,dlRangeMin,dlRangeMax,dlStep);
+                    break;
+
                 case LOCATION:
                     // TODO: garbage
 

@@ -17,25 +17,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A list of URI
+ * A list of Double
  *
  * @author Alan Hudson
  */
-public class URIListParameter extends ListParameter {
-    public URIListParameter(String name) {
-
+public class DoubleListParameter extends ListParameter {
+    public DoubleListParameter(String name) {
         this(name, name);
     }
 
-    public URIListParameter(String name, String desc) {
-
-        this(name, desc, new ArrayList());
+    public DoubleListParameter(String name, String desc) {
+        this(name, desc,new ArrayList(), DoubleParameter.DEFAULT_MIN_RANGE, DoubleParameter.DEFAULT_MAX_RANGE,DoubleParameter.DEFAULT_STEP);
     }
 
-    public URIListParameter(String name, String desc, List initialValue) {
+    public DoubleListParameter(String name, String desc, List initialValue,
+                           double minRange, double maxRange, double step) {
 
         super(name, desc);
 
+        def = new DoubleParameter(name,desc,minRange,minRange,maxRange,step);
         setValue(initialValue);
     }
 
@@ -44,7 +44,7 @@ public class URIListParameter extends ListParameter {
      * @return The type
      */
     public ParameterType getType() {
-        return ParameterType.URI_LIST;
+        return ParameterType.DOUBLE_LIST;
     }
 
     /**
@@ -55,7 +55,7 @@ public class URIListParameter extends ListParameter {
      */
     public void validate(Object val) {
         if (!(val instanceof List)) {
-            throw new IllegalArgumentException("Unsupported type for URIList: " + val + " in param: " + getName());
+            throw new IllegalArgumentException("Unsupported type for DoubleList: " + val + " in param: " + getName());
         }
     }
 }

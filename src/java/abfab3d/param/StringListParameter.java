@@ -17,22 +17,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A list of URI
+ * A list of String
  *
  * @author Alan Hudson
  */
-public class URIListParameter extends ListParameter {
-    public URIListParameter(String name) {
+public class StringListParameter extends ListParameter {
+    public StringListParameter(String name) {
 
         this(name, name);
     }
 
-    public URIListParameter(String name, String desc) {
+    public StringListParameter(String name, String desc) {
 
         this(name, desc, new ArrayList());
     }
 
-    public URIListParameter(String name, String desc, List initialValue) {
+    public StringListParameter(String name, String desc, List initialValue) {
 
         super(name, desc);
 
@@ -44,7 +44,7 @@ public class URIListParameter extends ListParameter {
      * @return The type
      */
     public ParameterType getType() {
-        return ParameterType.URI_LIST;
+        return ParameterType.STRING_LIST;
     }
 
     /**
@@ -55,7 +55,7 @@ public class URIListParameter extends ListParameter {
      */
     public void validate(Object val) {
         if (!(val instanceof List)) {
-            throw new IllegalArgumentException("Unsupported type for URIList: " + val + " in param: " + getName());
+            throw new IllegalArgumentException("Unsupported type for StringList: " + val + " in param: " + getName());
         }
     }
 }

@@ -50,7 +50,7 @@ var radiansByArrow = (degreeByArrow / 180) * 3.14159;
 
 /** Creator specific vars and methods */
 
-var inputTypes = ["string", "uri", "double","location","enum","boolean","rotation"];
+var inputTypes = ["string", "string[]", "uri", "uri[]", "double","double[]","location","enum","boolean","rotation"];
 
 var isUriImage = false;
 var isUrlScript = false;
@@ -88,12 +88,20 @@ function randomstring(L){
   return s;
 }
 
+// WTF, string doesn't have an endsWith function?
+if (typeof String.prototype.endsWith !== 'function') {
+  String.prototype.endsWith = function (str) {
+    var lastIndex = this.lastIndexOf(str);
+    return (lastIndex !== -1) && (lastIndex + str.length === this.length);
+  }
+}
+
 function prepForm(formData, jqForm, options) {
   for (var i=0; i < formData.length; i++) {
     if ( $.inArray(formData[i].name, deltaParams) >= 0 ) {
       console.log("Param changed: " + formData[i].name + " val: " + formData[i].value);
       var isComplex = false;
-      if (paramDef[formData[i].name].type == "location") isComplex = true;
+      if (paramDef[formData[i].name].type == "location" || paramDef[formData[i].name].type.endsWith("[]")) isComplex = true;
 
       formData[i].name = "shapeJS_" + formData[i].name;
 
@@ -221,7 +229,7 @@ function evalScriptParams() {
           deltaParams.push(param.name);
         }
       } else {
-        console.log("Param type not allowed0:\n  Type: " + type + "\n  ID: " + param.name);
+        console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.name);
       }
     });
   }
@@ -241,6 +249,22 @@ function insertInput(param) {
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
       pname_input.setAttribute("value", param.default);
+      pname_input.setAttribute("class", "col2-input");
+
+      var pname_input_div = document.createElement("div");
+      pname_input_div.setAttribute("class", "col2-3");
+      pname_input_div.appendChild(pname_input);
+
+      setParamVal(param.name, param.default);
+      setParamRequirement(param.name, param.required);
+      addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
+      break;
+    case "string[]":
+      var pname_input = document.createElement("input");
+      pname_input.setAttribute("type", "text");
+      pname_input.setAttribute("name", param.name);
+      pname_input.setAttribute("id", param.name);
+      pname_input.setAttribute("value", JSON.stringify(param.default));
       pname_input.setAttribute("class", "col2-input");
 
       var pname_input_div = document.createElement("div");
@@ -274,6 +298,23 @@ function insertInput(param) {
       setParamVal(param.name, param.default);
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
+      break;
+    case "double[]":
+      var pname_input = document.createElement("input");
+      pname_input.setAttribute("type", "text");
+      pname_input.setAttribute("name", param.name);
+      pname_input.setAttribute("id", param.name);
+      pname_input.setAttribute("value", JSON.stringify(param.default));
+      pname_input.setAttribute("class", "col2-input");
+
+      var pname_input_div = document.createElement("div");
+      pname_input_div.setAttribute("class", "col2-3");
+      pname_input_div.appendChild(pname_input);
+
+      setParamVal(param.name, param.default);
+      setParamRequirement(param.name, param.required);
+      addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
+      break;
       break;
     case "location":
       // Create text box to show the 3d location
@@ -406,7 +447,7 @@ function setParamVal(id, val) {
 }
 
 function setParamRequirement(id, required) {
-  var bool = true;
+  var bool = false;
   if (typeof required !== "undefined" && required !== null) {
     bool = (required.toString()).toLowerCase();
     bool = (bool == "true") ? true : false
@@ -420,6 +461,26 @@ function addParamUIListener(element, elementId, type) {
       $(element).on("input", function() {
         setParamVal( elementId, $(element).val() );
 	    update(false, false);
+      });
+      $(element).on("change", function() {
+        setParamVal( elementId, $(element).val() );
+        update(false, false);
+      });
+      break;
+    case "string[]":
+      $(element).on("input", function() {
+        setParamVal( elementId, $(element).val() );
+        update(false, false);
+      });
+      $(element).on("change", function() {
+        setParamVal( elementId, $(element).val() );
+        update(false, false);
+      });
+      break;
+    case "double[]":
+      $(element).on("input", function() {
+        setParamVal( elementId, $(element).val() );
+        update(false, false);
       });
       $(element).on("change", function() {
         setParamVal( elementId, $(element).val() );
