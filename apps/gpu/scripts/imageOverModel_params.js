@@ -1,36 +1,36 @@
 var uiParams = [
     {
-        "id": "model",
-        "displayName": "Model",
-        "type": "uri",
+        id: "model",
+        desc: "Model",
+        type: "uri",
         "required": true
     },
     {
-        "id": "image",
-        "displayName": "Image",
-        "type": "uri",
+        id: "image",
+        desc: "Image",
+        type: "uri",
         "required": false
     },
     {
-        "id": "textpos0",
-        "displayName": "Image left",
-        "type": "location",
+        id: "textpos0",
+        desc: "Image left",
+        type: "location",
         "required": false
     },
     {
-        "id": "textpos1",
-        "displayName": "Image right",
-        "type": "location",
+        id: "textpos1",
+        desc: "Image right",
+        type: "location",
         "required": false
     },
 	{
-		"id": "engraveDepth",
-		"displayName": "Engrave Depth",
-		"type": "double",
+		id: "engraveDepth",
+		desc: "Engrave Depth",
+		type: "double",
 		"rangeMin": -2,
 		"rangeMax": 0.5,
 		"step": 0.1,
-		"default": -1
+		defaultVal: -1
 	}
 
 ];
@@ -40,7 +40,7 @@ function getRotation(from, to){
 	var a = new Vector3d();
 	a.cross(from, to);
 	var sina = a.length();
-	   
+
 	var cosa = to.dot(from);
 	var angle = Math.atan2(sina, cosa);
 
@@ -57,7 +57,7 @@ function getTextTransform(p0, n0, p1, n1){
 	var nn = new Vector3d();
 	nn.add(n0,n1);
 	nn.normalize();
-	
+
 	var center = new Vector3d();
 	center.add(p0, p1);
 	center.scale(0.5);
@@ -65,16 +65,16 @@ function getTextTransform(p0, n0, p1, n1){
 	xdir.sub(p1,p0);
 	var len = xdir.length();
 	xdir.normalize();
-	
+
 	var xaxis = new Vector3d(1,0,0);
-	
+
 	var aa1 = getRotation(xaxis, xdir);
-	
+
 	var m1 = new Matrix3d();
 	m1.set(aa1);
 	var zaxis = new Vector3d(0,0,1);
 	m1.transform(zaxis); // zaxis after first rotation
-	
+
 	var aa2 = getRotation(zaxis, nn);
 	var trans = new CompositeTransform();
 	trans.add(new Rotation(aa1.x,aa1.y,aa1.z, aa1.angle));
@@ -93,7 +93,7 @@ function main(args) {
 	var textpos0 = args['textpos0'];
 	var textpos1 = args['textpos1'];
 	var engraveDepth = args.engraveDepth * MM;
-	
+
 	var shape = null;
 	var bounds = null;
 	var imgBox = null;
@@ -122,7 +122,7 @@ function main(args) {
 			var cy = bounds.getCenterY();
 			var cz = bounds.getCenterZ();
 		}
-		
+
 		shape = distData;
 	}
 
@@ -130,28 +130,28 @@ function main(args) {
 	  var image = loadImage(imagePath);
 	  var pos0Str = textpos0.split(",");
 	  var pos1Str = textpos1.split(",");
-	
+
 	  var pos0 = [parseFloat(pos0Str[0]),parseFloat(pos0Str[1]),parseFloat(pos0Str[2])];
 	  var normal0 = [parseFloat(pos0Str[3]),parseFloat(pos0Str[4]),parseFloat(pos0Str[5])];
 	  var pos1 = [parseFloat(pos1Str[0]),parseFloat(pos1Str[1]),parseFloat(pos1Str[2])];
 	  var normal1 = [parseFloat(pos1Str[3]),parseFloat(pos1Str[4]),parseFloat(pos1Str[5])];
-	
+
 	  var p0 = new Vector3d(pos0[0],pos0[1],pos0[2]);
 	  var p1 = new Vector3d(pos1[0],pos1[1],pos1[2]);
 	  var n0 = new Vector3d(normal0[0],normal0[1],normal0[2]);
 	  var n1 = new Vector3d(normal1[0],normal1[1],normal1[2]);
 	  n0.normalize();
 	  n1.normalize();
-	
+
 	  var ttrans = getTextTransform(p0,n0,p1,n1);
 	  var p01 = new Vector3d();
 	  p01.sub(p1,p0);
-	  
+
 	  var bx = p01.length();
 	  var by = bx * image.getHeight()/image.getWidth();
 	  var bz = 50*MM;
 	  var vs = 0.1*MM;
-	  
+
 	  imgBox = new ImageBitmap(image, bx, by, bz, vs);
 	  imgBox.setBlurWidth(0.1*MM);
 	  imgBox.getParam("rounding").setValue(0.*MM);
@@ -169,5 +169,5 @@ function main(args) {
 	    return new Shape(shape, bounds);
 	  }
 	}
-	
+
 }

@@ -251,7 +251,7 @@ public class ShapeJSEvaluator {
 
 
     /**
-     * Convert Native Java or JSON encoded params into real params based on types
+     * Convert JSON encoded params into real params based on types
      * @param params The parameter definitions
      * @param namedParams
      */
@@ -267,22 +267,6 @@ public class ShapeJSEvaluator {
                 continue;
             }
 
-            if (!(no instanceof String)) {
-                // we have a native type, just check its correct
-                switch (param.getType()) {
-                    case DOUBLE:
-                        if (!(no instanceof Number)) {
-                            throw new IllegalArgumentException("Invalid type: " + no.getClass() + " for: " + key);
-                        }
-                        DoubleParameter dp = (DoubleParameter) param;
-                        dp.setValue(((Number)no).doubleValue());
-                        wrapped = new ParameterJSWrapper(scope,dp);
-                        break;
-                }
-
-                namedParams.put(key, wrapped);
-                continue;
-            }
             String json = (String) entry.getValue();
 
             if (param == null) {

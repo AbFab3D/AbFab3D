@@ -1,21 +1,21 @@
-var params = [
+var uiParams = [
     {
-        "id": "period",
-        "displayName": "Period",
-        "type": "range",
-        "rangeMin": 1,
-        "rangeMax": 21,
-        "step": 1,
-        "default": 18
+        name: "period",
+        desc: "Period",
+        type: "double",
+        rangeMin: 1,
+        rangeMax: 21,
+        step: 1,
+        defaultVal: 18
     },
     {
-        "id": "thickness",
-        "displayName": "Thickness",
-        "type": "range",
-        "rangeMin": 1,
-        "rangeMax": 5,
-        "step": 0.5,
-        "default": 2
+        name: "thickness",
+        desc: "Thickness",
+        type: "double",
+        rangeMin: 1,
+        rangeMax: 5,
+        step: 0.5,
+        defaultVal: 2
     }
 
 ];

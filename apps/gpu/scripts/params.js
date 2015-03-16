@@ -21,7 +21,7 @@ var uiParams = [
         name: "center",
         desc: "Center",
         type: "location",
-        defaultVal : { "point": [-10*MM,0,0], "normal": [1,0,0] }
+        defaultVal : { point: [-10*MM,0,0], normal: [1,0,0] }
     },
     {
         name: "radius",
@@ -48,7 +48,7 @@ var uiParams = [
         rangeMin: 0.1,
         rangeMax: 10,
         step: 0.1,
-        defaultVal: [1,2]  // test list constructor
+        defaultVal: [1,2.2]  // test list constructor
     }
 ];
 
@@ -71,7 +71,7 @@ function main(args) {
     print("sizes: " + sizes[0] + " " + sizes[1]);
 
     // TODO: thought this would have crashed it but doesnt.
-    if (sizes[0] != 1 && sizes[1] != 2) return null;
+    if (sizes[0] != 1 && sizes[1] != 2.2) return null;
     if (radii[0] != 1) return null;
 
     var union = new Union(new Sphere(r), new Box(center.x,center.y,center.z,r,r,r));

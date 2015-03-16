@@ -14,6 +14,8 @@ package render;
 
 
 import abfab3d.util.Units;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -118,11 +120,12 @@ public class TestImageRenderer extends TestCase {
         render.initCL(1, width, height);
         render.setVersion(VERSION);
 
+        Gson gson = new GsonBuilder().create();
         HashMap<String,Object> params = new HashMap<String, Object>();
-        params.put("period",18);
-        params.put("thickness",2);
+        params.put("period",gson.toJson(18));
+        params.put("thickness",gson.toJson(2));
         render.render(null, getFile("test/scripts/gyrosphere_params.js"), params, getView(), false, 0.5f, base);
-        params.put("period", 14);
+        params.put("period", gson.toJson(14));
         render.render(null, getFile("test/scripts/gyrosphere_params.js"), params, getView(), false, 0.5f, test);
 
         if (DEBUG) {
@@ -155,9 +158,10 @@ public class TestImageRenderer extends TestCase {
         render.setVersion(VERSION);
 
         String jobID = UUID.randomUUID().toString();
+        Gson gson = new GsonBuilder().create();
         HashMap<String,Object> params = new HashMap<String, Object>();
-        params.put("period",18);
-        params.put("thickness",2);
+        params.put("period",gson.toJson(18));
+        params.put("thickness",gson.toJson(2));
 
         // WARM up classes
         render.render(null, getFile("test/scripts/gyrosphere_params.js"), params, getView(), false, 0.5f, base);
@@ -199,8 +203,9 @@ public class TestImageRenderer extends TestCase {
         render.initCL(1, width, height);
         render.setVersion(VERSION);
 
+        Gson gson = new GsonBuilder().create();
         HashMap<String,Object> params = new HashMap<String, Object>();
-        params.put("radius",10);
+        params.put("radius",gson.toJson(10));
 
         Vector3f pos1 = new Vector3f();
         Vector3f normal1 = new Vector3f();
@@ -210,7 +215,7 @@ public class TestImageRenderer extends TestCase {
 
         Vector3f pos2 = new Vector3f();
         Vector3f normal2 = new Vector3f();
-        params.put("radius",15);
+        params.put("radius",gson.toJson(15));
         render.pick(null, getFile("test/scripts/picking.js"), params, true,getView(), 128,128,width,height,pos2,normal2);
 
         printf("pos2: %s  normal: %s\n",pos2,normal2);
@@ -221,7 +226,7 @@ public class TestImageRenderer extends TestCase {
         assertTrue("x same",Math.abs((pos2.x - pos1.x)) <= EPS);
         assertTrue("y same",Math.abs((pos2.y - pos1.y)) <= EPS);
 
-        params.put("radius", 10);
+        params.put("radius", gson.toJson(10));
         render.pick(null, getFile("test/scripts/picking.js"), params, true, getView(), 127, 128, width, height, pos2, normal2);
         assertTrue("x less",pos2.x < pos1.x);
 
@@ -261,14 +266,15 @@ public class TestImageRenderer extends TestCase {
         render.setVersion(VERSION);
         String uuid = UUID.randomUUID().toString();
 
+        Gson gson = new GsonBuilder().create();
         HashMap<String,Object> params = new HashMap<String, Object>();
-        params.put("radius", 1);
+        params.put("radius", gson.toJson(1));
 
-        String script = "var uiParams = [{id:\"radius\",type:\"range\",onChange:\"radiusChanged\"}]; function radiusChanged(params) {foo=params.radius; print(\"foo:\" + foo)} function main(args) {foo=1; return new Shape(new Sphere(args.radius*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}";
+        String script = "var uiParams = [{name:\"radius\",type:\"double\",onChange:\"radiusChanged\"}]; function radiusChanged(params) {foo=params.radius; print(\"foo:\" + foo)} function main(args) {foo=1; return new Shape(new Sphere(args.radius*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}";
         EvalResult result = render.updateScene(uuid,script, params);
 
         printf("Error log: %s\n", result.getErrorLog());
-        params.put("radius", 0.5);
+        params.put("radius", gson.toJson(0.5));
         result = render.updateScene(uuid, script,params);
 
         printf("Error log: %s\n", result.getErrorLog());

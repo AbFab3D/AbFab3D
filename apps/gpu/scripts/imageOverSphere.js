@@ -1,14 +1,14 @@
 var uiParams = [
 	{
-		"id": "text",
-		"displayName": "Text",
-		"type": "text",
-		"default" : "Alan"
+		id: "text",
+		desc: "Text",
+		type: "text",
+		defaultVal : "Alan"
 	},
 	{
-		"id": "text_loc",
-		"displayName": "Text Location",
-		"type": "location",
+		id: "text_loc",
+		desc: "Text Location",
+		type: "location",
 		"related": "text"
 	}
 
@@ -20,13 +20,13 @@ function main(args) {
 	var bz = 20*MM;
 	var s = 20*MM;
 	var radius = 15*MM;
-	
+
 	var vs = 0.1*MM;
     //var path = 	"scripts/pattern.png";
     //var path = 	"scripts/shapeways227.png";
     var path = 	"scripts/shapeways755.png";
 	var image = loadImage(path);
-		
+
 	by = bx * image.getHeight()/image.getWidth();
     var grid = createGrid(-s,s,-s,s,-s,s,vs);
     var imgBox = new ImageBitmap(image, bx, by, bz, vs);
