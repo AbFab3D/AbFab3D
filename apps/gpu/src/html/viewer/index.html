@@ -12,6 +12,7 @@
 
 <link rel="stylesheet" type="text/css" href="stylesheets/main.css"/>
 <link rel="stylesheet" type="text/css" href="stylesheets/screen.css"/>
+<link rel="stylesheet" type="text/css" href="stylesheets/nav2.css"/>
 
 <link rel="stylesheet" href="stylesheets/codemirror.css">
 <link rel="stylesheet" href="javascript/codemirror/theme/eclipse.css">
@@ -88,7 +89,7 @@ function randomstring(L){
   return s;
 }
 
-// WTF, string doesn't have an endsWith function?
+// WTF, string doesnt have an endsWith function?
 if (typeof String.prototype.endsWith !== 'function') {
   String.prototype.endsWith = function (str) {
     var lastIndex = this.lastIndexOf(str);
@@ -529,10 +530,41 @@ function addFileParamUIListener(element, elementId, nameHolderElement, type) {
   });
 }
 
+function populateUI(data) {
+  // Remove current val in "sceneFile" input so that a load of same file triggers a change
+  $("#sceneFile").val("");
+
+//  var obj = JSON.parse(data);
+  var script = data.script;
+  var params = data.params;
+
+  editor.setValue(script);
+  removeAllParams();
+  evalScriptParams();
+
+  $.each(params, function(key, val) {
+//    console.log(key + " = " + val);
+    if (paramDef[key].type == "location") {
+      val = JSON.stringify(val);
+    }
+
+    setParamVal(key, val);
+    $("#" + key).val(val);
+
+    if ( $("#" + key).length ) {
+      $("#" + key + "-display").html( val );
+    }
+  });
+
+  update(false, true);
+}
+
 function removeAllParams() {
   $("#parameters").empty();
   paramData = {};
   paramCount = 0;
+  deltaParams.length = 0;
+  paramDef = {};
 }
 
 function pickModeOn(dataContainerId, button) {
@@ -691,6 +723,12 @@ function addMouseEventListeners() {
   editor.on("change", function() {
     scriptChanged = true;
   });
+
+  $("#sceneFile").on("change", function() {
+    if ( $("#sceneFile").val() == "" ) return;
+
+    loadScene();
+  });
 }
 
 function onKeyPress(event) {
@@ -722,8 +760,22 @@ function onKeyPress(event) {
 
 <div id="main-box">
 
-<div class="quality-control">
-  <div id="save-scene" class="menu-button" onclick="saveScene()">Save</div>
+<form id="load-scene-form" action="" method="POST">
+  <input type="file" id="sceneFile" name="sceneFile" style="display:none" />
+</form>
+
+<div class="menu">
+  <div class="nav">
+  <ul>
+    <li class="last">File &raquo;
+      <ul>
+        <li><div id="load-scene" class="action" onclick="$('#sceneFile').click();">Load Scene</div></li>
+        <li><div class="action" onclick="saveScene()">Save Scene</div></li>
+      </ul>
+    </li>
+  </ul>
+  </div>
+<!--  <div id="save-scene" class="menu-button" onclick="saveScene()">Save</div> -->
   <div id="camera"><img src="images/icon-camera-128.png" class="camera" onclick="renderHighQuality(true)"/></div>
   <div id="quality-select">
     <select id="render-quality" class="quality-select" onchange="setQuality(this.value)">

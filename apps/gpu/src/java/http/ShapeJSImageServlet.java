@@ -4,6 +4,7 @@ import abfab3d.grid.Bounds;
 
 import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
+
 import com.google.gson.Gson;
 
 import org.apache.commons.fileupload.FileItem;
@@ -11,10 +12,11 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.mozilla.javascript.NativeJavaObject;
 
 import render.*;
 import shapejs.EvalResult;
-import shapejs.ParameterDefinition;
+import shapejs.JSWrapper;
 import shapejs.ShapeJSEvaluator;
 
 import javax.servlet.ServletConfig;
@@ -26,6 +28,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.vecmath.AxisAngle4f;
 import javax.vecmath.Matrix4f;
+import javax.vecmath.Vector3d;
 import javax.vecmath.Vector3f;
 
 import java.io.File;
@@ -858,7 +861,7 @@ public class ShapeJSImageServlet extends HttpServlet {
                 if (paramFilePath != null) {
                     Gson gson = new Gson();
                     String paramsJson = FileUtils.readFileToString(new File(paramFilePath), "UTF-8");
-                    Map<String, String> scriptParams = gson.fromJson(paramsJson, Map.class);
+                    Map<String, Object> scriptParams = gson.fromJson(paramsJson, Map.class);
 
                     Bounds bounds = new Bounds();
                     ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
@@ -867,13 +870,13 @@ public class ShapeJSImageServlet extends HttpServlet {
 
                     // For parameters of type "uri", make it a fully qualified url
                     System.out.println("*** Loaded params");
-                    for (Map.Entry<String, String> entry : scriptParams.entrySet()) {
+                    for (Map.Entry<String, Object> entry : scriptParams.entrySet()) {
                         String name = entry.getKey();
-                        String val = entry.getValue();
+                        Object val = entry.getValue();
                         ParameterType type = evalParams.get(name).getType();
                         System.out.println(    type + ": " + name + "=" + val);
                         if (type == ParameterType.URI) {
-                            scriptParams.put(name, resultDirPath + "/" + val);
+                            scriptParams.put(name, resultDirPath + "/" + (String)val);
                         }
                     }
 
@@ -909,7 +912,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         System.out.println("*** Params:");
         String workingDirName = createTempDir(TMP_DIR);
         String workingDirPath = TMP_DIR + "/" + workingDirName;
-        Map<String, String> params = new HashMap<String, String>();
+        Map<String, Object> params = new HashMap<String, Object>();
 
         // Write the script to file
         File scriptFile = new File(workingDirPath + "/script.js");
@@ -917,15 +920,22 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         // Loop through params and create key/pair entries
         for (Map.Entry<String, Object> entry : sceneParams.entrySet()) {
-            System.out.println("    Type: " + evalParams.get(entry.getKey()).getType() + ", " + entry.getKey() + " = " + entry.getValue());
-
             String name = entry.getKey();
             Object val = entry.getValue();
-            ParameterType type = evalParams.get(name).getType();
+            ParameterType type = null;//evalParams.get(name).getType();
+            
+            Object pval = null;
+            if (val instanceof JSWrapper) {
+            	pval = ((JSWrapper) val).getParameter().getValue();
+            	type = ((JSWrapper) val).getParameter().getType();
+            } else {
+            	pval = val;
+            	type = ParameterType.STRING;
+            }
 
             switch(type) {
                 case URI:
-                    File f = new File((String)val);
+                    File f = new File((String) pval);
                     String fileName = f.getName();
                     params.put(name, fileName);
 
@@ -933,9 +943,25 @@ public class ShapeJSImageServlet extends HttpServlet {
                     FileUtils.copyFile(f, new File(workingDirPath + "/" + fileName), true);
                     break;
                 case LOCATION:
-                    params.put(name, (String)val);
+                	Vector3d[] v = (Vector3d[]) pval;
+                	double[] point = {v[0].x, v[0].y, v[0].z};
+                	double[] normal = {v[1].x, v[1].y, v[1].z};
+                	Map<String, double[]> loc = new HashMap<String, double[]>();
+                	loc.put("point", point);
+                	loc.put("normal", normal);
+                    params.put(name, loc);
+                    break;
+                case DOUBLE:
+                    params.put(name, (Double) pval);
+                    break;
+                case INTEGER:
+                    params.put(name, (Integer) pval);
+                    break;
+                case STRING:
+                	params.put(name, (String) pval);
+                    break;
                 default:
-                    params.put(name, (String)val);
+                	params.put(name, pval);
             }
         }
 
@@ -959,7 +985,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             byte[] buffer = new byte[1024];
 
             File[] files = (new File(workingDirPath)).listFiles();
-
+            System.out.println("*** Num files to zip: " + files.length);
             for (int i=0; i<files.length; i++) {
                 if (files[i].getName().endsWith(".zip")) continue;
 

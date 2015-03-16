@@ -499,7 +499,7 @@
   clear: both;
 }
 
-.quality-control {
+.menu {
   float: right;
   width: 1016px;
   margin: 0px 13px -3px 10px;
@@ -572,7 +572,7 @@
   color: #ffffff;
   font-size: 12px;
   padding: 3px;
-  margin-top: 4px;
+  margin: 4px 4px 0 0;
   text-decoration: none;
   cursor: pointer;
 }
@@ -583,6 +583,23 @@
   background-image: -ms-linear-gradient(top, #1e88ff, #1e88ff);
   background-image: -o-linear-gradient(top, #1e88ff, #1e88ff);
   background-image: linear-gradient(to bottom, #1e88ff, #1e88ff);
+}
+
+.menu-load-button {
+  cursor: pointer;
+  overflow: hidden;
+}
+.menu-button input.upload {
+  position: absolute;
+  float: right;
+  top: 0;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 20px;
+  cursor: pointer;
+  opacity: 0;
+  filter: alpha(opacity=0);
 }
 
 .param-button {
