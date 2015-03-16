@@ -109,6 +109,9 @@ public class ShapeJSEvaluator {
 
     public ShapeJSEvaluator() {
         this.sandboxed = true;
+
+        printf("TODO: Security hole, overriding sandboxed");
+        sandboxed = false;
     }
 
     public ShapeJSEvaluator(boolean sandboxed) {
@@ -464,7 +467,7 @@ public class ShapeJSEvaluator {
                 String err_msg = bldr.toString();
                 if (err_msg.length() == 0) err_msg = null;
 
-                return new EvalResult(true,null,null,err_msg,(System.currentTimeMillis() - t0));
+                return new EvalResult(true,null,null,err_msg,defs,(System.currentTimeMillis() - t0));
             }
 
             Object o = scope.get(method, scope);
