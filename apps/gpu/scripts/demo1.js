@@ -1,40 +1,33 @@
 var uiParams = [
 	{
-		"name": "text",
-		"desc": "Text",
-		"type": "string",
-		"required": false,
-		"default": ""
+		name: "text",
+		desc: "Text",
+		type: "string"
 	},
 	{
-		"name": "textpos0",
-		"desc": "Text Pos1",
-		"type": "location",
-		"required": false
+		name: "textpos0",
+		desc: "Text Pos1",
+		type: "location"
 	},
 	{
-		"name": "textpos1",
-		"desc": "Text Pos2",
-		"type": "location",
-		"required": false
+		name: "textpos1",
+		desc: "Text Pos2",
+		type: "location"
 	},
 	{
-		"name": "image",
-		"desc": "Image",
-		"type": "uri",
-		"required": false
+		name: "image",
+		desc: "Image",
+		type: "uri"
 	},
 	{
-		"name": "imagepos0",
-		"desc": "Image Pos1",
-		"type": "location",
-		"required": false
+		name: "imagepos0",
+		desc: "Image Pos1",
+		type: "location"
 	},
 	{
-		"name": "imagepos1",
-		"desc": "Image Pos2",
-		"type": "location",
-		"required": false
+		name: "imagepos1",
+		desc: "Image Pos2",
+		type: "location"
 	},
 	{
 		"name": "engraveDepth",
@@ -43,7 +36,7 @@ var uiParams = [
 		"rangeMin": -1,
 		"rangeMax": 1,
 		"step": 0.1,
-		"default": 0.5
+		"defaultVal": 0.5
 	}
 ];
 
