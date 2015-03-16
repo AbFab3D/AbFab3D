@@ -251,16 +251,40 @@ public class ShapeJSEvaluator {
 
 
     /**
-     * Convert JSON encoded params into real params based on types
+     * Convert Native Java or JSON encoded params into real params based on types
      * @param params The parameter definitions
      * @param namedParams
      */
     private void mungeParams(Map<String,Parameter> params, Map<String, Object> namedParams) {
         for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
             String key = entry.getKey();
+            Object no = entry.getValue();
+            Parameter param = params.get(key);
+            Object wrapped =  null;
+
+            if (no instanceof ScriptableObject) {
+                // Already in the correct form
+                continue;
+            }
+
+            if (!(no instanceof String)) {
+                // we have a native type, just check its correct
+                switch (param.getType()) {
+                    case DOUBLE:
+                        if (!(no instanceof Number)) {
+                            throw new IllegalArgumentException("Invalid type: " + no.getClass() + " for: " + key);
+                        }
+                        DoubleParameter dp = (DoubleParameter) param;
+                        dp.setValue(((Number)no).doubleValue());
+                        wrapped = new ParameterJSWrapper(scope,dp);
+                        break;
+                }
+
+                namedParams.put(key, wrapped);
+                continue;
+            }
             String json = (String) entry.getValue();
 
-            Parameter param = params.get(key);
             if (param == null) {
                 printf("Unknown param: %s\nparams: %s",key,params);
                 continue;
@@ -268,7 +292,6 @@ public class ShapeJSEvaluator {
 
             printf("Munging: %s  type: %s\n",param.getName(), param.getType());
             try {
-                Object wrapped =  null;
 
                 switch (param.getType()) {
                     case DOUBLE:
@@ -292,7 +315,12 @@ public class ShapeJSEvaluator {
                         wrapped = new ArrayJSWrapper(scope,dlp);
                         break;
                     case STRING:
-                        String sv = gson.fromJson(json, String.class);
+                        String sv = null;
+                        try {
+                            sv = gson.fromJson(json, String.class);
+                        } catch(JsonSyntaxException jse) {
+                            sv = json;
+                        }
                         StringParameter sp = (StringParameter) param;
                         sp.setValue(sv);
                         wrapped = new ParameterJSWrapper(scope,sp);
