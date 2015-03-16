@@ -55,6 +55,9 @@ public class ShapeJSEvaluator {
     private HashMap<String,Parameter> defs;
     private Shape shape;
 
+    /** Should we run this in a sandbox, default it true */
+    private boolean sandboxed;
+
     private static Type stringListType = new TypeToken<List<String>>() {}.getType();
     private static Type doubleListType = new TypeToken<List<Double>>() {}.getType();
 
@@ -102,6 +105,14 @@ public class ShapeJSEvaluator {
 
         errorRemap = new HashMap<String, String>();
         errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException", "Execution time exceeded.");
+    }
+
+    public ShapeJSEvaluator() {
+        this.sandboxed = true;
+    }
+
+    public ShapeJSEvaluator(boolean sandboxed) {
+        this.sandboxed = sandboxed;
     }
 
     /**
@@ -360,15 +371,51 @@ public class ShapeJSEvaluator {
         }
     }
 
-    public EvalResult evalScript(String script, Bounds bounds, Map<String, Object> namedParams) {
+    public EvalResult evalScript(String script, String method, Bounds bounds, Map<String, Object> namedParams) {
         long t0 = System.currentTimeMillis();
 
-        if (DEBUG) printf("evalScript(script, %s, namedParams)\n", bounds);
+        if (DEBUG) printf("evalScript(script, sandbox: %b namedParams)\n", sandboxed,bounds);
         Context cx = Context.enter();
+        Context.ClassShutterSetter setter = cx.getClassShutterSetter();
+
+        if (sandboxed && setter != null) {
+            setter.setClassShutter(new ClassShutter() {
+                public boolean visibleToScripts(String className) {
+                    // Do not allow recreation of this class ever
+                    if (className.equals("ShapeJSEvaluator")) {
+                        return false;
+                    }
+
+                    for (String pack : packageWhitelist) {
+                        if (className.startsWith(pack)) {
+                            return true;
+                        }
+
+                    }
+
+                    for (String specific : classImports) {
+                        if (className.equals(specific)) {
+                            return true;
+                        }
+
+                    }
+
+                    printf("Rejecting class: %s\n", className);
+                    return false;
+                }
+            });
+        }
+
         try {
             if (scope == null) {
                 scope = new GlobalScope();
-                ContextFactory contextFactory = new ContextFactory();
+                ContextFactory contextFactory = null;
+
+                if (sandboxed) {
+                    contextFactory = new SandboxContextFactory();
+                } else {
+                    contextFactory = new ContextFactory();
+                }
                 ToolErrorReporter errorReporter = new ToolErrorReporter(false, System.err);
                 errors = new ErrorReporterWrapper(errorReporter);
                 contextFactory.setErrorReporter(errors);
@@ -380,7 +427,7 @@ public class ShapeJSEvaluator {
             script = addImports(script);
 
 
-            //printf("Final script:\n%s\n",script);
+            printf("Final script:\n%s\n",script);
             try {
                 Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
             } catch (Exception e) {
@@ -402,7 +449,25 @@ public class ShapeJSEvaluator {
                 }
             }
 
-            Object o = scope.get("main", scope);
+            if (method == null) {
+                StringBuilder bldr = new StringBuilder();
+                for(JsError error : errors.getErrors()) {
+                    String err_st = error.toString();
+                    String remap = errorRemap.get(err_st);
+                    if (remap != null) {
+                        err_st = remap;
+                    }
+                    bldr.append(err_st);
+                    bldr.append("\n");
+                }
+
+                String err_msg = bldr.toString();
+                if (err_msg.length() == 0) err_msg = null;
+
+                return new EvalResult(true,null,null,err_msg,(System.currentTimeMillis() - t0));
+            }
+
+            Object o = scope.get(method, scope);
 
             if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {
                 System.out.println("Cannot find function main");

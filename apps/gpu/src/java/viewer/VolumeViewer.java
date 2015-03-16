@@ -242,7 +242,7 @@ public class VolumeViewer extends JFrame implements FileHandler, Runnable {
             ioe.printStackTrace();
         }
 
-        EvalResult result = eval.evalScript(script,bounds,null);
+        EvalResult result = eval.evalScript(script,"main",bounds,null);
         DataSource source = result.getDataSource();
 
         if(source instanceof Initializable)

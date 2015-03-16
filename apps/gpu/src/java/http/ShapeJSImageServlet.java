@@ -4,7 +4,6 @@ import abfab3d.grid.Bounds;
 
 import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
-
 import com.google.gson.Gson;
 
 import org.apache.commons.fileupload.FileItem;
@@ -865,7 +864,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
                     Bounds bounds = new Bounds();
                     ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
-                    EvalResult evalResult = evaluator.evalScript(script, bounds, null);
+                    EvalResult evalResult = evaluator.evalScript(script, null,bounds, null);
                     Map<String, Parameter> evalParams = evalResult.getUIParams();
 
                     // For parameters of type "uri", make it a fully qualified url
@@ -905,7 +904,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         Bounds bounds = new Bounds();
         ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
-        EvalResult result = evaluator.evalScript(script, bounds, sceneParams);
+        EvalResult result = evaluator.evalScript(script, null,bounds, sceneParams);
         Map<String, Parameter> evalParams = result.getUIParams();
 
         System.out.println("*** Script:\n" + script);

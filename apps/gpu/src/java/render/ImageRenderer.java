@@ -456,7 +456,7 @@ public class ImageRenderer {
                     bounds = new Bounds();
                     ce = new CacheEntry();
                     ce.evaluator = eval;
-                    ce.result = eval.evalScript(script, bounds, params);
+                    ce.result = eval.evalScript(script, "main",bounds, params);
                 } else {
                     ce.result = eval.reevalScript(script, bounds, params);
                 }
@@ -516,7 +516,7 @@ public class ImageRenderer {
                     bounds = new Bounds();
                     ce = new CacheEntry();
                     ce.evaluator = eval;
-                    ce.result = eval.evalScript(script, bounds, params);
+                    ce.result = eval.evalScript(script, "main",bounds, params);
                 } else {
                     ce.result = eval.reevalScript(script, bounds, params);
                 }
@@ -564,7 +564,7 @@ public class ImageRenderer {
             if (inst == null) {
                 ShapeJSEvaluator eval = new ShapeJSEvaluator();
                 Bounds bounds = new Bounds();
-                EvalResult result = eval.evalScript(script, bounds,params);
+                EvalResult result = eval.evalScript(script, "main",bounds,params);
                 source = result.getDataSource();
 
                 if(source instanceof Initializable)
