@@ -305,6 +305,26 @@ public class TestImageRenderer extends TestCase {
         assertNotNull("foo defined", result.getErrorLog());
     }
 
+    public void testSecurity1() {
+        int width = 256;
+        int height = 256;
+
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+        String uuid = UUID.randomUUID().toString();
+
+        EvalResult result = render.updateScene(uuid, "function main(args) {foo=1; return new Shape(new Sphere(1*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}", new HashMap<String, Object>());
+
+        uuid = UUID.randomUUID().toString();
+        printf("Error log: %s\n", result.getErrorLog());
+        result = render.updateScene(uuid, "function main(args) {print(foo); return new Shape(new Sphere(1*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}", new HashMap<String, Object>());
+        printf("Error log: %s\n", result.getErrorLog());
+
+        assertNotNull("foo defined", result.getErrorLog());
+
+    }
+
     private String getFile(String file) throws IOException {
         return FileUtils.readFileToString(new File(file));
     }

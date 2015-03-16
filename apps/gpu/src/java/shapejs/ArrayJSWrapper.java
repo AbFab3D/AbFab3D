@@ -22,8 +22,8 @@ import java.util.List;
  *
  * @author Alan Hudson
  */
-public class ArrayJSWrapper extends ScriptableObject {
-    private Parameter param;
+public class ArrayJSWrapper extends ScriptableObject implements JSWrapper {
+    protected Parameter param;
 
     public ArrayJSWrapper() {
 
@@ -31,12 +31,26 @@ public class ArrayJSWrapper extends ScriptableObject {
 
     public ArrayJSWrapper(Scriptable scope, Parameter param) {
         setParentScope(scope);
+        setParameter(param);
+    }
+
+    public void setParameter(Parameter param) {
         this.param = param;
     }
 
     public Parameter getParameter() {
         return param;
     }
+
+    @Override
+    public Object getDefaultValue(Class hint) {
+        return param.getValue();
+    }
+
+    public String getClassName() {
+        return param.getType().toString();
+    }
+
 
     @Override
     public Object get(int index, Scriptable start) {
@@ -49,15 +63,7 @@ public class ArrayJSWrapper extends ScriptableObject {
     public void put(int index, Scriptable start, Object value) {
         List list = (List) param.getValue();
 
-        list.set(index,value);
+        list.set(index, value);
     }
 
-    @Override
-    public Object getDefaultValue(Class hint) {
-        return param.getValue();
-    }
-
-    public String getClassName() {
-        return param.getType().toString();
-    }
 }

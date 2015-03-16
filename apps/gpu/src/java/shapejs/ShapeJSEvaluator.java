@@ -347,7 +347,8 @@ public class ShapeJSEvaluator {
                         LocationParameter lp = (LocationParameter) param;
                         if (point != null) lp.setPoint(point);
                         if (normal != null) lp.setNormal(normal);
-                        wrapped =  Context.javaToJS(lp, scope);
+                        wrapped = new ComplexJSWrapper(scope,param);
+                        //wrapped =  Context.javaToJS(lp, scope);
 
                         break;
                 }

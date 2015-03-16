@@ -20,8 +20,8 @@ import org.mozilla.javascript.ScriptableObject;
  *
  * @author Alan Hudson
  */
-public class ParameterJSWrapper extends ScriptableObject {
-    private Parameter param;
+public class ParameterJSWrapper extends ScriptableObject implements JSWrapper {
+    protected Parameter param;
 
     public ParameterJSWrapper() {
 
@@ -29,6 +29,10 @@ public class ParameterJSWrapper extends ScriptableObject {
 
     public ParameterJSWrapper(Scriptable scope, Parameter param) {
         setParentScope(scope);
+        setParameter(param);
+    }
+
+    public void setParameter(Parameter param) {
         this.param = param;
     }
 
@@ -44,4 +48,5 @@ public class ParameterJSWrapper extends ScriptableObject {
     public String getClassName() {
         return param.getType().toString();
     }
+
 }
