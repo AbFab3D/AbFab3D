@@ -12,7 +12,6 @@ import static abfab3d.util.Output.printf;
 public class SandboxWrapFactory extends WrapFactory {
     @Override
     public Scriptable wrapAsJavaObject(Context cx, Scriptable scope, Object javaObject, Class staticType) {
-        printf("Wrapping object: %s\n",javaObject);
         return new SandboxNativeJavaObject(scope, javaObject, staticType);
     }
 }

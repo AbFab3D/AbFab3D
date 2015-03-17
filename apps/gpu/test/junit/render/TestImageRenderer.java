@@ -160,8 +160,8 @@ public class TestImageRenderer extends TestCase {
         String jobID = UUID.randomUUID().toString();
         Gson gson = new GsonBuilder().create();
         HashMap<String,Object> params = new HashMap<String, Object>();
-        params.put("period",gson.toJson(18));
-        params.put("thickness",gson.toJson(2));
+        params.put("period", gson.toJson(18));
+        params.put("thickness", gson.toJson(2));
 
         // WARM up classes
         render.render(null, getFile("test/scripts/gyrosphere_params.js"), params, getView(), false, 0.5f, base);
@@ -305,24 +305,136 @@ public class TestImageRenderer extends TestCase {
         assertNotNull("foo defined", result.getErrorLog());
     }
 
-    public void testSecurity1() {
+    public void testSecurity1() throws IOException {
         int width = 256;
         int height = 256;
 
+        BufferedImage base = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage test = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        String file = "test/scripts/security_exit.js";
         ImageRenderer render = new ImageRenderer();
         render.initCL(1, width, height);
         render.setVersion(VERSION);
-        String uuid = UUID.randomUUID().toString();
 
-        EvalResult result = render.updateScene(uuid, "function main(args) {foo=1; return new Shape(new Sphere(1*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}", new HashMap<String, Object>());
+        render.render(null, getFile("test/scripts/security_base.js"), new HashMap<String, Object>(), getView(), false, 0.5f, base);
+        render.render(null, getFile(file), new HashMap<String, Object>(), getView(), false, 0.5f, test);
 
-        uuid = UUID.randomUUID().toString();
-        printf("Error log: %s\n", result.getErrorLog());
-        result = render.updateScene(uuid, "function main(args) {print(foo); return new Shape(new Sphere(1*MM),new Bounds(-1*MM,1*MM,-1*MM,1*MM,-1*MM,1*MM));}", new HashMap<String, Object>());
-        printf("Error log: %s\n", result.getErrorLog());
+        if (DEBUG) {
+            try {
+                ImageIO.write(base, "png", new File("/tmp/security_base.png"));
+                ImageIO.write(test, "png", new File("/tmp/security_exit.png"));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
 
-        assertNotNull("foo defined", result.getErrorLog());
+        assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
+        assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
 
+        EvalResult result = render.updateScene(null, getFile(file), new HashMap<String, Object>());
+
+        assertFalse("Result not false", result.isSuccess());
+    }
+
+    public void testSecurity2() throws IOException {
+        int width = 256;
+        int height = 256;
+
+        BufferedImage base = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage test = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        String file = "test/scripts/security_exec.js";
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+
+        render.render(null, getFile("test/scripts/security_base.js"), new HashMap<String, Object>(), getView(), false, 0.5f, base);
+        render.render(null, getFile(file), new HashMap<String, Object>(), getView(), false, 0.5f, test);
+
+        if (DEBUG) {
+            try {
+                ImageIO.write(base, "png", new File("/tmp/security_base.png"));
+                ImageIO.write(test, "png", new File("/tmp/security_exec.png"));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
+        assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
+
+        EvalResult result = render.updateScene(null, getFile(file), new HashMap<String, Object>());
+
+        assertFalse("Result not false", result.isSuccess());
+    }
+
+    public void testSecurity3() throws IOException {
+        int width = 256;
+        int height = 256;
+
+        BufferedImage base = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage test = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        String file = "test/scripts/security_reflection.js";
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+
+        render.render(null, getFile("test/scripts/security_base.js"), new HashMap<String, Object>(), getView(), false, 0.5f, base);
+        render.render(null, getFile(file), new HashMap<String, Object>(), getView(), false, 0.5f, test);
+
+        if (DEBUG) {
+            try {
+                ImageIO.write(base, "png", new File("/tmp/security_base.png"));
+                ImageIO.write(test, "png", new File("/tmp/security_reflection.png"));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
+        assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
+
+        EvalResult result = render.updateScene(null, getFile(file), new HashMap<String, Object>());
+
+        assertFalse("Result not false", result.isSuccess());
+    }
+
+    /**
+     * Make sure that creating arrays works
+     * @throws IOException
+     */
+    public void testSecurity4() throws IOException {
+        int width = 256;
+        int height = 256;
+
+        BufferedImage base = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        BufferedImage test = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        String file = "test/scripts/security_array.js";
+        ImageRenderer render = new ImageRenderer();
+        render.initCL(1, width, height);
+        render.setVersion(VERSION);
+
+        render.render(null, getFile("test/scripts/security_base.js"), new HashMap<String, Object>(), getView(), false, 0.5f, base);
+        render.render(null, getFile(file), new HashMap<String, Object>(), getView(), false, 0.5f, test);
+
+        if (DEBUG) {
+            try {
+                ImageIO.write(base, "png", new File("/tmp/security_base.png"));
+                ImageIO.write(test, "png", new File("/tmp/security_exit.png"));
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
+        assertTrue("Same image", ImageUtilTest.isImageEqual(base, test));
+
+        EvalResult result = render.updateScene(null, getFile(file), new HashMap<String, Object>());
+
+        assertTrue("Result not true", result.isSuccess());
     }
 
     private String getFile(String file) throws IOException {
