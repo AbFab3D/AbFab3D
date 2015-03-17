@@ -1,8 +1,7 @@
-package shapejs;
+package volumesculptor.shell;
 
 import org.mozilla.javascript.Context;
-
-import static abfab3d.util.Output.printf;
+import org.mozilla.javascript.ContextFactory;
 
 /**
  * Created by giles on 3/16/2015.
@@ -10,7 +9,6 @@ import static abfab3d.util.Output.printf;
 public class SandboxContextFactory extends ContextFactory {
     @Override
     protected Context makeContext() {
-        printf("***Making context\n");
         Context cx = super.makeContext();
         cx.setWrapFactory(new SandboxWrapFactory());
         return cx;

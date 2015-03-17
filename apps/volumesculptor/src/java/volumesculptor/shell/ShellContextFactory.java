@@ -20,6 +20,13 @@ public class ShellContextFactory extends ContextFactory
     private String characterEncoding;
 
     @Override
+    protected Context makeContext() {
+        Context cx = super.makeContext();
+        cx.setWrapFactory(new SandboxWrapFactory());
+        return cx;
+    }
+
+    @Override
     protected boolean hasFeature(Context cx, int featureIndex)
     {
         switch (featureIndex) {

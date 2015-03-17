@@ -1,4 +1,4 @@
-package shapejs;
+package volumesculptor.shell;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;

@@ -42,6 +42,7 @@ public class ShapeJSEvaluator {
     /** Default imports to add to scripts */
     private static final ArrayList<String> scriptImports;
     private static final ArrayList<String> classImports;
+    private static final HashSet<String> classWhiteList;
 
     /** Remap error messages to something readable */
     private static final HashMap<String, String> errorRemap;
@@ -72,7 +73,7 @@ public class ShapeJSEvaluator {
         packageWhitelist = new ArrayList();
         packageWhitelist.add("abfab3d.");
         packageWhitelist.add("javax.vecmath");
-        packageWhitelist.add("java.lang");
+        //packageWhitelist.add("java.lang");    // Do not include this its a security hole
         packageWhitelist.add("app.common");
         packageWhitelist.add("shapejs");
 
@@ -103,15 +104,25 @@ public class ShapeJSEvaluator {
         classImports.add("abfab3d.grid.AttributeDesc");
 
 
+        classWhiteList = new HashSet<String>();
+        classWhiteList.add("java.lang.Boolean");
+        classWhiteList.add("java.lang.Byte");
+        classWhiteList.add("java.lang.Character");
+        classWhiteList.add("java.lang.Class");
+        classWhiteList.add("java.lang.Double");
+        classWhiteList.add("java.lang.Enum");
+        classWhiteList.add("java.lang.Float");
+        classWhiteList.add("java.lang.Object");
+        classWhiteList.add("java.lang.String");
+        classWhiteList.add("java.lang.reflect.Array");
+        classWhiteList.add("java.util.Vector");
+
         errorRemap = new HashMap<String, String>();
         errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException", "Execution time exceeded.");
     }
 
     public ShapeJSEvaluator() {
         this.sandboxed = true;
-
-        printf("TODO: Security hole, overriding sandboxed");
-        sandboxed = false;
     }
 
     public ShapeJSEvaluator(boolean sandboxed) {
@@ -377,6 +388,14 @@ public class ShapeJSEvaluator {
     public EvalResult evalScript(String script, String method, Bounds bounds, Map<String, Object> namedParams) {
         long t0 = System.currentTimeMillis();
 
+        if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
+            printf("Installing custom context factory");
+            org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
+            if (gsetter != null) {
+                gsetter.setContextFactoryGlobal(new SandboxContextFactory());
+            }
+        }
+
         if (DEBUG) printf("evalScript(script, sandbox: %b namedParams)\n", sandboxed,bounds);
         Context cx = Context.enter();
         Context.ClassShutterSetter setter = cx.getClassShutterSetter();
@@ -384,6 +403,10 @@ public class ShapeJSEvaluator {
         if (sandboxed && setter != null) {
             setter.setClassShutter(new ClassShutter() {
                 public boolean visibleToScripts(String className) {
+                    if (classWhiteList.contains(className)) {
+                        return true;
+                    }
+
                     // Do not allow recreation of this class ever
                     if (className.equals("ShapeJSEvaluator")) {
                         return false;
@@ -411,18 +434,20 @@ public class ShapeJSEvaluator {
 
         try {
             if (scope == null) {
-                scope = new GlobalScope();
                 ContextFactory contextFactory = null;
-
+                contextFactory = new ContextFactory();
+/*
                 if (sandboxed) {
+                    printf("Installing Sandbox ContextFactory\n");
                     contextFactory = new SandboxContextFactory();
                 } else {
-                    contextFactory = new ContextFactory();
                 }
+*/
                 ToolErrorReporter errorReporter = new ToolErrorReporter(false, System.err);
                 errors = new ErrorReporterWrapper(errorReporter);
                 contextFactory.setErrorReporter(errors);
 
+                scope = new GlobalScope();
                 scope.initShapeJS(contextFactory);
                 argsMap = new NativeObject();
             }
