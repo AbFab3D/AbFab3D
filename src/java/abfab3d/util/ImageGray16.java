@@ -48,10 +48,19 @@ public class ImageGray16 {
         m_height = 1;
     }
 
+    public ImageGray16(BufferedImage image){
+
+        data = ImageUtil.getGray16Data(image);
+        m_width = image.getWidth();
+        m_height = image.getHeight();
+    }
+
     public ImageGray16(int width, int height){
+
         data = new short[width*height];
         m_width = width;
         m_height = height;
+
     }
 
     public ImageGray16(short data[], int width, int height){
@@ -127,7 +136,7 @@ public class ImageGray16 {
     
     /**
        
-       convert black and white image into distance transformaed image 
+       convert black and white image into distance transformed image 
 
        points inside are black and 
 
@@ -154,7 +163,8 @@ public class ImageGray16 {
 
      */
     public void makeDistanceTransform(int maxRadius){
-
+        // TODO
+        
     }
 
     public void _makeDistanceTransform(int maxRadius){
@@ -180,7 +190,7 @@ public class ImageGray16 {
 
     public void gaussianBlur(double size){
 
-        // temporaty use gaussian blur instead of distance transform        
+        // use gaussian blur instead of distance transform 
         double[] kernel = MathUtil.getGaussianKernel(size, 0.001);
         convolute(kernel);        
     }

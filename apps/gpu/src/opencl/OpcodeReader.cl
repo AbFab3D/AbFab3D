@@ -3,49 +3,69 @@
 //#define NAN (0xFFFF)
 
 // stack size for intermediate memory 
-#define STACK_SIZE  10  
+// stack >= 4000 generates CL_OUT_OF_HOST_MEMORY error 
+#define STACK_SIZE  10
+// maximal size of struct for single operation (in words) should be the size of largest operation 
+#define MAXOPSIZE 30 
 
-#define oSPHERE 1001
-#define oGYROID 1002
-#define oBOX    1003
-#define oTORUS  1004
-#define oMAX    1005
-#define oMIN    1006
-#define oBLEND  1007
-#define oBLENDMAX  1008
-#define oBLENDMIN  1009
-#define oSUBTRACT  1010
-#define oBLENDSUBTRACT  1011
-#define oCOPY_D1D2  1012
-#define oCOPY_D2D1  1013
-#define oPUSH_D2  1014
-#define oPOP_D2  1015
+// this list should be identical to list in src/java/opencl/Opcodes.java
+#define oSPHERE        1
+#define oGYROID        2
+#define oBOX           3
+#define oTORUS         4
+#define oMAX           5
+#define oMIN           6
+#define oBLEND         7
+#define oBLENDMAX      8
+#define oBLENDMIN      9
+#define oSUBTRACT      10
+#define oBLENDSUBTRACT 11
+#define oCOPY_D1D2     12
+#define oCOPY_D2D1     13
+#define oPUSH_D2       14
+#define oPOP_D2        15
+#define oPUSH_P1       16
+#define oPOP_P1        17
+#define oTRANSLATION   18
+#define oROTATION      19
+#define oSCALE         20
+#define oENGRAVE       21
+#define oGRID2DBYTE    22
+#define oGRID3DBYTE    23
+#define oIMAGEBOX      24
+#define oREFLECT       25
 
 
+#define oEND   0
 
-#define PTR global const
+
+// pointer to buffer of opcodes 
+//#define PTROPS global const
+// pointer to local ops buffer
+#define PTROPS global 
+// pointer to struct in private memory 
+#define PTRS global
+// pointer to buffer of large data 
+#define PTRDATA global 
 
 
-// blending function 
-float blendQuadric(float x){
-	return (1.f-x)*(1.f - x)*0.25f;
-}
+// union to "safely" convert pointers 
+typedef union {
+    PTRS void *pv;  
+    PTRS int *w;
+} CPtr;
 
-float blendMin(float a, float b, float w){
+#define NAN 0xFFFFFFFF
 
-    float dd = min(a,b);
-    float d = fabs(a-b);
-    if( d < w) return dd - w*blendQuadric(d/w);	
-    else return dd;
-}
-
-float blendMax(float a, float b, float w){
-
-    float dd = max(a,b);
-    float d = fabs(a-b);
-    if( d < w) return dd + w*blendQuadric(d/w);
-    else return dd;
-}
+// desription of the scene to render 
+typedef struct {
+    float worldScale;      //
+    float3 worldCenter;    // center of the world box
+    PTROPS int *pOps;      // operations 
+    int opCount;           // count of operations 
+    PTRDATA char* pgData;  // global large data
+    global const float* invvm; // inverse view matrix
+} Scene; 
 
 
 typedef struct{
@@ -62,7 +82,7 @@ typedef struct {
     float3 center; // center   
 } sSphere;
 
-void oSphere(PTR sSphere *sphere, sVec *in, sVec *out){
+void oSphere(PTRS sSphere *sphere, sVec *in, sVec *out){
 
     float3 v = in->v.xyz;
     v -= sphere->center;
@@ -74,281 +94,115 @@ void oSphere(PTR sSphere *sphere, sVec *in, sVec *out){
 
 }
 
-// box 
 typedef struct {
-    int size;
-    int opcode;
-    float rounding;
-    float3 center;
-    float3 halfsize;
-} sBox;
+    int size;  // size of struct in words 
+    int opcode; // opcode to perform 
+    // custom parameters of DataSource 
+    float3 translation; 
+} sTranslation;
 
-void oBox(PTR sBox *box, sVec *in, sVec *out){
+void oTranslation(PTRS sTranslation *trans, sVec *inout){
+    // inverse translation 
+    inout->v.xyz -= trans->translation;
 
-    float3 v = in->v.xyz;
-    v -= box->center;    
-    v = fabs(v);
-    v -= box->halfsize;
-
-    float d = blendMax(blendMax(v.x,v.y,box->rounding),v.z,box->rounding);
-
-    out->v.x = d;
 }
 
-// gyroid 
+
 typedef struct {
-    int size;
-    int opcode;
-    float level;
-    float thickness;
-    float factor;
-    float3 offset;
-} sGyroid;
+    int type;
+    float radius;
+    float3 center; 
+} sSPlane;
+#define PLANE  0
+#define SPHERE  1
 
-void oGyroid(PTR sGyroid *g, sVec *in, sVec *out){
-    float3 pnt = in->v.xyz;
-    pnt -= g->offset;
-    pnt *= g->factor;
-    
-    float d = fabs((sin(pnt.x) * cos(pnt.y) + sin(pnt.y) * cos(pnt.z) + sin(pnt.z) * cos(pnt.x) - g->level) / g->factor) - (g->thickness);
+void oReflect(PTRS sSPlane *s, sVec *inout){
 
-    out->v.x = d;    
+    switch(s->type){
 
-}
-
-// torus 
-typedef struct {
-    int size;
-    int opcode;
-    float r;
-    float R;
-    float3 center;
-} sTorus;
-
-void oTorus(PTR sTorus *torus, sVec *in, sVec *out){
-
-    float3 p = in->v.xyz;
-    p -= torus->center;
-
-    p.y = length(p.xy) - torus->R;
-
-    float d = length(p.yz) - torus->r;
-
-    out->v.x = d;    
-
-}
-
-
-void oMax(PTR void *ptr, sVec *in1, sVec *in2, sVec *out){
-
-    out->v.x = max(in1->v.x, in2->v.x);
-
-}
-
-void oMin(PTR void *ptr, sVec *in1, sVec *in2, sVec *out){
-
-    out->v.x = min(in1->v.x, in2->v.x);
-
-}
-
-void oSubtract(PTR void *ptr, sVec *in1, sVec *in2, sVec *out){
-
-    out->v.x = max(in1->v.x, -in2->v.x);
-
-}
-
-// blend 
-typedef struct {
-    int size;
-    int opcode;
-    float width;
-    float padding;
-} sBlend;
-
-void oBlendMin(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
-
-    out->v.x = blendMin(in1->v.x, in2->v.x, ptr->width);
-
-}
-
-void oBlendMax(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
-
-    out->v.x = blendMax(in1->v.x, in2->v.x, ptr->width);
-
-}
-
-void oBlendSubtract(PTR sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
-
-    out->v.x = blendMax(in1->v.x, -in2->v.x, ptr->width);
-
-}
-
-
-// union to "safely" convert pointers 
-typedef union {
-    PTR void *pv;  
-    PTR int *w;
-} CPtr;
-
-
-void copyOpcodes(PTR int *opcode, global int *outdata){
-
-    int opcount = 0;
-    int maxCount = 10;
-    int offsetIn = 0;
-    int offsetOut = 0;
-
-    while(opcount++ < maxCount){
-        
-        int size = opcode[offsetIn++];
-        outdata[offsetOut++] = size;
-        // end of opcode queue 
-        if(size <= 0) 
-            break;        
-        int code = opcode[offsetIn++];
-        outdata[offsetOut++] = code;
-        int scount = (size-2);
-        while(scount-- > 0){
-            outdata[offsetOut++] = opcode[offsetIn++];
-        }                           
-    }    
+    case PLANE: 
+        {
+            float3 center = s->center;
+            float radius = s->radius;
+            //float vn = dot( inout->v.xyz - center * radius, center);
+            inout->v.xyz -= (2.*dot( inout->v.xyz - center * radius, center))* center;
+            
+        } break;
+    case SPHERE:
+        {
+            float3 v = inout->v.xyz;
+            v -= s->center;
+            float len2 = dot(v,v);
+            float r2 = s->radius;
+            r2 *= r2;
+            float factor = (r2/len2);
+            v *= factor;
+            v += s->center; 
+            
+            inout->scale *= factor;
+            inout->v.xyz = v;           
+        } break;
+    } 
 }
 
 
 // OpenCL Kernel Function for opcode reading 
-kernel void OpcodeReader(PTR int* opcode, int opCount, global int* outdata, int outCount, global int *results) {
-		
-    int iGID = get_global_id(0);
-    if(iGID > 0) { 
-        return;
-    }    
-    // for debugging 
-    //copyOpcodes(opcode, outdata);
+kernel void opcodeReader(PTRDATA int* opcode, int opCount, PTRDATA int* outdata, int outCount, PTRDATA int *result) {
     
-    CPtr ptr;
-    int count = 0;
-    int offsetIn = 0;
-    sVec stack[STACK_SIZE];
-    int stackPos = 0; // current stack position
-    sVec pnt1 = (sVec){.v=(float4)(0,0,0,0), .scale = 1.f};
-    sVec pnt2 = (sVec){.v=(float4)(0,0,0,0), .scale = 1.f};
-    sVec data1;
-    sVec data2;
+    CPtr ptr;  // pointer to opcodes struct to convert from int* to structs* 
+    sVec pnt1 = (sVec){.v =(float4)(1.,1.,0.,0), .scale = 1}; 
+    sVec pnt2 = (sVec){.v =(float4)(0,0,0,0), .scale = 1}; 
+    sVec data1 = (sVec){.v =(float4)(0,0,0,0), .scale = 1}; 
+    
+    int offsetIn = 0;  // current offset in the opcodes 
+    int cnt = 0;
 
-    int resOffset = 0;
+    *(result+ cnt++) = as_int(pnt1.v.x);
+    *(result+ cnt++) = as_int(pnt1.v.y);
+    *(result+ cnt++) = as_int(pnt1.v.z);
+    *(result+ cnt++) = NAN;
 
-    while(count++ < opCount) {
-
+    for(int i=0; i < opCount; i++) {
         int size = opcode[offsetIn];
-        if(size == 0)
+
+        if(size <= 0)
             break;
+        
         int code = opcode[offsetIn+1];
         ptr.w = (opcode + offsetIn);
-
+        
         switch(code){
         default:
-            results[resOffset++] = NAN;
-            break;            
+            return;            
+
         case oSPHERE:
-            {
-                oSphere(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            
+            oSphere(ptr.pv, &pnt1, &data1);
+            *(result+ cnt++) = as_int(data1.v.x);
+            *(result+ cnt++) = as_int(data1.v.y);
+            *(result+ cnt++) = as_int(data1.v.z);
+            *(result+ cnt++) = NAN;
             break;
 
-        case oGYROID:
-            {
-                oGyroid(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
-            break;
-        case oBOX:
-            {
-                oBox(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
-            break;
-        case oTORUS:
-            {
-                oTorus(ptr.pv, &pnt1, &data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
-            break;
+        case oTRANSLATION:
             
-        case oCOPY_D1D2:
-            {
-                data2 = data1;
-                results[resOffset++] = as_int(data2.v.x);
-                break;
-            }
-            
-        case oCOPY_D2D1:
-            {
-                data1 = data2;
-                results[resOffset++] = as_int(data1.v.x);
-                break;
-            }            
-            
-        case oMAX:
-            {
-                oMax(ptr.pv,&data2, &data1,&data2);
-                results[resOffset++] = as_int(data1.v.x);
-            }
-            break;
-            
-        case oMIN:
-            {
-                oMin(ptr.pv,&data2, &data1,&data2);
-                results[resOffset++] = as_int(data2.v.x);
-            }
-            break;
-            
-        case oBLENDMIN:
-            {
-                oBlendMin(ptr.pv, &data1,&data2, &data2);
-                results[resOffset++] = as_int(data2.v.x);
-            }
-            break;
-            
-        case oBLENDMAX:
-            {
-                oBlendMax(ptr.pv, &data1,&data2, &data2);
-                results[resOffset++] = as_int(data2.v.x);
-            }
-            break;
-            
-        case oSUBTRACT:
-            {
-                oSubtract(ptr.pv,&data1, &data2,&data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
-            break;
-            
-        case oBLENDSUBTRACT:
-            {
-                oBlendSubtract(ptr.pv,&data1, &data2,&data1);
-                results[resOffset++] = as_int(data1.v.x);
-            }
+            oTranslation(ptr.pv,&pnt1);
+            *(result+ cnt++) = as_int(pnt1.v.x);
+            *(result+ cnt++) = as_int(pnt1.v.y);
+            *(result+ cnt++) = as_int(pnt1.v.z);
+            *(result+ cnt++) = NAN;
             break;            
-        case oPUSH_D2:
-            {
-                stack[stackPos++] = data2;
-                results[resOffset++] = as_int(data2.v.x);
-            }
-            break;            
-        case oPOP_D2:
-            {
-                data2 = stack[--stackPos];
-                results[resOffset++] = as_int(data2.v.x);
-            }
-            break;            
-        }        
+
+        case oREFLECT:
+
+            oReflect(ptr.pv, &pnt1);
+            
+            *(result+ cnt++) = as_int(pnt1.v.x);
+            *(result+ cnt++) = as_int(pnt1.v.y);
+            *(result+ cnt++) = as_int(pnt1.v.z);
+            *(result+ cnt++) = NAN;
+            break;
+        }
         offsetIn += size;
     }
-    // write out the result 
-    results[resOffset++] = as_int(data1.v.x);
-    results[resOffset++] = 0;
-    results[resOffset++] = 0;
-    results[resOffset++] = 0;
-    
 }

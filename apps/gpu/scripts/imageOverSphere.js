@@ -14,31 +14,31 @@ var uiParams = [
 
 ];
 function main(args) {
-    var radius = 25 * MM;
-	var bx = 20*MM;
-	var by = 20*MM;
+    
+	//image map size 
 	var bz = 20*MM;
 	var s = 20*MM;
-	var radius = 15*MM;
+	var radius = 19*MM;
+	var bx = 2*radius;
+	var by = 2*radius;
 	
 	var vs = 0.1*MM;
-    //var path = 	"scripts/pattern.png";
     //var path = 	"scripts/shapeways227.png";
-    var path = 	"scripts/shapeways755.png";
+	//var path = 	"images/shapeways755.png";
+    var path = 	"images/r5-bird.png";
 	var image = loadImage(path);
 		
 	by = bx * image.getHeight()/image.getWidth();
-    var grid = createGrid(-s,s,-s,s,-s,s,vs);
-    var imgBox = new ImageBitmap(image, bx, by, bz, vs);
-	imgBox.setBlurWidth(0.1*MM);
-	imgBox.getParam("rounding").setValue(0.5*MM);
-	imgBox.getParam("center").setValue(new Vector3d(0,0,radius));
+    var imageMap = new ImageMap(image, bx, by, bz);
+	imageMap.getParam("center").setValue(new Vector3d(0,0,radius));
+	imageMap.getParam("blackDisplacement").setValue(-0.5*MM);
+	imageMap.getParam("whiteDisplacement").setValue(0.);
+	imageMap.getParam("blurWidth").setValue(0.1*MM);
+	var s1 = new Sphere(0,0,0,radius);
+	
+	var eng = new Engraving(s1, imageMap);
 
-    var maker = new GridMaker();
-	var shape = new Sphere(radius);
-	var union = new Union(shape, imgBox);
-	var eng = new Engraving(shape, imgBox);
-	eng.getParam("depth").setValue(0.4*MM);
+	eng.getParam("depth").setValue(-0.4*MM);
 	eng.getParam("blend").setValue(0.2*MM);
 
 	return new Shape(eng,new Bounds(-s,s,-s,s,-s,s));

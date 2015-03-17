@@ -601,7 +601,7 @@ public class ImageBox extends TransformableDataSource {
 
             t0 = time();
             m_mipMap = new ImageMipMapGray16(imageDataShort, imageWidth, imageHeight);
-            // release out pointer 
+            // release imageData pointer 
             imageData = null;
 
             printf("mipmap ready in %d ms\n", (time() - t0));

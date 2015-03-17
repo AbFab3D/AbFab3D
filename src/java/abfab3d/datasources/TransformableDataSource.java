@@ -20,6 +20,8 @@ import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 
+import static abfab3d.util.Output.fmt;
+
 /**
    Base class for DataSources which want to be Transformable
 
@@ -60,7 +62,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
      * to be overridden by subclass
      */
     protected void initParams() {
-        
+        throw new RuntimeException(fmt("params are not initialized for class :%s", this.getClass().getName()));
     }
 
     /**

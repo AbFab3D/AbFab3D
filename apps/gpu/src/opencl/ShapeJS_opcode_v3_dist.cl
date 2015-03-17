@@ -33,6 +33,7 @@
 #define oGRID2DBYTE    22
 #define oGRID3DBYTE    23
 #define oIMAGEBOX      24
+#define oREFLECT       25
 
 
 #define oEND   0
@@ -246,10 +247,10 @@ typedef struct {
 // engrave shape1 with shape2 
 void oEngrave(PTRS sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
     // bump mapping version 
-    float eng = max(0.f,min(ptr->depth, -in2->v.x));
-    //float eng = blendMax(0.,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
+    //float eng = max(0.f,min(ptr->depth, -in2->v.x));
+    //float eng = blendMax(0.f,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
     //out->v.x = in1->v.x + eng;
-    out->v.x = in1->v.x + ptr->depth*in2->v.x;
+    out->v.x = in1->v.x + in2->v.x;
     /*
     // subtraction version 
     float d = in1->v.x;
@@ -321,11 +322,11 @@ typedef struct {
     int opcode; // opcode 
     // custom parameters
     // coefficients to calculate data value
-    float valueOffset; // value = byteValue*vFactor + vOffset;
-    float valueFactor; 
+    float vOffset; // value = byteValue*vFactor + vOffset;
+    float vFactor; 
 
     float rounding; // edges rounding      
-    int tiling; // (tilesx | tilesy << 16)
+    int options; // (repeatX | tilesy << 1)
     int nx; // grid count in x direction
     int ny; // grid count in y direction
 
@@ -341,21 +342,22 @@ typedef struct {
 } sGrid2dByte;
 
 void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
-    // do box for now 
+
     float3 v = pnt->v.xyz;
-    v -= grid->center;    
+    v -= grid->center;
     v = fabs(v);
     v -= grid->halfsize;
     
-    float d = blendMax(blendMax(v.x,v.y,grid->rounding),v.z,grid->rounding);
+    float d = max(max(v.x,v.y),v.z);
     if(d < 0.) { // inside of grid 
         // vector in grid units 
         float3 gpnt = (pnt->v.xyz - grid->origin) * (float3)(grid->xscale, grid->yscale,grid->yscale);
+        // TODO - repeatX and repeatY
         int nx = grid->nx;
         int ny = grid->ny;
-
+        
         gpnt.y = ny - gpnt.y;
-        PTRDATA uchar *pData = (PTRDATA uchar*)(pScene->pgData + grid->dataOffset);        
+        PTRDATA uchar *pData = (PTRDATA uchar*)(pScene->pgData + grid->dataOffset); 
         int ix = (int)gpnt.x;
         int iy = (int)gpnt.y;
         float x = gpnt.x - ix;
@@ -373,9 +375,11 @@ void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
         uchar v01 = pData[ix  + iy1 * nx];
         float value = v00 *(1-x)*(1-y) + v10*x*(1-y) + v01*(1-x)*y + v11*x*y;
 
-        out->v.x = (grid->valueFactor*value + grid->valueOffset);
+        out->v.x = (grid->vFactor*value + grid->vOffset);
+        //out->v.x = (grid->vFactor*255 + grid->vOffset);
 
     } else {
+        //out->v.x = (grid->vFactor*0 + grid->vOffset);
         out->v.x = grid->outsideValue;
     }
     

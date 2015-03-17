@@ -30,6 +30,8 @@ import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Union;
 import abfab3d.datasources.Intersection;
+import abfab3d.transforms.Translation;
+
 import abfab3d.param.DoubleParameter;
 import abfab3d.util.Initializable;
 
@@ -57,6 +59,7 @@ public class ProtoOpcodeMaker {
     
     static void testMakeOpcode(int elementCount) throws Exception{
         
+        printf("testMakeOpcode()\n");
         CLDevice device = CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice();
         CLContext context = CLContext.create(device);
         int localWorkSize = min(device.getMaxWorkGroupSize(), 256);  // Local work size dimensions
@@ -72,7 +75,7 @@ public class ProtoOpcodeMaker {
             throw new IllegalArgumentException("Program didn't compile");
         }
         
-        CLKernel kernel = program.createCLKernel("OpcodeReader");
+        CLKernel kernel = program.createCLKernel("opcodeReader");
         out.printf("StructReader kernel: %s\n", kernel);
         int bufferSize = 2000;
         CLBuffer<IntBuffer> clOpcodeBuffer = context.createIntBuffer(bufferSize, READ_ONLY);
@@ -80,8 +83,6 @@ public class ProtoOpcodeMaker {
         CLBuffer<IntBuffer> clBufferResult2 = context.createIntBuffer(bufferSize, WRITE_ONLY);
         
         int opCount = makeOpcodeBuffer(clOpcodeBuffer.getBuffer());
-        printf("opCount: %d\n",opCount);
-        CLUtils.printOpcodeBuffer(clOpcodeBuffer.getBuffer());
 
         //if(true) return;
 
@@ -99,7 +100,7 @@ public class ProtoOpcodeMaker {
         
         //printOpcodeBuffer(clBufferResult.getBuffer());
         // last item in results is register data1 
-        printResultBuffer(clBufferResult2.getBuffer(), opCount+1);
+        printResultBuffer(clBufferResult2.getBuffer(), (opCount+1)*4);
 
         context.release();
     }
@@ -138,48 +139,35 @@ public class ProtoOpcodeMaker {
 
     static int makeOpcodeBuffer(IntBuffer buffer){
 
-        int workBuffer[] = new int[1000];
         int opcount = 0;
-        Union union1 = new Union();
-        ((DoubleParameter)union1.getParam("blend")).setValue(0.);
-        union1.add(new Sphere(new Vector3d(1.03, 0., 0.), 1));
-        union1.add(new Sphere(new Vector3d(-1.02, 0., 0.),1));
-
-        Intersection inter1 = new Intersection();
-        ((DoubleParameter)inter1.getParam("blend")).setValue(0.);
-        inter1.add(new Sphere(new Vector3d(0.95, 0., 0.), 1));
-        inter1.add(new Sphere(new Vector3d(-0.96, 0., 0.),1));
-
-        Union union2 = new Union(inter1, union1);
-
+        
+        Parameterizable shape = makeTransformedSphere();
         
         CLCodeBuffer code = new CLCodeBuffer(1000);
         CLCodeMaker codeMaker = new CLCodeMaker();
         
-        Parameterizable shape = union2;
-
+        
         if(shape instanceof Initializable) 
             ((Initializable)shape).initialize();
 
         codeMaker.getCLCode(shape, code);
-
-
-        //Sphere s1 = new Sphere(new Vector3d(0., 0., 0.), 1.);
-        //Sphere s2 = new Sphere(new Vector3d(0.99, 0., 0.),1.);
-        //Sphere s3 = new Sphere(new Vector3d(2., 0., 0.),1.);               
-        //CGyroid g1 = new CGyroid(1.1, 2.2, 3.3, new Vector3d(4.11, 4.12, 4.13));
-        //Box b1 = new Box(new Vector3d(0,0,0), new Vector3d(2.,4.,1.), 0.1);
-        //Box b2 = new Box(new Vector3d(1,0,0), new Vector3d(2.,4.,1.), 0.1);
-        //Box b3 = new Box(new Vector3d(1,2,0.5), new Vector3d(2.,4.,1.), 0.05);
-        //CTorus t1 = new CTorus(new Vector3d(0,0,0), 1., 2);
-        //CTorus t2 = new CTorus(new Vector3d(0,0,1), 1., 2);
-        //CTorus t3 = new CTorus(new Vector3d(0,0,2), 1., 2);
         
+        printf("opcount: %d\n:code:\n%s:end:\n", code.opcodesCount(), codeMaker.createText(code));
+
         writeToIntBuffer(buffer, code);
 
         buffer.rewind();
 
         return code.opcodesCount();
+
+    }
+
+    static Parameterizable makeTransformedSphere(){
+ 
+        Sphere s = new Sphere(0,0,0,1.);
+        s.setTransform(new Translation(1.,1,0));
+        return s;
+
     }
 
     private static int roundUp(int denom, int value) {        

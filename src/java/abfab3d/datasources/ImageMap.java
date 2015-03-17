@@ -13,11 +13,26 @@
 package abfab3d.datasources;
 
 
-import abfab3d.util.*;
+import javax.vecmath.Vector3d;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
+
+
+import abfab3d.param.ObjectParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
+import abfab3d.param.BooleanParameter;
+
+import abfab3d.util.Vec;
+import abfab3d.util.ImageGray16;
+
+
+import static java.lang.Math.floor;
 
 import static abfab3d.util.ImageMipMapGray16.getScaledDownDataBlack;
 import static abfab3d.util.MathUtil.intervalCap;
@@ -32,62 +47,241 @@ import static abfab3d.util.Output.time;
 
 /**
  * <p>
- * DataSource which fills 3D space with columns of data originated from 2D image.
+ * DataSource which fills 3D box with data from from 2D image in xy plane.
  * </p><p>
  * ImageMap may have multiple channels, according to the source image type 
  * </p><p>
- * The 2D image is placed in the XY-plane and for each pixel of the image with coordinate (x,y) the infinite column of voxel 
- * is formed in both directions along Z-axis  
+ * The 2D image is placed in the XY-plane and for each pixel of the image with coordinate (x,y) the column of voxel of size size.z
+ * is formed in both sides of XY plane
  * </p>
- * by default the image is periodicaly repeated in both directions X and Y 
- * The repeating propety can be set with setRepeat()
+ * the image can be periodicaly repeated in both X and Y directions 
  * 
  *
  * @author Vladimir Bulatov
  */
 public class ImageMap extends TransformableDataSource {
    
-    public static int REPEAT_X = 1, REPEAT_Y = 2, REPEAT_BOTH = 3;
+    public static int REPEAT_NONE = 0, REPEAT_X = 1, REPEAT_Y = 2, REPEAT_BOTH = 3;
     
     public static final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1, INTERPOLATION_MIPMAP = 2;
     public static final double DEFAULT_VOXEL_SIZE = 0.1*MM;
 
-    int m_repeat = REPEAT_BOTH;
-    int m_interpolation = INTERPOLATION_BOX; 
-    double v_voxelSize = DEFAULT_VOXEL_SIZE;
+    private boolean m_repeatX = false;
+    private boolean m_repeatY = false;
+    private int m_interpolation = INTERPOLATION_BOX; 
+    private double 
+        m_originX,
+        m_originY,
+        m_originZ,
+        m_sizeX,
+        m_sizeY,
+        m_sizeZ;
+    private int m_imageSizeX, m_imageSizeY; 
+    private double m_valueOffset, m_valueFactor;
 
+    // public parameters 
+    ObjectParameter  mp_imageSource = new ObjectParameter("image","image source",null);
+    Vector3dParameter  mp_center = new Vector3dParameter("center","center of the image box",new Vector3d(0.,0.,0.));
+    Vector3dParameter  mp_size = new Vector3dParameter("size","size of the image box",new Vector3d(0.1,0.1,0.1));
+    BooleanParameter  mp_repeatX = new BooleanParameter("repeatX","repeat image along X", false);
+    BooleanParameter  mp_repeatY = new BooleanParameter("repeatY","repeat image along Y", false);
+    DoubleParameter  mp_whiteDisp = new DoubleParameter("whiteDisplacement","displacement for white level", 0*MM);
+    DoubleParameter  mp_blackDisp = new DoubleParameter("blackDisplacement","displacement for black level", 1*MM);
+    DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
+
+    Parameter m_aparams[] = new Parameter[]{
+        mp_imageSource, 
+        mp_center,
+        mp_size,
+        mp_repeatX,
+        mp_repeatY,
+        mp_whiteDisp,
+        mp_blackDisp,
+        mp_blurWidth,
+
+    };
+
+
+    // 
+    private ImageGray16 m_imageData;
+    
     /**
        creates ImageMap from a file
 
-       @param path - path to the image file
+       @param ImageSource source of the image. Can be url, BufferedImage or ImageWrapper 
        @param sizex - width of the image 
        @param sizey - height of the image 
      */
-    public ImageMap(String path, double sizex, double sizey) {
-        //TODO 
+    public ImageMap(Object imageSource, double sizex, double sizey, double sizez) {
+
+        super.addParams(m_aparams);
         
+        mp_imageSource.setValue(imageSource);
+        mp_size.setValue(new Vector3d(sizex, sizey, sizez));
+                
     }
 
-    public ImageMap(BufferedImage image, double sizex, double sizey) {
-        //TODO 
-
+    public int getBitmapWidth(){
+        return m_imageData.getWidth();
     }
 
-    public ImageMap(ImageWrapper imwrapper, double sizex, double sizey) {
-        //TODO         
+    public int getBitmapHeight(){
+        return m_imageData.getHeight();
     }
- 
+
+    public void getBitmapDataUByte(byte data[]){
+
+        int nx = m_imageData.getWidth();
+        int ny = m_imageData.getHeight();
+        for(int y = 0;  y < ny; y++){
+            for(int x = 0;  x < nx; x++){
+                
+                double d = m_imageData.getDataD(x, y);
+                // d in (0,1) 
+                // normalization to byte 
+                data[x + y * nx] = (byte)((int)(d * 255.) & 0xFF); 
+            }
+        }
+    }
+
+    /**
+     * @noRefGuide
+     */
+    public int initialize() {
+        super.initialize();
+        Object imageSource = mp_imageSource.getValue();
+        if(imageSource == null)
+            throw new RuntimeException("imageSource is null");
+
+        if(imageSource instanceof String){
+            
+            try {
+                BufferedImage image = ImageIO.read(new File((String)imageSource));
+                m_imageData = new ImageGray16(ImageIO.read(new File((String)imageSource)));            
+            } catch(IOException e) {
+                // empty 1x1 image 
+                m_imageData = new ImageGray16();
+                throw new RuntimeException(e);
+            }
+
+        } else if(imageSource instanceof BufferedImage){
+
+            m_imageData = new ImageGray16((BufferedImage)imageSource);                        
+
+        } else if(imageSource instanceof ImageWrapper){
+
+            m_imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
+            
+        }
+
+        Vector3d center = (Vector3d)mp_center.getValue();
+        Vector3d size = (Vector3d)mp_size.getValue();
+        m_originX = center.x - size.x/2;
+        m_originY = center.y - size.y/2;
+        m_originZ = center.z - size.z/2;
+        m_sizeX = size.x;
+        m_sizeY = size.y;
+        m_sizeZ = size.z;
+
+        m_imageSizeX  = m_imageData.getWidth();
+        m_imageSizeY  = m_imageData.getHeight();
+        m_repeatX = mp_repeatX.getValue();
+        m_repeatY = mp_repeatY.getValue();
+        
+        double white = mp_whiteDisp.getValue();
+        double black = mp_blackDisp.getValue();
+        
+        m_valueOffset = black;
+        m_valueFactor = white - black;
+
+        double blurWidth = mp_blurWidth.getValue();
+        if (blurWidth > 0.0) {
+
+            double pixelSize = m_sizeX / m_imageSizeX;
+
+            double blurSizePixels = blurWidth / pixelSize;
+
+            printf("gaussian blur: %7.2f\n", blurSizePixels);
+            m_imageData.gaussianBlur(blurSizePixels);
+
+
+        }
+
+
+
+        return RESULT_OK;
+    }
     
-    public void setRepeat(int value){
-        m_repeat = value;
-    }
+    public int getDataValue(Vec pnt, Vec dataValue){
 
-    public void setInterpolation(int value){
-        m_interpolation = value;
-    }
+        super.transform(pnt);
 
-    public int getDataValue(Vec pnt, Vec davaValue){
-        //TODO 
+        double x = pnt.v[0];
+        double y = pnt.v[1];
+        double z = pnt.v[2];
+
+        x -= m_originX;
+        y -= m_originY;
+        z -= m_originZ;
+
+        // xy coordinates are normalized to the image size
+        x /= m_sizeX;
+        y /= m_sizeY;
+
+
+        x /= m_sizeX;
+        y /= m_sizeY;
+
+        // xy are in (0,1) range 
+        if(m_repeatX) x -= floor(x);
+        if(m_repeatY) y -= floor(y);
+
+        // x in [0, imageSizeX]
+        // y in [0, imageSizeY]
+        x *= m_imageSizeX;
+        y *= m_imageSizeY;
+        // half pixel shift 
+        x -= 0.5;
+        y -= 0.5;
+        
+        int ix = (int)floor(x);
+        int iy = (int)floor(y);
+        double dx = x - ix;
+        double dy = y - iy;
+        if(ix < 0){
+            if(m_repeatX) ix = m_imageSizeX-1;
+            else ix = 0;
+        }
+        if(iy < 0){
+            if(m_repeatY) iy = m_imageSizeY-1;
+            else iy = 0;
+        }
+        int ix1 = ix + 1;
+        if(ix1 >= m_imageSizeX){
+            if(m_repeatX) ix = 0;
+            else ix = m_imageSizeX-1;            
+        }
+        int iy1 = iy + 1;
+        if(iy1 >= m_imageSizeY){
+            if(m_repeatY) iy = 0;
+            else iy = m_imageSizeY-1;            
+        }
+        
+        double 
+            v00 = m_imageData.getDataD(ix, iy),
+            v10 = m_imageData.getDataD(ix1, iy),
+            v01 = m_imageData.getDataD(ix, iy1),
+            v11 = m_imageData.getDataD(ix1, iy1);
+        double 
+            dx1 = 1.- dx,
+            dy1 = 1.- dy;
+
+
+        double v = 
+            dx * dy * v11 + dx1 * dy * v01 + dx * dy1 * v10 + dx1 * dy1 * v00;
+
+        dataValue.v[0] = v*m_valueFactor + m_valueOffset;
+
         return RESULT_OK;
     }
     

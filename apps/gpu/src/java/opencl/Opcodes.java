@@ -3,6 +3,9 @@ package opencl;
 
 import java.util.HashMap;
 
+import static abfab3d.util.Output.fmt;
+
+
 /**
    codes for OpenCL engine operations 
 
@@ -58,6 +61,7 @@ public class Opcodes {
         oGRID2DBYTE      = 22,
         oGRID3DBYTE      = 23,
         oIMAGEBOX        = 24,
+        oREFLECT         = 25,
 
     // end of operations
         oEND = 0; 
@@ -88,15 +92,17 @@ public class Opcodes {
         codes.put(oGRID2DBYTE, "Grid2dByte");        
         codes.put(oGRID3DBYTE, "Grid3dByte");        
         codes.put(oIMAGEBOX, "ImageBox");        
+        codes.put(oREFLECT, "Reflect");        
     }
 
     public static String getText(int code) {
+
         String st = codes.get(code);
 
         if (st == null) {
-            return "Unknown code: " + code;
+            return fmt("UNKNOW CODE:%d",code);
         }
 
-        return codes.get(code);
+        return st;
     }
 }

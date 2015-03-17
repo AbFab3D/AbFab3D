@@ -16,7 +16,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.IntParameter;
 
-import abfab3d.datasources.ImageBox;
+import abfab3d.datasources.ImageMap;
 
 import javax.vecmath.Vector3d;
 
@@ -43,8 +43,9 @@ typedef struct {
     float vFactor; 
 
     float rounding; // edges rounding      
-    int tiling; // (tilesx | tilesy << 16)
-    int2 dim; // grid count in x and y directions 
+    int repeat; // (repatX | repeatY <<1)
+    int nx; // grid count in x and y directions 
+    int ny; // grid count in x and y directions 
 
     float3 center;  // center in world units
 
@@ -65,34 +66,38 @@ typedef struct {
     public int getCLCode(Parameterizable node, CLCodeBuffer codeBuffer) {
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
-        // TO DO make code from ImageMap 
-        ImageBox image = (ImageBox)node;
+
+        ImageMap image = (ImageMap)node;
         
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();
-        double rounding = ((DoubleParameter)node.getParam("rounding")).getValue();
-        int tilesX = ((IntParameter)node.getParam("tilesX")).getValue();
-        int tilesY = ((IntParameter)node.getParam("tilesY")).getValue();
-        int tiling = ((tilesX & 0xFFFF)| (tilesY & 0xFFFF) << 16);
-
-        if(DEBUG)printf("imageBox([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
+        double v0 = (Double)node.getParam("blackDisplacement").getValue();
+        double v1 = (Double)node.getParam("whiteDisplacement").getValue();
+        
+        double rounding = 0;
+        int repeat = 0;
+        
+        if(DEBUG)printf("imageMap([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f])\n", center.x, center.y, center.z, size.x, size.y, size.z);
         int nx = image.getBitmapWidth();
         int ny = image.getBitmapHeight();
         byte[] data = new byte[nx*ny];
-        double outsideValue = 0.; // what it should be? 
-        image.getBitmapData(data);
+        double outsideValue = 0.; 
+        image.getBitmapDataUByte(data);
+
+        double vOffset = v0;
+        double vFactor = (v1-v0)/255.;
 
         int offset = codeBuffer.addData(data);
 
         int c = 0;
         buffer[c++] = STRUCTSIZE;
         buffer[c++] = OPCODE;
-        buffer[c++] = floatToInt(1.); // vOffset 
-        buffer[c++] = floatToInt(-1./255.); // vFactor
+        buffer[c++] = floatToInt(vOffset); // vOffset 
+        buffer[c++] = floatToInt(vFactor); // vFactor
         buffer[c++] = floatToInt(rounding); // rounding
-        buffer[c++] = tiling;
+        buffer[c++] = repeat;
         buffer[c++] = nx; // dim[0]
-        buffer[c++] = ny; // dim[1]
+        buffer[c++] = ny; // dim[1]I remember
         buffer[c++] = floatToInt(center.x);
         buffer[c++] = floatToInt(center.y);
         buffer[c++] = floatToInt(center.z);
