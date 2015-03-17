@@ -36,6 +36,16 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return ret;
     }
 
+    public void set(String paramName, Object value) {
+        Parameter par = getParam(paramName);
+        par.setValue(value);
+    }
+
+    public Object get(String paramName) {
+        Parameter par = getParam(paramName);
+        return par.getValue();
+    }
+
     /**
      * Get the parameters for the datasource.
      * @return The array of parameters

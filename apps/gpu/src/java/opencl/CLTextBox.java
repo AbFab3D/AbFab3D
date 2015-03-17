@@ -16,7 +16,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.IntParameter;
 
-import abfab3d.datasources.ImageBox;
+import abfab3d.datasources.Image3D;
 import abfab3d.datasources.Text;
 
 import javax.vecmath.Vector3d;
@@ -77,7 +77,7 @@ typedef struct {
         if(DEBUG)printf("text([%7.5f,%7.5f,%7.5f][%7.5f,%7.5f,%7.5f],%7.5f)\n", center.x, center.y, center.z, size.x, size.y, size.z, rounding);
 
         Text text = (Text)node;
-        ImageBox image = text.getBitmap();
+        Image3D image = text.getBitmap();
 
         int nx = image.getBitmapWidth();
         int ny = image.getBitmapHeight();

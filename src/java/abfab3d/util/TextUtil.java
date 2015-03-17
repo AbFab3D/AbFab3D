@@ -20,6 +20,7 @@ import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
 
+import static abfab3d.util.Output.printf;
 
 /**
  * 
@@ -27,7 +28,8 @@ import java.awt.geom.AffineTransform;
  * @author Vladimir Bulatov
  */
 public class TextUtil {
-  
+
+    static final boolean DEBUG = true;
 
     /**
      * Create an image from a text string.
@@ -43,6 +45,30 @@ public class TextUtil {
     }
 
     /**
+       makes text bitmap of given height and automaticaly set with to accomodate text and insets
+     */
+    public static BufferedImage createTextImage(int imageHeight, String text, Font font, Insets insets) {
+
+        if(DEBUG)printf("createText(%d, %s; insets(%d, %d, %d, %d)) \n", imageHeight, text, insets.left,insets.top,insets.right,insets.bottom);
+        // we need to find width of the image for given text height
+        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
+        Graphics2D g = (Graphics2D)image.getGraphics();
+        TextLayout layout = new TextLayout(text, font, g.getFontRenderContext());   
+        Rectangle2D rect = layout.getBounds();         
+        double twidth = rect.getWidth();
+        double theight = rect.getHeight();
+        if(DEBUG)printf("textRect: [%f x %f]\n", twidth, theight);
+        // rect size        
+        double tx = twidth;
+        double ty = theight;
+        int imageWidth = (int)((imageHeight-(insets.top + insets.bottom)) * tx / ty) + (insets.left + insets.right);
+        if(DEBUG)printf("image: %d x %d \n", imageWidth, imageHeight);
+        
+        return createTextImage(imageWidth,imageHeight, text,font, insets, true);
+        
+    }
+
+    /**
      * Create an image from a text string.
      *
      * @param imageWidth The width of the image
@@ -55,7 +81,7 @@ public class TextUtil {
     public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets, boolean shrinkText) {
         
         
-        TextLayout layout = null;
+        if(DEBUG)printf("createText(%d, %d, %s) \n", imageWidth, imageHeight, text);
         double fsize = font.getSize();
         int w = imageWidth - (insets.left + insets.right);
         int h = imageHeight - (insets.top + insets.bottom);
@@ -66,10 +92,8 @@ public class TextUtil {
         //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         //g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
 
-        Rectangle2D rect = null;
-        double ascale = 1;
-        layout = new TextLayout(text, font, g.getFontRenderContext());   
-        rect = layout.getBounds();         
+        TextLayout layout = new TextLayout(text, font, g.getFontRenderContext());   
+        Rectangle2D rect = layout.getBounds();         
 
         double twidth = rect.getWidth();
         double theight = rect.getHeight();
@@ -102,7 +126,6 @@ public class TextUtil {
             at = getRectTransform2(textRect, labelRect);
         }
 
-        //printf("at: scale: %7.3f\n", at.getScaleX());
         g.setTransform(at);
 
         //g.setColor(Color.RED);        

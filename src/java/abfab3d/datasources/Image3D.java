@@ -40,11 +40,11 @@ import static abfab3d.util.Output.time;
 
 
 /**
- * Makes embossed image from given 2D image file.
+ * Makes 3D relief image from supplied 2D image.
  * The shape fits into a box of the specified size. The image is placed parallel to the xy plane.
  * The bounding box is centered at origin.
  * <p/>
- * <embed src="doc-files/ImageBox.svg" type="image/svg+xml"/>
+ * <embed src="doc-files/Image3D.svg" type="image/svg+xml"/>
  * <p>
  * The image may be placed in 3 different places: on top side, on bottom side and on both sides.
  * </p>
@@ -52,7 +52,7 @@ import static abfab3d.util.Output.time;
  * The style of image may be emboss or engrave.
  * </p>
  * <p/>
- * <embed src="doc-files/ImageBox_options.svg" type="image/svg+xml"/>
+ * <embed src="doc-files/Image3D_options.svg" type="image/svg+xml"/>
  * <p>
  * The image can by tiled (repeated) in both x and y directions finite number of times 
  * 
@@ -60,7 +60,7 @@ import static abfab3d.util.Output.time;
  *
  * @author Vladimir Bulatov
  */
-public class ImageBox extends TransformableDataSource {
+public class Image3D extends TransformableDataSource {
 
     final static boolean DEBUG = true;
 
@@ -155,18 +155,18 @@ public class ImageBox extends TransformableDataSource {
     /**
      * @noRefGuide
      */
-    public ImageBox() {
+    public Image3D() {
         initParams();
     }
 
     /**
-     * ImageBox with given image path and size
+     * Image3D with given image path and size
      @param imagePath path to the image file 
      @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sz depth of the box. 
      */
-    public ImageBox(String imagePath, double sx, double sy, double sz) {
+    public Image3D(String imagePath, double sx, double sy, double sz) {
         initParams();
 
         setImagePath(imagePath);
@@ -175,14 +175,14 @@ public class ImageBox extends TransformableDataSource {
     }
 
     /**
-     * ImageBox with given image path and size
+     * Image3D with given image path and size
      @param imagePath path to the image file 
      @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sz depth of the box. 
      @param voxelSize size of voxel to be used for image voxelization 
      */
-    public ImageBox(String imagePath, double sx, double sy, double sz, double voxelSize) {
+    public Image3D(String imagePath, double sx, double sy, double sz, double voxelSize) {
         initParams();
 
         setImagePath(imagePath);
@@ -192,14 +192,14 @@ public class ImageBox extends TransformableDataSource {
     }
 
     /**
-     * ImageBox with given image path and size
+     * Image3D with given image path and size
      @param imagePath path to the image file 
      @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      @param sz depth of the box. 
      @param voxelSize size of voxel to be used for image voxelization 
      */
-    public ImageBox(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
+    public Image3D(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
         initParams();
 
         setImage(image);
@@ -209,14 +209,14 @@ public class ImageBox extends TransformableDataSource {
     }
 
     /**
-     * ImageBox with given image path and size
+     * Image3D with given image path and size
      * @param imwrapper holder of BufferedImage 
      * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sz depth of the box. 
      * @param voxelSize size of voxel to be used for image voxelization 
      */
-    public ImageBox(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
+    public Image3D(ImageWrapper imwrapper, double sx, double sy, double sz, double voxelSize) {
         initParams();
         setImage(imwrapper.getImage());
         setSize(sx, sy, sz);
@@ -322,7 +322,7 @@ public class ImageBox extends TransformableDataSource {
     /**
      * set options to image embossing type
      *
-     * @param type Type ot the image. Possible values ImageBox.IMAGE_TYPE_EMBOSSED (default value), ImageBox.IMAGE_TYPE_ENGRAVED.
+     * @param type Type ot the image. Possible values Image3D.IMAGE_TYPE_EMBOSSED (default value), Image3D.IMAGE_TYPE_ENGRAVED.
      *             
      */
     public void setImageType(int type) {
@@ -335,8 +335,8 @@ public class ImageBox extends TransformableDataSource {
      * set options to place the image
      *
      * @param place of the image.
-     *              Possible values: ImageBox.IMAGE_PLACE_TOP, ImageBox.IMAGE_PLACE_BOTTOM, ImageBox.IMAGE_PLACE_BOTH
-     *              Default ImageBox.IMAGE_PLACE_TOP
+     *              Possible values: Image3D.IMAGE_PLACE_TOP, Image3D.IMAGE_PLACE_BOTTOM, Image3D.IMAGE_PLACE_BOTH
+     *              Default Image3D.IMAGE_PLACE_TOP
      */
     public void setImagePlace(int place) {
 
@@ -829,9 +829,6 @@ public class ImageBox extends TransformableDataSource {
      * @noRefGuide
      */
     private double getHeightFieldValue(double x, double y, double probeSize) {
-
-        //if(debugCount-- > 0)
-        //    printf("ImageBox.getHeightFieldValue(%10.5f, %10.5f, %10.5f)\n", x,y,probeSize);
 
         x = (x - xmin) * xscale; // x and y are now in (0,1)
         y = 1. - (y - ymin) * yscale;

@@ -29,10 +29,10 @@
 #define oTRANSLATION   18
 #define oROTATION      19
 #define oSCALE         20
-#define oENGRAVE       21
+#define oEMBOSSING     21
 #define oGRID2DBYTE    22
 #define oGRID3DBYTE    23
-#define oIMAGEBOX      24
+#define oIMAGE3D       24
 #define oREFLECT       25
 
 
@@ -241,16 +241,16 @@ typedef struct {
     int size;
     int opcode;
     float blendWidth;
-    float depth;
-} sEngrave;
+    float minValue;
+    float maxValue;
+} sEmbossing;
 
-// engrave shape1 with shape2 
-void oEngrave(PTRS sEngrave *ptr, sVec *in1, sVec *in2, sVec *out){
+// emboss shape1 with shape2 
+void oEmbossing(PTRS sEmbossing *ptr, sVec *in1, sVec *in2, sVec *out){
     // bump mapping version 
     //float eng = max(0.f,min(ptr->depth, -in2->v.x));
-    //float eng = blendMax(0.f,blendMin(ptr->depth, -in2->v.x,ptr->blendWidth ),ptr->blendWidth);
-    //out->v.x = in1->v.x + eng;
-    out->v.x = in1->v.x + in2->v.x;
+    float eng = blendMax(ptr->minValue,blendMin(ptr->maxValue, in2->v.x,ptr->blendWidth ),ptr->blendWidth);
+    out->v.x = in1->v.x - eng;
     /*
     // subtraction version 
     float d = in1->v.x;
@@ -411,9 +411,9 @@ typedef struct {
     float yscale; // world->girdy
     float outsideValue; 
     int dataOffset; // location of data in the data buffer 
-} sImageBox;
+} sImage3D;
 
-void oImageBox(PTRS sImageBox *img, sVec *pnt, sVec *out, Scene *pScene){
+void oImage3D(PTRS sImage3D *img, sVec *pnt, sVec *out, Scene *pScene){
 
     float3 v = pnt->v.xyz;
     v -= img->center;    
@@ -471,7 +471,7 @@ void oImageBox(PTRS sImageBox *img, sVec *pnt, sVec *out, Scene *pScene){
         out->v.x = d;
     }
     
-} // oImageBox
+} // oImage3D
 
 //
 // describes 3D grid in space 
@@ -650,9 +650,9 @@ void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
             oGrid2dByte(ptr.pv, &pnt1, &data1, pScene);
             break;
 
-        case oIMAGEBOX:
+        case oIMAGE3D:
             
-            oImageBox(ptr.pv, &pnt1, &data1, pScene);
+            oImage3D(ptr.pv, &pnt1, &data1, pScene);
             break;
 
         case oGRID3DBYTE:
@@ -705,9 +705,9 @@ void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
             oBlendSubtract(ptr.pv,&data1, &data2,&data2);
             break;            
 
-        case oENGRAVE:
+        case oEMBOSSING:
             
-            oEngrave(ptr.pv,&data1, &data2,&data2);
+            oEmbossing(ptr.pv,&data1, &data2,&data2);
             break;            
 
         case oPUSH_D2:

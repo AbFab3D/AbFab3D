@@ -164,6 +164,10 @@ public class ImageMap extends TransformableDataSource {
                 throw new RuntimeException(e);
             }
 
+        } else if(imageSource instanceof Text2D){
+            
+            m_imageData = new ImageGray16(((Text2D)imageSource).getImage());
+
         } else if(imageSource instanceof BufferedImage){
 
             m_imageData = new ImageGray16((BufferedImage)imageSource);                        

@@ -33,7 +33,6 @@ import abfab3d.grid.op.GridMaker;
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
-import abfab3d.datasources.ImageBox;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;

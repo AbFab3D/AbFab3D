@@ -57,10 +57,10 @@ public class Opcodes {
         oROTATION        = 19,
         oSCALE           = 20,
     // 
-        oENGRAVE         = 21,
+        oEMBOSSING       = 21,
         oGRID2DBYTE      = 22,
         oGRID3DBYTE      = 23,
-        oIMAGEBOX        = 24,
+        oIMAGE3D         = 24,
         oREFLECT         = 25,
 
     // end of operations
@@ -88,10 +88,10 @@ public class Opcodes {
         codes.put(oTRANSLATION, "Translation");
         codes.put(oROTATION, "Rotation");
         codes.put(oSCALE, "Scale");
-        codes.put(oENGRAVE, "Engrave");
+        codes.put(oEMBOSSING, "Embossing");
         codes.put(oGRID2DBYTE, "Grid2dByte");        
         codes.put(oGRID3DBYTE, "Grid3dByte");        
-        codes.put(oIMAGEBOX, "ImageBox");        
+        codes.put(oIMAGE3D, "Image3D");        
         codes.put(oREFLECT, "Reflect");        
     }
 

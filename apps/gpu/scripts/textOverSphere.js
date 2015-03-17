@@ -70,22 +70,26 @@ function main(args) {
 	var s = 22*MM;
 
 	var vs = 0.1*MM;		
-    var textBox = new Text("TEXT text", "Times New Roman", bx, by, bz, vs);
+	var text = new Text2D("TEXT text");
+	text.set("fontName","Times New Roman");
+    var textMap = new ImageMap(text, bx, by, bz);
 	
-	textBox.getParam("rounding").setValue(0.*MM);
-	textBox.getParam("blurWidth").setValue(0.1*MM);
-	textBox.setTransform(getTextTransform(p0,n0,p1,n1));
-
+	textMap.set("blurWidth",0.1*MM);
+	textMap.set("blackDisplacement", -0.5*MM);
+	textMap.set("whiteDisplacement", 0*MM);
+	
+	textMap.setTransform(getTextTransform(p0,n0,p1,n1));
 	
 	var shape = new Union(new Sphere(radius));
 	shape.add(new Sphere(p0,1*MM));
 	shape.add(new Sphere(p1,1*MM));
 	
-	var eng = new Engraving(shape, textBox);
-	eng.getParam("depth").setValue(0.5*MM);
-	eng.getParam("blend").setValue(0.2*MM);
+	var emb = new Embossing(shape, textMap);
+	emb.set("minValue",-0.5*MM);
+	emb.set("maxValue",0.5*MM);
+	emb.getParam("blend").setValue(0.2*MM);
 
 	var r = radius+1*MM;
-	return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
+	return new Shape(emb,new Bounds(-r,r,-r,r,-r,r));
 
 }

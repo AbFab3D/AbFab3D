@@ -50,6 +50,8 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    It can be used to generate <a href="http://en.wikipedia.org/wiki/Reflection_group"> reflection groups </a>
    in various geometries. See also artice on <a href = "http://en.wikipedia.org/wiki/Inversive_geometry">invesive geomety</a>.
    </p>
+   
+   @author Vladimir Bulatov
 */
 public class ReflectionSymmetry  implements VecTransform, Initializable  {
     

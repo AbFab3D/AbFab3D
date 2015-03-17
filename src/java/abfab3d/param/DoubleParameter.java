@@ -11,7 +11,8 @@
  ****************************************************************************/
 package abfab3d.param;
 
-// External Imports
+
+import static abfab3d.util.Output.printf;
 
 /**
  * A Double parameter to a service.
@@ -92,6 +93,17 @@ public class DoubleParameter extends NumberParameter {
         this.maxRange = maxRange;
     }
 
+    @Override
+    public void setValue(Object val) {
+
+        if(val instanceof Integer)
+            val = new Double(((Integer)val).intValue());
+        validate(val);
+
+        this.value = val;
+
+    }
+
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
      * error.
@@ -99,6 +111,7 @@ public class DoubleParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
+        
         if (!(val instanceof Double)) {
             throw new IllegalArgumentException("Unsupported type for Double: " + val + " in param: " + getName());
         }

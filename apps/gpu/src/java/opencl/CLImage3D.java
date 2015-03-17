@@ -16,7 +16,7 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.IntParameter;
 
-import abfab3d.datasources.ImageBox;
+import abfab3d.datasources.Image3D;
 
 import javax.vecmath.Vector3d;
 
@@ -26,13 +26,13 @@ import static abfab3d.util.Units.MM;
 import static abfab3d.util.Output.printf;
 
 /**
-   CL code generatror for box
+   CL code generator for Image3D
    @author Vladimir Bulatov 
  */
-public class CLImageBox  extends CLNodeBase {
+public class CLImage3D  extends CLNodeBase {
 
     static final boolean DEBUG = true;
-    static int OPCODE = Opcodes.oIMAGEBOX;
+    static int OPCODE = Opcodes.oIMAGE3D;
     /*
 typedef struct {
     int size;  // size of struct in words 
@@ -66,7 +66,7 @@ typedef struct {
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
 
-        ImageBox image = (ImageBox)node;
+        Image3D image = (Image3D)node;
         
         Vector3d center = ((Vector3dParameter)node.getParam("center")).getValue();
         Vector3d size = ((Vector3dParameter)node.getParam("size")).getValue();

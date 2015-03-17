@@ -18,38 +18,39 @@ import abfab3d.param.DoubleParameter;
 import abfab3d.param.Vector3dParameter;
 import abfab3d.param.SNode;
 
-import abfab3d.datasources.Engraving;
+import abfab3d.datasources.Embossing;
 
 import static opencl.CLUtils.floatToInt;
 
 import static abfab3d.util.Output.printf;
 
 /**
-  OpenCL code for engraving 
+   OpenCL code for embossing
 
    @author Vladimir Bulatov
  */
-public class CLEngraving extends CLNodeBase {
+public class CLEmbossing extends CLNodeBase {
 
-    static int STRUCTSIZE = 4;
+    static int STRUCTSIZE = 8;
     
     int buffer[] = new int[STRUCTSIZE];
     
     public int getCLCode(Parameterizable pnode, CLCodeBuffer codeBuffer) {
 
-        Engraving node = (Engraving)pnode;
+        Embossing node = (Embossing)pnode;
 
 
         //SNode[] children = sub.getChildren();
-        Parameterizable shape = (Parameterizable)node.getParam("shape").getValue();
-        Parameterizable engraver = (Parameterizable)node.getParam("engraver").getValue();
+        Parameterizable shape = (Parameterizable)node.getParam("baseShape").getValue();
+        Parameterizable embosser = (Parameterizable)node.getParam("embosser").getValue();
         if(shape == null) {
             // no base shape do nothing 
             return 0;
         }
         
         double blendWidth = ((DoubleParameter)node.getParam("blend")).getValue();
-        double depth = ((DoubleParameter)node.getParam("depth")).getValue();
+        double minValue = ((DoubleParameter)node.getParam("minValue")).getValue();
+        double maxValue = ((DoubleParameter)node.getParam("maxValue")).getValue();
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
 
@@ -57,10 +58,10 @@ public class CLEngraving extends CLNodeBase {
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_D2, codeBuffer);
 
         // we calculate shapes in opposite order to save resisters movement 
-        CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)engraver);
+        CLCodeGenerator clnode = CLNodeFactory.getCLNode((Parameterizable)embosser);
 
         wcount += CLUtils.addOPCode(Opcodes.oPUSH_P1, codeBuffer);                   
-        wcount += clnode.getCLCode(engraver, codeBuffer);
+        wcount += clnode.getCLCode(embosser, codeBuffer);
         wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);                   
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D1D2, codeBuffer);
 
@@ -69,13 +70,14 @@ public class CLEngraving extends CLNodeBase {
         wcount += clnode.getCLCode((Parameterizable)shape, codeBuffer);
         wcount += CLUtils.addOPCode(Opcodes.oPOP_P1, codeBuffer);                   
         // 
-        // engrave(D1, D2, D2) 
+        // emboss(D1, D2, D2) 
         //
         int c = 0;
         buffer[c++] = STRUCTSIZE;
-        buffer[c++] = Opcodes.oENGRAVE;
+        buffer[c++] = Opcodes.oEMBOSSING;
         buffer[c++] = floatToInt(blendWidth);  
-        buffer[c++] = floatToInt(depth);  
+        buffer[c++] = floatToInt(minValue);  
+        buffer[c++] = floatToInt(maxValue);  
         codeBuffer.add(buffer, STRUCTSIZE);
 
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D2D1, codeBuffer);           

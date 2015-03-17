@@ -33,6 +33,8 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.MathUtil.clamp;
 import static abfab3d.util.MathUtil.step10;
 
+import static abfab3d.util.Units.MM;
+
 
 /**
 
@@ -45,40 +47,34 @@ import static abfab3d.util.MathUtil.step10;
    @author Vladimir Bulatov
 
  */
-public class Engraving extends TransformableDataSource implements SNode {
+public class Embossing extends TransformableDataSource implements SNode {
     
     DataSource dataSource1;
     DataSource dataSource2;
 
-    SNodeParameter mp_shape = new SNodeParameter("shape");
-    SNodeParameter mp_engraver = new SNodeParameter("engraver");
+    SNodeParameter mp_shape = new SNodeParameter("baseShape");
+    SNodeParameter mp_embosser = new SNodeParameter("embosser");
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
-    DoubleParameter mp_depth = new DoubleParameter("depth", "engraving depth", 0.001);
+    DoubleParameter mp_minValue = new DoubleParameter("minValue", "min value to emboss", -1*MM);
+    DoubleParameter mp_maxValue = new DoubleParameter("maxValue", "max value to emboss", 1*MM);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_shape,
-        mp_engraver,
+        mp_embosser,
         mp_blendWidth,
-        mp_depth,
+        mp_minValue,
+        mp_maxValue,
     };    
 
     /**
        shape which is result of subtracting shape2 from shape1
      */
-    public Engraving(DataSource shape, DataSource engraver){
+    public Embossing(DataSource shape, DataSource engraver){
 
         super.addParams(m_aparam);
-
-        setShape(shape);
-        setEngraver(engraver);
-    }
-
-    public void setShape(DataSource shape) {
         mp_shape.setValue(shape);
-    }
+        mp_embosser.setValue(engraver);
 
-    public void setEngraver(DataSource engraver) {
-        mp_engraver.setValue(engraver);
     }
 
     /**
@@ -88,7 +84,7 @@ public class Engraving extends TransformableDataSource implements SNode {
 
         super.initialize();
         dataSource1 = (DataSource)mp_shape.getValue();
-        dataSource2 = (DataSource)mp_engraver.getValue();
+        dataSource2 = (DataSource)mp_embosser.getValue();
 
         if(dataSource1 != null && dataSource1 instanceof Initializable){
             ((Initializable)dataSource1).initialize();
@@ -110,9 +106,8 @@ public class Engraving extends TransformableDataSource implements SNode {
         
         super.transform(pnt);
         double v1 = 0, v2 = 0;
-        // TODO 
+        // TODO implement properly 
         // this currently works as pure subtraction 
-        // need to implement 
         int res = dataSource1.getDataValue(new Vec(pnt), data);
         if(res != RESULT_OK){
             data.v[0] = 0.0;
@@ -147,6 +142,6 @@ public class Engraving extends TransformableDataSource implements SNode {
 
     @Override
     public SNode[] getChildren() {
-        return new SNode[] {(SNode)mp_shape.getValue(),(SNode)mp_engraver.getValue()};
+        return new SNode[] {(SNode)mp_shape.getValue(),(SNode)mp_embosser.getValue()};
     }
 } // class Engraving

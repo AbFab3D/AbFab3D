@@ -36,8 +36,12 @@ import junit.framework.TestSuite;
 
 // Internal Imports
 import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.GridShortIntervals;
+
+import abfab3d.grid.op.GridMaker;
+
 
 import abfab3d.util.Vec;
 import abfab3d.util.MathUtil;
@@ -45,10 +49,10 @@ import abfab3d.util.TextUtil;
 import abfab3d.util.Symmetry;
 import abfab3d.util.VecTransform;
 
+
 import abfab3d.datasources.Box;
 import abfab3d.datasources.Sphere;
 import abfab3d.datasources.Ring;
-import abfab3d.datasources.ImageBox;
 import abfab3d.datasources.DataTransformer;
 import abfab3d.datasources.Intersection;
 import abfab3d.datasources.Union;
@@ -75,6 +79,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.MathUtil.TORAD;
+import static abfab3d.util.Units.MM;
 
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Math.sin;
@@ -82,52 +87,101 @@ import static java.lang.Math.cos;
 import static java.lang.Math.sqrt;
 import static java.lang.Math.PI;
 
+
 import static abfab3d.util.VecTransform.RESULT_OK;
 import static abfab3d.util.MathUtil.normalizePlane;
+
 
 /**
  * Tests the functionality of GridMaker
  *
  * @version
  */
-public class TestImageBox extends TestCase {
+public class DevTestImage3D{
 
-    /**
-     * Creates a test suite consisting of all the methods that start with "test".
-     */
-    public static Test suite() {
-        return new TestSuite(TestImageBox.class);
-    }
 
     int gridMaxAttributeValue = 127;
 
-    public void testBitmap() {
+    public void testBitmapAspectRatio() throws Exception {
 
         printf("testBitmap()\n");
+
+        double voxelSize = 1.e-4;
+        int nx = 100;
+        int ny = 100;
+        int nz = 100;
+
+        double s = 12*MM/2;
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+        
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);            
+        grid.setGridBounds(bounds);
+        
+        String imagePath = "test_imageBitmap.stl";
+
+        Image3D image = new Image3D("test/images/blackcircle.png", 10*MM, 0, 10*MM, voxelSize);
+        image.setUseGrayscale(false);
+        image.setBlurWidth(voxelSize);
+
+        GridMaker gm = new GridMaker();
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        gm.setSource(image);
+
+        gm.makeGrid(grid); 
+
+        writeGrid(grid, "/tmp/test_bitmap.stl");
         
     }
 
-    static void testLinearMapper(){
+    public void testBitmapGray() throws Exception {
 
-        LinearMapper mapper = new LinearMapper(-1000, 1000, -0.001, 0.001);
+        printf("testBitmap()\n");
 
-        double vmin = mapper.getVmin();
-        double vmax = mapper.getVmax();
+        double voxelSize = 1.e-4;
+        int nx = 100;
+        int ny = 100;
+        int nz = 100;
+
+        double s = 12*MM/2;
+        double bounds[] = new double[]{-s, s, -s, s, -s, s};
         
-        printf("%vmin: %f vmax: %f\n", vmin, vmax);
+        AttributeGrid grid = new ArrayAttributeGridByte(nx, ny, nz, voxelSize, voxelSize);            
+        grid.setGridBounds(bounds);
+        
+        String imagePath = "test_imageBitmap.stl";
 
-        for(int i = -2000; i < 2000; i += 100) {
-            long att = i;
-            double v = mapper.map(att);
-            int vi = (int)(255*((v - vmin)/(vmax - vmin)))&0xFF;
-            byte vb = (byte)vi;
-            int vii = (vb) & 0xFF;
-            double vv = vii*(vmax - vmin)/255 + vmin;
-            printf("%8x %5d -> v:%9.5f vi:%4d vb:%4d vii:%4d vv: %9.5f\n", i, att, v*1000, vi, vb, vii, vv*1000);
-        }
+        Image3D image = new Image3D("test/images/blackcircle_blur.png", 10*MM, 0, 10*MM, voxelSize);
+        image.setUseGrayscale(true);
+        //image.setBlurWidth(voxelSize);
+
+        GridMaker gm = new GridMaker();
+        gm.setMaxAttributeValue(gridMaxAttributeValue);
+        gm.setSource(image);
+
+        gm.makeGrid(grid); 
+
+        writeGrid(grid, "/tmp/test_bitmap.stl");
+        
     }
     
-    public static void main(String[] args) {
-        testLinearMapper();
+    void writeGrid(Grid grid, String path) throws Exception {
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(path);
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+
+    }
+
+    public static void main(String[] args) throws Exception {
+
+        DevTestImage3D dt = new DevTestImage3D();
+        //dt.testBitmapAspectRatio();
+        dt.testBitmapGray();
     }
 }

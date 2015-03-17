@@ -104,7 +104,7 @@ public class IntParameter extends NumberParameter {
         int d = 0;
         if (val instanceof Integer) {
             d = ((Integer) val).intValue();
-            this.value = val;
+            this.value = val;        
         } else {
             throw new IllegalArgumentException("Unsupported type for Integer: " + val + " in param: " + getName());
         }
