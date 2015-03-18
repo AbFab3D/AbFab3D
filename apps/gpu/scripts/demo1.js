@@ -129,7 +129,7 @@ function main(args) {
 		var tbz = 10*MM;
 		var tvs = 0.1*MM;
 
-		var text = new Text2D("TEXT text");
+		var text = new Text2D(text);
 		text.set("fontName","Times New Roman");
 		textBox = new ImageMap(text, tbx, tby, tbz);
 
@@ -171,6 +171,7 @@ function main(args) {
 		if(imgBox === null) {
 			bump = textBox;
 		} else {
+			print("intersection path");
 			bump = new Intersection(imgBox, textBox);
 		}
 	} else { // textBox == null
