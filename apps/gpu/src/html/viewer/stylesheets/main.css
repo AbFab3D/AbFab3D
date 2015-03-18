@@ -702,6 +702,9 @@
   border: 3px double #888888;
   padding: 10px;
   overflow-y: auto;
+  resize: vertical;
+  min-height: 100px;
+  max-height: 300px;
 }
 .console .log-type {
   font-weight: 500;

@@ -306,11 +306,6 @@ function pickModel(e, element) {
 
   var url = "/creator/shapejsRT_v1.0.0/pickCached?" + $.param(extraParams);
 
-/*
-  if (paramData !== undefined && paramData !== null) {
-    url = url + "&" + $.param(paramDataToQueryString(paramData));
-  }
-*/
   var request = $.ajax({
     type: "POST",
     url: url
@@ -324,8 +319,7 @@ function pickModel(e, element) {
          (data.normal[0] == 0 && data.normal[1] == 0 && data.normal[2] == 0) )
          return;
 
-//    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
-    console.log("pick result: " + data);
+    console.log("pick result: " + JSON.stringify(data));
     $(pickDataContainer).val(JSON.stringify(data)).change();
   });
 
@@ -467,11 +461,11 @@ function unspin() {
 }
 
 /** Checks if a element value starts with http:// */
-function isUriParam(id) {
+function isUriParam(val) {
   var str = "http://";
-  var val = document.getElementById(id).value;
+  var strs = "https://";
 
-  if (val.substring(0, str.length) === str) {
+  if (val.substring(0, str.length) === str || val.substring(0, strs.length) === strs) {
     return true;
   } else {
     return false;
