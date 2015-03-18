@@ -11,8 +11,7 @@
  ****************************************************************************/
 package abfab3d.param;
 
-
-import static abfab3d.util.Output.printf;
+// External Imports
 
 /**
  * A Double parameter to a service.
@@ -67,11 +66,37 @@ public class DoubleParameter extends NumberParameter {
         this.step = step;
     }
 
+    public DoubleParameter(DoubleParameter def, double initialValue) {
+
+        super(def.getName(), def.getDesc());
+
+        setMinRange(def.getMinRange());
+        setMaxRange(def.getMaxRange());
+
+        defaultValue = initialValue;
+        setValue(initialValue);
+        this.step = def.getStep();
+    }
+
     @Override
     public Double getValue() {
         return (Double) value;
     }
 
+    public Object getDefaultValue(Class hint) {
+        return getValue();
+    }
+
+    @Override
+    public void setValue(Object val) {
+        if (val instanceof Double) {
+            super.setValue(val);
+        } else {
+            Double dval;
+            dval = ((Number)(val)).doubleValue();
+            super.setValue(dval);
+        }
+    }
     /**
      * Get the parameter type enum.
      * @return The type
@@ -116,17 +141,6 @@ public class DoubleParameter extends NumberParameter {
         this.step = step;
     }
 
-    @Override
-    public void setValue(Object val) {
-
-        if(val instanceof Integer)
-            val = new Double(((Integer)val).intValue());
-        validate(val);
-
-        this.value = val;
-
-    }
-
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
      * error.
@@ -134,15 +148,15 @@ public class DoubleParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
-        
-        if (!(val instanceof Double)) {
-            throw new IllegalArgumentException("Unsupported type for Double: " + val + " in param: " + getName());
+        if (val == null) return;
+
+        if (!(val instanceof Number)) {
+            throw new IllegalArgumentException("Unsupported type for Double: " + val.getClass() + " in param: " + getName());
         }
         
-        double d = ((Double) val).doubleValue();
+        double d = ((Number) val).doubleValue();
         
         if (d < minRange) {
-            
             throw new IllegalArgumentException("Invalid double value: " + val + ", below minimum: " + minRange + " in param: " + getName());
 
         }

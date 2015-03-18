@@ -25,9 +25,21 @@ public class StringParameter extends Parameter {
         setValue(initialValue);
     }
 
+    public StringParameter(StringParameter def, String initialValue) {
+
+        super(def.getName(), def.getDesc());
+
+        defaultValue = initialValue;
+        setValue(initialValue);
+    }
+
     @Override
     public String getValue() {
         return (String) value;
+    }
+
+    public Object getDefaultValue(Class hint) {
+        return getValue();
     }
 
     /**

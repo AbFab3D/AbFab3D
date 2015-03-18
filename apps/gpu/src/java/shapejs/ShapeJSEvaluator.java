@@ -116,6 +116,7 @@ public class ShapeJSEvaluator {
         classWhiteList.add("java.lang.String");
         classWhiteList.add("java.lang.reflect.Array");
         classWhiteList.add("java.util.Vector");
+        classWhiteList.add("java.util.ArrayList");
 
         errorRemap = new HashMap<String, String>();
         errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException", "Execution time exceeded.");
@@ -285,7 +286,7 @@ public class ShapeJSEvaluator {
             String key = entry.getKey();
             Object no = entry.getValue();
             Parameter param = params.get(key);
-            Object wrapped =  null;
+            Scriptable wrapped =  null;
 
             if (no instanceof ScriptableObject) {
                 // Already in the correct form
@@ -310,18 +311,17 @@ public class ShapeJSEvaluator {
                         wrapped = new ParameterJSWrapper(scope,dp);
                         break;
                     case DOUBLE_LIST:
-                        DoubleListParameter dlp = (DoubleListParameter) param;
-                        try {
-                            List<Double> dlv = gson.fromJson(json, doubleListType);
-                            dlp.setValue(dlv);
-                        } catch(JsonSyntaxException jse) {
-                            // try single number form
-                            Number dlv = gson.fromJson(json, Number.class);
-                            ArrayList<Double> dlv2 = new ArrayList<Double>();
-                            dlv2.add(new Double(dlv.doubleValue()));
-                            dlp.setValue(dlv2);
+                        List<Number> dlv = gson.fromJson(json, doubleListType);
+                        NativeArray dlna = new NativeArray(dlv.size());
+                        int dllen = dlv.size();
+                        for(int i=0; i < dllen; i++) {
+                            Double num = null;
+                            Object nob = dlv.get(i);
+                            if (nob instanceof Double) num = (Double) nob;
+                            else num = ((Number)nob).doubleValue();
+                            dlna.put(i,dlna,new ParameterJSWrapper(scope,new DoubleParameter(param.getName(),param.getDesc(),num)));
                         }
-                        wrapped = new ArrayJSWrapper(scope,dlp);
+                        wrapped = dlna;
                         break;
                     case STRING:
                         String sv = null;
@@ -344,15 +344,23 @@ public class ShapeJSEvaluator {
                         break;
                     case URI_LIST:
                         String[] ulv = gson.fromJson(json, String[].class);
-                        URIListParameter ulp = (URIListParameter) param;
-                        ulp.setValue(ulv);
-                        wrapped = new ArrayJSWrapper(scope,ulp);
+                        NativeArray ulna = new NativeArray(ulv.length);
+                        int ullen = ulv.length;
+                        for(int i=0; i < ullen; i++) {
+                            String st = ulv[i];
+                            ulna.put(i,ulna,new ParameterJSWrapper(scope,new URIParameter(param.getName(),param.getDesc(),st)));
+                        }
+                        wrapped = ulna;
                         break;
                     case STRING_LIST:
                         List<String> slv = gson.fromJson(json, stringListType);
-                        StringListParameter slp = (StringListParameter) param;
-                        slp.setValue(slv);
-                        wrapped = new ArrayJSWrapper(scope,slp);
+                        NativeArray slna = new NativeArray(slv.size());
+                        int sllen = slv.size();
+                        for(int i=0; i < sllen; i++) {
+                            String st = slv.get(i);
+                            slna.put(i,slna,new ParameterJSWrapper(scope,new StringParameter(param.getName(),param.getDesc(),st)));
+                        }
+                        wrapped = slna;
                         break;
                     case LOCATION:
                         Map<String, Object> map = gson.fromJson(json, Map.class);
@@ -372,8 +380,7 @@ public class ShapeJSEvaluator {
                         LocationParameter lp = (LocationParameter) param;
                         if (point != null) lp.setPoint(point);
                         if (normal != null) lp.setNormal(normal);
-                        wrapped = new ComplexJSWrapper(scope,param);
-                        //wrapped =  Context.javaToJS(lp, scope);
+                        wrapped =  (Scriptable) Context.javaToJS(lp, scope);
 
                         break;
                 }
@@ -455,7 +462,7 @@ public class ShapeJSEvaluator {
             script = addImports(script);
 
 
-            printf("Final script:\n%s\n",script);
+            //printf("Final script:\n%s\n",script);
             try {
                 Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
             } catch (Exception e) {

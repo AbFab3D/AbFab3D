@@ -284,16 +284,17 @@ public class ImageRenderer {
      */
     public EvalResult updateScene(String jobID, String script, Map<String,Object> params) {
 
-        // Call onChange listeners
         try {
-            VolumeScene vscene = setupOpenCL(jobID, script, params, true, 0.5f);
+            try {
+                VolumeScene vscene = setupOpenCL(jobID, script, params, true, 0.5f);
 
-            return vscene.getResult();
-        } catch (NotCachedException nce) {
-            // ignore
+                return vscene.getResult();
+            } catch (NotCachedException nce) {
+                return new EvalResult("Scene not cached: " + jobID,0);
+            }
+        } catch(Exception e) {
+            return new EvalResult("Error updating scene: " + e.getMessage(),0);
         }
-
-        return null;
     }
 
     /**

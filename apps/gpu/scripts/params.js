@@ -68,8 +68,11 @@ function main(args) {
     print("model: " + model);
     print("models: 0: " + models[0] + " 1:" + models[1]);
     print("radii: " + radii[0]);
-    print("sizes: " + sizes[0] + " " + sizes[1]);
 
+    print("Sizes: ");
+    for (var i = 0; i < sizes.length; i++) {
+        print(sizes[i]);
+    }
     // TODO: thought this would have crashed it but doesnt.
     if (sizes[0] != 1 && sizes[1] != 2.2) return null;
     if (radii[0] != 1) return null;
