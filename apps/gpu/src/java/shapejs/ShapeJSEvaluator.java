@@ -12,14 +12,18 @@
 package shapejs;
 
 import abfab3d.grid.Bounds;
+import abfab3d.param.*;
 import abfab3d.util.DataSource;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import javax.vecmath.Vector3d;
+import java.lang.reflect.Type;
+import java.util.*;
 
 import static abfab3d.util.Output.printf;
 
@@ -38,6 +42,7 @@ public class ShapeJSEvaluator {
     /** Default imports to add to scripts */
     private static final ArrayList<String> scriptImports;
     private static final ArrayList<String> classImports;
+    private static final HashSet<String> classWhiteList;
 
     /** Remap error messages to something readable */
     private static final HashMap<String, String> errorRemap;
@@ -48,14 +53,27 @@ public class ShapeJSEvaluator {
     private GlobalScope scope;
     private ErrorReporterWrapper errors;
     private NativeObject argsMap;
-    private HashMap<String,ParameterDefinition> defs;
+    private HashMap<String,Parameter> defs;
     private Shape shape;
+
+    /** Should we run this in a sandbox, default it true */
+    private boolean sandboxed;
+
+    private static Type stringListType = new TypeToken<List<String>>() {}.getType();
+    private static Type doubleListType = new TypeToken<List<Double>>() {}.getType();
+
+    // scratch variables
+    private double[] dArray1 = new double[3];
+    private double[] dArray2 = new double[3];
+    private Vector3d v3d1 = new Vector3d();
+    private Vector3d v3d2 = new Vector3d();
+    private Gson gson = new GsonBuilder().create();
 
     static {
         packageWhitelist = new ArrayList();
         packageWhitelist.add("abfab3d.");
         packageWhitelist.add("javax.vecmath");
-        packageWhitelist.add("java.lang");
+        //packageWhitelist.add("java.lang");    // Do not include this its a security hole
         packageWhitelist.add("app.common");
         packageWhitelist.add("shapejs");
 
@@ -86,8 +104,29 @@ public class ShapeJSEvaluator {
         classImports.add("abfab3d.grid.AttributeDesc");
 
 
+        classWhiteList = new HashSet<String>();
+        classWhiteList.add("java.lang.Boolean");
+        classWhiteList.add("java.lang.Byte");
+        classWhiteList.add("java.lang.Character");
+        classWhiteList.add("java.lang.Class");
+        classWhiteList.add("java.lang.Double");
+        classWhiteList.add("java.lang.Enum");
+        classWhiteList.add("java.lang.Float");
+        classWhiteList.add("java.lang.Object");
+        classWhiteList.add("java.lang.String");
+        classWhiteList.add("java.lang.reflect.Array");
+        classWhiteList.add("java.util.Vector");
+
         errorRemap = new HashMap<String, String>();
         errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException", "Execution time exceeded.");
+    }
+
+    public ShapeJSEvaluator() {
+        this.sandboxed = true;
+    }
+
+    public ShapeJSEvaluator(boolean sandboxed) {
+        this.sandboxed = sandboxed;
     }
 
     /**
@@ -137,7 +176,7 @@ public class ShapeJSEvaluator {
         DebugLogger.clearLog(cx);
         long t0 = System.currentTimeMillis();
 
-        if (DEBUG) printf("runScript(script, %s, namedParams)\n", bounds);
+        if (DEBUG) printf("reevalScript(script, %s, namedParams)\n", bounds);
         try {
             if (scope == null) {
                 throw new IllegalArgumentException("Cannot reeval as scope is null");
@@ -146,18 +185,34 @@ public class ShapeJSEvaluator {
             script = addImports(script);
 
             if (namedParams != null) {
+                mungeParams(defs,namedParams);
+
                 for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
                     printf("Changing arg: %s -> %s\n", entry.getKey(), entry.getValue().toString());
-                    argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), 0);
+                    argsMap.defineProperty(entry.getKey(), entry.getValue(), 0);
+                }
 
-                    ParameterDefinition pd = defs.get(entry.getKey());
+                boolean main_called = false;
+
+                for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
+
+                    Parameter pd = defs.get(entry.getKey());
 
                     if (pd == null) {
                         return new EvalResult("Cannot find parameter: " + entry.getKey(),System.currentTimeMillis() - t0);
                     }
-                    Object o = scope.get(pd.getOnChange(), scope);
+
+                    String onChange = pd.getOnChange();
+
+                    if (onChange == null) {
+                        return new EvalResult("Cannot find onChange property: " + pd.getName(), System.currentTimeMillis() - t0);
+                    }
+                    if (main_called && onChange.equals("main")) {
+                        continue;
+                    }
+                    Object o = scope.get(onChange, scope);
                     if (o == null) {
-                        return new EvalResult("Cannot find onChange function: " + pd.getOnChange(),System.currentTimeMillis() - t0);
+                        return new EvalResult("Cannot find onChange function: " + pd.getOnChange(), System.currentTimeMillis() - t0);
                     }
 
                     Function main = (Function) o;
@@ -174,31 +229,9 @@ public class ShapeJSEvaluator {
                     }
                     if (DEBUG) printf("result of JS evaluation: %s\n", result2);
 
-                    StringBuilder bldr = new StringBuilder();
-                    for(JsError error : errors.getErrors()) {
-                        String err_st = error.toString();
-                        String remap = errorRemap.get(err_st);
-                        if (remap != null) {
-                            err_st = remap;
-                        }
-                        bldr.append(err_st);
-                        bldr.append("\n");
-                    }
-
-                    String err_msg = bldr.toString();
-
-                    List<String> prints = DebugLogger.getLog(cx);
-
-                    String print_msg = "";
-                    if (prints != null) {
-                        for(String print : prints) {
-                            bldr.append(print);
-                        }
-                        print_msg = bldr.toString();
-                    }
-
-                    if (pd.getOnChange().equals("main")) {
+                    if (onChange.equals("main")) {
                         // We updated the who thing
+                        main_called = true;
 
                         if (result2 instanceof NativeJavaObject) {
                             Object no = ((NativeJavaObject) result2).unwrap();
@@ -207,32 +240,214 @@ public class ShapeJSEvaluator {
                             bounds.set(shape.getBounds());
                         }
                     }
-                    return new EvalResult(true,shape.getDataSource(),print_msg,err_msg, System.currentTimeMillis() - t0);
 
                 }
             }
 
+            StringBuilder bldr = new StringBuilder();
+            for(JsError error : errors.getErrors()) {
+                String err_st = error.toString();
+                String remap = errorRemap.get(err_st);
+                if (remap != null) {
+                    err_st = remap;
+                }
+                bldr.append(err_st);
+                bldr.append("\n");
+            }
+
+            String err_msg = bldr.toString();
+
+            List<String> prints = DebugLogger.getLog(cx);
+
+            String print_msg = "";
+            if (prints != null) {
+                for(String print : prints) {
+                    bldr.append(print);
+                }
+                print_msg = bldr.toString();
+            }
+
+            return new EvalResult(true,shape.getDataSource(),print_msg,err_msg, System.currentTimeMillis() - t0);
+
         } finally {
             Context.exit();
         }
-
-        return null;
     }
 
 
-    public EvalResult evalScript(String script, Bounds bounds, Map<String, Object> namedParams) {
+    /**
+     * Convert JSON encoded params into real params based on types
+     * @param params The parameter definitions
+     * @param namedParams
+     */
+    private void mungeParams(Map<String,Parameter> params, Map<String, Object> namedParams) {
+        for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
+            String key = entry.getKey();
+            Object no = entry.getValue();
+            Parameter param = params.get(key);
+            Object wrapped =  null;
+
+            if (no instanceof ScriptableObject) {
+                // Already in the correct form
+                continue;
+            }
+
+            String json = (String) entry.getValue();
+
+            if (param == null) {
+                printf("Unknown param: %s\nparams: %s",key,params);
+                continue;
+            }
+
+            printf("Munging: %s  type: %s\n",param.getName(), param.getType());
+            try {
+
+                switch (param.getType()) {
+                    case DOUBLE:
+                        Double dv = gson.fromJson(json, Double.class);
+                        DoubleParameter dp = (DoubleParameter) param;
+                        dp.setValue(dv);
+                        wrapped = new ParameterJSWrapper(scope,dp);
+                        break;
+                    case DOUBLE_LIST:
+                        DoubleListParameter dlp = (DoubleListParameter) param;
+                        try {
+                            List<Double> dlv = gson.fromJson(json, doubleListType);
+                            dlp.setValue(dlv);
+                        } catch(JsonSyntaxException jse) {
+                            // try single number form
+                            Number dlv = gson.fromJson(json, Number.class);
+                            ArrayList<Double> dlv2 = new ArrayList<Double>();
+                            dlv2.add(new Double(dlv.doubleValue()));
+                            dlp.setValue(dlv2);
+                        }
+                        wrapped = new ArrayJSWrapper(scope,dlp);
+                        break;
+                    case STRING:
+                        String sv = null;
+                        try {
+                            sv = gson.fromJson(json, String.class);
+                        } catch(JsonSyntaxException jse) {
+                            sv = json;
+                        }
+                        StringParameter sp = (StringParameter) param;
+                        sp.setValue(sv);
+                        wrapped = new ParameterJSWrapper(scope,sp);
+                        break;
+                    case URI:
+                        // TODO: not JSON encoded decide if we want this
+                       //String uv = gson.fromJson(json, String.class);
+                        String uv = json;
+                        URIParameter up = (URIParameter) param;
+                        up.setValue(uv);
+                        wrapped = new ParameterJSWrapper(scope,up);
+                        break;
+                    case URI_LIST:
+                        String[] ulv = gson.fromJson(json, String[].class);
+                        URIListParameter ulp = (URIListParameter) param;
+                        ulp.setValue(ulv);
+                        wrapped = new ArrayJSWrapper(scope,ulp);
+                        break;
+                    case STRING_LIST:
+                        List<String> slv = gson.fromJson(json, stringListType);
+                        StringListParameter slp = (StringListParameter) param;
+                        slp.setValue(slv);
+                        wrapped = new ArrayJSWrapper(scope,slp);
+                        break;
+                    case LOCATION:
+                        Map<String, Object> map = gson.fromJson(json, Map.class);
+                        Vector3d point = null;
+                        Vector3d normal = null;
+                        Object o = map.get("point");
+                        if (o != null) {
+                            mungeToVector3d(o, v3d1);
+                            point = v3d1;
+                        }
+                        o = map.get("normal");
+                        if (o != null) {
+                            mungeToVector3d(o, v3d2);
+                            normal = v3d2;
+                        }
+
+                        LocationParameter lp = (LocationParameter) param;
+                        if (point != null) lp.setPoint(point);
+                        if (normal != null) lp.setNormal(normal);
+                        wrapped = new ComplexJSWrapper(scope,param);
+                        //wrapped =  Context.javaToJS(lp, scope);
+
+                        break;
+                }
+                namedParams.put(key, wrapped);
+            } catch(Exception e) {
+                printf("Error parsing: " + json);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public EvalResult evalScript(String script, String method, Bounds bounds, Map<String, Object> namedParams) {
         long t0 = System.currentTimeMillis();
 
-        if (DEBUG) printf("runScript(script, %s, namedParams)\n", bounds);
+        if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
+            printf("Installing custom context factory");
+            org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
+            if (gsetter != null) {
+                gsetter.setContextFactoryGlobal(new SandboxContextFactory());
+            }
+        }
+
+        if (DEBUG) printf("evalScript(script, sandbox: %b namedParams)\n", sandboxed,bounds);
         Context cx = Context.enter();
+        Context.ClassShutterSetter setter = cx.getClassShutterSetter();
+
+        if (sandboxed && setter != null) {
+            setter.setClassShutter(new ClassShutter() {
+                public boolean visibleToScripts(String className) {
+                    if (classWhiteList.contains(className)) {
+                        return true;
+                    }
+
+                    // Do not allow recreation of this class ever
+                    if (className.equals("ShapeJSEvaluator")) {
+                        return false;
+                    }
+
+                    for (String pack : packageWhitelist) {
+                        if (className.startsWith(pack)) {
+                            return true;
+                        }
+
+                    }
+
+                    for (String specific : classImports) {
+                        if (className.equals(specific)) {
+                            return true;
+                        }
+
+                    }
+
+                    printf("Rejecting class: %s\n", className);
+                    return false;
+                }
+            });
+        }
+
         try {
             if (scope == null) {
-                scope = new GlobalScope();
-                ContextFactory contextFactory = new ContextFactory();
+                ContextFactory contextFactory = null;
+                contextFactory = new ContextFactory();
+/*
+                if (sandboxed) {
+                    printf("Installing Sandbox ContextFactory\n");
+                    contextFactory = new SandboxContextFactory();
+                } else {
+                }
+*/
                 ToolErrorReporter errorReporter = new ToolErrorReporter(false, System.err);
                 errors = new ErrorReporterWrapper(errorReporter);
                 contextFactory.setErrorReporter(errors);
 
+                scope = new GlobalScope();
                 scope.initShapeJS(contextFactory);
                 argsMap = new NativeObject();
             }
@@ -240,14 +455,7 @@ public class ShapeJSEvaluator {
             script = addImports(script);
 
 
-            if (namedParams != null) {
-                for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
-                    printf("Adding arg: %s -> %s\n", entry.getKey(), entry.getValue().toString());
-//                    argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), NativeObject.READONLY);
-                    argsMap.defineProperty(entry.getKey(), entry.getValue().toString(), 0);
-                }
-            }
-            //printf("Final script:\n%s\n",script);
+            printf("Final script:\n%s\n",script);
             try {
                 Object result1 = cx.evaluateString(scope, script, "<cmd>", 1, null);
             } catch (Exception e) {
@@ -257,9 +465,37 @@ public class ShapeJSEvaluator {
             }
 
             Object uiParams = scope.get("uiParams", scope);
+            printf("uiParams: %s\n",uiParams);
             parseDefinition(uiParams);
 
-            Object o = scope.get("main", scope);
+            if (namedParams != null) {
+                mungeParams(defs,namedParams);
+                for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
+                    printf("Adding arg: %s -> %s\n", entry.getKey(), entry.getValue().toString() + " class: " + entry.getValue().getClass());
+
+                    argsMap.defineProperty(entry.getKey(), entry.getValue(), 0);
+                }
+            }
+
+            if (method == null) {
+                StringBuilder bldr = new StringBuilder();
+                for(JsError error : errors.getErrors()) {
+                    String err_st = error.toString();
+                    String remap = errorRemap.get(err_st);
+                    if (remap != null) {
+                        err_st = remap;
+                    }
+                    bldr.append(err_st);
+                    bldr.append("\n");
+                }
+
+                String err_msg = bldr.toString();
+                if (err_msg.length() == 0) err_msg = null;
+
+                return new EvalResult(true,null,null,err_msg,defs,(System.currentTimeMillis() - t0));
+            }
+
+            Object o = scope.get(method, scope);
 
             if (o == org.mozilla.javascript.Scriptable.NOT_FOUND) {
                 System.out.println("Cannot find function main");
@@ -336,33 +572,209 @@ public class ShapeJSEvaluator {
     }
 
     private void parseDefinition(Object uiParams) {
-        printf("Parsing uiParams: " + uiParams);
         if (defs == null) {
-            defs = new HashMap<String, ParameterDefinition>();
+            defs = new HashMap<String, Parameter>();
         } else {
             defs.clear();
         }
 
-        if (uiParams == null) return;
+        if (uiParams == null) {
+            return;
+        }
+        if (!(uiParams instanceof NativeArray)) return;
+        NativeArray arr = (NativeArray) uiParams;
+        int len = (int) arr.getLength();
+        printf("Params length: %d\n",len);
+        for(int i=0; i < len; i++) {
+            Object po = arr.get(i);
+            printf("po: %s\n",po);
+            NativeObject no = (NativeObject) po;
+            String name = (String) no.get("name");
+            String desc = (String) no.get("desc");
+            String type = ((String) no.get("type")).toUpperCase();
+            String onChange = (String) no.get("onChange");
 
-        if (uiParams instanceof NativeArray) {
-            NativeArray arr = (NativeArray) uiParams;
-            int len = (int) arr.getLength();
-            printf("Params length: %d\n",len);
-            for(int i=0; i < len; i++) {
-                Object po = arr.get(i);
-                printf("po: %s\n",po);
-                NativeObject no = (NativeObject) po;
-                String id = (String) no.get("id");
-                String displayName = (String) no.get("displayName");
-                String type = (String) no.get("type");
-                String onChange = (String) no.get("onChange");
-                if (onChange == null) onChange = "main";
+            Object defaultValue = no.get("defaultVal");
+            if (onChange == null) onChange = "main";
 
-                printf("Creating pd: id: %s name: %s type: %s onChange: %s\n",id,displayName,type,onChange);
-                ParameterDefinition pd = new ParameterDefinition(id,displayName,type,onChange);
-                defs.put(id,pd);
+            if (type.endsWith("[]")) {
+                type = type.substring(0,type.length()-2) + "_LIST";
             }
+            ParameterType ptype = ParameterType.valueOf(type);
+            Parameter pd = null;
+            Object val = null;
+
+            printf("Creating definition:  %s  type: %s\n",name,type);
+            switch(ptype) {
+                case DOUBLE:
+                    double rangeMin = Double.NEGATIVE_INFINITY;
+                    double rangeMax = Double.POSITIVE_INFINITY;
+                    double step = 1.0;
+                    double def = 0;
+
+                    val = no.get("rangeMin");
+                    if (val != null) {
+                        rangeMin = ((Number) val).doubleValue();
+                    }
+                    val = no.get("rangeMax");
+                    if (val != null) {
+                        rangeMax = ((Number) val).doubleValue();
+                    }
+                    val = no.get("step");
+                    if (val != null) {
+                        step = ((Number) val).doubleValue();
+                    }
+                    val = no.get("defaultVal");
+                    if (val != null) {
+                        def = ((Number) val).doubleValue();
+                    }
+
+                    pd = new DoubleParameter(name,desc,def, rangeMin, rangeMax,step);
+                    break;
+                case STRING:
+                    pd = new StringParameter(name,desc,(String) defaultValue);
+                    break;
+                case URI:
+                    pd = new URIParameter(name,desc,(String) defaultValue);
+                    break;
+                case URI_LIST:
+                    NativeArray ula = (NativeArray) defaultValue;
+                    ArrayList<URIParameter> ul = new ArrayList<URIParameter>();
+                    for(int j=0; j < ula.size(); j++) {
+                        ul.add(new URIParameter(name,desc,(String)ula.get(j)));
+                    }
+                    pd = new URIListParameter(name,desc,ul);
+                    break;
+                case STRING_LIST:
+                    NativeArray sla = (NativeArray) defaultValue;
+                    ArrayList<StringParameter> sl = new ArrayList<StringParameter>();
+                    for(int j=0; j < sla.size(); j++) {
+                        sl.add(new StringParameter(name,desc,(String)sla.get(j)));
+                    }
+                    pd = new StringListParameter(name,desc,sl);
+                    break;
+                case DOUBLE_LIST:
+                    double dlRangeMin = Double.NEGATIVE_INFINITY;
+                    double dlRangeMax = Double.POSITIVE_INFINITY;
+                    double dlStep = 1.0;
+                    ArrayList<DoubleParameter> dll = new ArrayList<DoubleParameter>();
+                    double dlDef = 0;
+
+                    val = no.get("rangeMin");
+                    if (val != null) {
+                        dlRangeMin = ((Number) val).doubleValue();
+                    }
+                    val = no.get("rangeMax");
+                    if (val != null) {
+                        dlRangeMax = ((Number) val).doubleValue();
+                    }
+                    val = no.get("step");
+                    if (val != null) {
+                        dlStep = ((Number) val).doubleValue();
+                    }
+                    val = no.get("defaultVal");
+                    if (val != null) {
+                        if (val instanceof Number) {
+                            dlDef = ((Number) val).doubleValue();
+                            dll.add(new DoubleParameter(name,desc,dlDef,dlRangeMin,dlRangeMax,dlStep));
+                        } else if (val instanceof NativeArray) {
+                            NativeArray dla = (NativeArray) defaultValue;
+                            for(int j=0; j < dla.size(); j++) {
+                                dll.add(new DoubleParameter(name,desc,((Number)dla.get(j)).doubleValue(),dlRangeMin,dlRangeMax,dlStep));
+                            }
+
+                        }
+                    }
+
+                    pd = new DoubleListParameter(name,desc,dll,dlRangeMin,dlRangeMax,dlStep);
+                    break;
+
+                case LOCATION:
+                    // TODO: garbage
+
+                    // default should be a map of point and normal
+                    Map<String,Object> defmap = (Map<String,Object>) defaultValue;
+                    Vector3d p = null;
+                    Vector3d n = null;
+                    double[] point = null;
+                    double[] normal = null;
+
+                    if (defmap != null) {
+                        Object o = defmap.get("point");
+                        printf("point: %s\n", o);
+                        if (o != null) {
+                            mungeToDoubleArray(o, dArray1);
+                            point = dArray1;
+                        }
+                        o = defmap.get("normal");
+                        printf("normal: %s\n", o);
+                        if (o != null) {
+                            mungeToDoubleArray(o, dArray2);
+                            normal = dArray2;
+                        }
+
+                        if (point != null) p = new Vector3d(point);
+                        if (normal != null) n = new Vector3d(normal);
+                    }
+
+                    pd = new LocationParameter(name,desc,p,n);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unhandled parameter type: " + ptype);
+            }
+            pd.setOnChange(onChange);
+            printf("Creating pd: id: %s name: %s type: %s onChange: %s\n",name,desc,type,onChange);
+            defs.put(name,pd);
+        }
+    }
+
+    private void mungeToDoubleArray(Object in, double[] out) {
+        if (in == null) return;
+
+        if (in instanceof NativeArray) {
+            out[0] = ((Number)((NativeArray)in).get(0)).doubleValue();
+            out[1] = ((Number)((NativeArray)in).get(1)).doubleValue();
+            out[2] = ((Number)((NativeArray)in).get(2)).doubleValue();
+        } else if (in instanceof double[]) {
+            out[0] = ((double[])in)[0];
+            out[1] = ((double[])in)[1];
+            out[2] = ((double[])in)[2];
+        } else if (in instanceof int[]) {
+            out[0] = ((int[]) in)[0];
+            out[1] = ((int[]) in)[1];
+            out[2] = ((int[]) in)[2];
+        } else if (in instanceof List) {
+            List list = (List) in;
+            out[0] = ((Number)list.get(0)).doubleValue();
+            out[1] = ((Number)list.get(1)).doubleValue();
+            out[2] = ((Number)list.get(2)).doubleValue();
+        } else {
+            throw new IllegalArgumentException("Unhandled type: " + in + " class: " + in.getClass());
+        }
+    }
+
+    private void mungeToVector3d(Object in, Vector3d out) {
+        if (in == null) return;
+
+        if (in instanceof NativeArray) {
+            out.x = ((Number)((NativeArray)in).get(0)).doubleValue();
+            out.y = ((Number)((NativeArray)in).get(1)).doubleValue();
+            out.z = ((Number)((NativeArray)in).get(2)).doubleValue();
+        } else if (in instanceof double[]) {
+            out.x = ((double[])in)[0];
+            out.y = ((double[])in)[1];
+            out.z = ((double[])in)[2];
+        } else if (in instanceof int[]) {
+            out.x = ((int[]) in)[0];
+            out.y = ((int[]) in)[1];
+            out.z = ((int[]) in)[2];
+        } else if (in instanceof List) {
+            List list = (List) in;
+            out.x = ((Number)list.get(0)).doubleValue();
+            out.y = ((Number)list.get(1)).doubleValue();
+            out.z = ((Number)list.get(2)).doubleValue();
+        } else {
+            throw new IllegalArgumentException("Unhandled type: " + in + " class: " + in.getClass());
         }
     }
 

@@ -1,12 +1,12 @@
 var params = [
     {
-        "id": "radius",
-        "displayName": "radius",
-        "type": "range",
-        "rangeMin": 1,
-        "rangeMax": 21,
-        "step": 1,
-        "default": 10
+        name: "radius",
+        desc: "radius",
+        type: "range",
+        rangeMin: 1,
+        rangeMax: 21,
+        step: 1,
+        defaultVal: 10
     }
 ];
 function main(args) {

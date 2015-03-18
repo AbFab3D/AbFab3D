@@ -13,21 +13,30 @@ package abfab3d.param;
 
 // External Imports
 
-/**
- * A String parameter
- *
- * @author Vladimir Bulatov
- */
-public class StringParameter extends Parameter {
+import java.util.ArrayList;
+import java.util.List;
 
-    public StringParameter(String name, String desc, String initialValue) {
-        super(name, desc);
-        setValue(initialValue);
+/**
+ * A list of String
+ *
+ * @author Alan Hudson
+ */
+public class StringListParameter extends ListParameter {
+    public StringListParameter(String name) {
+
+        this(name, name);
     }
 
-    @Override
-    public String getValue() {
-        return (String) value;
+    public StringListParameter(String name, String desc) {
+
+        this(name, desc, new ArrayList());
+    }
+
+    public StringListParameter(String name, String desc, List initialValue) {
+
+        super(name, desc);
+
+        setValue(initialValue);
     }
 
     /**
@@ -35,7 +44,7 @@ public class StringParameter extends Parameter {
      * @return The type
      */
     public ParameterType getType() {
-        return ParameterType.STRING;
+        return ParameterType.STRING_LIST;
     }
 
     /**
@@ -45,14 +54,8 @@ public class StringParameter extends Parameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
-        if (val == null) return;
-
-        if (!(val instanceof String)) {
-            throw new IllegalArgumentException("Unsupported type for String: " + val + " in param: " + getName());
+        if (!(val instanceof List)) {
+            throw new IllegalArgumentException("Unsupported type for StringList: " + val + " in param: " + getName());
         }
-    }
-
-    public StringParameter clone() {
-        return (StringParameter) super.clone();
     }
 }

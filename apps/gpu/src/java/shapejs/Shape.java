@@ -31,8 +31,15 @@ public class Shape {
     public Bounds getBounds(){
         return bounds;
     }
+    public void setBounds(Bounds bounds) {
+        this.bounds = bounds.clone();
+    }
 
     public DataSource getDataSource(){
         return dataSource;
+    }
+
+    public void setDataSource(DataSource source) {
+        dataSource = source;
     }
 }

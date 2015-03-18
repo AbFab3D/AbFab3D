@@ -72,6 +72,7 @@ public class Main {
     /** Default imports to add to scripts */
     private static final ArrayList<String> scriptImports;
     private static final ArrayList<String> classImports;
+    private static final HashSet<String> classWhiteList;
 
     /** Remap error messages to something readable */
     private static final HashMap<String,String> errorRemap;
@@ -82,7 +83,7 @@ public class Main {
         packageWhitelist = new ArrayList();
         packageWhitelist.add("abfab3d.");
         packageWhitelist.add("javax.vecmath");
-        packageWhitelist.add("java.lang");
+        //packageWhitelist.add("java.lang");
         packageWhitelist.add("app.common");
 
         scriptImports = new ArrayList<String>();
@@ -98,6 +99,19 @@ public class Main {
         // Do not make abfab3d.io.output exposed as a package big security hole
         classImports.add("abfab3d.io.output.SingleMaterialModelWriter");
         classImports.add("abfab3d.io.output.VoxelModelWriter");
+
+        classWhiteList = new HashSet<String>();
+        classWhiteList.add("java.lang.Boolean");
+        classWhiteList.add("java.lang.Byte");
+        classWhiteList.add("java.lang.Character");
+        classWhiteList.add("java.lang.Class");
+        classWhiteList.add("java.lang.Double");
+        classWhiteList.add("java.lang.Enum");
+        classWhiteList.add("java.lang.Float");
+        classWhiteList.add("java.lang.Object");
+        classWhiteList.add("java.lang.String");
+        classWhiteList.add("java.lang.reflect.Array");
+        classWhiteList.add("java.util.Vector");
 
         errorRemap = new HashMap<String,String>();
         errorRemap.put("Wrapped abfab3d.grid.util.ExecutionStoppedException","Execution time exceeded.");
@@ -1119,6 +1133,10 @@ public class Main {
             // Only allow AbFab3D classes to be created from scripts.
             // A type of security policy, but we should learn security policy better
             public boolean visibleToScripts(String className) {
+                if (classWhiteList.contains(className)) {
+                    return true;
+                }
+
                 for(String pack : packageWhitelist) {
                     if (className.startsWith(pack)) {
                         return true;

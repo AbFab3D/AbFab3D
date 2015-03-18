@@ -11,6 +11,7 @@
  ****************************************************************************/
 package shapejs;
 
+import abfab3d.param.Parameter;
 import abfab3d.util.DataSource;
 
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class EvalResult {
     
 
     /** The parsed uiParams */
-    private Map<String,ParameterDefinition> uiParams;
+    private Map<String,Parameter> uiParams;
 
     public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, long evalTime) {
         this.datasource = datasource;
@@ -54,7 +55,7 @@ public class EvalResult {
         this.success = success;
     }
 
-    public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, Map<String,ParameterDefinition> uiParams, long evalTime) {
+    public EvalResult(boolean success,DataSource datasource, String printLog, String errorLog, Map<String,Parameter> uiParams, long evalTime) {
         this.datasource = datasource;
         this.printLog = printLog;
         this.errorLog = errorLog;
@@ -113,13 +114,13 @@ public class EvalResult {
         this.dataSize = dataSize;
     }
 
-    public void setUIParams(Map<String,ParameterDefinition> params) {
-        if (uiParams == null) uiParams = new HashMap<String,ParameterDefinition>();
+    public void setUIParams(Map<String,Parameter> params) {
+        if (uiParams == null) uiParams = new HashMap<String,Parameter>();
 
         uiParams.putAll(params);
     }
 
-    public Map<String,ParameterDefinition> getUIParams() {
+    public Map<String,Parameter> getUIParams() {
         return uiParams;
     }
 }

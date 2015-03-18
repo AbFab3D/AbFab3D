@@ -898,7 +898,7 @@ public class TestVolumeRenderer extends TestCase {
             ioe.printStackTrace();
         }
 
-        EvalResult result = eval.evalScript(script,bounds,null);
+        EvalResult result = eval.evalScript(script,"main",bounds,null);
         DataSource source = result.getDataSource();
 
         OpenCLOpWriterV2 writer = new OpenCLOpWriterV2();

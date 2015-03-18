@@ -1,44 +1,44 @@
 var uiParams = [
 	{
-		"id": "text",
-		"displayName": "Text",
-		"type": "text",
+		id: "text",
+		desc: "Text",
+		type: "text",
 		"required": false,
-		"default": ""
+		defaultVal: ""
 	},
 	{
-		"id": "textpos0",
-		"displayName": "Text Pos1",
-		"type": "location",
+		id: "textpos0",
+		desc: "Text Pos1",
+		type: "location",
 		"required": false,
-		"default": ""
+		defaultVal: ""
 	},
 	{
-		"id": "textpos1",
-		"displayName": "Text Pos2",
-		"type": "location",
+		id: "textpos1",
+		desc: "Text Pos2",
+		type: "location",
 		"required": false,
-		"default": ""
+		defaultVal: ""
 	},
 	{
-		"id": "image",
-		"displayName": "Image",
-		"type": "url",
+		id: "image",
+		desc: "Image",
+		type: "url",
 		"required": false
 	},
 	{
-		"id": "imagepos0",
-		"displayName": "Image Pos1",
-		"type": "location",
+		id: "imagepos0",
+		desc: "Image Pos1",
+		type: "location",
 		"required": false,
-		"default": ""
+		defaultVal: ""
 	},
 	{
-		"id": "imagepos1",
-		"displayName": "Image Pos2",
-		"type": "location",
+		id: "imagepos1",
+		desc: "Image Pos2",
+		type: "location",
 		"required": false,
-		"default": ""
+		defaultVal: ""
 	},
 
 
@@ -183,7 +183,7 @@ function main(args) {
 
 	r = radius * num * 0.7;
 	var shape = new Union(spheres(radius,3), new Box(0,-r * 0.9,0,r,r,r));
-	
+
 	var bump = null;
 	if (textBox != null){
 		if(imgBox == null) {
@@ -193,16 +193,16 @@ function main(args) {
 		}
 	} else { // textBox == null
 		if(imgBox != null) {
-			bump = imgBox;	
+			bump = imgBox;
 		}
 	}
-			
+
 	if(bump == null){
 		return new Shape(shape,new Bounds(-r,r,-r,r,-r,r));
 	} else {
 		var eng = new Engraving(shape, bump);
 		eng.getParam("depth").setValue(0.5*MM);
-		eng.getParam("blend").setValue(0.2*MM);		
+		eng.getParam("blend").setValue(0.2*MM);
 		return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
 	}
 }

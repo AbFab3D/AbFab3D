@@ -13,8 +13,6 @@ package abfab3d.param;
 
 // External Imports
 
-import javax.vecmath.AxisAngle4d;
-
 /**
  * A BooleanParameter parameter 
  *
@@ -47,6 +45,8 @@ public class BooleanParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
+        if (val == null) return;
+
         if (!(val instanceof Boolean)) {
             throw new IllegalArgumentException("Unsupported type for Boolean: " + val + " in param: " + getName());
         }

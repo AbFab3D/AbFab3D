@@ -27,6 +27,12 @@ public abstract class Parameter implements Cloneable {
     /** The value */
     protected Object value;
 
+    /** The default value */
+    protected Object defaultValue;
+
+    /** Method to run on change */
+    protected String onChange;
+
     public Parameter(String name, String desc) {
 
         this.name = name;
@@ -87,11 +93,38 @@ public abstract class Parameter implements Cloneable {
      * Set the parameters value
      * @param value
      */
-    public void setValue(Object value) {
+    public void setDefaultValue(Object value) {
 
         validate(value);
         
+        this.defaultValue = value;
+    }
+
+    /**
+     * Get the parameters value.
+     * @return
+     */
+    public Object getDefaultValue() {
+        return defaultValue;
+    }
+
+    /**
+     * Set the parameters value
+     * @param value
+     */
+    public void setValue(Object value) {
+
+        validate(value);
+
         this.value = value;
+    }
+
+    public String getOnChange() {
+        return onChange;
+    }
+
+    public void setOnChange(String onChange) {
+        this.onChange = onChange;
     }
 
     public Parameter clone() {

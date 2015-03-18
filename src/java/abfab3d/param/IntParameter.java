@@ -100,6 +100,7 @@ public class IntParameter extends NumberParameter {
      * @param val The proposed value
      */
     public void validate(Object val) {
+        if (val == null) return;
 
         int d = 0;
         if (val instanceof Integer) {

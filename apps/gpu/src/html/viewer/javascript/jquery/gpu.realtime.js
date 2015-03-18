@@ -2,10 +2,6 @@ var options;
 var extraParams;
 
 var previewResultsURL = "";
-var creatorOutput = "";
-var generateImage = false;
-
-var maxParams = 20;
 
 var width = 512;
 var height = 512;
@@ -29,9 +25,6 @@ var updatingScene = false;
 var usSkipCount = 15;
 
 var scriptErrorLines = [];
-
-// requestAnimationFrame polyfill by Erik Möller
-// fixes from Paul Irish and Tino Zijdel
 
 (function() {
   var lastTime = 0;
@@ -179,7 +172,7 @@ function updateScene() {
     }
   }
 
-  clearScriptHighlights();
+  clearScriptErrorHighlights();
   updatingScene = true;
   usSkipCount = 15;
 
@@ -246,6 +239,33 @@ function saveScene() {
   }
 }
 
+function loadScene() {
+  spin();
+  
+  options = {
+    url: "/creator/shapejsRT_v1.0.0/loadScene",
+    type: "post",
+    timeout: 180000,
+    beforeSubmit: function(formData, jqForm, options) {
+      for (var i=0; i < formData.length; i++) {
+        console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
+      }
+    },
+    success: function(data) {
+      console.log(data);
+      populateUI(data);
+      unspin();
+    },
+    error: function(xhr, textStatus, errorThrown) {
+      alert( "REQUEST FAILED\n\nCode: " + xhr.status + "\nError: " + xhr.statusText );
+      console.log(xhr);
+      unspin();
+    }
+  };
+
+  jQuery('#load-scene-form').ajaxSubmit(options);
+}
+
 function zoomModel() {
   viewChanged = true;
 }
@@ -303,8 +323,10 @@ function pickModel(e, element) {
     if ( (data.normal[0] == -10000 && data.normal[1] == -10000 && data.normal[2] == -10000) ||
          (data.normal[0] == 0 && data.normal[1] == 0 && data.normal[2] == 0) )
          return;
-         
-    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
+
+//    $(pickDataContainer).val(data["pos"] + "," + data["normal"]).change();
+    console.log("pick result: " + data);
+    $(pickDataContainer).val(JSON.stringify(data)).change();
   });
 
   request.fail(function( jqXHR, textStatus ) {
@@ -391,10 +413,13 @@ function highlightScriptError(text) {
     editor.removeLineClass(lineNumber-1, 'background', 'CodeMirror-activeline-background');
     editor.addLineClass(lineNumber-1, 'background', 'CodeMirror-error-line-bg');
     scriptErrorLines.push(lineNumber-1);
+    
+    // Scroll the line with error into view
+    editor.scrollIntoView({line: lineNumber-1, ch:0});
   }
 }
 
-function clearScriptHighlights() {
+function clearScriptErrorHighlights() {
   $.each(scriptErrorLines, function(i, val) {
     editor.removeLineClass(val, 'background', 'CodeMirror-error-line-bg');
   });

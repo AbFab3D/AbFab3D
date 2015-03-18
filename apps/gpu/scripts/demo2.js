@@ -1,58 +1,58 @@
 var uiParams = [
 	{
-		"id": "model",
-		"displayName": "Model",
-		"type": "url",
+		name: "model",
+		desc: "Model",
+		type: "url",
 		"required": true
 	},
 	{
-		"id": "image1",
-		"displayName": "Image",
-		"type": "url",
+		name: "image1",
+		desc: "Image",
+		type: "url",
 		"required": false
 	},
 	{
-		"id": "imagepos1_0",
-		"displayName": "Image left",
-		"type": "location",
-		"default": "",
+		name: "imagepos1_0",
+		desc: "Image left",
+		type: "location",
+		defaultVal: "",
 		"required": false
 	},
 	{
-		"id": "imagepos1_1",
-		"displayName": "Image right",
-		"type": "location",
-		"default": "",
+		name: "imagepos1_1",
+		desc: "Image right",
+		type: "location",
+		defaultVal: "",
 		"required": false
 	},
 	{
-		"id": "image2",
-		"displayName": "Image2",
-		"type": "url",
+		name: "image2",
+		desc: "Image2",
+		type: "url",
 		"required": false
 	},
 	{
-		"id": "imagepos2_0",
-		"displayName": "Image left",
-		"type": "location",
-		"default": "",
+		name: "imagepos2_0",
+		desc: "Image left",
+		type: "location",
+		defaultVal: "",
 		"required": false
 	},
 	{
-		"id": "imagepos2_1",
-		"displayName": "Image right",
-		"type": "location",
-		"default": "",
+		name: "imagepos2_1",
+		desc: "Image right",
+		type: "location",
+		defaultVal: "",
 		"required": false
 	},
 	{
-		"id": "engraveDepth",
-		"displayName": "Engrave Depth",
-		"type": "range",
+		name: "engraveDepth",
+		desc: "Engrave Depth",
+		type: "range",
 		"rangeMin": -2,
 		"rangeMax": 0.5,
 		"step": 0.1,
-		"default": -1
+		defaultVal: -1
 	}
 
 ];
