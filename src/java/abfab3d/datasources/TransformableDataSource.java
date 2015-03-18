@@ -58,14 +58,6 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
     }
 
     /**
-     * Initialize parameters.
-     * to be overridden by subclass
-     */
-    protected void initParams() {
-        throw new RuntimeException(fmt("params are not initialized for class :%s", this.getClass().getName()));
-    }
-
-    /**
      * Transform the data source
      * @param transform General transformation to apply to the object before it is rendered
      */

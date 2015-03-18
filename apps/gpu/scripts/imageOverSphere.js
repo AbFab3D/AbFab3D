@@ -24,9 +24,12 @@ function main(args) {
 	
 	var eng = new Embossing(s1, imageMap);
 
-	eng.set("minValue",-0.5*MM);
-	eng.set("maxValue",0.5*MM);
+	eng.set("minValue",-0.1*MM);
+	eng.set("maxValue",0.*MM);
 	eng.set("blend",0.5*MM);
+	eng.set("factor",-5);
+	eng.set("offset",-1*MM);
+	
 
 	return new Shape(eng,new Bounds(-s,s,-s,s,-s,s));
 }

@@ -36,16 +36,6 @@ public class BaseParameterizable implements Parameterizable, SNode {
         return ret;
     }
 
-    public void set(String paramName, Object value) {
-        Parameter par = getParam(paramName);
-        par.setValue(value);
-    }
-
-    public Object get(String paramName) {
-        Parameter par = getParam(paramName);
-        return par.getValue();
-    }
-
     /**
      * Get the parameters for the datasource.
      * @return The array of parameters
@@ -65,18 +55,6 @@ public class BaseParameterizable implements Parameterizable, SNode {
     }
 
     /**
-     * Get the current value of a parameter.
-     * @param param The name
-     * @return The value or IllegalArgumentException if not found
-     */
-    public Object getParamValue(String param) {
-        Parameter ret = params.get(param);
-        if (ret == null) throw new IllegalArgumentException("Cannot find parameter: " + param);
-
-        return ret.getValue();
-    }
-
-    /**
        adds parameters from the array to the params table 
        @param aparam  - array of parameters to add 
      */
@@ -86,6 +64,26 @@ public class BaseParameterizable implements Parameterizable, SNode {
         }        
     }
 
+    /**
+     * Set the current value of a parameter.
+     * @param param The name
+     * @param value the value 
+     */
+    @Override
+    public void set(String paramName, Object value) {
+        Parameter par = getParam(paramName);
+        par.setValue(value);
+    }
+
+    /**
+     * Get the current value of a parameter.
+     * @param param The name
+     * @return The value or IllegalArgumentException if not found
+     */
+    public Object get(String paramName) {
+        Parameter par = getParam(paramName);
+        return par.getValue();
+    }
 
     @Override
     public SNode[] getChildren() {

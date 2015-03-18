@@ -145,76 +145,60 @@ public class VolumePatterns {
     public static class Gyroid  extends TransformableDataSource{
         
 
-        private double period = 10*MM;
-        private double thickness = 0.1*MM;
-        private double level = 0;
-        private double offsetX = 0,offsetY = 0,offsetZ = 0;
+        // member variables should be initialized 
+        private double m_thickness;
+        private double m_level;
+        private double m_centerX,m_centerY,m_centerZ;
+        private double m_factor = 0;
 
-        private double factor = 0;
-        private double voxelScale = 1;
+        DoubleParameter mp_period = new DoubleParameter("period", "Periof of gyroid", 10*MM);
+        DoubleParameter mp_thickness = new DoubleParameter("thickness", "thicknenss of surface", 0.2*MM);
+        DoubleParameter mp_level = new DoubleParameter("level", "isosurface level", 0);
+        Vector3dParameter mp_center = new Vector3dParameter("center", "center of gyroid", new Vector3d(0,0,0));
+        
+        Parameter m_aparam[] = new Parameter[]{
+            mp_period,
+            mp_thickness,
+            mp_level,
+            mp_center,
+        };    
+        
 
         public Gyroid(){
-            this(10*MM,0.1*MM);
+            super.addParams(m_aparam);
         }
 
         public Gyroid(double period, double thickness){
-            initParams();
-
+            super.addParams(m_aparam);
             setPeriod(period);
             setThickness(thickness);
         }
 
-        /**
-         * @noRefGuide
-         */
-        protected void initParams() {
-            super.initParams();
-
-            Parameter p = new DoubleParameter("level");
-            params.put(p.getName(),p);
-
-            p = new DoubleParameter("thickness");
-            params.put(p.getName(),p);
-
-            p = new Vector3dParameter("offset");
-            params.put(p.getName(),p);
-
-            p = new DoubleParameter("period");
-            params.put(p.getName(),p);
-        }
-
         public void setPeriod(double value){
 
-            this.period = value;
-            ((DoubleParameter) params.get("period")).setValue(value);
+            mp_period.setValue(value);
         }
 
         public void setThickness(double value){
 
-            this.thickness = value;
-            ((DoubleParameter) params.get("thickness")).setValue(value);
-        }
+            mp_thickness.setValue(value);
 
-        public void setLevel(double value){
-
-            this.level = value;
-            ((DoubleParameter) params.get("level")).setValue(value);
-        }
-
-        public void setVoxelScale(double voxelScale) {
-
-            this.voxelScale = voxelScale;
-        }
-
-        public void setOffset(double offsetX, double offsetY,double offsetZ){
-            this.offsetX = offsetX;
-            this.offsetY = offsetY;
-            this.offsetZ = offsetZ;
         }
         
         public int initialize(){
+
             super.initialize();
-            this.factor = 2*PI/period;
+
+            Vector3d center = (Vector3d)mp_center.getValue();
+
+            m_centerX = center.x;
+            m_centerY = center.y;
+            m_centerZ = center.z;
+            double period = (Double)mp_period.getValue();
+            
+            m_factor = 2*PI/period;
+            m_level = (Double)mp_level.getValue();
+            m_thickness = mp_thickness.getValue();
 
             return RESULT_OK;
         }
@@ -222,16 +206,16 @@ public class VolumePatterns {
         public int getDataValue(Vec pnt, Vec data){
             
             super.transform(pnt);
-            double x = pnt.v[0]-offsetX;
-            double y = pnt.v[1]-offsetY;
-            double z = pnt.v[2]-offsetZ;
+            double x = pnt.v[0] - m_centerX;
+            double y = pnt.v[1] - m_centerY;
+            double z = pnt.v[2] - m_centerZ;
             
-            x *= factor;
-            y *= factor;
-            z *= factor;
+            x *= m_factor;
+            y *= m_factor;
+            z *= m_factor;
             double vs = pnt.getScaledVoxelSize();
             
-            double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - level)/factor) - (thickness + voxelScale*vs);
+            double d = abs(( sin(x)*cos(y) + sin(y)*cos(z) + sin(z) * cos(x) - m_level)/m_factor) - (m_thickness);
             
             data.v[0] = step10(d, 0, vs);
 
@@ -240,98 +224,7 @@ public class VolumePatterns {
             return RESULT_OK;
         }
         
-    }
-
-    /**
-     approximation to Gyroid
-     */
-    public static class GyroidGradient extends TransformableDataSource{
-
-
-        private double period = 10*MM;
-        private double thickness = 0.1*MM;
-        private double level = 0;
-        private double offsetX = 0,offsetY = 0,offsetZ = 0;
-
-        private double factor = 0;
-        private Vector3d pos;
-        private double str;
-        private double lengthSq;
-
-        // Scratch var
-        private Vector3d v;
-
-        public GyroidGradient(){
-
-        }
-
-        public GyroidGradient(double period, double thickness, Vector3d pos, double str){
-
-            this.period = period;
-            this.thickness = thickness;
-            this.pos = pos;
-            this.str = str;
-
-            v = new Vector3d();
-        }
-
-        public void setPeriod(double value){
-            this.period = value;
-        }
-        public void setThickness(double value){
-            this.thickness = value;
-        }
-        public void setLevel(double value){
-            this.level = value;
-        }
-
-        public void setOffset(double offsetX, double offsetY,double offsetZ){
-            this.offsetX = offsetX;
-            this.offsetY = offsetY;
-            this.offsetZ = offsetZ;
-        }
-
-        public int initialize(){
-
-            super.initialize();
-            this.factor = 2*PI/period;
-            double l = pos.length();
-            this.lengthSq = l*l * factor;
-
-            return RESULT_OK;
-        }
-
-        int cnt = 0;
-        public int getDataValue(Vec pnt, Vec data){
-
-            super.transform(pnt);
-            double x = pnt.v[0]-offsetX;
-            double y = pnt.v[1]-offsetY;
-            double z = pnt.v[2]-offsetZ;
-
-            x *= factor;
-            y *= factor;
-            z *= factor;
-            double vs = pnt.getScaledVoxelSize();
-
-            //TODO: remove garbage
-            v.x = x;
-            v.y = y;
-            v.z = z;
-            double l = pos.dot(v) / lengthSq;
-
-            double w = sqrt(1.0 + str * (l*l));
-
-            double d = abs(( sin(w*x)*cos(w*y) + sin(w*y)*cos(w*z) + sin(w*z) * cos(w*x) - level)/factor) - (thickness*w + vs);
-
-            data.v[0] = step10(d, 0, vs);
-
-            super.getMaterialDataValue(pnt, data);
-
-            return RESULT_OK;
-        }
-
-    }
+    } // Gyroid 
 
     public static class Lidinoid extends TransformableDataSource{
 

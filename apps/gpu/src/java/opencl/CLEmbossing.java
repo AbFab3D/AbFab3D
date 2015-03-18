@@ -30,6 +30,19 @@ import static abfab3d.util.Output.printf;
    @author Vladimir Bulatov
  */
 public class CLEmbossing extends CLNodeBase {
+    /*
+// embossing
+typedef struct {
+    int size;
+    int opcode;
+    float blendWidth;
+    float minValue;  // min threshold
+    float maxValue;  // max threshold
+    float vFactor;   // displacement = vFactor*v + vOffset
+    float vOffset;  
+} sEmbossing;
+
+    */
 
     static int STRUCTSIZE = 8;
     
@@ -40,17 +53,14 @@ public class CLEmbossing extends CLNodeBase {
         Embossing node = (Embossing)pnode;
 
 
-        //SNode[] children = sub.getChildren();
-        Parameterizable shape = (Parameterizable)node.getParam("baseShape").getValue();
-        Parameterizable embosser = (Parameterizable)node.getParam("embosser").getValue();
-        if(shape == null) {
-            // no base shape do nothing 
-            return 0;
-        }
+        Parameterizable shape = (Parameterizable)node.get("baseShape");
+        Parameterizable embosser = (Parameterizable)node.get("embosser");
         
-        double blendWidth = ((DoubleParameter)node.getParam("blend")).getValue();
-        double minValue = ((DoubleParameter)node.getParam("minValue")).getValue();
-        double maxValue = ((DoubleParameter)node.getParam("maxValue")).getValue();
+        double blendWidth = (Double)node.get("blend");
+        double minValue = (Double)node.get("minValue");
+        double maxValue = (Double)node.get("maxValue");
+        double factor = (Double)node.get("factor");
+        double offset = (Double)node.get("offset");
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
 
@@ -78,6 +88,9 @@ public class CLEmbossing extends CLNodeBase {
         buffer[c++] = floatToInt(blendWidth);  
         buffer[c++] = floatToInt(minValue);  
         buffer[c++] = floatToInt(maxValue);  
+        buffer[c++] = floatToInt(factor);  
+        buffer[c++] = floatToInt(offset);  
+
         codeBuffer.add(buffer, STRUCTSIZE);
 
         wcount += CLUtils.addOPCode(Opcodes.oCOPY_D2D1, codeBuffer);           

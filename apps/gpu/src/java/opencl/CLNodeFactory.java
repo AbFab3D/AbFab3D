@@ -42,7 +42,6 @@ public class CLNodeFactory {
         //sm_map.put("TextMap", "opencl.CLTextMap");
         sm_map.put("DataSourceGrid", "opencl.CLGrid");
 
-        // TODO: hack for now
         sm_map.put("Text", "opencl.CLTextMap");
     }
     

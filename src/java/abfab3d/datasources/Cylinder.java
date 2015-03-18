@@ -89,7 +89,7 @@ public class Cylinder extends TransformableDataSource {
      * @noRefGuide
      */
     protected void initParams() {
-        super.initParams();
+        //super.initParams();
         Parameter p = new Vector3dParameter("v0");
         params.put(p.getName(), p);
 

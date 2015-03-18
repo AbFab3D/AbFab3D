@@ -57,6 +57,8 @@ public class Embossing extends TransformableDataSource implements SNode {
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
     DoubleParameter mp_minValue = new DoubleParameter("minValue", "min value to emboss", -1*MM);
     DoubleParameter mp_maxValue = new DoubleParameter("maxValue", "max value to emboss", 1*MM);
+    DoubleParameter mp_factor = new DoubleParameter("factor", "embosser factor", 1.);
+    DoubleParameter mp_offset = new DoubleParameter("offset", "embosser offset", 0.);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_shape,
@@ -64,6 +66,8 @@ public class Embossing extends TransformableDataSource implements SNode {
         mp_blendWidth,
         mp_minValue,
         mp_maxValue,
+        mp_factor,
+        mp_offset,
     };    
 
     /**

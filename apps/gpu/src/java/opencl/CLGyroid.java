@@ -26,16 +26,10 @@ public class CLGyroid extends CLNodeBase {
 
         int wcount =  super.getTransformCLCode(node,codeBuffer);
 
-        DoubleParameter plevel = (DoubleParameter)node.getParam("level");
-        double level = plevel.getValue();
-        
-        DoubleParameter pthickness = (DoubleParameter)node.getParam("thickness");
-        double thickness = pthickness.getValue();
-
-        DoubleParameter pperiod = (DoubleParameter)node.getParam("period");
-        double period = pperiod.getValue();
-
-        Vector3d offset = ((Vector3dParameter)node.getParam("offset")).getValue();
+        double level = (Double)node.get("level");
+        double thickness = (Double)node.get("thickness");
+        double period = (Double)node.get("period");
+        Vector3d center = (Vector3d)node.get("center");
 
         double factor = 2 * PI / period;
 
@@ -46,9 +40,9 @@ public class CLGyroid extends CLNodeBase {
         buffer[c++] = floatToInt(thickness);
         buffer[c++] = floatToInt(factor);
         c += 3; // align to 4 words boundary
-        buffer[c++] = floatToInt(offset.x);
-        buffer[c++] = floatToInt(offset.y);
-        buffer[c++] = floatToInt(offset.z);
+        buffer[c++] = floatToInt(center.x);
+        buffer[c++] = floatToInt(center.y);
+        buffer[c++] = floatToInt(center.z);
         buffer[c++] = 0;
 
         codeBuffer.add(buffer, STRUCTSIZE);

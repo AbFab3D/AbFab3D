@@ -236,21 +236,26 @@ void oBlendSubtract(PTRS sBlend *ptr, sVec *in1, sVec *in2, sVec *out){
 
 }
 
-// engrave 
+// embossing
 typedef struct {
     int size;
     int opcode;
     float blendWidth;
-    float minValue;
-    float maxValue;
+    float minValue;  // min threshold
+    float maxValue;  // max threshold
+    float factor;   // displacement = vFactor*v + vOffset
+    float offset;  
 } sEmbossing;
 
 // emboss shape1 with shape2 
 void oEmbossing(PTRS sEmbossing *ptr, sVec *in1, sVec *in2, sVec *out){
+
     // bump mapping version 
     //float eng = max(0.f,min(ptr->depth, -in2->v.x));
-    float eng = blendMax(ptr->minValue,blendMin(ptr->maxValue, in2->v.x,ptr->blendWidth ),ptr->blendWidth);
-    out->v.x = in1->v.x - eng;
+    float v = ptr->factor * in2->v.x + ptr->offset;
+    float e = blendMax(ptr->minValue,blendMin(ptr->maxValue, v, ptr->blendWidth ),ptr->blendWidth);
+    out->v.x = in1->v.x - e;
+
     /*
     // subtraction version 
     float d = in1->v.x;

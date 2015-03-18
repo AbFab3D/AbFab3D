@@ -25,6 +25,15 @@ public interface Parameterizable {
      * @param param The name
      * @return The value or IllegalArgumentException if not found
      */
-    public Object getParamValue(String param);
+    public Object get(String param);
+
+
+    /**
+     * Set the current value of a parameter.
+     * @param param The name
+     * @param value the value to set to param
+     */
+    public void set(String param, Object value);
+
 
 }
