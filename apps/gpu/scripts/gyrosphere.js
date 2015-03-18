@@ -13,14 +13,18 @@ function main(args) {
     var radius = 25 * MM;
 
     var sphere = new Sphere(radius);
-    var gyroid = new VolumePatterns.Gyroid(25*MM, 2*MM);
+    var gyroid = new VolumePatterns.Gyroid();
+	gyroid.set("period", 25*MM);
+	gyroid.set("thickness", 2*MM);
+	gyroid.set("center", new Vector3d(0*MM,0*MM,0*MM));
+	gyroid.set("level", 0);
+	
     var intersect = new Intersection();
-    intersect.setBlend(2*MM);
+    intersect.set("blend",1*MM);
     intersect.add(sphere);
     intersect.add(gyroid);
-	intersect.setBlend(2*MM);
 
-	var r = 25*MM;
+	var r = radius+1*MM;
 	return new Shape(intersect,new Bounds(-r,r,-r,r,-r,r));
 
 }
