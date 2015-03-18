@@ -129,10 +129,13 @@ function main(args) {
 		var tbz = 10*MM;
 		var tvs = 0.1*MM;
 
-		textBox = new Text(text, "Times New Roman", tbx, tby, tbz, tvs);
+		var text = new Text2D("TEXT text");
+		text.set("fontName","Times New Roman");
+		textBox = new ImageMap(text, tbx, tby, tbz);
 
-		textBox.getParam("rounding").setValue(0.*MM);
-		textBox.getParam("blurWidth").setValue(0.1*MM);
+		textBox.set("blurWidth",0.1*MM);
+		textBox.set("blackDisplacement", -0.5*MM);
+		textBox.set("whiteDisplacement", 0*MM);
 		textBox.setTransform(getTextTransform(tp0,tn0,tp1,tn1));
 	}
 	if (imagePath && imagepos0 && imagepos1) {
@@ -153,9 +156,9 @@ function main(args) {
 		var bz = 20*MM;
 		var vs = 0.1*MM;
 
-		imgBox = new ImageBitmap(image, bx, by, bz, vs);
-		imgBox.setBlurWidth(0.1*MM);
-		imgBox.getParam("rounding").setValue(0.0*MM);
+		imgBox = new ImageMap(image, bx, by, bz, vs);
+		imgBox.blurWidth = 0.1*MM;
+		imgBox.rounding = 0.0;
 		imgBox.setTransform(getTextTransform(p0,n0,p1,n1));
 	}
 
@@ -181,9 +184,12 @@ function main(args) {
 	if(bump === null){
 		return new Shape(shape,new Bounds(-r,r,-r,r,-r,r));
 	} else {
-		var eng = new Engraving(shape, bump);
-		eng.getParam("depth").setValue(engraveDepth);
-		eng.getParam("blend").setValue(0.2*MM);
+		var eng = new Embossing(shape, bump);
+		eng.set("minValue",-0.5*MM);
+		eng.set("maxValue",0.5*MM);
+		eng.set("blend",0.2*MM);
+
+		//eng.getParam("depth").setValue(engraveDepth);
 		return new Shape(eng,new Bounds(-r,r,-r,r,-r,r));
 	}
 }
