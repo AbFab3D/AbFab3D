@@ -154,11 +154,9 @@ function main(args) {
 		var bx = p01.length();
 		var by = bx * image.getHeight()/image.getWidth();
 		var bz = 20*MM;
-		var vs = 0.1*MM;
 
-		imgBox = new ImageMap(image, bx, by, bz, vs);
-		imgBox.blurWidth = 0.1*MM;
-		imgBox.rounding = 0.0;
+		imgBox = new ImageMap(image, bx, by, bz);
+		imgBox.set("blurWidth",0.1*MM);
 		imgBox.setTransform(getTextTransform(p0,n0,p1,n1));
 	}
 
