@@ -49,4 +49,13 @@ public class ParameterJSWrapper extends ScriptableObject implements JSWrapper {
         return param.getType().toString();
     }
 
+    @Override
+    public void put(String name, Scriptable start, Object value) {
+        param.setValue(value);
+    }
+
+    @Override
+    public Object get(String name, Scriptable start) {
+        return param.getValue();
+    }
 }

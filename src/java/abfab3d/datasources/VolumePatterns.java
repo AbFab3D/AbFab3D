@@ -168,8 +168,6 @@ public class VolumePatterns {
          * @noRefGuide
          */
         protected void initParams() {
-            super.initParams();
-
             Parameter p = new DoubleParameter("level");
             params.put(p.getName(),p);
 
