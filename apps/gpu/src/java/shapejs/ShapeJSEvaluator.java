@@ -21,6 +21,8 @@ import com.google.gson.reflect.TypeToken;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
+import io.SceneIO;
+
 import javax.vecmath.Vector3d;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -282,6 +284,9 @@ public class ShapeJSEvaluator {
      * @param namedParams
      */
     private void mungeParams(Map<String,Parameter> params, Map<String, Object> namedParams) {
+        // If URI parameter is a fully qualified url, download and resolve it
+        SceneIO.downloadURI(params, namedParams);
+        
         for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
             String key = entry.getKey();
             Object no = entry.getValue();
