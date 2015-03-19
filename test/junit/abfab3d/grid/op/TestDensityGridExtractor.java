@@ -132,7 +132,7 @@ public class TestDensityGridExtractor extends BaseTestDistanceTransform {
         DataSourceGrid dsg2 = new DataSourceGrid(supersurface,max_attribute);
 //        DataSource gyroid = new VolumePatterns.Gyroid(3*MM,0.4*MM);
 //        DataSource cubes = new VolumePatterns.CubicGrid(2*MM,0.4*MM);
-        DataSource schwarz = new VolumePatterns.SchwarzPrimitive(2*MM,0.5*MM);
+        DataSource schwarz = new VolumePatterns.SchwarzP(2*MM,0.5*MM);
         Intersection pattern = new Intersection(dsg2, schwarz);
 
 //        Union result = new Union(dsg1,pattern);

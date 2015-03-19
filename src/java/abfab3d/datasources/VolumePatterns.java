@@ -184,7 +184,15 @@ public class VolumePatterns {
             mp_thickness.setValue(value);
 
         }
-        
+
+        public void setCenter(Vector3d value) {
+            mp_center.setValue(value);
+        }
+
+        public void setLevel(double value) {
+            mp_level.setValue(value);
+        }
+
         public int initialize(){
 
             super.initialize();

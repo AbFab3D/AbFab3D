@@ -121,7 +121,7 @@ public class DevTestSlicesWriter extends TestCase {
         gyroid.setThickness(0.02*s);
         //gyroid.setLevel(0);
         gyroid.setLevel(1.5);
-        gyroid.setOffset(-0.25*s,-0.25*s,0.*s);
+        gyroid.setCenter(new Vector3d(-0.25*s,-0.25*s,0.*s));
        
         //VecTransforms.Rotation rotation = new VecTransforms.Rotation(new Vector3d(1,1,0), Math.PI/10);
         
@@ -735,7 +735,7 @@ public class DevTestSlicesWriter extends TestCase {
         gyroid.setThickness(0.03*sg);
         //gyroid.setLevel(0);
         gyroid.setLevel(1.5);
-        gyroid.setOffset(0.25*sg,-0.2*sg,0.*sg);
+        gyroid.setCenter(new Vector3d(0.25*sg,-0.2*sg,0.*sg));
 
         Intersection intersection = new Intersection();
         intersection.add(new Sphere(0,0,0,15*MM));
