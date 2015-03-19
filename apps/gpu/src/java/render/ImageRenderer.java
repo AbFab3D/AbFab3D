@@ -378,6 +378,7 @@ public class ImageRenderer {
 
         VolumeScene vscene = setupOpenCL(jobID, script, params, useCache, quality);
 
+        if (DEBUG) printf("   vscene: %s  inst: %d\n",vscene,vscene.getCLCode().opcodesCount());
         t0 = System.nanoTime();
 
         Matrix4f inv_view = new Matrix4f(view);
@@ -426,8 +427,8 @@ public class ImageRenderer {
             CacheEntry ce = null;
 
             if (useCache && jobID != null && (params == null || params.size() == 0)) {
-                if (DEBUG) printf("Checking cache");
                 ce = cacheSource.get(jobID);
+                if (DEBUG) printf("Checking cache.  jobID: %s  ce: %s\n",jobID,ce);
                 if (ce != null && ce.quality != quality) {
                     if (DEBUG) printf("Quality not the same for cached");
                     newScene = true;  // force a new openCL program
@@ -456,6 +457,7 @@ public class ImageRenderer {
                     eval = new ShapeJSEvaluator();
                     bounds = new Bounds();
                     ce = new CacheEntry();
+                    ce.jobID = jobID;
                     ce.evaluator = eval;
                     ce.result = eval.evalScript(script, "main",bounds, params);
                 } else {
@@ -511,11 +513,20 @@ public class ImageRenderer {
                 ShapeJSEvaluator eval = null;
                 Bounds bounds = new Bounds();
 
+                // check for existing js cache
+                if (jobID != null) {
+                    ce = cacheSource.get(jobID);
+                    if (ce != null) {
+                        eval = ce.evaluator;
+                    }
+                }
+
                 if (DEBUG) printf("js evaluation\n");
                 if (ce == null) {
                     eval = new ShapeJSEvaluator();
                     bounds = new Bounds();
                     ce = new CacheEntry();
+                    ce.jobID = jobID;
                     ce.evaluator = eval;
                     ce.result = eval.evalScript(script, "main",bounds, params);
                 } else {
@@ -597,6 +608,9 @@ public class ImageRenderer {
 
         }
 
+        if (render[0].getCurrentScene() != vscene) {
+            newScene = true;
+        }
         if (newScene) {
             if (DEBUG) printf("New scene for jobID: %s\n",jobID);
             for (int i = 0; i < numRenderers; i++) {
@@ -824,6 +838,7 @@ public class ImageRenderer {
     }
 
     public static class CacheEntry {
+        public String jobID;
         public EvalResult result;
         public CLCodeBuffer ops;
         public VolumeScene vscene;
