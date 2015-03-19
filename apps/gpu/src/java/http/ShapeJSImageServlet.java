@@ -1170,11 +1170,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         return result;
     }
-    
-    private String resolveURN(String resultDir) {
-    	String ret_val = resultDir.replace(RESULTS_DIR, RESULTS_DIR_PUBLIC);
-    	return ret_val;
-    }
+
     
     public static class SceneCacheEntry {
         private String sceneID;

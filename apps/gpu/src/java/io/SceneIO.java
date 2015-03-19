@@ -34,15 +34,14 @@ import java.util.zip.ZipOutputStream;
 import javax.vecmath.Vector3d;
 
 /**
- * Creates images from ShapeJS
+ * Common IO methods for scene.
  *
- * @author Alan Hudson
+ * @author Tony Wong
  */
 public class SceneIO {
     private static String RESULTS_DIR_PUBLIC = "http://localhost:8080/creator-kernels/results";
     private static String RESULTS_DIR = "/var/www/html/creator-kernels/results";
     private static String TMP_DIR = "/tmp";
-    private static int TEMP_DIR_ATTEMPTS = 1000;
 
 
     public static Map<String, Object> loadScene(Map<String, String[]> params) throws IOException {

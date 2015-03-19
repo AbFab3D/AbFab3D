@@ -1,77 +1,31 @@
 package utils;
 
-import static abfab3d.util.Output.printf;
-import abfab3d.param.Parameter;
-import abfab3d.param.ParameterType;
-import abfab3d.param.URIParameter;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-
-import shapejs.JSWrapper;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-import java.util.*;
 
 /**
- * Creates images from ShapeJS
+ * Utility methods.
  *
- * @author Alan Hudson
+ * @author Tony Wong
  */
 public class Utils {
     private static String RESULTS_DIR_PUBLIC = "http://localhost:8080/creator-kernels/results";
     private static String RESULTS_DIR = "/var/www/html/creator-kernels/results";
-    private static String TMP_DIR = "/tmp";
+    public static String TMP_DIR = "/tmp";
     private static int TEMP_DIR_ATTEMPTS = 1000;
 
 
-    public static void downloadURI(Map<String, Parameter> evalParams, Map<String, Object> namedParams) {
-		String workingDirName = null;
-		String workingDirPath = null;
-		
-        for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
-            String key = entry.getKey();
-            Object val = entry.getValue();
-            Parameter param = evalParams.get(key);
-            String json = (String) entry.getValue();
-            
-            try {
-
-                if (param.getType() == ParameterType.URI) {
-                	Parameter p = ((JSWrapper) val).getParameter();
-                	URIParameter up = (URIParameter) p;
-                	String urlStr = up.getValue();
-                	System.out.println("*** uri, " + key + " : " + urlStr);
-                	if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
-                		if (workingDirName == null) {
-                			workingDirName = createTempDir(TMP_DIR);
-                			workingDirPath = TMP_DIR + "/" + workingDirName;
-                		}
-                		
-                		String localPath = writeUrlToFile(key, urlStr, workingDirPath);
-                		up.setValue(localPath);
-                		System.out.println("*** uri, " + key + " : " + up.getValue());
-                	}
-                } else if (param.getType() == ParameterType.URI_LIST) {
-                	// TODO: Handle uri list
-                }
-                
-            } catch (Exception e) {
-            	printf("Error resolving uri: " + json);
-            	e.printStackTrace();
-            }
-        }
-    }
-    
     public static String downloadURI(String paramName, String urlStr) throws IOException {
 		String workingDirName = createTempDir(TMP_DIR);
 		String workingDirPath = TMP_DIR + "/" + workingDirName;
 		return writeUrlToFile(paramName, urlStr, workingDirPath);
     }
 
-    private static String writeUrlToFile(String paramName, String urlStr, String destDir) throws IOException {
+    public static String writeUrlToFile(String paramName, String urlStr, String destDir) throws IOException {
 		String filename = paramName + "_" + FilenameUtils.getName(urlStr);
 
 		File file = new File(destDir + "/" + filename);
