@@ -129,11 +129,11 @@ function prepForm(formData, jqForm, options) {
   $.each(extraParams, function(key, val) {
     formData.push({name: key, value: val});
   });
-
+/*
   for (var i=0; i < formData.length; i++) {
     console.log("### " + formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
   }
-
+*/
 }
 
 function checkFile(formData, index) {
@@ -250,14 +250,17 @@ function insertInput(param) {
       pname_input.setAttribute("type", "text");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", param.defaultVal);
       pname_input.setAttribute("class", "col2-input");
-
       var pname_input_div = document.createElement("div");
       pname_input_div.setAttribute("class", "col2-3");
       pname_input_div.appendChild(pname_input);
 
-      setParamVal(param.name, param.defaultVal);
+      if (param.defaultVal === undefined || param.defaultVal === null) {
+        setParamVal(param.name, null);
+      } else {
+        setParamVal(param.name, param.defaultVal);
+        pname_input.setAttribute("value", param.defaultVal);
+      }
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
@@ -324,7 +327,6 @@ function insertInput(param) {
       pname_input.setAttribute("type", "text");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", JSON.stringify(param.defaultVal));
       pname_input.setAttribute("class", "col2-input");
       pname_input.setAttribute("readOnly", true);
 
@@ -338,15 +340,21 @@ function insertInput(param) {
       button_div.setAttribute("onclick", "pickModeOn('" + param.name + "', this);");
       button_div.innerHTML = "Location";
 
-      setParamVal(param.name, param.defaultVal);
+      if (param.defaultVal === undefined || param.defaultVal === null) {
+        setParamVal(param.name, null);
+      } else {
+        setParamVal(param.name, param.defaultVal);
+        pname_input.setAttribute("value", JSON.stringify(param.defaultVal));
+      }
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
     case "uri":
+      var fileNameHolderId = toFileNameHolderId(param.name);
       var fname_text = document.createElement("input");
       fname_text.setAttribute("type", "text");
-      fname_text.setAttribute("name", toFileNameHolderId(param.name));
-      fname_text.setAttribute("id", toFileNameHolderId(param.name));
+      fname_text.setAttribute("name", fileNameHolderId);
+      fname_text.setAttribute("id", fileNameHolderId);
       fname_text.setAttribute("class", "col2-input");
       fname_text.setAttribute("readOnly", true);
 
@@ -368,7 +376,14 @@ function insertInput(param) {
       button_div.innerHTML = "File";
       button_div.appendChild(pname_input);
 
-      setParamVal(param.name, null);
+      // Handle fully quality uri as default value
+      if (param.defaultVal !== undefined) {
+        fname_text.setAttribute("value", val);
+        setParamVal(param.name, val);
+      } else {
+        setParamVal(param.name, null);
+      }
+
       setParamRequirement(param.name, param.required);
       addFileParamUIListener(pname_input, param.name, fname_text, (param.type).toLowerCase());
       break;
@@ -549,7 +564,6 @@ function populateUI(data) {
     if (paramDef[key].type == "uri") {
       var fileNameHolderId = toFileNameHolderId(key);
       $("#" + fileNameHolderId).val(val);
-//      setParamVal(fileNameHolderId, val);
       setParamVal(key, val);
     } else {
       if (paramDef[key].type == "location") {
