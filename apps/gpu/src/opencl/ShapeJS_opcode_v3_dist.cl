@@ -36,6 +36,7 @@
 #define oREFLECT       25
 #define oSCHWARZP      26
 #define oSCHWARZD      27
+#define oLIDINOID      28
 
 
 #define oEND   0
@@ -206,6 +207,41 @@ void oSchwarzD(PTRS sSchwarzD *g, sVec *in, sVec *out){
         cosz = cos(z);
 
     out->v.x = fabs(sinx * siny * sinz + sinx * cosy * cosz + cosx * siny * cosz + cosx * cosy * sinz - g->level) / g->factor - g->thickness;
+    
+}
+
+typedef struct {
+    int size;
+    int opcode;
+    float level;
+    float thickness;
+    float factor;
+} sLidinoid;
+
+void oLidinoid(PTRS sLidinoid *g, sVec *in, sVec *out){
+    float3 pnt = in->v.xyz;
+    pnt *= g->factor;
+    
+    float 
+        x = pnt.x,
+        y = pnt.y,
+        z = pnt.z,
+        s2x = sin(2*x),
+        s2y = sin(2*y),
+        s2z = sin(2*z),
+        c2x = cos(2*x),
+        c2y = cos(2*y),
+        c2z = cos(2*z),
+        sx = sin(x),
+        sy = sin(y),
+        sz = sin(z),
+        cx = cos(x),
+        cy = cos(y),
+        cz = cos(z);
+
+
+    out->v.x = fabs(((s2x*cy*sz + s2y*cz*sx + s2z*cx*sy) - (c2x*c2y + c2y*c2z + c2z*c2x) 
+                     + 0.3 - g->level)/g->factor)  - g->thickness;
     
 }
 
@@ -708,6 +744,11 @@ void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
         case oSCHWARZD:
             
             oSchwarzD(ptr.pv, &pnt1, &data1);        
+            break;
+
+        case oLIDINOID:
+            
+            oLidinoid(ptr.pv, &pnt1, &data1);        
             break;
 
         case oBOX:

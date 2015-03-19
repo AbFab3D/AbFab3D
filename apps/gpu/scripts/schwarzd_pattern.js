@@ -12,18 +12,19 @@ var params = [
 function main(args) {
     var radius = 25 * MM;
 
-    var sphere = new Sphere(radius);
+    var base = new Sphere(radius);
     var pattern = new VolumePatterns.SchwarzD();
-	pattern.set("period", 30*MM);
-	pattern.set("thickness", 1*MM);
+	pattern.set("period", 0.5*radius);
+	pattern.set("thickness", 0.5*MM);
 	pattern.set("level", 0);
 	
-    var intersect = new Intersection();
-    intersect.set("blend",1*MM);
-    intersect.add(sphere);
-    intersect.add(pattern);
-
+    var shape = new Embossing(base, pattern);
+	shape.set("minValue", -0.4*MM);
+	shape.set("maxValue", 0.*MM);
+	shape.set("factor", 0.8);
+	shape.set("blend", 0.5*MM);
+	
 	var r = radius+1*MM;
-	return new Shape(intersect,new Bounds(-r,r,-r,r,-r,r));
+	return new Shape(shape,new Bounds(-r,r,-r,r,-r,r));
 
 }
