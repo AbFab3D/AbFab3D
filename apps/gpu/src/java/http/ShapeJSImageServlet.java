@@ -11,12 +11,14 @@ import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.mozilla.javascript.NativeJavaObject;
 
 import render.*;
 import shapejs.EvalResult;
 import shapejs.JSWrapper;
 import shapejs.ShapeJSEvaluator;
+import utils.Utils;
+
+import io.SceneIO;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -32,13 +34,11 @@ import javax.vecmath.Vector3f;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import static abfab3d.util.Output.printf;
@@ -52,6 +52,7 @@ public class ShapeJSImageServlet extends HttpServlet {
     public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V3_DIST;
     
     private static int MAX_UPLOAD_SIZE = 64000000;
+    private static String RESULTS_DIR_PUBLIC = "http://localhost:8080/creator-kernels/results";
     private static String RESULTS_DIR = "/var/www/html/creator-kernels/results";
     private static String TMP_DIR = "/tmp";
     private static int TEMP_DIR_ATTEMPTS = 1000;
@@ -814,8 +815,13 @@ public class ShapeJSImageServlet extends HttpServlet {
                 return;
             }
 
-            saveScene(sce, resp);
-            resp.flushBuffer();
+            resp.setContentType("application/zip");
+            resp.setHeader("Content-Disposition","attachment;filename=\"shapeJS.zip\"");
+            
+            OutputStream os = resp.getOutputStream();
+            
+            SceneIO.saveScene(sce.getScript(), sce.getParams(), os);
+            os.close();
         } else {
             resp.sendError(410,"Job not cached");
             return;
@@ -828,7 +834,7 @@ public class ShapeJSImageServlet extends HttpServlet {
                                                      String accept)
             throws IOException {
 
-        HashMap<String, Object> result = new HashMap<String, Object>();
+        Map<String, Object> result = new HashMap<String, Object>();
 
         boolean isMultipart = ServletFileUpload.isMultipartContent(req);
         Map<String, String[]> params = null;
@@ -838,54 +844,10 @@ public class ShapeJSImageServlet extends HttpServlet {
             params = new HashMap<String, String[]>();
             mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
 
-            String workingDirName = createTempDir(RESULTS_DIR);
-            String resultDirPath = RESULTS_DIR + "/" + workingDirName;
-
-            String zipFile = params.get("sceneFile")[0];
-            Map<String, String> sceneFiles = new HashMap<String, String>();
-            extractZip(zipFile, resultDirPath, sceneFiles);
-
-            String scriptFilePath = sceneFiles.get("scriptFile");
-            String paramFilePath = sceneFiles.get("paramFile");
-            System.out.println("scriptFilePath: " + scriptFilePath);
-            System.out.println("paramFilePath: " + paramFilePath);
-
-            if (scriptFilePath == null) {
-                result.put("success",false);
-            } else {
-                File scriptFile = new File(scriptFilePath);
-                String script = FileUtils.readFileToString(scriptFile, "UTF-8");
-                result.put("script", script);
-
-                if (paramFilePath != null) {
-                    Gson gson = new Gson();
-                    String paramsJson = FileUtils.readFileToString(new File(paramFilePath), "UTF-8");
-                    Map<String, Object> scriptParams = gson.fromJson(paramsJson, Map.class);
-
-                    Bounds bounds = new Bounds();
-                    ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
-                    EvalResult evalResult = evaluator.evalScript(script, null,bounds, null);
-                    Map<String, Parameter> evalParams = evalResult.getUIParams();
-
-                    // For parameters of type "uri", make it a fully qualified url
-                    System.out.println("*** Loaded params");
-                    for (Map.Entry<String, Object> entry : scriptParams.entrySet()) {
-                        String name = entry.getKey();
-                        Object val = entry.getValue();
-                        ParameterType type = evalParams.get(name).getType();
-                        System.out.println(    type + ": " + name + "=" + val);
-                        if (type == ParameterType.URI) {
-                            scriptParams.put(name, resultDirPath + "/" + (String)val);
-                        }
-                    }
-
-                    result.put("params", scriptParams);
-                }
-
-                result.put("success", true);
-            }
+            result = SceneIO.loadScene(params);
         } else {
             result.put("success",false);
+            result.put("errorLog","Missing scene file");
         }
 
         Gson gson = new Gson();
@@ -909,7 +871,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         System.out.println("*** Script:\n" + script);
         System.out.println("*** Params:");
-        String workingDirName = createTempDir(TMP_DIR);
+        String workingDirName = Utils.createTempDir(TMP_DIR);
         String workingDirPath = TMP_DIR + "/" + workingDirName;
         Map<String, Object> params = new HashMap<String, Object>();
 
@@ -1026,52 +988,6 @@ public class ShapeJSImageServlet extends HttpServlet {
         os.close();
 */
     }
-
-    public void extractZip(String zipFile, String outputFolder, Map<String, String> sceneFiles) {
-        byte[] buffer = new byte[1024];
-
-        try{
-            //create output directory is not exists
-            File folder = new File(outputFolder);
-            if (!folder.exists()) {
-                folder.mkdir();
-            }
-
-            ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile));
-            ZipEntry ze = zis.getNextEntry();
-
-            while (ze != null) {
-                // Ignore directories
-                if (ze.isDirectory()) continue;
-
-                String fileName = ze.getName();
-                File newFile = new File(outputFolder + File.separator + fileName);
-                System.out.println("file unzip : "+ newFile.getAbsoluteFile());
-
-                FileOutputStream fos = new FileOutputStream(newFile);
-
-                int len;
-                while ((len = zis.read(buffer)) > 0) {
-                    fos.write(buffer, 0, len);
-                }
-
-                // Save path to the script and parameters files
-                if (fileName.endsWith(".json")) {
-                    sceneFiles.put("paramFile", newFile.getAbsolutePath());
-                } else if (fileName.endsWith(".js")) {
-                    sceneFiles.put("scriptFile", newFile.getAbsolutePath());
-                }
-
-                fos.close();
-                ze = zis.getNextEntry();
-            }
-
-            zis.closeEntry();
-            zis.close();
-        } catch (IOException ex){
-            ex.printStackTrace();
-        }
-    }
     
     private void getView(float rotX, float rotY, float zoom, Matrix4f mat) {
         float[] DEFAULT_TRANS = new float[]{0, 0, zoom};
@@ -1169,7 +1085,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             List<FileItem> items = upload.parseRequest(req);
 
             String ext = null;
-            String upload_dir = createTempDir(baseDir);
+            String upload_dir = Utils.createTempDir(baseDir);
 
             // Process the uploaded items
             Iterator<FileItem> iter = items.iterator();
@@ -1204,7 +1120,7 @@ public class ShapeJSImageServlet extends HttpServlet {
                     long sizeInBytes = item.getSize();
 
 //                    File uploadedFile = File.createTempFile(prefix, ext, new File(uploadDir));
-                    File uploadedFile = createTempFile(baseDir + "/" + upload_dir, fieldName, baseName, ext);
+                    File uploadedFile = Utils.createTempFile(baseDir + "/" + upload_dir, fieldName, baseName, ext);
                     item.write(uploadedFile);
 
                     // TODO: Schedule the uploaded file for deletion
@@ -1227,63 +1143,6 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         return success;
-    }
-
-    /**
-    * Atomically creates a new directory somewhere beneath the system's
-    * temporary directory (as defined by the {@code java.io.tmpdir} system
-    * property), and returns its name.
-    *
-    * <p>Use this method instead of {@link File#createTempFile(String, String)}
-    * when you wish to create a directory, not a regular file.  A common pitfall
-    * is to call {@code createTempFile}, delete the file and create a
-    * directory in its place, but this leads a race condition which can be
-    * exploited to create security vulnerabilities, especially when executable
-    * files are to be written into the directory.
-    *
-    * <p>This method assumes that the temporary volume is writable, has free
-    * inodes and free blocks, and that it will not be called thousands of times
-    * per second.
-    *
-    * @return the newly-created directory
-    * @throws IllegalStateException if the directory could not be created
-    */
-    protected String createTempDir(String baseDir) {
-        String baseName = System.currentTimeMillis() + "-";
-
-        for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
-            File tempDir = new File(baseDir, baseName + counter);
-            if (tempDir.mkdir()) {
-                return baseName + counter;
-            }
-        }
-
-        throw new IllegalStateException("Failed to create directory within "
-            + TEMP_DIR_ATTEMPTS + " attempts (tried "
-            + baseName + "0 to " + baseName + (TEMP_DIR_ATTEMPTS - 1) + ')' + " baseDir: " + baseDir);
-    }
-    
-    protected File createTempFile(String baseDir, String fieldName, String fileName, String ext) {
-        String baseName = fieldName + "_" + fileName + "-";//System.currentTimeMillis() + "-";
-        
-        String extension = ext;
-        if (!extension.startsWith(".")) {
-        	extension = "." + extension;
-        }
-
-        try {
-            for (int counter = 0; counter < TEMP_DIR_ATTEMPTS; counter++) {
-//                File tempFile = new File(baseDir, fileName + baseName + counter + ext);
-                File tempFile = new File(baseDir, baseName + counter + extension);
-                if (tempFile.createNewFile()) {
-                    return tempFile;
-                }
-            }
-        } catch (Exception e) {}
-
-        throw new IllegalStateException("Failed to create file within "
-            + TEMP_DIR_ATTEMPTS + " attempts (tried " + baseName + "0" + extension
-            + " to " + baseName + (TEMP_DIR_ATTEMPTS - 1) + extension + ')' + " baseDir: " + baseDir);
     }
 
     /**
@@ -1311,7 +1170,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         return result;
     }
-    
+
     
     public static class SceneCacheEntry {
         private String sceneID;

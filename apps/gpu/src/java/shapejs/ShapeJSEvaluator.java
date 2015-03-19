@@ -21,6 +21,8 @@ import com.google.gson.reflect.TypeToken;
 import org.mozilla.javascript.*;
 import org.mozilla.javascript.tools.ToolErrorReporter;
 
+import utils.Utils;
+
 import javax.vecmath.Vector3d;
 import java.lang.reflect.Type;
 import java.util.*;
@@ -390,6 +392,9 @@ public class ShapeJSEvaluator {
                 e.printStackTrace();
             }
         }
+        
+        // If URI parameter is a fully qualified url, download and resolve it
+        downloadURI(params, namedParams);
     }
 
     public EvalResult evalScript(String script, String method, Bounds bounds, Map<String, Object> namedParams) {
@@ -806,5 +811,47 @@ public class ShapeJSEvaluator {
             msg = msg.substring(0, idx - 1);
         }
         return msg;
+    }
+    
+    /**
+     * Download any uri parameters containing a fully qualified url.
+     * 
+     * @param evalParams
+     * @param namedParams
+     */
+    private void downloadURI(Map<String, Parameter> evalParams, Map<String, Object> namedParams) {
+		String workingDirName = null;
+		String workingDirPath = null;
+		String urlStr = null;
+		
+        for (Map.Entry<String, Object> entry : namedParams.entrySet()) {
+            String key = entry.getKey();
+            Object val = entry.getValue();
+            Parameter param = evalParams.get(key);
+            
+            try {
+                if (param.getType() == ParameterType.URI) {
+                	URIParameter up = (URIParameter) param;
+                	urlStr = up.getValue();
+//                	System.out.println("*** uri, " + key + " : " + urlStr);
+                	if (urlStr.startsWith("http://") || urlStr.startsWith("https://")) {
+                		if (workingDirName == null) {
+                			workingDirName = Utils.createTempDir(Utils.TMP_DIR);
+                			workingDirPath = Utils.TMP_DIR + "/" + workingDirName;
+                		}
+                		
+                		String localPath = Utils.writeUrlToFile(key, urlStr, workingDirPath);
+                		up.setValue(localPath);
+//                		System.out.println("*** uri, " + key + " : " + up.getValue());
+                	}
+                } else if (param.getType() == ParameterType.URI_LIST) {
+                	// TODO: Handle uri list
+                }
+                
+            } catch (Exception e) {
+            	printf("Error resolving uri: " + urlStr);
+            	e.printStackTrace();
+            }
+        }
     }
 }

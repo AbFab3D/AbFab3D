@@ -12,7 +12,7 @@
 
 <link rel="stylesheet" type="text/css" href="stylesheets/main.css"/>
 <link rel="stylesheet" type="text/css" href="stylesheets/screen.css"/>
-<link rel="stylesheet" type="text/css" href="stylesheets/nav2.css"/>
+<link rel="stylesheet" type="text/css" href="stylesheets/nav.css"/>
 
 <link rel="stylesheet" href="stylesheets/codemirror.css">
 <link rel="stylesheet" href="javascript/codemirror/theme/eclipse.css">
@@ -100,16 +100,25 @@ if (typeof String.prototype.endsWith !== 'function') {
 function prepForm(formData, jqForm, options) {
   for (var i=0; i < formData.length; i++) {
     if ( $.inArray(formData[i].name, deltaParams) >= 0 ) {
+      var pdef = paramDef[formData[i].name];
+      if (typeof pdef === "undefined" || pdef === null)
+        continue;
+
       console.log("Param changed: " + formData[i].name + " val: " + formData[i].value);
-      var isComplex = false;
-      if (paramDef[formData[i].name].type == "location" || paramDef[formData[i].name].type.endsWith("[]")) isComplex = true;
+
+      if (pdef.type == "uri") {
+        checkFile(formData, i);
+      } else {
+        var isComplex = false;
+	    if (pdef.type == "location" || pdef.type.endsWith("[]")) isComplex = true;
+
+	    if (!isComplex && formData[i].value !== undefined) {
+	      // Don't JSON encode complex data types.
+	      formData[i].value = JSON.stringify(formData[i].value);
+        }
+      }
 
       formData[i].name = "shapeJS_" + formData[i].name;
-
-      if (!isComplex && formData[i].value !== undefined && formData[i].type != "file") {
-        // Don't JSON encode complex data types.
-        formData[i].value = JSON.stringify(formData[i].value);
-      }
     } else {
       formData.splice(i, 1);
       i--;
@@ -121,40 +130,19 @@ function prepForm(formData, jqForm, options) {
     formData.push({name: key, value: val});
   });
 
-/*
   for (var i=0; i < formData.length; i++) {
-    if (formData[i].type != "file") {
-        formData[i].value = JSON.stringify(formData[i].value);
-	} else {
-	  checkFile(formData, i);
-	}
+    console.log("### " + formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
   }
 
-  for (var i=0; i < formData.length; i++) {
-    console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
-  }
-*/
 }
-
-
 
 function checkFile(formData, index) {
   var fileParam = formData[index].name;
-  var fileNameParam = fileParam.replace("file", "filename");
-  var val = document.getElementById(fileNameParam).value;
+  var val = paramData[fileParam];
 
-  if (isUriParam(fileNameParam)) {
+  if (isUriParam(val)) {
     formData[index].type = "text";
-    formData[index].name = fileParam;
-    formData[index].value = val;//JSON.stringify(val);
-  } else if (val.indexOf("/") > -1) {
-    if (val.charAt(0) === "/") {
-      val = val.substring(1);
-    }
-    var host = location.host;
-    formData[index].type = "text";
-    formData[index].name = fileParam;
-    formData[index].value = "http://" + host + "/" + val;//JSON.stringify("http://" + host + "/" + val);
+    formData[index].value = val;
   }
 }
 
@@ -178,9 +166,22 @@ function renderReady() {
   var ready = true;
 
   $.each(paramData, function(key, val) {
-    if ( val === null && paramRequired[key] == true ) {
-      ready = false;
-      return false;
+    if (val == null) {
+      if (!paramRequired[key]) {
+        return;
+      } else {
+        if (paramDef[key].type != "uri") {
+          ready = false;
+          return false;
+        } else {
+          if (typeof paramData[toFileNameHolderId(key)] !== "undefined" && paramData[toFileNameHolderId(key)] !== null) {
+            return;
+          } else {
+            ready = false;
+            return false;
+          }
+        }
+      }
     }
   });
 
@@ -344,8 +345,8 @@ function insertInput(param) {
     case "uri":
       var fname_text = document.createElement("input");
       fname_text.setAttribute("type", "text");
-      fname_text.setAttribute("name", "filename" + param.name);
-      fname_text.setAttribute("id", "filename" + param.name);
+      fname_text.setAttribute("name", toFileNameHolderId(param.name));
+      fname_text.setAttribute("id", toFileNameHolderId(param.name));
       fname_text.setAttribute("class", "col2-input");
       fname_text.setAttribute("readOnly", true);
 
@@ -382,7 +383,6 @@ function insertInput(param) {
   switch ( (param.type).toLowerCase() ) {
     case "uri":
       var fval_file_div = document.createElement("div");
-//      fval_file_div.setAttribute("class", "param-val");
       fval_file_div.appendChild(pname_input_div);
       fval_file_div.appendChild(button_div);
 
@@ -399,7 +399,6 @@ function insertInput(param) {
       break;
     case "location":
       var pval_div = document.createElement("div");
-//      pval_div.setAttribute("class", "param-val");
       pval_div.appendChild(pname_input_div);
       pval_div.appendChild(button_div);
 
@@ -414,7 +413,6 @@ function insertInput(param) {
       }
     default:
       var pval_div = document.createElement("div");
-//      pval_div.setAttribute("class", "param-val");
       pval_div.appendChild(pname_input_div);
 
       if (pname_input_display !== undefined && pname_input_display !== null) {
@@ -435,8 +433,8 @@ function insertInput(param) {
 }
 
 function setParamDef(id, val) {
-  console.log("Added param: " + id);
-  console.log(val);
+//  console.log("Added param: " + id);
+//  console.log(val);
   paramDef[id] = val;
 }
 
@@ -530,6 +528,10 @@ function addFileParamUIListener(element, elementId, nameHolderElement, type) {
   });
 }
 
+function toFileNameHolderId(id) {
+  return "filename" + id;
+}
+
 function populateUI(data) {
   // Remove current val in "sceneFile" input so that a load of same file triggers a change
   $("#sceneFile").val("");
@@ -544,15 +546,23 @@ function populateUI(data) {
 
   $.each(params, function(key, val) {
 //    console.log(key + " = " + val);
-    if (paramDef[key].type == "location") {
-      val = JSON.stringify(val);
-    }
+    if (paramDef[key].type == "uri") {
+      var fileNameHolderId = toFileNameHolderId(key);
+      $("#" + fileNameHolderId).val(val);
+//      setParamVal(fileNameHolderId, val);
+      setParamVal(key, val);
+    } else {
+      if (paramDef[key].type == "location") {
+        $("#" + key).val(JSON.stringify(val));
+      } else {
+        $("#" + key).val(val);
+      }
 
-    setParamVal(key, val);
-    $("#" + key).val(val);
+      setParamVal(key, val);
 
-    if ( $("#" + key).length ) {
-      $("#" + key + "-display").html( val );
+      if ( $("#" + key).length ) {
+        $("#" + key + "-display").html( val );
+      }
     }
   });
 

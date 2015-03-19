@@ -305,36 +305,53 @@ public class TestImageRenderer extends TestCase {
         assertNotNull("foo defined", result.getErrorLog());
     }
 
-    public void testSecurity1() throws IOException {
+    public void testSecurityExit() throws IOException {
         int width = 256;
         int height = 256;
 
         BufferedImage base = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         BufferedImage test = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
-        String file = "test/scripts/security_exit.js";
+        String[] file = {
+        		"test/scripts/security_exit.js",
+        		"test/scripts/security_exit2.js",
+        		"test/scripts/security_exit3.js"
+        };
+
         ImageRenderer render = new ImageRenderer();
         render.initCL(1, width, height);
         render.setVersion(VERSION);
 
         render.render(null, getFile("test/scripts/security_base.js"), new HashMap<String, Object>(), getView(), false, 0.5f, base);
-        render.render(null, getFile(file), new HashMap<String, Object>(), getView(), false, 0.5f, test);
 
         if (DEBUG) {
             try {
                 ImageIO.write(base, "png", new File("/tmp/security_base.png"));
-                ImageIO.write(test, "png", new File("/tmp/security_exit.png"));
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
         }
 
-        assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
-        assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
+        for (int i=0; i<file.length; i++) {
+            render.render(null, getFile(file[i]), new HashMap<String, Object>(), getView(), false, 0.5f, test);
 
-        EvalResult result = render.updateScene(null, getFile(file), new HashMap<String, Object>());
+            if (DEBUG) {
+                try {
 
-        assertFalse("Result not false", result.isSuccess());
+                    ImageIO.write(test, "png", new File("/tmp/security_exit.png"));
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+            }
+
+            assertFalse("Constant image", ImageUtilTest.isConstantImage(test));
+            assertFalse("Same image", ImageUtilTest.isImageEqual(base, test));
+
+            EvalResult result = render.updateScene(null, getFile(file[i]), new HashMap<String, Object>());
+
+            assertFalse("Result not false", result.isSuccess());
+        }
+
     }
 
     public void testSecurity2() throws IOException {
@@ -440,7 +457,7 @@ public class TestImageRenderer extends TestCase {
     private String getFile(String file) throws IOException {
         return FileUtils.readFileToString(new File(file));
     }
-    
+
     private Matrix4f getView() {
         float[] DEFAULT_TRANS = new float[]{0, 0, -4};
         float z = DEFAULT_TRANS[2];
