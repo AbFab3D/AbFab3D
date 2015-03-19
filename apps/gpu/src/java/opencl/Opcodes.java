@@ -64,6 +64,7 @@ public class Opcodes {
         oREFLECT         = 25,
         oSCHWARZP        = 26,
         oSCHWARZD        = 27,
+        oLIDINOID        = 28,
 
     // end of operations
         oEND = 0; 
@@ -97,6 +98,7 @@ public class Opcodes {
         codes.put(oREFLECT, "Reflect");        
         codes.put(oSCHWARZP, "SchwarzP");        
         codes.put(oSCHWARZD, "SchwarzD");        
+        codes.put(oSCHWARZD, "Lidinoid");        
     }
 
     public static String getText(int code) {

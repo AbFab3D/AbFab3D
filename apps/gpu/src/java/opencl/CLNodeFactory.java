@@ -31,6 +31,7 @@ public class CLNodeFactory {
         sm_map.put("Gyroid", "opencl.CLGyroid");
         sm_map.put("SchwarzP", "opencl.CLSchwarzP");
         sm_map.put("SchwarzD", "opencl.CLSchwarzD");
+        sm_map.put("Lidinoid", "opencl.CLLidinoid");
         sm_map.put("Torus", "opencl.CLTorus");
         sm_map.put("Box", "opencl.CLBox");
         sm_map.put("Translation", "opencl.CLTranslation");

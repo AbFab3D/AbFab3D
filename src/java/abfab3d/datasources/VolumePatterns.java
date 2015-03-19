@@ -226,42 +226,90 @@ public class VolumePatterns {
         
     } // Gyroid 
 
+    /**
+       http://en.wikipedia.org/wiki/Lidinoid
+    */
     public static class Lidinoid extends TransformableDataSource{
 
+        private double m_thickness;
+        private double m_level;
+        private double m_factor = 0;
 
-        double period;
-        double thickness;
+        DoubleParameter mp_period = new DoubleParameter("period", "Period of surface", 10*MM);
+        DoubleParameter mp_thickness = new DoubleParameter("thickness", "thicknenss of surface", 0.2*MM);
+        DoubleParameter mp_level = new DoubleParameter("level", "isosurface level", 0);
 
+        Parameter m_aparam[] = new Parameter[]{
+            mp_period,
+            mp_thickness,
+            mp_level,
+        };    
+
+        public Lidinoid(){
+            super.addParams(m_aparam);
+        }
         public Lidinoid(double period, double thickness){
 
-            this.period = period;
-            this.thickness = thickness;
+            super.addParams(m_aparam);
 
+            mp_period.setValue(period);
+            mp_thickness.setValue(thickness);
 
+        }
+
+        public int initialize(){
+
+            super.initialize();
+
+            double period = (Double)mp_period.getValue();
+            
+            m_factor = 2*PI/period;
+            m_level = (Double)mp_level.getValue();
+            m_thickness = mp_thickness.getValue();
+
+            return RESULT_OK;
         }
 
         public int getDataValue(Vec pnt, Vec data){
 
             super.transform(pnt);
+
             double x = pnt.v[0];
             double y = pnt.v[1];
             double z = pnt.v[2];
 
-            x *= 2*PI/period;
-            y *= 2*PI/period;
-            z *= 2*PI/period;
+            x *= m_factor;
+            y *= m_factor;
+            z *= m_factor;
 
             double vs = pnt.getScaledVoxelSize();
+            double 
+                s2x = sin(2*x),
+                s2y = sin(2*y),
+                s2z = sin(2*z),
+                c2x = cos(2*x),
+                c2y = cos(2*y),
+                c2z = cos(2*z),
+                sx = sin(x),
+                sy = sin(y),
+                sz = sin(z),
+                cx = cos(x),
+                cy = cos(y),
+                cz = cos(z);
 
-            double d = 0.5 * (sin(2*x) * cos(y) * sin(z) + sin(2*y) * cos(z) * sin(z) + sin(2*z)*cos(x) * sin(y)) -
-                    0.5 * (cos(2*x) * cos(2*y) + cos(2*y) * cos(2*z) + cos(2*z) * cos(2*x)) + 0.15 - thickness;
+
+
+            double d = abs((0.5 * (s2x * cy * sz + s2y * cz * sx + s2z * cx * sy) -
+                            0.5 * (c2x * c2y + c2y * c2z + c2z * c2x) 
+                            + 0.15 - m_level)/m_factor)  - m_thickness;
+            
             data.v[0] = step10(d, 0, (vs));
 
             super.getMaterialDataValue(pnt, data);
             return RESULT_OK;
         }
 
-    }
+    } // Lidinoid
 
     /**
      * Schwarz Primitive as defined here: http://en.wikipedia.org/wiki/Schwarz_minimal_surface#Schwarz_P_.28.22Primitive.22.29
@@ -403,16 +451,44 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
-    public static class ScherkSecondSurface extends TransformableDataSource {
+    public static class ScherkSecond extends TransformableDataSource {
 
+        double m_thickness;
+        double m_level;
+        double m_factor = 0;
 
-        double period;
-        double thickness;
+        DoubleParameter mp_period = new DoubleParameter("period", "Period of surface", 10*MM);
+        DoubleParameter mp_thickness = new DoubleParameter("thickness", "thicknenss of surface", 0.2*MM);
+        DoubleParameter mp_level = new DoubleParameter("level", "isosurface level", 0);
 
-        public ScherkSecondSurface(double period, double thickness){
+        Parameter m_aparam[] = new Parameter[]{
+            mp_period,
+            mp_thickness,
+            mp_level,
+        };    
 
-            this.period = period;
-            this.thickness = thickness;
+        public ScherkSecond(){
+            super.addParams(m_aparam);
+        }
+
+        public ScherkSecond(double period, double thickness){
+            super.addParams(m_aparam);
+
+            mp_period.setValue(period);
+            mp_thickness.setValue(thickness);
+        }
+
+        public int initialize(){
+
+            super.initialize();
+
+            double period = (Double)mp_period.getValue();
+            
+            m_factor = 2*PI/period;
+            m_level = mp_level.getValue();
+            m_thickness = mp_thickness.getValue();
+
+            return RESULT_OK;
         }
 
         public int getDataValue(Vec pnt, Vec data){
@@ -422,14 +498,13 @@ public class VolumePatterns {
             double y = pnt.v[1];
             double z = pnt.v[2];
 
-            x *= 2*PI/period;
-            y *= 2*PI/period;
-            z *= 2*PI/period;
+            x *= m_factor;
+            y *= m_factor;
+            z *= m_factor;
 
-            double d = sin(z) - sinh(x)*sinh(y) - thickness;
-            double vs = pnt.getScaledVoxelSize();
+            double d = abs(sin(z) - sinh(x)*sinh(y) - m_level)/m_factor - m_thickness;
 
-            data.v[0] = step10(d, 0, (vs));
+            data.v[0] = step10(d, 0, pnt.getScaledVoxelSize());
 
             super.getMaterialDataValue(pnt, data);
 
@@ -444,14 +519,44 @@ public class VolumePatterns {
      */
     public static class Enneper extends TransformableDataSource{
 
+        double m_level;
+        double m_factor;
+        double m_thickness;
 
-        double period;
-        double thickness;
+        DoubleParameter mp_size = new DoubleParameter("size", "size of surface", 10*MM);
+        DoubleParameter mp_thickness = new DoubleParameter("thickness", "thicknenss of surface", 0.2*MM);
+        DoubleParameter mp_level = new DoubleParameter("level", "isosurface level", 0);
 
-        public Enneper(double period, double thickness){
+        Parameter m_aparam[] = new Parameter[]{
+            mp_size,
+            mp_thickness,
+            mp_level,
+        };    
 
-            this.period = period;
-            this.thickness = thickness;
+
+        public Enneper(){
+            super.addParams(m_aparam);            
+        }
+        
+        public Enneper(double size, double thickness){
+            super.addParams(m_aparam);
+
+            mp_size.setValue(size);
+            mp_thickness.setValue(thickness);
+            
+        }
+
+        public int initialize(){
+
+            super.initialize();
+
+            double size = (Double)mp_size.getValue();
+            
+            m_factor = 1/size;
+            m_level = mp_level.getValue();
+            m_thickness = mp_thickness.getValue();
+
+            return RESULT_OK;
         }
 
         public int getDataValue(Vec pnt, Vec data){
@@ -461,15 +566,26 @@ public class VolumePatterns {
             double y = pnt.v[1];
             double z = pnt.v[2];
 
-            x *= 2*PI/period;
-            y *= 2*PI/period;
-            z *= 2*PI/period;
+            x *= m_factor;
+            y *= m_factor;
+            z *= m_factor;
+            
+            double z2 = z*z;
+            double z3 = z2*z;
+            double z4 = z2*z2;
+            double z5 = z2*z3;
+            double z6 = z3*z3;
+            double x2 = x*x;
+            double x4 = x2*x2;
+            double x6 = x4*x2;
+            double y2 = y*y;
+            double y4 = y2*y2;
+            double y6 = y4*y2;
 
-            double d = 64 * pow(z,9) - 128*pow(z,7) + 64 * pow(z,5) - 702 * x*x*y*y*z*z*z -
-                    18 * x*x *y*y*z + 144*(y*y * pow(z,6) - x*x*pow(z,6)) + 162 * (pow(y,4) * z*z - pow(x,4)*z*z) +
-                    27 * (pow(y,6) - pow(x,6)) + 9 * (pow(x,4) * z + pow(y,4) * z) + 48*(x*x*pow(z,3) + y*y * pow(z,3)) -
-                    432 * (x*x*pow(z,5) + y*y*pow(z,5)) + 81 * (pow(x,4)*y*y - x*x*pow(x,4)) + 240 * (y*y*pow(z,4) -x*x+pow(z,4))
-                    -135 *(pow(x,4)*pow(z,3) + pow(y,4)*pow(z,3)) - thickness;
+            double d = abs( (64*z4 - 128*z2 + 64)*z5 - 702 * x2*y2*z3 - 18 * x2*y2*z + 144*(y2 - x2)*z6 
+                            +162*(y4 - x4)*z2 + 27*(y6 - x6) + 9*(x4 + y4)*z + 48*(x2 + y2)*z3 
+                            -432*(x2 + y2)*z5 + 81*(x4*y2- x2*y4) + 240*(y2-x2)*z4 -135 *(x4 + y4)*z3 
+                            - m_level)/1000 - m_thickness;
             double vs = pnt.getScaledVoxelSize();
 
             data.v[0] = step10(d, 0, (vs));

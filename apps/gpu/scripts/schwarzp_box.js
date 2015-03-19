@@ -10,17 +10,18 @@ var params = [
     }
 ];
 function main(args) {
+	
     var radius = 25 * MM;
 
-    var sphere = new Sphere(radius);
-    var pattern = new VolumePatterns.SchwarzD();
-	pattern.set("period", 30*MM);
+    var base = new Box(2*radius,2*radius,2*radius);
+    var pattern = new VolumePatterns.SchwarzP();
+	pattern.set("period", 0.666*radius);
 	pattern.set("thickness", 1*MM);
-	pattern.set("level", 0);
+	pattern.set("level", 0.);
 	
     var intersect = new Intersection();
     intersect.set("blend",1*MM);
-    intersect.add(sphere);
+    intersect.add(base);
     intersect.add(pattern);
 
 	var r = radius+1*MM;
