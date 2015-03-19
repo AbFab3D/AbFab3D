@@ -3,10 +3,10 @@ var uiParams = [
         name: "thickness",
         desc: "Thickness",
         type: "double",
-        rangeMin: 0.005,
-        rangeMax: 0.05,
-        step: 0.001,
-        defaultVal: 0.01
+        rangeMin: 0.1,
+        rangeMax: 0.75,
+        step: 0.1,
+        defaultVal: 0.5
     }
 ];
 function main(args) {
@@ -15,7 +15,7 @@ function main(args) {
     var base = new Sphere(radius);
     var pattern = new VolumePatterns.SchwarzD();
     pattern.set("period", 0.5*radius);
-    pattern.set("thickness", 0.5*MM);
+    pattern.set("thickness", args.thickness*MM);
     pattern.set("level", 0);
 
     var shape = new Embossing(base, pattern);
