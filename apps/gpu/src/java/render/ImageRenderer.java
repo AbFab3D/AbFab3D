@@ -86,6 +86,106 @@ public class ImageRenderer {
     private HashMap<String, List<Instruction>> cache = new HashMap<String, List<Instruction>>();
     private HashMap<String, CacheEntry> cacheSource = new HashMap<String, CacheEntry>();
 
+    public String[] getCLDevices() {
+        CLPlatform platform = CLPlatform.getDefault();
+
+        CLDevice[] devices = platform.listCLDevices(CLDevice.Type.GPU);
+        String[] names = new String[devices.length];
+
+        for(int i=0; i < devices.length; i++) {
+            names[i] = devices[i].getName();
+        }
+
+        return names;
+    }
+
+    public void initCL(String name,int width, int height) {
+        this.width = width;
+        this.height = height;
+        numDevices = 1;
+        numTiles = 1;
+        numRenderers = 1;
+        tiles = new RenderTile[1];
+        render = new VolumeRenderer[1];
+        tiles[0] = new RenderTile(0, 0, width, height);
+        RenderTile tile = tiles[0];
+
+        CLPlatform platform = CLPlatform.getDefault();
+
+        if (platform.getName().contains("Apple")) {
+            // Apple does not get the GPU maxFlops right, just find the nvidia card
+            CLDevice[] devices = platform.listCLDevices();
+            boolean found = false;
+            for(int i=0; i < devices.length; i++) {
+                printf("Checking device: %s %s\n",devices[i],devices[i].getVendor());
+                if (devices[i].getVendor().contains("NVIDIA")) {
+                    tile.setDevice(devices[i]);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+            }
+        } else {
+            CLPlatform[] platforms = CLPlatform.listCLPlatforms();
+            boolean found = false;
+
+            for(int j=0; j < platforms.length; j++) {
+                CLDevice[] devices = platforms[j].listCLDevices();
+                for (int i = 0; i < devices.length; i++) {
+                    printf("Checking device: %s %s\n", devices[i], devices[i].getName());
+
+                    if (devices[i].getName().equals(name)) {
+                        tile.setDevice(devices[i]);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) break;
+            }
+
+            if (!found) {
+                throw new IllegalArgumentException("Cannot find device: " + name);
+            }
+        }
+
+        if (FORCE_CPU) {
+            printf("Forcing to CPU rendering");
+            tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
+        }
+
+        tile.setContext(CLContext.create(tile.getDevice()));
+
+        tile.setQueue(tile.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
+
+        render[0] = new VolumeRenderer(tile.getContext(), tile.getCommandQueue());
+        tile.setRenderer(render[0]);
+        tile.setView(tile.getContext().createFloatBuffer(16, READ_ONLY));
+
+        IntBuffer dest = ByteBuffer.allocateDirect(height * width * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
+        tile.setDest(tile.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
+
+        float expandFactor = 1.5f;  // Account for png's which get larger, is this really necessary?
+        int imgSize = (int)(width * height * expandFactor);
+
+        int jpgSize = 0;
+        try {
+            jpgSize = TJ.bufSize(width, height, TJ.SAMP_420);
+        } catch(Exception e) {e.printStackTrace();}
+
+        imgSize = Math.max(imgSize,jpgSize);
+
+        // TODO: these need to be thread local resources
+        buff = new byte[imgSize];
+        pixels = new int[width * height];
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        initialized = true;
+    }
+
     public void initCL(int maxDevices,int width, int height) {
         this.width = width;
         this.height = height;
@@ -124,33 +224,8 @@ public class ImageRenderer {
             tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
         }
 
-        tile.setContext(CLContext.create(tile.getDevice()));
-
-        tile.setQueue(tile.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
-
-        render[0] = new VolumeRenderer(tile.getContext(), tile.getCommandQueue());
-        tile.setRenderer(render[0]);
-        tile.setView(tile.getContext().createFloatBuffer(16, READ_ONLY));
-
-        IntBuffer dest = ByteBuffer.allocateDirect(height * width * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
-        tile.setDest(tile.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
-
-        float expandFactor = 1.5f;  // Account for png's which get larger, is this really necessary?
-        int imgSize = (int)(width * height * expandFactor);
-
-        int jpgSize = 0;
-        try {
-            jpgSize = TJ.bufSize(width, height, TJ.SAMP_420);
-        } catch(Exception e) {e.printStackTrace();}
-
-        imgSize = Math.max(imgSize,jpgSize);
-
-        // TODO: these need to be thread local resources
-        buff = new byte[imgSize];
-        pixels = new int[width * height];
-        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-        initialized = true;
+        printf("Using device: %s\n",tile.getDevice().getName());
+        initCL(tile.getDevice().getName(), width, height);
     }
 
     public void setVersion(String version_value) {
@@ -378,7 +453,6 @@ public class ImageRenderer {
 
         VolumeScene vscene = setupOpenCL(jobID, script, params, useCache, quality);
 
-        if (DEBUG) printf("   vscene: %s  inst: %d\n",vscene,vscene.getCLCode().opcodesCount());
         t0 = System.nanoTime();
 
         Matrix4f inv_view = new Matrix4f(view);

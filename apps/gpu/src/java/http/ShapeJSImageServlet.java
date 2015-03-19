@@ -80,7 +80,6 @@ public class ShapeJSImageServlet extends HttpServlet {
         sceneCache = new ConcurrentHashMap<String, SceneCacheEntry>();
 
         initCL(false, 512, 512);
-        printf("Init called\n");
     }
 
     public void initCL(boolean debug, int width, int height) {
