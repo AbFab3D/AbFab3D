@@ -29,6 +29,8 @@ public class CLNodeFactory {
         sm_map.put("Subtraction", "opencl.CLSubtraction");
         sm_map.put("Sphere", "opencl.CLSphere");
         sm_map.put("Gyroid", "opencl.CLGyroid");
+        sm_map.put("SchwarzP", "opencl.CLSchwarzP");
+        sm_map.put("SchwarzD", "opencl.CLSchwarzD");
         sm_map.put("Torus", "opencl.CLTorus");
         sm_map.put("Box", "opencl.CLBox");
         sm_map.put("Translation", "opencl.CLTranslation");
@@ -38,8 +40,6 @@ public class CLNodeFactory {
         sm_map.put("Embossing", "opencl.CLEmbossing");
         sm_map.put("Image3D", "opencl.CLImage3D");
         sm_map.put("ImageMap", "opencl.CLImageMap");
-        //sm_map.put("TextBox", "opencl.CLTextBox");
-        //sm_map.put("TextMap", "opencl.CLTextMap");
         sm_map.put("DataSourceGrid", "opencl.CLGrid");
 
         sm_map.put("Text", "opencl.CLTextMap");

@@ -62,6 +62,8 @@ public class Opcodes {
         oGRID3DBYTE      = 23,
         oIMAGE3D         = 24,
         oREFLECT         = 25,
+        oSCHWARZP        = 26,
+        oSCHWARZD        = 27,
 
     // end of operations
         oEND = 0; 
@@ -93,6 +95,8 @@ public class Opcodes {
         codes.put(oGRID3DBYTE, "Grid3dByte");        
         codes.put(oIMAGE3D, "Image3D");        
         codes.put(oREFLECT, "Reflect");        
+        codes.put(oSCHWARZP, "SchwarzP");        
+        codes.put(oSCHWARZD, "SchwarzD");        
     }
 
     public static String getText(int code) {

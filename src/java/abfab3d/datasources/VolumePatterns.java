@@ -151,7 +151,7 @@ public class VolumePatterns {
         private double m_centerX,m_centerY,m_centerZ;
         private double m_factor = 0;
 
-        DoubleParameter mp_period = new DoubleParameter("period", "Periof of gyroid", 10*MM);
+        DoubleParameter mp_period = new DoubleParameter("period", "Period of surface", 10*MM);
         DoubleParameter mp_thickness = new DoubleParameter("thickness", "thicknenss of surface", 0.2*MM);
         DoubleParameter mp_level = new DoubleParameter("level", "isosurface level", 0);
         Vector3dParameter mp_center = new Vector3dParameter("center", "center of gyroid", new Vector3d(0,0,0));
@@ -268,16 +268,46 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
-    public static class SchwarzPrimitive extends TransformableDataSource{
+    public static class SchwarzP extends TransformableDataSource{
 
 
-        double period;
-        double thickness;
+        private double m_thickness;
+        private double m_level;
+        private double m_factor = 0;
 
-        public SchwarzPrimitive(double period, double thickness){
+        DoubleParameter mp_period = new DoubleParameter("period", "Period of surface", 10*MM);
+        DoubleParameter mp_thickness = new DoubleParameter("thickness", "thicknenss of surface", 0.2*MM);
+        DoubleParameter mp_level = new DoubleParameter("level", "isosurface level", 0);
 
-            this.period = period;
-            this.thickness = thickness;
+        Parameter m_aparam[] = new Parameter[]{
+            mp_period,
+            mp_thickness,
+            mp_level,
+        };    
+        
+        public SchwarzP(){
+            super.addParams(m_aparam);
+        }
+
+        public SchwarzP(double period, double thickness){
+
+            super.addParams(m_aparam);
+
+            mp_period.setValue(period);
+            mp_thickness.setValue(thickness);
+        }
+
+        public int initialize(){
+
+            super.initialize();
+
+            double period = (Double)mp_period.getValue();
+            
+            m_factor = 2*PI/period;
+            m_level = (Double)mp_level.getValue();
+            m_thickness = mp_thickness.getValue();
+
+            return RESULT_OK;
         }
 
         public int getDataValue(Vec pnt, Vec data){
@@ -287,14 +317,15 @@ public class VolumePatterns {
             double y = pnt.v[1];
             double z = pnt.v[2];
 
-            x *= 2*PI/period;
-            y *= 2*PI/period;
-            z *= 2*PI/period;
+            x *= m_factor;
+            y *= m_factor;
+            z *= m_factor;
 
             double vs = pnt.getScaledVoxelSize();
-            double d = cos(x) + cos(y) + cos(z) - thickness;
+            double d = abs(cos(x) + cos(y) + cos(z)-m_level)/m_factor - m_thickness;
 
             data.v[0] = step10(d, 0, (vs));
+
             super.getMaterialDataValue(pnt, data);
 
             return RESULT_OK;
@@ -306,29 +337,42 @@ public class VolumePatterns {
      *
      * @author Alan Hudson
      */
-    public static class SchwarzDiamond extends TransformableDataSource {
+    public static class SchwarzD extends TransformableDataSource {
+        
+        double m_thickness;
+        double m_level;
+        double m_factor = 0;
 
+        DoubleParameter mp_period = new DoubleParameter("period", "Period of surface", 10*MM);
+        DoubleParameter mp_thickness = new DoubleParameter("thickness", "thicknenss of surface", 0.2*MM);
+        DoubleParameter mp_level = new DoubleParameter("level", "isosurface level", 0);
 
-        double period;
-        double thickness;
-        private double factor = 0;
-        private double voxelScale = 1;
+        Parameter m_aparam[] = new Parameter[]{
+            mp_period,
+            mp_thickness,
+            mp_level,
+        };    
 
-        public SchwarzDiamond(double period, double thickness){
-
-            this.period = period;
-            this.thickness = thickness;
-            voxelScale = 1;
+        public SchwarzD(){
+            super.addParams(m_aparam);
         }
 
-        public void setVoxelScale(double voxelScale) {
-            this.voxelScale = voxelScale;
+        public SchwarzD(double period, double thickness){
+            super.addParams(m_aparam);
+
+            mp_period.setValue(period);
+            mp_thickness.setValue(thickness);
         }
 
         public int initialize(){
 
             super.initialize();
-            this.factor = 2*PI/period;
+
+            double period = (Double)mp_period.getValue();
+            
+            m_factor = 2*PI/period;
+            m_level = mp_level.getValue();
+            m_thickness = mp_thickness.getValue();
 
             return RESULT_OK;
         }
@@ -340,12 +384,12 @@ public class VolumePatterns {
             double y = pnt.v[1];
             double z = pnt.v[2];
 
-            x *= factor;
-            y *= factor;
-            z *= factor;
+            x *= m_factor;
+            y *= m_factor;
+            z *= m_factor;
 
             double vs = pnt.getScaledVoxelSize();
-            double d = sin(x) * sin(y) * sin(z) + sin(x) * cos(y) * cos(z) + cos(x) * sin(x) * cos(z) + cos(x) * cos(y) * sin(z) - (thickness + voxelScale * vs);
+            double d = abs(sin(x) * sin(y) * sin(z) + sin(x) * cos(y) * cos(z) + cos(x) * sin(x) * cos(z) + cos(x) * cos(y) * sin(z) - m_level)/m_factor - m_thickness;
 
             data.v[0] = step10(d, 0, (vs));
             super.getMaterialDataValue(pnt, data);

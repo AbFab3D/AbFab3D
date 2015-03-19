@@ -34,6 +34,8 @@
 #define oGRID3DBYTE    23
 #define oIMAGE3D       24
 #define oREFLECT       25
+#define oSCHWARZP      26
+#define oSCHWARZD      27
 
 
 #define oEND   0
@@ -160,6 +162,51 @@ void oGyroid(PTRS sGyroid *g, sVec *in, sVec *out){
 
     out->v.x = d;    
 
+}
+
+// SchwarzP
+typedef struct {
+    int size;
+    int opcode;
+    float level;
+    float thickness;
+    float factor;
+} sSchwarzP;
+
+void oSchwarzP(PTRS sSchwarzP *g, sVec *in, sVec *out){
+    float3 pnt = in->v.xyz;
+    pnt *= g->factor;
+    
+    out->v.x = fabs((cos(pnt.x) + cos(pnt.y) + cos(pnt.z) - g->level) / g->factor) - (g->thickness);
+    
+}
+// SchwarzP
+
+typedef struct {
+    int size;
+    int opcode;
+    float level;
+    float thickness;
+    float factor;
+} sSchwarzD;
+
+void oSchwarzD(PTRS sSchwarzD *g, sVec *in, sVec *out){
+    float3 pnt = in->v.xyz;
+    pnt *= g->factor;
+    
+    float 
+        x = pnt.x,
+        y = pnt.y,
+        z = pnt.z,
+        sinx = sin(x),
+        siny = sin(y),
+        sinz = sin(z),
+        cosx = cos(x),
+        cosy = cos(y),
+        cosz = cos(z);
+
+    out->v.x = fabs(sinx * siny * sinz + sinx * cosy * cosz + cosx * siny * cosz + cosx * cosy * sinz - g->level) / g->factor - g->thickness;
+    
 }
 
 // torus 
@@ -349,6 +396,14 @@ typedef struct {
 void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
 
     float3 v = pnt->v.xyz;
+    //v -= grid->origin;
+
+    // TODO - repeatX and repeatY
+    //int repeatX = (grid->options & 1);
+    //int repeatY = ((grid->options >> 1) & 1);    
+    //if(repeatX) v.x = fmod(v.x, 2*grid->halfsize.x);
+    //if(repeatY) v.y = fmod(v.y, 2*grid->halfsize.y);
+    
     v -= grid->center;
     v = fabs(v);
     v -= grid->halfsize;
@@ -357,7 +412,7 @@ void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
     if(d < 0.) { // inside of grid 
         // vector in grid units 
         float3 gpnt = (pnt->v.xyz - grid->origin) * (float3)(grid->xscale, grid->yscale,grid->yscale);
-        // TODO - repeatX and repeatY
+
         int nx = grid->nx;
         int ny = grid->ny;
         
@@ -643,6 +698,16 @@ void getShapeJSData(Scene *pScene, sVec *pnt, sVec *result) {
         case oGYROID:
             
             oGyroid(ptr.pv, &pnt1, &data1);        
+            break;
+
+        case oSCHWARZP:
+            
+            oSchwarzP(ptr.pv, &pnt1, &data1);        
+            break;
+
+        case oSCHWARZD:
+            
+            oSchwarzD(ptr.pv, &pnt1, &data1);        
             break;
 
         case oBOX:
