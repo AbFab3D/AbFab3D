@@ -30,13 +30,13 @@ var uiParams = [
 		type: "location"
 	},
 	{
-		"name": "engraveDepth",
-		"desc": "Engrave Depth",
-		"type": "double",
-		"rangeMin": -1,
-		"rangeMax": 1,
-		"step": 0.1,
-		"defaultVal": 0.5
+		name: "engraveDepth",
+		desc: "Engrave Depth",
+		type: "double",
+		rangeMin: -1,
+		rangeMax: 1,
+		step: 0.1,
+		defaultVal: 0.5
 	}
 ];
 
@@ -134,7 +134,7 @@ function main(args) {
 		textBox = new ImageMap(text, tbx, tby, tbz);
 
 		textBox.set("blurWidth",0.1*MM);
-		textBox.set("blackDisplacement", -0.5*MM);
+		textBox.set("blackDisplacement", 0.5*MM);
 		textBox.set("whiteDisplacement", 0*MM);
 		textBox.setTransform(getTextTransform(tp0,tn0,tp1,tn1));
 	}
@@ -171,7 +171,6 @@ function main(args) {
 		if(imgBox === null) {
 			bump = textBox;
 		} else {
-			print("intersection path");
 			bump = new Intersection(imgBox, textBox);
 		}
 	} else { // textBox == null
