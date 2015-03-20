@@ -10,7 +10,6 @@ import static abfab3d.util.Output.printf;
 public class SandboxContextFactory extends ContextFactory {
     @Override
     protected Context makeContext() {
-        printf("***Making context\n");
         Context cx = super.makeContext();
         cx.setWrapFactory(new SandboxWrapFactory());
         return cx;

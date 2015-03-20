@@ -37,6 +37,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -63,9 +65,9 @@ public class ShapeJSImageServlet extends HttpServlet {
     /** The context of this servlet */
     protected ServletContext ctx;
 
-    private ImageRenderer render;
-    private Matrix4f viewMatrix = new Matrix4f(); // TODO: need to thread local
     private ConcurrentHashMap<String, SceneCacheEntry> sceneCache;
+    private RendererResources[] devices;
+    private ConcurrentHashMap<String,RendererResources> deviceMap;
 
     /**
      * Initialize the servlet. Sets up the base directory properties for finding
@@ -83,9 +85,20 @@ public class ShapeJSImageServlet extends HttpServlet {
     }
 
     public void initCL(boolean debug, int width, int height) {
-        render = new ImageRenderer();
-        render.setVersion(VERSION);
-        render.initCL(1, width, height);
+        String[] cl_devices = ImageRenderer.getCLDevices();
+        printf("Found: %d openCL devices\n",cl_devices.length);
+        devices = new RendererResources[cl_devices.length];
+        deviceMap = new ConcurrentHashMap<String, RendererResources>();
+
+        for(int i=0; i < devices.length; i++) {
+//            for(int i=0; i < 1; i++) {
+            ImageRenderer render = new ImageRenderer();
+            render.setVersion(VERSION);
+            render.initCL(cl_devices[i], width, height);
+
+            RendererResources rr = new RendererResources(cl_devices[i],new Matrix4f(),render);
+            devices[i] = rr;
+        }
     }
 
     @Override
@@ -142,8 +155,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
     }
 
-    // TODO: stop doing this
-    synchronized private void handleImageRequest(HttpServletRequest req,
+    private void handleImageRequest(HttpServletRequest req,
                                                  HttpServletResponse resp,
                                                  HttpSession session,
                                                  String accept)
@@ -165,7 +177,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         boolean isMultipart = ServletFileUpload.isMultipartContent(req);
 
         Map<String, String[]> params = null;
-        
+
         if (isMultipart) {
 //    		System.out.println("==> multipart form post");
             params = new HashMap<String, String[]>();
@@ -213,101 +225,105 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         String[] viewSt = params.get("view");
         String[] axisAngleSt = params.get("axisAngle");
-        if (viewSt != null && viewSt.length > 0) {
-            String[] vals = viewSt[0].split(",");
-            view = new float[vals.length];
-            for(int i=0; i < vals.length; i++) {
-                view[i] = Float.parseFloat(vals[i]);
+
+        RendererResources rr = getRenderer(jobID);
+        synchronized (rr) {
+            if (viewSt != null && viewSt.length > 0) {
+                String[] vals = viewSt[0].split(",");
+                view = new float[vals.length];
+                for (int i = 0; i < vals.length; i++) {
+                    view[i] = Float.parseFloat(vals[i]);
+                }
+
+                if (view.length != 16) {
+                    throw new IllegalArgumentException("ViewMatrix must be 16 values");
+                }
+
+
+                rr.viewMatrix.set(view);
+            } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+                String[] vals = axisAngleSt[0].split(",");
+                float[] axisAngle = new float[vals.length];
+
+                for (int i = 0; i < vals.length; i++) {
+                    axisAngle[i] = Float.parseFloat(vals[i]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                if (axisAngle.length != 4) {
+                    throw new IllegalArgumentException("Axis angle must be 4 values");
+                }
+                getViewFromAxisAngle(axisAngle, zoom, rr.viewMatrix);
+            } else {
+                String[] rotXSt = params.get("rotX");
+                if (rotXSt != null && rotXSt.length > 0) {
+                    rotX = Float.parseFloat(rotXSt[0]);
+                }
+
+                String[] rotYSt = params.get("rotY");
+                if (rotYSt != null && rotYSt.length > 0) {
+                    rotY = Float.parseFloat(rotYSt[0]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                getView(rotX, rotY, zoom, rr.viewMatrix);
             }
 
-            if (view.length != 16) {
-                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            if (script == null) {
+                throw new IllegalArgumentException("Script is required");
             }
 
-
-            viewMatrix.set(view);
-        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
-        	String[] vals = axisAngleSt[0].split(",");
-            float[] axisAngle = new float[vals.length];
-            
-            for(int i=0; i < vals.length; i++) {
-            	axisAngle[i] = Float.parseFloat(vals[i]);
-            }
-            
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
+            String[] qualitySt = params.get("quality");
+            if (qualitySt != null && qualitySt.length > 0) {
+                quality = Float.parseFloat(qualitySt[0]);
             }
 
-            if (axisAngle.length != 4) {
-                throw new IllegalArgumentException("Axis angle must be 4 values");
+            Map<String, Object> sparams = new HashMap<String, Object>();
+            for (Map.Entry<String, String[]> entry : params.entrySet()) {
+                String key = entry.getKey();
+                if (key.startsWith("shapeJS_")) {
+                    key = key.substring(8);
+                    //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
+                    sparams.put(key, entry.getValue()[0]);
+                }
+
             }
-        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
-        } else {
-            String[] rotXSt = params.get("rotX");
-            if (rotXSt != null && rotXSt.length > 0) {
-                rotX = Float.parseFloat(rotXSt[0]);
+            long t0 = System.nanoTime();
+
+            OutputStream os = resp.getOutputStream();
+
+            int size = 0;
+            int itype = 0;
+            if (imgType.equalsIgnoreCase("PNG")) {
+                itype = ImageRenderer.IMAGE_PNG;
+                resp.setContentType("image/png");
+            } else if (imgType.equalsIgnoreCase("JPG")) {
+                itype = ImageRenderer.IMAGE_JPEG;
+                resp.setContentType("image/jpeg");
+            }
+            if (frames == 0 || frames == 1) {
+                size = rr.renderer.render(jobID, script, sparams, rr.viewMatrix, true, itype, quality, resp.getOutputStream());
+            } else {
+                throw new IllegalArgumentException("Need to reimplement");
+                //size = render.renderImages(jobID, script, sparams,viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
             }
 
-            String[] rotYSt = params.get("rotY");
-            if (rotYSt != null && rotYSt.length > 0) {
-                rotY = Float.parseFloat(rotYSt[0]);
-            }
+            printf("Image size: %d\n", size);
+            resp.setContentLength(size);
 
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
-            }
-
-            getView(rotX,rotY,zoom,viewMatrix);
+            os.close();
         }
-
-        if (script == null) {
-            throw new IllegalArgumentException("Script is required");
-        }
-
-        String[] qualitySt = params.get("quality");
-        if (qualitySt != null && qualitySt.length > 0) {
-            quality = Float.parseFloat(qualitySt[0]);
-        }
-
-        Map<String,Object> sparams = new HashMap<String,Object>();
-        for(Map.Entry<String,String[]> entry : params.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith("shapeJS_")) {
-                key = key.substring(8);
-                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
-                sparams.put(key, entry.getValue()[0]);
-            }
-
-        }
-        long t0 = System.nanoTime();
-
-        OutputStream os = resp.getOutputStream();
-
-        int size = 0;
-        int itype = 0;
-        if (imgType.equalsIgnoreCase("PNG")) {
-            itype = ImageRenderer.IMAGE_PNG;
-            resp.setContentType("image/png");
-        } else if (imgType.equalsIgnoreCase("JPG")) {
-            itype = ImageRenderer.IMAGE_JPEG;
-            resp.setContentType("image/jpeg");
-        }
-        if (frames == 0 || frames == 1) {
-            size = render.render(jobID, script, sparams,viewMatrix, true, itype,quality, resp.getOutputStream());
-        } else {
-            throw new IllegalArgumentException("Need to reimplement");
-            //size = render.renderImages(jobID, script, sparams,viewMatrix, frames, framesX, true, itype,resp.getOutputStream());
-        }
-
-        printf("Image size: %d\n",size);
-        resp.setContentLength(size);
-
-        os.close();
     }
 
-    synchronized private void handleImageCachedRequest(HttpServletRequest req,
+    private void handleImageCachedRequest(HttpServletRequest req,
                                                  HttpServletResponse resp,
                                                  HttpSession session,
                                                  String accept)
@@ -343,97 +359,100 @@ public class ShapeJSImageServlet extends HttpServlet {
         if (jobIDSt != null && jobIDSt.length > 0) {
             jobID = jobIDSt[0];
         }
-        
+
         String[] imgTypeSt = params.get("imgType");
         if (imgTypeSt != null && imgTypeSt.length > 0) {
             imgType = imgTypeSt[0];
         }
 
-        String[] viewSt = params.get("view");
-        String[] axisAngleSt = params.get("axisAngle");
-        if (viewSt != null && viewSt.length > 0) {
-            String[] vals = viewSt[0].split(",");
-            view = new float[vals.length];
-            for(int i=0; i < vals.length; i++) {
-                view[i] = Float.parseFloat(vals[i]);
+
+        RendererResources rr = getRenderer(jobID);
+        synchronized (rr) {
+            String[] viewSt = params.get("view");
+            String[] axisAngleSt = params.get("axisAngle");
+            if (viewSt != null && viewSt.length > 0) {
+                String[] vals = viewSt[0].split(",");
+                view = new float[vals.length];
+                for (int i = 0; i < vals.length; i++) {
+                    view[i] = Float.parseFloat(vals[i]);
+                }
+
+                if (view.length != 16) {
+                    throw new IllegalArgumentException("ViewMatrix must be 16 values");
+                }
+
+
+                rr.viewMatrix.set(view);
+            } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+                String[] vals = axisAngleSt[0].split(",");
+                float[] axisAngle = new float[vals.length];
+
+                for (int i = 0; i < vals.length; i++) {
+                    axisAngle[i] = Float.parseFloat(vals[i]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                if (axisAngle.length != 4) {
+                    throw new IllegalArgumentException("Axis angle must be 4 values");
+                }
+                getViewFromAxisAngle(axisAngle, zoom, rr.viewMatrix);
+            } else {
+                String[] rotXSt = params.get("rotX");
+                if (rotXSt != null && rotXSt.length > 0) {
+                    rotX = Float.parseFloat(rotXSt[0]);
+                }
+
+                String[] rotYSt = params.get("rotY");
+                if (rotYSt != null && rotYSt.length > 0) {
+                    rotY = Float.parseFloat(rotYSt[0]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                getView(rotX, rotY, zoom, rr.viewMatrix);
             }
 
-            if (view.length != 16) {
-                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            String[] qualitySt = params.get("quality");
+            if (qualitySt != null && qualitySt.length > 0) {
+                quality = Float.parseFloat(qualitySt[0]);
             }
 
+            long t0 = System.nanoTime();
 
-            viewMatrix.set(view);
-        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
-        	String[] vals = axisAngleSt[0].split(",");
-            float[] axisAngle = new float[vals.length];
-            
-            for(int i=0; i < vals.length; i++) {
-            	axisAngle[i] = Float.parseFloat(vals[i]);
-            }
-            
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
-            }
+            OutputStream os = resp.getOutputStream();
 
-            if (axisAngle.length != 4) {
-                throw new IllegalArgumentException("Axis angle must be 4 values");
-            }
-        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
-        } else {
-            String[] rotXSt = params.get("rotX");
-            if (rotXSt != null && rotXSt.length > 0) {
-                rotX = Float.parseFloat(rotXSt[0]);
+            int size = 0;
+            int itype = 0;
+            if (imgType.equalsIgnoreCase("PNG")) {
+                itype = ImageRenderer.IMAGE_PNG;
+                resp.setContentType("image/png");
+            } else if (imgType.equalsIgnoreCase("JPG")) {
+                itype = ImageRenderer.IMAGE_JPEG;
+                resp.setContentType("image/jpeg");
             }
 
-            String[] rotYSt = params.get("rotY");
-            if (rotYSt != null && rotYSt.length > 0) {
-                rotY = Float.parseFloat(rotYSt[0]);
+            try {
+                size = rr.renderer.renderCached(jobID, rr.viewMatrix, itype, quality, resp.getOutputStream());
+            } catch (ImageRenderer.NotCachedException nce) {
+                resp.sendError(410, "Job not cached");
+                return;
             }
 
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
-            }
+            printf("Image size: %d\n", size);
+            resp.setContentLength(size);
 
-            getView(rotX,rotY,zoom,viewMatrix);
+            os.close();
         }
-
-        String[] qualitySt = params.get("quality");
-        if (qualitySt != null && qualitySt.length > 0) {
-            quality = Float.parseFloat(qualitySt[0]);
-        }
-
-        long t0 = System.nanoTime();
-
-        OutputStream os = resp.getOutputStream();
-
-        int size = 0;
-        int itype = 0;
-        if (imgType.equalsIgnoreCase("PNG")) {
-            itype = ImageRenderer.IMAGE_PNG;
-            resp.setContentType("image/png");
-        } else if (imgType.equalsIgnoreCase("JPG")) {
-            itype = ImageRenderer.IMAGE_JPEG;
-            resp.setContentType("image/jpeg");
-        }
-
-        try {
-            size = render.renderCached(jobID, viewMatrix, itype, quality, resp.getOutputStream());
-        } catch(ImageRenderer.NotCachedException nce) {
-            resp.sendError(410,"Job not cached");
-            return;
-        }
-
-        printf("Image size: %d\n",size);
-        resp.setContentLength(size);
-
-        os.close();
     }
 
-    // TODO: stop doing this
-    synchronized private void handlePickCachedRequest(HttpServletRequest req,
+    private void handlePickCachedRequest(HttpServletRequest req,
                                                  HttpServletResponse resp,
                                                  HttpSession session,
                                                  String accept)
@@ -458,92 +477,95 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         String[] viewSt = params.get("view");
         String[] axisAngleSt = params.get("axisAngle");
-        if (viewSt != null && viewSt.length > 0) {
-            String[] vals = viewSt[0].split(",");
-            view = new float[vals.length];
-            for(int i=0; i < vals.length; i++) {
-                view[i] = Float.parseFloat(vals[i]);
+
+        RendererResources rr = getRenderer(jobID);
+        synchronized (rr) {
+            if (viewSt != null && viewSt.length > 0) {
+                String[] vals = viewSt[0].split(",");
+                view = new float[vals.length];
+                for (int i = 0; i < vals.length; i++) {
+                    view[i] = Float.parseFloat(vals[i]);
+                }
+
+                if (view.length != 16) {
+                    throw new IllegalArgumentException("ViewMatrix must be 16 values");
+                }
+
+
+                rr.viewMatrix.set(view);
+            } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+                String[] vals = axisAngleSt[0].split(",");
+                float[] axisAngle = new float[vals.length];
+
+                for (int i = 0; i < vals.length; i++) {
+                    axisAngle[i] = Float.parseFloat(vals[i]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                if (axisAngle.length != 4) {
+                    throw new IllegalArgumentException("Axis angle must be 4 values");
+                }
+                getViewFromAxisAngle(axisAngle, zoom, rr.viewMatrix);
+            } else {
+                String[] rotXSt = params.get("rotX");
+                if (rotXSt != null && rotXSt.length > 0) {
+                    rotX = Float.parseFloat(rotXSt[0]);
+                }
+
+                String[] rotYSt = params.get("rotY");
+                if (rotYSt != null && rotYSt.length > 0) {
+                    rotY = Float.parseFloat(rotYSt[0]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                getView(rotX, rotY, zoom, rr.viewMatrix);
             }
 
-            if (view.length != 16) {
-                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            String[] xSt = params.get("x");
+            if (xSt != null && xSt.length > 0) {
+                x = Integer.parseInt(xSt[0]);
+            }
+            String[] ySt = params.get("y");
+            if (ySt != null && ySt.length > 0) {
+                y = Integer.parseInt(ySt[0]);
             }
 
+            long t0 = System.nanoTime();
 
-            viewMatrix.set(view);
-        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
-        	String[] vals = axisAngleSt[0].split(",");
-            float[] axisAngle = new float[vals.length];
-            
-            for(int i=0; i < vals.length; i++) {
-            	axisAngle[i] = Float.parseFloat(vals[i]);
-            }
-            
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
-            }
 
-            if (axisAngle.length != 4) {
-                throw new IllegalArgumentException("Axis angle must be 4 values");
+            // TODO: garbage
+            Vector3f pos = new Vector3f();
+            Vector3f normal = new Vector3f();
+            Gson gson = new Gson();
+            HashMap<String, Object> result = new HashMap<String, Object>();
+            try {
+                rr.renderer.pickCached(jobID, rr.viewMatrix, x, y, 512, 512, pos, normal);
+            } catch (ImageRenderer.NotCachedException nce) {
+                resp.sendError(410, "Job not cached");
+                return;
             }
-        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
-        } else {
-            String[] rotXSt = params.get("rotX");
-            if (rotXSt != null && rotXSt.length > 0) {
-                rotX = Float.parseFloat(rotXSt[0]);
-            }
+            OutputStream os = resp.getOutputStream();
+            resp.setContentType("application/json");
 
-            String[] rotYSt = params.get("rotY");
-            if (rotYSt != null && rotYSt.length > 0) {
-                rotY = Float.parseFloat(rotYSt[0]);
-            }
+            result.put("point", new float[]{pos.x, pos.y, pos.z});
+            result.put("normal", new float[]{normal.x, normal.y, normal.z});
 
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
-            }
+            String st = gson.toJson(result);
+            os.write(st.getBytes());
 
-            getView(rotX,rotY,zoom,viewMatrix);
+            os.close();
         }
-
-        String[] xSt = params.get("x");
-        if (xSt != null && xSt.length > 0) {
-            x = Integer.parseInt(xSt[0]);
-        }
-        String[] ySt = params.get("y");
-        if (ySt != null && ySt.length > 0) {
-            y = Integer.parseInt(ySt[0]);
-        }
-
-        long t0 = System.nanoTime();
-
-
-        // TODO: garbage
-        Vector3f pos = new Vector3f();
-        Vector3f normal = new Vector3f();
-        Gson gson = new Gson();
-        HashMap<String, Object> result = new HashMap<String, Object>();
-        try {
-            render.pickCached(jobID, viewMatrix, x, y, 512, 512, pos, normal);
-        } catch(ImageRenderer.NotCachedException nce) {
-            resp.sendError(410,"Job not cached");
-            return;
-        }
-        OutputStream os = resp.getOutputStream();
-        resp.setContentType("application/json");
-
-        result.put("point",new float[] {pos.x,pos.y,pos.z});
-        result.put("normal",new float[] {normal.x,normal.y,normal.z});
-
-        String st = gson.toJson(result);
-        os.write(st.getBytes());
-
-        os.close();
     }
 
-    // TODO: stop doing this
-    synchronized private void handlePickRequest(HttpServletRequest req,
+    private void handlePickRequest(HttpServletRequest req,
                                                       HttpServletResponse resp,
                                                       HttpSession session,
                                                       String accept)
@@ -571,107 +593,109 @@ public class ShapeJSImageServlet extends HttpServlet {
             script = scriptSt[0];
         }
 
-        String[] viewSt = params.get("view");
-        String[] axisAngleSt = params.get("axisAngle");
-        if (viewSt != null && viewSt.length > 0) {
-            String[] vals = viewSt[0].split(",");
-            view = new float[vals.length];
-            for(int i=0; i < vals.length; i++) {
-                view[i] = Float.parseFloat(vals[i]);
+        RendererResources rr = getRenderer(jobID);
+        synchronized (rr) {
+            String[] viewSt = params.get("view");
+            String[] axisAngleSt = params.get("axisAngle");
+            if (viewSt != null && viewSt.length > 0) {
+                String[] vals = viewSt[0].split(",");
+                view = new float[vals.length];
+                for (int i = 0; i < vals.length; i++) {
+                    view[i] = Float.parseFloat(vals[i]);
+                }
+
+                if (view.length != 16) {
+                    throw new IllegalArgumentException("ViewMatrix must be 16 values");
+                }
+
+
+                rr.viewMatrix.set(view);
+            } else if (axisAngleSt != null && axisAngleSt.length > 0) {
+                String[] vals = axisAngleSt[0].split(",");
+                float[] axisAngle = new float[vals.length];
+
+                for (int i = 0; i < vals.length; i++) {
+                    axisAngle[i] = Float.parseFloat(vals[i]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                if (axisAngle.length != 4) {
+                    throw new IllegalArgumentException("Axis angle must be 4 values");
+                }
+                getViewFromAxisAngle(axisAngle, zoom, rr.viewMatrix);
+            } else {
+                String[] rotXSt = params.get("rotX");
+                if (rotXSt != null && rotXSt.length > 0) {
+                    rotX = Float.parseFloat(rotXSt[0]);
+                }
+
+                String[] rotYSt = params.get("rotY");
+                if (rotYSt != null && rotYSt.length > 0) {
+                    rotY = Float.parseFloat(rotYSt[0]);
+                }
+
+                String[] zoomSt = params.get("zoom");
+                if (zoomSt != null && zoomSt.length > 0) {
+                    zoom = Float.parseFloat(zoomSt[0]);
+                }
+
+                getView(rotX, rotY, zoom, rr.viewMatrix);
             }
 
-            if (view.length != 16) {
-                throw new IllegalArgumentException("ViewMatrix must be 16 values");
+            String[] xSt = params.get("x");
+            if (xSt != null && xSt.length > 0) {
+                x = Integer.parseInt(xSt[0]);
+            }
+            String[] ySt = params.get("y");
+            if (ySt != null && ySt.length > 0) {
+                y = Integer.parseInt(ySt[0]);
             }
 
-
-            viewMatrix.set(view);
-        } else if (axisAngleSt != null && axisAngleSt.length > 0) {
-        	String[] vals = axisAngleSt[0].split(",");
-            float[] axisAngle = new float[vals.length];
-            
-            for(int i=0; i < vals.length; i++) {
-            	axisAngle[i] = Float.parseFloat(vals[i]);
-            }
-            
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
+            if (script == null) {
+                throw new IllegalArgumentException("Script is required");
             }
 
-            if (axisAngle.length != 4) {
-                throw new IllegalArgumentException("Axis angle must be 4 values");
-            }
-        	getViewFromAxisAngle(axisAngle, zoom, viewMatrix);
-        } else {
-            String[] rotXSt = params.get("rotX");
-            if (rotXSt != null && rotXSt.length > 0) {
-                rotX = Float.parseFloat(rotXSt[0]);
-            }
+            Map<String, Object> sparams = new HashMap<String, Object>();
+            for (Map.Entry<String, String[]> entry : params.entrySet()) {
+                String key = entry.getKey();
+                if (key.startsWith("shapeJS_")) {
+                    key = key.substring(8);
+                    //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
+                    sparams.put(key, entry.getValue()[0]);
+                }
 
-            String[] rotYSt = params.get("rotY");
-            if (rotYSt != null && rotYSt.length > 0) {
-                rotY = Float.parseFloat(rotYSt[0]);
             }
+            long t0 = System.nanoTime();
 
-            String[] zoomSt = params.get("zoom");
-            if (zoomSt != null && zoomSt.length > 0) {
-                zoom = Float.parseFloat(zoomSt[0]);
-            }
 
-            getView(rotX,rotY,zoom,viewMatrix);
+            // TODO: garbage
+            Vector3f pos = new Vector3f();
+            Vector3f normal = new Vector3f();
+            Gson gson = new Gson();
+            HashMap<String, Object> result = new HashMap<String, Object>();
+            rr.renderer.pick(jobID, script, sparams, true, rr.viewMatrix, x, y, 512, 512, pos, normal);
+
+            OutputStream os = resp.getOutputStream();
+            resp.setContentType("application/json");
+
+            result.put("pos", new float[]{pos.x, pos.y, pos.z});
+            result.put("normal", new float[]{normal.x, normal.y, normal.z});
+
+            String st = gson.toJson(result);
+            os.write(st.getBytes());
+
+            os.close();
         }
-
-        String[] xSt = params.get("x");
-        if (xSt != null && xSt.length > 0) {
-            x = Integer.parseInt(xSt[0]);
-        }
-        String[] ySt = params.get("y");
-        if (ySt != null && ySt.length > 0) {
-            y = Integer.parseInt(ySt[0]);
-        }
-
-        if (script == null) {
-            throw new IllegalArgumentException("Script is required");
-        }
-
-        Map<String,Object> sparams = new HashMap<String,Object>();
-        for(Map.Entry<String,String[]> entry : params.entrySet()) {
-            String key = entry.getKey();
-            if (key.startsWith("shapeJS_")) {
-                key = key.substring(8);
-                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
-                sparams.put(key, entry.getValue()[0]);
-            }
-
-        }
-        long t0 = System.nanoTime();
-
-
-        // TODO: garbage
-        Vector3f pos = new Vector3f();
-        Vector3f normal = new Vector3f();
-        Gson gson = new Gson();
-        HashMap<String, Object> result = new HashMap<String, Object>();
-        render.pick(jobID,script,sparams,true,viewMatrix, x, y, 512, 512, pos, normal);
-
-        OutputStream os = resp.getOutputStream();
-        resp.setContentType("application/json");
-
-        result.put("pos",new float[] {pos.x,pos.y,pos.z});
-        result.put("normal",new float[] {normal.x,normal.y,normal.z});
-
-        String st = gson.toJson(result);
-        os.write(st.getBytes());
-
-        os.close();
     }
 
-    // TODO: stop doing this
-    synchronized private void handleSceneRequest(HttpServletRequest req,
-                                                 HttpServletResponse resp,
-                                                 HttpSession session,
-                                                 String accept)
+    private void handleSceneRequest(HttpServletRequest req,
+                                    HttpServletResponse resp,
+                                    HttpSession session,
+                                    String accept)
             throws IOException {
 
         String jobID = null;
@@ -739,59 +763,8 @@ public class ShapeJSImageServlet extends HttpServlet {
         os.close();
 
     }
-    /*
-        synchronized private void handleSaveSceneRequest(HttpServletRequest req,
-                HttpServletResponse resp,
-                HttpSession session,
-                String accept)
-                        throws IOException {
 
-            String jobID = null;
-            String script = null;
-
-            boolean isMultipart = ServletFileUpload.isMultipartContent(req);
-
-            Map<String, String[]> params = null;
-
-            if (isMultipart) {
-                //System.out.println("==> multipart form post");
-                params = new HashMap<String, String[]>();
-                mapParams(req, params, MAX_UPLOAD_SIZE, TMP_DIR);
-            } else {
-                //System.out.println("==> not multipart form post");
-                params = req.getParameterMap();
-            }
-
-            String[] jobIDSt = params.get("jobID");
-            if (jobIDSt != null && jobIDSt.length > 0) {
-                jobID = jobIDSt[0];
-            }
-
-            String[] scriptSt = params.get("script");
-            if (scriptSt != null && scriptSt.length > 0) {
-                script = scriptSt[0];
-            }
-
-            if (script == null) {
-                throw new IllegalArgumentException("Script is required");
-            }
-
-            Map<String,Object> sparams = new HashMap<String,Object>();
-            for(Map.Entry<String,String[]> entry : params.entrySet()) {
-                String key = entry.getKey();
-                if (key.startsWith("shapeJS_")) {
-                    key = key.substring(8);
-                //printf("Adding param: %s -> %s\n",key,entry.getValue()[0]);
-                    sparams.put(key, entry.getValue()[0]);
-                }
-            }
-
-            SceneCacheEntry sce = new SceneCacheEntry(jobID,script,sparams);
-            saveScene(sce, resp);
-            resp.flushBuffer();
-        }
-    */
-    synchronized private void handleSaveSceneCachedRequest(HttpServletRequest req,
+    private void handleSaveSceneCachedRequest(HttpServletRequest req,
                                                            HttpServletResponse resp,
                                                            HttpSession session,
                                                            String accept)
@@ -816,9 +789,9 @@ public class ShapeJSImageServlet extends HttpServlet {
 
             resp.setContentType("application/zip");
             resp.setHeader("Content-Disposition","attachment;filename=\"shapeJS.zip\"");
-            
+
             OutputStream os = resp.getOutputStream();
-            
+
             SceneIO.saveScene(sce.getScript(), sce.getParams(), os);
             os.close();
         } else {
@@ -827,7 +800,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
     }
 
-    synchronized private void handleLoadSceneRequest(HttpServletRequest req,
+    private void handleLoadSceneRequest(HttpServletRequest req,
                                                      HttpServletResponse resp,
                                                      HttpSession session,
                                                      String accept)
@@ -883,7 +856,7 @@ public class ShapeJSImageServlet extends HttpServlet {
             String name = entry.getKey();
             Object val = entry.getValue();
             ParameterType type = null;//evalParams.get(name).getType();
-            
+
             Object pval = null;
             if (val instanceof JSWrapper) {
             	pval = ((JSWrapper) val).getParameter().getValue();
@@ -987,7 +960,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         os.close();
 */
     }
-    
+
     private void getView(float rotX, float rotY, float zoom, Matrix4f mat) {
         float[] DEFAULT_TRANS = new float[]{0, 0, zoom};
         float z = DEFAULT_TRANS[2];
@@ -1007,7 +980,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         mat.mul(tmat, rxmat);
         mat.mul(rymat);
     }
-    
+
     private void getViewFromAxisAngle(float[] axisAngle, float zoom, Matrix4f mat) {
         float[] DEFAULT_TRANS = new float[]{0, 0, zoom};
         float z = DEFAULT_TRANS[2];
@@ -1018,7 +991,7 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         trans.z = z;
         tmat.set(trans, 1.0f);
-        
+
         mat.setIdentity();
         mat.setTranslation(trans);
         mat.setScale(1.0f);
@@ -1123,7 +1096,7 @@ public class ShapeJSImageServlet extends HttpServlet {
                     item.write(uploadedFile);
 
                     // TODO: Schedule the uploaded file for deletion
-                    
+
                     // JSON the path to the uploaded file
 //                    System.out.println("==>fieldName: " + fieldName);
 //                    System.out.println("==>fileName: " + fileName);
@@ -1132,7 +1105,7 @@ public class ShapeJSImageServlet extends HttpServlet {
                     params.put(fieldName, file);
                 }
             }
-            
+
             success = true;
         } catch(Exception e) {
             e.printStackTrace();
@@ -1165,12 +1138,58 @@ public class ShapeJSImageServlet extends HttpServlet {
         }
 
         printf("Update Scene: %s\n",params);
-        EvalResult result = render.updateScene(sceneID,sce.getScript(),params);
+        EvalResult result = null;
+        RendererResources rr = getRenderer(sceneID);
 
+        synchronized (rr) {
+            ImageRenderer renderer = rr.renderer;
+            result = renderer.updateScene(sceneID, sce.getScript(), params);
+        }
         return result;
     }
 
-    
+    /**
+     * Get a unused renderer for this job.
+     *
+     * @param jobID
+     * @return
+     */
+    private RendererResources getRenderer(String jobID) {
+        RendererResources renderer = null;
+
+        renderer = deviceMap.get(jobID);
+        if (renderer == null) {
+            renderer = devices[(int) (Math.random() * devices.length)];
+            printf("Assigning renderer: %s\n",renderer.name);
+            deviceMap.put(jobID, renderer);
+        }
+        printf("Got render for job: %s  device: %s\n",jobID,renderer.name);
+        return renderer;
+    }
+
+    /**
+     * Per renderer resources
+     */
+    public static class RendererResources {
+        public String name;
+        public Matrix4f viewMatrix;
+        public ImageRenderer renderer;
+
+        public RendererResources(String name, Matrix4f viewMatrix, ImageRenderer renderer) {
+            this.name = name;
+            this.viewMatrix = viewMatrix;
+            this.renderer = renderer;
+        }
+
+        public Matrix4f getViewMatrix() {
+            return viewMatrix;
+        }
+
+        public ImageRenderer getRenderer() {
+            return renderer;
+        }
+    }
+
     public static class SceneCacheEntry {
         private String sceneID;
         private String script;

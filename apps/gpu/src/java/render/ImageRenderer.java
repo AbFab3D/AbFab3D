@@ -86,10 +86,8 @@ public class ImageRenderer {
     private HashMap<String, List<Instruction>> cache = new HashMap<String, List<Instruction>>();
     private HashMap<String, CacheEntry> cacheSource = new HashMap<String, CacheEntry>();
 
-    public String[] getCLDevices() {
-        CLPlatform platform = CLPlatform.getDefault();
-
-        CLDevice[] devices = platform.listCLDevices(CLDevice.Type.GPU);
+    public static String[] getCLDevices() {
+        CLDevice[] devices = CLPlatform.getDefault(type(GPU)).listCLDevices();
         String[] names = new String[devices.length];
 
         for(int i=0; i < devices.length; i++) {
@@ -135,9 +133,8 @@ public class ImageRenderer {
             for(int j=0; j < platforms.length; j++) {
                 CLDevice[] devices = platforms[j].listCLDevices();
                 for (int i = 0; i < devices.length; i++) {
-                    printf("Checking device: %s %s\n", devices[i], devices[i].getName());
-
                     if (devices[i].getName().equals(name)) {
+                        printf("Using device: %s\n",devices[i]);
                         tile.setDevice(devices[i]);
                         found = true;
                         break;
@@ -448,7 +445,7 @@ public class ImageRenderer {
                             int pixX, int pixY, int width, int height,
                             int[] pixels, BufferedImage image) throws NotCachedException {
 
-        if(DEBUG) printf("makeRender(%s, version:%s quality: %f)\n", jobID, version,quality);
+        if(DEBUG) printf("makeRender(%s, version:%s quality: %f params: %s)\n", jobID, version,quality, params);
         long t0 = System.nanoTime();
 
         VolumeScene vscene = setupOpenCL(jobID, script, params, useCache, quality);
