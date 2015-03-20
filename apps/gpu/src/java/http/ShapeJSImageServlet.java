@@ -4,6 +4,7 @@ import abfab3d.grid.Bounds;
 
 import abfab3d.param.Parameter;
 import abfab3d.param.ParameterType;
+
 import com.google.gson.Gson;
 
 import org.apache.commons.fileupload.FileItem;
@@ -37,8 +38,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -54,10 +53,7 @@ public class ShapeJSImageServlet extends HttpServlet {
     public static final String VERSION = VolumeRenderer.VERSION_OPCODE_V3_DIST;
     
     private static int MAX_UPLOAD_SIZE = 64000000;
-    private static String RESULTS_DIR_PUBLIC = "http://localhost:8080/creator-kernels/results";
-    private static String RESULTS_DIR = "/var/www/html/creator-kernels/results";
     private static String TMP_DIR = "/tmp";
-    private static int TEMP_DIR_ATTEMPTS = 1000;
 
     /** Config params in map format */
     protected Map<String, String> config;
@@ -1140,7 +1136,7 @@ public class ShapeJSImageServlet extends HttpServlet {
         printf("Update Scene: %s\n",params);
         EvalResult result = null;
         RendererResources rr = getRenderer(sceneID);
-
+        
         synchronized (rr) {
             ImageRenderer renderer = rr.renderer;
             result = renderer.updateScene(sceneID, sce.getScript(), params);
@@ -1228,6 +1224,41 @@ public class ShapeJSImageServlet extends HttpServlet {
 
         public long getLastUpdateTime() {
             return lastUpdateTime;
+        }
+        
+        public void printParams() {
+            ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
+            EvalResult result = evaluator.setDefinitions(script);
+            Map<String, Parameter> evalParams = result.getUIParams();
+
+            System.out.println("*** SceneCacheEntry params, sceneID: " + sceneID);
+            
+            // Loop through params and create key/pair entries
+            for (Map.Entry<String, Object> entry : params.entrySet()) {
+                String name = entry.getKey();
+                Object val = entry.getValue();
+                ParameterType type = evalParams.get(name).getType();
+
+                switch(type) {
+	                case URI:
+	                	System.out.println("    URI: " + name + "=" + val);
+	                    break;
+	                case LOCATION:
+	                	System.out.println("    LOCATION: " + name + "=" + val);
+	                    break;
+	                case DOUBLE:
+	                	System.out.println("    DOUBLE: " + name + "=" + val);
+	                    break;
+	                case INTEGER:
+	                	System.out.println("    INTEGER: " + name + "=" + val);
+	                    break;
+	                case STRING:
+	                	System.out.println("    STRING: " + name + "=" + val);
+	                    break;
+	                default:
+	                	System.out.println("    Unknown type: " + name + "=" + val);
+	            }
+	        }
         }
     }
 }

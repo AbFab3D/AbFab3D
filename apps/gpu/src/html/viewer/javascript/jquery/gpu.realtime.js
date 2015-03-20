@@ -252,7 +252,7 @@ function loadScene() {
       }
     },
     success: function(data) {
-      console.log(data);
+//      console.log(data);
       populateUI(data);
       unspin();
     },
