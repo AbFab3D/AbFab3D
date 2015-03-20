@@ -401,7 +401,6 @@ public class ShapeJSEvaluator {
         long t0 = System.currentTimeMillis();
 
         if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
-            printf("Installing custom context factory");
             org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
             if (gsetter != null) {
                 gsetter.setContextFactoryGlobal(new SandboxContextFactory());
@@ -438,7 +437,7 @@ public class ShapeJSEvaluator {
 
                     }
 
-                    printf("Rejecting class: %s\n", className);
+                    //printf("Rejecting class: %s\n", className);
                     return false;
                 }
             });

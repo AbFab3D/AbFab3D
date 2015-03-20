@@ -86,6 +86,103 @@ public class ImageRenderer {
     private HashMap<String, List<Instruction>> cache = new HashMap<String, List<Instruction>>();
     private HashMap<String, CacheEntry> cacheSource = new HashMap<String, CacheEntry>();
 
+    public static String[] getCLDevices() {
+        CLDevice[] devices = CLPlatform.getDefault(type(GPU)).listCLDevices();
+        String[] names = new String[devices.length];
+
+        for(int i=0; i < devices.length; i++) {
+            names[i] = devices[i].getName();
+        }
+
+        return names;
+    }
+
+    public void initCL(String name,int width, int height) {
+        this.width = width;
+        this.height = height;
+        numDevices = 1;
+        numTiles = 1;
+        numRenderers = 1;
+        tiles = new RenderTile[1];
+        render = new VolumeRenderer[1];
+        tiles[0] = new RenderTile(0, 0, width, height);
+        RenderTile tile = tiles[0];
+
+        CLPlatform platform = CLPlatform.getDefault();
+
+        if (platform.getName().contains("Apple")) {
+            // Apple does not get the GPU maxFlops right, just find the nvidia card
+            CLDevice[] devices = platform.listCLDevices();
+            boolean found = false;
+            for(int i=0; i < devices.length; i++) {
+                printf("Checking device: %s %s\n",devices[i],devices[i].getVendor());
+                if (devices[i].getVendor().contains("NVIDIA")) {
+                    tile.setDevice(devices[i]);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
+            }
+        } else {
+            CLPlatform[] platforms = CLPlatform.listCLPlatforms();
+            boolean found = false;
+
+            for(int j=0; j < platforms.length; j++) {
+                CLDevice[] devices = platforms[j].listCLDevices();
+                for (int i = 0; i < devices.length; i++) {
+                    if (devices[i].getName().equals(name)) {
+                        printf("Using device: %s\n",devices[i]);
+                        tile.setDevice(devices[i]);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (found) break;
+            }
+
+            if (!found) {
+                throw new IllegalArgumentException("Cannot find device: " + name);
+            }
+        }
+
+        if (FORCE_CPU) {
+            printf("Forcing to CPU rendering");
+            tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
+        }
+
+        tile.setContext(CLContext.create(tile.getDevice()));
+
+        tile.setQueue(tile.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
+
+        render[0] = new VolumeRenderer(tile.getContext(), tile.getCommandQueue());
+        tile.setRenderer(render[0]);
+        tile.setView(tile.getContext().createFloatBuffer(16, READ_ONLY));
+
+        IntBuffer dest = ByteBuffer.allocateDirect(height * width * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
+        tile.setDest(tile.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
+
+        float expandFactor = 1.5f;  // Account for png's which get larger, is this really necessary?
+        int imgSize = (int)(width * height * expandFactor);
+
+        int jpgSize = 0;
+        try {
+            jpgSize = TJ.bufSize(width, height, TJ.SAMP_420);
+        } catch(Exception e) {e.printStackTrace();}
+
+        imgSize = Math.max(imgSize,jpgSize);
+
+        // TODO: these need to be thread local resources
+        buff = new byte[imgSize];
+        pixels = new int[width * height];
+        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+        initialized = true;
+    }
+
     public void initCL(int maxDevices,int width, int height) {
         this.width = width;
         this.height = height;
@@ -124,33 +221,8 @@ public class ImageRenderer {
             tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
         }
 
-        tile.setContext(CLContext.create(tile.getDevice()));
-
-        tile.setQueue(tile.getDevice().createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE));
-
-        render[0] = new VolumeRenderer(tile.getContext(), tile.getCommandQueue());
-        tile.setRenderer(render[0]);
-        tile.setView(tile.getContext().createFloatBuffer(16, READ_ONLY));
-
-        IntBuffer dest = ByteBuffer.allocateDirect(height * width * 4).order(ByteOrder.nativeOrder()).asIntBuffer();
-        tile.setDest(tile.getContext().createBuffer(dest, CLBuffer.Mem.WRITE_ONLY, CLBuffer.Mem.ALLOCATE_BUFFER));
-
-        float expandFactor = 1.5f;  // Account for png's which get larger, is this really necessary?
-        int imgSize = (int)(width * height * expandFactor);
-
-        int jpgSize = 0;
-        try {
-            jpgSize = TJ.bufSize(width, height, TJ.SAMP_420);
-        } catch(Exception e) {e.printStackTrace();}
-
-        imgSize = Math.max(imgSize,jpgSize);
-
-        // TODO: these need to be thread local resources
-        buff = new byte[imgSize];
-        pixels = new int[width * height];
-        image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-
-        initialized = true;
+        printf("Using device: %s\n",tile.getDevice().getName());
+        initCL(tile.getDevice().getName(), width, height);
     }
 
     public void setVersion(String version_value) {
@@ -373,7 +445,7 @@ public class ImageRenderer {
                             int pixX, int pixY, int width, int height,
                             int[] pixels, BufferedImage image) throws NotCachedException {
 
-        if(DEBUG) printf("makeRender(%s, version:%s quality: %f)\n", jobID, version,quality);
+        if(DEBUG) printf("makeRender(%s, version:%s quality: %f params: %s)\n", jobID, version,quality, params);
         long t0 = System.nanoTime();
 
         VolumeScene vscene = setupOpenCL(jobID, script, params, useCache, quality);
@@ -426,8 +498,8 @@ public class ImageRenderer {
             CacheEntry ce = null;
 
             if (useCache && jobID != null && (params == null || params.size() == 0)) {
-                if (DEBUG) printf("Checking cache");
                 ce = cacheSource.get(jobID);
+                if (DEBUG) printf("Checking cache.  jobID: %s  ce: %s\n",jobID,ce);
                 if (ce != null && ce.quality != quality) {
                     if (DEBUG) printf("Quality not the same for cached");
                     newScene = true;  // force a new openCL program
@@ -456,6 +528,7 @@ public class ImageRenderer {
                     eval = new ShapeJSEvaluator();
                     bounds = new Bounds();
                     ce = new CacheEntry();
+                    ce.jobID = jobID;
                     ce.evaluator = eval;
                     ce.result = eval.evalScript(script, "main",bounds, params);
                 } else {
@@ -511,11 +584,20 @@ public class ImageRenderer {
                 ShapeJSEvaluator eval = null;
                 Bounds bounds = new Bounds();
 
+                // check for existing js cache
+                if (jobID != null) {
+                    ce = cacheSource.get(jobID);
+                    if (ce != null) {
+                        eval = ce.evaluator;
+                    }
+                }
+
                 if (DEBUG) printf("js evaluation\n");
                 if (ce == null) {
                     eval = new ShapeJSEvaluator();
                     bounds = new Bounds();
                     ce = new CacheEntry();
+                    ce.jobID = jobID;
                     ce.evaluator = eval;
                     ce.result = eval.evalScript(script, "main",bounds, params);
                 } else {
@@ -597,6 +679,9 @@ public class ImageRenderer {
 
         }
 
+        if (render[0].getCurrentScene() != vscene) {
+            newScene = true;
+        }
         if (newScene) {
             if (DEBUG) printf("New scene for jobID: %s\n",jobID);
             for (int i = 0; i < numRenderers; i++) {
@@ -824,6 +909,7 @@ public class ImageRenderer {
     }
 
     public static class CacheEntry {
+        public String jobID;
         public EvalResult result;
         public CLCodeBuffer ops;
         public VolumeScene vscene;

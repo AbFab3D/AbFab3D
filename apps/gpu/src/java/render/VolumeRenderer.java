@@ -61,6 +61,7 @@ public class VolumeRenderer {
     private long kernelTime;
     private String renderVersion = VERSION_DIST;
     private String kernelName;
+    private VolumeScene currentScene;
 
     // Prototype vars for opcode
     private int opLen;
@@ -84,6 +85,7 @@ public class VolumeRenderer {
      *
      */
     public boolean init(VolumeScene vscene) {
+        currentScene = vscene;
         String kernel_name;
 
         renderVersion = vscene.version;
@@ -449,6 +451,10 @@ public class VolumeRenderer {
             }
         }
         return true;
+    }
+
+    public VolumeScene getCurrentScene() {
+        return currentScene;
     }
 
     /**
