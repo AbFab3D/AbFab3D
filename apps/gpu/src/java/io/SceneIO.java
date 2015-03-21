@@ -51,9 +51,18 @@ public class SceneIO {
         String workingDirName = Utils.createTempDir(RESULTS_DIR);
         String resultDirPath = RESULTS_DIR + "/" + workingDirName;
 
-        String zipFile = params.get("sceneFile")[0];
+        String loadedFile = params.get("sceneFile")[0];
         Map<String, String> sceneFiles = new HashMap<String, String>();
-        extractZip(zipFile, resultDirPath, sceneFiles);
+        
+        if (loadedFile.endsWith(".zip")) {
+        	extractZip(loadedFile, resultDirPath, sceneFiles);
+        } else if (loadedFile.endsWith(".js")) {
+        	sceneFiles.put("scriptFile", loadedFile);
+        } else {
+            result.put("success",false);
+            result.put("errorLog","File type must be .js or .zip");
+            return result;
+        }
 
         String scriptFilePath = sceneFiles.get("scriptFile");
         String paramFilePath = sceneFiles.get("paramFile");
@@ -63,40 +72,40 @@ public class SceneIO {
         if (scriptFilePath == null) {
             result.put("success",false);
             result.put("errorLog","Missing script file");
-        } else {
-            File scriptFile = new File(scriptFilePath);
-            String script = FileUtils.readFileToString(scriptFile, "UTF-8");
-            result.put("script", script);
+            return result;
+        }
+        
+        File scriptFile = new File(scriptFilePath);
+        String script = FileUtils.readFileToString(scriptFile, "UTF-8");
+        result.put("script", script);
 
-            if (paramFilePath != null) {
-                Gson gson = new Gson();
-                String paramsJson = FileUtils.readFileToString(new File(paramFilePath), "UTF-8");
-                Map<String, Object> scriptParams = gson.fromJson(paramsJson, Map.class);
+        if (paramFilePath != null) {
+            Gson gson = new Gson();
+            String paramsJson = FileUtils.readFileToString(new File(paramFilePath), "UTF-8");
+            Map<String, Object> scriptParams = gson.fromJson(paramsJson, Map.class);
 
-                Bounds bounds = new Bounds();
-                ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
-                EvalResult evalResult = evaluator.evalScript(script, null,bounds, null);
-                Map<String, Parameter> evalParams = evalResult.getUIParams();
+            Bounds bounds = new Bounds();
+            ShapeJSEvaluator evaluator = new ShapeJSEvaluator();
+            EvalResult evalResult = evaluator.evalScript(script, null,bounds, null);
+            Map<String, Parameter> evalParams = evalResult.getUIParams();
 
-                // For parameters of type "uri", make it a fully qualified url
-//                System.out.println("*** Loaded params");
-                for (Map.Entry<String, Object> entry : scriptParams.entrySet()) {
-                    String name = entry.getKey();
-                    Object val = entry.getValue();
-//                    System.out.println(    name + "=" + val);
-                    ParameterType type = evalParams.get(name).getType();
-//                    System.out.println(    "  type: " + type);
-                    if (type == ParameterType.URI) {
-                        scriptParams.put(name, resolveURN(resultDirPath) + "/" + (String)val);
-                    }
+            // For parameters of type "uri", make it a fully qualified url
+//            System.out.println("*** Loaded params");
+            for (Map.Entry<String, Object> entry : scriptParams.entrySet()) {
+                String name = entry.getKey();
+                Object val = entry.getValue();
+//                System.out.println(    name + "=" + val);
+                ParameterType type = evalParams.get(name).getType();
+//                System.out.println(    "  type: " + type);
+                if (type == ParameterType.URI) {
+                    scriptParams.put(name, resolveURN(resultDirPath) + "/" + (String)val);
                 }
-                
-                result.put("params", scriptParams);
             }
-
-            result.put("success", true);
+            
+            result.put("params", scriptParams);
         }
 
+        result.put("success", true);
         return result;
     }
 
@@ -139,7 +148,7 @@ public class SceneIO {
                 case URI:
                 	URIParameter urip = (URIParameter) pval;
                 	String u = (String) urip.getValue();
-                	System.out.println("*** uri: " + u);
+//                	System.out.println("*** uri: " + u);
                     File f = new File(u);
                     String fileName = f.getName();
                     params.put(name, fileName);
@@ -153,7 +162,7 @@ public class SceneIO {
                 	Vector3d n = lp.getNormal();
                 	double[] point = {p.x, p.y, p.z};
                 	double[] normal = {n.x, n.y, n.z};
-                	System.out.println("*** lp: " + java.util.Arrays.toString(point) + ", " + java.util.Arrays.toString(normal));
+//                	System.out.println("*** lp: " + java.util.Arrays.toString(point) + ", " + java.util.Arrays.toString(normal));
                 	Map<String, double[]> loc = new HashMap<String, double[]>();
                 	loc.put("point", point);
                 	loc.put("normal", normal);
@@ -162,19 +171,19 @@ public class SceneIO {
                 case DOUBLE:
                 	DoubleParameter dp = (DoubleParameter) pval;
                 	Double d = (Double) dp.getValue();
-                	System.out.println("*** double: " + d);
+//                	System.out.println("*** double: " + d);
                     params.put(name, d);
                     break;
                 case INTEGER:
                 	IntParameter ip = (IntParameter) pval;
                 	Integer i = ip.getValue();
-                	System.out.println("*** int: " + pval);
+//                	System.out.println("*** int: " + pval);
                     params.put(name, i);
                     break;
                 case STRING:
                 	StringParameter sp = (StringParameter) pval;
                 	String s = sp.getValue();
-                	System.out.println("*** string: " + s);
+//                	System.out.println("*** string: " + s);
                 	params.put(name, s);
                     break;
                 default:

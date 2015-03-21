@@ -104,6 +104,14 @@ function prepForm(formData, jqForm, options) {
       if (typeof pdef === "undefined" || pdef === null)
         continue;
 
+      // Ignore paramData with null values
+      // Value of null is set for parameters with no valid default value
+      if (paramData[formData[i].name] === null) {
+        formData.splice(i, 1);
+        i--;
+        continue;
+      }
+
       console.log("Param changed: " + formData[i].name + " val: " + formData[i].value);
 
       if (pdef.type == "uri") {
@@ -609,32 +617,36 @@ function populateUI(data) {
 
 //  var obj = JSON.parse(data);
   var script = data.script;
-  var params = data.params;
 
   editor.setValue(script);
   removeAllParams();
   evalScriptParams();
 
-  $.each(params, function(key, val) {
-//    console.log(key + " = " + val);
-    if (paramDef[key].type == "uri") {
-      var fileNameHolderId = toFileNameHolderId(key);
-      $("#" + fileNameHolderId).val(val);
-      setParamVal(key, val);
-    } else {
-      if (paramDef[key].type == "location") {
-        $("#" + key).val(JSON.stringify(val));
+  // Set values from the loaded param file
+  var params = data.params;
+
+  if (params !== undefined && params !== null) {
+    $.each(params, function(key, val) {
+//      console.log(key + " = " + val);
+      if (paramDef[key].type == "uri") {
+        var fileNameHolderId = toFileNameHolderId(key);
+        $("#" + fileNameHolderId).val(val);
+        setParamVal(key, val);
       } else {
-        $("#" + key).val(val);
-      }
+        if (paramDef[key].type == "location") {
+          $("#" + key).val(JSON.stringify(val));
+        } else {
+          $("#" + key).val(val);
+        }
 
-      setParamVal(key, val);
+        setParamVal(key, val);
 
-      if ( $("#" + key).length ) {
-        $("#" + toRangeDisplayId(key)).html( val );
+        if ( $("#" + key).length ) {
+          $("#" + toRangeDisplayId(key)).html( val );
+        }
       }
-    }
-  });
+    });
+  }
 
   update(false, true);
 }

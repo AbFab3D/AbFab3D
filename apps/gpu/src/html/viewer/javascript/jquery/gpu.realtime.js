@@ -246,14 +246,19 @@ function loadScene() {
     url: "/creator/shapejsRT_v1.0.0/loadScene",
     type: "post",
     timeout: 180000,
-    beforeSubmit: function(formData, jqForm, options) {
-      for (var i=0; i < formData.length; i++) {
-        console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
-      }
-    },
+//    beforeSubmit: function(formData, jqForm, options) {
+//      for (var i=0; i < formData.length; i++) {
+//        console.log(formData[i].type + ": " + formData[i].name + " : " + formData[i].value);
+//      }
+//    },
     success: function(data) {
-//      console.log(data);
-      populateUI(data);
+      if (data.script === undefined || data.script === null) {
+        alert("Missing script in response");
+        console.log("Missing script in response");
+        console.log(data);
+      } else {
+        populateUI(data);
+      }
       unspin();
     },
     error: function(xhr, textStatus, errorThrown) {
