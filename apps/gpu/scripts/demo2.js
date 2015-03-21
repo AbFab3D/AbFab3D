@@ -2,48 +2,37 @@ var uiParams = [
 	{
 		name: "model",
 		desc: "Model",
-		type: "url",
-		"required": true
+		type: "url"
 	},
 	{
 		name: "image1",
 		desc: "Image",
-		type: "url",
-		"required": false
+		type: "url"
 	},
 	{
 		name: "imagepos1_0",
 		desc: "Image left",
-		type: "location",
-		defaultVal: "",
-		"required": false
+		type: "location"
 	},
 	{
 		name: "imagepos1_1",
 		desc: "Image right",
-		type: "location",
-		defaultVal: "",
-		"required": false
+		type: "location"
 	},
 	{
 		name: "image2",
 		desc: "Image2",
-		type: "url",
-		"required": false
+		type: "url"
 	},
 	{
 		name: "imagepos2_0",
 		desc: "Image left",
-		type: "location",
-		defaultVal: "",
-		"required": false
+		type: "location"
 	},
 	{
 		name: "imagepos2_1",
 		desc: "Image right",
-		type: "location",
-		defaultVal: "",
-		"required": false
+		type: "location"
 	},
 	{
 		name: "engraveDepth",
@@ -64,6 +53,7 @@ function getRotation(from, to){
 	var sina = a.length();
 
 	var cosa = to.dot(from);
+
 	var angle = Math.atan2(sina, cosa);
 
 	if(Math.abs(sina) < 1.e-8)
