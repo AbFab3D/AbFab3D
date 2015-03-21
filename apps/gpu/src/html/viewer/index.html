@@ -104,6 +104,14 @@ function prepForm(formData, jqForm, options) {
       if (typeof pdef === "undefined" || pdef === null)
         continue;
 
+      // Ignore paramData with null values
+      // Value of null is set for parameters with no valid default value
+      if (paramData[formData[i].name] === null) {
+        formData.splice(i, 1);
+        i--;
+        continue;
+      }
+
       console.log("Param changed: " + formData[i].name + " val: " + formData[i].value);
 
       if (pdef.type == "uri") {
@@ -201,7 +209,8 @@ function evalScriptParams() {
 
     if (typeof uiParams !== "undefined") {
       $.each(uiParams, function(i, param) {
-        if (param.name === key) {
+        // Only keep param if name and type are equal to existing
+        if (param.name === key && param.type === paramDef[param.name].type) {
           remove = false;
           return false;   // breaks out of loop
         }
@@ -211,6 +220,7 @@ function evalScriptParams() {
     // Remove from paramData and in the dom
     if (remove) {
       delete paramData[key];
+      delete paramDef[key];
       if ( $("#" + key + "-row").length > 0 )
         $("#" + key + "-row").remove();
     }
@@ -223,18 +233,66 @@ function evalScriptParams() {
   if (typeof uiParams !== "undefined") {
     $.each(uiParams, function(i, param) {
       var type = (param.type).toLowerCase();
+
       if ( $.inArray(type, inputTypes) >= 0) {
         if (paramData[param.name] === undefined) {
           insertInput(param);
         } else {
           // After resetting deltaParams, need to add params that were kept back to deltaParams
           deltaParams.push(param.name);
+
+          // Param definition of double (range) types may have changed (different min, max)
+          if (type == "double") {
+            updateRange(param)
+            setParamDef(param.name,param);
+          }
+
         }
       } else {
         console.log("Param type not allowed:\n  Type: " + type + "\n  ID: " + param.name);
       }
     });
   }
+}
+
+function updateRange(param) {
+  var range = document.getElementById(param.name);
+  var display = document.getElementById(toRangeDisplayId(param.name));
+  if (range === null) return;
+
+  if (param.rangeMin != paramDef[param.name].rangeMin || param.rangeMax != paramDef[param.name].rangeMax || param.step != paramDef[param.name].step) {
+    range.setAttribute("min", param.rangeMin);
+    range.setAttribute("max", param.rangeMax);
+
+    // If current value is not within new range, set to a valid value
+    if (paramData[param.name] < param.rangeMin || paramData[param.name] > param.rangeMax) {
+      var defVal = getValidRangeValue(param);
+      setParamVal(param.name, defVal);
+      $(range).val(defVal);
+      display.innerHTML = defVal;
+    }
+  }
+}
+
+/** Get a valid range value **/
+function getValidRangeValue(param) {
+  var defVal = param.defaultVal;
+  if (defVal === undefined || defVal === null) {
+    if (param.rangeMin !== undefined && param.rangeMin !== null) {
+      defVal = param.rangeMin;
+    } else if (param.rangeMax !== undefined && param.rangeMax !== null) {
+      defVal = param.rangeMax;
+    } else {
+      defVal = 0;
+    }
+  } else {
+    if (defVal < param.rangeMin) {
+      defVal = param.rangeMin;
+    } else if (defVal > param.rangeMax) {
+      defVal = param.rangeMax;
+    }
+  }
+  return defVal;
 }
 
 function insertInput(param) {
@@ -285,7 +343,6 @@ function insertInput(param) {
       pname_input.setAttribute("type", "range");
       pname_input.setAttribute("name", param.name);
       pname_input.setAttribute("id", param.name);
-      pname_input.setAttribute("value", param.defaultVal);
       pname_input.setAttribute("min", param.rangeMin);
       pname_input.setAttribute("max", param.rangeMax);
       pname_input.setAttribute("step", param.step);
@@ -296,11 +353,14 @@ function insertInput(param) {
       pname_input_div.appendChild(pname_input);
 
       var pname_input_display = document.createElement("label");
-      pname_input_display.setAttribute("id", param.name + "-display");
+      pname_input_display.setAttribute("id", toRangeDisplayId(param.name));
       pname_input_display.setAttribute("class", "col3");
-      pname_input_display.innerHTML = param.defaultVal;
 
-      setParamVal(param.name, param.defaultVal);
+      var defVal = getValidRangeValue(param);
+      setParamVal(param.name, defVal);
+      pname_input.setAttribute("value", defVal);
+      pname_input_display.innerHTML = defVal;
+
       setParamRequirement(param.name, param.required);
       addParamUIListener(pname_input, param.name, (param.type).toLowerCase());
       break;
@@ -376,7 +436,7 @@ function insertInput(param) {
       button_div.innerHTML = "File";
       button_div.appendChild(pname_input);
 
-      // Handle fully quality uri as default value
+      // Handle fully quality uri string as default value
       if (param.defaultVal !== undefined) {
         fname_text.setAttribute("value", val);
         setParamVal(param.name, val);
@@ -504,7 +564,7 @@ function addParamUIListener(element, elementId, type) {
     case "double":
       $(element).on("input", function() {
         setParamVal( elementId, $(element).val() );
-	    var displayId = elementId + "-display";
+	    var displayId = toRangeDisplayId(elementId);
 	    if ( $("#" + displayId).length ) {
 	      $("#" + displayId).html( $(element).val() );
 	    }
@@ -512,7 +572,7 @@ function addParamUIListener(element, elementId, type) {
       });
       $(element).on("change", function() {
         setParamVal( elementId, $(element).val() );
-        var displayId = elementId + "-display";
+        var displayId = toRangeDisplayId(elementId);
         if ( $("#" + displayId).length ) {
           $("#" + displayId).html( $(element).val() );
         }
@@ -547,38 +607,46 @@ function toFileNameHolderId(id) {
   return "filename" + id;
 }
 
+function toRangeDisplayId(id) {
+  return id + "-display";
+}
+
 function populateUI(data) {
   // Remove current val in "sceneFile" input so that a load of same file triggers a change
   $("#sceneFile").val("");
 
 //  var obj = JSON.parse(data);
   var script = data.script;
-  var params = data.params;
 
   editor.setValue(script);
   removeAllParams();
   evalScriptParams();
 
-  $.each(params, function(key, val) {
-//    console.log(key + " = " + val);
-    if (paramDef[key].type == "uri") {
-      var fileNameHolderId = toFileNameHolderId(key);
-      $("#" + fileNameHolderId).val(val);
-      setParamVal(key, val);
-    } else {
-      if (paramDef[key].type == "location") {
-        $("#" + key).val(JSON.stringify(val));
+  // Set values from the loaded param file
+  var params = data.params;
+
+  if (params !== undefined && params !== null) {
+    $.each(params, function(key, val) {
+//      console.log(key + " = " + val);
+      if (paramDef[key].type == "uri") {
+        var fileNameHolderId = toFileNameHolderId(key);
+        $("#" + fileNameHolderId).val(val);
+        setParamVal(key, val);
       } else {
-        $("#" + key).val(val);
-      }
+        if (paramDef[key].type == "location") {
+          $("#" + key).val(JSON.stringify(val));
+        } else {
+          $("#" + key).val(val);
+        }
 
-      setParamVal(key, val);
+        setParamVal(key, val);
 
-      if ( $("#" + key).length ) {
-        $("#" + key + "-display").html( val );
+        if ( $("#" + key).length ) {
+          $("#" + toRangeDisplayId(key)).html( val );
+        }
       }
-    }
-  });
+    });
+  }
 
   update(false, true);
 }
