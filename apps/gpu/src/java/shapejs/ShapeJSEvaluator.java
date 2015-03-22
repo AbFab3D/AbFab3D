@@ -638,6 +638,13 @@ public class ShapeJSEvaluator {
                     val = no.get("defaultVal");
                     if (val != null) {
                         def = ((Number) val).doubleValue();
+                        if (def < rangeMin) {
+                        	def = rangeMin;
+                        } else if (def > rangeMax) {
+                        	def = rangeMax;
+                        }
+                    } else {
+                    	def = rangeMin;
                     }
 
                     pd = new DoubleParameter(name,desc,def, rangeMin, rangeMax,step);
@@ -687,11 +694,22 @@ public class ShapeJSEvaluator {
                     if (val != null) {
                         if (val instanceof Number) {
                             dlDef = ((Number) val).doubleValue();
+                            if (dlDef < dlRangeMin) {
+                            	dlDef = dlRangeMin;
+                            } else if (dlDef > dlRangeMax) {
+                            	dlDef = dlRangeMax;
+                            }
                             dll.add(new DoubleParameter(name,desc,dlDef,dlRangeMin,dlRangeMax,dlStep));
                         } else if (val instanceof NativeArray) {
                             NativeArray dla = (NativeArray) defaultValue;
                             for(int j=0; j < dla.size(); j++) {
-                                dll.add(new DoubleParameter(name,desc,((Number)dla.get(j)).doubleValue(),dlRangeMin,dlRangeMax,dlStep));
+                            	double dlaDef = ((Number)dla.get(j)).doubleValue();
+                                if (dlaDef < dlRangeMin) {
+                                	dlaDef = dlRangeMin;
+                                } else if (dlDef > dlRangeMax) {
+                                	dlaDef = dlRangeMax;
+                                }
+                                dll.add(new DoubleParameter(name,desc,dlaDef,dlRangeMin,dlRangeMax,dlStep));
                             }
 
                         }
@@ -852,5 +870,94 @@ public class ShapeJSEvaluator {
             	e.printStackTrace();
             }
         }
+    }
+    
+    /**
+     * Evaluate script to set param definitions only.
+     * 
+     * @param script The script
+     * @return
+     */
+    public EvalResult setDefinitions(String script) {
+    	long t0 = System.currentTimeMillis();
+    	
+        if (sandboxed && !ContextFactory.hasExplicitGlobal()) {
+            printf("Installing custom context factory");
+            org.mozilla.javascript.ContextFactory.GlobalSetter gsetter = ContextFactory.getGlobalSetter();
+            if (gsetter != null) {
+                gsetter.setContextFactoryGlobal(new SandboxContextFactory());
+            }
+        }
+
+        if (DEBUG) printf("setDefinitions(script, sandbox: %b namedParams)\n", sandboxed);
+        Context cx = Context.enter();
+        Context.ClassShutterSetter setter = cx.getClassShutterSetter();
+
+        if (sandboxed && setter != null) {
+            setter.setClassShutter(new ClassShutter() {
+                public boolean visibleToScripts(String className) {
+                    if (classWhiteList.contains(className)) {
+                        return true;
+                    }
+
+                    // Do not allow recreation of this class ever
+                    if (className.equals("ShapeJSEvaluator")) {
+                        return false;
+                    }
+
+                    for (String pack : packageWhitelist) {
+                        if (className.startsWith(pack)) {
+                            return true;
+                        }
+
+                    }
+
+                    for (String specific : classImports) {
+                        if (className.equals(specific)) {
+                            return true;
+                        }
+
+                    }
+
+                    printf("Rejecting class: %s\n", className);
+                    return false;
+                }
+            });
+        }
+
+        try {
+            if (scope == null) {
+                ContextFactory contextFactory = null;
+                contextFactory = new ContextFactory();
+
+                ToolErrorReporter errorReporter = new ToolErrorReporter(false, System.err);
+                errors = new ErrorReporterWrapper(errorReporter);
+                contextFactory.setErrorReporter(errors);
+
+                scope = new GlobalScope();
+                scope.initShapeJS(contextFactory);
+                argsMap = new NativeObject();
+            }
+
+            script = addImports(script);
+
+
+            //printf("Final script:\n%s\n",script);
+            try {
+                cx.evaluateString(scope, script, "<cmd>", 1, null);
+            } catch (Exception e) {
+                e.printStackTrace(System.out);
+                printf("Script failed: %s\nScript:\n%s", e.getMessage(),script);
+                return new EvalResult("Failed to set definitions: " + e.getMessage(), System.currentTimeMillis() - t0);
+            }
+
+            Object uiParams = scope.get("uiParams", scope);
+            printf("uiParams: %s\n",uiParams);
+            parseDefinition(uiParams);
+        } finally {
+            Context.exit();
+        }
+        
+        return new EvalResult(true,null,null,null,defs,(System.currentTimeMillis() - t0));
     }
 }
