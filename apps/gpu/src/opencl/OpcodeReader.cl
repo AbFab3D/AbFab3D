@@ -8,35 +8,7 @@
 // maximal size of struct for single operation (in words) should be the size of largest operation 
 #define MAXOPSIZE 30 
 
-// this list should be identical to list in src/java/opencl/Opcodes.java
-#define oSPHERE        1
-#define oGYROID        2
-#define oBOX           3
-#define oTORUS         4
-#define oMAX           5
-#define oMIN           6
-#define oBLEND         7
-#define oBLENDMAX      8
-#define oBLENDMIN      9
-#define oSUBTRACT      10
-#define oBLENDSUBTRACT 11
-#define oCOPY_D1D2     12
-#define oCOPY_D2D1     13
-#define oPUSH_D2       14
-#define oPOP_D2        15
-#define oPUSH_P1       16
-#define oPOP_P1        17
-#define oTRANSLATION   18
-#define oROTATION      19
-#define oSCALE         20
-#define oENGRAVE       21
-#define oGRID2DBYTE    22
-#define oGRID3DBYTE    23
-#define oIMAGEBOX      24
-#define oREFLECT       25
-
-
-#define oEND   0
+#include "opcodes.h"
 
 
 // pointer to buffer of opcodes 
@@ -55,7 +27,7 @@ typedef union {
     PTRS int *w;
 } CPtr;
 
-#define NAN 0xFFFFFFFF
+//#define NAN 0xFFFFFFFF
 
 // desription of the scene to render 
 typedef struct {
@@ -94,6 +66,7 @@ void oSphere(PTRS sSphere *sphere, sVec *in, sVec *out){
 
 }
 
+
 typedef struct {
     int size;  // size of struct in words 
     int opcode; // opcode to perform 
@@ -115,6 +88,7 @@ typedef struct {
 } sSPlane;
 #define PLANE  0
 #define SPHERE  1
+
 
 void oReflect(PTRS sSPlane *s, sVec *inout){
 
@@ -145,6 +119,8 @@ void oReflect(PTRS sSPlane *s, sVec *inout){
     } 
 }
 
+
+#include "noise3d.cl"
 
 // OpenCL Kernel Function for opcode reading 
 kernel void opcodeReader(PTRDATA int* opcode, int opCount, PTRDATA int* outdata, int outCount, PTRDATA int *result) {
@@ -202,7 +178,12 @@ kernel void opcodeReader(PTRDATA int* opcode, int opCount, PTRDATA int* outdata,
             *(result+ cnt++) = as_int(pnt1.v.z);
             *(result+ cnt++) = NAN;
             break;
+
+        case oNOISE3D:
+            //oNoise3D(ptr, &pnt1, &data1, 0);
+            break;
         }
+
         offsetIn += size;
     }
 }

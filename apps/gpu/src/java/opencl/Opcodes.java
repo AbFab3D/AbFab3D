@@ -65,6 +65,7 @@ public class Opcodes {
         oSCHWARZP        = 26,
         oSCHWARZD        = 27,
         oLIDINOID        = 28,
+        oNOISE3D         = 29,
 
     // end of operations
         oEND = 0; 
@@ -99,6 +100,7 @@ public class Opcodes {
         codes.put(oSCHWARZP, "SchwarzP");        
         codes.put(oSCHWARZD, "SchwarzD");        
         codes.put(oSCHWARZD, "Lidinoid");        
+        codes.put(oNOISE3D, "Noise3D");        
     }
 
     public static String getText(int code) {

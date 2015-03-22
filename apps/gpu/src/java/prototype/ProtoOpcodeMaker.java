@@ -66,7 +66,7 @@ public class ProtoOpcodeMaker {
         int globalWorkSize = roundUp(localWorkSize, elementCount);   // rounded up to the nearest multiple of the localWorkSize        
         CLCommandQueue queue = device.createCommandQueue(CLCommandQueue.Mode.PROFILING_MODE);
         CLProgram program = ProgramLoader.load(context,"OpcodeReader.cl");
-        String buildOpts = " -Werror";
+        String buildOpts = " -Werror -I classes";
         program.build(buildOpts);        
         printf("ProgramBuildStatus: %s\n",program.getBuildStatus());
         

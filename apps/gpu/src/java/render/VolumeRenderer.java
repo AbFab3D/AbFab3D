@@ -102,12 +102,14 @@ public class VolumeRenderer {
         try {
             String buildOpts = "";
             if (vscene.opts != null) buildOpts = vscene.opts;
+            buildOpts += " -I classes";// include dir 
             buildOpts += " -cl-fast-relaxed-math";
             buildOpts += " -cl-no-signed-zeros";
             buildOpts += " -DmaxSteps=" + maxSteps;
             buildOpts += " -DvoxelSize=" + vs;
             buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;
             buildOpts += " -Dsamples=" + maxAntialiasingSteps;
+            
             if (maxShadowSteps > 0) {
                 buildOpts += " -DSHADOWS";
             }

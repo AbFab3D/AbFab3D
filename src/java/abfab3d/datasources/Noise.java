@@ -38,7 +38,7 @@ import static abfab3d.util.Units.MM;
    noise value between grid nodes is smoothly interpolated from values and gradients 
    the values are periodicaly replicated to the whole space
  */
-public class Noise extends TransformableDataSource {  // Noise in 2D, 3D and 4D
+public class Noise extends TransformableDataSource {  // Periodic noise in 3D 
 
     protected double 
         m_scaleX,
@@ -127,7 +127,7 @@ public class Noise extends TransformableDataSource {  // Noise in 2D, 3D and 4D
         double x = pnt.v[0]*m_scaleX;
         double y = pnt.v[1]*m_scaleY;
         double z = pnt.v[2]*m_scaleZ;
-
+        
         //double v = m_noise.turbulence(x,y,z, 4, 0.5);
 
         double v = (m_noise.get(x,y,z)*m_factor + m_offset);
