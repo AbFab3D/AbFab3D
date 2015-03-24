@@ -7,6 +7,7 @@ import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import datasources.Instruction;
 import gpu.GPUUtil;
+import gpu.PlatformUtil;
 import org.apache.commons.io.FileUtils;
 import program.ProgramLoader;
 
@@ -617,7 +618,9 @@ public class VolumeRenderer {
         int 
             localWorkSizeX = 8,
             localWorkSizeY = 8;
-        
+
+        localWorkSizeX = PlatformUtil.getLocalWorkSize(context.getDevices()[0],localWorkSizeX);
+        localWorkSizeY = PlatformUtil.getLocalWorkSize(context.getDevices()[0],localWorkSizeY);
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
 

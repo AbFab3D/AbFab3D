@@ -81,7 +81,7 @@ public class ShapeJSImageServlet extends HttpServlet {
     }
 
     public void initCL(boolean debug, int width, int height) {
-        String[] cl_devices = ImageRenderer.getCLDevices();
+        long[] cl_devices = ImageRenderer.getCLDevices();
         printf("Found: %d openCL devices\n",cl_devices.length);
         devices = new RendererResources[cl_devices.length];
         deviceMap = new ConcurrentHashMap<String, RendererResources>();
@@ -1167,11 +1167,11 @@ public class ShapeJSImageServlet extends HttpServlet {
      * Per renderer resources
      */
     public static class RendererResources {
-        public String name;
+        public long name;
         public Matrix4f viewMatrix;
         public ImageRenderer renderer;
 
-        public RendererResources(String name, Matrix4f viewMatrix, ImageRenderer renderer) {
+        public RendererResources(long name, Matrix4f viewMatrix, ImageRenderer renderer) {
             this.name = name;
             this.viewMatrix = viewMatrix;
             this.renderer = renderer;
