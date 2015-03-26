@@ -38,7 +38,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    Reflection in a plane 
    
 */
-public class PlaneReflection  implements VecTransform, Initializable  {
+public class PlaneReflection  extends BaseTransform implements VecTransform, Initializable  {
     
     public Vector3d m_pointOnPlane = new Vector3d(0,0,0); 
     public Vector3d m_planeNormal = new Vector3d(1,0,0); 

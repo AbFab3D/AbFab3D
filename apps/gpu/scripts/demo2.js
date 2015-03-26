@@ -177,7 +177,7 @@ function main(args) {
 		var bz1 = 50*MM;
 		var vs1 = 0.1*MM;
 
-		imgBox1 = new ImageBitmap(image1, bx1, by1, bz1, vs1);
+		imgBox1 = new Image3D(image1, bx1, by1, bz1, vs1);
 		imgBox1.setBlurWidth(0.1*MM);
 		imgBox1.getParam("rounding").setValue(0.0*MM);
 		imgBox1.setTransform(getTextTransform(p1_0,n1_0,p1_1,n1_1));
@@ -208,7 +208,7 @@ function main(args) {
 		var bz2 = 50*MM;
 		var vs2 = 0.1*MM;
 
-		imgBox2 = new ImageBitmap(image2, bx2, by2, bz2, vs2);
+		imgBox2 = new Image3D(image2, bx2, by2, bz2, vs2);
 		imgBox2.setBlurWidth(0.1*MM);
 		imgBox2.getParam("rounding").setValue(0.0*MM);
 		imgBox2.setTransform(getTextTransform(p2_0,n2_0,p2_1,n2_1));

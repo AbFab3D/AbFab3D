@@ -71,7 +71,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 
    <embed src="doc-files/wallpaper_groups.svg" type="image/svg+xml"/> 
 */
-public class WallpaperSymmetry  implements VecTransform, Initializable  {
+public class WallpaperSymmetry  extends BaseTransform implements VecTransform, Initializable  {
     
     public static final int     // orbifold notation
         WP_O  = 0,    // O

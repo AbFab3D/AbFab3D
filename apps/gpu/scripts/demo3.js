@@ -216,7 +216,7 @@ function main(args) {
 		var bz = 20*MM;
 		var vs = 0.1*MM;
 
-		imgBox = new ImageBitmap(image, bx, by, bz, vs);
+		imgBox = new Image3D(image, bx, by, bz, vs);
 		imgBox.setBlurWidth(0.1*MM);
 		imgBox.getParam("rounding").setValue(0.0*MM);
 		imgBox.setTransform(getTextTransform(p0,n0,p1,n1));

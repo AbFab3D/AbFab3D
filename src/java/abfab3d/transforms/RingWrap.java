@@ -45,7 +45,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    <embed src="doc-files/ring_wrap.svg" type="image/svg+xml"/> 
    
 */
-public class RingWrap implements VecTransform, Initializable {
+public class RingWrap extends BaseTransform implements VecTransform, Initializable {
     
     public double m_radius = 0.035; // units are meters       
     

@@ -53,7 +53,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    
    @author Vladimir Bulatov
 */
-public class ReflectionSymmetry  implements VecTransform, Initializable  {
+public class ReflectionSymmetry  extends BaseTransform implements VecTransform, Initializable  {
     
     static final boolean DEBUG = false;
     static int debugCount = 1000;

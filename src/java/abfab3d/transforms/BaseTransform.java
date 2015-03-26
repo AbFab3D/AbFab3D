@@ -12,6 +12,4 @@ public abstract class BaseTransform extends BaseParameterizable implements VecTr
     /**
      * Initialize params common to all Transforms, currently none.
      */
-    //public void initParams() {
-    //}
 }
