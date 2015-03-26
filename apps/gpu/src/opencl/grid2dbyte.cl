@@ -42,7 +42,7 @@ void oGrid2dByte(PTRS sGrid2dByte *grid, sVec *pnt, sVec *out, Scene *pScene){
     v -= grid->halfsize;
     
     float d = max(max(v.x,v.y),v.z);
-    if(d < 0.) { // inside of grid 
+    if(d < 0) { // inside of grid 
         // vector in grid units 
         float3 gpnt = (pnt->v.xyz - grid->origin) * (float3)(grid->xscale, grid->yscale,grid->yscale);
 

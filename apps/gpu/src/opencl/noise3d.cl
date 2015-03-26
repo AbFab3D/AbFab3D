@@ -1,4 +1,4 @@
-
+// noise3d.cl 
 
 typedef struct {
     int size;  // size of struct in words 
@@ -30,7 +30,7 @@ int noiseGrad(int x, int y, int z, int nx, int nxy){
 }
 
 float noiseMag(PTRDATA char *grad, float x, float y, float z){
-    return (grad[0]*x + grad[1]*y + grad[2]*z)/127.;
+    return (grad[0]*x + grad[1]*y + grad[2]*z)/127.f;
 }
 
 
@@ -54,7 +54,7 @@ void oNoise3D(PTRS sNoise3D *s, sVec *in, sVec *out, Scene *pScene){
 
     
     // half voxel shift 
-    p -= 0.5;
+    p -= 0.5f;
 
     float3 ip = floor(p);
     float3 ip1 = ip + 1;
@@ -62,8 +62,8 @@ void oNoise3D(PTRS sNoise3D *s, sVec *in, sVec *out, Scene *pScene){
     float3 dp1 = dp-1;
 
     if(ip.x < 0 ) ip.x += dim.x;
-    if(ip.y < 0. ) ip.y += dim.y;
-    if(ip.z < 0. ) ip.z += dim.z;
+    if(ip.y < 0 ) ip.y += dim.y;
+    if(ip.z < 0 ) ip.z += dim.z;
     
     if(ip1.x >= dim.x ) ip1.x -= dim.x;
     if(ip1.y >= dim.y ) ip1.y -= dim.y;
@@ -106,6 +106,6 @@ void oNoise3D(PTRS sNoise3D *s, sVec *in, sVec *out, Scene *pScene){
     float d = 
         w000*m000 + w100*m100 + w110*m110 + w010*m010 +
         w001*m001 + w101*m101 + w111*m111 + w011*m011;            
-    out->v.x = min(max(-0.001,d*s->factor + s->offset),0.001);
+    out->v.x = min(max(-0.001f,d*s->factor + s->offset),0.001f);
 
 }

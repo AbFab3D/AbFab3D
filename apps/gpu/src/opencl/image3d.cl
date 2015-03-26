@@ -34,7 +34,7 @@ void oImage3D(PTRS sImage3D *img, sVec *pnt, sVec *out, Scene *pScene){
     v -= img->halfsize;
     
     float d = blendMax(blendMax(v.x,v.y,img->rounding),v.z,img->rounding);
-    if(d < 0.) { // inside of box 
+    if(d < 0) { // inside of box 
         int nx = img->nx;
         int ny = img->ny;
 

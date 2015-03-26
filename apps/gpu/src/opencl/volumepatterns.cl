@@ -95,7 +95,7 @@ void oLidinoid(PTRS sLidinoid *g, sVec *in, sVec *out){
 
 
     out->v.x = fabs(((s2x*cy*sz + s2y*cz*sx + s2z*cx*sy) - (c2x*c2y + c2y*c2z + c2z*c2x) 
-                     + 0.3 - g->level)/g->factor)  - g->thickness;
+                     + 0.3f - g->level)/g->factor)  - g->thickness;
     
 } // oLidinoid
 

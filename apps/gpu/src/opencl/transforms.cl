@@ -48,3 +48,41 @@ void oRotation(PTRS sRotation *rot, sVec *inout){
     inout->v.xyz = vec;
 }
 
+typedef struct {
+    int type;
+    float radius;
+    float3 center; 
+} sSPlane;
+#define PLANE  0
+#define SPHERE  1
+
+
+void oReflect(PTRS sSPlane *s, sVec *inout){
+
+    switch(s->type){
+
+    case PLANE: 
+        {
+            float3 center = s->center;
+            float radius = s->radius;
+            //float vn = dot( inout->v.xyz - center * radius, center);
+            inout->v.xyz -= (2.f*dot( inout->v.xyz - center * radius, center))* center;
+            
+        } break;
+    case SPHERE:
+        {
+            float3 v = inout->v.xyz;
+            v -= s->center;
+            float len2 = dot(v,v);
+            float r2 = s->radius;
+            r2 *= r2;
+            float factor = (r2/len2);
+            v *= factor;
+            v += s->center; 
+            
+            inout->scale *= factor;
+            inout->v.xyz = v;           
+        } break;
+    } 
+}
+

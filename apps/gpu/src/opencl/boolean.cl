@@ -1,24 +1,3 @@
-// blending function 
-float blendQuadric(float x){
-	return (1.f-x)*(1.f - x)*0.25f;
-}
-
-float blendMin(float a, float b, float w){
-
-    float dd = min(a,b);
-    float d = fabs(a-b);
-    if( d < w) return dd - w*blendQuadric(d/w);	
-    else return dd;
-}
-
-float blendMax(float a, float b, float w){
-
-    float dd = max(a,b);
-    float d = fabs(a-b);
-    if( d < w) return dd + w*blendQuadric(d/w);
-    else return dd;
-}
-
 
 void oMax(PTRS void *ptr, sVec *in1, sVec *in2, sVec *out){
 
