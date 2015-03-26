@@ -80,6 +80,14 @@ public class AttributeDesc  {
         }        
     }
 
+    public AttributeChannel getDensityChannel() {
+        for(int i = 0; i < m_channels.size(); i++){
+            AttributeChannel ac = m_channels.get(i);
+            if(AttributeChannel.DENSITY.equals(ac.m_type))
+                return ac;
+        }
+        return null;
+    }
 
     public static AttributeDesc getDefaultAttributeDesc(int bitCount){
         AttributeDesc at = new AttributeDesc();
