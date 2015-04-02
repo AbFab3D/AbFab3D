@@ -307,9 +307,9 @@ public class VolumePatterns {
 
 
 
-            double d = abs((0.5 * (s2x * cy * sz + s2y * cz * sx + s2z * cx * sy) -
-                            0.5 * (c2x * c2y + c2y * c2z + c2z * c2x) 
-                            + 0.15 - m_level)/m_factor)  - m_thickness;
+            double d = abs(((s2x * cy * sz + s2y * cz * sx + s2z * cx * sy) -
+                            (c2x * c2y + c2y * c2z + c2z * c2x) 
+                            - m_level)/(4*m_factor))  - m_thickness;
             
             data.v[0] = step10(d, 0, (vs));
 
