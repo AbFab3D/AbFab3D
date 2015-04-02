@@ -74,11 +74,11 @@ function getSymmetry(m,n, radius, escale ){
 
 function getBareImage(sizeX, sizeY, sizeZ, path){
 
-	var image = new ImageBitmap(path, sizeX, sizeY, sizeZ, voxelSize);
+	var image = new Image3D(path, sizeX, sizeY, sizeZ, voxelSize);
 	image.setBaseThickness(0);
 	image.setUseGrayscale(true);
 	image.setBlurWidth(voxelSize);
-	image.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
+	image.setImagePlace(Image3D.IMAGE_PLACE_BOTH);
 	return image;
 }
 

@@ -40,7 +40,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    See <a href="http://en.wikipedia.org/wiki/Inversion_in_a_sphere">inversion in a sphere</a>. 
    </p>
 */
-public class SphereInversion  implements VecTransform, Initializable  {
+public class SphereInversion  extends BaseTransform implements VecTransform, Initializable  {
     
     public Vector3d m_center = new Vector3d(0,0,1); 
     public double m_radius = FastMath.sqrt(2.);

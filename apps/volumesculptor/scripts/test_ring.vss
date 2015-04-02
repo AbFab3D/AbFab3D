@@ -1,10 +1,10 @@
 function makeImageBand(imagePath, length, width, thickness, voxelSize) {
 
-   var image_src = new ImageBitmap(imagePath, length, width, thickness);
+   var image_src = new Image3D(imagePath, length, width, thickness);
   image_src.setCenter(0, 0, thickness / 2);
   image_src.setTiles(10, 1);
   image_src.setUseGrayscale(true);
-  image_src.setInterpolationType(ImageBitmap.INTERPOLATION_LINEAR);
+  image_src.setInterpolationType(Image3D.INTERPOLATION_LINEAR);
   image_src.setVoxelSize(voxelSize);
   
   return image_src;

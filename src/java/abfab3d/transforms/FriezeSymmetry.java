@@ -38,7 +38,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    <embed src="doc-files/frieze_groups.svg" type="image/svg+xml"/> 
    
 */
-public class FriezeSymmetry  implements VecTransform, Initializable  {
+public class FriezeSymmetry  extends BaseTransform implements VecTransform, Initializable  {
     
     public static final int     // orbifold notation
         FRIEZE_II = 0,   // oo oo

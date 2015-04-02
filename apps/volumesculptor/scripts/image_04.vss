@@ -12,11 +12,11 @@ function main(arg){
 	
 	var boxHeight = img.getHeight() * boxWidth /img.getWidth();
 	
-	var image = ImageBitmap(img, boxWidth, boxHeight, boxDepth, voxelSize);
+	var image = Image3D(img, boxWidth, boxHeight, boxDepth, voxelSize);
 
 	image.setBaseThickness(0.0);
 	image.setUseGrayscale(false);
-	image.setImagePlace(ImageBitmap.IMAGE_PLACE_BOTH);
+	image.setImagePlace(Image3D.IMAGE_PLACE_BOTH);
 	
 	var w = boxWidth/2 + voxelSize;
 	var h = boxHeight/2 + voxelSize;

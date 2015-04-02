@@ -2,11 +2,11 @@
 function makeImage(path, w,h,d, grid){
 
   var voxelSize = grid.getVoxelSize();
-  var img = new ImageBitmap(path, w, h, d);
+  var img = new Image3D(path, w, h, d);
   img.setBaseThickness(0);
   img.setVoxelSize(voxelSize);
   img.setBlurWidth(2*voxelSize);
-  img.setImagePlace(ImageBitmap.IMAGE_PLACE_TOP);
+  img.setImagePlace(Image3D.IMAGE_PLACE_TOP);
   img.setCenter(0,0,3.5*MM);
   img.setUseGrayscale(false);
 
