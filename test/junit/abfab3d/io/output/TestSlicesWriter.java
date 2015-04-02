@@ -966,14 +966,11 @@ public class TestSlicesWriter extends TestCase {
         double sizex = 10*MM; 
         double sizey = 10*MM; 
         double sizez = 10*MM;
-        double s = 5*MM;
+        double s = 10*MM;
+        double s1 = 0, s2 = s;
 
-        double bounds[] = new double[]{-s, s, -s, s, -s, s};
+        double bounds[] = new double[]{s1, s2, s1, s2, s1, s2};
         
-        MathUtil.roundBounds(bounds, voxelSize);
-        bounds = MathUtil.extendBounds(bounds, margin);                
-
-
         int ng[] = MathUtil.getGridSize(bounds, voxelSize);
 
 
@@ -981,13 +978,15 @@ public class TestSlicesWriter extends TestCase {
         double boxSize = 4*MM;
 
         printf("grid: [%d x %d x %d]\n", ng[0],ng[1],ng[2]);
-        double coneCenter = 2*MM;
-        double sphereCenter = 1*MM; 
+        double grad[] = new double[]{1.,1.,1.};
 
-        Noise noise = new Noise(2*MM, 5);
+        //Noise noise = new Noise(new Vector3d(s,s,s), 1,1,1, grad);
+        Noise noise = new Noise(new Vector3d(s,s,s), 15,15,15);
+        noise.set("factor", 0.8);
+        noise.set("offset", 0.5);
 
         GridMaker gm = new GridMaker();  
-        gm.setMargin(2);
+        gm.setMargin(0);
         
         gm.setAttributeMaker(new AttributeMakerGeneral(new int[]{8}, true));
         
@@ -1003,12 +1002,10 @@ public class TestSlicesWriter extends TestCase {
         
         grid.setAttributeDesc(attDesc);
         
-        if(useSVXWriter){
-            new SVXWriter().write(grid, "/tmp/slices/simplexNoiseP5.svx");       
-        } else {
-            SlicesWriter writer = new SlicesWriter();
-            writer.writeSlices(grid, "/tmp/slices/simplexNoiseP%04d.png", ng[0]/2, ng[0]/2, 1, 2, 24, new BitsExtractor(0, 0xFFFFFF));           
-        }
+        new SVXWriter(0).write(grid, "/tmp/slices/perlinNoise3DX.svx");       
+        new SVXWriter(1).write(grid, "/tmp/slices/perlinNoise3DY.svx");       
+        new SVXWriter(2).write(grid, "/tmp/slices/perlinNoise3DZ.svx");       
+
     }
 
     static class BitsExtractor implements LongConverter {
@@ -1032,9 +1029,9 @@ public class TestSlicesWriter extends TestCase {
         //new TestSlicesWriter().colorTest3();
         //new TestSlicesWriter().colorTestBoxSphere();
         //new TestSlicesWriter().colorTestConeSphere();
-        //new TestSlicesWriter().colorTestNoise();
+        new TestSlicesWriter().colorTestNoise();
         //new TestSlicesWriter().blackWhiteTest();
-        new TestSlicesWriter().grayTest();
+        //new TestSlicesWriter().grayTest();
     }
     
 }

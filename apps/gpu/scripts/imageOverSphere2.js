@@ -26,7 +26,7 @@ function main(args) {
 		
 	by = bx * image.getHeight()/image.getWidth();
 
-    var imgBox = new ImageBitmap(image, bx, by, bz, vs);
+    var imgBox = new Image3D(image, bx, by, bz, vs);
 	imgBox.setBlurWidth(0.1*MM);
 	imgBox.getParam("rounding").setValue(0.1*MM);
 	imgBox.getParam("center").setValue(new Vector3d(0,0,radius));

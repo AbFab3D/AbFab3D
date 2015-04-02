@@ -22,10 +22,18 @@ public class Shape {
 
     protected DataSource dataSource;
     protected Bounds bounds;
-    
+    protected double voxelSize;
+
+
     public Shape(DataSource dataSource, Bounds bounds){
         this.dataSource = dataSource;
         this.bounds = bounds;
+        this.voxelSize = (bounds.xmax - bounds.xmin)/200;        
+    }
+    public Shape(DataSource dataSource, Bounds bounds, double voxelSize){
+        this.dataSource = dataSource;
+        this.bounds = bounds;
+        this.voxelSize = voxelSize;
     }
 
     public Bounds getBounds(){
@@ -41,5 +49,11 @@ public class Shape {
 
     public void setDataSource(DataSource source) {
         dataSource = source;
+    }
+    public void setVoxelSize(double voxelSize) {
+        this.voxelSize = voxelSize;
+    }
+    public double getVoxelSize() {
+        return voxelSize;
     }
 }

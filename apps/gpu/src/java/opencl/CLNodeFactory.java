@@ -42,8 +42,9 @@ public class CLNodeFactory {
         sm_map.put("Image3D", "opencl.CLImage3D");
         sm_map.put("ImageMap", "opencl.CLImageMap");
         sm_map.put("DataSourceGrid", "opencl.CLGrid");
+        sm_map.put("Noise", "opencl.CLNoise3D");
 
-        sm_map.put("Text", "opencl.CLTextMap");
+        sm_map.put("Text", "opencl.CLTextMap"); // obsolete 
     }
     
     public CLNodeFactory(){        

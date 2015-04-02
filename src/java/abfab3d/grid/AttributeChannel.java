@@ -22,7 +22,7 @@ import abfab3d.util.MathUtil;
  *
  * @author Vladimir Bulatov
  */
-public class AttributeChannel  implements LongConverter{
+public class AttributeChannel  implements LongConverter,DensityMaker {
     
     // standard chnnel types
     public static final String DENSITY = "DENSITY";
@@ -36,57 +36,66 @@ public class AttributeChannel  implements LongConverter{
     String m_name;
     // type of the channel 
     String m_type;
-    // shitf to move bits toward origin 
-    int m_shift;
-    // bit count of the channel 
-    int m_bits;
-    // bitmask to extract channel bits from long
-    long m_mask;
+     // shift to move bits toward origin 
+     int m_shift;
+     // bit count of the channel 
+     int m_bits;
+     // bitmask to extract channel bits from long
+     long m_mask;
+     // maximal value to be stored in the chanel  
+     long m_maxValue;
+     double m_conversionFactor;
 
-    public AttributeChannel(String type, String name, int bits, int shift){
+     public AttributeChannel(String type, String name, int bits, int shift){
 
-        m_type = type;
-        m_name = name;
-        m_shift = shift;
-        m_bits = bits;
-        m_mask = MathUtil.getBitMask(bits);
+         m_type = type;
+         m_name = name;
+         m_shift = shift;
+         m_bits = bits;
+         m_mask = MathUtil.getBitMask(bits);
+         m_maxValue = (1 << bits)-1;
+         m_conversionFactor = 1./m_maxValue;
+     }
 
-    }
+     /**
+        bit count stored in the channel 
+      */
+     public int getBitCount(){
 
-    /**
-       bit count stored in the channel 
+         return m_bits;
+
+     }
+
+     /**
+        sets shift used to move bits toward origin 
+      */
+     public void setShift(int shift){
+         m_shift = shift;
+     }
+
+     /**
+        type of the channel. Return one of the standard types 
+      */
+     public String getType(){
+         return m_type;
+     }
+
+     public String getName(){
+         return m_name;
+     }
+
+     /**
+        extracts value of this channel from the attribute  
+        @Override         
      */
-    public int getBitCount(){
+     public long get(long att){
 
-        return m_bits;
+         return (att >> m_shift) & m_mask;
 
-    }
+     }
 
-    /**
-       sets shift used to move bits toward origin 
-     */
-    public void setShift(int shift){
-        m_shift = shift;
-    }
-
-    /**
-       type of the channel. Return one of the standard types 
-     */
-    public String getType(){
-        return m_type;
-    }
-
-    public String getName(){
-        return m_name;
-    }
-
-    /**
-       @override 
-    */
-    public long get(long value){
-
-        return (value >> m_shift)& m_mask;
-
+     public double makeDensity(long att){
+         return m_conversionFactor*get(att);
     }
 }
 

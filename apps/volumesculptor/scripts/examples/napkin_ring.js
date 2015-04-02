@@ -66,7 +66,7 @@ function getImage(radius, thickness, path){
 	var xpnt = v5.x;
 	var ypnt = v3.y*correction;
     //var box = new Box(xpnt, ypny, thickness);
-    var image = new ImageBitmap(path, xpnt, ypnt, thickness);
+    var image = new Image3D(path, xpnt, ypnt, thickness);
     image.setBaseThickness(0);
     var vs = 0.1*MM;
     image.setVoxelSize(vs);

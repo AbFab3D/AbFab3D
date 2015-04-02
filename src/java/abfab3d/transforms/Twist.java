@@ -38,7 +38,7 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
    performs twist of space via rotation about z-axis 
    @author Vladimir Bulatov 
 */
-public class Twist implements VecTransform, Initializable {
+public class Twist extends BaseTransform implements VecTransform, Initializable {
     
     // length at which the transform performs complete 360 degree twist
     private double m_period = 1.; 

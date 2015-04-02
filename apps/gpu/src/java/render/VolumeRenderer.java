@@ -7,6 +7,7 @@ import com.jogamp.opencl.*;
 import com.jogamp.opencl.gl.CLGLBuffer;
 import datasources.Instruction;
 import gpu.GPUUtil;
+import gpu.PlatformUtil;
 import org.apache.commons.io.FileUtils;
 import program.ProgramLoader;
 
@@ -102,12 +103,14 @@ public class VolumeRenderer {
         try {
             String buildOpts = "";
             if (vscene.opts != null) buildOpts = vscene.opts;
+            buildOpts += " -I classes";// include dir 
             buildOpts += " -cl-fast-relaxed-math";
             buildOpts += " -cl-no-signed-zeros";
             buildOpts += " -DmaxSteps=" + maxSteps;
             buildOpts += " -DvoxelSize=" + vs;
             buildOpts += " -DmaxShadowSteps=" + maxShadowSteps;
             buildOpts += " -Dsamples=" + maxAntialiasingSteps;
+            
             if (maxShadowSteps > 0) {
                 buildOpts += " -DSHADOWS";
             }
@@ -615,7 +618,9 @@ public class VolumeRenderer {
         int 
             localWorkSizeX = 8,
             localWorkSizeY = 8;
-        
+
+        localWorkSizeX = PlatformUtil.getLocalWorkSize(context.getDevices()[0],localWorkSizeX);
+        localWorkSizeY = PlatformUtil.getLocalWorkSize(context.getDevices()[0],localWorkSizeY);
         long globalWorkSizeX = GPUUtil.roundUp(localWorkSizeX,wsize);
         long globalWorkSizeY = GPUUtil.roundUp(localWorkSizeY,hsize);
 

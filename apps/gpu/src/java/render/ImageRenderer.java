@@ -8,6 +8,7 @@ import abfab3d.util.Initializable;
 import com.jogamp.opencl.*;
 import com.objectplanet.image.PngEncoder;
 import datasources.Instruction;
+import gpu.PlatformUtil;
 import opencl.CLCodeBuffer;
 import opencl.CLCodeMaker;
 import org.libjpegturbo.turbojpeg.TJ;
@@ -86,18 +87,18 @@ public class ImageRenderer {
     private HashMap<String, List<Instruction>> cache = new HashMap<String, List<Instruction>>();
     private HashMap<String, CacheEntry> cacheSource = new HashMap<String, CacheEntry>();
 
-    public static String[] getCLDevices() {
+    public static long[] getCLDevices() {
         CLDevice[] devices = CLPlatform.getDefault(type(GPU)).listCLDevices();
-        String[] names = new String[devices.length];
+        long[] names = new long[devices.length];
 
         for(int i=0; i < devices.length; i++) {
-            names[i] = devices[i].getName();
+            names[i] = devices[i].getID();
         }
 
         return names;
     }
 
-    public void initCL(String name,int width, int height) {
+    public void initCL(long clid,int width, int height) {
         this.width = width;
         this.height = height;
         numDevices = 1;
@@ -133,7 +134,7 @@ public class ImageRenderer {
             for(int j=0; j < platforms.length; j++) {
                 CLDevice[] devices = platforms[j].listCLDevices();
                 for (int i = 0; i < devices.length; i++) {
-                    if (devices[i].getName().equals(name)) {
+                    if (devices[i].getID() == clid) {
                         printf("Using device: %s\n",devices[i]);
                         tile.setDevice(devices[i]);
                         found = true;
@@ -145,7 +146,7 @@ public class ImageRenderer {
             }
 
             if (!found) {
-                throw new IllegalArgumentException("Cannot find device: " + name);
+                throw new IllegalArgumentException("Cannot find device: " + clid);
             }
         }
 
@@ -194,35 +195,14 @@ public class ImageRenderer {
         tiles[0] = new RenderTile(0, 0, width, height);
         RenderTile tile = tiles[0];
 
-        CLPlatform platform = CLPlatform.getDefault();
-
-        if (platform.getName().contains("Apple")) {
-            // Apple does not get the GPU maxFlops right, just find the nvidia card
-            CLDevice[] devices = platform.listCLDevices();
-            boolean found = false;
-            for(int i=0; i < devices.length; i++) {
-                printf("Checking device: %s %s\n",devices[i],devices[i].getVendor());
-                if (devices[i].getVendor().contains("NVIDIA")) {
-                    tile.setDevice(devices[i]);
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) {
-                tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
-            }
-        } else {
-            tile.setDevice(CLPlatform.getDefault(type(GPU)).getMaxFlopsDevice());
-        }
-
+        tile.setDevice(PlatformUtil.getCPUDevice());
         if (FORCE_CPU) {
             printf("Forcing to CPU rendering");
             tile.setDevice(CLPlatform.getDefault(type(CPU)).getMaxFlopsDevice());
         }
 
-        printf("Using device: %s\n",tile.getDevice().getName());
-        initCL(tile.getDevice().getName(), width, height);
+        printf("Using device: %s id: %d\n",tile.getDevice().getName(),tile.getDevice().getID());
+        initCL(tile.getDevice().getID(), width, height);
     }
 
     public void setVersion(String version_value) {
