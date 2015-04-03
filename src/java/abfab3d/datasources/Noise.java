@@ -80,6 +80,10 @@ public class Noise extends TransformableDataSource {  // Periodic noise in 3D
         mp_nz.setValue(nz);
     }
 
+    public void setFactor(double val) {
+        mp_factor.setValue(val);
+    }
+
     public Noise(Vector3d size, int nx,int ny,int nz, double gradients[]){
         super.addParams(m_aparam);
 

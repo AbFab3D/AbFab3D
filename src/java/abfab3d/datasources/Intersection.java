@@ -102,7 +102,17 @@ public class Intersection extends TransformableDataSource implements SNode {
         dataSources.add(ds);
         ((List)params.get("datasources").getValue()).add(ds);
     }
-    
+
+    /**
+     * Set an item into the list
+     *
+     * @param idx The index, it must already exist
+     * @param src
+     */
+    public void set(int idx, DataSource src) {
+        ((List)params.get("datasources").getValue()).set(idx,src);
+    }
+
     public int initialize(){
 
         super.initialize();

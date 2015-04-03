@@ -97,6 +97,7 @@ public class DoubleParameter extends NumberParameter {
             super.setValue(dval);
         }
     }
+
     /**
      * Get the parameter type enum.
      * @return The type
