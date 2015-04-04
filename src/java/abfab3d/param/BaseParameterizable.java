@@ -66,7 +66,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
 
     /**
      * Set the current value of a parameter.
-     * @param param The name
+     * @param paramName The name
      * @param value the value 
      */
     @Override
@@ -77,7 +77,7 @@ public class BaseParameterizable implements Parameterizable, SNode {
 
     /**
      * Get the current value of a parameter.
-     * @param param The name
+     * @param paramName The name
      * @return The value or IllegalArgumentException if not found
      */
     public Object get(String paramName) {

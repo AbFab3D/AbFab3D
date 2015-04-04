@@ -99,7 +99,17 @@ public class Union  extends TransformableDataSource implements SNode {
         dataSources.add(shape);
         ((List)params.get("datasources").getValue()).add(shape);
     }
-    
+
+    /**
+     * Set an item into the list
+     *
+     * @param idx The index, it must already exist
+     * @param src
+     */
+    public void set(int idx, DataSource src) {
+        ((List)params.get("datasources").getValue()).set(idx,src);
+    }
+
     /**
        @noRefGuide
     */

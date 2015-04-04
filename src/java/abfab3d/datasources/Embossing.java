@@ -81,6 +81,62 @@ public class Embossing extends TransformableDataSource implements SNode {
 
     }
 
+    public void setBaseShape(DataSource shape) {
+        mp_shape.setValue(shape);
+    }
+
+    public DataSource getBaseShape() {
+        return (DataSource) mp_shape.getValue();
+    }
+
+    public void setEmbosser(DataSource engraver) {
+        mp_embosser.setValue(engraver);
+    }
+
+    public DataSource getEmbosser() {
+        return (DataSource) mp_embosser.getValue();
+    }
+
+    public void setMinValue(double val) {
+        mp_minValue.setValue(val);
+    }
+
+    public double getMinValue() {
+        return mp_minValue.getValue();
+    }
+
+    public void setMaxValue(double val) {
+        mp_maxValue.setValue(val);
+    }
+
+    public double getMaxValue() {
+        return mp_maxValue.getValue();
+    }
+
+    public void setFactor(double val) {
+        mp_factor.setValue(val);
+    }
+
+    public double getFactor() {
+        return mp_factor.getValue();
+    }
+
+    public void setOffset(double val) {
+        mp_offset.setValue(val);
+    }
+
+    public double getOffset() {
+        return mp_offset.getValue();
+    }
+
+    public void setBlend(double val) {
+        mp_blendWidth.setValue(val);
+    }
+
+    public double getBlend() {
+        return mp_blendWidth.getValue();
+    }
+
     /**
        @noRefGuide
      */
