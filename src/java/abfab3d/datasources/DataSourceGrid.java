@@ -47,7 +47,9 @@ public class DataSourceGrid extends TransformableDataSource {
     static public final int INTERPOLATION_BOX = 0, INTERPOLATION_LINEAR = 1;
     protected int m_interpolationType = INTERPOLATION_LINEAR;
 
-    AttributeGrid m_grid;
+    protected AttributeGrid m_grid;
+    protected byte[] m_cachedByteData;
+
     // default subvoxelResolution 
     int m_subvoxelResolution=DEFAULT_MAX_ATTRIBUTE_VALUE; 
     double m_bounds[] = new double[6];
@@ -110,6 +112,7 @@ public class DataSourceGrid extends TransformableDataSource {
     public void setMapper(LinearMapper mapper){
 
         m_mapper = mapper; 
+        emptyCache();
 
     }
 
@@ -118,6 +121,9 @@ public class DataSourceGrid extends TransformableDataSource {
         return m_mapper; 
     }
 
+    protected void emptyCache(){
+        m_cachedByteData = null;
+    }
     /**
        
        sets type iused for intervoxel interplation 
@@ -126,6 +132,7 @@ public class DataSourceGrid extends TransformableDataSource {
      */
     public void setInterpolationType(int value){
 
+        emptyCache();
         m_interpolationType = value;
 
     }
@@ -143,7 +150,17 @@ public class DataSourceGrid extends TransformableDataSource {
     public int getGridDepth(){
         return m_nz;
     }
-    public void getGridData(byte data[]){
+
+    public byte[] getCachedByteData(){
+        if(m_cachedByteData == null){
+            m_cachedByteData = makeByteData();
+        } 
+        return m_cachedByteData;         
+    }
+
+    public byte[] makeByteData(){
+
+        byte data[] = new byte[m_nx * m_ny * m_nz];
 
         int nx = m_nx;
         int ny = m_ny;
@@ -171,6 +188,7 @@ public class DataSourceGrid extends TransformableDataSource {
                 if(DEBUG & (z == nz/2)) printf("\n");
             }            
         }
+        return data;
     }
 
     /**
