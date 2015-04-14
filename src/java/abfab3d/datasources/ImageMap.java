@@ -101,26 +101,91 @@ public class ImageMap extends TransformableDataSource {
 
     };
 
-
-    // 
-    private ImageGray16 m_imageData;
-    
     /**
-       creates ImageMap from a file
-
-       @param ImageSource source of the image. Can be url, BufferedImage or ImageWrapper 
-       @param sizex - width of the image 
-       @param sizey - height of the image 
+     * Creates ImageMap from a file
+     *
+     * @param imageSource source of the image. Can be url, BufferedImage or ImageWrapper
+     * @param sizex - width of the image
+     * @param sizey - height of the image
+     * @param sizez - depth of the image
      */
     public ImageMap(Object imageSource, double sizex, double sizey, double sizez) {
 
         super.addParams(m_aparams);
-        
+
         mp_imageSource.setValue(imageSource);
         mp_size.setValue(new Vector3d(sizex, sizey, sizez));
-                
+
     }
 
+
+    public void setImageSource(Object val) {
+        mp_imageSource.setValue(val);
+    }
+
+    public Object getImageSource() {
+        return mp_imageSource.getValue();
+    }
+
+    public void setCenter(Vector3d val) {
+        mp_center.setValue(val);
+    }
+
+    public Vector3d getCenter() {
+        return mp_center.getValue();
+    }
+
+    public void setSize(Vector3d val) {
+        mp_size.setValue(val);
+    }
+
+    public Vector3d getSize() {
+        return mp_size.getValue();
+    }
+
+    public void setRepeatX(boolean val) {
+        mp_repeatX.setValue(val);
+    }
+
+    public boolean isRepeatX() {
+        return mp_repeatX.getValue();
+    }
+
+    public void setRepeatY(boolean val) {
+        mp_repeatY.setValue(val);
+    }
+
+    public boolean isRepeatY() {
+        return mp_repeatY.getValue();
+    }
+
+    public void setWhiteDisplacement(double val) {
+        mp_whiteDisp.setValue(val);
+    }
+
+    public double getWhiteDisplacement() {
+        return mp_whiteDisp.getValue();
+    }
+
+    public void setBlackDisplacement(double val) {
+        mp_blackDisp.setValue(val);
+    }
+
+    public double getBlackDisplacement() {
+        return mp_blackDisp.getValue();
+    }
+
+    public void setBlurWidth(double val) {
+        mp_blurWidth.setValue(val);
+    }
+
+    public double getBlurWidth() {
+        return mp_blurWidth.getValue();
+    }
+
+    // 
+    private ImageGray16 m_imageData;
+    
     public int getBitmapWidth(){
         return m_imageData.getWidth();
     }
@@ -200,13 +265,13 @@ public class ImageMap extends TransformableDataSource {
 
         double blurWidth = mp_blurWidth.getValue();
         if (blurWidth > 0.0) {
-
+            long t0 = System.currentTimeMillis();
             double pixelSize = m_sizeX / m_imageSizeX;
 
             double blurSizePixels = blurWidth / pixelSize;
 
-            printf("gaussian blur: %7.2f\n", blurSizePixels);
             m_imageData.gaussianBlur(blurSizePixels);
+            printf("gaussian blur: %7.2f  w: %5.5f ps: %4.5f time: %d ms\n", blurSizePixels, blurWidth, pixelSize,(System.currentTimeMillis() - t0));
 
 
         }
