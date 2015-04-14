@@ -17,7 +17,14 @@ public class LinearMapper {
     double xmin, xmax, vmin, vmax;
     double scale; 
     
+    boolean clamp; 
+
     public LinearMapper(double xmin, double xmax, double vmin, double vmax){
+        this(xmin, xmax, vmin, vmax, false);
+    }
+    
+    public LinearMapper(double xmin, double xmax, double vmin, double vmax, boolean clamp){
+        this.clamp = clamp;
         this.xmin = xmin;
         this.xmax = xmax;
         this.vmin = vmin;
@@ -27,9 +34,11 @@ public class LinearMapper {
     
     public double map(double x){
 
-        if(x <= xmin) return vmin;
-        if(x >= xmax) return vmax; 
-            
+        if(clamp){
+            if(x <= xmin) return vmin;
+            if(x >= xmax) return vmax; 
+        }
+
         return (x - xmin)*scale + vmin;
 
     }

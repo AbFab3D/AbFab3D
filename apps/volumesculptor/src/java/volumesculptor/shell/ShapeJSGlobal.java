@@ -214,6 +214,7 @@ public class ShapeJSGlobal {
                     "No file provided for load() command");
         }
         String filename = Context.toString(args[0]);
+        printf("filename: %s\n", filename);
         AttributeGrid grid = null;
 
         if (filename == null || filename.length() == 0) {
@@ -223,24 +224,21 @@ public class ShapeJSGlobal {
 
         double vs = 0.1*MM;
         if (args.length > 1) {
-            if (args[1] instanceof Grid) {
-                grid = (AttributeGrid) args[1];
-            } else if (args[1] instanceof Number) {
-                vs = getDouble(args[1]);
+            Object arg1 = unwrap(args[1]);
+            printf("arg[1]: %s\n", arg1);            
+            if (arg1 instanceof Grid) {
+                grid = (AttributeGrid) arg1;
+            } else {
+                vs = getDouble(arg1);
             }
         }
         double margin = vs;
         if (args.length > 2) {
-            if (args[2] instanceof Number) {
-                double m = getDouble(args[2]);
-
-                if (!Double.isNaN(m)) {
-                    margin = getDouble(args[2]);
-                }
-            }
+            Object arg2 = unwrap(args[2]);
+            margin = getDouble(arg2);        
         }
         
-        printf("load(%s, %7.3f mm)\n",filename, vs/MM);
+        printf("load(%s, vs: %7.3f mm, margin: %7.3f mm)\n",filename, vs/MM, margin/MM);
         
         try {
             BoundingBoxCalculator bb = new BoundingBoxCalculator();
@@ -263,23 +261,6 @@ public class ShapeJSGlobal {
             printf("   orig bounds: [ %7.3f, %7.3f], [%7.3f, %7.3f], [%7.3f, %7.3f] mm; vs: %7.3f mm\n",
                     bounds[0]/MM, bounds[1]/MM, bounds[2]/MM, bounds[3]/MM, bounds[4]/MM, bounds[5]/MM, vs/MM);
 
-            // if any measurement is over 1M then the file "must" be in m instead of mm.  God I hate unspecified units
-            /*
-            if(false){
-                // guessing units is bad and may be wrong 
-                double sx = bounds[1] - bounds[0];
-                double sy = bounds[3] - bounds[2];
-                double sz = bounds[5] - bounds[4];
-                if (sx > 1 || sy > 1 | sz > 1) {
-                    stl.setScale(1);
-                    
-                    double factor = 1.0 / 1000;
-                    for(int i=0; i < 6; i++) {
-                        bounds[i] *= factor;
-                    }
-                }
-            }
-            */
             // Add a margin around the model to get some space 
             bounds = MathUtil.extendBounds(bounds, margin);            
             //
@@ -370,6 +351,12 @@ public class ShapeJSGlobal {
 
         return new ImageWrapper(image);
 
+    }
+
+    static Object unwrap(Object arg){
+        if(arg instanceof NativeJavaObject) 
+            arg = ((NativeJavaObject)arg).unwrap();
+        return arg;
     }
 
 

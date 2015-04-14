@@ -52,11 +52,11 @@ public class DistanceDataIntersection implements DistanceData {
     }
 
     //
-    // return distance to the spherical shell in 3D 
+    // 
     //
     public double getDistance(double x, double y, double z){
 
-        double dist = Double.MIN_VALUE;
+        double dist = -1.e30;
 
         for(int i = 0; i < m_components.length; i++){
             double d = m_components[i].getDistance(x,y,z);

@@ -9,7 +9,9 @@ Class-Path: lib/js.jar
  lib/abfab3d_core_1.0.0.jar 
  lib/vecmath.jar 
  lib/jafama.jar 
+ lib/commons-io-2.4.jar 
  lib/j3d-org-all_2.0.0.jar 
  lib/xj3d-all_2.0.0.jar 
+ lib/xj3d.cadfilter_2.0.0.jar 
+ lib/uri.jar  
  lib/abfab3d_apps_common_1.0.0.jar 
- lib/commons-io-2.4.jar 

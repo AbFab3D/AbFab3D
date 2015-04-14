@@ -37,6 +37,10 @@ public class DataTransformer extends TransformableDataSource {
     public DataTransformer() {
     }
 
+    public DataTransformer(DataSource ds) {
+        this.dataSource = ds;
+    }
+
     /**
      *
      * @param ds  data source to be transformed by this transformer

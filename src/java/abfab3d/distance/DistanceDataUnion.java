@@ -23,6 +23,7 @@ import static java.lang.Math.sqrt;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 import static java.lang.Math.max;
+import static abfab3d.util.Output.fmt;
 
 /**
    returns the distance to union of several distance data sources
@@ -64,6 +65,8 @@ public class DistanceDataUnion implements DistanceData {
     //
     public double getDistance(double x, double y, double z){
 
+        if(m_components.length != 2) 
+            throw new RuntimeException(fmt("upsupported component count: %d in %s",m_components.length,this.getClass()));
         double dist = Double.MAX_VALUE;
         double d0 = m_components[0].getDistance(x,y,z);
         double d1 = m_components[1].getDistance(x,y,z);
