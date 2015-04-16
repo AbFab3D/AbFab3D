@@ -91,11 +91,12 @@ public class Text2D extends BaseParameterizable {
 
     // public params of the image 
     DoubleParameter  mp_fontSize = new DoubleParameter("fontSize","size of text font in points",10);
-    DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize","size of voxel for text rendering", 10*UM);
+    DoubleParameter  mp_voxelSize = new DoubleParameter("voxelSize","size of voxel for text rendering", 0.05*MM);
     StringParameter  mp_fontName = new StringParameter("fontName","Name of the font", "Times New Roman");
     StringParameter  mp_text = new StringParameter("text","text to be created", "Text");
     IntParameter  mp_fontStyle = new IntParameter("fontStyle","style of font(BOLD ,ITALIC, PLAIN)", PLAIN);
-    DoubleParameter mp_inset = new DoubleParameter("inset","white space around text in points", 0.5);
+    DoubleParameter mp_inset = new DoubleParameter("inset","white space around text in points", 1.);
+    DoubleParameter mp_spacing = new DoubleParameter("spacing","extra white space between characters in relative units", 0.);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_fontSize,
@@ -104,6 +105,7 @@ public class Text2D extends BaseParameterizable {
         mp_text,
         mp_fontStyle,  
         mp_inset,
+        mp_spacing,
     };
 
     /**
@@ -148,7 +150,7 @@ public class Text2D extends BaseParameterizable {
         int fontStyle = mp_fontStyle.getValue();
         int inset = (int)(PT*mp_inset.getValue()/voxelSize);
 
-        m_bitmap = TextUtil.createTextImage(ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets(inset,inset,inset,inset));
+        m_bitmap = TextUtil.createTextImage(ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets(inset,inset,inset,inset), mp_spacing.getValue().doubleValue());
         
         printf("Text2D bitmap height: %d x %d\n", m_bitmap.getWidth(), m_bitmap.getHeight());
         
