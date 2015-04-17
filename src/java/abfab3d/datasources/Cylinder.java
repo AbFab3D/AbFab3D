@@ -23,9 +23,8 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
 
 import static abfab3d.util.MathUtil.step10;
-import static java.lang.Math.*;
-
-import static abfab3d.util.Output.fmt;
+import static java.lang.Math.*;import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Units.MM;
 
 
 /**
@@ -38,17 +37,31 @@ public class Cylinder extends TransformableDataSource {
 
     static final double EPSILON = 1.e-8;
 
-    private double R0,R1; // cylinder radiuses 
-    private boolean uniform = true;
-    private double h2; // cylnder's half height of
-    private double scaleFactor = 0;
-    private Vector3d center;
-    private Matrix3d rotation;
-    private Vector3d v0, v1;
+    private double m_h2; // cylnder's half height of
+    //private double m_scaleFactor = 0;
+    private Vector3d m_center;
+    private Matrix3d m_rotation;
+    private Vector3d m_v0, m_v1;
     // params for non uniform cylinder 
-    private double R01, normalR, normalY;
+    private double m_R01, m_normalR, m_normalY;
 
     static final Vector3d Yaxis = new Vector3d(0, 1, 0);
+
+
+    Vector3dParameter  mp_v0 = new Vector3dParameter("v0","vertex 0",new Vector3d(0,-10*MM,0));
+    Vector3dParameter  mp_v1 = new Vector3dParameter("v1","vertex 1",new Vector3d(0,10*MM,0));
+    DoubleParameter  mp_r0 = new DoubleParameter("r0","radius at vertex 0",5*MM);
+    DoubleParameter  mp_r1 = new DoubleParameter("r1","radius at vertex 1",5*MM);
+    // rounding of the edges
+    DoubleParameter  mp_rounding = new DoubleParameter("rounding","rounding of the cylinder edges", 0.);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_v0,
+        mp_v1,
+        mp_r0,
+        mp_r1,
+        mp_rounding,
+    };
 
     /**
      * Circular cylinder of uniform radius
@@ -56,9 +69,8 @@ public class Cylinder extends TransformableDataSource {
      * @param v1 center of second base
      * @param radius Radius of cylinder 
      */
-    public Cylinder(Vector3d v0, Vector3d v1, double radius) {
+    public Cylinder(Vector3d v0, Vector3d v1, double radius) {       
         this(v0,v1,radius,radius);
-        this.uniform = true;
     }
 
     /**
@@ -80,59 +92,41 @@ public class Cylinder extends TransformableDataSource {
         setRadius1(radius1);
         setV0(v0);
         setV1(v1);
-        this.v0 = new Vector3d(v0);
-        this.v1 = new Vector3d(v1);
-        this.uniform = false;
     }
 
     /**
      * @noRefGuide
      */
     protected void initParams() {
-        //super.initParams();
-        Parameter p = new Vector3dParameter("v0");
-        params.put(p.getName(), p);
-
-        p = new Vector3dParameter("v1");
-        params.put(p.getName(),p);
-
-        p = new DoubleParameter("radius0");
-        params.put(p.getName(),p);
-
-        p = new DoubleParameter("radius1");
-        params.put(p.getName(),p);
+        super.addParams(m_aparam);
     }
 
     /**
-     * @noRefGuide
+     * 
      */
     public void setRadius0(double r){
-        R0 = r;
-        ((DoubleParameter) params.get("radius0")).setValue(r);
+        mp_r0.setValue(r);
     }
 
     /**
-     * @noRefGuide
+     * 
      */
     public void setRadius1(double r){
-        R1 = r;
-        ((DoubleParameter) params.get("radius1")).setValue(r);
+        mp_r1.setValue(r);
     }
 
     /**
-     * @noRefGuide
+     * 
      */
     public void setV0(Vector3d v){
-        this.v0 = new Vector3d(v);
-        ((Vector3dParameter) params.get("v0")).setValue(new Vector3d(v));
+        mp_v0.setValue(v);
     }
 
     /**
-     * @noRefGuide
+     * 
      */
     public void setV1(Vector3d v){
-        this.v1 = new Vector3d(v);
-        ((Vector3dParameter) params.get("v1")).setValue(new Vector3d(v));
+        mp_v1.setValue(v);
     }
 
     /**
@@ -142,14 +136,19 @@ public class Cylinder extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
+        m_v0 = mp_v0.getValue();
+        m_v1= mp_v1.getValue();
 
-        center = new Vector3d(v0);
-        center.add(v1);
-        center.scale(0.5);
-        Vector3d caxis = new Vector3d(v1); // cylinder axis 
-        caxis.sub(center);
+        m_center = new Vector3d(m_v0);
+        m_center.add(m_v1);
+        m_center.scale(0.5);
+        double r0 = mp_r0.getValue();
+        double r1 = mp_r1.getValue();
 
-        this.h2 = caxis.length();
+        Vector3d caxis = new Vector3d(m_v1); // cylinder axis 
+        caxis.sub(m_center);
+
+        this.m_h2 =  caxis.length();
 
         caxis.normalize();
 
@@ -159,36 +158,65 @@ public class Cylinder extends TransformableDataSource {
         double sina = raxis.length();
         double cosa = Yaxis.dot(caxis);
         if (abs(sina) < EPSILON) {
-            //TODO do something smart 
+            // any axis orthogonal to Y will do the job 
             raxis = new Vector3d(1, 0, 0);
         }
         raxis.normalize();
         double angle = atan2(sina, cosa);
-        rotation = new Matrix3d();
-        rotation.set(new AxisAngle4d(raxis, angle));
+        m_rotation = new Matrix3d();
+        m_rotation.set(new AxisAngle4d(raxis, angle));
 
-        if(!uniform){
-            // cylinder has different bases 
-            this.R01 = (R0 + R1)/2;
-            double nY = (R0 - R1);
-            double nR = h2*2;
-            double ss = sqrt(nY*nY + nR*nR);
-            this.normalY = nY/ss;
-            this.normalR = nR/ss;
-
-        }
-
+        // cylinder may have different bases 
+        this.m_R01 = (r0 + r1)/2;
+        double nY = (r0 - r1);
+        double nR = m_h2*2;
+        double ss = sqrt(nY*nY + nR*nR);
+        m_normalY = nY/ss;
+        m_normalR = nR/ss;
+                
         return RESULT_OK;
     }
 
-    /**
-      the scale factor increases thickness of cylinder proportional to scale of transformation 
 
-      it can be used to thicken the thin parts 
-      @noRefGuide
-     */
-    public void setScaleFactor(double value) {
-        scaleFactor = value;
+    public Matrix3d getRotation(){
+        return m_rotation;
+    }
+
+    public double getHalfHeight(){
+        return m_h2;
+    }
+
+    public double getMidRadius(){
+        return m_R01;
+    }
+
+    public double getNormalY(){
+        return m_normalY;
+    }
+    public double getNormalR(){
+        return m_normalR;
+    }
+
+    public Vector3d getCenter(){
+        return m_center;
+    }
+
+    public double getDistance(Vec pnt){
+        Vec pntc = new Vec(pnt);
+        canonicalTransform(pntc);
+        // cylinder is along Y axis and midpoint at origin 
+
+        double x = pntc.v[0];
+        double y = pntc.v[1];
+        double z = pntc.v[2];
+        
+        double baseDist = abs(y) - m_h2;
+        double r = sqrt(x * x + z * z);
+        double sideDist = (r-m_R01)*m_normalR + y * m_normalY;
+
+        double dist = max(baseDist, sideDist);
+        return dist;
+
     }
 
     /**
@@ -200,39 +228,13 @@ public class Cylinder extends TransformableDataSource {
     public int getDataValue(Vec pnt, Vec data) {
 
         super.transform(pnt);
-
-        Vec pntc = new Vec(pnt);
-        canonicalTransform(pntc);
-        // cylinder is along Y axis with midpoint at origin 
-
-        double x = pntc.v[0];
-        double y = pntc.v[1];
-        double z = pntc.v[2];
+        
+        double dist = getDistance(pnt);
         double vs = pnt.getScaledVoxelSize();
-        if (scaleFactor != 0.) {
-            double s = 1 / (scaleFactor * pnt.getScaleFactor());
-            x *= s;
-            y *= s;
-            z *= s;
-        }
 
-        double baseCap = step10(abs(y), this.h2, vs);
-        if (baseCap == 0.0) {
+        double dens = step10(dist, 0, vs);        
 
-            data.v[0] = 0;
-
-        } else {
-
-            double r = sqrt(x * x + z * z);
-            double distanceToSide;            
-            if(uniform)
-                distanceToSide = r-R0;
-            else 
-                distanceToSide = (r-R01)*normalR + y * normalY;        
-            double sideCap = step10(distanceToSide, vs);
-            if (sideCap < baseCap) baseCap = sideCap;
-            data.v[0] = baseCap;
-        }
+        data.v[0] = dens;
 
         super.getMaterialDataValue(pnt, data);
 
@@ -240,13 +242,13 @@ public class Cylinder extends TransformableDataSource {
     }
 
     /**
-     *  move cylinder into canononical position with center at origin and cylinder axis aligned with Y-axis
+     *  move cylinder into canonical position with center at origin and cylinder axis aligned with Y-axis
 
      @noRefGuide     
      */
     protected void canonicalTransform(Vec pnt) {
-        pnt.subSet(center);
-        pnt.mulSetLeft(rotation);
+        pnt.subSet(m_center);
+        pnt.mulSetLeft(m_rotation);
     }
 
 }  // class Cylinder
