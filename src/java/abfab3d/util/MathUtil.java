@@ -1247,5 +1247,23 @@ public class MathUtil {
         
 	return 0;
     }
+    
+
+    /**
+       return mathematic fractional part {x} = (x - [x]}
+     */
+    public final static double frac(double x){
+        return (x - Math.floor(x));
+    }
+
+    /**
+       return (v1.[v2 x v3])
+     */
+    final public static double tripleProduct(Vector3d v1, Vector3d v2, Vector3d v3){
+        return 
+            v1.x *(v2.y * v3.z - v2.z * v3.y) + 
+            v1.y *(v2.z * v3.x - v2.x * v3.z) + 
+            v1.z *(v2.x * v3.y - v2.y * v3.x);
+    }
 
 }

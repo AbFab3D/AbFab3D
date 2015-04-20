@@ -31,7 +31,10 @@ public class Vector3dParameter extends NumberParameter {
 
     public Vector3dParameter(String name, String desc, Vector3d initialValue) {
         super(name, desc);
-        setValue(initialValue.clone());
+        if(initialValue != null)
+            setValue(initialValue.clone());
+        else 
+            setValue(null);            
     }
 
     @Override

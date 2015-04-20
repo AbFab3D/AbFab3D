@@ -38,6 +38,10 @@ public class Vec {
         v = new double[size];
     }
 
+    public Vec(double x, double y, double z){
+        v = new double[]{x,y,z};        
+    }
+
     public Vec(Vec in){
         v = new double[in.v.length];
         set(in);
@@ -104,6 +108,10 @@ public class Vec {
         v[1] -= a.y;
         v[2] -= a.z;
 
+    }
+
+    public double dot(Tuple3d a){
+        return v[0]*a.x +  v[1]*a.y+  v[2]*a.z;
     }
 
     // multiply vector to given matrix from the left 

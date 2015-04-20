@@ -407,7 +407,7 @@ public class DevTestSlicesWriter extends TestCase {
         //Cylinder cylinder = new Cylinder(new Vector3d(0,0,0), new Vector3d(15*MM,15*MM,15*MM), 0.75*MM);
         Cylinder cylinder = new Cylinder(new Vector3d(0,0,0), new Vector3d(0,0,20*MM), 0.75*MM);
         //Cylinder cylinder = new Cylinder(new Vector3d(0,3*MM,0), new Vector3d(6*MM,4*MM,0), 0.75*MM);
-        cylinder.setScaleFactor(1);
+        //cylinder.setScaleFactor(1);
 
         VolumePatterns.Gyroid gyroid = new VolumePatterns.Gyroid(8*MM, 0.8*MM);  
 

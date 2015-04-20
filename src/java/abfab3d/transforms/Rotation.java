@@ -82,7 +82,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
        
      */
     public Rotation(double ax, double ay, double az, double angle){
-        addParams(m_aparam);
+        super.addParams(m_aparam);
         setRotation(new Vector3d(ax, ay, az), angle);
     }
 
@@ -92,7 +92,7 @@ public class Rotation extends BaseTransform implements VecTransform, Initializab
        @param angle  rotation angle is measured in radians
      */
     public Rotation(Vector3d axis, double angle, Vector3d center){
-        addParams(m_aparam);
+        super.addParams(m_aparam);
         setRotation(axis, angle, center);
     }
 

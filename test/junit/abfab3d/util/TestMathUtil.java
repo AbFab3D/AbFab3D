@@ -294,6 +294,15 @@ public class TestMathUtil extends TestCase {
         }
     }
 
+    void testTripleProduct(){
+        Vector3d v1 = new Vector3d(1,1,0);
+        Vector3d v2 = new Vector3d(0,1,1);
+        Vector3d v3 = new Vector3d(1,0,1);
+        //double tp = MathUtil.tripleProduct(v1, v2, v3);
+        double tp = MathUtil.tripleProduct(v1, v3, v2);
+        printf("tp:%7.5f\n", tp);
+    }
+
     public static void main(String arg[]){
 
         //new TestMathUtil().testInversion3b();
@@ -303,7 +312,8 @@ public class TestMathUtil extends TestCase {
         //new TestMathUtil().testGetBestPlane();
         //new TestMathUtil().testGetBestPlane();
         //new TestMathUtil().testGetBestPlane2();
-        new TestMathUtil().testIntersectIF();
+        //new TestMathUtil().testIntersectIF();
+        new TestMathUtil().testTripleProduct();
         
     }
 }

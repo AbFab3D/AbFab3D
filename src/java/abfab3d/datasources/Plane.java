@@ -17,6 +17,9 @@ import javax.vecmath.Vector3d;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
 
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
@@ -54,20 +57,33 @@ import static abfab3d.util.Units.MM;
 
 public class Plane extends TransformableDataSource {
     
-    private double nx, ny, nz, dist;
-    
+    private double m_nx, m_ny, m_nz, m_dist;    
+
+    Vector3dParameter  mp_normal = new Vector3dParameter("normal","plane's external normal",new Vector3d(1,0,0));
+    DoubleParameter  mp_dist = new DoubleParameter("dist","dsitance to plane from origin",0);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_dist,
+        mp_normal,
+    };
+
+
     public Plane(){
-        this(1.,0.,0.,0);
+        initParams();
     }
 
     /**
      * Plane is defined via external normal and distance along normal from origin.
      *
      * @param normal The normal to the plane
-     * @param dist The distance to the plane
+     * @param distance The distance to the plane
      */
-    public Plane(Vector3d normal, double dist){
-        init(normal.x,normal.y,normal.z, dist);
+    public Plane(Vector3d normal, double distance){
+        initParams();
+        normal.normalize();
+        mp_normal.setValue(normal);
+        mp_dist.setValue(distance);
+
     }
     
     /**
@@ -77,11 +93,12 @@ public class Plane extends TransformableDataSource {
      * @param pointOnPlane the point on the plane
      */
     public Plane(Vector3d normal, Vector3d pointOnPlane){
+        initParams();
 
-        Vector3d nn = new Vector3d(normal);
-        nn.normalize();
+        normal.normalize();
+        mp_normal.setValue(normal);
+        mp_dist.setValue(normal.dot(pointOnPlane));
 
-        init(nn.x, nn.y, nn.z, nn.dot(pointOnPlane));
     }
 
     /**
@@ -93,6 +110,7 @@ public class Plane extends TransformableDataSource {
      * @param pnt2 point in the plane
      */
     public Plane(Vector3d pnt0, Vector3d pnt1, Vector3d pnt2 ){
+        initParams();
 
         Vector3d v1 = new Vector3d(pnt1);
         Vector3d v2 = new Vector3d(pnt2);
@@ -102,7 +120,9 @@ public class Plane extends TransformableDataSource {
         nn.cross(v1, v2);
         nn.normalize();
 
-        init(nn.x, nn.y, nn.z, nn.dot(pnt0));
+        mp_normal.setValue(nn);
+        mp_dist.setValue(nn.dot(pnt0));
+
     }
 
     /**
@@ -116,30 +136,56 @@ public class Plane extends TransformableDataSource {
      */
     public Plane(double nx, double ny, double nz, double dist){
 
-        init(nx, ny, nz, dist);
-
+        this(new Vector3d(nx, ny, nz), dist);
         
     }
+
 
     /**
 
        @noRefGuide
 
      */
-    void init(double nx, double ny, double nz, double dist){
+    protected void initParams(){
+        super.addParams(m_aparam);
+    }
 
-        // normalize normal 
-        double n = sqrt(nx * nx + ny*ny + nz*nz);
-        if(n == 0.0){
-            this.nx = 1;
-            this.ny = 0;
-            this.nz = 0;           
-        } else {
-            this.nx = nx/n;
-            this.ny = ny/n;
-            this.nz = nz/n;             
-        }
-        this.dist = dist;
+    public Vector3d getNormal(){
+        return new Vector3d(m_nx, m_ny, m_nz);
+    }
+
+    public double getDistanceToOrigin(){
+        return m_dist;
+    }
+
+    /**
+       
+       @noRefGuide
+     */    
+    public int initialize(){
+
+        super.initialize();
+
+        Vector3d normal = mp_normal.getValue();
+
+        m_nx = normal.x;
+        m_ny = normal.y;
+        m_nz = normal.z;
+        m_dist = mp_dist.getValue();
+
+        return RESULT_OK;        
+
+    }
+
+    public double getDistance(Vec pnt) {
+        
+        double v[] = pnt.v;
+        double x = v[0];
+        double y = v[1];
+        double z = v[2];
+
+        return (x * m_nx + y*m_ny + z*m_nz  - m_dist);
+        
     }
 
     /**
@@ -152,15 +198,11 @@ public class Plane extends TransformableDataSource {
         
         super.transform(pnt);
         
-        double v[] = pnt.v;
-        double x = v[0];
-        double y = v[1];
-        double z = v[2];
+        double dist = getDistance(pnt);
+
         double vs = pnt.getScaledVoxelSize();
-        
-        double dot = x * nx + y*ny + z*nz;
-        
-        data.v[0] = step10(dot, this.dist, vs);
+                
+        data.v[0] = step10(dist, 0, vs);
         
         super.getMaterialDataValue(pnt, data);        
         return RESULT_OK;        
