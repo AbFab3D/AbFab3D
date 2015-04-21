@@ -20,6 +20,12 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.ObjectParameter;
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.IntParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
+
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -56,26 +62,37 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 public class ReflectionSymmetry  extends BaseTransform implements VecTransform, Initializable  {
     
     static final boolean DEBUG = false;
-    static int debugCount = 1000;
+    static int debugCount = 1000;    
     
-    ReflectionGroup group;
-    double riemannSphereRadius;
-    int m_maxCount = 100;
+    private ReflectionGroup group;
+    //double riemannSphereRadius;
+    //int m_maxCount = 100;
+    
+    private ReflectionGroup.SPlane defaultSplanes[] = new ReflectionGroup.SPlane[]{new ReflectionGroup.Plane(new Vector3d(1,0,0),0)};
 
+    ObjectParameter  mp_splanes = new ObjectParameter("splanes","array of splanes",defaultSplanes);
+    IntParameter  mp_iterations = new IntParameter("iterations","max iterations to reflect into fundamental domain",100);
+    DoubleParameter  mp_riemannSphereRadius = new DoubleParameter("riemannSphereRadius","Riemann Sphere Radius",0.);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_splanes,
+        mp_iterations,
+        mp_riemannSphereRadius,
+    };
+    
     /**
       Reflection symmetry with empty fundamental domain
      */
     public ReflectionSymmetry(){            
-        
+        initParams();        
     }
     
     /**
        Reflection symmetry with specified fundamental domain
      */
-    public ReflectionSymmetry(ReflectionGroup.SPlane fundamentalDomain[]){            
-
-        setGroup(fundamentalDomain);
-
+    public ReflectionSymmetry(ReflectionGroup.SPlane fundamentalDomain[]){
+        initParams();
+        mp_splanes.setValue(fundamentalDomain);
     }
 
     /**
@@ -90,36 +107,47 @@ public class ReflectionSymmetry  extends BaseTransform implements VecTransform, 
      */
     public void setGroup(ReflectionGroup.SPlane fundamentalDomain[]){
 
-        this.group = new ReflectionGroup(fundamentalDomain);
+        mp_splanes.setValue(fundamentalDomain);
 
     }
 
     /**
        set max count of reflection to be used in group generation. Default value is 100.
      */
-    public void setMaxCount(int count){
-        this.m_maxCount  = count;
+    public void setIterations(int count){
+        mp_iterations.setValue(count);
     }
     
     /**
        @noRefGuide 
      */
     public void setRiemannSphereRadius(double value){
-        this.riemannSphereRadius = value;
+        mp_riemannSphereRadius.setValue(value);
     }
     
+
+    public ReflectionGroup getReflectionGroup(){
+        return group;
+    }
+
+    /**
+       @noRefGuide
+     */
+    protected void initParams(){
+        super.addParams(m_aparam);
+    }
+
     /**
        @noRefGuide
      */
     public int initialize(){
         
-        if(group == null){               
-            // init to simple one generator group 
-            group = new ReflectionGroup(new ReflectionGroup.SPlane[]{new ReflectionGroup.Plane(new Vector3d(1,0,0),0)});
-        }
+        ReflectionGroup.SPlane[] splanes = (ReflectionGroup.SPlane[])mp_splanes.getValue();
         
-        group.setRiemannSphereRadius(riemannSphereRadius);
-        group.setMaxIterations(m_maxCount);
+        group = new ReflectionGroup(splanes);
+                
+        group.setRiemannSphereRadius(mp_riemannSphereRadius.getValue());
+        group.setMaxIterations(mp_iterations.getValue());
         return RESULT_OK;
     }
     

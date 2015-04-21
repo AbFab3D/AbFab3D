@@ -52,13 +52,26 @@ public class ReflectionGroup {
         m_R2 = value*value;
         if(DEBUG){
             printf("setRiemannSphereRadius(%10.5f)\n", value);
-        }
-            
+        }            
+    }
+
+    public SPlane[] getSPlanes(){
+        return m_planes;
+    }
+
+    public double getRiemannSphereRadius(){
+        return Math.sqrt(m_R2);
     }
 
     public void setMaxIterations(int value){
 
         m_maxIterations = value;
+        
+    }
+
+    public int getMaxIterations(){
+
+        return m_maxIterations;
         
     }
     
@@ -136,9 +149,9 @@ public class ReflectionGroup {
     //
     public static class Plane extends SPlane {
         
-        double dist;
+        public double dist;
         // normal to the plane normalized to 1 
-        double nx, ny, nz;
+        public double nx, ny, nz;
         public Plane(Vector3d normal, double distance){
             
             double len = normal.length();
@@ -189,10 +202,10 @@ public class ReflectionGroup {
     public static class Sphere extends SPlane {
         
         // radius of sphere 
-        protected double r; 
+        public double r; 
         protected double r2; 
         // center of sphere 
-        protected double cx, cy, cz;
+        public double cx, cy, cz;
         // positive r gives positive distances inside of sphere 
         // negative r gives positive distances outside of sphere 
         // 
