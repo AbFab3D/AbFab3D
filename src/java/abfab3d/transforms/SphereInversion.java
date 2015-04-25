@@ -14,6 +14,10 @@ package abfab3d.transforms;
 
 import java.util.Vector;
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+import abfab3d.param.Vector3dParameter;
+
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
@@ -42,16 +46,23 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 */
 public class SphereInversion  extends BaseTransform implements VecTransform, Initializable  {
     
-    public Vector3d m_center = new Vector3d(0,0,1); 
-    public double m_radius = FastMath.sqrt(2.);
+    Vector3dParameter  mp_center = new Vector3dParameter("center","center of sphere",new Vector3d(0,0,1));
+    DoubleParameter  mp_radius = new DoubleParameter("radius","radius of sphere", Math.sqrt(2.));
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_center,
+        mp_radius
+    };
+
     
-    private double radius2; 
+    private double m_radius2, m_cx, m_cy, m_cz; 
     static double EPS = 1.e-20;
     
     /**
        Creates default sphere which interchanges upper half space and unit ball
     */
     public SphereInversion(){
+        initParams();
     }
     
     /**
@@ -60,7 +71,7 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
        @param radus 
      */
     public SphereInversion(Vector3d center, double radius){
-
+        initParams();
         setSphere(center, radius); 
 
     }
@@ -74,9 +85,13 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
        @param radus 
      */
     public SphereInversion(double cx, double cy, double cz, double radius){
-
+        initParams();
         setSphere(new Vector3d(cx, cy, cz), radius);
 
+    }
+
+    protected void initParams(){
+        super.addParams(m_aparam);
     }
 
     /**
@@ -84,8 +99,8 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
      */
     public void setSphere(Vector3d center, double radius){
         
-        m_center = new Vector3d(center);
-        m_radius = radius;
+        mp_center.setValue(new Vector3d(center));
+        mp_radius.setValue(radius);
         
     }
     
@@ -93,8 +108,15 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
        @noRefGuide
      */
     public int initialize(){
-        
-        radius2 = m_radius*m_radius; 
+
+        Vector3d center = mp_center.getValue();
+        m_cx = center.x;
+        m_cy = center.y;
+        m_cz = center.z;
+
+        double radius = mp_radius.getValue();
+        m_radius2 = radius*radius; 
+
         return RESULT_OK;
         
     }
@@ -112,22 +134,22 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
         double z = in.v[2];
         
         // move center to origin 
-        x -= m_center.x;
-        y -= m_center.y;
-        z -= m_center.z;
+        x -= m_cx;
+        y -= m_cy;
+        z -= m_cz;
         double r2 = (x*x + y*y + z*z);
         if(r2 < EPS) r2 = EPS;
         
-        double scale = radius2/r2;
+        double scale = m_radius2/r2;
         
         x *= scale;
         y *= scale;
         z *= scale;
         
-        // move origin back to center
-        x += m_center.x;
-        y += m_center.y;
-        z += m_center.z;
+        // move center back 
+        x += m_cx;
+        y += m_cy;
+        z += m_cz;
             
         out.v[0] = x;
         out.v[1] = y;
