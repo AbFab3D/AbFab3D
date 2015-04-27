@@ -124,11 +124,8 @@ public class Text2D extends BaseParameterizable {
     }
 
     public void setFontName(String val) {
-        if (!TextUtil.fontExists(val)) {
-            throw new IllegalArgumentException("Font not found:" + val);
-        }
-
-        mp_fontStyle.setValue(val);
+        validateFontName(val);
+        mp_fontName.setValue(val); 
     }
 
     public void setFontStyle(String val) {
@@ -146,11 +143,20 @@ public class Text2D extends BaseParameterizable {
         super.addParams(m_aparam);
     }
 
+    protected void validateFontName(String fontName){
+        if (!TextUtil.fontExists(fontName)) {
+            throw new IllegalArgumentException("Font not found:" + fontName);
+        }
+    }
+
     /**
        @noRefGuide
      */
     public int initialize(){
         
+        String fontName = mp_fontName.getValue();
+        validateFontName(fontName);
+
         // size of bitmap to render text 
         double size = PT*mp_fontSize.getValue();
         double voxelSize = mp_voxelSize.getValue();
@@ -158,7 +164,7 @@ public class Text2D extends BaseParameterizable {
         int ny = (int)Math.round(size/voxelSize); 
         int nx = ny;// TODO - how to get ny 
         String text = mp_text.getValue();
-        String fontName = mp_fontName.getValue();
+
         int fontStyle = mp_fontStyle.getValue();
         int inset = (int)(PT*mp_inset.getValue()/voxelSize);
 

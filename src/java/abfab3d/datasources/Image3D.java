@@ -403,10 +403,7 @@ public class Image3D extends TransformableDataSource {
             for(int x = 0;  x < nx; x++){
                 double d = getImageHeight(x,y);//imageData.getDataD(x, y);
                 // normalization to byte 
-                if(d > base)
-                    data[x + y * nx] = (byte)((int)(d * 255.) & 0xFF); 
-                else 
-                    data[x + y * nx] = 0;
+                data[x + y * nx] = (byte)((int)(d * 0xFF) & 0xFF); 
             }
         }
     }
@@ -422,14 +419,10 @@ public class Image3D extends TransformableDataSource {
             for(int x = 0;  x < nx; x++){
                 double d = getImageHeight(x,y);
                 // normalization to byte 
-                if(d > base){
-                    int id = (int)(d * 0xFFFF);
-                    data[2*x + y * nx2] = (byte)(id & 0xFF); 
-                    data[2*x + y * nx2+1] = (byte)((id >> 8) & 0xFF);  
-                } else {
-                  data[2*x + y * nx2] = 0;
-                  data[2*x + y * nx2 + 1] = 0;
-                }
+                int id = ((int)(d * 0xFFFF)) & 0xFFFF;
+                int ind = 2*x + y * nx2;
+                data[ind] = (byte)(id & 0xFF); 
+                data[ind + 1] = (byte)((id >> 8) & 0xFF);  
             }
         }
     }
