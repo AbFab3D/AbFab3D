@@ -20,6 +20,9 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
+
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -47,35 +50,40 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 */
 public class RingWrap extends BaseTransform implements VecTransform, Initializable {
     
-    public double m_radius = 0.035; // units are meters       
-    
-    
+    public double m_radius = 0.0; // units are meters       
+        
+    DoubleParameter  mp_radius = new DoubleParameter("radius","radius of wrap", 0.035);
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_radius,
+    };
+
     /**
        @noRefGuide
-     */
+    */
     public RingWrap(){
     }
     
     
     /**
        Ring wrap with given radius
-     */
+    */
     public RingWrap(double r){
-        m_radius = r;            
+        mp_radius.setValue(r);
     }
     
     /**
        set radius of the wrap
-     */
+    */
     public void setRadius(double r){
-        m_radius = r;
+        mp_radius.setValue(r);
     }
 
     /**
        @noRefGuide       
      */
     public int initialize(){
-        // do sometithing? 
+        m_radius = mp_radius.getValue();
         return RESULT_OK;
     }
     /**

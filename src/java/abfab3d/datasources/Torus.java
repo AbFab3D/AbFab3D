@@ -110,9 +110,7 @@ public class Torus extends TransformableDataSource {
      * @noRefGuide
      */
     protected void initParams() {
-        for(int i = 0; i < m_aparam.length; i++){
-            params.put(m_aparam[i].getName(),m_aparam[i]);
-        }
+        super.addParams(m_aparam);
     }
 
     /**
