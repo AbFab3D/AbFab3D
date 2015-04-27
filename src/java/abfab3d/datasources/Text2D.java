@@ -125,9 +125,16 @@ public class Text2D extends BaseParameterizable {
 
     public void setFontName(String val) {
         if (!TextUtil.fontExists(val)) {
-            throw new IllegalArgumentException("Font not found" + val);
+            throw new IllegalArgumentException("Font not found:" + val);
         }
+
+        mp_fontStyle.setValue(val);
     }
+
+    public void setFontStyle(String val) {
+        mp_fontStyle.setValue(val);
+    }
+
 
     public BufferedImage getImage(){
         if(m_bitmap == null)
