@@ -31,6 +31,7 @@ public class AxisAngle4dParameter extends NumberParameter {
 
     public AxisAngle4dParameter(String name, String desc, AxisAngle4d initialValue) {
         super(name, desc);
+        defaultValue = initialValue;
         setValue(initialValue);
     }
 

@@ -38,6 +38,7 @@ public class IntParameter extends NumberParameter {
         setMinRange(minRange);
         setMaxRange(maxRange);
 
+        defaultValue = initialValue;
         setValue(initialValue);
     }
 
