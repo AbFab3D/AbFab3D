@@ -52,8 +52,9 @@ public class LocationParameter extends Parameter implements Cloneable {
     	
         setMinPoint(minPoint);
         setMaxPoint(maxPoint);
-        
+
         setValue(new Vector3d[] {(Vector3d)point.clone(),(Vector3d)normal.clone()});
+        defaultValue = value;
     }
     
     /**

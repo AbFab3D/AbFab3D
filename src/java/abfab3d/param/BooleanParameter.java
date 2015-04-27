@@ -22,6 +22,7 @@ public class BooleanParameter extends NumberParameter {
 
     public BooleanParameter(String name, String desc, boolean initialValue) {
         super(name, desc);
+        defaultValue = initialValue;
         setValue(initialValue);
     }
 

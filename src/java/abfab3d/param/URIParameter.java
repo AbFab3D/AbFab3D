@@ -22,6 +22,7 @@ public class URIParameter extends Parameter {
 
     public URIParameter(String name, String desc, String initialValue) {
         super(name, desc);
+        defaultValue = initialValue;
         setValue(initialValue);
     }
 

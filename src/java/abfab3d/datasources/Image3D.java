@@ -161,26 +161,27 @@ public class Image3D extends TransformableDataSource {
 
     /**
      * Image3D with given image path and size
-     @param imagePath path to the image file 
-     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param sz depth of the box. 
+     *
+     * @param imagePath path to the image file
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
      */
     public Image3D(String imagePath, double sx, double sy, double sz) {
         initParams();
 
         setImagePath(imagePath);
         setSize(sx, sy, sz);
-
     }
 
     /**
      * Image3D with given image path and size
-     @param imagePath path to the image file 
-     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param sz depth of the box. 
-     @param voxelSize size of voxel to be used for image voxelization 
+     *
+     * @param imagePath path to the image file
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(String imagePath, double sx, double sy, double sz, double voxelSize) {
         initParams();
@@ -188,16 +189,16 @@ public class Image3D extends TransformableDataSource {
         setImagePath(imagePath);
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
-
     }
 
     /**
      * Image3D with given image path and size
-     @param imagePath path to the image file 
-     @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     @param sz depth of the box. 
-     @param voxelSize size of voxel to be used for image voxelization 
+     *
+     * @param image image data
+     * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sz depth of the box.
+     * @param voxelSize size of voxel to be used for image voxelization
      */
     public Image3D(BufferedImage image, double sx, double sy, double sz, double voxelSize) {
         initParams();
@@ -205,14 +206,14 @@ public class Image3D extends TransformableDataSource {
         setImage(image);
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
-
     }
 
     /**
      * Image3D with given image path and size
+     *
      * @param imwrapper holder of BufferedImage 
      * @param sx width of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
-     * @param st hight of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
+     * @param sy height of the box (if it is 0.0 it will be calculated automatically to maintain image aspect ratio
      * @param sz depth of the box. 
      * @param voxelSize size of voxel to be used for image voxelization 
      */
@@ -221,7 +222,6 @@ public class Image3D extends TransformableDataSource {
         setImage(imwrapper.getImage());
         setSize(sx, sy, sz);
         setVoxelSize(voxelSize);
-
     }
     
     protected void initParams(){
@@ -260,7 +260,6 @@ public class Image3D extends TransformableDataSource {
         mp_tilesY.setValue(new Integer(tilesY));
         m_xTilesCount = tilesX;
         m_yTilesCount = tilesY;
-
     }
 
     /**
@@ -270,7 +269,6 @@ public class Image3D extends TransformableDataSource {
      */
     public void setBaseThickness(double baseThickness) {
         mp_baseThickness.setValue(new Double(baseThickness));
-        
     }
 
     /**

@@ -11,17 +11,15 @@
  ****************************************************************************/
 
 package abfab3d.util;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.RenderingHints;
-import java.awt.Graphics2D;
 import java.awt.geom.Point2D;
-import java.awt.Font;
 import java.awt.font.GlyphVector;
-import java.awt.Insets;
 import java.awt.font.TextLayout;
 import java.awt.geom.Rectangle2D;
 import java.awt.geom.AffineTransform;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import static abfab3d.util.Output.printf;
 
@@ -33,6 +31,9 @@ import static abfab3d.util.Output.printf;
 public class TextUtil {
 
     static final boolean DEBUG = true;
+
+    /** Cache of available fonts to speed testing */
+    static HashSet<String> fontCache = null;
 
     /**
      * Create an image from a text string.
@@ -48,6 +49,7 @@ public class TextUtil {
     }
 
     /**
+     * makes text bitmap of given height and automaticaly set with to accomodate text and insets
        makes text bitmap of given height and automaticaly set width to accomodate text and insets
      */
     public static BufferedImage createTextImage(int imageHeight, String text, Font font, Insets insets) {
@@ -58,12 +60,12 @@ public class TextUtil {
         if(DEBUG)printf("createText(%d, %s; insets(%d, %d, %d, %d)) \n", imageHeight, text, insets.left,insets.top,insets.right,insets.bottom);
         // we need to find width of the image for given text height
         BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g = (Graphics2D)image.getGraphics();
-        TextLayout layout = new TextLayout(text, font, g.getFontRenderContext());   
-        Rectangle2D rect = layout.getBounds();         
+        Graphics2D g = (Graphics2D) image.getGraphics();
+        TextLayout layout = new TextLayout(text, font, g.getFontRenderContext());
+        Rectangle2D rect = layout.getBounds();
         double twidth = rect.getWidth();
         double theight = rect.getHeight();
-        if(DEBUG)printf("textRect: [%f x %f]\n", twidth, theight);
+        if (DEBUG) printf("textRect: [%f x %f]\n", twidth, theight);
         // rect size        
         double tx = twidth;
         double ty = theight;
@@ -87,7 +89,6 @@ public class TextUtil {
      * @param font The font to use
      * @param insets margins to leave blank around the text 
      * @param shrinkText shrink text (if true) to fit the rectangle
-     * @param spacing extra charactewr spacing relative to average character width
      */
     public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets, boolean shrinkText, double spacing) {
         
@@ -182,6 +183,9 @@ public class TextUtil {
         int x = (int)((w - twidth)/2 - tx) + insets.left;
         int y = (int)((h - theight)/2 - ty) + insets.top;
         
+        //printf("font size: %4.1f rect: (%4.1f, %4.1f) [%4.1f x %4.1f] x:%d, y:%d\n", 
+        //       fsize, rect.getX(), rect.getY(), rect.getWidth(),rect.getHeight(), x, y);
+
         g.setColor(Color.WHITE);        
         g.fillRect(0,0,imageWidth, imageHeight);
 
@@ -203,6 +207,12 @@ public class TextUtil {
 
         g.setTransform(at);
 
+        //g.setColor(Color.RED);        
+        //g.fill(new Rectangle2D.Double(x+tx,y,twidth, 1));        
+
+        //g.setColor(Color.BLUE);         
+        //g.draw(textRect);
+        
         g.setColor(Color.BLACK);        
         layout.draw(g, x, y);
 
@@ -250,7 +260,7 @@ public class TextUtil {
     }    
 
     /**
-       calculates transform which scales rectIn to fit vertically into rectOut (possible makes it larger in width) 
+     * calculates transform which scales rectIn to fit vertically into rectOut (possible makes it larger in width)
      */
     public static AffineTransform getRectTransform2(Rectangle2D rectIn, 
                                                    Rectangle2D rectOut
@@ -278,4 +288,28 @@ public class TextUtil {
         return tr;
     }
 
+    public static boolean fontExists(String fontName) {
+        if (fontCache == null)  {
+            GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            String[] fonts = g.getAvailableFontFamilyNames();
+            HashSet<String> fc =  new HashSet<String>(fonts.length);
+
+            System.out.println("Caching Fonts:");
+            int len = fonts.length;
+            for (int i = 0; i < len; i++) {
+                System.out.println(fonts[i]);
+                fc.add(fonts[i]);
+            }
+
+            fontCache = fc;
+        }
+
+        return fontCache.contains(fontName);
+    }
+
+    public static String[] getFontsInstalled() {
+        GraphicsEnvironment g = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        String[] fonts = g.getAvailableFontFamilyNames();
+        return fonts;
+    }
 }
