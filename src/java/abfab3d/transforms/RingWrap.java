@@ -62,6 +62,7 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
        @noRefGuide
     */
     public RingWrap(){
+        initParams();
     }
     
     
@@ -69,6 +70,7 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
        Ring wrap with given radius
     */
     public RingWrap(double r){
+        initParams();
         mp_radius.setValue(r);
     }
     
@@ -77,6 +79,10 @@ public class RingWrap extends BaseTransform implements VecTransform, Initializab
     */
     public void setRadius(double r){
         mp_radius.setValue(r);
+    }
+
+    protected void initParams(){
+        super.addParams(m_aparam);
     }
 
     /**

@@ -81,6 +81,7 @@ public class Image3D extends TransformableDataSource {
     BooleanParameter  mp_useGrayscale = new BooleanParameter("useGrayscale","Use grayscale for image rendering", true);
     DoubleParameter  mp_blurWidth = new DoubleParameter("blurWidth", "width of gaussian blur on the image", 0.);
     DoubleParameter  mp_baseThreshold = new DoubleParameter("baseThreshold", "threshold of the image", 0.01);
+    DoubleParameter  mp_distanceFactor = new DoubleParameter("distanceFactor", "distance factor in the image plane", 0.1);
 
     Parameter m_aparam[] = new Parameter[]{
         mp_center,
@@ -93,7 +94,7 @@ public class Image3D extends TransformableDataSource {
         mp_blurWidth,
         mp_baseThreshold,
         mp_imagePlace,
-
+        mp_distanceFactor,
     };
 
     static final double PIXEL_NORM = 1. / 255.;
