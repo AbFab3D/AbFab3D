@@ -128,7 +128,7 @@ public class Text2D extends BaseParameterizable {
         mp_fontName.setValue(val); 
     }
 
-    public void setFontStyle(String val) {
+    public void setFontStyle(Integer val) {
         mp_fontStyle.setValue(val);
     }
 
