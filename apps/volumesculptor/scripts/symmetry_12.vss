@@ -47,7 +47,7 @@ function main(arg){
 	var sym = new ReflectionSymmetry();
 	sym.setRiemannSphereRadius(25*MM);
     sym.setGroup(ReflectionSymmetries.getQuad_2(23*MM, 160*MM, 25*MM, Math.PI/3));
-	sym.setMaxCount(25);
+	sym.setIterations(25);
 	
 	dt.setTransform(sym);
 	

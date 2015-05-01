@@ -86,7 +86,7 @@ function main(){
 	dt.setSource(part);	
 	
 	var sym = new ReflectionSymmetry(getQuad_1(25*MM, 30*MM, Math.PI/3));
-	sym.setMaxCount(50);
+	sym.setIterations(50);
 	
 	dt.setTransform(sym);
 	

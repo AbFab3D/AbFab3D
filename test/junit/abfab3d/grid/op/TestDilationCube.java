@@ -17,6 +17,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 
+import abfab3d.util.Bounds;
 import org.j3d.geom.GeometryData;
 import org.j3d.geom.TorusGenerator;
 import org.web3d.util.ErrorReporter;
@@ -24,7 +25,6 @@ import org.web3d.vrml.export.PlainTextErrorReporter;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
-import junit.framework.TestCase;
 
 // Internal Imports
 import abfab3d.geom.TorusCreator;

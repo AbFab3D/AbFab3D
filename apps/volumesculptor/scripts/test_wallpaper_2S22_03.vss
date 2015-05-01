@@ -87,7 +87,7 @@ function main(){
 	
 	var symm = new WallpaperSymmetry(WallpaperSymmetry.WP_2S22, fdWidth, fdHeight);	
 	
-	symm.setMaxCount(100);
+	symm.setIterations(100);
 	var ct = new CompositeTransform();
 	ct.add(symm);
 	ct.add(new Rotation(0,0,1, angle));

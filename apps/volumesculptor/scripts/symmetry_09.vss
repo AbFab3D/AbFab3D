@@ -130,7 +130,7 @@ function main(){
 	//var sym = new ReflectionSymmetry(getQuad_1(r, r1, Math.PI/3));
 	var sym = new ReflectionSymmetry(getQuad_2(r, r1, 35*MM, Math.PI/3));
 	
-	sym.setMaxCount(50);
+	sym.setIterations(50);
 	
 	dt.setTransform(sym);
 	

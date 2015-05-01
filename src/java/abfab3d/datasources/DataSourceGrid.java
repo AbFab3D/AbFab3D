@@ -14,18 +14,12 @@ package abfab3d.datasources;
 
 
 import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
 
 import abfab3d.grid.Grid;
-import abfab3d.grid.Bounds;
+import abfab3d.util.Bounds;
 import abfab3d.grid.AttributeGrid;
 
-import abfab3d.util.Output;
-
 import static abfab3d.util.Output.printf;
-import static abfab3d.util.Output.time;
 
 
 /**

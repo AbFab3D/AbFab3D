@@ -12,7 +12,7 @@ import java.awt.image.BufferedImage;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Grid;
-import abfab3d.grid.Bounds;
+import abfab3d.util.Bounds;
 import abfab3d.grid.GridShortIntervals;
 
 import abfab3d.grid.op.GridMaker;
@@ -39,7 +39,6 @@ import abfab3d.datasources.ImageWrapper;
 
 import org.apache.commons.compress.utils.IOUtils;
 import org.mozilla.javascript.*;
-import org.web3d.util.*;
 import org.web3d.vrml.export.*;
 import org.web3d.vrml.sav.BinaryContentHandler;
 
@@ -47,7 +46,6 @@ import static abfab3d.util.Units.MM;
 
 import java.io.*;
 import java.lang.IllegalArgumentException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 

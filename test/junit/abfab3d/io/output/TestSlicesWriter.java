@@ -35,19 +35,17 @@ import junit.framework.TestSuite;
 import abfab3d.grid.AttributeMakerGeneral;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridLong;
 import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.AttributeDesc;
 import abfab3d.grid.AttributeChannel;
-import abfab3d.grid.Bounds;
+import abfab3d.util.Bounds;
 
 
 import abfab3d.geom.TriangulatedModels;
 
 import abfab3d.util.MathUtil;
 import abfab3d.util.ImageGray16;
-import abfab3d.util.DefaultLongConverter;
 import abfab3d.util.LongConverter;
 
 import abfab3d.distance.DistanceDataSphere;
@@ -61,29 +59,11 @@ import abfab3d.datasources.Box;
 import abfab3d.datasources.Noise;
 import abfab3d.datasources.Cone;
 import abfab3d.datasources.Sphere;
-import abfab3d.datasources.Ring;
 import abfab3d.datasources.Torus;
-import abfab3d.datasources.DataTransformer;
-import abfab3d.datasources.Intersection;
-import abfab3d.datasources.Union;
 import abfab3d.datasources.Composition;
-import abfab3d.datasources.Subtraction;
-import abfab3d.datasources.Triangle;
-import abfab3d.datasources.Cylinder;
-import abfab3d.datasources.LimitSet;
 import abfab3d.datasources.VolumePatterns;
 
-import abfab3d.transforms.RingWrap;
-import abfab3d.transforms.FriezeSymmetry;
-import abfab3d.transforms.WallpaperSymmetry;
 import abfab3d.transforms.Rotation;
-import abfab3d.transforms.CompositeTransform;
-import abfab3d.transforms.Scale;
-import abfab3d.transforms.SphereInversion;
-import abfab3d.transforms.Translation;
-import abfab3d.transforms.PlaneReflection;
-
-import abfab3d.datasources.VolumePatterns;
 
 import abfab3d.grid.op.GridMaker;
 

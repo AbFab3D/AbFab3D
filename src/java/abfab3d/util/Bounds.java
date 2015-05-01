@@ -10,13 +10,14 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid;
+package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 
 import static abfab3d.util.Output.fmt;
 
 public class Bounds implements Cloneable {
+    public static final Bounds INFINITE = new Bounds(-1000,1000,-1000,1000,-1000,1000);
 
     public double xmin=0, xmax=1., ymin=0., ymax=1., zmin=0., zmax=1.;
     public int nx = 1, ny = 1, nz = 1;

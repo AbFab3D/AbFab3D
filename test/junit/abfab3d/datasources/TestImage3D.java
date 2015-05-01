@@ -105,7 +105,7 @@ public class TestImage3D extends TestCase {
         printf("testBitmap()\n");
     }
 
-    static void testLinearMapper(){
+    public static void testLinearMapper(){
 
         LinearMapper mapper = new LinearMapper(-1000, 1000, -0.001, 0.001);
 

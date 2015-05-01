@@ -34,6 +34,7 @@ import static abfab3d.util.Output.time;
 /**
  */
 public class TestTextUtil extends TestCase {
+    public static final boolean DEBUG = false;
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
@@ -42,14 +43,14 @@ public class TestTextUtil extends TestCase {
         return new TestSuite(TestTextUtil.class);
     }
 
-    public void renderText() throws Exception{
+    public void testRenderText() throws Exception{
         BufferedImage img = TextUtil.createTextImage(1000, 100, "0123456789Ajlg", new Font("Times New Roman", Font.PLAIN, 10), new Insets(1,1,1,1), false, 0.2);
-        ImageIO.write(img, "png", new File("/tmp/text.png"));
+        if (DEBUG) ImageIO.write(img, "png", new File("/tmp/text.png"));
     } 
 
     public static void main(String arg[]) throws Exception {
 
-        new TestTextUtil().renderText();
+        new TestTextUtil().testRenderText();
         
     }
     

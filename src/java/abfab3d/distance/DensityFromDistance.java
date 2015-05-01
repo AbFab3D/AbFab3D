@@ -12,6 +12,7 @@
 
 package abfab3d.distance;
 
+import abfab3d.util.Bounds;
 import abfab3d.util.DataSource;
 import abfab3d.util.Vec;
 
@@ -25,6 +26,7 @@ public class DensityFromDistance implements DataSource {
     protected DistanceData distData;
     protected double surface;
     protected double thickness;
+    protected Bounds m_bounds;
 
     /**
        @param distData object which calculates distance data 
@@ -48,4 +50,21 @@ public class DensityFromDistance implements DataSource {
     public int getChannelsCount(){
         return 1;
     }
+
+    /**
+     * Get the bounds of this data source.  The data source can be infinite.
+     * @return
+     */
+    public Bounds getBounds() {
+        return m_bounds;
+    }
+
+    /**
+     * Set the bounds of this data source.  For infinite bounds use Bounds.INFINITE
+     * @param bounds
+     */
+    public void setBounds(Bounds bounds) {
+        this.m_bounds = bounds.clone();
+    }
+
 } 

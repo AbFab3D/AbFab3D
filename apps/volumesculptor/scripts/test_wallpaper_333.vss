@@ -44,7 +44,7 @@ function main(){
 	
 	var symm = new WallpaperSymmetry(WallpaperSymmetry.WP_333, fdWidth, fdHeight);	
 	
-	symm.setMaxCount(10);
+	symm.setIterations(10);
 	
 	fundamentalDomain.setTransform(symm);
 	var union = new Union();

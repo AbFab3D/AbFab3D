@@ -16,6 +16,7 @@ package abfab3d.grid;
 
 import abfab3d.datasources.Sphere;
 import abfab3d.grid.op.GridMaker;
+import abfab3d.util.Bounds;
 import abfab3d.util.Units;
 import junit.framework.Test;
 import junit.framework.TestSuite;

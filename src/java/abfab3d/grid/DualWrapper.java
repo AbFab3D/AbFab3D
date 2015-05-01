@@ -16,6 +16,8 @@ package abfab3d.grid;
 
 // Internal Imports
 
+import abfab3d.util.Bounds;
+
 /**
  * Masks the usage of setData calls with an attribute to an underlying grid that may not
  * contain attributes.  This adds overhead to each call but avoid code duplication.  Use this

@@ -15,12 +15,10 @@ package abfab3d.datasources;
 import abfab3d.param.BaseParameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.Vector3dParameter;
-import abfab3d.util.Vec;
-import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
+import abfab3d.util.*;
 
 import static abfab3d.util.Output.fmt;
+import static abfab3d.util.Output.printf;
 
 /**
    Base class for DataSources which want to be Transformable
@@ -53,6 +51,7 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
 
     // the material is potential multichannel data source and it adds channels to the total channels count
     protected DataSource m_material = null; 
+    protected Bounds m_bounds = null;
 
     protected TransformableDataSource(){
     }
@@ -88,6 +87,21 @@ public abstract class TransformableDataSource extends BaseParameterizable implem
         return m_material;
     }
 
+    /**
+     * Get the bounds of this data source.  The data source can be infinite.
+     * @return
+     */
+    public Bounds getBounds() {
+        return m_bounds;
+    }
+
+    /**
+     * Set the bounds of this data source.  For infinite bounds use Bounds.INFINITE
+     * @param bounds
+     */
+    public void setBounds(Bounds bounds) {
+        this.m_bounds = bounds.clone();
+    }
 
     /**
      * @noRefGuide

@@ -36,7 +36,7 @@ function main(){
 	var sym = new ReflectionSymmetry();
     sym.setGroup(ReflectionSymmetries.getIcosahedralKaleidoscope());
 
-	sym.setMaxCount(20);
+	sym.setIterations(20);
 	dt.setTransform(sym);
 	
     var maker = new GridMaker();

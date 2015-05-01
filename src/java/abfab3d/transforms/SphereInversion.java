@@ -90,6 +90,14 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
 
     }
 
+    public void setCenter(Vector3d val) {
+        mp_center.setValue(val.clone());
+    }
+
+    public void setRadius(Double val) {
+        mp_radius.setValue(val);
+    }
+
     protected void initParams(){
         super.addParams(m_aparam);
     }

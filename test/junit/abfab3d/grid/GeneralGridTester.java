@@ -14,11 +14,9 @@ package abfab3d.grid;
 
 // External Imports
 import java.lang.reflect.Constructor;
-import java.lang.reflect.TypeVariable;
 import java.util.Random;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import abfab3d.util.Bounds;
 
 
 // Internal Imports
@@ -118,7 +116,7 @@ public class GeneralGridTester {
 
     static Constructor getBoundsConstructor(Class gclass){
         try {
-            return gclass.getDeclaredConstructor(Bounds.class,Double.TYPE,Double.TYPE);        
+            return gclass.getDeclaredConstructor(Bounds.class,Double.TYPE,Double.TYPE);
         } catch (Exception e){
         }
         return null;

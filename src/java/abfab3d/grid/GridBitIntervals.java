@@ -13,6 +13,8 @@
 package abfab3d.grid;
 
 
+import abfab3d.util.Bounds;
+
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
@@ -75,7 +77,7 @@ public class GridBitIntervals  extends BaseAttributeGrid implements GridBit, Gri
 
     }
 
-    public GridBitIntervals(Bounds bounds, double pixelSize, double sliceHeight) { 
+    public GridBitIntervals(Bounds bounds, double pixelSize, double sliceHeight) {
 
         super(bounds,  pixelSize,sliceHeight);
 

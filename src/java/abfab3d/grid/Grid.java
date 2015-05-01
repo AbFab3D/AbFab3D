@@ -13,9 +13,8 @@
 package abfab3d.grid;
 
 // External Imports
-import java.util.*;
-import java.io.*;
-import org.web3d.vrml.sav.BinaryContentHandler;
+
+import abfab3d.util.Bounds;
 
 /**
  * A voxel grid.  Grids can either be uniform or

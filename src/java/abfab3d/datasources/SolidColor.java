@@ -12,6 +12,7 @@
 
 package abfab3d.datasources;
 
+import abfab3d.util.Bounds;
 import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
 
@@ -27,7 +28,7 @@ public class SolidColor implements DataSource {
     protected double m_b;
     protected double m_a;
     protected int m_channels = 0;
-
+    protected Bounds m_bounds;
 
     /**
        solid color with red green blue components 
@@ -74,6 +75,22 @@ public class SolidColor implements DataSource {
             dataValue.v[2] = m_b;
         }
         return RESULT_OK;
+    }
+
+    /**
+     * Get the bounds of this data source.  The data source can be infinite.
+     * @return
+     */
+    public Bounds getBounds() {
+        return m_bounds;
+    }
+
+    /**
+     * Set the bounds of this data source.  For infinite bounds use Bounds.INFINITE
+     * @param bounds
+     */
+    public void setBounds(Bounds bounds) {
+        this.m_bounds = bounds.clone();
     }
 
 }

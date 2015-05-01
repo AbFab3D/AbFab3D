@@ -1257,8 +1257,8 @@ public class TestGridMaker extends TestCase {
         PlaneReflection pr = new PlaneReflection(new Vector3d(0,0,1),new Vector3d(0,0,0));
 
         SphereInversion si = new SphereInversion();
-        si.m_radius = (sphereDiameter/2)*(Math.sqrt(3));
-        si.m_center = new Vector3d(0,0,-sphereDiameter/2*Math.sqrt(2));
+        si.setRadius((sphereDiameter/2)*(Math.sqrt(3)));
+        si.setCenter(new Vector3d(0,0,-sphereDiameter/2*Math.sqrt(2)));
                 
         compTrans.add(pr);
         compTrans.add(si);

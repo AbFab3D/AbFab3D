@@ -14,6 +14,8 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.util.Bounds;
+
 import java.io.Serializable;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;

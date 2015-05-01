@@ -12,6 +12,8 @@
 
 package abfab3d.grid;
 
+import abfab3d.util.Bounds;
+
 import java.io.Serializable;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;

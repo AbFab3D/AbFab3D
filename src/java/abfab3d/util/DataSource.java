@@ -39,4 +39,15 @@ public interface DataSource {
      */
     public int getChannelsCount();
 
+    /**
+     * Get the bounds of this data source.  The data source can be infinite.
+     * @return
+     */
+    public Bounds getBounds();
+
+    /**
+     * Set the bounds of this data source.  For infinite bounds use Bounds.INFINITE
+     * @param bounds
+     */
+    public void setBounds(Bounds bounds);
 }

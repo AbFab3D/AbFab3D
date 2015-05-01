@@ -29,7 +29,7 @@ function main(){
 	
 	var sym = new ReflectionSymmetry();
     sym.setGroup(ReflectionSymmetries.getQuad_1(25*MM, 30*MM, Math.PI/3));
-	sym.setMaxCount(125);
+	sym.setIterations(125);
 	
 	dt.setTransform(sym);
 	

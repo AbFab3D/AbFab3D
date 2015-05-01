@@ -17,6 +17,7 @@ import abfab3d.grid.op.GridMaker;
 import abfab3d.io.input.STLReader;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.STLWriter;
+import abfab3d.util.Bounds;
 import abfab3d.util.DataSource;
 import abfab3d.util.MathUtil;
 import abfab3d.util.Vec;
@@ -277,6 +278,22 @@ public class TestShellFinder extends TestCase {
         public int getChannelsCount(){
             return 1;
         }
+
+        /**
+         * Get the bounds of this data source.  The data source can be infinite.
+         * @return
+         */
+        public Bounds getBounds() {
+            return null;
+        }
+
+        /**
+         * Set the bounds of this data source.  For infinite bounds use Bounds.INFINITE
+         * @param bounds
+         */
+        public void setBounds(Bounds bounds) {
+        }
+
     } // class ArrayOfSpheres   
 }
 

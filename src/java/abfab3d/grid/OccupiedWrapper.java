@@ -16,6 +16,8 @@ package abfab3d.grid;
 
 // Internal Imports
 
+import abfab3d.util.Bounds;
+
 /**
  * Detects whether a set operation is changing a voxel that
  * is already occupied with a different material.

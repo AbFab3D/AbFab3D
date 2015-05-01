@@ -12,38 +12,22 @@
 
 package abfab3d.grid.op;
 
-import java.util.Random;
-
-import abfab3d.grid.VectorIndexerStructMap;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
-import javax.vecmath.Point3d;
-
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.ArrayAttributeGridByte;
-import abfab3d.grid.Bounds;
+import abfab3d.util.Bounds;
 
 import abfab3d.datasources.Sphere;
 
 
-import abfab3d.distance.DistanceData;
-import abfab3d.distance.DistanceDataSphere;
-
-
-import abfab3d.geom.PointCloud;
-
 import static java.lang.Math.round;
-import static java.lang.Math.ceil;
 import static java.lang.Math.abs;
-import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
 import static abfab3d.util.Units.MM;
 import static abfab3d.util.Units.CM;
-import static abfab3d.util.MathUtil.L2S;
 
 /**
  * Test the VolumeCalculatorclass.

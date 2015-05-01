@@ -294,7 +294,7 @@ public class TestMathUtil extends TestCase {
         }
     }
 
-    void testTripleProduct(){
+    public void testTripleProduct(){
         Vector3d v1 = new Vector3d(1,1,0);
         Vector3d v2 = new Vector3d(0,1,1);
         Vector3d v3 = new Vector3d(1,0,1);

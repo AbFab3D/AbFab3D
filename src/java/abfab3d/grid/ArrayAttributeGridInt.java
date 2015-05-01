@@ -14,6 +14,8 @@ package abfab3d.grid;
 
 // External Imports
 
+import abfab3d.util.Bounds;
+
 /**
  * A grid backed by arrays.
  *

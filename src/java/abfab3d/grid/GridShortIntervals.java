@@ -12,6 +12,8 @@
 
 package abfab3d.grid;
 
+import abfab3d.util.Bounds;
+
 import static abfab3d.util.Output.fmt;
 
 /**

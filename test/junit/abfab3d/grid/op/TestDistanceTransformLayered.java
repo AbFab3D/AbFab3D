@@ -49,7 +49,7 @@ public class TestDistanceTransformLayered extends BaseTestDistanceTransform {
     static int subvoxelResolution = 100;
     double voxelSize = 0.1*MM;
 
-    public void testAccuracy(){
+    public void _testAccuracy(){
 
         int nx = 50;
  

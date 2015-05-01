@@ -13,6 +13,8 @@
 package abfab3d.grid;
 
 // External Imports
+import abfab3d.util.Bounds;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 

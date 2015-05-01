@@ -13,7 +13,7 @@ function main(){
 	var dt = new DataTransformer();
 	dt.setSource(part1);	
 	var sym = new WallpaperSymmetry(WallpaperSymmetry.WP_S333, 16*MM, 16*MM);
-	sym.setMaxCount(20);
+	sym.setIterations(20);
 	dt.setTransform(sym);
     var maker = new GridMaker();
 	maker.setSource(dt);

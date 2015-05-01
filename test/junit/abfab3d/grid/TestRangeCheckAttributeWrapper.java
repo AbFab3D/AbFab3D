@@ -14,6 +14,7 @@ package abfab3d.grid;
 
 // External Imports
 import abfab3d.grid.Grid.VoxelClasses;
+import abfab3d.util.Bounds;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
