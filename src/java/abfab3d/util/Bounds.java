@@ -57,21 +57,21 @@ public class Bounds implements Cloneable {
     /**
        @return width of bounds in voxels 
      */
-    public int getWidth(double voxel){
+    public int getWidthVoxels(double voxel){
         return roundSize((xmax-xmin)/voxel);
     }
 
     /**
        @return height of bounds in voxels 
      */
-    public int getHeight(double voxel){
+    public int getHeightVoxels(double voxel){
         return roundSize((ymax-ymin)/voxel);
     }
 
     /**
        @return depth of bounds in voxels 
      */
-    public int getDepth(double voxel){
+    public int getDepthVoxels(double voxel){
         return roundSize((zmax-zmin)/voxel);
     }    
 

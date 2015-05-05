@@ -130,9 +130,9 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
      */
     public BaseGrid(Bounds bounds, double pixel, double sheight) {
         
-        width = bounds.getWidth(pixel);
-        height = bounds.getHeight(sheight);
-        depth = bounds.getDepth(pixel);
+        width = bounds.getWidthVoxels(pixel);
+        height = bounds.getHeightVoxels(sheight);
+        depth = bounds.getDepthVoxels(pixel);
         this.pixelSize = pixel;
         this.hpixelSize = pixelSize / 2.0;
         this.sheight = sheight;
