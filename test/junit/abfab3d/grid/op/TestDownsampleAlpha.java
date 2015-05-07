@@ -672,7 +672,7 @@ public class TestDownsampleAlpha extends BaseTestAttributeGrid {
         int maxAttributeValue = 127;
         AttributeGrid grid = getSphereGrid(voxelSize);
 
-        int WARMUP = 3;
+        int WARMUP = 2;
         int factor = 2;
 
         for(int i=0; i < WARMUP; i++) {

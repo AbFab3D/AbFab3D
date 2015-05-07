@@ -13,9 +13,12 @@
 package abfab3d.io.output;
 
 import abfab3d.grid.Grid;
+import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
+
+import org.apache.commons.io.FilenameUtils;
 
 import abfab3d.mesh.*;
 
@@ -24,7 +27,9 @@ import abfab3d.util.TriangleCounter;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
 
 import static java.lang.System.currentTimeMillis;
 import static abfab3d.util.Output.fmt;
@@ -43,6 +48,137 @@ import javax.vecmath.Point3d;
  * @author Alan Hudson
  */
 public class GridSaver {
+
+
+    static final boolean DEBUG = true;
+
+    protected double m_meshErrorFactor = 0.1; 
+    protected double m_meshSmoothingWidth = 0.2;
+
+    final static public double VOLUME_UNDEFINED  = -Double.MAX_VALUE;
+    final static public int SHELLS_COUNT_UNDEFINED  = Integer.MAX_VALUE;
+
+
+    int m_maxShellsCount = SHELLS_COUNT_UNDEFINED;
+    double m_minShellVolume = VOLUME_UNDEFINED;
+    
+    int m_maxThreads = 0;
+    int m_maxTrianglesCount = 2000000;
+    int m_maxDecimationCount = 10;
+    int m_svr = 255;
+
+
+    public static final int TYPE_UNDEFINED = -1;
+    public static final int TYPE_UNKNOWN = 0;
+    public static final int TYPE_STL = 1;
+    public static final int TYPE_X3D = 2;
+    public static final int TYPE_X3DB = 3;
+    public static final int TYPE_SVX =  4;  
+
+    int m_savingType = TYPE_UNDEFINED;
+
+    public GridSaver(){
+        
+    }
+    
+    public void setMaxTrianglesCount(int value){
+        m_maxTrianglesCount = value;
+    }
+
+    public void setMeshErrorFactor(double value){
+        m_meshErrorFactor = value;
+    }
+
+    public void setMeshSmoothingWidth(double value){
+        m_meshSmoothingWidth = value;
+    }
+    public void setMaxShellsCount(int value){
+        m_maxShellsCount = value;
+    }
+    public void setMaxThreads(int value){
+        m_maxThreads = value;
+    }
+    public void setMinShellVolume(double value){
+        m_minShellVolume = value;
+    }
+
+    static int getOutputType(String fname){
+
+        fname = fname.toLowerCase();
+
+        if(fname.endsWith(".stl")) return TYPE_STL;        
+        if(fname.endsWith(".svx")) return TYPE_SVX;
+        if(fname.endsWith(".x3d")) return TYPE_X3D;
+        if(fname.endsWith(".x3db")) return TYPE_X3DB;
+        return TYPE_UNKNOWN;
+    }
+        
+    
+    public void write(AttributeGrid grid, String outFile) throws IOException {
+
+        // Write output to a file
+        int type = getOutputType(outFile);        
+        switch(type){
+        default: 
+            throw new RuntimeException(fmt("unknow output file type: '%s'",outFile));
+        case TYPE_STL:           
+            {
+                WingedEdgeTriangleMesh mesh = getMesh(grid);            
+                STLWriter stl = new STLWriter(outFile);
+                mesh.getTriangles(stl);
+                stl.close();
+            } 
+            break;
+        case TYPE_X3D:
+        case TYPE_X3DB:
+            {
+                WingedEdgeTriangleMesh mesh = getMesh(grid);                        
+                writeMesh(mesh, outFile);
+            } 
+            break;
+        case TYPE_SVX:
+            {
+                SVXWriter writer = new SVXWriter();
+                writer.write(grid, outFile);                
+            }
+            break;
+        }
+    }
+
+    public WingedEdgeTriangleMesh getMesh(AttributeGrid grid) {
+
+        double voxelSize = grid.getVoxelSize();
+
+        if(DEBUG)printf("error factor: %f\n",m_meshErrorFactor);
+        double maxDecimationError = m_meshErrorFactor * voxelSize * voxelSize;
+
+        // Write out the grid to an STL file
+        MeshMakerMT meshmaker = new MeshMakerMT();
+        meshmaker.setThreadCount(m_maxThreads);
+        meshmaker.setSmoothingWidth(m_meshSmoothingWidth);
+        meshmaker.setMaxDecimationError(maxDecimationError);
+        meshmaker.setMaxDecimationCount(m_maxDecimationCount);
+        meshmaker.setMaxAttributeValue(m_svr);
+        meshmaker.setMaxTriangles(m_maxTrianglesCount);
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        meshmaker.makeMesh(grid, its);
+
+        if(DEBUG)printf("decimated mesh vertices: %d faces: %d\n", its.getVertexCount(), its.getFaceCount());
+
+        WingedEdgeTriangleMesh mesh = new WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
+        
+        if (m_minShellVolume != VOLUME_UNDEFINED || m_maxShellsCount != SHELLS_COUNT_UNDEFINED) {
+            ShellResults sr = GridSaver.getLargestShells(mesh, m_maxShellsCount, m_minShellVolume);
+            mesh = sr.getLargestShell();
+            int regions_removed = sr.getShellsRemoved();
+            if(DEBUG) printf("shells removed: %d\n",regions_removed);
+        }
+
+        return mesh;
+    }
+
+
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file
      *
@@ -51,7 +187,8 @@ public class GridSaver {
      * @param maxCollapseError
      * @throws IOException
      */
-    public static void writeIsosurfaceMaker(String filename, Grid grid, int smoothSteps, double maxCollapseError) throws IOException {
+    /*
+    public static void _writeIsosurfaceMaker(String filename, Grid grid, int smoothSteps, double maxCollapseError) throws IOException {
 
         int nx = grid.getWidth();
         int ny = grid.getHeight();
@@ -99,7 +236,7 @@ public class GridSaver {
             throw new IllegalArgumentException("Unsupported file format: " + encoding);
         }
     }
-
+    */
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file
      *
@@ -168,6 +305,7 @@ public class GridSaver {
      * @param maxCollapseError
      * @throws IOException
      */
+    /*
     public static void writeIsosurfaceMaker(Grid grid, BinaryContentHandler writer, Map<String,Object> params, int smoothSteps, double maxCollapseError) throws IOException {
         int nx = grid.getWidth();
         int ny = grid.getHeight();
@@ -211,7 +349,7 @@ public class GridSaver {
 
         MeshExporter.writeMesh(mesh, writer, params, pos);
     }
-
+    */
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file
      *
@@ -219,6 +357,7 @@ public class GridSaver {
      * @param smoothSteps
      * @throws IOException
      */
+    /*
     public static WingedEdgeTriangleMesh createIsosurface(Grid grid, int smoothSteps) throws IOException {
         int nx = grid.getWidth();
         int ny = grid.getHeight();
@@ -276,88 +415,7 @@ public class GridSaver {
         return mesh;
 
     }
-
-    /**
-     * Write a grid using the IsoSurfaceMaker to the specified file
-     *
-     * @param grid
-     * @param smoothSteps
-     * @throws IOException
-     */
-    public static abfab3d.mesh.WingedEdgeTriangleMesh createIsosurface2(Grid grid, int smoothSteps, int resamplingFactor) throws IOException {
-
-        double bounds[] = new double[]{-grid.getWidth()/2 * grid.getVoxelSize()
-                ,grid.getWidth()/2*grid.getVoxelSize(),
-                -grid.getHeight()/2*grid.getSliceHeight(),
-                grid.getHeight()/2*grid.getSliceHeight(),
-                -grid.getDepth()/2*grid.getVoxelSize(),
-                grid.getDepth()/2*grid.getVoxelSize()};
-
-        int nx = grid.getWidth();
-        int ny = grid.getHeight();
-        int nz = grid.getDepth();
-        double dx2 = resamplingFactor*(bounds[1] - bounds[0])/nx;
-        double dy2 = resamplingFactor*(bounds[3] - bounds[2])/ny;
-        double dz2 = resamplingFactor*(bounds[5] - bounds[4])/nz;
-
-        int nx2 = (nx+resamplingFactor-1)/resamplingFactor;
-        int ny2 = (ny+resamplingFactor-1)/resamplingFactor;
-        int nz2 = (nz+resamplingFactor-1)/resamplingFactor;
-        printf("nx2:[%d,%d,%d]\n",nx2, ny2, nz2);
-
-        double bounds2[] = new double[]{
-                bounds[0], bounds[0] + dx2*nx2,
-                bounds[2], bounds[2] + dy2*ny2,
-                bounds[4], bounds[4] + dz2*nz2
-        };
-
-        IsosurfaceMaker im = new IsosurfaceMaker();
-        im.setIsovalue(0.);
-        im.setBounds(bounds2);
-        im.setGridSize(nx2, ny2, nz2);
-
-        printf("makeIsosurface()\n");
-        long t0 = currentTimeMillis();
-
-        //IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder();
-        //printf("using OLD IndexedTriangleSetBuilder\n");
-        int estimatedFaceCount = (nx*ny + ny*nz + nx*nz)*2*2;
-        abfab3d.mesh.IndexedTriangleSetBuilder its = new abfab3d.mesh.IndexedTriangleSetBuilder(estimatedFaceCount);
-
-        // cut in half
-        im.makeIsosurface(new IsosurfaceMaker.SliceGrid2(grid, bounds, resamplingFactor, 2.9), its);
-
-        printf("makeIsosurface() done in %d ms\n", (currentTimeMillis() - t0));
-        //return null;
-
-        if (Thread.currentThread().isInterrupted()) {
-            throw new ExecutionStoppedException();
-        }
-
-        t0 = currentTimeMillis();
-        printf("making WingedEdgeTriangleMesh\n");
-        abfab3d.mesh.WingedEdgeTriangleMesh mesh = new abfab3d.mesh.WingedEdgeTriangleMesh(its.getVertices(), its.getFaces());
-        printf("making WingedEdgeTriangleMesh done: %d\n", (currentTimeMillis()-t0));
-
-        if (Thread.currentThread().isInterrupted()) {
-            throw new ExecutionStoppedException();
-        }
-
-        double centerWeight = 1.0; // any non negative value is OK
-
-        abfab3d.mesh.LaplasianSmooth ls = new abfab3d.mesh.LaplasianSmooth();
-
-        ls.setCenterWeight(centerWeight);
-        t0 = currentTimeMillis();
-        printf("smoothMesh(%d)\n",smoothSteps);
-        t0 = currentTimeMillis();
-        ls.processMesh(mesh, smoothSteps);
-        printf("mesh smoothed in %d ms\n",(currentTimeMillis() - t0));
-
-        return mesh;
-
-    }
-
+    */
     /**
      * Write a grid using the IsoSurfaceMaker to the specified file
      *
@@ -366,6 +424,7 @@ public class GridSaver {
      * @param maxCollapseError
      * @throws IOException
      */
+    /*
     public static void writeIsosurfaceMaker(Grid grid, BinaryContentHandler writer, Map<String,Object> params,
                                             int smoothSteps, double maxCollapseError, boolean meshOnly) throws IOException {
         int nx = grid.getWidth();
@@ -410,7 +469,7 @@ public class GridSaver {
 
     }
 
-
+    */
 
 
     /**
@@ -446,7 +505,7 @@ public class GridSaver {
     }
 
     /**
-     retuns good viewpoint for given box
+       retuns good viewpoint for given box
      */
     public static double getViewDistance(Grid grid){
 
@@ -467,7 +526,7 @@ public class GridSaver {
     }
 
     /**
-     returns mesh with largest shell
+       returns mesh with largest shell
      */
     public static ShellResults getLargestShell(WingedEdgeTriangleMesh mesh, int minVolume){
 
@@ -689,18 +748,3 @@ public class GridSaver {
     */
 }
 
-class ShellData implements Comparable<ShellData> {
-    public ShellFinder.ShellInfo info;
-    public double volume;
-
-
-    ShellData(ShellFinder.ShellInfo info, double volume) {
-        this.info = info;
-        this.volume = volume;
-    }
-
-    @Override
-    public int compareTo(ShellData o) {
-        return Double.compare(volume, o.volume);
-    }
-}
