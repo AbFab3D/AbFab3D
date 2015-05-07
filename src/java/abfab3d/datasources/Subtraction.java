@@ -70,6 +70,13 @@ public class Subtraction extends TransformableDataSource implements SNode {
         setShape2(shape2);
     }
 
+    /**
+     * Set the blending width
+     */
+    public void setBlend(double r){
+        mp_blendWidth.setValue(r);
+    }
+
     public void setShape1(DataSource shape1) {
         mp_shape1.setValue(shape1);
     }

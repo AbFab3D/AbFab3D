@@ -89,7 +89,11 @@ public class PeriodicWrap extends BaseTransform implements Initializable {
         mp_a2.setValue(a2);
         mp_a3.setValue(a3);
     }
-    
+
+    public void setOrigin(Vector3d val) {
+        mp_origin.setValue(val.clone());
+    }
+
     public void initParams(){
         super.addParams(m_aparam);
     }

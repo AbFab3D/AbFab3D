@@ -68,7 +68,7 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
     /**
        Inversion in a sphere of given center and radius 
        @param center 
-       @param radus 
+       @param radius
      */
     public SphereInversion(Vector3d center, double radius){
         initParams();
@@ -82,7 +82,7 @@ public class SphereInversion  extends BaseTransform implements VecTransform, Ini
        @param cx    
        @param cy
        @param cz    
-       @param radus 
+       @param radius
      */
     public SphereInversion(double cx, double cy, double cz, double radius){
         initParams();
