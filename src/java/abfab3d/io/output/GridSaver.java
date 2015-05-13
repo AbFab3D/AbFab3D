@@ -144,6 +144,61 @@ public class GridSaver {
             break;
         }
     }
+    
+    public void write(AttributeGrid grid, OutputStream os, int type) throws IOException {
+
+    	// TODO: Handle other file types
+        WingedEdgeTriangleMesh mesh = getMesh(grid);            
+        STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
+        mesh.getTriangles(stl);
+        stl.close();
+/*
+        // Write output to a file
+        switch(type){
+	        default: 
+	            throw new RuntimeException(fmt("unknow output file type: '%s'", type));
+	        case TYPE_STL:           
+	            {
+	                WingedEdgeTriangleMesh mesh = getMesh(grid);            
+	                STLWriter stl = new STLWriter(os, mesh.getTriangleCount());
+	                mesh.getTriangles(stl);
+	                stl.close();
+	            } 
+	            break;
+	        case TYPE_X3D:
+	        case TYPE_X3DB:
+	            {
+	                double[] bounds_min = new double[3];
+	                double[] bounds_max = new double[3];
+
+	                grid.getGridBounds(bounds_min,bounds_max);
+	                double max_axis = Math.max(bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1]);
+	                max_axis = Math.max(max_axis, bounds_max[2] - bounds_min[2]);
+
+	                double z = 2 * max_axis / Math.tan(Math.PI / 4);
+	                float[] pos = new float[] {0,0,(float) z};
+
+	                if (x3dWriter == null) createX3DWriter();
+
+	                GridSaver.writeMesh(mesh, 10,x3dWriter,x3dParams,true);
+
+	                // TODO: not certain who should call this yet
+	                // TODO: and this makes the passed in x3dWriter invalid for future usage
+	                x3dWriter.endDocument();
+	                
+	                WingedEdgeTriangleMesh mesh = getMesh(grid);                        
+	                writeMesh(mesh, outFile);
+	            } 
+	            break;
+	        case TYPE_SVX:
+	            {
+	                SVXWriter writer = new SVXWriter();
+	                writer.write(grid, outFile);                
+	            }
+	            break;
+        	}
+*/
+    }
 
     public WingedEdgeTriangleMesh getMesh(AttributeGrid grid) {
 
