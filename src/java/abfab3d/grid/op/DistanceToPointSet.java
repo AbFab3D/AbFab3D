@@ -74,8 +74,8 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     static final boolean DEBUG_TIMING = false;
     int m_debugCount = 200;
     int m_subvoxelResolution = 100;
-    int defaultInValue = -Short.MAX_VALUE;
-    int defaultOutValue = Short.MAX_VALUE;
+    long m_defaultInValue = -Short.MAX_VALUE;
+    long m_defaultOutValue = Short.MAX_VALUE;
     
     double m_firstLayerThickness = 2.45;// 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
     double m_nextLayerThickness = 2.45; 
@@ -122,6 +122,32 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
         
     }
     
+    /**
+     * Get the default value for distances inside the object.  The value will remain this for voxels past the maximal
+     * inside distance
+     * @return
+     */
+    public long getInsideDefault() {
+        return m_defaultInValue;
+    }
+
+    public void setInsideDefault(long value) {
+        m_defaultInValue = value;
+    }
+
+    /**
+     * Get the default value for distances outside the object.  The value will remain this for voxels past the maximal
+     * outside distance
+     * @return
+     */
+    public long getOutsideDefault() {
+        return m_defaultOutValue;
+    }
+
+    public void setOutsideDefault(long value) {
+        m_defaultOutValue = value;
+    }
+
     /**
        sets object to be used for inside/outside detection
        it is needed if we want to calculate signed distance function
@@ -806,11 +832,11 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                 for(int z = 0; z < m_nz; z++){
                     if(m_insideTester != null){
                         if(m_insideTester.isInside(x,y,z))
-                            m_grid.setAttribute(x,y,z,defaultInValue);
+                            m_grid.setAttribute(x,y,z,m_defaultInValue);
                         else 
-                            m_grid.setAttribute(x,y,z,defaultOutValue);
+                            m_grid.setAttribute(x,y,z,m_defaultOutValue);
                     } else { // no tester - default outside 
-                        m_grid.setAttribute(x,y,z,defaultOutValue);                        
+                        m_grid.setAttribute(x,y,z,m_defaultOutValue);                        
                     }                        
                 }
             }

@@ -78,8 +78,8 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
     double m_inDistance = 0;
     double m_outDistance = 0;
 
-    int m_defaultInValue = -Short.MAX_VALUE;
-    int m_defaultOutValue = Short.MAX_VALUE;
+    long m_defaultInValue = -Short.MAX_VALUE;
+    long m_defaultOutValue = Short.MAX_VALUE;
 
     int nx, ny, nz;
     int m_surfaceValue;
@@ -166,6 +166,8 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
 
         DistanceToPointSet dps = new DistanceToPointSet(pnts, m_inDistance, m_outDistance, m_subvoxelResolution);
         dps.setThreadCount(m_threadCount);
+        dps.setInsideDefault(m_defaultInValue);
+        dps.setOutsideDefault(m_defaultOutValue);
 
         long voxels = (long) nx * ny *nz;
         long bigGrid = (long) Math.pow(1000,3);
@@ -190,6 +192,10 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
         return m_defaultInValue;
     }
 
+    public void setInsideDefault(long value) {
+        m_defaultInValue = value;
+    }
+
     /**
      * Get the default value for distances outside the object.  The value will remain this for voxels past the maximal
      * outside distance
@@ -197,6 +203,10 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
      */
     public long getOutsideDefault() {
         return m_defaultOutValue;
+    }
+
+    public void setOutsideDefault(long value) {
+        m_defaultOutValue = value;
     }
 
     /**

@@ -38,7 +38,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   makes engaving surface of one object with another object 
+   makes embossing of an surface of the base object with another object 
    <br/>
 
    <embed src="doc-files/engraving.svg" type="image/svg+xml"/> 
