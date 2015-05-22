@@ -109,14 +109,21 @@ public class Text2D extends BaseParameterizable {
     };
 
     /**
+     * Constructor
+     @param text the string to convert into 3D text
+     @param fontName name of font to be used for 3D text
+     @param voxelSize size of voxel used for text rasterizetion
+     */
+    public Text2D(String text, String fontName, double voxelSize){
+        super.addParams(m_aparam);
+        mp_text.setValue(text);
+        setFontName(fontName);
+        setVoxelSize(voxelSize);
+    }
 
+    /**
+     * Constructor
        @param text the string to convert into 3D text 
-       @param fontName name of font to be used for 3D text
-       @param sx width of the 3D text bounding box
-       @param sy height of the 3D text bounding box
-       @param sz thickness of 3D text bounding box
-
-       @param voxelSize size of voxel used for text rasterizetion
      */
     public Text2D(String text){
         super.addParams(m_aparam);
@@ -132,6 +139,13 @@ public class Text2D extends BaseParameterizable {
         mp_fontStyle.setValue(val);
     }
 
+    public void setVoxelSize(double val) {
+        mp_voxelSize.setValue(val);
+    }
+
+    public void setSpacing(double val) {
+        mp_spacing.setValue(val);
+    }
 
     public BufferedImage getImage(){
         if(m_bitmap == null)

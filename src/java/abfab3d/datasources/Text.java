@@ -133,6 +133,9 @@ public class Text extends TransformableDataSource {
         mp_fontStyle.setValue(new Integer(fontStyle));
     }
         
+    public void setVoxelSize(double val) {
+        mp_voxelSize.setValue(val);
+    }
 
     public Image3D getBitmap(){
         return m_bitmap;
@@ -160,7 +163,7 @@ public class Text extends TransformableDataSource {
 
 
         BufferedImage img = TextUtil.createTextImage(nx, ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets(0,0,0,0), true);
-        
+
         printf("text bitmap: %d x %d\n", nx, ny);
         //Font font = new Font(m_fontName, m_fontStyle, m_fontSize);
 
@@ -173,8 +176,8 @@ public class Text extends TransformableDataSource {
         m_bitmap.setImageType(Image3D.IMAGE_TYPE_EMBOSSED);
         m_bitmap.setTiles(1, 1);
         m_bitmap.setBlurWidth(mp_blurWidth.getValue());
-        //m_bitmap.setUseGrayscale(false); // VB - temp fix for GPU 
-        m_bitmap.setUseGrayscale(true);
+        m_bitmap.setUseGrayscale(false); // VB - temp fix for GPU
+        //m_bitmap.setUseGrayscale(true);
         m_bitmap.setInterpolationType(Image3D.INTERPOLATION_LINEAR);
         m_bitmap.setTransform(getTransform());
         
