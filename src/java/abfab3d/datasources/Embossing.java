@@ -71,13 +71,13 @@ public class Embossing extends TransformableDataSource implements SNode {
     };    
 
     /**
-       shape which is result of subtracting shape2 from shape1
+       constructor for shape and embosser
      */
-    public Embossing(DataSource shape, DataSource engraver){
+    public Embossing(DataSource shape, DataSource embosser){
 
         super.addParams(m_aparam);
         mp_shape.setValue(shape);
-        mp_embosser.setValue(engraver);
+        mp_embosser.setValue(embosser);
 
     }
 
@@ -89,8 +89,8 @@ public class Embossing extends TransformableDataSource implements SNode {
         return (DataSource) mp_shape.getValue();
     }
 
-    public void setEmbosser(DataSource engraver) {
-        mp_embosser.setValue(engraver);
+    public void setEmbosser(DataSource embosser) {
+        mp_embosser.setValue(embosser);
     }
 
     public DataSource getEmbosser() {
