@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   subtract 2 data sources:  (data1 - data2)
+   subtract 2 data sources:  (source1 - source2)
    <br/>
    
    @author Vladimir Bulatov
@@ -46,8 +46,8 @@ public class Sub extends TransformableDataSource {
     DataSource dataSource1;
     DataSource dataSource2;
 
-    SNodeParameter mp_d1 = new SNodeParameter("data1");
-    SNodeParameter mp_d2 = new SNodeParameter("data2");
+    SNodeParameter mp_d1 = new SNodeParameter("source1");
+    SNodeParameter mp_d2 = new SNodeParameter("source2");
 
     Parameter m_aparam[] = new Parameter[]{
         mp_d1,

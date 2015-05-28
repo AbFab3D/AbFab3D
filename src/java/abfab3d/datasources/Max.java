@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   return maximal value of 2 data sources:  max(data1 - data2)
+   return maximal value of 2 data sources:  max(source1, source2)
    <br/>
    
    @author Vladimir Bulatov
@@ -46,8 +46,8 @@ public class Max extends TransformableDataSource {
     DataSource dataSource1;
     DataSource dataSource2;
 
-    SNodeParameter mp_d1 = new SNodeParameter("data1");
-    SNodeParameter mp_d2 = new SNodeParameter("data2");
+    SNodeParameter mp_d1 = new SNodeParameter("source1");
+    SNodeParameter mp_d2 = new SNodeParameter("source2");
 
     Parameter m_aparam[] = new Parameter[]{
         mp_d1,
@@ -57,11 +57,11 @@ public class Max extends TransformableDataSource {
     /**
        
      */
-    public Max(DataSource data1, DataSource data2){
+    public Max(DataSource source1, DataSource source2){
 
         super.addParams(m_aparam);
-        mp_d1.setValue(data1);
-        mp_d2.setValue(data2);
+        mp_d1.setValue(source1);
+        mp_d2.setValue(source2);
 
     }
 

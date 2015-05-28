@@ -47,6 +47,14 @@ public class SNodeListParameter extends Parameter {
         return ParameterType.SNODE_LIST;
     }
 
+    public void add(Parameterizable source){
+        ((List) value).add(source);
+    }
+
+    public void set(int index, Parameterizable source){
+        ((List) value).set(index, source);
+    }
+
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
      * error.
@@ -59,7 +67,7 @@ public class SNodeListParameter extends Parameter {
         }
     }
 
-    public List<SNode> getValue() {
-        return (List<SNode>) value;
+    public List getValue() {
+        return (List) value;
     }
 }

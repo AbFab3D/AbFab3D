@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   return absolute value data source:  abs(data)
+   return absolute value data source:  abs(source)
    <br/>
    
    @author Vladimir Bulatov
@@ -45,7 +45,7 @@ public class Abs extends TransformableDataSource {
     
     DataSource m_data;
 
-    SNodeParameter mp_data = new SNodeParameter("data");
+    SNodeParameter mp_data = new SNodeParameter("source");
 
     Parameter m_aparam[] = new Parameter[]{
         mp_data,
@@ -54,10 +54,10 @@ public class Abs extends TransformableDataSource {
     /**
        
      */
-    public Abs(DataSource data){
+    public Abs(DataSource source){
 
         super.addParams(m_aparam);
-        mp_data.setValue(data);
+        mp_data.setValue(source);
 
     }
 

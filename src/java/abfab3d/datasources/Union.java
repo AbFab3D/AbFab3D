@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Vector;
 
 
+import abfab3d.param.Parameterizable;
 import abfab3d.param.Parameter;
 import abfab3d.param.SNode;
 import abfab3d.param.SNodeListParameter;
@@ -50,7 +51,7 @@ public class Union  extends TransformableDataSource implements SNode {
     // fixed vector for calculations
     DataSource vDataSources[];
     DoubleParameter mp_blendWidth = new DoubleParameter("blend", "blend width", 0.);
-    SNodeListParameter mp_dataSources = new SNodeListParameter("datasources");
+    SNodeListParameter mp_dataSources = new SNodeListParameter("sources");
     
     Parameter m_aparam[] = new Parameter[]{
         mp_blendWidth,
@@ -97,7 +98,7 @@ public class Union  extends TransformableDataSource implements SNode {
     */
     public void add(DataSource shape){
         dataSources.add(shape);
-        ((List)params.get("datasources").getValue()).add(shape);
+        mp_dataSources.add((Parameterizable)shape);
     }
 
     /**
@@ -107,7 +108,7 @@ public class Union  extends TransformableDataSource implements SNode {
      * @param src
      */
     public void set(int idx, DataSource src) {
-        ((List)params.get("datasources").getValue()).set(idx,src);
+        mp_dataSources.set(idx,(Parameterizable)src);
     }
 
     /**

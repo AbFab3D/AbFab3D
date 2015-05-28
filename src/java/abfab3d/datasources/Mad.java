@@ -35,7 +35,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   calculates data * a + b
+   calculates: source * a + b
    <br/>
    
    @author Vladimir Bulatov
@@ -47,7 +47,7 @@ public class Mad extends TransformableDataSource{
     DataSource m_a;
     DataSource m_b;
 
-    SNodeParameter mp_data = new SNodeParameter("data");
+    SNodeParameter mp_data = new SNodeParameter("source");
     SNodeParameter mp_a = new SNodeParameter("a");
     SNodeParameter mp_b = new SNodeParameter("b");
 
@@ -60,19 +60,19 @@ public class Mad extends TransformableDataSource{
     /**
        
      */
-    public Mad(DataSource data, DataSource a, DataSource b){
+    public Mad(DataSource source, DataSource a, DataSource b){
 
         super.addParams(m_aparam);
-        mp_data.setValue(data);
+        mp_data.setValue(source);
         mp_a.setValue(a);
         mp_b.setValue(b);
 
     }
 
-    public Mad(DataSource data, double a, double b){
+    public Mad(DataSource source, double a, double b){
 
         super.addParams(m_aparam);
-        mp_data.setValue(data);
+        mp_data.setValue(source);
         mp_a.setValue(new Constant(a));
         mp_b.setValue(new Constant(b));
 

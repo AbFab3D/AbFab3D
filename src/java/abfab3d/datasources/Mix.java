@@ -38,7 +38,7 @@ import static abfab3d.util.Units.MM;
 
 /**
 
-   linear mix of two data sources
+   linear mix of two data sources  source1 + (source2 - source1)*mixer
    <br/>
    
    @author Vladimir Bulatov
@@ -50,9 +50,9 @@ public class Mix extends TransformableDataSource{
     DataSource m_dataSource2;
     DataSource m_mixer;
 
-    SNodeParameter mp_d1 = new SNodeParameter("data1");
-    SNodeParameter mp_d2 = new SNodeParameter("data2");
-    SNodeParameter mp_mixer = new SNodeParameter("mixer");
+    SNodeParameter mp_d1 = new SNodeParameter("source1");
+    SNodeParameter mp_d2 = new SNodeParameter("source2");
+    SNodeParameter mp_mixer = new SNodeParameter("mix");
 
     Parameter m_aparam[] = new Parameter[]{
         mp_d1,
@@ -63,24 +63,24 @@ public class Mix extends TransformableDataSource{
     /**
        
      */
-    public Mix(DataSource d1, DataSource d2, DataSource mixer){
+    public Mix(DataSource source1, DataSource source2, DataSource mix){
 
         super.addParams(m_aparam);
-        mp_d1.setValue(d1);
-        mp_d2.setValue(d2);
-        mp_mixer.setValue(mixer);
+        mp_d1.setValue(source1);
+        mp_d2.setValue(source2);
+        mp_mixer.setValue(mix);
 
     }
 
     /**
        
      */
-    public Mix(DataSource d1, DataSource d2, double mixer){
+    public Mix(DataSource source1, DataSource source2, double mix){
 
         super.addParams(m_aparam);
-        mp_d1.setValue(d1);
-        mp_d2.setValue(d2);
-        mp_mixer.setValue(new Constant(mixer));
+        mp_d1.setValue(source1);
+        mp_d2.setValue(source2);
+        mp_mixer.setValue(new Constant(mix));
 
     }
 

@@ -40,17 +40,17 @@ import static abfab3d.util.Units.MM;
 
    makes mask out of given data source 
    mask has values in the range (0,1) 
-   returned value is calculated from data value v as follows:
+   returned value is calculated from source value v as follows:
    <pre>
    if(v < threshod - thickness/2) 
       return 1;
-   else if(v < threshod + thickness/2) 
+   else if(v > threshod + thickness/2) 
       return 0;
-   else 
+   else // inside of the transition area
        return (threshod + thickness/2 - v)/thickness;
    </pre>
    
-   the mask can be used to converet distance function into density 
+   the mask can be used to convert distance function into density 
    
    @author Vladimir Bulatov
 
@@ -63,7 +63,7 @@ public class Mask extends TransformableDataSource {
 
     DataSource dataSource2;
 
-    SNodeParameter mp_data = new SNodeParameter("data");
+    SNodeParameter mp_data = new SNodeParameter("source");
     DoubleParameter mp_threshold = new DoubleParameter("threshold", "mask surface threshold", 0.);
     DoubleParameter mp_thickness = new DoubleParameter("thickness", "mask surface thickness", 0.1*MM);
 
@@ -76,10 +76,10 @@ public class Mask extends TransformableDataSource {
     /**
        
      */
-    public Mask(DataSource data, double threshold, double thickness){
+    public Mask(DataSource source, double threshold, double thickness){
 
         super.addParams(m_aparam);
-        mp_data.setValue(data);
+        mp_data.setValue(source);
         mp_threshold.setValue(threshold);
         mp_thickness.setValue(thickness);
     }
@@ -121,4 +121,4 @@ public class Mask extends TransformableDataSource {
 
     }
 
-} // class Mul
+} // class Mask
