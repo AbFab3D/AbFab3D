@@ -147,6 +147,10 @@ public class Text2D extends BaseParameterizable {
         mp_spacing.setValue(val);
     }
 
+    public void setInset(double val) {
+        mp_inset.setValue(val);
+    }
+
     public BufferedImage getImage(){
         if(m_bitmap == null)
             initialize();
