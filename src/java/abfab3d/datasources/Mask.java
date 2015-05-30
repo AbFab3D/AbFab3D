@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2011
+ *                        Shapeways, Inc Copyright (c) 2015
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -11,9 +11,6 @@
  ****************************************************************************/
 
 package abfab3d.datasources;
-
-
-//import java.awt.image.Raster;
 
 
 import abfab3d.param.Parameter;
@@ -42,12 +39,12 @@ import static abfab3d.util.Units.MM;
    mask has values in the range (0,1) 
    returned value is calculated from source value v as follows:
    <pre>
-   if(v < threshod - thickness/2) 
+   if(v < threshold - thickness/2)
       return 1;
-   else if(v > threshod + thickness/2) 
+   else if(v > threshold + thickness/2)
       return 0;
    else // inside of the transition area
-       return (threshod + thickness/2 - v)/thickness;
+       return (threshold + thickness/2 - v)/thickness;
    </pre>
    
    the mask can be used to convert distance function into density 
