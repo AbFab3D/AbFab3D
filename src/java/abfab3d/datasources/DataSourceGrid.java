@@ -32,7 +32,7 @@ import static abfab3d.util.Output.printf;
    
    
 */
-public class DataSourceGrid extends TransformableDataSource {
+public class DataSourceGrid extends TransformableDataSource implements Cloneable {
 
     static final boolean DEBUG = false;
     static int debugCount = 100;
@@ -324,5 +324,9 @@ public class DataSourceGrid extends TransformableDataSource {
         default:            
             return (long) (short)m_grid.getAttribute(x, y, z);
         }        
-    }    
+    }
+
+    public DataSourceGrid clone() throws CloneNotSupportedException {
+        return (DataSourceGrid) super.clone();
+    }
 }
