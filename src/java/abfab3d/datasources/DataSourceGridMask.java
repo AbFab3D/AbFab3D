@@ -32,7 +32,7 @@ import static abfab3d.util.Output.time;
    
    DataSource interface to GridMask. 
    This object should be uses as mask to intersect with smooth grid. 
-   it returns interior density for any non zero attribute in voxel ot it's neigbors
+   it returns interior density for any non zero attribute in voxel or it's neighbors
 
    @author Vladimir Bulatov
    
