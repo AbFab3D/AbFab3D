@@ -20,6 +20,8 @@ import javax.vecmath.Vector4d;
 import javax.vecmath.Matrix4d;
 import javax.vecmath.AxisAngle4d;
 
+import abfab3d.param.DoubleParameter;
+import abfab3d.param.Parameter;
 import abfab3d.util.Vec;
 import abfab3d.util.Initializable;
 import abfab3d.util.Symmetry;
@@ -40,27 +42,34 @@ import static abfab3d.util.Symmetry.toFundamentalDomain;
 */
 public class Twist extends BaseTransform implements VecTransform, Initializable {
     
-    // length at which the transform performs complete 360 degree twist
-    private double m_period = 1.; 
-
     private double m_twistSpeed = 2*Math.PI;
-    
+
+    // length at which the transform performs complete 360 degree twist
+    protected DoubleParameter mp_period = new DoubleParameter("period","Rotation angle",1);
+
+    protected Parameter m_aparam[] = new Parameter[]{
+            mp_period
+    };
+
     /**
        twist around z-axis 
        @param period  distance at which the rotation angle is measured in radians
      */
     public Twist(double period){
-        
-        m_period = period;
-        
+        super.addParams(m_aparam);
+
+        setPeriod(period);
     }
-    
+
+    public void setPeriod(double val) {
+        mp_period.setValue(val);
+        m_twistSpeed = 2*Math.PI/mp_period.getValue();
+    }
+
     /**
        @noRefGuide
      */
     public int initialize(){
-
-        m_twistSpeed = 2*Math.PI/m_period;
         return RESULT_OK;
     }
     
