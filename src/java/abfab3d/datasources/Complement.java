@@ -13,6 +13,10 @@
 package abfab3d.datasources;
 
 
+import abfab3d.param.Parameter;
+import abfab3d.param.SNode;
+import abfab3d.param.SNodeParameter;
+
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
 import abfab3d.util.Vec;
@@ -28,11 +32,19 @@ public class Complement extends TransformableDataSource {
 
     private DataSource dataSource = null;
 
+    SNodeParameter mp_data = new SNodeParameter("source");
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_data,
+    };    
+
     /**
      * Complement of the given datasource.
      * @param source  object to which the complement is generated
      */
     public Complement(DataSource source) {
+        super.addParams(m_aparam);
+        mp_data.setValue(source);
         dataSource = source;
     }
 
