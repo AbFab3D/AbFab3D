@@ -13,7 +13,10 @@
 package abfab3d.datasources;
 
 
-//import java.awt.image.Raster;
+import abfab3d.param.Parameter;
+import abfab3d.param.SNode;
+import abfab3d.param.SNodeParameter;
+import abfab3d.param.DoubleParameter;
 
 import abfab3d.util.DataSource;
 import abfab3d.util.Initializable;
@@ -21,24 +24,32 @@ import abfab3d.util.Vec;
 
 
 /**
- * Transform a data source.  This provides a transformable wrapper for data source.
- * It is used when one need appply transformation to a data source which already has its own transformation. 
+ * Transform the data source.  This provides a transformable wrapper for any data source.
+ * It is used when one need to appply transformation to a data source which already has its own transformation. 
  *
  * @author Vladimir Bulatov
  */
 public class DataTransformer extends TransformableDataSource {
 
-    protected DataSource dataSource;
+    DataSource m_source;
+
+    SNodeParameter mp_source = new SNodeParameter("source");
+
+    Parameter m_aparam[] = new Parameter[]{
+        mp_source,
+    };    
 
     /**
      * empty DataTransformer 
      * 
      */
     public DataTransformer() {
+        super.addParams(m_aparam);        
     }
 
     public DataTransformer(DataSource ds) {
-        this.dataSource = ds;
+        super.addParams(m_aparam);
+        mp_source.setValue(ds);
     }
 
     /**
@@ -46,7 +57,7 @@ public class DataTransformer extends TransformableDataSource {
      * @param ds  data source to be transformed by this transformer
      */
     public void setSource(DataSource ds) {
-        dataSource = ds;
+        mp_source.setValue(ds);
     }
 
     /**
@@ -56,9 +67,10 @@ public class DataTransformer extends TransformableDataSource {
     public int initialize() {
 
         super.initialize();
+        m_source = (DataSource)mp_source.getValue();
 
-        if (dataSource != null && dataSource instanceof Initializable) {
-            ((Initializable) dataSource).initialize();
+        if (m_source != null && m_source instanceof Initializable) {
+            ((Initializable) m_source).initialize();
         }
         return RESULT_OK;
     }
@@ -72,8 +84,8 @@ public class DataTransformer extends TransformableDataSource {
 
         super.transform(pnt);
 
-        if (dataSource != null) {
-            return dataSource.getDataValue(pnt, data);
+        if (m_source != null) {
+            return m_source.getDataValue(pnt, data);
         } else {
             data.v[0] = 1.;
             return RESULT_OK;
