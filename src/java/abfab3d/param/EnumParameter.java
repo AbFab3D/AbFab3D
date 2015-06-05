@@ -16,21 +16,31 @@ package abfab3d.param;
 /**
  * A enum parameter.
  *
- * TODO: Add validation of values
  *
  * @author Alan Hudson
  */
 public class EnumParameter extends Parameter {
 
+    String m_values[] = new String[]{"value"};
+    int m_index = 0;
+
+    /*
     public EnumParameter(String name, String desc, String initialValue) {
         super(name, desc);
+        setValue(initialValue);
+    }
+    */
+
+    public EnumParameter(String name, String desc, String values[], String initialValue) {
+        super(name, desc);
+        m_values = values;
         setValue(initialValue);
     }
 
     public EnumParameter(EnumParameter def, String initialValue) {
 
         super(def.getName(), def.getDesc());
-
+        
         defaultValue = initialValue;
         setValue(initialValue);
     }
@@ -43,6 +53,15 @@ public class EnumParameter extends Parameter {
     public Object getDefaultValue(Class hint) {
         return getValue();
     }
+
+    public String[] getValues() {
+        return m_values;
+    }
+
+    public int getIndex() {
+        return m_index;
+    }
+
 
     /**
      * Get the parameter type enum.
@@ -64,9 +83,23 @@ public class EnumParameter extends Parameter {
         if (!(val instanceof String)) {
             throw new IllegalArgumentException("Unsupported type for String: " + val + " in param: " + getName());
         }
+
+        for(int i = 0; i < m_values.length; i++){
+            if(val.equals(m_values[i])){
+                m_index = i;
+                return;
+            }
+        }
+
+        m_index = 0;
+
+        throw new IllegalArgumentException("Unsupported value: " + val + " in param: " + getName());
+        
     }
 
     public EnumParameter clone() {
+
         return (EnumParameter) super.clone();
+        
     }
 }

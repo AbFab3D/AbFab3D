@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 /**
  * 
@@ -30,7 +31,10 @@ import static abfab3d.util.Output.printf;
  */
 public class TextUtil {
 
-    static final boolean DEBUG = true;
+    static final boolean DEBUG = false;
+
+    static public final int ALIGN_LEFT = 0, ALIGN_RIGHT = 1, ALIGN_CENTER = 2, ALIGN_TOP=3, ALIGN_BOTTOM=4;
+    static public final int FIT_VERTICAL = 0, FIT_HORIZONTAL=1, FIT_BOTH=2;
 
     /** Cache of available fonts to speed testing */
     static HashSet<String> fontCache = null;
@@ -44,18 +48,24 @@ public class TextUtil {
      * @param font The font to use
      * @param insets margins to leave blank around the text 
      */
-    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets) {
-        return createTextImage(imageWidth, imageHeight, text, font, insets, true, 0.);        
+    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets2 insets) {
+        return createTextImage(imageWidth, imageHeight, text, font, 0., insets, true, FIT_BOTH, ALIGN_LEFT, ALIGN_TOP);        
+    }
+
+    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets2 insets, boolean shrinkText) {
+        return createTextImage(imageWidth, imageHeight, text, font, 0., insets, true, FIT_BOTH, ALIGN_LEFT, ALIGN_TOP);                
     }
 
     /**
      * makes text bitmap of given height and automaticaly set with to accomodate text and insets
        makes text bitmap of given height and automaticaly set width to accomodate text and insets
      */
-    public static BufferedImage createTextImage(int imageHeight, String text, Font font, Insets insets) {
-        return createTextImage(imageHeight, text, font, insets, 0);
+    public static BufferedImage createTextImage(int imageHeight, String text, Font font, double spacing, Insets2 insets) {
+        int imageWidth = (int)getTextWidth(imageHeight, text, font, spacing, insets);
+        return createTextImage(imageWidth, imageHeight, text, font, spacing, insets, true, FIT_BOTH, ALIGN_LEFT, ALIGN_TOP);
     }
-    public static BufferedImage createTextImage(int imageHeight, String text, Font font, Insets insets, double spacing) {
+    /*
+    public static BufferedImage createTextImage(int imageHeight, String text, Font font, Insets2 insets, double spacing) {
 
         if(DEBUG)printf("createText(%d, %s; insets(%d, %d, %d, %d)) \n", imageHeight, text, insets.left,insets.top,insets.right,insets.bottom);
         // we need to find width of the image for given text height
@@ -69,17 +79,13 @@ public class TextUtil {
         // rect size        
         double tx = twidth;
         double ty = theight;
-        int imageWidth = (int)((imageHeight-(insets.top + insets.bottom)) * tx / ty) + (insets.left + insets.right);
+        double imageWidth = ((imageHeight-(insets.top + insets.bottom)) * tx / ty) + (insets.left + insets.right);
         if(DEBUG)printf("image: %d x %d \n", imageWidth, imageHeight);
         
-        return createTextImage(imageWidth,imageHeight, text,font, insets, true, spacing);
+        return createTextImage(imageWidth,imageHeight, text,font, spacing, insets, true, FIT_BOTH, ALIGN_LEFT,ALIGN_TOP);
         
     }
-
-    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets, boolean shrinkText) {
-        return createTextImage(imageWidth, imageHeight, text, font, insets, shrinkText, 0.);                
-    }
-
+    */
     /**
      * Create an image from a text string.
      *
@@ -90,131 +96,71 @@ public class TextUtil {
      * @param insets margins to leave blank around the text 
      * @param shrinkText shrink text (if true) to fit the rectangle
      */
-    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets, boolean shrinkText, double spacing) {
+    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets2 insets, boolean shrinkText, double spacing) {
+        return createTextImage(imageWidth, imageHeight, text, font, spacing, insets, true, FIT_BOTH, ALIGN_LEFT,ALIGN_TOP); 
+    }
+
+    /**
+     * Create an image from a text string.
+     *
+     * @param imageWidth The width of the image
+     * @param imageHeight The height of the image
+     * @param text The text string
+     * @param font The font to use
+     * @param spacing extra spacing between characters (in relative units)
+     * @param insets margins to leave blank around the text 
+     * @param preserveAspect  if true preserves text aspect ratio 
+     
+     * @param fitStyle fitting text to into rectangle (FIT_VERTICAL, FIT_HORIZONTAL, FIT_BOTH)
+     * @param halignment horizontal text alignment (ALIGN_LEFT, ALIGN_CENTER, ALIGN_RIGHT) 
+     * @param valignment horizontal text alignment (ALIGN_TOP, ALIGN_CENTER, ALIGN_BOTTOM) 
+     */
+    public static BufferedImage createTextImage(int imageWidth, int imageHeight, String text, Font font,  double spacing, Insets2 insets, boolean preserveAspect, int fitStyle, int halignment, int valignment) {
         
         
         if(DEBUG)printf("createText(%d, %d, %s) \n", imageWidth, imageHeight, text);
         double fsize = font.getSize();
-        int w = imageWidth - (insets.left + insets.right);
-        int h = imageHeight - (insets.top + insets.bottom);
+        int renderWidth = (int)(imageWidth - (insets.left + insets.right));
+        int renderHeight = (int)(imageHeight - (insets.top + insets.bottom));
 
-        BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_BYTE_GRAY);
+        //BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_BYTE_GRAY);
+        BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)image.getGraphics();
 
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        //g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
         char ctext[] = text.toCharArray();
         GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length, 0);
-        //float pos[] = gv.getGlyphPosition(ctext.length);0, ctext.length, new float[ctext.length]);
         double space = spacing*gv.getGlyphPosition(ctext.length).getX()/ctext.length;        
         for(int i = 0; i < ctext.length; i++){
             Point2D pnt = gv.getGlyphPosition(i);
             Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();
-            //printf("pnt: %7.1f,%7.1f rect: [%7.1f,%7.1f %7.1f,%7.1f]\n", pnt.getX(),pnt.getY(),rect.getX(), rect.getY(),rect.getWidth(),rect.getHeight());
             gv.setGlyphPosition(i, new Point2D.Double(pnt.getX() + space*i, pnt.getY())); 
-            //AffineTransform trans = AffineTransform.getRotateInstance(-i*Math.PI/6);
-            //AffineTransform trans = getItalicTransform(-0.1, 0.0);            
-            //gv.setGlyphTransform(i, trans);             
         }
 
-        Rectangle2D rect = gv.getVisualBounds(); 
-        printf("text bounds: [%5.1f %5.1f %5.1f %5.1f]\n ", rect.getX(),rect.getY(),rect.getWidth(), rect.getHeight());
-
-        double twidth = rect.getWidth();
-        double theight = rect.getHeight();
-        double tx = rect.getX();
-        double ty = rect.getY();
-
-        // center the text and move to make insets         
-        int x = (int)((w - twidth)/2 - tx) + insets.left;
-        int y = (int)((h - theight)/2 - ty) + insets.top;
+        Rectangle2D textRect = gv.getVisualBounds(); 
+        if(DEBUG)printf("textRect: [x:%5.1f y:%5.1f w:%5.1f h:%5.1f]\n ", textRect.getX(),textRect.getY(),textRect.getWidth(), textRect.getHeight());
         
         g.setColor(Color.WHITE);        
         g.fillRect(0,0,imageWidth, imageHeight);
 
 
         g.setColor(Color.LIGHT_GRAY);        
-        Rectangle2D labelRect = new Rectangle2D.Double(insets.left,insets.top, w, h);
-        //g.draw(labelRect);
-        Rectangle2D textRect = new Rectangle2D.Double(x + tx, y + ty, twidth, theight);
+        Rectangle2D labelRect = new Rectangle2D.Double(insets.left,insets.top, renderWidth, renderHeight);
         AffineTransform at;
-        if(shrinkText) {
-            at = getRectTransform(textRect, labelRect, true, true);
-        } else {
-            
-            if(textRect.getWidth() / textRect.getHeight() > labelRect.getWidth() / labelRect.getHeight()){
-                System.err.printf("EXTMSG: Text is too long. It is being truncated\n");
-            }
-            at = getRectTransform2(textRect, labelRect);
-        }
+        
+        at = getRectTransformAligned(textRect, labelRect, preserveAspect, fitStyle, halignment, valignment);
 
         g.setTransform(at);
         
-        g.setColor(Color.BLACK);        
-        g.drawGlyphVector(gv, x,y);
-
-        return image;
-    }
-
-
-    public static BufferedImage _createTextImage(int imageWidth, int imageHeight, String text, Font font, Insets insets, boolean shrinkText) {
-        
-        
-        if(DEBUG)printf("createText(%d, %d, %s) \n", imageWidth, imageHeight, text);
-        double fsize = font.getSize();
-        int w = imageWidth - (insets.left + insets.right);
-        int h = imageHeight - (insets.top + insets.bottom);
-
-        BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_BYTE_GRAY);
-        Graphics2D g = (Graphics2D)image.getGraphics();
-
-        //g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-        //g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_LCD_HRGB);
-
-        TextLayout layout = new TextLayout(text, font, g.getFontRenderContext());   
-        Rectangle2D rect = layout.getBounds();         
-
-        double twidth = rect.getWidth();
-        double theight = rect.getHeight();
-        double tx = rect.getX();
-        double ty = rect.getY();
-
-        // center the text and move to make insets         
-        int x = (int)((w - twidth)/2 - tx) + insets.left;
-        int y = (int)((h - theight)/2 - ty) + insets.top;
-        
-        //printf("font size: %4.1f rect: (%4.1f, %4.1f) [%4.1f x %4.1f] x:%d, y:%d\n", 
-        //       fsize, rect.getX(), rect.getY(), rect.getWidth(),rect.getHeight(), x, y);
-
-        g.setColor(Color.WHITE);        
-        g.fillRect(0,0,imageWidth, imageHeight);
-
-
-        g.setColor(Color.LIGHT_GRAY);        
-        Rectangle2D labelRect = new Rectangle2D.Double(insets.left,insets.top, w, h);
-        //g.draw(labelRect);
-        Rectangle2D textRect = new Rectangle2D.Double(x + tx, y + ty, twidth, theight);
-        AffineTransform at;
-        if(shrinkText) {
-            at = getRectTransform(textRect, labelRect, true, true);
-        } else {
-            
-            if(textRect.getWidth() / textRect.getHeight() > labelRect.getWidth() / labelRect.getHeight()){
-                System.err.printf("EXTMSG: Text is too long. It is being truncated\n");
-            }
-            at = getRectTransform2(textRect, labelRect);
+        if(false){
+            g.setColor(Color.LIGHT_GRAY);        
+            g.fill(textRect);
+            g.setColor(Color.RED);        
+            g.draw(textRect);
         }
 
-        g.setTransform(at);
-
-        //g.setColor(Color.RED);        
-        //g.fill(new Rectangle2D.Double(x+tx,y,twidth, 1));        
-
-        //g.setColor(Color.BLUE);         
-        //g.draw(textRect);
-        
         g.setColor(Color.BLACK);        
-        layout.draw(g, x, y);
+        g.drawGlyphVector(gv, 0,0);
 
         return image;
     }
@@ -224,64 +170,161 @@ public class TextUtil {
      *  returns transformation, which transforms rectIn into rectOut
      *  optionally it preserves aspect ratio 
      */
+    /*
     public static AffineTransform getRectTransform(Rectangle2D rectIn, 
                                                    Rectangle2D rectOut, 
                                                    boolean preserveAspectRatio,
-                                                   boolean centerImage 
+                                                   int alignment
                                                    ){
         
         AffineTransform at = new AffineTransform();
         
         double sx = rectOut.getWidth() / rectIn.getWidth();
         double sy = rectOut.getHeight() / rectIn.getHeight();
-        
-        if(centerImage){
+        double scale = (sx >= sy)? sx : sy;
+
+        switch(alingment){
+        case ALIGN_CENTER:
             at.translate(rectOut.getX()+rectOut.getWidth()/2, rectOut.getY()+rectOut.getHeight()/2); 
-        } else {
+            break;
+        case ALIGN_LEFT:
             at.translate(rectOut.getX(), rectOut.getY());     
+            break;
+        case ALIGN_RIGHT:
+            at.translate(rectOut.getX()+(wout - win1), rectOut.getY());     
+            break;
         }
+
         if(preserveAspectRatio){            
-            if(sx >= sy){                
-                at.scale(sy,sy);                
-            } else {                
-                at.scale(sx,sx);                
-            }                        
-        } else {
-            
-            at.scale(sx,sy);
-            
+            at.scale(scale, scale);                
+        } else {            
+            at.scale(sx,sy);            
         }
-        if(centerImage){
-            at.translate(-(rectIn.getX()+rectIn.getWidth()/2), -(rectIn.getY()+rectIn.getHeight()/2));        
-        } else {
-            at.translate(-rectIn.getX(), -rectIn.getY());
-        }        
+
+        at.translate(-rectIn.getX(), -rectIn.getY());
+                
         return at;         
     }    
+    */
 
     /**
-     * calculates transform which scales rectIn to fit vertically into rectOut (possible makes it larger in width)
+     * calculates transform which scales rectIn to fit vertically into rectOut possible makes it larger in width with given aligment 
      */
-    public static AffineTransform getRectTransform2(Rectangle2D rectIn, 
-                                                   Rectangle2D rectOut
+    public static AffineTransform getRectTransformAligned(Rectangle2D rectIn, 
+                                                          Rectangle2D rectOut,
+                                                          boolean preserveAspect, 
+                                                          int fitStyle, 
+                                                          int halignment, 
+                                                          int valignment
                                                    ){
         
         AffineTransform at = new AffineTransform();
-        
+        // scale factor to fit vertically
+        double sx = rectOut.getWidth() / rectIn.getWidth();
         double sy = rectOut.getHeight() / rectIn.getHeight();
-        
-        at.translate(rectOut.getX(), rectOut.getY());         
 
-        at.scale(sy,sy);                
+        double scalex, scaley; // actual scaling to be used 
+        if(preserveAspect) {
+            // uniform scale to be used, we scale to fit one dimension only 
+            switch(fitStyle){
+            default:
+            case FIT_BOTH:
+                if(sx >= sy){
+                    // select smaller scale factor
+                    scalex = sy;
+                    scaley = sy;
+                } else {
+                    scalex = sx;
+                    scaley = sx;
+                }
+                break;
+            case FIT_VERTICAL:
+                scalex = sy;
+                scaley = sy;                
+                break;
+            case FIT_HORIZONTAL:
+                scalex = sx;
+                scaley = sx;                
+                break;
+            } 
+        } else { // non uniform scaling - fits both dimensions 
+            scalex = sx;
+            scaley = sy;                            
+        }
+
+        
+        double wout = rectOut.getWidth();
+        double win1 = rectIn.getWidth() * scalex; // width of scaled rectIn
+        
+        double hout = rectOut.getHeight();
+        double hin1 = rectIn.getHeight() * scaley; // height of scaled rectIn
+        
+        double dx, dy;
+        switch(halignment){
+        default:
+        case ALIGN_LEFT:
+            dx = 0; break;
+        case ALIGN_RIGHT:
+            dx = (wout - win1); break;
+        case ALIGN_CENTER:
+            dx = (wout - win1)/2; break;
+        }
+
+        switch(valignment){
+        default:
+        case ALIGN_TOP:
+            dy = 0; break;
+        case ALIGN_BOTTOM:
+            dy = (hout - hin1); break;
+        case ALIGN_CENTER:
+            dy = (hout - hin1)/2; break;
+        }
+
+        at.translate(rectOut.getX()+dx, rectOut.getY()+dy);         
+
+        at.scale(scalex,scaley);          
         
         at.translate(-rectIn.getX(), -rectIn.getY());
                 
         return at;         
     }    
 
+    /**
+       calculates text box width for given height
+     */
+    public static double getTextWidth(double height, String text, Font font, double spacing, Insets2 insets) {
+
+        // we need to find width of the image for given text height
+        BufferedImage image = new BufferedImage(1, 1, BufferedImage.TYPE_BYTE_GRAY);
+        Graphics2D g = (Graphics2D) image.getGraphics();
+        TextLayout layout = new TextLayout(text, font, g.getFontRenderContext());
+ 
+        char ctext[] = text.toCharArray();
+        GlyphVector gv = font.layoutGlyphVector(g.getFontRenderContext(), ctext, 0, ctext.length, 0);
+        double space = spacing*gv.getGlyphPosition(ctext.length).getX()/ctext.length;        
+        for(int i = 0; i < ctext.length; i++){
+            Point2D pnt = gv.getGlyphPosition(i);
+            Rectangle2D rect = gv.getGlyphVisualBounds(i).getBounds2D();
+            gv.setGlyphPosition(i, new Point2D.Double(pnt.getX() + space*i, pnt.getY())); 
+        }
+
+        Rectangle2D rect = gv.getVisualBounds(); 
+        printf("text bounds: [%5.1f %5.1f %5.1f %5.1f]\n ", rect.getX(),rect.getY(),rect.getWidth(), rect.getHeight());
+
+        // rect size        
+        double tx = rect.getWidth();
+        double ty = rect.getHeight();
+        double textHeight = (height-(insets.top + insets.bottom));
+        if(textHeight <= 0)
+            throw new IllegalArgumentException(fmt("negative textHeight: %7.3f  height: %7.3f insets.top:  %7.3f  insets.bottom: %7.3f", textHeight, height, insets.top, insets.bottom));
+        double textWidth = textHeight * tx / ty + (insets.left + insets.right);
+
+        return textWidth;
+   }
+    
     static AffineTransform getItalicTransform(double x, double y) {
 
-        AffineTransform tr=new AffineTransform();
+        AffineTransform tr = new AffineTransform();
         //tr.translate(0, s);
         tr.shear(-x, y);
         //tr.translate(2,-s);
@@ -294,10 +337,10 @@ public class TextUtil {
             String[] fonts = g.getAvailableFontFamilyNames();
             HashSet<String> fc =  new HashSet<String>(fonts.length);
 
-            System.out.println("Caching Fonts:");
+            if(DEBUG)System.out.println("Caching Fonts:");
             int len = fonts.length;
             for (int i = 0; i < len; i++) {
-                System.out.println(fonts[i]);
+                if(DEBUG)System.out.println(fonts[i]);
                 fc.add(fonts[i]);
             }
 

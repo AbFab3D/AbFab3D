@@ -39,6 +39,7 @@ import abfab3d.util.Initializable;
 import abfab3d.util.VecTransform;
 import abfab3d.util.Units;
 import abfab3d.util.TextUtil;
+import abfab3d.util.Insets2;
 
 import abfab3d.util.PointToTriangleDistance;
 
@@ -162,7 +163,7 @@ public class Text extends TransformableDataSource {
         int fontStyle = mp_fontStyle.getValue();
 
 
-        BufferedImage img = TextUtil.createTextImage(nx, ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets(0,0,0,0), true);
+        BufferedImage img = TextUtil.createTextImage(nx, ny, text, new Font(fontName, fontStyle, m_fontSize), new Insets2(0,0,0,0), true);
 
         printf("text bitmap: %d x %d\n", nx, ny);
         //Font font = new Font(m_fontName, m_fontStyle, m_fontSize);

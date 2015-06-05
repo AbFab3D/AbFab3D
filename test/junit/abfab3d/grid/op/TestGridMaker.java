@@ -42,6 +42,7 @@ import abfab3d.grid.GridShortIntervals;
 import abfab3d.util.Vec;
 import abfab3d.util.MathUtil;
 import abfab3d.util.TextUtil;
+import abfab3d.util.Insets2;
 import abfab3d.util.Symmetry;
 import abfab3d.util.VecTransform;
 
@@ -953,7 +954,7 @@ public class TestGridMaker extends TestCase {
         textBand.setImageType(Image3D.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
         textBand.setImage(TextUtil.createTextImage(1000, 200, "Test Image Text gg", 
-                                                   new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
+                                                   new Font("Times New Roman", Font.BOLD, 20), new Insets2(10,10,10,10)));
 
         
         VecTransform ripples = new Ripples(textHeight/3,textHeight/3,textHeight/3,0.,0.,textDepth);
@@ -1104,7 +1105,7 @@ public class TestGridMaker extends TestCase {
         textBand.setImageType(Image3D.IMAGE_TYPE_EMBOSSED);
         textBand.setTiles(1,1);
         textBand.setImage(TextUtil.createTextImage(1000, 150, "Test Image Text gg", 
-                                                   new Font("Times New Roman", Font.BOLD, 20), new Insets(10,10,10,10)));
+                                                   new Font("Times New Roman", Font.BOLD, 20), new Insets2(10,10,10,10)));
         
         // we want text on the inside. So it should face in opposite direction 
         Rotation textRotation = new Rotation();
