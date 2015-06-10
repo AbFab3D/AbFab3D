@@ -14,6 +14,8 @@ package abfab3d.util;
 
 import javax.vecmath.Vector3d;
 import javax.vecmath.Vector4d;
+import javax.vecmath.AxisAngle4d;
+import javax.vecmath.Quat4d;
 
 // External Imports
 
@@ -23,6 +25,8 @@ import javax.vecmath.Matrix3d;
 import javax.vecmath.SingularMatrixException;
 
 import static java.lang.Math.sqrt;
+import static java.lang.Math.abs;
+import static java.lang.Math.max;
 import static abfab3d.util.Output.fmt;
 
 /**
@@ -80,6 +84,20 @@ public class MathUtil {
     	
     	return distance;
     }
+
+    /**
+     * return distance between two points in Euclidian space.
+     *
+     */
+    public static final double getDistance(Vector3d v0, Vector3d v1){
+        double 
+            x = v0.x - v1.x,
+            y = v0.y - v1.y,
+            z = v0.z - v1.z;        
+
+        return sqrt(x*x + y*y + z*z);
+    }
+
 
     /**
        extends bounds array by given margin 
@@ -173,6 +191,7 @@ public class MathUtil {
     
     // small number to detect degenerate matrix 
     static final double EPS = 1.e-9;
+    static final double EPS2 = EPS*EPS; // squared epsilon
 
     static final int // elements of 3x3 matrix stored in array 
         M00 = 0, M01 = 1, M02 = 2, 
@@ -589,16 +608,19 @@ public class MathUtil {
     }
 
 
-    public static final double distance(Vector3d v0, Vector3d v1){
-        double 
-            x = v0.x - v1.x,
-            y = v0.y - v1.y,
-            z = v0.z - v1.z;        
 
-        return sqrt(x*x + y*y + z*z);
+    /**
+       return distance between two vectors 
+     */
+    public static double distance(Vector3d v0, Vector3d v1){
+
+        return getDistance(v0,v1);
+
     }
 
-
+    /**
+       return mid point of 2 vectors 
+     */
     public static Vector3d midPoint(Vector3d v0, Vector3d v1){
         
         return new Vector3d((v0.x + v1.x)/2,(v0.y + v1.y)/2,(v0.z + v1.z)/2);
@@ -1266,4 +1288,118 @@ public class MathUtil {
             v1.z *(v2.x * v3.y - v2.y * v3.x);
     }
 
+    /**
+       convert quaternion into AxisAngle representation 
+     */
+    public static final AxisAngle4d getAxisAngle(Quat4d q){
+
+        double mag = q.x*q.x + q.y*q.y + q.z*q.z;
+        double x,y,z,angle;
+        if ( mag > EPS2 ) {
+            mag = Math.sqrt(mag);
+            double invMag = 1.0/mag;
+            
+            x = q.x*invMag;
+            y = q.y*invMag;
+            z = q.z*invMag;
+            angle = 2.0*Math.atan2(mag, q.w);
+        } else {
+            x = 0.0;
+            y = 1.0;
+            z = 0.0;
+            angle = 0;
+        }
+        return new AxisAngle4d(x,y,z,angle);
+    }
+
+    /**
+       naive conversion of matrix into axis angle
+       it fails when angle is of rotation is 180
+     */
+    static AxisAngle4d getAxisAngle_v0(Matrix3d m){
+
+        double x,y,z,angle;
+
+        x = (m.m21 - m.m12);
+        y = (m.m02 - m.m20);
+        z = (m.m10 - m.m01);
+
+        double mag = x*x + y*y + z*z;
+        
+        if (mag > EPS2 ) {
+            mag = Math.sqrt(mag);
+
+            double sin = 0.5*mag;
+            double cos = 0.5*(m.m00 + m.m11 + m.m22 - 1.0);            
+            angle = Math.atan2(sin, cos);
+
+            double invMag = 1.0/mag;
+            x = x*invMag;
+            y = y*invMag;
+            z = z*invMag;
+        } else {
+            // this is wrong, does not handles case of rotation by 180 
+            x = 0.0;
+            y = 1.0;
+            z = 0.0;
+            angle = 0.0;
+        }
+        return new AxisAngle4d(x,y,z,angle);
+
+    }
+
+    /**
+       @return axis and angle or rotation represented as matrix 
+     */
+    public static AxisAngle4d getAxisAngle(Matrix3d m){
+
+        double q0=0, q1, q2, q3;
+        double trace = m.m00 + m.m11 + m.m22;
+        //printf("trace: %7.5f\n", trace);
+
+        if(trace > 0) {
+            q0 = 0.5*sqrt(trace + 1);
+            q1 = (m.m21 - m.m12)/(4*q0);
+            q2 = (m.m02 - m.m20)/(4*q0);
+            q3 = (m.m10 - m.m01)/(4*q0);
+        } else { // negative trace 
+            q1 = 0.5*sqrt(1 + m.m00 - m.m11 - m.m22);
+            q2 = 0.5*sqrt(1 + m.m11 - m.m22 - m.m00);
+            q3 = 0.5*sqrt(1 + m.m22 - m.m00 - m.m11);
+            double a1 = abs(q1);
+            double a2 = abs(q2);
+            double a3 = abs(q3);            
+            if(a1 >= a2 && a1 >= a3) {
+                //printf("trace1: %7.5f\n", trace);            
+                // a1 is the largest
+                q0 = (m.m21 - m.m12)/(4*q1);
+                q2 = (m.m10 + m.m01)/(4*q1);
+                q3 = (m.m02 + m.m20)/(4*q1);
+            } else if (a2 >= a1 && a2>= a3){
+                //printf("trace2: %7.5f\n", trace);            
+                // a2 is the largest                
+                q0 = (m.m02 - m.m20)/(4*q2);
+                q1 = (m.m01 + m.m10)/(4*q2);                
+                q3 = (m.m12 + m.m21)/(4*q2);                
+            } else if(a3 >= a1 && a3 >= a2){
+                //printf("trace3: %7.5f\n", trace);            
+                // a3 is the largest
+                q0 = (m.m10 - m.m01)/(4*q3);
+                q1 = (m.m20 + m.m02)/(4*q3);                
+                q2 = (m.m12 + m.m21)/(4*q3);
+            }            
+        } /// negative trace 
+
+        return getAxisAngle(new Quat4d(q1,q2,q3,q0));
+    }
+
+    /**
+       @return axis and angle or rotation which rotates basis vectors standard orthogonal basis (1,0,0),(0,1,0),(0,0,1) into orthonormal basis (v1, v2, v3)
+     */
+    public static AxisAngle4d getAxisAngle(Vector3d v1, Vector3d v2, Vector3d v3){
+
+        Matrix3d m = new Matrix3d(v1.x,v2.x, v3.x,v1.y,v2.y,v3.y,v1.z,v2.z,v3.z);
+        return getAxisAngle(m);
+        
+    }
 }

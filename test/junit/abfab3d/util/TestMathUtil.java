@@ -21,18 +21,24 @@ import junit.framework.TestSuite;
 import java.util.Random;
 import javax.vecmath.Matrix3d;
 import javax.vecmath.Vector3d;
+import javax.vecmath.AxisAngle4d;
+import javax.vecmath.Quat4d;
 
 import static java.lang.Math.abs;
+import static java.lang.Math.max;
+import static java.lang.Math.sqrt;
 
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.time;
+import static abfab3d.util.Units.TODEGREE;
 
 /**
  */
 public class TestMathUtil extends TestCase {
 
     static final double EPS = 1.e-9;
+    static final double SEPS = 1.e-20;
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
@@ -272,7 +278,7 @@ public class TestMathUtil extends TestCase {
         
     }
 
-    public void testIntersectIF(){
+    public void devTestIntersectIF(){
         Vector3d p0 = new Vector3d(0,0,0);
         Vector3d p1 = new Vector3d(1,0,0);
         //double v0 = 0;
@@ -294,7 +300,7 @@ public class TestMathUtil extends TestCase {
         }
     }
 
-    public void testTripleProduct(){
+    public void devTestTripleProduct(){
         Vector3d v1 = new Vector3d(1,1,0);
         Vector3d v2 = new Vector3d(0,1,1);
         Vector3d v3 = new Vector3d(1,0,1);
@@ -302,6 +308,96 @@ public class TestMathUtil extends TestCase {
         double tp = MathUtil.tripleProduct(v1, v3, v2);
         printf("tp:%7.5f\n", tp);
     }
+
+    public void devTestAxisAngle1(){
+    
+        Vector3d v1 = new Vector3d(-1,0,0);
+        Vector3d v2 = new Vector3d(0,-1,0);
+        Vector3d v3 = new Vector3d(0,0,1);
+        AxisAngle4d aa = MathUtil.getAxisAngle(v1,v2,v3);
+        printf("aa: %9.6f,%9.6f,%9.6f, %9.6f deg\n", aa.x, aa.y, aa.z, aa.angle*180/Math.PI);
+    }
+
+    public void devTestAxisAngle2(){
+        
+        Random rnd = new Random(101);
+        int N = 100000;
+        Vector3d vmax[] = new Vector3d[]{new Vector3d(),new Vector3d(),new Vector3d()};
+        double dmax = 0;
+        for(int i = 0; i < N; i++){
+            Vector3d v1 = new Vector3d(2*rnd.nextDouble()-1,2*rnd.nextDouble()-1,2*rnd.nextDouble()-1);
+            v1.normalize();
+            Vector3d v3 = new Vector3d(2*rnd.nextDouble()-1,2*rnd.nextDouble()-1,2*rnd.nextDouble()-1);
+            v3.normalize();            
+            Vector3d v2 = new Vector3d();
+            v2.cross(v3, v1);
+            v2.normalize();
+            v3.cross(v1,v2);
+            v3.normalize();
+            //printf("v1: (%7.5f,%7.5f,%7.5f) v2:  (%7.5f,%7.5f,%7.5f) v3:  (%7.5f,%7.5f,%7.5f)\n", v1.x,v1.y,v1.z, v2.x,v2.y,v2.z, v3.x,v3.y,v3.z);        
+            Matrix3d m = new Matrix3d(v1.x,v2.x, v3.x,v1.y,v2.y,v3.y,v1.z,v2.z,v3.z);
+            AxisAngle4d aa = MathUtil.getAxisAngle(m);
+            //aa.set(m);
+            //printf("aa: %7.5f,%7.5f,%7.5f,%7.5f deg\n", aa.x, aa.y, aa.z, aa.angle*180/Math.PI);
+            Matrix3d r = new Matrix3d();
+            r.set(aa);
+            Vector3d u1 = new Vector3d(1,0,0);
+            Vector3d u2 = new Vector3d(0,1,0);
+            Vector3d u3 = new Vector3d(0,0,1);
+            r.transform(u1);
+            r.transform(u2);
+            r.transform(u3);           
+            //printf("u1: (%7.5f,%7.5f,%7.5f) u2:  (%7.5f,%7.5f,%7.5f) u3:  (%7.5f,%7.5f,%7.5f)\n", u1.x,u1.y,u1.z, u2.x,u2.y,u2.z, u3.x,u3.y,u3.z); 
+            double d1 = MathUtil.getDistance(v1, u1);
+            double d2 = MathUtil.getDistance(v2, u2);
+            double d3 = MathUtil.getDistance(v3, u3);
+            double d = max(max(d1, d2),d3);
+            if(d > dmax){
+                vmax[0].set(v1);
+                vmax[1].set(v2);
+                vmax[2].set(v3);
+                dmax = d;
+                //printf("dmax: %14.7e\n", dmax); 
+                //printf("v1max: %9.6f %9.6f %9.6f\n", vmax[0].x,vmax[0].y,vmax[0].z); 
+                //printf("v1max: %9.6f %9.6f %9.6f\n", vmax[1].x,vmax[1].y,vmax[1].z); 
+                //printf("v1max: %9.6f %9.6f %9.6f\n", vmax[2].x,vmax[2].y,vmax[2].z); 
+            }
+        }
+        printf("dmax: %14.7e\n", dmax); 
+        printf("v1max: %9.6f %9.6f %9.6f\n", vmax[0].x,vmax[0].y,vmax[0].z); 
+        printf("v1max: %9.6f %9.6f %9.6f\n", vmax[1].x,vmax[1].y,vmax[1].z); 
+        printf("v1max: %9.6f %9.6f %9.6f\n", vmax[2].x,vmax[2].y,vmax[2].z); 
+        printf("dot\n");
+        for(int i = 0; i < 3; i++){
+            for(int j = 0; j < 3; j++){
+                printf("%9.7f ", vmax[i].dot(vmax[j]));
+            }
+            printf("\n");
+        }
+    }
+
+    public void devTestAxisAngle3(){
+
+        AxisAngle4d aa = new AxisAngle4d();
+        
+        Random rnd = new Random(101);
+        int N = 10;
+        Vector3d vmax[] = new Vector3d[]{new Vector3d(),new Vector3d(),new Vector3d()};
+        Vector3d axis = new Vector3d();
+        double dmax = 0;
+        Matrix3d rot = new Matrix3d();
+        for(int i = 0; i < N; i++){
+            axis.set(2*rnd.nextDouble()-1,2*rnd.nextDouble()-1,2*rnd.nextDouble()-1);
+            axis.normalize();
+            //double angle = rnd.nextDouble()*2*Math.PI;
+            double angle = Math.PI;
+            aa.set(axis.x,axis.y,axis.z,angle);
+            rot.set(aa);
+            AxisAngle4d aa1 = MathUtil.getAxisAngle(rot);
+            printf("aa:(%8.5f,%8.5f,%8.5f;%10.5f), aa1:(%8.5f,%8.5f,%8.5f;%10.5f)\n", aa.x,aa.y,aa.z,aa.angle*TODEGREE,aa1.x,aa1.y,aa1.z,aa1.angle*TODEGREE);
+        }
+    }
+
 
     public static void main(String arg[]){
 
@@ -313,7 +409,9 @@ public class TestMathUtil extends TestCase {
         //new TestMathUtil().testGetBestPlane();
         //new TestMathUtil().testGetBestPlane2();
         //new TestMathUtil().testIntersectIF();
-        new TestMathUtil().testTripleProduct();
+        //new TestMathUtil().testTripleProduct();
+        //new TestMathUtil().testAxisAngle();
+        new TestMathUtil().devTestAxisAngle3();
         
     }
 }
