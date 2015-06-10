@@ -107,13 +107,12 @@ public class EnumParameter extends Parameter {
     }
 
     public static <T extends Enum<T>> String[] enumArray(T[] values) {
-        int i = 0;
         String[] result = new String[values.length];
-        Enum[] arr$ = values;
-        int len$ = values.length;
+        Enum[] arr = values;
+        int len = values.length;
 
-        for(int i$ = 0; i$ < len$; ++i$) {
-            Enum value = arr$[i$];
+        for(int i = 0; i < len; ++i) {
+            Enum value = arr[i];
             result[i++] = value.name();
         }
 
