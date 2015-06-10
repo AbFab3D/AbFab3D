@@ -47,7 +47,7 @@ public class EnumParameter extends Parameter {
 
     @Override
     public String getValue() {
-        return (String) value;
+        return value.toString();
     }
 
     public Object getDefaultValue(Class hint) {
@@ -80,8 +80,11 @@ public class EnumParameter extends Parameter {
     public void validate(Object val) {
         if (val == null) return;
 
+        if (val instanceof Enum) {
+            val = val.toString();
+        }
         if (!(val instanceof String)) {
-            throw new IllegalArgumentException("Unsupported type for String: " + val + " in param: " + getName());
+            throw new IllegalArgumentException("Unsupported type for String: " + val.getClass() + " in param: " + getName());
         }
 
         for(int i = 0; i < m_values.length; i++){
@@ -101,5 +104,19 @@ public class EnumParameter extends Parameter {
 
         return (EnumParameter) super.clone();
         
+    }
+
+    public static <T extends Enum<T>> String[] enumArray(T[] values) {
+        int i = 0;
+        String[] result = new String[values.length];
+        Enum[] arr$ = values;
+        int len$ = values.length;
+
+        for(int i$ = 0; i$ < len$; ++i$) {
+            Enum value = arr$[i$];
+            result[i++] = value.name();
+        }
+
+        return result;
     }
 }
