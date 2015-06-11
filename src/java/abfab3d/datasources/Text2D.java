@@ -16,18 +16,10 @@ package abfab3d.datasources;
 
 import java.awt.image.BufferedImage;
 
-import java.util.Vector;
 import java.awt.Font;
-import java.awt.Insets;
-
-
-import javax.vecmath.Vector3d;
-import javax.vecmath.Matrix3d;
-import javax.vecmath.AxisAngle4d;
 
 
 import abfab3d.param.BaseParameterizable;
-import abfab3d.param.Vector3dParameter;
 import abfab3d.param.IntParameter;
 import abfab3d.param.DoubleParameter;
 import abfab3d.param.BooleanParameter;
@@ -36,29 +28,19 @@ import abfab3d.param.StringParameter;
 import abfab3d.param.Parameter;
 
 
-import abfab3d.util.Vec;
 import abfab3d.util.DataSource;
-import abfab3d.util.Initializable;
-import abfab3d.util.VecTransform;
-import abfab3d.util.Units;
 import abfab3d.util.TextUtil;
 import abfab3d.util.Insets2;
 
-import abfab3d.util.PointToTriangleDistance;
-
-import static java.lang.Math.sqrt;
-import static java.lang.Math.atan2;
 import static java.lang.Math.abs;
 
 import static abfab3d.util.Output.printf;
 
 
 import static abfab3d.util.MathUtil.clamp;
-import static abfab3d.util.MathUtil.intervalCap;
 import static abfab3d.util.MathUtil.step10;
 
 import static abfab3d.util.Units.MM;
-import static abfab3d.util.Units.UM;
 
 
 /**
@@ -76,6 +58,10 @@ import static abfab3d.util.Units.UM;
  */
 public class Text2D extends BaseParameterizable {
 
+    public enum Fit {VERTICAL, HORIZONTAL, BOTH}
+    public enum HorizAlign {LEFT, CENTER, RIGHT}
+    public enum VertAlign {TOP, CENTER, BOTTOM}
+
     static public final int BOLD = Font.BOLD; 
     static public final int ITALIC = Font.ITALIC; 
     static public final int PLAIN = Font.PLAIN; 
@@ -89,12 +75,9 @@ public class Text2D extends BaseParameterizable {
         FIT_VERTICAL = TextUtil.FIT_VERTICAL, 
         FIT_HORIZONTAL=TextUtil.FIT_HORIZONTAL, 
         FIT_BOTH = TextUtil.FIT_BOTH;
-    static String m_fitNames[] = new String[]{"vertical","horizontal","both"};
-    static int m_fitValues[] = new int[]{FIT_VERTICAL,FIT_HORIZONTAL, FIT_BOTH};
 
-    static String m_hAlignNames[] = new String[]{"left","center","right"};
+    static int m_fitValues[] = new int[]{FIT_VERTICAL,FIT_HORIZONTAL, FIT_BOTH};
     static int m_hAlignValues[] = new int[]{ALIGN_LEFT,ALIGN_CENTER,ALIGN_RIGHT};
-    static String m_vAlignNames[] = new String[]{"top","center","bottom"};
     static int m_vAlignValues[] = new int[]{ALIGN_TOP,ALIGN_CENTER,ALIGN_BOTTOM};
 
     static final boolean DEBUG = false;
@@ -108,9 +91,12 @@ public class Text2D extends BaseParameterizable {
     final int SCALING = 5;// scaling factor for text bitmap 
 
     // public params of the image 
-    EnumParameter    mp_hAlign    = new EnumParameter("hAlign","horizontal text aligment (left, right, center)",m_hAlignNames, m_hAlignNames[0]);
-    EnumParameter    mp_vAlign    = new EnumParameter("vAlign","vertical text aligment (top, bottom, center)",m_vAlignNames, m_vAlignNames[0]);
-    EnumParameter    mp_fit       = new EnumParameter("fit","fitting of text (horizontal, vertical, both)", m_fitNames, m_fitNames[0]);
+    EnumParameter mp_horizAlign = new EnumParameter("horizAlign","horizontal text alignment (left, right, center)",
+            EnumParameter.enumArray(HorizAlign.values()), HorizAlign.LEFT.toString());
+    EnumParameter mp_vertAlign = new EnumParameter("vertAlign","vertical text alignment (top, bottom, center)",
+            EnumParameter.enumArray(VertAlign.values()), VertAlign.CENTER.toString());
+    EnumParameter    mp_fit       = new EnumParameter("fit","fitting of text (horizontal, vertical, both)",
+            EnumParameter.enumArray(Fit.values()), Fit.VERTICAL.toString());
     BooleanParameter mp_aspect    = new BooleanParameter("preserveAspect","keep text aspect ratio",true);
     DoubleParameter  mp_fontSize  = new DoubleParameter("fontSize","size of text font to use in points",30);
     DoubleParameter  mp_height = new DoubleParameter("height","height of text",5*MM);
@@ -123,8 +109,8 @@ public class Text2D extends BaseParameterizable {
     DoubleParameter mp_spacing    = new DoubleParameter("spacing","extra white space between characters in relative units", 0.);
 
     Parameter m_aparam[] = new Parameter[]{
-        mp_vAlign,
-        mp_hAlign,
+            mp_vertAlign,
+            mp_horizAlign,
         mp_fit,
         mp_aspect,
         mp_height,
@@ -137,6 +123,7 @@ public class Text2D extends BaseParameterizable {
         mp_spacing,
         mp_fontSize,
     };
+
 
     /**
      * Constructor
@@ -192,6 +179,46 @@ public class Text2D extends BaseParameterizable {
         super.set(param, val);
     }
 
+    public void setWidth(double val) {
+        if (val <= 0) {
+            throw new IllegalArgumentException("Width cannot be <= 0");
+        }
+
+        m_bitmap = null;
+        mp_width.setValue(val);
+    }
+
+    public double getWidth() {
+        return mp_width.getValue();
+    }
+
+    public void setHeight(double val) {
+        if (val <= 0) {
+            throw new IllegalArgumentException("Height cannot be <= 0");
+        }
+
+        m_bitmap = null;
+        mp_height.setValue(val);
+    }
+
+    public double getHeight() {
+        return mp_height.getValue();
+    }
+
+    public void setHorizAlign(String val) {
+        m_bitmap = null;
+        mp_horizAlign.setValue(val.toUpperCase());
+    }
+
+    public void setVertAlign(String val) {
+        m_bitmap = null;
+        mp_vertAlign.setValue(val.toUpperCase());
+    }
+
+    public void setFit(String val) {
+        m_bitmap = null;
+        mp_fit.setValue(val.toUpperCase());
+    }
 
     public BufferedImage getImage(){
         if(m_bitmap == null)
@@ -245,7 +272,7 @@ public class Text2D extends BaseParameterizable {
         String fontName = mp_fontName.getValue();
         validateFontName(fontName);
 
-        int height = (int)Math.round(mp_height.getValue()/voxelSize);         
+        int height = (int)Math.round(mp_height.getValue()/voxelSize);
         int width = (int)Math.round(mp_width.getValue()/voxelSize);         
 
         String text = mp_text.getValue();
@@ -256,8 +283,8 @@ public class Text2D extends BaseParameterizable {
         boolean aspect = mp_aspect.getValue();
 
         int fit = m_fitValues[mp_fit.getIndex()];
-        int halign = m_hAlignValues[mp_hAlign.getIndex()];
-        int valign = m_vAlignValues[mp_vAlign.getIndex()];
+        int halign = m_hAlignValues[mp_horizAlign.getIndex()];
+        int valign = m_vAlignValues[mp_vertAlign.getIndex()];
 
         m_bitmap = TextUtil.createTextImage(width, height, text, new Font(fontName, fontStyle, m_fontSize), mp_spacing.getValue().doubleValue(),insets, aspect, fit, halign, valign);
         

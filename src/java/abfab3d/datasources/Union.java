@@ -74,6 +74,13 @@ public class Union  extends TransformableDataSource implements SNode {
     }
 
     /**
+     * Set the blending width
+     */
+    public void setBlend(double r){
+        mp_blendWidth.setValue(r);
+    }
+
+    /**
        union of two shapes 
      */
     public Union(DataSource shape1, DataSource shape2 ){
@@ -98,7 +105,7 @@ public class Union  extends TransformableDataSource implements SNode {
     */
     public void add(DataSource shape){
         dataSources.add(shape);
-        mp_dataSources.add((Parameterizable)shape);
+        mp_dataSources.add((Parameterizable) shape);
     }
 
     /**
@@ -108,7 +115,7 @@ public class Union  extends TransformableDataSource implements SNode {
      * @param src
      */
     public void set(int idx, DataSource src) {
-        mp_dataSources.set(idx,(Parameterizable)src);
+        mp_dataSources.set(idx, (Parameterizable) src);
     }
 
     /**

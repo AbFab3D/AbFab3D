@@ -111,7 +111,15 @@ public class Box extends TransformableDataSource {
         mp_rounding.setValue(new Double(rounding));
 
     }
-    
+
+    public void setSize(Vector3d val) {
+        mp_size.setValue(val);
+    }
+
+    public void setCenter(Vector3d val) {
+        mp_center.setValue(val);
+    }
+
     protected void initParams(){
         super.addParams(m_aparam);
     }

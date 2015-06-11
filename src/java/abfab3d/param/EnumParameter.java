@@ -33,7 +33,16 @@ public class EnumParameter extends Parameter {
 
     public EnumParameter(String name, String desc, String values[], String initialValue) {
         super(name, desc);
-        m_values = values;
+        m_values = values.clone();
+
+        int len = m_values.length;
+        String vv = "";
+        for(int i = 0; i < len; i++){
+            vv += m_values[i];
+
+            if (i < len - 1) vv += ",";
+        }
+        System.out.printf("Setting initial enum values: %s\n", vv);
         setValue(initialValue);
     }
 
@@ -87,8 +96,10 @@ public class EnumParameter extends Parameter {
             throw new IllegalArgumentException("Unsupported type for String: " + val.getClass() + " in param: " + getName());
         }
 
-        for(int i = 0; i < m_values.length; i++){
-            if(val.equals(m_values[i])){
+        int len = m_values.length;
+        for(int i = 0; i < len; i++){
+            String st = (String) val;
+            if(st.equalsIgnoreCase(m_values[i])){
                 m_index = i;
                 return;
             }
@@ -96,7 +107,14 @@ public class EnumParameter extends Parameter {
 
         m_index = 0;
 
-        throw new IllegalArgumentException("Unsupported value: " + val + " in param: " + getName());
+        String vv = "";
+        for(int i = 0; i < len; i++){
+            vv += m_values[i];
+
+            if (i < len - 1) vv += ",";
+        }
+
+        throw new IllegalArgumentException("Unsupported value: " + val + " in param: " + getName() + " values: " + vv);
         
     }
 
@@ -107,13 +125,13 @@ public class EnumParameter extends Parameter {
     }
 
     public static <T extends Enum<T>> String[] enumArray(T[] values) {
-        String[] result = new String[values.length];
-        Enum[] arr = values;
         int len = values.length;
+        String[] result = new String[len];
+        Enum[] arr = values;
 
-        for(int i = 0; i < len; ++i) {
+        for(int i = 0; i < len; i++) {
             Enum value = arr[i];
-            result[i++] = value.name();
+            result[i] = value.name();
         }
 
         return result;

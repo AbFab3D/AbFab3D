@@ -68,6 +68,16 @@ public class Translation extends BaseTransform implements VecTransform {
     /**
      * @noRefGuide
      */
+    public void setTranslation(Vector3d val) {
+        this.tx = val.x;
+        this.ty = val.y;
+        this.tz = val.z;
+        mp_trans.setValue(val.clone());
+    }
+
+    /**
+     * @noRefGuide
+     */
     public void setTranslation(double tx, double ty, double tz) {
 
         this.tx = tx;
