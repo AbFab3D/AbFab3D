@@ -15,6 +15,7 @@ package abfab3d.grid.op;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 
+import abfab3d.grid.GridShortIntervals;
 import abfab3d.util.MathUtil;
 
 
@@ -47,10 +48,17 @@ public class DistanceTransform {
         densityGrid.getGridBounds(bounds);
         double vs = densityGrid.getVoxelSize();
         AttributeGrid distGrid = null;
-        if(m_distanceGridTemplate != null)
-            distGrid = (AttributeGrid)m_distanceGridTemplate.createEmpty(nx, ny, nz, vs, vs);
-        else 
-            distGrid = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);
+        if(m_distanceGridTemplate != null) {
+            distGrid = (AttributeGrid) m_distanceGridTemplate.createEmpty(nx, ny, nz, vs, vs);
+        } else {
+            long dataLength = (long)nx * ny * nz;
+
+            if(dataLength >= Integer.MAX_VALUE) {
+                distGrid = new GridShortIntervals(nx, ny, nz, vs, vs);
+            } else {
+                distGrid = new ArrayAttributeGridShort(nx, ny, nz, vs, vs);
+            }
+        }
         distGrid.setGridBounds(bounds);
         return distGrid;
     }   
