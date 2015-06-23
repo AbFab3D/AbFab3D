@@ -42,7 +42,8 @@ public class EnumParameter extends Parameter {
 
             if (i < len - 1) vv += ",";
         }
-        System.out.printf("Setting initial enum values: %s\n", vv);
+
+        defaultValue = initialValue;
         setValue(initialValue);
     }
 
