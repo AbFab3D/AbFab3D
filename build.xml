@@ -110,6 +110,9 @@
         <compilejava package="abfab3d/grid"
             jars=""
         />
+        <compilejava package="abfab3d/opencl"
+                     jars=""
+                />
         <compilejava package="abfab3d/datasources"
             jars="jafama.jar vecmath.jar"
         />
