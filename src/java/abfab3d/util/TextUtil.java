@@ -123,6 +123,14 @@ public class TextUtil {
         int renderWidth = (int)(imageWidth - (insets.left + insets.right));
         int renderHeight = (int)(imageHeight - (insets.top + insets.bottom));
 
+        if (renderWidth < 0) {
+            throw new IllegalArgumentException("TextUtil width cannot be < 0");
+        }
+
+        if (renderHeight < 0) {
+            throw new IllegalArgumentException("TextHeight width cannot be < 0");
+        }
+
         //BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_BYTE_GRAY);
         BufferedImage image = new BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D)image.getGraphics();

@@ -181,7 +181,7 @@ public class Text2D extends BaseParameterizable {
 
     public void setWidth(double val) {
         if (val <= 0) {
-            throw new IllegalArgumentException("Width cannot be <= 0");
+            throw new IllegalArgumentException("Text2D width cannot be <= 0");
         }
 
         m_bitmap = null;
@@ -194,7 +194,7 @@ public class Text2D extends BaseParameterizable {
 
     public void setHeight(double val) {
         if (val <= 0) {
-            throw new IllegalArgumentException("Height cannot be <= 0");
+            throw new IllegalArgumentException("Text2D height cannot be <= 0");
         }
 
         m_bitmap = null;
