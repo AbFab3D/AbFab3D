@@ -20,9 +20,15 @@ import com.jogamp.opencl.CLResource;
  */
 public class OpenCLResource implements Resource {
     private CLResource resource;
+    private String name;
 
     public OpenCLResource(CLResource resource) {
         this.resource = resource;
+    }
+
+    public OpenCLResource(CLResource resource, String name) {
+        this.resource = resource;
+        this.name = name;
     }
 
     @Override
@@ -32,5 +38,11 @@ public class OpenCLResource implements Resource {
 
     public CLResource getResource() {
         return resource;
+    }
+
+    public String toString() {
+        if (name != null) {
+            return super.toString() + " name: " + name;
+        } else return super.toString();
     }
 }

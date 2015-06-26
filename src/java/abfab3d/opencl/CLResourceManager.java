@@ -26,6 +26,7 @@ import static abfab3d.util.Output.printf;
  * @author Alan Hudson
  */
 public class CLResourceManager implements Runnable {
+    private static final boolean DEBUG=false;
     /** How long before we clean out a resource */
     private static final int DEFAULT_TIMEOUT_MS = 60 * 1000;
     private int timeout;
@@ -58,6 +59,9 @@ public class CLResourceManager implements Runnable {
      * @param resource
      */
     public void add(Resource resource, long size) {
+        if (resource == null) throw new IllegalArgumentException("Cannot add a null resource\n");
+
+        if (DEBUG) printf("CLRM add: %s size: %d\n",resource,size);
         insureCapacity(size);
 
         cache.put(resource, new CacheEntry(resource,size));
@@ -70,6 +74,9 @@ public class CLResourceManager implements Runnable {
      * @return
      */
     public boolean isResident(Resource resource) {
+
+        if (resource == null) return false;
+
         while(freeing) {
             try { Thread.sleep(10); } catch(InterruptedException ie) {}
         }
@@ -87,6 +94,7 @@ public class CLResourceManager implements Runnable {
     public void release(Resource resource) {
         freeing = true;
 
+        if (DEBUG) printf("CLRM release: %s\n",resource);
         try {
             CacheEntry ce = cache.remove(resource);
             if (ce == null) {
@@ -104,6 +112,8 @@ public class CLResourceManager implements Runnable {
      * @param bytes
      */
     public void insureCapacity(long bytes) {
+        if (DEBUG) printf("CLRM Check capacity:  req: %d reqTot: %d  max: %d\n",bytes,(bytes+currBytes),maxBytes);
+
         if (bytes > maxBytes) {
             throw new IllegalArgumentException("Requested size: " + bytes + " exceeds capacity: " + maxBytes);
         }
@@ -130,13 +140,13 @@ public class CLResourceManager implements Runnable {
             while(freeMemory < bytes && itr.hasNext()) {
                 Map.Entry<Resource, CacheEntry> me = itr.next();
                 if (me == null) {
-                    printf("Nothing left to free\n");
+                    if (DEBUG) printf("CLRM Nothing left to free\n");
                     return;
                 }
 
                 CacheEntry ce = me.getValue();
                 if (time > ce.lastAccess + timeout) {
-                    printf("Freeing: %s\n", me.getKey());
+                    if (DEBUG) printf("CLRM Freeing1: %s\n", me.getKey());
                     ce.resource.release();
                     if (toremove == null) toremove = new ArrayList();
                     toremove.add(me.getKey());
@@ -152,7 +162,7 @@ public class CLResourceManager implements Runnable {
             }
 
             if (freeMemory < bytes) {
-                printf("Trying harder to remove memory\n");
+                if (DEBUG) printf("CLRM Trying harder to remove memory\n");
                 // TODO: Stop generating garbage
                 List<Map.Entry<Resource, CacheEntry>> sorted = new ArrayList(cache.entrySet());
                 Collections.sort(sorted, new Comparator<Map.Entry<Resource, CacheEntry>>() {
@@ -170,12 +180,12 @@ public class CLResourceManager implements Runnable {
                 while(freeMemory < bytes && itr.hasNext()) {
                     Map.Entry<Resource, CacheEntry> me = itr.next();
                     if (me == null) {
-                        printf("Nothing left to free\n");
+                        if (DEBUG) printf("CLRM Nothing left to free\n");
                         return;
                     }
 
                     CacheEntry ce = me.getValue();
-                    printf("Freeing: %s\n", me.getKey());
+                    if (DEBUG) printf("CLRM Freeing2: %s\n", me.getKey());
                     ce.resource.release();
                     if (toremove == null) toremove = new ArrayList();
                     toremove.add(me.getKey());
@@ -203,14 +213,15 @@ public class CLResourceManager implements Runnable {
 
         long time = System.currentTimeMillis();
 
-        printf("Clearing old entries\n");
+        if (DEBUG) printf("CLRM Clearing old entries.  size: %d\n",cache.size());
         freeing = true;
         try {
             while (itr.hasNext()) {
                 Map.Entry<Resource, CacheEntry> me = itr.next();
                 CacheEntry ce = me.getValue();
+                if (DEBUG) printf("CLRM checking: %s lastAccess: %d old: %b",ce.resource,ce.lastAccess,(time > ce.lastAccess + timeout));
                 if (time > ce.lastAccess + timeout) {
-                    printf("Removing old: %s\n", ce.resource);
+                    if (DEBUG) printf("CLRM Removing old: %s\n", ce.resource);
                     release(ce.resource);
                 } else {
                     break;
@@ -219,6 +230,10 @@ public class CLResourceManager implements Runnable {
         } finally {
             freeing = false;
         }
+    }
+
+    public void shutdown() {
+        if (scheduler != null) scheduler.shutdownNow();
     }
 
     static class CacheEntry implements Comparator {

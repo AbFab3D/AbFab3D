@@ -271,6 +271,7 @@
                 abfab3d/mesh/*
                 abfab3d/io/input/*
                 abfab3d/io/output/*
+                abfab3d/opencl/*
                 abfab3d/path/*
                 abfab3d/util/*
                 abfab3d/param/*
