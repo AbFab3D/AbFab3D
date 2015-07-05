@@ -221,8 +221,7 @@ public class ImageMap extends TransformableDataSource {
         if(imageSource instanceof String){
             
             try {
-                BufferedImage image = ImageIO.read(new File((String)imageSource));
-                m_imageData = new ImageGray16(ImageIO.read(new File((String)imageSource)));            
+                m_imageData = new ImageGray16(ImageIO.read(new File((String)imageSource)));
             } catch(IOException e) {
                 // empty 1x1 image 
                 m_imageData = new ImageGray16();
@@ -241,6 +240,19 @@ public class ImageMap extends TransformableDataSource {
 
             m_imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
             
+        }
+
+        if (m_imageData == null) {
+            // Cast to String for now, not sure how to really handle this
+            String file = imageSource.toString();
+            printf("Converted to string: " + file);
+            try {
+                m_imageData = new ImageGray16(ImageIO.read(new File(file)));
+            } catch(IOException e) {
+                // empty 1x1 image
+                m_imageData = new ImageGray16();
+                throw new IllegalArgumentException("Unhandled imageSource: " + imageSource);
+            }
         }
 
         Vector3d center = (Vector3d)mp_center.getValue();
