@@ -17,6 +17,8 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
+import java.util.UUID;
+
 // Internal Imports
 
 /**
@@ -39,7 +41,7 @@ public class TestCLResourceManager extends TestCase {
         TestResource tr2 = new TestResource("tr2",1);
         TestResource tr3 = new TestResource("tr3",1);
 
-        CLResourceManager rm = new CLResourceManager(1);
+        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().toString(),1);
 
         rm.add(tr1,tr1.getSize());
         rm.add(tr2,tr2.getSize());
@@ -51,7 +53,7 @@ public class TestCLResourceManager extends TestCase {
     }
 
     public void testAging() {
-        CLResourceManager rm = new CLResourceManager(1, 10);
+        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().toString(),1, 10);
 
         TestResource tr1 = new TestResource("tr1",1);
         rm.add(tr1,tr1.getSize());
@@ -66,7 +68,7 @@ public class TestCLResourceManager extends TestCase {
         TestResource tr2 = new TestResource("tr2",1);
         TestResource tr3 = new TestResource("tr3",1);
 
-        CLResourceManager rm = new CLResourceManager(3);
+        CLResourceManager rm = CLResourceManager.getInstance(UUID.randomUUID().toString(),3);
 
         rm.add(tr1,tr1.getSize());
         rm.add(tr2,tr2.getSize());

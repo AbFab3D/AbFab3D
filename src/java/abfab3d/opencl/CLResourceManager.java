@@ -12,10 +12,7 @@
 package abfab3d.opencl;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static abfab3d.util.Output.printf;
 
@@ -38,11 +35,14 @@ public class CLResourceManager implements Runnable {
     private volatile boolean freeing;
     private ScheduledExecutorService scheduler;
 
-    public CLResourceManager(long capacity) {
+    /** Single managers per context */
+    private static ConcurrentHashMap<String,CLResourceManager> managers = new ConcurrentHashMap<String, CLResourceManager>();
+
+    private CLResourceManager(long capacity) {
         this(capacity,DEFAULT_TIMEOUT_MS);
     }
 
-    public CLResourceManager(long capacity, int timeout) {
+    private CLResourceManager(long capacity, int timeout) {
         this.maxBytes = capacity;
         this.timeout = timeout;
         freeing = false;
@@ -54,9 +54,38 @@ public class CLResourceManager implements Runnable {
 
     }
 
+    public static CLResourceManager getInstance(String context, long capacity) {
+        CLResourceManager rm = managers.get(context);
+
+        if (rm != null) {
+            printf("CLResourceManager:  Reusing for context: %s\n",context);
+            return rm;
+        }
+
+        rm = new CLResourceManager(capacity);
+        managers.put(context,rm);
+        printf("CLResourceManager: Creating for context: %s\n",context);
+
+        return rm;
+    }
+
+    public static CLResourceManager getInstance(String context, long capacity, int timeout) {
+        CLResourceManager rm = managers.get(context);
+
+        if (rm != null) {
+            printf("CLResourceManager:  Reusing for context: %s\n",context);
+            return rm;
+        }
+
+        rm = new CLResourceManager(capacity,timeout);
+        managers.put(context,rm);
+        printf("CLResourceManager: Creating for context: %s\n",context);
+
+        return rm;
+    }
+
     /**
      * Add a resource for management.  This will remove other buffers if necessary.
-     * @param resource
      */
     public void add(Resource resource, long size) {
         if (resource == null) throw new IllegalArgumentException("Cannot add a null resource\n");
