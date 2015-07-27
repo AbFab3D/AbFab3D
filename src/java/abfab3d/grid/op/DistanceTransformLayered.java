@@ -335,7 +335,7 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
             for(int ix = 0; ix < nx; ix++){
 
                 double x = m_xmin + ix*vs;
-                for(int iz = 0; iz < nz; iz++){                   
+                for(int iz = 0; iz < nz; iz++){                  
 
                     double z = m_zmin + iz*vs;                    
 
@@ -343,6 +343,7 @@ public class DistanceTransformLayered extends DistanceTransform implements Opera
 
                     if(v0 >= 0) distanceGrid.setAttribute(ix,iy,iz,distIn);
                     else        distanceGrid.setAttribute(ix,iy,iz,distOut);
+
                     if(ix < nx1){
                         int vx = (int)grid.getAttribute(ix+1,iy,iz)-sv;
                         if(v0 * vx <= 0 && v0 != vx)

@@ -75,6 +75,7 @@ public class BoundingBoxCalculator implements TriangleCollector {
             bnds[i] = bounds[i];
         return bnds;
     }
+
     public double [] getBounds(){
         return getBounds(null);
     }

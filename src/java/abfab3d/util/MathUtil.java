@@ -1402,4 +1402,20 @@ public class MathUtil {
         return getAxisAngle(m);
         
     }
+
+    /**
+     * Round up a numerator to be divisible by denominator.  
+     *
+     * @param numerator 
+     * @param denominator 
+     * @return
+     */
+    public static int roundUp(int numerator, int denom) {
+
+        if (denom == 0) return numerator;
+
+        return denom*((numerator + denom - 1)/denom);
+
+    }
+
 }

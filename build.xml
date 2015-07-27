@@ -111,7 +111,7 @@
             jars=""
         />
         <compilejava package="abfab3d/opencl"
-                     jars="jocl.jar"
+                     jars="jocl.jar commons-io-2.4.jar" 
                 />
         <compilejava package="abfab3d/datasources"
             jars="jafama.jar vecmath.jar"

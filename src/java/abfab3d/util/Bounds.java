@@ -135,6 +135,10 @@ public class Bounds implements Cloneable {
         return (int)(s + 0.5);
     }
 
+    public double [] getArray() {
+        return new double[]{xmin,xmax, ymin, ymax, zmin, zmax};
+    }
+
     public void set(Bounds bounds) {
         this.xmin = bounds.xmin;
         this.xmax = bounds.xmax;

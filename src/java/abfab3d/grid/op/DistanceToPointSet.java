@@ -423,7 +423,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
 
     /**
        process single slice for the first layer 
-       points are assumed to be pre-sorted to be the slice 
+       points are assumed to be pre-sorted to be in the slice 
        @param inds holds indices of points in the original array 
        it is used by MT version when ecah thread processes separate layers
      */
@@ -645,7 +645,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
                         //if(oldLayer.get(ix,iy,iz) == 1) continue; // point in old layer
                         int dist = distance(pnt.x,pnt.y,pnt.z,ix,iy,iz);
                         //if(dist > maxLayerDistSubvoxels) continue;                            
-                        if(z == m_nz/2 && dist == -1 && m_debugCount-- > 0)printf("(%2d %2d %2d) -> (%2d %2d %2d)-(%5.2f %5.2f %5.2f) %d\n", x,y,z,ix,iy,iz, pnt.x, pnt.y, pnt.z, dist);
+                        //if(z == m_nz/2 && dist == -1 && m_debugCount-- > 0)printf("(%2d %2d %2d) -> (%2d %2d %2d)-(%5.2f %5.2f %5.2f) %d\n", x,y,z,ix,iy,iz, pnt.x, pnt.y, pnt.z, dist);
                         distCalcCount++;
                         int d = L2S(m_grid.getAttribute(ix, iy, iz));
                         if(d >=0){
@@ -848,7 +848,7 @@ public class DistanceToPointSet implements Operation, AttributeOperation {
     /**
        convert point world coordinates into grid coordinates (in voxels)
      */
-    void getGridCoord(Tuple3d pnt){
+    final void getGridCoord(Tuple3d pnt){
 
         pnt.x = m_gs * pnt.x + m_gtx;
         pnt.y = m_gs * pnt.y + m_gty;

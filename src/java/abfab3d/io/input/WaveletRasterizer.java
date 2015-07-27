@@ -21,6 +21,7 @@ import javax.vecmath.Vector3d;
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.util.MathUtil;
+import abfab3d.util.Bounds;
 
 
 import static abfab3d.util.Output.printf; 
@@ -72,6 +73,12 @@ public class WaveletRasterizer implements TriangleCollector {
     // count of calculated dtriangles (for statistics) 
     int triCount = 0;
 
+    /**
+       does rasterization for gird of specified size and bounds 
+     */
+    public WaveletRasterizer(Bounds bounds, int gridX, int gridY, int gridZ){
+        this(bounds.getArray(), gridX, gridY, gridZ);
+    }
     /**
        does rasterization for gird of specified size and bounds 
      */
