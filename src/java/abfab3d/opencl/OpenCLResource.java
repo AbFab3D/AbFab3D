@@ -34,6 +34,9 @@ public class OpenCLResource implements Resource {
     @Override
     public void release() {
         resource.release();
+
+        // Release reference to hopefull cause cleanup of DirectBuffer
+        resource = null;
     }
 
     public CLResource getResource() {

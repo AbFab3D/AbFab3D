@@ -50,6 +50,7 @@ public class CLResourceManager implements Runnable {
         // My expectation is the number of threads will be low(ie # GPUs) so a ConcurrentLinkedHashMap is not needed.
         cache = Collections.synchronizedMap(new LinkedHashMap<Resource, CacheEntry>());
         scheduler = Executors.newScheduledThreadPool(1);
+
         scheduler.scheduleAtFixedRate(this, timeout, timeout, TimeUnit.MILLISECONDS);
 
     }
@@ -58,13 +59,11 @@ public class CLResourceManager implements Runnable {
         CLResourceManager rm = managers.get(context);
 
         if (rm != null) {
-            printf("CLResourceManager:  Reusing for context: %s\n",context);
             return rm;
         }
 
         rm = new CLResourceManager(capacity);
         managers.put(context,rm);
-        printf("CLResourceManager: Creating for context: %s\n",context);
 
         return rm;
     }
@@ -73,13 +72,11 @@ public class CLResourceManager implements Runnable {
         CLResourceManager rm = managers.get(context);
 
         if (rm != null) {
-            printf("CLResourceManager:  Reusing for context: %s\n",context);
             return rm;
         }
 
         rm = new CLResourceManager(capacity,timeout);
         managers.put(context,rm);
-        printf("CLResourceManager: Creating for context: %s\n",context);
 
         return rm;
     }
@@ -90,7 +87,7 @@ public class CLResourceManager implements Runnable {
     public void add(Resource resource, long size) {
         if (resource == null) throw new IllegalArgumentException("Cannot add a null resource\n");
 
-        if (DEBUG) printf("CLRM add: %s size: %d\n",resource,size);
+        if (DEBUG) printf("CLRM add: %s size: %d  entries: %d\n",resource,size,cache.size());
         insureCapacity(size);
 
         cache.put(resource, new CacheEntry(resource,size));
@@ -131,6 +128,7 @@ public class CLResourceManager implements Runnable {
             }
             currBytes -= ce.size;
             resource.release();
+            ce.resource = null;
         } finally {
             freeing = false;
         }
@@ -175,8 +173,9 @@ public class CLResourceManager implements Runnable {
 
                 CacheEntry ce = me.getValue();
                 if (time > ce.lastAccess + timeout) {
-                    if (DEBUG) printf("CLRM Freeing1: %s\n", me.getKey());
+                    if (DEBUG) printf("CLRM Freeing1: %s resc: %s\n", me.getKey(),ce.resource);
                     ce.resource.release();
+                    ce.resource = null;
                     if (toremove == null) toremove = new ArrayList();
                     toremove.add(me.getKey());
                     currBytes -= ce.size;
@@ -216,6 +215,7 @@ public class CLResourceManager implements Runnable {
                     CacheEntry ce = me.getValue();
                     if (DEBUG) printf("CLRM Freeing2: %s\n", me.getKey());
                     ce.resource.release();
+                    ce.resource = null;
                     if (toremove == null) toremove = new ArrayList();
                     toremove.add(me.getKey());
                     currBytes -= ce.size;
