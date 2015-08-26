@@ -16,6 +16,7 @@ package abfab3d.util;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Random;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
@@ -29,6 +30,7 @@ import abfab3d.util.TrianglePrinter;
 import abfab3d.io.output.STLWriter;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Units.MM;
 import static java.lang.Math.sin;
@@ -119,6 +121,97 @@ public class TestPointToTriangleDistance extends TestCase {
         assertTrue("positive distance squared", d >= 0.);
         
         printf("distance: %21.17e\n", d);
+    }
+
+    public void makeTest1(){
+
+        
+        double pointInTriangle[] = new double[3];
+        double 
+            v0x = -1,
+            v0y = -1,
+            v0z = 0,
+            v1x = 1,
+            v1y = -1,
+            v1z = 0,
+            v2x = 0,
+            v2y = 2,
+            v2z = 0;
+        double 
+            pntx = 0.1,
+            pnty = 0,
+            pntz = 1;
+
+
+        for(int i = 0; i < 20; i++){
+            pntx = 0.5;
+            pnty = 4-i*0.5;
+
+            double dist2 = PointToTriangleDistance.getSquared(pntx,pnty, pntz, 
+                                                              v0x, v0y, v0z, 
+                                                              v1x, v1y, v1z, 
+                                                         v2x, v2y, v2z, 
+                                                              pointInTriangle);
+            printf("pnt:(%7.2f,%7.2f,%7.2f) dist2: %7.2f, pointInTriangle: (%7.2f,%7.2f,%7.2f)\n", pntx, pnty, pntz, dist2, pointInTriangle[0],pointInTriangle[1],pointInTriangle[2]);
+        }
+
+    }
+    public void makeTest2(){
+
+        
+        double pointInTriangle[] = new double[3];
+        double 
+            v0x = -0.1,
+            v0y = -0.1,
+            v0z = 0,
+            v1x = 0.1,
+            v1y = -0.1,
+            v1z = 0,
+            v2x = 0,
+            v2y = 0.2,
+            v2z = 0;
+        double 
+            pntx = 0.1,
+            pnty = 0,
+            pntz = 1;
+
+        int N = 1000000;
+        Random rnd = new Random(121);
+
+        long t0 = time();
+        double d2max = 0;
+
+        for(int i = 0; i < N; i++){
+
+            pntx = (2*rnd.nextDouble()-1);
+            pnty = (2*rnd.nextDouble()-1);
+            pntz = (2*rnd.nextDouble()-1);
+            
+            double dist2 = PointToTriangleDistance.getSquared(pntx,pnty, pntz, 
+                                                              v0x, v0y, v0z, 
+                                                              v1x, v1y, v1z, 
+                                                              v2x, v2y, v2z, 
+                                                              pointInTriangle);
+            double dx = pointInTriangle[0]-pntx;
+            double dy = pointInTriangle[1]-pnty;
+            double dz = pointInTriangle[2]-pntz;
+            
+            double d2 = abs(dx*dx + dy*dy + dz*dz - dist2);
+            if(d2 > d2max) d2max = d2;
+        }
+        printf("speed dist(point,tri) calc / ms: %d\n", N/(time() - t0));
+        printf("d2max: %7.1e\n", d2max);
+        
+    }
+
+    public static void main(String arg[]){
+        TestPointToTriangleDistance runner = new TestPointToTriangleDistance();
+        //runner.makeTest1();
+        runner.makeTest2();
+        runner.makeTest2();
+        runner.makeTest2();
+        runner.makeTest2();
+        runner.makeTest2();
     }
 
     

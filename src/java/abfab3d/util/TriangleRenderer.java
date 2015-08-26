@@ -1,5 +1,5 @@
 /*****************************************************************************
- *                        Shapeways, Inc Copyright (c) 2012
+ *                        Shapeways, Inc Copyright (c) 2012-2015
  *                               Java Source
  *
  * This source is licensed under the GNU LGPL v2.1
@@ -17,12 +17,17 @@ import static abfab3d.util.Output.fmt;
 import static abfab3d.util.Output.printf;
 
 /**
-   rasterises filled triangle with using custom interface TriangleRenderer.PixelRenderer
+   rasterises filled triangle using custom interface TriangleRenderer.PixelRenderer
    
    triangle with floating point coordinates is rendered as pixels with integer coordinates which are inside of that triangle 
    
-   the pixel with integer cordinate (x, y) is a unit square centered at (x+0.5, y+0.5) 
-
+   the pixel with integer coordinate (x, y) is a unit square centered at (x+0.5, y+0.5) 
+   
+   The renderer is not thread safe. 
+   Different threads have to use separate instances of TriangleRenderer
+   
+	@author Vladimir Bulatov
+	
  */
 public class TriangleRenderer {
         
