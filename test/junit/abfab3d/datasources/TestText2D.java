@@ -108,7 +108,7 @@ public class TestText2D extends TestCase {
 
         Text2D t = new Text2D(text);
         t.set("fontSize", 15);
-        t.set("inset", 0.1);
+        t.set("inset", 0.1*MM);
 
         t.initialize();
         BufferedImage image = t.getImage();
@@ -151,18 +151,18 @@ public class TestText2D extends TestCase {
         t.set("preserveAspect", true);
         //t.set("preserveAspect", false);
 
-        t.set("hAlign", "left");
-        t.set("vAlign", "top");
+        t.set("horizAlign", "left");
+        t.set("vertAlign", "top");
         img = t.getImage();
         ImageIO.write(img, "png", new File("/tmp/text_left_top.png"));
 
-        t.set("hAlign", "center");
-        t.set("vAlign", "center");
+        t.set("horizAlign", "center");
+        t.set("vertAlign", "center");
         img = t.getImage();
         ImageIO.write(img, "png", new File("/tmp/text_center_center.png"));
 
-        t.set("hAlign", "right");
-        t.set("vAlign", "bottom");
+        t.set("horizAlign", "right");
+        t.set("vertAlign", "bottom");
         img = t.getImage();
         ImageIO.write(img, "png", new File("/tmp/text_right_bottom.png"));
 

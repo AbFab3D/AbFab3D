@@ -125,20 +125,21 @@
             <jvmarg line="${jvmrunargs}"/>
             <arg value="-input" />
 <!--            <arg value="/tmp/voxelsize/original-3000075_v0.stl" /> -->
-            <arg value="/tmp/voxelsize/scan_selfie.stl" />
+            <arg value="box.svx" />
             <arg value="-output" />
-            <arg value="scan_selfie.svx" />
+            <arg value="box.x3db" />
 <!--
             <arg value="-input" />
             <arg value="cf6_1024.svx" />
             <arg value="-output" />
             <arg value="v6_1024_ef0.85_sw_0.4.x3db" />
 -->
+<!--
             <arg value="-meshErrorFactor" />
             <arg value="0.1" />
             <arg value="-meshSmoothingWidth" />
             <arg value="0.5" />
-
+-->
             <arg value="-maxTriangles" />
             <arg value="50000000" />
 
