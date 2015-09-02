@@ -16,6 +16,7 @@ import abfab3d.util.TriangleCollector;
 
 /**
  * Calculates the surface area of a model.  And a for free bonus you get the Volume!
+ * It is NOT thread safe. 
  *
  * @author Vladimir Bulatov
  */
@@ -42,7 +43,9 @@ public class AreaCalculator implements TriangleCollector {
         v2 = new Vector3d(),
         normal = new Vector3d();
         
-
+    /**
+       add triangle to area calculation 
+     */
     public boolean addTri(Vector3d p0,Vector3d p1,Vector3d p2){
 
         v0.set(p0);
@@ -62,7 +65,7 @@ public class AreaCalculator implements TriangleCollector {
     }
 
     /**
-     * Reset all variables so this class can be reused;
+     * Reset all variables so this class can be re-used;
      */
     public void reset() {
         area = 0;

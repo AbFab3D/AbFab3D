@@ -1410,11 +1410,20 @@ public class MathUtil {
      * @param denominator 
      * @return
      */
-    public static int roundUp(int numerator, int denom) {
+    public final static int roundUp(int numerator, int denom) {
 
         if (denom == 0) return numerator;
 
         return denom*((numerator + denom - 1)/denom);
+
+    }
+    
+    /**
+       return rounded value as int
+     */
+    public final static int iround(double value) {
+        
+        return (int)Math.round(value);
 
     }
 

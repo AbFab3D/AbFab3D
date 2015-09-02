@@ -19,9 +19,9 @@ import static abfab3d.util.Output.printf;
 /**
    rasterises filled triangle using custom interface TriangleRenderer.PixelRenderer
    
-   triangle with floating point coordinates is rendered as pixels with integer coordinates which are inside of that triangle 
+   triangle with floating point coordinates is rendered as pixels whose centers are are inside of the triangle 
    
-   the pixel with integer coordinate (x, y) is a unit square centered at (x+0.5, y+0.5) 
+   the pixel with integer coordinates (x, y) has center at (x+0.5, y+0.5) 
    
    The renderer is not thread safe. 
    Different threads have to use separate instances of TriangleRenderer

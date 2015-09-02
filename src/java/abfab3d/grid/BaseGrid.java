@@ -507,7 +507,7 @@ public abstract class BaseGrid implements Grid, Cloneable, Serializable {
     }
 
     /**
-     * Get the world coordinates for a grid coordinate.
+     * Get the world coordinates of center of grid voxel.
      *
      * @param x      The x value in grid coords
      * @param y      The y value in grid coords

@@ -107,8 +107,8 @@ public class PointCloud implements TriangleProducer, PointSet  {
         m_size++;
     }
 
-    public boolean getTriangles(TriangleCollector collector){
-        
+    public boolean getTriangles(TriangleCollector collector){ 
+       
         int count = m_size;
         Octa shape = new Octa(pointSize/2);
         
