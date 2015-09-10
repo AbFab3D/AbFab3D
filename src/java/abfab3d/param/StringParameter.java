@@ -22,15 +22,12 @@ public class StringParameter extends Parameter {
 
     public StringParameter(String name, String desc, String initialValue) {
         super(name, desc);
+        defaultValue = initialValue;
         setValue(initialValue);
     }
 
     public StringParameter(StringParameter def, String initialValue) {
-
-        super(def.getName(), def.getDesc());
-
-        defaultValue = initialValue;
-        setValue(initialValue);
+    	this(def.getName(), def.getDesc(), initialValue);
     }
 
     @Override

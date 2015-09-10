@@ -21,8 +21,8 @@ import javax.vecmath.Vector3d;
  * @author Alan Hudson
  */
 public class LocationParameter extends Parameter implements Cloneable {
-    private static final Vector3d DEFAULT_POINT = new Vector3d(0,0,0);
-    private static final Vector3d DEFAULT_NORMAL = new Vector3d(0,0,0);
+    private static final Vector3d DEFAULT_POINT = null;
+    private static final Vector3d DEFAULT_NORMAL = null;
     
     private static final Vector3d DEFAULT_MIN_POINT = new Vector3d(-10000d, -10000d, -10000d);
     private static final Vector3d DEFAULT_MAX_POINT = new Vector3d(10000d, 10000d, 10000d);
@@ -53,8 +53,10 @@ public class LocationParameter extends Parameter implements Cloneable {
         setMinPoint(minPoint);
         setMaxPoint(maxPoint);
 
-        setValue(new Vector3d[] {(Vector3d)point.clone(),(Vector3d)normal.clone()});
-        defaultValue = value;
+        if (point != null && normal != null) {
+        	setValue(new Vector3d[] {(Vector3d)point.clone(),(Vector3d)normal.clone()});
+        	defaultValue = value;
+        }
     }
     
     /**
@@ -91,6 +93,17 @@ public class LocationParameter extends Parameter implements Cloneable {
     }
     
     @Override
+    public void setValue(Object value) {
+        validate(value);
+
+        this.value = value;
+        
+    	if (defaultValue == null) {
+    		defaultValue = value;
+    	}
+    }
+    
+    @Override
     public Vector3d[] getValue() {
         return (Vector3d[]) value;
     }
@@ -102,27 +115,56 @@ public class LocationParameter extends Parameter implements Cloneable {
     public ParameterType getType() {
         return ParameterType.LOCATION;
     }
-
+    
     public void setPoint(Vector3d val) {
-        Vector3d point = ((Vector3d[])value)[0];
-        validatePoint(val);
-        point.x = val.x;
-        point.y = val.y;
-        point.z = val.z;
+    	validatePoint(val);
+    	
+    	if (value == null) {
+    		value = new Vector3d[2];
+    		((Vector3d[])value)[0] = (Vector3d)val.clone();
+    	} else {
+    		Vector3d point = ((Vector3d[])value)[0];
+    		if (point == null) {
+    			point = new Vector3d();
+    		}
+            point.x = val.x;
+            point.y = val.y;
+            point.z = val.z;
+    	}
+    	
+    	if (defaultValue == null) {
+    		defaultValue = value;
+    	}
     }
 
     public void setNormal(Vector3d val) {
-        Vector3d normal = ((Vector3d[])value)[1];
-        normal.x = val.x;
-        normal.y = val.y;
-        normal.z = val.z;
+    	if (value == null) {
+    		value = new Vector3d[2];
+    		((Vector3d[])value)[1] = (Vector3d)val.clone();
+    	} else {
+            Vector3d normal = ((Vector3d[])value)[1];
+    		if (normal == null) {
+    			normal = new Vector3d();
+    		}
+            normal.x = val.x;
+            normal.y = val.y;
+            normal.z = val.z;
+    	}
+    	
+    	if (defaultValue == null) {
+    		defaultValue = value;
+    	}
     }
 
     public Vector3d getPoint() {
+    	if (value == null) return null;
+    	
         return ((Vector3d[])value)[0];
     }
 
     public Vector3d getNormal() {
+    	if (value == null) return null;
+    	
         return ((Vector3d[])value)[1];
     }
 
