@@ -104,6 +104,8 @@ public class DistanceToTriangleSet implements TriangleCollector {
     // grid to store current shortest distances 
     AttributeGrid m_distanceGrid; 
 
+    int m_triCount = 0; // count of processed triangles 
+
     public DistanceToTriangleSet(AttributeGrid indexGrid, int subvoxelResolution){
         m_indexGrid = indexGrid;
         m_subvoxelResolution = subvoxelResolution;
@@ -118,6 +120,10 @@ public class DistanceToTriangleSet implements TriangleCollector {
      */
     public int getPointCount(){
         return m_points.getPointCount();
+    }
+
+    public int getTriCount(){
+        return m_triCount;
     }
     
     /**
@@ -136,6 +142,17 @@ public class DistanceToTriangleSet implements TriangleCollector {
             coord[i+2] = toWorldZ(coord[i+2]);
         }
         return coord;
+    }
+
+    /**
+       
+     */
+    public void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
+        //
+        // coordinates are in grid units 
+        //
+        m_points.getPoints(pntx, pnty, pntz);
+        
     }
 
 
@@ -205,6 +222,7 @@ public class DistanceToTriangleSet implements TriangleCollector {
        
      */
     public boolean addTri(Vector3d p0, Vector3d p1, Vector3d p2){
+        m_triCount++;
         v0.set(p0);
         v1.set(p1);
         v2.set(p2);

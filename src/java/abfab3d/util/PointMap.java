@@ -200,6 +200,52 @@ public class PointMap {
         
     }
 
+    /**
+       return coordinates in 3 separate arrays 
+     */
+    public void getPoints(double pntx[],double pnty[],double pntz[]) {
+
+        if(pntx.length < count){
+            throw new RuntimeException("array size is too small");
+        }
+
+        for (int j = 0; j < table.length; j++) {
+            int e = table[j];
+
+            for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                Entry.getPosition(entries, next, sd);
+                int id = Entry.getID(entries, next);
+
+                pntx[id] = sd[0];
+                pnty[id] = sd[1];
+                pntz[id] = sd[2];
+            }
+        }        
+    }
+
+    /**
+       return coordinates in 3 separate arrays 
+     */
+    public void getPoints(float pntx[], float pnty[], float pntz[]) {
+
+        if(pntx.length < count){
+            throw new RuntimeException("array size is too small");
+        }
+
+        for (int j = 0; j < table.length; j++) {
+            int e = table[j];
+
+            for(int next = e; next != -1; next = Entry.getNext(entries, next)) {
+                Entry.getPosition(entries, next, sd);
+                int id = Entry.getID(entries, next);
+
+                pntx[id] = (float)sd[0];
+                pnty[id] = (float)sd[1];
+                pntz[id] = (float)sd[2];
+            }
+        }        
+    }
+
     public int getPointCount(){
         return count;
     }
