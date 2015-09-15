@@ -78,6 +78,10 @@ public class TestDistanceToPointSetIndexed extends TestCase {
         return new TestSuite(TestDistanceToTriangleSet.class);
     }
 
+    void testNothing()throws Exception{
+        // to make tester happy 
+    }
+
     void makeTestPoint()throws Exception{
         
         if(DEBUG) printf("makeTestPoint()\n");

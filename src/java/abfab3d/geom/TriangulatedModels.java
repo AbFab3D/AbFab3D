@@ -460,6 +460,52 @@ public class TriangulatedModels {
         
     } // class Parallelepiped
 
+    public static class Box   implements TriangleProducer {
+
+        double x0, y0, z0;
+        double x1, y1, z1;
+
+        // box with given center and size 
+        public Box(double xc, double yc, double zc, double sx, double sy, double sz){
+
+            this.x0 = xc - sx/2;
+            this.x1 = xc + sx/2;
+            this.y0 = yc - sy/2;
+            this.y1 = yc + sy/2;
+            this.z0 = zc - sz/2;
+            this.z1 = zc + sz/2;
+
+        }
+        
+        public boolean getTriangles(TriangleCollector tc){
+            Vector3d 
+                v000 = new Vector3d(x0,y0,z0),
+                v100 = new Vector3d(x1,y0,z0),
+                v010 = new Vector3d(x0,y1,z0),
+                v110 = new Vector3d(x1,y1,z0),
+                v001 = new Vector3d(x0,y0,z1),
+                v101 = new Vector3d(x1,y0,z1),
+                v011 = new Vector3d(x0,y1,z1),
+                v111 = new Vector3d(x1,y1,z1);
+                
+            tc.addTri(v001,v101,v111);
+            tc.addTri(v001,v111,v011);
+            tc.addTri(v101,v100,v110);
+            tc.addTri(v101,v110,v111);
+            tc.addTri(v100,v000,v010);
+            tc.addTri(v100,v010,v110);
+            tc.addTri(v000,v001,v011);
+            tc.addTri(v000,v011,v010);
+            tc.addTri(v011,v111,v110);
+            tc.addTri(v011,v110,v010);
+            tc.addTri(v000,v100,v101);
+            tc.addTri(v000,v101,v001);
+
+            return true;
+        }
+        
+    } // class Box
+
 
     /**
        TetrahedronInParallelepiped 

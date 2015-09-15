@@ -42,6 +42,7 @@ import abfab3d.geom.Octahedron;
 import static java.lang.Math.round;
 import static java.lang.Math.ceil;
 import static java.lang.Math.abs;
+import static java.lang.Math.min;
 import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -56,15 +57,20 @@ import static abfab3d.util.MathUtil.L2S;
 public class TestDistanceToTriangleSet extends TestCase {
 
     private static final boolean DEBUG = true;
+    static final double INF = DistanceToPointSetIndexed.INF;
 
     int subvoxelResolution = 100;
-
+    
 
     /**
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
         return new TestSuite(TestDistanceToTriangleSet.class);
+    }
+
+    void testNothing()throws Exception{
+        // to make tester happy 
     }
 
 
@@ -143,12 +149,14 @@ public class TestDistanceToTriangleSet extends TestCase {
     void makeTestSphere()throws Exception{
         
         if(DEBUG) printf("makeTestSphere()\n");
-        double xmin = 0*MM, xmax = 10*MM, ymin = 0*MM, ymax = 10*MM, zmin = 0*MM, zmax = 10*MM;
+        double w = 5*MM;
+        double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
         //double vs = 0.02*MM;
         //double vs = 1*MM;
-        double vs = 0.1*MM;
+        double vs = 0.2*MM;
+        double maxErrorVoxels = 0.05;
         int subvoxelResolution = 100;
-        double firstLayerThickness = 1.7;
+        double firstLayerThickness = 1.5; // 0.5
         printf("firstLayerThickness: %5.2f\n",firstLayerThickness);
         ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(new Bounds(xmin,xmax,ymin,ymax,zmin,zmax), vs, vs);
         printf("grid: [%d x %d x %d]\n",indexGrid.getWidth(),indexGrid.getHeight(), indexGrid.getDepth());
@@ -157,12 +165,12 @@ public class TestDistanceToTriangleSet extends TestCase {
 
         dts.initialize();
         //double cx = 4.75*MM, cy = 4.75*MM, cz = 4.75*MM, radius = 3*MM;
-        double cx = 4.5*MM, cy = 4.5*MM, cz = 4.5*MM, radius = 3*MM;
+        double cx = 0.5*vs, cy = 0.5*vs, cz = 0.5*vs, radius = 3*MM;
         
         //  8  0.5M triangles 
         //  9 -> 2M triangles, 
         // 10 -> 8M triangles
-        TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(radius, new Vector3d(cx, cy, cz ), 8); 
+        TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(radius, new Vector3d(cx, cy, cz ), 4); 
         long t0 = time();
         sphere.getTriangles(dts);
         printf("first layer time: %d ms\n",(time()-t0));
@@ -184,38 +192,33 @@ public class TestDistanceToTriangleSet extends TestCase {
 
         printf("dts.getPoints(pnts) time: %d ms\n",(time()-t0));
         t0 = time();
-        PointMap usedPoints = getUsedPoints( indexGrid, pnts, vs/subvoxelResolution);
-        double upnts[] = new double[usedPoints.getPointCount()*3];
-        usedPoints.getPoints(upnts);
+        int ucount = getUsedPoints( indexGrid, pntx, pnty, pntz);
         printf("getUsedPoints time: %d ms\n",(time()-t0));
-        printf("usedPointsCount: %d\n", usedPoints.getPointCount());
+        printf("usedPointsCount: %d\n", ucount);
                 
         STLWriter stl = new STLWriter("/tmp/testDTSSphere.stl");
         
         sphere.getTriangles(stl);
-        
-        if(false){
-            Octahedron octa = new Octahedron(0.2*vs);
-            double vs2 = vs/2; // half voxel 
-            for(int i = 0; i < upnts.length; i+= 3){
-                //printf("(%7.2f, %7.2f, %7.2f) mm \n", upnts[i]/MM, upnts[i+1]/MM, upnts[i+2]/MM);            
-                octa.setCenter(upnts[i],upnts[i+1],upnts[i+2]);
-                octa.getTriangles(stl);            
-            }
-        }
-        
+                
         //printDistances(pntx,pnty,pntz,indexGrid);
 
-        // distribute distances to the whole grid 
+        //distribute distances to the whole grid 
         //DistanceToPointSetIndexed.DT3(pntx, pnty, pntz, indexGrid);
         DistanceToPointSetIndexed.DT3_multiPass(pntx, pnty, pntz, indexGrid);
-        
+
+        convertPointsToWorldUnits(indexGrid, pntx, pnty, pntz);
+
+        calculateErrorsHistogram(indexGrid, pntx, pnty, pntz, 100, 0.1);
+        if(true)writePoints(indexGrid, pntx,pnty,pntz, vs*0.2, stl);        
+        //if(false)writeDistanceCenters(indexGrid, stl, vs*0.2);
+        //if(true)writeFrame(indexGrid, 0.5*vs, stl);
+        //if(true)writeErrors(indexGrid, pntx, pnty, pntz, maxErrorVoxels,  0.5*vs, stl);
+
         //writeDistanceCenters(indexGrid, stl, vs*0.2);
 
         //printDistances(pntx,pnty,pntz,indexGrid);
 
-        //compareSphereDistances(pntx,pnty,pntz,indexGrid, cx, cy, cz, radius);
-        calculateSphereError(pntx,pnty,pntz,indexGrid, cx, cy, cz, radius);
+        compareSphereDistances(indexGrid, pntx,pnty,pntz,cx, cy, cz, radius, 0.1);
 
         stl.close();
     }
@@ -267,6 +270,37 @@ public class TestDistanceToTriangleSet extends TestCase {
         
     }
 
+    static int getUsedPoints(AttributeGrid indexGrid, double px[], double py[], double pz[]){
+
+        int used[] = new int[px.length];
+
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+
+        for(int y = 0; y < ny; y++){
+            for(int x = 0; x < nx; x++){
+                for(int z = 0; z < nz; z++){
+                    int ind = (int)indexGrid.getAttribute(x,y,z);
+                    if(ind != 0) {
+                        used[ind] = 1;
+                    }
+                }
+            }
+        }
+        int count = 0;
+        for(int i = 0; i < used.length; i++){
+            if(used[i] != 0) {
+                count++;
+            } else {
+                px[i] = INF;
+                py[i] = INF;
+                pz[i] = INF;
+            }
+        }
+        return count;        
+    }
+
     static PointMap getUsedPoints(AttributeGrid indexGrid, double coord[], double tolerance){
         
         int nx = indexGrid.getWidth();
@@ -294,6 +328,185 @@ public class TestDistanceToTriangleSet extends TestCase {
         return points;
     }
     
+
+    static void convertPointsToWorldUnits(AttributeGrid indexGrid, double pntx[], double pnty[], double pntz[]){
+        
+        Bounds bounds = indexGrid.getGridBounds();
+        Vector3d pnt = new Vector3d();
+        for(int i = 0; i < pntx.length; i++){
+            //printf("(%7.2f, %7.2f, %7.2f) mm \n", upnts[i]/MM, upnts[i+1]/MM, upnts[i+2]/MM);       
+            if(pntx[i] != INF){
+                pnt.set(pntx[i],pnty[i], pntz[i]);
+                bounds.toWorldCoord(pnt);
+                pntx[i] = pnt.x;
+                pnty[i] = pnt.y;
+                pntz[i] = pnt.z;
+            }
+        }                
+    }
+
+
+    static void writePoints(AttributeGrid indexGrid, double pntx[], double pnty[], double pntz[], double pointSize, TriangleCollector tc){
+
+        double coord[] = new double[3];
+
+        Octahedron octa = new Octahedron(pointSize);
+        Bounds bounds = indexGrid.getGridBounds();
+        Vector3d pnt = new Vector3d();
+        for(int i = 0; i < pntx.length; i++){
+            //printf("(%7.2f, %7.2f, %7.2f) mm \n", upnts[i]/MM, upnts[i+1]/MM, upnts[i+2]/MM);       
+            if(pntx[i] != INF){
+                octa.setCenter(pntx[i], pnty[i], pntz[i]);
+                octa.getTriangles(tc);            
+            }
+        }        
+    }
+
+
+    static void writeFrame(AttributeGrid indexGrid, double thickness, TriangleCollector tc){
+        
+        Bounds bounds = indexGrid.getGridBounds();
+        double t = thickness;
+        double 
+            xmin = bounds.xmin+t/2,
+            xmax = bounds.xmax-t/2,
+            ymin = bounds.ymin-t/2,
+            ymax = bounds.ymax+t/2,
+            zmin = bounds.zmin-t/2,
+            zmax = bounds.zmax+t/2;
+        double 
+            zc = (zmax+zmin)/2,
+            sz = (zmax-zmin) + t,
+            yc = (ymax+ymin)/2,
+            sy = (ymax-ymin) + t,
+            xc = (xmax+xmin)/2,
+            sx = (xmax-xmin) + t;
+
+
+        new TriangulatedModels.Box(xmin, ymin, zc, t, t, sz).getTriangles(tc);
+        new TriangulatedModels.Box(xmax, ymin, zc, t, t, sz).getTriangles(tc);
+        new TriangulatedModels.Box(xmax, ymax, zc, t, t, sz).getTriangles(tc);
+        new TriangulatedModels.Box(xmin, ymax, zc, t, t, sz).getTriangles(tc);
+        
+        new TriangulatedModels.Box(xmin, yc, zmin, t, sy, t).getTriangles(tc);
+        new TriangulatedModels.Box(xmax, yc, zmin, t, sy, t).getTriangles(tc);
+        new TriangulatedModels.Box(xmin, yc, zmax, t, sy, t).getTriangles(tc);
+        new TriangulatedModels.Box(xmax, yc, zmax, t, sy, t).getTriangles(tc);
+
+        new TriangulatedModels.Box(xc, ymin, zmin, sx, t, t).getTriangles(tc);
+        new TriangulatedModels.Box(xc, ymax, zmin, sx, t, t).getTriangles(tc);
+        new TriangulatedModels.Box(xc, ymin, zmax, sx, t, t).getTriangles(tc);
+        new TriangulatedModels.Box(xc, ymax, zmax, sx, t, t).getTriangles(tc);
+
+    }
+
+    static int[] calculateErrorsHistogram(AttributeGrid indexGrid, double pntx[],double pnty[],double pntz[], int binCount, double errorToCount){
+       
+        printf("calculateErrorsHistogram()\n");
+        int errorCounts[] = new int[binCount];
+        double binSize = 1./binCount;
+        double vs = indexGrid.getVoxelSize();
+
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+
+        double coord[] = new double[3];
+        int errorCount=0;
+        double maxError = 0;
+        double sumError = 0;
+        double sumError2 = 0;
+        for(int z = 0; z < nz; z++){
+            for(int y = 0; y < ny; y++){
+                for(int x = 0; x < nx; x++){
+                    int ind = (int)indexGrid.getAttribute(x,y,z);
+                    if(ind != 0) {
+                        // voxel has point accociated with it 
+                        indexGrid.getWorldCoords(x, y, z, coord);                                                
+                        double 
+                            dx = coord[0] - pntx[ind],
+                            dy = coord[1] - pnty[ind],
+                            dz = coord[2] - pntz[ind];
+                        double dist = sqrt(dx*dx + dy*dy + dz*dz); 
+                        double minDist = minDistance( coord[0],coord[1], coord[2], pntx, pnty, pntz);
+                        double error = abs(dist - minDist)/vs;
+                        int bin = (int)(error/binSize);
+                        if(bin > binCount-1)bin = binCount-1;
+                        errorCounts[bin]++;
+                        if(error >= maxError) {
+                            maxError = error;
+                        }
+                        sumError2 += error*error;
+                        sumError += error;
+                        if(error > errorToCount) errorCount++;
+                    }                                
+                }
+            }
+        }
+
+        int voxelCount = nx*ny*nz;
+        printf("voxelCount: %d\n", voxelCount); 
+        printf("error above %7.2f count: %d\n", errorToCount, errorCount); 
+        printf("maxError %7.3f vs\n", maxError); 
+        double avrgError = (sumError/voxelCount);
+        double avrgError2 = sqrt(sumError2/voxelCount);
+        printf("avrg error %7.5f vs\n", avrgError); 
+        printf("avrg quad error %7.5f vs\n", avrgError2);             
+        
+        printf("**error histogram**\n");
+        printf("  interval  | count\n");
+        for(int i = 0; i < binCount; i++){
+            if(errorCounts[i] != 0)
+                printf("(%4.2f %4.2f) | %3d\n", binSize*(i), binSize*(i+1), errorCounts[i]);
+        }                
+        printf("--------end of **error histogram**\n");
+        return errorCounts;
+    }
+
+    static void writeErrors(AttributeGrid indexGrid, double pntx[],double pnty[],double pntz[],double maxErrorVoxels,  double pointSize, TriangleCollector tc){
+        double vs = indexGrid.getVoxelSize();
+        Bounds bounds = indexGrid.getGridBounds();
+        double xmin = bounds.xmin;
+        double ymin = bounds.ymin;
+        double zmin = bounds.zmin;
+
+        int nx = indexGrid.getWidth();
+        int ny = indexGrid.getHeight();
+        int nz = indexGrid.getDepth();
+
+        double coord[] = new double[3];
+        Octahedron octa = new Octahedron(pointSize);
+        int errorCount=0;
+
+        for(int z = 0; z < nz; z++){
+            for(int y = 0; y < ny; y++){
+                for(int x = 0; x < nx; x++){
+                    int ind = (int)indexGrid.getAttribute(x,y,z);
+                    if(ind != 0) {
+                        // voxel has point accociated with it 
+                        indexGrid.getWorldCoords(x, y, z, coord);                                                
+                        double 
+                            dx = coord[0] - pntx[ind],
+                            dy = coord[1] - pnty[ind],
+                            dz = coord[2] - pntz[ind];
+
+                        double dist = sqrt(dx*dx + dy*dy + dz*dz); 
+                        double minDist = minDistance( coord[0],coord[1], coord[2], pntx, pnty, pntz);
+                        double error = abs(dist - minDist)/vs;
+                        if(error >= maxErrorVoxels) {
+                            octa.setSize(pointSize*min(1,(error/maxErrorVoxels)));
+                            octa.setCenter(coord[0],coord[1],coord[2]);
+                            octa.getTriangles(tc);  
+                            //printf("[%2d %2d %2d] (%7.2f,%7.2f,%7.2f): %7.2f %7.2f \n", x,y,z, coord[0]/vs,coord[1]/vs,coord[2]/vs,dist/vs, minDist/vs);
+                            errorCount++;
+                        }
+                    }                                
+                }
+            }
+        }
+        printf("error count above %4.2f : %d\n", maxErrorVoxels, errorCount); 
+    }
+
     static void writeDistanceCenters(AttributeGrid indexGrid, TriangleCollector tc, double size){
 
         Octahedron octa = new Octahedron(size);
@@ -365,31 +578,23 @@ public class TestDistanceToTriangleSet extends TestCase {
        
     }
 
-    static void compareSphereDistances(double pntx[],double pnty[],double pntz[],AttributeGrid indexGrid, double cx, double cy, double cz, double radius){
+    static void compareSphereDistances(AttributeGrid indexGrid, double px[],double py[],double pz[],double cx, double cy, double cz, double radius, double errorToCount){
         printf("compareSphereDistances()\n");
         double vs = indexGrid.getVoxelSize();
         Bounds bounds = indexGrid.getGridBounds();
-        double xmin = bounds.xmin;
-        double ymin = bounds.ymin;
-        double zmin = bounds.zmin;
 
-        double px[] = new double[pntx.length];
-        double py[] = new double[pnty.length];
-        double pz[] = new double[pntz.length];
-
-        // convert points into world units 
-        for(int i = 0; i < pntx.length; i++){
-            px[i] = pntx[i]*vs + xmin;
-            py[i] = pnty[i]*vs + ymin;
-            pz[i] = pntz[i]*vs + zmin;
-        }        
         int nx = indexGrid.getWidth();
         int ny = indexGrid.getHeight();
         int nz = indexGrid.getDepth();
         double coord[] = new double[3];
+        double 
+            maxError = 0, 
+            sumError = 0,
+            sumError2 = 0;
+        
+        int errorCount = 0;
 
         for(int z = 0; z < nz; z++){
-            printf("z: %d\n", z);
             for(int y = 0; y < ny; y++){
                 for(int x = 0; x < nx; x++){
                     int ind = (int)indexGrid.getAttribute(x,y,z);
@@ -400,7 +605,7 @@ public class TestDistanceToTriangleSet extends TestCase {
                             dx = coord[0] - px[ind],
                             dy = coord[1] - py[ind],
                             dz = coord[2] - pz[ind];
-                        double d = sqrt(dx*dx + dy*dy + dz*dz); 
+                        double dist = sqrt(dx*dx + dy*dy + dz*dz); 
                         
                         double 
                             dxs = coord[0] - cx,
@@ -408,17 +613,26 @@ public class TestDistanceToTriangleSet extends TestCase {
                             dzs = coord[2] - cz;
                         // exact distance to sphere 
                         double ds = abs(sqrt(dxs*dxs + dys*dys + dzs*dzs) - radius);
-
-                        printf("%4d ", (int)(100*(d - ds)/vs+0.5));
-                    }  else {
-                        printf("  .  ");
-                    }                                
+                        double error = abs(dist - ds)/vs;
+                        if(error >= maxError) {
+                            maxError = error;
+                        }
+                        sumError2 += error*error;
+                        sumError += error;
+                        if(error > errorToCount) errorCount++;                        
+                    }
                 }
-                printf("\n");
             }
-            printf("--\n");
+            
         }
-       
+
+        long voxelCount = (long)nx*ny*nz;
+
+        printf("maxError %7.3f vs\n", maxError); 
+        double avrgError = (sumError/voxelCount);
+        double avrgError2 = sqrt(sumError2/voxelCount);
+        printf("avrg error %7.5f vs\n", avrgError); 
+        printf("avrg quad error %7.5f vs\n", avrgError2);       
     }
 
     static void calculateSphereError(double pntx[],double pnty[],double pntz[],AttributeGrid indexGrid, double cx, double cy, double cz, double radius){
@@ -498,6 +712,20 @@ public class TestDistanceToTriangleSet extends TestCase {
         printf("maxError: %5.2f voxels\n", maxDelta/vs);
         printf("avrgError: %5.2f voxels\n", deltaSum/vs/count);
 
+    }
+
+    static double minDistance(double x, double y, double z, double px[],double py[],double pz[]){
+        double minDist = 1.e10;
+        for(int i = 1; i < px.length; i++){
+            double 
+                dx = x - px[i],
+                dy = y - py[i],
+                dz = z - pz[i];
+            double dist = sqrt(dx*dx + dy*dy + dz*dz);
+            if(dist < minDist) 
+                minDist = dist; 
+        }
+        return minDist;
     }
 
 

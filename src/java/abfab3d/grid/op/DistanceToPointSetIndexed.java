@@ -277,6 +277,8 @@ public class DistanceToPointSetIndexed {
         combineGrids(indexGrid, tempGrid, coordx, coordy, coordz);
 
         makeSmoothPass(indexGrid, coordx, coordy, coordz, sm_neig18);
+        //makeSmoothPass(indexGrid, coordx, coordy, coordz, sm_neig18);
+        //makeSmoothPass(indexGrid, coordx, coordy, coordz, sm_neig18);
 
     } // DT3_v2()
 

@@ -43,6 +43,10 @@ import abfab3d.util.TriangleProducer;
 
 
     }
+
+    public void setSize(double r){
+        this.r = r;
+    }
     
 
     /**

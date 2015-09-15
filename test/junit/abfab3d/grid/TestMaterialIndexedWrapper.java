@@ -485,9 +485,10 @@ System.out.println("Material Count Speed");
 
         time2 = System.nanoTime() - startTime;
 
-        assertTrue("Wrapper method too slow", time1 * 50 < time2);
         System.out.println("Wrapper: " + time1);
         System.out.println(" Direct: " + time2 + " " + (time2 / time1) + "X\n");
+
+        assertTrue("Wrapper method too slow", time1 * 50 < time2);
 
     }
 
