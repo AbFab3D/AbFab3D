@@ -63,11 +63,11 @@ import static abfab3d.util.MathUtil.L2S;
 import static abfab3d.util.MathUtil.iround;
 
 /**
- * Test the DistanceToPointSetIndexed class.
+ * Test the ClosestPointIndexer class.
  *
  * @author Vladimir Bulatov
  */
-public class TestDistanceToPointSetIndexed extends TestCase {
+public class TestClosestPointIndexer extends TestCase {
 
     private static final boolean DEBUG = false;
 
@@ -84,14 +84,16 @@ public class TestDistanceToPointSetIndexed extends TestCase {
 
     void makeTestPoint()throws Exception{
         
-        if(DEBUG) printf("makeTestPoint()\n");
+        if(DEBUG) printf("%s.makeTestPoint()\n", this.getClass().getName());
         double vs = 0.5*MM;
         double w = 10*MM; // half width 
-        double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
+        double firstLayerThickness = 2.5;//1.5;//3.5;//2.4;//1.8;//0.8
+        double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = 0, zmax = vs;
         int subvoxelResolution = 100;
         double INF = 1.e5;// point to ignore 
         int voxelSquareSize = 25;// for visualization 
         boolean snapToGrid = false;
+        int iterationsCount = 5;
 
         ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(new Bounds(xmin,xmax,ymin,ymax,zmin,zmax), vs, vs);
         double pnts[] = new double[]{0,0,0,
@@ -116,13 +118,16 @@ public class TestDistanceToPointSetIndexed extends TestCase {
                                      
         };
         //pnts = makeCircle(0.2*vs, 0.6*vs, 0, 7*vs, 32);
-        //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32);
+        pnts = makeCircleZ(0.2*vs, 0.2*vs, 0.2*vs, 7*vs, 128);
         //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64);
-        pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.7*w, 80);
+        //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.7*w, 80);
         //pnts = makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 0.7*w, 256);
         //pnts = makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32);
         //pnts = makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32);
         //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32));
+        //pnts = makeUnion(makeUnion(makeCircleX(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 32),makeCircleY(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 32)),makeCircleZ(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 32));
+        //pnts = makeUnion(makeUnion(makeCircleX(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 64),makeCircleY(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 64)),makeCircleZ(0.3*vs, 0.3*vs, 0.3*vs, 7*vs, 64));
+        //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 64));
         //pnts = makeUnion(makeUnion(makeCircleX(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 128),makeCircleY(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 128)),makeCircleZ(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 128));
         //pnts = makeUnion(makeCircle(0.5*vs, 0.5*vs, 0.5*vs, 7*vs, 32),makeCircle(2.5*vs, 0.5*vs, 3.5*vs, 7*vs, 32));
         //pnts = makeUnion(makeCircle(-9.5*vs, 0.5*vs, 0, 7*vs, 32),makeCircle(9.5*vs, 0.5*vs, 0, 7*vs, 32));
@@ -130,30 +135,30 @@ public class TestDistanceToPointSetIndexed extends TestCase {
         //                 makeUnion(makeCircle(0.5*vs, -10.5*vs, 0.5*vs, 7*vs, 32),makeCircle(0.5*vs, 11.5*vs, 0.5*vs, 7*vs, 32)));
         //pnts = makeRandomPoints();
         int pcount = pnts.length/3;
-        printf("pcount: %d\n", pcount);
+        //printf("pcount: %d\n", (pcount-1));
         double pntx[] = new double[pcount];
         double pnty[] = new double[pcount];
         double pntz[] = new double[pcount];
-        double firstLayerThickness = 0.5;//
 
-        DistanceToPointSetIndexed.getPointsInGridUnits(indexGrid, pnts, pntx, pnty, pntz);
+        ClosestPointIndexer.getPointsInGridUnits(indexGrid, pnts, pntx, pnty, pntz);
         if(snapToGrid){
-            DistanceToPointSetIndexed.snapToVoxels(pntx);
-            DistanceToPointSetIndexed.snapToVoxels(pnty);
-            DistanceToPointSetIndexed.snapToVoxels(pntz);
+            ClosestPointIndexer.snapToVoxels(pntx);
+            ClosestPointIndexer.snapToVoxels(pnty);
+            ClosestPointIndexer.snapToVoxels(pntz);
         }
 
-        DistanceToPointSetIndexed.initFirstLayer(indexGrid, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
-        DistanceToPointSetIndexed.removeUnusedPoints(indexGrid, pntx, pnty, pntz);
-        
+        ClosestPointIndexer.initFirstLayer(indexGrid, pntx, pnty, pntz, firstLayerThickness, subvoxelResolution);
+        int usedCount = ClosestPointIndexer.removeUnusedPoints(indexGrid, pntx, pnty, pntz);
+        printf("total points: %d,  used points: %d\n", pcount, usedCount);
+
         int nz = indexGrid.getDepth();
 
         //if(true) printIndices(indexGrid);
         for(int z = 0; z < nz; z++)renderDiff(indexGrid, z, pntx, pnty, pntz, voxelSquareSize, fmt("/tmp/dist/distDiff1_%02d.png",z), true);
         
         // distribute distances to the whole grid 
-        DistanceToPointSetIndexed.DT3_multiPass(pntx, pnty, pntz, indexGrid);
-        //DistanceToPointSetIndexed.DT3(pntx, pnty, pntz, indexGrid);
+        ClosestPointIndexer.PI3_multiPass(pntx, pnty, pntz, indexGrid, iterationsCount);
+        //ClosestPointIndexer.PI3(pntx, pnty, pntz, indexGrid);
 
         //printIndices(indexGrid);
         //printDiff(indexGrid, pntx, pnty, pntz, true);
@@ -470,7 +475,7 @@ public class TestDistanceToPointSetIndexed extends TestCase {
     public static void main(String arg[]) throws Exception {
 
         for(int i = 0; i < 1; i++){
-            new TestDistanceToPointSetIndexed().makeTestPoint();
+            new TestClosestPointIndexer().makeTestPoint();
         }        
     }
 }

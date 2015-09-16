@@ -50,11 +50,11 @@ import static abfab3d.util.Units.MM;
 import static abfab3d.util.MathUtil.L2S;
 
 /**
- * Test the DistanceToTriangleSet class.
+ * Test the TestTriangleMeshShellBuilder class.
  *
  * @author Vladimir Bulatov
  */
-public class TestDistanceToTriangleSet extends TestCase {
+public class TestTriangleMeshShellBuilder extends TestCase {
 
     private static final boolean DEBUG = true;
     static final double INF = ClosestPointIndexer.INF;
@@ -66,7 +66,7 @@ public class TestDistanceToTriangleSet extends TestCase {
      * Creates a test suite consisting of all the methods that start with "test".
      */
     public static Test suite() {
-        return new TestSuite(TestDistanceToTriangleSet.class);
+        return new TestSuite(TestTriangleMeshShellBuilder.class);
     }
 
     void testNothing()throws Exception{
@@ -92,9 +92,9 @@ public class TestDistanceToTriangleSet extends TestCase {
             //new Vector3d(1*MM, 1*MM, 5.5*MM), new Vector3d(9*MM, 9*MM, 5.5*MM), new Vector3d(1*MM,9*MM, 5.5*MM), 
         };
 
-        DistanceToTriangleSet dts = new DistanceToTriangleSet(indexGrid, subvoxelResolution);
-        dts.setMaxDistanceVoxels(1.9);
-
+        TriangleMeshShellBuilder dts = new TriangleMeshShellBuilder(indexGrid, subvoxelResolution);
+        dts.setShellHalfThickness(1.9);
+        
         dts.initialize();
 
         for(int i = 0; i < tris.length; i+= 3){
@@ -161,8 +161,8 @@ public class TestDistanceToTriangleSet extends TestCase {
         printf("firstLayerThickness: %5.2f\n",firstLayerThickness);
         ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(new Bounds(xmin,xmax,ymin,ymax,zmin,zmax), vs, vs);
         printf("grid: [%d x %d x %d]\n",indexGrid.getWidth(),indexGrid.getHeight(), indexGrid.getDepth());
-        DistanceToTriangleSet dts = new DistanceToTriangleSet(indexGrid, subvoxelResolution);
-        dts.setMaxDistanceVoxels(firstLayerThickness);
+        TriangleMeshShellBuilder dts = new TriangleMeshShellBuilder(indexGrid, subvoxelResolution);
+        dts.setShellHalfThickness(firstLayerThickness);
 
         dts.initialize();
         //double cx = 4.75*MM, cy = 4.75*MM, cz = 4.75*MM, radius = 3*MM;
@@ -205,7 +205,6 @@ public class TestDistanceToTriangleSet extends TestCase {
         //printDistances(pntx,pnty,pntz,indexGrid);
 
         //distribute distances to the whole grid 
-        //DistanceToPointSetIndexed.DT3(pntx, pnty, pntz, indexGrid);
         ClosestPointIndexer.PI3_multiPass(pntx, pnty, pntz, indexGrid, iterationsCount);
 
         convertPointsToWorldUnits(indexGrid, pntx, pnty, pntz);
@@ -733,11 +732,11 @@ public class TestDistanceToTriangleSet extends TestCase {
     public static void main(String arg[]) throws Exception {
 
         for(int i = 0; i < 1; i++){
-            //new TestDistanceToTriangleSet().makeTestDT3();
-            //new TestDistanceToTriangleSet().makeTestOneTriangle();
-            new TestDistanceToTriangleSet().makeTestSphere();
-            //new TestDistanceToTriangleSet().makeTestPointMap();
-            //new TestDistanceToTriangleSet().makeTestPointMapRehash();
+            //new TestTriangleMeshShellBuilder().makeTestDT3();
+            //new TestTriangleMeshShellBuilder().makeTestOneTriangle();
+            new TestTriangleMeshShellBuilder().makeTestSphere();
+            //new TestTriangleMeshShellBuilder().makeTestPointMap();
+            //new TestTriangleMeshShellBuilder().makeTestPointMapRehash();
         }        
     }
 }
