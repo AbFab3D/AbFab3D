@@ -29,10 +29,13 @@ import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.util.Bounds;
 import abfab3d.util.PointMap;
 import abfab3d.util.TriangleCollector;
+import abfab3d.util.BoundingBoxCalculator;
 
 import abfab3d.distance.DistanceData;
 import abfab3d.distance.DistanceDataSphere;
+
 import abfab3d.io.output.STLWriter;
+import abfab3d.io.input.STLReader;
 
 
 import abfab3d.geom.TriangulatedModels;
@@ -43,6 +46,7 @@ import static java.lang.Math.round;
 import static java.lang.Math.ceil;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
+import static java.lang.Math.max;
 import static java.lang.Math.sqrt;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.time;
@@ -76,6 +80,39 @@ public class TestDistanceToTriangleSet extends TestCase {
     /**
        testing distance to sphere 
      */
+    void makeTestSTL()throws Exception{
+        
+        if(DEBUG) printf("makeTestSTL()\n");
+        String filePath = "/tmp/crab_vs0.2.stl";
+        int maxGridDimension = 500;
+
+        printf("loading file: %s\n", filePath);
+        STLReader stl = new STLReader(filePath);
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        stl.getTriangles(bb);
+        Bounds bounds = new Bounds(bb.getBounds());
+        printf("bounds: %s\n", bounds);
+        double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
+        printf("max size: %7.2f mm\n", maxSize/MM);  
+        double maxOutDistance =  maxSize*0.1;
+        double maxInDistance =  maxOutDistance;
+        int subvoxelResolution = 10;
+                
+        double vs = (maxSize+2*maxOutDistance)/maxGridDimension;                
+        printf("voxel size: %7.2f mm\n", vs/MM);  
+        
+        bounds.expand(maxOutDistance);
+
+        AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
+        printf("distanceGrid:[%d x %d x %d]\n",distGrid.getWidth(),distGrid.getHeight(), distGrid.getDepth());
+        long t0 = time();
+
+        DistanceToTriangleSet dts = new DistanceToTriangleSet(maxInDistance, maxOutDistance,subvoxelResolution);        
+        dts.setTriangleProducer(stl);
+        distGrid = dts.execute(distGrid);        
+        printf("distance ready %d ms\n", (time() - t0));
+    }
+
     void makeTestSphere()throws Exception{
         
         if(DEBUG) printf("makeTestSphere()\n");
@@ -91,17 +128,16 @@ public class TestDistanceToTriangleSet extends TestCase {
         DistanceToTriangleSet dts = new DistanceToTriangleSet(maxInDistance, maxOutDistance,subvoxelResolution);
         
         TriangulatedModels.Sphere sphere = new TriangulatedModels.Sphere(3*MM, new Vector3d(0.5*vs,0.5*vs, 0.5*vs), 4); 
-        dts.setTriangleProducer(sphere);
-        
-        
+        dts.setTriangleProducer(sphere);                
         
         distGrid = dts.execute(distGrid);        
-     
+        
         //printInterior(distGrid);
         //printIndices(distGrid);
         printDistances(distGrid);
 
     }
+
 
     static void printInterior(AttributeGrid grid){
         int nx = grid.getWidth();
@@ -165,7 +201,8 @@ public class TestDistanceToTriangleSet extends TestCase {
     public static void main(String arg[]) throws Exception {
 
         for(int i = 0; i < 1; i++){
-            new TestDistanceToTriangleSet().makeTestSphere();
+            //new TestDistanceToTriangleSet().makeTestSphere();
+            new TestDistanceToTriangleSet().makeTestSTL();
         }        
     }
 }
