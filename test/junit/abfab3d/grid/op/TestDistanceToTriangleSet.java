@@ -82,8 +82,8 @@ public class TestDistanceToTriangleSet extends TestCase {
         double w = 5*MM;        
         double xmin = -w, xmax = w, ymin = -w, ymax = w, zmin = -w, zmax = w;
         double vs = 0.5*MM;
-        double maxInDistance = 2*MM;
-        double maxOutDistance = 2*MM;
+        double maxInDistance = 7*vs;
+        double maxOutDistance = 7*vs;
         int subvoxelResolution = 10;
         AttributeGrid distGrid = new ArrayAttributeGridShort(new Bounds(xmin,xmax,ymin,ymax,zmin,zmax), vs, vs);
         printf("grid:[%d x %d x %d]\n",distGrid.getWidth(),distGrid.getHeight(), distGrid.getDepth());
@@ -98,7 +98,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         distGrid = dts.execute(distGrid);        
      
         //printInterior(distGrid);
-        printIndices(distGrid);
+        //printIndices(distGrid);
         printDistances(distGrid);
 
     }
@@ -108,7 +108,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         int ny = grid.getHeight();
         int nz = grid.getDepth();
 
-        printf("Interior: %d\n");
+        printf("Interior \n");
         
         for(int z = 0; z < nz; z++){
             printf("z: %d\n", z);
@@ -129,7 +129,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         int ny = grid.getHeight();
         int nz = grid.getDepth();
         
-        printf("Indices: %d\n");
+        printf("Indices\n");
         for(int z = 0; z < nz; z++){
             printf("z: %d\n", z);
             for(int y = 0; y < ny; y++){
@@ -148,7 +148,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         int ny = grid.getHeight();
         int nz = grid.getDepth();
         
-        printf("Distances: %d\n");
+        printf("Distances: \n");
         for(int z = 0; z < nz; z++){
             printf("z: %d\n", z);
             for(int y = 0; y < ny; y++){

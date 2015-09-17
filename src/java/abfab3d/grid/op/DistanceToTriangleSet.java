@@ -61,6 +61,7 @@ import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
 import static abfab3d.util.MathUtil.L2S;
 import static abfab3d.util.MathUtil.iround;
+import static abfab3d.util.Units.MM;
 
 
 /**
@@ -74,7 +75,11 @@ public class DistanceToTriangleSet implements Operation, AttributeOperation {
 
     static final int DEFAULT_SVR = 100;
 
-    double m_firstLayerThickness = 1.9;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
+    // count of clean up iterations at the end 
+    int m_iterationsCount = 0;
+    // thickenss of intialial shell 
+    double m_shellHalfThickness = 1.9;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
+    // 
     int m_subvoxelResolution = DEFAULT_SVR;
     double m_voxelSize;
     Bounds m_bounds;
@@ -93,6 +98,14 @@ public class DistanceToTriangleSet implements Operation, AttributeOperation {
     public void setTriangleProducer(TriangleProducer triangleProducer){
         m_triangleProducer = triangleProducer;
     }
+
+    public void setIterationsCount(int count){
+        m_iterationsCount = count;
+    }
+
+    public void setShellHalfThickness(double halfThickness){
+        m_shellHalfThickness = halfThickness;
+    }    
 
     public Grid execute(Grid grid) {
         throw new IllegalArgumentException(fmt("DistanceTransformExact.execute(%d) not implemented!\n", grid));
@@ -121,7 +134,7 @@ public class DistanceToTriangleSet implements Operation, AttributeOperation {
         ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(bounds, vs, vs);
 
         TriangleMeshShellBuilder tmsb = new TriangleMeshShellBuilder(indexGrid, m_subvoxelResolution);
-        tmsb.setShellHalfThickness(1.9);        
+        tmsb.setShellHalfThickness(m_shellHalfThickness);        
         tmsb.initialize();
         
         m_triangleProducer.getTriangles(tmsb);
@@ -135,17 +148,16 @@ public class DistanceToTriangleSet implements Operation, AttributeOperation {
 
         //if(true) return indexGrid;
 
+        // distribute indices on the whole indexGrid        
+        ClosestPointIndexer.PI3_multiPass(pntx, pnty, pntz, indexGrid, m_iterationsCount);
+
+        // transform points into world units
         ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pntx, pnty, pntz);
 
-        ClosestPointIndexer.makeDistanceGrid(distanceGrid, pntx, pnty, pntz, 
-                                             interiorGrid, distanceGrid, m_maxInDistance, 
-                                             m_maxOutDistance, m_subvoxelResolution);
-
-        if(true) return distanceGrid;
-        
-        
-        // distribute indices on the whole indexGrid        
         // calculate final distances in the given interval 
+        ClosestPointIndexer.makeDistanceGrid(indexGrid, pntx, pnty, pntz, 
+                                             interiorGrid, distanceGrid, m_maxInDistance, 
+                                             m_maxOutDistance, m_subvoxelResolution);               
         return distanceGrid;
     }
 

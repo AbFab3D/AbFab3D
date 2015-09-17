@@ -786,6 +786,7 @@ public class ClosestPointIndexer {
                     if(ind > 0) {
                         indexGrid.getWorldCoords(x, y, z, coord);
                         int dist = iround(dscale*distance(coord[0],coord[1],coord[2], pntx[ind],pnty[ind],pntz[ind]));
+                        //xbprintf("%d\n", dist);
                         if(interiorGrid != null && interiorGrid.getAttribute(x,y,z) != 0)
                             dist = -dist;
                         if(dist < minDist)
