@@ -12,19 +12,17 @@
 
 package abfab3d.grid.op;
 
+import java.io.IOException;
 import java.util.Random;
 
-import abfab3d.grid.VectorIndexerStructMap;
+import abfab3d.grid.*;
+import abfab3d.io.output.MeshMakerMT;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
-
-import abfab3d.grid.AttributeGrid;
-import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.ArrayAttributeGridInt;
 
 import abfab3d.util.Bounds;
 import abfab3d.util.PointMap;
@@ -111,6 +109,33 @@ public class TestDistanceToTriangleSet extends TestCase {
         dts.setTriangleProducer(stl);
         distGrid = dts.execute(distGrid);        
         printf("distance ready %d ms\n", (time() - t0));
+
+        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,vs, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
+        AttributeGrid surface = (AttributeGrid) distGrid.createEmpty(distGrid.getWidth(), distGrid.getHeight(),
+                distGrid.getDepth(), distGrid.getSliceHeight(), distGrid.getVoxelSize());
+        surface.setGridBounds(bounds);
+
+        surface = dge.execute(surface);
+
+        try {
+            writeGrid(surface, "/tmp/crab.stl", subvoxelResolution);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    void writeGrid(Grid grid, String path, int gridMaxAttributeValue) throws IOException {
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setMaxAttributeValue(gridMaxAttributeValue);
+        mmaker.setSmoothingWidth(0.5);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+
+        STLWriter stl = new STLWriter(path);
+        mmaker.makeMesh(grid, stl);
+        stl.close();
+
     }
 
     void makeTestSphere()throws Exception{
