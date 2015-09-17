@@ -183,6 +183,11 @@ public interface AttributeGrid extends Grid {
     public void setAttributeDesc(AttributeDesc description);
 
     /**
+       copy data from grid into this grid 
+     */
+    public void copyData(AttributeGrid grid);
+
+    /**
        @return voxel attribute description assigned to the grid
     */
     public AttributeDesc getAttributeDesc();

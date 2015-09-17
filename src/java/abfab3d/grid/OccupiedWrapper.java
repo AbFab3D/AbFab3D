@@ -594,4 +594,14 @@ public class OccupiedWrapper implements AttributeGridWrapper {
     public AttributeDesc getAttributeDesc(){
         return grid.getAttributeDesc(); 
     }
+
+
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        grid.copyData(fromGrid);
+    }
+
+
 }

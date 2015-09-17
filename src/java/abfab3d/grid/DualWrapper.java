@@ -734,4 +734,12 @@ public class DualWrapper implements AttributeGridWrapper {
         return gridAtt.getAttributeDesc(); 
     }
 
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        ((AttributeGrid)grid).copyData(fromGrid);
+    }
+
+
 }

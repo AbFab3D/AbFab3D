@@ -31,6 +31,7 @@ import abfab3d.grid.AttributeOperation;
 import abfab3d.grid.GridBit;
 import abfab3d.grid.GridMask;
 import abfab3d.grid.GridBitIntervals;
+import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.VectorIndexer;
@@ -46,6 +47,9 @@ import abfab3d.util.PointSetArray;
 import abfab3d.util.TriangleRenderer;
 import abfab3d.util.PointToTriangleDistance;
 import abfab3d.util.PointMap;
+import abfab3d.util.TriangleProducer;
+
+import abfab3d.geom.ZBufferRasterizer;
 
 import static java.lang.Math.sqrt;
 import static java.lang.Math.max;
@@ -60,340 +64,89 @@ import static abfab3d.util.MathUtil.iround;
 
 
 /**
-   calculates distance to set of triangles in the narrow shell around triangles. 
-
-   Distances are calculated on a grid with given bounds and given voxel size. 
-   
-   Distance grid is initialized to undefined max value 
-   Each triangle is voxelized in one of 3 orietations.
-   In the neighborhood of predefined radius about each voxel we calculate the closest distance 
-   to that triangle, compare it to the current shortest distance stored in grid and select smaller distance. 
-   and update closest point to that grid voxel. 
+   calculates distance to set of triangles in given limits
    
    @author Vladimir Bulatov
  */
-public class DistanceToTriangleSet implements TriangleCollector {
+public class DistanceToTriangleSet implements Operation, AttributeOperation {
 
     static final boolean DEBUG = true;
-    static final double TOL = 1.e-2;
-    static final double HALF = 0.5; // half voxel offset to the center of voxel 
 
-    
     static final int DEFAULT_SVR = 100;
-    double m_layerThickness = 1;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
-    int m_neighbors[]; // offsets to neighbors 
+
+    double m_firstLayerThickness = 1.9;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
     int m_subvoxelResolution = DEFAULT_SVR;
     double m_voxelSize;
     Bounds m_bounds;
-    // triangles ransterizer 
-    TriangleRenderer m_triRenderer;
-
-    // callback class for triangles ransterizer 
-    VoxelRenderer m_voxelRenderer;
-
-    // grid to world conversion params 
-    double m_xmin, m_ymin, m_zmin, m_scale;
-    // grud dimension 
-    int m_nx, m_ny, m_nz;
+        
     
-    // closest points in triangles 
-    PointMap m_points;
-    
-    // grid to store indexes of closest point 
-    AttributeGrid m_indexGrid; 
-    // grid to store current shortest distances 
-    AttributeGrid m_distanceGrid; 
+    TriangleProducer m_triangleProducer;
+    double m_maxInDistance;
+    double m_maxOutDistance;
 
-    int m_triCount = 0; // count of processed triangles 
-
-    public DistanceToTriangleSet(AttributeGrid indexGrid, int subvoxelResolution){
-        m_indexGrid = indexGrid;
+    public DistanceToTriangleSet(double maxInDistance, double maxOutDistance, int subvoxelResolution){
         m_subvoxelResolution = subvoxelResolution;
+        m_maxInDistance = maxInDistance;
+        m_maxOutDistance = maxOutDistance;
     }
 
-    public void setMaxDistanceVoxels(double maxDistanceVoxels){
-        m_layerThickness = maxDistanceVoxels;
+    public void setTriangleProducer(TriangleProducer triangleProducer){
+        m_triangleProducer = triangleProducer;
     }
 
-    /**
-       @return count of points in triangles which contribute to the shell 
-     */
-    public int getPointCount(){
-        return m_points.getPointCount();
+    public Grid execute(Grid grid) {
+        throw new IllegalArgumentException(fmt("DistanceTransformExact.execute(%d) not implemented!\n", grid));
     }
 
-    public int getTriCount(){
-        return m_triCount;
-    }
-    
-    /**
-       @return coordinates of the points 
-     */
-    public double[] getPoints(double coord[]){
-        //
-        // coordinates are in grid units 
-        //
-        coord = m_points.getPoints(coord);
-        
-        // transform points into world units 
-        for(int i = 0; i< coord.length; i += 3){
-            coord[i] = toWorldX(coord[i]);
-            coord[i+1] = toWorldY(coord[i+1]);
-            coord[i+2] = toWorldZ(coord[i+2]);
-        }
-        return coord;
-    }
+    public AttributeGrid execute(AttributeGrid grid) {
+        return makeDistanceGrid(grid);
+    }    
 
-    /**
-       
-     */
-    public void getPointsInGridUnits(double pntx[],double pnty[],double pntz[]){
-        //
-        // coordinates are in grid units 
-        //
-        m_points.getPoints(pntx, pnty, pntz);
-        
-    }
-
-
-    /**
-       this method has to be called before starting adding triangles 
-     */
-    public boolean initialize(){
-
-        m_bounds = m_indexGrid.getGridBounds();
-        m_voxelSize = m_indexGrid.getVoxelSize();
-        m_nx = m_indexGrid.getWidth();
-        m_ny = m_indexGrid.getHeight();
-        m_nz = m_indexGrid.getDepth();
-
-        m_distanceGrid = new ArrayAttributeGridShort(m_bounds, m_voxelSize,m_voxelSize);
-
-        initDistanceGrid(m_distanceGrid, (int)(m_layerThickness * m_subvoxelResolution + 0.5));
-
-        m_triRenderer = new TriangleRenderer();
-        m_voxelRenderer = new VoxelRenderer();
-        m_xmin = m_bounds.xmin;
-        m_ymin = m_bounds.ymin;
-        m_zmin = m_bounds.zmin;
-        m_scale = 1/m_voxelSize;
-        m_neighbors = Neighborhood.makeBall(m_layerThickness);
-
-        m_points = new PointMap(m_voxelSize/m_subvoxelResolution);
-        // add unused point to have index start from 1 
-        m_points.add(0, 0, 0);
-        if(false){
-            // axes of grid for visualization 
-            for(int i = 1; i <= m_nx; i++)
-                m_points.add(i, 0, 0);
-            for(int i = 1; i <= m_ny; i++)
-                m_points.add(0, i, 0);
-            for(int i = 1; i <= m_nz; i++)
-                m_points.add(0, 0, i);
-        }
-        if(DEBUG) {
-            printf("layerThickness: %5.2f\n",m_layerThickness);
-            printf("neighboursCount: %d\n",m_neighbors.length/3);
-            //for(int i = 0; i < m_neighbors.length; i+= 3){
-                //printf("(%2d %2d %2d)\n", m_neighbors[i],m_neighbors[i+1],m_neighbors[i+2]);
-            //}
-        }
-        // successfull initialization 
-        return true;
-    }
-
-    void initDistanceGrid(AttributeGrid grid, long value){
-        if(grid instanceof ArrayAttributeGridShort){
-            ((ArrayAttributeGridShort)grid).fill(value);
-        }
-    }
 
     
-    Vector3d // work vectors 
-        v0 = new Vector3d(),
-        v1 = new Vector3d(),
-        v2 = new Vector3d(),
-        m_v1 = new Vector3d(),
-        m_v2 = new Vector3d(),
-        m_normal = new Vector3d();
-    
-    /**
-       method of interface TriangleCollector 
-       
-     */
-    public boolean addTri(Vector3d p0, Vector3d p1, Vector3d p2){
-        m_triCount++;
-        v0.set(p0);
-        v1.set(p1);
-        v2.set(p2);
-
-        toGrid(v0);
-        toGrid(v1);
-        toGrid(v2);
-        if(false) printf("addTri([%4.1f, %4.1f, %4.1f], [%4.1f, %4.1f, %4.1f], [%4.1f, %4.1f,%4.1f] )\n",v0.x,v0.y,v0.z,v1.x,v1.y,v1.z,v2.x,v2.y,v2.z);
-        m_v1.sub(v1, v0);
-        m_v2.sub(v2, v0);
-        m_normal.cross(m_v2,m_v1);
-        double 
-            nv0 = m_normal.dot(v0),
-            nx = m_normal.x,
-            ny = m_normal.y,
-            nz = m_normal.z,
-            anx = abs(nx),
-            any = abs(ny),
-            anz = abs(nz);        
-        if(false) printf("normal: [%4.1f, %4.1f, %4.1f]\n",nx, ny, nz);
-
-        // select best axis to rasterize 
-        // it is axis which has longest normal projection 
-        int axis = 2;
-        if(anx >= any) {
-            if(anx >= anz) axis = 0;
-            else axis = 2;
-        } else { // anx < any 
-            if(any > anz) axis = 1;
-            else axis = 2;            
-        }
-        //printf("axis: %d\n", axis);
-        //axis = 2;
-        m_voxelRenderer.setAxis(axis);
-        m_voxelRenderer.setTriangle(v0, v1, v2);
-        // pass plane equation to voxelRenderer 
-        // pass triangle to voxel renderer 
-        switch(axis){
-        default:
-        case 0: 
-            m_voxelRenderer.setPlane(-ny/nx, -nz/nx, nv0/nx); 
-            m_triRenderer.fillTriangle(m_voxelRenderer, v0.y, v0.z,v1.y, v1.z, v2.y, v2.z);
-            break;
-        case 1: 
-            m_voxelRenderer.setPlane(-nz/ny, -nx/ny, nv0/ny); 
-            m_triRenderer.fillTriangle(m_voxelRenderer, v0.z, v0.x,v1.z, v1.x, v2.z, v2.x);
-            break;
-        case 2: 
-            m_voxelRenderer.setPlane(-nx/nz, -ny/nz, nv0/nz); 
-            m_triRenderer.fillTriangle(m_voxelRenderer, v0.x, v0.y,v1.x, v1.y, v2.x, v2.y);
-            break;
-        }
-        //TODO 
-        // add triagle vertices to deal with super small triangles 
-        m_voxelRenderer.addNeighborhood((int)v0.x, (int)v0.y, (int)v0.z);
-        m_voxelRenderer.addNeighborhood((int)v1.x, (int)v1.y, (int)v1.z);
-        m_voxelRenderer.addNeighborhood((int)v2.x, (int)v2.y, (int)v2.z);
+    public AttributeGrid makeDistanceGrid(AttributeGrid distanceGrid){
         
-        // add triangle edges to deal with super thin triangles 
-
-        if(false){
-            printf("addTri() area: %7.1f pointsCount: %d distCalcCount: %d\n", m_normal.length()/2, m_points.getPointCount(),m_voxelRenderer.voxelCount);
-        }
-        return true;
-    }
-
-    final void toGrid(Vector3d v){
-        v.x = toGridX(v.x);
-        v.y = toGridY(v.y);
-        v.z = toGridZ(v.z);
-    }
-
-    final double toGridX(double x){
-        return (x - m_xmin)*m_scale;
-    }
-    final double toGridY(double y){
-        return (y - m_ymin)*m_scale;
-    }
-    final double toGridZ(double z){
-        return (z - m_zmin)*m_scale;
-    }
-    final double toWorldX(double x){
-        return (x*m_voxelSize + m_xmin);
-    }
-    final double toWorldY(double y){
-        return (y*m_voxelSize + m_ymin);
-    }
-    final double toWorldZ(double z){
-        return (z*m_voxelSize + m_zmin);
-    }
-
+        // create interior grid  
+        Bounds bounds = distanceGrid.getGridBounds();
+        double vs = distanceGrid.getVoxelSize();
+        ZBufferRasterizer zbr = new ZBufferRasterizer(bounds);
         
-    class VoxelRenderer implements TriangleRenderer.PixelRenderer {
-
-        double m_ax, m_ay, m_az;
-        int m_axis = 2;
-        int voxelCount = 0;
-        double maxDist = 0;
-
-        Vector3d 
-            v0 = new Vector3d(),
-            v1 = new Vector3d(),
-            v2 = new Vector3d();
-        double pointInTriangle[] = new double[3];
-
-        final void setAxis(int axis){
-            m_axis = axis;
-        }
-        final void setTriangle(Vector3d v0, Vector3d v1,Vector3d v2){
-            this.v0.set(v0);
-            this.v1.set(v1);
-            this.v2.set(v2);
-        }
-
-        final void setPlane(double ax, double ay, double az){
-            m_ax = ax;
-            m_ay = ay;
-            m_az = az;
-        }
-
-        public void setPixel(int ix, int iy){
-            
-            double z = m_ax*ix + m_ay*iy + m_az;
-            int iz = (int)(z); // truncation instead of round is done because of half voxel shift 
-            if(false) printf("setPixel(%2d, %2d) z: %4.1f \n", ix, iy, z);
-
-            int x0,y0,z0;
-            switch(m_axis){
-            default: 
-            case 0: x0 = iz;y0 = ix; z0 = iy; break;
-            case 1: x0 = iy;y0 = iz; z0 = ix; break;
-            case 2: x0 = ix;y0 = iy; z0 = iz; break;
-            }
-            addNeighborhood(x0,y0,z0);
-
-        }   
+        m_triangleProducer.getTriangles(zbr);
         
-        final void addNeighborhood(int x0, int y0, int z0){
-            
-            // scan over neighborhood of the voxel 
-            int ncount = m_neighbors.length;
-            
-            for(int i = 0; i < ncount; i+=3){
-                int 
-                    vx = x0 + m_neighbors[i],
-                    vy = y0 + m_neighbors[i+1],
-                    vz = z0 + m_neighbors[i+2];                    
-                voxelCount++;
-                if( vx >= 0 && vy >= 0 & vz >= 0 && vx < m_nx && vy < m_ny && vz < m_nz){
-                    double d2 = PointToTriangleDistance.getSquared(vx+HALF, vy+HALF, vz+HALF,
-                                                                   v0.x,v0.y,v0.z, v1.x,v1.y,v1.z, v2.x,v2.y,v2.z, 
-                                                                   pointInTriangle);
-                    double dist = sqrt(d2);
-                    if(dist > maxDist) maxDist = dist;
-                    
-                    if(dist <= m_layerThickness + TOL) {
-                        int newdist = (int)(dist*m_subvoxelResolution + 0.5);
-                        int olddist = (int)m_distanceGrid.getAttribute(vx, vy, vz);
-                        if(newdist < olddist){
-                            // better point found
-                            m_distanceGrid.setAttribute(vx, vy, vz, newdist);
-                            int index = m_points.add(pointInTriangle[0],pointInTriangle[1],pointInTriangle[2]);
-                            m_indexGrid.setAttribute(vx, vy, vz, index);
-                        }
-                        //if(false) printf("     v: (%2d %2d %2d) dist: %5.2f pnt: [%5.2f, %5.2f,%5.2f] index: %3d \n", 
-                        //                 vx, vy, vz, dist, pointInTriangle[0],pointInTriangle[1],pointInTriangle[2], index);
-                    }
-                }
-            }                    
-        }
+        AttributeGrid interiorGrid = new ArrayAttributeGridByte(bounds, vs,vs);
+        zbr.getRaster(interiorGrid); 
+        //if(true) return interiorGrid;
         
-    } //  class VoxelRenderer 
+        // create shell of closest points around triangle set
+        ArrayAttributeGridInt indexGrid = new ArrayAttributeGridInt(bounds, vs, vs);
 
-}
+        TriangleMeshShellBuilder tmsb = new TriangleMeshShellBuilder(indexGrid, m_subvoxelResolution);
+        tmsb.setShellHalfThickness(1.9);        
+        tmsb.initialize();
+        
+        m_triangleProducer.getTriangles(tmsb);
+
+        int pcount = tmsb.getPointCount();
+        printf("pcount: %d\n", pcount);
+        double pntx[] = new double[pcount];
+        double pnty[] = new double[pcount];
+        double pntz[] = new double[pcount];
+        tmsb.getPointsInGridUnits(pntx, pnty, pntz);
+
+        //if(true) return indexGrid;
+
+        ClosestPointIndexer.getPointsInWorldUnits(indexGrid, pntx, pnty, pntz);
+
+        ClosestPointIndexer.makeDistanceGrid(distanceGrid, pntx, pnty, pntz, 
+                                             interiorGrid, distanceGrid, m_maxInDistance, 
+                                             m_maxOutDistance, m_subvoxelResolution);
+
+        if(true) return distanceGrid;
+        
+        
+        // distribute indices on the whole indexGrid        
+        // calculate final distances in the given interval 
+        return distanceGrid;
+    }
+
+} // DistanceToTriangleSet 

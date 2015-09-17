@@ -578,5 +578,15 @@ public abstract class BaseAttributeGrid extends BaseGrid implements AttributeGri
         throw new RuntimeException(fmt("getVoxelData() not implemented in %s", this));
     }
 
+    public void copyData(AttributeGrid grid){
+        for(int y = 0; y < height; y++){
+            for(int x = 0; x < width; x++){
+                for(int z = 0; z < depth; z++){
+                    setAttribute(x,y,z,grid.getAttribute(x,y,z));
+                }
+            }
+        } 
+    }
+
 }
 

@@ -1062,6 +1062,13 @@ System.out.println("Speed opt: " + (System.currentTimeMillis() - startTime));
         return grid.getAttributeDesc(); 
     }
 
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        grid.copyData(fromGrid);
+    }
+
 } // MaterialIndexerWrapper 
 
 class EmptyFound implements ClassAttributeTraverser {

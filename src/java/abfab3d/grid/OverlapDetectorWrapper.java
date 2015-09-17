@@ -606,4 +606,11 @@ public class OverlapDetectorWrapper implements AttributeGridWrapper {
         return grid.getAttributeDesc(); 
     }
 
+    /**
+       copy data from fromGrid into this grid 
+     */
+    public void copyData(AttributeGrid fromGrid){
+        grid.copyData(fromGrid);
+    }
+
 }
