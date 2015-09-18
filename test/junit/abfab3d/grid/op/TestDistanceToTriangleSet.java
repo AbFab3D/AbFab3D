@@ -12,22 +12,24 @@
 
 package abfab3d.grid.op;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
 import abfab3d.grid.*;
+import abfab3d.io.input.X3DFileLoader;
+import abfab3d.io.input.X3DLoader;
+import abfab3d.io.input.X3DReader;
 import abfab3d.io.output.MeshMakerMT;
+import abfab3d.mesh.IndexedTriangleSetBuilder;
+import abfab3d.mesh.MeshDistance;
+import abfab3d.util.*;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 import junit.framework.TestCase;
 
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3d;
-
-import abfab3d.util.Bounds;
-import abfab3d.util.PointMap;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.BoundingBoxCalculator;
 
 import abfab3d.distance.DistanceData;
 import abfab3d.distance.DistanceDataSphere;
@@ -39,6 +41,7 @@ import abfab3d.io.input.STLReader;
 import abfab3d.geom.TriangulatedModels;
 import abfab3d.geom.PointCloud;
 import abfab3d.geom.Octahedron;
+import org.apache.commons.io.FilenameUtils;
 
 import static java.lang.Math.round;
 import static java.lang.Math.ceil;
@@ -76,13 +79,130 @@ public class TestDistanceToTriangleSet extends TestCase {
     }
 
     /**
+     * Test that the mesh is close to the input mesh
+     */
+    public void testMeshDistance() {
+        String path = "test/models";
+
+        String[] file = new String[] {
+//                "gyroid.stl",
+                "holes.stl",
+//                "cube_10mm.x3dv"
+        };
+        double[] vs = new double[] {
+//                0.1 * MM,
+                0.3 * MM,
+//                0.1 * MM
+         };
+
+        for(int i=0; i < file.length; i++) {
+            double d = calcMeshDistance(path,file[i], vs[i],0);
+
+            assertTrue(file + " contains too much error", (d < 2.0 * vs[i]));
+        }
+    }
+
+    double calcMeshDistance(String path, String filePath, double minVoxelSize, int post) {
+
+        if(DEBUG) printf("makeTestSTL()\n");
+        int maxGridDimension = 2000;
+//        double minVoxelSize = 0.06*MM;
+
+        printf("loading file: %s\n", filePath);
+
+        TriangleProducer loader = null;
+
+        if (filePath.endsWith("stl")) {
+            loader = new STLReader(path + File.separator + filePath);
+        } else {
+            loader = new X3DReader(path + File.separator + filePath);
+        }
+
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        loader.getTriangles(bb);
+        Bounds bounds = new Bounds(bb.getBounds());
+        printf("bounds: %s\n", bounds);
+        double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
+        printf("max size: %7.2f mm\n", maxSize/MM);
+        double maxOutDistance =  maxSize*0.1;
+        double maxInDistance =  maxOutDistance;
+        int subvoxelResolution = 10;
+
+        double vs = (maxSize+2*maxOutDistance)/maxGridDimension;
+        if (vs < minVoxelSize) vs = minVoxelSize;
+
+        printf("voxel size: %7.2f mm\n", vs/MM);
+
+        bounds.expand(maxOutDistance);
+
+        AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
+        printf("distanceGrid:[%d x %d x %d]\n",distGrid.getWidth(),distGrid.getHeight(), distGrid.getDepth());
+        long t0 = time();
+
+        DistanceToTriangleSet dts = new DistanceToTriangleSet(maxInDistance, maxOutDistance,subvoxelResolution);
+        dts.setTriangleProducer(loader);
+        dts.setIterationsCount(post);
+        distGrid = dts.execute(distGrid);
+        printf("distance ready %d ms\n", (time() - t0));
+
+        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,vs, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
+        AttributeGrid surface = (AttributeGrid) distGrid.createEmpty(distGrid.getWidth(), distGrid.getHeight(),
+                distGrid.getDepth(), distGrid.getSliceHeight(), distGrid.getVoxelSize());
+        surface.setGridBounds(bounds);
+
+        surface = dge.execute(surface);
+
+        // free memory
+        dts = null;
+        dge = null;
+        distGrid = null;
+
+        MeshMakerMT mmaker = new MeshMakerMT();
+        mmaker.setMaxAttributeValue(subvoxelResolution);
+        mmaker.setSmoothingWidth(0.25);
+        mmaker.setBlockSize(50);
+        mmaker.setMaxDecimationError(3.e-10);
+        //mmaker.setMaxDecimationCount(0);
+
+
+        IndexedTriangleSetBuilder its = new IndexedTriangleSetBuilder(160000);
+        MeshDistance md = new MeshDistance();
+        md.setTriangleSplit(true);
+        md.setHashDistanceValues(true);
+        md.setUseTriBuckets(true);
+        md.setTriBucketSize(0.3 * MM);
+        mmaker.makeMesh(surface, its);
+
+        printf("Calculating difference...\n");
+        md.measure(loader, its);
+
+        t0 = time();
+        printf("  HDF distance: %6.4f mm\n", md.getHausdorffDistance() / MM);
+        printf("  L_1 distance: %6.4f mm\n", md.getL1Distance() / MM);
+        printf("  L_2 distance: %6.4f mm\n", md.getL2Distance()/MM);
+        printf("  min distance: %6.4f mm\n", md.getMinDistance() / MM);
+        printf("  measure time: %d ms\n", (time() - t0));
+
+        if (DEBUG) {
+            try {
+                writeGrid(surface, "/tmp/" + FilenameUtils.getBaseName(filePath) + "_rt.stl", subvoxelResolution);
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        return md.getHausdorffDistance();
+    }
+
+    /**
        testing distance to sphere 
      */
     void makeTestSTL()throws Exception{
         
         if(DEBUG) printf("makeTestSTL()\n");
         String filePath = "/tmp/crab_vs0.2.stl";
-        int maxGridDimension = 500;
+//        int maxGridDimension = 500;
+        int maxGridDimension = 1000;
 
         printf("loading file: %s\n", filePath);
         STLReader stl = new STLReader(filePath);
@@ -119,6 +239,114 @@ public class TestDistanceToTriangleSet extends TestCase {
 
         try {
             writeGrid(surface, "/tmp/crab.stl", subvoxelResolution);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    /**
+     testing distance to sphere
+     */
+    void makeGyroidSTL()throws Exception{
+
+        if(DEBUG) printf("makeTestSTL()\n");
+        String filePath = "test/models/gyroid.stl";
+//        int maxGridDimension = 500;
+        int maxGridDimension = 1000;
+        double minVoxelSize = 0.1*MM;
+
+        printf("loading file: %s\n", filePath);
+        STLReader stl = new STLReader(filePath);
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        stl.getTriangles(bb);
+        Bounds bounds = new Bounds(bb.getBounds());
+        printf("bounds: %s\n", bounds);
+        double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
+        printf("max size: %7.2f mm\n", maxSize/MM);
+        double maxOutDistance =  maxSize*0.1;
+        double maxInDistance =  maxOutDistance;
+        int subvoxelResolution = 10;
+
+        double vs = (maxSize+2*maxOutDistance)/maxGridDimension;
+        if (vs < minVoxelSize) vs = minVoxelSize;
+
+        printf("voxel size: %7.2f mm\n", vs/MM);
+
+        bounds.expand(maxOutDistance);
+
+        AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
+        printf("distanceGrid:[%d x %d x %d]\n",distGrid.getWidth(),distGrid.getHeight(), distGrid.getDepth());
+        long t0 = time();
+
+        DistanceToTriangleSet dts = new DistanceToTriangleSet(maxInDistance, maxOutDistance,subvoxelResolution);
+        dts.setTriangleProducer(stl);
+        distGrid = dts.execute(distGrid);
+        printf("distance ready %d ms\n", (time() - t0));
+
+        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,vs, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
+        AttributeGrid surface = (AttributeGrid) distGrid.createEmpty(distGrid.getWidth(), distGrid.getHeight(),
+                distGrid.getDepth(), distGrid.getSliceHeight(), distGrid.getVoxelSize());
+        surface.setGridBounds(bounds);
+
+        surface = dge.execute(surface);
+
+        try {
+            writeGrid(surface, "/tmp/gyroid_rt.stl", subvoxelResolution);
+        } catch(IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+
+    /**
+     * Test a thin 0.15mm model
+     */
+    void makeThin()throws Exception{
+
+        if(DEBUG) printf("makeTestSTL()\n");
+        String filePath = "test/models/2855479.x3db";
+//        int maxGridDimension = 500;
+        int maxGridDimension = 1000;
+        double minVoxelSize = 0.1*MM;
+
+        printf("loading file: %s\n", filePath);
+        X3DReader loader = new X3DReader(filePath);
+        BoundingBoxCalculator bb = new BoundingBoxCalculator();
+        loader.getTriangles(bb);
+        Bounds bounds = new Bounds(bb.getBounds());
+        printf("bounds: %s\n", bounds);
+        double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
+        printf("max size: %7.2f mm\n", maxSize/MM);
+        double maxOutDistance =  maxSize*0.1;
+        double maxInDistance =  maxOutDistance;
+        int subvoxelResolution = 10;
+        int postIterations = 0;
+
+        double vs = (maxSize+2*maxOutDistance)/maxGridDimension;
+        if (vs < minVoxelSize) vs = minVoxelSize;
+
+        printf("voxel size: %7.2f mm\n", vs/MM);
+
+        bounds.expand(maxOutDistance);
+
+        AttributeGrid distGrid = new ArrayAttributeGridShort(bounds, vs, vs);
+        printf("distanceGrid:[%d x %d x %d]\n",distGrid.getWidth(),distGrid.getHeight(), distGrid.getDepth());
+        long t0 = time();
+
+        DistanceToTriangleSet dts = new DistanceToTriangleSet(maxInDistance, maxOutDistance,subvoxelResolution);
+        dts.setTriangleProducer(loader);
+        dts.setIterationsCount(postIterations);
+        distGrid = dts.execute(distGrid);
+        printf("distance ready %d ms\n", (time() - t0));
+
+        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,vs, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
+        AttributeGrid surface = (AttributeGrid) distGrid.createEmpty(distGrid.getWidth(), distGrid.getHeight(),
+                distGrid.getDepth(), distGrid.getSliceHeight(), distGrid.getVoxelSize());
+        surface.setGridBounds(bounds);
+
+        surface = dge.execute(surface);
+
+        try {
+            writeGrid(surface, "/tmp/2855479_rt.stl", subvoxelResolution);
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
@@ -226,8 +454,8 @@ public class TestDistanceToTriangleSet extends TestCase {
     public static void main(String arg[]) throws Exception {
 
         for(int i = 0; i < 1; i++){
-            //new TestDistanceToTriangleSet().makeTestSphere();
-            new TestDistanceToTriangleSet().makeTestSTL();
+            new TestDistanceToTriangleSet().makeTestSphere();
+            //new TestDistanceToTriangleSet().testMeshDistance();
         }        
     }
 }
