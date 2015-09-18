@@ -145,7 +145,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         distGrid = dts.execute(distGrid);
         printf("distance ready %d ms\n", (time() - t0));
 
-        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,vs, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
+        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,0, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
         AttributeGrid surface = (AttributeGrid) distGrid.createEmpty(distGrid.getWidth(), distGrid.getHeight(),
                 distGrid.getDepth(), distGrid.getSliceHeight(), distGrid.getVoxelSize());
         surface.setGridBounds(bounds);
