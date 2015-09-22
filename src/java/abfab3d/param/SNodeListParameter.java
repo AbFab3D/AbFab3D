@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Alan Hudson
  */
-public class SNodeListParameter extends Parameter {
+public class SNodeListParameter extends BaseParameter {
     public SNodeListParameter(String name) {
 
         this(name, name);

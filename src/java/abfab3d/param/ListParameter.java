@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Alan Hudson
  */
-public class ListParameter extends Parameter {
+public class ListParameter extends BaseParameter {
     /** The internal definition */
     protected Parameter def;
 

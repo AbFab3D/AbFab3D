@@ -13,14 +13,12 @@ package abfab3d.param;
 
 // External Imports
 
-import javax.vecmath.AxisAngle4d;
-
 /**
  * A ObjectParameter parameter  to hold generic object
  *
  * @author Vladimir Bulatov
  */
-public class ObjectParameter extends Parameter {
+public class ObjectParameter extends BaseParameter {
 
     public ObjectParameter(String name, String desc, Object initialValue) {
         super(name, desc);

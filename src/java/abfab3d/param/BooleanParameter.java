@@ -18,7 +18,7 @@ package abfab3d.param;
  *
  * @author Vladimir Bulatov
  */
-public class BooleanParameter extends NumberParameter {
+public class BooleanParameter extends BaseParameter {
 
     public BooleanParameter(String name, String desc, boolean initialValue) {
         super(name, desc);

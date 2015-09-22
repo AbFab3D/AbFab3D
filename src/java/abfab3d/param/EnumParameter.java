@@ -19,7 +19,7 @@ package abfab3d.param;
  *
  * @author Alan Hudson
  */
-public class EnumParameter extends Parameter {
+public class EnumParameter extends BaseParameter {
 
     String m_values[] = new String[]{"value"};
     int m_index = 0;

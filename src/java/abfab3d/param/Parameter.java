@@ -17,33 +17,12 @@ package abfab3d.param;
  *
  * @author Alan Hudson
  */
-public abstract class Parameter implements Cloneable {
-    /** The name of the parameter. */
-    private String name;
-
-    /** The description */
-    private String desc;
-
-    /** The value */
-    protected Object value;
-
-    /** The default value */
-    protected Object defaultValue;
-
-    /** Method to run on change */
-    protected String onChange;
-
-    public Parameter(String name, String desc) {
-
-        this.name = name;
-        this.desc = desc;
-    }
-
+public interface Parameter extends Cloneable {
     /**
      * Get the parameter type enum.
      * @return The type
      */
-    public abstract ParameterType getType();
+    public ParameterType getType();
 
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
@@ -51,87 +30,53 @@ public abstract class Parameter implements Cloneable {
      *
      * @param val The proposed value
      */
-    public abstract void validate(Object val);
+    public void validate(Object val);
 
     /**
      * @return the name
      */
-    public String getName() {
-        return name;
-    }
+    public String getName();
 
     /**
      * @param name the name to set
      */
-    public void setName(String name) {
-        this.name = name;
-    }
+    public void setName(String name);
 
     /**
      * @return the desc
      */
-    public String getDesc() {
-        return desc;
-    }
+    public String getDesc();
 
     /**
      * @param desc the desc to set
      */
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
+    public void setDesc(String desc);
 
     /**
      * Get the parameters value.
      * @return
      */
-    public Object getValue() {
-        return value;
-    }
+    public Object getValue();
 
     /**
      * Set the parameters value
      * @param value
      */
-    public void setDefaultValue(Object value) {
-
-        validate(value);
-        
-        this.defaultValue = value;
-    }
+    public void setDefaultValue(Object value);
 
     /**
      * Get the parameters value.
      * @return
      */
-    public Object getDefaultValue() {
-        return defaultValue;
-    }
+    public Object getDefaultValue();
 
     /**
      * Set the parameters value
      * @param value
      */
-    public void setValue(Object value) {
+    public void setValue(Object value);
 
-        validate(value);
+    public String getOnChange();
 
-        this.value = value;
-    }
-
-    public String getOnChange() {
-        return onChange;
-    }
-
-    public void setOnChange(String onChange) {
-        this.onChange = onChange;
-    }
-
-    public Parameter clone() {
-        try {
-            return (Parameter) super.clone();
-        } catch(CloneNotSupportedException cnse) { cnse.printStackTrace(); }
-
-        return null;
-    }
+    public void setOnChange(String onChange);
 }

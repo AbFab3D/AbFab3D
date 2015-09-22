@@ -18,7 +18,7 @@ package abfab3d.param;
  *
  * @author Vladimir Bulatov
  */
-public class URIParameter extends Parameter {
+public class URIParameter extends BaseParameter {
 
     public URIParameter(String name, String desc, String initialValue) {
         super(name, desc);

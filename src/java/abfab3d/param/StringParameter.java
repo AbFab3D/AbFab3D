@@ -18,7 +18,7 @@ package abfab3d.param;
  *
  * @author Vladimir Bulatov
  */
-public class StringParameter extends Parameter {
+public class StringParameter extends BaseParameter {
 
     public StringParameter(String name, String desc, String initialValue) {
         super(name, desc);
