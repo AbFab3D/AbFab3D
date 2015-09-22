@@ -10,7 +10,7 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
+package abfab3d.geom;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors; 
@@ -37,6 +37,7 @@ import abfab3d.grid.VectorIndexer;
 import abfab3d.grid.VectorIndexerArray;
 import abfab3d.grid.ArrayInt;
 
+import abfab3d.grid.op.Neighborhood;
 import abfab3d.grid.util.ExecutionStoppedException;
 
 import abfab3d.util.Bounds;
@@ -76,7 +77,7 @@ public class TriangleMeshShellBuilder implements TriangleCollector {
 
     static final boolean DEBUG = true;
     static final double TOL = 1.e-2;
-    static final double HALF = 0.5; // half voxel offset to the center of voxel 
+    static final double HALF = 0.5; // half voxel offset to the center of voxel
 
     
     static final int DEFAULT_SVR = 100;

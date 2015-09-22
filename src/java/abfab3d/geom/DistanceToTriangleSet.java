@@ -10,58 +10,24 @@
  *
  ****************************************************************************/
 
-package abfab3d.grid.op;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
-
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.vecmath.Vector3d; 
-
-import java.util.concurrent.ExecutorService; 
-import java.util.concurrent.Executors; 
-import java.util.concurrent.TimeUnit;
+package abfab3d.geom;
 
 import abfab3d.grid.Grid;
 import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.Operation;
 import abfab3d.grid.AttributeOperation;
-import abfab3d.grid.GridBit;
-import abfab3d.grid.GridMask;
-import abfab3d.grid.GridBitIntervals;
 import abfab3d.grid.ArrayAttributeGridByte;
 import abfab3d.grid.ArrayAttributeGridInt;
-import abfab3d.grid.ArrayAttributeGridShort;
-import abfab3d.grid.VectorIndexer;
-import abfab3d.grid.VectorIndexerArray;
-import abfab3d.grid.ArrayInt;
-
-import abfab3d.grid.util.ExecutionStoppedException;
 
 import abfab3d.util.Bounds;
-import abfab3d.util.TriangleCollector;
-import abfab3d.util.PointSet;
-import abfab3d.util.PointSetArray;
-import abfab3d.util.TriangleRenderer;
-import abfab3d.util.PointToTriangleDistance;
-import abfab3d.util.PointMap;
 import abfab3d.util.TriangleProducer;
 
-import abfab3d.geom.ZBufferRasterizer;
-
-import static java.lang.Math.sqrt;
 import static java.lang.Math.max;
 import static java.lang.Math.abs;
 import static java.lang.Math.min;
 
-import static abfab3d.util.Output.time;
 import static abfab3d.util.Output.printf;
 import static abfab3d.util.Output.fmt;
-import static abfab3d.util.MathUtil.L2S;
-import static abfab3d.util.MathUtil.iround;
-import static abfab3d.util.Units.MM;
 
 
 /**
@@ -77,9 +43,10 @@ public class DistanceToTriangleSet implements Operation, AttributeOperation {
 
     // count of clean up iterations at the end 
     int m_iterationsCount = 0;
-    // thickenss of intialial shell 
-    double m_shellHalfThickness = 1.9;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
-    // 
+    // thickenss of intialial shell
+//    double m_shellHalfThickness = 1.9;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values
+    double m_shellHalfThickness = 0.9;  // vlad suggested to reduce errors in flat values
+    //
     int m_subvoxelResolution = DEFAULT_SVR;
     double m_voxelSize;
     Bounds m_bounds;
