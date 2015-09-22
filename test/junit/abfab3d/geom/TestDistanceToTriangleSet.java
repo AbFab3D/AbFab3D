@@ -189,12 +189,12 @@ public class TestDistanceToTriangleSet extends TestCase {
 //                "cube_10mm.x3dv"
         };
         double[] vs = new double[] {
-                0.1 * MM,
+                10 * MM,
 //                0.3 * MM,
 //                0.1 * MM
         };
 
-        int threads = 8;
+        int threads = 6;
         AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, threads);
 /*
         for(int i=0; i < file.length; i++) {

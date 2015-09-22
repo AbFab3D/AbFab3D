@@ -18,6 +18,7 @@ import abfab3d.grid.util.ExecutionStoppedException;
 import abfab3d.io.output.IsosurfaceMaker;
 import abfab3d.io.output.MeshExporter;
 
+import abfab3d.util.Units;
 import org.apache.commons.io.FilenameUtils;
 
 import abfab3d.mesh.*;
@@ -638,7 +639,7 @@ public class GridSaver {
 
         int regions_removed = 0;
 
-        System.out.println("Minimum volume: " + minVolume);
+        //System.out.println("Minimum volume: " + (minVolume / Units.CM3));
         ArrayList<ShellData> saved_shells = new ArrayList<ShellData>();
         int face_count = 0;
         int cnt = 0;
@@ -648,14 +649,16 @@ public class GridSaver {
             mesh.getTriangles(ac);
             double volume = ac.getVolume();
 
-            //System.out.println("   vol: " + volume);
+            //System.out.println("   vol: " + (volume / Units.CM3));
             if (volume >= minVolume) {
+                //System.out.println("Keeping shell: " + volume / Units.CM3);
                 saved_shells.add(new ShellData(shells[i],volume));
                 if (cnt < numShells) {
                     face_count += shells[i].faceCount;
                 }
                 cnt++;
             } else {
+                //System.out.println("Removing shell.  vol: " + (volume / Units.CM3));
                 regions_removed++;
             }
         }
@@ -672,6 +675,7 @@ public class GridSaver {
 
         printf("extracting largest shells: %d\n",face_count);
         mesh = new WingedEdgeTriangleMesh(its.getVertices(),its.getFaces());
+
         return new ShellResults(mesh, regions_removed);
     }
 

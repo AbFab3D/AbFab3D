@@ -518,7 +518,7 @@ public class Image3D extends TransformableDataSource {
 
             } catch (Exception e) {
 
-                printf("ERROR READING IMAGE: '%s' \n", m_imagePath);
+                printf("ERROR READING IMAGE: '%s' msg: %s\n", m_imagePath,e.getMessage());
                 StackTraceElement[] st = Thread.currentThread().getStackTrace();
                 int len = Math.min(10, st.length);
                 for (int i = 1; i < len; i++) printf("\t\t %s\n", st[i]);
