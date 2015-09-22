@@ -194,7 +194,7 @@ public class TestDistanceToTriangleSet extends TestCase {
 //                0.1 * MM
         };
 
-        int threads = 6;
+        int threads = 1;
         AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, threads);
 /*
         for(int i=0; i < file.length; i++) {
