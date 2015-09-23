@@ -40,6 +40,8 @@ public class UserDefinedParameter extends BaseParameter {
 
         types = new HashMap<String, ParameterType>();
         props = new HashMap<String, Parameter>();
+
+        this.value = new LinkedHashMap();
     }
 
     /**
@@ -96,7 +98,9 @@ public class UserDefinedParameter extends BaseParameter {
     }
 
     public void addProperty(String name, Parameter val) {
+
         props.put(name,val);
+        ((Map)value).put(name,val);
     }
 
     public Parameter getProperty(String name) {
