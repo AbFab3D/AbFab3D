@@ -29,6 +29,7 @@ public class UserDefinedParameter extends BaseParameter {
 
     public UserDefinedParameter(String name, String desc, Object initialValue) {
         super(name, desc);
+        setDefaultValue(initialValue);
         setValue(initialValue);
 
         types = new HashMap<String, ParameterType>();
@@ -48,11 +49,12 @@ public class UserDefinedParameter extends BaseParameter {
      * Set the parameters value
      * @param value
      */
-    public void setDefaultValue(Object value) {
+    public void setDefaultValue(Map value) {
 
         validate(value);
 
-        this.defaultValue = value;
+        LinkedHashMap lhm = new LinkedHashMap(value);
+        this.defaultValue = lhm;
     }
 
     /**
@@ -73,6 +75,15 @@ public class UserDefinedParameter extends BaseParameter {
 
         LinkedHashMap lhm = new LinkedHashMap(value);
         this.value = lhm;
+    }
+
+    /**
+     * Set one specific properties value.
+     * @param name
+     * @param val
+     */
+    public void setPropertyValue(String name, Parameter val) {
+        ((Map)this.value).put(name,val);
     }
 
     /**
@@ -100,7 +111,7 @@ public class UserDefinedParameter extends BaseParameter {
     public void addProperty(String name, Parameter val) {
 
         props.put(name,val);
-        ((Map)value).put(name,val);
+        ((Map)value).put(name, val);
     }
 
     public Parameter getProperty(String name) {
