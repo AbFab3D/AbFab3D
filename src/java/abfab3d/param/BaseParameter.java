@@ -32,11 +32,21 @@ public abstract class BaseParameter implements Parameter {
 
     /** Method to run on change */
     protected String onChange;
+    
+    protected String group;
+    
 
-    public BaseParameter(String name, String desc) {
+	public BaseParameter(String name, String desc) {
 
         this.name = name;
         this.desc = desc;
+    }
+	
+	public BaseParameter(String name, String desc, String group) {
+
+        this.name = name;
+        this.desc = desc;
+        this.group = group;
     }
 
     /**
@@ -126,6 +136,14 @@ public abstract class BaseParameter implements Parameter {
     public void setOnChange(String onChange) {
         this.onChange = onChange;
     }
+    
+    public String getGroup() {
+		return group;
+	}
+
+	public void setGroup(String group) {
+		this.group = group;
+	}
 
     public BaseParameter clone() {
         try {

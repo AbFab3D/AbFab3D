@@ -79,4 +79,8 @@ public interface Parameter extends Cloneable {
     public String getOnChange();
 
     public void setOnChange(String onChange);
+    
+    public String getGroup();
+
+    public void setGroup(String group);
 }
