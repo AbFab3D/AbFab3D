@@ -281,6 +281,10 @@ public class Image3D extends TransformableDataSource {
 
     }
 
+    public void setRounding(double rounding) {
+        mp_rounding.setValue(new Double(rounding));
+    }
+
     /**
      * @noRefGuide
      */
@@ -316,6 +320,10 @@ public class Image3D extends TransformableDataSource {
 
         m_image = image;
 
+    }
+
+    public void setImage(ImageWrapper wrapper) {
+        m_image = wrapper.getImage();
     }
 
     /**

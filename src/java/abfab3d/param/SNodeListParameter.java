@@ -55,6 +55,10 @@ public class SNodeListParameter extends BaseParameter {
         ((List) value).set(index, source);
     }
 
+    public void clear() {
+        ((List) value).clear();
+    }
+
     /**
      * Validate that the object's value meets the parameters requirements.  Throws InvalidArgumentException on
      * error.
