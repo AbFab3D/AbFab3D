@@ -121,6 +121,7 @@ public class Union  extends TransformableDataSource implements SNode {
 
     public void clear() {
         mp_dataSources.clear();
+        dataSources.clear();
     }
     /**
        @noRefGuide
