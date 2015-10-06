@@ -98,6 +98,14 @@ public class Bounds implements Cloneable {
     }
 
     /**
+     * Returns the maximum width, height or depth
+     * @return
+     */
+    public double getSizeMax() {
+        return Math.max(Math.max(getSizeX(),getSizeY()),getSizeZ());
+    }
+
+    /**
        @return depth of bounds 
      */
     public double getSizeZ(){
@@ -187,7 +195,7 @@ public class Bounds implements Cloneable {
 
     /**
        expand bounds by given margins 
-       @param marging amount of expansion. if (margin < 0) bounds shrink 
+       @param margin amount of expansion. if (margin < 0) bounds shrink
      */
     public void expand(double margin){
 
