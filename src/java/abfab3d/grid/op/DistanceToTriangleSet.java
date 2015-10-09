@@ -78,7 +78,7 @@ public class DistanceToTriangleSet implements Operation, AttributeOperation {
     // count of clean up iterations at the end 
     int m_iterationsCount = 0;
     // thickenss of intialial shell 
-    double m_shellHalfThickness = 1.9;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
+    double m_shellHalfThickness = 0.9;  // 2.0, 2.25, 2.45*, 2.84, 3.0 3.17 3.33*, 3.46, 3.62, 3.74*   * - good values 
     // 
     int m_subvoxelResolution = DEFAULT_SVR;
     double m_voxelSize;

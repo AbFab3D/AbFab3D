@@ -81,8 +81,9 @@ public class TestDistanceToTriangleSet extends TestCase {
     void makeTestSTL()throws Exception{
         
         if(DEBUG) printf("makeTestSTL()\n");
-        String filePath = "/tmp/crab_vs0.2.stl";
-        int maxGridDimension = 500;
+        //String filePath = "/tmp/crab_vs0.2.stl";
+        String filePath = "test/models/holes.stl";
+        int maxGridDimension = 1000;
 
         printf("loading file: %s\n", filePath);
         STLReader stl = new STLReader(filePath);
@@ -94,7 +95,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         printf("max size: %7.2f mm\n", maxSize/MM);  
         double maxOutDistance =  maxSize*0.1;
         double maxInDistance =  maxOutDistance;
-        int subvoxelResolution = 10;
+        int subvoxelResolution = 100;
                 
         double vs = (maxSize+2*maxOutDistance)/maxGridDimension;                
         printf("voxel size: %7.2f mm\n", vs/MM);  
@@ -110,7 +111,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         distGrid = dts.execute(distGrid);        
         printf("distance ready %d ms\n", (time() - t0));
 
-        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,vs, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
+        DensityGridExtractor dge = new DensityGridExtractor(-maxInDistance,0, distGrid,maxInDistance,maxOutDistance,subvoxelResolution);
         AttributeGrid surface = (AttributeGrid) distGrid.createEmpty(distGrid.getWidth(), distGrid.getHeight(),
                 distGrid.getDepth(), distGrid.getSliceHeight(), distGrid.getVoxelSize());
         surface.setGridBounds(bounds);
@@ -118,7 +119,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         surface = dge.execute(surface);
 
         try {
-            writeGrid(surface, "/tmp/crab.stl", subvoxelResolution);
+            writeGrid(surface, "/tmp/test.stl", subvoxelResolution);
         } catch(IOException ioe) {
             ioe.printStackTrace();
         }
@@ -126,11 +127,12 @@ public class TestDistanceToTriangleSet extends TestCase {
 
     void writeGrid(Grid grid, String path, int gridMaxAttributeValue) throws IOException {
 
+        double vs = grid.getVoxelSize();
         MeshMakerMT mmaker = new MeshMakerMT();
         mmaker.setMaxAttributeValue(gridMaxAttributeValue);
-        mmaker.setSmoothingWidth(0.5);
+        mmaker.setSmoothingWidth(0.001);
         mmaker.setBlockSize(50);
-        mmaker.setMaxDecimationError(3.e-10);
+        mmaker.setMaxDecimationError(0.01*vs*vs);
 
         STLWriter stl = new STLWriter(path);
         mmaker.makeMesh(grid, stl);
