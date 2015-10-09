@@ -21,7 +21,7 @@ import java.util.List;
  *
  * @author Alan Hudson
  */
-public class SNodeListParameter extends Parameter {
+public class SNodeListParameter extends BaseParameter {
     public SNodeListParameter(String name) {
 
         this(name, name);
@@ -53,6 +53,10 @@ public class SNodeListParameter extends Parameter {
 
     public void set(int index, Parameterizable source){
         ((List) value).set(index, source);
+    }
+
+    public void clear() {
+        ((List) value).clear();
     }
 
     /**

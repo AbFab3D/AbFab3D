@@ -11,7 +11,7 @@
  ****************************************************************************/
 
 
-package abfab3d.grid.op;
+package abfab3d.geom;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -21,7 +21,10 @@ import abfab3d.grid.AttributeGrid;
 import abfab3d.grid.ArrayAttributeGridShort;
 import abfab3d.grid.Grid2D;
 
+import abfab3d.grid.op.Neighborhood;
 import abfab3d.util.Bounds;
+
+import java.util.Arrays;
 
 import static java.lang.Math.sqrt;
 
@@ -59,10 +62,13 @@ public class ClosestPointIndexer {
     static final boolean DEBUG = true;
     static boolean DEBUG1 = false;
     static final boolean DEBUG_TIMING = true;
-    static final int sm_iterationNeig[] = Neighborhood.makeBall(1.5); // neighborhood for iterations 
+    static final int sm_iterationNeig[] = Neighborhood.makeBall(1.5); // neighborhood for iterations
     // neighbors to collect for 1D pass 
     //static final int[] sm_neig2 = new int[]{0,0,1,0,-1,0,0,1,0,-1};
     static final int[] sm_neig2 = new int[]{0,0};
+
+    private static long processed = 0;
+    private static long changed = 0;
 
     /**
        Indexed Coord Distance Transform 
@@ -87,9 +93,9 @@ public class ClosestPointIndexer {
                              int gpindex[], 
                              int v[], 
                              double w[]){
-        int ecount;
-        if(true) ecount = sortCoordinates(pointCount, index, coord, value);
-        
+        //int ecount = 0;
+        //if(true) ecount = sortCoordinates(pointCount, index, coord, value);
+
         //if(DEBUG) printD("coord:", coord, pointCount);
         //if(DEBUG) printD("value: ", value, pointCount);
         int k = 0; // index of current active parabola in the envelope 
@@ -137,8 +143,15 @@ public class ClosestPointIndexer {
                 k++;
             }
             gpindex[q] = index[v[k]];
-        } 
-        return ecount;
+        }
+/*
+        int num_changed = (gridSize-k);
+        int[] gpnt = new int[num_changed];
+        System.arraycopy(gpindex,0,gpnt,0,num_changed);
+        printf("Running: pcnt: %d value: %s changed: %d gpnt: %s\n", pointCount, Arrays.toString(value),(gridSize - k), Arrays.toString(gpnt));
+*/
+        changed++;
+        return (gridSize - k);
     }
 
     /**
@@ -216,8 +229,7 @@ public class ClosestPointIndexer {
      *  @param coordx  array of x coordinates. coordx[0] is unused 
      *  @param coordy  array of y coordinates. coordy[0] is unused  
      *  @param coordz  array of y coordinates. coordz[0] is unused 
-     *  @param value array of values of distances at the points 
-     *  @param indexGrid - on input has indices of closest points in thin layer around the surface, 
+     *  @param indexGrid - on input has indices of closest points in thin layer around the surface,
      *                   - on output has indices of closest point for each grid point 
      *                   valid indices start from 1, value 0 means "undefined" 
      */
@@ -238,7 +250,7 @@ public class ClosestPointIndexer {
         int ipnt[] = new int[nm+1];
         double value1[] = new double[nm];
         int gpnt[] = new int[nm];
-        DT3sweepX(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
+        DT3sweepX(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);
         DT3sweepY(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
         DT3sweepZ(coordx, coordy, coordz, indexGrid, v, w, ipnt, value1, gpnt);        
 
@@ -325,6 +337,8 @@ public class ClosestPointIndexer {
             if(cnt == 0) 
                 break;
         }
+
+        printf("processed: %d  changed: %d\n",processed,changed);
     } // DT3_v2()
 
 
@@ -353,16 +367,18 @@ public class ClosestPointIndexer {
                     }
 
                 }
+                processed++;
                 if(pcnt > 0){ 
                     if(false) {
                         printInd("B:", iy, iz, indexGrid);
                         printRow("  ", pcnt, coordx, ipnt);
                     }
                     
-                    ecount += PI1(nx,pcnt, ipnt, coordx, value, gpnt, v, w);
+                    int changed = PI1(nx,pcnt, ipnt, coordx, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
-                    for(int ix = 0; ix < nx; ix++){
-                        indexGrid.setAttribute(ix, iy, iz, gpnt[ix]);
+//                    for(int ix = 0; ix < nx; ix++){
+                    for(int ix = 0; ix < changed; ix++){
+                      indexGrid.setAttribute(ix, iy, iz, gpnt[ix]);
                     }            
                     if(false) {
                         printTitle("A", nx);
@@ -462,11 +478,14 @@ public class ClosestPointIndexer {
                         
                     }
                 }
+                processed++;
+
                 if(pcnt > 0){ 
-                    ecount += PI1(ny, pcnt, ipnt, coordy, value, gpnt, v, w);
+                    int changed = PI1(ny, pcnt, ipnt, coordy, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
-                    for(int iy = 0; iy < ny; iy++){
-                        indexGrid.setAttribute(ix, iy, iz, gpnt[iy]);
+//                    for(int iy = 0; iy < ny; iy++){
+                    for(int iy = 0; iy < changed; iy++){
+                      indexGrid.setAttribute(ix, iy, iz, gpnt[iy]);
                     }            
                 }
             }
@@ -503,10 +522,12 @@ public class ClosestPointIndexer {
                         pcnt++;
                     }
                 }
+                processed++;
+
                 if(pcnt > 0){ 
-                    ecount += PI1(nz, pcnt, ipnt, coordz, value, gpnt, v, w);
+                    int changed = PI1(nz, pcnt, ipnt, coordz, value, gpnt, v, w);
                     // write chain of indices back into 3D grid 
-                    for(int iz = 0; iz < nz; iz++){
+                    for(int iz = 0; iz < changed; iz++){
                         indexGrid.setAttribute(ix, iy, iz, gpnt[iz]);
                     }            
                 }

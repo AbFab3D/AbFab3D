@@ -20,7 +20,7 @@ import javax.vecmath.Vector3d;
  *
  * @author Alan Hudson
  */
-public class LocationParameter extends Parameter implements Cloneable {
+public class LocationParameter extends BaseParameter implements Cloneable {
     private static final Vector3d DEFAULT_POINT = null;
     private static final Vector3d DEFAULT_NORMAL = null;
     

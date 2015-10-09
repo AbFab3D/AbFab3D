@@ -18,7 +18,7 @@ package abfab3d.param;
  *
  * @author Alan Hudson
  */
-public class SNodeParameter extends Parameter {
+public class SNodeParameter extends BaseParameter {
     public SNodeParameter(String name) {
 
         this(name, name, null);

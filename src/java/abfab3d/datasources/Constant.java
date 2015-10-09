@@ -42,6 +42,14 @@ public class Constant extends TransformableDataSource {
         mp_value.setValue(value);
     }
 
+    public void setValue(double val) {
+        mp_value.setValue(val);
+    }
+
+    public double getValue() {
+        return mp_value.getValue();
+    }
+
     /**
      * @noRefGuide
      */

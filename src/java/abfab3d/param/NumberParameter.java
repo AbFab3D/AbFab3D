@@ -18,7 +18,7 @@ package abfab3d.param;
  *
  * @author Alan Hudson
  */
-public abstract class NumberParameter extends Parameter implements Cloneable {
+public abstract class NumberParameter extends BaseParameter implements Cloneable {
     public NumberParameter(String name, String desc) {
         super(name,desc);
     }

@@ -281,6 +281,10 @@ public class Image3D extends TransformableDataSource {
 
     }
 
+    public void setRounding(double rounding) {
+        mp_rounding.setValue(new Double(rounding));
+    }
+
     /**
      * @noRefGuide
      */
@@ -316,6 +320,10 @@ public class Image3D extends TransformableDataSource {
 
         m_image = image;
 
+    }
+
+    public void setImage(ImageWrapper wrapper) {
+        m_image = wrapper.getImage();
     }
 
     /**
@@ -518,7 +526,7 @@ public class Image3D extends TransformableDataSource {
 
             } catch (Exception e) {
 
-                printf("ERROR READING IMAGE: '%s' \n", m_imagePath);
+                printf("ERROR READING IMAGE: '%s' msg: %s\n", m_imagePath,e.getMessage());
                 StackTraceElement[] st = Thread.currentThread().getStackTrace();
                 int len = Math.min(10, st.length);
                 for (int i = 1; i < len; i++) printf("\t\t %s\n", st[i]);
