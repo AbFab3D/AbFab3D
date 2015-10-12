@@ -294,6 +294,10 @@ public class Image3D extends TransformableDataSource {
 
     }
 
+    public void setDistanceFactor(double value) {
+        mp_distanceFactor.setValue(new Double(value));
+    }
+
     /**
      * @noRefGuide
      */

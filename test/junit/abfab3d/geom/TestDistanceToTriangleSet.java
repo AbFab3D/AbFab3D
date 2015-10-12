@@ -104,12 +104,12 @@ public class TestDistanceToTriangleSet extends TestCase {
 //                "cube_10mm.x3dv"
         };
         double[] vs = new double[] {
-                10 * MM,
+                0.1 * MM,
 //                0.3 * MM,
 //                0.1 * MM
         };
 
-        int threads = 1;
+        int threads = 8;
         AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, threads);
 
         for(int i=0; i < file.length; i++) {
@@ -122,6 +122,7 @@ public class TestDistanceToTriangleSet extends TestCase {
     /**
      * Test ST versus MT
      */
+    /*
     public void testDistanceCalc() {
         String path = "test/models";
 
@@ -176,10 +177,12 @@ public class TestDistanceToTriangleSet extends TestCase {
             assertTrue("grids not equal",equals);
         }
     }
+    */
 
     /**
      * Test MT Calc
      */
+    /*
     public void testMTCalc() {
         String path = "test/models";
 
@@ -189,31 +192,19 @@ public class TestDistanceToTriangleSet extends TestCase {
 //                "cube_10mm.x3dv"
         };
         double[] vs = new double[] {
-                10 * MM,
+                0.1 * MM,
 //                0.3 * MM,
 //                0.1 * MM
         };
 
-        int threads = 1;
+        int threads = 8;
         AbFab3DGlobals.put(AbFab3DGlobals.MAX_PROCESSOR_COUNT_KEY, threads);
-/*
-        for(int i=0; i < file.length; i++) {
-            AttributeGrid dist2 = calcDistanceMT(path, file[i], vs[i], 0, 1);
-        }
 
-        for(int i=0; i < file.length; i++) {
-            AttributeGrid dist2 = calcDistanceMT(path, file[i], vs[i], 0, 2);
-        }
-
-        for(int i=0; i < file.length; i++) {
-            AttributeGrid dist2 = calcDistanceMT(path, file[i], vs[i], 0, 4);
-        }
-*/
         for(int i=0; i < file.length; i++) {
             AttributeGrid dist2 = calcDistanceMT(path, file[i], vs[i], 0, threads);
         }
     }
-
+    */
     private AttributeGrid calcDistanceST(String path, String filePath, double minVoxelSize, int post) {
         if(DEBUG) printf("makeTestSTL()\n");
         int maxGridDimension = 2000;
@@ -255,7 +246,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         return distGrid;
 
     }
-
+/*
     private AttributeGrid calcDistanceMT(String path, String filePath, double minVoxelSize, int post, int threads) {
         if(DEBUG) printf("makeTestSTL()\n");
         int maxGridDimension = 2000;
@@ -301,7 +292,7 @@ public class TestDistanceToTriangleSet extends TestCase {
 
         return distGrid;
     }
-
+*/
     double calcMeshDistance(String path, String filePath, double minVoxelSize, int post) {
 
         if(DEBUG) printf("makeTestSTL()\n");
@@ -524,7 +515,7 @@ public class TestDistanceToTriangleSet extends TestCase {
                 printf("bounds: %s\n", bounds);
                 double maxSize = max(max(bounds.getSizeX(), bounds.getSizeY()), bounds.getSizeZ());
                 printf("max size: %7.2f mm\n", maxSize / MM);
-                double maxDist = 1.2 * MM;
+                double maxDist = 1.2 * MM;  // TODO: change to 1.2mm for CM trials
                 double maxOutDistance = maxDist;
                 double maxInDistance = maxOutDistance;
                 int subvoxelResolution = 10;
@@ -861,10 +852,10 @@ public class TestDistanceToTriangleSet extends TestCase {
     public static void main(String arg[]) throws Exception {
 
         for(int i = 0; i < 1; i++){
-            //new TestDistanceToTriangleSet().compareSpeeds();
+            new TestDistanceToTriangleSet().compareSpeeds();
             //new TestDistanceToTriangleSet().testMeshDistanceMT();
             //new TestDistanceToTriangleSet().testDistanceCalc();
-            new TestDistanceToTriangleSet().testMTCalc();
+            //new TestDistanceToTriangleSet().testMTCalc();
         }
     }
 }
