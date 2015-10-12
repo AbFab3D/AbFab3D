@@ -201,16 +201,16 @@ public class ImageGray16 {
      */
     public void convolute(double kernel[]){
         
-        int s = (m_width > m_height) ? m_width : m_height;
+        int s = Math.max(m_width, m_height);
         
-        int row[] = new int[s];
+        double row[] = new double[s];
         
         convoluteX(kernel, row);
         convoluteY(kernel, row);
         
     }
     
-    void convoluteX(double kernel[], int row[]){
+    void convoluteX(double kernel[], double row[]){
         
         int w = m_width;
         int h = m_height;
@@ -221,7 +221,7 @@ public class ImageGray16 {
         for(int y = 0; y < h; y++){
             
             // init accumulator array 
-            Arrays.fill(row, 0, w, 0);
+            Arrays.fill(row, 0, w, 0.);
             int offsety = y*w;
 
             for(int x = 0; x < w; x++){
@@ -234,16 +234,16 @@ public class ImageGray16 {
                     int xx = x - (k-ksize); //offsety + x + k;
 
                     xx = clamp(xx, 0, w1); // boundary conditions 
-                    row[x] += (int)(kernel[k] * us2i(data[offsety + xx]));                  
+                    row[x] += (kernel[k] * us2i(data[offsety + xx]));                  
                 }
             }             
             for(int x = 0; x < w; x++){
-                data[offsety + x] = (short)row[x];
+                data[offsety + x] = (short)(row[x]+0.5);
             }                            
         }
     }
     
-    void convoluteY(double kernel[], int row[]){
+    void convoluteY(double kernel[], double row[]){
 
         //TODO take into account boundary effects 
         int w = m_width;
@@ -253,7 +253,7 @@ public class ImageGray16 {
 
         for(int x = 0; x < w; x++){
             // init accumulator array 
-            Arrays.fill(row, 0, h, 0);
+            Arrays.fill(row, 0, h, 0.);
 
             for(int y = 0; y < h; y++){                
                 
@@ -262,12 +262,12 @@ public class ImageGray16 {
                 for(int k = 0; k < kernel.length; k++){
                     int yy = y - (k-ksize); 
                     yy = clamp(yy, 0, h1);
-                    row[y] += (int)(kernel[k] * us2i(data[yy*w + x])); 
+                    row[y] += (kernel[k] * us2i(data[yy*w + x])); 
                 }
             } 
             
             for(int y = 0; y < h; y++){
-                data[y*w + x] = (short)row[y];
+                data[y*w + x] = (short)(row[y]+0.5);
             }                    
         }
     } // convolute y 
