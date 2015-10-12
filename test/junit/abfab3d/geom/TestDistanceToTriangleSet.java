@@ -95,6 +95,7 @@ public class TestDistanceToTriangleSet extends TestCase {
     /**
      * Test that the mesh is close to the input mesh
      */
+    /*
     public void testMeshDistanceMT() {
         String path = "test/models";
 
@@ -118,7 +119,7 @@ public class TestDistanceToTriangleSet extends TestCase {
             assertTrue(file[i] + " contains too much error: " + d / MM + " mm", (d < 2.0 * vs[i]));
         }
     }
-
+    */
     /**
      * Test ST versus MT
      */
@@ -385,6 +386,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         return md.getHausdorffDistance();
     }
 
+    /*
     double calcMeshDistanceMT(String path, String filePath, double minVoxelSize, int post, int threads) {
 
         if(DEBUG) printf("makeTestSTL()\n");
@@ -538,6 +540,7 @@ public class TestDistanceToTriangleSet extends TestCase {
         }
     }
 
+*/
     /**
      * Create distance the old way
      */
@@ -567,6 +570,7 @@ public class TestDistanceToTriangleSet extends TestCase {
      * Create distance the new way
      * @return
      */
+    /*
     private AttributeGrid createDistanceNew(TriangleProducer tp, Bounds bounds, double vs, int m_svr, double maxDist, int threads) {
         double maxSize = max(max(bounds.getSizeX(),bounds.getSizeY()),bounds.getSizeZ());
         printf("max size: %7.2f mm\n", maxSize/MM);
@@ -591,7 +595,7 @@ public class TestDistanceToTriangleSet extends TestCase {
 
         return distGrid;
     }
-
+     */
     /**
        testing distance to sphere 
      */
@@ -852,7 +856,7 @@ public class TestDistanceToTriangleSet extends TestCase {
     public static void main(String arg[]) throws Exception {
 
         for(int i = 0; i < 1; i++){
-            new TestDistanceToTriangleSet().compareSpeeds();
+            //new TestDistanceToTriangleSet().compareSpeeds();
             //new TestDistanceToTriangleSet().testMeshDistanceMT();
             //new TestDistanceToTriangleSet().testDistanceCalc();
             //new TestDistanceToTriangleSet().testMTCalc();
