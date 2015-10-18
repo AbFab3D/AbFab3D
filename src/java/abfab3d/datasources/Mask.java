@@ -82,6 +82,22 @@ public class Mask extends TransformableDataSource {
     }
 
     /**
+     *
+     * @param ds  data source
+     */
+    public void setSource(DataSource ds) {
+        mp_data.setValue(ds);
+    }
+
+    public void setThreshold(double val) {
+        mp_threshold.setValue(new Double(val));
+    }
+
+    public void setThickness(double val) {
+        mp_thickness.setValue(new Double(val));
+    }
+
+    /**
        @noRefGuide
      */
     public int initialize(){
