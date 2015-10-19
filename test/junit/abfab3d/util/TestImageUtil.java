@@ -20,6 +20,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
 import static abfab3d.util.Output.printf;
+import static abfab3d.util.Output.fmt;
 
 /**
  * Test ImageUtil methods
@@ -40,17 +41,15 @@ public class TestImageUtil extends TestCase {
      * Test that the spacing of input to output is the same
      */
     public void testUb2us() {
-        printf("ub2us 0: %5d 1: %5d  2: %5d 127: %5d  128: %5d 254: %5d 255: %5d\n", ImageUtil.ub2us(0), ImageUtil.ub2us(1),ImageUtil.ub2us(2),ImageUtil.ub2us(127),ImageUtil.ub2us(0x80),ImageUtil.ub2us(0xFE),ImageUtil.ub2us(0xFF));
-
-        int last = -1;
-        for(int i=0; i < 127; i++) {
-            short val = ImageUtil.ub2us((byte)(0xFF & i));
-            if (last == -1) {
-                last = val;
-            } else {
-                assertTrue("same dist.  idx: " + i + " last: " + last + " this: " + val, last <= val);
-            }
+        //
+        // distance between values shoule be 0x101 = 257
+        //
+        for(int i = 0; i < 255; i++){
+            int s = ImageUtil.ub2us(i);
+            int s1 = ImageUtil.ub2us(i+1);
+            assertTrue(fmt("ub2us(0x%02x) = 0x%04x diff: 0x%04x", i, s, (s1-s)), (s1 - s) == 0x101);
+            //printf("ub2us(0x%02x) = 0x%04x  ub2us(0x%02x) = 0x%04x  diff: 0x%04x\n", i, s, (i+1), s1, s1 - s);
+            
         }
     }
-
 }
