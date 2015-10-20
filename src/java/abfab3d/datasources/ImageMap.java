@@ -104,6 +104,10 @@ public class ImageMap extends TransformableDataSource {
 
     };
 
+    // 
+    private ImageGray16 m_imageData;
+    private String m_savedParamString = "";    
+
     /**
      * Creates ImageMap from a file
      *
@@ -185,9 +189,6 @@ public class ImageMap extends TransformableDataSource {
     public double getBlurWidth() {
         return mp_blurWidth.getValue();
     }
-
-    // 
-    private ImageGray16 m_imageData;
     
     public int getBitmapWidth(){
         return m_imageData.getWidth();
@@ -217,6 +218,50 @@ public class ImageMap extends TransformableDataSource {
      */
     public int initialize() {
         super.initialize();
+
+        if(needToPrepareImage()){
+            int res = prepareImage();
+            if(res != RESULT_OK){ 
+                // something wrong with the image 
+                throw new IllegalArgumentException("undefined image");
+            }
+            saveImageData();
+        }
+
+        return RESULT_OK;
+        
+    }
+
+    /**
+       checks if params used to generate image have chaned 
+     * @noRefGuide
+     */
+    protected boolean needToPrepareImage(){
+        return 
+            (m_imageData == null) || 
+            !m_savedParamString.equals(getParamString(m_aparams));
+        
+    }
+
+    /**
+       saves params used to generate the image 
+     * @noRefGuide
+     */
+    protected void saveImageData(){ 
+        m_savedParamString = getParamString(m_aparams);
+        printf("ImageMap.savedParamString:\n%s",m_savedParamString);
+    }
+
+
+    /**
+     * @noRefGuide
+     */
+    private int prepareImage(){
+
+        long t0 = time();
+
+        printf("ImageMap.prepareImage()\n");
+
         Object imageSource = mp_imageSource.getValue();
         if(imageSource == null)
             throw new RuntimeException("imageSource is null");
@@ -243,9 +288,9 @@ public class ImageMap extends TransformableDataSource {
 
            m_imageData = new ImageGray16(((ImageWrapper)imageSource).getImage());
         } else if (imageSource instanceof Grid2DShort) {
-            long t0 = System.currentTimeMillis();
+            long t1 = System.currentTimeMillis();
             m_imageData = new ImageGray16(Grid2DShort.convertGridToImage((Grid2DShort)imageSource));
-            printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t0));
+            printf("Convert to grid.  time: %d ms\n",(System.currentTimeMillis() - t1));
         }
 
         if (m_imageData == null) {
@@ -284,19 +329,20 @@ public class ImageMap extends TransformableDataSource {
 
         double blurWidth = mp_blurWidth.getValue();
         if (blurWidth > 0.0) {
-            long t0 = System.currentTimeMillis();
+            long t1 = System.currentTimeMillis();
             double pixelSize = m_sizeX / m_imageSizeX;
 
             double blurSizePixels = blurWidth / pixelSize;
 
             m_imageData.gaussianBlur(blurSizePixels);
-            printf("gaussian blur: %7.2f  w: %5.5f ps: %4.5f time: %d ms\n", blurSizePixels, blurWidth, pixelSize,(System.currentTimeMillis() - t0));
+            printf("ImageMap image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
+                   m_imageSizeX, m_imageSizeY, blurSizePixels, blurWidth/MM, (time() - t1));
 
 
         }
 
-
-
+        printf("ImageMap.prepareImage() time: %d ms\n",(time() - t0));
+        
         return RESULT_OK;
     }
     

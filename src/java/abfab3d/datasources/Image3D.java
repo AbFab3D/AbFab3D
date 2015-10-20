@@ -138,7 +138,9 @@ public class Image3D extends TransformableDataSource {
     private double xscale, yscale, zscale;
     private boolean useGrayscale = true;
     private int imageWidth, imageHeight, imageWidth1, imageHeight1;
-    private ImageGray16 imageData;
+    private ImageGray16 m_imageData = null;
+    private String m_savedParamString = "";
+
 
     private ImageMipMapGray16 m_mipMap;
 
@@ -419,11 +421,11 @@ public class Image3D extends TransformableDataSource {
     }
 
     public int getBitmapWidth(){
-        return imageData.getWidth();
+        return m_imageData.getWidth();
     }
 
     public int getBitmapHeight(){
-        return imageData.getHeight();
+        return m_imageData.getHeight();
     }
 
     public void getBitmapData(byte data[]){
@@ -432,12 +434,12 @@ public class Image3D extends TransformableDataSource {
 
     public void getBitmapDataUByte(byte data[]){
 
-        int nx = imageData.getWidth();
-        int ny = imageData.getHeight();
+        int nx = m_imageData.getWidth();
+        int ny = m_imageData.getHeight();
         double base = m_baseThreshold;
         for(int y = 0;  y < ny; y++){
             for(int x = 0;  x < nx; x++){
-                double d = getImageHeight(x,y);//imageData.getDataD(x, y);
+                double d = getImageHeight(x,y);
                 // normalization to byte 
                 data[x + y * nx] = (byte)((int)(d * 0xFF) & 0xFF); 
             }
@@ -446,8 +448,8 @@ public class Image3D extends TransformableDataSource {
     // store bitmap data as 16 bit shorts 
     public void getBitmapDataUShort(byte data[]){
 
-        int nx = imageData.getWidth();
-        int ny = imageData.getHeight();
+        int nx = m_imageData.getWidth();
+        int ny = m_imageData.getHeight();
         int nx2 = nx*2;
         
         double base = m_baseThreshold;
@@ -476,13 +478,15 @@ public class Image3D extends TransformableDataSource {
         m_baseThickness = mp_baseThickness.getValue();
         m_imagePlace = mp_imagePlace.getValue();
 
-        int res = prepareImage();
-
-        if(res != RESULT_OK){ 
-            // something wrong with the image 
-            imageWidth = 2;
-            imageHeight = 2; 
-            throw new IllegalArgumentException("undefined image");
+        if(needToPrepareImage()){
+            int res = prepareImage();
+            if(res != RESULT_OK){ 
+                // something wrong with the image 
+                imageWidth = 2;
+                imageHeight = 2; 
+                throw new IllegalArgumentException("undefined image");
+            }
+            saveImageData();
         }
  
         
@@ -523,11 +527,29 @@ public class Image3D extends TransformableDataSource {
         }
 
         imageZScale = (zmax - imageZmin);
-
-        //int imageData[] = null;
-
         
         return RESULT_OK;
+    }
+
+
+    /**
+       checks if params used to generate image have chaned 
+     * @noRefGuide
+     */
+    protected boolean needToPrepareImage(){
+        return 
+            (m_imageData == null) || 
+            !m_savedParamString.equals(getParamString(m_aparam));
+        
+    }
+
+    /**
+       saves params used to generate the image 
+     * @noRefGuide
+     */
+    protected void saveImageData(){ 
+        m_savedParamString = getParamString(m_aparam);
+        printf("Image3D.savedParamString:\n%s",m_savedParamString);
     }
 
     /**
@@ -535,11 +557,13 @@ public class Image3D extends TransformableDataSource {
      */
     private int prepareImage(){
 
+        printf("Image3D.prepareImage();\n");
+
         long t0 = time();
 
         BufferedImage image = null;
 
-        printf("Image3D.  buff_image: %s\n",image);
+        //printf("Image3D.  buff_image: %s\n",image);
 
         if (m_image != null) {
             // image was supplied via memory 
@@ -547,7 +571,6 @@ public class Image3D extends TransformableDataSource {
             m_imagePath = MEMORY_IMAGE;
 
         } else if (m_imagePath == null) {
-            //imageDataByte = null; 
             return RESULT_ERROR;
             
         } else {
@@ -560,7 +583,7 @@ public class Image3D extends TransformableDataSource {
                 StackTraceElement[] st = Thread.currentThread().getStackTrace();
                 int len = Math.min(10, st.length);
                 for (int i = 1; i < len; i++) printf("\t\t %s\n", st[i]);
-                imageData = new ImageGray16(); // default black 1x1 image 
+                m_imageData = new ImageGray16(); // default black 1x1 image 
                 //e.printStackTrace();
                 return RESULT_ERROR;
             }
@@ -568,19 +591,19 @@ public class Image3D extends TransformableDataSource {
 
         if(DEBUG)printf("image %s [%d x %d ] reading done in %d ms\n", m_imagePath, image.getWidth(), image.getHeight(), (time() - t0));
 
-        t0 = time();
+        long t1 = time();
         short imageDataShort[] = ImageUtil.getGray16Data(image);
-        imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
+        m_imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
 
-        printf("image data size: done in %d ms\n", (time() - t0));
+        printf("imageSata done in %d ms\n", (time() - t1));
 
         if (!useGrayscale) {
-            imageData.makeBlackWhite(m_imageThreshold);
+            m_imageData.makeBlackWhite(m_imageThreshold);
         }
 
         if (m_voxelSize > 0.0) {
             // we have finite voxel size, try to scale the image down to reasonable size 
-            double pixelSize = (m_sizeX / (imageData.getWidth() * m_xTilesCount));
+            double pixelSize = (m_sizeX / (m_imageData.getWidth() * m_xTilesCount));
             double pixelsPerVoxel = m_voxelSize / pixelSize;
             printf("pixelsPerVoxel: %f\n", pixelsPerVoxel);
 
@@ -588,21 +611,21 @@ public class Image3D extends TransformableDataSource {
 
                 double newPixelSize = m_voxelSize / MAX_PIXELS_PER_VOXEL;
                 int newWidth = (int) Math.ceil((m_sizeX / m_xTilesCount) / newPixelSize);
-                int newHeight = (imageData.getHeight() * newWidth) / imageData.getWidth();
+                int newHeight = (m_imageData.getHeight() * newWidth) / m_imageData.getWidth();
                 printf("resampling image[%d x %d] -> [%d x %d]\n",
-                        imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
-                t0 = time();
+                        m_imageData.getWidth(), m_imageData.getHeight(), newWidth, newHeight);
+                t1 = time();
                 //short[] newData = getScaledDownData(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
-                short[] newData = getScaledDownDataBlack(imageDataShort, imageData.getWidth(), imageData.getHeight(), newWidth, newHeight);
+                short[] newData = getScaledDownDataBlack(imageDataShort, m_imageData.getWidth(), m_imageData.getHeight(), newWidth, newHeight);
 
                 printf("resampling image[%d x %d] -> [%d x %d]  done in %d ms\n",
-                        imageData.getWidth(), imageData.getHeight(), newWidth, newHeight, (time() - t0));
-                imageData = new ImageGray16(newData, newWidth, newHeight);
+                        m_imageData.getWidth(), m_imageData.getHeight(), newWidth, newHeight, (time() - t1));
+                m_imageData = new ImageGray16(newData, newWidth, newHeight);
             }
         }
 
-        imageWidth = imageData.getWidth();
-        imageHeight = imageData.getHeight();
+        imageWidth = m_imageData.getWidth();
+        imageHeight = m_imageData.getHeight();
         imageWidth1 = imageWidth - 1;
         imageHeight1 = imageHeight - 1;
         
@@ -612,17 +635,12 @@ public class Image3D extends TransformableDataSource {
 
             double pixelSize = (m_sizeX / (imageWidth * m_xTilesCount));
 
-            printf("pixelSize: %8.6f MM \n", pixelSize / MM);
-
             double blurSizePixels = blurWidth / pixelSize;
+            t1 = time();
+            m_imageData.gaussianBlur(blurSizePixels);
 
-            printf("gaussian blur: %7.2f\n", blurSizePixels);
-            t0 = time();
-
-            imageData.gaussianBlur(blurSizePixels);
-
-            printf("gaussian blur done: %d ms\n", time() - t0);
-
+            printf("Image3D image[%d x %d] gaussian blur: %7.2f pixels blur width: %10.5fmm time: %d ms\n", 
+                   imageWidth, imageHeight, blurSizePixels, blurWidth/MM, (time() - t1));
 
         }
         //char data[] = getBufferData(databuffer);
@@ -632,18 +650,17 @@ public class Image3D extends TransformableDataSource {
             t0 = time();
             m_mipMap = new ImageMipMapGray16(imageDataShort, imageWidth, imageHeight);
             // release imageData pointer 
-            imageData = null;
-
-            printf("mipmap ready in %d ms\n", (time() - t0));
+            m_imageData = null;
+            
+            if(DEBUG)printf("mipmap ready in %d ms\n", (time() - t0));
 
         } else {
 
             m_mipMap = null;
 
         }
-
-        if(DEBUG)printf("imageData: %s\n", imageData);
-
+        
+        printf("Image3D.prepareImage() time: %d ms\n", (time() - t0));
         return RESULT_OK;
 
     }
@@ -834,7 +851,7 @@ public class Image3D extends TransformableDataSource {
         double v = 0.;
 
         try {
-            v = imageData.getDataD(ix, iy);
+            v = m_imageData.getDataD(ix, iy);
         } catch (Exception e) {
             e.printStackTrace(Output.out);
         }
@@ -1051,23 +1068,12 @@ public class Image3D extends TransformableDataSource {
         int yoffset0 = y0 * imageWidth;
         int yoffset1 = y1 * imageWidth;
 
-        double d00 = imageData.getDataD(x0, y0);
-        double d10 = imageData.getDataD(x1, y0);
-        double d01 = imageData.getDataD(x0, y1);
-        double d11 = imageData.getDataD(x1, y1);
+        double d00 = m_imageData.getDataD(x0, y0);
+        double d10 = m_imageData.getDataD(x1, y0);
+        double d01 = m_imageData.getDataD(x0, y1);
+        double d11 = m_imageData.getDataD(x1, y1);
         return (dx1 * (d00 * dy1 + d01 * dy) + dx * (d11 * dy + d10 * dy1));
         
-        /*
-        int v00 = us2i(imageDataShort[yoffset0 + x0]);
-        int v10 = us2i(imageDataShort[yoffset0 + x1]);
-        int v01 = us2i(imageDataShort[yoffset1 + x0]);
-        int v11 = us2i(imageDataShort[yoffset1 + x1]);
-        
-        return SHORT_NORM*(dx1*(v00 * dy1 + v01 * dy) + dx * (v11 * dy + v10 * dy1));            
-        */
-        //x = x - imageWidth * Math.floor(x/imageWidth);
-        //y = y - imageHeight * Math.floor(y/imageHeight); 
-
     }
 
     double _getPixelLinear(double x, double y) {
@@ -1087,16 +1093,6 @@ public class Image3D extends TransformableDataSource {
 
         int i0 = ix + iy * imageWidth;
         double v00 = 0., v10 = 0., v01 = 0., v11 = 0.;
-        /*
-        try {
-            v00 = (0xFF) & ((int)imageDataByte[i0]);
-            v10 = (0xFF) & ((int)imageDataByte[i0 + 1]);
-            v01 = (0xFF) & ((int)imageDataByte[i0 + imageWidth]);
-            v11 = (0xFF) & ((int)imageDataByte[i0 + 1 + imageWidth]);
-        } catch (Exception e){}
-
-        return SHORT_NORM*(dx1*(v00 * dy1 + v01 * dy) + dx * (v11 * dy + v10 * dy1));            
-        */
         return 0.;
     }
 
@@ -1105,46 +1101,11 @@ public class Image3D extends TransformableDataSource {
         int ix = clamp((int) Math.floor(x), 0, imageWidth - 1);
         int iy = clamp((int) Math.floor(y), 0, imageHeight - 1);
 
-        return imageData.getDataD(ix, iy);
+        return m_imageData.getDataD(ix, iy);
 
-        //return SHORT_NORM*us2i(imageDataShort[ix + imageWidth * iy]);
+
 
     }
 
-    // BOX approximation with double colors 
-    /*
-    double getPixelBoxDouble(double x, double y){
-        
-        int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
-        int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
-        
-        int rgb = (0xFF) & ((int)imageDataByte[ix + iy * imageWidth]);
-        return rgb;
-        //ImageUtil.getPremultColor(rgb, ci);
-        //ImageUtil.combinePremultColors(m_backgroundColor, ci, cc, ci[ALPHA]);            
-        //return (cc[RED] + cc[GREEN] + cc[BLUE])/3.;
-        
-    }
-    */
-    // BOX approximation with int colors 
-    /*
-    int getPixelBoxInt(double x, double y){
-        
-        int ix = (int)x;
-        int iy = (int)y;
-        
-        //int ix = clamp((int)Math.floor(x), 0, imageWidth-1);
-        //int iy = clamp((int)Math.floor(y), 0, imageHeight-1);
-        //return imageData[ix + iy * imageWidth];
-        
-        int rgb = 0xFF & (int)imageDataByte[ix + iy * imageWidth];
-        return ImageUtil.getCombinedGray(m_backgroundColorInt, rgb);
-        
-    }
-    */
-}  // class DataSourceImageBitmap
+}  // class Image3D
 
-/*
-  Y - up image class 
-  public static class ImageBitmap_YUP implements DataSource, Initializable {
-*/

@@ -89,4 +89,19 @@ public class BaseParameterizable implements Parameterizable, SNode {
     public SNode[] getChildren() {
         return null;
     }
+
+    /**
+       saves array of parameters into a string 
+     */
+    public static String getParamString(Parameter aparam[]){
+        StringBuffer sb = new StringBuffer();
+        for(int i = 0; i < aparam.length; i++){
+            Parameter p = aparam[i];
+            sb.append(p.getName());
+            sb.append("=\"");
+            sb.append(p.getValue().toString());
+            sb.append(";");
+        }
+        return sb.toString();
+    }
 }
