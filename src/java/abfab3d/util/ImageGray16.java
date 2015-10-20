@@ -194,11 +194,6 @@ public class ImageGray16 {
         // use gaussian blur instead of distance transform 
         double[] kernel = MathUtil.getGaussianKernel(size, 0.001);
         convolute(kernel);
-
-        System.out.printf("Writing blur");
-        try { write("/tmp/blur.png",255); } catch(IOException ioe) {
-            ioe.printStackTrace();
-        }
     }
     
     
