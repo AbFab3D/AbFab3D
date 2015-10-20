@@ -572,13 +572,6 @@ public class Image3D extends TransformableDataSource {
         short imageDataShort[] = ImageUtil.getGray16Data(image);
         imageData = new ImageGray16(imageDataShort, image.getWidth(), image.getHeight());
 
-        if (DEBUG) {
-            try {
-                imageData.write("/tmp/image3d.png", 0xFF);
-            } catch(IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
         printf("image data size: done in %d ms\n", (time() - t0));
 
         if (!useGrayscale) {
